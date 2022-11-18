@@ -5,7 +5,9 @@ import os
 import docker
 from jinja2 import Template, FileSystemLoader, Environment
 
-def rundiag(cmd = None, machine_file=r'machine.yaml', diagnostic_file=r'diagnostic.yaml'):
+def rundiag(cmd = None, config = '.',
+            machine_file=r'machine.yaml',
+            diagnostic_file=r'diagnostic.yaml'):
     """
     Run a diagnostics in docker.
 
@@ -18,6 +20,8 @@ def rundiag(cmd = None, machine_file=r'machine.yaml', diagnostic_file=r'diagnost
         diagnostic_file (:obj:`str`, optional): Name of diagnostic defintion yaml file.
                                                 Could also be directly a :obj:`dict`.
                                                 Defaults to 'diagnostic.yaml'.
+        config (:obj:`str`, optional):          Path of directory containing config files and templates.
+                                                Defaults to '.'.
 
     Returns:
         The command text output.
@@ -43,7 +47,7 @@ def rundiag(cmd = None, machine_file=r'machine.yaml', diagnostic_file=r'diagnost
         with open(diagnostic_file) as file:
             diagcfg = yaml.load(file, Loader=yaml.FullLoader)
 
-    templateLoader = FileSystemLoader(searchpath="./templates")
+    templateLoader = FileSystemLoader(searchpath=f"{config}/templates")
     templateEnv = Environment(loader=templateLoader)
 
     # Now use jinja2 to render al top-level keys in recipe file
