@@ -1,0 +1,9 @@
+# The top level keys can be anything
+
+recipe: 
+    template: detect_nodes.sh.j2
+    target_volume: tempest
+    filename: detect_nodes.sh
+    parameters:
+# These are keyword which will substituted by jinja2
+        uv_file: uv_10m_ERA5_2010.nc
