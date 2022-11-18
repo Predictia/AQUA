@@ -6,6 +6,22 @@ import docker
 from jinja2 import Template, FileSystemLoader, Environment
 
 def rundiag(cmd = None, machine_file=r'machine.yaml', diagnostic_file=r'diagnostic.yaml'):
+    """
+    Run a diagnostics in docker.
+
+    Args:
+        cmd (:obj:`str`, optional):             The command to run, defined in machine.yaml.
+                                                Defaults to None.
+        machine_file (:obj:`str`, optional):    Name of machine defintion yaml file.
+                                                Could also be directly a :obj:`dict`.
+                                                Defaults to 'machine.yaml'.
+        diagnostic_file (:obj:`str`, optional): Name of diagnostic defintion yaml file.
+                                                Could also be directly a :obj:`dict`.
+                                                Defaults to 'diagnostic.yaml'.
+
+    Returns:
+        The command text output.
+    """
 
     if machine_file is dict:
         # We can also pass directly a dict because the config file has been read before
@@ -44,7 +60,7 @@ def rundiag(cmd = None, machine_file=r'machine.yaml', diagnostic_file=r'diagnost
         cmd_value = list(machinecfg['command'].values())[0]
     else:
         cmd_value = machinecfg['command'][cmd]
-        
+
     client = docker.from_env()
     output = client.containers.run(image=machinecfg['image'],
                         command=cmd_value, 
