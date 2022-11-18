@@ -19,7 +19,7 @@ ENV PATH=$CONDA_DIR/bin:$PATH
 
 RUN conda install -c conda-forge tempest-extremes
 
-WORKDIR /tempest
+WORKDIR /output
 #COPY detect_nodes.sh detect_nodes.sh
 
 # Run the application and print help

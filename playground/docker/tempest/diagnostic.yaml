@@ -2,7 +2,7 @@
 
 detect: 
     template: detect_nodes.sh.j2
-    target_volume: tempest
+    target_volume: output
     filename: detect_nodes.sh
     parameters:
 # These are keyword which will substituted by jinja2
@@ -10,7 +10,7 @@ detect:
 
 stitch: 
     template: stitch_nodes.sh.j2
-    target_volume: tempest
+    target_volume: output
     filename: stitch_nodes.sh
     parameters:
 # These are keyword which will substituted by jinja2

@@ -5,4 +5,4 @@ command:
     stitch: ['bash', './stitch_nodes.sh']
 volumes:
     data:     /work/users/jost/te/data
-    tempest: /home/jost/work/docker/tempest
+    output: /home/jost/work/docker/tempest
