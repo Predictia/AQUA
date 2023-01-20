@@ -1,0 +1,31 @@
+# Choice of interface
+interface: IFS+NEMO
+# Choice of model name. It is printed in the output table
+model:
+   name: IFS+NEMO
+
+dirs:
+   exp: 'EXPERIMENT FOLDER'
+   tab: /work/bb1153/b382076/ecmean/tables
+   clm: /home/b/b382076/AQUA/diagnostics/ecmean/ECmean4/ecmean/climatology
+   fig: /work/bb1153/b382076/ecmean/figures
+
+global:
+  atm_vars: [tas]
+  oce_vars: []
+  ice_vars: []
+  tab_vars: [tas]
+
+PI:
+  2d_vars:
+    field: [tas]
+  3d_vars:
+    field: []
+  oce_vars:
+    field: []
+  ice_vars:
+    field: []
+  regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
+  seasons: ['ALL', 'DJF', 'JJA']
+  resolution: r360x180
+

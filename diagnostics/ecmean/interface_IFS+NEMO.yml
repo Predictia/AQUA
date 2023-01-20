@@ -1,0 +1,60 @@
+# Configuration yaml file for EC-Earth4 model and variables
+# 
+# Possible filetype attributes for variables are defined in the model section
+# The full path is $basedir/$dir/$filename
+# 
+# basedir can be formatted with: expname
+# dir can be formatted with: expname
+# filename can be formatted with: expname, year1, year2, var
+#
+# The key 'component' is used to determine the specific type of grid fixes to apply
+# (defined in cdopipe for now)
+# 
+# We also have the concept of 'domain' (atm or oce) later used to choose which fix to apply
+# Each component belongs to one and only one domain
+
+# Definition of model name and components belonging to it
+model:
+  basedir: '{expname}'
+  component:
+    atm: oifs
+    oce: nemo
+
+# Definition of filetypes (specific for each component)
+# Each variable belongs to a filetype
+filetype: 
+  atm2d:
+    filename: '{expname}_atm_cmip6_1m_{year1}-{year2}_*.nc'
+    dir: output/oifs
+    component: oifs
+  atm3d:
+    filename: '{expname}_atm_cmip6_pl_1m_{year1}-{year2}_*.nc'
+    dir: output/oifs
+    component: oifs
+  oceT:
+    filename: '{expname}_oce_1m_T_{year1}-{year2}_*.nc'
+    dir: output/nemo
+    component: nemo
+  ice:
+    filename: '{expname}_ice_1m_{year1}-{year2}_*.nc'
+    dir: output/nemo
+    component: nemo
+
+# Specify additional properties of each component
+# such as inifiles, an extra help file containing 
+# info such as areas, used in set_gridfixes
+# inifile can be formatted with: expname
+# If a relative path is used this is attached to $ECEDIR/$basedir
+component:
+  oifs:
+    inifile: 'ICMGG{expname}INIT'
+    atmfile: 'output/oifs/{expname}_atm_cmip6_1m_{year1}-{year2}.nc'
+  nemo:
+    gridfile: nemo-initial-state.nc
+    areafile: domain_cfg.nc
+
+# Definition of individual variables
+variables:
+  tas:
+    varname: '2m Air Temperature'
+    filetype: atm2d 
