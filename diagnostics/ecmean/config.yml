@@ -5,20 +5,20 @@ model:
    name: IFS+NEMO
 
 dirs:
-   exp: 'EXPERIMENT FOLDER'
+   exp: /work/bm1235/a270046/cycle2-sync/monthly_means/
    tab: /work/bb1153/b382076/ecmean/tables
    clm: /home/b/b382076/AQUA/diagnostics/ecmean/ECmean4/ecmean/climatology
    fig: /work/bb1153/b382076/ecmean/figures
 
 global:
-  atm_vars: [tas]
+  atm_vars: [tas, pr, pme]
   oce_vars: []
   ice_vars: []
-  tab_vars: [tas]
+  tab_vars: [pr]
 
 PI:
   2d_vars:
-    field: [tas]
+    field: [tas, pr]
   3d_vars:
     field: []
   oce_vars:

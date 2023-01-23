@@ -17,28 +17,28 @@
 model:
   basedir: '{expname}'
   component:
-    atm: oifs
-    oce: nemo
+    atm: cmoratm
+    oce: cmoroce
 
 # Definition of filetypes (specific for each component)
 # Each variable belongs to a filetype
 filetype: 
   atm2d:
-    filename: '{expname}_atm_cmip6_1m_{year1}-{year2}_*.nc'
-    dir: output/oifs
-    component: oifs
+    filename: '{var2load}_{expname}.nc'
+    dir: ''
+    component: cmoratm
   atm3d:
-    filename: '{expname}_atm_cmip6_pl_1m_{year1}-{year2}_*.nc'
-    dir: output/oifs
-    component: oifs
+    filename: '{var2load}_{expname}.nc'
+    dir: ''
+    component: cmoratm
   oceT:
-    filename: '{expname}_oce_1m_T_{year1}-{year2}_*.nc'
-    dir: output/nemo
-    component: nemo
+    filename: '{var2load}_{expname}.nc'
+    dir: ''
+    component: cmoroce
   ice:
-    filename: '{expname}_ice_1m_{year1}-{year2}_*.nc'
-    dir: output/nemo
-    component: nemo
+    filename: '{var2load}_{expname}.nc'
+    dir: ''
+    component: cmoroce
 
 # Specify additional properties of each component
 # such as inifiles, an extra help file containing 
@@ -46,15 +46,24 @@ filetype:
 # inifile can be formatted with: expname
 # If a relative path is used this is attached to $ECEDIR/$basedir
 component:
-  oifs:
-    inifile: 'ICMGG{expname}INIT'
-    atmfile: 'output/oifs/{expname}_atm_cmip6_1m_{year1}-{year2}.nc'
-  nemo:
-    gridfile: nemo-initial-state.nc
-    areafile: domain_cfg.nc
+  cmoratm:
+    inifile: 'lsm_{expname}.nc'
+    atmfile: 'lsm_{expname}.nc'
+  cmoroce:
+    gridfile: 'sst_{expname}.nc'
+    areafile: ''
 
 # Definition of individual variables
 variables:
   tas:
-    varname: '2m Air Temperature'
+    derived: '2t'
+    varname: '2m Temperature'
     filetype: atm2d 
+  pr:
+    derived: 'tp'
+    varname: 'Total precipitation'
+    filetype: atm2d 
+  pme:
+    varname: 'Precip. minus evap.'
+    derived: 'tp+e'
+    filetype: atm2d
