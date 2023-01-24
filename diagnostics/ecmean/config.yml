@@ -11,20 +11,22 @@ dirs:
    fig: /work/bb1153/b382076/ecmean/figures
 
 global:
-  atm_vars: [tas, pr, pme]
-  oce_vars: []
-  ice_vars: []
-  tab_vars: [pr]
+  atm_vars: [tas, psl, pr, pme, cll, clm, clh,
+             pr_oce, pme_oce, pr_land, pme_land, 
+             net_toa, rsnt, rlnt, rsntcs, rlntcs]
+  oce_vars: [tos]
+  ice_vars: [siconc_north, siconc_south]
+  tab_vars: []
 
 PI:
   2d_vars:
-    field: [tas, pr]
+    field: [tas, pr, psl, tauu, tauv]
   3d_vars:
-    field: []
+    field: [ta, ua, va, hus]
   oce_vars:
-    field: []
+    field: [tos]
   ice_vars:
-    field: []
+    field: [siconc]
   regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
   seasons: ['ALL', 'DJF', 'JJA']
   resolution: r360x180

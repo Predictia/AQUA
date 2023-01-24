@@ -24,32 +24,37 @@ model:
 # Each variable belongs to a filetype
 filetype: 
   atm2d:
-    filename: '{var2load}_{expname}.nc'
+    filename: '{var}_{expname}.nc'
     dir: ''
     component: cmoratm
   atm3d:
-    filename: '{var2load}_{expname}.nc'
+    filename: '{var}_{expname}.nc'
     dir: ''
     component: cmoratm
   oceT:
-    filename: '{var2load}_{expname}.nc'
+    filename: '{var}_{expname}.nc'
     dir: ''
     component: cmoroce
   ice:
-    filename: '{var2load}_{expname}.nc'
+    filename: '{var}_{expname}.nc'
     dir: ''
     component: cmoroce
 
-# Specify additional properties of each component
-# such as inifiles, an extra help file containing 
-# info such as areas, used in set_gridfixes
-# inifile can be formatted with: expname
+# Specify additional inifiles  of each component
+# maskfile: where the land-sea mask is, fundamental for atmospheric component 
+# gridfile: where the properties of the grid can be extracted, can be a standard file
+# areafile: where the grid cell area is
+# please not that for both grid area computation and itnerpolation weight computation
+# the code will look in priority from areafile to gridfile to maskfile. 
+# inifile can be formatted with all the possible keywords listed above
 # If a relative path is used this is attached to $ECEDIR/$basedir
 component:
   cmoratm:
-    inifile: 'lsm_{expname}.nc'
-    atmfile: 'lsm_{expname}.nc'
+    maskfile: 'lsm_{expname}.nc'
+    gridfile: ''
+    areafile: ''
   cmoroce:
+    maskfile: ''
     gridfile: 'sst_{expname}.nc'
     areafile: ''
 
@@ -63,7 +68,104 @@ variables:
     derived: 'tp'
     varname: 'Total precipitation'
     filetype: atm2d 
+  evspsbl:
+    varname: Evaporation
+    derived: e
+    filetype: atm2d
   pme:
     varname: 'Precip. minus evap.'
+    derived: 'tp+e'
+    filetype: atm2d
+  ta: 
+    varname: 'Air Temperature'
+    derived: t
+    filetype: atm3d
+  ua:
+    varname: 'Zonal Wind'
+    derived: u
+    filetype: atm3d
+  va:
+    varname: 'Meridional Wind'
+    derived: v
+    filetype: atm3d
+  hus:
+    varname: 'Specific Humidity'
+    derived: q
+    filetype: atm3d
+  psl: 
+    varname: MSLP
+    filetype: atm2d
+    derived: msl
+  tauu: 
+    varname: 'Zonal Wind Stress'
+    derived: ewss
+    filetype: atm2d
+  tauv:
+    varname: 'Meridional Wind Stress'
+    derived: nsss
+    filetype: atm2d
+  cll:
+    derived: lcc
+    varname: 'Low cloud cover'
+    filetype: atm2d
+  clm:
+    derived: mcc
+    varname: 'Medium cloud cover'
+    filetype: atm2d
+  clh:
+    derived: hcc
+    varname: 'High cloud cover'
+    filetype: atm2d
+  siconc:
+    varname: 'Sea-ice Concentration'
+    derived: ci
+    filetype: ice
+  siconc_north:
+    varname: 'Sea-ice Concentration'
+    derived: ci
+    filetype: ice
+  siconc_south:
+    varname: 'Sea-ice Concentration'
+    derived: ci
+    filetype: ice
+  rlnt:
+    varname: 'TOA net LW'
+    derived: ttr
+    filetype: atm2d
+  rlntcs:
+    varname: 'TOA net LW'
+    derived: ttrc
+    filetype: atm2d
+  rsnt:
+    varname: 'TOA net SW'
+    derived: tsr
+    filetype: atm2d
+  rsntcs:
+    varname: 'TOA net SW, CS'
+    derived: tsrc
+    filetype: atm2d
+  net_toa:
+    varname: 'Net TOA'
+    units: W/m2
+    derived: 'tsr+ttr'
+    filetype: atm2d
+  tos:
+    varname: SST
+    derived: sst
+    filetype: oceT
+  pr_land:
+    varname: 'Precipitation (land)'
+    derived: tp
+    filetype: atm2d
+  pr_oce:
+    varname: 'Precipitation (ocean)'
+    derived: tp
+    filetype: atm2d
+  pme_land:
+    varname: 'Precip. minus evap. (land)'
+    derived: 'tp+e'
+    filetype: atm2d
+  pme_oce:
+    varname: 'Precip. minus evap. (ocean)'
     derived: 'tp+e'
     filetype: atm2d
