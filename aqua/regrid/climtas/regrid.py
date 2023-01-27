@@ -338,7 +338,7 @@ def apply_weights(source_data, weights, weights_matrix=None):
     #    )
 
     # Find dimensions to keep
-    nd = sum([(d not in ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude', 'latitude', 'ncells', 'values']) for d in source_data.dims])
+    nd = sum([(d not in ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude', 'latitude', 'cell', 'cells', 'ncells', 'values']) for d in source_data.dims])
 
     kept_shape = list(source_data.shape[0:nd])
     kept_dims = list(source_data.dims[0:nd])
@@ -393,7 +393,7 @@ def apply_weights(source_data, weights, weights_matrix=None):
 
     # If a regular grid drop the 'i' and 'j' dimensions
     if target_da.coords["lat"].ndim == 1 and target_da.coords["lon"].ndim == 1:
-        target_da = target_da.rename({"i": "lat", "j": "lon"})
+        target_da = target_da.swap_dims({"i": "lat", "j": "lon"})
 
     # Add metadata to the coordinates
     target_da.coords["lat"].attrs["units"] = "degrees_north"
@@ -434,6 +434,9 @@ class Regridder(object):
 
         # Is there already a weights file?
         if weights is not None:
+            #if isinstance(weights, xarray.Dataset):
+            #    self.weights = xarray.open_mfdataset(weights)
+            #else:
             self.weights = weights
         else:
             # Generate the weights with CDO
