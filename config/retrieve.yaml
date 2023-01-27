@@ -7,6 +7,9 @@ exp:
       R02B09:
          expid: ngc2009
          dataid: atm_2d_ml_R02B09
+      hpx:
+         expid: hpx
+         dataid: result
 
    IFS:
       tco2559-ng5:

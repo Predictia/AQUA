@@ -4,6 +4,13 @@ sources:
     driver: yaml_file_cat
     args:
         path: "{{CATALOG_DIR}}/ngc2009.yaml"
+
+  hpx:
+    description: Some Healpix data
+    driver: yaml_file_cat
+    args:
+        path: /home/m/m300827/healpix/ngc3002.yaml
+
   grids:
     description: ICON grids
     driver: yaml_file_cat
