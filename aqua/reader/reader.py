@@ -7,7 +7,7 @@ from aqua.util import load_yaml
 class Reader():
     """General reader for NextGEMS data (on Levante for now)"""
 
-    def __init__(self, model="ICON", exp="R02B09", regrid=None, method="ycon"):
+    def __init__(self, model="ICON", exp="tco2559-ng5", source=None, regrid=None, method="ycon"):
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
@@ -17,10 +17,11 @@ class Reader():
 
         cfg = load_yaml("config/retrieve.yaml")
 
-        self.mod = model
-        self.expid = cfg["exp"][model][exp]["expid"]
-        self.dataid = cfg["exp"][model][exp]["dataid"]
-
+        if source:
+            self.source = source
+        else:
+            self.source = list(self.cat[model][exp].keys())[0]  # take first source if none provided
+        
         if regrid:
             self.weightsfile =os.path.join(
                 cfg["regrid"]["weightsdir"],
@@ -32,7 +33,7 @@ class Reader():
                 print("Weights file not found:", self.weightsfile)
                
     def retrieve(self, regrid=False):
-        data = self.cat[self.mod][self.expid][self.dataid].to_dask()
+        data = self.cat[self.model][self.exp][self.source].to_dask()
         if self.targetgrid and regrid:
             data = self.regridder.regrid(data)
         return data

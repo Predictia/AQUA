@@ -12,8 +12,11 @@ def catalogue(verbose=True):
     cfg = load_yaml("config/retrieve.yaml")
     cat = intake.open_catalog(catalog_file)
     if verbose:
-        for model in cfg["exp"]:
-            for exp in cfg["exp"][model]:
-                expid = cfg["exp"][model][exp]["expid"]
-                print(model + '\t' + exp + '\t' + cat[model][expid].description)
+        for model,vm in cat.items():
+            for exp,ve in vm.items():
+                print(model + '\t' + exp + '\t' + cat[model][exp].description)
+                if exp != "grids":
+                    for k in cat[model][exp]:
+                        print('\t' + '- ' + k + '\t' + cat[model][exp][k].description)
+            print()
     return cat

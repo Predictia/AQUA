@@ -1,17 +1,3 @@
 regrid:
    weightsdir: /work/bb1153/b382075/nextgems/weights
    weightsfile: weights_{model}_{method}_{regrid}.nc
-
-exp:
-   ICON:
-      R02B09:
-         expid: ngc2009
-         dataid: atm_2d_ml_R02B09
-      hpx:
-         expid: hpx
-         dataid: result
-
-   IFS:
-      tco2559-ng5:
-         expid: tco2559-ng5
-         dataid: ICMGG_atm2d
