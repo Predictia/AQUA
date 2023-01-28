@@ -7,10 +7,11 @@ from aqua.util import load_yaml
 class Reader():
     """General reader for NextGEMS data (on Levante for now)"""
 
-    def __init__(self, model="ICON", exp="tco2559-ng5", source=None, regrid=None, method="ycon"):
+    def __init__(self, model="ICON", exp="tco2559-ng5", source=None, regrid=None, method="ycon", zoom=None):
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
+        self.zoom = zoom
 
         catalog_file = "config/catalog.yaml"
         self.cat = intake.open_catalog(catalog_file)
@@ -48,7 +49,10 @@ class Reader():
             self.regridder = rg.Regridder(weights=self.weights)
                
     def retrieve(self, regrid=False):
-        data = self.cat[self.model][self.exp][self.source].to_dask()
+        if self.zoom:
+            data = self.cat[self.model][self.exp][self.source](zoom=self.zoom).to_dask()
+        else:
+            data = self.cat[self.model][self.exp][self.source].to_dask()
         if self.targetgrid and regrid:
             data = self.regridder.regrid(data)
         return data
