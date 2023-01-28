@@ -15,7 +15,7 @@ class Reader():
         catalog_file = "config/catalog.yaml"
         self.cat = intake.open_catalog(catalog_file)
 
-        cfg = load_yaml("config/retrieve.yaml")
+        cfg_regrid = load_yaml("config/regrid.yaml")
 
         if source:
             self.source = source
@@ -24,13 +24,28 @@ class Reader():
         
         if regrid:
             self.weightsfile =os.path.join(
-                cfg["regrid"]["weightsdir"],
-                cfg["regrid"]["weightsfile"].format(model=model, method=method, regrid=regrid))
-            try: 
+                cfg_regrid["weights"]["path"],
+                cfg_regrid["weights"]["template"].format(model=model,
+                                                    exp=exp, 
+                                                    method=method, 
+                                                    target=regrid))
+            if os.path.exists(self.weightsfile):
                 self.weights = xr.open_mfdataset(self.weightsfile)
-                self.regridder = rg.Regridder(weights=self.weights)
-            except OSError:
+            else:
                 print("Weights file not found:", self.weightsfile)
+                print("Attempting to generate it ...")
+
+                weights = rg.cdo_generate_weights(source_grid=cfg_regrid["source_grids"][exp]["path"],
+                                                      target_grid=cfg_regrid["target_grids"][regrid], 
+                                                      method='ycon', 
+                                                      gridpath=cfg_regrid["paths"]["grids"],
+                                                      icongridpath=cfg_regrid["paths"]["icon"],
+                                                      extra=cfg_regrid["source_grids"][exp].get("extra", None))
+                weights.to_netcdf(self.weightsfile)
+                self.weights = weights
+                print("Success!")
+
+            self.regridder = rg.Regridder(weights=self.weights)
                
     def retrieve(self, regrid=False):
         data = self.cat[self.model][self.exp][self.source].to_dask()

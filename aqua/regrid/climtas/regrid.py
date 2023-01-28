@@ -52,6 +52,9 @@ def cdo_generate_weights(
     extrapolate=True,
     remap_norm="fracarea",
     remap_area_min=0.0,
+    icongridpath=None,
+    gridpath=None,
+    extra=None
 ):
     """
     Generate weights for regridding using CDO
@@ -77,6 +80,9 @@ def cdo_generate_weights(
         extrapolate (bool): Extrapolate output field
         remap_norm (str): Normalisation method for conservative methods
         remap_area_min (float): Minimum destination area fraction
+        gridpath (str): where to store downloaded grids
+        icongridpath (str): location of ICON grids (e.g. /pool/data/ICON)
+        extra: command to apply to source grid before weight generation
 
     Returns:
         :obj:`xarray.Dataset` with regridding weights
@@ -115,18 +121,36 @@ def cdo_generate_weights(
     env["CDO_REMAP_NORM"] = remap_norm
     env["REMAP_AREA_MIN"] = "%f" % (remap_area_min)
 
+    if gridpath:
+        env["CDO_DOWNLOAD_PATH"] = gridpath
+    if icongridpath:
+        env["CDO_ICON_GRIDS"] = icongridpath
+
     try:
         # Run CDO
-        subprocess.check_output(
-            [
-                "cdo",
-                "gen%s,%s" % (method, tgrid),
-                sgrid,
-                weight_file.name,
-            ],
-            stderr=subprocess.PIPE,
-            env=env,
-        )
+        if extra:
+            subprocess.check_output(
+                [
+                    "cdo",
+                    "gen%s,%s" % (method, tgrid),
+                    extra,
+                    sgrid,
+                    weight_file.name,
+                ],
+                stderr=subprocess.PIPE,
+                env=env,
+            )
+        else:
+            subprocess.check_output(
+                [
+                    "cdo",
+                    "gen%s,%s" % (method, tgrid),
+                    sgrid,
+                    weight_file.name,
+                ],
+                stderr=subprocess.PIPE,
+                env=env,
+            )
 
         # Grab the weights file it outputs as a xarray.Dataset
         weights = xarray.open_dataset(weight_file.name, engine="netcdf4")

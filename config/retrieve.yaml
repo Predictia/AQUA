@@ -1,3 +1,0 @@
-regrid:
-   weightsdir: /work/bb1153/b382075/nextgems/weights
-   weightsfile: weights_{model}_{method}_{regrid}.nc
