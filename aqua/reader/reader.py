@@ -10,6 +10,7 @@ class Reader():
     def __init__(self, model="ICON", exp="R02B09", regrid=None, method="ycon"):
         self.exp = exp
         self.model = model
+        self.targetgrid = regrid
 
         catalog_file = "config/catalog.yaml"
         self.cat = intake.open_catalog(catalog_file)
@@ -30,8 +31,10 @@ class Reader():
             except OSError:
                 print("Weights file not found:", self.weightsfile)
                
-    def retrieve(self):
+    def retrieve(self, regrid=False):
         data = self.cat[self.mod][self.expid][self.dataid].to_dask()
+        if self.targetgrid and regrid:
+            data = self.regridder.regrid(data)
         return data
 
     def regrid(self, data):
