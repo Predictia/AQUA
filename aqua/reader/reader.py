@@ -1,7 +1,7 @@
 import intake
 import xarray as xr
 import os
-from aqua import regrid as rg
+import smmregrid as rg
 from aqua.util import load_yaml
 
 class Reader():
