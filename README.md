@@ -6,3 +6,36 @@ This repo is thought to host the code development as well as the the discussion 
 AQUA framework will be based on a series of python3 libraries. Those pre- and post-processing libraries will be based on the `xarray+dask` framework so that they will be able to exploit out-of-core computation, fundamental to operate on the large volume of expected DE_340 data. 
 
 Diagnostics can be introduced within the AQUA framework making use of a specific python3 subpackage  or being accessed via containerized diagnostic (if pre-existing and written in non-python3 language).
+
+## Installation
+
+### create conda environment and install packages
+```
+conda env create -f requirements-py39.yml
+conda activate aqua
+
+```
+
+### Install additional modules
+
+```
+pip install docker
+pip install gribscan
+cd ../
+git clone https://github.com/jhardenberg/smmregrid.git
+cd smmregrid/
+pip install -e . 
+```
+
+### add kernel for DKRZ jupyterhub
+
+Documentation on adding kernels: https://docs.dkrz.de/doc/software%26services/jupyterhub/kernels.html#use-your-own-kernel
+
+It shoudl come down to:
+
+```
+pip install ipykernel
+python -m ipykernel install --user --name aqua --display-name="aqua"
+```
+
+
