@@ -42,3 +42,30 @@ sources:
       xarray_kwargs:
         decode_times: False
 
+  monthlyz:
+    description: monthly MSWEP_V280 data
+    driver: zarr
+    args:
+      consolidated: False
+      compat: override
+      combine: nested
+      urlpath: 
+      - reference::/work/bb1153/b382075/datasets/MSWEP_V280/mswep_past_monthly.json
+
+  dailyz:
+    description: daily MSWEP_V280 data
+    driver: zarr
+    args:
+      consolidated: False
+      compat: override
+      combine: nested
+      urlpath: 
+      - reference::/work/bb1153/b382075/datasets/MSWEP_V280/mswep_past_daily0.json
+      - reference::/work/bb1153/b382075/datasets/MSWEP_V280/mswep_past_daily1.json
+      - reference::/work/bb1153/b382075/datasets/MSWEP_V280/mswep_past_daily2.json
+      - reference::/work/bb1153/b382075/datasets/MSWEP_V280/mswep_past_daily3.json
+      - reference::/work/bb1153/b382075/datasets/MSWEP_V280/mswep_past_daily4.json
+      - reference::/work/bb1153/b382075/datasets/MSWEP_V280/mswep_past_daily5.json
+      - reference::/work/bb1153/b382075/datasets/MSWEP_V280/mswep_past_daily6.json
+      - reference::/work/bb1153/b382075/datasets/MSWEP_V280/mswep_past_daily7.json
+
