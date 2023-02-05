@@ -8,7 +8,24 @@ from aqua.util import load_yaml
 class Reader():
     """General reader for NextGEMS data (on Levante for now)"""
 
-    def __init__(self, model="ICON", exp="tco2559-ng5", source=None, regrid=None, method="ycon", zoom=None):
+    def __init__(self, model="ICON", exp="tco2559-ng5", source=None, 
+                 regrid=None, method="ycon", zoom=None):
+        """
+        The Reader constructor.
+        It uses the cataolog `config/config.yaml` to identify the required data.
+        
+        Arguments:
+            model (str):    the model ID
+            exp (str):      experiment ID
+            source (str):   source (ID)
+            regrid (str):   perform regridding to grid `regrid`, as defined in `config/regrid.yaml` (None)
+            method (str):   regridding method (ycon)
+            zoom (int):     healpix zoom level
+        
+        Returns:
+            A `Reader` class object.
+        """
+
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
@@ -50,24 +67,58 @@ class Reader():
             self.regridder = rg.Regridder(weights=self.weights)
 
                
-    def retrieve(self, regrid=False, fix=True):
+    def retrieve(self, regrid=False, fix=True, apply_unit_fix=False):
+        """
+        Perform a data retrieve.
+        
+        Arguments:
+            regrid (bool):          if to regrid the retrieved data (False)
+            fix (bool):             if to perform a fix (var name, units, coord name adjustments) (True)
+            apply_unit_fix (bool):  if to already adjust units by multiplying by a factor or adding
+                                    an offset (this can also be done later with the `fix_units` method) (False)
+        Returns:
+            A xarray.Dataset containing the required data.
+        """
+
         if self.zoom:
             data = self.cat[self.model][self.exp][self.source](zoom=self.zoom).to_dask()
         else:
             data = self.cat[self.model][self.exp][self.source].to_dask()
         if self.targetgrid and regrid:
-            data = self.regridder.regrid(data)
+            data = self.regridder.regrid(data)  # XXX check attrs
         if fix:
-            data = self.fixer(data)
+            data = self.fixer(data, apply_unit_fix=apply_unit_fix)
         return data
 
     def regrid(self, data):
+        """
+        Perform regridding of the input dataset.
+        
+        Arguments:
+            data (xr.Dataset):  the input xarray.Dataset
+        Returns:
+            A xarray.Dataset containing the regridded data.
+        """
+
         # save attributes (not conserved by smmregrid)
         out = self.regridder.regrid(data)
         out.attrs = data.attrs
         return out
     
-    def fixer(self, data):
+    def fixer(self, data, apply_unit_fix=False):
+        """
+        Perform fixes (var name, units, coord name adjustments) of the input dataset.
+        
+        Arguments:
+            data (xr.Dataset):      the input dataset
+            apply_unit_fix (bool):  if to perform immediately unit conversions (which requite a product or an addition). 
+                                    The fixer sets anyway an offset or a multiplicative factor in the data attributes.
+                                    These can be applied also later with the method `fix_units`. (false)
+
+        Returns:
+            A xarray.Dataset containing the fixed data and target units, factors and offsets in variable attributes.
+        """
+
         fixes = load_yaml("config/fixes.yaml")
         model=self.model
 
@@ -76,23 +127,25 @@ class Reader():
             print("No fixes defined for model ", model)
             return data
 
-        self.deltat = fix.get("deltat", 1)
+        self.deltat = fix.get("deltat", 1.0)
         fixd = {}
         allvars = data.variables
         for var in fix["vars"]:
-                    shortname = fix["vars"][var]["short_name"]
-                    if var in allvars: 
-                        fixd.update({f"{var}": f"{shortname}"})
-                        src_units = fix["vars"][var].get("src_units", None)
-                        if src_units:
-                            data[var].attrs.update({"units": "degC"})
-                        units = fix["vars"][var]["units"]
-                        if units.count('{'):
-                            units = fixes["defaults"]["units"][units.replace('{','').replace('}','')]                
-                        data[var].attrs.update({"target_units": units})
-                        factor, offset = self.convert_units(data[var].units, units, var)
-                        data[var].attrs.update({"factor": factor})
-                        data[var].attrs.update({"offset": offset})
+            shortname = fix["vars"][var]["short_name"]
+            if var in allvars: 
+                fixd.update({f"{var}": f"{shortname}"})
+                src_units = fix["vars"][var].get("src_units", None)
+                if src_units:
+                    data[var].attrs.update({"units": src_units})
+                units = fix["vars"][var]["units"]
+                if units.count('{'):
+                    units = fixes["defaults"]["units"][units.replace('{','').replace('}','')]                
+                data[var].attrs.update({"target_units": units})
+                factor, offset = self.convert_units(data[var].units, units, var)
+                data[var].attrs.update({"factor": factor})
+                data[var].attrs.update({"offset": offset})
+                if apply_unit_fix:
+                    self.apply_unit_fix(data[var])
 
         allcoords = data.coords
         for coord in fix["coords"]:
@@ -104,6 +157,17 @@ class Reader():
         return data.rename(fixd)
 
     def convert_units(self, src, dst, var="input var"):
+        """
+        Converts source to destination units using metpy.
+        
+        Arguments:
+            src (str):  source units
+            dst (str):  destination units
+            var (str):  variable name (optional, used only for diagnostic output)
+
+        Returns:
+            factor, offset (float): a factor and an offset to convert the input data (None if not needed).
+        """
         factor = units(src).to_base_units() / units(dst).to_base_units()
         offset = ((0 * units(src)) - (0 * units(dst))).to(units(dst))
         
@@ -128,3 +192,22 @@ class Reader():
             factor = factor.magnitude
         return factor, offset
     
+    def apply_unit_fix(self, data):
+        """
+        Applies unit fixes stored in variable attributes (target_units, factor and offset)
+        
+        Arguments:
+            data (xr.DataArray):  input DataArray            
+        """
+        target_units = data.get(target_units, None)
+        if target_units:
+            data.units = target_units
+            factor = data.get(factor, None)
+            offset = data.get(offset, None)
+            if factor:
+                data.values *= factor
+            if offset:
+                data.values += offset
+
+
+        

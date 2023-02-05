@@ -28,8 +28,8 @@ models:
     FESOM:
         vars:
             temp: 
-                src_units: degC
                 short_name: to
+                src_units: degC
                 units: "{temperature}"
 
         coords:
