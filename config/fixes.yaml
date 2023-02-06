@@ -32,11 +32,11 @@ models:
                 src_units: degC
                 units: "{temperature}"
 
-        coords:
-            latitude:
-                name: "{latitude}"
-            longitude:
-                name: "{longitude}"
+        # coords:
+        #     latitude:
+        #         name: "{latitude}"
+        #     longitude:
+        #         name: "{longitude}"
 
     MSWEP:
         vars:

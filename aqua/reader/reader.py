@@ -67,7 +67,7 @@ class Reader():
             self.regridder = rg.Regridder(weights=self.weights)
 
                
-    def retrieve(self, regrid=False, fix=True, apply_unit_fix=False):
+    def retrieve(self, regrid=False, fix=True, apply_unit_fix=True):
         """
         Perform a data retrieve.
         
@@ -75,7 +75,7 @@ class Reader():
             regrid (bool):          if to regrid the retrieved data (False)
             fix (bool):             if to perform a fix (var name, units, coord name adjustments) (True)
             apply_unit_fix (bool):  if to already adjust units by multiplying by a factor or adding
-                                    an offset (this can also be done later with the `fix_units` method) (False)
+                                    an offset (this can also be done later with the `fix_units` method) (True)
         Returns:
             A xarray.Dataset containing the required data.
         """
@@ -148,7 +148,9 @@ class Reader():
                     self.apply_unit_fix(data[var])
 
         allcoords = data.coords
-        for coord in fix["coords"]:
+        fixcoord = fix.get("coords", None)
+        if fixcoord:
+            for coord in fixcoord:
                     newcoord = fix["coords"][coord]["name"]
                     newcoord = fixes["defaults"]["coords"][newcoord.replace('{','').replace('}','')] 
                     if coord in allcoords: 
@@ -169,9 +171,10 @@ class Reader():
             factor, offset (float): a factor and an offset to convert the input data (None if not needed).
         """
         factor = units(src).to_base_units() / units(dst).to_base_units()
-        offset = ((0 * units(src)) - (0 * units(dst))).to(units(dst))
-        
-        if factor.units != units("dimensionless").units:
+
+        if factor.units == units('dimensionless'):
+            offset = (0 * units(src)).to(units(dst)) - (0 * units(dst))
+        else:
             if factor.units == "meter ** 3 / kilogram":
                 # Density of water was missing
                 factor = factor * 1000 * units("kg m-3")
@@ -183,6 +186,7 @@ class Reader():
                 print(f"{var}: corrected dividing by accumulation time {self.deltat} s")
             else:
                 print(f"{var}: incommensurate units converting {src} to {dst} --> {factor.units}")
+            offset = 0 * units(dst)
 
         if offset.magnitude != 0:
             factor = None
@@ -199,15 +203,17 @@ class Reader():
         Arguments:
             data (xr.DataArray):  input DataArray            
         """
-        target_units = data.get(target_units, None)
+        target_units = data.attrs.get("target_units", None)
         if target_units:
-            data.units = target_units
-            factor = data.get(factor, None)
-            offset = data.get(offset, None)
+            d = {"src_units": data.attrs["units"], "units_fixed": True}
+            data.attrs.update(d)
+            data.attrs["units"] = target_units
+            factor = data.attrs.get("factor", None)
+            offset = data.attrs.get("offset", None)
             if factor:
-                data.values *= factor
+                data *= factor
             if offset:
-                data.values += offset
+                data += offset
 
 
         
