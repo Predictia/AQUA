@@ -2,13 +2,12 @@ name: aqua
 channels:
   - conda-forge
 dependencies:
-  - python=3.9
+  - python>=3.9,<3.11
   - pyYAML
   - xarray
   - intake
   - dask
-  - sparse
-  - numpy==1.23.5
+  - numpy
   - jinja2
   - tqdm
   - udunits2
@@ -19,3 +18,14 @@ dependencies:
   - matplotlib
   - cartopy
   - healpy
+  - ipykernel
+  - cfunits
+  - metpy
+  - cdo
+  - pip
+  - pip:
+    - sparse
+    - docker
+    - gribscan
+    - git+https://github.com/jhardenberg/smmregrid.git
+
