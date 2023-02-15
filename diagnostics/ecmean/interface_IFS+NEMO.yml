@@ -149,6 +149,14 @@ variables:
     units: W/m2
     derived: 'tsr+ttr'
     filetype: atm2d
+  swcf:
+    varname: 'SW CRE'
+    derived: 'tsr-tsrc'
+    filetype: atm2d
+  lwcf:
+    varname: 'LW CRE'
+    derived: 'ttr-ttrc'
+    filetype: atm2d
   tos:
     varname: SST
     derived: sst
@@ -169,3 +177,28 @@ variables:
     varname: 'Precip. minus evap. (ocean)'
     derived: 'tp+e'
     filetype: atm2d
+  rlns:
+    varname: 'Surface net LW'
+    filetype: atm2d
+    derived: str
+  rsns:
+    varname: 'Surface net SW'
+    filetype: atm2d
+    derived: ssr
+  hfss:
+    varname: 'Surface SH'
+    filetype: atm2d
+    derived: slhf
+  hfls:
+    varname: 'Surface LH'
+    filetype: atm2d
+    derived: sshf
+  net_sfc_nosn:
+    varname: 'Net Surface (no snowfall)'
+    filetype: atm2d
+    derived: 'str+ssr+slhf+sshf'
+  net_sfc:
+    varname: 'Net Surface'
+    units: W/m2
+    filetype: atm2d
+    derived: 'str+ssr+slhf+sshf-prsn*334000'
