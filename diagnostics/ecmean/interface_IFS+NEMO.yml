@@ -201,4 +201,13 @@ variables:
     varname: 'Net Surface'
     units: W/m2
     filetype: atm2d
-    derived: 'str+ssr+slhf+sshf-prsn*334000'
+    derived: 'str+ssr+slhf+sshf-sf*334000000'
+  toamsfc:
+    varname: 'TOA-Sfc net radiation'
+    units: W/m2
+    filetype: atm2d
+    derived: 'tsr+ttr-str-ssr-slhf-sshf+sf*334000000'
+  toamsfc_nosn:
+    varname: 'TOA-Sfc net rad. (no snowfall)'
+    filetype: atm2d
+    derived: 'tsr+ttr-str-ssr-slhf-sshf'

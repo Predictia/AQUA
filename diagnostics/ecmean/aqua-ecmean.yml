@@ -42,5 +42,5 @@ dependencies:
     - docker
     - gribscan
     - git+https://github.com/jhardenberg/smmregrid.git
-    - git+https://github.com/oloapinivad/ECmean4
+    # git+https://github.com/oloapinivad/ECmean4 # this does not work
 
