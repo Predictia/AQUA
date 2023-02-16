@@ -1,13 +1,11 @@
 import intake
-import xarray as xr
 import os
-from aqua.util import load_yaml
 
-def catalogue(verbose=True):
+def catalogue(verbose=True, configdir='config'):
 
     """Catalogue of available NextGEMS data (on Levante for now)"""
 
-    catalog_file = "config/catalog.yaml"
+    catalog_file = os.path.join(configdir, "catalog.yaml")
     cat = intake.open_catalog(catalog_file)
     if verbose:
         for model,vm in cat.items():
