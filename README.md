@@ -9,23 +9,15 @@ Diagnostics can be introduced within the AQUA framework making use of a specific
 
 ## Installation
 
+All the modules, including the smmregrid regridder, are now within the environment file. The code works on both py3.10 and py3.9 (not CI yet)
+
 ### create conda environment and install packages
 ```
-conda env create -f requirements-py39.yml
+conda env create -f environment.yml
 conda activate aqua
 
 ```
 
-### Install additional modules
-
-```
-pip install docker
-pip install gribscan
-cd ../
-git clone https://github.com/jhardenberg/smmregrid.git
-cd smmregrid/
-pip install -e . 
-```
 
 ### add kernel for DKRZ jupyterhub
 
