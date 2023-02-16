@@ -1,6 +1,6 @@
 weights:
    path: /work/bb1153/b382075/nextgems/weights
-   template: weights_{model}_{exp}_{method}_{target}.nc
+   template: weights_{model}_{exp}_{source}_{method}_{target}.nc
 
 paths:
   grids: /work/bb1153/b382075/nextgems/weights
@@ -16,6 +16,38 @@ target_grids:
 
 # extra is an extra special cdo command to be applied before generating the weights
 source_grids:
+  IFS:
+    tco3999-ng5:
+      default:
+        path: /work/bm1235/a270046/cycle2-sync/tcogrids/2.8km/tcogrids/tco3999_grid.nc
+    tco2559-ng5:
+      default:
+        path: /work/bm1235/a270046/cycle2-sync/tcogrids/4km/tcogrids/tco2559_grid.nc
+      ICMGG_atm2d:
+        path: /work/bm1235/a270046/cycle2-sync/tcogrids/4km/tcogrids/tco2559_grid.nc
+    tco1279-orca025:
+      default: 
+        path: /work/bm1235/a270046/cycle2-sync/tcogrids/9km/tcogrids/tco1279_grid.nc
+  ICON:
+    ngc2009:
+      default: 
+        path: /pool/data/ICON/grids/public/mpim/0015/icon_grid_0015_R02B09_G.nc
+        extra: "-selname,cell_index" 
+    hpx:
+  FESOM:
+    tco3999-ng5:  
+      default:
+        path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_2d.nc
+      interpolated_global2d:
+        path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_2d.nc
+    tco2559-ng5:
+      default:
+        path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_2d.nc
+  MSWEP:
+    past:
+      monthly:
+      daily:
+      3hourly:
   tco3999-ng5: 
     path: /work/bm1235/a270046/cycle2-sync/tcogrids/2.8km/tcogrids/tco3999_grid.nc
   tco2559-ng5: 
@@ -25,6 +57,3 @@ source_grids:
   ngc2009: 
     path: /pool/data/ICON/grids/public/mpim/0015/icon_grid_0015_R02B09_G.nc
     extra: "-selname,cell_index" 
-
-
-
