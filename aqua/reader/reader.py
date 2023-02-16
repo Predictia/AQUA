@@ -50,14 +50,21 @@ class Reader():
                 cfg_regrid["weights"]["template"].format(model=model,
                                                     exp=exp, 
                                                     method=method, 
-                                                    target=regrid))
+                                                    target=regrid,
+                                                    source=self.source))
             if os.path.exists(self.weightsfile):
                 self.weights = xr.open_mfdataset(self.weightsfile)
             else:
                 print("Weights file not found:", self.weightsfile)
                 print("Attempting to generate it ...")
-
-                weights = rg.cdo_generate_weights(source_grid=cfg_regrid["source_grids"][exp]["path"],
+                
+                source_grid = cfg_regrid["source_grids"][self.model][self.exp].get(self.source, None)
+                if not source_grid:
+                    source_grid = cfg_regrid["source_grids"][self.model][self.exp]["default"]
+                    print("using default path ", source_grid["path"])
+                else:
+                    print("using path ", source_grid["path"])
+                weights = rg.cdo_generate_weights(source_grid=source_grid["path"],
                                                       target_grid=cfg_regrid["target_grids"][regrid], 
                                                       method='ycon', 
                                                       gridpath=cfg_regrid["paths"]["grids"],
@@ -217,10 +224,10 @@ class Reader():
             offset = 0 * units(dst)
 
         if offset.magnitude != 0:
-            factor = None
+            factor = 1
             offset = offset.magnitude
         else:
-            offset = None
+            offset = 0
             factor = factor.magnitude
         return factor, offset
     
@@ -233,14 +240,14 @@ class Reader():
         """
         target_units = data.attrs.get("target_units", None)
         if target_units:
-            d = {"src_units": data.attrs["units"], "units_fixed": True}
+            d = {"src_units": data.attrs["units"], "units_fixed": 1}
             data.attrs.update(d)
             data.attrs["units"] = target_units
-            factor = data.attrs.get("factor", None)
-            offset = data.attrs.get("offset", None)
-            if factor:
+            factor = data.attrs.get("factor", 1)
+            offset = data.attrs.get("offset", 0)
+            if factor != 1:
                 data *= factor
-            if offset:
+            if offset != 0:
                 data += offset
 
 
