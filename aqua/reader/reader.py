@@ -10,7 +10,7 @@ class Reader():
     """General reader for NextGEMS data (on Levante for now)"""
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
-                 regrid=None, method="ycon", zoom=None, configdir = 'config'):
+                 regrid=None, method="ycon", zoom=None, configdir = 'config', areas=True):
         """
         The Reader constructor.
         It uses the cataolog `config/config.yaml` to identify the required data.
@@ -23,6 +23,7 @@ class Reader():
             method (str):   regridding method (ycon)
             zoom (int):     healpix zoom level
             configdir (str) Folder where the config/catalog files are (config)
+            areas (bool):   compute pixel areas if needed 
         
         Returns:
             A `Reader` class object.
@@ -33,6 +34,9 @@ class Reader():
         self.targetgrid = regrid
         self.zoom = zoom
         self.freq = freq
+        self.areas = None
+        self.src_areas = None
+        self.dst_areas = None
 
         catalog_file = os.path.join(configdir, "catalog.yaml")
         self.cat = intake.open_catalog(catalog_file)
@@ -75,6 +79,10 @@ class Reader():
                 print("Success!")
 
             self.regridder = rg.Regridder(weights=self.weights)
+        
+
+
+
 
                
     def retrieve(self, regrid=False, average=False, fix=True, apply_unit_fix=True):
