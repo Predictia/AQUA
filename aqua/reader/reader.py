@@ -10,7 +10,7 @@ class Reader():
     """General reader for NextGEMS data (on Levante for now)"""
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
-                 regrid=None, method="ycon", zoom=None, configdir = 'config'):
+                 regrid=None, method="ycon", zoom=None, configdir = 'config', level=None):
         """
         The Reader constructor.
         It uses the cataolog `config/config.yaml` to identify the required data.
@@ -23,6 +23,7 @@ class Reader():
             method (str):   regridding method (ycon)
             zoom (int):     healpix zoom level
             configdir (str) Folder where the config/catalog files are (config)
+            level (int):    level to extract if input data are 3D (starting from 0)
         
         Returns:
             A `Reader` class object.
@@ -33,11 +34,22 @@ class Reader():
         self.targetgrid = regrid
         self.zoom = zoom
         self.freq = freq
+        self.level = level
+        extra = ""
 
         catalog_file = os.path.join(configdir, "catalog.yaml")
         self.cat = intake.open_catalog(catalog_file)
 
         cfg_regrid = load_yaml(os.path.join(configdir,"regrid.yaml"))
+
+        self.vertcoord = cfg_regrid["source_grids"][self.model][self.exp]["default"].get("vertcoord", None) # Some more checks needed
+        if level is not None:
+            if not self.vertcoord:
+                raise KeyError("You should specify a vertcoord key in regrid.yaml for this source to use levels.")
+            extra = f"-sellevidx,{level+1} "
+
+        if (level is None) and regrid and self.vertcoord:
+            raise RuntimeError("This is a masked 3d source: you should specify a specific level.")
 
         if source:
             self.source = source
@@ -51,7 +63,8 @@ class Reader():
                                                     exp=exp, 
                                                     method=method, 
                                                     target=regrid,
-                                                    source=self.source))
+                                                    source=self.source,
+                                                    level=("2d" if level is None else level)))
             if os.path.exists(self.weightsfile):
                 self.weights = xr.open_mfdataset(self.weightsfile)
             else:
@@ -69,7 +82,7 @@ class Reader():
                                                       method='ycon', 
                                                       gridpath=cfg_regrid["paths"]["grids"],
                                                       icongridpath=cfg_regrid["paths"]["icon"],
-                                                      extra=cfg_regrid["source_grids"][exp].get("extra", None))
+                                                      extra=extra + source_grid.get("extra", ""))
                 weights.to_netcdf(self.weightsfile)
                 self.weights = weights
                 print("Success!")
@@ -94,6 +107,10 @@ class Reader():
             data = self.cat[self.model][self.exp][self.source](zoom=self.zoom).to_dask()
         else:
             data = self.cat[self.model][self.exp][self.source].to_dask()
+
+        # select only a specific level when reading. Level coord names defined in regrid.yaml
+        if self.level is not None:
+            data = data.isel({self.vertcoord: self.level})
 
         # sequence which should be more efficient: averaging - regridding - fixing
         if self.freq and average:

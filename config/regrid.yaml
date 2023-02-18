@@ -1,6 +1,6 @@
 weights:
    path: /work/bb1153/b382075/nextgems/weights
-   template: weights_{model}_{exp}_{source}_{method}_{target}.nc
+   template: weights_{model}_{exp}_{source}_{method}_{target}_l{level}.nc
 
 paths:
   grids: /work/bb1153/b382075/nextgems/weights
@@ -34,15 +34,21 @@ source_grids:
         path: /pool/data/ICON/grids/public/mpim/0015/icon_grid_0015_R02B09_G.nc
         extra: "-selname,cell_index" 
     hpx:
+      default:
+        path:
   FESOM:
     tco3999-ng5:  
       default:
         path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_2d.nc
+        vertcoord: depth
       interpolated_global2d:
         path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_2d.nc
     tco2559-ng5:
       default:
         path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_2d.nc
+        vertcoord: depth
+      interpolated_global_TS:
+        path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_3d.nc
   MSWEP:
     past:
       monthly:
