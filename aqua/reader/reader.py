@@ -35,21 +35,11 @@ class Reader():
         self.zoom = zoom
         self.freq = freq
         self.level = level
+        self.vertcoord = None
         extra = ""
 
         catalog_file = os.path.join(configdir, "catalog.yaml")
         self.cat = intake.open_catalog(catalog_file)
-
-        cfg_regrid = load_yaml(os.path.join(configdir,"regrid.yaml"))
-
-        self.vertcoord = cfg_regrid["source_grids"][self.model][self.exp]["default"].get("vertcoord", None) # Some more checks needed
-        if level is not None:
-            if not self.vertcoord:
-                raise KeyError("You should specify a vertcoord key in regrid.yaml for this source to use levels.")
-            extra = f"-sellevidx,{level+1} "
-
-        if (level is None) and regrid and self.vertcoord:
-            raise RuntimeError("This is a masked 3d source: you should specify a specific level.")
 
         if source:
             self.source = source
@@ -57,6 +47,21 @@ class Reader():
             self.source = list(self.cat[model][exp].keys())[0]  # take first source if none provided
         
         if regrid:
+            cfg_regrid = load_yaml(os.path.join(configdir,"regrid.yaml"))
+
+            source_grid = cfg_regrid["source_grids"][self.model][self.exp].get(self.source, None)
+            if not source_grid:
+                source_grid = cfg_regrid["source_grids"][self.model][self.exp]["default"]
+
+            self.vertcoord = source_grid.get("vertcoord", None) # Some more checks needed
+            if level is not None:
+                if not self.vertcoord:
+                    raise KeyError("You should specify a vertcoord key in regrid.yaml for this source to use levels.")
+                extra = f"-sellevidx,{level+1} "
+
+            if (level is None) and self.vertcoord:
+                raise RuntimeError("This is a masked 3d source: you should specify a specific level.")
+
             self.weightsfile =os.path.join(
                 cfg_regrid["weights"]["path"],
                 cfg_regrid["weights"]["template"].format(model=model,
@@ -70,13 +75,7 @@ class Reader():
             else:
                 print("Weights file not found:", self.weightsfile)
                 print("Attempting to generate it ...")
-                
-                source_grid = cfg_regrid["source_grids"][self.model][self.exp].get(self.source, None)
-                if not source_grid:
-                    source_grid = cfg_regrid["source_grids"][self.model][self.exp]["default"]
-                    print("using default path ", source_grid["path"])
-                else:
-                    print("using path ", source_grid["path"])
+                print("Source grid: ", source_grid["path"])
                 weights = rg.cdo_generate_weights(source_grid=source_grid["path"],
                                                       target_grid=cfg_regrid["target_grids"][regrid], 
                                                       method='ycon', 
