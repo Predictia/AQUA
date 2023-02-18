@@ -53,6 +53,10 @@ source_grids:
         vertcoord: depth
       original_2d:
         path: /work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc
+        extra: 
+          - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc 
+          - -selname,cell_area 
+
       
   MSWEP:
     past:

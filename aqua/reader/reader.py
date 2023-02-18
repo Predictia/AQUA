@@ -36,7 +36,7 @@ class Reader():
         self.freq = freq
         self.level = level
         self.vertcoord = None
-        extra = ""
+        extra = []
 
         catalog_file = os.path.join(configdir, "catalog.yaml")
         self.cat = intake.open_catalog(catalog_file)
@@ -76,14 +76,25 @@ class Reader():
                 print("Weights file not found:", self.weightsfile)
                 print("Attempting to generate it ...")
                 print("Source grid: ", source_grid["path"])
+
+                # hack to  pass a correct list of all options
+                src_extra = source_grid.get("extra", [])
+                if src_extra:
+                    if not isinstance(src_extra, list):
+                        src_extra = [src_extra]
+                if extra:
+                    extra = [extra] 
+                extra = extra + src_extra
+
                 weights = rg.cdo_generate_weights(source_grid=source_grid["path"],
                                                       target_grid=cfg_regrid["target_grids"][regrid], 
                                                       method='ycon', 
                                                       gridpath=cfg_regrid["paths"]["grids"],
                                                       icongridpath=cfg_regrid["paths"]["icon"],
-                                                      extra=extra + source_grid.get("extra", ""))
+                                                      extra=extra)
                 weights.to_netcdf(self.weightsfile)
-                self.weights = weights
+                # For some weird reason it is better to reopen this from file ... to be investigated. It was failing for FESOM on orig. grid
+                self.weights = xr.open_mfdataset(self.weightsfile)
                 print("Success!")
 
             self.regridder = rg.Regridder(weights=self.weights)
