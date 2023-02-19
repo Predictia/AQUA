@@ -61,6 +61,7 @@ class Reader():
 
         self.src_space_coord = source_grid.get("space_coord", None)
         self.space_coord = self.src_space_coord
+        self.dst_space_coord = ["lon", "lat"]
 
         if regrid:
             self.vertcoord = source_grid.get("vertcoord", None) # Some more checks needed
@@ -138,8 +139,12 @@ class Reader():
                                                     gridpath=cfg_regrid["paths"]["grids"],
                                                     icongridpath=cfg_regrid["paths"]["icon"],
                                                     extra=src_extra)
+                # Make sure that the new DataArray uses the expected spatial dimensions
+                grid_area = self._rename_dims(grid_area, self.space_coord)
                 self.src_grid_area = grid_area                           
                 self.src_grid_area.to_netcdf(self.src_areafile)
+                # ... aaand we reopen it because soething is still not ok with our treatment of temp files
+                self.src_grid_area = xr.open_mfdataset(self.src_areafile)
                 print("Success!")
 
             if regrid:
@@ -288,6 +293,7 @@ class Reader():
         out = self.regridder.regrid(data)
 
         out.attrs["regridded"]=1
+        # set these two to the target grid (but they are actually not used so far)
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
         return out
@@ -314,6 +320,60 @@ class Reader():
    
         return out
 
+
+    def _check_if_regridded(self, data):
+        """
+        Checks if a dataset or Datarray has been regridded.
+
+        Arguments:
+            data (xr.DataArray or xarray.DataDataset):  the input data
+        Returns:
+            A boolean value
+        """
+
+        if isinstance(data, xr.Dataset):
+            att = list(data.data_vars.values())[0].attrs
+        else:
+            att = data.attrs
+        
+        return att.get("regridded", False)
+        
+
+    def _rename_dims(self, da, dim_list):
+        """
+        Renames the dimensions of a DataArray so that any dimension which is already in `dim_list` keeps its name, 
+        and the others are renamed to whichever other dimension name is in `dim_list`. 
+        If `da` has only one dimension with a name which is different from that in `dim_list`, it is renamed to that new name. 
+        If it has two coordinate names (e.g. "lon" and "lat") which appear also in `dim_list`, these are not touched.
+
+        Parameters
+        ----------
+        da : xarray.DataArray
+            The input DataArray to rename.
+        dim_list : list of str
+            The list of dimension names to use. 
+        Returns
+        -------
+        xarray.DataArray
+            A new DataArray with the renamed dimensions.
+        """
+
+        dims = list(da.dims)
+        # Lisy of dims which are already there
+        shared_dims = list(set(dims) & set(dim_list))
+        # List of dims in B which are not in space_coord
+        extra_dims = list(set(dims) - set(dim_list))
+        # List of dims in da which are not in dim_list
+        new_dims = list(set(dim_list) - set(dims))
+        i=0
+        da_out = da
+        for dim in extra_dims:
+            if dim not in shared_dims:
+                da_out = da.rename({dim: new_dims[i]})
+                i+=1
+        return da_out
+
+
     def fldmean(self, data):
         """
         Perform a weighted global average.
@@ -324,16 +384,24 @@ class Reader():
             the value of the averaged field
         """
 
+        # If these data have been regridded we should use the destination grid info
+        if self._check_if_regridded(data):
+            space_coord = self.dst_space_coord
+            grid_area = self.dst_grid_area
+        else:
+            space_coord = self.src_space_coord
+            grid_area = self.src_grid_area
+
         # Trick (for now) to make sure that they share EXACTLY the same grid 
         # unfortunately even differences O(1e-14) can prevent elementwise multiplication to fail
         # Ideally the grid_areas should already be on the correct grid, to be fixed
-        ga = self.grid_area.assign_coords({coord: data.coords[coord] for coord in self.space_coord})
+        ga = grid_area.assign_coords({coord: data.coords[coord] for coord in space_coord})
 
         prod = data * ga
         print(prod.shape)  # Still debugging, make sure that dimensions are ok
 
         # Masks are not implemented yet
-        out = prod.mean(self.space_coord, skipna=True) /  self.grid_area.mean(self.space_coord) 
+        out = prod.mean(space_coord, skipna=True) /  grid_area.mean(space_coord) 
 
         return out
     
