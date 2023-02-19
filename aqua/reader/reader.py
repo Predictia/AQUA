@@ -59,6 +59,9 @@ class Reader():
         if not source_grid:
             source_grid = cfg_regrid["source_grids"][self.model][self.exp]["default"]
 
+        self.src_space_coord = source_grid.get("space_coord", None)
+        self.space_coord = self.src_space_coord
+
         if regrid:
             self.vertcoord = source_grid.get("vertcoord", None) # Some more checks needed
             if level is not None:
@@ -163,7 +166,7 @@ class Reader():
             Generate grid areas using CDO
 
             Args:
-                source (xarray.DataArray): Source grid
+                source (xarray.DataArray or str): Source grid
                 gridpath (str): where to store downloaded grids
                 icongridpath (str): location of ICON grids (e.g. /pool/data/ICON)
                 extra: command(s) to apply to source grid before weight generation (can be a list)
@@ -283,9 +286,10 @@ class Reader():
         """
 
         out = self.regridder.regrid(data)
-        #out.attrs = data.attrs #smmregrid exports now attributes
+
         out.attrs["regridded"]=1
         self.grid_area = self.dst_grid_area
+        self.space_coord = ["lon", "lat"]
         return out
     
     def average(self, data):
@@ -308,6 +312,29 @@ class Reader():
             except: 
                 sys.exit('Cant find a frequency to resample')
    
+        return out
+
+    def fldmean(self, data):
+        """
+        Perform a weighted global average.
+
+        Arguments:
+            data (xr.DataArray or xarray.DataDataset):  the input data
+        Returns:
+            the value of the averaged field
+        """
+
+        # Trick (for now) to make sure that they share EXACTLY the same grid 
+        # unfortunately even differences O(1e-14) can prevent elementwise multiplication to fail
+        # Ideally the grid_areas should already be on the correct grid, to be fixed
+        ga = self.grid_area.assign_coords({coord: data.coords[coord] for coord in self.space_coord})
+
+        prod = data * ga
+        print(prod.shape)  # Still debugging, make sure that dimensions are ok
+
+        # Masks are not implemented yet
+        out = prod.mean(self.space_coord, skipna=True) /  self.grid_area.mean(self.space_coord) 
+
         return out
     
     def fixer(self, data, apply_unit_fix=False):
