@@ -73,9 +73,13 @@ source_grids:
           - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc 
           - -selname,cell_area 
 
-      
   MSWEP:
     past:
-      monthly:
-      daily:
-      3hourly:
+      default:
+        path: /home/b/b382075/work/datasets/MSWEP_V280/Past/Monthly/200001.nc
+        space_coord: ["lon", "lat"]
+
+
+
+
+
