@@ -144,7 +144,7 @@ class Reader():
                 self.src_grid_area = grid_area                           
                 self.src_grid_area.to_netcdf(self.src_areafile)
                 # ... aaand we reopen it because soething is still not ok with our treatment of temp files
-                self.src_grid_area = xr.open_mfdataset(self.src_areafile)
+                self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
                 print("Success!")
 
             if regrid:
@@ -280,6 +280,7 @@ class Reader():
             data = self.fixer(data, apply_unit_fix=apply_unit_fix)
         return data
 
+
     def regrid(self, data):
         """
         Perform regridding of the input dataset.
@@ -339,6 +340,41 @@ class Reader():
         return att.get("regridded", False)
         
 
+    def _get_spatial_sample(self, da, space_coord):
+        """
+        Selects a single spatial sample along the dimensions specified in `space_coord`.
+
+        Arguments:
+            da (xarray.DataArray): Input data array to select the spatial sample from.
+            space_coord (list of str): List of dimension names corresponding to the spatial coordinates to select.
+            
+        Returns:
+            Data array containing a single spatial sample along the specified dimensions.
+        """
+
+        dims = list(da.dims)
+        extra_dims = list(set(dims) - set(space_coord))
+        da_out = da.isel({dim: 0 for dim in extra_dims})
+        return da_out
+
+
+    def _mask_like(self, da, db):
+        """
+        Masks a dataarray with the same shape as another data array, using the missing values of the first array.
+
+        Arguments:
+            da (xarray.DataArray): The data array whose missing values are used for masking.
+            db (xarray.DataArray): The data array to be masked.
+
+        Returns:
+            A masked data array with the same shape as `db`, where the missing values of `da` are replaced with NaNs.
+        """
+        space_coord = db.dims
+        da_sel = self._get_spatial_sample(da, space_coord)
+        mask = xr.where(da_sel.isnull(), True, False) 
+        return xr.where(mask, float('nan'), db)
+
+
     def _rename_dims(self, da, dim_list):
         """
         Renames the dimensions of a DataArray so that any dimension which is already in `dim_list` keeps its name, 
@@ -393,15 +429,17 @@ class Reader():
             grid_area = self.src_grid_area
 
         # Trick (for now) to make sure that they share EXACTLY the same grid 
-        # unfortunately even differences O(1e-14) can prevent elementwise multiplication to fail
+        # unfortunately even differences O(1e-14) can lead elementwise multiplication to fail
         # Ideally the grid_areas should already be on the correct grid, to be fixed
         ga = grid_area.assign_coords({coord: data.coords[coord] for coord in space_coord})
+
+        gam = self._mask_like(data, ga)
 
         prod = data * ga
         print(prod.shape)  # Still debugging, make sure that dimensions are ok
 
         # Masks are not implemented yet
-        out = prod.mean(space_coord, skipna=True) /  grid_area.mean(space_coord) 
+        out = prod.mean(space_coord, skipna=True) /  gam.mean(space_coord) 
 
         return out
     
