@@ -4,12 +4,13 @@ import os
 from metpy.units import units
 import smmregrid as rg
 from aqua.util import load_yaml
+import sys
 
 class Reader():
     """General reader for NextGEMS data (on Levante for now)"""
 
-    def __init__(self, model="ICON", exp="tco2559-ng5", source=None, 
-                 regrid=None, method="ycon", zoom=None):
+    def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
+                 regrid=None, method="ycon", zoom=None, configdir = 'config'):
         """
         The Reader constructor.
         It uses the cataolog `config/config.yaml` to identify the required data.
@@ -21,6 +22,7 @@ class Reader():
             regrid (str):   perform regridding to grid `regrid`, as defined in `config/regrid.yaml` (None)
             method (str):   regridding method (ycon)
             zoom (int):     healpix zoom level
+            configdir (str) Folder where the config/catalog files are (config)
         
         Returns:
             A `Reader` class object.
@@ -30,11 +32,12 @@ class Reader():
         self.model = model
         self.targetgrid = regrid
         self.zoom = zoom
+        self.freq = freq
 
-        catalog_file = "config/catalog.yaml"
+        catalog_file = os.path.join(configdir, "catalog.yaml")
         self.cat = intake.open_catalog(catalog_file)
 
-        cfg_regrid = load_yaml("config/regrid.yaml")
+        cfg_regrid = load_yaml(os.path.join(configdir,"regrid.yaml"))
 
         if source:
             self.source = source
@@ -47,14 +50,21 @@ class Reader():
                 cfg_regrid["weights"]["template"].format(model=model,
                                                     exp=exp, 
                                                     method=method, 
-                                                    target=regrid))
+                                                    target=regrid,
+                                                    source=self.source))
             if os.path.exists(self.weightsfile):
                 self.weights = xr.open_mfdataset(self.weightsfile)
             else:
                 print("Weights file not found:", self.weightsfile)
                 print("Attempting to generate it ...")
-
-                weights = rg.cdo_generate_weights(source_grid=cfg_regrid["source_grids"][exp]["path"],
+                
+                source_grid = cfg_regrid["source_grids"][self.model][self.exp].get(self.source, None)
+                if not source_grid:
+                    source_grid = cfg_regrid["source_grids"][self.model][self.exp]["default"]
+                    print("using default path ", source_grid["path"])
+                else:
+                    print("using path ", source_grid["path"])
+                weights = rg.cdo_generate_weights(source_grid=source_grid["path"],
                                                       target_grid=cfg_regrid["target_grids"][regrid], 
                                                       method='ycon', 
                                                       gridpath=cfg_regrid["paths"]["grids"],
@@ -67,7 +77,7 @@ class Reader():
             self.regridder = rg.Regridder(weights=self.weights)
 
                
-    def retrieve(self, regrid=False, fix=True, apply_unit_fix=True):
+    def retrieve(self, regrid=False, average=False, fix=True, apply_unit_fix=True):
         """
         Perform a data retrieve.
         
@@ -84,6 +94,10 @@ class Reader():
             data = self.cat[self.model][self.exp][self.source](zoom=self.zoom).to_dask()
         else:
             data = self.cat[self.model][self.exp][self.source].to_dask()
+
+        # sequence which should be more efficient: averaging - regridding - fixing
+        if self.freq and average:
+            data = self.average(data)
         if self.targetgrid and regrid:
             data = self.regridder.regrid(data)  # XXX check attrs
         if fix:
@@ -100,9 +114,30 @@ class Reader():
             A xarray.Dataset containing the regridded data.
         """
 
-        # save attributes (not conserved by smmregrid)
         out = self.regridder.regrid(data)
-        out.attrs = data.attrs
+        #out.attrs = data.attrs #smmregrid exports now attributes
+        return out
+    
+    def average(self, data):
+        """
+        Perform daily and monthly averaging
+
+        Arguments:
+            data (xr.Dataset):  the input xarray.Dataset
+        Returns:
+            A xarray.Dataset containing the regridded data.
+        """
+
+        if self.freq == 'mon':
+            out = data.resample(time='M').mean()
+        elif self.freq == 'day':
+            out = data.resample(time='D').mean()
+        else: 
+            try: 
+                out = data.resample(time=self.freq).mean()
+            except: 
+                sys.exit('Cant find a frequency to resample')
+   
         return out
     
     def fixer(self, data, apply_unit_fix=False):
@@ -189,10 +224,10 @@ class Reader():
             offset = 0 * units(dst)
 
         if offset.magnitude != 0:
-            factor = None
+            factor = 1
             offset = offset.magnitude
         else:
-            offset = None
+            offset = 0
             factor = factor.magnitude
         return factor, offset
     
@@ -205,14 +240,14 @@ class Reader():
         """
         target_units = data.attrs.get("target_units", None)
         if target_units:
-            d = {"src_units": data.attrs["units"], "units_fixed": True}
+            d = {"src_units": data.attrs["units"], "units_fixed": 1}
             data.attrs.update(d)
             data.attrs["units"] = target_units
-            factor = data.attrs.get("factor", None)
-            offset = data.attrs.get("offset", None)
-            if factor:
+            factor = data.attrs.get("factor", 1)
+            offset = data.attrs.get("offset", 0)
+            if factor != 1:
                 data *= factor
-            if offset:
+            if offset != 0:
                 data += offset
 
 
