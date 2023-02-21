@@ -15,7 +15,7 @@ class Reader():
                  regrid=None, method="ycon", zoom=None, configdir = 'config', level=None, areas=True):
         """
         The Reader constructor.
-        It uses the cataolog `config/config.yaml` to identify the required data.
+        It uses the catalog `config/config.yaml` to identify the required data.
         
         Arguments:
             model (str):    model ID
@@ -45,6 +45,7 @@ class Reader():
         self.src_grid_area = None
         self.dst_grid_area = None
 
+        self.configdir = configdir
         catalog_file = os.path.join(configdir, "catalog.yaml")
         self.cat = intake.open_catalog(catalog_file)
 
@@ -457,7 +458,7 @@ class Reader():
             A xarray.Dataset containing the fixed data and target units, factors and offsets in variable attributes.
         """
 
-        fixes = load_yaml("config/fixes.yaml")
+        fixes = load_yaml(os.path.join(self.configdir, "fixes.yaml"))
         model=self.model
 
         fix = fixes["models"].get(model, None)
