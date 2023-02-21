@@ -141,6 +141,7 @@ class Reader():
                                                     extra=src_extra)
                 # Make sure that the new DataArray uses the expected spatial dimensions
                 grid_area = self._rename_dims(grid_area, self.space_coord)
+                
                 self.src_grid_area = grid_area                           
                 self.src_grid_area.to_netcdf(self.src_areafile)
                 # ... aaand we reopen it because soething is still not ok with our treatment of temp files
