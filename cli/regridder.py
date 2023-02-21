@@ -116,4 +116,8 @@ if __name__ == "__main__":
     main(modelname=model, expname=exp, sourcename=source, resolution=resolution,
         frequency=frequency, varlist=varlist, outdir=outdir)
     
+    # shutdown the cluster
+    if workers > 1:
+        client.close()
+    
     logging.info('Everything completed... goodbye!')
