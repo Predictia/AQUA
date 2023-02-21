@@ -19,9 +19,10 @@ conda activate aqua
 # config
 model='IFS'
 exp='tco2559-ng5'
+source='ICMGG_atm2d'
 res='r100'
 freq='mon'
 workers=8
 
 # run the Python script
-./regridder.py -m ${model} -e ${exp} -r ${res} -f ${freq} -w ${workers} -o /home/b/b382076/work/lowres${workers}
+./regridder.py -m ${model} -e ${exp} -s ${source} -r ${res} -f ${freq} -w ${workers} -o /work/bb1153/b382289/IFSlowres
