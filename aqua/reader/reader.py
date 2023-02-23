@@ -35,6 +35,8 @@ class Reader():
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
+        if (exp == "hpx") and not zoom:
+            zoom = 9
         self.zoom = zoom
         self.freq = freq
         self.level = level
@@ -85,8 +87,9 @@ class Reader():
             if os.path.exists(self.weightsfile):
                 self.weights = xr.open_mfdataset(self.weightsfile)
             else:
-
-                sgridpath = source_grid["path"].format(zoom=(9-zoom))
+                sgridpath = source_grid["path"]
+                if zoom:
+                    sgridpath = sgridpath.format(zoom=(9-zoom))            
                 print("Weights file not found:", self.weightsfile)
                 print("Attempting to generate it ...")
                 print("Source grid: ", sgridpath)
@@ -133,7 +136,9 @@ class Reader():
             if os.path.exists(self.src_areafile):
                 self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
             else:
-                sgridpath = source_grid["path"].format(zoom=(9-zoom))
+                sgridpath = source_grid["path"]
+                if zoom:
+                    sgridpath = sgridpath.format(zoom=(9-zoom)) 
                 print("Source areas file not found:", self.src_areafile)
                 print("Attempting to generate it ...")
                 print("Source grid: ", sgridpath)
