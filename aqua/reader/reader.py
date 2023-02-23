@@ -5,24 +5,28 @@ from metpy.units import units
 import smmregrid as rg
 from aqua.util import load_yaml
 import sys
+import subprocess
+import tempfile
 
 class Reader():
     """General reader for NextGEMS data (on Levante for now)"""
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
-                 regrid=None, method="ycon", zoom=None, configdir = 'config'):
+                 regrid=None, method="ycon", zoom=None, configdir = 'config', level=None, areas=True):
         """
         The Reader constructor.
-        It uses the cataolog `config/config.yaml` to identify the required data.
+        It uses the catalog `config/config.yaml` to identify the required data.
         
         Arguments:
-            model (str):    the model ID
+            model (str):    model ID
             exp (str):      experiment ID
-            source (str):   source (ID)
+            source (str):   source ID
             regrid (str):   perform regridding to grid `regrid`, as defined in `config/regrid.yaml` (None)
             method (str):   regridding method (ycon)
             zoom (int):     healpix zoom level
-            configdir (str) Folder where the config/catalog files are (config)
+            configdir (str) Folder where the config/catalog files are located (config)
+            level (int):    level to extract if input data are 3D (starting from 0)
+            areas (bool):   compute pixel areas if needed (True)
         
         Returns:
             A `Reader` class object.
@@ -33,7 +37,15 @@ class Reader():
         self.targetgrid = regrid
         self.zoom = zoom
         self.freq = freq
+        self.level = level
+        self.vertcoord = None
+        extra = []
 
+        self.grid_area = None
+        self.src_grid_area = None
+        self.dst_grid_area = None
+
+        self.configdir = configdir
         catalog_file = os.path.join(configdir, "catalog.yaml")
         self.cat = intake.open_catalog(catalog_file)
 
@@ -44,39 +56,202 @@ class Reader():
         else:
             self.source = list(self.cat[model][exp].keys())[0]  # take first source if none provided
         
+        source_grid = cfg_regrid["source_grids"][self.model][self.exp].get(self.source, None)
+        if not source_grid:
+            source_grid = cfg_regrid["source_grids"][self.model][self.exp]["default"]
+
+        self.src_space_coord = source_grid.get("space_coord", None)
+        self.space_coord = self.src_space_coord
+        self.dst_space_coord = ["lon", "lat"]
+
         if regrid:
+            self.vertcoord = source_grid.get("vertcoord", None) # Some more checks needed
+            if level is not None:
+                if not self.vertcoord:
+                    raise KeyError("You should specify a vertcoord key in regrid.yaml for this source to use levels.")
+                extra = f"-sellevidx,{level+1} "
+
+            if (level is None) and self.vertcoord:
+                raise RuntimeError("This is a masked 3d source: you should specify a specific level.")
+
             self.weightsfile =os.path.join(
                 cfg_regrid["weights"]["path"],
                 cfg_regrid["weights"]["template"].format(model=model,
                                                     exp=exp, 
                                                     method=method, 
                                                     target=regrid,
-                                                    source=self.source))
+                                                    source=self.source,
+                                                    level=("2d" if level is None else level)))
             if os.path.exists(self.weightsfile):
                 self.weights = xr.open_mfdataset(self.weightsfile)
             else:
+
+                sgridpath = source_grid["path"].format(zoom=(9-zoom))
                 print("Weights file not found:", self.weightsfile)
                 print("Attempting to generate it ...")
-                
-                source_grid = cfg_regrid["source_grids"][self.model][self.exp].get(self.source, None)
-                if not source_grid:
-                    source_grid = cfg_regrid["source_grids"][self.model][self.exp]["default"]
-                    print("using default path ", source_grid["path"])
-                else:
-                    print("using path ", source_grid["path"])
-                weights = rg.cdo_generate_weights(source_grid=source_grid["path"],
+                print("Source grid: ", sgridpath)
+
+                # hack to  pass a correct list of all options
+                src_extra = source_grid.get("extra", [])
+                if src_extra:
+                    if not isinstance(src_extra, list):
+                        src_extra = [src_extra]
+                if extra:
+                    extra = [extra] 
+                extra = extra + src_extra
+                weights = rg.cdo_generate_weights(source_grid=sgridpath,
                                                       target_grid=cfg_regrid["target_grids"][regrid], 
                                                       method='ycon', 
                                                       gridpath=cfg_regrid["paths"]["grids"],
                                                       icongridpath=cfg_regrid["paths"]["icon"],
-                                                      extra=cfg_regrid["source_grids"][exp].get("extra", None))
+                                                      extra=extra)
                 weights.to_netcdf(self.weightsfile)
-                self.weights = weights
+                # For some weird reason it is better to reopen this from file ... to be investigated. It was failing for FESOM on orig. grid
+                self.weights = xr.open_mfdataset(self.weightsfile)
                 print("Success!")
 
             self.regridder = rg.Regridder(weights=self.weights)
 
-               
+            #if areas:
+                # All needed areas have already been computed by the regridding procedure
+                #planet_radius = 6371000  # same default as cdo
+                #r2 = planet_radius * planet_radius
+                #self.src_grid_area = self.weights.src_grid_area * r2
+                #self.dst_grid_area = self.weights.dst_grid_area * r2
+                #self.src_grid_area.attrs['units'] = 'm2'
+                #self.dst_grid_area.attrs['units'] = 'm2'
+                #self.src_grid_area.attrs['standard_name'] = 'area'
+                #self.dst_grid_area.attrs['standard_name'] = 'area'
+                #self.src_grid_area.attrs['long_name'] = 'area of grid cell'
+                #self.dst_grid_area.attrs['long_name'] = 'area of grid cell'
+                #self.grid_area = self.src_grid_area
+        
+        if areas:
+            self.src_areafile =os.path.join(
+                cfg_regrid["areas"]["path"],
+                cfg_regrid["areas"]["src_template"].format(model=model, exp=exp, source=self.source))
+            if os.path.exists(self.src_areafile):
+                self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
+            else:
+                sgridpath = source_grid["path"].format(zoom=(9-zoom))
+                print("Source areas file not found:", self.src_areafile)
+                print("Attempting to generate it ...")
+                print("Source grid: ", sgridpath)
+                src_extra = source_grid.get("extra", [])
+                grid_area = self.cdo_generate_areas(source=sgridpath,
+                                                    gridpath=cfg_regrid["paths"]["grids"],
+                                                    icongridpath=cfg_regrid["paths"]["icon"],
+                                                    extra=src_extra)
+                # Make sure that the new DataArray uses the expected spatial dimensions
+                grid_area = self._rename_dims(grid_area, self.space_coord)
+                
+                self.src_grid_area = grid_area                           
+                self.src_grid_area.to_netcdf(self.src_areafile)
+                # ... aaand we reopen it because soething is still not ok with our treatment of temp files
+                self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
+                print("Success!")
+
+            if regrid:
+                self.dst_areafile =os.path.join(
+                    cfg_regrid["areas"]["path"],
+                    cfg_regrid["areas"]["dst_template"].format(grid=self.targetgrid))
+                if os.path.exists(self.dst_areafile):
+                    self.dst_grid_area = xr.open_mfdataset(self.dst_areafile).cell_area
+                else:
+                    print("Destination areas file not found:", self.dst_areafile)
+                    print("Attempting to generate it ...")
+                    print("Source grid: ", source_grid["path"])
+                    grid = cfg_regrid["target_grids"][regrid]
+                    dst_extra = f"-const,1,{grid}"
+                    grid_area = self.cdo_generate_areas(source=dst_extra)
+                    self.dst_grid_area = grid_area                           
+                    self.dst_grid_area.to_netcdf(self.dst_areafile)
+                    print("Success!")
+
+            self.grid_area = self.src_grid_area
+
+    def cdo_generate_areas(self, source, icongridpath=None, gridpath=None, extra=None):
+        """
+            Generate grid areas using CDO
+
+            Args:
+                source (xarray.DataArray or str): Source grid
+                gridpath (str): where to store downloaded grids
+                icongridpath (str): location of ICON grids (e.g. /pool/data/ICON)
+                extra: command(s) to apply to source grid before weight generation (can be a list)
+
+            Returns:
+                :obj:`xarray.DataArray` with cell areas
+        """
+
+        # Make some temporary files that we'll feed to CDO
+        area_file = tempfile.NamedTemporaryFile()
+
+        if isinstance(source, str):
+            sgrid = source
+        else:
+            source_grid_file = tempfile.NamedTemporaryFile()
+            source.to_netcdf(source_grid_file.name)
+            sgrid = source_grid_file.name
+
+        # Setup environment
+        env = os.environ
+        if gridpath:
+            env["CDO_DOWNLOAD_PATH"] = gridpath
+        if icongridpath:
+            env["CDO_ICON_GRIDS"] = icongridpath
+
+        try:
+            # Run CDO
+            if extra:
+                # make sure extra is a flat list if it is not already
+                if not isinstance(extra, list):
+                    extra = [extra]
+
+                subprocess.check_output(
+                    [
+                        "cdo",
+                        "-f", "nc4",
+                        "gridarea",
+                    ] + extra +
+                    [
+                        sgrid,
+                        area_file.name,
+                    ],
+                    stderr=subprocess.PIPE,
+                    env=env,
+                )
+            else:
+                subprocess.check_output(
+                    [
+                        "cdo",
+                        "-f", "nc4",
+                        "gridarea",
+                        sgrid,
+                        area_file.name,
+                    ],
+                    stderr=subprocess.PIPE,
+                    env=env,
+                )
+
+            areas = xr.open_dataset(area_file.name, engine="netcdf4")
+            areas.cell_area.attrs['units'] = 'm2'  
+            areas.cell_area.attrs['standard_name'] = 'area'
+            areas.cell_area.attrs['long_name'] = 'area of grid cell'
+            return areas.cell_area
+
+        except subprocess.CalledProcessError as e:
+            # Print the CDO error message
+            print(e.output.decode(), file=sys.stderr)
+            raise
+
+        finally:
+            # Clean up the temporary files
+            if not isinstance(source, str):
+                source_grid_file.close()
+            area_file.close()
+
+
     def retrieve(self, regrid=False, average=False, fix=True, apply_unit_fix=True):
         """
         Perform a data retrieve.
@@ -95,14 +270,20 @@ class Reader():
         else:
             data = self.cat[self.model][self.exp][self.source].to_dask()
 
+        # select only a specific level when reading. Level coord names defined in regrid.yaml
+        if self.level is not None:
+            data = data.isel({self.vertcoord: self.level})
+
         # sequence which should be more efficient: averaging - regridding - fixing
         if self.freq and average:
             data = self.average(data)
         if self.targetgrid and regrid:
             data = self.regridder.regrid(data)  # XXX check attrs
+            self.grid_area = self.dst_grid_area 
         if fix:
             data = self.fixer(data, apply_unit_fix=apply_unit_fix)
         return data
+
 
     def regrid(self, data):
         """
@@ -115,7 +296,11 @@ class Reader():
         """
 
         out = self.regridder.regrid(data)
-        #out.attrs = data.attrs #smmregrid exports now attributes
+
+        out.attrs["regridded"]=1
+        # set these two to the target grid (but they are actually not used so far)
+        self.grid_area = self.dst_grid_area
+        self.space_coord = ["lon", "lat"]
         return out
     
     def average(self, data):
@@ -139,6 +324,128 @@ class Reader():
                 sys.exit('Cant find a frequency to resample')
    
         return out
+
+
+    def _check_if_regridded(self, data):
+        """
+        Checks if a dataset or Datarray has been regridded.
+
+        Arguments:
+            data (xr.DataArray or xarray.DataDataset):  the input data
+        Returns:
+            A boolean value
+        """
+
+        if isinstance(data, xr.Dataset):
+            att = list(data.data_vars.values())[0].attrs
+        else:
+            att = data.attrs
+        
+        return att.get("regridded", False)
+        
+
+    def _get_spatial_sample(self, da, space_coord):
+        """
+        Selects a single spatial sample along the dimensions specified in `space_coord`.
+
+        Arguments:
+            da (xarray.DataArray): Input data array to select the spatial sample from.
+            space_coord (list of str): List of dimension names corresponding to the spatial coordinates to select.
+            
+        Returns:
+            Data array containing a single spatial sample along the specified dimensions.
+        """
+
+        dims = list(da.dims)
+        extra_dims = list(set(dims) - set(space_coord))
+        da_out = da.isel({dim: 0 for dim in extra_dims})
+        return da_out
+
+
+    def _mask_like(self, da, db):
+        """
+        Masks a dataarray with the same shape as another data array, using the missing values of the first array.
+
+        Arguments:
+            da (xarray.DataArray): The data array whose missing values are used for masking.
+            db (xarray.DataArray): The data array to be masked.
+
+        Returns:
+            A masked data array with the same shape as `db`, where the missing values of `da` are replaced with NaNs.
+        """
+        space_coord = db.dims
+        da_sel = self._get_spatial_sample(da, space_coord)
+        mask = xr.where(da_sel.isnull(), True, False) 
+        return xr.where(mask, float('nan'), db)
+
+
+    def _rename_dims(self, da, dim_list):
+        """
+        Renames the dimensions of a DataArray so that any dimension which is already in `dim_list` keeps its name, 
+        and the others are renamed to whichever other dimension name is in `dim_list`. 
+        If `da` has only one dimension with a name which is different from that in `dim_list`, it is renamed to that new name. 
+        If it has two coordinate names (e.g. "lon" and "lat") which appear also in `dim_list`, these are not touched.
+
+        Parameters
+        ----------
+        da : xarray.DataArray
+            The input DataArray to rename.
+        dim_list : list of str
+            The list of dimension names to use. 
+        Returns
+        -------
+        xarray.DataArray
+            A new DataArray with the renamed dimensions.
+        """
+
+        dims = list(da.dims)
+        # Lisy of dims which are already there
+        shared_dims = list(set(dims) & set(dim_list))
+        # List of dims in B which are not in space_coord
+        extra_dims = list(set(dims) - set(dim_list))
+        # List of dims in da which are not in dim_list
+        new_dims = list(set(dim_list) - set(dims))
+        i=0
+        da_out = da
+        for dim in extra_dims:
+            if dim not in shared_dims:
+                da_out = da.rename({dim: new_dims[i]})
+                i+=1
+        return da_out
+
+
+    def fldmean(self, data):
+        """
+        Perform a weighted global average.
+
+        Arguments:
+            data (xr.DataArray or xarray.DataDataset):  the input data
+        Returns:
+            the value of the averaged field
+        """
+
+        # If these data have been regridded we should use the destination grid info
+        if self._check_if_regridded(data):
+            space_coord = self.dst_space_coord
+            grid_area = self.dst_grid_area
+        else:
+            space_coord = self.src_space_coord
+            grid_area = self.src_grid_area
+
+        # Trick (for now) to make sure that they share EXACTLY the same grid 
+        # unfortunately even differences O(1e-14) can lead elementwise multiplication to fail
+        # Ideally the grid_areas should already be on the correct grid, to be fixed
+        ga = grid_area.assign_coords({coord: data.coords[coord] for coord in space_coord})
+
+        gam = self._mask_like(data, ga)
+
+        prod = data * ga
+        print(prod.shape)  # Still debugging, make sure that dimensions are ok
+
+        # Masks are not implemented yet
+        out = prod.mean(space_coord, skipna=True) /  gam.mean(space_coord) 
+
+        return out
     
     def fixer(self, data, apply_unit_fix=False):
         """
@@ -154,7 +461,7 @@ class Reader():
             A xarray.Dataset containing the fixed data and target units, factors and offsets in variable attributes.
         """
 
-        fixes = load_yaml("config/fixes.yaml")
+        fixes = load_yaml(os.path.join(self.configdir, "fixes.yaml"))
         model=self.model
 
         fix = fixes["models"].get(model, None)
