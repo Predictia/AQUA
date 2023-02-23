@@ -60,6 +60,7 @@ variables:
     derived: 'tp'
     varname: 'Total precipitation'
     filetype: atmbase
+    cumulation_time: 86400
   psl: 
     derived: msl
     varname: MSLP
@@ -72,13 +73,15 @@ variables:
     varname: 'TOA net LW'
     derived: ttr
     filetype: atmbase
+    cumulation_time: 86400
   rsnt:
     varname: 'TOA net SW'
     derived: tsr
     filetype: atmbase
+    cumulation_time: 86400
   net_toa:
     varname: 'Net TOA'
-    units: W/m2
     derived: 'tsr+ttr'
     filetype: atmbase
+    cumulation_time: 86400
    

@@ -39,11 +39,10 @@ sleep 5
 # to have it running on 
 cd ECmean4
 git fetch
-git checkout main
+git checkout devel/global-extend
 git pull
 
 # create env and install ECmean4
-cd ECmean4
 conda activate aqua-ecmean
 pip install -e .
 conda deactivate
