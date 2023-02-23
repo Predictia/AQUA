@@ -33,6 +33,9 @@ source_grids:
       ICMGG_atm2d:
         path: /work/bm1235/a270046/cycle2-sync/tcogrids/4km/tcogrids/tco2559_grid.nc
         space_coord: ["value"]
+      ICMU_atm3d:
+        path: /work/bm1235/a270046/cycle2-sync/tcogrids/4km/tcogrids/tco2559_grid.nc
+        space_coord: ["value"]
     tco1279-orca025:
       default: 
         path: /work/bm1235/a270046/cycle2-sync/tcogrids/9km/tcogrids/tco1279_grid.nc
