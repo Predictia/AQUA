@@ -13,36 +13,33 @@ sys.path.append("..")
 
 import argparse
 from aqua import Reader
+from aqua.util import load_yaml
 import dask
 from dask.distributed import Client, LocalCluster
 from time import time
 import os
 import logging
-
-# default configurations for testing
-ddir= '/work/bb1153/b382289/IFSlowres'
-dmodel = 'IFS'
-dexp = 'tco2559-ng5'
-dsource = 'ICMGG_atm2d'
-dres = 'r100'
-dfreq = 'day'
-
-# temporary hardcoded
-varlist=['tp', '2t']
+import yaml
 
 
-def main(modelname, expname, sourcename, resolution, frequency, varlist, outdir):
+
+def lra(modelname, expname, sourcename, resolution, frequency, varlist, outdir, dryrun=False):
     """
     Function to produce interpolation to disk of a selected variables
     """
+
+    if dryrun:
+        logging.info('IMPORTANT: no file will be created, this is a dry run')
 
     lowdir = os.path.join(outdir, f'{expname}-{resolution}-{frequency}')
     os.makedirs(lowdir, exist_ok=True)
     logging.info(f'Target directory is {lowdir}')
 
-    logging.info(f'Accessing catalog...')
+    logging.info(f'Accessing catalog for {modelname}-{expname}-{sourcename}...')
     reader = Reader(model=modelname, exp=expname, source=sourcename,
                     regrid=resolution, freq=frequency, configdir="../config") # this is hardcoded
+    
+    logging.info('Retrieving data...')
     data = reader.retrieve(fix=False)
 
     # option for time encoding, defined once for all
@@ -60,11 +57,14 @@ def main(modelname, expname, sourcename, resolution, frequency, varlist, outdir)
         logging.info(f'From {min(interp.time.data)} to {max(interp.time.data)}')
         
 
-        logging.info(f'Writing it to disk...')
-        outname = os.path.join(lowdir, f'{var}_{expname}.nc')
+        
         
         # we can of course extend this and also save to grib
-        interp.to_netcdf(outname, encoding={'time': time_encoding})
+        # if dryrun is true, not save, just check you have everything
+        if not dryrun:
+            logging.info(f'Writing it to disk...')
+            outname = os.path.join(lowdir, f'{var}_{expname}.nc')
+            interp.to_netcdf(outname, encoding={'time': time_encoding})
 
         toc = time()
         logging.info('Done in {:.4f} seconds'.format(toc - tic))
@@ -74,13 +74,15 @@ def parse_arguments(args):
     """Parse CLI arguments"""
 
     parser = argparse.ArgumentParser(description='AQUA regridder')
-    parser.add_argument('-o', '--outdir', type=str, help='output directory')
-    parser.add_argument('-m', '--model', type=str, help='input model')
-    parser.add_argument('-e', '--exp', type=str, help='input experiment')
-    parser.add_argument('-s', '--source', type=str, help='input source')
-    parser.add_argument('-r', '--resolution', type=str, help='target resolution')
+    parser.add_argument('-c', '--config', type=str, help='yaml configuration file')
+    # parser.add_argument('-o', '--outdir', type=str, help='output directory')
+    # parser.add_argument('-m', '--model', type=str, help='input model')
+    # parser.add_argument('-e', '--exp', type=str, help='input experiment')
+    # parser.add_argument('-s', '--source', type=str, help='input source')
+    # parser.add_argument('-r', '--resolution', type=str, help='target resolution')
     parser.add_argument('-w', '--workers', type=str, help='number of dask workers')
-    parser.add_argument('-f', '--frequency', type=str, help='output frequency for averaging')
+    parser.add_argument('-d', '--dry', type=str, help='dry run, no file creation (default True)')
+    # parser.add_argument('-f', '--frequency', type=str, help='output frequency for averaging')
     #parser.add_argument('-v', '--var', type=str, help='select variable')
 
     return parser.parse_args(args)
@@ -93,20 +95,21 @@ def get_arg(args, arg, default):
         res = default
     return res
 
-
 # setting up dask
 if __name__ == "__main__":
 
     args = parse_arguments(sys.argv[1:])
 
-    # assign from parsed
-    model = get_arg(args, 'model', dmodel)
-    exp = get_arg(args, 'exp', dexp)
-    source = get_arg(args, 'source', dsource)
-    resolution = get_arg(args, 'resolution', dres)
-    outdir = get_arg(args, 'outdir', ddir)
-    frequency = get_arg(args, 'frequency', dfreq)
+    #assign from parsed
+    # model = get_arg(args, 'model', None)
+    # exp = get_arg(args, 'exp', None)
+    # source = get_arg(args, 'source', None)
+    # resolution = get_arg(args, 'resolution', 'r100')
+    # outdir = get_arg(args, 'outdir', None)
+    # frequency = get_arg(args, 'frequency', 'mon')
     workers = int(get_arg(args, 'workers', 1))
+    dry = int(get_arg(args, 'dry', True))
+    config = get_arg(args, 'config', 'config_lra.yml')
 
     # set default loglevel
     logging.basicConfig(level='INFO')
@@ -118,9 +121,20 @@ if __name__ == "__main__":
     else: 
         dask.config.set(scheduler="synchronous")
 
-    # call the function
-    main(modelname=model, expname=exp, sourcename=source, resolution=resolution,
-        frequency=frequency, varlist=varlist, outdir=outdir)
+    cfg = load_yaml(config)
+    resolution = cfg['target']['resolution']
+    frequency = cfg['target']['frequency']
+    outdir = cfg['target']['outdir']
+
+    # loop on all the elements of the catalog
+    for model in cfg['catalog'].keys():
+        for exp in cfg['catalog'][model].keys():
+            for sourceid in cfg['catalog'][model][exp].keys():
+                varlist = cfg['catalog'][model][exp][sourceid]['vars']
+                if varlist: 
+                    # call the function
+                    lra(modelname=model, expname=exp, sourcename=sourceid, resolution=resolution,
+                        frequency=frequency, varlist=varlist, outdir=outdir, dryrun=dry)
     
     # shutdown the cluster
     if workers > 1:
