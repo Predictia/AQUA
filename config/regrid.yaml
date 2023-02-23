@@ -45,7 +45,8 @@ source_grids:
         space_coord: ["cell"]
     hpx:
       default:
-        path:
+        path: /work/bb1153/b382075/nextgems/grids/icon_hpx{zoom}.nc
+        space_coord: ["pix"]
   FESOM:
     tco3999-ng5:  
       default:

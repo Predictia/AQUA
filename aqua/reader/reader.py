@@ -85,9 +85,11 @@ class Reader():
             if os.path.exists(self.weightsfile):
                 self.weights = xr.open_mfdataset(self.weightsfile)
             else:
+
+                sgridpath = source_grid["path"].format(zoom=(9-zoom))
                 print("Weights file not found:", self.weightsfile)
                 print("Attempting to generate it ...")
-                print("Source grid: ", source_grid["path"])
+                print("Source grid: ", sgridpath)
 
                 # hack to  pass a correct list of all options
                 src_extra = source_grid.get("extra", [])
@@ -97,8 +99,7 @@ class Reader():
                 if extra:
                     extra = [extra] 
                 extra = extra + src_extra
-
-                weights = rg.cdo_generate_weights(source_grid=source_grid["path"],
+                weights = rg.cdo_generate_weights(source_grid=sgridpath,
                                                       target_grid=cfg_regrid["target_grids"][regrid], 
                                                       method='ycon', 
                                                       gridpath=cfg_regrid["paths"]["grids"],
