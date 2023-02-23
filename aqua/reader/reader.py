@@ -133,11 +133,12 @@ class Reader():
             if os.path.exists(self.src_areafile):
                 self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
             else:
+                sgridpath = source_grid["path"].format(zoom=(9-zoom))
                 print("Source areas file not found:", self.src_areafile)
                 print("Attempting to generate it ...")
-                print("Source grid: ", source_grid["path"])
+                print("Source grid: ", sgridpath)
                 src_extra = source_grid.get("extra", [])
-                grid_area = self.cdo_generate_areas(source=source_grid["path"],
+                grid_area = self.cdo_generate_areas(source=sgridpath,
                                                     gridpath=cfg_regrid["paths"]["grids"],
                                                     icongridpath=cfg_regrid["paths"]["icon"],
                                                     extra=src_extra)
