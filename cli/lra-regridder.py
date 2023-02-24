@@ -16,31 +16,33 @@ from aqua import Reader
 from aqua.util import load_yaml
 import dask
 from dask.distributed import Client, LocalCluster
+from dask.diagnostics import ProgressBar
 from time import time
 import os
 import logging
-import yaml
 
 
-
-def lra(modelname, expname, sourcename, resolution, frequency, varlist, outdir, dryrun=False):
+def lra(modelname, expname, sourcename, 
+        resolution, frequency, varlist, outdir, 
+        definitive=False, overwrite=False):
     """
-    Function to produce interpolation to disk of a selected variables
+    Produce interpolation to disk of a selected variables
     """
 
-    if dryrun:
+    if not definitive:
         logging.info('IMPORTANT: no file will be created, this is a dry run')
 
     lowdir = os.path.join(outdir, f'{expname}-{resolution}-{frequency}')
     os.makedirs(lowdir, exist_ok=True)
     logging.info(f'Target directory is {lowdir}')
 
-    logging.info(f'Accessing catalog for {modelname}-{expname}-{sourcename}...')
+    logging.warning(f'Accessing catalog for {modelname}-{expname}-{sourcename}...')
     reader = Reader(model=modelname, exp=expname, source=sourcename,
                     regrid=resolution, freq=frequency, configdir="../config") # this is hardcoded
     
     logging.info('Retrieving data...')
     data = reader.retrieve(fix=False)
+    logging.debug(data)
 
     # option for time encoding, defined once for all
     time_encoding = {'units': 'days since 1970-01-01',
@@ -51,20 +53,31 @@ def lra(modelname, expname, sourcename, resolution, frequency, varlist, outdir, 
         tic = time()
 
         logging.info(f'Processing variable {var}...')
+        # time average
         averaged = reader.average(data[var]) # here level selection can be applied
-        interp = reader.regrid(averaged) # here we can apply time selection, for instance if we want to process one year at the time
+
+        # here we can apply time selection, for instance if we want to process one year at the time
+        interp = reader.regrid(averaged)
+    
         logging.info(f'Output will have shape {interp.shape}')
         logging.info(f'From {min(interp.time.data)} to {max(interp.time.data)}')
-        
+        logging.debug(interp)
 
-        
-        
+        # USEFUL: if you want to do tests subselect time to speed up...
+        #interp = interp.isel(time=0)
+            
         # we can of course extend this and also save to grib
-        # if dryrun is true, not save, just check you have everything
-        if not dryrun:
-            logging.info(f'Writing it to disk...')
+        if definitive:
+        
             outname = os.path.join(lowdir, f'{var}_{expname}.nc')
-            interp.to_netcdf(outname, encoding={'time': time_encoding})
+            if os.path.isfile(outname) and not overwrite:
+                logging.warning(f'{outname} already exists. Please run with -o to allow overwriting')
+            else:
+                logging.warning(f'Writing {var} to {outname}...')
+                write_job = interp.to_netcdf(outname, encoding={'time': time_encoding}, compute=False)
+                with ProgressBar():
+                    write_job.compute()
+                #interp.to_netcdf(outname, encoding={'time': time_encoding})
 
         toc = time()
         logging.info('Done in {:.4f} seconds'.format(toc - tic))
@@ -81,7 +94,9 @@ def parse_arguments(args):
     # parser.add_argument('-s', '--source', type=str, help='input source')
     # parser.add_argument('-r', '--resolution', type=str, help='target resolution')
     parser.add_argument('-w', '--workers', type=str, help='number of dask workers')
-    parser.add_argument('-d', '--dry', type=str, help='dry run, no file creation (default True)')
+    parser.add_argument('-d', '--definitive', action="store_true", help='run the code to create the output files')
+    parser.add_argument('-o', '--overwrite', action="store_true", help='overwrite existing output')
+    parser.add_argument('-l', '--loglevel', type=str, help='overwrite existing output')
     # parser.add_argument('-f', '--frequency', type=str, help='output frequency for averaging')
     #parser.add_argument('-v', '--var', type=str, help='select variable')
 
@@ -101,18 +116,20 @@ if __name__ == "__main__":
     args = parse_arguments(sys.argv[1:])
 
     #assign from parsed
-    # model = get_arg(args, 'model', None)
-    # exp = get_arg(args, 'exp', None)
-    # source = get_arg(args, 'source', None)
-    # resolution = get_arg(args, 'resolution', 'r100')
-    # outdir = get_arg(args, 'outdir', None)
-    # frequency = get_arg(args, 'frequency', 'mon')
     workers = int(get_arg(args, 'workers', 1))
-    dry = int(get_arg(args, 'dry', True))
     config = get_arg(args, 'config', 'config_lra.yml')
-
+    loglevel = get_arg(args, 'loglevel', 'INFO')
+    if args.definitive :
+        definitive=True
+    else:
+        definitive=False
+    if args.overwrite :
+        overwrite=True
+    else:
+        overwrite=False
+    
     # set default loglevel
-    logging.basicConfig(level='INFO')
+    logging.basicConfig(level=loglevel.upper())
 
     # set up clusters if more than workers is provided
     if workers > 1: 
@@ -134,10 +151,12 @@ if __name__ == "__main__":
                 if varlist: 
                     # call the function
                     lra(modelname=model, expname=exp, sourcename=sourceid, resolution=resolution,
-                        frequency=frequency, varlist=varlist, outdir=outdir, dryrun=dry)
+                        frequency=frequency, varlist=varlist, outdir=outdir, 
+                        definitive=definitive, overwrite=overwrite)
     
     # shutdown the cluster
     if workers > 1:
         client.close()
+        cluster.close()
     
     logging.info('Everything completed... goodbye!')

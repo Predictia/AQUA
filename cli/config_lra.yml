@@ -13,7 +13,7 @@ catalog:
   IFS:
     tco2559-ng5:
       ICMU_atm3d:
-        vars: ['v', 't']
+        vars: ['v']
       ICMGG_atm2d:
         vars: ['hcc', 'lcc', 'mcc', 'nsss', 'ewss', 'e']
       
