@@ -22,4 +22,4 @@ workers=8
 # run the Python script
 # -d to create the files (otherwise only inspect the catalogs and tests)
 # -o to overwrite the files
-./regridder.py --config config_lra.yml -w ${workers} -d
+./lra-regridder.py --config config_lra.yml -w ${workers} -d
