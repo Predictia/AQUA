@@ -3,10 +3,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 '''
-AQUA regridding tool demo to create low resolution archive
+AQUA regridding tool to create low resolution archive
 This tool implements regridding of required files from the intake catalog
 using precomputed weights and sparse-array multiplication using smmregrid package 
-included in AQUA. Functionality can be controlled through CLI options.
+included in AQUA. Functionality can be controlled through CLI options and
+a configuration yaml file.
 '''
 import sys
 sys.path.append("..")
@@ -15,7 +16,7 @@ import argparse
 from aqua import Reader
 from aqua.util import load_yaml
 import dask
-from dask.distributed import Client, LocalCluster
+from dask.distributed import Client, LocalCluster, progress
 from dask.diagnostics import ProgressBar
 from time import time
 import os
@@ -24,19 +25,35 @@ import logging
 
 def lra(modelname, expname, sourcename, 
         resolution, frequency, varlist, outdir, 
-        definitive=False, overwrite=False):
+        definitive=False, overwrite=False, multi=False):
     """
-    Produce interpolation to disk of a selected variables
+    Produce LRA data at required frequency/resolution
+
+    Args:
+        modelname (string): The model name from the catalog
+        expname (string): The experiment name from the catalog
+        sourcename (string): The sourceid name from the catalog
+        resolution (string): The target resolution for the LRA
+        frequency (string): The target frequency for averaging the LRA
+        varlist (list): The list fo variables to be processed and archived in LRA
+        outdir (string): Where the LRA is
+        definitive (bool): True to create the output file, False to just explore the reader operations
+        overwrite (bool): True to overwrite existing files in LRA
+        multi (bool): True if you are running dask.distributed with multiple workers
+
     """
 
     if not definitive:
         logging.info('IMPORTANT: no file will be created, this is a dry run')
 
+    logging.warning(f'Accessing catalog for {modelname}-{expname}-{sourcename}...')
+    logging.warning(f'I am going to produce LRA at {resolution} resolution and {frequency} frequency...')
+
     lowdir = os.path.join(outdir, f'{expname}-{resolution}-{frequency}')
     os.makedirs(lowdir, exist_ok=True)
     logging.info(f'Target directory is {lowdir}')
 
-    logging.warning(f'Accessing catalog for {modelname}-{expname}-{sourcename}...')
+    # start the reader
     reader = Reader(model=modelname, exp=expname, source=sourcename,
                     regrid=resolution, freq=frequency, configdir="../config") # this is hardcoded
     
@@ -74,11 +91,17 @@ def lra(modelname, expname, sourcename,
                 logging.warning(f'{outname} already exists. Please run with -o to allow overwriting')
             else:
                 logging.warning(f'Writing {var} to {outname}...')
+                # keep it lazy
                 write_job = interp.to_netcdf(outname, encoding={'time': time_encoding}, compute=False)
-                with ProgressBar():
-                    write_job.compute()
-                #interp.to_netcdf(outname, encoding={'time': time_encoding})
-
+                
+                # progress bar for distributed or for for singlemachine
+                if multi:
+                    w = write_job.persist() 
+                    progress(w)
+                else:
+                    with ProgressBar():
+                        write_job.compute()
+    
         toc = time()
         logging.info('Done in {:.4f} seconds'.format(toc - tic))
 
@@ -88,17 +111,10 @@ def parse_arguments(args):
 
     parser = argparse.ArgumentParser(description='AQUA regridder')
     parser.add_argument('-c', '--config', type=str, help='yaml configuration file')
-    # parser.add_argument('-o', '--outdir', type=str, help='output directory')
-    # parser.add_argument('-m', '--model', type=str, help='input model')
-    # parser.add_argument('-e', '--exp', type=str, help='input experiment')
-    # parser.add_argument('-s', '--source', type=str, help='input source')
-    # parser.add_argument('-r', '--resolution', type=str, help='target resolution')
     parser.add_argument('-w', '--workers', type=str, help='number of dask workers')
     parser.add_argument('-d', '--definitive', action="store_true", help='run the code to create the output files')
     parser.add_argument('-o', '--overwrite', action="store_true", help='overwrite existing output')
     parser.add_argument('-l', '--loglevel', type=str, help='overwrite existing output')
-    # parser.add_argument('-f', '--frequency', type=str, help='output frequency for averaging')
-    #parser.add_argument('-v', '--var', type=str, help='select variable')
 
     return parser.parse_args(args)
 
@@ -112,6 +128,8 @@ def get_arg(args, arg, default):
 
 # setting up dask
 if __name__ == "__main__":
+
+    """Main for command line execution of the regridder"""
 
     args = parse_arguments(sys.argv[1:])
 
@@ -135,8 +153,10 @@ if __name__ == "__main__":
     if workers > 1: 
         cluster = LocalCluster(threads_per_worker=1, n_workers=workers)
         client = Client(cluster)
+        multi=True
     else: 
         dask.config.set(scheduler="synchronous")
+        multi=False
 
     cfg = load_yaml(config)
     resolution = cfg['target']['resolution']
@@ -152,7 +172,7 @@ if __name__ == "__main__":
                     # call the function
                     lra(modelname=model, expname=exp, sourcename=sourceid, resolution=resolution,
                         frequency=frequency, varlist=varlist, outdir=outdir, 
-                        definitive=definitive, overwrite=overwrite)
+                        definitive=definitive, overwrite=overwrite, multi=multi)
     
     # shutdown the cluster
     if workers > 1:
