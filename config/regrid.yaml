@@ -47,6 +47,10 @@ source_grids:
         path: /pool/data/ICON/grids/public/mpim/0015/icon_grid_0015_R02B09_G.nc
         extra: "-selname,cell_index" 
         space_coord: ["cell"]
+      intake-esm-test: 
+        path: /pool/data/ICON/grids/public/mpim/0015/icon_grid_0015_R02B09_G.nc
+        extra: "-selname,cell_index" 
+        space_coord: ["ncells"]
     hpx:
       default:
         path: /work/bb1153/b382075/nextgems/grids/icon_hpx{zoom}.nc
