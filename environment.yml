@@ -1,4 +1,4 @@
-name: aqua2
+name: aqua
 channels:
   - conda-forge
 dependencies:
