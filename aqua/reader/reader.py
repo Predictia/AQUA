@@ -281,13 +281,15 @@ class Reader():
         # If this is an ESM-intake catalogue use first dictionary value,
         # else extract directly a dask dataset
         if isinstance(esmcat, intake_esm.core.esm_datastore):
+            cdf_kwargs = esmcat.metadata.get('cdf_kwargs', {"chunks": {"time":1}})
             query = esmcat.metadata['query']
             subcat = esmcat.search(**query)
-            data = subcat.to_dataset_dict(cdf_kwargs={"chunks": {"time":1}},
-                              zarr_kwargs=dict(consolidated=True)
+            data = subcat.to_dataset_dict(cdf_kwargs=cdf_kwargs,
+                                         zarr_kwargs=dict(consolidated=True),
                                               #decode_times=True,
                                               #use_cftime=True)
-                              )
+                                         progressbar=False
+                                         )
             data = list(data.values())[0]
         else:
             data = esmcat.to_dask()

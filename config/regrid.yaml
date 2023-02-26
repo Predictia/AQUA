@@ -88,7 +88,10 @@ source_grids:
         path: /home/b/b382075/work/datasets/MSWEP_V280/Past/Monthly/200001.nc
         space_coord: ["lon", "lat"]
 
-
-
+  ERA5:
+    era5:
+      default:
+        path: /work/bb1153/b382075/nextgems/grids/n320_unstructured.nc
+        space_coord: ["values"]
 
 
