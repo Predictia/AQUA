@@ -1,4 +1,5 @@
 import intake
+import intake_esm
 import xarray as xr
 import os
 from metpy.units import units
@@ -35,6 +36,8 @@ class Reader():
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
+        if (exp == "hpx") and not zoom:
+            zoom = 9
         self.zoom = zoom
         self.freq = freq
         self.level = level
@@ -85,8 +88,9 @@ class Reader():
             if os.path.exists(self.weightsfile):
                 self.weights = xr.open_mfdataset(self.weightsfile)
             else:
-
-                sgridpath = source_grid["path"].format(zoom=(9-zoom))
+                sgridpath = source_grid["path"]
+                if zoom:
+                    sgridpath = sgridpath.format(zoom=(9-zoom))            
                 print("Weights file not found:", self.weightsfile)
                 print("Attempting to generate it ...")
                 print("Source grid: ", sgridpath)
@@ -133,7 +137,9 @@ class Reader():
             if os.path.exists(self.src_areafile):
                 self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
             else:
-                sgridpath = source_grid["path"].format(zoom=(9-zoom))
+                sgridpath = source_grid["path"]
+                if zoom:
+                    sgridpath = sgridpath.format(zoom=(9-zoom)) 
                 print("Source areas file not found:", self.src_areafile)
                 print("Attempting to generate it ...")
                 print("Source grid: ", sgridpath)
@@ -265,10 +271,28 @@ class Reader():
             A xarray.Dataset containing the required data.
         """
 
+        # Extract subcatalogue
         if self.zoom:
-            data = self.cat[self.model][self.exp][self.source](zoom=self.zoom).to_dask()
+            esmcat = self.cat[self.model][self.exp][self.source](zoom=self.zoom)
         else:
-            data = self.cat[self.model][self.exp][self.source].to_dask()
+            esmcat = self.cat[self.model][self.exp][self.source]
+
+        # Extract data from cat.
+        # If this is an ESM-intake catalogue use first dictionary value,
+        # else extract directly a dask dataset
+        if isinstance(esmcat, intake_esm.core.esm_datastore):
+            cdf_kwargs = esmcat.metadata.get('cdf_kwargs', {"chunks": {"time":1}})
+            query = esmcat.metadata['query']
+            subcat = esmcat.search(**query)
+            data = subcat.to_dataset_dict(cdf_kwargs=cdf_kwargs,
+                                         zarr_kwargs=dict(consolidated=True),
+                                              #decode_times=True,
+                                              #use_cftime=True)
+                                         progressbar=False
+                                         )
+            data = list(data.values())[0]
+        else:
+            data = esmcat.to_dask()
 
         # select only a specific level when reading. Level coord names defined in regrid.yaml
         if self.level is not None:
@@ -313,14 +337,20 @@ class Reader():
             A xarray.Dataset containing the regridded data.
         """
 
+        # translate frequency
         if self.freq == 'mon':
-            out = data.resample(time='M').mean()
+            ffff = '1M'
         elif self.freq == 'day':
-            out = data.resample(time='D').mean()
-        else: 
-            try: 
-                out = data.resample(time=self.freq).mean()
-            except: 
+            ffff = '1D'
+        else:
+            ffff = self.freq
+        
+        try: 
+            # resample, and assign the correct time
+            out = data.resample(time=ffff).mean()
+            proper_time = data.time.resample(time=ffff).mean()
+            out['time'] = proper_time.values
+        except: 
                 sys.exit('Cant find a frequency to resample')
    
         return out
