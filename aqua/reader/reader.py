@@ -337,14 +337,20 @@ class Reader():
             A xarray.Dataset containing the regridded data.
         """
 
+        # translate frequency
         if self.freq == 'mon':
-            out = data.resample(time='M').mean()
+            ffff = '1M'
         elif self.freq == 'day':
-            out = data.resample(time='D').mean()
-        else: 
-            try: 
-                out = data.resample(time=self.freq).mean()
-            except: 
+            ffff = '1D'
+        else:
+            ffff = self.freq
+        
+        try: 
+            # resample, and assign the correct time
+            out = data.resample(time=ffff).mean()
+            proper_time = data.time.resample(time=ffff).mean()
+            out['time'] = proper_time.values
+        except: 
                 sys.exit('Cant find a frequency to resample')
    
         return out
