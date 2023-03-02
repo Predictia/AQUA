@@ -343,8 +343,15 @@ class Reader():
         # randomly pick a few timesteps from a gridpoint
         ndims = [dim for dim in data.dims if data[dim].size > 1][1:]
         pindex = {dim: 0 for dim in ndims}
+
+        # extract the first 20 timesteps and do the derivative
         check = data.isel(pindex).isel(time=slice(None, 20)).diff(dim='time').values
-        return (check >= 0).all()
+
+        # check all derivative are positive or all negative
+        condition = (check >= 0).all() or (check <=0).all()
+        
+        return condition
+
 
     
     def decumulate(self, data, cumulation_time = None):
@@ -372,6 +379,10 @@ class Reader():
             if not cumulation_time:
                 cumulation_time = (data.time[1]-data.time[0]).values/np.timedelta64(1, 's')
 
+            # roll back the time for cumulated variables and remove the first timestep
+            # data = data.isel(time=slice(1, None))
+            # data['time'] = data.time - np.timedelta64(1,'m')
+
             # get the derivatives
             deltas = data.diff(dim='time') / cumulation_time
 
@@ -388,6 +399,16 @@ class Reader():
 
             # kaboom: exploit where
             clean=deltas.where(mask, data/cumulation_time)
+
+            # use metpy units to divide by seconds
+            new_units = (units(clean.units)/units('s'))
+
+            # usual case for radiative fluxes
+            try:
+                clean.attrs['units'] = str(new_units.to('W/m^2').units)
+            except:
+                clean.attrs['units'] = str(new_units.units)
+   
 
             return clean
 
