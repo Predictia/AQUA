@@ -149,11 +149,13 @@ class Reader():
                                                     icongridpath=cfg_regrid["paths"]["icon"],
                                                     extra=src_extra)
                 # Make sure that the new DataArray uses the expected spatial dimensions
-                grid_area = self._rename_dims(grid_area, self.space_coord)
+                grid_area = self._rename_dims(grid_area, self.src_space_coord)
+                data = self.retrieve(fix=False)
+                grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.src_space_coord})
                 
                 self.src_grid_area = grid_area                           
                 self.src_grid_area.to_netcdf(self.src_areafile)
-                # ... aaand we reopen it because soething is still not ok with our treatment of temp files
+                # ... aaand we reopen it because something is still not ok with our treatment of temp files
                 self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
                 print("Success!")
 
@@ -166,10 +168,14 @@ class Reader():
                 else:
                     print("Destination areas file not found:", self.dst_areafile)
                     print("Attempting to generate it ...")
-                    print("Source grid: ", source_grid["path"])
                     grid = cfg_regrid["target_grids"][regrid]
                     dst_extra = f"-const,1,{grid}"
                     grid_area = self.cdo_generate_areas(source=dst_extra)
+
+                    data = self.retrieve(fix=False)
+                    data = self.regridder.regrid(data.isel(time=0))
+                    grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.dst_space_coord})
+
                     self.dst_grid_area = grid_area                           
                     self.dst_grid_area.to_netcdf(self.dst_areafile)
                     print("Success!")
@@ -386,23 +392,6 @@ class Reader():
         return da_out
 
 
-    def _mask_like(self, da, db):
-        """
-        Masks a dataarray with the same shape as another data array, using the missing values of the first array.
-
-        Arguments:
-            da (xarray.DataArray): The data array whose missing values are used for masking.
-            db (xarray.DataArray): The data array to be masked.
-
-        Returns:
-            A masked data array with the same shape as `db`, where the missing values of `da` are replaced with NaNs.
-        """
-        space_coord = db.dims
-        da_sel = self._get_spatial_sample(da, space_coord)
-        mask = xr.where(da_sel.isnull(), True, False) 
-        return xr.where(mask, float('nan'), db)
-
-
     def _rename_dims(self, da, dim_list):
         """
         Renames the dimensions of a DataArray so that any dimension which is already in `dim_list` keeps its name, 
@@ -455,22 +444,15 @@ class Reader():
         else:
             space_coord = self.src_space_coord
             grid_area = self.src_grid_area
+        
+        # check if coordinates are aligned
+        xr.align(grid_area, data, join='exact')
 
-        # Trick (for now) to make sure that they share EXACTLY the same grid 
-        # unfortunately even differences O(1e-14) can lead elementwise multiplication to fail
-        # Ideally the grid_areas should already be on the correct grid, to be fixed
-        ga = grid_area.assign_coords({coord: data.coords[coord] for coord in space_coord})
-
-        gam = self._mask_like(data, ga)
-
-        prod = data * ga
-        print(prod.shape)  # Still debugging, make sure that dimensions are ok
-
-        # Masks are not implemented yet
-        out = prod.mean(space_coord, skipna=True) /  gam.mean(space_coord) 
+        out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
 
         return out
-    
+
+
     def fixer(self, data, apply_unit_fix=False):
         """
         Perform fixes (var name, units, coord name adjustments) of the input dataset.
@@ -524,6 +506,7 @@ class Reader():
 
         return data.rename(fixd)
 
+
     def convert_units(self, src, dst, var="input var"):
         """
         Converts source to destination units using metpy.
@@ -561,6 +544,7 @@ class Reader():
             offset = 0
             factor = factor.magnitude
         return factor, offset
+
     
     def apply_unit_fix(self, data):
         """
