@@ -496,22 +496,24 @@ class Reader():
         self.deltat = fix.get("deltat", 1.0)
         fixd = {}
         allvars = data.variables
-        for var in fix["vars"]:
-            shortname = fix["vars"][var]["short_name"]
-            if var in allvars: 
-                fixd.update({f"{var}": f"{shortname}"})
-                src_units = fix["vars"][var].get("src_units", None)
-                if src_units:
-                    data[var].attrs.update({"units": src_units})
-                units = fix["vars"][var]["units"]
-                if units.count('{'):
-                    units = fixes["defaults"]["units"][units.replace('{','').replace('}','')]                
-                data[var].attrs.update({"target_units": units})
-                factor, offset = self.convert_units(data[var].units, units, var)
-                data[var].attrs.update({"factor": factor})
-                data[var].attrs.update({"offset": offset})
-                if apply_unit_fix:
-                    self.apply_unit_fix(data[var])
+        fixvars = fix.get("vars", None)
+        if fixvars:
+            for var in fixvars:
+                shortname = fix["vars"][var]["short_name"]
+                if var in allvars: 
+                    fixd.update({f"{var}": f"{shortname}"})
+                    src_units = fix["vars"][var].get("src_units", None)
+                    if src_units:
+                        data[var].attrs.update({"units": src_units})
+                    units = fix["vars"][var]["units"]
+                    if units.count('{'):
+                        units = fixes["defaults"]["units"][units.replace('{','').replace('}','')]                
+                    data[var].attrs.update({"target_units": units})
+                    factor, offset = self.convert_units(data[var].units, units, var)
+                    data[var].attrs.update({"factor": factor})
+                    data[var].attrs.update({"offset": offset})
+                    if apply_unit_fix:
+                        self.apply_unit_fix(data[var])
 
         allcoords = data.coords
         fixcoord = fix.get("coords", None)
