@@ -26,9 +26,10 @@ sources:
           - long_name
           - step
           - short_name
-        esmcol_obj: https://gitlab.dkrz.de/data-infrastructure-services/intake-esm/-/raw/master/esm-collections/cloud-access/dkrz_era5_disk.json
+        esmcol_obj: /pool/data/Catalogs/dkrz_era5_disk.json
       description: ERA5 instantaneous 2D data monthly averaged
       metadata:
+        query_var: short_name
         query:
           frequency: monthly
           short_name: ['siconc', 'z', 'sp', 'tcw', 'sd', 'msl', 
@@ -62,9 +63,10 @@ sources:
           - long_name
           - step
           - short_name
-        esmcol_obj: https://gitlab.dkrz.de/data-infrastructure-services/intake-esm/-/raw/master/esm-collections/cloud-access/dkrz_era5_disk.json
+        esmcol_obj: /pool/data/Catalogs/dkrz_era5_disk.json
       description: ERA5 accumulated 2D data monthly averaged
       metadata:
+        query_var: short_name
         query:
           frequency: monthly
           short_name: [ 
@@ -99,9 +101,10 @@ sources:
           - long_name
           - step
           - short_name
-        esmcol_obj: https://gitlab.dkrz.de/data-infrastructure-services/intake-esm/-/raw/master/esm-collections/cloud-access/dkrz_era5_disk.json
+        esmcol_obj: /pool/data/Catalogs/dkrz_era5_disk.json
       description: ERA5 instantaneous 2D data daily
       metadata:
+        query_var: short_name
         query:
           frequency: daily
           short_name: ['msl', 'u10', 'v10', 't2m']
@@ -133,9 +136,10 @@ sources:
           - long_name
           - step
           - short_name
-        esmcol_obj: https://gitlab.dkrz.de/data-infrastructure-services/intake-esm/-/raw/master/esm-collections/cloud-access/dkrz_era5_disk.json
+        esmcol_obj: /pool/data/Catalogs/dkrz_era5_disk.json
       description: ERA5 accumulated 2D data daily
       metadata:
+        query_var: short_name
         query:
           frequency: daily
           short_name: ['tsr', 'ttr', 'e', 'tisr', 'tp']
