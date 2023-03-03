@@ -427,6 +427,9 @@ class Reader():
                 clean.attrs['units'] = str(new_units.to('W/m^2').units)
             except:
                 clean.attrs['units'] = str(new_units.units)
+
+            # add an attribute that can be later used to infer about decumulation
+            clean.attrs['decumulated'] = 1
    
 
             return clean
