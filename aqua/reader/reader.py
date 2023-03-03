@@ -302,7 +302,10 @@ class Reader():
                                          )
             data = list(data.values())[0]
         else:
-            data = esmcat.to_dask()
+            if var:
+                data = esmcat.to_dask()[var].to_dataset()
+            else:
+                data = esmcat.to_dask()
 
         # select only a specific level when reading. Level coord names defined in regrid.yaml
         if self.level is not None:
