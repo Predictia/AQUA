@@ -1,18 +1,21 @@
 sources:
-  toa41:
+  ebaf-toa41:
     description: CERES-EBAF
     driver: yaml_file_cat
     args:
-      path: "{{CATALOG_DIR}}/toa41.yaml"
-
-  toa42:
+      path: "{{CATALOG_DIR}}/ebaf-toa41.yaml"
+  ebaf-toa42:
     description: CERES-EBAF
     driver: yaml_file_cat
     args:
-      path: "{{CATALOG_DIR}}/toa42.yaml"
-
-  sfc41:
+      path: "{{CATALOG_DIR}}/ebaf-toa42.yaml"
+  ebaf-sfc41:
     description: CERES-EBAF
     driver: yaml_file_cat
     args:
-      path: "{{CATALOG_DIR}}/sfc41.yaml"
+      path: "{{CATALOG_DIR}}/ebaf-sfc41.yaml"
+  syn-toa41:
+    description: CERES-EBAF
+    driver: yaml_file_cat
+    args:
+      path: "{{CATALOG_DIR}}/syn-toa41.yaml"
