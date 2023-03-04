@@ -13,6 +13,6 @@ def catalogue(verbose=True, configdir='config'):
                 print(model + '\t' + exp + '\t' + cat[model][exp].description)
                 if exp != "grids":
                     for k in cat[model][exp]:
-                        print('\t' + '- ' + k + '\t' + cat[model][exp][k].description)
+                        print('\t' + '- ' + k + '\t' + cat[model][exp].walk()[k]._description)
             print()
     return cat
