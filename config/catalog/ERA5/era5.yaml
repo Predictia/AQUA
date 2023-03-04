@@ -9,11 +9,9 @@ sources:
       args:
         csv_kwargs:
           usecols:
-          - project
-          - era_id
-          - dataType
           - level_type
           - frequency
+          - stepType
           - stepType
           - table_id
           - code
@@ -21,11 +19,10 @@ sources:
           - initialization_date
           - uri
           - format
-          - path
-          - units
-          - long_name
-          - step
           - short_name
+          dtype:
+            initialization_date: str
+            validation_date: str
         esmcol_obj: /pool/data/Catalogs/dkrz_era5_disk.json
       description: ERA5 instantaneous 2D data monthly averaged
       metadata:
@@ -46,11 +43,9 @@ sources:
       args:
         csv_kwargs:
           usecols:
-          - project
-          - era_id
-          - dataType
           - level_type
           - frequency
+          - stepType
           - stepType
           - table_id
           - code
@@ -58,11 +53,10 @@ sources:
           - initialization_date
           - uri
           - format
-          - path
-          - units
-          - long_name
-          - step
           - short_name
+          dtype:
+            initialization_date: str
+            validation_date: str
         esmcol_obj: /pool/data/Catalogs/dkrz_era5_disk.json
       description: ERA5 accumulated 2D data monthly averaged
       metadata:
@@ -84,11 +78,9 @@ sources:
       args:
         csv_kwargs:
           usecols:
-          - project
-          - era_id
-          - dataType
           - level_type
           - frequency
+          - stepType
           - stepType
           - table_id
           - code
@@ -96,11 +88,10 @@ sources:
           - initialization_date
           - uri
           - format
-          - path
-          - units
-          - long_name
-          - step
           - short_name
+          dtype:
+            initialization_date: str
+            validation_date: str
         esmcol_obj: /pool/data/Catalogs/dkrz_era5_disk.json
       description: ERA5 instantaneous 2D data daily
       metadata:
@@ -119,11 +110,9 @@ sources:
       args:
         csv_kwargs:
           usecols:
-          - project
-          - era_id
-          - dataType
           - level_type
           - frequency
+          - stepType
           - stepType
           - table_id
           - code
@@ -131,11 +120,27 @@ sources:
           - initialization_date
           - uri
           - format
-          - path
-          - units
-          - long_name
-          - step
           - short_name
+          # - project
+          # - era_id
+          # - dataType
+          # - level_type
+          # - frequency
+          # - stepType
+          # - table_id
+          # - code
+          # - validation_date
+          # - initialization_date
+          # - uri
+          # - format
+          # - path
+          # - units
+          # - long_name
+          # - step
+#          - short_name
+          dtype:
+            initialization_date: str
+            validation_date: str
         esmcol_obj: /pool/data/Catalogs/dkrz_era5_disk.json
       description: ERA5 accumulated 2D data daily
       metadata:
