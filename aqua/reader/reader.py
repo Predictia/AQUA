@@ -266,6 +266,7 @@ class Reader():
         
         Arguments:
             regrid (bool):          if to regrid the retrieved data (False)
+            timmean (bool)          if to perform timmean of the retrieved data (False)
             fix (bool):             if to perform a fix (var name, units, coord name adjustments) (True)
             apply_unit_fix (bool):  if to already adjust units by multiplying by a factor or adding
                                     an offset (this can also be done later with the `fix_units` method) (True)
@@ -312,8 +313,8 @@ class Reader():
             data = data.isel({self.vertcoord: self.level})
 
         # sequence which should be more efficient: averaging - regridding - fixing
-        if self.freq and average:
-            data = self.average(data)
+        if self.freq and timmean:
+            data = self.timmean(data)
         if self.targetgrid and regrid:
             data = self.regridder.regrid(data)  # XXX check attrs
             self.grid_area = self.dst_grid_area 
@@ -340,7 +341,7 @@ class Reader():
         self.space_coord = ["lon", "lat"]
         return out
     
-    def average(self, data):
+    def timmean(self, data, freq = None):
         """
         Perform daily and monthly averaging
 
@@ -350,15 +351,21 @@ class Reader():
             A xarray.Dataset containing the regridded data.
         """
 
+        # translate frequency in pandas-style time
         if self.freq == 'mon':
-            out = data.resample(time='M').mean()
+            resample_freq = '1M'
         elif self.freq == 'day':
-            out = data.resample(time='D').mean()
-        else: 
-            try: 
-                out = data.resample(time=self.freq).mean()
-            except: 
-                sys.exit('Cant find a frequency to resample')
+            resample_freq = '1D'
+        else:
+            resample_freq = self.freq
+        
+        try: 
+            # resample, and assign the correct time
+            out = data.resample(time=resample_freq).mean()
+            proper_time = data.time.resample(time=resample_freq).mean()
+            out['time'] = proper_time.values
+        except: 
+            sys.exit('Cant find a frequency to resample, aborting!')
    
         return out
 
@@ -509,22 +516,24 @@ class Reader():
         self.deltat = fix.get("deltat", 1.0)
         fixd = {}
         allvars = data.variables
-        for var in fix["vars"]:
-            shortname = fix["vars"][var]["short_name"]
-            if var in allvars: 
-                fixd.update({f"{var}": f"{shortname}"})
-                src_units = fix["vars"][var].get("src_units", None)
-                if src_units:
-                    data[var].attrs.update({"units": src_units})
-                units = fix["vars"][var]["units"]
-                if units.count('{'):
-                    units = fixes["defaults"]["units"][units.replace('{','').replace('}','')]                
-                data[var].attrs.update({"target_units": units})
-                factor, offset = self.convert_units(data[var].units, units, var)
-                data[var].attrs.update({"factor": factor})
-                data[var].attrs.update({"offset": offset})
-                if apply_unit_fix:
-                    self.apply_unit_fix(data[var])
+        fixvars = fix.get("vars", None)
+        if fixvars:
+            for var in fixvars:
+                shortname = fix["vars"][var]["short_name"]
+                if var in allvars: 
+                    fixd.update({f"{var}": f"{shortname}"})
+                    src_units = fix["vars"][var].get("src_units", None)
+                    if src_units:
+                        data[var].attrs.update({"units": src_units})
+                    units = fix["vars"][var]["units"]
+                    if units.count('{'):
+                        units = fixes["defaults"]["units"][units.replace('{','').replace('}','')]                
+                    data[var].attrs.update({"target_units": units})
+                    factor, offset = self.convert_units(data[var].units, units, var)
+                    data[var].attrs.update({"factor": factor})
+                    data[var].attrs.update({"offset": offset})
+                    if apply_unit_fix:
+                        self.apply_unit_fix(data[var])
 
         allcoords = data.coords
         fixcoord = fix.get("coords", None)
