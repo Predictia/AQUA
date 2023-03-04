@@ -303,7 +303,7 @@ class Reader():
             data = list(data.values())[0]
         else:
             if var:
-                data = esmcat.to_dask()[var].to_dataset()
+                data = esmcat.to_dask()[var]
             else:
                 data = esmcat.to_dask()
 
