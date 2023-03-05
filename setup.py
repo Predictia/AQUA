@@ -20,6 +20,10 @@ setup(name='aqua',
         'intake',
         'intake-xarray',
         'docker',
-        'jinja2'
+        'jinja2',
+        'gribscan',
+        'cfgrib',
+        'sparse',
+        'docker'
       ]
     )
