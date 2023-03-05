@@ -13,7 +13,7 @@ class Reader():
     """General reader for NextGEMS data (on Levante for now)"""
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
-                 regrid=None, method="ycon", zoom=None, configdir = 'config', level=None, areas=True):
+                 regrid=None, method="ycon", zoom=None, configdir=None, level=None, areas=True):
         """
         The Reader constructor.
         It uses the catalog `config/config.yaml` to identify the required data.
@@ -47,6 +47,15 @@ class Reader():
         self.grid_area = None
         self.src_grid_area = None
         self.dst_grid_area = None
+
+        if configdir:
+            catalog_file = os.path.join(configdir, "catalog.yaml")
+        else:
+            homedir = os.environ['HOME']
+            for configdir in ['./config', '../config', '../../config', os.path.join(homedir, ".aqua/config")]:
+                catalog_file = os.path.join(configdir, "catalog.yaml")
+                if os.path.exists(catalog_file):
+                    break
 
         self.configdir = configdir
         catalog_file = os.path.join(configdir, "catalog.yaml")

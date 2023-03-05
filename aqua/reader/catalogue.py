@@ -1,11 +1,19 @@
 import intake
 import os
 
-def catalogue(verbose=True, configdir='config'):
+def catalogue(verbose=True, configdir=None):
 
     """Catalogue of available NextGEMS data (on Levante for now)"""
 
-    catalog_file = os.path.join(configdir, "catalog.yaml")
+    if configdir:
+        catalog_file = os.path.join(configdir, "catalog.yaml")
+    else:
+        homedir = os.environ['HOME']
+        for configdir in ['./config', '../config', '../../config', os.path.join(homedir, ".aqua/config")]:
+            catalog_file = os.path.join(configdir, "catalog.yaml")
+            if os.path.exists(catalog_file):
+                break
+
     cat = intake.open_catalog(catalog_file)
     if verbose:
         for model,vm in cat.items():
