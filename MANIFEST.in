@@ -1,0 +1,7 @@
+global-exclude *.pyc[o]
+global-exclude __pycache__
+recursive-include aqua *
+recursive-include notebooks *
+recursive-include diagnostics *
+recursive-include config *
+include README.md
