@@ -120,20 +120,6 @@ class Reader():
                 print("Success!")
 
             self.regridder = rg.Regridder(weights=self.weights)
-
-            #if areas:
-                # All needed areas have already been computed by the regridding procedure
-                #planet_radius = 6371000  # same default as cdo
-                #r2 = planet_radius * planet_radius
-                #self.src_grid_area = self.weights.src_grid_area * r2
-                #self.dst_grid_area = self.weights.dst_grid_area * r2
-                #self.src_grid_area.attrs['units'] = 'm2'
-                #self.dst_grid_area.attrs['units'] = 'm2'
-                #self.src_grid_area.attrs['standard_name'] = 'area'
-                #self.dst_grid_area.attrs['standard_name'] = 'area'
-                #self.src_grid_area.attrs['long_name'] = 'area of grid cell'
-                #self.dst_grid_area.attrs['long_name'] = 'area of grid cell'
-                #self.grid_area = self.src_grid_area
         
         if areas:
             self.src_areafile =os.path.join(

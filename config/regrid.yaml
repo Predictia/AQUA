@@ -4,8 +4,8 @@ weights:
 
 areas:
    path: /work/bb1153/b382075/nextgems/weights
-   src_template: areas_{model}_{exp}_{source}.nc
-   dst_template: areas_{grid}.nc
+   src_template: cell_area_{model}_{exp}_{source}.nc
+   dst_template: cell_area_{grid}.nc
 
 paths:
   grids: /work/bb1153/b382075/nextgems/weights
