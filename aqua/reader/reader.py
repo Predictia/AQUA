@@ -1,7 +1,7 @@
 import intake
 import intake_esm
 import xarray as xr
-import numpy as np
+import pandas as pd
 import os
 from metpy.units import units
 import smmregrid as rg
@@ -321,9 +321,7 @@ class Reader():
             if not self.stream_date:
                 self.stream_date = data.time[0].values 
             start_date = self.stream_date
-            stop_date = start_date + np.timedelta64(stream_step, str(unit)).astype('timedelta64[D]')
-            print(start_date)
-            print(stop_date)
+            stop_date = pd.to_datetime(start_date) + pd.DateOffset(**{unit: stream_step})
             self.stream_date = stop_date
             return data.sel(time=slice(start_date, stop_date)).where(data.time != stop_date, drop=True)
         else:
