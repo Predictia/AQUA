@@ -49,3 +49,10 @@ models:
                 name: "{latitude}"
             longitude:
                 name: "{longitude}"
+
+    ERA5:
+        coords:
+            latitude: 
+                name: "{latitude}"
+            longitude:
+                name: "{longitude}"
