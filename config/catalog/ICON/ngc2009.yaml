@@ -44,3 +44,10 @@ sources:
           simulation_id: ngc2009
           frequency: 30minute
           time_reduction: inst
+  lra_r100:
+    driver: netcdf
+    args:
+      urlpath: '/work/bb1153/b382076/LRA/ngc2009/r100/mon/*.nc'
+      chunks: {}
+      xarray_kwargs:
+        decode_times: True
