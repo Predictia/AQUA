@@ -21,10 +21,10 @@ conda activate aqua
 workers=16
 
 # frequency (override configuration file)
-freq=day
-res=r100
+#freq=day
+#res=r100
 
 # run the Python script
 # -d to create the files (otherwise only inspect the catalogs and tests)
 # -o to overwrite the files
-./lra-regridder.py --config config_lra.yml -w ${workers} -d -o -f ${freq} -r ${res}
+./lra-regridder.py --config config_lra.yml -w ${workers} -d
