@@ -1,11 +1,12 @@
 import intake
-import os
+from aqua.util import get_catalog_file
 
-def catalogue(verbose=True, configdir='config'):
+def catalogue(verbose=True, configdir=None):
 
     """Catalogue of available NextGEMS data (on Levante for now)"""
 
-    catalog_file = os.path.join(configdir, "catalog.yaml")
+    _, catalog_file = get_catalog_file(configdir=configdir)
+
     cat = intake.open_catalog(catalog_file)
     if verbose:
         for model,vm in cat.items():

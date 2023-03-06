@@ -4,7 +4,7 @@ import xarray as xr
 import os
 from metpy.units import units
 import smmregrid as rg
-from aqua.util import load_yaml
+from aqua.util import load_yaml, get_catalog_file
 import sys
 import subprocess
 import tempfile
@@ -13,7 +13,7 @@ class Reader():
     """General reader for NextGEMS data (on Levante for now)"""
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
-                 regrid=None, method="ycon", zoom=None, configdir = 'config', level=None, areas=True):
+                 regrid=None, method="ycon", zoom=None, configdir=None, level=None, areas=True):
         """
         The Reader constructor.
         It uses the catalog `config/config.yaml` to identify the required data.
@@ -48,11 +48,10 @@ class Reader():
         self.src_grid_area = None
         self.dst_grid_area = None
 
-        self.configdir = configdir
-        catalog_file = os.path.join(configdir, "catalog.yaml")
+        self.configdir, catalog_file = get_catalog_file(configdir=configdir)
         self.cat = intake.open_catalog(catalog_file)
 
-        cfg_regrid = load_yaml(os.path.join(configdir,"regrid.yaml"))
+        cfg_regrid = load_yaml(os.path.join(self.configdir,"regrid.yaml"))
 
         if source:
             self.source = source
