@@ -18,10 +18,10 @@ def get_catalog_file(configdir=None):
     searching in a list of pre-defined directories. If configdir is provided, search only in that directory.
     
     Args:
-        configdir (str, optional): Where to search the catalog
+        configdir (str, optional): Where to search the catalog  and other config files
 
     Returns:
-        configdir (str): the dir of the catalog file
+        configdir (str): the dir of the catalog file and other config files
         catalog_file (str): the path of the catalog file
     
     """
