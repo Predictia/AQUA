@@ -1,6 +1,7 @@
 import intake
 import intake_esm
 import xarray as xr
+import numpy as np
 import os
 from metpy.units import units
 import smmregrid as rg
@@ -47,6 +48,9 @@ class Reader():
         self.grid_area = None
         self.src_grid_area = None
         self.dst_grid_area = None
+
+        self.stream_index = 0 
+        self.stream_date = None
 
         self.configdir = configdir
         catalog_file = os.path.join(configdir, "catalog.yaml")
@@ -258,7 +262,7 @@ class Reader():
             area_file.close()
 
 
-    def retrieve(self, regrid=False, timmean=False, fix=True, apply_unit_fix=True):
+    def retrieve(self, regrid=False, timmean=False, fix=True, apply_unit_fix=True, streaming = False, stream_step = 1, unit=None):
         """
         Perform a data retrieve.
         
@@ -307,7 +311,33 @@ class Reader():
             self.grid_area = self.dst_grid_area 
         if fix:
             data = self.fixer(data, apply_unit_fix=apply_unit_fix)
+        if streaming:
+            data = self.stream(data, stream_step, unit)
         return data
+
+    
+    def stream(self, data, stream_step = 1, unit=None):
+        if unit:
+            if not self.stream_date:
+                self.stream_date = data.time[0].values 
+            start_date = self.stream_date
+            stop_date = start_date + np.timedelta64(stream_step, str(unit)).astype('timedelta64[D]')
+            print(start_date)
+            print(stop_date)
+            self.stream_date = stop_date
+            return data.sel(time=slice(start_date, stop_date)).where(data.time != stop_date, drop=True)
+        else:
+            start_index = self.stream_index
+            end_index = self.stream_index + stream_step
+            self.stream_index += stream_step         
+            if end_index >= len(data.time):
+                return data.isel(time=slice(start_index, None))
+            else:
+                return data.isel(time=slice(start_index, end_index))
+                  
+    def reset_stream(self):
+        self.stream_index = 0
+        self.stream_date = None
 
 
     def regrid(self, data):
