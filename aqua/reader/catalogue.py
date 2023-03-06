@@ -1,18 +1,11 @@
 import intake
-import os
+from aqua.util import get_catalog_file
 
 def catalogue(verbose=True, configdir=None):
 
     """Catalogue of available NextGEMS data (on Levante for now)"""
 
-    if configdir:
-        catalog_file = os.path.join(configdir, "catalog.yaml")
-    else:
-        homedir = os.environ['HOME']
-        for configdir in ['./config', '../config', '../../config', os.path.join(homedir, ".aqua/config")]:
-            catalog_file = os.path.join(configdir, "catalog.yaml")
-            if os.path.exists(catalog_file):
-                break
+    _, catalog_file = get_catalog_file(configdir=configdir)
 
     cat = intake.open_catalog(catalog_file)
     if verbose:
