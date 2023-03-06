@@ -75,7 +75,7 @@ def lra(modelname, expname, sourcename,
         decum = reader.decumulate(data[var])
 
         # time average
-        averaged = reader.average(decum) # here level selection can be applied
+        averaged = reader.timmean(decum) # here level selection can be applied
 
         # here we can apply time selection, for instance if we want to process one year at the time
         interp = reader.regrid(averaged)
@@ -115,9 +115,16 @@ def lra(modelname, expname, sourcename,
                     else:
                         with ProgressBar():
                             write_job.compute()
+
+                    # try to clean
+                    del write_job, to_be_saved, interp, decum, averaged
         
         toc = time()
         logging.info('Done in {:.4f} seconds'.format(toc - tic))
+    
+    # closing the Dataset (necessary?)
+    data.close()
+    logging.warning(f'Finish processing {modelname}-{expname}-{sourcename}... have yourself a beer!')
 
 
 def parse_arguments(args):
