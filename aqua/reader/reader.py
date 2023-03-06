@@ -29,7 +29,7 @@ class Reader():
             configdir (str)   folder where the config/catalog files are located (config)
             level (int):      level to extract if input data are 3D (starting from 0)
             areas (bool):     compute pixel areas if needed (True)
-            var (str, list):  variable(s) which we will extract. "vars" is a synonim (None)
+            var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
         
         Returns:
             A `Reader` class object.
@@ -274,7 +274,7 @@ class Reader():
             fix (bool):             if to perform a fix (var name, units, coord name adjustments) (True)
             apply_unit_fix (bool):  if to already adjust units by multiplying by a factor or adding
                                     an offset (this can also be done later with the `fix_units` method) (True)
-            var (str, list):  variable(s) which we will extract. "vars" is a synonim (None)
+            var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
         Returns:
             A xarray.Dataset containing the required data.
         """
