@@ -260,7 +260,7 @@ class Reader():
             area_file.close()
 
 
-    def retrieve(self, regrid=False, average=False, fix=True, apply_unit_fix=True, var=None):
+    def retrieve(self, regrid=False, timmean=False, fix=True, apply_unit_fix=True, var=None):
         """
         Perform a data retrieve.
         
@@ -304,7 +304,11 @@ class Reader():
             data = list(data.values())[0]
         else:
             if var:
+                # conversion to list guarantee that Dataset is produced
+                if isinstance(var, str):
+                    var = [var]
                 data = esmcat.to_dask()[var]
+
             else:
                 data = esmcat.to_dask()
 
