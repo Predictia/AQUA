@@ -272,6 +272,9 @@ class Reader():
             fix (bool):             if to perform a fix (var name, units, coord name adjustments) (True)
             apply_unit_fix (bool):  if to already adjust units by multiplying by a factor or adding
                                     an offset (this can also be done later with the `fix_units` method) (True)
+            streaming (bool):       if to retreive data in a streaming mode (False)
+            stream_step (int):      the number of time steps to stream the data by (Default = 1)
+            unit (str):             the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (Default = None)
         Returns:
             A xarray.Dataset containing the required data.
         """
@@ -317,6 +320,23 @@ class Reader():
 
     
     def stream(self, data, stream_step = 1, unit=None):
+        """
+        The stream function is used to stream data by a specified number of time steps.
+        If the unit parameter is specified, the data is streamed by the specified unit and stream_step (e.g. 1 month).
+        If the unit parameter is not specified, the data is streamed by stream_step steps of the original time resolution of input data.
+
+        If the stream function is called a second time, it will return the subsequent chunk of data in the sequence.
+        The function keeps track of the state of the streaming process through the use of internal attributes.
+        This allows the user to stream through the entire dataset in multiple calls to the function,
+        retrieving consecutive chunks of data each time.
+        
+        Arguments:
+            data (xr.Dataset):  the input xarray.Dataset
+            stream_step  (int):  the number of time steps to stream the data by (Default = 1) 
+            unit (str):  the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (Default = None)
+        Returns:
+            A xarray.Dataset containing the subset of the input data that has been streamed.
+        """
         if unit:
             if not self.stream_date:
                 self.stream_date = data.time[0].values 
@@ -334,6 +354,11 @@ class Reader():
                 return data.isel(time=slice(start_index, end_index))
                   
     def reset_stream(self):
+        """
+        Reset the state of the streaming process. 
+        This means that if the stream function is called again after calling reset_stream, 
+        it will start streaming the input data from the beginning.
+        """
         self.stream_index = 0
         self.stream_date = None
 
