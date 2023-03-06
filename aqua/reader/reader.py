@@ -306,7 +306,7 @@ class Reader():
             if var:
                 # conversion to list guarantee that Dataset is produced
                 if isinstance(var, str):
-                    var = [var]
+                    var = var.split()
                 data = esmcat.to_dask()[var]
 
             else:
