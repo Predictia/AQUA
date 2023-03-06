@@ -13,7 +13,8 @@ class Reader():
     """General reader for NextGEMS data (on Levante for now)"""
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
-                 regrid=None, method="ycon", zoom=None, configdir = 'config', level=None, areas=True, var=None):
+                 regrid=None, method="ycon", zoom=None, configdir = 'config',
+                 level=None, areas=True, var=None, vars=None):
         """
         The Reader constructor.
         It uses the catalog `config/config.yaml` to identify the required data.
@@ -28,13 +29,16 @@ class Reader():
             configdir (str)   folder where the config/catalog files are located (config)
             level (int):      level to extract if input data are 3D (starting from 0)
             areas (bool):     compute pixel areas if needed (True)
-            var (str, list):  variable(s) which we will extract (None)
+            var (str, list):  variable(s) which we will extract. "vars" is a synonim (None)
         
         Returns:
             A `Reader` class object.
         """
 
-        self.var = var
+        if vars:
+            self.var = vars
+        else:
+            self.var = var
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
@@ -260,7 +264,7 @@ class Reader():
             area_file.close()
 
 
-    def retrieve(self, regrid=False, timmean=False, fix=True, apply_unit_fix=True, var=None):
+    def retrieve(self, regrid=False, timmean=False, fix=True, apply_unit_fix=True, var=None, vars=None):
         """
         Perform a data retrieve.
         
@@ -270,7 +274,7 @@ class Reader():
             fix (bool):             if to perform a fix (var name, units, coord name adjustments) (True)
             apply_unit_fix (bool):  if to already adjust units by multiplying by a factor or adding
                                     an offset (this can also be done later with the `fix_units` method) (True)
-            var (str, list):  variable(s) which we will extract (None)
+            var (str, list):  variable(s) which we will extract. "vars" is a synonim (None)
         Returns:
             A xarray.Dataset containing the required data.
         """
@@ -281,6 +285,8 @@ class Reader():
         else:
             esmcat = self.cat[self.model][self.exp][self.source]
 
+        if vars:
+            var = vars
         if not var:
             var = self.var
         
