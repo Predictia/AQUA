@@ -354,7 +354,7 @@ class Reader():
    
         return out
     
-    def _check_if_accumulated(self, data):
+    def _check_if_accumulated_auto(self, data):
 
         """To check if a DataArray is accumulated. 
         Arbitrary check on the first 20 timesteps"""
@@ -370,6 +370,29 @@ class Reader():
         condition = (check >= 0).all() or (check <=0).all()
         
         return condition
+
+    def _check_if_accumulated(self, data):
+
+        """To check if a DataArray is accumulated. 
+        On a list of variables defined by the GRIB names
+        
+        Args: 
+            data (xr.DataArray): field to be processed
+        
+        Returns:
+            bool: True if decumulation is necessary, False if not 
+        """
+
+        decumvars = ['tp', 'e', 'slhf', 'sshf',
+                     'tsr', 'ttr', 'ssr', 'str', 
+                     'tsrc', 'ttrc', 'ssrc', 'strc', 
+                     'tisr']
+        
+
+        if data.name in decumvars:
+            return True
+        else:
+            return False
 
 
     
@@ -419,6 +442,11 @@ class Reader():
             # kaboom: exploit where
             clean=deltas.where(mask, data/cumulation_time)
 
+            # WARNING: HACK FOR EVAPORATION 
+            #print(clean.units)
+            if clean.units == 'm of water equivalent':
+                clean.attrs['units'] = 'm'
+            
             # use metpy units to divide by seconds
             new_units = (units(clean.units)/units('s'))
 
