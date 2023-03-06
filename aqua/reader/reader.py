@@ -449,10 +449,6 @@ class Reader():
             if not cumulation_time:
                 cumulation_time = (data.time[1]-data.time[0]).values/np.timedelta64(1, 's')
 
-            # roll back the time for cumulated variables and remove the first timestep
-            # data = data.isel(time=slice(1, None))
-            # data['time'] = data.time - np.timedelta64(1,'m')
-
             # get the derivatives
             deltas = data.diff(dim='time') / cumulation_time
 
@@ -469,6 +465,12 @@ class Reader():
 
             # kaboom: exploit where
             clean=deltas.where(mask, data/cumulation_time)
+
+            # remove the first timestep (no sense in cumulated)
+            clean = clean.isel(time=slice(1, None))
+
+            # rollback the time axis by half the cumulation time
+            clean['time'] = clean.time - np.timedelta64(int(cumulation_time/2), 's')
 
             # WARNING: HACK FOR EVAPORATION 
             #print(clean.units)
