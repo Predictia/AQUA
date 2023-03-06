@@ -1,2 +1,3 @@
 *.pyc
-cli/*.txt
+cli/*.err
+cli/*.out
