@@ -66,8 +66,8 @@ class Reader():
         
         source_grid = cfg_regrid["source_grids"][self.model][self.exp].get(self.source, None)
         if not source_grid:
-            source_grid = cfg_regrid["source_grids"][self.model][self.exp]["default"]
-
+            source_grid = cfg_regrid["source_grids"][self.model][self.exp].get("default", None)
+        
         self.src_space_coord = source_grid.get("space_coord", None)
         self.space_coord = self.src_space_coord
         self.dst_space_coord = ["lon", "lat"]
@@ -90,88 +90,133 @@ class Reader():
                                                     target=regrid,
                                                     source=self.source,
                                                     level=("2d" if level is None else level)))
-            if os.path.exists(self.weightsfile):
-                self.weights = xr.open_mfdataset(self.weightsfile)
-            else:
-                sgridpath = source_grid["path"]
-                if zoom:
-                    sgridpath = sgridpath.format(zoom=(9-zoom))            
-                print("Weights file not found:", self.weightsfile)
-                print("Attempting to generate it ...")
-                print("Source grid: ", sgridpath)
 
-                # hack to  pass a correct list of all options
-                src_extra = source_grid.get("extra", [])
-                if src_extra:
-                    if not isinstance(src_extra, list):
-                        src_extra = [src_extra]
-                if extra:
-                    extra = [extra] 
-                extra = extra + src_extra
-                weights = rg.cdo_generate_weights(source_grid=sgridpath,
-                                                      target_grid=cfg_regrid["target_grids"][regrid], 
-                                                      method='ycon', 
-                                                      gridpath=cfg_regrid["paths"]["grids"],
-                                                      icongridpath=cfg_regrid["paths"]["icon"],
-                                                      extra=extra)
-                weights.to_netcdf(self.weightsfile)
-                # For some weird reason it is better to reopen this from file ... to be investigated. It was failing for FESOM on orig. grid
-                self.weights = xr.open_mfdataset(self.weightsfile)
-                print("Success!")
-
+            # If weights do not exist, create them       
+            if not os.path.exists(self.weightsfile):
+                self._make_weights_file(self.weightsfile, source_grid,
+                                        cfg_regrid, regrid=regrid,
+                                        extra=extra, zoom=zoom)
+                
+            self.weights = xr.open_mfdataset(self.weightsfile)   
             self.regridder = rg.Regridder(weights=self.weights)
         
         if areas:
             self.src_areafile =os.path.join(
                 cfg_regrid["areas"]["path"],
                 cfg_regrid["areas"]["src_template"].format(model=model, exp=exp, source=self.source))
-            if os.path.exists(self.src_areafile):
-                self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
-            else:
-                sgridpath = source_grid["path"]
-                if zoom:
-                    sgridpath = sgridpath.format(zoom=(9-zoom)) 
-                print("Source areas file not found:", self.src_areafile)
-                print("Attempting to generate it ...")
-                print("Source grid: ", sgridpath)
-                src_extra = source_grid.get("extra", [])
-                grid_area = self.cdo_generate_areas(source=sgridpath,
-                                                    gridpath=cfg_regrid["paths"]["grids"],
-                                                    icongridpath=cfg_regrid["paths"]["icon"],
-                                                    extra=src_extra)
-                # Make sure that the new DataArray uses the expected spatial dimensions
-                grid_area = self._rename_dims(grid_area, self.src_space_coord)
-                data = self.retrieve(fix=False)
-                grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.src_space_coord})
-                
-                self.src_grid_area = grid_area                           
-                self.src_grid_area.to_netcdf(self.src_areafile)
-                # ... aaand we reopen it because something is still not ok with our treatment of temp files
-                self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
-                print("Success!")
+
+            # If source areas do not exist, create them 
+            if not os.path.exists(self.src_areafile):
+                self._make_src_area_file(self.src_areafile, source_grid,
+                                         gridpath=cfg_regrid["paths"]["grids"],
+                                         icongridpath=cfg_regrid["paths"]["icon"],
+                                         zoom=None)
+
+            self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
 
             if regrid:
                 self.dst_areafile =os.path.join(
                     cfg_regrid["areas"]["path"],
                     cfg_regrid["areas"]["dst_template"].format(grid=self.targetgrid))
-                if os.path.exists(self.dst_areafile):
-                    self.dst_grid_area = xr.open_mfdataset(self.dst_areafile).cell_area
-                else:
-                    print("Destination areas file not found:", self.dst_areafile)
-                    print("Attempting to generate it ...")
+
+                if not os.path.exists(self.dst_areafile):
                     grid = cfg_regrid["target_grids"][regrid]
-                    dst_extra = f"-const,1,{grid}"
-                    grid_area = self.cdo_generate_areas(source=dst_extra)
+                    self._make_dst_area_file(self.dst_areafile, grid)
 
-                    data = self.retrieve(fix=False)
-                    data = self.regridder.regrid(data.isel(time=0))
-                    grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.dst_space_coord})
-
-                    self.dst_grid_area = grid_area                           
-                    self.dst_grid_area.to_netcdf(self.dst_areafile)
-                    print("Success!")
-
+                self.dst_grid_area = xr.open_mfdataset(self.dst_areafile).cell_area
+     
             self.grid_area = self.src_grid_area
+
+
+    def _make_dst_area_file(self, areafile, grid):
+        """Helper function to create destination (regridded) area files."""
+
+        print("Destination areas file not found:", areafile)
+        print("Attempting to generate it ...")
+
+        dst_extra = f"-const,1,{grid}"
+        grid_area = self.cdo_generate_areas(source=dst_extra)
+
+        # Make sure that grid areas contain exactly the same coordinates
+        data = self.retrieve(fix=False)
+        data = self.regridder.regrid(data.isel(time=0))
+        grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.dst_space_coord})
+                  
+        grid_area.to_netcdf(self.dst_areafile)
+        print("Success!")
+
+
+    def _make_src_area_file(self, areafile, source_grid, 
+                            gridpath="", icongridpath="", zoom=None):
+        """Helper function to create source area files."""
+
+        sgridpath = source_grid.get("path", None)
+        if not sgridpath:
+            # there is no source grid path at all defined in the regrid.yaml file:
+            # let's reconstruct it from the file itself
+            data = self.retrieve(fix=False)
+            temp_file = tempfile.NamedTemporaryFile(mode='w')
+            sgridpath = temp_file.name
+            data.isel(time=0).to_netcdf(sgridpath)
+        else:
+            temp_file = None
+            if zoom:
+                sgridpath = sgridpath.format(zoom=(9-zoom))    
+
+        print("Source areas file not found:", areafile)
+        print("Attempting to generate it ...")
+        print("Source grid: ", sgridpath)
+        src_extra = source_grid.get("extra", [])
+        grid_area = self.cdo_generate_areas(source=sgridpath,
+                                            gridpath=gridpath,
+                                            icongridpath=icongridpath,
+                                            extra=src_extra)
+        # Make sure that the new DataArray uses the expected spatial dimensions
+        grid_area = self._rename_dims(grid_area, self.src_space_coord)
+        data = self.retrieve(fix=False)
+        grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.src_space_coord})
+                                 
+        grid_area.to_netcdf(areafile)
+        print("Success!")
+
+
+    def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, regrid="", extra=[], zoom=None):
+        """Helper function to produce weights file"""
+
+        sgridpath = source_grid.get("path", None)
+        if not sgridpath:
+            # there is no source grid path at all defined in the regrid.yaml file:
+            # let's reconstruct it from the file itself
+            data = self.retrieve(fix=False)
+            temp_file = tempfile.NamedTemporaryFile(mode='w')
+            sgridpath = temp_file.name
+            data.isel(time=0).to_netcdf(sgridpath)
+        else:
+            temp_file = None
+            if zoom:
+                sgridpath = sgridpath.format(zoom=(9-zoom))    
+
+        print("Weights file not found:", weightsfile)
+        print("Attempting to generate it ...")
+        print("Source grid: ", sgridpath)
+
+        # hack to  pass a correct list of all options
+        src_extra = source_grid.get("extra", [])
+        if src_extra:
+            if not isinstance(src_extra, list):
+                src_extra = [src_extra]
+        if extra:
+            extra = [extra] 
+        extra = extra + src_extra
+        weights = rg.cdo_generate_weights(source_grid=sgridpath,
+                                                target_grid=cfg_regrid["target_grids"][regrid], 
+                                                method='ycon', 
+                                                gridpath=cfg_regrid["paths"]["grids"],
+                                                icongridpath=cfg_regrid["paths"]["icon"],
+                                                extra=extra)
+        weights.to_netcdf(weightsfile)
+        print("Success!")
+
 
     def cdo_generate_areas(self, source, icongridpath=None, gridpath=None, extra=None):
         """
@@ -336,7 +381,7 @@ class Reader():
 
         out = self.regridder.regrid(data)
 
-        out.attrs["regridded"]=1
+        out.attrs["regridded"] = 1
         # set these two to the target grid (but they are actually not used so far)
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
