@@ -269,7 +269,7 @@ class Reader():
 
 
     def retrieve(self, regrid=False, timmean=False, fix=True, apply_unit_fix=True,
-                 var=None, vars=None, streaming = False, stream_step = 1, unit=None):
+                 var=None, vars=None, streaming = False, stream_step = 1, stream_unit=None):
         """
         Perform a data retrieve.
         
@@ -281,7 +281,7 @@ class Reader():
                                     an offset (this can also be done later with the `fix_units` method) (True)
             streaming (bool):       if to retreive data in a streaming mode (False)
             stream_step (int):      the number of time steps to stream the data by (Default = 1)
-            unit (str):             the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (Default = None)
+            stream_unit (str):      the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (Default = None)
             var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
 
         Returns:
@@ -340,11 +340,11 @@ class Reader():
         if fix:
             data = self.fixer(data, apply_unit_fix=apply_unit_fix)
         if streaming:
-            data = self.stream(data, stream_step, unit)
+            data = self.stream(data, stream_step, stream_unit)
         return data
 
     
-    def stream(self, data, stream_step = 1, unit=None):
+    def stream(self, data, stream_step = 1, stream_unit=None):
         """
         The stream function is used to stream data by a specified number of time steps.
         If the unit parameter is specified, the data is streamed by the specified unit and stream_step (e.g. 1 month).
@@ -358,15 +358,15 @@ class Reader():
         Arguments:
             data (xr.Dataset):  the input xarray.Dataset
             stream_step  (int):  the number of time steps to stream the data by (Default = 1) 
-            unit (str):  the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (Default = None)
+            stream_unit (str):  the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (Default = None)
         Returns:
             A xarray.Dataset containing the subset of the input data that has been streamed.
         """
-        if unit:
+        if stream_unit:
             if not self.stream_date:
                 self.stream_date = data.time[0].values 
             start_date = self.stream_date
-            stop_date = pd.to_datetime(start_date) + pd.DateOffset(**{unit: stream_step})
+            stop_date = pd.to_datetime(start_date) + pd.DateOffset(**{stream_unit: stream_step})
             self.stream_date = stop_date
             return data.sel(time=slice(start_date, stop_date)).where(data.time != stop_date, drop=True)
         else:
