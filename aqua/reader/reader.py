@@ -5,7 +5,7 @@ import pandas as pd
 import os
 from metpy.units import units
 import smmregrid as rg
-from aqua.util import load_yaml
+from aqua.util import load_yaml, get_catalog_file
 import sys
 import subprocess
 import tempfile
@@ -14,26 +14,32 @@ class Reader():
     """General reader for NextGEMS data (on Levante for now)"""
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
-                 regrid=None, method="ycon", zoom=None, configdir = 'config', level=None, areas=True):
+                 regrid=None, method="ycon", zoom=None, configdir=None,
+                 level=None, areas=True, var=None, vars=None):
         """
         The Reader constructor.
         It uses the catalog `config/config.yaml` to identify the required data.
         
         Arguments:
-            model (str):    model ID
-            exp (str):      experiment ID
-            source (str):   source ID
-            regrid (str):   perform regridding to grid `regrid`, as defined in `config/regrid.yaml` (None)
-            method (str):   regridding method (ycon)
-            zoom (int):     healpix zoom level
-            configdir (str) Folder where the config/catalog files are located (config)
-            level (int):    level to extract if input data are 3D (starting from 0)
-            areas (bool):   compute pixel areas if needed (True)
+            model (str):      model ID
+            exp (str):        experiment ID
+            source (str):     source ID
+            regrid (str):     perform regridding to grid `regrid`, as defined in `config/regrid.yaml` (None)
+            method (str):     regridding method (ycon)
+            zoom (int):       healpix zoom level
+            configdir (str)   folder where the config/catalog files are located (config)
+            level (int):      level to extract if input data are 3D (starting from 0)
+            areas (bool):     compute pixel areas if needed (True)
+            var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
         
         Returns:
             A `Reader` class object.
         """
 
+        if vars:
+            self.var = vars
+        else:
+            self.var = var
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
@@ -52,11 +58,11 @@ class Reader():
         self.stream_index = 0 
         self.stream_date = None
 
-        self.configdir = configdir
-        catalog_file = os.path.join(configdir, "catalog.yaml")
+        self.configdir, catalog_file = get_catalog_file(configdir=configdir)
+        
         self.cat = intake.open_catalog(catalog_file)
 
-        cfg_regrid = load_yaml(os.path.join(configdir,"regrid.yaml"))
+        cfg_regrid = load_yaml(os.path.join(self.configdir,"regrid.yaml"))
 
         if source:
             self.source = source
@@ -262,7 +268,8 @@ class Reader():
             area_file.close()
 
 
-    def retrieve(self, regrid=False, timmean=False, fix=True, apply_unit_fix=True, streaming = False, stream_step = 1, unit=None):
+    def retrieve(self, regrid=False, timmean=False, fix=True, apply_unit_fix=True,
+                 var=None, vars=None, streaming = False, stream_step = 1, unit=None):
         """
         Perform a data retrieve.
         
@@ -275,6 +282,8 @@ class Reader():
             streaming (bool):       if to retreive data in a streaming mode (False)
             stream_step (int):      the number of time steps to stream the data by (Default = 1)
             unit (str):             the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (Default = None)
+            var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
+
         Returns:
             A xarray.Dataset containing the required data.
         """
@@ -285,12 +294,21 @@ class Reader():
         else:
             esmcat = self.cat[self.model][self.exp][self.source]
 
+        if vars:
+            var = vars
+        if not var:
+            var = self.var
+        
         # Extract data from cat.
         # If this is an ESM-intake catalogue use first dictionary value,
         # else extract directly a dask dataset
         if isinstance(esmcat, intake_esm.core.esm_datastore):
             cdf_kwargs = esmcat.metadata.get('cdf_kwargs', {"chunks": {"time":1}})
             query = esmcat.metadata['query']
+            if var:
+                query_var = esmcat.metadata.get('query_var', 'short_name')
+                # Convert to list if not already
+                query[query_var] = var.split() if isinstance(var, str) else var
             subcat = esmcat.search(**query)
             data = subcat.to_dataset_dict(cdf_kwargs=cdf_kwargs,
                                          zarr_kwargs=dict(consolidated=True),
@@ -300,7 +318,14 @@ class Reader():
                                          )
             data = list(data.values())[0]
         else:
-            data = esmcat.to_dask()
+            if var:
+                # conversion to list guarantee that Dataset is produced
+                if isinstance(var, str):
+                    var = var.split()
+                data = esmcat.to_dask()[var]
+
+            else:
+                data = esmcat.to_dask()
 
         # select only a specific level when reading. Level coord names defined in regrid.yaml
         if self.level is not None:
