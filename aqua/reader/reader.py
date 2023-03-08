@@ -8,6 +8,9 @@ from aqua.util import load_yaml, get_catalog_file
 import sys
 import subprocess
 import tempfile
+import json
+import cf2cdm
+import warnings
 
 class Reader():
     """General reader for NextGEMS data (on Levante for now)"""
@@ -544,15 +547,16 @@ class Reader():
                     if apply_unit_fix:
                         self.apply_unit_fix(data[var])
 
-        allcoords = data.coords
-        fixcoord = fix.get("coords", None)
-        if fixcoord:
-            for coord in fixcoord:
-                    newcoord = fix["coords"][coord]["name"]
-                    newcoord = fixes["defaults"]["coords"][newcoord.replace('{','').replace('}','')] 
-                    if coord in allcoords: 
-                        fixd.update({f"{coord}": f"{newcoord}"})
-
+        data_model = fix.get("data_model", None)
+        if data_model:
+            fn = os.path.join('config', 'fixes', f'{data_model}.json')
+            with open(fn, 'r') as f:
+                dm = json.load(f)
+                # this is needed since cf2cdm issues a UserWarning
+                with warnings.catch_warnings():
+                    warnings.filterwarnings("ignore", category=UserWarning)
+                    data = cf2cdm.translate_coords(data, dm)
+            
         return data.rename(fixd)
 
     def convert_units(self, src, dst, var="input var"):
