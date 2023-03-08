@@ -15,7 +15,7 @@ class Reader():
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
                  regrid=None, method="ycon", zoom=None, configdir=None,
-                 level=None, areas=True, var=None, vars=None):
+                 level=None, areas=True, var=None, vars=None, streaming = False, stream_step = 1, stream_unit=None, stream_startdate = None):
         """
         The Reader constructor.
         It uses the catalog `config/config.yaml` to identify the required data.
@@ -31,6 +31,10 @@ class Reader():
             level (int):      level to extract if input data are 3D (starting from 0)
             areas (bool):     compute pixel areas if needed (True)
             var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
+            stream_step (int):      the number of time steps to stream the data by (Default = 1)
+            stream_unit (str):      the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (None)
+            stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
+
         
         Returns:
             A `Reader` class object.
@@ -57,6 +61,10 @@ class Reader():
 
         self.stream_index = 0 
         self.stream_date = None
+        self.streaming = streaming
+        self.stream_step = stream_step
+        self.stream_unit = stream_unit
+        self.stream_startdate = stream_startdate
 
         self.configdir, catalog_file = get_catalog_file(configdir=configdir)
         
@@ -282,8 +290,8 @@ class Reader():
             var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
             streaming (bool):       if to retreive data in a streaming mode (False)
             stream_step (int):      the number of time steps to stream the data by (Default = 1)
-            stream_unit (str):      the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (Default = None)
-            stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (Default = None)
+            stream_unit (str):      the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (None)
+            stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
         Returns:
             A xarray.Dataset containing the required data.
         """
@@ -339,7 +347,10 @@ class Reader():
             self.grid_area = self.dst_grid_area 
         if fix:
             data = self.fixer(data, apply_unit_fix=apply_unit_fix)
-        if streaming:
+        if streaming or self.streaming:
+            if stream_step == 1: stream_step = self.stream_step
+            if not stream_unit: stream_unit = self.stream_unit
+            if not stream_startdate: stream_startdate = self.stream_startdate
             data = self.stream(data, stream_step, stream_unit, stream_startdate)
         return data
 
@@ -361,8 +372,8 @@ class Reader():
         Arguments:
             data (xr.Dataset):  the input xarray.Dataset
             stream_step  (int): the number of time steps to stream the data by (Default = 1) 
-            stream_unit (str):  the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (Default = None)
-            stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (Default = None)
+            stream_unit (str):  the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (None)
+            stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
         Returns:
             A xarray.Dataset containing the subset of the input data that has been streamed.
         """
