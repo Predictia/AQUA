@@ -92,33 +92,3 @@ def get_reader_filenames(configdir, machine):
 
     return catalog_file, regrid_file, fixer_file
 
-
-
-
-# def get_catalog_file(configdir=None):
-#     """
-#    
-    
-#     """
-
-#     # if the configdir path is provided
-#     if configdir:
-#         catalog_file = os.path.join(configdir, "catalog.yaml")
-#     else:
-#         # set of predefined folders to browse
-#         configdirs = ['./config', '../config', '../../config']
-#         homedir = os.environ.get('HOME')
-#         # if the home is defined
-#         if homedir:
-#             configdirs.append(os.path.join(homedir, '.aqua', 'config'))
-#         for configdir in configdirs:
-#             catalog_file = os.path.join(configdir, "catalog.yaml")
-#             if os.path.exists(catalog_file):
-#                 break
-    
-#     # safety check to verify existence of the catalogfile
-#     if os.path.exists(catalog_file):
-#         return configdir, catalog_file
-#     else:
-#         sys.exit('Cannot find the catalog file!')
-        
