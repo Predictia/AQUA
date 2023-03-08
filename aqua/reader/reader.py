@@ -1,9 +1,10 @@
 import intake
+import intake_esm
 import xarray as xr
 import os
 from metpy.units import units
 import smmregrid as rg
-from aqua.util import load_yaml
+from aqua.util import load_yaml, get_catalog_file
 import sys
 import subprocess
 import tempfile
@@ -12,29 +13,37 @@ class Reader():
     """General reader for NextGEMS data (on Levante for now)"""
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
-                 regrid=None, method="ycon", zoom=None, configdir = 'config', level=None, areas=True):
+                 regrid=None, method="ycon", zoom=None, configdir=None,
+                 level=None, areas=True, var=None, vars=None):
         """
         The Reader constructor.
         It uses the catalog `config/config.yaml` to identify the required data.
         
         Arguments:
-            model (str):    model ID
-            exp (str):      experiment ID
-            source (str):   source ID
-            regrid (str):   perform regridding to grid `regrid`, as defined in `config/regrid.yaml` (None)
-            method (str):   regridding method (ycon)
-            zoom (int):     healpix zoom level
-            configdir (str) Folder where the config/catalog files are located (config)
-            level (int):    level to extract if input data are 3D (starting from 0)
-            areas (bool):   compute pixel areas if needed (True)
+            model (str):      model ID
+            exp (str):        experiment ID
+            source (str):     source ID
+            regrid (str):     perform regridding to grid `regrid`, as defined in `config/regrid.yaml` (None)
+            method (str):     regridding method (ycon)
+            zoom (int):       healpix zoom level
+            configdir (str)   folder where the config/catalog files are located (config)
+            level (int):      level to extract if input data are 3D (starting from 0)
+            areas (bool):     compute pixel areas if needed (True)
+            var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
         
         Returns:
             A `Reader` class object.
         """
 
+        if vars:
+            self.var = vars
+        else:
+            self.var = var
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
+        if (exp == "hpx") and not zoom:
+            zoom = 9
         self.zoom = zoom
         self.freq = freq
         self.level = level
@@ -45,11 +54,10 @@ class Reader():
         self.src_grid_area = None
         self.dst_grid_area = None
 
-        self.configdir = configdir
-        catalog_file = os.path.join(configdir, "catalog.yaml")
+        self.configdir, catalog_file = get_catalog_file(configdir=configdir)
         self.cat = intake.open_catalog(catalog_file)
 
-        cfg_regrid = load_yaml(os.path.join(configdir,"regrid.yaml"))
+        cfg_regrid = load_yaml(os.path.join(self.configdir,"regrid.yaml"))
 
         if source:
             self.source = source
@@ -85,8 +93,9 @@ class Reader():
             if os.path.exists(self.weightsfile):
                 self.weights = xr.open_mfdataset(self.weightsfile)
             else:
-
-                sgridpath = source_grid["path"].format(zoom=(9-zoom))
+                sgridpath = source_grid["path"]
+                if zoom:
+                    sgridpath = sgridpath.format(zoom=(9-zoom))            
                 print("Weights file not found:", self.weightsfile)
                 print("Attempting to generate it ...")
                 print("Source grid: ", sgridpath)
@@ -133,7 +142,9 @@ class Reader():
             if os.path.exists(self.src_areafile):
                 self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
             else:
-                sgridpath = source_grid["path"].format(zoom=(9-zoom))
+                sgridpath = source_grid["path"]
+                if zoom:
+                    sgridpath = sgridpath.format(zoom=(9-zoom)) 
                 print("Source areas file not found:", self.src_areafile)
                 print("Attempting to generate it ...")
                 print("Source grid: ", sgridpath)
@@ -252,31 +263,67 @@ class Reader():
             area_file.close()
 
 
-    def retrieve(self, regrid=False, average=False, fix=True, apply_unit_fix=True):
+    def retrieve(self, regrid=False, timmean=False, fix=True, apply_unit_fix=True, var=None, vars=None):
         """
         Perform a data retrieve.
         
         Arguments:
             regrid (bool):          if to regrid the retrieved data (False)
+            timmean (bool)          if to perform timmean of the retrieved data (False)
             fix (bool):             if to perform a fix (var name, units, coord name adjustments) (True)
             apply_unit_fix (bool):  if to already adjust units by multiplying by a factor or adding
                                     an offset (this can also be done later with the `fix_units` method) (True)
+            var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
         Returns:
             A xarray.Dataset containing the required data.
         """
 
+        # Extract subcatalogue
         if self.zoom:
-            data = self.cat[self.model][self.exp][self.source](zoom=self.zoom).to_dask()
+            esmcat = self.cat[self.model][self.exp][self.source](zoom=self.zoom)
         else:
-            data = self.cat[self.model][self.exp][self.source].to_dask()
+            esmcat = self.cat[self.model][self.exp][self.source]
+
+        if vars:
+            var = vars
+        if not var:
+            var = self.var
+        
+        # Extract data from cat.
+        # If this is an ESM-intake catalogue use first dictionary value,
+        # else extract directly a dask dataset
+        if isinstance(esmcat, intake_esm.core.esm_datastore):
+            cdf_kwargs = esmcat.metadata.get('cdf_kwargs', {"chunks": {"time":1}})
+            query = esmcat.metadata['query']
+            if var:
+                query_var = esmcat.metadata.get('query_var', 'short_name')
+                # Convert to list if not already
+                query[query_var] = var.split() if isinstance(var, str) else var
+            subcat = esmcat.search(**query)
+            data = subcat.to_dataset_dict(cdf_kwargs=cdf_kwargs,
+                                         zarr_kwargs=dict(consolidated=True),
+                                              #decode_times=True,
+                                              #use_cftime=True)
+                                         progressbar=False
+                                         )
+            data = list(data.values())[0]
+        else:
+            if var:
+                # conversion to list guarantee that Dataset is produced
+                if isinstance(var, str):
+                    var = var.split()
+                data = esmcat.to_dask()[var]
+
+            else:
+                data = esmcat.to_dask()
 
         # select only a specific level when reading. Level coord names defined in regrid.yaml
         if self.level is not None:
             data = data.isel({self.vertcoord: self.level})
 
         # sequence which should be more efficient: averaging - regridding - fixing
-        if self.freq and average:
-            data = self.average(data)
+        if self.freq and timmean:
+            data = self.timmean(data)
         if self.targetgrid and regrid:
             data = self.regridder.regrid(data)  # XXX check attrs
             self.grid_area = self.dst_grid_area 
@@ -303,7 +350,7 @@ class Reader():
         self.space_coord = ["lon", "lat"]
         return out
     
-    def average(self, data):
+    def timmean(self, data, freq = None):
         """
         Perform daily and monthly averaging
 
@@ -313,15 +360,21 @@ class Reader():
             A xarray.Dataset containing the regridded data.
         """
 
+        # translate frequency in pandas-style time
         if self.freq == 'mon':
-            out = data.resample(time='M').mean()
+            resample_freq = '1M'
         elif self.freq == 'day':
-            out = data.resample(time='D').mean()
-        else: 
-            try: 
-                out = data.resample(time=self.freq).mean()
-            except: 
-                sys.exit('Cant find a frequency to resample')
+            resample_freq = '1D'
+        else:
+            resample_freq = self.freq
+        
+        try: 
+            # resample, and assign the correct time
+            out = data.resample(time=resample_freq).mean()
+            proper_time = data.time.resample(time=resample_freq).mean()
+            out['time'] = proper_time.values
+        except: 
+            sys.exit('Cant find a frequency to resample, aborting!')
    
         return out
 
@@ -472,22 +525,24 @@ class Reader():
         self.deltat = fix.get("deltat", 1.0)
         fixd = {}
         allvars = data.variables
-        for var in fix["vars"]:
-            shortname = fix["vars"][var]["short_name"]
-            if var in allvars: 
-                fixd.update({f"{var}": f"{shortname}"})
-                src_units = fix["vars"][var].get("src_units", None)
-                if src_units:
-                    data[var].attrs.update({"units": src_units})
-                units = fix["vars"][var]["units"]
-                if units.count('{'):
-                    units = fixes["defaults"]["units"][units.replace('{','').replace('}','')]                
-                data[var].attrs.update({"target_units": units})
-                factor, offset = self.convert_units(data[var].units, units, var)
-                data[var].attrs.update({"factor": factor})
-                data[var].attrs.update({"offset": offset})
-                if apply_unit_fix:
-                    self.apply_unit_fix(data[var])
+        fixvars = fix.get("vars", None)
+        if fixvars:
+            for var in fixvars:
+                shortname = fix["vars"][var]["short_name"]
+                if var in allvars: 
+                    fixd.update({f"{var}": f"{shortname}"})
+                    src_units = fix["vars"][var].get("src_units", None)
+                    if src_units:
+                        data[var].attrs.update({"units": src_units})
+                    units = fix["vars"][var]["units"]
+                    if units.count('{'):
+                        units = fixes["defaults"]["units"][units.replace('{','').replace('}','')]                
+                    data[var].attrs.update({"target_units": units})
+                    factor, offset = self.convert_units(data[var].units, units, var)
+                    data[var].attrs.update({"factor": factor})
+                    data[var].attrs.update({"offset": offset})
+                    if apply_unit_fix:
+                        self.apply_unit_fix(data[var])
 
         allcoords = data.coords
         fixcoord = fix.get("coords", None)
