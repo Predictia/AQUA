@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 '''
 AQUA regridding tool to create low resolution archive
@@ -49,7 +47,7 @@ def lra(modelname, expname, sourcename,
     logging.warning(f'Accessing catalog for {modelname}-{expname}-{sourcename}...')
     logging.warning(f'I am going to produce LRA at {resolution} resolution and {frequency} frequency...')
 
-    lowdir = os.path.join(outdir, f'{expname}-{resolution}-{frequency}')
+    lowdir = os.path.join(outdir, expname, resolution, frequency)
     os.makedirs(lowdir, exist_ok=True)
     logging.info(f'Target directory is {lowdir}')
 
@@ -62,48 +60,71 @@ def lra(modelname, expname, sourcename,
     logging.debug(data)
 
     # option for time encoding, defined once for all
-    time_encoding = {'units': 'days since 1970-01-01',
-                 'calendar': 'standard',
-                 'dtype': 'float64'}
+    time_encoding = {
+        'units': 'days since 1970-01-01',
+        'calendar': 'standard',
+        'dtype': 'float64'
+        }
 
     for var in varlist:
         tic = time()
 
         logging.info(f'Processing variable {var}...')
+
+        # decumulate
+        decum = reader.decumulate(data[var])
+
         # time average
-        averaged = reader.average(data[var]) # here level selection can be applied
+        averaged = reader.timmean(decum) # here level selection can be applied
 
         # here we can apply time selection, for instance if we want to process one year at the time
         interp = reader.regrid(averaged)
     
-        logging.info(f'Output will have shape {interp.shape}')
-        logging.info(f'From {min(interp.time.data)} to {max(interp.time.data)}')
+        logging.info(f'Output will have shape {interp.shape}')   
         logging.debug(interp)
 
-        # USEFUL: if you want to do tests subselect time to speed up...
-        #interp = interp.isel(time=0)
-            
-        # we can of course extend this and also save to grib
-        if definitive:
-        
-            outname = os.path.join(lowdir, f'{var}_{expname}.nc')
-            if os.path.isfile(outname) and not overwrite:
-                logging.warning(f'{outname} already exists. Please run with -o to allow overwriting')
-            else:
-                logging.warning(f'Writing {var} to {outname}...')
-                # keep it lazy
-                write_job = interp.to_netcdf(outname, encoding={'time': time_encoding}, compute=False)
+        # split in yearly files to (future) reduce memory consumption
+        years = set(interp.time.dt.year.values)
+        for year in years:
+            logging.info(f'Processing year {year}...')
+            logging.info(f'From {min(interp.time.data)} to {max(interp.time.data)}')
+            to_be_saved=interp.sel(time=(interp.time.dt.year==year))
+
+            # USEFUL: if you want to do tests subselect time to speed up...
+            #interp = interp.isel(time=[0,1,2,3])
                 
-                # progress bar for distributed or for for singlemachine
-                if multi:
-                    w = write_job.persist() 
-                    progress(w)
+            # we can of course extend this and also save to grib
+            if definitive:
+
+                outname = os.path.join(lowdir, f'{var}_{expname}_{resolution}_{frequency}_{year}.nc')
+                if os.path.isfile(outname) and not overwrite:
+                    logging.warning(f'{outname} already exists. Please run with -o to allow overwriting')
                 else:
-                    with ProgressBar():
-                        write_job.compute()
-    
+                    # extra clean
+                    if os.path.exists(outname): 
+                        os.remove(outname)
+                    logging.warning(f'Writing {var} to {outname}...')
+
+                    # keep it lazy
+                    write_job = to_be_saved.to_netcdf(outname, encoding={'time': time_encoding}, compute=False)
+                    
+                    # progress bar for distributed or for for singlemachine
+                    if multi:
+                        w = write_job.persist() 
+                        progress(w)
+                    else:
+                        with ProgressBar():
+                            write_job.compute()
+
+                    # try to clean
+                    del write_job, to_be_saved, interp, decum, averaged
+        
         toc = time()
         logging.info('Done in {:.4f} seconds'.format(toc - tic))
+    
+    # closing the Dataset (necessary?)
+    data.close()
+    logging.warning(f'Finish processing {modelname}-{expname}-{sourcename}... have yourself a beer!')
 
 
 def parse_arguments(args):
@@ -111,6 +132,8 @@ def parse_arguments(args):
 
     parser = argparse.ArgumentParser(description='AQUA regridder')
     parser.add_argument('-c', '--config', type=str, help='yaml configuration file')
+    parser.add_argument('-f', '--frequency', type=str, help='frequency to be obtained')
+    parser.add_argument('-r', '--resolution', type=str, help='resolution to be obtained')
     parser.add_argument('-w', '--workers', type=str, help='number of dask workers')
     parser.add_argument('-d', '--definitive', action="store_true", help='run the code to create the output files')
     parser.add_argument('-o', '--overwrite', action="store_true", help='overwrite existing output')
@@ -149,19 +172,11 @@ if __name__ == "__main__":
     # set default loglevel
     logging.basicConfig(level=loglevel.upper())
 
-    # set up clusters if more than workers is provided
-    if workers > 1: 
-        cluster = LocalCluster(threads_per_worker=1, n_workers=workers)
-        client = Client(cluster)
-        multi=True
-    else: 
-        dask.config.set(scheduler="synchronous")
-        multi=False
-
     cfg = load_yaml(config)
-    resolution = cfg['target']['resolution']
-    frequency = cfg['target']['frequency']
+    resolution = get_arg(args, 'resolution', cfg['target']['resolution'])
+    frequency = get_arg(args, 'frequency', cfg['target']['frequency'])
     outdir = cfg['target']['outdir']
+    tmpdir = cfg['target']['tmpdir']
 
     # loop on all the elements of the catalog
     for model in cfg['catalog'].keys():
@@ -169,14 +184,29 @@ if __name__ == "__main__":
             for sourceid in cfg['catalog'][model][exp].keys():
                 varlist = cfg['catalog'][model][exp][sourceid]['vars']
                 if varlist: 
+
+                    # set up clusters if more than workers is provided
+                    if workers > 1: 
+                        logging.info(f'Setting up dask cluster with {workers} workers...')
+
+                        # try to force writing to disk to avoid weird results
+                        dask.config.set({'temporary_directory': tmpdir})
+                        logging.info(f'Setting up dask cluster tmpdir to {tmpdir}...')
+                        cluster = LocalCluster(threads_per_worker=1, n_workers=workers)
+                        client = Client(cluster)
+                        multi=True
+                    else: 
+                        dask.config.set(scheduler="synchronous")
+                        multi=False
+
                     # call the function
                     lra(modelname=model, expname=exp, sourcename=sourceid, resolution=resolution,
                         frequency=frequency, varlist=varlist, outdir=outdir, 
                         definitive=definitive, overwrite=overwrite, multi=multi)
-    
-    # shutdown the cluster
-    if workers > 1:
-        client.close()
-        cluster.close()
-    
+                    
+                    if workers>1:
+                        logging.info('Closing dask cluster and workers...')
+                        client.shutdown()
+                        cluster.close()
+
     logging.info('Everything completed... goodbye!')

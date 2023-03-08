@@ -3,8 +3,9 @@ import intake_esm
 import xarray as xr
 import os
 from metpy.units import units
+import numpy as np
 import smmregrid as rg
-from aqua.util import load_yaml
+from aqua.util import load_yaml, get_catalog_file
 import sys
 import subprocess
 import tempfile
@@ -13,26 +14,32 @@ class Reader():
     """General reader for NextGEMS data (on Levante for now)"""
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
-                 regrid=None, method="ycon", zoom=None, configdir = 'config', level=None, areas=True):
+                 regrid=None, method="ycon", zoom=None, configdir=None,
+                 level=None, areas=True, var=None, vars=None):
         """
         The Reader constructor.
         It uses the catalog `config/config.yaml` to identify the required data.
         
         Arguments:
-            model (str):    model ID
-            exp (str):      experiment ID
-            source (str):   source ID
-            regrid (str):   perform regridding to grid `regrid`, as defined in `config/regrid.yaml` (None)
-            method (str):   regridding method (ycon)
-            zoom (int):     healpix zoom level
-            configdir (str) Folder where the config/catalog files are located (config)
-            level (int):    level to extract if input data are 3D (starting from 0)
-            areas (bool):   compute pixel areas if needed (True)
+            model (str):      model ID
+            exp (str):        experiment ID
+            source (str):     source ID
+            regrid (str):     perform regridding to grid `regrid`, as defined in `config/regrid.yaml` (None)
+            method (str):     regridding method (ycon)
+            zoom (int):       healpix zoom level
+            configdir (str)   folder where the config/catalog files are located (config)
+            level (int):      level to extract if input data are 3D (starting from 0)
+            areas (bool):     compute pixel areas if needed (True)
+            var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
         
         Returns:
             A `Reader` class object.
         """
 
+        if vars:
+            self.var = vars
+        else:
+            self.var = var
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
@@ -48,11 +55,10 @@ class Reader():
         self.src_grid_area = None
         self.dst_grid_area = None
 
-        self.configdir = configdir
-        catalog_file = os.path.join(configdir, "catalog.yaml")
+        self.configdir, catalog_file = get_catalog_file(configdir=configdir)
         self.cat = intake.open_catalog(catalog_file)
 
-        cfg_regrid = load_yaml(os.path.join(configdir,"regrid.yaml"))
+        cfg_regrid = load_yaml(os.path.join(self.configdir,"regrid.yaml"))
 
         if source:
             self.source = source
@@ -258,15 +264,18 @@ class Reader():
             area_file.close()
 
 
-    def retrieve(self, regrid=False, average=False, fix=True, apply_unit_fix=True):
+    def retrieve(self, regrid=False, timmean=False, decumulate=False, fix=True, apply_unit_fix=True, var=None, vars=None):
         """
         Perform a data retrieve.
         
         Arguments:
             regrid (bool):          if to regrid the retrieved data (False)
+            timmean (bool):         if to average the retrieved data (False)
+            decumulate (bool):      if to remove the cumulation from data (False)
             fix (bool):             if to perform a fix (var name, units, coord name adjustments) (True)
             apply_unit_fix (bool):  if to already adjust units by multiplying by a factor or adding
                                     an offset (this can also be done later with the `fix_units` method) (True)
+            var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
         Returns:
             A xarray.Dataset containing the required data.
         """
@@ -277,12 +286,21 @@ class Reader():
         else:
             esmcat = self.cat[self.model][self.exp][self.source]
 
+        if vars:
+            var = vars
+        if not var:
+            var = self.var
+        
         # Extract data from cat.
         # If this is an ESM-intake catalogue use first dictionary value,
         # else extract directly a dask dataset
         if isinstance(esmcat, intake_esm.core.esm_datastore):
             cdf_kwargs = esmcat.metadata.get('cdf_kwargs', {"chunks": {"time":1}})
             query = esmcat.metadata['query']
+            if var:
+                query_var = esmcat.metadata.get('query_var', 'short_name')
+                # Convert to list if not already
+                query[query_var] = var.split() if isinstance(var, str) else var
             subcat = esmcat.search(**query)
             data = subcat.to_dataset_dict(cdf_kwargs=cdf_kwargs,
                                          zarr_kwargs=dict(consolidated=True),
@@ -292,15 +310,24 @@ class Reader():
                                          )
             data = list(data.values())[0]
         else:
-            data = esmcat.to_dask()
+            if var:
+                # conversion to list guarantee that Dataset is produced
+                if isinstance(var, str):
+                    var = var.split()
+                data = esmcat.to_dask()[var]
+
+            else:
+                data = esmcat.to_dask()
 
         # select only a specific level when reading. Level coord names defined in regrid.yaml
         if self.level is not None:
             data = data.isel({self.vertcoord: self.level})
 
-        # sequence which should be more efficient: averaging - regridding - fixing
-        if self.freq and average:
-            data = self.average(data)
+        # sequence which should be more efficient: decumulate - averaging - regridding - fixing
+        if decumulate:
+            data = data.map(self.decumulate, keep_attrs=True)
+        if self.freq and timmean:
+            data = self.timmean(data)
         if self.targetgrid and regrid:
             data = self.regridder.regrid(data)  # XXX check attrs
             self.grid_area = self.dst_grid_area 
@@ -327,7 +354,7 @@ class Reader():
         self.space_coord = ["lon", "lat"]
         return out
     
-    def average(self, data):
+    def timmean(self, data, freq = None):
         """
         Perform daily and monthly averaging
 
@@ -337,23 +364,133 @@ class Reader():
             A xarray.Dataset containing the regridded data.
         """
 
-        # translate frequency
+        # translate frequency in pandas-style time
         if self.freq == 'mon':
-            ffff = '1M'
+            resample_freq = '1M'
         elif self.freq == 'day':
-            ffff = '1D'
+            resample_freq = '1D'
         else:
-            ffff = self.freq
+            resample_freq = self.freq
         
         try: 
             # resample, and assign the correct time
-            out = data.resample(time=ffff).mean()
-            proper_time = data.time.resample(time=ffff).mean()
+            out = data.resample(time=resample_freq).mean()
+            proper_time = data.time.resample(time=resample_freq).mean()
             out['time'] = proper_time.values
         except: 
-                sys.exit('Cant find a frequency to resample')
+            sys.exit('Cant find a frequency to resample, aborting!')
    
         return out
+    
+    def _check_if_accumulated_auto(self, data):
+
+        """To check if a DataArray is accumulated. 
+        Arbitrary check on the first 20 timesteps"""
+
+        # randomly pick a few timesteps from a gridpoint
+        ndims = [dim for dim in data.dims if data[dim].size > 1][1:]
+        pindex = {dim: 0 for dim in ndims}
+
+        # extract the first 20 timesteps and do the derivative
+        check = data.isel(pindex).isel(time=slice(None, 20)).diff(dim='time').values
+
+        # check all derivative are positive or all negative
+        condition = (check >= 0).all() or (check <=0).all()
+        
+        return condition
+
+    def _check_if_accumulated(self, data):
+
+        """To check if a DataArray is accumulated. 
+        On a list of variables defined by the GRIB names
+        
+        Args: 
+            data (xr.DataArray): field to be processed
+        
+        Returns:
+            bool: True if decumulation is necessary, False if not 
+        """
+
+        decumvars = ['tp', 'e', 'slhf', 'sshf',
+                     'tsr', 'ttr', 'ssr', 'str', 
+                     'tsrc', 'ttrc', 'ssrc', 'strc', 
+                     'tisr']
+        
+
+        if data.name in decumvars:
+            return True
+        else:
+            return False
+
+
+    
+    def decumulate(self, data, cumulation_time = None):
+        """
+        Test function to remove cumulative effect on IFS fluxes.
+        Cumulation times are estimated from the intervals of the data, but
+        can be specified manually
+
+        Args: 
+            data (xr.DataArray): field to be processed
+            cumulation_time (float): optional, specific cumulation time
+
+        Returns:
+            A xarray.DataArray where the cumulation time has been removed
+        """
+
+        check = self._check_if_accumulated(data)
+
+        if not check: 
+            return data
+        
+        else: 
+
+            # which frequency are the data?
+            if not cumulation_time:
+                cumulation_time = (data.time[1]-data.time[0]).values/np.timedelta64(1, 's')
+
+            # get the derivatives
+            deltas = data.diff(dim='time') / cumulation_time
+
+            # add a first timestep empty to align the original and derived fields
+            zeros = xr.zeros_like(data.isel(time=0))
+            deltas = xr.concat([zeros, deltas], dim = 'time').transpose('time', ...)
+
+            # universal mask based on the change of month (shifted by one timestep) 
+            mask = ~(data['time.month'] != data['time.month'].shift(time=1))
+            mask = mask.shift(time=1, fill_value=False)
+
+            # check which records are kept
+            #print(data.time[~mask])
+
+            # kaboom: exploit where
+            clean=deltas.where(mask, data/cumulation_time)
+
+            # remove the first timestep (no sense in cumulated)
+            clean = clean.isel(time=slice(1, None))
+
+            # rollback the time axis by half the cumulation time
+            clean['time'] = clean.time - np.timedelta64(int(cumulation_time/2), 's')
+
+            # WARNING: HACK FOR EVAPORATION 
+            #print(clean.units)
+            if clean.units == 'm of water equivalent':
+                clean.attrs['units'] = 'm'
+            
+            # use metpy units to divide by seconds
+            new_units = (units(clean.units)/units('s'))
+
+            # usual case for radiative fluxes
+            try:
+                clean.attrs['units'] = str(new_units.to('W/m^2').units)
+            except:
+                clean.attrs['units'] = str(new_units.units)
+
+            # add an attribute that can be later used to infer about decumulation
+            clean.attrs['decumulated'] = 1
+   
+
+            return clean
 
 
     def _check_if_regridded(self, data):
@@ -502,22 +639,24 @@ class Reader():
         self.deltat = fix.get("deltat", 1.0)
         fixd = {}
         allvars = data.variables
-        for var in fix["vars"]:
-            shortname = fix["vars"][var]["short_name"]
-            if var in allvars: 
-                fixd.update({f"{var}": f"{shortname}"})
-                src_units = fix["vars"][var].get("src_units", None)
-                if src_units:
-                    data[var].attrs.update({"units": src_units})
-                units = fix["vars"][var]["units"]
-                if units.count('{'):
-                    units = fixes["defaults"]["units"][units.replace('{','').replace('}','')]                
-                data[var].attrs.update({"target_units": units})
-                factor, offset = self.convert_units(data[var].units, units, var)
-                data[var].attrs.update({"factor": factor})
-                data[var].attrs.update({"offset": offset})
-                if apply_unit_fix:
-                    self.apply_unit_fix(data[var])
+        fixvars = fix.get("vars", None)
+        if fixvars:
+            for var in fixvars:
+                shortname = fix["vars"][var]["short_name"]
+                if var in allvars: 
+                    fixd.update({f"{var}": f"{shortname}"})
+                    src_units = fix["vars"][var].get("src_units", None)
+                    if src_units:
+                        data[var].attrs.update({"units": src_units})
+                    units = fix["vars"][var]["units"]
+                    if units.count('{'):
+                        units = fixes["defaults"]["units"][units.replace('{','').replace('}','')]                
+                    data[var].attrs.update({"target_units": units})
+                    factor, offset = self.convert_units(data[var].units, units, var)
+                    data[var].attrs.update({"factor": factor})
+                    data[var].attrs.update({"offset": offset})
+                    if apply_unit_fix:
+                        self.apply_unit_fix(data[var])
 
         allcoords = data.coords
         fixcoord = fix.get("coords", None)
