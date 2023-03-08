@@ -3,7 +3,15 @@ import os
 import sys
 
 def load_yaml(infile):
-    """Load generic yaml file"""
+    """
+    Load generic yaml file
+    
+    Args:
+        infile(str): a file path
+
+    Returns:
+        A dictionary with the yaml file keys
+    """
 
     try:
         with open(infile, 'r', encoding='utf-8') as file:
@@ -13,6 +21,16 @@ def load_yaml(infile):
     return cfg
 
 def get_config_dir(): 
+
+    """
+    Return the path to the configuration directory, 
+    searching in a list of pre-defined directories.
+    
+     Args:
+        None
+     Returns:
+         configdir (str): the dir of the catalog file and other config files
+    """
 
     # set of predefined folders to browse
     configdirs = ['./config', '../config', '../../config']
@@ -29,6 +47,15 @@ def get_config_dir():
 
 def get_machine(configdir): 
 
+    """
+    Extract the name of the machine from the configuration file
+    
+    Args:
+        configdir(str): the configuration file directory
+     Returns:
+        The name of the machine read from the configuration file
+    """
+
     basefile = os.path.join(configdir, "config.yaml")
     if os.path.exists(basefile):
         base = load_yaml(os.path.join(configdir, "config.yaml"))
@@ -38,6 +65,16 @@ def get_machine(configdir):
 
 
 def get_reader_filenames(configdir, machine):
+
+    """
+    Extract the filenames for the reader for catalog, regrid and fixer 
+
+    Args:
+        configdir(str): the configuration file directory
+        machine(str): the machine on which you are running
+     Returns:
+        Three strings for the path of the catalog, regrid and fixer files
+    """
 
     basefile = os.path.join(configdir, "config.yaml")
     if os.path.exists(basefile):
@@ -60,15 +97,7 @@ def get_reader_filenames(configdir, machine):
 
 # def get_catalog_file(configdir=None):
 #     """
-#     Return the path to the configdir and to the catalogfile catalog file, 
-#     searching in a list of pre-defined directories. If configdir is provided, search only in that directory.
-    
-#     Args:
-#         configdir (str, optional): Where to search the catalog  and other config files
-
-#     Returns:
-#         configdir (str): the dir of the catalog file and other config files
-#         catalog_file (str): the path of the catalog file
+#    
     
 #     """
 
