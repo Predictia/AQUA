@@ -269,7 +269,7 @@ class Reader():
 
 
     def retrieve(self, regrid=False, timmean=False, fix=True, apply_unit_fix=True,
-                 var=None, vars=None, streaming = False, stream_step = 1, stream_unit=None):
+                 var=None, vars=None, streaming = False, stream_step = 1, stream_unit=None, stream_startdate = None):
         """
         Perform a data retrieve.
         
@@ -279,11 +279,11 @@ class Reader():
             fix (bool):             if to perform a fix (var name, units, coord name adjustments) (True)
             apply_unit_fix (bool):  if to already adjust units by multiplying by a factor or adding
                                     an offset (this can also be done later with the `fix_units` method) (True)
+            var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
             streaming (bool):       if to retreive data in a streaming mode (False)
             stream_step (int):      the number of time steps to stream the data by (Default = 1)
             stream_unit (str):      the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (Default = None)
-            var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
-
+            stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (Default = None)
         Returns:
             A xarray.Dataset containing the required data.
         """
@@ -340,11 +340,11 @@ class Reader():
         if fix:
             data = self.fixer(data, apply_unit_fix=apply_unit_fix)
         if streaming:
-            data = self.stream(data, stream_step, stream_unit)
+            data = self.stream(data, stream_step, stream_unit, stream_startdate)
         return data
 
     
-    def stream(self, data, stream_step = 1, stream_unit=None):
+    def stream(self, data, stream_step = 1, stream_unit = None, stream_startdate = None):
         """
         The stream function is used to stream data by a specified number of time steps.
         If the unit parameter is specified, the data is streamed by the specified unit and stream_step (e.g. 1 month).
@@ -354,29 +354,40 @@ class Reader():
         The function keeps track of the state of the streaming process through the use of internal attributes.
         This allows the user to stream through the entire dataset in multiple calls to the function,
         retrieving consecutive chunks of data each time.
+
+        If the stream_startdate parameter is specified, the stream will start from the desired date. 
+        Otherwise, it will start from the first date of the input file.
         
         Arguments:
             data (xr.Dataset):  the input xarray.Dataset
-            stream_step  (int):  the number of time steps to stream the data by (Default = 1) 
+            stream_step  (int): the number of time steps to stream the data by (Default = 1) 
             stream_unit (str):  the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (Default = None)
+            stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (Default = None)
         Returns:
             A xarray.Dataset containing the subset of the input data that has been streamed.
         """
         if stream_unit:
             if not self.stream_date:
-                self.stream_date = data.time[0].values 
+                if  stream_startdate:
+                    self.stream_date = pd.to_datetime(stream_startdate)
+                else:
+                    self.stream_date = pd.to_datetime(data.time[0].values)
             start_date = self.stream_date
-            stop_date = pd.to_datetime(start_date) + pd.DateOffset(**{stream_unit: stream_step})
+            stop_date = start_date + pd.DateOffset(**{stream_unit: stream_step})
             self.stream_date = stop_date
             return data.sel(time=slice(start_date, stop_date)).where(data.time != stop_date, drop=True)
-        else:
-            start_index = self.stream_index
-            end_index = self.stream_index + stream_step
-            self.stream_index += stream_step         
+        else:   
+            if self.stream_index == 0 and stream_startdate:
+                start_date  = pd.to_datetime(stream_startdate)
+                self.stream_index  = data.time.to_index().get_loc(start_date)
+            start_index = self.stream_index 
+            end_index = start_index + stream_step
+            self.stream_index = end_index       
             if end_index >= len(data.time):
                 return data.isel(time=slice(start_index, None))
             else:
                 return data.isel(time=slice(start_index, end_index))
+        
                   
     def reset_stream(self):
         """
