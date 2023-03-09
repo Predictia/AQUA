@@ -290,7 +290,7 @@ class Reader():
                                     an offset (this can also be done later with the `fix_units` method) (True)
             var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
             streaming (bool):       if to retreive data in a streaming mode (False)
-            streaming_generator (bool):  if to return a generator object for data streaming (False)
+            streaming_generator (bool):  if to return a generator object for data streaming (False). You need to specify also streaming = True to activate it.
             stream_step (int):      the number of time steps to stream the data by (Default = 1)
             stream_unit (str):      the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (None)
             stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
@@ -353,9 +353,13 @@ class Reader():
             if stream_step == 1: stream_step = self.stream_step
             if not stream_unit: stream_unit = self.stream_unit
             if not stream_startdate: stream_startdate = self.stream_startdate
-            data = self.stream(data, stream_step, stream_unit, stream_startdate)
-        if streaming_generator:
-            data = self.stream_generator(data, stream_step, stream_unit, stream_startdate)
+            if streaming_generator:
+                data = self.stream_generator(data, stream_step, stream_unit, stream_startdate)
+            else:
+                data = self.stream(data, stream_step, stream_unit, stream_startdate)
+        if streaming_generator and not (streaming or self.streaming):
+            raise ValueError("Error: streaming_generator can be called only if streaming = True in retrieve() or in the Reader initialization")
+        
         return data
 
     
