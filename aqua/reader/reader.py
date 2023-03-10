@@ -5,7 +5,7 @@ import pandas as pd
 import os
 from metpy.units import units
 import smmregrid as rg
-from aqua.util import load_yaml, get_catalog_file
+from aqua.util import load_yaml, get_reader_filenames, get_config_dir, get_machine
 import sys
 import subprocess
 import tempfile
@@ -68,10 +68,17 @@ class Reader():
         self.stream_startdate = stream_startdate
 
         self.configdir, catalog_file = get_catalog_file(configdir=configdir)
-        
         self.cat = intake.open_catalog(catalog_file)
 
-        cfg_regrid = load_yaml(os.path.join(self.configdir,"regrid.yaml"))
+        if not configdir: 
+            self.configdir = get_config_dir()
+        self.machine = get_machine(self.configdir)
+
+        # get configuration from the machine
+        self.catalog_file, self.regrid_file, self.fixer_file = get_reader_filenames(self.configdir, self.machine)
+        self.cat = intake.open_catalog(self.catalog_file)
+
+        cfg_regrid = load_yaml(self.regrid_file)
 
         if source:
             self.source = source
@@ -627,7 +634,7 @@ class Reader():
             A xarray.Dataset containing the fixed data and target units, factors and offsets in variable attributes.
         """
 
-        fixes = load_yaml(os.path.join(self.configdir, "fixes.yaml"))
+        fixes = load_yaml(os.path.join(self.fixer_file))
         model=self.model
 
         fix = fixes["models"].get(model, None)
