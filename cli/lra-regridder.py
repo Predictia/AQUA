@@ -16,9 +16,20 @@ from aqua.util import load_yaml
 import dask
 from dask.distributed import Client, LocalCluster, progress
 from dask.diagnostics import ProgressBar
+from distributed.diagnostics import MemorySampler
 from time import time
 import os
 import logging
+#import psutil
+import matplotlib.pyplot as plt
+import random
+import string
+
+def generate_random_string(length):
+    # Generate a random string of lowercase and uppercase letters and digits
+    letters_and_digits = string.ascii_letters + string.digits
+    random_string = ''.join(random.choice(letters_and_digits) for _ in range(length))
+    return random_string
 
 
 def lra(modelname, expname, sourcename, 
@@ -82,42 +93,54 @@ def lra(modelname, expname, sourcename,
     
         logging.info(f'Output will have shape {interp.shape}')   
         logging.debug(interp)
+        logging.info(f'From {min(interp.time.data)} to {max(interp.time.data)}')
 
         # split in yearly files to (future) reduce memory consumption
         years = set(interp.time.dt.year.values)
         for year in years:
-            logging.info(f'Processing year {year}...')
-            logging.info(f'From {min(interp.time.data)} to {max(interp.time.data)}')
-            to_be_saved=interp.sel(time=(interp.time.dt.year==year))
+            year_saved=interp.sel(time=(interp.time.dt.year==year))
+            months = set(year_saved.time.dt.month.values)
+            for month in months:
+                logging.info(f'Processing year {year}, month {month}...')
+                to_be_saved=year_saved.sel(time=(year_saved.time.dt.month==month))
+                logging.info(f'From {min(to_be_saved.time.data)} to {max(to_be_saved.time.data)}')
 
-            # USEFUL: if you want to do tests subselect time to speed up...
-            #interp = interp.isel(time=[0,1,2,3])
-                
-            # we can of course extend this and also save to grib
-            if definitive:
+                # check files open
+                #proc = psutil.Process()
+                #for file in proc.open_files():
+                #    logging.info(file)
 
-                outname = os.path.join(lowdir, f'{var}_{expname}_{resolution}_{frequency}_{year}.nc')
-                if os.path.isfile(outname) and not overwrite:
-                    logging.warning(f'{outname} already exists. Please run with -o to allow overwriting')
-                else:
-                    # extra clean
-                    if os.path.exists(outname): 
-                        os.remove(outname)
-                    logging.warning(f'Writing {var} to {outname}...')
-
-                    # keep it lazy
-                    write_job = to_be_saved.to_netcdf(outname, encoding={'time': time_encoding}, compute=False)
+                # USEFUL: if you want to do tests subselect time to speed up...
+                #interp = interp.isel(time=[0,1,2,3])
                     
-                    # progress bar for distributed or for for singlemachine
-                    if multi:
-                        w = write_job.persist() 
-                        progress(w)
-                    else:
-                        with ProgressBar():
-                            write_job.compute()
+                # we can of course extend this and also save to grib
+                if definitive:
 
-                    # try to clean
-                    del write_job, to_be_saved, interp, decum, averaged
+                    outname = os.path.join(lowdir, f'{var}_{expname}_{resolution}_{frequency}_{year}{str(month).zfill(2)}.nc')
+                    if os.path.isfile(outname) and not overwrite:
+                        logging.warning(f'{outname} already exists. Please run with -o to allow overwriting')
+                    else:
+                        # extra clean
+                        if os.path.exists(outname): 
+                            os.remove(outname)
+                        logging.warning(f'Writing {var} to {outname}...')
+
+                        # keep it lazy
+                        write_job = to_be_saved.to_netcdf(outname, encoding={'time': time_encoding}, compute=False)
+                        
+                        # progress bar for distributed or for for singlemachine
+                        if multi:
+                            w = write_job.persist() 
+                            progress(w)
+                        else:
+                            with ProgressBar():
+                                write_job.compute()
+
+                        # try to clean
+                        del write_job, w
+                del to_be_saved
+            del year_saved
+        del interp, decum, averaged
         
         toc = time()
         logging.info('Done in {:.4f} seconds'.format(toc - tic))
@@ -142,7 +165,7 @@ def parse_arguments(args):
     return parser.parse_args(args)
 
 def get_arg(args, arg, default):
-    """Aider function to get arguments"""
+    """Support function to get arguments"""
 
     res = getattr(args, arg)
     if not res:
@@ -152,7 +175,10 @@ def get_arg(args, arg, default):
 # setting up dask
 if __name__ == "__main__":
 
-    """Main for command line execution of the regridder"""
+    """
+    Main for command line execution of the regridder
+    Parsing arguments from CLI
+    """
 
     args = parse_arguments(sys.argv[1:])
 
@@ -176,7 +202,7 @@ if __name__ == "__main__":
     resolution = get_arg(args, 'resolution', cfg['target']['resolution'])
     frequency = get_arg(args, 'frequency', cfg['target']['frequency'])
     outdir = cfg['target']['outdir']
-    tmpdir = cfg['target']['tmpdir']
+    tmpdir = os.path.join(cfg['target']['tmpdir'], generate_random_string(10))
 
     # loop on all the elements of the catalog
     for model in cfg['catalog'].keys():
@@ -195,18 +221,29 @@ if __name__ == "__main__":
                         cluster = LocalCluster(threads_per_worker=1, n_workers=workers)
                         client = Client(cluster)
                         multi=True
+                        ms = MemorySampler()
+
+                        # call the function
+                        with ms.sample(f'{model}-{exp}-{sourceid}'):
+                            lra(modelname=model, expname=exp, sourcename=sourceid, resolution=resolution,
+                                frequency=frequency, varlist=varlist, outdir=outdir, 
+                                definitive=definitive, overwrite=overwrite, multi=multi)
+                        fig, axs = plt.subplots(1, 1, sharey=True, tight_layout=True, figsize=(10, 5))
+                        ms.plot(align=True)
+                        plt.savefig(os.path.join(cfg['target']['tmpdir'], f'memory_{model}-{exp}-{sourceid}.pdf'))
+                        
                     else: 
+                        # single worker
                         dask.config.set(scheduler="synchronous")
                         multi=False
-
-                    # call the function
-                    lra(modelname=model, expname=exp, sourcename=sourceid, resolution=resolution,
-                        frequency=frequency, varlist=varlist, outdir=outdir, 
-                        definitive=definitive, overwrite=overwrite, multi=multi)
-                    
+                        lra(modelname=model, expname=exp, sourcename=sourceid, resolution=resolution,
+                                frequency=frequency, varlist=varlist, outdir=outdir, 
+                                definitive=definitive, overwrite=overwrite, multi=multi)
+          
                     if workers>1:
                         logging.info('Closing dask cluster and workers...')
                         client.shutdown()
                         cluster.close()
+                        #os.removedirs(tmpdir)
 
     logging.info('Everything completed... goodbye!')
