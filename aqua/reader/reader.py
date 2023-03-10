@@ -579,7 +579,7 @@ class Reader():
         # Fix coordinates according to a given data model
         data_model = fix.get("data_model", None)
         if data_model:
-            fn = os.path.join('config', 'fixes', f'{data_model}.json')
+            fn = os.path.join('config', 'data_models', f'{data_model}.json')
             with open(fn, 'r') as f:
                 dm = json.load(f)
                 # this is needed since cf2cdm issues a (useless) UserWarning
