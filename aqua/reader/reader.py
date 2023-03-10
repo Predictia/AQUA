@@ -519,13 +519,22 @@ class Reader():
         """
 
         fixes = load_yaml(os.path.join(self.configdir, "fixes.yaml"))
-        model=self.model
+        model = self.model
+        exp = self.exp
 
-        fix = fixes["models"].get(model, None)
-        if not fix:
-            print("No fixes defined for model ", model)
+        fixm = fixes["models"].get(model, None)
+        if not fixm:
+            print(f"No fixes defined for model {model}")
             return data
 
+        fix = fixm.get(exp, None)
+        if not fix:
+            fix = fixm.get('default', None)
+            if not fix:
+                print(f"No fixes defined for model {model}, experiment {exp}")
+                return data
+
+        print(fix)
         self.deltat = fix.get("deltat", 1.0)
         fixd = {}
         allvars = data.variables
