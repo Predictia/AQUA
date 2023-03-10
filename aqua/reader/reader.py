@@ -5,6 +5,7 @@ import os
 from metpy.units import units
 import smmregrid as rg
 from aqua.util import load_yaml, get_catalog_file, _eval_formula
+from aqua.util import get_reader_filenames, get_config_dir, get_machine
 import sys
 import subprocess
 import tempfile
@@ -57,10 +58,16 @@ class Reader():
         self.src_grid_area = None
         self.dst_grid_area = None
 
-        self.configdir, catalog_file = get_catalog_file(configdir=configdir)
-        self.cat = intake.open_catalog(catalog_file)
+        if not configdir: 
+            self.configdir = get_config_dir()
+        self.machine = get_machine(self.configdir)
 
-        cfg_regrid = load_yaml(os.path.join(self.configdir,"regrid.yaml"))
+
+        # get configuration from the machine
+        self.catalog_file, self.regrid_file, self.fixer_file = get_reader_filenames(self.configdir, self.machine)
+        self.cat = intake.open_catalog(self.catalog_file)
+
+        cfg_regrid = load_yaml(self.regrid_file)
 
         if source:
             self.source = source
@@ -518,8 +525,8 @@ class Reader():
             A xarray.Dataset containing the fixed data and target units, factors and offsets in variable attributes.
         """
 
-        fixes = load_yaml(os.path.join(self.configdir, "fixes.yaml"))
-        model = self.model
+        fixes = load_yaml(os.path.join(self.fixer_file))
+        model=self.model
         exp = self.exp
 
         fixm = fixes["models"].get(model, None)
