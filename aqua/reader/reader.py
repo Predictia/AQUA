@@ -4,7 +4,7 @@ import xarray as xr
 import os
 from metpy.units import units
 import smmregrid as rg
-from aqua.util import load_yaml, get_catalog_file
+from aqua.util import load_yaml, get_catalog_file, _eval_formula
 import sys
 import subprocess
 import tempfile
@@ -183,6 +183,7 @@ class Reader():
                     print("Success!")
 
             self.grid_area = self.src_grid_area
+    
 
     def cdo_generate_areas(self, source, icongridpath=None, gridpath=None, extra=None):
         """
@@ -537,27 +538,48 @@ class Reader():
                     src_units = fix["vars"][var].get("src_units", None)
                     if src_units:
                         data[var].attrs.update({"units": src_units})
-                    units = fix["vars"][var]["units"]
-                    if units.count('{'):
-                        units = fixes["defaults"]["units"][units.replace('{','').replace('}','')]                
-                    data[var].attrs.update({"target_units": units})
-                    factor, offset = self.convert_units(data[var].units, units, var)
-                    data[var].attrs.update({"factor": factor})
-                    data[var].attrs.update({"offset": offset})
+                    units = fix["vars"][var].get("units", None)
+                    if units:
+                        if units.count('{'):
+                            units = fixes["defaults"]["units"][units.replace('{','').replace('}','')]                
+                        data[var].attrs.update({"target_units": units})
+                        factor, offset = self.convert_units(data[var].units, units, var)
+                        data[var].attrs.update({"factor": factor})
+                        data[var].attrs.update({"offset": offset})
+                    # factor = fix["vars"][var].get("factor", None)
+                    # offset = fix["vars"][var].get("offset", None)
+                    # # if factor or offset are defined, they take precedence over units
+                    # if factor:
+                    #     data[var].attrs.update({"factor": factor})
+                    #     data[var].attrs.update({"target_units": data[var].attrs["units"]})
+                    # if offset:
+                    #     data[var].attrs.update({"offset": offset})
+                    #     data[var].attrs.update({"target_units": data[var].attrs["units"]})
                     if apply_unit_fix:
                         self.apply_unit_fix(data[var])
-
+        
+        dervars = fix.get("derived", None)
+        if dervars:
+            for var in dervars:
+                formula = dervars[var]["formula"]
+                data[var] = _eval_formula(formula, data)
+                attributes = dervars[var]["attributes"]
+                for att, value in attributes.items():
+                    data[var].attrs[att] = value
+                
+        # Fix coordinates according to a given data model
         data_model = fix.get("data_model", None)
         if data_model:
             fn = os.path.join('config', 'fixes', f'{data_model}.json')
             with open(fn, 'r') as f:
                 dm = json.load(f)
-                # this is needed since cf2cdm issues a UserWarning
+                # this is needed since cf2cdm issues a (useless) UserWarning
                 with warnings.catch_warnings():
                     warnings.filterwarnings("ignore", category=UserWarning)
                     data = cf2cdm.translate_coords(data, dm)
             
         return data.rename(fixd)
+
 
     def convert_units(self, src, dst, var="input var"):
         """

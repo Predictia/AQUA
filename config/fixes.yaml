@@ -19,11 +19,7 @@ models:
                 short_name: pr
                 units: "{mass_flux}"
 
-        coords:
-            latitude:
-                name: "{latitude}"
-            longitude:
-                name: "{longitude}"
+        data_model: cf2aqua
 
     FESOM:
         vars:
@@ -44,15 +40,29 @@ models:
                 short_name: pr
                 units: "{mass_flux}"
 
-        coords:
-            latitude: 
-                name: "{latitude}"
-            longitude:
-                name: "{longitude}"
+        # coords:
+        #     latitude: 
+        #         name: "{latitude}"
+        #     longitude:
+        #         name: "{longitude}"
 
     ERA5:
-        coords:
-            latitude: 
-                name: "{latitude}"
-            longitude:
-                name: "{longitude}"
+        data_model: era2aqua
+        # coords:
+        #     latitude: 
+        #         name: "{latitude}"
+        #     longitude:
+        #         name: "{longitude}"
+
+    CERES:
+        derived:
+            mtntrf:
+                formula: 0.-toa_lw_all_daily*1.0060667743
+                attributes:
+                    long_name: Mean top net thermal radiation flux, Observed, All-sky conditions, Daily Means, Energy balanced
+                    standard_name: Observed TOA Longwave Flux - All-sky - Energy balanced
+                    units: W m-2
+                    valid_min: -500
+                    valid_max: 0
+                    positive: down
+                    paramId: 172179
