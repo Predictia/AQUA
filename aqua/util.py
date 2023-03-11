@@ -47,25 +47,6 @@ def get_config_dir():
     return configdir
 
 
-def get_machine(configdir): 
-
-    """
-    Extract the name of the machine from the configuration file
-    
-    Args:
-        configdir(str): the configuration file directory
-     Returns:
-        The name of the machine read from the configuration file
-    """
-
-    basefile = os.path.join(configdir, "config.yaml")
-    if os.path.exists(basefile):
-        base = load_yaml(os.path.join(configdir, "config.yaml"))
-        return base['machine']
-    else:
-        sys.exit('Cannot find the catalog file!')
-        
-    
 # this is a tool to parse a CDO-based formula into mathematical operatos
 # there might exists something more intelligent such as the pyparsing package
 def _eval_formula(mystring, xdataset):
@@ -164,6 +145,5 @@ def get_reader_filenames(configdir, machine):
         fixer_file = base['reader']['fixer'].format(machine=machine)
         if not os.path.exists(fixer_file):
             sys.exit(f'Cannot find catalog file in {fixer_file}')
-
 
     return catalog_file, regrid_file, fixer_file
