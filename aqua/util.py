@@ -44,7 +44,6 @@ def get_config_dir():
     for configdir in configdirs:
         if os.path.exists(os.path.join(configdir, "config.yaml")):
             break
-    
     return configdir
 
 
@@ -120,6 +119,25 @@ def _operation(token, xdataset):
             token[x - 1] = name
             del token[x:x + 2]
     return replacer
+
+
+def get_machine(configdir): 
+
+    """
+    Extract the name of the machine from the configuration file
+    
+    Args:
+        configdir(str): the configuration file directory
+     Returns:
+        The name of the machine read from the configuration file
+    """
+
+    basefile = os.path.join(configdir, "config.yaml")
+    if os.path.exists(basefile):
+        base = load_yaml(os.path.join(configdir, "config.yaml"))
+        return base['machine']
+    else:
+        sys.exit('Cannot find the basic configuration file!')
 
 
 def get_reader_filenames(configdir, machine):
