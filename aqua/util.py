@@ -4,6 +4,7 @@ import sys
 import operator
 import re
 import eccodes
+import xarray as xr
 
 
 def load_yaml(infile):
@@ -97,7 +98,9 @@ def _operation(token, xdataset):
             # print(token)
             x = token.index(p)
             name = 'op' + str(code)
-            replacer = ops.get(p)(dct[token[x - 1]], dct[token[x + 1]])
+            #replacer = ops.get(p)(dct[token[x - 1]], dct[token[x + 1]])
+            # Using apply_ufunc in order not to 
+            replacer = xr.apply_ufunc(ops.get(p), dct[token[x - 1]], dct[token[x + 1]], keep_attrs=True, dask='parallelized')
             dct[name] = replacer
             token[x - 1] = name
             del token[x:x + 2]

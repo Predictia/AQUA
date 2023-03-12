@@ -542,23 +542,30 @@ class Reader():
         fixes = load_yaml(os.path.join(self.fixer_file))
         model=self.model
         exp = self.exp
+        src = self.source
 
         fixm = fixes["models"].get(model, None)
         if not fixm:
             print(f"No fixes defined for model {model}")
             return data
 
-        fix = fixm.get(exp, None)
-        if not fix:
-            fix = fixm.get('default', None)
-            if not fix:
+        fixexp = fixm.get(exp, None)
+        if not fixexp:
+            fixexp = fixm.get('default', None)
+            if not fixexp:
                 print(f"No fixes defined for model {model}, experiment {exp}")
+                return data
+
+        fix = fixexp.get(src, None)
+        if not fix:
+            fix = fixexp.get('default', None)
+            if not fix:
+                print(f"No fixes defined for model {model}, experiment {exp}, source {src}")
                 return data
 
         self.deltat = fix.get("deltat", 1.0)
 
         fixd = {}
-        allvars = data.variables
 
         vars = fix.get("vars", None)
         if vars:
@@ -590,10 +597,10 @@ class Reader():
 
                 if attributes:
                     for att, value in attributes.items():
-                        # Already adjust all attributes but not yet units (unless it was derived)
+                        # Already adjust all attributes but not yet units
                         if att == "units":
                             units = value
-                        if att != "units" or formula:
+                        else:
                             data[source].attrs[att] = value
 
                 # Override source units
@@ -601,8 +608,6 @@ class Reader():
                 if src_units:
                     data[source].attrs.update({"units": src_units})
 
-
-                print("Units:",var, units)
                 # adjust units
                 if units:
                     if units.count('{'):
@@ -615,7 +620,7 @@ class Reader():
                         print(f"Fixing {source} to {var}. Unit fix: factor={factor}, offset={offset}")
 
         if apply_unit_fix:
-            for var in allvars:
+            for var in data.variables:
                 self.apply_unit_fix(data[var])
         
         # Fix coordinates according to a given data model
