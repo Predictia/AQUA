@@ -212,10 +212,11 @@ def _init_get_eccodes_attr():
         nonlocal shortname, paramid, name, cfname, cfvarname, units
         try:
             i =  shortname.index(sn)
-            dic = {"param": paramid[i],
+            dic = {"paramId": paramid[i],
                 "long_name": name[i],
                 "units": units[i],
-                "short_name": cfvarname[i]}
+                "cfVarName": cfvarname[i],
+                "shortName": sn}
             return dic
         except ValueError:
             print(f"Conversion Error: short name '{sn}' not found in ECMWF tables!")

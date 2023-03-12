@@ -4,31 +4,46 @@ defaults:
         radiation_flux: W m-2
         temperature: K
 
-    coords:
-        latitude: lat
-        longitude: lon
-
 models:
     IFS:
         default:
             deltat: 3600
             vars:
-                2t: 
-                    short_name: tas
-                    units: "{temperature}"
-                tp:
-                    short_name: pr
-                    units: "{mass_flux}"
-
-                evspsbl:
-                    short_name: evap
+                tas: 
+                    source: 2t
+                    attributes:
+                        units: "{temperature}"
+                tprate:
+                    source: tp
+                    grib: true
+                evap:
+                    source: e
                     src_units: m
-                    units: "{mass_flux}"
+                    attributes:
+                        units: "{mass_flux}"
 
             data_model: cf2aqua
 
     ICON:
         default:
+            vars:
+                tprate:
+                    source: pr
+                    grib: true
+                mypr:
+                    derived: pr*86400
+                    attributes:
+                        units: "W m-2"
+                mslhfl:
+                    source: hfls
+                    grib: true
+                    attributes:
+                        myextra: just a test
+                msshfl:
+                    source: hfss
+                    attributes:
+                        long_name: Mean surface sensible heat flux
+
             data_model: cf2aqua
 
     FESOM:
@@ -39,12 +54,6 @@ models:
                     src_units: degC
                     units: "{temperature}"
 
-            # coords:
-            #     latitude:
-            #         name: "{latitude}"
-            #     longitude:
-            #         name: "{longitude}"
-
     MSWEP:
         default:
             vars:
@@ -52,27 +61,16 @@ models:
                     short_name: pr
                     units: "{mass_flux}"
 
-            # coords:
-            #     latitude: 
-            #         name: "{latitude}"
-            #     longitude:
-            #         name: "{longitude}"
-
     ERA5:
         default:
             data_model: era2aqua
-            # coords:
-            #     latitude: 
-            #         name: "{latitude}"
-            #     longitude:
-            #         name: "{longitude}"
 
     CERES:
         syn-toa41:
-            derived:
-                    mtntrf:
+            vars:
+                mtntrf:
                     # the fixer cannot parse * followed by - for now
-                    formula: 0.-toa_lw_all_daily*1.0060667743 
+                    derived: 0.-toa_lw_all_daily*1.0060667743 
                     attributes:
                         long_name: Mean top net thermal radiation flux, Observed, All-sky conditions, Daily Means, Energy balanced
                         standard_name: Observed TOA Longwave Flux - All-sky - Energy balanced

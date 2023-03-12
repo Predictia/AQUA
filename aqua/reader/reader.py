@@ -4,7 +4,7 @@ import xarray as xr
 import os
 from metpy.units import units
 import smmregrid as rg
-from aqua.util import load_yaml, _eval_formula
+from aqua.util import load_yaml, _eval_formula, get_eccodes_attr
 from aqua.util import get_reader_filenames, get_config_dir, get_machine
 import sys
 import subprocess
@@ -18,7 +18,7 @@ class Reader():
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
                  regrid=None, method="ycon", zoom=None, configdir=None,
-                 level=None, areas=True, var=None, vars=None):
+                 level=None, areas=True, var=None, vars=None, verbose=False):
         """
         The Reader constructor.
         It uses the catalog `config/config.yaml` to identify the required data.
@@ -34,6 +34,7 @@ class Reader():
             level (int):      level to extract if input data are 3D (starting from 0)
             areas (bool):     compute pixel areas if needed (True)
             var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
+            verbose (bool):   print extra debugging info
         
         Returns:
             A `Reader` class object.
@@ -43,6 +44,7 @@ class Reader():
             self.var = vars
         else:
             self.var = var
+        self.verbose = verbose
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
@@ -554,46 +556,68 @@ class Reader():
                 return data
 
         self.deltat = fix.get("deltat", 1.0)
+
         fixd = {}
         allvars = data.variables
-        fixvars = fix.get("vars", None)
-        if fixvars:
-            for var in fixvars:
-                shortname = fix["vars"][var]["short_name"]
-                if var in allvars: 
-                    fixd.update({f"{var}": f"{shortname}"})
-                    src_units = fix["vars"][var].get("src_units", None)
-                    if src_units:
-                        data[var].attrs.update({"units": src_units})
-                    units = fix["vars"][var].get("units", None)
-                    if units:
-                        if units.count('{'):
-                            units = fixes["defaults"]["units"][units.replace('{','').replace('}','')]                
-                        data[var].attrs.update({"target_units": units})
-                        factor, offset = self.convert_units(data[var].units, units, var)
-                        data[var].attrs.update({"factor": factor})
-                        data[var].attrs.update({"offset": offset})
-                    # factor = fix["vars"][var].get("factor", None)
-                    # offset = fix["vars"][var].get("offset", None)
-                    # # if factor or offset are defined, they take precedence over units
-                    # if factor:
-                    #     data[var].attrs.update({"factor": factor})
-                    #     data[var].attrs.update({"target_units": data[var].attrs["units"]})
-                    # if offset:
-                    #     data[var].attrs.update({"offset": offset})
-                    #     data[var].attrs.update({"target_units": data[var].attrs["units"]})
-                    if apply_unit_fix:
-                        self.apply_unit_fix(data[var])
-        
-        dervars = fix.get("derived", None)
-        if dervars:
-            for var in dervars:
-                formula = dervars[var]["formula"]
-                data[var] = _eval_formula(formula, data)
-                attributes = dervars[var]["attributes"]
-                for att, value in attributes.items():
-                    data[var].attrs[att] = value
+
+        vars = fix.get("vars", None)
+        if vars:
+            for var in vars:
+                units = None
+
+                source = vars[var].get("source", None)
+                # This is a renamed variable. This will be done at the end.
+                if source:
+                    fixd.update({f"{source}": f"{var}"})
                 
+                formula = vars[var].get("derived", None)
+                # This is a derived variable, let's compute it and create the new variable
+                if formula:
+                    data[var] = _eval_formula(formula, data)
+                    source = var
+                    if self.verbose:
+                        print(f"Derived {var} from {formula}")
+             
+                # Get extra attributes if any
+                attributes = vars[var].get("attributes", {})
+                grib = vars[var].get("grib", None)
+                # This is a grib variable, use eccodes to find attributes
+                if grib:
+                    # Get relevant eccodes attribues
+                    attributes.update(get_eccodes_attr(var))
+                    if self.verbose:
+                        print(f"Grib attributes for {var}: {attributes}")
+
+                if attributes:
+                    for att, value in attributes.items():
+                        # Already adjust all attributes but not yet units (unless it was derived)
+                        if att == "units":
+                            units = value
+                        if att != "units" or formula:
+                            data[source].attrs[att] = value
+
+                # Override source units
+                src_units = vars[var].get("src_units", None)
+                if src_units:
+                    data[source].attrs.update({"units": src_units})
+
+
+                print("Units:",var, units)
+                # adjust units
+                if units:
+                    if units.count('{'):
+                        units = fixes["defaults"]["units"][units.replace('{','').replace('}','')]            
+                    data[source].attrs.update({"target_units": units})
+                    factor, offset = self.convert_units(data[source].units, units, var)
+                    data[source].attrs.update({"factor": factor})
+                    data[source].attrs.update({"offset": offset})
+                    if self.verbose:
+                        print(f"Fixing {source} to {var}. Unit fix: factor={factor}, offset={offset}")
+
+        if apply_unit_fix:
+            for var in allvars:
+                self.apply_unit_fix(data[var])
+        
         # Fix coordinates according to a given data model
         data_model = fix.get("data_model", None)
         if data_model:
@@ -604,7 +628,8 @@ class Reader():
                 with warnings.catch_warnings():
                     warnings.filterwarnings("ignore", category=UserWarning)
                     data = cf2cdm.translate_coords(data, dm)
-            
+
+        # Finally perform variable renames
         return data.rename(fixd)
 
 
@@ -629,11 +654,19 @@ class Reader():
                 # Density of water was missing
                 factor = factor * 1000 * units("kg m-3")
                 print(f"{var}: corrected multiplying by density of water 1000 kg m-3")
-            if factor.units == "meter ** 3 * second / kilogram":
+            elif factor.units == "meter ** 3 * second / kilogram":
                 # Density of water and accumulation time were missing
                 factor = factor * 1000 * units("kg m-3") / (self.deltat * units("s"))
                 print(f"{var}: corrected multiplying by density of water 1000 kg m-3")
                 print(f"{var}: corrected dividing by accumulation time {self.deltat} s")
+            elif factor.units == "second":
+                # Accumulation time was missing
+                factor = factor / (self.deltat * units("s"))
+                print(f"{var}: corrected dividing by accumulation time {self.deltat} s")
+            elif factor.units == "kilogram / meter ** 3":
+                # Density of water was missing
+                factor = factor / (1000 * units("kg m-3"))
+                print(f"{var}: corrected dividing by density of water 1000 kg m-3")
             else:
                 print(f"{var}: incommensurate units converting {src} to {dst} --> {factor.units}")
             offset = 0 * units(dst)
