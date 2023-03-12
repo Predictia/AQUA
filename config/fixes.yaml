@@ -87,6 +87,9 @@ models:
                 data_model: cf2cds
 
     CERES:
+        default:
+            default:
+                data_model: cf2cds
         syn-toa41:
             default:
                 vars:
@@ -101,4 +104,4 @@ models:
                             valid_max: 0
                             positive: down
                             paramId: 172179
-                data_model: era2aqua
+                data_model: cf2cds

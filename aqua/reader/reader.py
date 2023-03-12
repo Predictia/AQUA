@@ -398,6 +398,7 @@ class Reader():
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
         return out
+
     
     def timmean(self, data, freq = None):
         """
@@ -571,6 +572,7 @@ class Reader():
         if vars:
             for var in vars:
                 units = None
+                attributes = {}
 
                 source = vars[var].get("source", None)
                 # This is a renamed variable. This will be done at the end.
@@ -582,11 +584,12 @@ class Reader():
                 if formula:
                     data[var] = _eval_formula(formula, data)
                     source = var
+                    attributes.update({"derived": formula})
                     if self.verbose:
                         print(f"Derived {var} from {formula}")
              
                 # Get extra attributes if any
-                attributes = vars[var].get("attributes", {})
+                attributes.update(vars[var].get("attributes", {}))
                 grib = vars[var].get("grib", None)
                 # This is a grib variable, use eccodes to find attributes
                 if grib:
