@@ -3,6 +3,8 @@ import os
 import sys
 import operator
 import re
+import eccodes
+
 
 def load_yaml(infile):
     """
@@ -147,3 +149,78 @@ def get_reader_filenames(configdir, machine):
             sys.exit(f'Cannot find catalog file in {fixer_file}')
 
     return catalog_file, regrid_file, fixer_file
+
+# Currently not used
+def read_eccodes_dic(filename):
+    """
+    Reads an ecCodes definition file and returns its contents as a dictionary.
+
+    Parameters:
+    - filename (str): The name of the ecCodes definition file to read.
+
+    Returns:
+    - A dictionary containing the contents of the ecCodes definition file.
+    """
+
+    fn= os.path.join(eccodes.codes_definition_path(), 'grib2', filename)
+    with open(fn, "r") as f:
+        text = f.read()
+    text = text.replace(" =", ":").replace('{','').replace('}','').replace(';','').replace('\t', '    ')
+    return yaml.safe_load(text)
+
+
+def read_eccodes_def(filename):
+    """
+    Reads an ecCodes definition file and returns its keys as a list.
+
+    Parameters:
+        filename (str): The name of the ecCodes definition file to read.
+
+    Returns:
+        A list containing the keys of the ecCodes definition file.
+    """
+
+    fn= os.path.join(eccodes.codes_definition_path(), 'grib2',  'localConcepts', 'ecmf', filename)
+    list = []
+    with open(fn, "r") as f:
+        for line in f:
+            line = line.replace(" =", "").replace('{','').replace('}','').replace(';','').replace('\t', '#    ')
+            if not line.startswith("#"):
+                list.append(line.strip().replace("'", ""))
+    # The last entry is no good
+    return list[:-1]
+
+
+# Define this as a closure to avoid reading twice the same file
+def _init_get_eccodes_attr():
+    shortname = read_eccodes_def("shortName.def")
+    paramid = read_eccodes_def("paramId.def")
+    name = read_eccodes_def("name.def")
+    cfname = read_eccodes_def("cfName.def")
+    cfvarname = read_eccodes_def("cfVarName.def")
+    units = read_eccodes_def("units.def")
+
+    def get_eccodes_attr(sn):
+        """
+        Recover eccodes attributes for a given short name
+        
+        Args:
+            shortname(str): the shortname to search
+        Returns:
+            A dictionary containing param, long_name, units, short_name
+        """
+        nonlocal shortname, paramid, name, cfname, cfvarname, units
+        try:
+            i =  shortname.index(sn)
+            dic = {"param": paramid[i],
+                "long_name": name[i],
+                "units": units[i],
+                "short_name": cfvarname[i]}
+            return dic
+        except ValueError:
+            print(f"Conversion Error: short name '{sn}' not found in ECMWF tables!")
+            return
+
+    return get_eccodes_attr
+
+get_eccodes_attr = _init_get_eccodes_attr()

@@ -70,7 +70,7 @@ models:
     CERES:
         syn-toa41:
             derived:
-                    :
+                    mtntrf:
                     # the fixer cannot parse * followed by - for now
                     formula: 0.-toa_lw_all_daily*1.0060667743 
                     attributes:

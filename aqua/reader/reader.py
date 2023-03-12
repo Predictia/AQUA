@@ -553,7 +553,6 @@ class Reader():
                 print(f"No fixes defined for model {model}, experiment {exp}")
                 return data
 
-        print(fix)
         self.deltat = fix.get("deltat", 1.0)
         fixd = {}
         allvars = data.variables
