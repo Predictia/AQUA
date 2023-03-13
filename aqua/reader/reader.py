@@ -56,6 +56,8 @@ class Reader():
 
         if not configdir: 
             self.configdir = get_config_dir()
+        else:
+            self.configdir = configdir
         self.machine = get_machine(self.configdir)
 
 
