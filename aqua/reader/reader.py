@@ -57,8 +57,9 @@ class Reader():
 
         if not configdir: 
             self.configdir = get_config_dir()
+        else:
+            self.configdir = configdir
         self.machine = get_machine(self.configdir)
-
 
         # get configuration from the machine
         self.catalog_file, self.regrid_file, self.fixer_file = get_reader_filenames(self.configdir, self.machine)

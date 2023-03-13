@@ -64,7 +64,7 @@ def lra(modelname, expname, sourcename,
 
     # start the reader
     reader = Reader(model=modelname, exp=expname, source=sourcename,
-                    regrid=resolution, freq=frequency, configdir="../config") # this is hardcoded
+                    regrid=resolution, freq=frequency, configdir="../config")
     
     logging.info('Retrieving data...')
     data = reader.retrieve(fix=False)
