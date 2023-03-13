@@ -15,8 +15,12 @@ sources:
       chunks:
         time: 1
       urlpath:
-      - /work/ab0995/a270088/DestinE/AQUA_tests_short/IFS/FESOM/a_ice.fesom.1948.nc
-      - /work/ab0995/a270088/DestinE/AQUA_tests_short/IFS/FESOM/a_ice.fesom.1949.nc
+      - /work/ab0995/a270088/DestinE/AQUA_tests_short/IFS/FESOM/a_ice.fesom.1985.nc
+      - /work/ab0995/a270088/DestinE/AQUA_tests_short/IFS/FESOM/a_ice.fesom.1986.nc
+      - /work/ab0995/a270088/DestinE/AQUA_tests_short/IFS/FESOM/MLD2.fesom.1985.nc
+      - /work/ab0995/a270088/DestinE/AQUA_tests_short/IFS/FESOM/MLD2.fesom.1986.nc
+      - /work/ab0995/a270088/DestinE/AQUA_tests_short/IFS/FESOM/sst.fesom.1985.nc
+      - /work/ab0995/a270088/DestinE/AQUA_tests_short/IFS/FESOM/sst.fesom.1986.nc
     description: original 2d output
     driver: netcdf
   original_3d:
@@ -26,7 +30,7 @@ sources:
         nz1: 1
         time: 1
       urlpath:
-      - /work/ab0995/a270088/DestinE/AQUA_tests_short/IFS/FESOM/temp.fesom.1948.nc
-      - /work/ab0995/a270088/DestinE/AQUA_tests_short/IFS/FESOM/temp.fesom.1949.nc
+      - /work/ab0995/a270088/DestinE/AQUA_tests_short/IFS/FESOM/temp.fesom.1985.nc
+      - /work/ab0995/a270088/DestinE/AQUA_tests_short/IFS/FESOM/temp.fesom.1986.nc
     description: original 3d output
     driver: netcdf
