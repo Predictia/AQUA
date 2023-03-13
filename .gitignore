@@ -1,2 +1,4 @@
 *.pyc
 diagnostics/ecmean/ECmean4
+cli/*.err
+cli/*.out
