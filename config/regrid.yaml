@@ -105,6 +105,13 @@ source_grids:
         extra: 
           - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc 
           - -selname,cell_area 
+    test-pi:
+      original_2d:
+        path: /pool/data/AWICM/FESOM2/MESHES_FESOM2.1/pi/pi_griddes_nodes_IFS.nc
+        space_coord: ["nod2"]
+        extra: 
+          - -setgrid,/pool/data/AWICM/FESOM2/MESHES_FESOM2.1/pi/pi_griddes_nodes_IFS.nc 
+          - -selname,cell_area 
 
   MSWEP:
     past:
