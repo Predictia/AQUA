@@ -39,7 +39,7 @@ sleep 5
 # to have it running on 
 cd ECmean4
 git fetch
-git checkout devel/global-extend
+git checkout main
 git pull
 
 # create env and install ECmean4

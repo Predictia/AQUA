@@ -5,28 +5,27 @@ model:
    name: IFS+NEMO
 
 dirs:
-   exp: /work/bm1235/a270046/cycle2-sync/monthly_means/
+   exp: /home/b/b382076/work/datasets/IFS-tco2559-ng5
    tab: /work/bb1153/b382076/ecmean/tables
    clm: /home/b/b382076/AQUA/diagnostics/ecmean/ECmean4/ecmean/climatology
    fig: /work/bb1153/b382076/ecmean/figures
 
 global:
-  atm_vars: [tas, psl, pr, pme, cll, clm, clh,
-             pr_oce, pme_oce, pr_land, pme_land, 
-             net_toa, rsnt, rlnt, rsntcs, rlntcs, swcf, lwcf, 
-             rsns, rlns, hfss, hfls, net_sfc_nosn, net_sfc,
-             toamsfc, toamsfc_nosn]
-  oce_vars: [tos]
-  ice_vars: [siconc_north, siconc_south]
+  atm_vars: [tas, psl, pr, evspsbl, pme, cll, clm, clh,
+            rsnt, rlnt, net_toa]
+  oce_vars: [sos]
+  ice_vars: [siconc]
   tab_vars: []
+  regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
+  seasons: ['ALL', 'DJF', 'JJA']
 
 PI:
   2d_vars:
-    field: [net_sfc, tas, psl, pr, tauu, tauv]
+    field: [tas, pr,  psl]
   3d_vars:
-    field: [ta, ua, va, hus]
+    field: []
   oce_vars:
-    field: [tos]
+    field: [sos]
   ice_vars:
     field: [siconc]
   regions: ['Global', 'North Midlat', 'Tropical', 'South Midlat']
