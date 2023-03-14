@@ -3,6 +3,7 @@ import intake_esm
 import xarray as xr
 import os
 from metpy.units import units
+import numpy as np
 import smmregrid as rg
 from aqua.util import load_yaml, get_reader_filenames, get_config_dir, get_machine
 import sys
@@ -410,6 +411,8 @@ class Reader():
             resample_freq = '1M'
         elif self.freq == 'day':
             resample_freq = '1D'
+        elif self.freq == 'yr':
+            resample_freq = '1Y'
         else:
             resample_freq = self.freq
         
@@ -420,6 +423,10 @@ class Reader():
             out['time'] = proper_time.values
         except: 
             sys.exit('Cant find a frequency to resample, aborting!')
+        
+        # check for NaT
+        if np.any(np.isnat(out.time)):
+            print('WARNING: Resampling cannot produce output for all frequency step, is your input data correct?')
    
         return out
 
