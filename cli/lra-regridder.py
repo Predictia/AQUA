@@ -12,7 +12,7 @@ sys.path.append("..")
 
 import argparse
 from aqua import Reader
-from aqua.util import load_yaml
+from aqua.util import load_yaml, generate_random_string
 import dask
 from dask.distributed import Client, LocalCluster, progress
 from dask.diagnostics import ProgressBar
@@ -22,14 +22,6 @@ import os
 import logging
 #import psutil
 import matplotlib.pyplot as plt
-import random
-import string
-
-def generate_random_string(length):
-    # Generate a random string of lowercase and uppercase letters and digits
-    letters_and_digits = string.ascii_letters + string.digits
-    random_string = ''.join(random.choice(letters_and_digits) for _ in range(length))
-    return random_string
 
 
 def lra(modelname, expname, sourcename, 
