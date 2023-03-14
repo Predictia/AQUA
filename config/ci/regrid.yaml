@@ -1,14 +1,14 @@
 weights:
-   path: /work/ab0995/a270088/DestinE/AQUA_tests_short/weights
+   path: ./AQUA_tests_short/weights
    template: weights_{model}_{exp}_{source}_{method}_{target}_l{level}.nc
 
 areas:
-   path: /work/ab0995/a270088/DestinE/AQUA_tests_short/weights
+   path: ./AQUA_tests_short/weights
    src_template: cell_area_{model}_{exp}_{source}.nc
    dst_template: cell_area_{grid}.nc
 
 paths:
-  grids: /work/ab0995/a270088/DestinE/AQUA_tests_short/weights
+  grids: ./AQUA_tests_short/weights
   icon: /pool/data/ICON
 
 target_grids:
@@ -107,10 +107,10 @@ source_grids:
     #       - -selname,cell_area 
     test-pi:
       original_2d:
-        path: /work/ab0995/a270088/DestinE/AQUA_tests_short/grids/pi_griddes_nodes_IFS.nc
+        path: ./AQUA_tests_short/grids/pi_griddes_nodes_IFS.nc
         space_coord: ["nod2"]
         extra: 
-          - -setgrid,/work/ab0995/a270088/DestinE/AQUA_tests_short/grids/pi_griddes_nodes_IFS.nc 
+          - -setgrid,./AQUA_tests_short/grids/pi_griddes_nodes_IFS.nc 
           - -selname,cell_area 
 
   # MSWEP:
