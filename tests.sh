@@ -12,6 +12,9 @@ if [ ! -f "$file_path" ]; then
 else
     echo "File already exists."
 fi
-
+cp ./config/config.yaml ./config/config.yaml.bak
+sed -i "/^machine:/c\\machine: ci" "./config/config.yaml"
 python -m pytest ./tests/test_basic.py
+mv ./config/config.yaml.bak ./config/config.yaml
+
 
