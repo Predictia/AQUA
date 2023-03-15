@@ -14,7 +14,7 @@ class Reader():
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
                  regrid=None, method="ycon", zoom=None, configdir=None,
-                 level=None, areas=True, var=None, vars=None):
+                 level=None, areas=True, var=None, vars=None, rebuild=False):
         """
         The Reader constructor.
         It uses the catalog `config/config.yaml` to identify the required data.
@@ -30,6 +30,7 @@ class Reader():
             level (int):      level to extract if input data are 3D (starting from 0)
             areas (bool):     compute pixel areas if needed (True)
             var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
+            rebuild (bool):   force rebuilding of area and weight files
         
         Returns:
             A `Reader` class object.
@@ -98,7 +99,7 @@ class Reader():
                                                     level=("2d" if level is None else level)))
 
             # If weights do not exist, create them       
-            if not os.path.exists(self.weightsfile):
+            if rebuild or not os.path.exists(self.weightsfile):
                 self._make_weights_file(self.weightsfile, source_grid,
                                         cfg_regrid, regrid=regrid,
                                         extra=extra, zoom=zoom)
@@ -112,7 +113,7 @@ class Reader():
                 cfg_regrid["areas"]["src_template"].format(model=model, exp=exp, source=self.source))
 
             # If source areas do not exist, create them 
-            if not os.path.exists(self.src_areafile):
+            if rebuild or not os.path.exists(self.src_areafile):
                 self._make_src_area_file(self.src_areafile, source_grid,
                                          gridpath=cfg_regrid["paths"]["grids"],
                                          icongridpath=cfg_regrid["paths"]["icon"],
@@ -125,7 +126,7 @@ class Reader():
                     cfg_regrid["areas"]["path"],
                     cfg_regrid["areas"]["dst_template"].format(grid=self.targetgrid))
 
-                if not os.path.exists(self.dst_areafile):
+                if rebuild or not os.path.exists(self.dst_areafile):
                     grid = cfg_regrid["target_grids"][regrid]
                     self._make_dst_area_file(self.dst_areafile, grid)
 
