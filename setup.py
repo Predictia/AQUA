@@ -9,7 +9,7 @@ setup(name='aqua',
       author_email='p.davini@isac.cnr.it',
       url='https://github.com/oloapinivad/AQUA',
       python_requires='>=3.9, <3.11',
-      packages=['aqua', 'aqua.docker', 'aqua.reader'],
+      packages=['aqua'],
       install_requires=[
         'pyYAML',
         'xarray',
@@ -25,6 +25,7 @@ setup(name='aqua',
         'ecCodes',
         'cfgrib',
         'sparse',
-        'docker'
+        'docker',
+        'gribscan'
       ]
     )

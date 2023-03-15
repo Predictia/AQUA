@@ -15,6 +15,7 @@ All the modules, including the smmregrid regridder, are now within the environme
 ```
 conda env create -f environment.yml
 conda activate aqua
+pip install -e .
 
 ```
 
