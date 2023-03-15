@@ -3,8 +3,9 @@ import intake_esm
 import xarray as xr
 import os
 from metpy.units import units
+import numpy as np
 import smmregrid as rg
-from aqua.util import load_yaml
+from aqua.util import load_yaml, get_reader_filenames, get_config_dir, get_machine
 import sys
 import subprocess
 import tempfile
@@ -13,26 +14,32 @@ class Reader():
     """General reader for NextGEMS data (on Levante for now)"""
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
-                 regrid=None, method="ycon", zoom=None, configdir = 'config', level=None, areas=True):
+                 regrid=None, method="ycon", zoom=None, configdir=None,
+                 level=None, areas=True, var=None, vars=None):
         """
         The Reader constructor.
         It uses the catalog `config/config.yaml` to identify the required data.
         
         Arguments:
-            model (str):    model ID
-            exp (str):      experiment ID
-            source (str):   source ID
-            regrid (str):   perform regridding to grid `regrid`, as defined in `config/regrid.yaml` (None)
-            method (str):   regridding method (ycon)
-            zoom (int):     healpix zoom level
-            configdir (str) Folder where the config/catalog files are located (config)
-            level (int):    level to extract if input data are 3D (starting from 0)
-            areas (bool):   compute pixel areas if needed (True)
+            model (str):      model ID
+            exp (str):        experiment ID
+            source (str):     source ID
+            regrid (str):     perform regridding to grid `regrid`, as defined in `config/regrid.yaml` (None)
+            method (str):     regridding method (ycon)
+            zoom (int):       healpix zoom level
+            configdir (str)   folder where the config/catalog files are located (config)
+            level (int):      level to extract if input data are 3D (starting from 0)
+            areas (bool):     compute pixel areas if needed (True)
+            var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
         
         Returns:
             A `Reader` class object.
         """
 
+        if vars:
+            self.var = vars
+        else:
+            self.var = var
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
@@ -48,11 +55,17 @@ class Reader():
         self.src_grid_area = None
         self.dst_grid_area = None
 
-        self.configdir = configdir
-        catalog_file = os.path.join(configdir, "catalog.yaml")
-        self.cat = intake.open_catalog(catalog_file)
+        if not configdir: 
+            self.configdir = get_config_dir()
+        else:
+            self.configdir = configdir
+        self.machine = get_machine(self.configdir)
 
-        cfg_regrid = load_yaml(os.path.join(configdir,"regrid.yaml"))
+        # get configuration from the machine
+        self.catalog_file, self.regrid_file, self.fixer_file = get_reader_filenames(self.configdir, self.machine)
+        self.cat = intake.open_catalog(self.catalog_file)
+
+        cfg_regrid = load_yaml(self.regrid_file)
 
         if source:
             self.source = source
@@ -61,8 +74,8 @@ class Reader():
         
         source_grid = cfg_regrid["source_grids"][self.model][self.exp].get(self.source, None)
         if not source_grid:
-            source_grid = cfg_regrid["source_grids"][self.model][self.exp]["default"]
-
+            source_grid = cfg_regrid["source_grids"][self.model][self.exp].get("default", None)
+        
         self.src_space_coord = source_grid.get("space_coord", None)
         self.space_coord = self.src_space_coord
         self.dst_space_coord = ["lon", "lat"]
@@ -85,96 +98,133 @@ class Reader():
                                                     target=regrid,
                                                     source=self.source,
                                                     level=("2d" if level is None else level)))
-            if os.path.exists(self.weightsfile):
-                self.weights = xr.open_mfdataset(self.weightsfile)
-            else:
-                sgridpath = source_grid["path"]
-                if zoom:
-                    sgridpath = sgridpath.format(zoom=(9-zoom))            
-                print("Weights file not found:", self.weightsfile)
-                print("Attempting to generate it ...")
-                print("Source grid: ", sgridpath)
 
-                # hack to  pass a correct list of all options
-                src_extra = source_grid.get("extra", [])
-                if src_extra:
-                    if not isinstance(src_extra, list):
-                        src_extra = [src_extra]
-                if extra:
-                    extra = [extra] 
-                extra = extra + src_extra
-                weights = rg.cdo_generate_weights(source_grid=sgridpath,
-                                                      target_grid=cfg_regrid["target_grids"][regrid], 
-                                                      method='ycon', 
-                                                      gridpath=cfg_regrid["paths"]["grids"],
-                                                      icongridpath=cfg_regrid["paths"]["icon"],
-                                                      extra=extra)
-                weights.to_netcdf(self.weightsfile)
-                # For some weird reason it is better to reopen this from file ... to be investigated. It was failing for FESOM on orig. grid
-                self.weights = xr.open_mfdataset(self.weightsfile)
-                print("Success!")
-
+            # If weights do not exist, create them       
+            if not os.path.exists(self.weightsfile):
+                self._make_weights_file(self.weightsfile, source_grid,
+                                        cfg_regrid, regrid=regrid,
+                                        extra=extra, zoom=zoom)
+                
+            self.weights = xr.open_mfdataset(self.weightsfile)   
             self.regridder = rg.Regridder(weights=self.weights)
-
-            #if areas:
-                # All needed areas have already been computed by the regridding procedure
-                #planet_radius = 6371000  # same default as cdo
-                #r2 = planet_radius * planet_radius
-                #self.src_grid_area = self.weights.src_grid_area * r2
-                #self.dst_grid_area = self.weights.dst_grid_area * r2
-                #self.src_grid_area.attrs['units'] = 'm2'
-                #self.dst_grid_area.attrs['units'] = 'm2'
-                #self.src_grid_area.attrs['standard_name'] = 'area'
-                #self.dst_grid_area.attrs['standard_name'] = 'area'
-                #self.src_grid_area.attrs['long_name'] = 'area of grid cell'
-                #self.dst_grid_area.attrs['long_name'] = 'area of grid cell'
-                #self.grid_area = self.src_grid_area
         
         if areas:
             self.src_areafile =os.path.join(
                 cfg_regrid["areas"]["path"],
                 cfg_regrid["areas"]["src_template"].format(model=model, exp=exp, source=self.source))
-            if os.path.exists(self.src_areafile):
-                self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
-            else:
-                sgridpath = source_grid["path"]
-                if zoom:
-                    sgridpath = sgridpath.format(zoom=(9-zoom)) 
-                print("Source areas file not found:", self.src_areafile)
-                print("Attempting to generate it ...")
-                print("Source grid: ", sgridpath)
-                src_extra = source_grid.get("extra", [])
-                grid_area = self.cdo_generate_areas(source=sgridpath,
-                                                    gridpath=cfg_regrid["paths"]["grids"],
-                                                    icongridpath=cfg_regrid["paths"]["icon"],
-                                                    extra=src_extra)
-                # Make sure that the new DataArray uses the expected spatial dimensions
-                grid_area = self._rename_dims(grid_area, self.space_coord)
-                
-                self.src_grid_area = grid_area                           
-                self.src_grid_area.to_netcdf(self.src_areafile)
-                # ... aaand we reopen it because soething is still not ok with our treatment of temp files
-                self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
-                print("Success!")
+
+            # If source areas do not exist, create them 
+            if not os.path.exists(self.src_areafile):
+                self._make_src_area_file(self.src_areafile, source_grid,
+                                         gridpath=cfg_regrid["paths"]["grids"],
+                                         icongridpath=cfg_regrid["paths"]["icon"],
+                                         zoom=None)
+
+            self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
 
             if regrid:
                 self.dst_areafile =os.path.join(
                     cfg_regrid["areas"]["path"],
                     cfg_regrid["areas"]["dst_template"].format(grid=self.targetgrid))
-                if os.path.exists(self.dst_areafile):
-                    self.dst_grid_area = xr.open_mfdataset(self.dst_areafile).cell_area
-                else:
-                    print("Destination areas file not found:", self.dst_areafile)
-                    print("Attempting to generate it ...")
-                    print("Source grid: ", source_grid["path"])
-                    grid = cfg_regrid["target_grids"][regrid]
-                    dst_extra = f"-const,1,{grid}"
-                    grid_area = self.cdo_generate_areas(source=dst_extra)
-                    self.dst_grid_area = grid_area                           
-                    self.dst_grid_area.to_netcdf(self.dst_areafile)
-                    print("Success!")
 
+                if not os.path.exists(self.dst_areafile):
+                    grid = cfg_regrid["target_grids"][regrid]
+                    self._make_dst_area_file(self.dst_areafile, grid)
+
+                self.dst_grid_area = xr.open_mfdataset(self.dst_areafile).cell_area
+     
             self.grid_area = self.src_grid_area
+
+
+    def _make_dst_area_file(self, areafile, grid):
+        """Helper function to create destination (regridded) area files."""
+
+        print("Destination areas file not found:", areafile)
+        print("Attempting to generate it ...")
+
+        dst_extra = f"-const,1,{grid}"
+        grid_area = self.cdo_generate_areas(source=dst_extra)
+
+        # Make sure that grid areas contain exactly the same coordinates
+        data = self.retrieve(fix=False)
+        data = self.regridder.regrid(data.isel(time=0))
+        grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.dst_space_coord})
+                  
+        grid_area.to_netcdf(self.dst_areafile)
+        print("Success!")
+
+
+    def _make_src_area_file(self, areafile, source_grid, 
+                            gridpath="", icongridpath="", zoom=None):
+        """Helper function to create source area files."""
+
+        sgridpath = source_grid.get("path", None)
+        if not sgridpath:
+            # there is no source grid path at all defined in the regrid.yaml file:
+            # let's reconstruct it from the file itself
+            data = self.retrieve(fix=False)
+            temp_file = tempfile.NamedTemporaryFile(mode='w')
+            sgridpath = temp_file.name
+            data.isel(time=0).to_netcdf(sgridpath)
+        else:
+            temp_file = None
+            if zoom:
+                sgridpath = sgridpath.format(zoom=(9-zoom))    
+
+        print("Source areas file not found:", areafile)
+        print("Attempting to generate it ...")
+        print("Source grid: ", sgridpath)
+        src_extra = source_grid.get("extra", [])
+        grid_area = self.cdo_generate_areas(source=sgridpath,
+                                            gridpath=gridpath,
+                                            icongridpath=icongridpath,
+                                            extra=src_extra)
+        # Make sure that the new DataArray uses the expected spatial dimensions
+        grid_area = self._rename_dims(grid_area, self.src_space_coord)
+        data = self.retrieve(fix=False)
+        grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.src_space_coord})
+                                 
+        grid_area.to_netcdf(areafile)
+        print("Success!")
+
+
+    def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, regrid="", extra=[], zoom=None):
+        """Helper function to produce weights file"""
+
+        sgridpath = source_grid.get("path", None)
+        if not sgridpath:
+            # there is no source grid path at all defined in the regrid.yaml file:
+            # let's reconstruct it from the file itself
+            data = self.retrieve(fix=False)
+            temp_file = tempfile.NamedTemporaryFile(mode='w')
+            sgridpath = temp_file.name
+            data.isel(time=0).to_netcdf(sgridpath)
+        else:
+            temp_file = None
+            if zoom:
+                sgridpath = sgridpath.format(zoom=(9-zoom))    
+
+        print("Weights file not found:", weightsfile)
+        print("Attempting to generate it ...")
+        print("Source grid: ", sgridpath)
+
+        # hack to  pass a correct list of all options
+        src_extra = source_grid.get("extra", [])
+        if src_extra:
+            if not isinstance(src_extra, list):
+                src_extra = [src_extra]
+        if extra:
+            extra = [extra] 
+        extra = extra + src_extra
+        weights = rg.cdo_generate_weights(source_grid=sgridpath,
+                                                target_grid=cfg_regrid["target_grids"][regrid], 
+                                                method='ycon', 
+                                                gridpath=cfg_regrid["paths"]["grids"],
+                                                icongridpath=cfg_regrid["paths"]["icon"],
+                                                extra=extra)
+        weights.to_netcdf(weightsfile)
+        print("Success!")
+
 
     def cdo_generate_areas(self, source, icongridpath=None, gridpath=None, extra=None):
         """
@@ -258,16 +308,18 @@ class Reader():
             area_file.close()
 
 
-    def retrieve(self, regrid=False, timmean=False, fix=True, apply_unit_fix=True):
+    def retrieve(self, regrid=False, timmean=False, decumulate=False, fix=True, apply_unit_fix=True, var=None, vars=None):
         """
         Perform a data retrieve.
         
         Arguments:
             regrid (bool):          if to regrid the retrieved data (False)
-            timmean (bool)          if to perform timmean of the retrieved data (False)
+            timmean (bool):         if to average the retrieved data (False)
+            decumulate (bool):      if to remove the cumulation from data (False)
             fix (bool):             if to perform a fix (var name, units, coord name adjustments) (True)
             apply_unit_fix (bool):  if to already adjust units by multiplying by a factor or adding
                                     an offset (this can also be done later with the `fix_units` method) (True)
+            var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
         Returns:
             A xarray.Dataset containing the required data.
         """
@@ -278,12 +330,21 @@ class Reader():
         else:
             esmcat = self.cat[self.model][self.exp][self.source]
 
+        if vars:
+            var = vars
+        if not var:
+            var = self.var
+        
         # Extract data from cat.
         # If this is an ESM-intake catalogue use first dictionary value,
         # else extract directly a dask dataset
         if isinstance(esmcat, intake_esm.core.esm_datastore):
             cdf_kwargs = esmcat.metadata.get('cdf_kwargs', {"chunks": {"time":1}})
             query = esmcat.metadata['query']
+            if var:
+                query_var = esmcat.metadata.get('query_var', 'short_name')
+                # Convert to list if not already
+                query[query_var] = var.split() if isinstance(var, str) else var
             subcat = esmcat.search(**query)
             data = subcat.to_dataset_dict(cdf_kwargs=cdf_kwargs,
                                          zarr_kwargs=dict(consolidated=True),
@@ -293,13 +354,22 @@ class Reader():
                                          )
             data = list(data.values())[0]
         else:
-            data = esmcat.to_dask()
+            if var:
+                # conversion to list guarantee that Dataset is produced
+                if isinstance(var, str):
+                    var = var.split()
+                data = esmcat.to_dask()[var]
+
+            else:
+                data = esmcat.to_dask()
 
         # select only a specific level when reading. Level coord names defined in regrid.yaml
         if self.level is not None:
             data = data.isel({self.vertcoord: self.level})
 
-        # sequence which should be more efficient: averaging - regridding - fixing
+        # sequence which should be more efficient: decumulate - averaging - regridding - fixing
+        if decumulate:
+            data = data.map(self.decumulate, keep_attrs=True)
         if self.freq and timmean:
             data = self.timmean(data)
         if self.targetgrid and regrid:
@@ -322,7 +392,7 @@ class Reader():
 
         out = self.regridder.regrid(data)
 
-        out.attrs["regridded"]=1
+        out.attrs["regridded"] = 1
         # set these two to the target grid (but they are actually not used so far)
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
@@ -343,6 +413,8 @@ class Reader():
             resample_freq = '1M'
         elif self.freq == 'day':
             resample_freq = '1D'
+        elif self.freq == 'yr':
+            resample_freq = '1Y'
         else:
             resample_freq = self.freq
         
@@ -353,8 +425,122 @@ class Reader():
             out['time'] = proper_time.values
         except: 
             sys.exit('Cant find a frequency to resample, aborting!')
+        
+        # check for NaT
+        if np.any(np.isnat(out.time)):
+            print('WARNING: Resampling cannot produce output for all frequency step, is your input data correct?')
    
         return out
+    
+    def _check_if_accumulated_auto(self, data):
+
+        """To check if a DataArray is accumulated. 
+        Arbitrary check on the first 20 timesteps"""
+
+        # randomly pick a few timesteps from a gridpoint
+        ndims = [dim for dim in data.dims if data[dim].size > 1][1:]
+        pindex = {dim: 0 for dim in ndims}
+
+        # extract the first 20 timesteps and do the derivative
+        check = data.isel(pindex).isel(time=slice(None, 20)).diff(dim='time').values
+
+        # check all derivative are positive or all negative
+        condition = (check >= 0).all() or (check <=0).all()
+        
+        return condition
+
+    def _check_if_accumulated(self, data):
+
+        """To check if a DataArray is accumulated. 
+        On a list of variables defined by the GRIB names
+        
+        Args: 
+            data (xr.DataArray): field to be processed
+        
+        Returns:
+            bool: True if decumulation is necessary, False if not 
+        """
+
+        decumvars = ['tp', 'e', 'slhf', 'sshf',
+                     'tsr', 'ttr', 'ssr', 'str', 
+                     'tsrc', 'ttrc', 'ssrc', 'strc', 
+                     'tisr']
+        
+
+        if data.name in decumvars:
+            return True
+        else:
+            return False
+
+
+    
+    def decumulate(self, data, cumulation_time = None):
+        """
+        Test function to remove cumulative effect on IFS fluxes.
+        Cumulation times are estimated from the intervals of the data, but
+        can be specified manually
+
+        Args: 
+            data (xr.DataArray): field to be processed
+            cumulation_time (float): optional, specific cumulation time
+
+        Returns:
+            A xarray.DataArray where the cumulation time has been removed
+        """
+
+        check = self._check_if_accumulated(data)
+
+        if not check: 
+            return data
+        
+        else: 
+
+            # which frequency are the data?
+            if not cumulation_time:
+                cumulation_time = (data.time[1]-data.time[0]).values/np.timedelta64(1, 's')
+
+            # get the derivatives
+            deltas = data.diff(dim='time') / cumulation_time
+
+            # add a first timestep empty to align the original and derived fields
+            zeros = xr.zeros_like(data.isel(time=0))
+            deltas = xr.concat([zeros, deltas], dim = 'time').transpose('time', ...)
+
+            # universal mask based on the change of month (shifted by one timestep) 
+            mask = ~(data['time.month'] != data['time.month'].shift(time=1))
+            mask = mask.shift(time=1, fill_value=False)
+
+            # check which records are kept
+            #print(data.time[~mask])
+
+            # kaboom: exploit where
+            clean=deltas.where(mask, data/cumulation_time)
+
+            # remove the first timestep (no sense in cumulated)
+            clean = clean.isel(time=slice(1, None))
+
+            # rollback the time axis by half the cumulation time
+            clean['time'] = clean.time - np.timedelta64(int(cumulation_time/2), 's')
+
+            # WARNING: HACK FOR EVAPORATION 
+            #print(clean.units)
+            if clean.units == 'm of water equivalent':
+                clean.attrs['units'] = 'm'
+            
+            # use metpy units to divide by seconds
+            new_units = (units(clean.units)/units('s'))
+
+            # usual case for radiative fluxes
+            try:
+                clean.attrs['units'] = str(new_units.to('W/m^2').units)
+            except:
+                clean.attrs['units'] = str(new_units.units)
+
+            # add an attribute that can be later used to infer about decumulation
+            clean.attrs['decumulated'] = 1
+   
+
+            return clean
 
 
     def _check_if_regridded(self, data):
@@ -391,23 +577,6 @@ class Reader():
         extra_dims = list(set(dims) - set(space_coord))
         da_out = da.isel({dim: 0 for dim in extra_dims})
         return da_out
-
-
-    def _mask_like(self, da, db):
-        """
-        Masks a dataarray with the same shape as another data array, using the missing values of the first array.
-
-        Arguments:
-            da (xarray.DataArray): The data array whose missing values are used for masking.
-            db (xarray.DataArray): The data array to be masked.
-
-        Returns:
-            A masked data array with the same shape as `db`, where the missing values of `da` are replaced with NaNs.
-        """
-        space_coord = db.dims
-        da_sel = self._get_spatial_sample(da, space_coord)
-        mask = xr.where(da_sel.isnull(), True, False) 
-        return xr.where(mask, float('nan'), db)
 
 
     def _rename_dims(self, da, dim_list):
@@ -462,22 +631,15 @@ class Reader():
         else:
             space_coord = self.src_space_coord
             grid_area = self.src_grid_area
+        
+        # check if coordinates are aligned
+        xr.align(grid_area, data, join='exact')
 
-        # Trick (for now) to make sure that they share EXACTLY the same grid 
-        # unfortunately even differences O(1e-14) can lead elementwise multiplication to fail
-        # Ideally the grid_areas should already be on the correct grid, to be fixed
-        ga = grid_area.assign_coords({coord: data.coords[coord] for coord in space_coord})
-
-        gam = self._mask_like(data, ga)
-
-        prod = data * ga
-        print(prod.shape)  # Still debugging, make sure that dimensions are ok
-
-        # Masks are not implemented yet
-        out = prod.mean(space_coord, skipna=True) /  gam.mean(space_coord) 
+        out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
 
         return out
-    
+
+
     def fixer(self, data, apply_unit_fix=False):
         """
         Perform fixes (var name, units, coord name adjustments) of the input dataset.
@@ -492,7 +654,7 @@ class Reader():
             A xarray.Dataset containing the fixed data and target units, factors and offsets in variable attributes.
         """
 
-        fixes = load_yaml(os.path.join(self.configdir, "fixes.yaml"))
+        fixes = load_yaml(os.path.join(self.fixer_file))
         model=self.model
 
         fix = fixes["models"].get(model, None)
@@ -533,6 +695,7 @@ class Reader():
 
         return data.rename(fixd)
 
+
     def convert_units(self, src, dst, var="input var"):
         """
         Converts source to destination units using metpy.
@@ -570,6 +733,7 @@ class Reader():
             offset = 0
             factor = factor.magnitude
         return factor, offset
+
     
     def apply_unit_fix(self, data):
         """

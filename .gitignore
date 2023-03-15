@@ -1,1 +1,3 @@
 *.pyc
+cli/*.err
+cli/*.out
