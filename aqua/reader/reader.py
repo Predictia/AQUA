@@ -181,7 +181,6 @@ class Reader():
         grid_area = self._rename_dims(grid_area, self.src_space_coord)
         data = self.retrieve(fix=False)
         grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.src_space_coord})
-                                 
         grid_area.to_netcdf(areafile)
         print("Success!")
 
@@ -288,7 +287,7 @@ class Reader():
                     env=env,
                 )
 
-            areas = xr.open_dataset(area_file.name, engine="netcdf4")
+            areas = xr.load_dataset(area_file.name, engine="netcdf4")
             areas.cell_area.attrs['units'] = 'm2'  
             areas.cell_area.attrs['standard_name'] = 'area'
             areas.cell_area.attrs['long_name'] = 'area of grid cell'
