@@ -61,7 +61,6 @@ class Reader():
             self.configdir = configdir
         self.machine = get_machine(self.configdir)
 
-
         # get configuration from the machine
         self.catalog_file, self.regrid_file, self.fixer_file = get_reader_filenames(self.configdir, self.machine)
         self.cat = intake.open_catalog(self.catalog_file)
@@ -309,13 +308,14 @@ class Reader():
             area_file.close()
 
 
-    def retrieve(self, regrid=False, timmean=False, fix=True, apply_unit_fix=True, var=None, vars=None):
+    def retrieve(self, regrid=False, timmean=False, decumulate=False, fix=True, apply_unit_fix=True, var=None, vars=None):
         """
         Perform a data retrieve.
         
         Arguments:
             regrid (bool):          if to regrid the retrieved data (False)
-            timmean (bool)          if to perform timmean of the retrieved data (False)
+            timmean (bool):         if to average the retrieved data (False)
+            decumulate (bool):      if to remove the cumulation from data (False)
             fix (bool):             if to perform a fix (var name, units, coord name adjustments) (True)
             apply_unit_fix (bool):  if to already adjust units by multiplying by a factor or adding
                                     an offset (this can also be done later with the `fix_units` method) (True)
@@ -367,7 +367,9 @@ class Reader():
         if self.level is not None:
             data = data.isel({self.vertcoord: self.level})
 
-        # sequence which should be more efficient: averaging - regridding - fixing
+        # sequence which should be more efficient: decumulate - averaging - regridding - fixing
+        if decumulate:
+            data = data.map(self.decumulate, keep_attrs=True)
         if self.freq and timmean:
             data = self.timmean(data)
         if self.targetgrid and regrid:
@@ -429,6 +431,116 @@ class Reader():
             print('WARNING: Resampling cannot produce output for all frequency step, is your input data correct?')
    
         return out
+    
+    def _check_if_accumulated_auto(self, data):
+
+        """To check if a DataArray is accumulated. 
+        Arbitrary check on the first 20 timesteps"""
+
+        # randomly pick a few timesteps from a gridpoint
+        ndims = [dim for dim in data.dims if data[dim].size > 1][1:]
+        pindex = {dim: 0 for dim in ndims}
+
+        # extract the first 20 timesteps and do the derivative
+        check = data.isel(pindex).isel(time=slice(None, 20)).diff(dim='time').values
+
+        # check all derivative are positive or all negative
+        condition = (check >= 0).all() or (check <=0).all()
+        
+        return condition
+
+    def _check_if_accumulated(self, data):
+
+        """To check if a DataArray is accumulated. 
+        On a list of variables defined by the GRIB names
+        
+        Args: 
+            data (xr.DataArray): field to be processed
+        
+        Returns:
+            bool: True if decumulation is necessary, False if not 
+        """
+
+        decumvars = ['tp', 'e', 'slhf', 'sshf',
+                     'tsr', 'ttr', 'ssr', 'str', 
+                     'tsrc', 'ttrc', 'ssrc', 'strc', 
+                     'tisr']
+        
+
+        if data.name in decumvars:
+            return True
+        else:
+            return False
+
+
+    
+    def decumulate(self, data, cumulation_time = None):
+        """
+        Test function to remove cumulative effect on IFS fluxes.
+        Cumulation times are estimated from the intervals of the data, but
+        can be specified manually
+
+        Args: 
+            data (xr.DataArray): field to be processed
+            cumulation_time (float): optional, specific cumulation time
+
+        Returns:
+            A xarray.DataArray where the cumulation time has been removed
+        """
+
+        check = self._check_if_accumulated(data)
+
+        if not check: 
+            return data
+        
+        else: 
+
+            # which frequency are the data?
+            if not cumulation_time:
+                cumulation_time = (data.time[1]-data.time[0]).values/np.timedelta64(1, 's')
+
+            # get the derivatives
+            deltas = data.diff(dim='time') / cumulation_time
+
+            # add a first timestep empty to align the original and derived fields
+            zeros = xr.zeros_like(data.isel(time=0))
+            deltas = xr.concat([zeros, deltas], dim = 'time').transpose('time', ...)
+
+            # universal mask based on the change of month (shifted by one timestep) 
+            mask = ~(data['time.month'] != data['time.month'].shift(time=1))
+            mask = mask.shift(time=1, fill_value=False)
+
+            # check which records are kept
+            #print(data.time[~mask])
+
+            # kaboom: exploit where
+            clean=deltas.where(mask, data/cumulation_time)
+
+            # remove the first timestep (no sense in cumulated)
+            clean = clean.isel(time=slice(1, None))
+
+            # rollback the time axis by half the cumulation time
+            clean['time'] = clean.time - np.timedelta64(int(cumulation_time/2), 's')
+
+            # WARNING: HACK FOR EVAPORATION 
+            #print(clean.units)
+            if clean.units == 'm of water equivalent':
+                clean.attrs['units'] = 'm'
+            
+            # use metpy units to divide by seconds
+            new_units = (units(clean.units)/units('s'))
+
+            # usual case for radiative fluxes
+            try:
+                clean.attrs['units'] = str(new_units.to('W/m^2').units)
+            except:
+                clean.attrs['units'] = str(new_units.units)
+
+            # add an attribute that can be later used to infer about decumulation
+            clean.attrs['decumulated'] = 1
+   
+
+            return clean
 
 
     def _check_if_regridded(self, data):
