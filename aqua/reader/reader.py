@@ -18,23 +18,25 @@ class Reader():
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
                  regrid=None, method="ycon", zoom=None, configdir=None,
-                 level=None, areas=True, var=None, vars=None, verbose=False):
+                 level=None, areas=True, var=None, vars=None, verbose=False,
+                 datamodel=None):
         """
         The Reader constructor.
         It uses the catalog `config/config.yaml` to identify the required data.
         
         Arguments:
-            model (str):      model ID
-            exp (str):        experiment ID
-            source (str):     source ID
-            regrid (str):     perform regridding to grid `regrid`, as defined in `config/regrid.yaml` (None)
-            method (str):     regridding method (ycon)
-            zoom (int):       healpix zoom level
-            configdir (str)   folder where the config/catalog files are located (config)
-            level (int):      level to extract if input data are 3D (starting from 0)
-            areas (bool):     compute pixel areas if needed (True)
-            var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
-            verbose (bool):   print extra debugging info
+            model (str):         model ID
+            exp (str):           experiment ID
+            source (str):        source ID
+            regrid (str):        perform regridding to grid `regrid`, as defined in `config/regrid.yaml` (None)
+            method (str):        regridding method (ycon)
+            zoom (int):          healpix zoom level
+            configdir (str)      folder where the config/catalog files are located (config)
+            level (int):         level to extract if input data are 3D (starting from 0)
+            areas (bool):        compute pixel areas if needed (True)
+            var (str, list):     variable(s) which we will extract. "vars" is a synonym (None)
+            verbose (bool):      print extra debugging info
+            datamodel (str):     destination data model for coordinates, overrides the one in fixes.yaml (None)
         
         Returns:
             A `Reader` class object.
@@ -70,6 +72,12 @@ class Reader():
         self.cat = intake.open_catalog(self.catalog_file)
 
         cfg_regrid = load_yaml(self.regrid_file)
+
+        self.dst_datamodel = datamodel
+        # Default destination datamodel (unless specified in instantiating the Reader)
+        if not self.dst_datamodel:
+            fixes = load_yaml(self.fixer_file)
+            self.dst_datamodel = fixes["defaults"].get("dst_datamodel", None)
 
         if source:
             self.source = source
@@ -540,10 +548,13 @@ class Reader():
             A xarray.Dataset containing the fixed data and target units, factors and offsets in variable attributes.
         """
 
-        fixes = load_yaml(os.path.join(self.fixer_file))
+        fixes = load_yaml(self.fixer_file)
         model=self.model
         exp = self.exp
         src = self.source
+
+        # Default input datamodel
+        src_datamodel = fixes["defaults"].get("src_datamodel", None)
 
         fixm = fixes["models"].get(model, None)
         if not fixm:
@@ -609,6 +620,7 @@ class Reader():
                 # Override source units
                 src_units = vars[var].get("src_units", None)
                 if src_units:
+                    print(var, source)
                     data[source].attrs.update({"units": src_units})
 
                 # adjust units
@@ -627,9 +639,11 @@ class Reader():
                 self.apply_unit_fix(data[var])
         
         # Fix coordinates according to a given data model
-        data_model = fix.get("data_model", None)
-        if data_model:
-            fn = os.path.join('config', 'data_models', f'{data_model}.json')
+        if not src_datamodel:
+            src_datamodel = fix.get("data_model", None)
+
+        if src_datamodel and src_datamodel != False:
+            fn = os.path.join('config', 'data_models', f'{src_datamodel}2{self.dst_datamodel}.json')
             with open(fn, 'r') as f:
                 dm = json.load(f)
                 # this is needed since cf2cdm issues a (useless) UserWarning
