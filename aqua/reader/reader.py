@@ -16,7 +16,8 @@ class Reader():
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
                  regrid=None, method="ycon", zoom=None, configdir=None,
-                 level=None, areas=True, var=None, vars=None, streaming = False, stream_step = 1, stream_unit=None, stream_startdate = None):
+                 level=None, areas=True, var=None, vars=None, streaming = False,
+                 stream_step = 1, stream_unit=None, stream_startdate = None, rebuild=False):
         """
         The Reader constructor.
         It uses the catalog `config/config.yaml` to identify the required data.
@@ -36,8 +37,8 @@ class Reader():
             stream_step (int):      the number of time steps to stream the data by (Default = 1)
             stream_unit (str):      the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (None)
             stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
+            rebuild (bool):   force rebuilding of area and weight files
 
-        
         Returns:
             A `Reader` class object.
         """
@@ -116,7 +117,7 @@ class Reader():
                                                     level=("2d" if level is None else level)))
 
             # If weights do not exist, create them       
-            if not os.path.exists(self.weightsfile):
+            if rebuild or not os.path.exists(self.weightsfile):
                 self._make_weights_file(self.weightsfile, source_grid,
                                         cfg_regrid, regrid=regrid,
                                         extra=extra, zoom=zoom)
@@ -130,7 +131,7 @@ class Reader():
                 cfg_regrid["areas"]["src_template"].format(model=model, exp=exp, source=self.source))
 
             # If source areas do not exist, create them 
-            if not os.path.exists(self.src_areafile):
+            if rebuild or not os.path.exists(self.src_areafile):
                 self._make_src_area_file(self.src_areafile, source_grid,
                                          gridpath=cfg_regrid["paths"]["grids"],
                                          icongridpath=cfg_regrid["paths"]["icon"],
@@ -143,7 +144,7 @@ class Reader():
                     cfg_regrid["areas"]["path"],
                     cfg_regrid["areas"]["dst_template"].format(grid=self.targetgrid))
 
-                if not os.path.exists(self.dst_areafile):
+                if rebuild or not os.path.exists(self.dst_areafile):
                     grid = cfg_regrid["target_grids"][regrid]
                     self._make_dst_area_file(self.dst_areafile, grid)
 
@@ -199,7 +200,6 @@ class Reader():
         grid_area = self._rename_dims(grid_area, self.src_space_coord)
         data = self.retrieve(fix=False)
         grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.src_space_coord})
-                                 
         grid_area.to_netcdf(areafile)
         print("Success!")
 
@@ -306,7 +306,7 @@ class Reader():
                     env=env,
                 )
 
-            areas = xr.open_dataset(area_file.name, engine="netcdf4")
+            areas = xr.load_dataset(area_file.name, engine="netcdf4")
             areas.cell_area.attrs['units'] = 'm2'  
             areas.cell_area.attrs['standard_name'] = 'area'
             areas.cell_area.attrs['long_name'] = 'area of grid cell'
