@@ -1,3 +1,4 @@
+import sys
 import yaml
 import os
 import sys
@@ -5,6 +6,8 @@ import operator
 import re
 import eccodes
 import xarray as xr
+import string
+import random
 
 
 def load_yaml(infile):
@@ -141,17 +144,18 @@ def get_reader_filenames(configdir, machine):
     basefile = os.path.join(configdir, "config.yaml")
     if os.path.exists(basefile):
         base = load_yaml(os.path.join(configdir, "config.yaml"))
-        catalog_file = base['reader']['catalog'].format(machine=machine)
+        catalog_file = base['reader']['catalog'].format(machine=machine, configdir=configdir)
         if not os.path.exists(catalog_file):
             sys.exit(f'Cannot find catalog file in {catalog_file}')
-        regrid_file = base['reader']['regrid'].format(machine=machine)
+        regrid_file = base['reader']['regrid'].format(machine=machine, configdir=configdir)
         if not os.path.exists(regrid_file):
             sys.exit(f'Cannot find catalog file in {regrid_file}')
-        fixer_file = base['reader']['fixer'].format(machine=machine)
+        fixer_file = base['reader']['fixer'].format(machine=machine, configdir=configdir)
         if not os.path.exists(fixer_file):
             sys.exit(f'Cannot find catalog file in {fixer_file}')
 
     return catalog_file, regrid_file, fixer_file
+
 
 # Currently not used
 def read_eccodes_dic(filename):
@@ -228,3 +232,14 @@ def _init_get_eccodes_attr():
     return get_eccodes_attr
 
 get_eccodes_attr = _init_get_eccodes_attr()
+
+
+def generate_random_string(length):
+    """
+    Generate a random string of lowercase and uppercase letters and digits
+    """
+   
+    letters_and_digits = string.ascii_letters + string.digits
+    random_string = ''.join(random.choice(letters_and_digits) for _ in range(length))
+    return random_string
+
