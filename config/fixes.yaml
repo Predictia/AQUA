@@ -14,7 +14,7 @@ defaults:
 models:
     IFS:
         default:
-            default:
+            ICMGG_atm2d:
                 deltat: 3600
                 vars:
                     # Convert (the original is removed) with auto unit conversion from eccodes properties
