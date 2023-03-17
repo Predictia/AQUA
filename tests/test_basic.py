@@ -1,25 +1,6 @@
 import pytest
 import numpy as np
-
-# from aqua import aqua
-
 from aqua import Reader, catalogue
-
-
-def test_aqua_import():
-    assert True
-
-
-def test_aqua_catalogue():
-    catalog = catalogue()
-    assert len(catalog) > 0
-
-
-def test_init():
-    reader = Reader(model="FESOM", exp="test-pi", source="original_2d")
-    assert reader.model == "FESOM"
-    assert reader.exp == "test-pi"
-    assert reader.source == "original_2d"
 
 
 @pytest.fixture
@@ -27,40 +8,71 @@ def reader_instance():
     return Reader(model="FESOM", exp="test-pi", source="original_2d", regrid="r200")
 
 
-def test_retrieve(reader_instance):
-    data = reader_instance.retrieve(fix=False)
-    assert len(data) > 0
-    assert data.a_ice.shape == (2, 3140)
+class TestAqua:
+    def test_aqua_import(self):
+        """
+        Test if the aqua module is imported correctly
+        """
+        assert True
 
+    def test_aqua_catalogue(self):
+        """
+        Test if the catalogue function returns a non-empty list
+        """
+        catalog = catalogue()
+        assert len(catalog) > 0
 
-def test_regrid(reader_instance):
-    data = reader_instance.retrieve(fix=False)
-    sstr = reader_instance.regrid(data["sst"][0:2, :])
-    assert sstr.shape == (2, 90, 180)
-    assert np.nanmean(sstr[0, :, :].values) == pytest.approx(13.350324258783935)
-    assert np.nanmean(sstr[1, :, :].values) == pytest.approx(13.319154700343551)
+    def test_reader_init(self):
+        """
+        Test the initialization of the Reader class
+        """
+        reader = Reader(model="FESOM", exp="test-pi", source="original_2d")
+        assert reader.model == "FESOM"
+        assert reader.exp == "test-pi"
+        assert reader.source == "original_2d"
 
+    def test_retrieve_data(self, reader_instance):
+        """
+        Test if the retrieve method returns data with the expected shape
+        """
+        data = reader_instance.retrieve(fix=False)
+        assert len(data) > 0
+        assert data.a_ice.shape == (2, 3140)
 
-def test_fldmean(reader_instance):
-    data = reader_instance.retrieve(fix=False)
-    global_mean = reader_instance.fldmean(data.sst[:2, :])
-    assert global_mean.shape == (2,)
-    assert global_mean.values[0] == pytest.approx(17.99434183)
-    assert global_mean.values[1] == pytest.approx(17.98060367)
+    def test_regrid_data(self, reader_instance):
+        """
+        Test if the regrid method returns data with the expected shape and values
+        """
+        data = reader_instance.retrieve(fix=False)
+        sstr = reader_instance.regrid(data["sst"][0:2, :])
+        assert sstr.shape == (2, 90, 180)
+        assert np.nanmean(sstr[0, :, :].values) == pytest.approx(13.350324258783935)
+        assert np.nanmean(sstr[1, :, :].values) == pytest.approx(13.319154700343551)
 
+    def test_fldmean(self, reader_instance):
+        """
+        Test if the fldmean method returns data with the expected shape and values
+        """
+        data = reader_instance.retrieve(fix=False)
+        global_mean = reader_instance.fldmean(data.sst[:2, :])
+        assert global_mean.shape == (2,)
+        assert global_mean.values[0] == pytest.approx(17.99434183)
+        assert global_mean.values[1] == pytest.approx(17.98060367)
 
-@pytest.fixture(
-    params=[
-        ("IFS", "test-tco79", "original_2d", "r200", "tas"),
-        ("FESOM", "test-pi", "original_2d", "r200", "sst"),
-    ]
-)
-def reader_arguments(request):
-    return request.param
+    @pytest.fixture(
+        params=[
+            ("IFS", "test-tco79", "original_2d", "r200", "tas"),
+            ("FESOM", "test-pi", "original_2d", "r200", "sst"),
+        ]
+    )
+    def reader_arguments(self, request):
+        return request.param
 
-
-def test_reader(reader_arguments):
-    model, exp, source, regrid, variable = reader_arguments
-    reader = Reader(model=model, exp=exp, source=source, regrid=regrid)
-    data = reader.retrieve(fix=False)
-    assert len(data) > 0
+    def test_reader_with_different_arguments(self, reader_arguments):
+        """
+        Test if the Reader class works with different combinations of arguments
+        """
+        model, exp, source, regrid, variable = reader_arguments
+        reader = Reader(model=model, exp=exp, source=source, regrid=regrid)
+        data = reader.retrieve(fix=False)
+        assert len(data) > 0
