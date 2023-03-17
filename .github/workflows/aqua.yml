@@ -18,6 +18,9 @@ jobs:
       # - name: Install Project
       #   run: |
       #     pip install .
-      - name: Run tests
+      - name: Download and setup tests
         run: |
           ./tests.sh
+      - name: Run tests
+        run: |
+          python -m pytest ./tests/test_basic.py        
