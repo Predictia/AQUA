@@ -3,13 +3,12 @@ defaults:
     # The default datamodel for sources if not specified below
     src_datamodel: cf
     # The datamodel convention (axes names, directions) for output coordinates
-    dst_datamodel: aqua
+    dst_datamodel: cds
 
     units:
         mass_flux:  kg m-2 s-1
         radiation_flux: W m-2
         temperature: K
-
 
 models:
     IFS:
@@ -57,17 +56,19 @@ models:
                         attributes:
                             long_name: Mean surface sensible heat flux
                 # The input data model for coordinates
-                data_model: cf
+                data_model: False  # Do not attempto to correct coordinates
 
     FESOM:
         default:
             default:
                 vars:
-                    # ocpt: 
-                    #    source: temp
-                    #    src_units: degC
-                    #    units: degC
-                    #    grib: true
+                    ocpt: 
+                        source: temp
+                        src_units: degC
+                        grib: true
+                        attributes:
+                            units: degC # Override units from grib tables
+                data_model: False  # Do not attempto to correct coordinates
 
     MSWEP:
         default:
@@ -97,7 +98,7 @@ models:
     CERES:
         default:
             default:
-                data_model: cf
+                data_model: False
         syn-toa41:
             default:
                 vars:
@@ -145,5 +146,3 @@ models:
                             valid_min: 0
                             valid_max: 1400
                             positive: down
-
-                data_model: cf

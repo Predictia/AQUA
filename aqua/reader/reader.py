@@ -834,8 +834,6 @@ class Reader():
                     if self.verbose:
                         print(f"Derived {var} from {formula}")
              
-                # Get extra attributes if any
-                attributes.update(vars[var].get("attributes", {}))
                 grib = vars[var].get("grib", None)
                 # This is a grib variable, use eccodes to find attributes
                 if grib:
@@ -843,6 +841,9 @@ class Reader():
                     attributes.update(get_eccodes_attr(var))
                     if self.verbose:
                         print(f"Grib attributes for {var}: {attributes}")
+    
+                # Get extra attributes if any
+                attributes.update(vars[var].get("attributes", {}))
 
                 if attributes:
                     for att, value in attributes.items():
@@ -855,7 +856,6 @@ class Reader():
                 # Override source units
                 src_units = vars[var].get("src_units", None)
                 if src_units:
-                    print(var, source)
                     data[source].attrs.update({"units": src_units})
 
                 # adjust units
@@ -874,20 +874,38 @@ class Reader():
                 self.apply_unit_fix(data[var])
         
         # Fix coordinates according to a given data model
-        if not src_datamodel:
-            src_datamodel = fix.get("data_model", None)
-
+        src_datamodel = fix.get("data_model", src_datamodel)
         if src_datamodel and src_datamodel != False:
-            fn = os.path.join('config', 'data_models', f'{src_datamodel}2{self.dst_datamodel}.json')
-            with open(fn, 'r') as f:
-                dm = json.load(f)
-                # this is needed since cf2cdm issues a (useless) UserWarning
-                with warnings.catch_warnings():
-                    warnings.filterwarnings("ignore", category=UserWarning)
-                    data = cf2cdm.translate_coords(data, dm)
+            data = self.change_coord_datamodel(data, src_datamodel, self.dst_datamodel)
 
         # Finally perform variable renames
         return data.rename(fixd)
+
+
+    def change_coord_datamodel(self, data, src_datamodel, dst_datamodel):
+        """
+        Wrapper around cfgrib.cf2cdm to perform coordinate conversions
+
+        Arguments:
+            data (xr.DataSet):      input dataset to process
+            src_datamodel (str):    input datamodel (e.g. "cf")
+            dst_datamodel (str):    output datamodel (e.g. "cds")
+        
+        Returns:
+            The processed input dataset
+        """
+        fn = os.path.join(self.configdir, 'data_models', f'{src_datamodel}2{dst_datamodel}.json')
+        print("Data model:", fn)
+        with open(fn, 'r') as f:
+            dm = json.load(f)
+            # this is needed since cf2cdm issues a (useless) UserWarning
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=UserWarning)
+                data = cf2cdm.translate_coords(data, dm)
+                # Hack needed because cfgrib.cf2cdm mixes up coordinates with dims
+                if "forecast_reference_time" in data.dims:
+                    data = data.swap_dims({"forecast_reference_time": "time"})
+        return data
 
 
     def convert_units(self, src, dst, var="input var"):
