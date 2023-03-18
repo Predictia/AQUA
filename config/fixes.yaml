@@ -61,7 +61,7 @@ models:
     FESOM:
         default:
             default:
-                vars:
+                interpolated_global_TS:
                     ocpt: 
                         source: temp
                         src_units: degC
