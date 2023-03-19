@@ -15,19 +15,18 @@ models:
         default:
             ICMGG_atm2d:
                 deltat: 3600
+                month_jump: true
                 vars:
                     # Convert (the original is removed) with auto unit conversion from eccodes properties
                     tprate:
                         source: tp
                         grib: true
-                        decumulate: true
-                        month_jump: true
+                        decumulate: true    
                     # Convert overriding source units and specifying target by hand
                     mer:
                         source: e
                         src_units: m
                         decumulate: true
-                        month_jump: true
                         attributes:
                             units: "{mass_flux}"
                             long_name: Mean evaporation rate
@@ -36,13 +35,11 @@ models:
                     mtntrf:
                         derived: ttr
                         decumulate: true
-                        month_jump: true
                         grib: true
                     # decumulated OLR
                     ttr:
                         source: ttr
                         decumulate: true
-                        month_jump: true
 
                 # data_model: cf   # commented for testing the default source data model
 

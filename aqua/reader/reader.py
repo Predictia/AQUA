@@ -850,6 +850,7 @@ class Reader():
                 return data
 
         self.deltat = fix.get("deltat", 1.0)
+        month_jump = fix.get("month_jump", False)
 
         fixd = {}
 
@@ -915,7 +916,6 @@ class Reader():
             for var in vars:
                 # Decumulate if required
                 if vars[var].get("decumulate", None):
-                    month_jump = vars[var].get("month_jump", False)
                     keep_first= vars[var].get("keep_first", True)
                     data[var] = self.simple_decumulate(data[var],
                                                        month_jump=month_jump,
