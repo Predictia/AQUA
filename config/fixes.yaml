@@ -21,15 +21,29 @@ models:
                         source: tp
                         grib: true
                         decumulate: true
+                        month_jump: true
                     # Convert overriding source units and specifying target by hand
                     mer:
                         source: e
                         src_units: m
                         decumulate: true
+                        month_jump: true
                         attributes:
                             units: "{mass_flux}"
                             long_name: Mean evaporation rate
                             paramId: 235043
+                    # decumulated OLR, converted to W/m2
+                    mtntrf:
+                        derived: ttr
+                        decumulate: true
+                        month_jump: true
+                        grib: true
+                    # decumulated OLR
+                    ttr:
+                        source: ttr
+                        decumulate: true
+                        month_jump: true
+
                 # data_model: cf   # commented for testing the default source data model
 
     ICON:

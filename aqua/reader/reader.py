@@ -605,6 +605,46 @@ class Reader():
             return False
 
 
+    def simple_decumulate(self, data, month_jump=False, keep_first=True):
+        """
+        Remove cumulative effect on IFS fluxes.
+
+        Args: 
+            data (xr.DataArray):     field to be processed
+            fix_month (bool):        if to attempt to fix monthly jumps (a very specific NextGEMS IFS issue)
+            keep_first (bool):       if to keep the first value as it is (True) or place a 0 (False)
+
+        Returns:
+            A xarray.DataArray where the cumulation has been removed
+        """
+
+        # get the derivatives
+        deltas = data.diff(dim='time')
+
+        # add a first timestep empty to align the original and derived fields
+        if keep_first:
+            zeros = data.isel(time=0)
+        else:
+            zeros = xr.zeros_like(data.isel(time=0))
+
+        deltas = xr.concat([zeros, deltas], dim='time').transpose('time', ...)
+
+        if month_jump:
+            # universal mask based on the change of month (shifted by one timestep) 
+            mask = ~(data['time.month'] != data['time.month'].shift(time=1))
+            mask = mask.shift(time=1, fill_value=False)
+
+            # kaboom: exploit where
+            deltas=deltas.where(mask, data)
+
+            # remove the first timestep (no sense in cumulated)
+            #clean = clean.isel(time=slice(1, None))
+
+        # add an attribute that can be later used to infer about decumulation
+        deltas.attrs['decumulated'] = 1
+
+        return deltas
+
     
     def decumulate(self, data, cumulation_time = None, check=True):
         """
@@ -868,10 +908,19 @@ class Reader():
                     if self.verbose:
                         print(f"Fixing {source} to {var}. Unit fix: factor={factor}, offset={offset}")
 
-                # Decumulate automatically if required
+        # Only now rename everything
+        data = data.rename(fixd)
+
+        if vars:
+            for var in vars:
+                # Decumulate if required
                 if vars[var].get("decumulate", None):
-                    data[source] = self.decumulate(data[source], check=False)
-                    print("I would like to decumulate")
+                    month_jump = vars[var].get("month_jump", False)
+                    keep_first= vars[var].get("keep_first", True)
+                    data[var] = self.simple_decumulate(data[var],
+                                                       month_jump=month_jump,
+                                                       keep_first=keep_first)
+                    
         if apply_unit_fix:
             for var in data.variables:
                 self.apply_unit_fix(data[var])
@@ -881,8 +930,7 @@ class Reader():
         if src_datamodel and src_datamodel != False:
             data = self.change_coord_datamodel(data, src_datamodel, self.dst_datamodel)
 
-        # Finally perform variable renames
-        return data.rename(fixd)
+        return data
 
 
     def change_coord_datamodel(self, data, src_datamodel, dst_datamodel):
