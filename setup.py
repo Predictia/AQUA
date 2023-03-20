@@ -24,7 +24,7 @@ setup(name='aqua',
         'numpy',
         'pandas',
         'pyYAML',
-        'sparse',
+        'sparse', 
         'xarray',
         'smmregrid @ git+ssh://git@github.com/jhardenberg/smmregrid'
       ]
