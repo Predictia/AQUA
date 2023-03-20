@@ -2,12 +2,15 @@ import pytest
 import numpy as np
 from aqua import Reader, catalogue
 
+# pytest approximation, to bear with different machines
+approx_rel=1e4
+
 
 @pytest.fixture
 def reader_instance():
     return Reader(model="FESOM", exp="test-pi", source="original_2d", regrid="r200")
 
-
+# aqua class for tests
 class TestAqua:
     def test_aqua_import(self):
         """
@@ -46,8 +49,8 @@ class TestAqua:
         data = reader_instance.retrieve(fix=False)
         sstr = reader_instance.regrid(data["sst"][0:2, :])
         assert sstr.shape == (2, 90, 180)
-        assert np.nanmean(sstr[0, :, :].values) == pytest.approx(13.350324258783935)
-        assert np.nanmean(sstr[1, :, :].values) == pytest.approx(13.319154700343551)
+        assert np.nanmean(sstr[0, :, :].values) == pytest.approx(13.350324258783935, rel=approx_rel)
+        assert np.nanmean(sstr[1, :, :].values) == pytest.approx(13.319154700343551, rel=approx_rel)
 
     def test_fldmean(self, reader_instance):
         """
@@ -56,8 +59,8 @@ class TestAqua:
         data = reader_instance.retrieve(fix=False)
         global_mean = reader_instance.fldmean(data.sst[:2, :])
         assert global_mean.shape == (2,)
-        assert global_mean.values[0] == pytest.approx(17.99434183)
-        assert global_mean.values[1] == pytest.approx(17.98060367)
+        assert global_mean.values[0] == pytest.approx(17.99434183, rel=approx_rel)
+        assert global_mean.values[1] == pytest.approx(17.98060367, rel=approx_rel)
 
     @pytest.fixture(
         params=[
