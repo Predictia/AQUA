@@ -6,7 +6,7 @@
 name: aqua
 channels:
   - conda-forge
-# please not that some this dependencies are made explicit on purpose, but are not required by conda/mamba
+# please note that some of these dependencies are made explicit on purpose, but are not directly required by conda/mamba
 dependencies:
   - python>=3.9,<3.11
   - xarray
@@ -22,10 +22,10 @@ dependencies:
   - intake-esm<=2021.8.17
   - intake
   - intake-xarray
-# these below are only required for notebooks
+# these below are only required for running notebooks
   - ipykernel
   - healpy
-# these are pip requirements since provide more recent versions or unavailable on conda-forge
+# these are pip-based since it provides more recent versions or packages unavailable on conda-forge
   - pip
   - pip:
     - sparse
