@@ -41,11 +41,11 @@ models:
                         source: ttr
                         decumulate: true
 
-                # data_model: cf   # commented for testing the default source data model
 
     ICON:
         default:
             default:
+                data_model: false  # Do not attempto to correct coordinates
                 vars:
                     # Convert to grib units (kg m-2 s-1 --> m3 s-1)
                     tprate:
@@ -68,30 +68,28 @@ models:
                         source: hfss
                         attributes:
                             long_name: Mean surface sensible heat flux
-                # The input data model for coordinates
-                data_model: false  # Do not attempto to correct coordinates
 
     FESOM:
         default:
-            default:
-                interpolated_global_TS:
+            interpolated_global_TS:
+                data_model: False  # Do not attempto to correct coordinates
+                vars:
                     ocpt: 
                         source: temp
                         src_units: degC
                         grib: true
                         attributes:
                             units: degC # Override units from grib tables
-                data_model: False  # Do not attempto to correct coordinates
 
     MSWEP:
         default:
             default:
+                data_model: mswep  # Special data model so that lats are not flipped
                 vars:
                     # Automatic conversion to destination grib units
                     tprate:
                         source: precipitation
                         grib: true
-                data_model: cf
 
     ERA5:
         default:
@@ -100,13 +98,13 @@ models:
                 data_model: cf
             monthly_acc:
                 deltat: 86400
+                data_model: cf
                 vars:
                     # Derive a variable and determine destination units etc. automatically from eccodes
                     tprate:
                         derived: cp+lsp
                         #src_units: m
                         grib: true
-                data_model: cf
 
     CERES:
         default:

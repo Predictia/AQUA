@@ -120,7 +120,7 @@ class Reader():
             if (level is None) and self.vertcoord:
                 raise RuntimeError("This is a masked 3d source: you should specify a specific level.")
 
-            self.weightsfile =os.path.join(
+            self.weightsfile = os.path.join(
                 cfg_regrid["weights"]["path"],
                 cfg_regrid["weights"]["template"].format(model=model,
                                                     exp=exp, 
@@ -850,7 +850,7 @@ class Reader():
                 return data
 
         self.deltat = fix.get("deltat", 1.0)
-        month_jump = fix.get("month_jump", False)
+        month_jump = fix.get("month_jump", False)  # if to correct for a monthly accumulation jump
 
         fixd = {}
 
@@ -949,13 +949,13 @@ class Reader():
         if self.verbose: print("Data model:", fn)
         with open(fn, 'r') as f:
             dm = json.load(f)
-            # this is needed since cf2cdm issues a (useless) UserWarning
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", category=UserWarning)
-                data = cf2cdm.translate_coords(data, dm)
-                # Hack needed because cfgrib.cf2cdm mixes up coordinates with dims
-                if "forecast_reference_time" in data.dims:
-                    data = data.swap_dims({"forecast_reference_time": "time"})
+        # this is needed since cf2cdm issues a (useless) UserWarning
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=UserWarning)
+            data = cf2cdm.translate_coords(data, dm)
+            # Hack needed because cfgrib.cf2cdm mixes up coordinates with dims
+            if "forecast_reference_time" in data.dims:
+                data = data.swap_dims({"forecast_reference_time": "time"})
         return data
 
 
