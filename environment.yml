@@ -1,6 +1,6 @@
 # Create the ECmean4 environment:
 # mamba env create -f environment.yml 
-# or 
+# or if you really want to use conda
 # conda env create -f environment.yml
 
 name: aqua
@@ -31,4 +31,5 @@ dependencies:
     - sparse
     - docker
     - gribscan
-    - git+https://github.com/jhardenberg/smmregrid.git
+    # pip install -e of AQUA itself (this will bring in also smmregrid)
+    - -e .
