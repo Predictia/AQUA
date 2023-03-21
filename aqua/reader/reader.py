@@ -903,6 +903,7 @@ class Reader():
                     if units.count('{'):
                         units = fixes["defaults"]["units"][units.replace('{','').replace('}','')]            
                     data[source].attrs.update({"target_units": units})
+                    if self.verbose: print(var,':', data[source].units, '-->', units)
                     factor, offset = self.convert_units(data[source].units, units, var)
                     data[source].attrs.update({"factor": factor})
                     data[source].attrs.update({"offset": offset})
@@ -971,6 +972,9 @@ class Reader():
         Returns:
             factor, offset (float): a factor and an offset to convert the input data (None if not needed).
         """
+
+        src = self.normalize_unit(src)
+        dst = self.normalize_unit(dst)
         factor = units(src).to_base_units() / units(dst).to_base_units()
 
         if factor.units == units('dimensionless'):
@@ -979,22 +983,22 @@ class Reader():
             if factor.units == "meter ** 3 / kilogram":
                 # Density of water was missing
                 factor = factor * 1000 * units("kg m-3")
-                print(f"{var}: corrected multiplying by density of water 1000 kg m-3")
+                if self.verbose: print(f"{var}: corrected multiplying by density of water 1000 kg m-3")
             elif factor.units == "meter ** 3 * second / kilogram":
                 # Density of water and accumulation time were missing
                 factor = factor * 1000 * units("kg m-3") / (self.deltat * units("s"))
-                print(f"{var}: corrected multiplying by density of water 1000 kg m-3")
-                print(f"{var}: corrected dividing by accumulation time {self.deltat} s")
+                if self.verbose: print(f"{var}: corrected multiplying by density of water 1000 kg m-3")
+                if self.verbose: print(f"{var}: corrected dividing by accumulation time {self.deltat} s")
             elif factor.units == "second":
                 # Accumulation time was missing
                 factor = factor / (self.deltat * units("s"))
-                print(f"{var}: corrected dividing by accumulation time {self.deltat} s")
+                if self.verbose: print(f"{var}: corrected dividing by accumulation time {self.deltat} s")
             elif factor.units == "kilogram / meter ** 3":
                 # Density of water was missing
                 factor = factor / (1000 * units("kg m-3"))
-                print(f"{var}: corrected dividing by density of water 1000 kg m-3")
+                if self.verbose: print(f"{var}: corrected dividing by density of water 1000 kg m-3")
             else:
-                print(f"{var}: incommensurate units converting {src} to {dst} --> {factor.units}")
+                if self.verbose: print(f"{var}: incommensurate units converting {src} to {dst} --> {factor.units}")
             offset = 0 * units(dst)
 
         if offset.magnitude != 0:
@@ -1017,7 +1021,7 @@ class Reader():
         if target_units:
             d = {"src_units": data.attrs["units"], "units_fixed": 1}
             data.attrs.update(d)
-            data.attrs["units"] = target_units
+            data.attrs["units"] = self.normalize_unit(target_units)
             factor = data.attrs.get("factor", 1)
             offset = data.attrs.get("offset", 0)
             if factor != 1:
@@ -1025,5 +1029,8 @@ class Reader():
             if offset != 0:
                 data += offset
 
+    def normalize_unit(self, src):
+        """Get rid of crazy grib units"""
+        return src.replace("of", "").replace("water", "").replace("equivalent", "")
 
         
