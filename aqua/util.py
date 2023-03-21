@@ -230,7 +230,11 @@ def _init_get_eccodes_attr():
         """
         nonlocal shortname, paramid, name, cfname, cfvarname, units
         try:
-            i =  shortname.index(sn)
+            if sn.startswith("var"):
+                i =  paramid.index(sn[3:])
+            else:
+                i =  shortname.index(sn)
+                
             dic = {"paramId": paramid[i],
                 "long_name": name[i],
                 "units": units[i],

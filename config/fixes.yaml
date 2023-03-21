@@ -78,7 +78,10 @@ models:
                         derived: ttr
                         grib: true
                         decumulate: true         
-
+                    var172045:  # if the variable has no short name we can use its paramId
+                        derived: smlt
+                        grib: true
+                        decumulate: true
 
     ICON:
         default:
