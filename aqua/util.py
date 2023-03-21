@@ -187,6 +187,7 @@ def read_eccodes_def(filename):
         A list containing the keys of the ecCodes definition file.
     """
 
+    # ECMWF lists
     fn= os.path.join(eccodes.codes_definition_path(), 'grib2',  'localConcepts', 'ecmf', filename)
     list = []
     with open(fn, "r") as f:
@@ -194,6 +195,17 @@ def read_eccodes_def(filename):
             line = line.replace(" =", "").replace('{','').replace('}','').replace(';','').replace('\t', '#    ')
             if not line.startswith("#"):
                 list.append(line.strip().replace("'", ""))
+
+    list = list[:-1]
+    
+    # WMO lists
+    fn= os.path.join(eccodes.codes_definition_path(), 'grib2', filename)
+    with open(fn, "r") as f:
+        for line in f:
+            line = line.replace(" =", "").replace('{','').replace('}','').replace(';','').replace('\t', '#    ')
+            if not line.startswith("#"):
+                list.append(line.strip().replace("'", ""))
+
     # The last entry is no good
     return list[:-1]
 
