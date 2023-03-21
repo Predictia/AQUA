@@ -17,29 +17,67 @@ models:
                 deltat: 3600
                 month_jump: true
                 vars:
-                    # Convert (the original is removed) with auto unit conversion from eccodes properties
                     tprate:
-                        source: tp
+                        derived: tp
                         grib: true
                         decumulate: true    
-                    # Convert overriding source units and specifying target by hand
-                    mer:
-                        source: e
-                        src_units: m
+                    cprate:
+                        derived: cp
+                        grib: true
                         decumulate: true
-                        attributes:
-                            units: "{mass_flux}"
-                            long_name: Mean evaporation rate
-                            paramId: 235043
-                    # decumulated OLR, converted to W/m2
+                    mlsprt:
+                        derived: lsp
+                        grib: true
+                        decumulate: true  
+                    erate:
+                        derived: e
+                        grib: true
+                        src_units: m
+                        decumulate: true 
+                    esrate:
+                        derived: es
+                        grib: true
+                        decumulate: true 
+                    mrort:
+                        derived: ro
+                        grib: true
+                        decumulate: true
+                    mtsfr:
+                        derived: sf
+                        grib: true
+                        decumulate: true
+                    mslhfl:
+                        derived: slhf
+                        grib: true
+                        decumulate: true
+                    msshfl:
+                        derived: sshf
+                        grib: true
+                        decumulate: true
+                    msnsrf:
+                        derived: ssr
+                        grib: true
+                        decumulate: true
+                    msdsrf:
+                        derived: ssrd
+                        grib: true
+                        decumulate: true  
+                    msdtrf:
+                        derived: strd
+                        grib: true
+                        decumulate: true   
+                    msntrf:
+                        derived: str
+                        grib: true
+                        decumulate: true
+                    msdtrf:
+                        derived: strd
+                        grib: true
+                        decumulate: true
                     mtntrf:
                         derived: ttr
-                        decumulate: true
                         grib: true
-                    # decumulated OLR
-                    ttr:
-                        source: ttr
-                        decumulate: true
+                        decumulate: true         
 
 
     ICON:
@@ -47,27 +85,45 @@ models:
             default:
                 data_model: false  # Do not attempto to correct coordinates
                 vars:
-                    # Convert to grib units (kg m-2 s-1 --> m3 s-1)
+                    tciw:
+                        source: clivi
+                        grib: true
+                    tclw:
+                        source: cllvi
+                        grib: true
+                    mslhfl:
+                        derived: 0-hfls
+                        grib: true
+                    msshfl:
+                        derived: 0-hfss
+                        grib: true
                     tprate:
                         source: pr
                         grib: true
-                    # Define your own
-                    mypr:
-                        derived: pr*86400
-                        attributes:
-                            units: "mm day-1"
-                            long_name: My own test precipitation in mm / day
-                    # Copy also grib attributes
-                    mslhfl:
-                        source: hfls
+                    mlsprt:
+                        source: prlr
                         grib: true
-                        attributes:
-                            myextra: just a test to add extra attribute
-                    # Just renaming and adding one attribute
-                    msshfl:
-                        source: hfss
-                        attributes:
-                            long_name: Mean surface sensible heat flux
+                    tcwv:
+                        source: prw
+                        grib: true
+                    msdtrf:
+                        source: rlds
+                        grib: true
+                    msntrf:
+                        derived: rlds-rlus
+                        grib: true
+                    mtntrf:
+                        derived: 0-rlut
+                        grib: true
+                    msdsrf:
+                        source: rsds
+                        grib: true
+                    msnsrf:
+                        derived: rsds-rsus
+                        grib: true
+                    mtnsrf:
+                        derived: rsdt-rsut
+                        grib: true
 
     FESOM:
         default:
@@ -75,7 +131,7 @@ models:
                 data_model: False  # Do not attempto to correct coordinates
                 vars:
                     ocpt: 
-                        source: temp
+                        derived: temp
                         src_units: degC
                         grib: true
                         attributes:
