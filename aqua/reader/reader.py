@@ -975,6 +975,7 @@ class Reader():
 
         src = self.normalize_unit(src)
         dst = self.normalize_unit(dst)
+        print(type(units(src)),type(units(dst)) )
         factor = units(src).to_base_units() / units(dst).to_base_units()
 
         if factor.units == units('dimensionless'):
@@ -1031,6 +1032,9 @@ class Reader():
 
     def normalize_unit(self, src):
         """Get rid of crazy grib units"""
-        return src.replace("of", "").replace("water", "").replace("equivalent", "")
+        if src == '1':
+            return 'dimensionless'
+        else:
+            return str(src).replace("of", "").replace("water", "").replace("equivalent", "")
 
         
