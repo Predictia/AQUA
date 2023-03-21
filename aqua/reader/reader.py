@@ -8,12 +8,14 @@ import numpy as np
 import smmregrid as rg
 from aqua.util import load_yaml, _eval_formula, get_eccodes_attr
 from aqua.util import get_reader_filenames, get_config_dir, get_machine
+from aqua.util import log_history
 import sys
 import subprocess
 import tempfile
 import json
 import cf2cdm
 import warnings
+
 
 class Reader():
     """General reader for NextGEMS data (on Levante for now)"""
@@ -423,6 +425,8 @@ class Reader():
                 data = self.stream_generator(data, stream_step, stream_unit, stream_startdate)
             else:
                 data = self.stream(data, stream_step, stream_unit, stream_startdate)
+
+        log_history(data, f"retrieved by AQUA fixer")
         return data
 
     
@@ -527,6 +531,8 @@ class Reader():
         # set these two to the target grid (but they are actually not used so far)
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
+
+        log_history(out, f"regridded by AQUA fixer")
         return out
 
     
@@ -562,6 +568,7 @@ class Reader():
         if np.any(np.isnat(out.time)):
             print('WARNING: Resampling cannot produce output for all frequency step, is your input data correct?')
    
+        log_history(out, f"resampled to frequency {resample_freq} by AQUA fixer")
         return out
     
     def _check_if_accumulated_auto(self, data):
@@ -643,6 +650,7 @@ class Reader():
         # add an attribute that can be later used to infer about decumulation
         deltas.attrs['decumulated'] = 1
 
+        log_history(deltas, "decumulated by AQUA fixer")
         return deltas
 
     
@@ -866,6 +874,7 @@ class Reader():
                     if source not in data.variables:
                         continue
                     fixd.update({f"{source}": f"{var}"})
+                    log_history(data[source], f"variable renamed by AQUA fixer")
                 
                 formula = vars[var].get("derived", None)
                 # This is a derived variable, let's compute it and create the new variable
@@ -876,6 +885,7 @@ class Reader():
                         attributes.update({"derived": formula})
                         if self.verbose:
                             print(f"Derived {var} from {formula}")
+                        log_history(data[var], f"variable derived by AQUA fixer")
                     except KeyError:
                         # The variable could not be computed, let's skip it
                         continue
@@ -936,6 +946,7 @@ class Reader():
         src_datamodel = fix.get("data_model", src_datamodel)
         if src_datamodel and src_datamodel != False:
             data = self.change_coord_datamodel(data, src_datamodel, self.dst_datamodel)
+            log_history(data, f"coordinates adjusted by AQUA fixer")
 
         return data
 
@@ -981,7 +992,6 @@ class Reader():
 
         src = self.normalize_units(src)
         dst = self.normalize_units(dst)
-        print(type(units(src)),type(units(dst)) )
         factor = units(src).to_base_units() / units(dst).to_base_units()
 
         if factor.units == units('dimensionless'):
@@ -1035,8 +1045,8 @@ class Reader():
                 data *= factor
             if offset != 0:
                 data += offset
+            log_history(data, "units changed by AQUA fixer")
 
-        
 
     def normalize_units(self, src):
         """Get rid of crazy grib units"""

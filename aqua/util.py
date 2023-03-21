@@ -8,6 +8,7 @@ import eccodes
 import xarray as xr
 import string
 import random
+import datetime
 
 
 def load_yaml(infile):
@@ -259,3 +260,11 @@ def generate_random_string(length):
     random_string = ''.join(random.choice(letters_and_digits) for _ in range(length))
     return random_string
 
+
+def log_history(data, msg):
+    """Elementary provenance logger in the history attribute"""
+    
+    now = datetime.datetime.now()
+    date_now = now.strftime("%Y-%m-%d %H:%M:%S")
+    hist = data.attrs.get("history", "") + f"{date_now} {msg};\n"
+    data.attrs.update({"history": hist})
