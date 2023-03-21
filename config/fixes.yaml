@@ -100,9 +100,6 @@ models:
                     sp:
                         source: ps
                         grib: true
-                    sp:
-                        source: ps
-                        grib: true
                     msl:
                         source: psl
                         grib: true

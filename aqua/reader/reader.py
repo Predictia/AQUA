@@ -863,16 +863,22 @@ class Reader():
                 source = vars[var].get("source", None)
                 # This is a renamed variable. This will be done at the end.
                 if source:
+                    if source not in data.variables:
+                        continue
                     fixd.update({f"{source}": f"{var}"})
                 
                 formula = vars[var].get("derived", None)
                 # This is a derived variable, let's compute it and create the new variable
                 if formula:
-                    data[var] = _eval_formula(formula, data)
-                    source = var
-                    attributes.update({"derived": formula})
-                    if self.verbose:
-                        print(f"Derived {var} from {formula}")
+                    try:
+                        data[var] = _eval_formula(formula, data)
+                        source = var
+                        attributes.update({"derived": formula})
+                        if self.verbose:
+                            print(f"Derived {var} from {formula}")
+                    except KeyError:
+                        # The variable could not be computed, let's skip it
+                        continue
              
                 grib = vars[var].get("grib", None)
                 # This is a grib variable, use eccodes to find attributes
@@ -973,8 +979,8 @@ class Reader():
             factor, offset (float): a factor and an offset to convert the input data (None if not needed).
         """
 
-        src = self.normalize_unit(src)
-        dst = self.normalize_unit(dst)
+        src = self.normalize_units(src)
+        dst = self.normalize_units(dst)
         print(type(units(src)),type(units(dst)) )
         factor = units(src).to_base_units() / units(dst).to_base_units()
 
@@ -1022,7 +1028,7 @@ class Reader():
         if target_units:
             d = {"src_units": data.attrs["units"], "units_fixed": 1}
             data.attrs.update(d)
-            data.attrs["units"] = self.normalize_unit(target_units)
+            data.attrs["units"] = self.normalize_units(target_units)
             factor = data.attrs.get("factor", 1)
             offset = data.attrs.get("offset", 0)
             if factor != 1:
@@ -1030,11 +1036,11 @@ class Reader():
             if offset != 0:
                 data += offset
 
-    def normalize_unit(self, src):
+        
+
+    def normalize_units(self, src):
         """Get rid of crazy grib units"""
         if src == '1':
             return 'dimensionless'
         else:
             return str(src).replace("of", "").replace("water", "").replace("equivalent", "")
-
-        
