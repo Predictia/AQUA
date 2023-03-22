@@ -4,8 +4,8 @@ weights:
 
 areas:
    path: /work/bb1153/b382075/nextgems/weights
-   src_template: areas_{model}_{exp}_{source}.nc
-   dst_template: areas_{grid}.nc
+   src_template: cell_area_{model}_{exp}_{source}.nc
+   dst_template: cell_area_{grid}.nc
 
 paths:
   grids: /work/bb1153/b382075/nextgems/weights
@@ -40,6 +40,16 @@ source_grids:
     tco1279-orca025:
       default: 
         path: /work/bm1235/a270046/cycle2-sync/tcogrids/9km/tcogrids/tco1279_grid.nc
+        space_coord: ["value"]
+    test-tco2559:
+      default:
+        path: /work/bm1235/a270046/cycle2-sync/tcogrids/4km/tcogrids/tco2559_grid.nc
+        space_coord: ["value"]
+      ICMGG_atm2d:
+        path: /work/bm1235/a270046/cycle2-sync/tcogrids/4km/tcogrids/tco2559_grid.nc
+        space_coord: ["value"]
+      ICMU_atm3d:
+        path: /work/bm1235/a270046/cycle2-sync/tcogrids/4km/tcogrids/tco2559_grid.nc
         space_coord: ["value"]
   ICON:
     ngc2009:
@@ -81,29 +91,46 @@ source_grids:
         extra: 
           - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc 
           - -selname,cell_area 
+    test-ng5:
+      default:
+        path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_2d.nc
+        space_coord: ["lon", "lat"]
+      interpolated_global_TS:
+        path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_3d.nc
+        vertcoord: depth
+        space_coord: ["lon", "lat"]
+      original_2d:
+        path: /work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc
+        space_coord: ["nod2"]
+        extra: 
+          - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc 
+          - -selname,cell_area 
+    test-pi:
+      original_2d:
+        path: /pool/data/AWICM/FESOM2/MESHES_FESOM2.1/pi/pi_griddes_nodes_IFS.nc
+        space_coord: ["nod2"]
+        extra: 
+          - -setgrid,/pool/data/AWICM/FESOM2/MESHES_FESOM2.1/pi/pi_griddes_nodes_IFS.nc 
+          - -selname,cell_area 
 
   MSWEP:
     past:
       default:
-        path: /home/b/b382075/work/datasets/MSWEP_V280/Past/Monthly/200001.nc
         space_coord: ["lon", "lat"]
 
   CERES:
     ebaf-toa42:
       default:
-        path: /pool/data/ICDC/atmosphere/ceres_ebaf/DATA/CERES_EBAF-TOA_Ed4.2_Subset_200003-202208.nc
+#        path: /pool/data/ICDC/atmosphere/ceres_ebaf/DATA/CERES_EBAF-TOA_Ed4.2_Subset_200003-202208.nc
         space_coord: ["lon", "lat"]
     ebaf-toa41:
       default:
-        path: /pool/data/ICDC/atmosphere/ceres_ebaf/DATA/CERES_EBAF-TOA_Ed4.1_Subset_200003-202203.nc
         space_coord: ["lon", "lat"]
     ebaf-sfc41:
       default:
-        path: /pool/data/ICDC/atmosphere/ceres_ebaf/DATA/CERES_EBAF-Surface_Ed4.1_Subset_200003-202203.nc
         space_coord: ["lon", "lat"]
     syn-toa41:
       default:
-        path: /work/bb1153/m300265/NextGEMS/observations/ceres-ebaf/daily/CERES_SYN1deg-Day_Terra-Aqua-MODIS_Ed4.1_Subset_20210125-20211231.nc
         space_coord: ["lon", "lat"]
 
   ERA5:
