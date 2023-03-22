@@ -352,7 +352,7 @@ class Reader():
             decumulate (bool):      if to remove the cumulation from data (False)
             fix (bool):             if to perform a fix (var name, units, coord name adjustments) (True)
             apply_unit_fix (bool):  if to already adjust units by multiplying by a factor or adding
-                                    an offset (this can also be done later with the `fix_units` method) (True)
+                                    an offset (this can also be done later with the `apply_unit_fix` method) (True)
             var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
             streaming (bool):       if to retreive data in a streaming mode (False)
             streaming_generator (bool):  if to return a generator object for data streaming (False). 
@@ -824,7 +824,7 @@ class Reader():
             data (xr.Dataset):      the input dataset
             apply_unit_fix (bool):  if to perform immediately unit conversions (which requite a product or an addition). 
                                     The fixer sets anyway an offset or a multiplicative factor in the data attributes.
-                                    These can be applied also later with the method `fix_units`. (false)
+                                    These can be applied also later with the method `apply_unit_fix`. (false)
 
         Returns:
             A xarray.Dataset containing the fixed data and target units, factors and offsets in variable attributes.
