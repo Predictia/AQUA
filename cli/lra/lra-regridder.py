@@ -76,6 +76,7 @@ def lra(modelname, expname, sourcename,
 
         # decumulate
         decum = reader.decumulate(data[var])
+        #logging.info(f'From {min(decum.time.data)} to {max(decum.time.data)}')
 
         # time average
         averaged = reader.timmean(decum) # here level selection can be applied
@@ -124,12 +125,13 @@ def lra(modelname, expname, sourcename,
                         if multi:
                             w = write_job.persist() 
                             progress(w)
+                            del w
                         else:
                             with ProgressBar():
                                 write_job.compute()
 
                         # try to clean
-                        del write_job, w
+                        del write_job
                 del to_be_saved
             del year_saved
         del interp, decum, averaged

@@ -12,17 +12,17 @@ source $whereconda/etc/profile.d/conda.sh
 conda activate aqua
 
 # expid
-expid=tco399-orca025
+expid=tco399-orca025-kai
 
 # define folder and grib files
 tmpdir=/pfs/lustrep1/scratch/project_462000048/davini/gribscan/$expid
 jsondir=/pfs/lustrep1/projappl/project_462000048/davini/gribscan-json/$expid
-#datadir=/pfs/lustrep1/scratch/project_462000048/kaikeller/rundir/tco399l137/hvvy/hres/cce.lumi.craympich/lum.cce.sp/h8304.N24.T1536xt2xh1.nextgems_6h.i16r0w24.ORCA025_Z75.htco399-2870646
-datadir=/users/padavini/scratch/testrun
-gribfiles='ICMGG*'
+datadir=/pfs/lustrep1/scratch/project_462000048/kaikeller/rundir/tco399l137/hvvy/hres/cce.lumi.craympich/lum.cce.sp/h8304.N24.T1536xt2xh1.nextgems_6h.i16r0w24.ORCA025_Z75.htco399-2870646
+#datadir=/users/padavini/scratch/testrun
+gribfiles='ICMGG????+*'
 
 # number of parallel procs
-nprocs=1
+nprocs=4
 
 # create folders
 mkdir -p $jsondir $tmpdir
@@ -33,6 +33,7 @@ for file in $(ls $datadir/$gribfiles) ; do
     ln -sf $file $tmpdir/
 done
 
+
 # creating the indices
 echo "Creating GRIB indices..."
 cd $tmpdir
@@ -40,12 +41,12 @@ gribscan-index $tmpdir/$gribfiles -n $nprocs
 
 # running the json creation
 echo "Building JSON file..."
-gribscan-build -o $jsondir --magician ifs --prefix $datadir *.index
+gribscan-build -o $jsondir --magician ifs --prefix ${datadir}/ *.index
 
 # clean tmpdir
-#echo "Cleaning..."
-#rm $tmpdir/$gribfiles
+echo "Cleaning..."
+rm $tmpdir/$gribfiles
 #rm $tmpdir/*.index
-#rmdir $tmpdir
+rmdir $tmpdir
 
 echo "Good job my friend, have yourself an icecream!"

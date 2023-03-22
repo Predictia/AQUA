@@ -1,0 +1,14 @@
+#This include the option for the regridding
+target:
+  resolution: r100
+  frequency: mon
+  outdir: /pfs/lustrep1/projappl/project_462000048/davini/LRA
+  tmpdir: /pfs/lustrep1/scratch/project_462000048/davini
+
+# all the variable listed here will be processed by the LRA creator
+catalog:
+  IFS:
+    tco399-orca025:
+      ICMGG_atm2d:
+        vars: ['2t']
+        #vars: ['tsr', 'ttr', 'tp', 'e', '2t', 'msl',  'hcc', 'lcc', 'mcc', 'nsss', 'ewss']
