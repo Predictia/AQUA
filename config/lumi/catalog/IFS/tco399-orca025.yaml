@@ -1,0 +1,11 @@
+plugins:
+  source:
+    - module: intake_xarray
+    - module: gribscan
+
+sources:
+  ICMGG_atm2d:
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: reference::/users/padavini/work/gribscan-json/tco399-orca025/atm2d.json

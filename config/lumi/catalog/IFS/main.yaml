@@ -1,0 +1,6 @@
+sources:
+  tco399-orca025:
+    description: 25km IFS and ORCA
+    driver: yaml_file_cat
+    args:
+        path: "{{CATALOG_DIR}}/tco399-orca025.yaml"
