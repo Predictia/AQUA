@@ -117,6 +117,8 @@ class Reader():
 
             # If weights do not exist, create them       
             if rebuild or not os.path.exists(self.weightsfile):
+                if os.path.exists(self.weightsfile):
+                    os.unlink(self.weightsfile)
                 self._make_weights_file(self.weightsfile, source_grid,
                                         cfg_regrid, regrid=regrid,
                                         extra=extra, zoom=zoom)
@@ -131,9 +133,11 @@ class Reader():
 
             # If source areas do not exist, create them 
             if rebuild or not os.path.exists(self.src_areafile):
+                if os.path.exists(self.src_areafile):
+                    os.unlink(self.src_areafile)
                 self._make_src_area_file(self.src_areafile, source_grid,
-                                         gridpath=cfg_regrid["paths"]["grids"],
-                                         icongridpath=cfg_regrid["paths"]["icon"],
+                                         gridpath=cfg_regrid["cdo-paths"]["download"],
+                                         icongridpath=cfg_regrid["cdo-paths"]["icon"],
                                          zoom=zoom)
 
             self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
@@ -144,6 +148,8 @@ class Reader():
                     cfg_regrid["areas"]["dst_template"].format(grid=self.targetgrid))
 
                 if rebuild or not os.path.exists(self.dst_areafile):
+                    if os.path.exists(self.dst_areafile):
+                        os.unlink(self.dst_areafile)
                     grid = cfg_regrid["target_grids"][regrid]
                     self._make_dst_area_file(self.dst_areafile, grid)
 
@@ -234,8 +240,8 @@ class Reader():
         weights = rg.cdo_generate_weights(source_grid=sgridpath,
                                                 target_grid=cfg_regrid["target_grids"][regrid], 
                                                 method='ycon', 
-                                                gridpath=cfg_regrid["paths"]["grids"],
-                                                icongridpath=cfg_regrid["paths"]["icon"],
+                                                gridpath=cfg_regrid["cdo-paths"]["download"],
+                                                icongridpath=cfg_regrid["cdo-paths"]["icon"],
                                                 extra=extra)
         weights.to_netcdf(weightsfile)
         print("Success!")
