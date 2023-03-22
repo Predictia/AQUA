@@ -8,7 +8,7 @@ target:
 # all the variable listed here will be processed by the LRA creator
 catalog:
   IFS:
-    tco399-orca025:
+    tco399-orca025-python:
       ICMGG_atm2d:
-        vars: ['2t']
+        vars: ['2t', 'tsr']
         #vars: ['tsr', 'ttr', 'tp', 'e', '2t', 'msl',  'hcc', 'lcc', 'mcc', 'nsss', 'ewss']

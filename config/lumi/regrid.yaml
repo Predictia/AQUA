@@ -28,3 +28,7 @@ source_grids:
       default:
         path: /users/padavini/work/tcogrids/tco399_grid.nc
         space_coord: ["value"]
+    tco399-orca025-python:
+      default:
+        path: /users/padavini/work/tcogrids/tco399_grid.nc
+        space_coord: ["value"]

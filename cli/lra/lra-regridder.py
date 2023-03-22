@@ -8,8 +8,6 @@ included in AQUA. Functionality can be controlled through CLI options and
 a configuration yaml file.
 '''
 import sys
-sys.path.append("..")
-
 import argparse
 from aqua import Reader
 from aqua.util import load_yaml, generate_random_string
@@ -56,7 +54,7 @@ def lra(modelname, expname, sourcename,
 
     # start the reader
     reader = Reader(model=modelname, exp=expname, source=sourcename,
-                    regrid=resolution, freq=frequency, configdir="../config")
+                    regrid=resolution, freq=frequency, configdir="../../config")
     
     logging.info('Retrieving data...')
     data = reader.retrieve(fix=False)
