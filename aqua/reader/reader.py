@@ -363,6 +363,7 @@ class Reader():
             A xarray.Dataset containing the required data.
         """
 
+        self.cat = intake.open_catalog(self.catalog_file)
         # Extract subcatalogue
         if self.zoom:
             esmcat = self.cat[self.model][self.exp][self.source](zoom=self.zoom)
@@ -941,6 +942,10 @@ class Reader():
         if apply_unit_fix:
             for var in data.variables:
                 self.apply_unit_fix(data[var])
+
+        dellist = [x for x in fix.get("delete", []) if x in data.variables]
+        if dellist:
+            data = data.drop_vars(dellist)
         
         # Fix coordinates according to a given data model
         src_datamodel = fix.get("data_model", src_datamodel)

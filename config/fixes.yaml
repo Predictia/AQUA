@@ -86,7 +86,15 @@ models:
     ICON:
         default:
             default:
-                data_model: false  # Do not attempto to correct coordinates
+                data_model: false  # Do not attempt to correct coordinates
+                delete:  # variables to drop at the end
+                    - hfls
+                    - hfss
+                    - rlus
+                    - rlut
+                    - rsus
+                    - rsdt
+                    - rsut
                 vars:
                     iews:
                         source: tauu
