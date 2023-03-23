@@ -21,7 +21,7 @@ models:
                         derived: tp
                         grib: true
                         decumulate: true    
-                    cprate:
+                    var172143:  # cprate
                         derived: cp
                         grib: true
                         decumulate: true

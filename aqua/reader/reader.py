@@ -890,12 +890,22 @@ class Reader():
                     except KeyError:
                         # The variable could not be computed, let's skip it
                         continue
+
+                # Decumulate if required
+                if vars[var].get("decumulate", None):
+                    keep_first= vars[var].get("keep_first", True)
+                    data[source] = self.simple_decumulate(data[source],
+                                                       month_jump=month_jump,
+                                                       keep_first=keep_first)
              
                 grib = vars[var].get("grib", None)
                 # This is a grib variable, use eccodes to find attributes
                 if grib:
                     # Get relevant eccodes attribues
                     attributes.update(get_eccodes_attr(var))
+                    sn = attributes.get("shortName", None) 
+                    if sn != '~':
+                        fixd.update({f"{var}": sn})
                     if self.verbose:
                         print(f"Grib attributes for {var}: {attributes}")
     
@@ -930,15 +940,15 @@ class Reader():
         # Only now rename everything
         data = data.rename(fixd)
 
-        if vars:
-            for var in vars:
-                # Decumulate if required
-                if vars[var].get("decumulate", None):
-                    keep_first= vars[var].get("keep_first", True)
-                    data[var] = self.simple_decumulate(data[var],
-                                                       month_jump=month_jump,
-                                                       keep_first=keep_first)
-                    
+        # if vars:
+        #     for var in vars:
+        #         # Decumulate if required
+        #         if vars[var].get("decumulate", None):
+        #             keep_first= vars[var].get("keep_first", True)
+        #             data[var] = self.simple_decumulate(data[var],
+        #                                                month_jump=month_jump,
+        #                                                keep_first=keep_first)
+
         if apply_unit_fix:
             for var in data.variables:
                 self.apply_unit_fix(data[var])

@@ -240,10 +240,10 @@ def _init_get_eccodes_attr():
                 "long_name": name[i],
                 "units": units[i],
                 "cfVarName": cfvarname[i],
-                "shortName": sn}
+                "shortName": shortname[i]}
             return dic
         except ValueError:
-            print(f"Conversion Error: short name '{sn}' not found in ECMWF tables!")
+            print(f"Conversion Error: variable '{sn}' not found in ECMWF tables!")
             return
 
     return get_eccodes_attr
