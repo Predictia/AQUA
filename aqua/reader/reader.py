@@ -74,29 +74,17 @@ class Reader():
         else:
             self.configdir = configdir
         self.machine = get_machine(self.configdir)
-        #print(self.configdir)
-        #print(self.machine)
 
         # get configuration from the machine
         self.catalog_file, self.regrid_file, self.fixer_file = get_reader_filenames(self.configdir, self.machine)
         self.cat = intake.open_catalog(self.catalog_file)
 
-        self.source = source
-        #if source:
-        #    self.source = source
-        #else:
-        #    self.source = list(self.cat[model][exp].keys())[0]  # take first source if none provided
-
-        # check catalog entries
-        self._check_catalog(self.cat, name="catalog")
+        self.source = _check_catalog_source(self.cat, self.model, self.exp, source, name="catalog")
         
-        # load andh check the regrid
+        # load and check the regrid
         cfg_regrid = load_yaml(self.regrid_file) 
-        self._check_catalog(cfg_regrid["source_grids"], name='regrid')
-
-        source_grid = cfg_regrid["source_grids"][self.model][self.exp].get(self.source, None)
-        if not source_grid:
-            source_grid = cfg_regrid["source_grids"][self.model][self.exp].get("default", None)
+        source_grid_id = _check_catalog_source(cfg_regrid["source_grids"], self.model, self.exp, source, name='regrid')
+        source_grid = cfg_regrid["source_grids"][self.model][self.exp][source_grid_id]
 
         self.src_space_coord = source_grid.get("space_coord", None)
         self.space_coord = self.src_space_coord
@@ -157,22 +145,8 @@ class Reader():
      
             self.grid_area = self.src_grid_area
 
-    def _check_catalog(self, element, name):
 
-        """
-        Check the entries of a nested dictionary based on the model/exp/source structure
-        The name argument can be used for a proper printing
-        """
-
-        if self.model not in element:
-            raise KeyError(f"Model {self.model} not found in {name}.")
-        if self.exp not in element[self.model]:
-            raise KeyError(f"Experiment {self.exp} not found in {name} for model {self.model}.")
-        if self.source not in element[self.model][self.exp]:
-            if "default" not in element[self.model][self.exp]:
-                raise KeyError(f"Source {self.source} of experiment {self.exp} "
-                               f"not found in {name} for model {self.model}.")
-
+    
 
 
     def _make_dst_area_file(self, areafile, grid):
@@ -534,6 +508,7 @@ class Reader():
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
         return out
+        
     
     def timmean(self, data, freq = None):
         """
@@ -568,6 +543,7 @@ class Reader():
             print('WARNING: Resampling cannot produce output for all frequency step, is your input data correct?')
    
         return out
+
     
     def _check_if_accumulated_auto(self, data):
 
@@ -585,6 +561,7 @@ class Reader():
         condition = (check >= 0).all() or (check <=0).all()
         
         return condition
+
 
     def _check_if_accumulated(self, data):
 
@@ -608,7 +585,6 @@ class Reader():
             return True
         else:
             return False
-
 
     
     def decumulate(self, data, cumulation_time = None):
@@ -892,4 +868,30 @@ class Reader():
                 data += offset
 
 
-        
+def _check_catalog_source(cat, model, exp, source, name="dictionary"):
+
+        """
+        Check the entries of a nested dictionary based on the model/exp/source structure and return an updated source.
+        The name argument can be used for a proper printing.
+
+        Returns: 
+        an updated source id (str).
+        If source is not specified "default" is chosen or, if missing, the first source
+        """
+
+        if model not in cat:
+            raise KeyError(f"Model {model} not found in {name}.")
+        if exp not in cat[model]:
+            raise KeyError(f"Experiment {exp} not found in {name} for model {model}.")
+
+        if source:
+            if source not in cat[model][exp]:
+                if "default" not in cat[model][exp]:
+                    raise KeyError(f"Source {source} of experiment {exp} "
+                                f"not found in {name} for model {model}.")
+                else:
+                    source = "default"
+        else:
+            source = list(cat[model][exp].keys())[0]  # take first source if none provided
+
+        return source
