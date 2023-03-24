@@ -1,4 +1,6 @@
 *.pyc
 diagnostics/ecmean/ECmean4
+.ipynb_checkpoints
+*.egg-info
 cli/*.err
 cli/*.out
