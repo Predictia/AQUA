@@ -81,17 +81,24 @@ class Reader():
         self.catalog_file, self.regrid_file, self.fixer_file = get_reader_filenames(self.configdir, self.machine)
         self.cat = intake.open_catalog(self.catalog_file)
 
-        cfg_regrid = load_yaml(self.regrid_file)
-
         if source:
             self.source = source
         else:
             self.source = list(self.cat[model][exp].keys())[0]  # take first source if none provided
-        
+
+        if self.model not in self.cat:
+            raise KeyError(f"Model {self.model} not found in catalogue.")
+        if self.exp not in self.cat[self.model]:
+            raise KeyError(f"Experiment {self.exp} not found in catalogue for model {self.model}.")
+        if self.source not in self.cat[self.model][self.exp]:
+            raise KeyError(f"Source {self.source} of experiment {self.exp} "
+                           f"not found in catalogue for model {self.model}.")
+
+        cfg_regrid = load_yaml(self.regrid_file)  
         source_grid = cfg_regrid["source_grids"][self.model][self.exp].get(self.source, None)
         if not source_grid:
             source_grid = cfg_regrid["source_grids"][self.model][self.exp].get("default", None)
-        
+
         self.src_space_coord = source_grid.get("space_coord", None)
         self.space_coord = self.src_space_coord
         self.dst_space_coord = ["lon", "lat"]
