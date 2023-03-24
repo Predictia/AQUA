@@ -22,7 +22,7 @@ sleep 5
 # create the env
 if [[ -z $(mamba env list | grep aqua-ecmean) ]] ; then
         echo "Creating... the env..."
-        mamba env create -f aqua-ecmean.yml
+        mamba env create -f environment-ecmean.yml
 fi
 
 sleep 5

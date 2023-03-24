@@ -1,47 +1,44 @@
 # Create the ECmean4 environment:
 # mamba env create -f environment.yml 
-# or 
+# or if you really want to use conda
 # conda env create -f environment.yml
-#
+
 name: aqua-ecmean
 channels:
   - conda-forge
+# please note that some of these dependencies are made explicit on purpose, but are not directly required by conda/mamba
 dependencies:
   - python>=3.9,<3.11
-  - pyYAML
+  - libnetcdf<=4.8.1 
   - xarray
   - dask
   - numpy
-  - jinja2
-  - tqdm
-  - udunits2
-  - zarr
   - netcdf4
   - ecCodes      
   - matplotlib
   - cartopy
-  - healpy
-  - ipykernel
   - cfunits
   - metpy
   - cdo
-  - intake-esm=2021.8.17
+  - intake-esm<=2021.8.17
   - intake
   - intake-xarray
-  - pip
-  - esmpy<=8.3.1 # from here is Ecmean
+# these below are only required for running notebooks
+  - ipykernel
+  - healpy
+# these below are ECmean only
+  - esmpy<=8.3.1
   - xesmf
   - tabulate
-  - numba
-  - cfgrib
   - seaborn
   - pytest
   - coverage # need to be removed
   - wand # just for plotting
+# these are pip-based since it provides more recent versions or packages unavailable on conda-forge
+  - pip
   - pip:
     - sparse
     - docker
     - gribscan
-    - git+https://github.com/jhardenberg/smmregrid.git
-    # git+https://github.com/oloapinivad/ECmean4 # this does not work
+    - -e ../../
 
