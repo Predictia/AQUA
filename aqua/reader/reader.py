@@ -81,20 +81,19 @@ class Reader():
         self.catalog_file, self.regrid_file, self.fixer_file = get_reader_filenames(self.configdir, self.machine)
         self.cat = intake.open_catalog(self.catalog_file)
 
-        if source:
-            self.source = source
-        else:
-            self.source = list(self.cat[model][exp].keys())[0]  # take first source if none provided
+        self.source = source
+        #if source:
+        #    self.source = source
+        #else:
+        #    self.source = list(self.cat[model][exp].keys())[0]  # take first source if none provided
 
-        if self.model not in self.cat:
-            raise KeyError(f"Model {self.model} not found in catalogue.")
-        if self.exp not in self.cat[self.model]:
-            raise KeyError(f"Experiment {self.exp} not found in catalogue for model {self.model}.")
-        if self.source not in self.cat[self.model][self.exp]:
-            raise KeyError(f"Source {self.source} of experiment {self.exp} "
-                           f"not found in catalogue for model {self.model}.")
+        # check catalog entries
+        self._check_catalog(self.cat, name="catalog")
+        
+        # load andh check the regrid
+        cfg_regrid = load_yaml(self.regrid_file) 
+        self._check_catalog(cfg_regrid["source_grids"], name='regrid')
 
-        cfg_regrid = load_yaml(self.regrid_file)  
         source_grid = cfg_regrid["source_grids"][self.model][self.exp].get(self.source, None)
         if not source_grid:
             source_grid = cfg_regrid["source_grids"][self.model][self.exp].get("default", None)
@@ -157,6 +156,23 @@ class Reader():
                 self.dst_grid_area = xr.open_mfdataset(self.dst_areafile).cell_area
      
             self.grid_area = self.src_grid_area
+
+    def _check_catalog(self, element, name):
+
+        """
+        Check the entries of a nested dictionary based on the model/exp/source structure
+        The name argument can be used for a proper printing
+        """
+
+        if self.model not in element:
+            raise KeyError(f"Model {self.model} not found in {name}.")
+        if self.exp not in element[self.model]:
+            raise KeyError(f"Experiment {self.exp} not found in {name} for model {self.model}.")
+        if self.source not in element[self.model][self.exp]:
+            if "default" not in element[self.model][self.exp]:
+                raise KeyError(f"Source {self.source} of experiment {self.exp} "
+                               f"not found in {name} for model {self.model}.")
+
 
 
     def _make_dst_area_file(self, areafile, grid):
