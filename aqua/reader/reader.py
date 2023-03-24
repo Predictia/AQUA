@@ -84,14 +84,15 @@ class Reader():
         else:
             self.configdir = configdir
         self.machine = get_machine(self.configdir)
-        #print(self.configdir)
-        #print(self.machine)
 
         # get configuration from the machine
         self.catalog_file, self.regrid_file, self.fixer_file = get_reader_filenames(self.configdir, self.machine)
         self.cat = intake.open_catalog(self.catalog_file)
-
-        cfg_regrid = load_yaml(self.regrid_file)
+     
+        # load and check the regrid
+        cfg_regrid = load_yaml(self.regrid_file) 
+        source_grid_id = _check_catalog_source(cfg_regrid["source_grids"], self.model, self.exp, source, name='regrid')
+        source_grid = cfg_regrid["source_grids"][self.model][self.exp][source_grid_id]
 
         self.dst_datamodel = datamodel
         # Default destination datamodel (unless specified in instantiating the Reader)
@@ -99,15 +100,8 @@ class Reader():
             fixes = load_yaml(self.fixer_file)
             self.dst_datamodel = fixes["defaults"].get("dst_datamodel", None)
 
-        if source:
-            self.source = source
-        else:
-            self.source = list(self.cat[model][exp].keys())[0]  # take first source if none provided
-        
-        source_grid = cfg_regrid["source_grids"][self.model][self.exp].get(self.source, None)
-        if not source_grid:
-            source_grid = cfg_regrid["source_grids"][self.model][self.exp].get("default", None)
-        
+        self.source = _check_catalog_source(self.cat, self.model, self.exp, source, name="catalog")
+
         self.src_space_coord = source_grid.get("space_coord", None)
         self.space_coord = self.src_space_coord
         self.dst_space_coord = ["lon", "lat"]
@@ -133,6 +127,8 @@ class Reader():
 
             # If weights do not exist, create them       
             if rebuild or not os.path.exists(self.weightsfile):
+                if os.path.exists(self.weightsfile):
+                    os.unlink(self.weightsfile)
                 self._make_weights_file(self.weightsfile, source_grid,
                                         cfg_regrid, regrid=regrid,
                                         extra=extra, zoom=zoom)
@@ -147,9 +143,11 @@ class Reader():
 
             # If source areas do not exist, create them 
             if rebuild or not os.path.exists(self.src_areafile):
+                if os.path.exists(self.src_areafile):
+                    os.unlink(self.src_areafile)
                 self._make_src_area_file(self.src_areafile, source_grid,
-                                         gridpath=cfg_regrid["paths"]["grids"],
-                                         icongridpath=cfg_regrid["paths"]["icon"],
+                                         gridpath=cfg_regrid["cdo-paths"]["download"],
+                                         icongridpath=cfg_regrid["cdo-paths"]["icon"],
                                          zoom=zoom)
 
             self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
@@ -160,6 +158,8 @@ class Reader():
                     cfg_regrid["areas"]["dst_template"].format(grid=self.targetgrid))
 
                 if rebuild or not os.path.exists(self.dst_areafile):
+                    if os.path.exists(self.dst_areafile):
+                        os.unlink(self.dst_areafile)
                     grid = cfg_regrid["target_grids"][regrid]
                     self._make_dst_area_file(self.dst_areafile, grid)
 
@@ -250,8 +250,8 @@ class Reader():
         weights = rg.cdo_generate_weights(source_grid=sgridpath,
                                                 target_grid=cfg_regrid["target_grids"][regrid], 
                                                 method='ycon', 
-                                                gridpath=cfg_regrid["paths"]["grids"],
-                                                icongridpath=cfg_regrid["paths"]["icon"],
+                                                gridpath=cfg_regrid["cdo-paths"]["download"],
+                                                icongridpath=cfg_regrid["cdo-paths"]["icon"],
                                                 extra=extra)
         weights.to_netcdf(weightsfile)
         print("Success!")
@@ -571,6 +571,7 @@ class Reader():
    
         log_history(out, f"resampled to frequency {resample_freq} by AQUA fixer")
         return out
+
     
     def _check_if_accumulated_auto(self, data):
 
@@ -588,6 +589,7 @@ class Reader():
         condition = (check >= 0).all() or (check <=0).all()
         
         return condition
+
 
     def _check_if_accumulated(self, data):
 
@@ -1060,3 +1062,33 @@ class Reader():
             return 'dimensionless'
         else:
             return str(src).replace("of", "").replace("water", "").replace("equivalent", "")
+            
+            
+def _check_catalog_source(cat, model, exp, source, name="dictionary"):
+
+        """
+        Check the entries of a nested dictionary based on the model/exp/source structure and return an updated source.
+        The name argument can be used for a proper printing.
+
+        Returns: 
+        an updated source id (str).
+        If source is not specified "default" is chosen or, if missing, the first source
+        """
+
+        if model not in cat:
+            raise KeyError(f"Model {model} not found in {name}.")
+        if exp not in cat[model]:
+            raise KeyError(f"Experiment {exp} not found in {name} for model {model}.")
+
+        if source:
+            if source not in cat[model][exp]:
+                if "default" not in cat[model][exp]:
+                    raise KeyError(f"Source {source} of experiment {exp} "
+                                f"not found in {name} for model {model}.")
+                else:
+                    source = "default"
+        else:
+            source = list(cat[model][exp].keys())[0]  # take first source if none provided
+
+        return source
+
