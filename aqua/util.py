@@ -27,7 +27,7 @@ def log_configure(log_level='WARNING'):
     try:
         logging._checkLevel(log_level)
     except:
-        logging.warning(f"Invalid logging level '{log_level}' specified. Setting it back to default WARNING")
+        logging.warning(f"Invalid logging level '{log_level}' specified. Setting it back to default {log_level_default}")
         log_level = log_level_default
 
     # clear the handlers of the possibly previously configured logger
@@ -35,7 +35,7 @@ def log_configure(log_level='WARNING'):
     for handler in logger.handlers[:]:
         logger.removeHandler(handler)
 
-    # ensure that loglevel is uppercase
+    # ensure that loglevel is uppercase if it is a string
     if isinstance(log_level, str):
         log_level = log_level.upper()
 
@@ -45,9 +45,6 @@ def log_configure(log_level='WARNING'):
         format='%(asctime)s %(levelname)s: %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
-
-    # Get the root logger object
-    logger = logging.getLogger()
 
     # Get the current effective logging level
     current_level = logger.getEffectiveLevel()
