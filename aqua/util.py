@@ -4,6 +4,55 @@ import os
 import sys
 import string
 import random
+import logging
+
+def log_configure(log_level='WARNING'):
+
+    """Set up the logging level cleaning previous existing handlers
+
+    Args:
+        log_level: a string or an integer according to the logging module
+    
+    Returns:
+        str: the logger level as a string after checks and assignement has been done
+    """
+
+    log_level_default = 'WARNING'
+
+    # set up a default
+    if log_level is None:
+        log_level = log_level_default
+
+    # check if makes sense the level assigned
+    try:
+        logging._checkLevel(log_level)
+    except:
+        logging.warning(f"Invalid logging level '{log_level}' specified. Setting it back to default WARNING")
+        log_level = log_level_default
+
+    # clear the handlers of the possibly previously configured logger
+    logger = logging.getLogger()
+    for handler in logger.handlers[:]:
+        logger.removeHandler(handler)
+
+    # ensure that loglevel is uppercase
+    if isinstance(log_level, str):
+        log_level = log_level.upper()
+
+    # Set up logging
+    logging.basicConfig(
+        level=log_level,
+        format='%(asctime)s %(levelname)s: %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+
+    # Get the root logger object
+    logger = logging.getLogger()
+
+    # Get the current effective logging level
+    current_level = logger.getEffectiveLevel()
+
+    return logging.getLevelName(current_level)
 
 def load_yaml(infile):
     """

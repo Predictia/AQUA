@@ -6,10 +6,11 @@ import os
 from metpy.units import units
 import numpy as np
 import smmregrid as rg
-from aqua.util import load_yaml, get_reader_filenames, get_config_dir, get_machine
+from aqua.util import load_yaml, get_reader_filenames, get_config_dir, get_machine, log_configure
 import sys
 import subprocess
 import tempfile
+import logging
 
 class Reader():
     """General reader for NextGEMS data (on Levante for now)"""
@@ -17,7 +18,7 @@ class Reader():
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
                  regrid=None, method="ycon", zoom=None, configdir=None,
                  level=None, areas=True, var=None, vars=None, streaming = False,
-                 stream_step = 1, stream_unit=None, stream_startdate = None, rebuild=False):
+                 stream_step = 1, stream_unit=None, stream_startdate = None, rebuild=False, loglevel=None):
         """
         The Reader constructor.
         It uses the catalog `config/config.yaml` to identify the required data.
@@ -38,10 +39,13 @@ class Reader():
             stream_unit (str):      the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (None)
             stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
             rebuild (bool):   force rebuilding of area and weight files
+            loglevel(string): Level of logging according to logging module
 
         Returns:
             A `Reader` class object.
         """
+
+        loglevel = log_configure(loglevel)
 
         if vars:
             self.var = vars
@@ -158,8 +162,8 @@ class Reader():
     def _make_dst_area_file(self, areafile, grid):
         """Helper function to create destination (regridded) area files."""
 
-        print("Destination areas file not found:", areafile)
-        print("Attempting to generate it ...")
+        logging.warning("Destination areas file not found: " + areafile)
+        logging.warning("Attempting to generate it ...")
 
         dst_extra = f"-const,1,{grid}"
         grid_area = self.cdo_generate_areas(source=dst_extra)
@@ -170,7 +174,7 @@ class Reader():
         grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.dst_space_coord})
                   
         grid_area.to_netcdf(self.dst_areafile)
-        print("Success!")
+        logging.warning("Success!")
 
 
     def _make_src_area_file(self, areafile, source_grid, 
@@ -190,9 +194,9 @@ class Reader():
             if zoom:
                 sgridpath = sgridpath.format(zoom=(9-zoom))    
 
-        print("Source areas file not found:", areafile)
-        print("Attempting to generate it ...")
-        print("Source grid: ", sgridpath)
+        logging.warning("Source areas file not found: " + areafile)
+        logging.warning("Attempting to generate it ...")
+        logging.warning("Source grid: " + sgridpath)
         src_extra = source_grid.get("extra", [])
         grid_area = self.cdo_generate_areas(source=sgridpath,
                                             gridpath=gridpath,
@@ -203,7 +207,7 @@ class Reader():
         data = self.retrieve(fix=False)
         grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.src_space_coord})
         grid_area.to_netcdf(areafile)
-        print("Success!")
+        logging.warning("Success!")
 
 
     def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, regrid="", extra=[], zoom=None):
@@ -222,9 +226,9 @@ class Reader():
             if zoom:
                 sgridpath = sgridpath.format(zoom=(9-zoom))    
 
-        print("Weights file not found:", weightsfile)
-        print("Attempting to generate it ...")
-        print("Source grid: ", sgridpath)
+        logging.warning("Weights file not found: " + weightsfile)
+        logging.warning("Attempting to generate it ...")
+        logging.warning("Source grid: " + sgridpath)
 
         # hack to  pass a correct list of all options
         src_extra = source_grid.get("extra", [])
@@ -241,7 +245,7 @@ class Reader():
                                                 icongridpath=cfg_regrid["cdo-paths"]["icon"],
                                                 extra=extra)
         weights.to_netcdf(weightsfile)
-        print("Success!")
+        logging.warning("Success!")
 
 
     def cdo_generate_areas(self, source, icongridpath=None, gridpath=None, extra=None):
@@ -316,7 +320,7 @@ class Reader():
 
         except subprocess.CalledProcessError as e:
             # Print the CDO error message
-            print(e.output.decode(), file=sys.stderr)
+            logging.critical(e.output.decode(), file=sys.stderr)
             raise
 
         finally:
@@ -546,7 +550,7 @@ class Reader():
         
         # check for NaT
         if np.any(np.isnat(out.time)):
-            print('WARNING: Resampling cannot produce output for all frequency step, is your input data correct?')
+            logging.warning('Resampling cannot produce output for all frequency step, is your input data correct?')
    
         return out
 
@@ -778,7 +782,7 @@ class Reader():
 
         fix = fixes["models"].get(model, None)
         if not fix:
-            print("No fixes defined for model ", model)
+            logging.warning("No fixes defined for model " + model)
             return data
 
         self.deltat = fix.get("deltat", 1.0)
@@ -835,14 +839,14 @@ class Reader():
             if factor.units == "meter ** 3 / kilogram":
                 # Density of water was missing
                 factor = factor * 1000 * units("kg m-3")
-                print(f"{var}: corrected multiplying by density of water 1000 kg m-3")
+                logging.info(f"{var}: corrected multiplying by density of water 1000 kg m-3")
             if factor.units == "meter ** 3 * second / kilogram":
                 # Density of water and accumulation time were missing
                 factor = factor * 1000 * units("kg m-3") / (self.deltat * units("s"))
-                print(f"{var}: corrected multiplying by density of water 1000 kg m-3")
-                print(f"{var}: corrected dividing by accumulation time {self.deltat} s")
+                logging.info(f"{var}: corrected multiplying by density of water 1000 kg m-3")
+                logging.info(f"{var}: corrected dividing by accumulation time {self.deltat} s")
             else:
-                print(f"{var}: incommensurate units converting {src} to {dst} --> {factor.units}")
+                logging.info(f"{var}: incommensurate units converting {src} to {dst} --> {factor.units}")
             offset = 0 * units(dst)
 
         if offset.magnitude != 0:
