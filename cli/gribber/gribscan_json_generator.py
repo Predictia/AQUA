@@ -10,18 +10,41 @@ class Gribber():
     """
 
     def __init__(self,
-                 model='IFS',exp='tco1279',source='ICMGG_atm2d',
+                 model='IFS',exp='tco1279-orca025',source='ICMGG_atm2d',
                  nprocs=4,
                  dir = {'datadir': '/scratch/b/b382289/tco1279-orca025/nemo_deep/ICMGGc2',
                         'tmpdir': '/scratch/b/b382289/gribscan',
                         'jsondir': '/work/bb1153/b382289/gribscan-json',
                         'catalogdir': '/work/bb1153/b382289/AQUA/config/levante/catalog'},
-                 verbose=True
+                 verbose=False,
+                 replace=False
                 ) -> None:
         """
         Initialize class.
+
+        Parameters
+        ----------
+        model : str, optional
+            Model name, by default 'IFS'
+        exp : str, optional
+            Experiment name, by default 'tco1279-orca025'
+        source : str, optional
+            Source name, by default 'ICMGG_atm2d'
+        nprocs : int, optional
+            Number of processors, by default 4
+        dir : dict, optional
+            Dictionary with directories, by default 
+            {'datadir': '/scratch/b/b382289/tco1279-orca025/nemo_deep/ICMGGc2',
+             'tmpdir': '/scratch/b/b382289/gribscan',
+             'jsondir': '/work/bb1153/b382289/gribscan-json',
+             'catalogdir': '/work/bb1153/b382289/AQUA/config/levante/catalog'}
+        verbose : bool, optional
+            Verbose mode, by default False
+        replace : bool, optional
+            Replace JSON file and indices if they exist, by default False
         """
         self.verbose = verbose
+        self.replace = replace
         if self.verbose:
             self.help()
 
@@ -61,6 +84,12 @@ class Gribber():
         if self.verbose:
             print(self.indices)
 
+        # Create JSON file
+        self._create_json()
+
+        # Create catalog entry
+        self._create_catalog_entry()
+
     def _create_folders(self):
         """
         Create folders.
@@ -93,6 +122,19 @@ class Gribber():
         """
         if self.verbose:
             print("Creating GRIB indices...")
+        
+        # check if indices already exist
+        if len(glob(os.path.join(self.tmpdir, '*.index'))) > 0:
+            if self.replace:
+                if self.verbose:
+                    print("Indices already exist. Removing them...")
+                for file in glob(os.path.join(self.tmpdir, '*.index')):
+                    os.remove(file)
+            else:
+                if self.verbose:
+                    print("Indices already exist. Skipping...")
+                return
+
         # to be improved without using subprocess
         cmd = ['gribscan-index', '-n', str(self.nprocs)] + glob(os.path.join(self.tmpdir, self.gribfiles))
         self.indices = subprocess.run(cmd)
@@ -100,15 +142,30 @@ class Gribber():
     def _create_json(self):
         if self.verbose:
             print("Creating JSON file...")
+        
+        jsonfile = os.path.join(self.jsondir, self.tgt_json+'.json')
+        if self.verbose:
+            print(f"JSON file: {jsonfile}")
+        if os.path.exists(jsonfile):
+            if self.replace:
+                if self.verbose:
+                    print(f"JSON file {jsonfile} already exists. Removing it...")
+                os.remove(jsonfile)
+            else:
+                if self.verbose:
+                    print(f"JSON file {jsonfile} already exists. Skipping...")
+                return
+
+        # to be improved without using subprocess
         cmd = ['gribscan-build', '-o', self.jsondir, '--magician', 'ifs', 
             '--prefix', self.datadir + '/'] + glob(os.path.join(self.tmpdir, '*index'))
         json = subprocess.run(cmd)
     
-    def _create_catalog(self):
+    def _create_catalog_entry(self):
         """
         Create or update catalog file
         """
-        catalogfile = os.path.join(self.catalogdir,self.model,self.exp+'.yml')
+        catalogfile = os.path.join(self.catalogdir,self.model,self.exp+'.yaml')
         if self.verbose:
             print(f"Catalog file: {catalogfile}")
         
@@ -134,46 +191,28 @@ class Gribber():
             mydict['sources'] = {}
             mydict['sources'][self.source] = myblock
         
+        # Check if source already exists
+        if self.source in mydict['sources'].keys():
+            if self.replace:
+                if self.verbose:
+                    print(f"Source {self.source} already exists in {catalogfile}. Replacing it...")
+                mydict['sources'][self.source] = myblock
+            else:
+                if self.verbose:
+                    print(f"Source {self.source} already exists in {catalogfile}. Skipping...")
+                return
+
         # Write catalog file
         with open(catalogfile, 'w') as f:
-            yaml.dump(mydict, f, sort_keys=True)
+            yaml.dump(mydict, f, sort_keys=False)
     
-    # def _create_json(self):
-    #     """
-    #     Create JSON file.
-    #     """
-    #     print("Creating JSON file...")
-    #     cmd2 = ['gribscan-build', '-o', self.jsondir, '--magician', 'ifs', 
-    #             '--prefix', datadir + '/'] + glob(os.path.join(self.tmpdir, '*index'))
-    #     result2 = subprocess.run(cmd2)
-    
-    # def _create_catalog(self):
-    #     """
-    #     Create catalog file.
-    #     """
-    #     # Check if catalog file exists
-    #     if os.path.exists(self.catalogfile):
-    #         mydict = load_yaml(self.catalogfile)
-    #         mydict['sources'][sourceid] = myblock
-    #     else: 
-    #         # Default dict for zarr
-    #         mydict = {
-    #             'sources': {
-    #                 sourceid: myblock
-    #             }
-    #         }
-        
-    #     # Write catalog file
-    #     with open(self.catalogfile, 'w') as f:
-    #         yaml.dump(mydict, f, default_flow_style=False)
-
     def help(self):
         """
         Print help message.
         """
         print("Gribber class:")
         print("  model: model name (default: IFS)")
-        print("  exp: experiment name (default: tco1279)")
+        print("  exp: experiment name (default: tco1279-orca025)")
         print("  source: source name (default: ICMGG_atm2d)")
         print("  nprocs: number of processors (default: 4)")
         print("  verbose: print help message (default: True)")
