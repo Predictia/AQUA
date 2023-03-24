@@ -65,15 +65,11 @@ class Gribber():
         # Get gribtype and tgt_json from source
         self.gribtype = self.source.split('_')[0]
         self.tgt_json = self.source.split('_')[1]
-
-        if self.verbose:
-            print(self.gribtype)
-            print(self.tgt_json)
         
         # Get gribfiles wildcard from gribtype
         self.gribfiles = self.gribtype + '????+*'
         if self.verbose:
-            print(self.gribfiles)
+            print("Gribfile wildcard: {self.gribfiles}")
 
         # Create symlinks to GRIB files
         self._create_symlinks()
@@ -215,13 +211,10 @@ class Gribber():
         print("  exp: experiment name (default: tco1279-orca025)")
         print("  source: source name (default: ICMGG_atm2d)")
         print("  nprocs: number of processors (default: 4)")
-        print("  verbose: print help message (default: True)")
+        print("  verbose: print help message (default: False)")
+        print("  replace: replace existing files (default: False)")
         print("  dir: dictionary with directories (default: see below)")
         print("  datadir: data directory (default: /scratch/b/b382289/tco1279-orca025/nemo_deep/ICMGGc2)")
         print("  tmpdir: temporary directory (default: /scratch/b/b382289/gribscan)")
         print("  jsondir: JSON directory (default: /work/bb1153/b382289/gribscan-json)")
         print("  catalogdir: catalog directory (default: /work/bb1153/b382289/AQUA/config/levante/catalog)")
-        print("  griblist: dictionary with GRIB files (default: see gribber.yml)")
-        print("  tgt_json: target JSON file (default: see gribber.yml)")
-        print("  catalogfile: catalog file (default: see gribber.yml)")
-        print("  jsonfile: JSON file (default: see gribber.yml)")
