@@ -1,5 +1,7 @@
+import yaml
 import os
 import subprocess
+from aqua.util import load_yaml
 from glob import glob
 
 class Gribber():
@@ -10,7 +12,7 @@ class Gribber():
     def __init__(self,
                  model='IFS',exp='tco1279',source='ICMGG_atm2d',
                  nprocs=4,
-                 dir = {'datadir': '/scratcg/b/b382289/tco1279-orca25/nemo_deep/ICMHGGc2',
+                 dir = {'datadir': '/scratch/b/b382289/tco1279-orca025/nemo_deep/ICMGGc2',
                         'tmpdir': '/scratch/b/b382289/gribscan',
                         'jsondir': '/work/bb1153/b382289/gribscan-json',
                         'catalogdir': '/work/bb1153/b382289/AQUA/config/levante/catalog'},
@@ -47,12 +49,11 @@ class Gribber():
         
         # Get gribfiles wildcard from gribtype
         self.gribfiles = self.gribtype + '????+*'
+        if self.verbose:
+            print(self.gribfiles)
 
         # Create symlinks to GRIB files
         self._create_symlinks()
-        if self.verbose:
-            print(glob(os.path.join(self.tmpdir, self.gribfiles)))
-            #print(glob(os.path.join(self.tmpdir, self.gribfiles)))
 
         # Create indices for GRIB files
         self.indices = None
@@ -75,11 +76,16 @@ class Gribber():
         """
         if self.verbose:
             print("Creating symlinks...")
-        for file in glob(os.path.join(self.datadir, self.gribfiles)):
-            try: 
-                os.symlink(file, os.path.join(self.tmpdir, os.path.basename(file)))
-            except FileExistsError:
-                pass
+            print("Searching in...")
+            print(os.path.join(self.datadir, self.gribfiles))
+        try:
+            for file in glob(os.path.join(self.datadir, self.gribfiles)):
+                try: 
+                    os.symlink(file, os.path.join(self.tmpdir, os.path.basename(file)))
+                except FileExistsError:
+                    print(f"File {file} already exists in {self.tmpdir}")
+        except FileNotFoundError:
+            print(f"Directory {self.datadir} not found.")
     
     def _create_indices(self):
         """
@@ -87,8 +93,50 @@ class Gribber():
         """
         if self.verbose:
             print("Creating GRIB indices...")
-        cmd1 = ['gribscan-index', '-n', str(self.nprocs)] + glob(os.path.join(self.tmpdir, self.gribfiles))
-        self.indices = subprocess.run(cmd1)
+        # to be improved without using subprocess
+        cmd = ['gribscan-index', '-n', str(self.nprocs)] + glob(os.path.join(self.tmpdir, self.gribfiles))
+        self.indices = subprocess.run(cmd)
+
+    def _create_json(self):
+        if self.verbose:
+            print("Creating JSON file...")
+        cmd = ['gribscan-build', '-o', self.jsondir, '--magician', 'ifs', 
+            '--prefix', self.datadir + '/'] + glob(os.path.join(self.tmpdir, '*index'))
+        json = subprocess.run(cmd)
+    
+    def _create_catalog(self):
+        """
+        Create or update catalog file
+        """
+        catalogfile = os.path.join(self.catalogdir,self.model,self.exp+'.yml')
+        if self.verbose:
+            print(f"Catalog file: {catalogfile}")
+        
+        # Generate the block to be added to the catalog file
+        myblock = {
+            'driver': 'zarr',
+            'args': {
+                'consolidated': False,
+                'urlpath': 'reference::' + os.path.join(self.jsondir,self.tgt_json+'.json')
+            }
+        }
+        if self.verbose:
+            print("Block to be added to catalog file:")
+            print(myblock)
+        
+        # Check if catalog file exists
+        if os.path.exists(catalogfile):
+            mydict = load_yaml(catalogfile)
+            mydict['sources'][self.source] = myblock
+        else:
+            # default dict for zarr
+            mydict= {'plugins': {'source': [{'module': 'intake_xarray'}, {'module': 'gribscan'}]}}
+            mydict['sources'] = {}
+            mydict['sources'][self.source] = myblock
+        
+        # Write catalog file
+        with open(catalogfile, 'w') as f:
+            yaml.dump(mydict, f, sort_keys=True)
     
     # def _create_json(self):
     #     """
@@ -130,6 +178,7 @@ class Gribber():
         print("  nprocs: number of processors (default: 4)")
         print("  verbose: print help message (default: True)")
         print("  dir: dictionary with directories (default: see below)")
+        print("  datadir: data directory (default: /scratch/b/b382289/tco1279-orca025/nemo_deep/ICMGGc2)")
         print("  tmpdir: temporary directory (default: /scratch/b/b382289/gribscan)")
         print("  jsondir: JSON directory (default: /work/bb1153/b382289/gribscan-json)")
         print("  catalogdir: catalog directory (default: /work/bb1153/b382289/AQUA/config/levante/catalog)")
