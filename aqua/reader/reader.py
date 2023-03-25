@@ -864,42 +864,14 @@ class Reader():
         month_jump = fix.get("month_jump", False)  # if to correct for a monthly accumulation jump
 
         fixd = {}
-
+        varlist = {}
         vars = fix.get("vars", None)
         if vars:
             for var in vars:
                 units = None
                 attributes = {}
+                varname = var
 
-                source = vars[var].get("source", None)
-                # This is a renamed variable. This will be done at the end.
-                if source:
-                    if source not in data.variables:
-                        continue
-                    fixd.update({f"{source}": f"{var}"})
-                    log_history(data[source], f"variable renamed by AQUA fixer")
-                
-                formula = vars[var].get("derived", None)
-                # This is a derived variable, let's compute it and create the new variable
-                if formula:
-                    try:
-                        data[var] = _eval_formula(formula, data)
-                        source = var
-                        attributes.update({"derived": formula})
-                        if self.verbose:
-                            print(f"Derived {var} from {formula}")
-                        log_history(data[var], f"variable derived by AQUA fixer")
-                    except KeyError:
-                        # The variable could not be computed, let's skip it
-                        continue
-
-                # Decumulate if required
-                if vars[var].get("decumulate", None):
-                    keep_first= vars[var].get("keep_first", True)
-                    data[source] = self.simple_decumulate(data[source],
-                                                       month_jump=month_jump,
-                                                       keep_first=keep_first)
-             
                 grib = vars[var].get("grib", None)
                 # This is a grib variable, use eccodes to find attributes
                 if grib:
@@ -907,13 +879,38 @@ class Reader():
                     attributes.update(get_eccodes_attr(var))
                     sn = attributes.get("shortName", None) 
                     if (sn != '~') and (var != sn):
-                        fixd.update({f"{var}": sn})
+                        varname = sn
                     if self.verbose:
-                        print(f"Grib attributes for {var}: {attributes}")
+                        print(f"Grib attributes for {varname}: {attributes}")
+
+                varlist[var] = varname
+
+                source = vars[var].get("source", None)
+                # This is a renamed variable. This will be done at the end.
+                if source:
+                    if source not in data.variables:
+                        continue
+                    fixd.update({f"{source}": f"{varname}"})
+                    log_history(data[source], f"variable renamed by AQUA fixer")
+                
+                formula = vars[var].get("derived", None)
+                # This is a derived variable, let's compute it and create the new variable
+                if formula:
+                    try:
+                        data[varname] = _eval_formula(formula, data)
+                        source = varname
+                        attributes.update({"derived": formula})
+                        if self.verbose:
+                            print(f"Derived {var} from {formula}")
+                        log_history(data[source], f"variable derived by AQUA fixer")
+                    except KeyError:
+                        # The variable could not be computed, let's skip it
+                        continue
     
                 # Get extra attributes if any
                 attributes.update(vars[var].get("attributes", {}))
 
+                # update attributes
                 if attributes:
                     for att, value in attributes.items():
                         # Already adjust all attributes but not yet units
@@ -941,6 +938,16 @@ class Reader():
 
         # Only now rename everything
         data = data.rename(fixd)
+
+        for var in vars:
+            # Decumulate if required
+            if vars[var].get("decumulate", None):
+                varname = varlist[var]
+                keep_first= vars[var].get("keep_first", True)
+                data[varname] = self.simple_decumulate(data[varname],
+                                                       month_jump=month_jump,
+                                                       keep_first=keep_first)
+                log_history(data[varname], "variable decumulated by AQUA fixer")
 
         if apply_unit_fix:
             for var in data.variables:
