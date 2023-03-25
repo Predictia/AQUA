@@ -94,3 +94,6 @@ if __name__ == '__main__':
                         dir={'datadir': datadir, 'tmpdir': tmpdir,
                              'jsondir': jsondir, 'catalogdir': catalogdir},
                         verbose=verbose, replace=replace)
+    
+    # Create .catalog entry
+    gribber.create_entry()

@@ -42,11 +42,32 @@ class Gribber():
             Verbose mode, by default False
         replace : bool, optional
             Replace JSON file and indices if they exist, by default False
+        
+        Methods
+        -------
+        create_entry()
+            Create catalog entry.
+        
+        _create_folders()
+            Create folders.
+        
+        _create_symlinks()
+            Create symlinks to GRIB files.
+        
+        _create_indices()
+            Create indices for GRIB files.
+        
+        _create_json()
+            Create JSON file.
+        
+        _create_catalog_entry()
+            Create catalog entry.
+        
+        help()
+            Print help.
         """
         self.verbose = verbose
         self.replace = replace
-        if self.verbose:
-            self.help()
 
         self.model = model
         self.exp = exp
@@ -60,31 +81,137 @@ class Gribber():
         self.jsondir = os.path.join(self.dir['jsondir'], self.exp)
         self.catalogdir = self.dir['catalogdir']
 
-        self._create_folders()
+        if self.verbose:
+            print(f"Data directory: {self.datadir}")
+            print(f"JSON directory: {self.jsondir}")
+            print(f"Catalog directory: {self.catalogdir}")
         
         # Get gribtype and tgt_json from source
         self.gribtype = self.source.split('_')[0]
         self.tgt_json = self.source.split('_')[1]
+        self.indices = None
         
         # Get gribfiles wildcard from gribtype
         self.gribfiles = self.gribtype + '????+*'
         if self.verbose:
-            print("Gribfile wildcard: {self.gribfiles}")
+            print(f"Gribfile wildcard: {self.gribfiles}")
+
+        # Get catalog filename
+        self.catalogfile = os.path.join(self.catalogdir,
+                                        self.model,self.exp+'.yaml')
+        if self.verbose:
+            print(f"Catalog file: {self.catalogfile}")
+
+        # Get JSON filename
+        self.jsonfile = os.path.join(self.jsondir, self.tgt_json+'.json')
+        if self.verbose:
+            print(f"JSON file: {self.jsonfile}")
+
+        self.flag = [False, False, False]
+        self._check_steps()
+    
+    def create_entry(self):
+        """
+        Create catalog entry.
+        """
+        # Create folders
+        self._create_folders()
 
         # Create symlinks to GRIB files
         self._create_symlinks()
 
         # Create indices for GRIB files
-        self.indices = None
-        self._create_indices()
-        if self.verbose:
-            print(self.indices)
-
+        if self.flag[0]:
+            self._create_indices()
+        
         # Create JSON file
-        self._create_json()
+        if self.flag[1]:
+            self._create_json()
 
         # Create catalog entry
         self._create_catalog_entry()
+
+    def _check_steps(self):
+        """
+        Check if indices and JSON file have to be created.
+        Check if catalog file exists.
+        """
+        # Check if indices have to be created
+        # True if indices have to be created, 
+        # False otherwise
+        self.flag[0] = self._check_indices()
+
+        # Check if JSON file has to be created
+        # True if JSON file has to be created,
+        # False otherwise
+        self.flag[1] = self._check_json()
+
+        # Check if catalog file exists
+        # True if catalog file exists,
+        # False otherwise
+        self.flag[2] = self._check_catalog()
+
+    def _check_indices(self):
+        """
+        Check if indices already exist.
+
+        Returns:
+            bool: True if indices have to be created, False otherwise.
+        """
+        if self.verbose:
+            print("Checking if indices already exist...")
+        if len(glob(os.path.join(self.tmpdir, '*.index'))) > 0:
+            if self.replace:
+                if self.verbose:
+                    print("Indices already exist. Removing them...")
+                for file in glob(os.path.join(self.tmpdir, '*.index')):
+                    os.remove(file)
+                return True
+            else:
+                if self.verbose:
+                    print("Indices already exist.")
+                return False
+        else: # Indices do not exist
+            return True
+    
+    def _check_json(self):
+        """
+        Check if JSON file already exists.
+
+        Returns:
+            bool: True if JSON file has to be created, False otherwise.
+        """
+        if self.verbose:
+            print("Checking if JSON file already exists...")
+        if os.path.exists(self.jsonfile):
+            if self.replace:
+                if self.verbose:
+                    print("JSON file already exists. Removing it...")
+                os.remove(self.jsonfile)
+                return True
+            else:
+                if self.verbose:
+                    print("JSON file already exists.")
+                return False
+        else: # JSON file does not exist
+            return True
+
+    def _check_catalog(self):
+        """
+        Check if catalog entry already exists.
+
+        Returns:
+            bool: True if catalog file exists, False otherwise.
+        """
+        if self.verbose:
+            print("Checking if catalog file already exists...")
+        if os.path.exists(self.catalogfile):
+            if self.verbose:
+                print(f"Catalog file {self.catalogfile} already exists.")
+        else: # Catalog file does not exist
+            if self.verbose:
+                print(f"Catalog file {self.catalogfile} does not exist and will be generated.")
+            return False
 
     def _create_folders(self):
         """
@@ -118,40 +245,17 @@ class Gribber():
         """
         if self.verbose:
             print("Creating GRIB indices...")
-        
-        # check if indices already exist
-        if len(glob(os.path.join(self.tmpdir, '*.index'))) > 0:
-            if self.replace:
-                if self.verbose:
-                    print("Indices already exist. Removing them...")
-                for file in glob(os.path.join(self.tmpdir, '*.index')):
-                    os.remove(file)
-            else:
-                if self.verbose:
-                    print("Indices already exist. Skipping...")
-                return
 
         # to be improved without using subprocess
         cmd = ['gribscan-index', '-n', str(self.nprocs)] + glob(os.path.join(self.tmpdir, self.gribfiles))
         self.indices = subprocess.run(cmd)
+        if self.verbose:
+                print(self.indices)
 
     def _create_json(self):
         if self.verbose:
             print("Creating JSON file...")
         
-        jsonfile = os.path.join(self.jsondir, self.tgt_json+'.json')
-        if self.verbose:
-            print(f"JSON file: {jsonfile}")
-        if os.path.exists(jsonfile):
-            if self.replace:
-                if self.verbose:
-                    print(f"JSON file {jsonfile} already exists. Removing it...")
-                os.remove(jsonfile)
-            else:
-                if self.verbose:
-                    print(f"JSON file {jsonfile} already exists. Skipping...")
-                return
-
         # to be improved without using subprocess
         cmd = ['gribscan-build', '-o', self.jsondir, '--magician', 'ifs', 
             '--prefix', self.datadir + '/'] + glob(os.path.join(self.tmpdir, '*index'))
@@ -161,9 +265,6 @@ class Gribber():
         """
         Create or update catalog file
         """
-        catalogfile = os.path.join(self.catalogdir,self.model,self.exp+'.yaml')
-        if self.verbose:
-            print(f"Catalog file: {catalogfile}")
         
         # Generate the block to be added to the catalog file
         myblock = {
@@ -177,11 +278,10 @@ class Gribber():
             print("Block to be added to catalog file:")
             print(myblock)
         
-        # Check if catalog file exists
-        if os.path.exists(catalogfile):
-            mydict = load_yaml(catalogfile)
+        if self.flag[2]: # Catalog file exists
+            mydict = load_yaml(self.catalogfile)
             mydict['sources'][self.source] = myblock
-        else:
+        else: # Catalog file does not exist
             # default dict for zarr
             mydict= {'plugins': {'source': [{'module': 'intake_xarray'}, {'module': 'gribscan'}]}}
             mydict['sources'] = {}
@@ -191,15 +291,15 @@ class Gribber():
         if self.source in mydict['sources'].keys():
             if self.replace:
                 if self.verbose:
-                    print(f"Source {self.source} already exists in {catalogfile}. Replacing it...")
+                    print(f"Source {self.source} already exists in {self.catalogfile}. Replacing it...")
                 mydict['sources'][self.source] = myblock
             else:
                 if self.verbose:
-                    print(f"Source {self.source} already exists in {catalogfile}. Skipping...")
+                    print(f"Source {self.source} already exists in {self.catalogfile}. Skipping...")
                 return
 
         # Write catalog file
-        with open(catalogfile, 'w') as f:
+        with open(self.catalogfile, 'w') as f:
             yaml.dump(mydict, f, sort_keys=False)
     
     def help(self):
