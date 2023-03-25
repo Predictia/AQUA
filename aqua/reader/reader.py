@@ -906,6 +906,12 @@ class Reader():
                         else:
                             data[source].attrs[att] = value
 
+                # Override destination units
+                newunits = vars[var].get("units", None)
+                if newunits:
+                    data[source].attrs.update({"units": newunits})
+                    units = newunits
+
                 # Override source units
                 src_units = vars[var].get("src_units", None)
                 if src_units:
@@ -915,13 +921,14 @@ class Reader():
                 if units:
                     if units.count('{'):
                         units = fixes["defaults"]["units"][units.replace('{', '').replace('}', '')]
-                    data[source].attrs.update({"target_units": units})
                     if self.verbose: print(var, ':', data[source].units, '-->', units)
                     factor, offset = self.convert_units(data[source].units, units, var)
-                    data[source].attrs.update({"factor": factor})
-                    data[source].attrs.update({"offset": offset})
-                    if self.verbose:
-                        print(f"Fixing {source} to {var}. Unit fix: factor={factor}, offset={offset}")
+                    if (factor != 1.0) or (offset != 0):
+                        data[source].attrs.update({"target_units": units})
+                        data[source].attrs.update({"factor": factor})
+                        data[source].attrs.update({"offset": offset})
+                        if self.verbose:
+                            print(f"Fixing {source} to {var}. Unit fix: factor={factor}, offset={offset}")
 
         # Only now rename everything
         data = data.rename(fixd)

@@ -118,8 +118,7 @@ models:
                         source: sic
                         src_units: "1"
                         grib: true
-                        attributes:
-                            units: "1"
+                        units: "1"
                     sithick:
                         source: sit
                         grib: true
@@ -181,8 +180,7 @@ models:
                         derived: temp
                         src_units: degC
                         grib: true
-                        attributes:
-                            units: degC # Override units from grib tables
+                        units: degC # Override units from grib tables
 
     MSWEP:
         default:
