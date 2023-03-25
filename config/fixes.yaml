@@ -15,7 +15,7 @@ models:
         default:
             ICMGG_atm2d:
                 deltat: 3600
-                month_jump: true
+                jump: month
                 vars:
                     tprate:
                         source: tp

@@ -605,13 +605,14 @@ class Reader():
         else:
             return False
 
-    def simple_decumulate(self, data, month_jump=False, keep_first=True):
+    def simple_decumulate(self, data, jump=None, keep_first=True):
         """
         Remove cumulative effect on IFS fluxes.
 
         Args:
             data (xr.DataArray):     field to be processed
-            fix_month (bool):        if to attempt to fix monthly jumps (a very specific NextGEMS IFS issue)
+            jump (str):              used to fix periodic jumps (a very specific NextGEMS IFS issue)
+                                     Examples: jump='month' (the NextGEMS case), jump='day')
             keep_first (bool):       if to keep the first value as it is (True) or place a 0 (False)
 
         Returns:
@@ -629,9 +630,9 @@ class Reader():
 
         deltas = xr.concat([zeros, deltas], dim='time').transpose('time', ...)
 
-        if month_jump:
+        if jump:
             # universal mask based on the change of month (shifted by one timestep)
-            mask = ~(data['time.month'] != data['time.month'].shift(time=1))
+            mask = ~(data[f'time.{jump}'] != data[f'time.{jump}'].shift(time=1))
             mask = mask.shift(time=1, fill_value=False)
 
             # kaboom: exploit where
@@ -848,7 +849,7 @@ class Reader():
                 return data
 
         self.deltat = fix.get("deltat", 1.0)
-        month_jump = fix.get("month_jump", False)  # if to correct for a monthly accumulation jump
+        jump = fix.get("jump", None)  # if to correct for a monthly accumulation jump
 
         fixd = {}
         varlist = {}
@@ -939,7 +940,7 @@ class Reader():
                 varname = varlist[var]
                 keep_first = vars[var].get("keep_first", True)
                 data[varname] = self.simple_decumulate(data[varname],
-                                                       month_jump=month_jump,
+                                                       jump=jump,
                                                        keep_first=keep_first)
                 log_history(data[varname], "variable decumulated by AQUA fixer")
 
