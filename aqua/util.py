@@ -54,8 +54,6 @@ def get_config_dir():
     return configdir
 
 
-# this is a tool to parse a CDO-based formula into mathematical operatos
-# there might exists something more intelligent such as the pyparsing package
 def _eval_formula(mystring, xdataset):
     """Evaluate the cmd string provided by the yaml file
     producing a parsing for the derived variables"""
@@ -63,8 +61,12 @@ def _eval_formula(mystring, xdataset):
     # Tokenize the original string
     token = [i for i in re.split('([^\\w.]+)', mystring) if i]
     if len(token) > 1:
-        # Use order of operations
-        out = _operation(token, xdataset)
+        # Special case, start with -
+        if token[0] == '-':
+            out = -xdataset[token[1]]
+        else:
+            # Use order of operations
+            out = _operation(token, xdataset)
     else:
         out = xdataset[token[0]]
     return out

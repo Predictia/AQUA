@@ -1005,8 +1005,8 @@ class Reader():
             factor, offset (float): a factor and an offset to convert the input data (None if not needed).
         """
 
-        src = self.normalize_units(src)
-        dst = self.normalize_units(dst)
+        src = normalize_units(src)
+        dst = normalize_units(dst)
         factor = units(src).to_base_units() / units(dst).to_base_units()
 
         if factor.units == units('dimensionless'):
@@ -1053,7 +1053,7 @@ class Reader():
         if target_units:
             d = {"src_units": data.attrs["units"], "units_fixed": 1}
             data.attrs.update(d)
-            data.attrs["units"] = self.normalize_units(target_units)
+            data.attrs["units"] = normalize_units(target_units)
             factor = data.attrs.get("factor", 1)
             offset = data.attrs.get("offset", 0)
             if factor != 1:
@@ -1063,12 +1063,12 @@ class Reader():
             log_history(data, "units changed by AQUA fixer")
 
 
-    def normalize_units(self, src):
-        """Get rid of crazy grib units"""
-        if src == '1':
-            return 'dimensionless'
-        else:
-            return str(src).replace("of", "").replace("water", "").replace("equivalent", "")
+def normalize_units(src):
+    """Get rid of crazy grib units"""
+    if src == '1':
+        return 'dimensionless'
+    else:
+        return str(src).replace("of", "").replace("water", "").replace("equivalent", "")
             
             
 def _check_catalog_source(cat, model, exp, source, name="dictionary"):

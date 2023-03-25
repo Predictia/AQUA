@@ -139,10 +139,10 @@ models:
                         source: cllvi
                         grib: true
                     mslhfl:
-                        derived: 0-hfls
+                        source: hfls
                         grib: true
                     msshfl:
-                        derived: 0-hfss
+                        source: hfss
                         grib: true
                     tprate:
                         source: pr
@@ -160,7 +160,7 @@ models:
                         derived: rlds-rlus
                         grib: true
                     mtntrf:
-                        derived: 0-rlut
+                        derived: -rlut
                         grib: true
                     msdsrf:
                         source: rsds
