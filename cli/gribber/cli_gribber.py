@@ -10,7 +10,7 @@ import argparse
 import os
 import sys
 from aqua.gribber import Gribber
-from aqua.util import load_yaml
+from aqua.util import load_yaml, get_arg
 
 def parse_arguments(args):
     """
@@ -42,16 +42,6 @@ def parse_arguments(args):
                         help='Replace JSON file and indices if they exist')
     
     return parser.parse_args(args)
-
-def get_arg(args, arg, default):
-    """
-    Support function to get arguments
-    """
-
-    res = getattr(args, arg)
-    if not res:
-        res = default
-    return res
 
 if __name__ == '__main__':
     """
@@ -85,7 +75,7 @@ if __name__ == '__main__':
     model = get_arg(args, 'model', 'IFS')
     exp = get_arg(args, 'exp', 'tco1279-orca025')
     source = get_arg(args, 'source', 'ICMGG_atm2d')
-    nprocs = get_arg(args, 'nprocs', 4)
+    nprocs = get_arg(args, 'nprocs', 1)
     verbose = get_arg(args, 'verbose', False)
     replace = get_arg(args, 'replace', False)
 

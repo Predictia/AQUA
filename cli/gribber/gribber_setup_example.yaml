@@ -1,0 +1,5 @@
+# Directories for gribber
+datadir: '/scratch/b/b382289/tco1279-orca025/nemo_deep/ICMGGc2'
+tmpdir: '/scratch/b/b382289/gribscan'
+jsondir: '/work/bb1153/b382289/gribscan-json'
+catalogdir: '/work/bb1153/b382289/AQUA/config/levante/catalog'

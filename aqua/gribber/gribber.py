@@ -1,8 +1,17 @@
 import yaml
 import os
 import subprocess
-from aqua.util import load_yaml
+from aqua.util import load_yaml, create_folder
 from glob import glob
+
+default_dir = {'datadir': '/scratch/b/b382289/tco1279-orca025/nemo_deep/ICMGGc2',
+               'tmpdir': '/scratch/b/b382289/gribscan',
+               'jsondir': '/work/bb1153/b382289/gribscan-json',
+               'catalogdir': '/work/bb1153/b382289/AQUA/config/levante/catalog'}
+
+default_exp = {'model': 'IFS',
+               'exp': 'tco1279-orca025',
+               'source': 'ICMGG_atm2d'}
 
 class Gribber():
     """
@@ -10,12 +19,12 @@ class Gribber():
     """
 
     def __init__(self,
-                 model='IFS',exp='tco1279-orca025',source='ICMGG_atm2d',
-                 nprocs=4,
-                 dir = {'datadir': '/scratch/b/b382289/tco1279-orca025/nemo_deep/ICMGGc2',
-                        'tmpdir': '/scratch/b/b382289/gribscan',
-                        'jsondir': '/work/bb1153/b382289/gribscan-json',
-                        'catalogdir': '/work/bb1153/b382289/AQUA/config/levante/catalog'},
+                 model=None,exp=None,source=None,
+                 nprocs=1,
+                 dir = {'datadir': None,
+                        'tmpdir': None,
+                        'jsondir': None,
+                        'catalogdir': None},
                  verbose=False,
                  replace=False
                 ) -> None:
@@ -24,20 +33,16 @@ class Gribber():
 
         Parameters
         ----------
-        model : str, optional
-            Model name, by default 'IFS'
-        exp : str, optional
-            Experiment name, by default 'tco1279-orca025'
-        source : str, optional
-            Source name, by default 'ICMGG_atm2d'
+        model : str
+            Model name
+        exp : str
+            Experiment name
+        source : str
+            Source name
         nprocs : int, optional
-            Number of processors, by default 4
+            Number of processors, by default 1
         dir : dict, optional
-            Dictionary with directories, by default 
-            {'datadir': '/scratch/b/b382289/tco1279-orca025/nemo_deep/ICMGGc2',
-             'tmpdir': '/scratch/b/b382289/gribscan',
-             'jsondir': '/work/bb1153/b382289/gribscan-json',
-             'catalogdir': '/work/bb1153/b382289/AQUA/config/levante/catalog'}
+            Dictionary with directories
         verbose : bool, optional
             Verbose mode, by default False
         replace : bool, optional
@@ -47,9 +52,21 @@ class Gribber():
         -------
         create_entry()
             Create catalog entry.
+
+        _check_steps()
+            Check which steps have to be performed.
+
+        _check_dir()
+            Check if directories exist.
         
-        _create_folders()
-            Create folders.
+        _check_indices()
+            Check if indices exist.
+        
+        _check_json()
+            Check if JSON file exists.
+        
+        _check_catalog()
+            Check if catalog file exists.
         
         _create_symlinks()
             Create symlinks to GRIB files.
@@ -69,13 +86,27 @@ class Gribber():
         self.verbose = verbose
         self.replace = replace
 
-        self.model = model
-        self.exp = exp
-        self.source = source
-        self.nprocs = nprocs
-        self.dir = dir
+        if model:
+            self.model = model
+        else:
+            raise Exception('Please specify model.')
 
-        # Create folders from dir dictionary
+        if exp:
+            self.exp = exp
+        else:
+            raise Exception('Please specify experiment.')
+        
+        if source:
+            self.source = source
+        else:
+            raise Exception('Please specify source.')
+        
+        self.nprocs = nprocs
+
+        # Create folders from dir dictionary, default outside of class
+        self.dir = dir
+        self._check_dir()
+        
         self.datadir = self.dir['datadir']
         self.tmpdir = os.path.join(self.dir['tmpdir'], self.exp)
         self.jsondir = os.path.join(self.dir['jsondir'], self.exp)
@@ -115,7 +146,8 @@ class Gribber():
         Create catalog entry.
         """
         # Create folders
-        self._create_folders()
+        for item in [self.tmpdir, self.jsondir]:
+            create_folder(item,verbose=self.verbose)
 
         # Create symlinks to GRIB files
         self._create_symlinks()
@@ -135,6 +167,10 @@ class Gribber():
         """
         Check if indices and JSON file have to be created.
         Check if catalog file exists.
+
+        Updates:
+            flag: list
+                List with flags for indices, JSON file and catalog file.
         """
         # Check if indices have to be created
         # True if indices have to be created, 
@@ -150,6 +186,18 @@ class Gribber():
         # True if catalog file exists,
         # False otherwise
         self.flag[2] = self._check_catalog()
+
+    def _check_dir(self):
+        """
+        Check if dir dictionary contains None values.
+        If None values are found, replace them with default values.
+        """
+        for key in self.dir:
+            if self.dir[key] is None:
+                if self.verbose:
+                    print(f"Directory {key} is None. Using default directory:")
+                    print(default_dir[key])
+                self.dir[key] = default_dir[key]
 
     def _check_indices(self):
         """
@@ -212,15 +260,6 @@ class Gribber():
             if self.verbose:
                 print(f"Catalog file {self.catalogfile} does not exist and will be generated.")
             return False
-
-    def _create_folders(self):
-        """
-        Create folders.
-        """
-        for item in [self.tmpdir, self.jsondir]:
-            if self.verbose:
-                print(f"Creating {item}...")
-            os.makedirs(item, exist_ok=True)
 
     def _create_symlinks(self):
         """
@@ -307,14 +346,14 @@ class Gribber():
         Print help message.
         """
         print("Gribber class:")
-        print("  model: model name (default: IFS)")
-        print("  exp: experiment name (default: tco1279-orca025)")
-        print("  source: source name (default: ICMGG_atm2d)")
-        print("  nprocs: number of processors (default: 4)")
+        print("  model: model name")
+        print("  exp: experiment name")
+        print("  source: source name")
+        print("  nprocs: number of processors (default: 1)")
         print("  verbose: print help message (default: False)")
         print("  replace: replace existing files (default: False)")
-        print("  dir: dictionary with directories (default: see below)")
-        print("  datadir: data directory (default: /scratch/b/b382289/tco1279-orca025/nemo_deep/ICMGGc2)")
-        print("  tmpdir: temporary directory (default: /scratch/b/b382289/gribscan)")
-        print("  jsondir: JSON directory (default: /work/bb1153/b382289/gribscan-json)")
-        print("  catalogdir: catalog directory (default: /work/bb1153/b382289/AQUA/config/levante/catalog)")
+        print("  dir: dictionary with directories (default working on levante:)")
+        print("     datadir: data directory (default: 'scratch/b/b382289/tco1279-orca025/nemo_deep/ICMGGc2')")
+        print("     tmpdir: temporary directory (default: 'scratch/b/b382289/gribscan')")
+        print("     jsondir: JSON directory (default: 'work/bb1153/b382289/gribscan-json')")
+        print("     catalogdir: catalog directory (default: 'work/bb1153/b382289/AQUA/config/levante/catalog)")

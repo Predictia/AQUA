@@ -10,7 +10,7 @@ a configuration yaml file.
 import sys
 import argparse
 from aqua import Reader
-from aqua.util import load_yaml, generate_random_string
+from aqua.util import load_yaml, generate_random_string, get_arg
 import dask
 from dask.distributed import Client, LocalCluster, progress
 from dask.diagnostics import ProgressBar
@@ -155,14 +155,6 @@ def parse_arguments(args):
     parser.add_argument('-l', '--loglevel', type=str, help='overwrite existing output')
 
     return parser.parse_args(args)
-
-def get_arg(args, arg, default):
-    """Support function to get arguments"""
-
-    res = getattr(args, arg)
-    if not res:
-        res = default
-    return res
 
 # setting up dask
 if __name__ == "__main__":
