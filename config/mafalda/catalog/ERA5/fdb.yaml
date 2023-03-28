@@ -1,0 +1,33 @@
+sources:
+    monthly:
+        args:
+            request:
+                class: ea
+                date: '20000101'
+                domain: g
+                expver: '0001'
+                levtype: sfc
+                param: '167'
+                stream: moda
+                type: an
+            step: M
+        description: ''
+        driver: gsv
+        metadata: {step: 'M'}
+    daily:
+        args:
+            request:
+                class: ea
+                domain: g
+                type: an
+                stream: oper
+                date: '20000101'
+                time: [ '0000','0100','0200','0300','0400','0500','0600','0700','0800','0900','1000','1100','1200','1300','1400','1500','1600','1700','1800','1900','2000','2100','2200','2300']
+                levtype: sfc
+                step: '0'
+                param: '167'
+                expver: '0001'
+            step: D
+        description: ''
+        driver: gsv
+        metadata: {}

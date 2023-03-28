@@ -1,0 +1,6 @@
+sources:
+  ERA5:
+    description: test ERA5 data on fdb
+    driver: yaml_file_cat
+    args:
+        path: "{{CATALOG_DIR}}/catalog/ERA5/main.yaml"

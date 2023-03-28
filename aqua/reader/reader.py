@@ -10,6 +10,7 @@ from aqua.util import load_yaml, get_reader_filenames, get_config_dir, get_machi
 import sys
 import subprocess
 import tempfile
+import aqua.gsv
 
 class Reader():
     """General reader for NextGEMS data (on Levante for now)"""
@@ -326,8 +327,11 @@ class Reader():
             area_file.close()
 
 
-    def retrieve(self, regrid=False, timmean=False, decumulate=False, fix=True, apply_unit_fix=True,
-                 var=None, vars=None, streaming = False, stream_step = 1, stream_unit=None, stream_startdate = None, streaming_generator = False):
+    def retrieve(self, regrid=False, timmean=False, decumulate=False,
+                 fix=True, apply_unit_fix=True, var=None, vars=None, 
+                 streaming = False, stream_step = 1, stream_unit=None, 
+                 stream_startdate = None, streaming_generator = False,
+                 startdate=None, enddate=None):
         """
         Perform a data retrieve.
         
@@ -377,6 +381,16 @@ class Reader():
                                          progressbar=False
                                          )
             data = list(data.values())[0]
+        # If this is a fdb sorce pass variable as argument
+        elif isinstance(esmcat, aqua.gsv.intake_gsv.GSVSource):
+            # These are all needed in theory
+            if not startdate:
+                startdate='20000101'
+            if not enddate:
+                enddate=startdate
+            if not var:
+                var='167'
+            data = esmcat(startdate=startdate, enddate=enddate, var=var).to_dask()
         else:
             if var:
                 # conversion to list guarantee that Dataset is produced
