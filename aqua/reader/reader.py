@@ -922,7 +922,7 @@ class Reader():
                 if units:
                     if units.count('{'):
                         units = fixes["defaults"]["units"][units.replace('{', '').replace('}', '')]
-                    logging.info(var, ':', data[source].units, '-->', units)
+                    logging.info(f'{var}: {data[source].units} --> {units}')
                     factor, offset = self.convert_units(data[source].units, units, var)
                     if (factor != 1.0) or (offset != 0):
                         data[source].attrs.update({"target_units": units})
@@ -972,7 +972,7 @@ class Reader():
             The processed input dataset
         """
         fn = os.path.join(self.configdir, 'data_models', f'{src_datamodel}2{dst_datamodel}.json')
-        logging.info("Data model:", fn)
+        logging.info(f'Data model: {fn}')
         with open(fn, 'r') as f:
             dm = json.load(f)
         # this is needed since cf2cdm issues a (useless) UserWarning
