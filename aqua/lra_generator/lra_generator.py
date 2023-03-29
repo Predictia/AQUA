@@ -1,6 +1,10 @@
-from aqua.reader import Reader
-from aqua.util import load_yaml, create_folder
+import dask
 import os
+from aqua.reader import Reader
+from aqua.util import load_yaml, create_folder, generate_random_string
+from dask.distributed import Client, LocalCluster, progress
+from dask.diagnostics import ProgressBar
+from time import time
 
 class LRA_Generator():
     """
@@ -11,7 +15,7 @@ class LRA_Generator():
                  model=None, exp=None, source=None,
                  varlist=None, 
                  resolution=None, frequency=None,fix=True,
-                 outdir=None, nproc=1,
+                 outdir=None, tmpdir=None, nproc=1,
                  verbose=False, replace=False, dry=False):
         """
         Initialize the LRA_Generator class
@@ -25,6 +29,8 @@ class LRA_Generator():
             frequency (string):   The target frequency for averaging the LRA
             fix (bool, opt):      True to fix the data, default is True
             outdir (string):      Where the LRA is
+            tmpdir (string):      Where to store temporary files, default is None
+                                  Necessary for dask.distributed
             nproc (int, opt):     Number of processors to use. default is 1
             verbose (bool, opt):  True to print logging messages, default is False
             replace (bool, opt):  True to overwrite existing files in LRA, default is False
@@ -41,11 +47,17 @@ class LRA_Generator():
         if self.dry:
             if self.verbose:
                 print('IMPORTANT: no file will be created, this is a dry run')
+        
         self.nproc = nproc
+        self.tmpdir = tmpdir
         if self.nproc > 1:
             self.dask = True
             if self.verbose:
                 print(f'Running dask.distributed with {self.nproc} workers')
+            if not self.tmpdir:
+                raise Exception('Please specify tmpdir for dask.distributed.')
+            else: 
+                self.tmpdir = os.path.join(self.tmpdir, generate_random_string(10))
         else:
             self.dask = False
         
@@ -79,6 +91,13 @@ class LRA_Generator():
         if not self.frequency:
             if self.verbose:
                 print('Frequency not specified, streaming mode')
+
+        # option for time encoding, defined once for all
+        self.time_encoding = {
+            'units': 'days since 1970-01-01',
+            'calendar': 'standard',
+            'dtype': 'float64'
+            }
         
         self.fix = fix
         if self.verbose:
@@ -91,9 +110,8 @@ class LRA_Generator():
             self.outdir = os.path.join(outdir, self.exp, self.resolution)
         create_folder(self.outdir,verbose=self.verbose)
 
-        # Initialize the reader
-        self.retrieve_data()
-
+        # Initialize data to be retrieved
+        self.data = None
         
 
     def retrieve_data(self):
@@ -105,7 +123,7 @@ class LRA_Generator():
             print(f'I am going to produce LRA at {self.resolution} resolution and {self.frequency} frequency...')
 
         # Initialize the reader
-        self.reader = Reader(model=self.model, exp=self.exp, source=self.source,
+        self.reader = Reader(model=self.model, exp=self.exp, source=self.source,var=self.varlist,
                              regrid=self.resolution, freq=self.frequency, configdir="../../config")
         
         if self.verbose:
@@ -113,3 +131,122 @@ class LRA_Generator():
         self.data = self.reader.retrieve(fix=self.fix)
         if self.verbose:
             print(self.data)
+    
+    def generate_lra(self):
+        """
+        Generate LRA data
+        """
+        if self.verbose:
+            print('Generating LRA data...')
+        
+        for var in self.varlist:
+            self._write_var(var)
+
+        # Cleaning
+        self.data.close()
+        self._close_dask()
+        self._remove_tmpdir()
+
+        if self.verbose:
+            print(f'Finished generating LRA data for {self.model}-{self.exp}-{self.source} at {self.resolution} resolution and {self.frequency} frequency.')
+
+    def _set_dask(self):
+        """
+        Set up dask cluster
+        """
+        if self.dask: # self.nproc > 1
+            if self.verbose:
+                print(f'Setting up dask cluster with {self.nproc} workers')
+            dask.config.set({'temporary_directory': self.tmpdir})
+            if self.verbose:
+                print(f'Temporary directory: {self.tmpdir}')
+            self.cluster = LocalCluster(n_workers=self.nproc,threads_per_worker=1)
+            self.client = Client(self.cluster)
+        else:
+            self.client = None
+            dask.config.set(scheduler='synchronous')
+
+    def _close_dask(self):
+        """
+        Close dask cluster
+        """
+        if self.dask: # self.nproc > 1
+            self.client.shutdown()
+            self.cluster.close()
+            if self.verbose:
+                print('Dask cluster closed')
+
+    def _remove_tmpdir(self):
+        """
+        Remove temporary directory
+        """
+        if self.dask: # self.nproc > 1
+            if self.verbose:
+                print('Removing temporary directory')
+            os.removedirs(self.tmpdir)
+
+    def _write_var(self, var):
+        """
+        Write variable to file
+
+        Args:
+            var (str): variable name
+        """
+        t_beg = time()
+
+        if self.verbose:
+            print(f'Processing variable {var}...')
+        if self.frequency:
+            temp_data = self.reader.timmean(self.data[var])
+            temp_data = self.reader.regrid(temp_data)
+        else:
+            temp_data = self.reader.regrid(self.data[var])
+
+        # Splitting data into yearly files
+        years = set(temp_data.time.dt.year.values)
+        for year in years:
+            year_data = temp_data.sel(time=temp_data.time.dt.year==year)
+            if self.verbose:
+                print(f'Processing year {year}...')
+            # Splitting data into monthly files
+            months = set(year_data.time.dt.month.values)
+            for month in months:
+                if self.verbose:
+                    print(f'Processing month {month}...')
+                month_data = year_data.sel(time=year_data.time.dt.month==month)
+
+                if not self.dry:
+                    # Create output file
+                    outfile = os.path.join(self.outdir, 
+                                f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}{str(month).zfill(2)}.nc')
+                    if os.path.isfile(outfile) and not self.replace:
+                        print(f'File {outfile} already exists, skipping...')
+                    else: # File to be written
+                        if os.path.exists(outfile):
+                            os.remove(outfile)
+                            if self.verbose:
+                                print(f'File {outfile} already exists, overwriting...')
+                        if self.verbose:
+                            print(f'Writing file {outfile}...')
+
+                        # Write data to file, lazy evaluation
+                        write_job = month_data.to_netcdf(outfile, encoding={'time': self.time_encoding}, 
+                                                        compute=False)
+
+                        if self.dask:
+                            w = write_job.persist()
+                            progress(w)
+                            del w
+                        else:
+                            with ProgressBar():
+                                write_job.compute()
+                        
+                        del write_job
+                del month_data
+            del year_data
+        del temp_data
+
+        t_end = time()
+
+        if self.verbose:
+            print('Process took {:.4f} seconds'.format(t_end-t_beg))
