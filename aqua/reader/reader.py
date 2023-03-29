@@ -219,7 +219,7 @@ class Reader():
         grid_area.to_netcdf(areafile)
         logging.warning("Success!")
 
-    def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, regrid="", extra=[], zoom=None):
+    def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, regrid=None, extra=[], zoom=None):
         """Helper function to produce weights file"""
 
         sgridpath = source_grid.get("path", None)
@@ -859,7 +859,7 @@ class Reader():
         vars = fix.get("vars", None)
         if vars:
             for var in vars:
-                units = None
+                unit = None
                 attributes = {}
                 varname = var
 
@@ -904,7 +904,7 @@ class Reader():
                     for att, value in attributes.items():
                         # Already adjust all attributes but not yet units
                         if att == "units":
-                            units = value
+                            unit = value
                         else:
                             data[source].attrs[att] = value
 
@@ -912,7 +912,7 @@ class Reader():
                 newunits = vars[var].get("units", None)
                 if newunits:
                     data[source].attrs.update({"units": newunits})
-                    units = newunits
+                    unit = newunits
 
                 # Override source units
                 src_units = vars[var].get("src_units", None)
@@ -920,13 +920,13 @@ class Reader():
                     data[source].attrs.update({"units": src_units})
 
                 # adjust units
-                if units:
-                    if units.count('{'):
-                        units = fixes["defaults"]["units"][units.replace('{', '').replace('}', '')]
-                    logging.info("%s: %s --> %s", var, data[source].units, units)
-                    factor, offset = self.convert_units(data[source].units, units, var)
+                if unit:
+                    if unit.count('{'):
+                        unit = fixes["defaults"]["units"][unit.replace('{', '').replace('}', '')]
+                    logging.info("%s: %s --> %s", var, data[source].units, unit)
+                    factor, offset = self.convert_units(data[source].units, unit, var)
                     if (factor != 1.0) or (offset != 0):
-                        data[source].attrs.update({"target_units": units})
+                        data[source].attrs.update({"target_units": unit})
                         data[source].attrs.update({"factor": factor})
                         data[source].attrs.update({"offset": offset})
                         logging.info("Fixing %s to %s. Unit fix: factor=%f, offset=%f", source, var, factor, offset)
