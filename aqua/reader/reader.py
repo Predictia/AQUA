@@ -558,7 +558,7 @@ class Reader():
             out = data.resample(time=resample_freq).mean()
             proper_time = data.time.resample(time=resample_freq).mean()
             out['time'] = proper_time.values
-        except:
+        except ValueError:
             sys.exit('Cant find a frequency to resample, aborting!')
 
         # check for NaT
@@ -973,7 +973,7 @@ class Reader():
         """
         fn = os.path.join(self.configdir, 'data_models', f'{src_datamodel}2{dst_datamodel}.json')
         logging.info("Data model: %s", fn)
-        with open(fn, 'r') as f:
+        with open(fn, 'r', encoding="utf8") as f:
             dm = json.load(f)
         # this is needed since cf2cdm issues a (useless) UserWarning
         with warnings.catch_warnings():

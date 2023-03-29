@@ -10,13 +10,14 @@ import random
 import logging
 import datetime
 
+
 def log_configure(log_level='WARNING'):
 
     """Set up the logging level cleaning previous existing handlers
 
     Args:
         log_level: a string or an integer according to the logging module
-    
+
     Returns:
         str: the logger level as a string after checks and assignement has been done
     """
@@ -30,7 +31,7 @@ def log_configure(log_level='WARNING'):
     # check if makes sense the level assigned
     try:
         logging._checkLevel(log_level)
-    except:
+    except ValueError:
         logging.warning("Invalid logging level '%s' specified. Setting it back to default %s", log_level, log_level_default)
         log_level = log_level_default
 
@@ -55,10 +56,11 @@ def log_configure(log_level='WARNING'):
 
     return logging.getLevelName(current_level)
 
+
 def load_yaml(infile):
     """
     Load generic yaml file
-    
+
     Args:
         infile(str): a file path
 
@@ -74,11 +76,11 @@ def load_yaml(infile):
     return cfg
 
 
-def get_config_dir(): 
+def get_config_dir():
     """
-    Return the path to the configuration directory, 
+    Return the path to the configuration directory,
     searching in a list of pre-defined directories.
-    
+
      Args:
         None
      Returns:
@@ -138,7 +140,7 @@ def _operation(token, xdataset):
                 dct[k] = float(k)
             except ValueError:
                 dct[k] = xdataset[k]
-               
+
     # apply operators to all occurrences, from top priority
     # so far this is not parsing parenthesis
     code = 0
@@ -148,8 +150,8 @@ def _operation(token, xdataset):
             # print(token)
             x = token.index(p)
             name = 'op' + str(code)
-            #replacer = ops.get(p)(dct[token[x - 1]], dct[token[x + 1]])
-            # Using apply_ufunc in order not to 
+            # replacer = ops.get(p)(dct[token[x - 1]], dct[token[x + 1]])
+            # Using apply_ufunc in order not to
             replacer = xr.apply_ufunc(ops.get(p), dct[token[x - 1]], dct[token[x + 1]], keep_attrs=True, dask='parallelized')
             dct[name] = replacer
             token[x - 1] = name
@@ -157,11 +159,11 @@ def _operation(token, xdataset):
     return replacer
 
 
-def get_machine(configdir): 
+def get_machine(configdir):
 
     """
     Extract the name of the machine from the configuration file
-    
+
     Args:
         configdir(str): the configuration file directory
      Returns:
@@ -179,7 +181,7 @@ def get_machine(configdir):
 def get_reader_filenames(configdir, machine):
 
     """
-    Extract the filenames for the reader for catalog, regrid and fixer 
+    Extract the filenames for the reader for catalog, regrid and fixer
 
     Args:
         configdir(str): the configuration file directory
@@ -216,10 +218,10 @@ def read_eccodes_dic(filename):
     - A dictionary containing the contents of the ecCodes definition file.
     """
 
-    fn= os.path.join(eccodes.codes_definition_path(), 'grib2', filename)
-    with open(fn, "r") as f:
+    fn = os.path.join(eccodes.codes_definition_path(), 'grib2', filename)
+    with open(fn, "r", encoding='utf-8') as f:
         text = f.read()
-    text = text.replace(" =", ":").replace('{','').replace('}','').replace(';','').replace('\t', '    ')
+    text = text.replace(" =", ":").replace('{', '').replace('}', '').replace(';', '').replace('\t', '    ')
     return yaml.safe_load(text)
 
 
@@ -235,26 +237,26 @@ def read_eccodes_def(filename):
     """
 
     # ECMWF lists
-    fn= os.path.join(eccodes.codes_definition_path(), 'grib2',  'localConcepts', 'ecmf', filename)
-    list = []
-    with open(fn, "r") as f:
+    fn = os.path.join(eccodes.codes_definition_path(), 'grib2',  'localConcepts', 'ecmf', filename)
+    keylist = []
+    with open(fn, "r", encoding='utf-8') as f:
         for line in f:
-            line = line.replace(" =", "").replace('{','').replace('}','').replace(';','').replace('\t', '#    ')
+            line = line.replace(" =", "").replace('{', '').replace('}', '').replace(';', '').replace('\t', '#    ')
             if not line.startswith("#"):
-                list.append(line.strip().replace("'", ""))
+                keylist.append(line.strip().replace("'", ""))
 
-    list = list[:-1]
-    
+    keylist = keylist[:-1]
+
     # WMO lists
-    fn= os.path.join(eccodes.codes_definition_path(), 'grib2', filename)
-    with open(fn, "r") as f:
+    fn = os.path.join(eccodes.codes_definition_path(), 'grib2', filename)
+    with open(fn, "r", encoding='utf-8') as f:
         for line in f:
-            line = line.replace(" =", "").replace('{','').replace('}','').replace(';','').replace('\t', '#    ')
+            line = line.replace(" =", "").replace('{', '').replace('}', '').replace(';', '').replace('\t', '#    ')
             if not line.startswith("#"):
-                list.append(line.strip().replace("'", ""))
+                keylist.append(line.strip().replace("'", ""))
 
     # The last entry is no good
-    return list[:-1]
+    return keylist[:-1]
 
 
 # Define this as a closure to avoid reading twice the same file
@@ -266,10 +268,10 @@ def _init_get_eccodes_attr():
     cfvarname = read_eccodes_def("cfVarName.def")
     units = read_eccodes_def("units.def")
 
-    def get_eccodes_attr(sn):
+    def _get_eccodes_attr(sn):
         """
         Recover eccodes attributes for a given short name
-        
+
         Args:
             shortname(str): the shortname to search
         Returns:
@@ -278,21 +280,22 @@ def _init_get_eccodes_attr():
         nonlocal shortname, paramid, name, cfname, cfvarname, units
         try:
             if sn.startswith("var"):
-                i =  paramid.index(sn[3:])
+                i = paramid.index(sn[3:])
             else:
-                i =  shortname.index(sn)
-                
+                i = shortname.index(sn)
+
             dic = {"paramId": paramid[i],
-                "long_name": name[i],
-                "units": units[i],
-                "cfVarName": cfvarname[i],
-                "shortName": shortname[i]}
+                   "long_name": name[i],
+                   "units": units[i],
+                   "cfVarName": cfvarname[i],
+                   "shortName": shortname[i]}
             return dic
         except ValueError:
             print(f"Conversion Error: variable '{sn}' not found in ECMWF tables!")
             return
 
-    return get_eccodes_attr
+    return _get_eccodes_attr
+
 
 get_eccodes_attr = _init_get_eccodes_attr()
 
@@ -301,7 +304,7 @@ def generate_random_string(length):
     """
     Generate a random string of lowercase and uppercase letters and digits
     """
-   
+
     letters_and_digits = string.ascii_letters + string.digits
     random_string = ''.join(random.choice(letters_and_digits) for _ in range(length))
     return random_string
@@ -309,7 +312,7 @@ def generate_random_string(length):
 
 def log_history(data, msg):
     """Elementary provenance logger in the history attribute"""
-    
+
     now = datetime.datetime.now()
     date_now = now.strftime("%Y-%m-%d %H:%M:%S")
     hist = data.attrs.get("history", "") + f"{date_now} {msg};\n"
