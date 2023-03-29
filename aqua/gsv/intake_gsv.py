@@ -49,7 +49,7 @@ class GSVSource(base.DataSource):
         return ds
     
     def to_dask(self):
-        return self.read()
+        return self.read_chunked()
     
     # def _load(self):
     #     self._dataset = self._get_partition(0)
