@@ -4,15 +4,6 @@ import subprocess
 from aqua.util import load_yaml, create_folder
 from glob import glob
 
-default_dir = {'datadir': '/scratch/b/b382289/tco1279-orca025/nemo_deep/ICMGGc2',
-               'tmpdir': '/scratch/b/b382289/gribscan',
-               'jsondir': '/work/bb1153/b382289/gribscan-json',
-               'catalogdir': '/work/bb1153/b382289/AQUA/config/levante/catalog'}
-
-default_exp = {'model': 'IFS',
-               'exp': 'tco1279-orca025',
-               'source': 'ICMGG_atm2d'}
-
 class Gribber():
     """
     Class to generate a JSON file from a GRIB file.
@@ -194,10 +185,7 @@ class Gribber():
         """
         for key in self.dir:
             if self.dir[key] is None:
-                if self.verbose:
-                    print(f"Directory {key} is None. Using default directory:")
-                    print(default_dir[key])
-                self.dir[key] = default_dir[key]
+                raise Exception(f'Directory {key} is None: check your configuration file!')
 
     def _check_indices(self):
         """
