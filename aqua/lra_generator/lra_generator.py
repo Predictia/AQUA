@@ -114,7 +114,7 @@ class LRA_Generator():
         self.data = None
         
 
-    def retrieve_data(self):
+    def retrieve(self):
         """
         Retrieve data from the catalog
         """
