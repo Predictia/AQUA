@@ -417,9 +417,12 @@ class Reader():
         if fix:   # Do not change easily this order. The fixer assumes to be after regridding
             data = self.fixer(data, apply_unit_fix=apply_unit_fix)
         if streaming or self.streaming or streaming_generator:
-            if stream_step == 1: stream_step = self.stream_step
-            if not stream_unit: stream_unit = self.stream_unit
-            if not stream_startdate: stream_startdate = self.stream_startdate
+            if stream_step == 1:
+                stream_step = self.stream_step
+            if not stream_unit:
+                stream_unit = self.stream_unit
+            if not stream_startdate:
+                stream_startdate = self.stream_startdate
             if streaming_generator:
                 data = self.stream_generator(data, stream_step, stream_unit, stream_startdate)
             else:
@@ -569,7 +572,6 @@ class Reader():
         return out
 
     def _check_if_accumulated_auto(self, data):
-
         """To check if a DataArray is accumulated.
         Arbitrary check on the first 20 timesteps"""
 
@@ -586,7 +588,6 @@ class Reader():
         return condition
 
     def _check_if_accumulated(self, data):
-
         """To check if a DataArray is accumulated.
         On a list of variables defined by the GRIB names
 

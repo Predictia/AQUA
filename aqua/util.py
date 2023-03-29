@@ -12,7 +12,6 @@ import datetime
 
 
 def log_configure(log_level='WARNING'):
-
     """Set up the logging level cleaning previous existing handlers
 
     Args:
@@ -160,7 +159,6 @@ def _operation(token, xdataset):
 
 
 def get_machine(configdir):
-
     """
     Extract the name of the machine from the configuration file
 
@@ -179,7 +177,6 @@ def get_machine(configdir):
 
 
 def get_reader_filenames(configdir, machine):
-
     """
     Extract the filenames for the reader for catalog, regrid and fixer
 
