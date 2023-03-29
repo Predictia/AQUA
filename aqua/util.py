@@ -1,7 +1,6 @@
 import sys
 import yaml
 import os
-import sys
 import operator
 import re
 import eccodes
@@ -32,7 +31,7 @@ def log_configure(log_level='WARNING'):
     try:
         logging._checkLevel(log_level)
     except:
-        logging.warning(f"Invalid logging level '{log_level}' specified. Setting it back to default {log_level_default}")
+        logging.warning("Invalid logging level '%s' specified. Setting it back to default %s", log_level, log_level_default)
         log_level = log_level_default
 
     # clear the handlers of the possibly previously configured logger
