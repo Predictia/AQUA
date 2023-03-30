@@ -1,3 +1,5 @@
+"""The main AQUA Reader class"""
+
 import os
 import sys
 import subprocess
@@ -10,7 +12,7 @@ import intake
 import intake_esm
 import xarray as xr
 import pandas as pd
-from metpy.units import units
+from metpy.units import units, DimensionalityError
 import numpy as np
 import smmregrid as rg
 import cf2cdm
@@ -24,7 +26,7 @@ class Reader():
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
                  regrid=None, method="ycon", zoom=None, configdir=None,
-                 level=None, areas=True, var=None, vars=None,
+                 level=None, areas=True, var=None,
                  datamodel=None, streaming=False, stream_step=1, stream_unit=None,
                  stream_startdate=None, rebuild=False, loglevel=None):
         """
@@ -41,7 +43,7 @@ class Reader():
             configdir (str)      folder where the config/catalog files are located (config)
             level (int):         level to extract if input data are 3D (starting from 0)
             areas (bool):        compute pixel areas if needed (True)
-            var (str, list):     variable(s) which we will extract. "vars" is a synonym (None)
+            var (str, list):     variable(s) which we will extract (None)
             datamodel (str):     destination data model for coordinates, overrides the one in fixes.yaml (None)
             streaming (bool):       if to retreive data in a streaming mode (False)
             stream_step (int):      the number of time steps to stream the data by (Default = 1)
@@ -56,10 +58,7 @@ class Reader():
 
         loglevel = log_configure(loglevel)
 
-        if vars:
-            self.var = vars
-        else:
-            self.var = var
+        self.var = var
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
@@ -69,6 +68,7 @@ class Reader():
         self.freq = freq
         self.level = level
         self.vertcoord = None
+        self.deltat = 1
         extra = []
 
         self.grid_area = None
@@ -202,7 +202,7 @@ class Reader():
         else:
             temp_file = None
             if zoom:
-                sgridpath = sgridpath.format(zoom=(9-zoom))
+                sgridpath = sgridpath.format(zoom=9-zoom)
 
         logging.warning("Source areas file not found: %s", areafile)
         logging.warning("Attempting to generate it ...")
@@ -219,7 +219,7 @@ class Reader():
         grid_area.to_netcdf(areafile)
         logging.warning("Success!")
 
-    def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, regrid=None, extra=[], zoom=None):
+    def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, regrid=None, extra=None, zoom=None):
         """Helper function to produce weights file"""
 
         sgridpath = source_grid.get("path", None)
@@ -233,7 +233,7 @@ class Reader():
         else:
             temp_file = None
             if zoom:
-                sgridpath = sgridpath.format(zoom=(9-zoom))
+                sgridpath = sgridpath.format(zoom=9-zoom)
 
         logging.warning("Weights file not found: %s", weightsfile)
         logging.warning("Attempting to generate it ...")
@@ -246,6 +246,8 @@ class Reader():
                 src_extra = [src_extra]
         if extra:
             extra = [extra]
+        else:
+            extra = []
         extra = extra + src_extra
         weights = rg.cdo_generate_weights(source_grid=sgridpath,
                                           target_grid=cfg_regrid["target_grids"][regrid],
@@ -338,7 +340,7 @@ class Reader():
             area_file.close()
 
     def retrieve(self, regrid=False, timmean=False, decumulate=False,
-                 fix=True, apply_unit_fix=True, var=None, vars=None,
+                 fix=True, apply_unit_fix=True, var=None,
                  streaming=False, stream_step=1, stream_unit=None,
                  stream_startdate=None, streaming_generator=False):
         """
@@ -351,7 +353,7 @@ class Reader():
             fix (bool):             if to perform a fix (var name, units, coord name adjustments) (True)
             apply_unit_fix (bool):  if to already adjust units by multiplying by a factor or adding
                                     an offset (this can also be done later with the `apply_unit_fix` method) (True)
-            var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
+            var (str, list):  variable(s) which we will extract (None)
             streaming (bool):       if to retreive data in a streaming mode (False)
             streaming_generator (bool):  if to return a generator object for data streaming (False).
             stream_step (int):      the number of time steps to stream the data by (Default = 1)
@@ -368,8 +370,6 @@ class Reader():
         else:
             esmcat = self.cat[self.model][self.exp][self.source]
 
-        if vars:
-            var = vars
         if not var:
             var = self.var
 
@@ -706,7 +706,7 @@ class Reader():
         # usual case for radiative fluxes
         try:
             clean.attrs['units'] = str(new_units.to('W/m^2').units)
-        except:
+        except DimensionalityError:
             clean.attrs['units'] = str(new_units.units)
 
         # add an attribute that can be later used to infer about decumulation
@@ -856,14 +856,14 @@ class Reader():
 
         fixd = {}
         varlist = {}
-        vars = fix.get("vars", None)
-        if vars:
-            for var in vars:
+        variables = fix.get("vars", None)
+        if variables:
+            for var in variables:
                 unit = None
                 attributes = {}
                 varname = var
 
-                grib = vars[var].get("grib", None)
+                grib = variables[var].get("grib", None)
                 # This is a grib variable, use eccodes to find attributes
                 if grib:
                     # Get relevant eccodes attribues
@@ -875,7 +875,7 @@ class Reader():
 
                 varlist[var] = varname
 
-                source = vars[var].get("source", None)
+                source = variables[var].get("source", None)
                 # This is a renamed variable. This will be done at the end.
                 if source:
                     if source not in data.variables:
@@ -883,7 +883,7 @@ class Reader():
                     fixd.update({f"{source}": f"{varname}"})
                     log_history(data[source], "variable renamed by AQUA fixer")
 
-                formula = vars[var].get("derived", None)
+                formula = variables[var].get("derived", None)
                 # This is a derived variable, let's compute it and create the new variable
                 if formula:
                     try:
@@ -897,7 +897,7 @@ class Reader():
                         continue
 
                 # Get extra attributes if any
-                attributes.update(vars[var].get("attributes", {}))
+                attributes.update(variables[var].get("attributes", {}))
 
                 # update attributes
                 if attributes:
@@ -909,13 +909,13 @@ class Reader():
                             data[source].attrs[att] = value
 
                 # Override destination units
-                newunits = vars[var].get("units", None)
+                newunits = variables[var].get("units", None)
                 if newunits:
                     data[source].attrs.update({"units": newunits})
                     unit = newunits
 
                 # Override source units
-                src_units = vars[var].get("src_units", None)
+                src_units = variables[var].get("src_units", None)
                 if src_units:
                     data[source].attrs.update({"units": src_units})
 
@@ -934,15 +934,15 @@ class Reader():
         # Only now rename everything
         data = data.rename(fixd)
 
-        for var in vars:
+        for var in variables:
             # Decumulate if required
-            if vars[var].get("decumulate", None):
+            if variables[var].get("decumulate", None):
                 varname = varlist[var]
                 if varname in data.variables:
-                    keep_first = vars[var].get("keep_first", True)
+                    keep_first = variables[var].get("keep_first", True)
                     data[varname] = self.simple_decumulate(data[varname],
-                                                        jump=jump,
-                                                        keep_first=keep_first)
+                                                           jump=jump,
+                                                           keep_first=keep_first)
                     log_history(data[varname], "variable decumulated by AQUA fixer")
 
         if apply_unit_fix:

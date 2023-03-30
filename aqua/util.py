@@ -1,14 +1,16 @@
+"""Module containing general utility functions for AQUA"""
+
 import sys
-import yaml
 import os
-import operator
 import re
-import eccodes
-import xarray as xr
+import operator
 import string
 import random
 import logging
 import datetime
+import yaml
+import eccodes
+import xarray as xr
 
 
 def log_configure(log_level=None):
@@ -35,17 +37,16 @@ def log_configure(log_level=None):
         log_level = log_level_default
     # error!
     else:
-        raise Exception('Invalid log level type, must be a string or an integer!')
-
+        raise TypeError('Invalid log level type, must be a string or an integer!')
 
     # use conversion to integer to check if value exist, set None if unable to do it
     log_level_int = getattr(logging, log_level, None)
 
     # set up a default
     if log_level_int is None:
-        logging.warning("Invalid logging level '%s' specified. Setting it back to default %s", log_level, log_level_default)
+        logging.warning("Invalid logging level '%s' specified. Setting it back to default %s",
+                        log_level, log_level_default)
         log_level = log_level_default
-
 
     # clear the handlers of the possibly previously configured logger
     logger = logging.getLogger()
@@ -160,7 +161,8 @@ def _operation(token, xdataset):
             name = 'op' + str(code)
             # replacer = ops.get(p)(dct[token[x - 1]], dct[token[x + 1]])
             # Using apply_ufunc in order not to
-            replacer = xr.apply_ufunc(ops.get(p), dct[token[x - 1]], dct[token[x + 1]], keep_attrs=True, dask='parallelized')
+            replacer = xr.apply_ufunc(ops.get(p), dct[token[x - 1]], dct[token[x + 1]],
+                                      keep_attrs=True, dask='parallelized')
             dct[name] = replacer
             token[x - 1] = name
             del token[x:x + 2]
