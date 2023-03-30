@@ -54,7 +54,7 @@ class Reader():
             A `Reader` class object.
         """
 
-        loglevel = log_configure(loglevel=loglevel)
+        loglevel = log_configure(loglevel)
 
         if vars:
             self.var = vars
