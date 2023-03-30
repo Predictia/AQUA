@@ -27,10 +27,16 @@ def log_configure(log_level=None):
     # ensure that loglevel is uppercase if it is a string
     if isinstance(log_level, str):
         log_level = log_level.upper()
-    
     # convert to a string if is an integer
     elif isinstance(log_level, int):
         log_level = logging.getLevelName(log_level)
+    # if nobody assigned, set it to none
+    elif log_level is None:
+        log_level = log_level_default
+    # error!
+    else:
+        raise Exception('Invalid log level type, must be a string or an integer!')
+
 
     # use conversion to integer to check if value exist, set None if unable to do it
     log_level_int = getattr(logging, log_level, None)
