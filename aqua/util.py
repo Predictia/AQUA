@@ -11,7 +11,7 @@ import logging
 import datetime
 
 
-def log_configure(log_level='WARNING'):
+def log_configure(log_level=None):
     """Set up the logging level cleaning previous existing handlers
 
     Args:
@@ -21,27 +21,30 @@ def log_configure(log_level='WARNING'):
         str: the logger level as a string after checks and assignement has been done
     """
 
+    # this is the default loglevel for the AQUA framework
     log_level_default = 'WARNING'
 
-    # set up a default
-    if log_level is None:
-        log_level = log_level_default
+    # ensure that loglevel is uppercase if it is a string
+    if isinstance(log_level, str):
+        log_level = log_level.upper()
+    
+    # convert to a string if is an integer
+    elif isinstance(log_level, int):
+        log_level = logging.getLevelName(log_level)
 
-    # check if makes sense the level assigned
-    try:
-        logging._checkLevel(log_level)
-    except ValueError:
+    # use conversion to integer to check if value exist, set None if unable to do it
+    log_level_int = getattr(logging, log_level, None)
+
+    # set up a default
+    if log_level_int is None:
         logging.warning("Invalid logging level '%s' specified. Setting it back to default %s", log_level, log_level_default)
         log_level = log_level_default
+
 
     # clear the handlers of the possibly previously configured logger
     logger = logging.getLogger()
     for handler in logger.handlers[:]:
         logger.removeHandler(handler)
-
-    # ensure that loglevel is uppercase if it is a string
-    if isinstance(log_level, str):
-        log_level = log_level.upper()
 
     # Set up logging
     logging.basicConfig(

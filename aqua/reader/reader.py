@@ -26,7 +26,7 @@ class Reader():
                  regrid=None, method="ycon", zoom=None, configdir=None,
                  level=None, areas=True, var=None, vars=None,
                  datamodel=None, streaming=False, stream_step=1, stream_unit=None,
-                 stream_startdate=None, rebuild=False, loglevel="WARNING"):
+                 stream_startdate=None, rebuild=False, loglevel=None):
         """
         The Reader constructor.
         It uses the catalog `config/config.yaml` to identify the required data.
@@ -48,13 +48,13 @@ class Reader():
             stream_unit (str):      the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (None)
             stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
             rebuild (bool):         force rebuilding of area and weight files
-            loglevel (string):      Level of logging according to logging module
+            loglevel (string):      Level of logging according to logging module (default: log_level_default of loglevel())
 
         Returns:
             A `Reader` class object.
         """
 
-        loglevel = log_configure(loglevel)
+        loglevel = log_configure(loglevel=loglevel)
 
         if vars:
             self.var = vars
