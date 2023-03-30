@@ -9,6 +9,7 @@ import xarray as xr
 import string
 import random
 import datetime
+import types
 
 
 def load_yaml(infile):
@@ -263,6 +264,17 @@ def generate_random_string(length):
     return random_string
 
 
+def log_history_iter(data, msg):
+    """Elementary provenance logger in the history attribute also for iterators."""
+    if type(data) is types.GeneratorType:
+        for ds in data:
+            ds = log_history(ds, msg)
+            yield ds
+    else:
+        data = log_history(data, msg)
+        return data
+
+
 def log_history(data, msg):
     """Elementary provenance logger in the history attribute"""
     
@@ -270,3 +282,4 @@ def log_history(data, msg):
     date_now = now.strftime("%Y-%m-%d %H:%M:%S")
     hist = data.attrs.get("history", "") + f"{date_now} {msg};\n"
     data.attrs.update({"history": hist})
+    return data

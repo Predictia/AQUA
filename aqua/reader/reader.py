@@ -17,7 +17,7 @@ import smmregrid as rg
 import cf2cdm
 from aqua.util import load_yaml, _eval_formula, get_eccodes_attr
 from aqua.util import get_reader_filenames, get_config_dir, get_machine
-from aqua.util import log_history
+from aqua.util import log_history, log_history_iter
 import aqua.gsv
 
 
@@ -182,6 +182,8 @@ class Reader():
 
         # Make sure that grid areas contain exactly the same coordinates
         data = self.retrieve(fix=False)
+        if type(data) is types.GeneratorType:
+            data = next(data)  # this actually leaves the coroutine open
         data = self.regridder.regrid(data.isel(time=0))
         grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.dst_space_coord})
 
@@ -216,6 +218,8 @@ class Reader():
         # Make sure that the new DataArray uses the expected spatial dimensions
         grid_area = self._rename_dims(grid_area, self.src_space_coord)
         data = self.retrieve(fix=False)
+        if type(data) is types.GeneratorType:
+            data = next(data)  # this actually leaves the coroutine open
         grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.src_space_coord})
         grid_area.to_netcdf(areafile)
         print("Success!")
@@ -228,6 +232,8 @@ class Reader():
             # there is no source grid path at all defined in the regrid.yaml file:
             # let's reconstruct it from the file itself
             data = self.retrieve(fix=False)
+            if type(data) is types.GeneratorType:
+                data = next(data)  # this actually leaves the coroutine open
             temp_file = tempfile.NamedTemporaryFile(mode='w')
             sgridpath = temp_file.name
             data.isel(time=0).to_netcdf(sgridpath)
@@ -426,7 +432,7 @@ class Reader():
                 else:
                     data = self.stream(data, stream_step, stream_unit, stream_startdate)
 
-        log_history(data, "retrieved by AQUA fixer")
+        data = log_history_iter(data, "retrieved by AQUA fixer")
         return data
     
     def stream(self, data, stream_step = 1, stream_unit = None, stream_startdate = None):
@@ -512,6 +518,14 @@ class Reader():
                 start_index = stop_index
 
     def regrid(self, data):
+        """Call the regridder function returnin container or iterator"""
+        if type(data) is types.GeneratorType:
+            for ds in data:
+                yield self._regrid(ds)
+        else:
+            return self._regrid(data)
+
+    def _regrid(self, data):
         """
         Perform regridding of the input dataset.
 
@@ -528,7 +542,7 @@ class Reader():
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
 
-        log_history(out, "regridded by AQUA fixer")
+        out = log_history(out, "regridded by AQUA fixer")  # Call directly the dataset version, XXX
         return out
 
     def timmean(self, data, freq=None):
@@ -944,16 +958,16 @@ class Reader():
 
         # Only now rename everything
         data = data.rename(fixd)
-
-        for var in vars:
-            # Decumulate if required
-            if vars[var].get("decumulate", None):
-                varname = varlist[var]
-                keep_first = vars[var].get("keep_first", True)
-                data[varname] = self.simple_decumulate(data[varname],
-                                                       jump=jump,
-                                                       keep_first=keep_first)
-                log_history(data[varname], "variable decumulated by AQUA fixer")
+        if vars:
+            for var in vars:
+                # Decumulate if required
+                if vars[var].get("decumulate", None):
+                    varname = varlist[var]
+                    keep_first = vars[var].get("keep_first", True)
+                    data[varname] = self.simple_decumulate(data[varname],
+                                                        jump=jump,
+                                                        keep_first=keep_first)
+                    log_history(data[varname], "variable decumulated by AQUA fixer")
 
         if apply_unit_fix:
             for var in data.variables:
@@ -1103,6 +1117,8 @@ def _check_catalog_source(cat, model, exp, source, name="dictionary"):
     else:
         source = list(cat[model][exp].keys())[0]  # take first source if none provided
 
+    return source
+
 
 def reader_esm(esmcat, var):
     """Reads intake-esm entry. Returns a dataset."""
@@ -1144,3 +1160,4 @@ def reader_intake(esmcat, var):
     else:
         data = esmcat.to_dask()
     return data
+
