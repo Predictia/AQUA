@@ -1,8 +1,9 @@
-import yaml
 import os
 import subprocess
-from aqua.util import load_yaml, create_folder
 from glob import glob
+import yaml
+from aqua.util import load_yaml, create_folder, generate_random_string
+
 
 class Gribber():
     """
@@ -10,15 +11,15 @@ class Gribber():
     """
 
     def __init__(self,
-                 model=None,exp=None,source=None,
+                 model=None, exp=None, source=None,
                  nprocs=1,
-                 dir = {'datadir': None,
-                        'tmpdir': None,
-                        'jsondir': None,
-                        'catalogdir': None},
+                 dir={'datadir': None,
+                      'tmpdir': None,
+                      'jsondir': None,
+                      'catalogdir': None},
                  verbose=False,
                  overwrite=False
-                ) -> None:
+                 ) -> None:
         """
         Initialize class.
 
@@ -38,7 +39,7 @@ class Gribber():
             Verbose mode, by default False
         overwrite : bool, optional
             Overwrite JSON file and indices if they exist, by default False
-        
+
         Methods
         -------
         create_entry()
@@ -49,28 +50,28 @@ class Gribber():
 
         _check_dir()
             Check if directories exist.
-        
+
         _check_indices()
             Check if indices exist.
-        
+
         _check_json()
             Check if JSON file exists.
-        
+
         _check_catalog()
             Check if catalog file exists.
-        
+
         _create_symlinks()
             Create symlinks to GRIB files.
-        
+
         _create_indices()
             Create indices for GRIB files.
-        
+
         _create_json()
             Create JSON file.
-        
+
         _create_catalog_entry()
             Create catalog entry.
-        
+
         help()
             Print help.
         """
@@ -120,7 +121,7 @@ class Gribber():
 
         # Get catalog filename
         self.catalogfile = os.path.join(self.catalogdir,
-                                        self.model,self.exp+'.yaml')
+                                        self.model, self.exp+'.yaml')
         if self.verbose:
             print(f"Catalog file: {self.catalogfile}")
 
@@ -138,7 +139,7 @@ class Gribber():
         """
         # Create folders
         for item in [self.tmpdir, self.jsondir]:
-            create_folder(item,verbose=self.verbose)
+            create_folder(item, verbose=self.verbose)
 
         # Create symlinks to GRIB files
         self._create_symlinks()
@@ -185,7 +186,8 @@ class Gribber():
         """
         for key in self.dir:
             if self.dir[key] is None:
-                raise Exception(f'Directory {key} is None: check your configuration file!')
+                raise Exception(f'Directory {key} is None:\
+                                check your configuration file!')
 
     def _check_indices(self):
         """
@@ -207,7 +209,7 @@ class Gribber():
                 if self.verbose:
                     print("Indices already exist.")
                 return False
-        else: # Indices do not exist
+        else:  # Indices do not exist
             return True
     
     def _check_json(self):
@@ -229,7 +231,7 @@ class Gribber():
                 if self.verbose:
                     print("JSON file already exists.")
                 return False
-        else: # JSON file does not exist
+        else:  # JSON file does not exist
             return True
 
     def _check_catalog(self):
@@ -244,9 +246,10 @@ class Gribber():
         if os.path.exists(self.catalogfile):
             if self.verbose:
                 print(f"Catalog file {self.catalogfile} already exists.")
-        else: # Catalog file does not exist
+        else:  # Catalog file does not exist
             if self.verbose:
-                print(f"Catalog file {self.catalogfile} does not exist and will be generated.")
+                print(f"Catalog file {self.catalogfile} does not exist and\
+                      will be generated.")
             return False
 
     def _create_symlinks(self):
@@ -260,7 +263,8 @@ class Gribber():
         try:
             for file in glob(os.path.join(self.datadir, self.gribfiles)):
                 try: 
-                    os.symlink(file, os.path.join(self.tmpdir, os.path.basename(file)))
+                    os.symlink(file, os.path.join(self.tmpdir,
+                               os.path.basename(file)))
                 except FileExistsError:
                     print(f"File {file} already exists in {self.tmpdir}")
         except FileNotFoundError:
@@ -274,18 +278,20 @@ class Gribber():
             print("Creating GRIB indices...")
 
         # to be improved without using subprocess
-        cmd = ['gribscan-index', '-n', str(self.nprocs)] + glob(os.path.join(self.tmpdir, self.gribfiles))
+        cmd = ['gribscan-index', '-n', str(self.nprocs)] +\
+            glob(os.path.join(self.tmpdir, self.gribfiles))
         self.indices = subprocess.run(cmd)
         if self.verbose:
-                print(self.indices)
+            print(self.indices)
 
     def _create_json(self):
         if self.verbose:
             print("Creating JSON file...")
         
         # to be improved without using subprocess
-        cmd = ['gribscan-build', '-o', self.jsondir, '--magician', 'ifs', 
-            '--prefix', self.datadir + '/'] + glob(os.path.join(self.tmpdir, '*index'))
+        cmd = ['gribscan-build', '-o', self.jsondir, '--magician', 'ifs',
+              '--prefix', self.datadir + '/'] +\
+              glob(os.path.join(self.tmpdir, '*index'))
         json = subprocess.run(cmd)
     
     def _create_catalog_entry(self):
@@ -298,17 +304,18 @@ class Gribber():
             'driver': 'zarr',
             'args': {
                 'consolidated': False,
-                'urlpath': 'reference::' + os.path.join(self.jsondir,self.tgt_json+'.json')
+                'urlpath': 'reference::' + os.path.join(self.jsondir,
+                                           self.tgt_json+'.json')
             }
         }
         if self.verbose:
             print("Block to be added to catalog file:")
             print(myblock)
         
-        if self.flag[2]: # Catalog file exists
+        if self.flag[2]:  # Catalog file exists
             mydict = load_yaml(self.catalogfile)
             mydict['sources'][self.source] = myblock
-        else: # Catalog file does not exist
+        else:  # Catalog file does not exist
             # default dict for zarr
             mydict= {'plugins': {'source': [{'module': 'intake_xarray'}, {'module': 'gribscan'}]}}
             mydict['sources'] = {}
