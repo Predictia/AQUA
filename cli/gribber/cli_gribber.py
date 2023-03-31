@@ -11,22 +11,25 @@ import sys
 from aqua.gribber import Gribber
 from aqua.util import load_yaml, get_arg
 
+
 def parse_arguments(args):
     """
     Parse command line arguments
     """
 
     parser = argparse.ArgumentParser(description='AQUA gribber')
-    parser.add_argument('-c', '--config', type=str, required=False, 
+    parser.add_argument('-c', '--config', type=str, required=False,
                         help='yaml file with exp information and directories')
-    parser.add_argument('-n', '--nprocs', type=int, required=False, 
+    parser.add_argument('-n', '--nprocs', type=int, required=False,
                         help='Number of processors')
-    parser.add_argument('-v', '--verbose', action='store_true', required=False, 
+    parser.add_argument('-v', '--verbose', action='store_true', required=False,
                         help='Verbose mode')
-    parser.add_argument('-o', '--overwrite', action='store_true', required=False, 
+    parser.add_argument('-o', '--overwrite', action='store_true',
+                        required=False,
                         help='Overwrite JSON file and indices if they exist')
     
     return parser.parse_args(args)
+
 
 if __name__ == '__main__':
     """
@@ -41,7 +44,7 @@ if __name__ == '__main__':
         print('Reading configuration yaml file..')
 
     config = load_yaml(file)
-   
+
     model = config['id']['model']
     exp = config['id']['exp']
     source = config['id']['source']
@@ -51,8 +54,8 @@ if __name__ == '__main__':
 
     # Create Gribber object
     gribber = Gribber(model=model, exp=exp, source=source, nprocs=nprocs,
-                        dir=config['dir'],
-                        verbose=verbose, overwrite=overwrite)
-    
+                      dir=config['dir'],
+                      verbose=verbose, overwrite=overwrite)
+  
     # Create .catalog entry
     gribber.create_entry()

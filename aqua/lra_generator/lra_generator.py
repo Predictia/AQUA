@@ -135,11 +135,14 @@ class LRA_Generator():
         Retrieve data from the catalog
         """
         if self.verbose:
-            print(f'Accessing catalog for {self.model}-{self.exp}-{self.source}...')
+            print(f'Accessing catalog for\
+                   {self.model}-{self.exp}-{self.source}...')
             if self.frequency:
-                print(f'I am going to produce LRA at {self.resolution} resolution and {self.frequency} frequency...')
+                print(f'I am going to produce LRA at {self.resolution}\
+                       resolution and {self.frequency} frequency...')
             else:
-                print(f'I am going to produce LRA at {self.resolution} resolution...')
+                print(f'I am going to produce LRA at {self.resolution}\
+                       resolution...')
 
         # Initialize the reader
         self.reader = Reader(model=self.model, exp=self.exp, 
@@ -175,9 +178,11 @@ class LRA_Generator():
         self._remove_tmpdir()
 
         if self.verbose:
-            print(f'Finished generating LRA data for {self.model}-{self.exp}-{self.source}')
+            print(f'Finished generating LRA data for\
+                    {self.model}-{self.exp}-{self.source}')
             if self.resolution:
-                print(f'Resolution: {self.resolution} and frequency: {self.frequency}')
+                print(f'Resolution: {self.resolution}\
+                      and frequency: {self.frequency}')
             else:
                 print(f'Resolution: {self.resolution}')
 
@@ -245,26 +250,33 @@ class LRA_Generator():
             for month in months:
                 if self.verbose:
                     print(f'Processing month {month}...')
-                month_data = year_data.sel(time=year_data.time.dt.month == month)
+                month_data = year_data.sel(time=year_data.time.dt.month
+                                           == month)
 
                 if not self.dry:
                     # Create output file
                     outfile = os.path.join(self.outdir,
-                                           f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}{str(month).zfill(2)}.nc')
+                                           f'{var}_{self.exp}_\
+                                           {self.resolution}_\
+                                           {self.frequency}_\
+                                           {year}{str(month).zfill(2)}.nc')
                     if os.path.isfile(outfile) and not self.overwrite:
                         print(f'File {outfile} already exists, skipping...')
                     else:  # File to be written
                         if os.path.exists(outfile):
                             os.remove(outfile)
                             if self.verbose:
-                                print(f'File {outfile} already exists, overwriting...')
+                                print(f'File {outfile} already exists,\
+                                       overwriting...')
                         if self.verbose:
                             print(f'Writing file {outfile}...')
 
                         # Write data to file, lazy evaluation
-                        write_job = month_data.to_netcdf(outfile, 
-                                                         encoding={'time': self.time_encoding},
-                                                         compute=False)
+                        write_job =\
+                            month_data.to_netcdf(outfile,
+                                                 encoding={'time':
+                                                           self.time_encoding},
+                                                 compute=False)
 
                         if self.dask:
                             w_job = write_job.persist()
