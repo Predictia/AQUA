@@ -22,7 +22,7 @@ def parse_arguments(args):
     parser.add_argument('-f', '--fix', action="store_true", help='fix existing output')
     parser.add_argument('-w', '--workers', type=str, help='number of dask workers')
     parser.add_argument('-d', '--dry', action="store_true", help='dry run')
-    parser.add_argument('-r', '--replace', action="store_true", help='replace existing output')
+    parser.add_argument('-o', '--overwrite', action="store_true", help='overwrite existing output')
     parser.add_argument('-v', '--verbose', action="store_true", help='verbose mode')
 
     return parser.parse_args(args)
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     verbose = get_arg(args, 'verbose', True)
 
     dry = get_arg(args, 'dry', False)
-    replace = get_arg(args, 'replace', False)
+    overwrite = get_arg(args, 'overwrite', False)
     fix = get_arg(args, 'fix', False)
 
     workers = get_arg(args, 'workers', 1)
@@ -61,7 +61,7 @@ if __name__ == '__main__':
                     lra = LRA_Generator(model=model, exp=exp, source=source,varlist=varlist,
                                         resolution=resolution, frequency=frequency, fix=fix,
                                         outdir=outdir, tmpdir=tmpdir,nproc=workers,
-                                        verbose=verbose, dry=dry, replace=replace)
+                                        verbose=verbose, dry=dry, overwrite=overwrite)
                     lra.retrieve()
                     lra.generate_lra()
                 if verbose:

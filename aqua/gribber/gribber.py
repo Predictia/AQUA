@@ -17,7 +17,7 @@ class Gribber():
                         'jsondir': None,
                         'catalogdir': None},
                  verbose=False,
-                 replace=False
+                 overwrite=False
                 ) -> None:
         """
         Initialize class.
@@ -36,8 +36,8 @@ class Gribber():
             Dictionary with directories
         verbose : bool, optional
             Verbose mode, by default False
-        replace : bool, optional
-            Replace JSON file and indices if they exist, by default False
+        overwrite : bool, optional
+            Overwrite JSON file and indices if they exist, by default False
         
         Methods
         -------
@@ -75,7 +75,7 @@ class Gribber():
             Print help.
         """
         self.verbose = verbose
-        self.replace = replace
+        self.overwrite = overwrite
 
         if model:
             self.model = model
@@ -181,7 +181,7 @@ class Gribber():
     def _check_dir(self):
         """
         Check if dir dictionary contains None values.
-        If None values are found, replace them with default values.
+        If None values are found, overwrite them with default values.
         """
         for key in self.dir:
             if self.dir[key] is None:
@@ -197,7 +197,7 @@ class Gribber():
         if self.verbose:
             print("Checking if indices already exist...")
         if len(glob(os.path.join(self.tmpdir, '*.index'))) > 0:
-            if self.replace:
+            if self.overwrite:
                 if self.verbose:
                     print("Indices already exist. Removing them...")
                 for file in glob(os.path.join(self.tmpdir, '*.index')):
@@ -220,7 +220,7 @@ class Gribber():
         if self.verbose:
             print("Checking if JSON file already exists...")
         if os.path.exists(self.jsonfile):
-            if self.replace:
+            if self.overwrite:
                 if self.verbose:
                     print("JSON file already exists. Removing it...")
                 os.remove(self.jsonfile)
@@ -316,7 +316,7 @@ class Gribber():
         
         # Check if source already exists
         if self.source in mydict['sources'].keys():
-            if self.replace:
+            if self.overwrite:
                 if self.verbose:
                     print(f"Source {self.source} already exists in {self.catalogfile}. Replacing it...")
                 mydict['sources'][self.source] = myblock
@@ -339,7 +339,7 @@ class Gribber():
         print("  source: source name")
         print("  nprocs: number of processors (default: 1)")
         print("  verbose: print help message (default: False)")
-        print("  replace: replace existing files (default: False)")
+        print("  overwrite: overwrite existing files (default: False)")
         print("  dir: dictionary with directories (default working on levante:)")
         print("     datadir: data directory (default: 'scratch/b/b382289/tco1279-orca025/nemo_deep/ICMGGc2')")
         print("     tmpdir: temporary directory (default: 'scratch/b/b382289/gribscan')")
