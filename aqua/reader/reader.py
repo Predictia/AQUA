@@ -4,8 +4,6 @@ import subprocess
 import tempfile
 import json
 import warnings
-import logging
-
 import intake
 import intake_esm
 import xarray as xr
@@ -16,7 +14,8 @@ import smmregrid as rg
 import cf2cdm
 from aqua.util import load_yaml, _eval_formula, get_eccodes_attr
 from aqua.util import get_reader_filenames, get_config_dir, get_machine
-from aqua.util import log_history, log_configure
+from aqua.util import log_history
+from aqua.logger import log_configure
 
 
 class Reader():
