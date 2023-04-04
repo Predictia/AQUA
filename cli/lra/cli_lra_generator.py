@@ -23,7 +23,7 @@ def parse_arguments(args):
     parser.add_argument('-w', '--workers', type=str, help='number of dask workers')
     parser.add_argument('-d', '--dry', action="store_true", help='dry run')
     parser.add_argument('-o', '--overwrite', action="store_true", help='overwrite existing output')
-    parser.add_argument('-v', '--verbose', action="store_true", help='verbose mode')
+    parser.add_argument('-l', '--loglevel', type=str, help='log level (DEBUG, INFO, WARNING, ERROR, CRITICAL) [default: INFO]')
 
     return parser.parse_args(args)
 
@@ -31,9 +31,9 @@ if __name__ == '__main__':
     """
     Main function
     """
-
+    verbose = True
     args = parse_arguments(sys.argv[1:])
-    verbose = get_arg(args, 'verbose', True)
+    loglevel = get_arg(args, 'loglevel', 'INFO')
 
     dry = get_arg(args, 'dry', False)
     overwrite = get_arg(args, 'overwrite', False)
@@ -42,11 +42,10 @@ if __name__ == '__main__':
     workers = get_arg(args, 'workers', 1)
 
     file = get_arg(args, 'config', 'lra_config.yaml')
-    if verbose:
-        print('Reading configuration yaml file..')
-    
+    print('Reading configuration yaml file..')
+
     config = load_yaml(file)
-    
+
     resolution = config['target']['resolution']
     frequency = config['target']['frequency']
     outdir = config['target']['outdir']
@@ -58,10 +57,10 @@ if __name__ == '__main__':
                 varlist = config['catalog'][model][exp][source]['vars']
                 if verbose:
                     print(f'Processing {model}-{exp}-{source}...')
-                    lra = LRA_Generator(model=model, exp=exp, source=source,varlist=varlist,
+                    lra = LRA_Generator(model=model, exp=exp, source=source,var=varlist,
                                         resolution=resolution, frequency=frequency, fix=fix,
                                         outdir=outdir, tmpdir=tmpdir,nproc=workers,
-                                        verbose=verbose, dry=dry, overwrite=overwrite)
+                                        loglevel=loglevel, dry=dry, overwrite=overwrite)
                     lra.retrieve()
                     lra.generate_lra()
                 if verbose:

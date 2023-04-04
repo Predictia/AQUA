@@ -2,9 +2,9 @@ import os
 from time import time
 import dask
 import logging
+from aqua.logger import log_configure
 from aqua.reader import Reader
-from aqua.util import create_folder, generate_random_string,\
-                      log_configure, log_history
+from aqua.util import create_folder, generate_random_string
 from dask.distributed import Client, LocalCluster, progress
 from dask.diagnostics import ProgressBar
 
@@ -46,21 +46,21 @@ class LRA_Generator():
                                      operations, default is True
         """
         # General settings
-        loglevel = log_configure(loglevel)
+        self.logger = log_configure(loglevel, 'lra_generator')
 
         self.overwrite = overwrite
         if self.overwrite:
-            logging.info('File will be overwritten if already existing.')
+            self.logger.info('File will be overwritten if already existing.')
 
         self.dry = dry
         if self.dry:
-            logging.warning('IMPORTANT: no file will be created, this is a dry run')
+            self.logger.warning('IMPORTANT: no file will be created, this is a dry run')
 
         self.nproc = nproc
         self.tmpdir = tmpdir
         if self.nproc > 1:
             self.dask = True
-            logging.info(f'Running dask.distributed with {self.nproc} workers')
+            self.logger.info(f'Running dask.distributed with {self.nproc} workers')
             if not self.tmpdir:
                 raise Exception('Please specify tmpdir for dask.distributed.')
             else:
@@ -93,7 +93,7 @@ class LRA_Generator():
             self.var = var
         if not self.var:
             raise Exception('Please specify variable string or list.')
-        logging.info(f'Variable(s) to be processed: {self.var}')
+        self.logger.info(f'Variable(s) to be processed: {self.var}')
 
         self.resolution = resolution
         if not self.resolution:
@@ -101,7 +101,7 @@ class LRA_Generator():
 
         self.frequency = frequency
         if not self.frequency:
-            logging.info('Frequency not specified, streaming mode')
+            self.logger.info('Frequency not specified, streaming mode')
 
         # option for time encoding, defined once for all
         self.time_encoding = {
@@ -111,7 +111,7 @@ class LRA_Generator():
             }
 
         self.fix = fix
-        logging.info(f'Fixing data: {self.fix}')
+        self.logger.info(f'Fixing data: {self.fix}')
 
         # Create LRA folder
         if self.frequency:
@@ -131,11 +131,11 @@ class LRA_Generator():
         """
         Retrieve data from the catalog
         """
-        logging.info(f'Accessing catalog for {self.model}-{self.exp}-{self.source}...')
+        self.logger.info(f'Accessing catalog for {self.model}-{self.exp}-{self.source}...')
         if self.frequency:
-            logging.info(f'I am going to produce LRA at {self.resolution} resolution and {self.frequency} frequency...')
+            self.logger.info(f'I am going to produce LRA at {self.resolution} resolution and {self.frequency} frequency...')
         else:
-            logging.info(f'I am going to produce LRA at {self.resolution} resolution...')
+            self.logger.info(f'I am going to produce LRA at {self.resolution} resolution...')
 
         # Initialize the reader
         self.reader = Reader(model=self.model, exp=self.exp, 
@@ -143,15 +143,15 @@ class LRA_Generator():
                              regrid=self.resolution, freq=self.frequency, 
                              configdir="../../config")
 
-        logging.info('Retrieving data...')
+        self.logger.info('Retrieving data...')
         self.data = self.reader.retrieve(fix=self.fix)
-        logging.info(self.data)
+        self.logger.info(self.data)
 
     def generate_lra(self):
         """
         Generate LRA data
         """
-        logging.info('Generating LRA data...')
+        self.logger.info('Generating LRA data...')
 
         # Set up dask cluster
         self._set_dask()
@@ -167,14 +167,14 @@ class LRA_Generator():
         self._close_dask()
         self._remove_tmpdir()
 
-        logging.info('Finished generating LRA data.')
+        self.logger.info('Finished generating LRA data.')
 
     def _set_dask(self):
         """
         Set up dask cluster
         """
         if self.dask:  # self.nproc > 1
-            logging.info(f'Setting up dask cluster with {self.nproc} workers')
+            self.logger.info(f'Setting up dask cluster with {self.nproc} workers')
             dask.config.set({'temporary_directory': self.tmpdir})
             if self.verbose:
                 print(f'Temporary directory: {self.tmpdir}')
@@ -192,14 +192,14 @@ class LRA_Generator():
         if self.dask:  # self.nproc > 1
             self.client.shutdown()
             self.cluster.close()
-            logging.info('Dask cluster closed')
+            self.logger.info('Dask cluster closed')
 
     def _remove_tmpdir(self):
         """
         Remove temporary directory
         """
         if self.dask:  # self.nproc > 1
-            logging.warning(f'Removing temporary directory {self.tmpdir}')
+            self.logger.warning(f'Removing temporary directory {self.tmpdir}')
             os.removedirs(self.tmpdir)
 
     def _write_var(self, var):
@@ -212,7 +212,7 @@ class LRA_Generator():
         if loglevel == 'DEBUG':
             t_beg = time()
 
-        logging.info(f'Processing variable {var}...')
+        self.logger.info(f'Processing variable {var}...')
         temp_data = self.data[var]
         if self.frequency:
             temp_data = self.reader.timmean(temp_data)
@@ -222,11 +222,11 @@ class LRA_Generator():
         years = set(temp_data.time.dt.year.values)
         for year in years:
             year_data = temp_data.sel(time=temp_data.time.dt.year == year)
-            logging.info(f'Processing year {year}...')
+            self.logger.info(f'Processing year {year}...')
             # Splitting data into monthly files
             months = set(year_data.time.dt.month.values)
             for month in months:
-                logging.info(f'Processing month {month}...')
+                self.logger.info(f'Processing month {month}...')
                 month_data = year_data.sel(time=year_data.time.dt.month
                                            == month)
 
@@ -238,14 +238,14 @@ class LRA_Generator():
                                            {self.frequency}_\
                                            {year}{str(month).zfill(2)}.nc')
                     if os.path.isfile(outfile) and not self.overwrite:
-                        logging.warning(f'File {outfile} already exists, skipping...')
+                        self.logger.warning(f'File {outfile} already exists, skipping...')
                     else:  # File to be written
                         if os.path.exists(outfile):
                             os.remove(outfile)
-                            logging.warning(f'File {outfile} already exists,\
+                            self.logger.warning(f'File {outfile} already exists,\
                                              overwriting...')
                         if self.verbose:
-                            logging.warning(f'Writing file {outfile}...')
+                            self.logger.warning(f'Writing file {outfile}...')
 
                         # Write data to file, lazy evaluation
                         write_job =\
@@ -269,4 +269,4 @@ class LRA_Generator():
 
         if loglevel == 'DEBUG':
             t_end = time()
-            logging.info('Process took {:.4f} seconds'.format(t_end-t_beg))
+            self.logger.info('Process took {:.4f} seconds'.format(t_end-t_beg))

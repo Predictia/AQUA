@@ -5,6 +5,8 @@ target:
   outdir: /pfs/lustrep1/projappl/project_462000048/davini/LRA
   tmpdir: /pfs/lustrep1/scratch/project_462000048/davini
 
+loglevel: INFO
+
 # all the variable listed here will be processed by the LRA creator
 catalog:
   IFS:
