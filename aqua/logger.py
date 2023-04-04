@@ -1,13 +1,15 @@
 import logging
 
+
 def log_configure(log_level=None, log_name=None):
     """Set up the logging level cleaning previous existing handlers
 
     Args:
         log_level: a string or an integer according to the logging module
+        log_name: a string defining the name of the logger to be configured
 
     Returns:
-        str: the logger level as a string after checks and assignement has been done
+        the logger object to be used, possibly in a class
     """
 
     # this is the default loglevel for the AQUA framework
@@ -38,7 +40,7 @@ def log_configure(log_level=None, log_name=None):
     if log_level_int is None:
         logging.warning("Invalid logging level '%s' specified. Setting it back to default %s", log_level, log_level_default)
         log_level = log_level_default
-    
+
     # clear the handlers of the possibly previously configured logger
     for handler in logger.handlers[:]:
         logger.removeHandler(handler)
@@ -48,8 +50,8 @@ def log_configure(log_level=None, log_name=None):
 
     # create formatter
     formatter = logging.Formatter(
-                    fmt = '%(asctime)s :: %(name)s :: %(levelname)-8s -> %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S')
+        fmt='%(asctime)s :: %(name)s :: %(levelname)-8s -> %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S')
 
     # create console handler which logs
     ch = logging.StreamHandler()
@@ -58,9 +60,9 @@ def log_configure(log_level=None, log_name=None):
     logger.addHandler(ch)
 
     # this can be used in future to log to file
-    #fh = logging.FileHandler('spam.log')
-    #fh.setLevel(logging.DEBUG)
-    #fh.setFormatter(formatter)
-    #logger.addHandler(fh)
+    # fh = logging.FileHandler('spam.log')
+    # fh.setLevel(logging.DEBUG)
+    # fh.setFormatter(formatter)
+    # logger.addHandler(fh)
 
     return logger
