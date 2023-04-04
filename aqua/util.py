@@ -11,7 +11,7 @@ import logging
 import datetime
 
 
-def log_configure(log_level=None):
+def log_configure(log_level=None, log_name=None):
     """Set up the logging level cleaning previous existing handlers
 
     Args:
@@ -23,13 +23,18 @@ def log_configure(log_level=None):
 
     # this is the default loglevel for the AQUA framework
     log_level_default = 'WARNING'
+    if log_name is None:
+        logging.warning('You are configuring the root logger, are you sure this is what you want?')
+
+    # getting the logger
+    logger = logging.getLogger(log_name)
 
     # ensure that loglevel is uppercase if it is a string
     if isinstance(log_level, str):
         log_level = log_level.upper()
     # convert to a string if is an integer
     elif isinstance(log_level, int):
-        log_level = logging.getLevelName(log_level)
+        log_level = logger.getLevelName(log_level)
     # if nobody assigned, set it to none
     elif log_level is None:
         log_level = log_level_default
@@ -45,24 +50,37 @@ def log_configure(log_level=None):
     if log_level_int is None:
         logging.warning("Invalid logging level '%s' specified. Setting it back to default %s", log_level, log_level_default)
         log_level = log_level_default
-
-
+    
     # clear the handlers of the possibly previously configured logger
-    logger = logging.getLogger()
     for handler in logger.handlers[:]:
         logger.removeHandler(handler)
 
-    # Set up logging
-    logging.basicConfig(
-        level=log_level,
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
+    # cannot use BasicConfig for specific loggers
+    logger.setLevel(log_level)
+
+    # create formatter
+    formatter = logging.Formatter(
+                    fmt = '%(asctime)s :: %(name)s :: %(levelname)-8s -> %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+
+    # create file handler which logs
+    ch = logging.StreamHandler()
+    ch.setLevel(log_level)
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
+    # this can be used in future to log to file
+    #fh = logging.FileHandler('spam.log')
+    #fh.setLevel(logging.DEBUG)
+    #fh.setFormatter(formatter)
+    #logger.addHandler(fh)
+    # create console handler
 
     # Get the current effective logging level
-    current_level = logger.getEffectiveLevel()
+    #current_level = logger.getEffectiveLevel()
+    #logger.getLevelName(current_level)
 
-    return logging.getLevelName(current_level)
+    return logger
 
 
 def load_yaml(infile):
