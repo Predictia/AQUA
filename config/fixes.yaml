@@ -62,11 +62,7 @@ models:
                     msdsrf:
                         source: ssrd
                         grib: true
-                        decumulate: true  
-                    msdtrf:
-                        source: strd
-                        grib: true
-                        decumulate: true   
+                        decumulate: true    
                     msntrf:
                         source: str
                         grib: true

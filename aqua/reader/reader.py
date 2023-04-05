@@ -19,6 +19,7 @@ from aqua.logger import log_configure
 
 from .streaming import Streaming
 from .fixer import FixerMixin
+from .reader_utils import check_catalog_source
 
 
 class Reader(FixerMixin):
@@ -100,7 +101,7 @@ class Reader(FixerMixin):
 
         # load and check the regrid
         cfg_regrid = load_yaml(self.regrid_file)
-        source_grid_id = _check_catalog_source(cfg_regrid["source_grids"], self.model, self.exp, source, name='regrid')
+        source_grid_id = check_catalog_source(cfg_regrid["source_grids"], self.model, self.exp, source, name='regrid')
         source_grid = cfg_regrid["source_grids"][self.model][self.exp][source_grid_id]
 
         self.dst_datamodel = datamodel
@@ -109,7 +110,7 @@ class Reader(FixerMixin):
             fixes = load_yaml(self.fixer_file)
             self.dst_datamodel = fixes["defaults"].get("dst_datamodel", None)
 
-        self.source = _check_catalog_source(self.cat, self.model, self.exp, source, name="catalog")
+        self.source = check_catalog_source(self.cat, self.model, self.exp, source, name="catalog")
 
         self.src_space_coord = source_grid.get("space_coord", None)
         self.space_coord = self.src_space_coord
@@ -693,35 +694,3 @@ class Reader(FixerMixin):
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
 
         return out
-
-# The following are not methods of the class - to be moved to a separate source file ultmately
-# (let's wait for a general refactor)
-
-
-def _check_catalog_source(cat, model, exp, source, name="dictionary"):
-    """
-    Check the entries of a nested dictionary based on the model/exp/source structure
-    and return an updated source.
-    The name argument can be used for a proper printing.
-
-    Returns:
-    an updated source id (str).
-    If source is not specified "default" is chosen or, if missing, the first source
-    """
-
-    if model not in cat:
-        raise KeyError(f"Model {model} not found in {name}.")
-    if exp not in cat[model]:
-        raise KeyError(f"Experiment {exp} not found in {name} for model {model}.")
-
-    if source:
-        if source not in cat[model][exp]:
-            if "default" not in cat[model][exp]:
-                raise KeyError(f"Source {source} of experiment {exp} "
-                               f"not found in {name} for model {model}.")
-            else:
-                source = "default"
-    else:
-        source = list(cat[model][exp].keys())[0]  # take first source if none provided
-
-    return source
