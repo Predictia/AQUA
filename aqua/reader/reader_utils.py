@@ -1,5 +1,6 @@
 """Common functions for the Reader"""
 
+
 def check_catalog_source(cat, model, exp, source, name="dictionary"):
     """
     Check the entries of a nested dictionary based on the model/exp/source structure
