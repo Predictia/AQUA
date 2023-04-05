@@ -465,42 +465,6 @@ class Reader(FixerMixin, RegridMixin):
         da_out = da.isel({dim: 0 for dim in extra_dims})
         return da_out
 
-    def _rename_dims(self, da, dim_list):
-        """
-        Renames the dimensions of a DataArray so that any dimension which is already
-        in `dim_list` keeps its name, and the others are renamed to whichever other
-        dimension name is in `dim_list`.
-        If `da` has only one dimension with a name which is different from that in `dim_list`,
-        it is renamed to that new name.
-        If it has two coordinate names (e.g. "lon" and "lat") which appear also in `dim_list`,
-        these are not touched.
-
-        Parameters
-        ----------
-        da (xarray.DataArray):  The input DataArray to rename.
-        dim_list (list of str): The list of dimension names to use.
-
-        Returns
-        -------
-        xarray.DataArray
-            A new DataArray with the renamed dimensions.
-        """
-
-        dims = list(da.dims)
-        # Lisy of dims which are already there
-        shared_dims = list(set(dims) & set(dim_list))
-        # List of dims in B which are not in space_coord
-        extra_dims = list(set(dims) - set(dim_list))
-        # List of dims in da which are not in dim_list
-        new_dims = list(set(dim_list) - set(dims))
-        i = 0
-        da_out = da
-        for dim in extra_dims:
-            if dim not in shared_dims:
-                da_out = da.rename({dim: new_dims[i]})
-                i += 1
-        return da_out
-
     def fldmean(self, data):
         """
         Perform a weighted global average.

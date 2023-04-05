@@ -56,7 +56,7 @@ class RegridMixin():
                                             icongridpath=icongridpath,
                                             extra=src_extra)
         # Make sure that the new DataArray uses the expected spatial dimensions
-        grid_area = self._rename_dims(grid_area, self.src_space_coord)
+        grid_area = _rename_dims(grid_area, self.src_space_coord)
         data = self.retrieve(fix=False)
         grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.src_space_coord})
         grid_area.to_netcdf(areafile)
@@ -181,3 +181,40 @@ class RegridMixin():
             if not isinstance(source, str):
                 source_grid_file.close()
             area_file.close()
+
+
+def _rename_dims(da, dim_list):
+    """
+    Renames the dimensions of a DataArray so that any dimension which is already
+    in `dim_list` keeps its name, and the others are renamed to whichever other
+    dimension name is in `dim_list`.
+    If `da` has only one dimension with a name which is different from that in `dim_list`,
+    it is renamed to that new name.
+    If it has two coordinate names (e.g. "lon" and "lat") which appear also in `dim_list`,
+    these are not touched.
+
+    Parameters
+    ----------
+    da (xarray.DataArray):  The input DataArray to rename.
+    dim_list (list of str): The list of dimension names to use.
+
+    Returns
+    -------
+    xarray.DataArray
+        A new DataArray with the renamed dimensions.
+    """
+
+    dims = list(da.dims)
+    # Lisy of dims which are already there
+    shared_dims = list(set(dims) & set(dim_list))
+    # List of dims in B which are not in space_coord
+    extra_dims = list(set(dims) - set(dim_list))
+    # List of dims in da which are not in dim_list
+    new_dims = list(set(dim_list) - set(dims))
+    i = 0
+    da_out = da
+    for dim in extra_dims:
+        if dim not in shared_dims:
+            da_out = da.rename({dim: new_dims[i]})
+            i += 1
+    return da_out
