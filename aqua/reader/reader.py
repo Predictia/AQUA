@@ -993,9 +993,9 @@ class Reader():
 
         if "IFSMagician" in data.attrs.get("history", ""):  # Special fix for gribscan levels
             if "level" in data.coords:
-                data.level.attrs["units"]="hPa"
-                data.level.attrs["standard_name"]="air_pressure"
-                data.level.attrs["long_name"]="pressure"
+                data.level.attrs["units"] = "hPa"
+                data.level.attrs["standard_name"] = "air_pressure"
+                data.level.attrs["long_name"] = "pressure"
 
         # this is needed since cf2cdm issues a (useless) UserWarning
         with warnings.catch_warnings():
