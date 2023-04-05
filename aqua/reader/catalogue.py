@@ -18,10 +18,10 @@ def catalogue(verbose=True, configdir=None):
     cat = intake.open_catalog(catalog_file)
     if verbose:
         for model, vm in cat.items():
-            for exp, ve in vm.items():
+            for exp, _ in vm.items():
                 print(model + '\t' + exp + '\t' + cat[model][exp].description)
                 if exp != "grids":
                     for k in cat[model][exp]:
-                        print('\t' + '- ' + k + '\t' + cat[model][exp].walk()[k]._description)
+                        print('\t' + '- ' + k + '\t' + cat[model][exp].walk()[k]._description)  # pylint: disable=W0212
             print()
     return cat

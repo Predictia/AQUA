@@ -26,7 +26,7 @@ class Reader():
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
                  regrid=None, method="ycon", zoom=None, configdir=None,
-                 level=None, areas=True, var=None,
+                 level=None, areas=True, var=None, vars=None,  # pylint: disable=W0622
                  datamodel=None, streaming=False, stream_step=1, stream_unit=None,
                  stream_startdate=None, rebuild=False, loglevel=None):
         """
@@ -34,23 +34,25 @@ class Reader():
         It uses the catalog `config/config.yaml` to identify the required data.
 
         Arguments:
-            model (str):         model ID
-            exp (str):           experiment ID
-            source (str):        source ID
-            regrid (str):        perform regridding to grid `regrid`, as defined in `config/regrid.yaml` (None)
-            method (str):        regridding method (ycon)
-            zoom (int):          healpix zoom level
-            configdir (str)      folder where the config/catalog files are located (config)
-            level (int):         level to extract if input data are 3D (starting from 0)
-            areas (bool):        compute pixel areas if needed (True)
-            var (str, list):     variable(s) which we will extract (None)
-            datamodel (str):     destination data model for coordinates, overrides the one in fixes.yaml (None)
+            model (str):            model ID
+            exp (str):              experiment ID
+            source (str):           source ID
+            regrid (str):           perform regridding to grid `regrid`, as defined in `config/regrid.yaml` (None)
+            method (str):           regridding method (ycon)
+            zoom (int):             healpix zoom level
+            configdir (str)         folder where the config/catalog files are located (config)
+            level (int):            level to extract if input data are 3D (starting from 0)
+            areas (bool):           compute pixel areas if needed (True)
+            var (str, list):        variable(s) which we will extract; vars is a synonym (None)
+            datamodel (str):        destination data model for coordinates, overrides the one in fixes.yaml (None)
             streaming (bool):       if to retreive data in a streaming mode (False)
             stream_step (int):      the number of time steps to stream the data by (Default = 1)
-            stream_unit (str):      the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (None)
+            stream_unit (str):      the unit of time to stream the data by
+                                    (e.g. 'hours', 'days', 'months', 'years') (None)
             stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
             rebuild (bool):         force rebuilding of area and weight files
-            loglevel (string):      Level of logging according to logging module (default: log_level_default of loglevel())
+            loglevel (string):      Level of logging according to logging module
+                                    (default: log_level_default of loglevel())
 
         Returns:
             A `Reader` class object.
@@ -58,6 +60,8 @@ class Reader():
 
         loglevel = log_configure(loglevel)
 
+        if vars:
+            var = vars
         self.var = var
         self.exp = exp
         self.model = model
@@ -328,9 +332,9 @@ class Reader():
             areas.cell_area.attrs['long_name'] = 'area of grid cell'
             return areas.cell_area
 
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError as err:
             # Print the CDO error message
-            logging.critical(e.output.decode(), file=sys.stderr)
+            logging.critical(err.output.decode(), file=sys.stderr)
             raise
 
         finally:
@@ -340,7 +344,7 @@ class Reader():
             area_file.close()
 
     def retrieve(self, regrid=False, timmean=False, decumulate=False,
-                 fix=True, apply_unit_fix=True, var=None,
+                 fix=True, apply_unit_fix=True, var=None, vars=None,  # pylint: disable=W0622
                  streaming=False, stream_step=1, stream_unit=None,
                  stream_startdate=None, streaming_generator=False):
         """
@@ -353,11 +357,12 @@ class Reader():
             fix (bool):             if to perform a fix (var name, units, coord name adjustments) (True)
             apply_unit_fix (bool):  if to already adjust units by multiplying by a factor or adding
                                     an offset (this can also be done later with the `apply_unit_fix` method) (True)
-            var (str, list):  variable(s) which we will extract (None)
+            var (str, list):  variable(s) which we will extract; vars is a synonym (None)
             streaming (bool):       if to retreive data in a streaming mode (False)
             streaming_generator (bool):  if to return a generator object for data streaming (False).
             stream_step (int):      the number of time steps to stream the data by (Default = 1)
-            stream_unit (str):      the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (None)
+            stream_unit (str):      the unit of time to stream the data by
+                                    (e.g. 'hours', 'days', 'months', 'years') (None)
             stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
         Returns:
             A xarray.Dataset containing the required data.
@@ -370,6 +375,8 @@ class Reader():
         else:
             esmcat = self.cat[self.model][self.exp][self.source]
 
+        if vars:
+            var = vars
         if not var:
             var = self.var
 
@@ -433,22 +440,27 @@ class Reader():
 
     def stream(self, data, stream_step=1, stream_unit=None, stream_startdate=None):
         """
-        The stream method is used to stream data by either a specific time interval or by a specific number of samples.
-        If the unit parameter is specified, the data is streamed by the specified unit and stream_step (e.g. 1 month).
-        If the unit parameter is not specified, the data is streamed by stream_step steps of the original time resolution of input data.
+        The stream method is used to stream data by either a specific time interval
+        or by a specific number of samples. If the unit parameter is specified, the
+        data is streamed by the specified unit and stream_step (e.g. 1 month).
+        If the unit parameter is not specified, the data is streamed by stream_step
+        steps of the original time resolution of input data.
 
-        If the stream function is called a second time, it will return the subsequent chunk of data in the sequence.
-        The function keeps track of the state of the streaming process through the use of internal attributes.
-        This allows the user to stream through the entire dataset in multiple calls to the function,
+        If the stream function is called a second time, it will return the subsequent
+        chunk of data in the sequence. The function keeps track of the state of the
+        streaming process through the use of internal attributes. This allows the user
+        to stream through the entire dataset in multiple calls to the function,
         retrieving consecutive chunks of data each time.
 
         If stream_startdate is not specified, the method will use the first date in the dataset.
 
         Arguments:
-            data (xr.Dataset):  the input xarray.Dataset
-            stream_step  (int): the number of time steps to stream the data by (Default = 1)
-            stream_unit (str):  the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (None)
-            stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
+            data (xr.Dataset):      the input xarray.Dataset
+            stream_step  (int):     the number of time steps to stream the data by (Default = 1)
+            stream_unit (str):      the unit of time to stream the data by
+                                    (e.g. 'hours', 'days', 'months', 'years') (None)
+            stream_startdate (str): the starting date for streaming the data
+                                    (e.g. '2020-02-25') (None)
         Returns:
             A xarray.Dataset containing the subset of the input data that has been streamed.
         """
@@ -483,16 +495,18 @@ class Reader():
 
     def stream_generator(self, data, stream_step=1, stream_unit=None, stream_startdate=None):
         """
-        The stream_generator method is designed to split data into smaller chunks of data for processing or analysis.
-        It returns a generator object that yields the smaller chunks of data.
+        The stream_generator method is designed to split data into smaller chunks of data for
+        processing or analysis. It returns a generator object that yields the smaller chunks of data.
         The method can split the data based on either a specific time interval or by a specific number of samples.
         If the unit parameter is specified, the data is streamed by the specified unit and stream_step (e.g. 1 month).
-        If the unit parameter is not specified, the data is streamed by stream_step steps of the original time resolution of input data.
+        If the unit parameter is not specified, the data is streamed by stream_step steps of the original time
+        resolution of input data.
 
         Arguments:
-            data (xr.Dataset):  the input xarray.Dataset
-            stream_step  (int): the number of samples or time interval to stream the data by (Default = 1)
-            stream_unit (str):  the unit of the time interval to stream the data by (e.g. 'hours', 'days', 'months', 'years') (None)
+            data (xr.Dataset):      the input xarray.Dataset
+            stream_step  (int):     the number of samples or time interval to stream the data by (Default = 1)
+            stream_unit (str):      the unit of the time interval to stream the data by
+                                    (e.g. 'hours', 'days', 'months', 'years') (None)
             stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
         Returns:
             A generator object that yields the smaller chunks of data.
@@ -736,7 +750,7 @@ class Reader():
         Selects a single spatial sample along the dimensions specified in `space_coord`.
 
         Arguments:
-            da (xarray.DataArray): Input data array to select the spatial sample from.
+            da (xarray.DataArray):     Input data array to select the spatial sample from.
             space_coord (list of str): List of dimension names corresponding to the spatial coordinates to select.
 
         Returns:
@@ -760,10 +774,9 @@ class Reader():
 
         Parameters
         ----------
-        da : xarray.DataArray
-            The input DataArray to rename.
-        dim_list : list of str
-            The list of dimension names to use.
+        da (xarray.DataArray):  The input DataArray to rename.
+        dim_list (list of str): The list of dimension names to use.
+
         Returns
         -------
         xarray.DataArray
