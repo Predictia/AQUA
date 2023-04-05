@@ -1,7 +1,6 @@
 import os
 from time import time
 import dask
-import logging
 from aqua.logger import log_configure
 from aqua.reader import Reader
 from aqua.util import create_folder, generate_random_string
@@ -138,9 +137,9 @@ class LRA_Generator():
             self.logger.info(f'I am going to produce LRA at {self.resolution} resolution...')
 
         # Initialize the reader
-        self.reader = Reader(model=self.model, exp=self.exp, 
+        self.reader = Reader(model=self.model, exp=self.exp,
                              source=self.source, var=self.var,
-                             regrid=self.resolution, freq=self.frequency, 
+                             regrid=self.resolution, freq=self.frequency,
                              configdir="../../config")
 
         self.logger.info('Retrieving data...')
@@ -178,7 +177,7 @@ class LRA_Generator():
             dask.config.set({'temporary_directory': self.tmpdir})
             if self.verbose:
                 print(f'Temporary directory: {self.tmpdir}')
-            self.cluster = LocalCluster(n_workers=self.nproc, 
+            self.cluster = LocalCluster(n_workers=self.nproc,
                                         threads_per_worker=1)
             self.client = Client(self.cluster)
         else:
