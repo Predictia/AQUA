@@ -1,4 +1,5 @@
 """Fixer mixin for the Reader class"""
+
 import os
 import json
 import warnings
