@@ -35,4 +35,5 @@ jobs:
       - name: Run tests
         run: |
           python -m pytest ./tests/test_basic.py
-          python -m pytest ./tests/test_catalog.py               
+          python -m pytest ./tests/test_catalog.py 
+          python -m pytest ./tests/test_fldmean.py               
