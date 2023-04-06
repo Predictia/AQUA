@@ -30,5 +30,5 @@ source_grids:
         path: ./AQUA_tests/grids/tco79_grid.nc
         space_coord: ["cell"]
       long: 
-        space_coords: ["lon", "lat"]
+        space_coord: ["lon", "lat"]
 
