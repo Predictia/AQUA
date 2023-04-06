@@ -29,4 +29,6 @@ source_grids:
       short:
         path: ./AQUA_tests/grids/tco79_grid.nc
         space_coord: ["cell"]
+      long: 
+        space_coords: ["lon", "lat"]
 
