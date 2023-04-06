@@ -2,14 +2,14 @@ plugins:
   source:
   - module: intake_xarray
 sources:
-  elem_grid:
-    args:
-      urlpath: /work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_griddes_elems_IFS.nc
-    driver: netcdf
-  node_grid:
-    args:
-      urlpath: /work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_griddes_nodes_IFS.nc
-    driver: netcdf
+  # elem_grid:
+  #   args:
+  #     urlpath: /work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_griddes_elems_IFS.nc
+  #   driver: netcdf
+  # node_grid:
+  #   args:
+  #     urlpath: /work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_griddes_nodes_IFS.nc
+  #   driver: netcdf
   original_2d:
     args:
       chunks:
