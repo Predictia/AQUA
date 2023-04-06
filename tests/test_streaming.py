@@ -31,7 +31,7 @@ class TestAquaStreaming:
                             {"stream_step": 3}])
     def stream_args(self, request, stream_date, stream_units):
         req = request.param
-        req.update({"streaming": True})
+        req.update({"streaming": True, "fix": False})
         req["stream_startdate"] = stream_date
         req["stream_unit"] = stream_units
         return req
@@ -108,7 +108,7 @@ class TestAquaStreaming:
         dates = pd.date_range(start=start_date, end=start_date+offset, freq='1H')
         num_hours = (dates[-1] - dates[0]).total_seconds() / 3600
 
-        data = reader.retrieve()
+        data = reader.retrieve(fix=False)
         # Test if it has the right size
         assert data['2t'].shape == (num_hours, 9, 18)
         # Test if starting date is ok
@@ -117,10 +117,10 @@ class TestAquaStreaming:
         assert data.time.values[-1] == start_date + offset - step
 
         # Test if we can go to the next date
-        data = reader.retrieve()
+        data = reader.retrieve(fix=False)
         assert data.time.values[0] == start_date + offset
 
         # Test if reset_stream works
         reader.reset_stream()
-        data = reader.retrieve()
+        data = reader.retrieve(fix=False)
         assert data.time.values[0] == start_date
