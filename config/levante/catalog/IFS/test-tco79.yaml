@@ -7,7 +7,7 @@ sources:
       chunks:
         time: 1
       urlpath:
-      - /work/bb1153/b382075/aqua/test_datasets/AQUA_tests_short/IFS/IFS/IFS2d.tco79.nc
+      - /work/bb1153/b382075/aqua/test_datasets/AQUA_tests/models/IFS/short/IFS2d.tco79.nc
     description: original 2d output
     driver: netcdf
   
