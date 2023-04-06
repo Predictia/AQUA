@@ -34,6 +34,9 @@ jobs:
           ./download_data_for_tests.sh
       - name: Run tests
         run: |
+
           python -m pytest ./tests/test_basic.py
           python -m pytest ./tests/test_catalog.py 
-          python -m pytest ./tests/test_fldmean.py               
+          python -m pytest ./tests/test_fldmean.py                
+          python -m pytest ./tests/test_streaming.py
+
