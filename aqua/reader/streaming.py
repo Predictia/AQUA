@@ -7,14 +7,14 @@ from aqua.logger import log_configure
 class Streaming():
     """Streaming class to be used in Reader and elsewhere"""
 
-    def __init__(self, stream_step=1, stream_unit=None, stream_startdate=None, loglevel=None):
+    def __init__(self, stream_step=1, stream_unit='steps', stream_startdate=None, loglevel=None):
         """
         The Streaming constructor.
 
         Arguments:
             stream_step (int):      the number of time steps to stream the data by (Default = 1)
             stream_unit (str):      the unit of time to stream the data by
-                                    (e.g. 'hours', 'days', 'months', 'years') (None)
+                                    (e.g. 'hours', 'days', 'months', 'years', 'steps') (steps)
             stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
             loglevel (string):      Level of logging according to logging module
                                     (default: log_level_default of loglevel())
@@ -29,10 +29,10 @@ class Streaming():
         self.stream_index = 0
         self.stream_date = None
         self.stream_step = stream_step
-        self.stream_unit = stream_unit
         self.stream_startdate = stream_startdate
+        self.stream_unit = stream_unit
 
-    def stream(self, data, stream_step=1, stream_unit=None, stream_startdate=None):
+    def stream(self, data, stream_step=None, stream_unit=None, stream_startdate=None):
         """
         The stream method is used to stream data by either a specific time interval
         or by a specific number of samples. If the unit parameter is specified, the
@@ -52,12 +52,22 @@ class Streaming():
             data (xr.Dataset):      the input xarray.Dataset
             stream_step  (int):     the number of time steps to stream the data by (Default = 1)
             stream_unit (str):      the unit of time to stream the data by
-                                    (e.g. 'hours', 'days', 'months', 'years') (None)
+                                    (e.g. 'hours', 'days', 'months', 'years', 'steps') (None)
             stream_startdate (str): the starting date for streaming the data
                                     (e.g. '2020-02-25') (None)
         Returns:
             A xarray.Dataset containing the subset of the input data that has been streamed.
         """
+
+        if not stream_step:
+            stream_step = self.stream_step
+
+        if not stream_unit:
+            stream_unit = self.stream_unit
+
+        if not stream_startdate:
+            stream_startdate = self.stream_startdate
+
         if not self.stream_date:
             if stream_startdate:
                 self.stream_date = pd.to_datetime(stream_startdate)
@@ -67,16 +77,16 @@ class Streaming():
         if self.stream_index == 0 and stream_startdate:
             self.stream_index = data.time.to_index().get_loc(pd.to_datetime(stream_startdate))
 
-        if stream_unit:
-            start_date = self.stream_date
-            stop_date = start_date + pd.DateOffset(**{stream_unit: stream_step})
-            self.stream_date = stop_date
-            return data.sel(time=slice(start_date, stop_date)).where(data.time != stop_date, drop=True)
-        else:
+        if stream_unit in 'steps':
             start_index = self.stream_index
             stop_index = start_index + stream_step
             self.stream_index = stop_index
             return data.isel(time=slice(start_index, stop_index))
+        else:
+            start_date = self.stream_date
+            stop_date = start_date + pd.DateOffset(**{stream_unit: stream_step})
+            self.stream_date = stop_date
+            return data.sel(time=slice(start_date, stop_date)).where(data.time != stop_date, drop=True)
 
     def reset_stream(self):
         """

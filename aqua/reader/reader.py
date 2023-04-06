@@ -28,7 +28,7 @@ class Reader(FixerMixin, RegridMixin):
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
                  regrid=None, method="ycon", zoom=None, configdir=None,
                  level=None, areas=True, var=None, vars=None,  # pylint: disable=W0622
-                 datamodel=None, streaming=False, stream_step=1, stream_unit=None,
+                 datamodel=None, streaming=False, stream_step=1, stream_unit='steps',
                  stream_startdate=None, rebuild=False, loglevel=None):
         """
         The Reader constructor.
@@ -86,8 +86,10 @@ class Reader(FixerMixin, RegridMixin):
                                   stream_unit=stream_unit,
                                   stream_startdate=stream_startdate,
                                   loglevel=loglevel)
-        # Export streaming method
+        # Export streaming methods
         self.reset_stream = self.streamer.reset_stream
+        self.stream = self.streamer.stream
+        self.stream_generator = self.streamer.stream_generator
 
         if not configdir:
             self.configdir = get_config_dir()
@@ -179,7 +181,7 @@ class Reader(FixerMixin, RegridMixin):
 
     def retrieve(self, regrid=False, timmean=False, decumulate=False,
                  fix=True, apply_unit_fix=True, var=None, vars=None,  # pylint: disable=W0622
-                 streaming=False, stream_step=1, stream_unit=None,
+                 streaming=False, stream_step=None, stream_unit=None,
                  stream_startdate=None, streaming_generator=False):
         """
         Perform a data retrieve.
@@ -246,6 +248,8 @@ class Reader(FixerMixin, RegridMixin):
         if self.level is not None:
             data = data.isel({self.vertcoord: self.level})
 
+        log_history(data, "retrieved by AQUA fixer")
+
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
         if decumulate:
             # data = data.map(self.decumulate, keep_attrs=True)
@@ -258,18 +262,15 @@ class Reader(FixerMixin, RegridMixin):
         if fix:   # Do not change easily this order. The fixer assumes to be after regridding
             data = self.fixer(data, apply_unit_fix=apply_unit_fix)
         if streaming or self.streaming or streaming_generator:
-            if stream_step == 1:
-                stream_step = self.streamer.stream_step
-            if not stream_unit:
-                stream_unit = self.streamer.stream_unit
-            if not stream_startdate:
-                stream_startdate = self.streamer.stream_startdate
             if streaming_generator:
-                data = self.streamer.stream_generator(data, stream_step=stream_step, stream_unit=stream_unit, stream_startdate=stream_startdate)
+                data = self.streamer.stream_generator(data, stream_step=stream_step,
+                                                      stream_unit=stream_unit,
+                                                      stream_startdate=stream_startdate)
             else:
-                data = self.streamer.stream(data, stream_step=stream_step, stream_unit=stream_unit, stream_startdate=stream_startdate)
+                data = self.streamer.stream(data, stream_step=stream_step,
+                                            stream_unit=stream_unit,
+                                            stream_startdate=stream_startdate)
 
-        log_history(data, "retrieved by AQUA fixer")
         return data
 
     def regrid(self, data):
