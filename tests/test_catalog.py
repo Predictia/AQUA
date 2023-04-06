@@ -1,12 +1,16 @@
+"""Test checking if all catalog entries can be read"""
+
 import pytest
 import xarray
 from aqua import Reader, catalogue
 
-@pytest.fixture(params=[(model, exp, source) 
+
+@pytest.fixture(params=[(model, exp, source)
                         for model in catalogue()
-                        for exp in catalogue()[model] 
+                        for exp in catalogue()[model]
                         for source in catalogue()[model][exp]])
 def reader(request):
+    """Reader instance fixture"""
     model, exp, source = request.param
     print([model, exp, source])
     # very slow access, skipped
@@ -20,8 +24,9 @@ def reader(request):
     data = myread.retrieve(fix=False)
     return myread, data
 
-# checking that both reader and Dataset are retrived in reasonable shaep
+
 def test_catalog(reader):
+    """Checking that both reader and Dataset are retrived in reasonable shape"""
     a, b = reader
     assert isinstance(a, Reader)
     assert isinstance(b, xarray.Dataset)
