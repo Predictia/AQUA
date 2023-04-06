@@ -53,7 +53,7 @@ source_grids:
         space_coord: ["value"]
     test-tco79:
       short:
-        path:  /work/bb1153/b382075/aqua/test_datasets/AQUA_tests_short/grids/tco79_grid.nc
+        path:  /work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/tco79_grid.nc
         space_coord: ["cell"]
   ICON:
     ngc2009:
@@ -111,10 +111,10 @@ source_grids:
           - -selname,cell_area 
     test-pi:
       original_2d:
-        path:  /work/bb1153/b382075/aqua/test_datasets/AQUA_tests_short/grids/pi_griddes_nodes_IFS.nc
+        path:  /work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_griddes_nodes_IFS.nc
         space_coord: ["nod2"]
         extra:
-          - -setgrid, /work/bb1153/b382075/aqua/test_datasets/AQUA_tests_short/grids/pi_griddes_nodes_IFS.nc
+          - -setgrid, /work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_griddes_nodes_IFS.nc
           - -selname,cell_area
 
   MSWEP:
