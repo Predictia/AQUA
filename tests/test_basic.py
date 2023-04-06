@@ -64,7 +64,7 @@ class TestAqua:
 
     @pytest.fixture(
         params=[
-            ("IFS", "test-tco79", "original_2d", "r200", "tas"),
+            ("IFS", "test-tco79", "short", "r200", "tas"),
             ("FESOM", "test-pi", "original_2d", "r200", "sst"),
         ]
     )
