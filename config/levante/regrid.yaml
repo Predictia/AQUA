@@ -52,6 +52,8 @@ source_grids:
         path: /work/bm1235/a270046/cycle2-sync/tcogrids/4km/tcogrids/tco2559_grid.nc
         space_coord: ["value"]
     test-tco79:
+      long:
+        space_coord: ["lon", "lat"]
       short:
         path:  /work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/tco79_grid.nc
         space_coord: ["cell"]
