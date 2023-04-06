@@ -6,3 +6,6 @@ cli/*.out
 *.nc
 cli/lra/lra-submitter.sh
 cli/gribber/gribber-submitter.sh
+cli/gribber/gribber_setup.yaml
+cli/lra/lra_config.yaml
+cli/lra/lra_config_lumi.yaml

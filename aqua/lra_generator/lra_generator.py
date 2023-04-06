@@ -208,8 +208,7 @@ class LRA_Generator():
         Args:
             var (str): variable name
         """
-        if loglevel == 'DEBUG':
-            t_beg = time()
+        t_beg = time()
 
         self.logger.info(f'Processing variable {var}...')
         temp_data = self.data[var]
@@ -266,6 +265,5 @@ class LRA_Generator():
             del year_data
         del temp_data
 
-        if loglevel == 'DEBUG':
-            t_end = time()
-            self.logger.info('Process took {:.4f} seconds'.format(t_end-t_beg))
+        t_end = time()
+        self.logger.info('Process took {:.4f} seconds'.format(t_end-t_beg))
