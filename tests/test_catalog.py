@@ -8,10 +8,19 @@ from aqua import Reader, catalogue
                         for source in catalogue()[model][exp]])
 def reader(request):
     model, exp, source = request.param
+    print([model, exp, source])
+    # very slow access, skipped
+    if model == 'ICON' and source == 'intake-esm-test':
+        pytest.skip()
+    if model == 'MSWEP' and source == 'daily':
+        pytest.skip()
+    if model == 'MSWEP' and source == '3hourly':
+        pytest.skip()
     myread = Reader(model=model, exp=exp, source=source, areas=False)
     data = myread.retrieve(fix=False)
     return myread, data
 
+# checking that both reader and Dataset are retrived in reasonable shaep
 def test_catalog(reader):
     a, b = reader
     assert isinstance(a, Reader)

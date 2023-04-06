@@ -3,7 +3,7 @@ import numpy as np
 from aqua import Reader, catalogue
 
 # pytest approximation, to bear with different machines
-approx_rel=1e4
+approx_rel=1e-4
 
 
 @pytest.fixture
