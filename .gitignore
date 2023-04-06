@@ -4,3 +4,5 @@
 cli/*.err
 cli/*.out
 *.nc
+cli/lra/lra-submitter.sh
+cli/gribber/gribber-submitter.sh
