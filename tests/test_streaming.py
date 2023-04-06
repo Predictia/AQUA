@@ -22,34 +22,55 @@ def reader_instance():
 # streaming class for tests
 class TestAquaStreaming:
 
-    @pytest.fixture(params=[("hours", 3), ("days", 72), ("months", 2184)])
+    @pytest.fixture(params=["hours", "days", "months"])
     def stream_units(self, request):
         return request.param
 
-    def test_stream_data_multiple(self, reader_instance, stream_units):
+    @pytest.fixture(params=["2020-01-20", "2020-03-05"])
+    def stream_date(self, request):
+        return request.param
+
+    # @pytest.fixture(params=[{"streaming": True, "stream_step": 3, "stream_unit": stream_units},
+    #                         {"streaming": True, "stream_step": 3, "stream_unit": stream_units, "stream_startdate": stream_date}])
+    # def stream_args(self, request, stream_units, stream_date):
+    #     return request.param
+
+    @pytest.fixture(params=[{"streaming": True, "stream_step": 3, "stream_unit": "days"},
+                            {"streaming": True, "stream_step": 3, "stream_unit": "days", "stream_startdate": "2020-01-20"}])
+    def stream_args(self, request, stream_date, stream_units):
+        req = request.param
+        req["stream_unit"]=stream_units
+        req["stream_startdate"]=stream_date
+        return req
+
+    def test_stream_data(self, reader_instance, stream_units, stream_date, stream_args):
         """
-        Test if the retrieve method returns streamed data with streaming=true with the right size
+        Test if the retrieve method returns streamed data with streaming=true
+        changing start date
         """
 
-        start_date = pd.to_datetime('2020-01-20T00:00:00')
-        offset = pd.DateOffset(**{stream_units[0]: 3})
+        start_date = pd.to_datetime(stream_date)
+        offset = pd.DateOffset(**{stream_units: 3})
         step = pd.DateOffset(hours=1)
 
-        data = reader_instance.retrieve(streaming=True, stream_step=3, stream_unit=stream_units[0])
+        dates = pd.date_range(start=start_date, end=start_date+offset, freq='1H')
+        num_hours = (dates[-1] - dates[0]).total_seconds() / 3600
+
+        data = reader_instance.retrieve(**stream_args)
         # Test if it has the right size
-        assert data['2t'].shape == (stream_units[1], 9, 18)
+        assert data['2t'].shape == (num_hours, 9, 18)
         # Test if starting date is ok
         assert data.time.values[0] == start_date
         # Test if end date is ok
         assert data.time.values[-1] == start_date + offset - step
 
         # Test if we can go to the next date
-        data = reader_instance.retrieve(streaming=True, stream_step=3, stream_unit=stream_units[0])
+        data = reader_instance.retrieve(**stream_args)
         assert data.time.values[0] == start_date + offset
 
         # Test if reset_stream works
         reader_instance.reset_stream()
-        data = reader_instance.retrieve(streaming=True, stream_step=3, stream_unit=stream_units[0])
+        data = reader_instance.retrieve(**stream_args)
         assert data.time.values[0] == start_date
 
 
