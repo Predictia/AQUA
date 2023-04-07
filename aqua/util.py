@@ -10,6 +10,7 @@ import datetime
 import yaml
 import eccodes
 import xarray as xr
+from aqua.logger import log_configure
 
 
 def load_yaml(infile):
@@ -263,12 +264,13 @@ def generate_random_string(length):
     random_string = ''.join(random.choice(letters_and_digits) for _ in range(length))
     return random_string
 
+
 def get_arg(args, arg, default):
     """
     Support function to get arguments
 
     Args:
-        args: the arguments 
+        args: the arguments
         arg: the argument to get
         default: the default value
 
@@ -281,25 +283,26 @@ def get_arg(args, arg, default):
         res = default
     return res
 
-def create_folder(folder, verbose=False):
+
+def create_folder(folder, loglevel=None):
     """
     Create a folder if it does not exist
 
     Args:
         folder (str): the folder to create
-        verbose (bool): if True, print the folder name,
-                        default is False
+        loglevel (str): the log level
 
     Returns:
         None
     """
+    logger = log_configure(loglevel, 'create_folder')
+
     if not os.path.exists(folder):
-        if verbose:
-            print(f'Creating folder {folder}')
+        logger.warning(f'Creating folder {folder}')
         os.makedirs(folder)
     else:
-        if verbose:
-            print(f'Folder {folder} already exists')
+        logger.warning(f'Folder {folder} already exists')
+
 
 def log_history(data, msg):
     """Elementary provenance logger in the history attribute"""

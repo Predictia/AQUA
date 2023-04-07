@@ -4,6 +4,8 @@ from glob import glob
 import yaml
 from aqua.logger import log_configure
 from aqua.util import load_yaml, create_folder
+from aqua.util import get_config_dir, get_machine
+from aqua.reader import Reader
 
 
 class Gribber():
@@ -17,7 +19,7 @@ class Gribber():
                  dir={'datadir': None,
                       'tmpdir': None,
                       'jsondir': None,
-                      'catalogdir': None},
+                      'configdir': None},
                  loglevel=None,
                  overwrite=False
                  ) -> None:
@@ -36,6 +38,10 @@ class Gribber():
             Number of processors, by default 1
         dir : dict, optional
             Dictionary with directories
+            data: data directory
+            tmp: temporary directory
+            json: JSON directory (output)
+            configdir: catalog directory to update
         loglevel : str, optional
             Log level, by default None
         overwrite : bool, optional
@@ -103,7 +109,11 @@ class Gribber():
         self.datadir = self.dir['datadir']
         self.tmpdir = os.path.join(self.dir['tmpdir'], self.exp)
         self.jsondir = os.path.join(self.dir['jsondir'], self.exp)
-        self.catalogdir = self.dir['catalogdir']
+        if not self.dir['configdir']:
+            self.configdir = get_config_dir()
+        else:
+            self.configdir = self.dir['configdir']
+        self.machine = get_machine(self.configdir)
 
         self.logger.info(f"Data directory: {self.datadir}")
         self.logger.info(f"JSON directory: {self.jsondir}")
@@ -119,8 +129,9 @@ class Gribber():
         self.logger.info(f"Gribfile wildcard: {self.gribfiles}")
 
         # Get catalog filename
-        self.catalogfile = os.path.join(self.catalogdir,
-                                        self.model, self.exp+'.yaml')
+        self.catalogfile = os.path.join(self.configdir, self.machine,
+                                        'catalog', self.model,
+                                        self.exp+'.yaml')
         self.logger.warning(f"Catalog file: {self.catalogfile}")
 
         # Get JSON filename
@@ -136,7 +147,7 @@ class Gribber():
         """
         # Create folders
         for item in [self.tmpdir, self.jsondir]:
-            create_folder(item, verbose=self.verbose)
+            create_folder(item, loglevel=self.logger.level)
 
         # Create symlinks to GRIB files
         self._create_symlinks()
@@ -151,6 +162,17 @@ class Gribber():
 
         # Create catalog entry
         self._create_catalog_entry()
+
+    def check_entry(self):
+        """
+        Check if catalog entry works.
+        """
+        self.reader = Reader(model=self.model, exp=self.exp,
+                             source=self.source, configdir=self.configdir,
+                             loglevel=self.logger.level)
+
+        data = self.reader.retrieve(fix=False)
+        assert len(data) > 0
 
     def _check_steps(self):
         """
@@ -286,10 +308,12 @@ class Gribber():
     def _create_catalog_entry(self):
         """
         Create or update catalog file
+        Updates both the main.yaml and the catalog file.
         """
 
-        # Generate the block to be added to the catalog file
-        myblock = {
+        # Generate blocks to be added to the catalog file
+        # Catalog file
+        block_cat = {
             'driver': 'zarr',
             'args': {
                 'consolidated': False,
@@ -298,31 +322,61 @@ class Gribber():
             }
         }
         self.logger.info("Block to be added to catalog file:")
-        self.logger.info(myblock)
+        self.logger.info(block_cat)
+
+        # Main catalog file
+        block_main = {
+            '{self.source}': {
+                'description': self.description,
+                'driver': 'yaml_file_cat',
+                'args': {
+                    'path': '{{CATALOG_DIR}}/{self.source}.yaml'
+                }
+            }
+        }
+        self.logger.info("Block to be added to main catalog file:")
+        self.logger.info(block_main)
 
         if self.flag[2]:  # Catalog file exists
-            mydict = load_yaml(self.catalogfile)
+            cat_file = load_yaml(self.catalogfile)
 
             # Check if source already exists
-            if self.source in mydict['sources'].keys():
+            if self.source in cat_file['sources'].keys():
                 if self.overwrite:
-                    self.logger.warning(f"Source {self.source} already exists in\
-                        {self.catalogfile}. Replacing it...")
-                    mydict['sources'][self.source] = myblock
+                    self.logger.warning(f"Source {self.source} already exists\
+                        in {self.catalogfile}. Replacing it...")
+                    cat_file['sources'][self.source] = block_cat
                 else:
-                    self.logger.warning(f"Source {self.source} already exists in\
-                        {self.catalogfile}. Skipping...")
+                    self.logger.warning(f"Source {self.source} already exists\
+                        in {self.catalogfile}. Skipping...")
                     return
         else:  # Catalog file does not exist
             # default dict for zarr
-            mydict = {'plugins': {'source': [{'module': 'intake_xarray'},
+            cat_file = {'plugins': {'source': [{'module': 'intake_xarray'},
                                              {'module': 'gribscan'}]}}
-            mydict['sources'] = {}
-            mydict['sources'][self.source] = myblock
+            cat_file['sources'] = {}
+            cat_file['sources'][self.source] = block_cat
 
         # Write catalog file
         with open(self.catalogfile, 'w') as f:
-            yaml.dump(mydict, f, sort_keys=False)
+            yaml.dump(cat_file, f, sort_keys=False)
+
+        # Write main catalog file
+        mainfilepath = os.path.join(self.catalogdir, 'main.yaml')
+        main_file = load_yaml(mainfilepath)
+
+        # Check if source already exists
+        if self.source in main_file['sources'].keys():
+            if self.overwrite:
+                self.logger.warning(f"Source {self.source} already exists\
+                    in {mainfilepath}. Replacing it...")
+                main_file['sources'][self.source] = block_main
+            else:
+                self.logger.warning(f"Source {self.source} already exists\
+                    in {mainfilepath}. Skipping...")
+                return
+        else:  # Source does not exist
+            main_file['sources'][self.source] = block_main
 
     def help(self):
         """
