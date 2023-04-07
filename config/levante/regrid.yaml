@@ -116,7 +116,7 @@ source_grids:
         path:  /work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_griddes_nodes_IFS.nc
         space_coord: ["nod2"]
         extra:
-          - -setgrid, /work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_griddes_nodes_IFS.nc
+          - -setgrid,/work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_griddes_nodes_IFS.nc
           - -selname,cell_area
 
   MSWEP:
