@@ -1,22 +1,23 @@
+"""The main AQUA Reader class"""
+
 import os
 import sys
 import subprocess
 import tempfile
 import json
 import warnings
-import logging
-
 import intake
 import intake_esm
 import xarray as xr
 import pandas as pd
-from metpy.units import units
+from metpy.units import units, DimensionalityError
 import numpy as np
 import smmregrid as rg
 import cf2cdm
 from aqua.util import load_yaml, _eval_formula, get_eccodes_attr
 from aqua.util import get_reader_filenames, get_config_dir, get_machine
-from aqua.util import log_history, log_configure
+from aqua.util import log_history
+from aqua.logger import log_configure
 
 
 class Reader():
@@ -24,7 +25,7 @@ class Reader():
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
                  regrid=None, method="ycon", zoom=None, configdir=None,
-                 level=None, areas=True, var=None, vars=None,
+                 level=None, areas=True, var=None, vars=None,  # pylint: disable=W0622
                  datamodel=None, streaming=False, stream_step=1, stream_unit=None,
                  stream_startdate=None, rebuild=False, loglevel=None):
         """
@@ -32,34 +33,36 @@ class Reader():
         It uses the catalog `config/config.yaml` to identify the required data.
 
         Arguments:
-            model (str):         model ID
-            exp (str):           experiment ID
-            source (str):        source ID
-            regrid (str):        perform regridding to grid `regrid`, as defined in `config/regrid.yaml` (None)
-            method (str):        regridding method (ycon)
-            zoom (int):          healpix zoom level
-            configdir (str)      folder where the config/catalog files are located (config)
-            level (int):         level to extract if input data are 3D (starting from 0)
-            areas (bool):        compute pixel areas if needed (True)
-            var (str, list):     variable(s) which we will extract. "vars" is a synonym (None)
-            datamodel (str):     destination data model for coordinates, overrides the one in fixes.yaml (None)
+            model (str):            model ID
+            exp (str):              experiment ID
+            source (str):           source ID
+            regrid (str):           perform regridding to grid `regrid`, as defined in `config/regrid.yaml` (None)
+            method (str):           regridding method (ycon)
+            zoom (int):             healpix zoom level
+            configdir (str)         folder where the config/catalog files are located (config)
+            level (int):            level to extract if input data are 3D (starting from 0)
+            areas (bool):           compute pixel areas if needed (True)
+            var (str, list):        variable(s) which we will extract; vars is a synonym (None)
+            datamodel (str):        destination data model for coordinates, overrides the one in fixes.yaml (None)
             streaming (bool):       if to retreive data in a streaming mode (False)
             stream_step (int):      the number of time steps to stream the data by (Default = 1)
-            stream_unit (str):      the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (None)
+            stream_unit (str):      the unit of time to stream the data by
+                                    (e.g. 'hours', 'days', 'months', 'years') (None)
             stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
             rebuild (bool):         force rebuilding of area and weight files
-            loglevel (string):      Level of logging according to logging module (default: log_level_default of loglevel())
+            loglevel (string):      Level of logging according to logging module
+                                    (default: log_level_default of loglevel())
 
         Returns:
             A `Reader` class object.
         """
 
-        loglevel = log_configure(loglevel)
+        # define the internal logger
+        self.logger = log_configure(log_level=loglevel, log_name='Reader')
 
         if vars:
-            self.var = vars
-        else:
-            self.var = var
+            var = vars
+        self.var = var
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
@@ -69,6 +72,7 @@ class Reader():
         self.freq = freq
         self.level = level
         self.vertcoord = None
+        self.deltat = 1
         extra = []
 
         self.grid_area = None
@@ -173,8 +177,8 @@ class Reader():
     def _make_dst_area_file(self, areafile, grid):
         """Helper function to create destination (regridded) area files."""
 
-        logging.warning("Destination areas file not found: %s", areafile)
-        logging.warning("Attempting to generate it ...")
+        self.logger.warning("Destination areas file not found: %s", areafile)
+        self.logger.warning("Attempting to generate it ...")
 
         dst_extra = f"-const,1,{grid}"
         grid_area = self.cdo_generate_areas(source=dst_extra)
@@ -185,7 +189,7 @@ class Reader():
         grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.dst_space_coord})
 
         grid_area.to_netcdf(self.dst_areafile)
-        logging.warning("Success!")
+        self.logger.warning("Success!")
 
     def _make_src_area_file(self, areafile, source_grid,
                             gridpath="", icongridpath="", zoom=None):
@@ -202,11 +206,11 @@ class Reader():
         else:
             temp_file = None
             if zoom:
-                sgridpath = sgridpath.format(zoom=(9-zoom))
+                sgridpath = sgridpath.format(zoom=9-zoom)
 
-        logging.warning("Source areas file not found: %s", areafile)
-        logging.warning("Attempting to generate it ...")
-        logging.warning("Source grid: %s", sgridpath)
+        self.logger.warning("Source areas file not found: %s", areafile)
+        self.logger.warning("Attempting to generate it ...")
+        self.logger.warning("Source grid: %s", sgridpath)
         src_extra = source_grid.get("extra", [])
         grid_area = self.cdo_generate_areas(source=sgridpath,
                                             gridpath=gridpath,
@@ -217,9 +221,9 @@ class Reader():
         data = self.retrieve(fix=False)
         grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.src_space_coord})
         grid_area.to_netcdf(areafile)
-        logging.warning("Success!")
+        self.logger.warning("Success!")
 
-    def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, regrid=None, extra=[], zoom=None):
+    def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, regrid=None, extra=None, zoom=None):
         """Helper function to produce weights file"""
 
         sgridpath = source_grid.get("path", None)
@@ -233,11 +237,11 @@ class Reader():
         else:
             temp_file = None
             if zoom:
-                sgridpath = sgridpath.format(zoom=(9-zoom))
+                sgridpath = sgridpath.format(zoom=9-zoom)
 
-        logging.warning("Weights file not found: %s", weightsfile)
-        logging.warning("Attempting to generate it ...")
-        logging.warning("Source grid: %s", sgridpath)
+        self.logger.warning("Weights file not found: %s", weightsfile)
+        self.logger.warning("Attempting to generate it ...")
+        self.logger.warning("Source grid: %s", sgridpath)
 
         # hack to  pass a correct list of all options
         src_extra = source_grid.get("extra", [])
@@ -246,6 +250,8 @@ class Reader():
                 src_extra = [src_extra]
         if extra:
             extra = [extra]
+        else:
+            extra = []
         extra = extra + src_extra
         weights = rg.cdo_generate_weights(source_grid=sgridpath,
                                           target_grid=cfg_regrid["target_grids"][regrid],
@@ -254,7 +260,7 @@ class Reader():
                                           icongridpath=cfg_regrid["cdo-paths"]["icon"],
                                           extra=extra)
         weights.to_netcdf(weightsfile)
-        logging.warning("Success!")
+        self.logger.warning("Success!")
 
     def cdo_generate_areas(self, source, icongridpath=None, gridpath=None, extra=None):
         """
@@ -326,9 +332,9 @@ class Reader():
             areas.cell_area.attrs['long_name'] = 'area of grid cell'
             return areas.cell_area
 
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError as err:
             # Print the CDO error message
-            logging.critical(e.output.decode(), file=sys.stderr)
+            self.logger.critical(err.output.decode(), file=sys.stderr)
             raise
 
         finally:
@@ -338,7 +344,7 @@ class Reader():
             area_file.close()
 
     def retrieve(self, regrid=False, timmean=False, decumulate=False,
-                 fix=True, apply_unit_fix=True, var=None, vars=None,
+                 fix=True, apply_unit_fix=True, var=None, vars=None,  # pylint: disable=W0622
                  streaming=False, stream_step=1, stream_unit=None,
                  stream_startdate=None, streaming_generator=False):
         """
@@ -351,11 +357,12 @@ class Reader():
             fix (bool):             if to perform a fix (var name, units, coord name adjustments) (True)
             apply_unit_fix (bool):  if to already adjust units by multiplying by a factor or adding
                                     an offset (this can also be done later with the `apply_unit_fix` method) (True)
-            var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
+            var (str, list):  variable(s) which we will extract; vars is a synonym (None)
             streaming (bool):       if to retreive data in a streaming mode (False)
             streaming_generator (bool):  if to return a generator object for data streaming (False).
             stream_step (int):      the number of time steps to stream the data by (Default = 1)
-            stream_unit (str):      the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (None)
+            stream_unit (str):      the unit of time to stream the data by
+                                    (e.g. 'hours', 'days', 'months', 'years') (None)
             stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
         Returns:
             A xarray.Dataset containing the required data.
@@ -433,22 +440,27 @@ class Reader():
 
     def stream(self, data, stream_step=1, stream_unit=None, stream_startdate=None):
         """
-        The stream method is used to stream data by either a specific time interval or by a specific number of samples.
-        If the unit parameter is specified, the data is streamed by the specified unit and stream_step (e.g. 1 month).
-        If the unit parameter is not specified, the data is streamed by stream_step steps of the original time resolution of input data.
+        The stream method is used to stream data by either a specific time interval
+        or by a specific number of samples. If the unit parameter is specified, the
+        data is streamed by the specified unit and stream_step (e.g. 1 month).
+        If the unit parameter is not specified, the data is streamed by stream_step
+        steps of the original time resolution of input data.
 
-        If the stream function is called a second time, it will return the subsequent chunk of data in the sequence.
-        The function keeps track of the state of the streaming process through the use of internal attributes.
-        This allows the user to stream through the entire dataset in multiple calls to the function,
+        If the stream function is called a second time, it will return the subsequent
+        chunk of data in the sequence. The function keeps track of the state of the
+        streaming process through the use of internal attributes. This allows the user
+        to stream through the entire dataset in multiple calls to the function,
         retrieving consecutive chunks of data each time.
 
         If stream_startdate is not specified, the method will use the first date in the dataset.
 
         Arguments:
-            data (xr.Dataset):  the input xarray.Dataset
-            stream_step  (int): the number of time steps to stream the data by (Default = 1)
-            stream_unit (str):  the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (None)
-            stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
+            data (xr.Dataset):      the input xarray.Dataset
+            stream_step  (int):     the number of time steps to stream the data by (Default = 1)
+            stream_unit (str):      the unit of time to stream the data by
+                                    (e.g. 'hours', 'days', 'months', 'years') (None)
+            stream_startdate (str): the starting date for streaming the data
+                                    (e.g. '2020-02-25') (None)
         Returns:
             A xarray.Dataset containing the subset of the input data that has been streamed.
         """
@@ -483,16 +495,18 @@ class Reader():
 
     def stream_generator(self, data, stream_step=1, stream_unit=None, stream_startdate=None):
         """
-        The stream_generator method is designed to split data into smaller chunks of data for processing or analysis.
-        It returns a generator object that yields the smaller chunks of data.
+        The stream_generator method is designed to split data into smaller chunks of data for
+        processing or analysis. It returns a generator object that yields the smaller chunks of data.
         The method can split the data based on either a specific time interval or by a specific number of samples.
         If the unit parameter is specified, the data is streamed by the specified unit and stream_step (e.g. 1 month).
-        If the unit parameter is not specified, the data is streamed by stream_step steps of the original time resolution of input data.
+        If the unit parameter is not specified, the data is streamed by stream_step steps of the original time
+        resolution of input data.
 
         Arguments:
-            data (xr.Dataset):  the input xarray.Dataset
-            stream_step  (int): the number of samples or time interval to stream the data by (Default = 1)
-            stream_unit (str):  the unit of the time interval to stream the data by (e.g. 'hours', 'days', 'months', 'years') (None)
+            data (xr.Dataset):      the input xarray.Dataset
+            stream_step  (int):     the number of samples or time interval to stream the data by (Default = 1)
+            stream_unit (str):      the unit of the time interval to stream the data by
+                                    (e.g. 'hours', 'days', 'months', 'years') (None)
             stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
         Returns:
             A generator object that yields the smaller chunks of data.
@@ -566,7 +580,7 @@ class Reader():
 
         # check for NaT
         if np.any(np.isnat(out.time)):
-            logging.warning('Resampling cannot produce output for all frequency step, is your input data correct?')
+            self.logger.warning('Resampling cannot produce output for all frequency step, is your input data correct?')
 
         log_history(out, f"resampled to frequency {resample_freq} by AQUA fixer")
         return out
@@ -706,7 +720,7 @@ class Reader():
         # usual case for radiative fluxes
         try:
             clean.attrs['units'] = str(new_units.to('W/m^2').units)
-        except:
+        except DimensionalityError:
             clean.attrs['units'] = str(new_units.units)
 
         # add an attribute that can be later used to infer about decumulation
@@ -736,7 +750,7 @@ class Reader():
         Selects a single spatial sample along the dimensions specified in `space_coord`.
 
         Arguments:
-            da (xarray.DataArray): Input data array to select the spatial sample from.
+            da (xarray.DataArray):     Input data array to select the spatial sample from.
             space_coord (list of str): List of dimension names corresponding to the spatial coordinates to select.
 
         Returns:
@@ -760,10 +774,9 @@ class Reader():
 
         Parameters
         ----------
-        da : xarray.DataArray
-            The input DataArray to rename.
-        dim_list : list of str
-            The list of dimension names to use.
+        da (xarray.DataArray):  The input DataArray to rename.
+        dim_list (list of str): The list of dimension names to use.
+
         Returns
         -------
         xarray.DataArray
@@ -834,21 +847,21 @@ class Reader():
 
         fixm = fixes["models"].get(model, None)
         if not fixm:
-            logging.warning("No fixes defined for model %s", model)
+            self.logger.warning("No fixes defined for model %s", model)
             return data
 
         fixexp = fixm.get(exp, None)
         if not fixexp:
             fixexp = fixm.get('default', None)
             if not fixexp:
-                logging.warning("No fixes defined for model %s, experiment %s", model, exp)
+                self.logger.warning("No fixes defined for model %s, experiment %s", model, exp)
                 return data
 
         fix = fixexp.get(src, None)
         if not fix:
             fix = fixexp.get('default', None)
             if not fix:
-                logging.warning("No fixes defined for model %s, experiment %s, source %s", model, exp, src)
+                self.logger.warning("No fixes defined for model %s, experiment %s, source %s", model, exp, src)
                 return data
 
         self.deltat = fix.get("deltat", 1.0)
@@ -856,14 +869,14 @@ class Reader():
 
         fixd = {}
         varlist = {}
-        vars = fix.get("vars", None)
-        if vars:
-            for var in vars:
+        variables = fix.get("vars", None)
+        if variables:
+            for var in variables:
                 unit = None
                 attributes = {}
                 varname = var
 
-                grib = vars[var].get("grib", None)
+                grib = variables[var].get("grib", None)
                 # This is a grib variable, use eccodes to find attributes
                 if grib:
                     # Get relevant eccodes attribues
@@ -871,11 +884,11 @@ class Reader():
                     sn = attributes.get("shortName", None)
                     if (sn != '~') and (var != sn):
                         varname = sn
-                        logging.info("Grib attributes for %s: %s", varname, attributes)
+                        self.logger.info("Grib attributes for %s: %s", varname, attributes)
 
                 varlist[var] = varname
 
-                source = vars[var].get("source", None)
+                source = variables[var].get("source", None)
                 # This is a renamed variable. This will be done at the end.
                 if source:
                     if source not in data.variables:
@@ -883,21 +896,21 @@ class Reader():
                     fixd.update({f"{source}": f"{varname}"})
                     log_history(data[source], "variable renamed by AQUA fixer")
 
-                formula = vars[var].get("derived", None)
+                formula = variables[var].get("derived", None)
                 # This is a derived variable, let's compute it and create the new variable
                 if formula:
                     try:
                         data[varname] = _eval_formula(formula, data)
                         source = varname
                         attributes.update({"derived": formula})
-                        logging.info("Derived %s from %s", var, formula)
+                        self.logger.info("Derived %s from %s", var, formula)
                         log_history(data[source], "variable derived by AQUA fixer")
                     except KeyError:
                         # The variable could not be computed, let's skip it
                         continue
 
                 # Get extra attributes if any
-                attributes.update(vars[var].get("attributes", {}))
+                attributes.update(variables[var].get("attributes", {}))
 
                 # update attributes
                 if attributes:
@@ -909,13 +922,13 @@ class Reader():
                             data[source].attrs[att] = value
 
                 # Override destination units
-                newunits = vars[var].get("units", None)
+                newunits = variables[var].get("units", None)
                 if newunits:
                     data[source].attrs.update({"units": newunits})
                     unit = newunits
 
                 # Override source units
-                src_units = vars[var].get("src_units", None)
+                src_units = variables[var].get("src_units", None)
                 if src_units:
                     data[source].attrs.update({"units": src_units})
 
@@ -923,26 +936,26 @@ class Reader():
                 if unit:
                     if unit.count('{'):
                         unit = fixes["defaults"]["units"][unit.replace('{', '').replace('}', '')]
-                    logging.info("%s: %s --> %s", var, data[source].units, unit)
+                    self.logger.info("%s: %s --> %s", var, data[source].units, unit)
                     factor, offset = self.convert_units(data[source].units, unit, var)
                     if (factor != 1.0) or (offset != 0):
                         data[source].attrs.update({"target_units": unit})
                         data[source].attrs.update({"factor": factor})
                         data[source].attrs.update({"offset": offset})
-                        logging.info("Fixing %s to %s. Unit fix: factor=%f, offset=%f", source, var, factor, offset)
+                        self.logger.info("Fixing %s to %s. Unit fix: factor=%f, offset=%f", source, var, factor, offset)
 
         # Only now rename everything
         data = data.rename(fixd)
 
-        for var in vars:
+        for var in variables:
             # Decumulate if required
-            if vars[var].get("decumulate", None):
+            if variables[var].get("decumulate", None):
                 varname = varlist[var]
                 if varname in data.variables:
-                    keep_first = vars[var].get("keep_first", True)
+                    keep_first = variables[var].get("keep_first", True)
                     data[varname] = self.simple_decumulate(data[varname],
-                                                        jump=jump,
-                                                        keep_first=keep_first)
+                                                           jump=jump,
+                                                           keep_first=keep_first)
                     log_history(data[varname], "variable decumulated by AQUA fixer")
 
         if apply_unit_fix:
@@ -974,15 +987,15 @@ class Reader():
             The processed input dataset
         """
         fn = os.path.join(self.configdir, 'data_models', f'{src_datamodel}2{dst_datamodel}.json')
-        logging.info("Data model: %s", fn)
+        self.logger.info("Data model: %s", fn)
         with open(fn, 'r', encoding="utf8") as f:
             dm = json.load(f)
 
         if "IFSMagician" in data.attrs.get("history", ""):  # Special fix for gribscan levels
             if "level" in data.coords:
-                data.level.attrs["units"]="hPa"
-                data.level.attrs["standard_name"]="air_pressure"
-                data.level.attrs["long_name"]="pressure"
+                data.level.attrs["units"] = "hPa"
+                data.level.attrs["standard_name"] = "air_pressure"
+                data.level.attrs["long_name"] = "pressure"
 
         # this is needed since cf2cdm issues a (useless) UserWarning
         with warnings.catch_warnings():
@@ -1016,22 +1029,22 @@ class Reader():
             if factor.units == "meter ** 3 / kilogram":
                 # Density of water was missing
                 factor = factor * 1000 * units("kg m-3")
-                logging.info("%s: corrected multiplying by density of water 1000 kg m-3", var)
+                self.logger.info("%s: corrected multiplying by density of water 1000 kg m-3", var)
             elif factor.units == "meter ** 3 * second / kilogram":
                 # Density of water and accumulation time were missing
                 factor = factor * 1000 * units("kg m-3") / (self.deltat * units("s"))
-                logging.info("%s: corrected multiplying by density of water 1000 kg m-3", var)
-                logging.info("%s: corrected dividing by accumulation time %s s", var, self.deltat)
+                self.logger.info("%s: corrected multiplying by density of water 1000 kg m-3", var)
+                self.logger.info("%s: corrected dividing by accumulation time %s s", var, self.deltat)
             elif factor.units == "second":
                 # Accumulation time was missing
                 factor = factor / (self.deltat * units("s"))
-                logging.info("%s: corrected dividing by accumulation time %s s", var, self.deltat)
+                self.logger.info("%s: corrected dividing by accumulation time %s s", var, self.deltat)
             elif factor.units == "kilogram / meter ** 3":
                 # Density of water was missing
                 factor = factor / (1000 * units("kg m-3"))
-                logging.info("%s: corrected dividing by density of water 1000 kg m-3", var)
+                self.logger.info("%s: corrected dividing by density of water 1000 kg m-3", var)
             else:
-                logging.info("%s: incommensurate units converting %s to %s --> %s", var, src, dst, factor.units)
+                self.logger.info("%s: incommensurate units converting %s to %s --> %s", var, src, dst, factor.units)
             offset = 0 * units(dst)
 
         if offset.magnitude != 0:
