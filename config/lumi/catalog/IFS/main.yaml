@@ -1,11 +1,6 @@
 sources:
-  tco399-orca025:
-    description: 25km IFS and ORCA
+  test-tco79:
+    description: 5km experiment, coupuled with IFS
     driver: yaml_file_cat
     args:
-        path: "{{CATALOG_DIR}}/tco399-orca025.yaml"
-  tco399-orca025-python:
-    description: 25km IFS and ORCA
-    driver: yaml_file_cat
-    args:
-        path: "{{CATALOG_DIR}}/tco399-orca025-python.yaml"
+        path: "{{CATALOG_DIR}}/test-tco79.yaml"
