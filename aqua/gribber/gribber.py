@@ -20,6 +20,7 @@ class Gribber():
                       'tmpdir': None,
                       'jsondir': None,
                       'configdir': None},
+                 description=None,
                  loglevel=None,
                  overwrite=False
                  ) -> None:
@@ -42,6 +43,8 @@ class Gribber():
             tmp: temporary directory
             json: JSON directory (output)
             configdir: catalog directory to update
+        description : str, optional
+            Description of the experiment, by default None
         loglevel : str, optional
             Log level, by default None
         overwrite : bool, optional
@@ -102,6 +105,8 @@ class Gribber():
 
         self.nprocs = nprocs
 
+        self.description = description
+
         # Create folders from dir dictionary, default outside of class
         self.dir = dir
         self._check_dir()
@@ -117,7 +122,7 @@ class Gribber():
 
         self.logger.info(f"Data directory: {self.datadir}")
         self.logger.info(f"JSON directory: {self.jsondir}")
-        self.logger.info(f"Catalog directory: {self.catalogdir}")
+        self.logger.info(f"Catalog directory: {self.configdir}")
 
         # Get gribtype and tgt_json from source
         self.gribtype = self.source.split('_')[0]
@@ -141,13 +146,15 @@ class Gribber():
         self.flag = [False, False, False]
         self._check_steps()
 
-    def create_entry(self):
+    def create_entry(self, loglevel=None):
         """
         Create catalog entry.
         """
+        if not loglevel:
+            loglevel = 'WARNING'
         # Create folders
         for item in [self.tmpdir, self.jsondir]:
-            create_folder(item, loglevel=self.logger.level)
+            create_folder(item, loglevel=loglevel)
 
         # Create symlinks to GRIB files
         self._create_symlinks()
@@ -162,6 +169,7 @@ class Gribber():
 
         # Create catalog entry
         self._create_catalog_entry()
+        self._create_main_catalog()
 
     def check_entry(self):
         """
@@ -308,7 +316,6 @@ class Gribber():
     def _create_catalog_entry(self):
         """
         Create or update catalog file
-        Updates both the main.yaml and the catalog file.
         """
 
         # Generate blocks to be added to the catalog file
@@ -324,19 +331,6 @@ class Gribber():
         self.logger.info("Block to be added to catalog file:")
         self.logger.info(block_cat)
 
-        # Main catalog file
-        block_main = {
-            '{self.source}': {
-                'description': self.description,
-                'driver': 'yaml_file_cat',
-                'args': {
-                    'path': '{{CATALOG_DIR}}/{self.source}.yaml'
-                }
-            }
-        }
-        self.logger.info("Block to be added to main catalog file:")
-        self.logger.info(block_main)
-
         if self.flag[2]:  # Catalog file exists
             cat_file = load_yaml(self.catalogfile)
 
@@ -347,13 +341,12 @@ class Gribber():
                         in {self.catalogfile}. Replacing it...")
                     cat_file['sources'][self.source] = block_cat
                 else:
-                    self.logger.warning(f"Source {self.source} already exists\
-                        in {self.catalogfile}. Skipping...")
-                    return
+                    self.logger.warning(f"Source {self.source} already exists in {self.catalogfile}. Skipping...")
+                return
         else:  # Catalog file does not exist
             # default dict for zarr
             cat_file = {'plugins': {'source': [{'module': 'intake_xarray'},
-                                             {'module': 'gribscan'}]}}
+                                               {'module': 'gribscan'}]}}
             cat_file['sources'] = {}
             cat_file['sources'][self.source] = block_cat
 
@@ -361,22 +354,48 @@ class Gribber():
         with open(self.catalogfile, 'w') as f:
             yaml.dump(cat_file, f, sort_keys=False)
 
+    def _create_main_catalog(self):
+        """
+        Updates the main.yaml file.
+        """
+
+        if not self.description:
+            self.description = self.exp + ' data'
+
+        # Main catalog file
+        block_main = {
+            self.exp: {
+                'description': self.description,
+                'driver': 'yaml_file_cat',
+                'args': {
+                    'path': '{{CATALOG_DIR}}/' + self.exp + '.yaml'
+                }
+            }
+        }
+        self.logger.info("Block to be added to main catalog file:")
+        self.logger.info(block_main)
+
         # Write main catalog file
-        mainfilepath = os.path.join(self.catalogdir, 'main.yaml')
+        mainfilepath = os.path.join(self.configdir, self.machine, 'catalog',
+                                    self.model, 'main.yaml')
         main_file = load_yaml(mainfilepath)
 
         # Check if source already exists
-        if self.source in main_file['sources'].keys():
+        if self.exp in main_file['sources'].keys():
             if self.overwrite:
-                self.logger.warning(f"Source {self.source} already exists\
+                self.logger.warning(f"Source {self.exp} already exists\
                     in {mainfilepath}. Replacing it...")
                 main_file['sources'][self.source] = block_main
             else:
-                self.logger.warning(f"Source {self.source} already exists\
+                self.logger.warning(f"Source {self.exp} already exists\
                     in {mainfilepath}. Skipping...")
-                return
+            return
         else:  # Source does not exist
             main_file['sources'][self.source] = block_main
+
+        # Write catalog file
+        with open(mainfilepath, 'w') as f:
+            yaml.dump(main_file, f, sort_keys=False)
 
     def help(self):
         """

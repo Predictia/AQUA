@@ -47,7 +47,6 @@ if __name__ == '__main__':
     exp = config['id']['exp']
     source = config['id']['source']
     nprocs = get_arg(args, 'nprocs', 1)
-    verbose = get_arg(args, 'verbose', False)
     overwrite = get_arg(args, 'overwrite', False)
 
     # Create Gribber object
@@ -56,4 +55,4 @@ if __name__ == '__main__':
                       loglevel=loglevel, overwrite=overwrite)
 
     # Create .catalog entry
-    gribber.create_entry()
+    gribber.create_entry(loglevel)
