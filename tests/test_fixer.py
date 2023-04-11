@@ -18,7 +18,7 @@ def test_fixer():
     assert pytest.approx(ttr0.values) == [-6969528.64626286, -14032413.9597565, -9054387.41655567]
 
     # Now let's fix
-    data1 = reader.retrieve(fix=True)  # Retrieve not fixed data
+    data1 = reader.retrieve(fix=True)  # Retrieve fixed data
     ttr1 = data1.ttr[ntime, 0, 0]
     tas1 = data1['skt'][ntime, 5, 5]
     mtntrf = data1.mtntrf[ntime, 0, 0]
