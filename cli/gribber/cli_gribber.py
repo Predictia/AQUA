@@ -37,6 +37,7 @@ if __name__ == '__main__':
     """
 
     args = parse_arguments(sys.argv[1:])
+
     loglevel = get_arg(args, 'loglevel', 'WARNING')
 
     file = get_arg(args, 'config', 'gribber_config.yaml')

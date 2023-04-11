@@ -7,7 +7,6 @@ from aqua.util import load_yaml, create_folder
 from aqua.util import get_config_dir, get_machine
 from aqua.reader import Reader
 
-
 class Gribber():
     """
     Class to generate a JSON file from a GRIB file.
@@ -169,6 +168,7 @@ class Gribber():
 
         # Create catalog entry
         self._create_catalog_entry()
+
         self._create_main_catalog()
 
     def check_entry(self):
@@ -192,7 +192,9 @@ class Gribber():
                 List with flags for indices, JSON file and catalog file.
         """
         # Check if indices have to be created
+
         # True if indices have to be created,
+
         # False otherwise
         self.flag[0] = self._check_indices()
 
@@ -209,6 +211,7 @@ class Gribber():
     def _check_dir(self):
         """
         Check if dir dictionary contains None values.
+
         If None values are found, raise Exception.
         """
         for key in self.dir:
@@ -227,6 +230,7 @@ class Gribber():
         if len(glob(os.path.join(self.tmpdir, '*.index'))) > 0:
             if self.overwrite:
                 self.logger.warning("Indices already exist. Removing them...")
+
                 for file in glob(os.path.join(self.tmpdir, '*.index')):
                     os.remove(file)
                 return True
