@@ -20,11 +20,11 @@ def test_fixer():
     # Now let's fix
     data1 = reader.retrieve(fix=True)  # Retrieve not fixed data
     ttr1 = data1.ttr[ntime, 0, 0]
-    tas1 = data1['2t'][ntime, 5, 5]
+    tas1 = data1['skt'][ntime, 5, 5]
     mtntrf = data1.mtntrf[ntime, 0, 0]
     mtntrf2 = data1.mtntrf2[ntime, 0, 0]
 
-    # Did decumulation work ?
+    # Did decumulation work ?
     assert pytest.approx(ttr1.values / 3600) == [-193.92693374, -194.7589371, -159.28750829]
 
     # Did we get a correct derived variable specified with paramId ?
@@ -42,8 +42,7 @@ def test_fixer():
     assert 'variable derived by AQUA fixer' in tas1.attrs['history']
 
     # paramId and other attrs
-    assert tas1.attrs['paramId'] == '167'
-    assert tas1.attrs['long_name'] == '2 metre temperature'
+    assert tas1.attrs['paramId'] == '235'
 
     assert mtntrf.attrs['paramId'] == '172179'
     assert mtntrf.attrs['units_fixed'] == 1

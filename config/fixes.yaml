@@ -97,7 +97,7 @@ models:
                         derived: ttr
                         grib: true
                         decumulate: true     
-                    var167: # Test to specify using grib code as a target (actually does nothing) and adding a constant
+                    var235: # Test to specify using grib code as a target (actually does nothing) and adding a constant
                         derived: 2t+1.0
                         grib: true
                     mtntrf2:
