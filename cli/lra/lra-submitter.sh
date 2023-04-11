@@ -20,11 +20,8 @@ conda activate aqua
 # set the number of dask workers
 workers=8
 
-# frequency (override configuration file)
-#freq=day
-#res=r100
-
 # run the Python script
-# -d to create the files (otherwise only inspect the catalogs and tests)
-# -o to overwrite the files
-./lra-regridder.py --config config_lra.yml -w ${workers} -d
+# -d to perform a dry run (for testing reasons)
+# -r to replace the files
+# -v to be verbose
+./cli_lra_generator.py --config config_lra.yml -w ${workers} -d -v
