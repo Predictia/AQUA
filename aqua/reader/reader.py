@@ -412,6 +412,8 @@ class Reader():
         if self.level is not None:
             data = data.isel({self.vertcoord: self.level})
 
+        log_history(data, "retrieved by AQUA fixer")
+
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
         if decumulate:
             # data = data.map(self.decumulate, keep_attrs=True)
@@ -435,7 +437,6 @@ class Reader():
             else:
                 data = self.stream(data, stream_step, stream_unit, stream_startdate)
 
-        log_history(data, "retrieved by AQUA fixer")
         return data
 
     def stream(self, data, stream_step=1, stream_unit=None, stream_startdate=None):
