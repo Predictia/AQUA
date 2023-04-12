@@ -490,3 +490,4 @@ class Reader(FixerMixin, RegridMixin):
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
 
         return out
+
