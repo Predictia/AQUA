@@ -870,7 +870,7 @@ class Reader():
         fixd = {}
         varlist = {}
         variables = fix.get("vars", None)
-        if variables:
+        if variables is not None:
             for var in variables:
                 unit = None
                 attributes = {}
@@ -944,19 +944,19 @@ class Reader():
                         data[source].attrs.update({"offset": offset})
                         self.logger.info("Fixing %s to %s. Unit fix: factor=%f, offset=%f", source, var, factor, offset)
 
-        # Only now rename everything
-        data = data.rename(fixd)
+            # Only now rename everything
+            data = data.rename(fixd)
 
-        for var in variables:
-            # Decumulate if required
-            if variables[var].get("decumulate", None):
-                varname = varlist[var]
-                if varname in data.variables:
-                    keep_first = variables[var].get("keep_first", True)
-                    data[varname] = self.simple_decumulate(data[varname],
-                                                           jump=jump,
-                                                           keep_first=keep_first)
-                    log_history(data[varname], "variable decumulated by AQUA fixer")
+            for var in variables:
+                # Decumulate if required
+                if variables[var].get("decumulate", None):
+                    varname = varlist[var]
+                    if varname in data.variables:
+                        keep_first = variables[var].get("keep_first", True)
+                        data[varname] = self.simple_decumulate(data[varname],
+                                                            jump=jump,
+                                                            keep_first=keep_first)
+                        log_history(data[varname], "variable decumulated by AQUA fixer")
 
         if apply_unit_fix:
             for var in data.variables:
