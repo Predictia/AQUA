@@ -46,6 +46,7 @@ if __name__ == '__main__':
     frequency = config['target']['frequency']
     outdir = config['target']['outdir']
     tmpdir = config['target']['tmpdir']
+    configdir = config['configdir']
     loglevel= config['loglevel']
 
     definitive = get_arg(args, 'definitive', False)
@@ -61,10 +62,11 @@ if __name__ == '__main__':
                 lra = LRAgenerator(model=model, exp=exp, source=source,
                                     var=varlist, resolution=resolution,
                                     frequency=frequency, fix=fix,
-                                    outdir=outdir, tmpdir=tmpdir,
+                                    outdir=outdir, tmpdir=tmpdir, configdir=configdir,
                                     nproc=workers, loglevel=loglevel,
                                     definitive=definitive, overwrite=overwrite)
                 lra.retrieve()
                 lra.generate_lra()
+                lra.create_catalog_entry()
 
     print('LRA run completed. Have yourself a beer!')

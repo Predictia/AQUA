@@ -5,11 +5,13 @@ LRA class for AQUA
 import os
 from time import time
 import dask
+import yaml
 from dask.distributed import Client, LocalCluster, progress
 from dask.diagnostics import ProgressBar
 from aqua.logger import log_configure
 from aqua.reader import Reader
-from aqua.util import create_folder, generate_random_string
+from aqua.util import create_folder, generate_random_string, load_yaml
+from aqua.util import get_config_dir, get_machine
 
 
 class LRAgenerator():
@@ -18,7 +20,7 @@ class LRAgenerator():
     """
     def __init__(self,
                  model=None, exp=None, source=None,
-                 var=None, vars=None,
+                 var=None, vars=None, configdir=None,
                  resolution=None, frequency=None, fix=True,
                  outdir=None, tmpdir=None, nproc=1,
                  loglevel=None, overwrite=False, definitive=False):
@@ -40,6 +42,8 @@ class LRAgenerator():
             tmpdir (string):         Where to store temporary files,
                                      default is None.
                                      Necessary for dask.distributed
+            configdir (string):      Configuration directory where the catalog 
+                                     are found
             nproc (int, opt):        Number of processors to use. default is 1
             loglevel (string, opt):  Logging level
             overwrite (bool, opt):   True to overwrite existing files in LRA,
@@ -87,6 +91,12 @@ class LRAgenerator():
             self.source = source
         else:
             raise KeyError('Please specify source.')
+         
+        if not configdir:
+            self.configdir = get_config_dir()
+        else:
+            self.configdir = configdir
+        self.machine = get_machine(self.configdir)
 
         # Initialize variable(s)
         self.var = None
@@ -174,6 +184,38 @@ class LRAgenerator():
         self._remove_tmpdir()
 
         self.logger.warning('Finished generating LRA data.')
+
+    def create_catalog_entry(self):
+
+        """
+        Create an entry in the catalog for the LRA
+        """
+
+        entry_name = f'lra-{self.resolution}-{self.frequency}'
+        self.logger.warning('Creating catalog entry %s %s %s', self.model, self.exp, entry_name)
+
+        # define the block to be uploaded into the catalog
+        block_cat = {
+            'driver': 'netcdf',
+            'args': {
+                'urlpath': os.path.join(self.outdir, '*.nc'),
+                'chunks': {},
+                'xarray_kwargs': {
+                    'decode_times': True
+                }
+            }
+        }
+
+        # find the catalog of my experiment
+        catalogfile = os.path.join(self.configdir, self.machine,
+                                   'catalog', self.model, self.exp+'.yaml')
+        
+        # load, add the block and close
+        cat_file = load_yaml(catalogfile)
+        cat_file['sources'][entry_name] = block_cat
+        with open(catalogfile, 'w', encoding='utf-8') as file:
+            yaml.dump(cat_file, file, sort_keys=False)
+
 
     def _set_dask(self):
         """

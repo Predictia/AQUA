@@ -6,6 +6,7 @@ target:
   outdir: /work/bb1153/b382076/LRAv2
   tmpdir: /scratch/b/b382076
 
+configdir: '../../config/'
 loglevel: WARNING
 
 # all the variable listed here will be processed by the LRA creator
@@ -13,7 +14,14 @@ catalog:
   IFS:
     tco1279-orca025:
       ICMGG_atm2d:
-        vars: ['2t', 'tprate', 'ci']
+        vars: ['ci', 'tprate', '2t', 'erate', 'mslhfl', 'msshfl', 'msnsrf', 'msntrf', 'mtntrf', 'nsss', 'ewss', 'msl', 'hcc', 'lcc', 'mcc']
+    tco2559-ng5:
+      ICMGG_atm2d:
+        vars: ['ci', 'tprate', '2t', 'erate', 'mslhfl', 'msshfl', 'msnsrf', 'msntrf', 'mtntrf', 'nsss', 'ewss', 'msl', 'hcc', 'lcc', 'mcc']
+  FESOM:
+    tco2559-ng5:
+      original_2d:
+        vars: ['sst', 'sss', 'a_ice']
 
   # ICON:
   #   ngc2009:
