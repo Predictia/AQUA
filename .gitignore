@@ -9,3 +9,6 @@ cli/gribber/gribber-submitter.sh
 cli/gribber/gribber_setup.yaml
 cli/lra/lra_config.yaml
 cli/lra/lra_config_lumi.yaml
+AQUA_tests*
+**/*.bak
+

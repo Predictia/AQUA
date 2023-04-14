@@ -1,10 +1,6 @@
-name: AQUA tests
+name: AQUA tests with pip
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
   schedule:
     - cron: "0 3 * * 1" #run every Monday night at 3AM UTC
@@ -22,13 +18,22 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Provision with Micromamba
-        uses: mamba-org/provision-with-micromamba@v15
-        with:
-          environment-file: environment.yml
-          cache-downloads: true
-          extra-specs: |
-              python=${{ matrix.python-version }}
+      - name: Provision with pip
+        run: |
+          # We need to install ecCodes and cdo (as we do not have conda here)
+          # NOTE: tested two cache actions, but in the end looks like eccodes
+          #       does not work very well when the apt package is cached.
+          sudo apt install \
+            libeccodes-dev \
+            libeccodes-tools \
+            libeccodes-data \
+            cdo
+
+          # Update pip because we are using pyproject.toml (needs newer pip)
+          pip install -U pip
+
+          # Install with test dependencies
+          pip install -e .[tests]
       - name: Download and setup tests
         run: |
           ./download_data_for_tests.sh

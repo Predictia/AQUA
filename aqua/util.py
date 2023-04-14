@@ -343,7 +343,8 @@ def create_folder(folder, loglevel=None):
 def log_history(data, msg):
     """Elementary provenance logger in the history attribute"""
 
-    now = datetime.datetime.now()
-    date_now = now.strftime("%Y-%m-%d %H:%M:%S")
-    hist = data.attrs.get("history", "") + f"{date_now} {msg};\n"
-    data.attrs.update({"history": hist})
+    if isinstance(data, xr.DataArray) or isinstance(data, xr.Dataset):
+        now = datetime.datetime.now()
+        date_now = now.strftime("%Y-%m-%d %H:%M:%S")
+        hist = data.attrs.get("history", "") + f"{date_now} {msg};\n"
+        data.attrs.update({"history": hist})
