@@ -21,7 +21,7 @@ class LRAgenerator():
                  var=None, vars=None,
                  resolution=None, frequency=None, fix=True,
                  outdir=None, tmpdir=None, nproc=1,
-                 loglevel=None, overwrite=False, dry=True):
+                 loglevel=None, overwrite=False, definitive=False):
         """
         Initialize the LRA_Generator class
 
@@ -44,9 +44,9 @@ class LRAgenerator():
             loglevel (string, opt):  Logging level
             overwrite (bool, opt):   True to overwrite existing files in LRA,
                                      default is False
-            dry (bool, opt):         False to create the output file,
-                                     True to just explore the reader
-                                     operations, default is True
+            definitive (bool, opt):  True to create the output file,
+                                     False to just explore the reader
+                                     operations, default is False
         """
         # General settings
         self.logger = log_configure(loglevel, 'lra_generator')
@@ -55,8 +55,8 @@ class LRAgenerator():
         if self.overwrite:
             self.logger.info('File will be overwritten if already existing.')
 
-        self.dry = dry
-        if self.dry:
+        self.definitive = definitive
+        if not self.definitive:
             self.logger.warning('IMPORTANT: no file will be created, this is a dry run')
 
         self.nproc = nproc
@@ -66,9 +66,9 @@ class LRAgenerator():
             self.logger.info('Running dask.distributed with %s workers', self.nproc)
             if not self.tmpdir:
                 raise KeyError('Please specify tmpdir for dask.distributed.')
-            else:
-                self.tmpdir = os.path.join(self.tmpdir,
-                                           generate_random_string(10))
+
+            self.tmpdir = os.path.join(self.tmpdir,
+                                        generate_random_string(10))
         else:
             self.dask = False
 
@@ -145,19 +145,19 @@ class LRAgenerator():
 
         # Initialize the reader
         self.reader = Reader(model=self.model, exp=self.exp,
-                             source=self.source, var=self.var,
+                             source=self.source,
                              regrid=self.resolution, freq=self.frequency,
                              configdir="../../config")
 
-        self.logger.info('Retrieving data...')
+        self.logger.warning('Retrieving data...')
         self.data = self.reader.retrieve(fix=self.fix)
-        self.logger.info(self.data)
+        self.logger.debug(self.data)
 
     def generate_lra(self):
         """
         Generate LRA data
         """
-        self.logger.info('Generating LRA data...')
+        self.logger.warning('Generating LRA data...')
 
         # Set up dask cluster
         self._set_dask()
@@ -173,7 +173,7 @@ class LRAgenerator():
         self._close_dask()
         self._remove_tmpdir()
 
-        self.logger.info('Finished generating LRA data.')
+        self.logger.warning('Finished generating LRA data.')
 
     def _set_dask(self):
         """
@@ -216,7 +216,7 @@ class LRAgenerator():
         """
         t_beg = time()
 
-        self.logger.info('Processing variable  %s...',  var)
+        self.logger.warning('Processing variable  %s...',  var)
         temp_data = self.data[var]
         if self.frequency:
             temp_data = self.reader.timmean(temp_data)
@@ -234,13 +234,10 @@ class LRAgenerator():
                 month_data = year_data.sel(time=year_data.time.dt.month
                                            == month)
 
-                if not self.dry:
+                if self.definitive:
                     # Create output file
                     outfile = os.path.join(self.outdir,
-                                           f'{var}_{self.exp}_\
-                                           {self.resolution}_\
-                                           {self.frequency}_\
-                                           {year}{str(month).zfill(2)}.nc')
+                                           f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}{str(month).zfill(2)}.nc')
                     if os.path.isfile(outfile) and not self.overwrite:
                         self.logger.warning('File %s already exists, skipping...', outfile)
                     else:  # File to be written

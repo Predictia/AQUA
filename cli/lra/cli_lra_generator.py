@@ -24,8 +24,8 @@ def parse_arguments(args):
                         help='fixer on existing data')
     parser.add_argument('-w', '--workers', type=str,
                         help='number of dask workers')
-    parser.add_argument('-d', '--dry', action="store_true",
-                        help='dry run')
+    parser.add_argument('-d', '--definitive', action="store_true",
+                        help='definitive run with files creation')
     parser.add_argument('-o', '--overwrite', action="store_true",
                         help='overwrite existing output')
     parser.add_argument('-l', '--loglevel', type=str,
@@ -37,23 +37,22 @@ def parse_arguments(args):
 if __name__ == '__main__':
 
     args = parse_arguments(sys.argv[1:])
-    loglevel = get_arg(args, 'loglevel', 'WARNING')
-
-    dry = get_arg(args, 'dry', False)
-    overwrite = get_arg(args, 'overwrite', False)
-    fix = get_arg(args, 'fix', False)
-
-    workers = get_arg(args, 'workers', 1)
-
+    
     file = get_arg(args, 'config', 'lra_config.yaml')
     print('Reading configuration yaml file..')
 
     config = load_yaml(file)
-
     resolution = config['target']['resolution']
     frequency = config['target']['frequency']
     outdir = config['target']['outdir']
     tmpdir = config['target']['tmpdir']
+    loglevel= config['loglevel']
+
+    definitive = get_arg(args, 'definitive', False)
+    overwrite = get_arg(args, 'overwrite', False)
+    fix = get_arg(args, 'fix', True)
+    workers = get_arg(args, 'workers', 1)
+    loglevel = get_arg(args, 'loglevel', loglevel)
 
     for model in config['catalog'].keys():
         for exp in config['catalog'][model].keys():
@@ -64,8 +63,8 @@ if __name__ == '__main__':
                                     frequency=frequency, fix=fix,
                                     outdir=outdir, tmpdir=tmpdir,
                                     nproc=workers, loglevel=loglevel,
-                                    dry=dry, overwrite=overwrite)
+                                    definitive=definitive, overwrite=overwrite)
                 lra.retrieve()
                 lra.generate_lra()
 
-    print('Done.')
+    print('LRA run completed. Have yourself a beer!')
