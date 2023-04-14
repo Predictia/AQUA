@@ -8,7 +8,7 @@ a configuration yaml file.
 '''
 import sys
 import argparse
-from aqua import LRA_Generator
+from aqua import LRAgenerator
 from aqua.util import load_yaml, get_arg
 
 
@@ -35,9 +35,7 @@ def parse_arguments(args):
 
 
 if __name__ == '__main__':
-    """
-    Main function
-    """
+
     args = parse_arguments(sys.argv[1:])
     loglevel = get_arg(args, 'loglevel', 'WARNING')
 
@@ -61,7 +59,7 @@ if __name__ == '__main__':
         for exp in config['catalog'][model].keys():
             for source in config['catalog'][model][exp].keys():
                 varlist = config['catalog'][model][exp][source]['vars']
-                lra = LRA_Generator(model=model, exp=exp, source=source,
+                lra = LRAgenerator(model=model, exp=exp, source=source,
                                     var=varlist, resolution=resolution,
                                     frequency=frequency, fix=fix,
                                     outdir=outdir, tmpdir=tmpdir,

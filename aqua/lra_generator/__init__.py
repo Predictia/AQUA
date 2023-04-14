@@ -1,4 +1,4 @@
 """LRA Generator module."""
-from .lra_generator import LRA_Generator
+from .lra_generator import LRAgenerator
 
-__all__ = ['LRA_Generator']
+__all__ = ['LRAgenerator']
