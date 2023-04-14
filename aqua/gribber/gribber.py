@@ -1,3 +1,7 @@
+"""
+Gribber module for integrate gribscan within AQUA
+"""
+
 import os
 import subprocess
 from glob import glob
@@ -15,7 +19,7 @@ class Gribber():
     def __init__(self,
                  model=None, exp=None, source=None,
                  nprocs=1,
-                 dir={'datadir': None,
+                 dirdict={'datadir': None,
                       'tmpdir': None,
                       'jsondir': None,
                       'configdir': None},
@@ -36,7 +40,7 @@ class Gribber():
             Source name
         nprocs : int, optional
             Number of processors, by default 1
-        dir : dict, optional
+        dirdict : dict, optional
             Dictionary with directories
             data: data directory
             tmp: temporary directory
@@ -90,24 +94,24 @@ class Gribber():
         if model:
             self.model = model
         else:
-            raise Exception('Please specify model.')
+            raise KeyError('Please specify model.')
 
         if exp:
             self.exp = exp
         else:
-            raise Exception('Please specify experiment.')
+            raise KeyError('Please specify experiment.')
 
         if source:
             self.source = source
         else:
-            raise Exception('Please specify source.')
+            raise KeyError('Please specify source.')
 
         self.nprocs = nprocs
 
         self.description = description
 
         # Create folders from dir dictionary, default outside of class
-        self.dir = dir
+        self.dir = dirdict
         self._check_dir()
 
         self.datadir = self.dir['datadir']
@@ -119,9 +123,9 @@ class Gribber():
             self.configdir = self.dir['configdir']
         self.machine = get_machine(self.configdir)
 
-        self.logger.info(f"Data directory: {self.datadir}")
-        self.logger.info(f"JSON directory: {self.jsondir}")
-        self.logger.info(f"Catalog directory: {self.configdir}")
+        self.logger.info("Data directory: %s", self.datadir)
+        self.logger.info("JSON directory: %s", self.jsondir)
+        self.logger.info("Catalog directory: %s", self.configdir)
 
         # Get gribtype and tgt_json from source
         self.gribtype = self.source.split('_')[0]
@@ -130,17 +134,17 @@ class Gribber():
 
         # Get gribfiles wildcard from gribtype
         self.gribfiles = self.gribtype + '????+*'
-        self.logger.info(f"Gribfile wildcard: {self.gribfiles}")
+        self.logger.info("Gribfile wildcard: %s", self.gribfiles)
 
         # Get catalog filename
         self.catalogfile = os.path.join(self.configdir, self.machine,
                                         'catalog', self.model,
                                         self.exp+'.yaml')
-        self.logger.warning(f"Catalog file: {self.catalogfile}")
+        self.logger.warning("Catalog file: %s", self.catalogfile)
 
         # Get JSON filename
         self.jsonfile = os.path.join(self.jsondir, self.tgt_json+'.json')
-        self.logger.warning(f"JSON file: {self.jsonfile}")
+        self.logger.warning("JSON file: %s", self.jsonfile)
 
         self.flag = [False, False, False]
         self._check_steps()
@@ -216,7 +220,7 @@ class Gribber():
         """
         for key in self.dir:
             if self.dir[key] is None:
-                raise Exception(f'Directory {key} is None:\
+                raise KeyError(f'Directory {key} is None:\
                                 check your configuration file!')
 
     def _check_indices(self):
@@ -268,10 +272,10 @@ class Gribber():
         """
         self.logger.info("Checking if catalog file already exists...")
         if os.path.exists(self.catalogfile):
-            self.logger.warning(f"Catalog file {self.catalogfile} already exists.")
+            self.logger.warning("Catalog file %s already exists.", self.catalogfile)
             return True
         else:  # Catalog file does not exist
-            self.logger.warning(f"Catalog file {self.catalogfile} does not exist.")
+            self.logger.warning("Catalog file %s does not exist.", self.catalogfile)
             self.logger.warning("It will be generated.")
             return False
 
@@ -280,7 +284,7 @@ class Gribber():
         Create symlinks to GRIB files.
         """
         self.logger.info("Creating symlinks...")
-        self.logger.info(f"Searching in {self.datadir}...")
+        self.logger.info("Searching in %s...", self.datadir)
         self.logger.info(os.path.join(self.datadir, self.gribfiles))
         try:
             for file in glob(os.path.join(self.datadir, self.gribfiles)):
@@ -288,9 +292,9 @@ class Gribber():
                     os.symlink(file, os.path.join(self.tmpdir,
                                os.path.basename(file)))
                 except FileExistsError:
-                    self.logger.info(f"File {file} already exists in {self.tmpdir}")
+                    self.logger.info("File %s already exists in %s", file, self.tmpdir)
         except FileNotFoundError:
-            self.logger.error(f"Directory {self.datadir} not found.")
+            self.logger.error("Directory %s not found.", self.datadir)
 
     def _create_indices(self):
         """
@@ -355,8 +359,8 @@ class Gribber():
             cat_file['sources'][self.source] = block_cat
 
         # Write catalog file
-        with open(self.catalogfile, 'w') as f:
-            yaml.dump(cat_file, f, sort_keys=False)
+        with open(self.catalogfile, 'w', encoding='utf-8') as file:
+            yaml.dump(cat_file, file, sort_keys=False)
 
     def _create_main_catalog(self):
         """
@@ -398,8 +402,8 @@ class Gribber():
             main_file['sources'][self.source] = block_main
 
         # Write catalog file
-        with open(mainfilepath, 'w') as f:
-            yaml.dump(main_file, f, sort_keys=False)
+        with open(mainfilepath, 'w', encoding='utf-8') as file:
+            yaml.dump(main_file, file, sort_keys=False)
 
     def help(self):
         """

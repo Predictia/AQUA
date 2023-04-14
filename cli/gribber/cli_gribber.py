@@ -32,9 +32,6 @@ def parse_arguments(args):
 
 
 if __name__ == '__main__':
-    """
-    Main function
-    """
 
     args = parse_arguments(sys.argv[1:])
 
