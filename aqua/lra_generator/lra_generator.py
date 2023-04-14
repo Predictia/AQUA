@@ -63,7 +63,7 @@ class LRAgenerator():
         if not self.definitive:
             self.logger.warning('IMPORTANT: no file will be created, this is a dry run')
 
-        self.nproc = nproc
+        self.nproc = int(nproc)
         self.tmpdir = tmpdir
         if self.nproc > 1:
             self.dask = True

@@ -18,11 +18,11 @@ source $whereconda/etc/profile.d/conda.sh
 conda activate aqua
 
 # set the number of dask workers
-workers=16
+workers=2
 
 # run the Python script
 # -d to perform a definitive run
 # -o to overwrite existing files
 # -w for the number of dask workers
 # -l to change the loglevel
-./cli_lra_generator.py --config config_lra.yml -w ${workers} -d
+./cli_lra_generator.py --config lra_config.yaml -w ${workers} -d -o
