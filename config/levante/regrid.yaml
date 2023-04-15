@@ -183,19 +183,19 @@ source_grids:
         space_coord: ["lon", "lat"]
 
     test-ng5:
-      default:
-        path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_2d.nc
-        space_coord: ["lon", "lat"]
-      interpolated_global_TS:
-        path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_3d.nc
-        vertcoord: depth
-        space_coord: ["lon", "lat"]
       original_2d:
         path: /work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc
         space_coord: ["nod2"]
         extra: 
           - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc 
           - -selname,cell_area 
+      original_3d:
+        path: /work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc
+        space_coord: ["nod2"]
+        extra: 
+          - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc 
+          - -selname,cell_area 
+
     test-pi:
       original_2d:
         path:  /work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_griddes_nodes_IFS.nc
