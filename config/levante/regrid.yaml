@@ -36,10 +36,12 @@ source_grids:
       interpolated_global:
         path: /work/bb1153/b382075/nextgems/grids/ifs_interpolated5400x2700.nc
         space_coord: ["lon", "lat"]
-      lra-r100-day:
+      default:  # default covers all simple cases where this can be computed automatically
         space_coord: ["lon", "lat"]
-      lra-r100-mon:
-        space_coord: ["lon", "lat"]
+      # lra-r100-day:
+      #   space_coord: ["lon", "lat"]
+      # lra-r100-mon:
+      #   space_coord: ["lon", "lat"]
   
     tco2559-ng5:
       ICMGG_atm2d:
@@ -54,10 +56,12 @@ source_grids:
       interpolated_global:
         path: /work/bb1153/b382075/nextgems/grids/ifs_interpolated5400x2700.nc
         space_coord: ["lon", "lat"]
-      lra-r100-day:
+      default:  # # default covers all simple cases where this can be computed automatically
         space_coord: ["lon", "lat"]
-      lra-r100-mon:
-        space_coord: ["lon", "lat"]
+      # lra-r100-day:
+      #   space_coord: ["lon", "lat"]
+      # lra-r100-mon:
+      #   space_coord: ["lon", "lat"]
   
     tco1279-orca025:
       ICMGG_atm2d: 
@@ -69,10 +73,12 @@ source_grids:
       ICMU_atm3d: 
         path: /work/bm1235/a270046/cycle2-sync/tcogrids/9km/tcogrids/tco1279_grid.nc
         space_coord: ["value"]
-      lra-r100-day:
+      default:  # # default covers all simple cases where this can be computed automatically
         space_coord: ["lon", "lat"]
-      lra-r100-mon:
-        space_coord: ["lon", "lat"]
+      # lra-r100-day:
+      #   space_coord: ["lon", "lat"]
+      # lra-r100-mon:
+      #   space_coord: ["lon", "lat"]
 
     test-tco2559:
       ICMGG_atm2d:
@@ -106,14 +112,16 @@ source_grids:
         path: /pool/data/ICON/grids/public/mpim/0015/icon_grid_0015_R02B09_G.nc
         extra: "-selname,cell_index" 
         space_coord: ["cell"]
-      lra-r100-mon: 
-        space_coord: ["lon", "lat"]
-      lra-r100-day: 
-        space_coord: ["lon", "lat"]
       intake-esm-test: 
         path: /pool/data/ICON/grids/public/mpim/0015/icon_grid_0015_R02B09_G.nc
         extra: "-selname,cell_index" 
         space_coord: ["ncells"]
+      default:  # default covers all simple cases where this can be computed automatically
+        space_coord: ["lon", "lat"]
+      # lra-r100-mon: 
+      #   space_coord: ["lon", "lat"]
+      # lra-r100-day: 
+      #   space_coord: ["lon", "lat"]
     hpx:
       default:
         path: /work/bb1153/b382075/nextgems/grids/icon_hpx{zoom}.nc
@@ -121,9 +129,6 @@ source_grids:
   
   FESOM:
     tco3999-ng5:  
-      default:
-        path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_2d.nc
-        space_coord: ["lon", "lat"]
       interpolated_global2d:
         path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_2d.nc
         space_coord: ["lon", "lat"]
@@ -131,11 +136,7 @@ source_grids:
         path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_3d.nc
         space_coord: ["lon", "lat"]
         vertcoord: depth
-    tco2559-ng5:
-      default:
-        path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_2d.nc
-        space_coord: ["lon", "lat"]
-      interpolated_global_TS:
+      interpolated_global_UV:
         path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_3d.nc
         vertcoord: depth
         space_coord: ["lon", "lat"]
@@ -144,7 +145,43 @@ source_grids:
         space_coord: ["nod2"]
         extra: 
           - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc 
+          - -selname,cell_area
+      original_3d:
+        path: /work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc
+        space_coord: ["nod2"]
+        extra: 
+          - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc 
           - -selname,cell_area 
+      default:  # default covers all simple cases where this can be computed automatically (eg LRA)
+        space_coord: ["lon", "lat"]
+        
+    tco2559-ng5:
+      interpolated_global2d:
+        path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_2d.nc
+        space_coord: ["lon", "lat"]
+      interpolated_global_TS:
+        path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_3d.nc
+        vertcoord: depth
+        space_coord: ["lon", "lat"]
+      interpolated_global_UV:
+        path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_3d.nc
+        vertcoord: depth
+        space_coord: ["lon", "lat"]
+      original_2d:
+        path: /work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc
+        space_coord: ["nod2"]
+        extra: 
+          - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc 
+          - -selname,cell_area
+      original_3d:
+        path: /work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc
+        space_coord: ["nod2"]
+        extra: 
+          - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc 
+          - -selname,cell_area 
+      default:  # default covers all simple cases where this can be computed automatically (eg LRA)
+        space_coord: ["lon", "lat"]
+
     test-ng5:
       default:
         path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_2d.nc
