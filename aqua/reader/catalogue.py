@@ -26,6 +26,7 @@ def catalogue(verbose=True, configdir=None):
             print()
     return cat
 
+
 def inspect_catalogue(cat, model=None, exp=None):
 
     """Basic function to simplify catalog inspection"""
@@ -41,4 +42,3 @@ def inspect_catalogue(cat, model=None, exp=None):
         return list(cat.keys())
     else:
         raise KeyError("Wrong specifications, cannot inspect the catalog...")
-
