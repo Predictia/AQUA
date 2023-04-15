@@ -4,18 +4,15 @@ plugins:
     - module: gribscan
 
 sources:
-  atm_2d_ml:
-    driver: zarr
-    args:
-      consolidated: True
-      urlpath: /work/bb1153/m300827/ngc2009/R02B09/2d_ml.zarr
   atm_2d_ml_R02B09:
     driver: zarr
+    description: original 2d output on R02B09 grid (5 km)
     args:
       consolidated: True
       urlpath: /work/bb1153/m300827/ngc2009/R02B09/2d_ml.zarr
   atm_2d_ml_R02B08:
     driver: zarr
+    description: original 2d output on R02B09 grid (10 km)
     args:
       consolidated: True
       urlpath: /work/bb1153/m300827/ngc2009/R02B08/2d_ml.zarr
@@ -31,14 +28,15 @@ sources:
   #     urlpath: /work/bb1153/m300827/ngc2009/R02B09/oce_0-200m_3h_inst_1.zarr
   oce_200m_atmgrid_R02B09:
     driver: zarr
+    description: original ocean 3d output on R02B09 grid (5 km)
     args:
       consolidated: False
       urlpath: /work/bb1153/m300827/ngc2009/R02B09/oce_0-200m_3h_inst_1.zarr
   intake-esm-test:
       driver: intake_esm.esm_datastore
+      description: Test Intake-ESM Catalog
       args:
         esmcol_obj: /work/ka1081/Catalogs/dyamond-nextgems.json
-      description: Test Intake-ESM Catalog
       metadata:
         query:
           simulation_id: ngc2009
@@ -46,6 +44,7 @@ sources:
           time_reduction: inst
   lra-r100-mon:
     driver: netcdf
+    description: LRA monthly data 1x1 deg regular grid
     args:
       urlpath: '/work/bb1153/b382076/LRA/ngc2009/r100/mon/*.nc'
       chunks: {}
@@ -53,6 +52,7 @@ sources:
         decode_times: True
   lra-r100-day:
     driver: netcdf
+    description: LRA daily data 1x1 deg regular grid
     args:
       urlpath: '/work/bb1153/b382076/LRA/ngc2009/r100/day/*.nc'
       chunks: {}
