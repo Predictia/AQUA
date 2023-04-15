@@ -449,23 +449,6 @@ class Reader(FixerMixin, RegridMixin):
 
         return att.get("regridded", False)
 
-    def _get_spatial_sample(self, da, space_coord):
-        """
-        Selects a single spatial sample along the dimensions specified in `space_coord`.
-
-        Arguments:
-            da (xarray.DataArray):     Input data array to select the spatial sample from.
-            space_coord (list of str): List of dimension names corresponding to the spatial coordinates to select.
-
-        Returns:
-            Data array containing a single spatial sample along the specified dimensions.
-        """
-
-        dims = list(da.dims)
-        extra_dims = list(set(dims) - set(space_coord))
-        da_out = da.isel({dim: 0 for dim in extra_dims})
-        return da_out
-
     def fldmean(self, data):
         """
         Perform a weighted global average.
@@ -490,4 +473,3 @@ class Reader(FixerMixin, RegridMixin):
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
 
         return out
-
