@@ -1,9 +1,10 @@
 """
-LRA class for AQUA
+LRA class for glob
 """
 
 import os
 from time import time
+import glob
 import dask
 import yaml
 import xarray as xr
@@ -93,7 +94,7 @@ class LRAgenerator():
             self.source = source
         else:
             raise KeyError('Please specify source.')
-         
+
         if not configdir:
             self.configdir = get_config_dir()
         else:
@@ -211,7 +212,7 @@ class LRAgenerator():
         # find the catalog of my experiment
         catalogfile = os.path.join(self.configdir, self.machine,
                                    'catalog', self.model, self.exp+'.yaml')
-        
+
         # load, add the block and close
         cat_file = load_yaml(catalogfile)
         cat_file['sources'][entry_name] = block_cat
@@ -251,6 +252,32 @@ class LRAgenerator():
             self.logger.warning('Removing temporary directory %s', self.tmpdir)
             os.removedirs(self.tmpdir)
 
+    def _file_is_complete(self, filename):
+
+        """Basic check to see if file exists and that includes values which are not NaN
+        Return a boolean that can be used as a flag for further operation
+        True means that we have to re-do the computation"""
+
+        if os.path.isfile(filename):
+            self.logger.info('File %s is found...', filename)
+            try:
+                xfield = xr.open_dataset(filename)
+                varname = list(xfield.data_vars)[0]
+                if xfield[varname].isnull().all():
+                    self.logger.warning('File %s is full of NaN! Recomputing...', filename)
+                    check=True
+                else:
+                    check=False
+                    self.logger.info('File %s seems ok!', filename)
+            except BaseException:
+                self.logger.info('Something wrong with file %s! Recomputing...', filename)
+                check= True
+        else:
+            self.logger.info('File %s not found...', filename)
+            check = True
+
+        return check
+          
     def _concat_var(self, var, year):
         """
         To reduce the amount of files concatenate together all the files 
@@ -263,10 +290,13 @@ class LRAgenerator():
         self.logger.warning('Creating a single file for %s, year %s...',  var, str(year))
         outfile = os.path.join(self.outdir,
                     f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}.nc')
+        # clean older file
+        if os.path.exists(outfile):
+            os.remove(outfile)
         xfield.to_netcdf(outfile)
 
         # clean of monthly files
-        for infile in infiles:
+        for infile in glob.glob(infiles):
             self.logger.info('Cleaning %s...',  infile)
             os.remove(infile)
 
@@ -288,45 +318,54 @@ class LRAgenerator():
         # Splitting data into yearly files
         years = set(temp_data.time.dt.year.values)
         for year in years:
-            year_data = temp_data.sel(time=temp_data.time.dt.year == year)
+
             self.logger.info('Processing year %s...', str(year))
+            yearfile = os.path.join(self.outdir,
+                                    f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}.nc')
+            filecheck = self._file_is_complete(yearfile)
+            if not filecheck and not self.overwrite:
+                self.logger.warning('Yearly file %s already exists, skipping...', yearfile)
+                continue
+
+            year_data = temp_data.sel(time=temp_data.time.dt.year == year)
             # Splitting data into monthly files
             months = set(year_data.time.dt.month.values)
             for month in months:
                 self.logger.info('Processing month %s...', str(month))
-                month_data = year_data.sel(time=year_data.time.dt.month
-                                           == month)
+                outfile = os.path.join(self.outdir,
+                                        f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}{str(month).zfill(2)}.nc')
+                filecheck = self._file_is_complete(outfile)
+                if not filecheck and not self.overwrite:
+                    self.logger.warning('Monthly file %s already exists, skipping...', outfile)
+                    continue
+                month_data = year_data.sel(time=year_data.time.dt.month == month)
+                self.logger.debug(month_data)
 
                 if self.definitive:
-                    # Create output file
-                    outfile = os.path.join(self.outdir,
-                                           f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}{str(month).zfill(2)}.nc')
-                    if os.path.isfile(outfile) and not self.overwrite:
-                        self.logger.warning('File %s already exists, skipping...', outfile)
-                    else:  # File to be written
-                        if os.path.exists(outfile):
-                            os.remove(outfile)
-                            self.logger.warning('File %s already exists, overwriting...',
-                                                outfile)
 
-                        self.logger.warning('Writing file %s...', outfile)
+                    # File to be written
+                    if os.path.exists(outfile):
+                        os.remove(outfile)
+                        self.logger.warning('Overwriting file %s...', outfile)
 
-                        # Write data to file, lazy evaluation
-                        write_job =\
-                            month_data.to_netcdf(outfile,
-                                                 encoding={'time':
-                                                           self.time_encoding},
-                                                 compute=False)
+                    self.logger.warning('Writing file %s...', outfile)
 
-                        if self.dask:
-                            w_job = write_job.persist()
-                            progress(w_job)
-                            del w_job
-                        else:
-                            with ProgressBar():
-                                write_job.compute()
+                    # Write data to file, lazy evaluation
+                    write_job =\
+                        month_data.to_netcdf(outfile,
+                                                encoding={'time':
+                                                        self.time_encoding},
+                                                compute=False)
 
-                        del write_job
+                    if self.dask:
+                        w_job = write_job.persist()
+                        progress(w_job)
+                        del w_job
+                    else:
+                        with ProgressBar():
+                            write_job.compute()
+
+                    del write_job
                 del month_data
             del year_data
             if self.definitive:
