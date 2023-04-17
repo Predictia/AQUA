@@ -181,7 +181,7 @@ class LRAgenerator():
         # Cleaning
         self.data.close()
         self._close_dask()
-        self._remove_tmpdir()
+        #self._remove_tmpdir()
 
         self.logger.warning('Finished generating LRA data.')
 
