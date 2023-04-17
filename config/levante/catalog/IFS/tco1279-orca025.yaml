@@ -25,10 +25,3 @@ sources:
       chunks: {}
       xarray_kwargs:
         decode_times: true
-  lra-mon-r100:
-    driver: netcdf
-    args:
-      urlpath: /work/bb1153/b382076/LRAv2/tco1279-orca025/r100/mon/*.nc
-      chunks: {}
-      xarray_kwargs:
-        decode_times: true

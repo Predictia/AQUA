@@ -6,6 +6,7 @@ import os
 from time import time
 import dask
 import yaml
+import xarray as xr
 from dask.distributed import Client, LocalCluster, progress
 from dask.diagnostics import ProgressBar
 from aqua.logger import log_configure
@@ -54,6 +55,7 @@ class LRAgenerator():
         """
         # General settings
         self.logger = log_configure(loglevel, 'lra_generator')
+        self.loglevel = loglevel
 
         self.overwrite = overwrite
         if self.overwrite:
@@ -132,7 +134,7 @@ class LRAgenerator():
                                        self.frequency)
         else:
             self.outdir = os.path.join(outdir, self.exp, self.resolution)
-        create_folder(self.outdir, loglevel=loglevel)
+        create_folder(self.outdir, loglevel=self.loglevel)
 
         # Initialize variables used by methods
         self.data = None
@@ -157,7 +159,7 @@ class LRAgenerator():
         self.reader = Reader(model=self.model, exp=self.exp,
                              source=self.source,
                              regrid=self.resolution, freq=self.frequency,
-                             configdir="../../config")
+                             configdir="../../config", loglevel=self.loglevel)
 
         self.logger.warning('Retrieving data...')
         self.data = self.reader.retrieve(fix=self.fix)
@@ -249,6 +251,25 @@ class LRAgenerator():
             self.logger.warning('Removing temporary directory %s', self.tmpdir)
             os.removedirs(self.tmpdir)
 
+    def _concat_var(self, var, year):
+        """
+        To reduce the amount of files concatenate together all the files 
+        from the same year
+        """
+
+        infiles =  os.path.join(self.outdir,
+                    f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}??.nc')
+        xfield = xr.open_mfdataset(infiles)
+        self.logger.warning('Creating a single file for %s, year %s...',  var, str(year))
+        outfile = os.path.join(self.outdir,
+                    f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}.nc')
+        xfield.to_netcdf(outfile)
+
+        # clean of monthly files
+        for infile in infiles:
+            self.logger.info('Cleaning %s...',  infile)
+            os.remove(infile)
+
     def _write_var(self, var):
         """
         Write variable to file
@@ -308,6 +329,8 @@ class LRAgenerator():
                         del write_job
                 del month_data
             del year_data
+            if self.definitive:
+                self._concat_var(var, year)
         del temp_data
 
         t_end = time()
