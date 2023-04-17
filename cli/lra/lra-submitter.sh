@@ -1,11 +1,11 @@
 #!/bin/bash
 #SBATCH --partition=shared
-#SBATCH --job-name=regrid_test_mon_16
-#SBATCH --output=regrid_mon_16_%j.out
-#SBATCH --error=regrid_mon_16_%j.err
+#SBATCH --job-name=regrid_test_mon_8
+#SBATCH --output=regrid_mon_8_%j.out
+#SBATCH --error=regrid_mon_8_%j.err
 #SBATCH --account=bb1153
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=16
+#SBATCH --ntasks-per-node=8
 #SBATCH --time=08:00:00
 #SBATCH --mem=200G 
 set -e
@@ -18,7 +18,7 @@ source $whereconda/etc/profile.d/conda.sh
 conda activate aqua
 
 # set the number of dask workers
-workers=16
+workers=8
 
 # run the Python script
 # -d to perform a definitive run

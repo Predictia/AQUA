@@ -74,12 +74,16 @@ class LRAgenerator():
             if not self.tmpdir:
                 raise KeyError('Please specify tmpdir for dask.distributed.')
 
-            self.tmpdir = os.path.join(self.tmpdir,
+            self.tmpdir = os.path.join(self.tmpdir, 'LRA_' +
                                         generate_random_string(10))
         else:
             self.dask = False
 
-        # Data settings
+        # # Data settings
+        # self._assign_key('model', model)
+        # self._assign_key('exp', exp)
+        # self._assign_key('source', source)
+
         if model:
             self.model = model
         else:
@@ -130,11 +134,11 @@ class LRAgenerator():
         self.logger.info('Fixing data: %s', self.fix)
 
         # Create LRA folder
+        self.outdir = os.path.join(outdir, self.model, self.exp, self.resolution)
+
         if self.frequency:
-            self.outdir = os.path.join(outdir, self.exp, self.resolution,
-                                       self.frequency)
-        else:
-            self.outdir = os.path.join(outdir, self.exp, self.resolution)
+            self.outdir = os.path.join(self.outdir, self.frequency)
+
         create_folder(self.outdir, loglevel=self.loglevel)
 
         # Initialize variables used by methods
@@ -142,6 +146,15 @@ class LRAgenerator():
         self.reader = None
         self.cluster = None
         self.client = None
+
+    # def _assign_key(self, name, key):
+
+    #     """Assign the key and raise and error"""
+
+    #     if key:
+    #         setattr(self, name, key)
+    #     else:
+    #         raise KeyError('Please specify {name}.')
 
     def retrieve(self):
         """
@@ -201,7 +214,7 @@ class LRAgenerator():
         block_cat = {
             'driver': 'netcdf',
             'args': {
-                'urlpath': os.path.join(self.outdir, '*.nc'),
+                'urlpath': os.path.join(self.outdir, f'{self.exp}_{self.resolution}_{self.frequency}_????.nc'),
                 'chunks': {},
                 'xarray_kwargs': {
                     'decode_times': True
@@ -264,6 +277,7 @@ class LRAgenerator():
                 xfield = xr.open_dataset(filename)
                 varname = list(xfield.data_vars)[0]
                 if xfield[varname].isnull().all():
+                #if xfield[varname].isnull().all(dim=['lon','lat']).all():
                     self.logger.warning('File %s is full of NaN! Recomputing...', filename)
                     check=True
                 else:
@@ -277,7 +291,7 @@ class LRAgenerator():
             check = True
 
         return check
-          
+     
     def _concat_var(self, var, year):
         """
         To reduce the amount of files concatenate together all the files 
