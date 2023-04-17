@@ -147,11 +147,11 @@ source_grids:
           - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc 
           - -selname,cell_area
       original_3d:
-        path: /work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc
+        path: /work/bb1153/b382075/nextgems/grids/NG5_fesom_mask.nc
         space_coord: ["nod2"]
+        vertcoord: nz1
         extra: 
           - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc 
-          - -selname,cell_area 
       default:  # default covers all simple cases where this can be computed automatically (eg LRA)
         space_coord: ["lon", "lat"]
         
