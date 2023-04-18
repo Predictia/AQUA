@@ -214,7 +214,7 @@ class LRAgenerator():
         block_cat = {
             'driver': 'netcdf',
             'args': {
-                'urlpath': os.path.join(self.outdir, f'{self.exp}_{self.resolution}_{self.frequency}_????.nc'),
+                'urlpath': os.path.join(self.outdir, f'*{self.exp}_{self.resolution}_{self.frequency}_????.nc'),
                 'chunks': {},
                 'xarray_kwargs': {
                     'decode_times': True
@@ -278,11 +278,12 @@ class LRAgenerator():
                 varname = list(xfield.data_vars)[0]
                 if xfield[varname].isnull().all():
                 #if xfield[varname].isnull().all(dim=['lon','lat']).all():
-                    self.logger.warning('File %s is full of NaN! Recomputing...', filename)
+                    self.logger.error('File %s is full of NaN! Recomputing...', filename)
                     check=True
                 else:
                     check=False
                     self.logger.info('File %s seems ok!', filename)
+            # we have no clue which kind of exception might show up
             except BaseException:
                 self.logger.info('Something wrong with file %s! Recomputing...', filename)
                 check= True
@@ -291,7 +292,7 @@ class LRAgenerator():
             check = True
 
         return check
-     
+
     def _concat_var(self, var, year):
         """
         To reduce the amount of files concatenate together all the files 
@@ -323,7 +324,7 @@ class LRAgenerator():
         """
         t_beg = time()
 
-        self.logger.warning('Processing variable  %s...',  var)
+        self.logger.warning('Processing variable %s...', var)
         temp_data = self.data[var]
         if self.frequency:
             temp_data = self.reader.timmean(temp_data)
@@ -347,7 +348,8 @@ class LRAgenerator():
             for month in months:
                 self.logger.info('Processing month %s...', str(month))
                 outfile = os.path.join(self.outdir,
-                                        f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}{str(month).zfill(2)}.nc')
+                                     f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}{str(month).zfill(2)}.nc')
+                # checking if file is there and is complete
                 filecheck = self._file_is_complete(outfile)
                 if not filecheck and not self.overwrite:
                     self.logger.warning('Monthly file %s already exists, skipping...', outfile)
@@ -355,31 +357,15 @@ class LRAgenerator():
                 month_data = year_data.sel(time=year_data.time.dt.month == month)
                 self.logger.debug(month_data)
 
+                # real writing
                 if self.definitive:
+                    self._write_var_month(month_data, outfile)
 
-                    # File to be written
-                    if os.path.exists(outfile):
-                        os.remove(outfile)
-                        self.logger.warning('Overwriting file %s...', outfile)
-
-                    self.logger.warning('Writing file %s...', outfile)
-
-                    # Write data to file, lazy evaluation
-                    write_job =\
-                        month_data.to_netcdf(outfile,
-                                                encoding={'time':
-                                                        self.time_encoding},
-                                                compute=False)
-
-                    if self.dask:
-                        w_job = write_job.persist()
-                        progress(w_job)
-                        del w_job
-                    else:
-                        with ProgressBar():
-                            write_job.compute()
-
-                    del write_job
+                    # check everything is correct
+                    self._file_is_complete(outfile)
+                    # we can later add a retry
+                    if not filecheck:
+                        self.logger.error('Something has gone wrong in %s!', outfile)
                 del month_data
             del year_data
             if self.definitive:
@@ -388,3 +374,33 @@ class LRAgenerator():
 
         t_end = time()
         self.logger.info('Process took {:.4f} seconds'.format(t_end-t_beg))
+
+
+    def _write_var_month(self, month_data, outfile):
+        """Write a single chunk of data - Xarray Dataset - to a specific file 
+        using dask if required and monitoring the progress"""
+
+        # File to be written
+        if os.path.exists(outfile):
+            os.remove(outfile)
+            self.logger.warning('Overwriting file %s...', outfile)
+
+        self.logger.warning('Writing file %s...', outfile)
+
+        # Write data to file, lazy evaluation
+        write_job =\
+            month_data.to_netcdf(outfile,
+                                    encoding={'time':
+                                            self.time_encoding},
+                                    compute=False)
+
+        if self.dask:
+            w_job = write_job.persist()
+            progress(w_job)
+            del w_job
+        else:
+            with ProgressBar():
+                write_job.compute()
+
+        del write_job
+        self.logger.info('Writing file %s successfull!', outfile)

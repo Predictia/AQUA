@@ -18,3 +18,10 @@ sources:
     args:
       consolidated: false
       urlpath: reference::/work/bm1235/a270046/cycle2-sync/tco1279-orca025/nemo_deep/ICMUAc2/json.dir/atm3d.json
+  lra-r100-mon:
+    driver: netcdf
+    args:
+      urlpath: /work/bb1153/b382076/LRAv2/IFS/tco1279-orca025/r100/mon/*tco1279-orca025_r100_mon_????.nc
+      chunks: {}
+      xarray_kwargs:
+        decode_times: true
