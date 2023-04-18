@@ -38,5 +38,14 @@ def test_recompute_weights():
     assert len(rgd.time) == 2
     assert 0.33 <= ratio <= 0.36
 
+def test_recompute_weights_IFS():
+    """Test the case where no source grid path is specified in the regrid.yaml file
+      and areas/weights are reconstructed from the file itself"""
+    reader = Reader(model='IFS', exp='test-tco79', source='long', 
+                    regrid='r100', rebuild=True, vars='ttr')
+    rgd = reader.retrieve(fix=False, regrid=True)
+    assert len(rgd.lon) == 360
+    assert len(rgd.lat) == 180
+    assert len(rgd.time) == 4728
 
 #missing test for FESOM 3D and ICON-Healpix
