@@ -4,3 +4,6 @@ diagnostics/ecmean/ECmean4
 *.egg-info
 cli/*.err
 cli/*.out
+AQUA_tests*
+**/*.bak
+
