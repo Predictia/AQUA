@@ -44,11 +44,11 @@ component:
   cmoratm:
     maskfile: '/home/b/b382076/work/ecmean/data/mask_r100.nc'
     gridfile: ''
-    areafile: '/work/bb1153/b382075/nextgems/weights/areas_r100.nc'
+    areafile: '/work/bb1153/b382075/nextgems/weights/cell_area_r100.nc'
   cmoroce:
     maskfile: ''
     gridfile: ''
-    areafile: '/work/bb1153/b382075/nextgems/weights/areas_r100.nc'
+    areafile: '/work/bb1153/b382075/nextgems/weights/cell_area_r100.nc'
 
 # Definition of individual variables
 variables:
@@ -57,16 +57,16 @@ variables:
     varname: '2m Temperature'
     filetype: atmbase 
   pr:
-    derived: 'tp'
+    derived: 'tprate'
     varname: 'Total precipitation'
     filetype: atmbase 
   evspsbl:
     varname: Evaporation
-    derived: e
+    derived: 'erate'
     filetype: atmbase
   pme:
     varname: 'Precip. minus evap.'
-    derived: 'tp+e'
+    derived: 'tprate+erate'
     filetype: atmbase
   ta: 
     varname: 'Air Temperature'
@@ -85,7 +85,7 @@ variables:
     derived: q
     filetype: atmbase
   psl: 
-    varname: MSLP
+    varname: msl
     filetype: atmbase
     derived: msl
   tauu: 
@@ -114,88 +114,88 @@ variables:
     filetype: ocebase
   rlnt:
     varname: 'TOA net LW'
-    derived: ttr
+    derived: mtntrf
     filetype: atmbase
-  rlntcs:
-    varname: 'TOA net LW'
-    derived: ttrc
-    filetype: atmbase
-  rsnt:
-    varname: 'TOA net SW'
-    derived: tsr
-    filetype: atmbase
-  rsntcs:
-    varname: 'TOA net SW, CS'
-    derived: tsrc
-    filetype: atmbase
-  net_toa:
-    varname: 'Net TOA'
-    units: W/m2
-    derived: 'tsr+ttr'
-    filetype: atmbase
-  swcf:
-    varname: 'SW CRE'
-    derived: 'tsr-tsrc'
-    filetype: atmbase
-  lwcf:
-    varname: 'LW CRE'
-    derived: 'ttr-ttrc'
-    filetype: atmbase
+  # rlntcs:
+  #   varname: 'TOA net LW'
+  #   derived: ttrc
+  #   filetype: atmbase
+  # rsnt:
+  #   varname: 'TOA net SW'
+  #   derived: tsr
+  #   filetype: atmbase
+  # rsntcs:
+  #   varname: 'TOA net SW, CS'
+  #   derived: tsrc
+  #   filetype: atmbase
+  # net_toa:
+  #   varname: 'Net TOA'
+  #   units: W/m2
+  #   derived: 'tsr+ttr'
+  #   filetype: atmbase
+  # swcf:
+  #   varname: 'SW CRE'
+  #   derived: 'tsr-tsrc'
+  #   filetype: atmbase
+  # lwcf:
+  #   varname: 'LW CRE'
+  #   derived: 'ttr-ttrc'
+  #   filetype: atmbase
   tos:
     varname: SST
     derived: sst
     filetype: ocebase
   sos:
     varname: SSS
-    derived: sss
+    derived: sos
     filetype: ocebase
   pr_land:
     varname: 'Precipitation (land)'
-    derived: tp
+    derived: tprate
     filetype: atmbase
   pr_oce:
     varname: 'Precipitation (ocean)'
-    derived: tp
+    derived: tprate
     filetype: atmbase
   pme_land:
     varname: 'Precip. minus evap. (land)'
-    derived: 'tp+e'
+    derived: 'tprate+erate'
     filetype: atmbase
   pme_oce:
     varname: 'Precip. minus evap. (ocean)'
-    derived: 'tp+e'
+    derived: 'tprate+erate'
     filetype: atmbase
   rlns:
     varname: 'Surface net LW'
     filetype: atmbase
-    derived: str
+    derived: msntrf
   rsns:
     varname: 'Surface net SW'
     filetype: atmbase
-    derived: ssr
+    derived: msnsrf
   hfss:
     varname: 'Surface SH'
     filetype: atmbase
-    derived: slhf
+    derived: msshfl
   hfls:
     varname: 'Surface LH'
     filetype: atmbase
-    derived: sshf
+    derived: mslhfl
   net_sfc_nosn:
     varname: 'Net Surface (no snowfall)'
     filetype: atmbase
-    derived: 'str+ssr+slhf+sshf'
-  net_sfc:
-    varname: 'Net Surface'
-    units: W/m2
-    filetype: atmbase
-    derived: 'str+ssr+slhf+sshf-sf*334000000'
-  toamsfc:
-    varname: 'TOA-Sfc net radiation'
-    units: W/m2
-    filetype: atmbase
-    derived: 'tsr+ttr-str-ssr-slhf-sshf+sf*334000000'
-  toamsfc_nosn:
-    varname: 'TOA-Sfc net rad. (no snowfall)'
-    filetype: atmbase
-    derived: 'tsr+ttr-str-ssr-slhf-sshf'
+    derived: 'msshfl+mslhfl+msnsrf+msntrf'
+  # net_sfc:
+  #   varname: 'Net Surface'
+  #   units: W/m2
+  #   filetype: atmbase
+  #   derived: 'str+ssr+slhf+sshf-sf*334000000'
+  # toamsfc:
+  #   varname: 'TOA-Sfc net radiation'
+  #   units: W/m2
+  #   filetype: atmbase
+  #   derived: 'tsr+ttr-str-ssr-slhf-sshf+sf*334000000'
+  # toamsfc_nosn:
+  #   varname: 'TOA-Sfc net rad. (no snowfall)'
+  #   filetype: atmbase
+  #   derived: 'tsr+ttr-str-ssr-slhf-sshf'
