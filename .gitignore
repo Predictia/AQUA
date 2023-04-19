@@ -3,6 +3,7 @@
 *.egg-info
 cli/*.err
 cli/*.out
+*.nc
 AQUA_tests*
 **/*.bak
 
