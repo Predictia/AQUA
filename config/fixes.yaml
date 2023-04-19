@@ -196,6 +196,26 @@ models:
                     mtnsrf:
                         derived: rsdt-rsut
                         grib: true
+        hpx: 
+            default:
+                data_model: false
+                vars:
+                    msl:
+                        source: sea_level_pressure
+                        src_units: Pa
+                        grib: true
+                    2t:
+                        source: tas
+                        src_units: K
+                        grib: true 
+                    10si:
+                        source: 10m_wind_speed
+                        src_units: m/s
+                        grib: true 
+                    
+
+
+
 
     FESOM:
         default:
@@ -217,6 +237,7 @@ models:
                 vars:
                     ci:
                         derived: a_ice
+                        src_units: frac
                         grib: true
                         units: '%'
                     sst: 
