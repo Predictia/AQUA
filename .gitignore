@@ -4,6 +4,7 @@
 cli/*.err
 cli/*.out
 *.nc
-AQUA_tests*
+AQUA_tests/
+AQUA_tests.tar.gz
 **/*.bak
 
