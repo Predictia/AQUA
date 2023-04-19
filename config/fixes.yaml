@@ -71,6 +71,10 @@ models:
                         source: strd
                         grib: true
                         decumulate: true
+                    mtnsrf:
+                        source: tsr
+                        grib: true
+                        decumulate: true
                     mtntrf:
                         source: ttr
                         grib: true
