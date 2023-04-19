@@ -149,8 +149,8 @@ class FixerMixin():
                     if varname in data.variables:
                         keep_first = variables[var].get("keep_first", True)
                         data[varname] = self.simple_decumulate(data[varname],
-                                                            jump=jump,
-                                                            keep_first=keep_first)
+                                                               jump=jump,
+                                                               keep_first=keep_first)
                         log_history(data[varname], "variable decumulated by AQUA fixer")
 
         if apply_unit_fix:
@@ -230,9 +230,10 @@ class FixerMixin():
 
         if "IFSMagician" in data.attrs.get("history", ""):  # Special fix for gribscan levels
             if "level" in data.coords:
-                data.level.attrs["units"] = "hPa"
-                data.level.attrs["standard_name"] = "air_pressure"
-                data.level.attrs["long_name"] = "pressure"
+                if data.level.max() >= 1000:
+                    data.level.attrs["units"] = "hPa"
+                    data.level.attrs["standard_name"] = "air_pressure"
+                    data.level.attrs["long_name"] = "pressure"
 
         # this is needed since cf2cdm issues a (useless) UserWarning
         with warnings.catch_warnings():

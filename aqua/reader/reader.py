@@ -105,6 +105,7 @@ class Reader(FixerMixin, RegridMixin):
         cfg_regrid = load_yaml(self.regrid_file)
         source_grid_id = check_catalog_source(cfg_regrid["source_grids"], self.model, self.exp, source, name='regrid')
         source_grid = cfg_regrid["source_grids"][self.model][self.exp][source_grid_id]
+        self.vertcoord = source_grid.get("vertcoord", None)  # Some more checks needed
 
         self.dst_datamodel = datamodel
         # Default destination datamodel (unless specified in instantiating the Reader)
@@ -119,7 +120,6 @@ class Reader(FixerMixin, RegridMixin):
         self.dst_space_coord = ["lon", "lat"]
 
         if regrid:
-            self.vertcoord = source_grid.get("vertcoord", None)  # Some more checks needed
             if level is not None:
                 if not self.vertcoord:
                     raise KeyError("You should specify a vertcoord key in regrid.yaml for this source to use levels.")
@@ -452,23 +452,6 @@ class Reader(FixerMixin, RegridMixin):
 
         return att.get("regridded", False)
 
-    def _get_spatial_sample(self, da, space_coord):
-        """
-        Selects a single spatial sample along the dimensions specified in `space_coord`.
-
-        Arguments:
-            da (xarray.DataArray):     Input data array to select the spatial sample from.
-            space_coord (list of str): List of dimension names corresponding to the spatial coordinates to select.
-
-        Returns:
-            Data array containing a single spatial sample along the specified dimensions.
-        """
-
-        dims = list(da.dims)
-        extra_dims = list(set(dims) - set(space_coord))
-        da_out = da.isel({dim: 0 for dim in extra_dims})
-        return da_out
-
     def fldmean(self, data):
         """
         Perform a weighted global average.
@@ -493,4 +476,3 @@ class Reader(FixerMixin, RegridMixin):
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
 
         return out
-
