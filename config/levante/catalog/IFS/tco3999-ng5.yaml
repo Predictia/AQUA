@@ -35,6 +35,7 @@ sources:
       - reference::/work/ab0995/a270088/NextGems_public/appetizer/IFS2.5/lcc/netcdf/tco3999-ng5_pc.json
       - reference::/work/ab0995/a270088/NextGems_public/appetizer/IFS2.5/10u/netcdf/tco3999-ng5_pc.json
       - reference::/work/ab0995/a270088/NextGems_public/appetizer/IFS2.5/10v/netcdf/tco3999-ng5_pc.json
+
   # interpolated_np:
   #   driver: zarr
   #   args:
@@ -73,9 +74,3 @@ sources:
   #   args:
   #     urlpath: '/work/bb1153/b382076/LRA/tco3999-ng5/r100/day/*.nc'
   #     chunks: {}
-  lra-r100-mon:
-    driver: netcdf
-    description: LRA monthly data 1x1 deg regular grid
-    args:
-      urlpath: '/work/bb1153/b382076/LRA/tco3999-ng5/r100/mon/*.nc'
-      chunks: {}

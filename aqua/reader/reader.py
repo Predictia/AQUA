@@ -248,7 +248,7 @@ class Reader(FixerMixin, RegridMixin):
         if self.level is not None:
             data = data.isel({self.vertcoord: self.level})
 
-        log_history(data, "retrieved by AQUA fixer")
+        log_history(data, "retrieved by AQUA retriever")
 
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
         if decumulate:
@@ -290,7 +290,7 @@ class Reader(FixerMixin, RegridMixin):
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
 
-        log_history(out, "regridded by AQUA fixer")
+        log_history(out, "regridded by AQUA regridder")
         return out
 
     def timmean(self, data, freq=None):
@@ -317,10 +317,13 @@ class Reader(FixerMixin, RegridMixin):
             resample_freq = freq
 
         try:
-            # resample, and assign the correct time
+            # resample
+            self.logger.info('Resamplig to %s frequency...', str(resample_freq))
             out = data.resample(time=resample_freq).mean()
-            proper_time = data.time.resample(time=resample_freq).mean()
-            out['time'] = proper_time.values
+            # for now, we set initial time of the averaging period following ECMWF standard
+            # HACK: we ignore hours/sec to uniform the output structure 
+            proper_time = data.time.resample(time=resample_freq).min()
+            out['time'] = np.array(proper_time.values, dtype='datetime64[h]')
         except ValueError:
             sys.exit('Cant find a frequency to resample, aborting!')
 
@@ -328,7 +331,7 @@ class Reader(FixerMixin, RegridMixin):
         if np.any(np.isnat(out.time)):
             self.logger.warning('Resampling cannot produce output for all frequency step, is your input data correct?')
 
-        log_history(out, f"resampled to frequency {resample_freq} by AQUA fixer")
+        log_history(out, f"resampled to frequency {resample_freq} by AQUA timmean")
         return out
 
     def _check_if_accumulated_auto(self, data):

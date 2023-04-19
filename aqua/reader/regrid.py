@@ -42,7 +42,6 @@ class RegridMixin():
             temp_file = tempfile.NamedTemporaryFile(mode='w')
             sgridpath = temp_file.name
             _get_spatial_sample(data, self.src_space_coord).to_netcdf(sgridpath)
-            # data.isel(time=0).to_netcdf(sgridpath)
         else:
             temp_file = None
             if zoom:
@@ -74,7 +73,6 @@ class RegridMixin():
             temp_file = tempfile.NamedTemporaryFile(mode='w')
             sgridpath = temp_file.name
             _get_spatial_sample(data, self.src_space_coord).to_netcdf(sgridpath)
-            #  data.isel(time=0).to_netcdf(sgridpath)
         else:
             temp_file = None
             if zoom:
