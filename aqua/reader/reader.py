@@ -105,6 +105,7 @@ class Reader(FixerMixin, RegridMixin):
         cfg_regrid = load_yaml(self.regrid_file)
         source_grid_id = check_catalog_source(cfg_regrid["source_grids"], self.model, self.exp, source, name='regrid')
         source_grid = cfg_regrid["source_grids"][self.model][self.exp][source_grid_id]
+        self.vertcoord = source_grid.get("vertcoord", None)  # Some more checks needed
 
         self.dst_datamodel = datamodel
         # Default destination datamodel (unless specified in instantiating the Reader)
@@ -119,7 +120,6 @@ class Reader(FixerMixin, RegridMixin):
         self.dst_space_coord = ["lon", "lat"]
 
         if regrid:
-            self.vertcoord = source_grid.get("vertcoord", None)  # Some more checks needed
             if level is not None:
                 if not self.vertcoord:
                     raise KeyError("You should specify a vertcoord key in regrid.yaml for this source to use levels.")
