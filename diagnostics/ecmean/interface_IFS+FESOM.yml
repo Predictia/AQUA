@@ -120,19 +120,19 @@ variables:
   #   varname: 'TOA net LW'
   #   derived: ttrc
   #   filetype: atmbase
-  # rsnt:
-  #   varname: 'TOA net SW'
-  #   derived: tsr
-  #   filetype: atmbase
+  rsnt:
+    varname: 'TOA net SW'
+    derived: mtnsrf
+    filetype: atmbase
   # rsntcs:
   #   varname: 'TOA net SW, CS'
   #   derived: tsrc
   #   filetype: atmbase
-  # net_toa:
-  #   varname: 'Net TOA'
-  #   units: W/m2
-  #   derived: 'tsr+ttr'
-  #   filetype: atmbase
+  net_toa:
+    varname: 'Net TOA'
+    units: W/m2
+    derived: 'mtnsrf+mtntrf'
+    filetype: atmbase
   # swcf:
   #   varname: 'SW CRE'
   #   derived: 'tsr-tsrc'
