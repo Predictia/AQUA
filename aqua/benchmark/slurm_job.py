@@ -4,7 +4,7 @@ import re
 from dask_jobqueue import SLURMCluster # pip 
 from dask.distributed import Client, progress 
 
-"""Module contain functions to create and control the SLURM job:
+"""The module contains functions to create and control the SLURM job:
      - squeue_user,
      - slurm_interactive_job,
      - pwd,
