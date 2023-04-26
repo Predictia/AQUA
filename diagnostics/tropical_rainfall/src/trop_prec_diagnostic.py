@@ -23,7 +23,7 @@ import matplotlib.animation as animation
 import numpy as np
 
 from aqua.benchmark.time_functions import time_interpreter, month_convert_num_to_str, hour_convert_num_to_str
-
+from aqua.benchmark.functions_for_xarrays import  xarray_attribute_update as  xarray_attribute_update
 """The module contains Tropical Precipitation Diagnostic:
 
 .. moduleauthor:: AQUA team <natalia.nazarova@polito.it>
@@ -470,6 +470,7 @@ class TR_PR_Diagnostic:
             ds_per_time = self.ds_per_time_range(data, s_time=self.s_time, f_time=self.f_time, 
                                         s_year=self.s_year, f_year=self.f_year, s_month=self.s_month, f_month=self.f_month) 
             ds_var = ds_per_time[variable_1]
+            ds_var = xarray_attribute_update(ds_var, data)
             ds_per_lat = self.ds_per_lat_range(ds_var, trop_lat=self.trop_lat)
             #ds_array = self.ds_into_array(ds_per_lat, variable_1=variable_1, sort=sort)
             if dask_array == True:
