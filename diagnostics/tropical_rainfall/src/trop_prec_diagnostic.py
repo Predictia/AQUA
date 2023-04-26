@@ -1010,28 +1010,7 @@ class TR_PR_Diagnostic:
 
 
 
-    """ 
-
-    def hist_figure(self, data, _plt = plt, pdf = None, ls = '-', color = 'tab:blue', label = None):
-
-        pdf =  True if None else pdf 
-           
-        if pdf == True:
-            print('pdf')
-            _data_density = data[0:]/sum(data[:]) #*(data.bin[1]-data.bin[0]))
-            _plt.step(data.bin[0:], _data_density, #data.bin[1]-data.bin[0],
-                linewidth=3.0, ls = ls, color = color, label = label )
-            _plt.set_ylabel('Probability', fontsize=14)
-            _plt.set_xlabel('Total Precipitation', fontsize=14)
-            _plt.set_yscale('log') 
-        else:
-            _plt.step(data.bin[0:], data[0:],  #data.bin[1]-data.bin[0], 
-                linewidth=3.0,  ls = ls, color = color, label = label )
-            _plt.set_yscale('log')
-            _plt.set_ylabel('Frequency', fontsize=14)
-            _plt.set_xlabel('Total Precipitation', fontsize=14)
-        # FIG SAVE 
-        """
+   
         # For i amount of step
         # Function which compute the histogramn before ploting! 
         # Save the data
