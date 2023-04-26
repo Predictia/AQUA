@@ -22,12 +22,7 @@ import cartopy.crs as ccrs
 import matplotlib.animation as animation
 import numpy as np
 
-import aqua
-from aqua import Reader
-from aqua.reader import catalogue
-configdir = '../../../config/'
-
-from .time_functions import time_interpreter, month_convert_num_to_str, hour_convert_num_to_str
+from aqua.benchmark.time_functions import time_interpreter, month_convert_num_to_str, hour_convert_num_to_str
 
 """The module contains Tropical Precipitation Diagnostic:
 
@@ -35,26 +30,30 @@ from .time_functions import time_interpreter, month_convert_num_to_str, hour_con
 
 """
 
-
-
-
 class TR_PR_Diagnostic:
     """Tropical precipitation diagnostic
     """ 
     #attributes = inspect.getmembers(diag, lambda a:not(inspect.isroutine(a)))
 
-    def class_attributes_update(self,   trop_lat = 10,  s_time = None, f_time = None,  
+    def class_attributes_update(self,   trop_lat = None,  s_time = None, f_time = None,  
                           s_year = None, f_year = None, s_month = None, f_month = None, 
-                          num_of_bins = None, first_edge = None, width_of_bin = None, bins = 0):
+                          num_of_bins = None, first_edge = None, width_of_bin = None, bins = None):
         
         if trop_lat:    self.trop_lat = trop_lat
-
+        """ 
         self.s_time = s_time
         self.f_time = f_time 
         self.s_year = s_year    
         self.f_year = f_year  
         self.s_month = s_month
         self.f_month = f_month 
+        """
+        if s_time:          self.s_time = s_time
+        if f_time:          self.f_time = f_time
+        if s_year:          self.s_year = s_year
+        if f_year:          self.f_year = f_year
+        if s_month:         self.s_month = s_month
+        if f_month:         self.f_month = f_month
 
         if num_of_bins:     self.num_of_bins = num_of_bins
         if first_edge:      self.first_edge = first_edge
@@ -66,14 +65,12 @@ class TR_PR_Diagnostic:
 
     def __init__(self,
             trop_lat = 10, 
-
             s_time      = None, 
             f_time      = None, 
             s_year      = None,
             f_year      = None, 
             s_month     = None,
             f_month     = None, 
-
             num_of_bins = None, 
             first_edge  = None, 
             width_of_bin= None,
@@ -81,17 +78,17 @@ class TR_PR_Diagnostic:
         
         """The Tropical Precipitaion constructor.
         Arguments:
-            trop_lat        (int/float):    The maximumal and minimal tropical latitude values in Dataset.  Defaults to 10.
-            s_time          (str/int):      The starting time value/index in Dataset. Defaults to None.
-            f_time          (str/int):      The final time value/index in Dataset. Defaults to None.
-            s_year          (int):          The starting/first year of the desired Dataset. 
-            f_year          (int):          The final/last year of the desired Dataset.
-            s_month         (int):          The starting/first month of the desired Dataset.
-            f_month         (int):          The final/last month of the desired Dataset.
-            num_of_bins     (int):          The number of bins in the histogram.
-            first_edge      (int):          The first edge of the first bin of the histogram.
-            width_of_bin    (int/float):    Histogram bin width.
-            bins            (array):        The array of bins in the histogram. Defaults to 0.
+            trop_lat        (int/float, optional):    The maximumal and minimal tropical latitude values in Dataset.  Defaults to 10.
+            s_time          (str/int, optional):      The starting time value/index in Dataset. Defaults to None.
+            f_time          (str/int, optional):      The final time value/index in Dataset. Defaults to None.
+            s_year          (int, optional):          The starting/first year of the desired Dataset. 
+            f_year          (int, optional):          The final/last year of the desired Dataset.
+            s_month         (int, optional):          The starting/first month of the desired Dataset.
+            f_month         (int, optional):          The final/last month of the desired Dataset.
+            num_of_bins     (int, optional):          The number of bins in the histogram.
+            first_edge      (int, optional):          The first edge of the first bin of the histogram.
+            width_of_bin    (int/float, optional):    Histogram bin width.
+            bins            (array, optional):        The array of bins in the histogram. Defaults to 0.
         """
         # Attributes are assigned to all objects of the class
         self.trop_lat   = trop_lat 
@@ -142,7 +139,7 @@ class TR_PR_Diagnostic:
 
         
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def ds_per_lat_range(self, data, trop_lat = None):
+    def ds_per_lat_range(self, data, trop_lat=None):
         """Selecting the Dataset for specified latitude range
 
         Args:
@@ -154,7 +151,7 @@ class TR_PR_Diagnostic:
         """        
         #If the user has specified a function argument ***trop_lat***, then the argument becomes a new class attribute. 
         coord_lat, coord_lon = self.coordinate_names(data)
-        self.class_attributes_update(trop_lat = trop_lat)
+        self.class_attributes_update( trop_lat=trop_lat )
 
         data_trop = data.where(abs(data[coord_lat]) <= self.trop_lat, drop=True)  
         return data_trop
@@ -189,7 +186,7 @@ class TR_PR_Diagnostic:
         #If the user has specified a function argument ***s_year,  f_year, s_month, f_month***, then the argument becomes a new class attributes.
         self.class_attributes_update( s_time=s_time,  f_time=f_time, s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month)
 
-        if isinstance(s_time, int) and isinstance(f_time, int): 
+        if isinstance(self.s_time, int) and isinstance(self.f_time, int): 
             if self.s_time != None and self.f_time != None:
                 data = data.isel(time=slice(self.s_time, self.f_time))
         elif self.s_year != None and self.f_year == None:
@@ -210,7 +207,7 @@ class TR_PR_Diagnostic:
             else:
                 raise Exception("s_month and f_month must to be integer") 
         
-        if isinstance(s_time, str) and isinstance(f_time, str):
+        if isinstance(self.s_time, str) and isinstance(self.f_time, str):
             if  s_time != None and f_time != None:
                 _s = re.split(r"[^a-zA-Z0-9\s]", s_time)
                 _f = re.split(r"[^a-zA-Z0-9\s]", f_time)  
@@ -241,7 +238,7 @@ class TR_PR_Diagnostic:
                 else:
                     raise Exception("Sorry, unknown format of time. Try one more time")  
             data=data.sel(time=slice(s_time, f_time))    
-        elif s_time != None and  f_time == None:
+        elif self.s_time != None and  self.f_time == None:
             if isinstance(s_year, str): 
                 _temp = re.split(r"[^a-zA-Z0-9\s]", s_time)
                 if len(_temp)==1:
@@ -444,7 +441,7 @@ class TR_PR_Diagnostic:
             
   
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
-    def preprocessing(self, data, preprocess = True, reader = None, variable_1="tprate", trop_lat = None, 
+    def preprocessing(self, data, preprocess = True,  variable_1="tprate", trop_lat=None, 
                        s_time = None, f_time = None,  
                        s_year = None, f_year = None, s_month = None, f_month = None, sort = False, dask_array = False):
         """Preprocessing the Dataset
@@ -452,7 +449,6 @@ class TR_PR_Diagnostic:
         Args:
             data (xarray):                  The Dataset.
             preprocess (bool, optional):    If sort is True, the functiom preprocess Dataset. Defaults to True.
-            reader (object, optional):      If reader is not None, the Dataset is regrided. Defaults to None.
             variable_1 (str, optional):     The variable of the Dataset. Defaults to 'tprate'.
             trop_lat (float, optional):     The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
             s_time (str/int, optional):     The starting time value/index in Dataset. Defaults to None.
@@ -467,28 +463,26 @@ class TR_PR_Diagnostic:
         Returns:
             xarray: Preprocessed Dataset according to the arguments of the function
         """        
-        #If the user has specified a function argument **trop_lat, s_year, f_year, s_month, f_month***, 
-        # then the argument becomes a new class attributes.
-        self.class_attributes_update(s_time = s_time, f_time = f_time,  trop_lat = trop_lat, 
-                               s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month)
         
-        
+        self.class_attributes_update(trop_lat=trop_lat,  s_time=s_time, f_time=f_time,  
+                               s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month)
         if preprocess == True:
-            ds = self.ds_per_time_range(data, s_time = self.s_time, f_time = self.f_time, 
+            ds_per_time = self.ds_per_time_range(data, s_time=self.s_time, f_time=self.f_time, 
                                         s_year=self.s_year, f_year=self.f_year, s_month=self.s_month, f_month=self.f_month) 
-            ds = ds[variable_1]
-            ds = reader.regrid(ds) #data["tprate"][10:15,:])
-            ds = self.ds_per_lat_range(ds, trop_lat=self.trop_lat)
-            ds = self.ds_into_array(ds, variable_1=variable_1, sort=sort)
+            ds_var = ds_per_time[variable_1]
+            ds_per_lat = self.ds_per_lat_range(ds_var, trop_lat=self.trop_lat)
+            #ds_array = self.ds_into_array(ds_per_lat, variable_1=variable_1, sort=sort)
             if dask_array == True:
-                ds = da.from_array(ds)
-            return ds 
+                ds = da.from_array(ds_per_lat)
+                return ds
+            else:
+                return ds_per_lat
         else:
             print("Nothong to preprocess")
 
 
     """ """ """ """ """ """ """ """ """ """
-    def hist1d_fast(self, data, preprocess = True, reader = None,  trop_lat = 10, variable_1 = 'tprate',  
+    def hist1d_fast(self, data, preprocess = True,   trop_lat = 10, variable_1 = 'tprate',  
                     s_time = None, f_time = None,
                     s_year = None, f_year = None, s_month = None, f_month = None, 
                     num_of_bins = None, first_edge = None,  width_of_bin  = None,   bins = 0):
@@ -497,7 +491,6 @@ class TR_PR_Diagnostic:
         Args:
             data (xarray):                  The Dataset.
             preprocess (bool, optional):    If sort is True, the functiom preprocess Dataset. Defaults to True.
-            reader (object, optional):      If reader is not None, the Dataset is regrided. Defaults to None.
             variable_1 (str, optional):     The variable of the Dataset. Defaults to 'tprate'.
             trop_lat (float, optional):     The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
             s_time (str/int, optional):     The starting time value/index in Dataset. Defaults to None.
@@ -525,7 +518,7 @@ class TR_PR_Diagnostic:
 
 
         if preprocess == True:
-            data = self.preprocessing(data, preprocess=preprocess, reader = reader, variable_1=variable_1, trop_lat=trop_lat, 
+            data = self.preprocessing(data, preprocess=preprocess,  variable_1=variable_1, trop_lat=trop_lat, 
                                       s_time = self.s_time, f_time = self.f_time,
                                       s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  sort = False, dask_array = False)
 
@@ -547,7 +540,7 @@ class TR_PR_Diagnostic:
     
     
     """ """ """ """ """ """ """ """ """ """
-    def hist1d_np(self, data, preprocess = True, reader = None,  trop_lat = 10, variable_1 = 'tprate',  
+    def hist1d_np(self, data, preprocess = True,   trop_lat = 10, variable_1 = 'tprate',  
                   s_time = None, f_time = None,   
                   s_year = None, f_year = None, s_month = None, f_month = None, 
                   num_of_bins = None, first_edge = None,  width_of_bin  = None,  bins = 0):
@@ -555,7 +548,6 @@ class TR_PR_Diagnostic:
         Args:
             data (xarray):                  The Dataset.
             preprocess (bool, optional):    If sort is True, the functiom preprocess Dataset. Defaults to True.
-            reader (object, optional):      If reader is not None, the Dataset is regrided. Defaults to None.
             variable_1 (str, optional):     The variable of the Dataset. Defaults to 'tprate'.
             trop_lat (float, optional):     The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
             s_time (str/int, optional):     The starting time value/index in Dataset. Defaults to None.
@@ -579,28 +571,29 @@ class TR_PR_Diagnostic:
         # then the argument becomes a new class attributes.
         self.class_attributes_update(s_time = s_time, f_time = f_time,  trop_lat = trop_lat, 
                                s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, first_edge = first_edge, 
-                               num_of_bins = num_of_bins, width_of_bin = width_of_bin)
+                               num_of_bins = num_of_bins, width_of_bin = width_of_bin, bins = bins)
         
         #last_edge = self.first_edge  + self.num_of_bins*self.width_of_bin
         
 
         if preprocess == True:
-            data = self.preprocessing(data, preprocess=preprocess, reader = reader, variable_1=variable_1, trop_lat=trop_lat, 
+            data = self.preprocessing(data, preprocess=preprocess, variable_1=variable_1, trop_lat=self.trop_lat, 
                                       s_time = self.s_time, f_time = self.f_time, 
-                                      s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  sort = False, dask_array = False)
+                                      s_year=self.s_year, f_year=self.f_year, s_month=self.s_month, f_month=self.f_month,  
+                                      sort = False, dask_array = False)
 
 
-        if isinstance(bins, int):
+        if isinstance(self.bins, int):
             hist_np = np.histogram(data, range=[self.first_edge, self.first_edge + (self.num_of_bins )*self.width_of_bin], bins = (self.num_of_bins))
         else:
             #bins = bins
-            hist_np = np.histogram(data,  bins = bins) 
+            hist_np = np.histogram(data,  bins = self.bins) 
         frequency_bin =  xr.DataArray(hist_np[0], coords=[hist_np[1][0:-1]], dims=["bin"])
         frequency_bin.attrs = data.attrs
         return  frequency_bin
         
     """ """ """ """ """ """ """ """ """ """
-    def hist1d_pyplot(self, data, preprocess = True, reader = None,  trop_lat = 10,  variable_1 = 'tprate',  
+    def hist1d_pyplot(self, data, preprocess = True,  trop_lat = 10,  variable_1 = 'tprate',  
                       s_time = None, f_time = None,  
                       s_year = None, f_year = None, s_month = None, f_month = None, 
                       num_of_bins = None, first_edge = None,  width_of_bin  = None,  bins = 0):
@@ -608,7 +601,6 @@ class TR_PR_Diagnostic:
         Args:
             data (xarray):                  The Dataset.
             preprocess (bool, optional):    If sort is True, the functiom preprocess Dataset. Defaults to True.
-            reader (object, optional):      If reader is not None, the Dataset is regrided. Defaults to None.
             variable_1 (str, optional):     The variable of the Dataset. Defaults to 'tprate'.
             trop_lat (float, optional):     The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
             s_time (str/int, optional):     The starting time value/index in Dataset. Defaults to None.
@@ -637,7 +629,7 @@ class TR_PR_Diagnostic:
         last_edge = self.first_edge  + self.num_of_bins*self.width_of_bin
 
         if preprocess == True:
-            data = self.preprocessing(data, preprocess=preprocess, reader = reader, variable_1=variable_1, trop_lat=trop_lat, 
+            data = self.preprocessing(data, preprocess=preprocess, variable_1=variable_1, trop_lat=trop_lat, 
                                       s_time = self.s_time, f_time = self.f_time, 
                                       s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  sort = False, dask_array = False)
 
@@ -653,7 +645,7 @@ class TR_PR_Diagnostic:
         
          
     """ """ """ """ """ """ """ """ """ """
-    def dask_factory(self, data, preprocess = True, reader = None,  trop_lat = 10,  variable_1 = 'tprate',  
+    def dask_factory(self, data, preprocess = True,   trop_lat = 10,  variable_1 = 'tprate',  
                      s_time = None, f_time = None, 
                      s_year = None, f_year = None, s_month = None, f_month = None, 
                      num_of_bins = None, first_edge = None,  width_of_bin  = None,   bins = 0, 
@@ -662,7 +654,6 @@ class TR_PR_Diagnostic:
         Args:
             data (xarray):                  The Dataset.
             preprocess (bool, optional):    If sort is True, the functiom preprocess Dataset. Defaults to True.
-            reader (object, optional):      If reader is not None, the Dataset is regrided. Defaults to None.
             variable_1 (str, optional):     The variable of the Dataset. Defaults to 'tprate'.
             trop_lat (float, optional):     The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
             s_time (str/int, optional):     The starting time value/index in Dataset. Defaults to None.
@@ -693,7 +684,7 @@ class TR_PR_Diagnostic:
         
 
         if preprocess == True:
-            data = self.preprocessing(data, preprocess=preprocess, reader = reader, variable_1=variable_1, trop_lat=trop_lat, 
+            data = self.preprocessing(data, preprocess=preprocess, variable_1=variable_1, trop_lat=trop_lat, 
                                       s_time = self.s_time, f_time = self.f_time, 
                                       s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  sort = False, dask_array = False)
 
@@ -710,7 +701,7 @@ class TR_PR_Diagnostic:
 
 
     """ """ """ """ """ """ """ """ """ """
-    def dask_factory_weights(self, data, preprocess = True, reader = None,  trop_lat = 10,  variable_1 = 'tprate',  
+    def dask_factory_weights(self, data, preprocess = True,  trop_lat = 10,  variable_1 = 'tprate',  
                              s_time = None, f_time = None,
                              s_year = None, f_year = None, s_month = None, f_month = None, 
                              num_of_bins = None, first_edge = None,  width_of_bin  = None,  bins = 0,   
@@ -719,7 +710,6 @@ class TR_PR_Diagnostic:
         Args:
             data (xarray):                  The Dataset.
             preprocess (bool, optional):    If sort is True, the functiom preprocess Dataset. Defaults to True.
-            reader (object, optional):      If reader is not None, the Dataset is regrided. Defaults to None.
             variable_1 (str, optional):     The variable of the Dataset. Defaults to 'tprate'.
             trop_lat (float, optional):     The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
             s_time (str/int, optional):     The starting time value/index in Dataset. Defaults to None.
@@ -749,7 +739,7 @@ class TR_PR_Diagnostic:
         last_edge = self.first_edge  + self.num_of_bins*self.width_of_bin
 
         if preprocess == True:
-            data = self.preprocessing(data, preprocess=preprocess, reader = reader, variable_1=variable_1, trop_lat=trop_lat, 
+            data = self.preprocessing(data, preprocess=preprocess, variable_1=variable_1, trop_lat=trop_lat, 
                                       s_time = self.s_time, f_time = self.f_time,
                                       s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  sort = False, dask_array = False)
 
@@ -766,7 +756,7 @@ class TR_PR_Diagnostic:
 
 
     """ """ """ """ """ """ """ """ """ """
-    def dask_boost(self, data, preprocess = True, reader = None,  trop_lat = 10,  variable_1 = 'tprate',  
+    def dask_boost(self, data, preprocess = True, trop_lat = 10,  variable_1 = 'tprate',  
                    s_time = None, f_time = None, 
                    s_year = None, f_year = None, s_month = None, f_month = None, 
                    num_of_bins = None, first_edge = None,  width_of_bin  = None,  bins = 0):
@@ -774,7 +764,6 @@ class TR_PR_Diagnostic:
         Args:
             data (xarray):                  The Dataset.
             preprocess (bool, optional):    If sort is True, the functiom preprocess Dataset. Defaults to True.
-            reader (object, optional):      If reader is not None, the Dataset is regrided. Defaults to None.
             variable_1 (str, optional):     The variable of the Dataset. Defaults to 'tprate'.
             trop_lat (float, optional):     The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
             s_time (str/int, optional):     The starting time value/index in Dataset. Defaults to None.
@@ -802,7 +791,7 @@ class TR_PR_Diagnostic:
         last_edge = self.first_edge  + self.num_of_bins*self.width_of_bin
 
         if preprocess == True:
-            data = self.preprocessing(data, preprocess=preprocess, reader = reader, variable_1=variable_1, trop_lat=trop_lat, 
+            data = self.preprocessing(data, preprocess=preprocess, variable_1=variable_1, trop_lat=trop_lat, 
                                       s_time = self.s_time, f_time = self.f_time, 
                                       s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  sort = False, dask_array = False)
 
@@ -917,6 +906,111 @@ class TR_PR_Diagnostic:
     #colors = cmap(norm(_x))
 
 
+    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
+    def hist_figure(self, data, pdf = True, smooth = True,  ls = '-', xlogscale = False, color = 'tab:blue', 
+                   varname = 'Precipitation', plot_title = None,  add = None, save = True, label = None):
+        """Ploting the histogram 
+
+        Args:
+            data (xarray):              The histogarm 
+            pdf (bool, optional):       If pdf is True, the function returns the pdf histogram. Defaults to True.
+            smooth (bool, optional):    If smooth is True, the function returns the smooth 2D-line instead of bars. Defaults to True.
+            ls (str, optional):         The style of the line. Defaults to '-'.
+            xlogscale (bool, optional): If xlogscale is True, the scale of x-axe is logaritmical. Defaults to False.
+            color (str, optional):      The color of the line. Defaults to 'tab:blue'.
+            varname (str, optional):    The name of the variable and x-axe. Defaults to 'Precipitation'.
+            plot_title (str, optional): The title of the plot. Defaults to None.
+            save (bool, optional):      The function saves the figure in the file system if the save is True.
+            label (str, optional):      The unique label of the figure in the file system. Defaults to None.
+        """        
+   
+        #pdf             (bool)      :   If ***_pdf=True***, then function returns the pdf histogram.
+        #                                    If ***_pdf=False***, then function returns the frequency histogram.
+        #Return:
+        #    plot                        :   Frequency or pdf histogram. 
+            
+
+        if add==None:
+            fig, ax = plt.subplots() #figsize=(8,5) 
+        else: 
+            fig, ax = add
+        
+        line_label = re.split(r'/', label)[-1]
+        if pdf:
+            data_density = data[0:]/sum(data[:])
+            if smooth:
+                ax.plot(data.bin[0:], data_density, linewidth=3.0, ls = ls, color = color, label = line_label )
+                ax.grid(True)
+            else:
+                N, bins, patches = ax.hist(x= data.bin[0:], bins = data.bin[0:], weights= data_density,  label = line_label)
+
+                fracs = ((N**(1 / 5)) / N.max())
+                norm = colors.Normalize(fracs.min(), fracs.max())
+
+                for thisfrac, thispatch in zip(fracs, patches):
+                    color = ax.cm.viridis(norm(thisfrac))
+                    thispatch.set_facecolor(color)
+            
+            plt.ylabel('PDF', fontsize=14)
+            plt.xlabel(varname+", "+str(data.attrs['units']), fontsize=14)
+            plt.yscale('log') 
+        else:
+            if smooth:
+                plt.plot(data.bin[0:],  data[0:], 
+                    linewidth=3.0, ls = ls, color = color, label = line_label )
+                plt.grid(True)
+            else:
+                N, bins, patches = plt.hist(x= data.bin[0:], bins = data.bin[0:], weights=data[0:],  label = line_label)
+                fracs = ((N**(1 / 5)) / N.max())
+                norm = colors.Normalize(fracs.min(), fracs.max())
+
+                for thisfrac, thispatch in zip(fracs, patches):
+                    color = plt.cm.viridis(norm(thisfrac))
+                    thispatch.set_facecolor(color)
+                
+            
+            plt.ylabel('Frequency', fontsize=14)
+            plt.xlabel(varname+", "+str(data.attrs['units']), fontsize=14)
+            plt.yscale('log')
+        if xlogscale == True:
+            plt.xscale('log') 
+        
+        
+
+        if plot_title == None:
+            plot_title = str(data.attrs['title'])
+            plot_title = re.split(r'[ ]', plot_title)[0]
+        plt.title(plot_title, fontsize=16)
+
+        if label == None:
+            label = str(data.attrs['title'])
+            label = re.split(r'[ ]', label)[0]
+
+        plt.legend(loc='upper right', fontsize=12)
+        # set the spacing between subplots
+        fig.tight_layout()
+        
+        if save:
+            if smooth:
+                if pdf: 
+                    plt.savefig('../notebooks/figures/'+str(label)+'_pdf_histogram_smooth.png')
+                else:
+                    plt.savefig('../notebooks/figures/'+str(label)+'_histogram_smooth.png')
+            else:
+                if pdf:
+                    plt.savefig('../notebooks/figures/'+str(label)+'_pdf_histogram_viridis.png')
+                else: 
+                    plt.savefig('../notebooks/figures/'+str(label)+'_histogram_viridis.png') 
+        return {fig, ax}
+    # You also can check this normalization
+    #cmap = plt.get_cmap('viridis')
+    #norm = plt.Normalize(min(_x), max(_x))
+    #colors = cmap(norm(_x))
+
+
+
+
+    """ 
 
     def hist_figure(self, data, _plt = plt, pdf = None, ls = '-', color = 'tab:blue', label = None):
 
@@ -937,7 +1031,7 @@ class TR_PR_Diagnostic:
             _plt.set_ylabel('Frequency', fontsize=14)
             _plt.set_xlabel('Total Precipitation', fontsize=14)
         # FIG SAVE 
-
+        """
         # For i amount of step
         # Function which compute the histogramn before ploting! 
         # Save the data
