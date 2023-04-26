@@ -33,33 +33,22 @@ from aqua.benchmark.functions_for_xarrays import  xarray_attribute_update as  xa
 class TR_PR_Diagnostic:
     """Tropical precipitation diagnostic
     """ 
-    #attributes = inspect.getmembers(diag, lambda a:not(inspect.isroutine(a)))
-
     def class_attributes_update(self,   trop_lat = None,  s_time = None, f_time = None,  
                           s_year = None, f_year = None, s_month = None, f_month = None, 
                           num_of_bins = None, first_edge = None, width_of_bin = None, bins = None):
         
         if trop_lat:    self.trop_lat = trop_lat
-        """ 
-        self.s_time = s_time
-        self.f_time = f_time 
-        self.s_year = s_year    
-        self.f_year = f_year  
-        self.s_month = s_month
-        self.f_month = f_month 
-        """
         if s_time:          self.s_time = s_time
         if f_time:          self.f_time = f_time
         if s_year:          self.s_year = s_year
         if f_year:          self.f_year = f_year
         if s_month:         self.s_month = s_month
         if f_month:         self.f_month = f_month
-
         if num_of_bins:     self.num_of_bins = num_of_bins
         if first_edge:      self.first_edge = first_edge
         if width_of_bin:    self.width_of_bin = width_of_bin 
         if bins:            self.bins = bins
-
+        #attributes = inspect.getmembers(diag, lambda a:not(inspect.isroutine(a)))
         # check if its possible to generilize 
 
 
@@ -90,16 +79,13 @@ class TR_PR_Diagnostic:
             width_of_bin    (int/float, optional):    Histogram bin width.
             bins            (array, optional):        The array of bins in the histogram. Defaults to 0.
         """
-        # Attributes are assigned to all objects of the class
-        self.trop_lat   = trop_lat 
-           
+        self.trop_lat   = trop_lat  
         self.s_time     = s_time
         self.f_time     = f_time  
         self.s_year     = s_year
         self.f_year     = f_year   
         self.s_month    = s_month
-        self.f_month    = f_month  
-        
+        self.f_month    = f_month         
         self.num_of_bins    = num_of_bins
         self.first_edge     = first_edge
         self.width_of_bin   = width_of_bin
@@ -149,7 +135,6 @@ class TR_PR_Diagnostic:
         Returns:
             xarray: The Dataset for selected latitude range.
         """        
-        #If the user has specified a function argument ***trop_lat***, then the argument becomes a new class attribute. 
         coord_lat, coord_lon = self.coordinate_names(data)
         self.class_attributes_update( trop_lat=trop_lat )
 
@@ -183,7 +168,6 @@ class TR_PR_Diagnostic:
         Returns:
             xarray: The Dataset only for selected time range. 
         """              
-        #If the user has specified a function argument ***s_year,  f_year, s_month, f_month***, then the argument becomes a new class attributes.
         self.class_attributes_update( s_time=s_time,  f_time=f_time, s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month)
 
         if isinstance(self.s_time, int) and isinstance(self.f_time, int): 
