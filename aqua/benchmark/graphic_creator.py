@@ -204,7 +204,51 @@ def lon_lat_regrider(data, space_grid_factor = None, coord_name = 'lat'):
                 new_dataset = data.isel(lon=[i for i in range(0, data.lon.size, space_grid_factor)])
             return new_dataset
 
+def time_regrider(data, time_grid_factor =None, new_time_unit = None):
+    """The time regrider of the Dataset
 
+    Args:
+        data (xarray):                      The Dataset
+        time_grid_factor (int, optional):   The resolution of the new time grid. If the input value is negative, the time grid will be less dense 
+                                            in time_grid_factor time. If the input value is positive, the time grid will be dense 
+                                            in time_grid_factor times. Defaults to None.
+        new_time_unit (str, optional):      The string, which contains the time unit and number. For example, '3H' or '1D'. 
+                                            Defaults to None.
+
+    Returns:
+        xarray: The time regrided Dataset.
+    """    
+    # Add units converter!!!
+    if new_time_unit!=None and  time_grid_factor ==None:
+        old_unit = time_interpreter(data)
+        old_number = float("".join([char for char in old_unit if char.isnumeric()]))
+        old_time_unit_name = "".join([char for char in old_unit if char.isalpha()]) 
+        new_number = float("".join([char for char in new_time_unit if char.isnumeric()]))
+        new_time_unit_name = "".join([char for char in new_time_unit if char.isalpha()]) 
+        
+        if int(old_number/new_number)>0: 
+            time_grid_factor  = int(old_number/new_number)
+        else:
+            time_grid_factor  = -  int(new_number/old_number) 
+
+    if isinstance(time_grid_factor , int):
+        if time_grid_factor >1:
+            del_t = int((int(data['time'][1])- int(data['time'][0]))/time_grid_factor )
+            ds = []
+            for i in range(1, time_grid_factor ):
+                new_dataset = data.copy(deep=True)
+                new_dataset['time'] = data['time'][:]+del_t
+                new_dataset.values = data.interp(time=new_dataset['time'][:])
+                ds.append(new_dataset)
+            combined = xarray.concat(ds, dim='time')
+            return combined
+        else:
+            time_grid_factor  = abs(time_grid_factor )
+            new_dataset = data[::time_grid_factor ]
+            for i in range(0, data['time'].size):
+                new_dataset[i]=data[i:i+time_grid_factor ].mean()
+                return new_dataset
+    
 
 
 
