@@ -36,7 +36,7 @@ def pwd():
     return re.split(r'[\n]', _pwd)[0]
     
 
-def slurm_interactive_job(cores=1, memory="100 GB", queue = "compute", walltime='04:30:50', jobs=1):
+def slurm_interactive_job(cores=1, memory="100 GB", queue = "compute", walltime='04:30:50', jobs=1, project="bb1153"):
     """Submitting the job to the SLURM queue 
 
     Args:
@@ -55,7 +55,7 @@ def slurm_interactive_job(cores=1, memory="100 GB", queue = "compute", walltime=
         name='dask-cluster', 
         cores=cores,    
         memory=memory, 
-        project="bb1153",
+        project=project,
         queue=queue, 
         walltime=walltime,
         job_extra=extra_args,
