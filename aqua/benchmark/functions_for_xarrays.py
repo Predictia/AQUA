@@ -3,10 +3,11 @@ import re
 
 """The module contains functions useful for xarrays:
      - xarray_attribute_update,
-     - data_size
+     - data_size,
+     - time_interpreter,
+     - ds_per_time_range
 
 .. moduleauthor:: AQUA team <natalia.nazarova@polito.it>
-
 """
 
 def xarray_attribute_update(xr1, xr2):
