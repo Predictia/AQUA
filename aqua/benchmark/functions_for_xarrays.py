@@ -1,3 +1,5 @@
+import numpy as np
+import re
 
 """The module contains functions useful for xarrays:
      - xarray_attribute_update,
