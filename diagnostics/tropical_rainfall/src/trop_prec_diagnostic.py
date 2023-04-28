@@ -823,7 +823,7 @@ class TR_PR_Diagnostic:
 
         fig = plt.figure( figsize=(8,5) )
         if pdf:
-            data_density = data[0:]/sum(data[:])
+            data_density = data[0:]/sum(data[:]) # its frequency ! and add pdf. multiply on the width of bins
             if smooth:
                 plt.plot(data.bin[0:], data_density, 
                     linewidth=3.0, ls = ls, color = color, label = label )
