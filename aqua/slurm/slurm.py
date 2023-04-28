@@ -6,9 +6,10 @@ from dask.distributed import Client, progress
 
 """The module contains functions to create and control the SLURM job:
      - squeue,
-     - slurm_job,
+     - job,
      - output_dir,
-     - scancel
+     - scancel,
+     - max_resources_per_node
 
 .. moduleauthor:: AQUA team <natalia.nazarova@polito.it>
 
@@ -99,7 +100,7 @@ def max_resources_per_node(queue="compute"):
     return  max_memory, max_walltime, max_cpus, max_sockets, max_cores, max_threads 
 
 
-def slurm_job(exclusive = False, max_resources = False, cores=1, memory="10 GB", queue = "compute", walltime='02:30:00', jobs=1, account="bb1153", path_to_output='.'):
+def job(exclusive = False, max_resources = False, cores=1, memory="10 GB", queue = "compute", walltime='02:30:00', jobs=1, account="bb1153", path_to_output='.'):
     """Submitting the Job to the SLURM queue 
 
     Args:
