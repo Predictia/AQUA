@@ -36,7 +36,7 @@ def data_size(data):
     return size
 
 
-def estimated_total_calc_time(ds_part, calc_time, ds_full, units = 'H'):
+def estimated_total_calc_time(ds_part=None, calc_time=None, ds_full=None, units = 'H'):
     """Estimating the calculation time of the total Dataset
 
     Args:
@@ -50,8 +50,8 @@ def estimated_total_calc_time(ds_part, calc_time, ds_full, units = 'H'):
         float: estimated calculation time in seconds
         float  estimated calculation time in specified time units
     """
-    ds_part_size = data_size(ds_part)
-    ds_full_size = data_size(ds_full)
+    ds_part_size = len(ds_part.time) 
+    ds_full_size = len(ds_full.time) 
 
     calc_time_per_element = calc_time/ds_part_size
 
@@ -61,7 +61,7 @@ def estimated_total_calc_time(ds_part, calc_time, ds_full, units = 'H'):
 
 
 
-def optimal_amount_of_timesteps(ds_part, calc_time, wanted_time, ds_full):
+def optimal_amount_of_timesteps(ds_part=None, calc_time=None, wanted_time=None, ds_full=None):
     """Estimating the number of indexes in time coordinate, for which we can perform calculations during the specified time
 
     Args:
@@ -75,10 +75,9 @@ def optimal_amount_of_timesteps(ds_part, calc_time, wanted_time, ds_full):
         int:  The amount of the time steps of the 'ds_full' can be calculated during the 'wanted_time'
 
     """    
-    # key arguments instead of positional one
 
-    ds_part_size = data_size(ds_part)
-    ds_full_size = data_size(ds_full)
+    ds_part_size = len(ds_part.time) 
+    ds_full_size = len(ds_full.time)
 
     calc_time_per_element = calc_time/ds_part_size
 
