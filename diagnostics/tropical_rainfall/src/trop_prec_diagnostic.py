@@ -454,7 +454,7 @@ class TR_PR_Diagnostic:
             ds_per_time = self.ds_per_time_range(data, s_time=self.s_time, f_time=self.f_time, 
                                         s_year=self.s_year, f_year=self.f_year, s_month=self.s_month, f_month=self.f_month) 
             ds_var = ds_per_time[variable_1]
-            ds_var = xarray_attribute_update(ds_var, data)
+            #ds_var = xarray_attribute_update(ds_var, data)
             ds_per_lat = self.ds_per_lat_range(ds_var, trop_lat=self.trop_lat)
             #ds_array = self.ds_into_array(ds_per_lat, variable_1=variable_1, sort=sort)
             if dask_array == True:
@@ -499,33 +499,36 @@ class TR_PR_Diagnostic:
         # then the argument becomes a new class attributes.
         self.class_attributes_update(s_time = s_time, f_time = f_time, trop_lat = trop_lat, 
                                s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, first_edge = first_edge, 
-                               num_of_bins = num_of_bins, width_of_bin = width_of_bin)
+                               num_of_bins = num_of_bins, width_of_bin = width_of_bin, bins = bins)
 
 
         if preprocess == True:
             data = self.preprocessing(data, preprocess=preprocess,  variable_1=variable_1, trop_lat=trop_lat, 
                                       s_time = self.s_time, f_time = self.f_time,
                                       s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  sort = False, dask_array = False)
-
-        if isinstance(bins, int):
-            bin_table = [self.first_edge + self.width_of_bin*j for j in range(0, self.num_of_bins)]     
-            hist_fast = fast_histogram.histogram1d(data, 
+        #print(self.bins)
+        if isinstance(self.bins, int):
+            left_edges_table   = [self.first_edge + self.width_of_bin*j for j in range(0, self.num_of_bins)]  
+            width_table = [self.width_of_bin for j in range(0, self.num_of_bins)]  
+            hist_fast   = fast_histogram.histogram1d(data, 
                                                    range=[self.first_edge, self.first_edge + (self.num_of_bins)*self.width_of_bin], bins = (self.num_of_bins))  
         else: 
-            bin_table = bins
+            bin_table = self.bins
+            left_edges_table = [bin_table[i] for i in range(0, len(self.bins)-1)]
+            width_table = [bin_table[i+1]-bin_table[i] for i in range(0, len(self.bins)-1)]
             hist_fast = fast_histogram.histogram1d(data, 
-                                                   range=[min(bins),max(bins)], bins = len(bins))   
+                                                   range=[min(self.bins),max(self.bins)], bins = len(self.bins)-1)   
         
         
-        
-        frequency_bin =  xr.DataArray(hist_fast, coords=[bin_table], dims=["bin"])
-        frequency_bin.attrs = data.attrs
-        return  frequency_bin 
+        counts_per_bin =  xr.DataArray(hist_fast, coords=[left_edges_table], dims=["left_edge"])
+        counts_per_bin = counts_per_bin.assign_coords(width=("left_edge", width_table))
+        counts_per_bin.attrs = data.attrs
+        return  counts_per_bin 
     
     
     
     """ """ """ """ """ """ """ """ """ """
-    def hist1d_np(self, data, preprocess = True,   trop_lat = 10, variable_1 = 'tprate',  
+    def hist1d_np(self, data, weights=None, preprocess = True,   trop_lat = 10, variable_1 = 'tprate',  
                   s_time = None, f_time = None,   
                   s_year = None, f_year = None, s_month = None, f_month = None, 
                   num_of_bins = None, first_edge = None,  width_of_bin  = None,  bins = 0):
@@ -552,33 +555,41 @@ class TR_PR_Diagnostic:
         Returns:
             xarray: The frequency histogram of the specified variable in the Dataset
         """ 
-        #If the user has specified a function argument **trop_lat, s_year, f_year, s_month, f_month***, 
-        # then the argument becomes a new class attributes.
         self.class_attributes_update(s_time = s_time, f_time = f_time,  trop_lat = trop_lat, 
                                s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, first_edge = first_edge, 
                                num_of_bins = num_of_bins, width_of_bin = width_of_bin, bins = bins)
         
-        #last_edge = self.first_edge  + self.num_of_bins*self.width_of_bin
-        
-
         if preprocess == True:
             data = self.preprocessing(data, preprocess=preprocess, variable_1=variable_1, trop_lat=self.trop_lat, 
                                       s_time = self.s_time, f_time = self.f_time, 
                                       s_year=self.s_year, f_year=self.f_year, s_month=self.s_month, f_month=self.f_month,  
                                       sort = False, dask_array = False)
-
-
-        if isinstance(self.bins, int):
-            hist_np = np.histogram(data, range=[self.first_edge, self.first_edge + (self.num_of_bins )*self.width_of_bin], bins = (self.num_of_bins))
-        else:
-            #bins = bins
-            hist_np = np.histogram(data,  bins = self.bins) 
-        frequency_bin =  xr.DataArray(hist_np[0], coords=[hist_np[1][0:-1]], dims=["bin"])
-        frequency_bin.attrs = data.attrs
-        return  frequency_bin
+        if 'DataArray' in str(type(weights)):
+            weights = self.ds_per_lat_range(weights, trop_lat=self.trop_lat)
+            hist_np=0
+            for i in range(0, len(data.time)):
+                data_element = data.isel(time=i)
+                if isinstance(self.bins, int):
+                    hist_np = np.histogram(data_element, weights=weights, range=[self.first_edge, self.first_edge + (self.num_of_bins )*self.width_of_bin], \
+                                           bins = (self.num_of_bins))
+                else:
+                    hist_np = np.histogram(data_element,  weights=weights, bins = self.bins) 
+                counts_per_bin =+  xr.DataArray(hist_np[0], coords=[hist_np[1][0:-1]], dims=["left_edge"])
+        else: 
+            if isinstance(self.bins, int):
+                hist_np = np.histogram(data, weights=weights, range=[self.first_edge, self.first_edge + (self.num_of_bins )*self.width_of_bin], bins = (self.num_of_bins))
+            else:
+                hist_np = np.histogram(data,  weights=weights, bins = self.bins) 
+            
+            counts_per_bin =  xr.DataArray(hist_np[0], coords=[hist_np[1][0:-1]], dims=["left_edge"])
+       
+        width_table = [hist_np[1][i+1]-hist_np[1][i] for i in range(0, len(hist_np[1])-1)]
+        counts_per_bin = counts_per_bin.assign_coords(width=("left_edge", width_table))
+        counts_per_bin.attrs = data.attrs
+        return  counts_per_bin
         
     """ """ """ """ """ """ """ """ """ """
-    def hist1d_pyplot(self, data, preprocess = True,  trop_lat = 10,  variable_1 = 'tprate',  
+    def hist1d_pyplot(self, data, weights=None,preprocess = True,  trop_lat = 10,  variable_1 = 'tprate',  
                       s_time = None, f_time = None,  
                       s_year = None, f_year = None, s_month = None, f_month = None, 
                       num_of_bins = None, first_edge = None,  width_of_bin  = None,  bins = 0):
@@ -605,27 +616,46 @@ class TR_PR_Diagnostic:
         Returns:
             xarray: The frequency histogram of the specified variable in the Dataset
         """ 
-        #If the user has specified a function argument **trop_lat, s_year, f_year, s_month, f_month***, 
-        # then the argument becomes a new class attributes.
         self.class_attributes_update(s_time = s_time, f_time = f_time,  trop_lat = trop_lat, 
                                s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, first_edge = first_edge, 
-                               num_of_bins = num_of_bins, width_of_bin = width_of_bin)  
-
-        last_edge = self.first_edge  + self.num_of_bins*self.width_of_bin
+                               num_of_bins = num_of_bins, width_of_bin = width_of_bin, bins=bins)  
 
         if preprocess == True:
             data = self.preprocessing(data, preprocess=preprocess, variable_1=variable_1, trop_lat=trop_lat, 
                                       s_time = self.s_time, f_time = self.f_time, 
                                       s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  sort = False, dask_array = False)
 
-        bins = [self.first_edge  + i*self.width_of_bin for i in range(0, self.num_of_bins+1)]
-        hist_pyplt = plt.hist(x = data, bins = bins)
+        if isinstance(self.bins, int):
+            bins = [self.first_edge  + i*self.width_of_bin for i in range(0, self.num_of_bins+1)]
+            left_edges_table   = [self.first_edge + self.width_of_bin*j for j in range(0, self.num_of_bins)]  
+            width_table = [self.width_of_bin for j in range(0, self.num_of_bins)]  
+        else:
+            bins = self.bins
+            left_edges_table =[self.bins[i] for i in range(0, len(self.bins)-1)]
+            width_table = [self.bins[i+1]-self.bins[i] for i in range(0, len(self.bins)-1)]
+            
 
+        coord_lat, coord_lon = self.coordinate_names(data)
+
+        if 'DataArray' in str(type(weights)):
+            weights = self.ds_per_lat_range(weights, trop_lat=self.trop_lat)
+            weights=weights.stack(total=[coord_lat, coord_lon])
+            for i in range(0, len(data.time)):
+                data_element = data.isel(time=i)
+                data_element=data_element.stack(total=[coord_lat, coord_lon])
+                #print(len(weights), len(data_element))
+                hist_pyplt = plt.hist(x = data_element, bins = bins, weights=weights)
+                counts_per_bin =+  xr.DataArray(hist_pyplt[0], coords=[hist_pyplt[1][0:-1]], dims=["left_edge"])
+        else:    
+            #data_element = data.isel(time=0)
+            data_element=data.stack(total=['time', coord_lat, coord_lon])
+            hist_pyplt = plt.hist(x = data_element, bins = bins)
+            counts_per_bin =  xr.DataArray(hist_pyplt[0], coords=[hist_pyplt[1][0:-1]], dims=["left_edge"])
         plt.close()
 
-        frequency_bin =  xr.DataArray(hist_pyplt[0], coords=[hist_pyplt[1][0:-1]], dims=["bin"])
-        frequency_bin.attrs = data.attrs
-        return  frequency_bin
+        counts_per_bin = counts_per_bin.assign_coords(width=("left_edge", width_table))
+        counts_per_bin.attrs = data.attrs
+        return  counts_per_bin
 
         
          
@@ -680,9 +710,9 @@ class TR_PR_Diagnostic:
         if delay == False:
             counts = counts.compute()
             edges = edges.compute()
-        frequency_bin =  xr.DataArray(counts, coords=[edges[0:-1]], dims=["bin"])
-        frequency_bin.attrs = data.attrs  
-        return  frequency_bin
+        counts_per_bin =  xr.DataArray(counts, coords=[edges[0:-1]], dims=["bin"])
+        counts_per_bin.attrs = data.attrs  
+        return  counts_per_bin
 
 
     """ """ """ """ """ """ """ """ """ """
@@ -735,9 +765,9 @@ class TR_PR_Diagnostic:
             counts = counts.compute()
             edges = edges.compute()
         
-        frequency_bin =  xr.DataArray(counts, coords=[edges[0:-1]], dims=["bin"])
-        frequency_bin.attrs = data.attrs        
-        return  frequency_bin
+        counts_per_bin =  xr.DataArray(counts, coords=[edges[0:-1]], dims=["bin"])
+        counts_per_bin.attrs = data.attrs        
+        return  counts_per_bin
 
 
     """ """ """ """ """ """ """ """ """ """
@@ -788,19 +818,47 @@ class TR_PR_Diagnostic:
         print(counts, edges)
         counts =  dask.compute(counts)
         edges = dask.compute(edges[0]) 
-        frequency_bin =  xr.DataArray(counts[0], coords=[edges[0][0:-1]], dims=["bin"])
-        #frequency_bin.attrs = data.attrs
+        counts_per_bin =  xr.DataArray(counts[0], coords=[edges[0][0:-1]], dims=["bin"])
+        #counts_per_bin.attrs = data.attrs
         #else: 
         #    counts =  dask.compute(counts.to_delayed())
         #    edges = dask.compute(edges[0].to_delayed())
            
 
-        return  frequency_bin
+        return  counts_per_bin
 
 
+    def convert_counts_to_frequency(self, data):
+        sum_of_counts = sum(data[:]) 
+        frequency = data[0:]/sum_of_counts
+        frequency_per_bin =  xr.DataArray(frequency, coords=[data.left_edge], dims=["left_edge"])
+        frequency_per_bin = frequency_per_bin.assign_coords(width=("left_edge", data.width.values))
+        frequency_per_bin.attrs = data.attrs
+        
+        sum_of_frequency=sum(frequency_per_bin[:]) 
+        if abs(sum_of_frequency -1) < 10**(-4):
+            return frequency_per_bin
+        else:
+            raise Exception("Test failed")
+
+    def convert_counts_to_pdf(self, data):
+        delx = data.width[0:]
+        sum_of_counts = sum(data[:]) 
+        pdf =  data[0:]/(sum_of_counts*data.width[0:])
+        pdf_per_bin =  xr.DataArray(pdf, coords=[data.left_edge], dims=["left_edge"])
+        pdf_per_bin = pdf_per_bin.assign_coords(width=("left_edge", data.width.values))
+        pdf_per_bin.attrs = data.attrs
+
+        sum_of_pdf=sum(pdf_per_bin[:]*data.width[0:]) 
+        if abs(sum_of_pdf-1.) < 10**(-4):
+            return pdf_per_bin
+        else:
+            raise Exception("Test failed")
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
-    def hist_plot(self, data, pdf = True, smooth = True,  ls = '-', xlogscale = False, color = 'tab:blue', varname = 'Precipitation', plot_title = None,  label = None):
+    def hist_plot(self, data, weights=None, frequency = False, pdf = True, smooth = True, step = False, viridis = False,  \
+                  ls = '-', xlogscale = False, \
+                  color = 'tab:blue', varname = 'Precipitation', save = True, plot_title = None,  label = None):
         """Ploting the histogram 
 
         Args:
@@ -822,48 +880,46 @@ class TR_PR_Diagnostic:
             
 
         fig = plt.figure( figsize=(8,5) )
-        if pdf:
-            data_density = data[0:]/sum(data[:]) # its frequency ! and add pdf. multiply on the width of bins
-            if smooth:
-                plt.plot(data.bin[0:], data_density, 
-                    linewidth=3.0, ls = ls, color = color, label = label )
-                plt.grid(True)
-            else:
-                N, bins, patches = plt.hist(x= data.bin[0:], bins = data.bin[0:], weights= data_density,  label = label)
 
-                fracs = ((N**(1 / 5)) / N.max())
-                norm = colors.Normalize(fracs.min(), fracs.max())
+        if pdf==True and frequency==False:
+            data = self.convert_counts_to_pdf(data)
+        elif pdf==False and frequency==True:
+            data = self.convert_counts_to_frequency(data)
 
-                for thisfrac, thispatch in zip(fracs, patches):
-                    color = plt.cm.viridis(norm(thisfrac))
-                    thispatch.set_facecolor(color)
-            
-            plt.ylabel('PDF', fontsize=14)
-            plt.xlabel(varname+", "+str(data.attrs['units']), fontsize=14)
-            plt.yscale('log') 
+        if smooth:
+            plt.plot(data.left_edge, data, 
+                linewidth=3.0, ls = ls, color = color, label = label )
+            plt.grid(True)
+        elif step:
+            plt.step(data.left_edge, data, 
+                linewidth=3.0, ls = ls, color = color, label = label )
+            plt.grid(True)
         else:
-            if smooth:
-                plt.plot(data.bin[0:],  data[0:], 
-                    linewidth=3.0, ls = ls, color = color, label = label )
-                plt.grid(True)
-            else:
-                N, bins, patches = plt.hist(x= data.bin[0:], bins = data.bin[0:], weights=data[0:],  label = label)
-                fracs = ((N**(1 / 5)) / N.max())
-                norm = colors.Normalize(fracs.min(), fracs.max())
+            N, bins, patches = plt.hist(x= data.left_edge, bins = data.left_edge, weights = weights,  label = label)
 
-                for thisfrac, thispatch in zip(fracs, patches):
-                    color = plt.cm.viridis(norm(thisfrac))
-                    thispatch.set_facecolor(color)
-                
-            
+            fracs = ((N**(1 / 5)) / N.max())
+            norm = colors.Normalize(fracs.min(), fracs.max())
+
+            for thisfrac, thispatch in zip(fracs, patches):
+                color = plt.cm.viridis(norm(thisfrac))
+                thispatch.set_facecolor(color)
+        
+        if pdf==True and frequency==False:
+            plt.ylabel('PDF', fontsize=14)
+        elif pdf==False and frequency==True:
             plt.ylabel('Frequency', fontsize=14)
-            plt.xlabel(varname+", "+str(data.attrs['units']), fontsize=14)
-            plt.yscale('log')
+        else:
+            plt.ylabel('Counts', fontsize=14)
+        
+
+        plt.xlabel(varname+", "+str(data.attrs['units']), fontsize=14)
+        plt.yscale('log') 
+
+            
+    
         if xlogscale == True:
             plt.xscale('log') 
         
-        
-
         if plot_title == None:
             plot_title = str(data.attrs['title'])
             plot_title = re.split(r'[ ]', plot_title)[0]
@@ -875,16 +931,28 @@ class TR_PR_Diagnostic:
 
         # set the spacing between subplots
         fig.tight_layout()
-        if smooth:
-            if pdf: 
-                plt.savefig('../notebooks/figures/'+str(label)+'_pdf_histogram_smooth.png')
+        if save:
+            if smooth:
+                if pdf: 
+                    plt.savefig('../notebooks/figures/'+str(label)+'_pdf_histogram_smooth.png')
+                elif frequency:
+                    plt.savefig('../notebooks/figures/'+str(label)+'_frequency_histogram_smooth.png')
+                else:
+                    plt.savefig('../notebooks/figures/'+str(label)+'_counts_histogram_smooth.png')
+            elif step:
+                if pdf: 
+                    plt.savefig('../notebooks/figures/'+str(label)+'_pdf_histogram_step.png')
+                elif frequency:
+                    plt.savefig('../notebooks/figures/'+str(label)+'_frequency_histogram_step.png')
+                else:
+                    plt.savefig('../notebooks/figures/'+str(label)+'_counts_histogram_step.png')
             else:
-                plt.savefig('../notebooks/figures/'+str(label)+'_histogram_smooth.png')
-        else:
-            if pdf:
-                plt.savefig('../notebooks/figures/'+str(label)+'_pdf_histogram_viridis.png')
-            else: 
-                plt.savefig('../notebooks/figures/'+str(label)+'_histogram_viridis.png') 
+                if pdf:
+                    plt.savefig('../notebooks/figures/'+str(label)+'_pdf_histogram_viridis.png')
+                if frequency:
+                    plt.savefig('../notebooks/figures/'+str(label)+'_frequency_histogram_viridis.png')
+                else: 
+                    plt.savefig('../notebooks/figures/'+str(label)+'_counts_histogram_viridis.png') 
     # You also can check this normalization
     #cmap = plt.get_cmap('viridis')
     #norm = plt.Normalize(min(_x), max(_x))
@@ -892,8 +960,9 @@ class TR_PR_Diagnostic:
 
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
-    def hist_figure(self, data, pdf = True, smooth = True,  ls = '-', xlogscale = False, color = 'tab:blue', 
-                   varname = 'Precipitation', plot_title = None,  add = None, save = True, label = None):
+    def hist_figure(self,  data, weights=None, frequency = False, pdf = True, smooth = True, step = False, viridis = False,  \
+                    ls = '-', xlogscale = False, color = 'tab:blue', 
+                    varname = 'Precipitation', plot_title = None,  add = None, save = True, label = None):
         """Ploting the histogram 
 
         Args:
@@ -919,44 +988,39 @@ class TR_PR_Diagnostic:
             fig, ax = plt.subplots() #figsize=(8,5) 
         else: 
             fig, ax = add
+
+        if pdf==True and frequency==False:
+            data = self.convert_counts_to_pdf(data)
+        elif pdf==False and frequency==True:
+            data = self.convert_counts_to_frequency(data)
         
         line_label = re.split(r'/', label)[-1]
-        if pdf:
-            data_density = data[0:]/sum(data[:])
-            if smooth:
-                ax.plot(data.bin[0:], data_density, linewidth=3.0, ls = ls, color = color, label = line_label )
-                ax.grid(True)
-            else:
-                N, bins, patches = ax.hist(x= data.bin[0:], bins = data.bin[0:], weights= data_density,  label = line_label)
-
-                fracs = ((N**(1 / 5)) / N.max())
-                norm = colors.Normalize(fracs.min(), fracs.max())
-
-                for thisfrac, thispatch in zip(fracs, patches):
-                    color = ax.cm.viridis(norm(thisfrac))
-                    thispatch.set_facecolor(color)
-            
-            plt.ylabel('PDF', fontsize=14)
-            plt.xlabel(varname+", "+str(data.attrs['units']), fontsize=14)
-            plt.yscale('log') 
+        if smooth:
+            plt.plot(data.left_edge, data, 
+                linewidth=3.0, ls = ls, color = color, label = line_label  )
+            plt.grid(True)
+        elif step:
+            plt.step(data.left_edge, data, 
+                linewidth=3.0, ls = ls, color = color, label = line_label )
+            plt.grid(True)
         else:
-            if smooth:
-                plt.plot(data.bin[0:],  data[0:], 
-                    linewidth=3.0, ls = ls, color = color, label = line_label )
-                plt.grid(True)
-            else:
-                N, bins, patches = plt.hist(x= data.bin[0:], bins = data.bin[0:], weights=data[0:],  label = line_label)
-                fracs = ((N**(1 / 5)) / N.max())
-                norm = colors.Normalize(fracs.min(), fracs.max())
+            N, bins, patches = plt.hist(x= data.left_edge, bins = data.left_edge, weights = weights,  label = line_label )
 
-                for thisfrac, thispatch in zip(fracs, patches):
-                    color = plt.cm.viridis(norm(thisfrac))
-                    thispatch.set_facecolor(color)
-                
-            
+            fracs = ((N**(1 / 5)) / N.max())
+            norm = colors.Normalize(fracs.min(), fracs.max())
+
+            for thisfrac, thispatch in zip(fracs, patches):
+                color = plt.cm.viridis(norm(thisfrac))
+                thispatch.set_facecolor(color)
+
+        plt.xlabel(varname+", "+str(data.attrs['units']), fontsize=14)
+        plt.yscale('log')
+        if pdf==True and frequency==False:
+            plt.ylabel('PDF', fontsize=14)
+        elif pdf==False and frequency==True:
             plt.ylabel('Frequency', fontsize=14)
-            plt.xlabel(varname+", "+str(data.attrs['units']), fontsize=14)
-            plt.yscale('log')
+        else:
+            plt.ylabel('Counts', fontsize=14)
         if xlogscale == True:
             plt.xscale('log') 
         
@@ -973,29 +1037,30 @@ class TR_PR_Diagnostic:
 
         plt.legend(loc='upper right', fontsize=12)
         # set the spacing between subplots
-        fig.tight_layout()
-        
+        plt.tight_layout()
         if save:
             if smooth:
                 if pdf: 
                     plt.savefig('../notebooks/figures/'+str(label)+'_pdf_histogram_smooth.png')
+                elif frequency:
+                    plt.savefig('../notebooks/figures/'+str(label)+'_frequency_histogram_smooth.png')
                 else:
-                    plt.savefig('../notebooks/figures/'+str(label)+'_histogram_smooth.png')
+                    plt.savefig('../notebooks/figures/'+str(label)+'_counts_histogram_smooth.png')
+            elif step:
+                if pdf: 
+                    plt.savefig('../notebooks/figures/'+str(label)+'_pdf_histogram_step.png')
+                elif frequency:
+                    plt.savefig('../notebooks/figures/'+str(label)+'_frequency_histogram_step.png')
+                else:
+                    plt.savefig('../notebooks/figures/'+str(label)+'_counts_histogram_step.png')
             else:
                 if pdf:
                     plt.savefig('../notebooks/figures/'+str(label)+'_pdf_histogram_viridis.png')
+                if frequency:
+                    plt.savefig('../notebooks/figures/'+str(label)+'_frequency_histogram_viridis.png')
                 else: 
-                    plt.savefig('../notebooks/figures/'+str(label)+'_histogram_viridis.png') 
-        return {fig, ax}
-    # You also can check this normalization
-    #cmap = plt.get_cmap('viridis')
-    #norm = plt.Normalize(min(_x), max(_x))
-    #colors = cmap(norm(_x))
-
-
-
-
-   
+                    plt.savefig('../notebooks/figures/'+str(label)+'_counts_histogram_viridis.png') 
+        return {fig, ax}   
         # For i amount of step
         # Function which compute the histogramn before ploting! 
         # Save the data
