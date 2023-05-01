@@ -223,6 +223,8 @@ source_grids:
   WOA18:
     woa18_2005_2017:
       default:
+        path: /pool/data/AWICM/FESOM2/INITIAL/WOA18/WOA18_2005_2017/woa18_A5B7_t00_04.nc
+        vertcoord: depth
         space_coord: ["lon", "lat"]
 
   CERES:
