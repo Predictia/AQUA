@@ -895,7 +895,11 @@ class TR_PR_Diagnostic:
                 linewidth=3.0, ls = ls, color = color, label = label )
             plt.grid(True)
         else:
-            N, bins, patches = plt.hist(x= data.left_edge, bins = data.left_edge, weights = weights,  label = label)
+            N, bins, patches = plt.hist(x= data.left_edge, bins = data.left_edge, weights=data,  label = label)
+            #if weights==None:
+            #    N, bins, patches = plt.hist(x= data.left_edge, bins = data.left_edge,   label = label)
+            #else:
+            #    N, bins, patches = plt.hist(x= data.left_edge, bins = data.left_edge, weights = weights,  label = label)
 
             fracs = ((N**(1 / 5)) / N.max())
             norm = colors.Normalize(fracs.min(), fracs.max())
@@ -913,9 +917,7 @@ class TR_PR_Diagnostic:
         
 
         plt.xlabel(varname+", "+str(data.attrs['units']), fontsize=14)
-        plt.yscale('log') 
-
-            
+        plt.yscale('log')        
     
         if xlogscale == True:
             plt.xscale('log') 
@@ -949,7 +951,7 @@ class TR_PR_Diagnostic:
             else:
                 if pdf:
                     plt.savefig('../notebooks/figures/'+str(label)+'_pdf_histogram_viridis.png')
-                if frequency:
+                elif frequency:
                     plt.savefig('../notebooks/figures/'+str(label)+'_frequency_histogram_viridis.png')
                 else: 
                     plt.savefig('../notebooks/figures/'+str(label)+'_counts_histogram_viridis.png') 
