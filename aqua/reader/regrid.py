@@ -62,7 +62,8 @@ class RegridMixin():
         grid_area.to_netcdf(areafile)
         self.logger.warning("Success!")
 
-    def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, regrid=None, extra=None, zoom=None):
+    def _make_weights_file(self, weightsfile, source_grid, cfg_regrid,
+                           regrid=None, extra=None, zoom=None, nproc=1):
         """Helper function to produce weights file"""
 
         sgridpath = source_grid.get("path", None)
@@ -97,7 +98,9 @@ class RegridMixin():
                                           method='ycon',
                                           gridpath=cfg_regrid["cdo-paths"]["download"],
                                           icongridpath=cfg_regrid["cdo-paths"]["icon"],
-                                          extra=extra)
+                                          extra=extra,
+                                          vert_coord=self.vertcoord,
+                                          nproc=nproc)
         weights.to_netcdf(weightsfile)
         self.logger.warning("Success!")
 

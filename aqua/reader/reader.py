@@ -29,7 +29,7 @@ class Reader(FixerMixin, RegridMixin):
                  regrid=None, method="ycon", zoom=None, configdir=None,
                  level=None, areas=True, var=None, vars=None,  # pylint: disable=W0622
                  datamodel=None, streaming=False, stream_step=1, stream_unit='steps',
-                 stream_startdate=None, rebuild=False, loglevel=None):
+                 stream_startdate=None, rebuild=False, loglevel=None, nproc=1):
         """
         The Reader constructor.
         It uses the catalog `config/config.yaml` to identify the required data.
@@ -54,6 +54,7 @@ class Reader(FixerMixin, RegridMixin):
             rebuild (bool):         force rebuilding of area and weight files
             loglevel (string):      Level of logging according to logging module
                                     (default: log_level_default of loglevel())
+            nproc (int):            number of processes to use for weights generation (default = 1)
 
         Returns:
             A `Reader` class object.
@@ -125,8 +126,8 @@ class Reader(FixerMixin, RegridMixin):
                     raise KeyError("You should specify a vertcoord key in regrid.yaml for this source to use levels.")
                 extra = f"-sellevidx,{level+1} "
 
-            if (level is None) and self.vertcoord:
-                raise RuntimeError("This is a masked 3d source: you should specify a specific level.")
+            # if (level is None) and self.vertcoord:
+            #     raise RuntimeError("This is a masked 3d source: you should specify a specific level.")
 
             self.weightsfile = os.path.join(
                 cfg_regrid["weights"]["path"],
@@ -143,10 +144,10 @@ class Reader(FixerMixin, RegridMixin):
                     os.unlink(self.weightsfile)
                 self._make_weights_file(self.weightsfile, source_grid,
                                         cfg_regrid, regrid=regrid,
-                                        extra=extra, zoom=zoom)
+                                        extra=extra, zoom=zoom, nproc=nproc)
 
             self.weights = xr.open_mfdataset(self.weightsfile)
-            self.regridder = rg.Regridder(weights=self.weights)
+            self.regridder = rg.Regridder(weights=self.weights, vert_coord=self.vertcoord)
 
         if areas:
             self.src_areafile = os.path.join(
@@ -321,7 +322,7 @@ class Reader(FixerMixin, RegridMixin):
             self.logger.info('Resamplig to %s frequency...', str(resample_freq))
             out = data.resample(time=resample_freq).mean()
             # for now, we set initial time of the averaging period following ECMWF standard
-            # HACK: we ignore hours/sec to uniform the output structure 
+            # HACK: we ignore hours/sec to uniform the output structure
             proper_time = data.time.resample(time=resample_freq).min()
             out['time'] = np.array(proper_time.values, dtype='datetime64[h]')
         except ValueError:
