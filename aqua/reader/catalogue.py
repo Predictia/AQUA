@@ -5,7 +5,18 @@ from aqua.util import get_config_dir, get_machine, get_reader_filenames
 
 
 def catalogue(verbose=True, configdir=None):
-    """Catalogue of available NextGEMS data (on Levante for now)"""
+    """Catalogue of available data.
+
+    Args:
+        verbose (bool, optional): If True, prints the catalog information to the console. Defaults to True.
+        configdir (str, optional): The directory containing the configuration files. If not provided,
+            the default configuration directory is used.
+
+    Returns:
+        cat (intake.catalog.local.LocalCatalog): The catalog object containing the NextGEMS data.
+
+    """
+    
 
     # get the config dir and the machine
     if not configdir:

@@ -8,10 +8,18 @@ Core Module
 
 The core module contains the primary functions and classes for data reading, preprocessing, interpolation, regridding, averaging, and aggregation.
 
-.. .. automodule:: AQUA.core
-..    :members:
-..    :undoc-members:
-..    :show-inheritance:
+.. automodule:: aqua
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autoclass:: aqua.reader.Reader
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. autofunction:: aqua.reader.catalogue
+
 
 Diagnostics Module
 ------------------

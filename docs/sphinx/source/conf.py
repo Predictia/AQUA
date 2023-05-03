@@ -13,7 +13,9 @@ author = "Climate DT Team"
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = []
+extensions = ["sphinx.ext.napoleon"]
+napoleon_google_docstring = True
+napoleon_numpy_docstring = False
 
 templates_path = ["_templates"]
 exclude_patterns = []
