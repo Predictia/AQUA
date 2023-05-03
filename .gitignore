@@ -3,3 +3,5 @@
 *.egg-info
 cli/*.err
 cli/*.out
+docs/sphinx/build/*
+docs/sphinx/build/html/*
