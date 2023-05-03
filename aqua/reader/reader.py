@@ -128,6 +128,12 @@ class Reader(FixerMixin, RegridMixin):
 
             # if (level is None) and self.vertcoord:
             #     raise RuntimeError("This is a masked 3d source: you should specify a specific level.")
+            
+            # compute correct filename ending
+            if self.vertcoord:
+                levname = "3d"
+            else:
+                levname = ("2d" if level is None else level)
 
             self.weightsfile = os.path.join(
                 cfg_regrid["weights"]["path"],
@@ -136,7 +142,7 @@ class Reader(FixerMixin, RegridMixin):
                                                          method=method,
                                                          target=regrid,
                                                          source=self.source,
-                                                         level=("2d" if level is None else level)))
+                                                         level=levname))
 
             # If weights do not exist, create them
             if rebuild or not os.path.exists(self.weightsfile):
