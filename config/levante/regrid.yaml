@@ -235,4 +235,8 @@ source_grids:
         path: /work/bb1153/b382075/nextgems/grids/n320_unstructured.nc
         space_coord: ["values"]
 
+  OSI-SAF:
+    osi-450:
+      default:
+        space_coord: ["lon", "lat"]
 
