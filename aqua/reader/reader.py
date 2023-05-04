@@ -107,6 +107,13 @@ class Reader(FixerMixin, RegridMixin):
         source_grid = cfg_regrid["source_grids"][self.model][self.exp][source_grid_id]
         self.vertcoord = source_grid.get("vertcoord", None)  # Some more checks needed
 
+        # Expose grid information for the source
+        sgridpath = source_grid.get("path", None)
+        if sgridpath:
+            self.src_grid = xr.open_dataset(sgridpath)
+        else:
+            self.src_grid = None
+
         self.dst_datamodel = datamodel
         # Default destination datamodel (unless specified in instantiating the Reader)
         if not self.dst_datamodel:
