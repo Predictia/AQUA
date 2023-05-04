@@ -7,4 +7,6 @@ reader:
   regrid: '{configdir}/{machine}/regrid.yaml'
   fixer: '{configdir}/fixes.yaml'
 
-
+cdo:
+  levante: /sw/spack-levante/cdo-2.0.6-jkuh4i/bin/cdo
+  lumi: /scratch/project_465000454/devaraju/SW/LUMI-22.08/C/python-xarray/bin/cdo

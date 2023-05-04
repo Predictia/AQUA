@@ -97,7 +97,8 @@ class RegridMixin():
                                           method='ycon',
                                           gridpath=cfg_regrid["cdo-paths"]["download"],
                                           icongridpath=cfg_regrid["cdo-paths"]["icon"],
-                                          extra=extra)
+                                          extra=extra,
+                                          cdo=self.cdo)
         weights.to_netcdf(weightsfile)
         self.logger.warning("Success!")
 
@@ -141,7 +142,7 @@ class RegridMixin():
 
                 subprocess.check_output(
                     [
-                        "cdo",
+                        self.cdo,
                         "-f", "nc4",
                         "gridarea",
                     ] + extra +
@@ -155,7 +156,7 @@ class RegridMixin():
             else:
                 subprocess.check_output(
                     [
-                        "cdo",
+                        self.cdo,
                         "-f", "nc4",
                         "gridarea",
                         sgrid,

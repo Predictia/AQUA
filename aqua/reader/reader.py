@@ -98,8 +98,12 @@ class Reader(FixerMixin, RegridMixin):
         self.machine = get_machine(self.configdir)
 
         # get configuration from the machine
-        self.catalog_file, self.regrid_file, self.fixer_file = get_reader_filenames(self.configdir, self.machine)
+        self.catalog_file, self.regrid_file, self.fixer_file, self.config_file = get_reader_filenames(self.configdir, self.machine)
         self.cat = intake.open_catalog(self.catalog_file)
+
+        # Store the machine-specific CDO path if available
+        cfg_base = load_yaml(self.config_file)
+        self.cdo = cfg_base["cdo"].get(self.machine, "cdo")
 
         # load and check the regrid
         cfg_regrid = load_yaml(self.regrid_file)
