@@ -1,46 +1,48 @@
 Installation
 ============
 
+This document provides detailed installation instructions for the Python package AQUA, 
+which has been tested on Python 3.9 and 3.10. We recommend using Mamba, a package manager
+for conda-forge, for the installation process.
+
+.. contents::
+   :local:
+   :depth: 1
+
 Prerequisites
 -------------
 
-Before installing AQUA, ensure that you have the following software installed on your system:
+Before installing AQUA, ensure that you have the following prerequisites installed:
 
-- Python 3.7 or higher
-- pip (Python package installer)
+- `Git <https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>`_
+- `Mamba <https://github.com/mamba-org/mamba>`_ or `Conda <https://docs.conda.io/projects/conda/en/latest/user-guide/install/>`_
 
-You may also want to use a virtual environment to isolate the package installation. This can be done using tools like `virtualenv` or `conda`.
+Creating a Conda/Mamba Environment and Installing Packages
+----------------------------------------------------------
 
-Installing AQUA
----------------
-
-To install the latest stable version of AQUA, open a terminal or command prompt and run the following command:
+Clone the AQUA repository from GitHub:
 
 .. code-block:: bash
+   
+   git clone https://github.com/oloapinivad/AQUA.git
 
-   pip install AQUA
-
-If you want to install the development version of AQUA, you can clone the repository from GitHub and install it using pip:
+Change to the AQUA directory:
 
 .. code-block:: bash
-
-   git clone https://github.com/your-organization/AQUA.git
+   
    cd AQUA
-   pip install .
 
-Optional Dependencies
----------------------
-
-Some features in AQUA may require additional packages to function properly. These optional dependencies can be installed alongside AQUA using the following command:
+Create a new Mamba environment and install the required packages using the provided environment.yml file:
 
 .. code-block:: bash
+   
+   mamba env create -f environment.yml
 
-   pip install AQUA[optional]
-
-Replace "optional" with the specific feature name or group of features you want to install. For example, if you want to install dependencies for advanced visualization, you might use:
+Activate the newly created aqua environment:
 
 .. code-block:: bash
+   
+   conda activate aqua
 
-   pip install AQUA[visualization]
-
-Consult the AQUA documentation for a complete list of optional dependencies and their corresponding feature names.
+At this point, you should have successfully installed the AQUA package and its dependencies 
+in the newly created aqua environment.
