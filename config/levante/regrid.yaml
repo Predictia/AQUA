@@ -48,7 +48,7 @@ source_grids:
         path: /work/bm1344/AWI/nextGEMS_Cycle2_IFS/tcogrids//4km/tcogrids/tco2559_grid.nc
         space_coord: ["value"]
       ICMU_atm2d:
-        path: /work/bm1344/AWI/nextGEMS_Cycle2_IFS/tcogrids/work/bm1235/a270046/cycle2-sync/tcogrids/4km/tcogrids/tco2559_grid.nc
+        path: /work/bm1344/AWI/nextGEMS_Cycle2_IFS/tcogrids/4km/tcogrids/tco2559_grid.nc
         space_coord: ["value"]
       ICMU_atm3d:
         path: /work/bm1344/AWI/nextGEMS_Cycle2_IFS/tcogrids/4km/tcogrids/tco2559_grid.nc
