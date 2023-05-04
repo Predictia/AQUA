@@ -30,15 +30,9 @@ for i in range(0, num):
 
 
 # Reading and Summing
-with open(str(path)+'ifs_1week_tprate.pickle', 'rb') as data:
-    dataset_total = pickle.load(data)
-with open(str(path)+'ifs_2week_tprate.pickle', 'rb') as data:
-    dataset_2 = pickle.load(data)
-with open(str(path)+'ifs_3week_tprate.pickle', 'rb') as data:
-    dataset_3 = pickle.load(data)
-
-dataset_total =+ dataset_2 
-dataset_total =+ dataset_3
+for i in range(0, num):
+    with open(str(path)+'ifs_'+str(i)+'_week_tprate.pickle', 'rb') as data:
+        dataset_total =+ pickle.load(data)
 
 dataset_total
 
