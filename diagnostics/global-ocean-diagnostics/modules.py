@@ -1,5 +1,8 @@
 import sys
 import os
+import matplotlib.pyplot as plt
+import datetime
+from aqua import Reader
 
 #package_dir = os.path.abspath('/home/dese28/dese28422/one_pass')
 sys.path.append('/home/b/b382397/diagnostics/one_pass')
@@ -20,7 +23,7 @@ from one_pass.opa import Opa
 
 # file_path = "/home/dese28/dese28422/one_pass/config.yml"
 
-monthly_mean_dic = {"stat": "mean",
+thetao_monthly_mean_dic = {"stat": "mean",
     "stat_freq": "monthly",
     "output_freq": "monthly",
     "time_step": 1440, # timestep of data in minutes
@@ -29,7 +32,18 @@ monthly_mean_dic = {"stat": "mean",
     "checkpoint": False,
     "checkpoint_file": "./",
     "out_filepath": "./"}
-monthly_mean_opa=Opa(monthly_mean_dic)
+thetao_monthly_mean_opa=Opa(thetao_monthly_mean_dic)
+
+so_monthly_mean_dic = {"stat": "mean",
+    "stat_freq": "monthly",
+    "output_freq": "monthly",
+    "time_step": 1440, # timestep of data in minutes
+    "variable": "so",
+    "save": False,
+    "checkpoint": False,
+    "checkpoint_file": "./",
+    "out_filepath": "./"}
+so_monthly_mean_opa=Opa(so_monthly_mean_dic)
 
 yearly_mean_dic = {"stat": "mean",
     "stat_freq": "monthly",
