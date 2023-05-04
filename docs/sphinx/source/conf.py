@@ -13,11 +13,12 @@ author = "Climate DT Team"
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ["sphinx.ext.napoleon"]
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon']
 napoleon_google_docstring = True
 napoleon_numpy_docstring = False
 
 templates_path = ["_templates"]
+autoclass_content='both'
 exclude_patterns = []
 
 

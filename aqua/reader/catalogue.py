@@ -39,8 +39,20 @@ def catalogue(verbose=True, configdir=None):
 
 
 def inspect_catalogue(cat, model=None, exp=None):
+    """
+    Basic function to simplify catalog inspection.
 
-    """Basic function to simplify catalog inspection"""
+    Args:
+        cat (intake.catalog.local.LocalCatalog): The catalog object containing the data.
+        model (str, optional): The model ID to filter the catalog. If None, all models are returned. Defaults to None.
+        exp (str, optional): The experiment ID to filter the catalog. If None, all experiments are returned. Defaults to None.
+
+    Returns:
+        list: A list of available items in the catalog, depending on the specified model and/or experiment.
+
+    Raises:
+        KeyError: If the input specifications are incorrect.
+    """
 
     if model and exp:
         print(f"Sources available in catalogue for model {model} and exp {exp}:")
