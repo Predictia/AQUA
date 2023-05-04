@@ -11,7 +11,7 @@ from metpy.units import units, DimensionalityError
 import numpy as np
 import smmregrid as rg
 
-from aqua.util import load_yaml
+from aqua.util import load_yaml, merge_yaml
 from aqua.util import get_reader_filenames, get_config_dir, get_machine
 from aqua.util import log_history
 from aqua.logger import log_configure
@@ -98,7 +98,7 @@ class Reader(FixerMixin, RegridMixin):
         self.machine = get_machine(self.configdir)
 
         # get configuration from the machine
-        self.catalog_file, self.regrid_file, self.fixer_file = get_reader_filenames(self.configdir, self.machine)
+        self.catalog_file, self.regrid_file, self.fixer_folder = get_reader_filenames(self.configdir, self.machine)
         self.cat = intake.open_catalog(self.catalog_file)
 
         # load and check the regrid
@@ -110,7 +110,7 @@ class Reader(FixerMixin, RegridMixin):
         self.dst_datamodel = datamodel
         # Default destination datamodel (unless specified in instantiating the Reader)
         if not self.dst_datamodel:
-            fixes = load_yaml(self.fixer_file)
+            fixes = merge_yaml(self.fixer_folder)
             self.dst_datamodel = fixes["defaults"].get("dst_datamodel", None)
 
         self.source = check_catalog_source(self.cat, self.model, self.exp, source, name="catalog")
