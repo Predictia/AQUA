@@ -110,7 +110,7 @@ class RegridMixin():
                 source (xarray.DataArray or str): Source grid
                 gridpath (str): where to store downloaded grids
                 icongridpath (str): location of ICON grids (e.g. /pool/data/ICON)
-                extra: command(s) to apply to source grid before weight generation (can be a list)
+                extra (str): command(s) to apply to source grid before weight generation (can be a list)
 
             Returns:
                 :obj:`xarray.DataArray` with cell areas
