@@ -7,7 +7,7 @@ import xarray as xr
 import cf2cdm
 from metpy.units import units
 
-from aqua.util import load_yaml, merge_yaml, _eval_formula, get_eccodes_attr
+from aqua.util import load_yaml, load_multi_yaml, _eval_formula, get_eccodes_attr
 from aqua.util import log_history
 
 
@@ -30,7 +30,7 @@ class FixerMixin():
 
         # add extra units (might be moved somewhere else)
         units_extra_definition()
-        fixes = merge_yaml(self.fixer_folder)
+        fixes = load_multi_yaml(self.fixer_folder)
         model = self.model
         exp = self.exp
         src = self.source

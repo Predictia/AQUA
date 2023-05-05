@@ -34,7 +34,7 @@ def load_yaml(infile):
     return cfg
 
 
-def merge_yaml(folder_path):
+def load_multi_yaml(folder_path):
     """
     Load and merge all yaml files located in a given folder into a single dictionary.
 
