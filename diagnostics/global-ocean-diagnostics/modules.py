@@ -1,7 +1,7 @@
 import sys
 import os
 import matplotlib.pyplot as plt
-import datetime
+
 from aqua import Reader
 
 #package_dir = os.path.abspath('/home/dese28/dese28422/one_pass')
