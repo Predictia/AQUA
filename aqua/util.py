@@ -126,8 +126,8 @@ def get_machine(configdir):
         The name of the machine read from the configuration file
     """
 
-    basefile = os.path.join(configdir, "config.yaml")
-    if os.path.exists(basefile):
+    config_file = os.path.join(configdir, "config.yaml")
+    if os.path.exists(config_file):
         base = load_yaml(os.path.join(configdir, "config.yaml"))
         return base['machine']
     else:
@@ -145,8 +145,8 @@ def get_reader_filenames(configdir, machine):
         Three strings for the path of the catalog, regrid and fixer files
     """
 
-    basefile = os.path.join(configdir, "config.yaml")
-    if os.path.exists(basefile):
+    config_file = os.path.join(configdir, "config.yaml")
+    if os.path.exists(config_file):
         base = load_yaml(os.path.join(configdir, "config.yaml"))
         catalog_file = base['reader']['catalog'].format(machine=machine, configdir=configdir)
         if not os.path.exists(catalog_file):
@@ -158,7 +158,7 @@ def get_reader_filenames(configdir, machine):
         if not os.path.exists(fixer_file):
             sys.exit(f'Cannot find catalog file in {fixer_file}')
 
-    return catalog_file, regrid_file, fixer_file, basefile
+    return catalog_file, regrid_file, fixer_file, config_file
 
 
 # Currently not used
