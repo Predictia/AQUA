@@ -10,8 +10,8 @@ import datetime
 import yaml
 import eccodes
 import xarray as xr
-from aqua.logger import log_configure
 from collections import defaultdict
+from aqua.logger import log_configure
 
 
 
@@ -44,13 +44,13 @@ def load_multi_yaml(folder_path):
     Returns:
         A dictionary containing the merged contents of all the yaml files.
     """
-    
+
     merged_dict = defaultdict(dict)
     for filename in os.listdir(folder_path):
-        if filename.endswith('.yaml'):
+        if filename.endswith(('.yml','.yaml')):
             file_path = os.path.join(folder_path, filename)
-            with open(file_path, 'r') as f:
-                yaml_dict = yaml.safe_load(f)
+            with open(file_path, 'r', encoding='utf-8') as file:
+                yaml_dict = yaml.safe_load(file)
                 for key, value in yaml_dict.items():
                     merged_dict[key].update(value)
     return dict(merged_dict)

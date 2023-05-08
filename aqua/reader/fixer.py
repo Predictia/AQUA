@@ -7,7 +7,7 @@ import xarray as xr
 import cf2cdm
 from metpy.units import units
 
-from aqua.util import load_yaml, load_multi_yaml, _eval_formula, get_eccodes_attr
+from aqua.util import load_multi_yaml, _eval_formula, get_eccodes_attr
 from aqua.util import log_history
 
 
