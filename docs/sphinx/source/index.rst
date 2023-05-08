@@ -11,6 +11,7 @@ Welcome to AQUA's documentation!
 
    introduction
    installation
+   configuration
    getting_started
    core_components
    adding_data
