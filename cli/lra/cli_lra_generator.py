@@ -9,6 +9,7 @@ a configuration yaml file.
 import sys
 import argparse
 from aqua import LRAgenerator
+from aqua import OPAgenerator
 from aqua.util import load_yaml, get_arg
 
 
@@ -48,6 +49,8 @@ if __name__ == '__main__':
     tmpdir = config['target']['tmpdir']
     configdir = config['configdir']
     loglevel= config['loglevel']
+    use_opa = config['opa']['use_opa']
+    opadir =  config['opa']['opadir']
 
     definitive = get_arg(args, 'definitive', False)
     overwrite = get_arg(args, 'overwrite', False)
@@ -59,7 +62,18 @@ if __name__ == '__main__':
         for exp in config['catalog'][model].keys():
             for source in config['catalog'][model][exp].keys():
                 varlist = config['catalog'][model][exp][source]['vars']
-                lra = LRAgenerator(model=model, exp=exp, source=source,
+                if use_opa:
+                    opa = OPAgenerator(model=model, exp=exp, source=source,
+                                        var=varlist, frequency=frequency, 
+                                        outdir=opadir, tmpdir=tmpdir, configdir=configdir,
+                                        loglevel=loglevel, definitive=definitive)
+                    opa.retrieve()
+                    opa.compute()
+                    opa.create_catalog_entry()
+                    entry = f'tmp-opa-{frequency}'
+                else:
+                    entry = source
+                lra = LRAgenerator(model=model, exp=exp, source=entry,
                                     var=varlist, resolution=resolution,
                                     frequency=frequency, fix=fix,
                                     outdir=outdir, tmpdir=tmpdir, configdir=configdir,
@@ -68,5 +82,7 @@ if __name__ == '__main__':
                 lra.retrieve()
                 lra.generate_lra()
                 lra.create_catalog_entry()
+                if use_opa:
+                    opa.safe_clean()
 
     print('LRA run completed. Have yourself a beer!')

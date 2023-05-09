@@ -120,8 +120,10 @@ class OPAgenerator():
         "save": True,
         "checkpoint": True,
         "checkpoint_file": self.checkpoint,
-        "out_filepath": self.outdir
+        "out_filepath": self.outdir + '/'
         }
+
+        #print(self.outdir + '/')
 
         return Opa(self.opa_dict)
 

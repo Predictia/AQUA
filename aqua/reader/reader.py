@@ -314,11 +314,11 @@ class Reader(FixerMixin, RegridMixin):
             freq = self.freq
 
         # translate frequency in pandas-style time
-        if freq == 'mon':
+        if freq == 'monthly':
             resample_freq = '1M'
-        elif freq == 'day':
+        elif freq == 'daily':
             resample_freq = '1D'
-        elif freq == 'yr':
+        elif freq == 'yearly':
             resample_freq = '1Y'
         else:
             resample_freq = freq
