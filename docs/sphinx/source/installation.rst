@@ -17,6 +17,9 @@ Before installing AQUA, ensure that you have the following prerequisites install
 - `Git <https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>`_
 - `Mamba <https://github.com/mamba-org/mamba>`_ or `Conda <https://docs.conda.io/projects/conda/en/latest/user-guide/install/>`_
 
+.. note ::
+   Currently, AQUA is a private repository so that you need to be registered as a user to get access to it.
+
 Creating a Conda/Mamba Environment and Installing Packages
 ----------------------------------------------------------
 
