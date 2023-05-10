@@ -1,6 +1,7 @@
 """OPA generator class to support OPA creation"""
 
 import os
+import copy
 import warnings
 import yaml
 import numpy as np
@@ -86,6 +87,7 @@ class OPAgenerator():
         self.opa_dict = None
         self.reader = None
         self.timedelta = 60
+        self.entry_name = f'tmp-opa-{self.frequency}'
 
 
     def retrieve(self):
@@ -165,11 +167,11 @@ class OPAgenerator():
     def create_catalog_entry(self):
 
         """
-        Create an entry in the catalog for the LRA
+        Create an entry in the catalog for the LRA in both source and regrid yaml
         """
 
-        entry_name = f'tmp-opa-{self.frequency}'
-        self.logger.warning('Creating catalog entry %s %s %s', self.model, self.exp, entry_name)
+        self.logger.warning('Creating catalog entry %s %s %s', 
+                            self.model, self.exp, self.entry_name)
 
         # define the block to be uploaded into the catalog
         block_cat = {
@@ -189,31 +191,66 @@ class OPAgenerator():
 
         # load, add the block and close
         cat_file = load_yaml(catalogfile)
-        cat_file['sources'][entry_name] = block_cat
+        cat_file['sources'][self.entry_name] = block_cat
         with open(catalogfile, 'w', encoding='utf-8') as file:
             yaml.dump(cat_file, file, sort_keys=False)
 
+        # find the regrid of my experiment
+        regridfile = os.path.join(self.configdir, self.machine, 'regrid.yaml')
+        cat_file = load_yaml(regridfile)
+        regrid_entry = cat_file['source_grids'][self.model][self.exp][self.source]
+        cat_file['source_grids'][self.model][self.exp][self.entry_name] = copy.deepcopy(regrid_entry)
+
+        with open(regridfile, 'w', encoding='utf-8') as file:
+            yaml.dump(cat_file, file, sort_keys=False)
+
+
     def remove_catalog_entry(self):
 
-        """Remove the entry"""
+        """Remove the entries"""
 
-        entry_name = f'tmp-opa-{self.frequency}'
-        self.logger.warning('Removing catalog entry %s %s %s', self.model, self.exp, entry_name)
+        self.logger.warning('Removing catalog entry %s %s %s', 
+                            self.model, self.exp, self.entry_name)
 
          # find the catalog of my experiment
         catalogfile = os.path.join(self.configdir, self.machine,
                                    'catalog', self.model, self.exp+'.yaml')
         cat_file = load_yaml(catalogfile)
-        if entry_name in cat_file['sources']:
-            del cat_file['sources'][entry_name]
+        if self.entry_name in cat_file['sources']:
+            del cat_file['sources'][self.entry_name]
         with open(catalogfile, 'w', encoding='utf-8') as file:
             yaml.dump(cat_file, file, sort_keys=False)
 
-    def safe_clean(self):
+         # find the regrid of my experiment
+        regridfile = os.path.join(self.configdir, self.machine, 'regrid.yaml')
+        cat_file = load_yaml(regridfile)
+        if self.entry_name in cat_file['source_grids'][self.model][self.exp]:
+            del  cat_file['source_grids'][self.model][self.exp][self.entry_name]
 
-        """Clean aftern and before a new run"""
+        with open(regridfile, 'w', encoding='utf-8') as file:
+            yaml.dump(cat_file, file, sort_keys=False)
 
-        self.remove_catalog_entry()
+    def remove_checkpoint(self):
+
+        """Be sure that the checkpoint is removed"""
+
         if os.path.exists(self.checkpoint):
             self.logger.warning('Removing checkpoint file %s ', self.checkpoint)
             os.remove(self.checkpoint)
+
+    def remove_data(self):
+
+        """Clean the OPA data which are no longer necessary"""
+        for file_name in os.listdir(self.outdir):
+            if file_name.endswith('.nc'):
+                file_path = os.path.join(self.outdir, file_name)
+                self.logger.warning('Removing file %s ', file_path)
+                os.remove(file_path)
+
+    def clean(self):
+
+        """Clean after a OPA run"""
+
+        self.remove_catalog_entry()
+        self.remove_checkpoint()
+        self.remove_data()

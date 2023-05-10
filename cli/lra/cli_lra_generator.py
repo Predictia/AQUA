@@ -55,6 +55,8 @@ if __name__ == '__main__':
     definitive = get_arg(args, 'definitive', False)
     overwrite = get_arg(args, 'overwrite', False)
     fix = get_arg(args, 'fix', True)
+    if use_opa:
+        fix = False #when using OPA, this avoid double decumulation
     workers = get_arg(args, 'workers', 1)
     loglevel = get_arg(args, 'loglevel', loglevel)
 
@@ -64,13 +66,13 @@ if __name__ == '__main__':
                 varlist = config['catalog'][model][exp][source]['vars']
                 if use_opa:
                     opa = OPAgenerator(model=model, exp=exp, source=source,
-                                        var=varlist, frequency=frequency, 
+                                        var=varlist, frequency=frequency,
                                         outdir=opadir, tmpdir=tmpdir, configdir=configdir,
                                         loglevel=loglevel, definitive=definitive)
                     opa.retrieve()
                     opa.compute()
                     opa.create_catalog_entry()
-                    entry = f'tmp-opa-{frequency}'
+                    entry = opa.entry_name
                 else:
                     entry = source
                 lra = LRAgenerator(model=model, exp=exp, source=entry,
@@ -83,6 +85,6 @@ if __name__ == '__main__':
                 lra.generate_lra()
                 lra.create_catalog_entry()
                 if use_opa:
-                    opa.safe_clean()
+                    opa.clean()
 
     print('LRA run completed. Have yourself a beer!')
