@@ -98,8 +98,12 @@ class Reader(FixerMixin, RegridMixin):
         self.machine = get_machine(self.configdir)
 
         # get configuration from the machine
-        self.catalog_file, self.regrid_file, self.fixer_folder = get_reader_filenames(self.configdir, self.machine)
+        self.catalog_file, self.regrid_file, self.fixer_folder, self.config_file = get_reader_filenames(self.configdir, self.machine)
         self.cat = intake.open_catalog(self.catalog_file)
+
+        # Store the machine-specific CDO path if available
+        cfg_base = load_yaml(self.config_file)
+        self.cdo = cfg_base["cdo"].get(self.machine, "cdo")
 
         # load and check the regrid
         cfg_regrid = load_yaml(self.regrid_file)
@@ -328,7 +332,7 @@ class Reader(FixerMixin, RegridMixin):
             self.logger.info('Resamplig to %s frequency...', str(resample_freq))
             out = data.resample(time=resample_freq).mean()
             # for now, we set initial time of the averaging period following ECMWF standard
-            # HACK: we ignore hours/sec to uniform the output structure 
+            # HACK: we ignore hours/sec to uniform the output structure
             proper_time = data.time.resample(time=resample_freq).min()
             out['time'] = np.array(proper_time.values, dtype='datetime64[h]')
         except ValueError:
