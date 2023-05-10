@@ -10,7 +10,9 @@ import datetime
 import yaml
 import eccodes
 import xarray as xr
+from collections import defaultdict
 from aqua.logger import log_configure
+
 
 
 def load_yaml(infile):
@@ -30,6 +32,28 @@ def load_yaml(infile):
     except IOError:
         sys.exit(f'ERROR: {infile} not found: you need to have this configuration file!')
     return cfg
+
+
+def load_multi_yaml(folder_path):
+    """
+    Load and merge all yaml files located in a given folder into a single dictionary.
+
+    Args:
+        folder_path(str): The path of the folder containing the yaml files to be merged.
+
+    Returns:
+        A dictionary containing the merged contents of all the yaml files.
+    """
+
+    merged_dict = defaultdict(dict)
+    for filename in os.listdir(folder_path):
+        if filename.endswith(('.yml','.yaml')):
+            file_path = os.path.join(folder_path, filename)
+            with open(file_path, 'r', encoding='utf-8') as file:
+                yaml_dict = yaml.safe_load(file)
+                for key, value in yaml_dict.items():
+                    merged_dict[key].update(value)
+    return dict(merged_dict)
 
 
 def get_config_dir():
@@ -154,9 +178,9 @@ def get_reader_filenames(configdir, machine):
         regrid_file = base['reader']['regrid'].format(machine=machine, configdir=configdir)
         if not os.path.exists(regrid_file):
             sys.exit(f'Cannot find catalog file in {regrid_file}')
-        fixer_file = base['reader']['fixer'].format(machine=machine, configdir=configdir)
-        if not os.path.exists(fixer_file):
-            sys.exit(f'Cannot find catalog file in {fixer_file}')
+        fixer_folder = base['reader']['fixer'].format(machine=machine, configdir=configdir)
+        if not os.path.exists(fixer_folder):
+            sys.exit(f'Cannot find catalog file in {fixer_folder}')
 
     return catalog_file, regrid_file, fixer_file, config_file
 

@@ -11,7 +11,7 @@ from metpy.units import units, DimensionalityError
 import numpy as np
 import smmregrid as rg
 
-from aqua.util import load_yaml
+from aqua.util import load_yaml, load_multi_yaml
 from aqua.util import get_reader_filenames, get_config_dir, get_machine
 from aqua.util import log_history
 from aqua.logger import log_configure
@@ -111,10 +111,17 @@ class Reader(FixerMixin, RegridMixin):
         source_grid = cfg_regrid["source_grids"][self.model][self.exp][source_grid_id]
         self.vertcoord = source_grid.get("vertcoord", None)  # Some more checks needed
 
+        # Expose grid information for the source
+        sgridpath = source_grid.get("path", None)
+        if sgridpath:
+            self.src_grid = xr.open_dataset(sgridpath)
+        else:
+            self.src_grid = None
+
         self.dst_datamodel = datamodel
         # Default destination datamodel (unless specified in instantiating the Reader)
         if not self.dst_datamodel:
-            fixes = load_yaml(self.fixer_file)
+            fixes = load_multi_yaml(self.fixer_folder)
             self.dst_datamodel = fixes["defaults"].get("dst_datamodel", None)
 
         self.source = check_catalog_source(self.cat, self.model, self.exp, source, name="catalog")
