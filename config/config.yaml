@@ -3,8 +3,8 @@
 machine: levante
 
 reader: 
-  catalog: '{configdir}/{machine}/catalog.yaml'
-  regrid: '{configdir}/{machine}/regrid.yaml'
-  fixer: '{configdir}/fixes.yaml'
+  catalog: '{configdir}/machines/{machine}/catalog.yaml'
+  regrid: '{configdir}/machines/{machine}/regrid.yaml'
+  fixer: '{configdir}/fixes'
 
 
