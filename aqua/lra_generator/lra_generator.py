@@ -294,10 +294,10 @@ class LRAgenerator():
 
         filename = os.path.join(self.outdir,
                 f'{var}_{self.exp}_{self.resolution}_{self.frequency}_*.nc')
-        if year is not None:
-            filename = filename.replace("*", year)
-        if year is not None and month is not None:
-            filename = filename.replace("*", year + str(month).zfill(2))
+        if (year is not None) and (month is None):
+            filename = filename.replace("*", str(year))
+        if (year is not None) and (month is not None):
+            filename = filename.replace("*", str(year) + str(month).zfill(2))
 
         return filename
     
@@ -364,7 +364,7 @@ class LRAgenerator():
                     # check everything is correct
                     filecheck = file_is_complete(outfile, self.logger)
                     # we can later add a retry
-                    if not filecheck:
+                    if filecheck:
                         self.logger.error('Something has gone wrong in %s!', outfile)
                 del month_data
             del year_data
