@@ -332,7 +332,7 @@ class Reader(FixerMixin, RegridMixin):
             self.logger.info('Resamplig to %s frequency...', str(resample_freq))
             out = data.resample(time=resample_freq).mean()
             # for now, we set initial time of the averaging period following ECMWF standard
-            # HACK: we ignore hours/sec to uniform the output structure 
+            # HACK: we ignore hours/sec to uniform the output structure
             proper_time = data.time.resample(time=resample_freq).min()
             out['time'] = np.array(proper_time.values, dtype='datetime64[h]')
         except ValueError:

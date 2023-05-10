@@ -1,18 +1,19 @@
 """Module containing general utility functions for AQUA"""
 
-import sys
-import os
-import re
-import operator
-import string
-import random
 import datetime
-import yaml
+import operator
+import os
+import random
+import re
+import string
+import sys
+from collections import defaultdict
+
 import eccodes
 import xarray as xr
-from collections import defaultdict
-from aqua.logger import log_configure
+import yaml
 
+from aqua.logger import log_configure
 
 
 def load_yaml(infile):
@@ -47,7 +48,7 @@ def load_multi_yaml(folder_path):
 
     merged_dict = defaultdict(dict)
     for filename in os.listdir(folder_path):
-        if filename.endswith(('.yml','.yaml')):
+        if filename.endswith(('.yml', '.yaml')):
             file_path = os.path.join(folder_path, filename)
             with open(file_path, 'r', encoding='utf-8') as file:
                 yaml_dict = yaml.safe_load(file)
@@ -288,12 +289,13 @@ def generate_random_string(length):
     random_string = ''.join(random.choice(letters_and_digits) for _ in range(length))
     return random_string
 
+
 def get_arg(args, arg, default):
     """
     Support function to get arguments
 
     Args:
-        args: the arguments 
+        args: the arguments
         arg: the argument to get
         default: the default value
 
@@ -343,6 +345,7 @@ def get_arg(args, arg, default):
 #     if not res:
 #         res = default
 #     return res
+
 
 def create_folder(folder, loglevel=None):
     """
