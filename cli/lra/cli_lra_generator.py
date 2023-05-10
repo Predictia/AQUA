@@ -63,28 +63,28 @@ if __name__ == '__main__':
     for model in config['catalog'].keys():
         for exp in config['catalog'][model].keys():
             for source in config['catalog'][model][exp].keys():
-                varlist = config['catalog'][model][exp][source]['vars']
-                if use_opa:
-                    opa = OPAgenerator(model=model, exp=exp, source=source,
-                                        var=varlist, frequency=frequency,
-                                        outdir=opadir, tmpdir=tmpdir, configdir=configdir,
-                                        loglevel=loglevel, definitive=definitive)
-                    opa.retrieve()
-                    opa.compute()
-                    opa.create_catalog_entry()
-                    entry = opa.entry_name
-                else:
-                    entry = source
-                lra = LRAgenerator(model=model, exp=exp, source=entry,
-                                    var=varlist, resolution=resolution,
-                                    frequency=frequency, fix=fix,
-                                    outdir=outdir, tmpdir=tmpdir, configdir=configdir,
-                                    nproc=workers, loglevel=loglevel,
-                                    definitive=definitive, overwrite=overwrite)
-                lra.retrieve()
-                lra.generate_lra()
-                lra.create_catalog_entry()
-                if use_opa:
-                    opa.clean()
+                for varname in config['catalog'][model][exp][source]['vars']:
+                    if use_opa:
+                        opa = OPAgenerator(model=model, exp=exp, source=source,
+                                            var=varname, frequency=frequency,
+                                            outdir=opadir, tmpdir=tmpdir, configdir=configdir,
+                                            loglevel=loglevel, definitive=definitive)
+                        opa.retrieve()
+                        opa.compute()
+                        opa.create_catalog_entry()
+                        entry = opa.entry_name
+                    else:
+                        entry = source
+                    lra = LRAgenerator(model=model, exp=exp, source=entry,
+                                        var=varname, resolution=resolution,
+                                        frequency=frequency, fix=fix,
+                                        outdir=outdir, tmpdir=tmpdir, configdir=configdir,
+                                        nproc=workers, loglevel=loglevel,
+                                        definitive=definitive, overwrite=overwrite)
+                    lra.retrieve()
+                    lra.generate_lra()
+                    lra.create_catalog_entry()
+                    if use_opa:
+                        opa.clean()
 
     print('LRA run completed. Have yourself a beer!')
