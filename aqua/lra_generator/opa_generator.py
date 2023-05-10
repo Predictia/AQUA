@@ -186,7 +186,7 @@ class OPAgenerator():
         }
 
         # find the catalog of my experiment
-        catalogfile = os.path.join(self.configdir, self.machine,
+        catalogfile = os.path.join(self.configdir, 'machines', self.machine,
                                    'catalog', self.model, self.exp+'.yaml')
 
         # load, add the block and close
@@ -196,7 +196,7 @@ class OPAgenerator():
             yaml.dump(cat_file, file, sort_keys=False)
 
         # find the regrid of my experiment
-        regridfile = os.path.join(self.configdir, self.machine, 'regrid.yaml')
+        regridfile = os.path.join(self.configdir, 'machines', self.machine, 'regrid.yaml')
         cat_file = load_yaml(regridfile)
         regrid_entry = cat_file['source_grids'][self.model][self.exp][self.source]
         cat_file['source_grids'][self.model][self.exp][self.entry_name] = copy.deepcopy(regrid_entry)
@@ -213,7 +213,7 @@ class OPAgenerator():
                             self.model, self.exp, self.entry_name)
 
          # find the catalog of my experiment
-        catalogfile = os.path.join(self.configdir, self.machine,
+        catalogfile = os.path.join(self.configdir, 'machines', self.machine,
                                    'catalog', self.model, self.exp+'.yaml')
         cat_file = load_yaml(catalogfile)
         if self.entry_name in cat_file['sources']:
@@ -222,7 +222,7 @@ class OPAgenerator():
             yaml.dump(cat_file, file, sort_keys=False)
 
          # find the regrid of my experiment
-        regridfile = os.path.join(self.configdir, self.machine, 'regrid.yaml')
+        regridfile = os.path.join(self.configdir, 'machines', self.machine, 'regrid.yaml')
         cat_file = load_yaml(regridfile)
         if self.entry_name in cat_file['source_grids'][self.model][self.exp]:
             del  cat_file['source_grids'][self.model][self.exp][self.entry_name]
