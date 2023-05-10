@@ -182,7 +182,7 @@ def get_reader_filenames(configdir, machine):
         if not os.path.exists(fixer_folder):
             sys.exit(f'Cannot find catalog file in {fixer_folder}')
 
-    return catalog_file, regrid_file, fixer_file, config_file
+    return catalog_file, regrid_file, fixer_folder, config_file
 
 
 # Currently not used
