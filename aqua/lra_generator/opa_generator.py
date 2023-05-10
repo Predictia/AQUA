@@ -1,6 +1,7 @@
 """OPA generator class to support OPA creation"""
 
 import os
+import warnings
 import yaml
 import numpy as np
 from one_pass.opa import Opa
@@ -9,13 +10,19 @@ from aqua.util import create_folder, load_yaml
 from aqua.util import get_config_dir, get_machine
 from aqua.reader import Reader
 
+# Filter the specific warning
+warnings.filterwarnings(
+    "ignore",
+    message="Converting non-nanosecond precision datetime values to nanosecond precision",
+    category=UserWarning
+)
 
 class OPAgenerator():
 
     """This class serves as wrapper of the OPA to be used within AQUA"""
 
     def __init__(self,
-            model=None, exp=None, source=None, 
+            model=None, exp=None, source=None,
             var=None, vars=None, frequency=None,
             outdir=None, tmpdir=None, configdir=None,
             loglevel=None, overwrite=False, definitive=False):
@@ -68,7 +75,7 @@ class OPAgenerator():
 
         self.outdir = os.path.join(outdir, self.model, self.exp)
         if self.frequency:
-            self.outdir = os.path.join(self.outdir, self.frequency)
+            self.outdir = os.path.join(self.outdir, self.frequency) + '/' #this is an HACK due to a bug in OPA
 
         self.tmpdir = tmpdir
         self.checkpoint = os.path.join(self.tmpdir, "checkpoint.pickle")
@@ -120,10 +127,8 @@ class OPAgenerator():
         "save": True,
         "checkpoint": True,
         "checkpoint_file": self.checkpoint,
-        "out_filepath": self.outdir + '/'
+        "out_filepath": self.outdir
         }
-
-        #print(self.outdir + '/')
 
         return Opa(self.opa_dict)
 
@@ -134,12 +139,22 @@ class OPAgenerator():
         and on the variables"""
 
         for variable in self.var:
-            self.logger.warning('Setting up OPA at %s frequency for variable %s...', self.frequency, variable)
+            self.logger.warning('Setting up OPA at %s frequency for variable %s...', 
+                                self.frequency, variable)
+
+            if os.path.exists(self.checkpoint):
+                self.logger.warning('Removing checkpoint file %s ', self.checkpoint)
+                os.remove(self.checkpoint)
+            
+            self.logger.warning('Initializing the OPA')
             opa_mean = self.configure_opa(variable)
+            print(vars(opa_mean))
 
             self.logger.warning('Initializing the streaming generator...')
             self.reader.reset_stream()
-            data_gen = self.reader.retrieve(streaming_generator=True, stream_step=10, stream_unit = 'days')
+            data_gen = self.reader.retrieve(streaming_generator=True, stream_step=1,
+                                            stream_unit = 'days')
+            
 
             for data in data_gen:
                 self.logger.warning(f"start_date: {data.time[0].values} stop_date: {data.time[-1].values}")
