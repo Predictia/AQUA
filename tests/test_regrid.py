@@ -67,4 +67,3 @@ def test_recompute_weights_fesom3D():
     assert 0.75 <= ratio2 <= 0.79
 
 # missing test for ICON-Healpix
-
