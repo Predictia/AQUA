@@ -203,6 +203,12 @@ source_grids:
         extra:
           - -setgrid,/work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_griddes_nodes_IFS.nc
           - -selname,cell_area
+      original_3d:
+        path: /work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_fesom_mask.nc
+        space_coord: ["nod2"]
+        vertcoord: nz1
+        extra: 
+          - -setgrid,/work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_griddes_nodes_IFS.nc 
 
   MSWEP:
     past:
