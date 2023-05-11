@@ -76,15 +76,16 @@ class OPAgenerator():
 
         self.outdir = os.path.join(outdir, self.model, self.exp)
         if self.frequency:
-            self.outdir = os.path.join(self.outdir, self.frequency) + '/' #this is an HACK due to a bug in OPA
+            self.outdir = os.path.join(self.outdir, self.frequency)
 
         self.tmpdir = tmpdir
-        self.checkpoint = os.path.join(self.tmpdir, "checkpoint.pickle")
+        #self.checkpoint = os.path.join(self.tmpdir, "checkpoint.pickle")
 
         create_folder(self.outdir, loglevel=self.loglevel)
         create_folder(self.tmpdir, loglevel=self.loglevel)
 
         self.opa_dict = None
+        self.checkpoint = None
         self.reader = None
         self.timedelta = 60
         self.entry_name = f'tmp-opa-{self.frequency}'
@@ -128,7 +129,7 @@ class OPAgenerator():
         "variable": var,
         "save": True,
         "checkpoint": True,
-        "checkpoint_file": self.checkpoint,
+        "checkpoint_filepath": self.tmpdir,
         "out_filepath": self.outdir
         }
 
@@ -143,13 +144,12 @@ class OPAgenerator():
         for variable in self.var:
             self.logger.warning('Setting up OPA at %s frequency for variable %s...', 
                                 self.frequency, variable)
-
-            if os.path.exists(self.checkpoint):
-                self.logger.warning('Removing checkpoint file %s ', self.checkpoint)
-                os.remove(self.checkpoint)
+            
             
             self.logger.warning('Initializing the OPA')
             opa_mean = self.configure_opa(variable)
+            self.checkpoint = opa_mean.checkpoint_file
+            self.remove_checkpoint()
             print(vars(opa_mean))
 
             self.logger.warning('Initializing the streaming generator...')
@@ -157,7 +157,6 @@ class OPAgenerator():
             data_gen = self.reader.retrieve(streaming_generator=True, stream_step=1,
                                             stream_unit = 'days')
             
-
             for data in data_gen:
                 self.logger.warning(f"start_date: {data.time[0].values} stop_date: {data.time[-1].values}")
                 vardata = data[variable]
@@ -170,7 +169,7 @@ class OPAgenerator():
         Create an entry in the catalog for the LRA in both source and regrid yaml
         """
 
-        self.logger.warning('Creating catalog entry %s %s %s', 
+        self.logger.warning('Creating catalog entry %s %s %s',
                             self.model, self.exp, self.entry_name)
 
         # define the block to be uploaded into the catalog
