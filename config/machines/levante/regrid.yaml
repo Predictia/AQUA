@@ -15,6 +15,7 @@ target_grids:
   r005: r7200x3600
   r010: r3600x1800
   r020: r1800x900
+  r025: r1440x720
   r050: r720x360
   r100: r360x180
   r200: r180x90
@@ -25,13 +26,13 @@ source_grids:
   IFS:
     tco3999-ng5:
       ICMGG_atm2d:
-        path: /work/bm1235/a270046/cycle2-sync/tcogrids/2.8km/tcogrids/tco3999_grid.nc
+        path: /work/bm1344/AWI/nextGEMS_Cycle2_IFS/tcogrids/2.8km/tcogrids/tco3999_grid.nc
         space_coord: ["value"]
       ICMU_atm2d:
-        path: /work/bm1235/a270046/cycle2-sync/tcogrids/2.8km/tcogrids/tco3999_grid.nc
+        path: /work/bm1344/AWI/nextGEMS_Cycle2_IFS/tcogrids/2.8km/tcogrids/tco3999_grid.nc
         space_coord: ["value"]
       ICMU_atm3d:
-        path: /work/bm1235/a270046/cycle2-sync/tcogrids/2.8km/tcogrids/tco3999_grid.nc
+        path: /work/bm1344/AWI/nextGEMS_Cycle2_IFS/tcogrids/2.8km/tcogrids/tco3999_grid.nc
         space_coord: ["value"]
       interpolated_global:
         path: /work/bb1153/b382075/nextgems/grids/ifs_interpolated5400x2700.nc
@@ -45,13 +46,13 @@ source_grids:
   
     tco2559-ng5:
       ICMGG_atm2d:
-        path: /work/bm1235/a270046/cycle2-sync/tcogrids/4km/tcogrids/tco2559_grid.nc
+        path: /work/bm1344/AWI/nextGEMS_Cycle2_IFS/tcogrids//4km/tcogrids/tco2559_grid.nc
         space_coord: ["value"]
       ICMU_atm2d:
-        path: /work/bm1235/a270046/cycle2-sync/tcogrids/4km/tcogrids/tco2559_grid.nc
+        path: /work/bm1344/AWI/nextGEMS_Cycle2_IFS/tcogrids/4km/tcogrids/tco2559_grid.nc
         space_coord: ["value"]
       ICMU_atm3d:
-        path: /work/bm1235/a270046/cycle2-sync/tcogrids/4km/tcogrids/tco2559_grid.nc
+        path: /work/bm1344/AWI/nextGEMS_Cycle2_IFS/tcogrids/4km/tcogrids/tco2559_grid.nc
         space_coord: ["value"]
       interpolated_global:
         path: /work/bb1153/b382075/nextgems/grids/ifs_interpolated5400x2700.nc
@@ -65,13 +66,13 @@ source_grids:
   
     tco1279-orca025:
       ICMGG_atm2d: 
-        path: /work/bm1235/a270046/cycle2-sync/tcogrids/9km/tcogrids/tco1279_grid.nc
+        path: /work/bm1344/AWI/nextGEMS_Cycle2_IFS/tcogrids/9km/tcogrids/tco1279_grid.nc
         space_coord: ["value"]
       ICMU_atm2d: 
-        path: /work/bm1235/a270046/cycle2-sync/tcogrids/9km/tcogrids/tco1279_grid.nc
+        path: /work/bm1344/AWI/nextGEMS_Cycle2_IFS/tcogrids/9km/tcogrids/tco1279_grid.nc
         space_coord: ["value"]
       ICMU_atm3d: 
-        path: /work/bm1235/a270046/cycle2-sync/tcogrids/9km/tcogrids/tco1279_grid.nc
+        path: /work/bm1344/AWI/nextGEMS_Cycle2_IFS/tcogrids/9km/tcogrids/tco1279_grid.nc
         space_coord: ["value"]
       default:  # # default covers all simple cases where this can be computed automatically
         space_coord: ["lon", "lat"]
@@ -82,10 +83,10 @@ source_grids:
 
     test-tco2559:
       ICMGG_atm2d:
-        path: /work/bm1235/a270046/cycle2-sync/tcogrids/4km/tcogrids/tco2559_grid.nc
+        path: /work/bm1344/AWI/nextGEMS_Cycle2_IFS/tcogrids/4km/tcogrids/tco2559_grid.nc
         space_coord: ["value"]
       ICMU_atm3d:
-        path: /work/bm1235/a270046/cycle2-sync/tcogrids/4km/tcogrids/tco2559_grid.nc
+        path: /work/bm1344/AWI/nextGEMS_Cycle2_IFS/tcogrids/4km/tcogrids/tco2559_grid.nc
         space_coord: ["value"]
     test-tco79:
       long:
@@ -219,6 +220,18 @@ source_grids:
     ssh-L4:
       default:
         space_coord: ["longitude", "latitude"]
+  
+  PHC3:
+    phc3:
+      default:
+        space_coord: ["lon", "lat"]
+  
+  WOA18:
+    woa18_2005_2017:
+      default:
+        path: /pool/data/AWICM/FESOM2/INITIAL/WOA18/WOA18_2005_2017/woa18_A5B7_t00_04.nc
+        vertcoord: depth
+        space_coord: ["lon", "lat"]
 
   CERES:
     ebaf-toa42:

@@ -99,6 +99,7 @@ class RegridMixin():
                                           gridpath=cfg_regrid["cdo-paths"]["download"],
                                           icongridpath=cfg_regrid["cdo-paths"]["icon"],
                                           extra=extra,
+                                          cdo=self.cdo,
                                           vert_coord=self.vertcoord,
                                           nproc=nproc)
         weights.to_netcdf(weightsfile)
@@ -112,7 +113,7 @@ class RegridMixin():
                 source (xarray.DataArray or str): Source grid
                 gridpath (str): where to store downloaded grids
                 icongridpath (str): location of ICON grids (e.g. /pool/data/ICON)
-                extra: command(s) to apply to source grid before weight generation (can be a list)
+                extra (str): command(s) to apply to source grid before weight generation (can be a list)
 
             Returns:
                 :obj:`xarray.DataArray` with cell areas
@@ -144,7 +145,7 @@ class RegridMixin():
 
                 subprocess.check_output(
                     [
-                        "cdo",
+                        self.cdo,
                         "-f", "nc4",
                         "gridarea",
                     ] + extra +
@@ -158,7 +159,7 @@ class RegridMixin():
             else:
                 subprocess.check_output(
                     [
-                        "cdo",
+                        self.cdo,
                         "-f", "nc4",
                         "gridarea",
                         sgrid,
@@ -176,7 +177,7 @@ class RegridMixin():
 
         except subprocess.CalledProcessError as err:
             # Print the CDO error message
-            self.logger.critical(err.output.decode(), file=sys.stderr)
+            self.logger.critical(err.output.decode())
             raise
 
         finally:
