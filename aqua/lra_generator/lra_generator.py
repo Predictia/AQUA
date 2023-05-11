@@ -20,6 +20,12 @@ class LRAgenerator():
     """
     Class to generate LRA data at required frequency/resolution
     """
+
+    @property
+    def dask(self):
+        """Check if dask is needed"""
+        return self.nproc > 1
+
     def __init__(self,
                  model=None, exp=None, source=None,
                  var=None, vars=None, configdir=None,
@@ -69,15 +75,12 @@ class LRAgenerator():
         self.nproc = int(nproc)
         self.tmpdir = tmpdir
         if self.nproc > 1:
-            self.dask = True
             self.logger.info('Running dask.distributed with %s workers', self.nproc)
             if not self.tmpdir:
                 raise KeyError('Please specify tmpdir for dask.distributed.')
 
             self.tmpdir = os.path.join(self.tmpdir, 'LRA_' +
                                         generate_random_string(10))
-        else:
-            self.dask = False
 
         # # Data settings
         # self._assign_key('model', model)

@@ -25,6 +25,11 @@ class OPAgenerator():
 
     """This class serves as wrapper of the OPA to be used within AQUA"""
 
+    @property
+    def dask(self):
+        """Check if dask is needed"""
+        return self.nproc > 1
+
     def __init__(self,
             model=None, exp=None, source=None,
             var=None, vars=None, frequency=None,
@@ -96,10 +101,7 @@ class OPAgenerator():
         self.entry_name = f'tmp-opa-{self.frequency}'
 
         if self.nproc > 1:
-            self.dask = True
             self.logger.info('Running dask.distributed with %s workers', self.nproc)
-        else:
-            self.dask = False
         
         self.client = None
         self.cluster = None
