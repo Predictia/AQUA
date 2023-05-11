@@ -3,4 +3,4 @@ pip install sparse
 pip install docker
 pip install gribscan
 # pip install -e of AQUA itself (this will bring in also smmregrid)
-pip install -e /users/nurissom/AQUA
+pip install -e /users/<USER>/AQUA

@@ -24,6 +24,10 @@ echo "Installation path has been set to ${INSTALLATION_PATH}"
 sed -i "/^machine:/c\\machine: ${machine}" "${AQUA}/config/config.yaml"
 echo "Machine name in config file has been set to ${machine}"
 
+# change user in pip lumi
+sed -i "s/<USER>/$user/" pip_lumi.txt
+echo "Username updated to $USER in pip_lumi.txt"
+
 install_aqua() {
   # clean up environment
   module purge
