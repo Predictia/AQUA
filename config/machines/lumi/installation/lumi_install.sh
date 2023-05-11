@@ -3,7 +3,7 @@
 #####################################################################
 # Begin of user input
 machine=lumi
-user=nurissom
+user=padavini
 
 # define AQUA path
 if [[ -z "${AQUA}" ]]; then
@@ -31,7 +31,8 @@ install_aqua() {
   # load modules
   module load LUMI/22.08
   module load lumi-container-wrapper
-  
+
+  mkdir -p ${INSTALLATION_PATH}  
   conda-containerize new --mamba --prefix "${INSTALLATION_PATH}" "${AQUA}/config/machines/lumi/installation/environment_lumi.yml"
   conda-containerize update "${INSTALLATION_PATH}" --post-install "${AQUA}/config/machines/lumi/installation/pip_lumi.txt"
   echo "AQUA has been installed."
