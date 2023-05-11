@@ -149,7 +149,7 @@ class OPAgenerator():
             self.logger.warning('Initializing the OPA')
             opa_mean = self.configure_opa(variable)
             self.checkpoint = opa_mean.checkpoint_file
-            self.remove_checkpoint()
+            #self.remove_checkpoint()
             print(vars(opa_mean))
 
             self.logger.warning('Initializing the streaming generator...')
