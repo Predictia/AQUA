@@ -70,7 +70,7 @@ if __name__ == '__main__':
                         opa = OPAgenerator(model=model, exp=exp, source=source,
                                             var=varname, frequency=frequency,
                                             outdir=opadir, tmpdir=tmpdir, configdir=configdir,
-                                            loglevel=loglevel, definitive=definitive)
+                                            loglevel=loglevel, definitive=definitive, nproc=1)
                         entry = opa.entry_name
                     else:
                         entry = source
@@ -90,7 +90,7 @@ if __name__ == '__main__':
                         # run OPA and LRA
                         if use_opa:
                             opa.retrieve()
-                            opa.compute()
+                            opa.generate_opa()
                             opa.create_catalog_entry()
                         lra.retrieve()
                         lra.generate_lra()

@@ -4,12 +4,15 @@ import os
 import copy
 import warnings
 import yaml
+import dask
 import numpy as np
+from dask.distributed import Client, LocalCluster
 from one_pass.opa import Opa
 from aqua.logger import log_configure
 from aqua.util import create_folder, load_yaml
 from aqua.util import get_config_dir, get_machine
 from aqua.reader import Reader
+
 
 # Filter the specific warning
 warnings.filterwarnings(
@@ -26,7 +29,8 @@ class OPAgenerator():
             model=None, exp=None, source=None,
             var=None, vars=None, frequency=None,
             outdir=None, tmpdir=None, configdir=None,
-            loglevel=None, overwrite=False, definitive=False):
+            loglevel=None, overwrite=False, definitive=False,
+            nproc=1):
     
         self.logger = log_configure(loglevel, 'opa_generator')
         self.loglevel = loglevel
@@ -84,12 +88,21 @@ class OPAgenerator():
         create_folder(self.outdir, loglevel=self.loglevel)
         create_folder(self.tmpdir, loglevel=self.loglevel)
 
+        self.nproc = int(nproc)
         self.opa_dict = None
         self.checkpoint = None
         self.reader = None
         self.timedelta = 60
         self.entry_name = f'tmp-opa-{self.frequency}'
 
+        if self.nproc > 1:
+            self.dask = True
+            self.logger.info('Running dask.distributed with %s workers', self.nproc)
+        else:
+            self.dask = False
+        
+        self.client = None
+        self.cluster = None
 
     def retrieve(self):
         """
@@ -102,10 +115,10 @@ class OPAgenerator():
         self.reader = Reader(model=self.model, exp=self.exp,
                              source=self.source, configdir=self.configdir, loglevel=self.loglevel)
 
-        self.logger.warning('Getting the timedelta to inform the OPA...')
-        self.get_timedelta()
+        self.logger.info('Getting the timedelta to inform the OPA...')
+        self._get_timedelta()
 
-    def get_timedelta(self):
+    def _get_timedelta(self):
         """
         Get the timedelta from the catalog
         """
@@ -113,9 +126,9 @@ class OPAgenerator():
         data = self.reader.retrieve()
         time_diff = np.diff(data.time.values).astype('timedelta64[m]')
         self.timedelta = time_diff[0].astype(int)
-        self.logger.warning('Timedelta is %s', str(self.timedelta))
+        self.logger.info('Timedelta is %s', str(self.timedelta))
 
-    def configure_opa(self, var):
+    def _configure_opa(self, var):
 
         """
         Set up the OPA
@@ -136,18 +149,19 @@ class OPAgenerator():
         return Opa(self.opa_dict)
 
     
-    def compute(self):
+    def generate_opa(self):
 
         """Run the actual computation of the OPA looping on the dataset 
         and on the variables"""
 
+        self._set_dask()
         for variable in self.var:
             self.logger.warning('Setting up OPA at %s frequency for variable %s...', 
                                 self.frequency, variable)
             
             
             self.logger.warning('Initializing the OPA')
-            opa_mean = self.configure_opa(variable)
+            opa_mean = self._configure_opa(variable)
             self.checkpoint = opa_mean.checkpoint_file
             #self.remove_checkpoint()
             print(vars(opa_mean))
@@ -158,10 +172,12 @@ class OPAgenerator():
                                             stream_unit = 'days')
             
             for data in data_gen:
-                self.logger.warning(f"start_date: {data.time[0].values} stop_date: {data.time[-1].values}")
+                self.logger.info(f"start_date: {data.time[0].values} stop_date: {data.time[-1].values}")
                 vardata = data[variable]
                 if self.definitive:
                     opa_mean.compute(vardata)
+
+        self._close_dask()
 
     def create_catalog_entry(self):
 
@@ -204,7 +220,7 @@ class OPAgenerator():
             yaml.dump(cat_file, file, sort_keys=False)
 
 
-    def remove_catalog_entry(self):
+    def _remove_catalog_entry(self):
 
         """Remove the entries"""
 
@@ -229,7 +245,7 @@ class OPAgenerator():
         with open(regridfile, 'w', encoding='utf-8') as file:
             yaml.dump(cat_file, file, sort_keys=False)
 
-    def remove_checkpoint(self):
+    def _remove_checkpoint(self):
 
         """Be sure that the checkpoint is removed"""
 
@@ -237,7 +253,7 @@ class OPAgenerator():
             self.logger.warning('Removing checkpoint file %s ', self.checkpoint)
             os.remove(self.checkpoint)
 
-    def remove_data(self):
+    def _remove_data(self):
 
         """Clean the OPA data which are no longer necessary"""
         for file_name in os.listdir(self.outdir):
@@ -250,6 +266,30 @@ class OPAgenerator():
 
         """Clean after a OPA run"""
 
-        self.remove_catalog_entry()
-        self.remove_checkpoint()
-        self.remove_data()
+        self._remove_catalog_entry()
+        self._remove_checkpoint()
+        self._remove_data()
+
+    def _set_dask(self):
+        """
+        Set up dask cluster
+        """
+        if self.dask:  # self.nproc > 1
+            self.logger.info('Setting up dask cluster with %s workers', self.nproc)
+            dask.config.set({'temporary_directory': self.tmpdir})
+            self.logger.info('Temporary directory: %s', self.tmpdir)
+            self.cluster = LocalCluster(n_workers=self.nproc,
+                                        threads_per_worker=1)
+            self.client = Client(self.cluster)
+        else:
+            self.logger.info('Dask is disabled...')
+            dask.config.set(scheduler='synchronous')
+
+    def _close_dask(self):
+        """
+        Close dask cluster
+        """
+        if self.dask:  # self.nproc > 1
+            self.client.shutdown()
+            self.cluster.close()
+            self.logger.info('Dask cluster closed')
