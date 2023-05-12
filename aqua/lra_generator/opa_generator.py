@@ -21,6 +21,7 @@ warnings.filterwarnings(
     category=UserWarning
 )
 
+
 class OPAgenerator():
 
     """This class serves as wrapper of the OPA to be used within AQUA"""
@@ -31,12 +32,12 @@ class OPAgenerator():
         return self.nproc > 1
 
     def __init__(self,
-            model=None, exp=None, source=None,
-            var=None, vars=None, frequency=None,
-            outdir=None, tmpdir=None, configdir=None,
-            loglevel=None, overwrite=False, definitive=False,
-            nproc=1):
-    
+                 model=None, exp=None, source=None,
+                 var=None, vars=None, frequency=None,
+                 outdir=None, tmpdir=None, configdir=None,
+                 loglevel=None, overwrite=False, definitive=False,
+                 nproc=1):
+
         self.logger = log_configure(loglevel, 'opa_generator')
         self.loglevel = loglevel
 
@@ -62,7 +63,7 @@ class OPAgenerator():
             self.source = source
         else:
             raise KeyError('Please specify source.')
-            
+
         if not configdir:
             self.configdir = get_config_dir()
         else:
@@ -88,7 +89,7 @@ class OPAgenerator():
             self.outdir = os.path.join(self.outdir, self.frequency)
 
         self.tmpdir = tmpdir
-        #self.checkpoint = os.path.join(self.tmpdir, "checkpoint.pickle")
+        # self.checkpoint = os.path.join(self.tmpdir, "checkpoint.pickle")
 
         create_folder(self.outdir, loglevel=self.loglevel)
         create_folder(self.tmpdir, loglevel=self.loglevel)
@@ -101,8 +102,9 @@ class OPAgenerator():
         self.entry_name = f'tmp-opa-{self.frequency}'
 
         if self.nproc > 1:
-            self.logger.info('Running dask.distributed with %s workers', self.nproc)
-        
+            self.logger.info('Running dask.distributed with %s workers',
+                             self.nproc)
+
         self.client = None
         self.cluster = None
 
@@ -115,7 +117,8 @@ class OPAgenerator():
 
         # Initialize the reader
         self.reader = Reader(model=self.model, exp=self.exp,
-                             source=self.source, configdir=self.configdir, loglevel=self.loglevel)
+                             source=self.source, configdir=self.configdir,
+                             loglevel=self.loglevel)
 
         self.logger.info('Getting the timedelta to inform the OPA...')
         self._get_timedelta()
@@ -131,48 +134,47 @@ class OPAgenerator():
         self.logger.info('Timedelta is %s', str(self.timedelta))
 
     def _configure_opa(self, var):
-
         """
         Set up the OPA
         """
 
         self.opa_dict = {
-        "stat": "mean",
-        "stat_freq": self.frequency,
-        "output_freq": "monthly",
-        "time_step": self.timedelta,
-        "variable": var,
-        "save": True,
-        "checkpoint": True,
-        "checkpoint_filepath": self.tmpdir,
-        "out_filepath": self.outdir
+                         "stat": "mean",
+                         "stat_freq": self.frequency,
+                         "output_freq": "monthly",
+                         "time_step": self.timedelta,
+                         "variable": var,
+                         "save": True,
+                         "checkpoint": True,
+                         "checkpoint_filepath": self.tmpdir,
+                         "out_filepath": self.outdir
         }
 
         return Opa(self.opa_dict)
 
-    
     def generate_opa(self):
-
-        """Run the actual computation of the OPA looping on the dataset 
-        and on the variables"""
+        """
+        Run the actual computation of the OPA looping on the dataset
+        and on the variables
+        """
 
         self._set_dask()
         for variable in self.var:
-            self.logger.warning('Setting up OPA at %s frequency for variable %s...', 
+            self.logger.warning('Setting up OPA at %s frequency for variable %s...',
                                 self.frequency, variable)
-            
-            
+
             self.logger.warning('Initializing the OPA')
             opa_mean = self._configure_opa(variable)
             self.checkpoint = opa_mean.checkpoint_file
-            #self.remove_checkpoint()
+            # self.remove_checkpoint()
             print(vars(opa_mean))
 
             self.logger.warning('Initializing the streaming generator...')
             self.reader.reset_stream()
-            data_gen = self.reader.retrieve(streaming_generator=True, stream_step=1,
-                                            stream_unit = 'days')
-            
+            data_gen = self.reader.retrieve(streaming_generator=True,
+                                            stream_step=1,
+                                            stream_unit='days')
+
             for data in data_gen:
                 self.logger.info(f"start_date: {data.time[0].values} stop_date: {data.time[-1].values}")
                 vardata = data[variable]
@@ -182,9 +184,9 @@ class OPAgenerator():
         self._close_dask()
 
     def create_catalog_entry(self):
-
         """
-        Create an entry in the catalog for the LRA in both source and regrid yaml
+        Create an entry in the catalog for the LRA in both source and
+        regrid yaml
         """
 
         self.logger.warning('Creating catalog entry %s %s %s',
@@ -213,7 +215,8 @@ class OPAgenerator():
             yaml.dump(cat_file, file, sort_keys=False)
 
         # find the regrid of my experiment
-        regridfile = os.path.join(self.configdir, 'machines', self.machine, 'regrid.yaml')
+        regridfile = os.path.join(self.configdir, 'machines', self.machine,
+                                  'regrid.yaml')
         cat_file = load_yaml(regridfile)
         regrid_entry = cat_file['source_grids'][self.model][self.exp][self.source]
         cat_file['source_grids'][self.model][self.exp][self.entry_name] = copy.deepcopy(regrid_entry)
@@ -221,15 +224,13 @@ class OPAgenerator():
         with open(regridfile, 'w', encoding='utf-8') as file:
             yaml.dump(cat_file, file, sort_keys=False)
 
-
     def _remove_catalog_entry(self):
-
         """Remove the entries"""
 
-        self.logger.warning('Removing catalog entry %s %s %s', 
+        self.logger.warning('Removing catalog entry %s %s %s',
                             self.model, self.exp, self.entry_name)
 
-         # find the catalog of my experiment
+        # find the catalog of my experiment
         catalogfile = os.path.join(self.configdir, 'machines', self.machine,
                                    'catalog', self.model, self.exp+'.yaml')
         cat_file = load_yaml(catalogfile)
@@ -238,26 +239,27 @@ class OPAgenerator():
         with open(catalogfile, 'w', encoding='utf-8') as file:
             yaml.dump(cat_file, file, sort_keys=False)
 
-         # find the regrid of my experiment
-        regridfile = os.path.join(self.configdir, 'machines', self.machine, 'regrid.yaml')
+        # find the regrid of my experiment
+        regridfile = os.path.join(self.configdir, 'machines', self.machine,
+                                  'regrid.yaml')
         cat_file = load_yaml(regridfile)
         if self.entry_name in cat_file['source_grids'][self.model][self.exp]:
-            del  cat_file['source_grids'][self.model][self.exp][self.entry_name]
+            del cat_file['source_grids'][self.model][self.exp][self.entry_name]
 
         with open(regridfile, 'w', encoding='utf-8') as file:
             yaml.dump(cat_file, file, sort_keys=False)
 
     def _remove_checkpoint(self):
-
         """Be sure that the checkpoint is removed"""
 
         if os.path.exists(self.checkpoint):
-            self.logger.warning('Removing checkpoint file %s ', self.checkpoint)
+            self.logger.warning('Removing checkpoint file %s ',
+                                self.checkpoint)
             os.remove(self.checkpoint)
 
     def _remove_data(self):
-
         """Clean the OPA data which are no longer necessary"""
+
         for file_name in os.listdir(self.outdir):
             if file_name.endswith('.nc'):
                 file_path = os.path.join(self.outdir, file_name)
@@ -265,7 +267,6 @@ class OPAgenerator():
                 os.remove(file_path)
 
     def clean(self):
-
         """Clean after a OPA run"""
 
         self._remove_catalog_entry()
@@ -277,7 +278,8 @@ class OPAgenerator():
         Set up dask cluster
         """
         if self.dask:  # self.nproc > 1
-            self.logger.info('Setting up dask cluster with %s workers', self.nproc)
+            self.logger.info('Setting up dask cluster with %s workers',
+                             self.nproc)
             dask.config.set({'temporary_directory': self.tmpdir})
             self.logger.info('Temporary directory: %s', self.tmpdir)
             self.cluster = LocalCluster(n_workers=self.nproc,
