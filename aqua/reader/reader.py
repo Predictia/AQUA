@@ -27,9 +27,9 @@ class Reader(FixerMixin, RegridMixin):
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
                  regrid=None, method="ycon", zoom=None, configdir=None,
-                 level=None, areas=True, var=None, vars=None,  # pylint: disable=W0622
+                 areas=True, var=None, vars=None,  # pylint: disable=W0622
                  datamodel=None, streaming=False, stream_step=1, stream_unit='steps',
-                 stream_startdate=None, rebuild=False, loglevel=None, nproc=1):
+                 stream_startdate=None, rebuild=False, loglevel=None, nproc=16):
         """
         The Reader constructor.
         It uses the catalog `config/config.yaml` to identify the required data.
@@ -42,7 +42,6 @@ class Reader(FixerMixin, RegridMixin):
             method (str):           regridding method (ycon)
             zoom (int):             healpix zoom level
             configdir (str)         folder where the config/catalog files are located (config)
-            level (int):            level to extract if input data are 3D (starting from 0)
             areas (bool):           compute pixel areas if needed (True)
             var (str, list):        variable(s) which we will extract; vars is a synonym (None)
             datamodel (str):        destination data model for coordinates, overrides the one in fixes.yaml (None)
@@ -54,7 +53,7 @@ class Reader(FixerMixin, RegridMixin):
             rebuild (bool):         force rebuilding of area and weight files
             loglevel (string):      Level of logging according to logging module
                                     (default: log_level_default of loglevel())
-            nproc (int):            number of processes to use for weights generation (default = 1)
+            nproc (int):            number of processes to use for weights generation (default = 16)
 
         Returns:
             A `Reader` class object.
@@ -73,7 +72,6 @@ class Reader(FixerMixin, RegridMixin):
             zoom = 9
         self.zoom = zoom
         self.freq = freq
-        self.level = level
         self.vertcoord = None
         self.deltat = 1
         extra = []
@@ -132,19 +130,9 @@ class Reader(FixerMixin, RegridMixin):
         self.dst_space_coord = ["lon", "lat"]
 
         if regrid:
-            if level is not None:
-                if not self.vertcoord:
-                    raise KeyError("You should specify a vertcoord key in regrid.yaml for this source to use levels.")
-                extra = f"-sellevidx,{level+1} "
 
-            # if (level is None) and self.vertcoord:
-            #     raise RuntimeError("This is a masked 3d source: you should specify a specific level.")
-            
             # compute correct filename ending
-            if self.vertcoord:
-                levname = "3d"
-            else:
-                levname = ("2d" if level is None else level)
+            levname = "3d" if self.vertcoord else "2d"
 
             self.weightsfile = os.path.join(
                 cfg_regrid["weights"]["path"],
@@ -261,10 +249,6 @@ class Reader(FixerMixin, RegridMixin):
 
             else:
                 data = esmcat.to_dask()
-
-        # select only a specific level when reading. Level coord names defined in regrid.yaml
-        if self.level is not None:
-            data = data.isel({self.vertcoord: self.level})
 
         log_history(data, "retrieved by AQUA retriever")
 
