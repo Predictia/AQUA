@@ -2,8 +2,8 @@
 
 #####################################################################
 # Begin of user input
-machine=lumi
-user=padavini
+machine=lumi 
+user=<USER> # change this to your username
 
 # define AQUA path
 if [[ -z "${AQUA}" ]]; then
@@ -24,20 +24,18 @@ echo "Installation path has been set to ${INSTALLATION_PATH}"
 sed -i "/^machine:/c\\machine: ${machine}" "${AQUA}/config/config.yaml"
 echo "Machine name in config file has been set to ${machine}"
 
-# change user in pip lumi
-sed -i "s/<USER>/$user/" pip_lumi.txt
-echo "Username updated to $USER in pip_lumi.txt"
-
 install_aqua() {
   # clean up environment
-  module purge
+  module --force purge
+  echo "Environment has been cleaned up."
 
   # load modules
   module load LUMI/22.08
   module load lumi-container-wrapper
+  echo "Modules have been loaded."
 
-  mkdir -p ${INSTALLATION_PATH}  
   conda-containerize new --mamba --prefix "${INSTALLATION_PATH}" "${AQUA}/config/machines/lumi/installation/environment_lumi.yml"
+  
   conda-containerize update "${INSTALLATION_PATH}" --post-install "${AQUA}/config/machines/lumi/installation/pip_lumi.txt"
   echo "AQUA has been installed."
 }
@@ -55,7 +53,6 @@ if [[ -z "$(ls -A ${INSTALLATION_PATH})" ]]; then
   echo "Installing AQUA..."
   # install AQUA
   install_aqua
-  echo "AQUA has been installed."
 else
   echo "AQUA is already installed."
   # check if reinstallation is wanted
@@ -76,21 +73,18 @@ else
     fi
     echo "Installing AQUA..."
     install_aqua
-    echo "AQUA has been installed."
   else
     echo "AQUA will not be reinstalled."
   fi
 fi
 
-# load conda environment
-export PATH="${INSTALLATION_PATH}/bin:$PATH"
-echo "AQUA environment loaded."
-
 # check if the line is already present in the .bashrc file
-if ! grep -q "export PATH=\"\${INSTALLATION_PATH}/bin:\$PATH\"" ~/.bashrc; then
+if ! grep -q 'export PATH="'$INSTALLATION_PATH'/bin:$PATH"' ~/.bashrc; then
   # if not, append it to the end of the file
-  echo "export PATH=\"\${INSTALLATION_PATH}/bin:\$PATH\"" >> ~/.bashrc
+  echo "# AQUA installation path" >> ~/.bashrc
+  echo 'export PATH="'$INSTALLATION_PATH'/bin:$PATH"' >> ~/.bashrc
   echo "export PATH has been added to .bashrc."
+  echo "Please run 'source ~/.bashrc' to load the new configuration."
 else
   echo "export PATH is already present in .bashrc."
 fi

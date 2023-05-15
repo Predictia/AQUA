@@ -28,9 +28,9 @@ dependencies:
   - healpy
 # these are pip-based since it provides more recent versions or packages unavailable on conda-forge
   - pip
-  - pip:
-    - sparse
-    - docker
-    - gribscan
+  #- pip:
+    #- sparse
+    #- docker
+    #- gribscan
     # pip install -e of AQUA itself (this will bring in also smmregrid)
     #- -e .
