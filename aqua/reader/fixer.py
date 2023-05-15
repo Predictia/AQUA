@@ -7,7 +7,7 @@ import xarray as xr
 import cf2cdm
 from metpy.units import units
 
-from aqua.util import load_multi_yaml, _eval_formula, get_eccodes_attr
+from aqua.util import _eval_formula, get_eccodes_attr
 from aqua.util import log_history
 
 
@@ -18,27 +18,27 @@ class FixerMixin():
 
         """
         Get the fixes for the model/exp/source hierarchy.
-        
+
         Args:
             The fixer class
-            
-        Return: 
+
+        Return:
             The fixer dictionary
         """
 
         # look for model fix
         fix_model = self.fixes_dictionary["models"].get(self.model, None)
-        if not fix_model: 
-            self.logger.warning("No fixes defined for model %s", 
+        if not fix_model:
+            self.logger.warning("No fixes defined for model %s",
                                 self.model)
             return
-    
+
         # look for exp fix, look for default
         fix_exp = fix_model.get(self.exp, None)
         if not fix_exp:
             fix_exp = fix_model.get('default', None)
             if not fix_exp:
-                self.logger.warning("No fixes defined for model %s, experiment %s", 
+                self.logger.warning("No fixes defined for model %s, experiment %s",
                                     self.model, self.exp)
                 return
 
@@ -46,7 +46,7 @@ class FixerMixin():
         if not fixes:
             fixes = fix_exp.get('default', None)
             if not fixes:
-                self.logger.warning("No fixes defined for model %s, experiment %s, source %s", 
+                self.logger.warning("No fixes defined for model %s, experiment %s, source %s",
                                     self.model, self.exp, self.source)
                 return
         return fixes
@@ -186,7 +186,7 @@ class FixerMixin():
             log_history(data, "coordinates adjusted by AQUA fixer")
 
         return data
-    
+
     def get_fixer_varname(self, var):
 
         """
@@ -194,14 +194,14 @@ class FixerMixin():
 
         Args:
             var (str or list):  The variable to be checked
-        
+
         Return:
             A list of variables to be loaded
         """
 
         if self.fixes is None:
             return var
-    
+
         variables = self.fixes.get("vars", None)
 
         # double check we have a list
@@ -370,7 +370,8 @@ def normalize_units(src):
         return 'dimensionless'
     else:
         return str(src).replace("of", "").replace("water", "").replace("equivalent", "")
-    
+
+
 def units_extra_definition():
     """Add units to the pint registry"""
 
