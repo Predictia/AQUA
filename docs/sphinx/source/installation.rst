@@ -56,7 +56,8 @@ If you are not working on Levante, remember to change the machine name in the `c
    
    machine: levante
 
-If you are usig LUMI, there is a script available providing an installation of the correct environment. You just have to run:
+If you are usig LUMI, the script `/config/machines/lumi/installation/lumi_install.sh` provides an installation of the correct environment.
+After putting your LUMI username under 'user' at the top of the script, you just have to run:
 
 .. code-block:: bash
 
