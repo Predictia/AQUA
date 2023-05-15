@@ -41,7 +41,7 @@ class RegridMixin():
             data = self.retrieve(fix=False)
             temp_file = tempfile.NamedTemporaryFile(mode='w')
             sgridpath = temp_file.name
-            self._get_spatial_sample(data, self.space_coord).to_netcdf(sgridpath)
+            _get_spatial_sample(data, self.src_space_coord).to_netcdf(sgridpath)
         else:
             temp_file = None
             if zoom:
@@ -72,7 +72,7 @@ class RegridMixin():
             data = self.retrieve(fix=False)
             temp_file = tempfile.NamedTemporaryFile(mode='w')
             sgridpath = temp_file.name
-            self._get_spatial_sample(data, self.space_coord).to_netcdf(sgridpath)
+            _get_spatial_sample(data, self.src_space_coord).to_netcdf(sgridpath)
         else:
             temp_file = None
             if zoom:
@@ -97,7 +97,8 @@ class RegridMixin():
                                           method='ycon',
                                           gridpath=cfg_regrid["cdo-paths"]["download"],
                                           icongridpath=cfg_regrid["cdo-paths"]["icon"],
-                                          extra=extra)
+                                          extra=extra,
+                                          cdo=self.cdo)
         weights.to_netcdf(weightsfile)
         self.logger.warning("Success!")
 
@@ -109,7 +110,7 @@ class RegridMixin():
                 source (xarray.DataArray or str): Source grid
                 gridpath (str): where to store downloaded grids
                 icongridpath (str): location of ICON grids (e.g. /pool/data/ICON)
-                extra: command(s) to apply to source grid before weight generation (can be a list)
+                extra (str): command(s) to apply to source grid before weight generation (can be a list)
 
             Returns:
                 :obj:`xarray.DataArray` with cell areas
@@ -141,7 +142,7 @@ class RegridMixin():
 
                 subprocess.check_output(
                     [
-                        "cdo",
+                        self.cdo,
                         "-f", "nc4",
                         "gridarea",
                     ] + extra +
@@ -155,7 +156,7 @@ class RegridMixin():
             else:
                 subprocess.check_output(
                     [
-                        "cdo",
+                        self.cdo,
                         "-f", "nc4",
                         "gridarea",
                         sgrid,
@@ -173,7 +174,7 @@ class RegridMixin():
 
         except subprocess.CalledProcessError as err:
             # Print the CDO error message
-            self.logger.critical(err.output.decode(), file=sys.stderr)
+            self.logger.critical(err.output.decode())
             raise
 
         finally:
@@ -217,4 +218,22 @@ def _rename_dims(da, dim_list):
         if dim not in shared_dims:
             da_out = da.rename({dim: new_dims[i]})
             i += 1
+    return da_out
+
+
+def _get_spatial_sample(da, space_coord):
+    """
+    Selects a single spatial sample along the dimensions specified in `space_coord`.
+
+    Arguments:
+        da (xarray.DataArray):     Input data array to select the spatial sample from.
+        space_coord (list of str): List of dimension names corresponding to the spatial coordinates to select.
+
+    Returns:
+        Data array containing a single spatial sample along the specified dimensions.
+    """
+
+    dims = list(da.dims)
+    extra_dims = list(set(dims) - set(space_coord))
+    da_out = da.isel({dim: 0 for dim in extra_dims})
     return da_out
