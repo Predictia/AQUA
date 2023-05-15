@@ -17,22 +17,20 @@ class FixerMixin():
     def find_fixes(self):
 
         """
-        Open the fixer file, and get the fixes 
-        for the model.exp.source hierarchy.
+        Get the fixes for the model/exp/source hierarchy.
         
-        Defines the fixes_dictionary and fixes for the class
+        Args:
+            The fixer class
+            
+        Return: 
+            The fixer dictionary
         """
-
-        # default
-        self.fixes = None
-
-        # load files
-        self.fixes_dictionary = load_multi_yaml(self.fixer_folder)
 
         # look for model fix
         fix_model = self.fixes_dictionary["models"].get(self.model, None)
         if not fix_model: 
-            self.logger.warning("No fixes defined for model %s", self.model)
+            self.logger.warning("No fixes defined for model %s", 
+                                self.model)
             return
     
         # look for exp fix, look for default
@@ -40,15 +38,18 @@ class FixerMixin():
         if not fix_exp:
             fix_exp = fix_model.get('default', None)
             if not fix_exp:
-                self.logger.warning("No fixes defined for model %s, experiment %s", self.model, self.exp)
+                self.logger.warning("No fixes defined for model %s, experiment %s", 
+                                    self.model, self.exp)
                 return
 
-        self.fixes = fix_exp.get(self.source, None)
-        if not self.fixes:
-            self.fixes = fix_exp.get('default', None)
-            if not self.fixes:
-                self.logger.warning("No fixes defined for model %s, experiment %s, source %s", self.model, self.exp, self.source)
+        fixes = fix_exp.get(self.source, None)
+        if not fixes:
+            fixes = fix_exp.get('default', None)
+            if not fixes:
+                self.logger.warning("No fixes defined for model %s, experiment %s, source %s", 
+                                    self.model, self.exp, self.source)
                 return
+        return fixes
 
     def fixer(self, data, apply_unit_fix=False):
         """

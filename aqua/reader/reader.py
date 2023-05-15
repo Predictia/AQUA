@@ -227,8 +227,13 @@ class Reader(FixerMixin, RegridMixin):
         if not var:
             var = self.var
 
+        
         if fix:
-            self.find_fixes()
+            self.fixes_dictionary = load_multi_yaml(self.fixer_folder)
+            self.fixes = self.find_fixes()
+        else:
+            self.fixes_dictionary = None
+            self.fixes = None
 
         # Extract data from cat.
         # If this is an ESM-intake catalogue use first dictionary value,
