@@ -253,7 +253,6 @@ class Reader(FixerMixin, RegridMixin):
                                           )
             data = list(data.values())[0]
         else:
-
             data = esmcat.to_dask()
 
             if var:
