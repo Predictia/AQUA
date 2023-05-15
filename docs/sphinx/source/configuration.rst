@@ -33,3 +33,12 @@ In the `config.yaml` file, the following paths are specified:
       lumi: /scratch/project_465000454/devaraju/SW/LUMI-22.08/C/python-xarray/bin/cdo
 
 
+
+The `data_models` folder contains the data model configuration files, which are used to specify the data model of the datasets.
+The `fixes` folder contains the fixer configuration files, which are used to fix the data in terms of variable names and units.
+
+Each machine folder contains a `catalog.yaml` file, which specifies the data access properties,
+and a `regrid.yaml` file, which specifies the interpolation properties. 
+The `catalog` folder inside each `machine` folder contains intake catalogs for individual datasets.
+
+For more detailed description of the content in the machine folder, see section on :doc:`adding_data`.
