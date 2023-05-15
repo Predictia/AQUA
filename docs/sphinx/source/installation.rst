@@ -50,6 +50,7 @@ Activate the newly created aqua environment:
 At this point, you should have successfully installed the AQUA package and its dependencies 
 in the newly created aqua environment.
 
+
 If you are not working on Levante, remember to change the machine name in the `config/config.yaml` file:
 
 .. code-block:: markdown
@@ -62,3 +63,38 @@ After putting your LUMI username under 'user' at the top of the script, you just
 .. code-block:: bash
 
    ./config/machines/lumi/installation/lumi_install.sh
+
+
+
+Working with personal kernel in Jupyter Hub 
+-------------------------------------------
+
+To work with the AQUA package in Jupyter Hub on HPC systems (like JUWELS or Levante), you need to register the kernel for the aqua environment.
+In essense the process comes down to the following steps:
+
+1. Activate the aqua environment
+
+.. code-block:: bash
+   
+   conda activate aqua
+
+2. Install the ipykernel package
+
+.. code-block:: bash
+   
+   mamba install ipykernel
+
+3. Register the kernel
+
+.. code-block:: bash
+   
+   python -m ipykernel install --user --name aqua --display-name "Python (aqua)"
+
+
+Please follow documentation on the process for the machine you are woring, for example, on:
+
+DKRZ: `how to Use your own kernel <https://docs.dkrz.de/doc/software%26services/jupyterhub/kernels.html#use-your-own-kernel>`_.
+
+JUWELS: `presentation with instructions <https://juser.fz-juelich.de/record/890058/files/14_Jupyter.pdf>`_.
+
+
