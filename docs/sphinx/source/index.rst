@@ -15,6 +15,7 @@ Welcome to AQUA's documentation!
    getting_started
    core_components
    adding_data
+   tests
    diagnostics
    examples_tutorials
    api_reference
