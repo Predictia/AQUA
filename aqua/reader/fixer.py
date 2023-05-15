@@ -47,7 +47,7 @@ class FixerMixin():
         if not self.fixes:
             self.fixes = fix_exp.get('default', None)
             if not self.fixes:
-                self.logger.warning("No fixes defined for model %s, experiment %s, source %s", self.model, self.exp, self.src)
+                self.logger.warning("No fixes defined for model %s, experiment %s, source %s", self.model, self.exp, self.source)
                 return
 
     def fixer(self, data, apply_unit_fix=False):
