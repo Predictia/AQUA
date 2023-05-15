@@ -188,7 +188,15 @@ class FixerMixin():
     
     def get_fixer_varname(self, var):
 
-        """Load the fixes and check if the variable requested is there"""
+        """
+        Load the fixes and check if the variable requested is there
+
+        Args:
+            var (str or list):  The variable to be checked
+        
+        Return:
+            A list of variables to be loaded
+        """
 
         if self.fixes is None:
             return var
