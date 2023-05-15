@@ -8,8 +8,8 @@ on:
   #    - 'diagnostics/dummy-diagnostic/**'
   #    - 'tests/dummy-diagnostic/**'
   workflow_dispatch:
-  schedule:
-    - cron: "0 3 * * 1" # Run every Monday night at 3AM UTC
+  #schedule:
+  #  - cron: "0 3 * * 1" # Run every Monday night at 3AM UTC
 
 jobs:
   dummy-diagnostic_test:
@@ -25,7 +25,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Provision with a different conda environment
-        uses: mamba-org/provision-with-micromamba@v11
+        uses: mamba-org/provision-with-micromamba@v1
         with:
           environment-file: diagnostics/dummy-diagnostic/env-dummy.yaml
           cache-downloads: true
