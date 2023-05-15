@@ -1,10 +1,12 @@
 name: dummy diagnostic test
 
 on:
-  pull_request:
-    paths:
-      - 'diagnostics/dummy-diagnostic/**'
-      - 'tests/dummy-diagnostic/**'
+  # Not triggering the dummy diagnostic test on pull requests
+  # in order to waste less resources
+  #pull_request:
+  #  paths:
+  #    - 'diagnostics/dummy-diagnostic/**'
+  #    - 'tests/dummy-diagnostic/**'
   workflow_dispatch:
   schedule:
     - cron: "0 3 * * 1" # Run every Monday night at 3AM UTC
