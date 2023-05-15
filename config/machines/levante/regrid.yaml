@@ -250,6 +250,16 @@ source_grids:
 
   OSI-SAF:
     osi-450:
-      default:
-        space_coord: ["lon", "lat"]
+      nh:
+        space_coord: ["xc", "yc"]
+        cellareas: /work/bb1153/b382075/nextgems/grids/grid_nh.nc
+        cellarea_var: areacello
+        mask: /work/bb1153/b382075/nextgems/grids/grid_nh.nc
+        mask_var: sftof
+      sh:
+        space_coord: ["xc", "yc"]
+        cellareas: /work/bb1153/b382075/nextgems/grids/grid_sh.nc
+        cellarea_var: areacello
+        mask: /work/bb1153/b382075/nextgems/grids/grid_nh.nc
+        mask_var: sftof
 
