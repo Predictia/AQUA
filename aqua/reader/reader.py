@@ -227,7 +227,6 @@ class Reader(FixerMixin, RegridMixin):
         if not var:
             var = self.var
 
-        
         if fix:
             self.fixes_dictionary = load_multi_yaml(self.fixer_folder)
             self.fixes = self.find_fixes()
@@ -266,8 +265,6 @@ class Reader(FixerMixin, RegridMixin):
                     data = data[loadvar]
                 else:
                     raise KeyError("You are asking for variables which we cannot find in the catalog!")
-                    
-
 
         # select only a specific level when reading. Level coord names defined in regrid.yaml
         if self.level is not None:
