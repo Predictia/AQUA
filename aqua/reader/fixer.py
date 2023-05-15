@@ -14,6 +14,42 @@ from aqua.util import log_history
 class FixerMixin():
     """Fixer mixin for the Reader class"""
 
+    def find_fixes(self):
+
+        """
+        Open the fixer file, and get the fixes 
+        for the model.exp.source hierarchy.
+        
+        Defines the fixes_dictionary and fixes for the class
+        """
+
+        # default
+        self.fixes = None
+
+        # load files
+        self.fixes_dictionary = load_multi_yaml(self.fixer_folder)
+
+        # look for model fix
+        fix_model = self.fixes_dictionary["models"].get(self.model, None)
+        if not fix_model: 
+            self.logger.warning("No fixes defined for model %s", self.model)
+            return
+    
+        # look for exp fix, look for default
+        fix_exp = fix_model.get(self.exp, None)
+        if not fix_exp:
+            fix_exp = fix_model.get('default', None)
+            if not fix_exp:
+                self.logger.warning("No fixes defined for model %s, experiment %s", self.model, self.exp)
+                return
+
+        self.fixes = fix_exp.get(self.source, None)
+        if not self.fixes:
+            self.fixes = fix_exp.get('default', None)
+            if not self.fixes:
+                self.logger.warning("No fixes defined for model %s, experiment %s, source %s", self.model, self.exp, self.src)
+                return
+
     def fixer(self, data, apply_unit_fix=False):
         """
         Perform fixes (var name, units, coord name adjustments) of the input dataset.
@@ -30,32 +66,14 @@ class FixerMixin():
 
         # add extra units (might be moved somewhere else)
         units_extra_definition()
-        fixes = load_multi_yaml(self.fixer_folder)
-        model = self.model
-        exp = self.exp
-        src = self.source
+        fix = self.fixes
 
-        # Default input datamodel
-        src_datamodel = fixes["defaults"].get("src_datamodel", None)
-
-        fixm = fixes["models"].get(model, None)
-        if not fixm:
-            self.logger.warning("No fixes defined for model %s", model)
+        # if there are no fixes, return
+        if fix is None:
             return data
 
-        fixexp = fixm.get(exp, None)
-        if not fixexp:
-            fixexp = fixm.get('default', None)
-            if not fixexp:
-                self.logger.warning("No fixes defined for model %s, experiment %s", model, exp)
-                return data
-
-        fix = fixexp.get(src, None)
-        if not fix:
-            fix = fixexp.get('default', None)
-            if not fix:
-                self.logger.warning("No fixes defined for model %s, experiment %s, source %s", model, exp, src)
-                return data
+        # Default input datamodel
+        src_datamodel = self.fixes_dictionary["defaults"].get("src_datamodel", None)
 
         self.deltat = fix.get("deltat", 1.0)
         jump = fix.get("jump", None)  # if to correct for a monthly accumulation jump
@@ -128,7 +146,7 @@ class FixerMixin():
                 # adjust units
                 if unit:
                     if unit.count('{'):
-                        unit = fixes["defaults"]["units"][unit.replace('{', '').replace('}', '')]
+                        unit = self.fixes_dictionary["defaults"]["units"][unit.replace('{', '').replace('}', '')]
                     self.logger.info("%s: %s --> %s", var, data[source].units, unit)
                     factor, offset = self.convert_units(data[source].units, unit, var)
                     if (factor != 1.0) or (offset != 0):
@@ -167,6 +185,30 @@ class FixerMixin():
             log_history(data, "coordinates adjusted by AQUA fixer")
 
         return data
+    
+    def get_fixer_varname(self, var):
+
+        """Load the fixes and check if the variable requested is there"""
+
+        if self.fixes is None:
+            return var
+    
+        variables = self.fixes.get("vars", None)
+
+        # double check we have a list
+        if isinstance(var, str):
+            var = [var]
+
+        # if a source/derived is available in the fixes, replace it
+        loadvar = []
+        for vvv in var:
+            if vvv in variables.keys():
+                print(vvv)
+                if variables[vvv]['source'] or variables[vvv]['derived']:
+                    loadvar.append(variables[vvv]['source'])
+            else:
+                loadvar.append(vvv)
+        return loadvar
 
     def simple_decumulate(self, data, jump=None, keep_first=True):
         """

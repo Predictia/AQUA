@@ -227,6 +227,9 @@ class Reader(FixerMixin, RegridMixin):
         if not var:
             var = self.var
 
+        if fix:
+            self.find_fixes()
+
         # Extract data from cat.
         # If this is an ESM-intake catalogue use first dictionary value,
         # else extract directly a dask dataset
@@ -246,14 +249,20 @@ class Reader(FixerMixin, RegridMixin):
                                           )
             data = list(data.values())[0]
         else:
+
+            data = esmcat.to_dask()
+
             if var:
                 # conversion to list guarantee that Dataset is produced
                 if isinstance(var, str):
                     var = var.split()
-                data = esmcat.to_dask()[var]
+                loadvar = self.get_fixer_varname(var)
+                if all(element in data.data_vars for element in loadvar):
+                    data = data[loadvar]
+                else:
+                    raise KeyError("You are asking for variables which we cannot find in the catalog!")
+                    
 
-            else:
-                data = esmcat.to_dask()
 
         # select only a specific level when reading. Level coord names defined in regrid.yaml
         if self.level is not None:
