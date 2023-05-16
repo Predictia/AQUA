@@ -4,8 +4,10 @@ Core Components
 The `Reader` Class
 ------------------
 AQUA access to data is provided by the `Reader` class, developed with the purpose to offer a centralized common data access point.
-AQUA `Reader` can in fact access different file formats and data from the FDB or from intake catalogues (NextGEMS), and delivers xarray objects.
-On top of data access, the `Reader` is also able to perform multiple operations on the data: interpolation and regridding, spatial and temporal averaging and metadata correction. 
+AQUA `Reader` can in fact access different file formats and data from the FDB or from intake catalogues, 
+and delivers xarray objects.
+On top of data access, the `Reader` is also able to perform multiple operations on the data: interpolation and regridding,
+spatial and temporal averaging and metadata correction. 
 Since streaming is not yet available, a streaming emulator has been introduced and can be used to mimic streaming.
 
 Data Reading and Preprocessing
@@ -17,8 +19,7 @@ Supported File Formats
 AQUA supports a variety of climate data file formats, including:
 
 - NetCDF
-- GRIB
-- FDB
+- GRIB (also through FDB)
 - Zarr
 
 Data Structures
@@ -32,8 +33,9 @@ AQUA uses xarray data structures to manage and manipulate climate data. The prim
 Basic Usage
 ~~~~~~~~~~~~~~~~
 Accessing data with the AQUA `Reader` is very straightforward.
-In order to check what is available in the catalogue we can use "the inspect_catalogue" function.
-The data are classified in "models" (e.g. ICON, IFS etc.). Each model has a different "experiment" and there are different "sources" for each experiment.
+In order to check what is available in the catalogue we can use the `inspect_catalogue` function.
+Each datase is described by 3 layer hierarchical structure. At the top level there are "models" (e.g. ICON, IFS etc.). 
+Each model have different "experiments" and each "experiment" have can have different "sources".
 
 Calling, for example:
 
@@ -47,15 +49,16 @@ will return experiments available in catalogue for model CERES.
 
 Let's try to load some ICON data with the AQUA "Reader".
 We first instantiate a "Reader" object specifying the type of data which we want to read from the catalogue.
-The `Reader` access is build on a 3-level hierarchy, made of model, experiment and source. 
+As mentioned before, the `Reader` access is build on a 3-level hierarchy, made of model, experiment and source. 
 
 .. code-block:: python
 
-    reader = Reader(model="ICON", exp="ngc2009", source="atm_2d_ml_R02B09")``
+    reader = Reader(model="ICON", exp="ngc2009", source="atm_2d_ml_R02B09")
 
 Now we can read the actual data with the "retrieve" method.
 
 .. code-block:: python
+
     data = reader.retrieve(fix=False)
 
 The reader returns an xarray.Dataset with raw ICON data on the original grid
@@ -64,40 +67,48 @@ The reader returns an xarray.Dataset with raw ICON data on the original grid
 Interpolation and Regridding
 ----------------------------
 AQUA provides functions to interpolate and regrid data to match the spatial resolution of different datasets. 
-AQUA regridding functionalities are based on the external tool  `smmregrid <https://intake.readthedocs.io/en/stable/>`_  which operates sparse matrix computation based on externally-computed weights. 
+AQUA regridding functionalities are based on the external tool  `smmregrid <https://intake.readthedocs.io/en/stable/>`_  which 
+operates sparse matrix computation based on externally-computed weights. 
 
 The idea of the regridder is to first generate the weights for the interpolation and then to use them for each regridding operation. 
-The regridding weights are generated automatically (with CDO) by the reader if not already existent and stored in a directory specified in the `config/regrid.yaml` file. The same file also contains a list of predefined target grids (only regular lon-lat for now). For example "r100" is a regular grid at 1° resolution.
+The regridding weights are generated automatically (with CDO) by the reader if not already existent and stored
+in a directory specified in the `config/regrid.yaml` file. The same file also contains a list of predefined target grids
+(only regular lon-lat for now). For example "r100" is a regular grid at 1° resolution.
 
-In other words, weights are computed externally by CDO (an operation which needs to be done only once) and then stored on the machine so that further operations are considerably fast. 
+In other words, weights are computed externally by CDO (an operation which needs to be done only once) and 
+then stored on the machine so that further operations are considerably fast. 
 Such approach has two main advantages:
-1. All operations are done in memory, so that no I/O is required and the operations is faster than CDO
-2. Operations can easily parallelized with Dask, bringing further speedup. 
+1. All operations are done in memory, so that no I/O is required and the operations are faster than with CDO
+2. Operations can be easily parallelized with Dask, bringing further speedup. 
 
-In the long term, it will be possible to support also other interpolation software, as ESMF or MIR. 
-Let's see a practical example. We instantiate a reader for ICON data specifying that we will want to interpolate to a 1° grid. As previously mentioned, if the weights file does not already exist in our collection it will be created automatically.
+In the long term, it will be possible to support also other interpolation software,
+such as `ESMF <https://earthsystemmodeling.org/>`_ or `MIR <https://github.com/ecmwf/mir>`_. 
+Let's see a practical example. We instantiate a reader for ICON data specifying that we will want to interpolate to a 1° grid. 
+As previously mentioned, if the weights file does not already exist in our collection it will be created automatically.
 
 .. code-block:: python
 
     reader = Reader(model="ICON", exp="ngc2009", source="atm_2d_ml_R02B09", regrid="r100")
     data = reader.retrieve()
 
-Notice that these data have not been regridded yet. You could ask to regrid them directly by specifying the argument ``regrid=True`` but please be warned that without a selection this will take longer. It is usually more efficient to first load the data, select and then regrid.
+Notice that these data have not been regridded yet. You could ask to regrid them directly 
+by specifying the argument ``regrid=True`` but please be warned that without a selection this will take longer.
+It is usually more efficient to first load the data, select and then regrid.
 
-Now we actually regrid part of the data (the temperature of the first 99 frames):
+Now we actually regrid part of the data (the temperature of the first 100 frames):
 
 .. code-block:: python
 
-    tasr = reader.regrid(data.tas[1:100,:])
+    tasr = reader.regrid(data.tas[0:100,:])
 
-The result is a xarray containing a 360x180 grid for each timeframe.
+The result is an xarray containing 360x180 grid points for each timeframe.
 
 Averaging and Aggregation
 -------------------------
 
 Since AQUA is based on xarray, all the spatial and temporal aggregation options are available by default. 
-On top of that, AQUA provides the area of each dataset to be loaded so area-weighted averages can be produced without hassle. 
-When we instantiate the reader object, grid areas for the source files are computed if not already available. 
+On top of that, AQUA attempts to load, or compute the grid point areas of each dataset so area-weighted averages can be produced without hassle. 
+When we instantiate the `Reader` object, grid areas for the source files are computed if not already available. 
 After this we can use them to do spatial averaging using the `fldmean` method, obtaining timeseries of global (field) averages.
 For example, if we run the following commands:
 
@@ -108,8 +119,8 @@ For example, if we run the following commands:
 
 we get a timeseries of the global average tprate.
 
-Input data may not be available at the desired time frequency. It is possible to perform time averaging at a given frequency by specifying a frequency in the reader definition and then using the `timmean
-` method. 
+Input data may not be available at the desired time frequency. It is possible to perform time averaging at a given
+frequency by specifying a frequency in the reader definition and then using the `timmean` method. 
 
 .. code-block:: python
 
@@ -122,20 +133,28 @@ Data have now been averaged at the desired daily timescale.
 
 Fixing: Metadata correction 
 ---------------------------
-The reader includes a "data fixer" that has the capability to edit the metadata of the input datasets, fixing variable or coordinate names and performing unit conversions.
-The general idea is to have data from different models converted to a uniform file format, with the same variable names and units. The default format is GRIB2.
+The reader includes a "data fixer" that has the capability to edit the metadata of the input datasets, 
+fixing variable or coordinate names and performing unit conversions.
+The general idea is to have data from different models converted to a uniform file format,
+with the same variable names and units. The default format is GRIB2.
 
-The fixing is done by default (``apply_unit_fix=False`` to switch it off) when we retrieve the data, using the instructions in the 'config/fixes.yaml' file.
+The fixing is done by default (``apply_unit_fix=False`` to switch it off) when we retrieve the data, 
+using the instructions in the 'config/fixes.yaml' file.
 
-The fixer performs a range of services:
+The fixer performs a range of operations on data:
 
-- adopt a common 'coordinate data model' (default is the CDS datamodel): names of coordinates and dimensions (lon, lat etc.), coordinate units and direction, name (and meaning) of the time dimension. 
+- adopt a common 'coordinate data model' (default is the CDS datamodel): names of coordinates and dimensions 
+  (lon, lat etc.), coordinate units and direction, name (and meaning) of the time dimension. 
 
-- derive new variables. In particular, it derives from accumulated variables like "tp" (in mm), the equivalent mean-rate variables (like "tprate", paramid 172228; in mm/s). The fixer can identify these derived variables just by their shortName (ECMWF and WMO eccodes tables are used).
+- derive new variables. In particular, it derives from accumulated variables like "tp" (in mm), 
+  the equivalent mean-rate variables (like "tprate", paramid 172228; in mm/s). 
+  The fixer can identify these derived variables just by their shortName (ECMWF and WMO eccodes tables are used).
 
-- using the metpy.units module, it is capable of guessing some basic conversions. In particular if a density is missing it will assume that it is the density of water and will take it into account. If there is an extra time unit it will assume that division by the timestep is needed.
+- using the metpy.units module, it is capable of guessing some basic conversions. 
+  In particular if a density is missing it will assume that it is the density of water and 
+  will take it into account. If there is an extra time unit it will assume that division by the timestep is needed.
 
-In the fixer.yaml file it is also possible to specify in a flexible way custom derived variables.
+In the fixer.yaml file it is also possible to specify in a flexible way custom derived variables. For example:
 
 .. code-block:: markdown
 
@@ -157,20 +176,41 @@ If, for example, we want to stream the data every three days from '2020-05-01', 
     reader = Reader(model="IFS", exp="tco2559-ng5", source="ICMGG_atm2d")
     data = reader.retrieve(streaming=True, stream_step=3, stream_unit='days', stream_startdate = '2020-05-01')
 
-If the the unit parameter is not specified, the data is streamed keeping the original time resolution of input data. If the starting date parameter is not specified, the data stream will start from the first date of the input file.
+If the the unit parameter is not specified, the data is streamed keeping the original time resolution of input data. 
+If the starting date parameter is not specified, the data stream will start from the first date of the input file.
 
-If the `retrieve` method in streaming mode is called multiple times with the same parameters, it will return the data in chunks until all of the data has been streamed. The function will automatically determine the appropriate start and end points for each chunk based on the internal state of the streaming process.
+If the `retrieve` method in streaming mode is called multiple times with the same parameters, 
+it will return the data in chunks until all of the data has been streamed. The function will automatically determine the
+appropriate start and end points for each chunk based on the internal state of the streaming process.
 If we want to reset the state of the streaming process we can call the `reset_stream` method.
 
-Another possibility to deal with data streaming is to call the `stream_generator` method of the class `Reader`. This can be done from the retrieve method through the argument ``streaming_generator = True``:
+Another possibility to deal with data streaming is to call the `stream_generator` method of the class `Reader`. 
+This can be done from the retrieve method through the argument ``streaming_generator = True``:
 
 .. code-block:: python
 
     data_gen = reader.retrieve(streaming_generator=True, stream_step=3, stream_unit = 'months')
 
-`data_gen` is now a generator object that yields the requested 3 month-chunks of data. We can do operations with them by iterating on the generator object.
+`data_gen` is now a generator object that yields the requested 3 month-chunks of data. 
+We can do operations with them by iterating on the generator object.
 
 Parallel Processing
 -------------------
 
-AQUA supports parallel processing to speed up the execution of diagnostics. This is achieved using distributed computing provided by dask.
+Since most of the objects in AQUA are based on `xarray` , you can use parallel processing capabilities provided by 
+`xarray` through integration with `dask` to speed up the execution of data processing tasks.
+For example, if you working with AQUA interactivelly
+in a Jupyter notebook, you can start a dask cluster and use it to parallelize your computations.
+
+.. code-block:: python
+
+    from dask.distributed import Client
+    import dask
+    dask.config.config.get('distributed').get('dashboard').update({'link':'{JUPYTERHUB_SERVICE_PREFIX}/proxy/{port}/status'})
+
+    client = Client(n_workers=40, threads_per_worker=1, memory_limit='5GB')
+    client
+
+The above code will start a dask cluster with 40 workers and 1 thread per worker.
+
+
