@@ -267,7 +267,6 @@ class FixerMixin():
         # add an attribute that can be later used to infer about decumulation
         deltas.attrs['decumulated'] = 1
 
-        log_history(deltas, "decumulated by AQUA fixer")
         return deltas
 
     def change_coord_datamodel(self, data, src_datamodel, dst_datamodel):
@@ -360,7 +359,8 @@ class FixerMixin():
             data (xr.DataArray):  input DataArray
         """
         target_units = data.attrs.get("target_units", None)
-        if target_units:
+        units =  data.attrs.get("units", None)
+        if target_units and units != target_units:
             d = {"src_units": data.attrs["units"], "units_fixed": 1}
             data.attrs.update(d)
             data.attrs["units"] = normalize_units(target_units)
