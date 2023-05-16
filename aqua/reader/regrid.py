@@ -39,7 +39,7 @@ class RegridMixin():
         self.logger.warning("Success!")
 
     def _make_src_area_file(self, areafile, source_grid,
-                            gridpath="", icongridpath="", zoom=None):
+                            gridpath="", icongridpath="", zoom=0):
         """
         Helper function to create source area files.
 
@@ -48,7 +48,7 @@ class RegridMixin():
             source_grid (dict): The source grid specification.
             gridpath (str, optional): The path to the grid files. Defaults to an empty string.
             icongridpath (str, optional): The path to the ICON grid files. Defaults to an empty string.
-            zoom (int, optional): The zoom level for the grid (for HealPix grids). Defaults to None.
+            zoom (int, optional): The zoom level for the grid (for HealPix grids). Defaults to 0.
 
         Returns:
             None
@@ -64,8 +64,7 @@ class RegridMixin():
             _get_spatial_sample(data, self.src_space_coord).to_netcdf(sgridpath)
         else:
             temp_file = None
-            if zoom:
-                sgridpath = sgridpath.format(zoom=9-zoom)
+            sgridpath = sgridpath.format(zoom=zoom)
 
         self.logger.warning("Source areas file not found: %s", areafile)
         self.logger.warning("Attempting to generate it ...")
@@ -82,7 +81,7 @@ class RegridMixin():
         grid_area.to_netcdf(areafile)
         self.logger.warning("Success!")
 
-    def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, regrid=None, extra=None, zoom=None):
+    def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, regrid=None, extra=None, zoom=0):
         """
         Helper function to produce weights file.
 
@@ -92,7 +91,7 @@ class RegridMixin():
             cfg_regrid (dict): The regrid configuration.
             regrid (str, optional): The regrid option. Defaults to None.
             extra (str or list, optional): Extra command(s) to apply to source grid before weight generation. Defaults to None.
-            zoom (int, optional): The zoom level for the grid (for HealPix grids). Defaults to None.
+            zoom (int, optional): The zoom level for the grid (for HealPix grids). Defaults to 0.
 
         Returns:
             None
@@ -108,8 +107,7 @@ class RegridMixin():
             _get_spatial_sample(data, self.src_space_coord).to_netcdf(sgridpath)
         else:
             temp_file = None
-            if zoom:
-                sgridpath = sgridpath.format(zoom=9-zoom)
+            sgridpath = sgridpath.format(zoom=zoom)
 
         self.logger.warning("Weights file not found: %s", weightsfile)
         self.logger.warning("Attempting to generate it ...")
