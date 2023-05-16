@@ -77,7 +77,7 @@ class Reader(FixerMixin, RegridMixin):
             zoom = 9
         self.zoom = zoom
         self.freq = freq
-        self.vertcoord = None
+        self.vert_coord = None
         self.deltat = 1
         extra = []
 
@@ -115,7 +115,7 @@ class Reader(FixerMixin, RegridMixin):
         source_grid_id = check_catalog_source(cfg_regrid["source_grids"], 
                                               self.model, self.exp, source, name='regrid')
         source_grid = cfg_regrid["source_grids"][self.model][self.exp][source_grid_id]
-        self.vertcoord = source_grid.get("vertcoord", None)  # Some more checks needed
+        self.vert_coord = source_grid.get("vert_coord", None)  # Some more checks needed
 
         # Expose grid information for the source
         sgridpath = source_grid.get("path", None)
@@ -139,7 +139,7 @@ class Reader(FixerMixin, RegridMixin):
         if regrid:
 
             # compute correct filename ending
-            levname = "3d" if self.vertcoord else "2d"
+            levname = "3d" if self.vert_coord else "2d"
 
             self.weightsfile = os.path.join(
                 cfg_regrid["weights"]["path"],
@@ -159,7 +159,7 @@ class Reader(FixerMixin, RegridMixin):
                                         extra=extra, zoom=zoom, nproc=nproc)
 
             self.weights = xr.open_mfdataset(self.weightsfile)
-            self.regridder = rg.Regridder(weights=self.weights, vert_coord=self.vertcoord)
+            self.regridder = rg.Regridder(weights=self.weights, vert_coord=self.vert_coord)
 
         if areas:
             self.src_areafile = os.path.join(

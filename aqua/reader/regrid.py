@@ -99,7 +99,7 @@ class RegridMixin():
                                           icongridpath=cfg_regrid["cdo-paths"]["icon"],
                                           extra=extra,
                                           cdo=self.cdo,
-                                          vert_coord=self.vertcoord,
+                                          vert_coord=self.vert_coord,
                                           nproc=nproc)
         weights.to_netcdf(weightsfile)
         self.logger.warning("Success!")

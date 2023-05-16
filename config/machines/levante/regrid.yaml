@@ -113,6 +113,7 @@ source_grids:
         path: /pool/data/ICON/grids/public/mpim/0015/icon_grid_0015_R02B09_G.nc
         extra: "-selname,cell_index" 
         space_coord: ["cell"]
+        vert_coord: depth_full
       intake-esm-test: 
         path: /pool/data/ICON/grids/public/mpim/0015/icon_grid_0015_R02B09_G.nc
         extra: "-selname,cell_index" 
@@ -136,10 +137,10 @@ source_grids:
       interpolated_global_TS:
         path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_3d.nc
         space_coord: ["lon", "lat"]
-        vertcoord: depth
+        vert_coord: depth
       interpolated_global_UV:
         path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_3d.nc
-        vertcoord: depth
+        vert_coord: depth
         space_coord: ["lon", "lat"]
       original_2d:
         path: /work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc
