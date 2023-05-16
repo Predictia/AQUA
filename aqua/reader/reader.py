@@ -291,6 +291,10 @@ class Reader(FixerMixin, RegridMixin):
                 data = self.streamer.stream(data, stream_step=stream_step,
                                             stream_unit=stream_unit,
                                             stream_startdate=stream_startdate)
+                
+        # safe check that we provide only what exactly asked by var
+        if var:
+            data = data[var]
 
         return data
 

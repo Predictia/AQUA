@@ -1,6 +1,7 @@
 """Fixer mixin for the Reader class"""
 
 import os
+import re
 import json
 import warnings
 import xarray as xr
@@ -175,6 +176,7 @@ class FixerMixin():
             for var in data.variables:
                 self.apply_unit_fix(data[var])
 
+        # remove variables which should be deleted
         dellist = [x for x in fix.get("delete", []) if x in data.variables]
         if dellist:
             data = data.drop_vars(dellist)
@@ -212,11 +214,18 @@ class FixerMixin():
         loadvar = []
         for vvv in var:
             if vvv in variables.keys():
-                # print(vvv)
-                if variables[vvv]['source'] or variables[vvv]['derived']:
+
+                # get the source ones
+                if 'source' in variables[vvv]:
                     loadvar.append(variables[vvv]['source'])
+
+                # get the ones from the equation of the derived ones
+                if 'derived' in variables[vvv]:
+                    required = [s for s in re.split(r'[-+*/]', variables[vvv]['derived']) if s]
+                    loadvar = loadvar + required
             else:
                 loadvar.append(vvv)
+
         return loadvar
 
     def simple_decumulate(self, data, jump=None, keep_first=True):
