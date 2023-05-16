@@ -38,18 +38,23 @@ class Reader(FixerMixin, RegridMixin):
             model (str):            model ID
             exp (str):              experiment ID
             source (str):           source ID
-            regrid (str):           perform regridding to grid `regrid`, as defined in `config/regrid.yaml` (None)
+            regrid (str):           perform regridding to grid `regrid`, 
+                                    as defined in `config/regrid.yaml` (None)
             method (str):           regridding method (ycon)
             zoom (int):             healpix zoom level
-            configdir (str)         folder where the config/catalog files are located (config)
+            configdir (str)         folder where the config/catalog files 
+                                    are located (config)
             areas (bool):           compute pixel areas if needed (True)
-            var (str, list):        variable(s) which we will extract; vars is a synonym (None)
-            datamodel (str):        destination data model for coordinates, overrides the one in fixes.yaml (None)
+            var (str, list):        variable(s) which we will extract; 
+                                    vars is a synonym (None)
+            datamodel (str):        destination data model for coordinates, 
+                                    overrides the one in fixes.yaml (None)
             streaming (bool):       if to retreive data in a streaming mode (False)
             stream_step (int):      the number of time steps to stream the data by (Default = 1)
             stream_unit (str):      the unit of time to stream the data by
                                     (e.g. 'hours', 'days', 'months', 'years') (None)
-            stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
+            stream_startdate (str): the starting date for streaming the data 
+                                    (e.g. '2020-02-25') (None)
             rebuild (bool):         force rebuilding of area and weight files
             loglevel (string):      Level of logging according to logging module
                                     (default: log_level_default of loglevel())
@@ -97,7 +102,8 @@ class Reader(FixerMixin, RegridMixin):
         self.machine = get_machine(self.configdir)
 
         # get configuration from the machine
-        self.catalog_file, self.regrid_file, self.fixer_folder, self.config_file = get_reader_filenames(self.configdir, self.machine)
+        self.catalog_file, self.regrid_file, self.fixer_folder, self.config_file = (
+            get_reader_filenames(self.configdir, self.machine))
         self.cat = intake.open_catalog(self.catalog_file)
 
         # Store the machine-specific CDO path if available
@@ -106,7 +112,8 @@ class Reader(FixerMixin, RegridMixin):
 
         # load and check the regrid
         cfg_regrid = load_yaml(self.regrid_file)
-        source_grid_id = check_catalog_source(cfg_regrid["source_grids"], self.model, self.exp, source, name='regrid')
+        source_grid_id = check_catalog_source(cfg_regrid["source_grids"], 
+                                              self.model, self.exp, source, name='regrid')
         source_grid = cfg_regrid["source_grids"][self.model][self.exp][source_grid_id]
         self.vertcoord = source_grid.get("vertcoord", None)  # Some more checks needed
 
