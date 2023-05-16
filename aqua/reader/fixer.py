@@ -30,26 +30,26 @@ class FixerMixin():
         # look for model fix
         fix_model = self.fixes_dictionary["models"].get(self.model, None)
         if not fix_model:
-            self.logger.warning("No fixes defined for model %s",
+            self.logger.warning("No fixes available for model %s",
                                 self.model)
-            return
+            return None
 
         # look for exp fix, look for default
         fix_exp = fix_model.get(self.exp, None)
         if not fix_exp:
             fix_exp = fix_model.get('default', None)
             if not fix_exp:
-                self.logger.warning("No fixes defined for model %s, experiment %s",
+                self.logger.warning("No fixes available for model %s, experiment %s",
                                     self.model, self.exp)
-                return
+                return None
 
         fixes = fix_exp.get(self.source, None)
         if not fixes:
             fixes = fix_exp.get('default', None)
             if not fixes:
-                self.logger.warning("No fixes defined for model %s, experiment %s, source %s",
+                self.logger.warning("No fixes available for model %s, experiment %s, source %s",
                                     self.model, self.exp, self.source)
-                return
+                return None
         return fixes
 
     def fixer(self, data, apply_unit_fix=False):

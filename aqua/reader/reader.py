@@ -101,6 +101,13 @@ class Reader(FixerMixin, RegridMixin):
         self.catalog_file, self.regrid_file, self.fixer_folder, self.config_file = get_reader_filenames(self.configdir, self.machine)
         self.cat = intake.open_catalog(self.catalog_file)
 
+        # check source existence
+        self.source = check_catalog_source(self.cat, self.model, self.exp, source, name="catalog")
+
+        # get fixes dictionary and find them
+        self.fixes_dictionary = load_multi_yaml(self.fixer_folder)
+        self.fixes = self.find_fixes()
+
         # Store the machine-specific CDO path if available
         cfg_base = load_yaml(self.config_file)
         self.cdo = cfg_base["cdo"].get(self.machine, "cdo")
@@ -121,10 +128,8 @@ class Reader(FixerMixin, RegridMixin):
         self.dst_datamodel = datamodel
         # Default destination datamodel (unless specified in instantiating the Reader)
         if not self.dst_datamodel:
-            fixes = load_multi_yaml(self.fixer_folder)
-            self.dst_datamodel = fixes["defaults"].get("dst_datamodel", None)
+            self.dst_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
 
-        self.source = check_catalog_source(self.cat, self.model, self.exp, source, name="catalog")
 
         self.src_space_coord = source_grid.get("space_coord", None)
         self.space_coord = self.src_space_coord
@@ -227,13 +232,6 @@ class Reader(FixerMixin, RegridMixin):
         if not var:
             var = self.var
 
-        if fix:
-            self.fixes_dictionary = load_multi_yaml(self.fixer_folder)
-            self.fixes = self.find_fixes()
-        else:
-            self.fixes_dictionary = None
-            self.fixes = None
-
         # Extract data from cat.
         # If this is an ESM-intake catalogue use first dictionary value,
         # else extract directly a dask dataset
@@ -259,7 +257,10 @@ class Reader(FixerMixin, RegridMixin):
                 # conversion to list guarantee that Dataset is produced
                 if isinstance(var, str):
                     var = var.split()
-                loadvar = self.get_fixer_varname(var)
+
+                # get loadvar
+                loadvar = self.get_fixer_varname(var) if fix else var
+
                 if all(element in data.data_vars for element in loadvar):
                     data = data[loadvar]
                 else:
@@ -291,7 +292,7 @@ class Reader(FixerMixin, RegridMixin):
                 data = self.streamer.stream(data, stream_step=stream_step,
                                             stream_unit=stream_unit,
                                             stream_startdate=stream_startdate)
-                
+         
         # safe check that we provide only what exactly asked by var
         if var:
             data = data[var]
