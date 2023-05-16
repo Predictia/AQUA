@@ -25,7 +25,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Provision with a different conda environment
-        uses: mamba-org/provision-with-micromamba@v1
+        uses: mamba-org/provision-with-micromamba@v15
         with:
           environment-file: diagnostics/dummy-diagnostic/env-dummy.yaml
           cache-downloads: true
