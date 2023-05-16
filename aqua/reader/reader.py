@@ -27,7 +27,7 @@ class Reader(FixerMixin, RegridMixin):
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
                  regrid=None, method="ycon", zoom=None, configdir=None,
-                 level=None, areas=True, var=None, vars=None,  # pylint: disable=W0622
+                 level=None, areas=True,  # pylint: disable=W0622
                  datamodel=None, streaming=False, stream_step=1, stream_unit='steps',
                  stream_startdate=None, rebuild=False, loglevel=None):
         """
@@ -44,7 +44,6 @@ class Reader(FixerMixin, RegridMixin):
             configdir (str)         folder where the config/catalog files are located (config)
             level (int):            level to extract if input data are 3D (starting from 0)
             areas (bool):           compute pixel areas if needed (True)
-            var (str, list):        variable(s) which we will extract; vars is a synonym (None)
             datamodel (str):        destination data model for coordinates, overrides the one in fixes.yaml (None)
             streaming (bool):       if to retreive data in a streaming mode (False)
             stream_step (int):      the number of time steps to stream the data by (Default = 1)
@@ -61,10 +60,7 @@ class Reader(FixerMixin, RegridMixin):
 
         # define the internal logger
         self.logger = log_configure(log_level=loglevel, log_name='Reader')
-
-        if vars:
-            var = vars
-        self.var = var
+        
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
@@ -229,8 +225,6 @@ class Reader(FixerMixin, RegridMixin):
 
         if vars:
             var = vars
-        if not var:
-            var = self.var
 
         # Extract data from cat.
         # If this is an ESM-intake catalogue use first dictionary value,
