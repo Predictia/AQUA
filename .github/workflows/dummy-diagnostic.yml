@@ -29,6 +29,8 @@ jobs:
         with:
           environment-file: diagnostics/dummy-diagnostic/env-dummy.yaml
           cache-downloads: true
+          channels: conda-forge,numba
+          channel-priority: flexible
           extra-specs: |
               python=${{ matrix.python-version }}
 
