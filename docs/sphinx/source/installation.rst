@@ -50,6 +50,22 @@ Activate the newly created aqua environment:
 At this point, you should have successfully installed the AQUA package and its dependencies 
 in the newly created aqua environment.
 
+
+If you are not working on Levante, remember to change the machine name in the `config/config.yaml` file:
+
+.. code-block:: markdown
+   
+   machine: levante
+
+If you are usig LUMI, the script `/config/machines/lumi/installation/lumi_install.sh` provides an installation of the correct environment.
+After putting your LUMI username under 'user' at the top of the script, you just have to run:
+
+.. code-block:: bash
+
+   ./config/machines/lumi/installation/lumi_install.sh
+
+
+
 Working with personal kernel in Jupyter Hub 
 -------------------------------------------
 
