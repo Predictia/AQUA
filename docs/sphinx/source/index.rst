@@ -22,8 +22,6 @@ Welcome to AQUA's documentation!
    troubleshooting_faq
    contributing
    references_acknowledgments
-   appendices
-
 
 
 Indices and tables
