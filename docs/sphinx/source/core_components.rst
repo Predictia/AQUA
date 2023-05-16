@@ -106,7 +106,7 @@ The result is an xarray containing 360x180 grid points for each timeframe.
 Averaging and Aggregation
 -------------------------
 
-Since AQUA is based on xarray, all the spatial and temporal aggregation options are available by default. 
+Since AQUA is based on xarray, all spatial and temporal aggregation options available by default. 
 On top of that, AQUA attempts to load, or compute the grid point areas of each dataset so area-weighted averages can be produced without hassle. 
 When we instantiate the `Reader` object, grid areas for the source files are computed if not already available. 
 After this we can use them to do spatial averaging using the `fldmean` method, obtaining timeseries of global (field) averages.
