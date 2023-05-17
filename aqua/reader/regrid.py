@@ -99,7 +99,7 @@ class RegridMixin():
                                           icongridpath=cfg_regrid["cdo-paths"]["icon"],
                                           extra=extra,
                                           cdo=self.cdo,
-                                          vert_coord=self.vertcoord,
+                                          vert_coord=self.vert_coord,
                                           nproc=nproc)
         weights.to_netcdf(weightsfile)
         self.logger.warning("Success!")
@@ -186,7 +186,7 @@ class RegridMixin():
             area_file.close()
 
 
-def _rename_dims(da, dim_list):
+def _rename_dims(data, dim_list):
     """
     Renames the dimensions of a DataArray so that any dimension which is already
     in `dim_list` keeps its name, and the others are renamed to whichever other
@@ -207,7 +207,7 @@ def _rename_dims(da, dim_list):
         A new DataArray with the renamed dimensions.
     """
 
-    dims = list(da.dims)
+    dims = list(data.dims)
     # Lisy of dims which are already there
     shared_dims = list(set(dims) & set(dim_list))
     # List of dims in B which are not in space_coord
@@ -215,15 +215,15 @@ def _rename_dims(da, dim_list):
     # List of dims in da which are not in dim_list
     new_dims = list(set(dim_list) - set(dims))
     i = 0
-    da_out = da
+    da_out = data
     for dim in extra_dims:
         if dim not in shared_dims:
-            da_out = da.rename({dim: new_dims[i]})
+            da_out = data.rename({dim: new_dims[i]})
             i += 1
     return da_out
 
 
-def _get_spatial_sample(da, space_coord):
+def _get_spatial_sample(data, space_coord):
     """
     Selects a single spatial sample along the dimensions specified in `space_coord`.
 
@@ -235,7 +235,7 @@ def _get_spatial_sample(da, space_coord):
         Data array containing a single spatial sample along the specified dimensions.
     """
 
-    dims = list(da.dims)
+    dims = list(data.dims)
     extra_dims = list(set(dims) - set(space_coord))
-    da_out = da.isel({dim: 0 for dim in extra_dims})
+    da_out = data.isel({dim: 0 for dim in extra_dims})
     return da_out

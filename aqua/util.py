@@ -7,12 +7,11 @@ import random
 import re
 import string
 import sys
+import logging
 from collections import defaultdict
-
+import yaml
 import eccodes
 import xarray as xr
-import yaml
-
 from aqua.logger import log_configure
 
 
@@ -69,12 +68,14 @@ def get_config_dir():
     """
 
     # set of predefined folders to browse
-    configdirs = ['./config', '../config', '../../config']
-    homedir = os.environ.get('HOME')
+    configdirs = ['./config', '../config', '../../config', '../../../config']
 
     # if the home is defined
+    homedir = os.environ.get('HOME')
     if homedir:
         configdirs.append(os.path.join(homedir, '.aqua', 'config'))
+    
+    # autosearch
     for configdir in configdirs:
         if os.path.exists(os.path.join(configdir, "config.yaml")):
             break
@@ -199,8 +200,8 @@ def read_eccodes_dic(filename):
     """
 
     fn = os.path.join(eccodes.codes_definition_path(), 'grib2', filename)
-    with open(fn, "r", encoding='utf-8') as f:
-        text = f.read()
+    with open(fn, "r", encoding='utf-8') as file:
+        text = file.read()
     text = text.replace(" =", ":").replace('{', '').replace('}', '').replace(';', '').replace('\t', '    ')
     return yaml.safe_load(text)
 
@@ -308,26 +309,6 @@ def get_arg(args, arg, default):
         res = default
     return res
 
-# def create_folder(folder, verbose=False):
-#     """
-#     Create a folder if it does not exist
-
-#     Args:
-#         folder (str): the folder to create
-#         verbose (bool): if True, print the folder name,
-#                         default is False
-
-#     Returns:
-#         None
-#     """
-#     if not os.path.exists(folder):
-#         if verbose:
-#             print(f'Creating folder {folder}')
-#         os.makedirs(folder)
-#     else:
-#         if verbose:
-#             print(f'Folder {folder} already exists')
-
 # def get_arg(args, arg, default):
 #     """
 #     Support function to get arguments
@@ -375,3 +356,32 @@ def log_history(data, msg):
         date_now = now.strftime("%Y-%m-%d %H:%M:%S")
         hist = data.attrs.get("history", "") + f"{date_now} {msg};\n"
         data.attrs.update({"history": hist})
+
+def file_is_complete(filename, logger=logging.getLogger()):
+
+    """Basic check to see if file exists and that includes values which are not NaN
+    Return a boolean that can be used as a flag for further operation
+    True means that we have to re-do the computation
+    A logger can be passed for correct logging properties"""
+
+    if os.path.isfile(filename):
+        logger.info('File %s is found...', filename)
+        try:
+            xfield = xr.open_dataset(filename)
+            varname = list(xfield.data_vars)[0]
+            if xfield[varname].isnull().all():
+            #if xfield[varname].isnull().all(dim=['lon','lat']).all():
+                logger.error('File %s is full of NaN! Recomputing...', filename)
+                check=True
+            else:
+                check=False
+                logger.info('File %s seems ok!', filename)
+        # we have no clue which kind of exception might show up
+        except ValueError:
+            logger.info('Something wrong with file %s! Recomputing...', filename)
+            check= True
+    else:
+        logger.info('File %s not found...', filename)
+        check = True
+
+    return check
