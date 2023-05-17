@@ -319,7 +319,8 @@ def normalize_units(src):
         return 'dimensionless'
     else:
         return str(src).replace("of", "").replace("water", "").replace("equivalent", "")
-    
+
+
 def units_extra_definition():
     """Add units to the pint registry"""
 
@@ -327,7 +328,7 @@ def units_extra_definition():
     # needed to work with metpy 1.4.0 see
     # https://github.com/Unidata/MetPy/issues/2884
     units._on_redefinition = 'ignore'
-    units.define('fraction = [] = frac')
+    units.define('fraction = [] = Fraction = frac')
     units.define('psu = 1e-3 frac')
     units.define('PSU = 1e-3 frac')
     units.define('Sv = 1e+6 m^3/s')
