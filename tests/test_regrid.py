@@ -31,8 +31,8 @@ class TestRegridder():
         """Test interpolation on FESOM, at different grid rebuilding weights, 
         checking output grid dimension and fraction of land (i.e. any missing points)"""
         reader = Reader(model='FESOM', exp='test-pi', source='original_2d',
-                        regrid='r100', rebuild=True, vars='sst')
-        rgd = reader.retrieve(fix=False, regrid=True)
+                        regrid='r100', rebuild=True)
+        rgd = reader.retrieve(var='sst', fix=False, regrid=True)
         ratio = rgd['sst'].isnull().sum()/rgd['sst'].size  #land fraction
         assert len(rgd.lon) == 360
         assert len(rgd.lat) == 180
@@ -43,8 +43,8 @@ class TestRegridder():
         """Test the case where no source grid path is specified in the regrid.yaml file
         and areas/weights are reconstructed from the file itself"""
         reader = Reader(model='IFS', exp='test-tco79', source='long',
-                        regrid='r100', rebuild=True, vars='ttr')
-        rgd = reader.retrieve(fix=False, regrid=True)
+                        regrid='r100', rebuild=True)
+        rgd = reader.retrieve(vars='ttr', fix=False, regrid=True)
         assert len(rgd.lon) == 360
         assert len(rgd.lat) == 180
         assert len(rgd.time) == 4728
