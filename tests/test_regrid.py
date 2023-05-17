@@ -56,8 +56,8 @@ def test_recompute_weights_fesom3D():
     """Test interpolation on FESOM, at different grid rebuilding weights,
     checking output grid dimension and fraction of land (i.e. any missing points)"""
     reader = Reader(model='FESOM', exp='test-pi', source='original_3d',
-                    regrid='r100', rebuild=True, vars='temp')
-    rgd = reader.retrieve(fix=False, regrid=True)
+                    regrid='r100', rebuild=True)
+    rgd = reader.retrieve(vars='temp', fix=False, regrid=True)
     ratio1 = rgd.temp.isel(nz1=0).isnull().sum()/rgd.temp.isel(nz1=0).size  # land fraction
     ratio2 = rgd.temp.isel(nz1=40).isnull().sum()/rgd.temp.isel(nz1=40).size  # land fraction
     assert len(rgd.lon) == 360
