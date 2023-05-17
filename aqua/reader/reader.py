@@ -2,14 +2,11 @@
 
 import os
 import sys
-<<<<<<< HEAD
 import subprocess
 import tempfile
 import json
 import warnings
 import types
-=======
->>>>>>> main
 
 import intake
 import intake_esm
@@ -19,23 +16,16 @@ from metpy.units import units, DimensionalityError
 import numpy as np
 import smmregrid as rg
 
-<<<<<<< HEAD
-import cf2cdm
-from aqua.util import load_yaml, _eval_formula, get_eccodes_attr
-from aqua.util import get_reader_filenames, get_config_dir, get_machine
-from aqua.util import log_history, log_history_iter
-import aqua.gsv
-=======
 from aqua.util import load_yaml, load_multi_yaml
 from aqua.util import get_reader_filenames, get_config_dir, get_machine
-from aqua.util import log_history
+from aqua.util import log_history, log_history_iter
 from aqua.logger import log_configure
+import aqua.gsv
 
 from .streaming import Streaming
 from .fixer import FixerMixin
 from .regrid import RegridMixin
 from .reader_utils import check_catalog_source
->>>>>>> main
 
 
 class Reader(FixerMixin, RegridMixin):
@@ -207,191 +197,11 @@ class Reader(FixerMixin, RegridMixin):
 
             self.grid_area = self.src_grid_area
 
-<<<<<<< HEAD
-    def _make_dst_area_file(self, areafile, grid):
-        """Helper function to create destination (regridded) area files."""
-
-        print("Destination areas file not found:", areafile)
-        print("Attempting to generate it ...")
-
-        dst_extra = f"-const,1,{grid}"
-        grid_area = self.cdo_generate_areas(source=dst_extra)
-
-        # Make sure that grid areas contain exactly the same coordinates
-        data = self.retrieve(fix=False)
-        if type(data) is types.GeneratorType:
-            data = next(data)  # this actually leaves the coroutine open
-        data = self.regridder.regrid(data.isel(time=0))
-        grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.dst_space_coord})
-
-        grid_area.to_netcdf(self.dst_areafile)
-        print("Success!")
-
-    def _make_src_area_file(self, areafile, source_grid,
-                            gridpath="", icongridpath="", zoom=None):
-        """Helper function to create source area files."""
-
-        sgridpath = source_grid.get("path", None)
-        if not sgridpath:
-            # there is no source grid path at all defined in the regrid.yaml file:
-            # let's reconstruct it from the file itself
-            data = self.retrieve(fix=False)
-            temp_file = tempfile.NamedTemporaryFile(mode='w')
-            sgridpath = temp_file.name
-            data.isel(time=0).to_netcdf(sgridpath)
-        else:
-            temp_file = None
-            if zoom:
-                sgridpath = sgridpath.format(zoom=(9-zoom))
-
-        print("Source areas file not found:", areafile)
-        print("Attempting to generate it ...")
-        print("Source grid: ", sgridpath)
-        src_extra = source_grid.get("extra", [])
-        grid_area = self.cdo_generate_areas(source=sgridpath,
-                                            gridpath=gridpath,
-                                            icongridpath=icongridpath,
-                                            extra=src_extra)
-        # Make sure that the new DataArray uses the expected spatial dimensions
-        grid_area = self._rename_dims(grid_area, self.src_space_coord)
-        data = self.retrieve(fix=False)
-        if type(data) is types.GeneratorType:
-            data = next(data)  # this actually leaves the coroutine open
-        grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.src_space_coord})
-        grid_area.to_netcdf(areafile)
-        print("Success!")
-
-    def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, regrid="", extra=[], zoom=None):
-        """Helper function to produce weights file"""
-
-        sgridpath = source_grid.get("path", None)
-        if not sgridpath:
-            # there is no source grid path at all defined in the regrid.yaml file:
-            # let's reconstruct it from the file itself
-            data = self.retrieve(fix=False)
-            if type(data) is types.GeneratorType:
-                data = next(data)  # this actually leaves the coroutine open
-            temp_file = tempfile.NamedTemporaryFile(mode='w')
-            sgridpath = temp_file.name
-            data.isel(time=0).to_netcdf(sgridpath)
-        else:
-            temp_file = None
-            if zoom:
-                sgridpath = sgridpath.format(zoom=(9-zoom))
-
-        print("Weights file not found:", weightsfile)
-        print("Attempting to generate it ...")
-        print("Source grid: ", sgridpath)
-
-        # hack to  pass a correct list of all options
-        src_extra = source_grid.get("extra", [])
-        if src_extra:
-            if not isinstance(src_extra, list):
-                src_extra = [src_extra]
-        if extra:
-            extra = [extra]
-        extra = extra + src_extra
-        weights = rg.cdo_generate_weights(source_grid=sgridpath,
-                                          target_grid=cfg_regrid["target_grids"][regrid],
-                                          method='ycon',
-                                          gridpath=cfg_regrid["cdo-paths"]["download"],
-                                          icongridpath=cfg_regrid["cdo-paths"]["icon"],
-                                          extra=extra)
-        weights.to_netcdf(weightsfile)
-        print("Success!")
-
-    def cdo_generate_areas(self, source, icongridpath=None, gridpath=None, extra=None):
-        """
-            Generate grid areas using CDO
-
-            Args:
-                source (xarray.DataArray or str): Source grid
-                gridpath (str): where to store downloaded grids
-                icongridpath (str): location of ICON grids (e.g. /pool/data/ICON)
-                extra: command(s) to apply to source grid before weight generation (can be a list)
-
-            Returns:
-                :obj:`xarray.DataArray` with cell areas
-        """
-
-        # Make some temporary files that we'll feed to CDO
-        area_file = tempfile.NamedTemporaryFile()
-
-        if isinstance(source, str):
-            sgrid = source
-        else:
-            source_grid_file = tempfile.NamedTemporaryFile()
-            source.to_netcdf(source_grid_file.name)
-            sgrid = source_grid_file.name
-
-        # Setup environment
-        env = os.environ
-        if gridpath:
-            env["CDO_DOWNLOAD_PATH"] = gridpath
-        if icongridpath:
-            env["CDO_ICON_GRIDS"] = icongridpath
-
-        try:
-            # Run CDO
-            if extra:
-                # make sure extra is a flat list if it is not already
-                if not isinstance(extra, list):
-                    extra = [extra]
-
-                subprocess.check_output(
-                    [
-                        "cdo",
-                        "-f", "nc4",
-                        "gridarea",
-                    ] + extra +
-                    [
-                        sgrid,
-                        area_file.name,
-                    ],
-                    stderr=subprocess.PIPE,
-                    env=env,
-                )
-            else:
-                subprocess.check_output(
-                    [
-                        "cdo",
-                        "-f", "nc4",
-                        "gridarea",
-                        sgrid,
-                        area_file.name,
-                    ],
-                    stderr=subprocess.PIPE,
-                    env=env,
-                )
-
-            areas = xr.load_dataset(area_file.name, engine="netcdf4")
-            areas.cell_area.attrs['units'] = 'm2'
-            areas.cell_area.attrs['standard_name'] = 'area'
-            areas.cell_area.attrs['long_name'] = 'area of grid cell'
-            return areas.cell_area
-
-        except subprocess.CalledProcessError as e:
-            # Print the CDO error message
-            print(e.output.decode(), file=sys.stderr)
-            raise
-
-        finally:
-            # Clean up the temporary files
-            if not isinstance(source, str):
-                source_grid_file.close()
-            area_file.close()
-
-    def retrieve(self, regrid=False, timmean=False, decumulate=False,
-                 fix=True, apply_unit_fix=True, var=None, vars=None, 
-                 streaming = False, stream_step = 1, stream_unit=None, 
-                 stream_startdate = None, streaming_generator = False,
-                 startdate=None, enddate=None):
-=======
     def retrieve(self, regrid=False, timmean=False, decumulate=False,
                  fix=True, apply_unit_fix=True, var=None, vars=None,  # pylint: disable=W0622
                  streaming=False, stream_step=None, stream_unit=None,
-                 stream_startdate=None, streaming_generator=False):
->>>>>>> main
+                 stream_startdate=None, streaming_generator=False,
+                 startdate=None, enddate=None):
         """
         Perform a data retrieve.
         
@@ -422,197 +232,66 @@ class Reader(FixerMixin, RegridMixin):
 
         if vars:
             var = vars
-<<<<<<< HEAD
-        if not var:
-            var = self.var
-        
-        # Extract data from catalogue
-
         fiter = False
-=======
->>>>>>> main
+
+        # get loadvar
+        loadvar = self.get_fixer_varname(var) if fix else var
 
         # If this is an ESM-intake catalogue use first dictionary value,
         if isinstance(esmcat, intake_esm.core.esm_datastore):
-            data = reader_esm(esmcat, var)   
+            data = reader_esm(esmcat, loadvar)   
         # If this is an fdb entry 
         elif isinstance(esmcat, aqua.gsv.intake_gsv.GSVSource):
-            data = reader_fdb(esmcat, var, startdate, enddate)
+            data = reader_fdb(esmcat, loadvar, startdate, enddate)
+            fiter = True  # this returs an iterator
         else:
-<<<<<<< HEAD
-            data = reader_intake(esmcat, var)  # Returns a generator object
-            fiter = True
+            data = reader_intake(esmcat, loadvar)  # Returns a generator object
 
         # select only a specific level when reading. Level coord names defined in regrid.yaml
         if self.level is not None:
             if fiter:
-                data = (ds.isel({self.vertcoord: self.level}) for ds in data)
+                data = (ds.isel({self.vert_coord: self.level}) for ds in data)
             else:
-                data = data.isel({self.vertcoord: self.level})
-             
+                data = data.isel({self.vert_coord: self.level})
+
+        log_history_iter(data, "retrieved by AQUA fixer")   
+
+
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
 
         # These do not work in the iterator case
         if not fiter:
             if decumulate:
-                data = data.map(self.decumulate, keep_attrs=True)
+                # data = data.map(self.decumulate, keep_attrs=True)
+                data = data.map(self.decumulate)
             if self.freq and timmean:
                 data = self.timmean(data)
-
         if self.targetgrid and regrid:
             if fiter:
                 data = (self.regridder.regrid(ds) for ds in data)
             else:
                 data = self.regridder.regrid(data)
             self.grid_area = self.dst_grid_area 
-
         if fix:
             data = self.fixer(data, apply_unit_fix=apply_unit_fix)  # fixer accepts also iterators
 
         if not fiter:
             # This is not needed if we already have an iterator
             if streaming or self.streaming or streaming_generator:
-                if stream_step == 1: stream_step = self.stream_step
-                if not stream_unit: stream_unit = self.stream_unit
-                if not stream_startdate: stream_startdate = self.stream_startdate
                 if streaming_generator:
-                    data = self.stream_generator(data, stream_step, stream_unit, stream_startdate)
+                    data = self.streamer.stream_generator(data, stream_step=stream_step,
+                                                        stream_unit=stream_unit,
+                                                        stream_startdate=stream_startdate)
                 else:
-                    data = self.stream(data, stream_step, stream_unit, stream_startdate)
-
-        data = log_history_iter(data, "retrieved by AQUA fixer")
-        return data
-    
-    def stream(self, data, stream_step = 1, stream_unit = None, stream_startdate = None):
-        """
-        The stream method is used to stream data by either a specific time interval or by a specific number of samples.
-        If the unit parameter is specified, the data is streamed by the specified unit and stream_step (e.g. 1 month).
-        If the unit parameter is not specified, the data is streamed by stream_step steps of the original time resolution of input data.
-
-        If the stream function is called a second time, it will return the subsequent chunk of data in the sequence.
-        The function keeps track of the state of the streaming process through the use of internal attributes.
-        This allows the user to stream through the entire dataset in multiple calls to the function,
-        retrieving consecutive chunks of data each time.
-
-        If stream_startdate is not specified, the method will use the first date in the dataset.
-
-        Arguments:
-            data (xr.Dataset):  the input xarray.Dataset
-            stream_step  (int): the number of time steps to stream the data by (Default = 1)
-            stream_unit (str):  the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (None)
-            stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
-        Returns:
-            A xarray.Dataset containing the subset of the input data that has been streamed.
-        """
-        if not self.stream_date:
-            if stream_startdate:
-                self.stream_date = pd.to_datetime(stream_startdate)
-            else:
-                self.stream_date = pd.to_datetime(data.time[0].values)
-
-        if self.stream_index == 0 and stream_startdate:
-            self.stream_index = data.time.to_index().get_loc(pd.to_datetime(stream_startdate))
-
-        if stream_unit:
-            start_date = self.stream_date
-            stop_date = start_date + pd.DateOffset(**{stream_unit: stream_step})
-            self.stream_date = stop_date
-            return data.sel(time=slice(start_date, stop_date)).where(data.time != stop_date, drop=True)
-        else:
-            start_index = self.stream_index
-            stop_index = start_index + stream_step
-            self.stream_index = stop_index
-            return data.isel(time=slice(start_index, stop_index))
-
-    def reset_stream(self):
-        """
-        Reset the state of the streaming process.
-        This means that if the stream function is called again after calling reset_stream,
-        it will start streaming the input data from the beginning.
-        """
-        self.stream_index = 0
-        self.stream_date = None
-
-    def stream_generator(self, data, stream_step=1, stream_unit=None, stream_startdate=None):
-        """
-        The stream_generator method is designed to split data into smaller chunks of data for processing or analysis.
-        It returns a generator object that yields the smaller chunks of data.
-        The method can split the data based on either a specific time interval or by a specific number of samples.
-        If the unit parameter is specified, the data is streamed by the specified unit and stream_step (e.g. 1 month).
-        If the unit parameter is not specified, the data is streamed by stream_step steps of the original time resolution of input data.
-
-        Arguments:
-            data (xr.Dataset):  the input xarray.Dataset
-            stream_step  (int): the number of samples or time interval to stream the data by (Default = 1)
-            stream_unit (str):  the unit of the time interval to stream the data by (e.g. 'hours', 'days', 'months', 'years') (None)
-            stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
-        Returns:
-            A generator object that yields the smaller chunks of data.
-        """
-        if stream_startdate:
-            start_date = pd.to_datetime(stream_startdate)
-        else:
-            start_date = data.time[0].values
-        if stream_unit:
-            while start_date < data.time[-1].values:
-                stop_date = pd.to_datetime(start_date) + pd.DateOffset(**{stream_unit: stream_step})
-                yield data.sel(time=slice(start_date, stop_date)).where(data.time != stop_date, drop=True)
-                start_date = stop_date
-        if not stream_unit:
-            start_index = data.time.to_index().get_loc(start_date)
-            while start_index < len(data.time):
-                stop_index = start_index + stream_step
-                yield data.isel(time=slice(start_index, stop_index))
-                start_index = stop_index
-=======
-            data = esmcat.to_dask()
-
-            if var:
-                # conversion to list guarantee that Dataset is produced
-                if isinstance(var, str):
-                    var = var.split()
-
-                # get loadvar
-                loadvar = self.get_fixer_varname(var) if fix else var
-
-                if all(element in data.data_vars for element in loadvar):
-                    data = data[loadvar]
-                else:
-                    raise KeyError("You are asking for variables which we cannot find in the catalog!")
-
-        # select only a specific level when reading. Level coord names defined in regrid.yaml
-        if self.level is not None:
-            data = data.isel({self.vertcoord: self.level})
-
-        log_history(data, "retrieved by AQUA retriever")
-
-        # sequence which should be more efficient: decumulate - averaging - regridding - fixing
-        if decumulate:
-            # data = data.map(self.decumulate, keep_attrs=True)
-            data = data.map(self.decumulate)
-        if self.freq and timmean:
-            data = self.timmean(data)
-        if self.targetgrid and regrid:
-            data = self.regridder.regrid(data)
-            self.grid_area = self.dst_grid_area
-        if fix:   # Do not change easily this order. The fixer assumes to be after regridding
-            data = self.fixer(data, apply_unit_fix=apply_unit_fix)
-        if streaming or self.streaming or streaming_generator:
-            if streaming_generator:
-                data = self.streamer.stream_generator(data, stream_step=stream_step,
-                                                      stream_unit=stream_unit,
-                                                      stream_startdate=stream_startdate)
-            else:
-                data = self.streamer.stream(data, stream_step=stream_step,
-                                            stream_unit=stream_unit,
-                                            stream_startdate=stream_startdate)
+                    data = self.streamer.stream(data, stream_step=stream_step,
+                                                stream_unit=stream_unit,
+                                                stream_startdate=stream_startdate)
          
         # safe check that we provide only what exactly asked by var
-        if var:
-            data = data[var]
+        #if var:
+        #    data = data[var]
 
         return data
->>>>>>> main
 
     def regrid(self, data):
         """Call the regridder function returnin container or iterator"""
@@ -639,11 +318,7 @@ class Reader(FixerMixin, RegridMixin):
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
 
-<<<<<<< HEAD
-        out = log_history(out, "regridded by AQUA fixer")  # Call directly the dataset version, XXX
-=======
         log_history(out, "regridded by AQUA regridder")
->>>>>>> main
         return out
 
     def timmean(self, data, freq=None):
@@ -829,302 +504,6 @@ class Reader(FixerMixin, RegridMixin):
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
 
         return out
-<<<<<<< HEAD
-
-    def fixer(self, data, **kwargs):
-        """Call the fixer function returnin container or iterator"""
-        if type(data) is types.GeneratorType:
-            for ds in data:
-                yield self._fixer(ds, **kwargs)
-        else:
-            return self._fixer(data, **kwargs)
-
-    def _fixer(self, data, apply_unit_fix=False):
-        """
-        Perform fixes (var name, units, coord name adjustments) of the input dataset.
-
-        Arguments:
-            data (xr.Dataset):      the input dataset
-            apply_unit_fix (bool):  if to perform immediately unit conversions (which requite a product or an addition).
-                                    The fixer sets anyway an offset or a multiplicative factor in the data attributes.
-                                    These can be applied also later with the method `apply_unit_fix`. (false)
-
-        Returns:
-            A xarray.Dataset containing the fixed data and target units, factors and offsets in variable attributes.
-        """
-
-        fixes = load_yaml(self.fixer_file)
-        model = self.model
-        exp = self.exp
-        src = self.source
-
-        # Default input datamodel
-        src_datamodel = fixes["defaults"].get("src_datamodel", None)
-
-        fixm = fixes["models"].get(model, None)
-        if not fixm:
-            print(f"No fixes defined for model {model}")
-            return data
-
-        fixexp = fixm.get(exp, None)
-        if not fixexp:
-            fixexp = fixm.get('default', None)
-            if not fixexp:
-                print(f"No fixes defined for model {model}, experiment {exp}")
-                return data
-
-        fix = fixexp.get(src, None)
-        if not fix:
-            fix = fixexp.get('default', None)
-            if not fix:
-                print(f"No fixes defined for model {model}, experiment {exp}, source {src}")
-                return data
-
-        self.deltat = fix.get("deltat", 1.0)
-        jump = fix.get("jump", None)  # if to correct for a monthly accumulation jump
-
-        fixd = {}
-        varlist = {}
-        vars = fix.get("vars", None)
-        if vars:
-            for var in vars:
-                units = None
-                attributes = {}
-                varname = var
-
-                grib = vars[var].get("grib", None)
-                # This is a grib variable, use eccodes to find attributes
-                if grib:
-                    # Get relevant eccodes attribues
-                    attributes.update(get_eccodes_attr(var))
-                    sn = attributes.get("shortName", None)
-                    if (sn != '~') and (var != sn):
-                        varname = sn
-                    if self.verbose:
-                        print(f"Grib attributes for {varname}: {attributes}")
-
-                varlist[var] = varname
-
-                source = vars[var].get("source", None)
-                # This is a renamed variable. This will be done at the end.
-                if source:
-                    if source not in data.variables:
-                        continue
-                    fixd.update({f"{source}": f"{varname}"})
-                    log_history(data[source], "variable renamed by AQUA fixer")
-
-                formula = vars[var].get("derived", None)
-                # This is a derived variable, let's compute it and create the new variable
-                if formula:
-                    try:
-                        data[varname] = _eval_formula(formula, data)
-                        source = varname
-                        attributes.update({"derived": formula})
-                        if self.verbose:
-                            print(f"Derived {var} from {formula}")
-                        log_history(data[source], "variable derived by AQUA fixer")
-                    except KeyError:
-                        # The variable could not be computed, let's skip it
-                        continue
-
-                # Get extra attributes if any
-                attributes.update(vars[var].get("attributes", {}))
-
-                # update attributes
-                if attributes:
-                    for att, value in attributes.items():
-                        # Already adjust all attributes but not yet units
-                        if att == "units":
-                            units = value
-                        else:
-                            data[source].attrs[att] = value
-
-                # Override destination units
-                newunits = vars[var].get("units", None)
-                if newunits:
-                    data[source].attrs.update({"units": newunits})
-                    units = newunits
-
-                # Override source units
-                src_units = vars[var].get("src_units", None)
-                if src_units:
-                    data[source].attrs.update({"units": src_units})
-
-                # adjust units
-                if units:
-                    if units.count('{'):
-                        units = fixes["defaults"]["units"][units.replace('{', '').replace('}', '')]
-                    if self.verbose: print(var, ':', data[source].units, '-->', units)
-                    factor, offset = self.convert_units(data[source].units, units, var)
-                    if (factor != 1.0) or (offset != 0):
-                        data[source].attrs.update({"target_units": units})
-                        data[source].attrs.update({"factor": factor})
-                        data[source].attrs.update({"offset": offset})
-                        if self.verbose:
-                            print(f"Fixing {source} to {var}. Unit fix: factor={factor}, offset={offset}")
-
-        # Only now rename everything
-        data = data.rename(fixd)
-        if vars:
-            for var in vars:
-                # Decumulate if required
-                if vars[var].get("decumulate", None):
-                    varname = varlist[var]
-                    keep_first = vars[var].get("keep_first", True)
-                    data[varname] = self.simple_decumulate(data[varname],
-                                                        jump=jump,
-                                                        keep_first=keep_first)
-                    log_history(data[varname], "variable decumulated by AQUA fixer")
-
-        if apply_unit_fix:
-            for var in data.variables:
-                self.apply_unit_fix(data[var])
-
-        dellist = [x for x in fix.get("delete", []) if x in data.variables]
-        if dellist:
-            data = data.drop_vars(dellist)
-
-        # Fix coordinates according to a given data model
-        src_datamodel = fix.get("data_model", src_datamodel)
-        if src_datamodel and src_datamodel is not False:
-            data = self.change_coord_datamodel(data, src_datamodel, self.dst_datamodel)
-            log_history(data, "coordinates adjusted by AQUA fixer")
-
-        return data
-
-    def change_coord_datamodel(self, data, src_datamodel, dst_datamodel):
-        """
-        Wrapper around cfgrib.cf2cdm to perform coordinate conversions
-
-        Arguments:
-            data (xr.DataSet):      input dataset to process
-            src_datamodel (str):    input datamodel (e.g. "cf")
-            dst_datamodel (str):    output datamodel (e.g. "cds")
-
-        Returns:
-            The processed input dataset
-        """
-        fn = os.path.join(self.configdir, 'data_models', f'{src_datamodel}2{dst_datamodel}.json')
-        if self.verbose: print("Data model:", fn)
-        with open(fn, 'r') as f:
-            dm = json.load(f)
-        # this is needed since cf2cdm issues a (useless) UserWarning
-        with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", category=UserWarning)
-            data = cf2cdm.translate_coords(data, dm)
-            # Hack needed because cfgrib.cf2cdm mixes up coordinates with dims
-            if "forecast_reference_time" in data.dims:
-                data = data.swap_dims({"forecast_reference_time": "time"})
-        return data
-
-    def convert_units(self, src, dst, var="input var"):
-        """
-        Converts source to destination units using metpy.
-
-        Arguments:
-            src (str):  source units
-            dst (str):  destination units
-            var (str):  variable name (optional, used only for diagnostic output)
-
-        Returns:
-            factor, offset (float): a factor and an offset to convert the input data (None if not needed).
-        """
-
-        src = normalize_units(src)
-        dst = normalize_units(dst)
-        factor = units(src).to_base_units() / units(dst).to_base_units()
-
-        if factor.units == units('dimensionless'):
-            offset = (0 * units(src)).to(units(dst)) - (0 * units(dst))
-        else:
-            if factor.units == "meter ** 3 / kilogram":
-                # Density of water was missing
-                factor = factor * 1000 * units("kg m-3")
-                if self.verbose: print(f"{var}: corrected multiplying by density of water 1000 kg m-3")
-            elif factor.units == "meter ** 3 * second / kilogram":
-                # Density of water and accumulation time were missing
-                factor = factor * 1000 * units("kg m-3") / (self.deltat * units("s"))
-                if self.verbose: print(f"{var}: corrected multiplying by density of water 1000 kg m-3")
-                if self.verbose: print(f"{var}: corrected dividing by accumulation time {self.deltat} s")
-            elif factor.units == "second":
-                # Accumulation time was missing
-                factor = factor / (self.deltat * units("s"))
-                if self.verbose: print(f"{var}: corrected dividing by accumulation time {self.deltat} s")
-            elif factor.units == "kilogram / meter ** 3":
-                # Density of water was missing
-                factor = factor / (1000 * units("kg m-3"))
-                if self.verbose: print(f"{var}: corrected dividing by density of water 1000 kg m-3")
-            else:
-                if self.verbose: print(f"{var}: incommensurate units converting {src} to {dst} --> {factor.units}")
-            offset = 0 * units(dst)
-
-        if offset.magnitude != 0:
-            factor = 1
-            offset = offset.magnitude
-        else:
-            offset = 0
-            factor = factor.magnitude
-        return factor, offset
-
-    def apply_unit_fix(self, data):
-        """
-        Applies unit fixes stored in variable attributes (target_units, factor and offset)
-
-        Arguments:
-            data (xr.DataArray):  input DataArray
-        """
-        target_units = data.attrs.get("target_units", None)
-        if target_units:
-            d = {"src_units": data.attrs["units"], "units_fixed": 1}
-            data.attrs.update(d)
-            data.attrs["units"] = normalize_units(target_units)
-            factor = data.attrs.get("factor", 1)
-            offset = data.attrs.get("offset", 0)
-            if factor != 1:
-                data *= factor
-            if offset != 0:
-                data += offset
-            log_history(data, "units changed by AQUA fixer")
-
-# The following are not methods of the class - to be moved to a separate source file ultmately
-# (let's wait for a general refactor)
-
-
-def normalize_units(src):
-    """Get rid of crazy grib units"""
-    if src == '1':
-        return 'dimensionless'
-    else:
-        return str(src).replace("of", "").replace("water", "").replace("equivalent", "")
-
-
-def _check_catalog_source(cat, model, exp, source, name="dictionary"):
-    """
-    Check the entries of a nested dictionary based on the model/exp/source structure
-    and return an updated source.
-    The name argument can be used for a proper printing.
-
-    Returns:
-    an updated source id (str).
-    If source is not specified "default" is chosen or, if missing, the first source
-    """
-
-    if model not in cat:
-        raise KeyError(f"Model {model} not found in {name}.")
-    if exp not in cat[model]:
-        raise KeyError(f"Experiment {exp} not found in {name} for model {model}.")
-
-    if source:
-        if source not in cat[model][exp]:
-            if "default" not in cat[model][exp]:
-                raise KeyError(f"Source {source} of experiment {exp} "
-                               f"not found in {name} for model {model}.")
-            else:
-                source = "default"
-    else:
-        source = list(cat[model][exp].keys())[0]  # take first source if none provided
-
-    return source
 
 
 def reader_esm(esmcat, var):
@@ -1163,10 +542,11 @@ def reader_intake(esmcat, var):
         # conversion to list guarantee that Dataset is produced
         if isinstance(var, str):
             var = var.split()
-        data = esmcat.to_dask()[var]
+        data = esmcat.to_dask()
+        if all(element in data.data_vars for element in loadvar):
+            data = data[loadvar]
+        else:
+            raise KeyError("You are asking for variables which we cannot find in the catalog!")
     else:
         data = esmcat.to_dask()
     return data
-
-=======
->>>>>>> main
