@@ -29,6 +29,9 @@ dependencies:
   - ipykernel
   - healpy
   - fdb
+# these below are only required for documentation
+  - sphinx
+  - sphinx-rtd-theme
 # these are pip-based since it provides more recent versions or packages unavailable on conda-forge
   - pip
   - pip:
