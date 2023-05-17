@@ -71,6 +71,7 @@ AQUA provides functions to interpolate and regrid data to match the spatial reso
 AQUA regridding functionalities are based on the external tool `smmregrid <https://github.com/jhardenberg/smmregrid>` which 
 operates sparse matrix computation based on externally-computed weights. 
 
+
 The idea of the regridder is first to generate the weights for the interpolation and then to use them for each regridding operation. 
 The reader generates the regridding weights automatically (with CDO) if not already existent and stored
 in a directory specified in the `config/regrid.yaml` file. The same file also contains a list of predefined target grids

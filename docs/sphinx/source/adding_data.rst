@@ -23,7 +23,7 @@ The most straightforward intake catalogue describing this dataset will look like
 
     sources:
       annual:
-        description: my amasing yearly_SST dataset    
+        description: my amazing yearly_SST dataset    
         driver: netcdf
         args:
             chunks:
