@@ -1,7 +1,7 @@
 API Reference
 =============
 
-This section provides a detailed reference for the Application Programming Interface (API) of AQUA.
+This section provides a detailed reference for AQUA's Application Programming Interface (API).
 
 .. automodule:: aqua
     :members:

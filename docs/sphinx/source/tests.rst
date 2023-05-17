@@ -7,21 +7,21 @@ for writing and running tests.
 
 Continuous Integration/Continuous Deployment (CI/CD) is currently handled by GitHub Actions, 
 which runs the test suite on various Python versions whenever changes are pushed to the repository.
-In the future (CI/CD) will be also run on HPC systems. 
+In the future (CI/CD) will also be run on HPC systems. 
 
 Running Tests Locally
 ---------------------
 
-Before you run tests locally, ensure that you have installed all the necessary dependencies, including `pytest`.
+Before running tests locally, ensure you have installed all the necessary dependencies, including `pytest`.
 
-To run the test suite, navigate to the root directory of the project and run:
+To run the test suite, navigate to the root directory of the project and run the following:
 
 .. code-block:: bash
 
     ./download_data_for_tests.sh
 
-This will download the data needed for the tests, and change the machine name in the `config/config.yaml` to `ci`. 
-Don't forget to change it back to your machine name after the tests are finished.
+This will download the data needed for the tests and change the machine name in the `config/config.yaml` to `ci`. 
+Remember to change it to your machine name after the tests are finished.
 
 Then, run the following command:
 
@@ -29,7 +29,7 @@ Then, run the following command:
 
     python -m pytest ./tests/test_basic.py
 
-This will run the basic test suite and print the results to the terminal. Have a look at `tests` directory for more tests.
+This will run the basic test suite and print the results to the terminal. Have a look at the `tests` directory for more tests.
 
 
 Writing Tests
@@ -63,6 +63,6 @@ The configuration for GitHub Actions is located in the `.github/workflows` direc
 Test Coverage
 -------------
 
-We currently implementing test coverage using `pytest-cov`.
+We are currently implementing test coverage using `pytest-cov`.
 
 

@@ -4,8 +4,9 @@ Examples and Tutorials
 Jupyter Notebooks for Various Use Cases
 ---------------------------------------
 
-AQUA provides a collection of Jupyter notebooks to help users explore and understand its capabilities, which are stored in `notebooks` folder and 
-includes a range of use cases, from basic examples to advanced applications. Some example notebooks include:
+AQUA provides a collection of Jupyter notebooks to help users explore and understand its capabilities, 
+which are stored in the :doc:`notebooks` folder and include a range of use cases, from basic examples to advanced applications. 
+Some example notebooks include:
 
 1. `Introduction and main features <https://github.com/oloapinivad/AQUA/blob/main/notebooks/reader/main.ipynb>`_
 2. `Regridding <https://github.com/oloapinivad/AQUA/blob/main/notebooks/reader/regrid.ipynb>`_
