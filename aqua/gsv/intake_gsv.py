@@ -6,8 +6,8 @@ from intake.source import base
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-#sys.path.append("../gsv_interface")
-from gsv_interface.gsv.retriever import GSVRetriever
+sys.path.append("gsv_interface")
+from gsv.retriever import GSVRetriever
 
 class GSVSource(base.DataSource):
     container = 'xarray'
