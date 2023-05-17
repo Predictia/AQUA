@@ -117,7 +117,7 @@ class Reader(FixerMixin, RegridMixin):
         # Expose grid information for the source
         sgridpath = source_grid.get("path", None)
         if sgridpath:
-            self.src_grid = xr.open_dataset(sgridpath)
+            self.src_grid = xr.open_dataset(sgridpath, decode_times=False)
         else:
             self.src_grid = None
 
