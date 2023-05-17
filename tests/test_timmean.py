@@ -47,6 +47,6 @@ def test_timmean_yearly_reader():
 
 def test_timmean_pandas_reader():
     """Timmean test for weekly aggregation based on pandas labels from Reader directly"""
-    reader = Reader(model="IFS", exp="test-tco79", source='long', freq='W-MON', var='2t')
-    data = reader.retrieve(timmean=True)
+    reader = Reader(model="IFS", exp="test-tco79", source='long', freq='W-MON')
+    data = reader.retrieve(var='2t', timmean=True)
     assert data['2t'].shape == (29, 9, 18)
