@@ -38,20 +38,20 @@ class Reader(FixerMixin, RegridMixin):
             model (str):            model ID
             exp (str):              experiment ID
             source (str):           source ID
-            regrid (str):           perform regridding to grid `regrid`, 
+            regrid (str):           perform regridding to grid `regrid`,
                                     as defined in `config/regrid.yaml` (None)
             method (str):           regridding method (ycon)
             zoom (int):             healpix zoom level
-            configdir (str)         folder where the config/catalog files 
+            configdir (str)         folder where the config/catalog files
                                     are located (config)
             areas (bool):           compute pixel areas if needed (True)
-            datamodel (str):        destination data model for coordinates, 
+            datamodel (str):        destination data model for coordinates,
                                     overrides the one in fixes.yaml (None)
             streaming (bool):       if to retreive data in a streaming mode (False)
             stream_step (int):      the number of time steps to stream the data by (Default = 1)
             stream_unit (str):      the unit of time to stream the data by
                                     (e.g. 'hours', 'days', 'months', 'years') (None)
-            stream_startdate (str): the starting date for streaming the data 
+            stream_startdate (str): the starting date for streaming the data
                                     (e.g. '2020-02-25') (None)
             rebuild (bool):         force rebuilding of area and weight files
             loglevel (string):      Level of logging according to logging module
@@ -64,7 +64,7 @@ class Reader(FixerMixin, RegridMixin):
 
         # define the internal logger
         self.logger = log_configure(log_level=loglevel, log_name='Reader')
-        
+
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
@@ -114,7 +114,7 @@ class Reader(FixerMixin, RegridMixin):
 
         # load and check the regrid
         cfg_regrid = load_yaml(self.regrid_file)
-        source_grid_id = check_catalog_source(cfg_regrid["source_grids"], 
+        source_grid_id = check_catalog_source(cfg_regrid["source_grids"],
                                               self.model, self.exp, source, name='regrid')
         source_grid = cfg_regrid["source_grids"][self.model][self.exp][source_grid_id]
         self.vert_coord = source_grid.get("vert_coord", None)  # Some more checks needed
@@ -130,7 +130,6 @@ class Reader(FixerMixin, RegridMixin):
         # Default destination datamodel (unless specified in instantiating the Reader)
         if not self.dst_datamodel:
             self.dst_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
-
 
         self.src_space_coord = source_grid.get("space_coord", None)
         self.space_coord = self.src_space_coord
@@ -283,7 +282,7 @@ class Reader(FixerMixin, RegridMixin):
                 data = self.streamer.stream(data, stream_step=stream_step,
                                             stream_unit=stream_unit,
                                             stream_startdate=stream_startdate)
-         
+
         # safe check that we provide only what exactly asked by var
         if var:
             data = data[var]
