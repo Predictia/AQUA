@@ -27,7 +27,7 @@ class Reader(FixerMixin, RegridMixin):
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
                  regrid=None, method="ycon", zoom=None, configdir=None,
-                 areas=True, var=None, vars=None,  # pylint: disable=W0622
+                 areas=True,  # pylint: disable=W0622
                  datamodel=None, streaming=False, stream_step=1, stream_unit='steps',
                  stream_startdate=None, rebuild=False, loglevel=None, nproc=16):
         """
@@ -45,8 +45,6 @@ class Reader(FixerMixin, RegridMixin):
             configdir (str)         folder where the config/catalog files 
                                     are located (config)
             areas (bool):           compute pixel areas if needed (True)
-            var (str, list):        variable(s) which we will extract; 
-                                    vars is a synonym (None)
             datamodel (str):        destination data model for coordinates, 
                                     overrides the one in fixes.yaml (None)
             streaming (bool):       if to retreive data in a streaming mode (False)
@@ -66,10 +64,7 @@ class Reader(FixerMixin, RegridMixin):
 
         # define the internal logger
         self.logger = log_configure(log_level=loglevel, log_name='Reader')
-
-        if vars:
-            var = vars
-        self.var = var
+        
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
@@ -106,6 +101,13 @@ class Reader(FixerMixin, RegridMixin):
             get_reader_filenames(self.configdir, self.machine))
         self.cat = intake.open_catalog(self.catalog_file)
 
+        # check source existence
+        self.source = check_catalog_source(self.cat, self.model, self.exp, source, name="catalog")
+
+        # get fixes dictionary and find them
+        self.fixes_dictionary = load_multi_yaml(self.fixer_folder)
+        self.fixes = self.find_fixes()
+
         # Store the machine-specific CDO path if available
         cfg_base = load_yaml(self.config_file)
         self.cdo = cfg_base["cdo"].get(self.machine, "cdo")
@@ -127,10 +129,8 @@ class Reader(FixerMixin, RegridMixin):
         self.dst_datamodel = datamodel
         # Default destination datamodel (unless specified in instantiating the Reader)
         if not self.dst_datamodel:
-            fixes = load_multi_yaml(self.fixer_folder)
-            self.dst_datamodel = fixes["defaults"].get("dst_datamodel", None)
+            self.dst_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
 
-        self.source = check_catalog_source(self.cat, self.model, self.exp, source, name="catalog")
 
         self.src_space_coord = source_grid.get("space_coord", None)
         self.space_coord = self.src_space_coord
@@ -226,8 +226,6 @@ class Reader(FixerMixin, RegridMixin):
 
         if vars:
             var = vars
-        if not var:
-            var = self.var
 
         # Extract data from cat.
         # If this is an ESM-intake catalogue use first dictionary value,
@@ -248,14 +246,20 @@ class Reader(FixerMixin, RegridMixin):
                                           )
             data = list(data.values())[0]
         else:
+            data = esmcat.to_dask()
+
             if var:
                 # conversion to list guarantee that Dataset is produced
                 if isinstance(var, str):
                     var = var.split()
-                data = esmcat.to_dask()[var]
 
-            else:
-                data = esmcat.to_dask()
+                # get loadvar
+                loadvar = self.get_fixer_varname(var) if fix else var
+
+                if all(element in data.data_vars for element in loadvar):
+                    data = data[loadvar]
+                else:
+                    raise KeyError("You are asking for variables which we cannot find in the catalog!")
 
         log_history(data, "retrieved by AQUA retriever")
 
@@ -279,6 +283,10 @@ class Reader(FixerMixin, RegridMixin):
                 data = self.streamer.stream(data, stream_step=stream_step,
                                             stream_unit=stream_unit,
                                             stream_startdate=stream_startdate)
+         
+        # safe check that we provide only what exactly asked by var
+        if var:
+            data = data[var]
 
         return data
 
@@ -316,11 +324,11 @@ class Reader(FixerMixin, RegridMixin):
             freq = self.freq
 
         # translate frequency in pandas-style time
-        if freq == 'mon':
+        if freq == 'monthly':
             resample_freq = '1M'
-        elif freq == 'day':
+        elif freq == 'daily':
             resample_freq = '1D'
-        elif freq == 'yr':
+        elif freq == 'yearly':
             resample_freq = '1Y'
         else:
             resample_freq = freq
