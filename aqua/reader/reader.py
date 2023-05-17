@@ -1,66 +1,82 @@
+"""The main AQUA Reader class"""
+
 import os
 import sys
+<<<<<<< HEAD
 import subprocess
 import tempfile
 import json
 import warnings
 import types
+=======
+>>>>>>> main
 
 import intake
 import intake_esm
 import xarray as xr
-import pandas as pd
-from metpy.units import units
+
+from metpy.units import units, DimensionalityError
 import numpy as np
 import smmregrid as rg
 
+<<<<<<< HEAD
 import cf2cdm
 from aqua.util import load_yaml, _eval_formula, get_eccodes_attr
 from aqua.util import get_reader_filenames, get_config_dir, get_machine
 from aqua.util import log_history, log_history_iter
 import aqua.gsv
+=======
+from aqua.util import load_yaml, load_multi_yaml
+from aqua.util import get_reader_filenames, get_config_dir, get_machine
+from aqua.util import log_history
+from aqua.logger import log_configure
+
+from .streaming import Streaming
+from .fixer import FixerMixin
+from .regrid import RegridMixin
+from .reader_utils import check_catalog_source
+>>>>>>> main
 
 
-class Reader():
+class Reader(FixerMixin, RegridMixin):
     """General reader for NextGEMS data (on Levante for now)"""
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
                  regrid=None, method="ycon", zoom=None, configdir=None,
-                 level=None, areas=True, var=None, vars=None, verbose=False,
-                 datamodel=None, streaming=False, stream_step=1, stream_unit=None,
-                 stream_startdate=None, rebuild=False):
+                 level=None, areas=True,  # pylint: disable=W0622
+                 datamodel=None, streaming=False, stream_step=1, stream_unit='steps',
+                 stream_startdate=None, rebuild=False, loglevel=None):
         """
         The Reader constructor.
         It uses the catalog `config/config.yaml` to identify the required data.
 
         Arguments:
-            model (str):         model ID
-            exp (str):           experiment ID
-            source (str):        source ID
-            regrid (str):        perform regridding to grid `regrid`, as defined in `config/regrid.yaml` (None)
-            method (str):        regridding method (ycon)
-            zoom (int):          healpix zoom level
-            configdir (str)      folder where the config/catalog files are located (config)
-            level (int):         level to extract if input data are 3D (starting from 0)
-            areas (bool):        compute pixel areas if needed (True)
-            var (str, list):     variable(s) which we will extract. "vars" is a synonym (None)
-            verbose (bool):      print extra debugging info
-            datamodel (str):     destination data model for coordinates, overrides the one in fixes.yaml (None)
+            model (str):            model ID
+            exp (str):              experiment ID
+            source (str):           source ID
+            regrid (str):           perform regridding to grid `regrid`, as defined in `config/regrid.yaml` (None)
+            method (str):           regridding method (ycon)
+            zoom (int):             healpix zoom level
+            configdir (str)         folder where the config/catalog files are located (config)
+            level (int):            level to extract if input data are 3D (starting from 0)
+            areas (bool):           compute pixel areas if needed (True)
+            datamodel (str):        destination data model for coordinates, overrides the one in fixes.yaml (None)
             streaming (bool):       if to retreive data in a streaming mode (False)
             stream_step (int):      the number of time steps to stream the data by (Default = 1)
-            stream_unit (str):      the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (None)
+            stream_unit (str):      the unit of time to stream the data by
+                                    (e.g. 'hours', 'days', 'months', 'years') (None)
             stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
-            rebuild (bool):   force rebuilding of area and weight files
+            rebuild (bool):         force rebuilding of area and weight files
+            loglevel (string):      Level of logging according to logging module
+                                    (default: log_level_default of loglevel())
 
         Returns:
             A `Reader` class object.
         """
 
-        if vars:
-            self.var = vars
-        else:
-            self.var = var
-        self.verbose = verbose
+        # define the internal logger
+        self.logger = log_configure(log_level=loglevel, log_name='Reader')
+        
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
@@ -70,18 +86,22 @@ class Reader():
         self.freq = freq
         self.level = level
         self.vertcoord = None
+        self.deltat = 1
         extra = []
 
         self.grid_area = None
         self.src_grid_area = None
         self.dst_grid_area = None
 
-        self.stream_index = 0
-        self.stream_date = None
         self.streaming = streaming
-        self.stream_step = stream_step
-        self.stream_unit = stream_unit
-        self.stream_startdate = stream_startdate
+        self.streamer = Streaming(stream_step=stream_step,
+                                  stream_unit=stream_unit,
+                                  stream_startdate=stream_startdate,
+                                  loglevel=loglevel)
+        # Export streaming methods
+        self.reset_stream = self.streamer.reset_stream
+        self.stream = self.streamer.stream
+        self.stream_generator = self.streamer.stream_generator
 
         if not configdir:
             self.configdir = get_config_dir()
@@ -90,28 +110,44 @@ class Reader():
         self.machine = get_machine(self.configdir)
 
         # get configuration from the machine
-        self.catalog_file, self.regrid_file, self.fixer_file = get_reader_filenames(self.configdir, self.machine)
+        self.catalog_file, self.regrid_file, self.fixer_folder, self.config_file = get_reader_filenames(self.configdir, self.machine)
         self.cat = intake.open_catalog(self.catalog_file)
+
+        # check source existence
+        self.source = check_catalog_source(self.cat, self.model, self.exp, source, name="catalog")
+
+        # get fixes dictionary and find them
+        self.fixes_dictionary = load_multi_yaml(self.fixer_folder)
+        self.fixes = self.find_fixes()
+
+        # Store the machine-specific CDO path if available
+        cfg_base = load_yaml(self.config_file)
+        self.cdo = cfg_base["cdo"].get(self.machine, "cdo")
 
         # load and check the regrid
         cfg_regrid = load_yaml(self.regrid_file)
-        source_grid_id = _check_catalog_source(cfg_regrid["source_grids"], self.model, self.exp, source, name='regrid')
+        source_grid_id = check_catalog_source(cfg_regrid["source_grids"], self.model, self.exp, source, name='regrid')
         source_grid = cfg_regrid["source_grids"][self.model][self.exp][source_grid_id]
+        self.vertcoord = source_grid.get("vertcoord", None)  # Some more checks needed
+
+        # Expose grid information for the source
+        sgridpath = source_grid.get("path", None)
+        if sgridpath:
+            self.src_grid = xr.open_dataset(sgridpath, decode_times=False)
+        else:
+            self.src_grid = None
 
         self.dst_datamodel = datamodel
         # Default destination datamodel (unless specified in instantiating the Reader)
         if not self.dst_datamodel:
-            fixes = load_yaml(self.fixer_file)
-            self.dst_datamodel = fixes["defaults"].get("dst_datamodel", None)
+            self.dst_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
 
-        self.source = _check_catalog_source(self.cat, self.model, self.exp, source, name="catalog")
 
         self.src_space_coord = source_grid.get("space_coord", None)
         self.space_coord = self.src_space_coord
         self.dst_space_coord = ["lon", "lat"]
 
         if regrid:
-            self.vertcoord = source_grid.get("vertcoord", None)  # Some more checks needed
             if level is not None:
                 if not self.vertcoord:
                     raise KeyError("You should specify a vertcoord key in regrid.yaml for this source to use levels.")
@@ -171,6 +207,7 @@ class Reader():
 
             self.grid_area = self.src_grid_area
 
+<<<<<<< HEAD
     def _make_dst_area_file(self, areafile, grid):
         """Helper function to create destination (regridded) area files."""
 
@@ -349,6 +386,12 @@ class Reader():
                  streaming = False, stream_step = 1, stream_unit=None, 
                  stream_startdate = None, streaming_generator = False,
                  startdate=None, enddate=None):
+=======
+    def retrieve(self, regrid=False, timmean=False, decumulate=False,
+                 fix=True, apply_unit_fix=True, var=None, vars=None,  # pylint: disable=W0622
+                 streaming=False, stream_step=None, stream_unit=None,
+                 stream_startdate=None, streaming_generator=False):
+>>>>>>> main
         """
         Perform a data retrieve.
         
@@ -359,11 +402,12 @@ class Reader():
             fix (bool):             if to perform a fix (var name, units, coord name adjustments) (True)
             apply_unit_fix (bool):  if to already adjust units by multiplying by a factor or adding
                                     an offset (this can also be done later with the `apply_unit_fix` method) (True)
-            var (str, list):  variable(s) which we will extract. "vars" is a synonym (None)
+            var (str, list):  variable(s) which we will extract; vars is a synonym (None)
             streaming (bool):       if to retreive data in a streaming mode (False)
             streaming_generator (bool):  if to return a generator object for data streaming (False).
             stream_step (int):      the number of time steps to stream the data by (Default = 1)
-            stream_unit (str):      the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years') (None)
+            stream_unit (str):      the unit of time to stream the data by
+                                    (e.g. 'hours', 'days', 'months', 'years') (None)
             stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
         Returns:
             A xarray.Dataset containing the required data.
@@ -378,12 +422,15 @@ class Reader():
 
         if vars:
             var = vars
+<<<<<<< HEAD
         if not var:
             var = self.var
         
         # Extract data from catalogue
 
         fiter = False
+=======
+>>>>>>> main
 
         # If this is an ESM-intake catalogue use first dictionary value,
         if isinstance(esmcat, intake_esm.core.esm_datastore):
@@ -392,6 +439,7 @@ class Reader():
         elif isinstance(esmcat, aqua.gsv.intake_gsv.GSVSource):
             data = reader_fdb(esmcat, var, startdate, enddate)
         else:
+<<<<<<< HEAD
             data = reader_intake(esmcat, var)  # Returns a generator object
             fiter = True
 
@@ -516,6 +564,55 @@ class Reader():
                 stop_index = start_index + stream_step
                 yield data.isel(time=slice(start_index, stop_index))
                 start_index = stop_index
+=======
+            data = esmcat.to_dask()
+
+            if var:
+                # conversion to list guarantee that Dataset is produced
+                if isinstance(var, str):
+                    var = var.split()
+
+                # get loadvar
+                loadvar = self.get_fixer_varname(var) if fix else var
+
+                if all(element in data.data_vars for element in loadvar):
+                    data = data[loadvar]
+                else:
+                    raise KeyError("You are asking for variables which we cannot find in the catalog!")
+
+        # select only a specific level when reading. Level coord names defined in regrid.yaml
+        if self.level is not None:
+            data = data.isel({self.vertcoord: self.level})
+
+        log_history(data, "retrieved by AQUA retriever")
+
+        # sequence which should be more efficient: decumulate - averaging - regridding - fixing
+        if decumulate:
+            # data = data.map(self.decumulate, keep_attrs=True)
+            data = data.map(self.decumulate)
+        if self.freq and timmean:
+            data = self.timmean(data)
+        if self.targetgrid and regrid:
+            data = self.regridder.regrid(data)
+            self.grid_area = self.dst_grid_area
+        if fix:   # Do not change easily this order. The fixer assumes to be after regridding
+            data = self.fixer(data, apply_unit_fix=apply_unit_fix)
+        if streaming or self.streaming or streaming_generator:
+            if streaming_generator:
+                data = self.streamer.stream_generator(data, stream_step=stream_step,
+                                                      stream_unit=stream_unit,
+                                                      stream_startdate=stream_startdate)
+            else:
+                data = self.streamer.stream(data, stream_step=stream_step,
+                                            stream_unit=stream_unit,
+                                            stream_startdate=stream_startdate)
+         
+        # safe check that we provide only what exactly asked by var
+        if var:
+            data = data[var]
+
+        return data
+>>>>>>> main
 
     def regrid(self, data):
         """Call the regridder function returnin container or iterator"""
@@ -542,7 +639,11 @@ class Reader():
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
 
+<<<<<<< HEAD
         out = log_history(out, "regridded by AQUA fixer")  # Call directly the dataset version, XXX
+=======
+        log_history(out, "regridded by AQUA regridder")
+>>>>>>> main
         return out
 
     def timmean(self, data, freq=None):
@@ -559,32 +660,34 @@ class Reader():
             freq = self.freq
 
         # translate frequency in pandas-style time
-        if freq == 'mon':
+        if freq == 'monthly':
             resample_freq = '1M'
-        elif freq == 'day':
+        elif freq == 'daily':
             resample_freq = '1D'
-        elif freq == 'yr':
+        elif freq == 'yearly':
             resample_freq = '1Y'
         else:
             resample_freq = freq
 
         try:
-            # resample, and assign the correct time
+            # resample
+            self.logger.info('Resamplig to %s frequency...', str(resample_freq))
             out = data.resample(time=resample_freq).mean()
-            proper_time = data.time.resample(time=resample_freq).mean()
-            out['time'] = proper_time.values
-        except:
+            # for now, we set initial time of the averaging period following ECMWF standard
+            # HACK: we ignore hours/sec to uniform the output structure
+            proper_time = data.time.resample(time=resample_freq).min()
+            out['time'] = np.array(proper_time.values, dtype='datetime64[h]')
+        except ValueError:
             sys.exit('Cant find a frequency to resample, aborting!')
 
         # check for NaT
         if np.any(np.isnat(out.time)):
-            print('WARNING: Resampling cannot produce output for all frequency step, is your input data correct?')
+            self.logger.warning('Resampling cannot produce output for all frequency step, is your input data correct?')
 
-        log_history(out, f"resampled to frequency {resample_freq} by AQUA fixer")
+        log_history(out, f"resampled to frequency {resample_freq} by AQUA timmean")
         return out
 
     def _check_if_accumulated_auto(self, data):
-
         """To check if a DataArray is accumulated.
         Arbitrary check on the first 20 timesteps"""
 
@@ -601,7 +704,6 @@ class Reader():
         return condition
 
     def _check_if_accumulated(self, data):
-
         """To check if a DataArray is accumulated.
         On a list of variables defined by the GRIB names
 
@@ -621,48 +723,6 @@ class Reader():
             return True
         else:
             return False
-
-    def simple_decumulate(self, data, jump=None, keep_first=True):
-        """
-        Remove cumulative effect on IFS fluxes.
-
-        Args:
-            data (xr.DataArray):     field to be processed
-            jump (str):              used to fix periodic jumps (a very specific NextGEMS IFS issue)
-                                     Examples: jump='month' (the NextGEMS case), jump='day')
-            keep_first (bool):       if to keep the first value as it is (True) or place a 0 (False)
-
-        Returns:
-            A xarray.DataArray where the cumulation has been removed
-        """
-
-        # get the derivatives
-        deltas = data.diff(dim='time')
-
-        # add a first timestep empty to align the original and derived fields
-        if keep_first:
-            zeros = data.isel(time=0)
-        else:
-            zeros = xr.zeros_like(data.isel(time=0))
-
-        deltas = xr.concat([zeros, deltas], dim='time').transpose('time', ...)
-
-        if jump:
-            # universal mask based on the change of month (shifted by one timestep)
-            mask = ~(data[f'time.{jump}'] != data[f'time.{jump}'].shift(time=1))
-            mask = mask.shift(time=1, fill_value=False)
-
-            # kaboom: exploit where
-            deltas = deltas.where(mask, data)
-
-            # remove the first timestep (no sense in cumulated)
-            # clean = clean.isel(time=slice(1, None))
-
-        # add an attribute that can be later used to infer about decumulation
-        deltas.attrs['decumulated'] = 1
-
-        log_history(deltas, "decumulated by AQUA fixer")
-        return deltas
 
     def decumulate(self, data, cumulation_time=None, check=True):
         """
@@ -720,7 +780,7 @@ class Reader():
         # usual case for radiative fluxes
         try:
             clean.attrs['units'] = str(new_units.to('W/m^2').units)
-        except:
+        except DimensionalityError:
             clean.attrs['units'] = str(new_units.units)
 
         # add an attribute that can be later used to infer about decumulation
@@ -744,60 +804,6 @@ class Reader():
             att = data.attrs
 
         return att.get("regridded", False)
-
-    def _get_spatial_sample(self, da, space_coord):
-        """
-        Selects a single spatial sample along the dimensions specified in `space_coord`.
-
-        Arguments:
-            da (xarray.DataArray): Input data array to select the spatial sample from.
-            space_coord (list of str): List of dimension names corresponding to the spatial coordinates to select.
-
-        Returns:
-            Data array containing a single spatial sample along the specified dimensions.
-        """
-
-        dims = list(da.dims)
-        extra_dims = list(set(dims) - set(space_coord))
-        da_out = da.isel({dim: 0 for dim in extra_dims})
-        return da_out
-
-    def _rename_dims(self, da, dim_list):
-        """
-        Renames the dimensions of a DataArray so that any dimension which is already
-        in `dim_list` keeps its name, and the others are renamed to whichever other
-        dimension name is in `dim_list`.
-        If `da` has only one dimension with a name which is different from that in `dim_list`,
-        it is renamed to that new name.
-        If it has two coordinate names (e.g. "lon" and "lat") which appear also in `dim_list`,
-        these are not touched.
-
-        Parameters
-        ----------
-        da : xarray.DataArray
-            The input DataArray to rename.
-        dim_list : list of str
-            The list of dimension names to use.
-        Returns
-        -------
-        xarray.DataArray
-            A new DataArray with the renamed dimensions.
-        """
-
-        dims = list(da.dims)
-        # Lisy of dims which are already there
-        shared_dims = list(set(dims) & set(dim_list))
-        # List of dims in B which are not in space_coord
-        extra_dims = list(set(dims) - set(dim_list))
-        # List of dims in da which are not in dim_list
-        new_dims = list(set(dim_list) - set(dims))
-        i = 0
-        da_out = da
-        for dim in extra_dims:
-            if dim not in shared_dims:
-                da_out = da.rename({dim: new_dims[i]})
-                i += 1
-        return da_out
 
     def fldmean(self, data):
         """
@@ -823,6 +829,7 @@ class Reader():
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
 
         return out
+<<<<<<< HEAD
 
     def fixer(self, data, **kwargs):
         """Call the fixer function returnin container or iterator"""
@@ -1161,3 +1168,5 @@ def reader_intake(esmcat, var):
         data = esmcat.to_dask()
     return data
 
+=======
+>>>>>>> main
