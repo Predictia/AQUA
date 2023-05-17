@@ -34,8 +34,8 @@ Basic Usage
 ~~~~~~~~~~~~~~~~
 Accessing data with the AQUA `Reader` is very straightforward.
 In order to check what is available in the catalogue we can use the `inspect_catalogue` function.
-Each datase is described by 3 layer hierarchical structure. At the top level there are "models" (e.g. ICON, IFS etc.). 
-Each model have different "experiments" and each "experiment" have can have different "sources".
+Each database is described by 3 layes hierarchical structure. At the top level there are "models" (e.g. ICON, IFS etc.). 
+Each model has different "experiments" and each "experiment" can have different "sources".
 
 Calling, for example:
 
@@ -49,7 +49,7 @@ will return experiments available in catalogue for model CERES.
 
 Let's try to load some ICON data with the AQUA "Reader".
 We first instantiate a "Reader" object specifying the type of data which we want to read from the catalogue.
-As mentioned before, the `Reader` access is build on a 3-level hierarchy, made of model, experiment and source. 
+As mentioned before, the `Reader` access is built on a 3-level hierarchy, made of model, experiment and source. 
 
 .. code-block:: python
 
@@ -70,14 +70,14 @@ AQUA provides functions to interpolate and regrid data to match the spatial reso
 AQUA regridding functionalities are based on the external tool  `smmregrid <https://intake.readthedocs.io/en/stable/>`_  which 
 operates sparse matrix computation based on externally-computed weights. 
 
-The idea of the regridder is to first generate the weights for the interpolation and then to use them for each regridding operation. 
+The idea of the regridder is to first generate the weights for the interpolation and then use them for each regridding operation. 
 The regridding weights are generated automatically (with CDO) by the reader if not already existent and stored
 in a directory specified in the `config/regrid.yaml` file. The same file also contains a list of predefined target grids
 (only regular lon-lat for now). For example "r100" is a regular grid at 1° resolution.
 
-In other words, weights are computed externally by CDO (an operation which needs to be done only once) and 
+In other words, weights are computed externally by CDO (an operation that needs to be done only once) and 
 then stored on the machine so that further operations are considerably fast. 
-Such approach has two main advantages:
+Such an approach has two main advantages:
 1. All operations are done in memory, so that no I/O is required and the operations are faster than with CDO
 2. Operations can be easily parallelized with Dask, bringing further speedup. 
 

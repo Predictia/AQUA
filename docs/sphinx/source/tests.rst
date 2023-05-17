@@ -20,7 +20,7 @@ To run the test suite, navigate to the root directory of the project and run:
 
     ./download_data_for_tests.sh
 
-This will download the data needed for the tests, and change machine name in the `config/congig.yaml` to `ci`. 
+This will download the data needed for the tests, and change the machine name in the `config/config.yaml` to `ci`. 
 Don't forget to change it back to your machine name after the tests are finished.
 
 Then, run the following command:
