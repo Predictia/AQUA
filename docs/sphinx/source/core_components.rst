@@ -68,7 +68,7 @@ The reader returns an xarray.Dataset with raw ICON data on the original grid.
 Interpolation and Regridding
 ----------------------------
 AQUA provides functions to interpolate and regrid data to match the spatial resolution of different datasets. 
-AQUA regridding functionalities are based on the external tool `smmregrid <https://github.com/jhardenberg/smmregrid>` which 
+AQUA regridding functionalities are based on the external tool `smmregrid <https://github.com/jhardenberg/smmregrid>`_ which 
 operates sparse matrix computation based on externally-computed weights. 
 
 
@@ -93,7 +93,8 @@ As mentioned, if the weights file does not exist in our collection, it will be c
     reader = Reader(model="ICON", exp="ngc2009", source="atm_2d_ml_R02B09", regrid="r100")
     data = reader.retrieve()
 
-Notice that these data still need to be regridded. You could ask to regrid them directly by specifying the argument ``regrid=True, ``please be warned that this will take longer without a selection.
+Notice that these data still need to be regridded. You could ask to regrid them directly by specifying the argument `regrid=True`. 
+Please be warned that this will take longer without a selection.
 It is usually more efficient to load the data, select it, and regrid it.
 
 Now we regrid part of the data (the temperature of the first 100 frames):
@@ -144,16 +145,10 @@ using the instructions in the 'config/fixes.yaml' file.
 
 The fixer performs a range of operations on data:
 
-- adopt a common 'coordinate data model' (default is the CDS data model): names of coordinates and dimensions 
- (lon, lat, etc.), coordinate units and direction, name (and meaning) of the time dimension. 
+- adopt a common 'coordinate data model' (default is the CDS data model): names of coordinates and dimensions (lon, lat, etc.), coordinate units and direction, name (and meaning) of the time dimension. 
+- derive new variables. In particular, it derives from accumulated variables like "tp" (in mm), the equivalent mean-rate variables (like "tprate", paramid 172228; in mm/s). The fixer can identify these derived variables by their Short Names (ECMWF and WMO eccodes tables are used).
+- using the metpy.units module, it is capable of guessing some basic conversions. In particular, if a density is missing, it will assume that it is the density of water and will take it into account. If there is an extra time unit, it will assume that division by the timestep is needed.
 
-- derive new variables. In particular, it derives from accumulated variables like "tp" (in mm), 
- the equivalent mean-rate variables (like "tprate", paramid 172228; in mm/s). 
- The fixer can identify these derived variables by their Short Names (ECMWF and WMO eccodes tables are used).
-
-- using the metpy.units module, it is capable of guessing some basic conversions. 
- In particular, if a density is missing, it will assume that it is the density of water and will take it into account. 
- If there is an extra time unit, it will assume that division by the timestep is needed.
 
 In the `fixer.yaml` file, it is also possible to specify in a flexible way custom derived variables. For example:
 

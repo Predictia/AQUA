@@ -1,3 +1,3 @@
-SSH variabulity
+SSH variability
 ===============
 
