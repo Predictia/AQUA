@@ -4,7 +4,6 @@ import pytest
 import xarray
 from aqua import Reader, catalogue, inspect_catalogue
 
-@pytest.mark.slow
 @pytest.fixture(params=[(model, exp, source)
                         for model in catalogue()
                         for exp in catalogue()[model]
@@ -24,7 +23,7 @@ def reader(request):
     data = myread.retrieve(fix=False)
     return myread, data
 
-@pytest.mark.aqua
+@pytest.mark.slow
 def test_catalogue(reader):
     """Checking that both reader and Dataset are retrived in reasonable shape"""
     aaa, bbb = reader
