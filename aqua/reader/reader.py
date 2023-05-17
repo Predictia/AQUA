@@ -5,6 +5,7 @@ import sys
 
 import intake
 import intake_esm
+import types
 import xarray as xr
 
 from metpy.units import units, DimensionalityError
@@ -230,7 +231,10 @@ class Reader(FixerMixin, RegridMixin):
         fiter = False
 
         # get loadvar
-        loadvar = self.get_fixer_varname(var) if fix else var
+        if var:
+            loadvar = self.get_fixer_varname(var) if fix else var
+        else:
+            loadvar = None
 
         # If this is an ESM-intake catalogue use first dictionary value,
         if isinstance(esmcat, intake_esm.core.esm_datastore):
@@ -289,12 +293,18 @@ class Reader(FixerMixin, RegridMixin):
         return data
 
     def regrid(self, data):
+        print("DDDDD")
         """Call the regridder function returning container or iterator"""
         if type(data) is types.GeneratorType:
-            for ds in data:
-                yield self._regrid(ds)
+            print("generator")
+            return _regridgen(data)
         else:
+            print("not generator")
             return self._regrid(data)
+
+    def _regridgen(self, data):
+        for ds in data:
+            yield self._regrid(ds)
 
     def _regrid(self, data):
         """
@@ -538,8 +548,8 @@ def reader_intake(esmcat, var):
         if isinstance(var, str):
             var = var.split()
         data = esmcat.to_dask()
-        if all(element in data.data_vars for element in loadvar):
-            data = data[loadvar]
+        if all(element in data.data_vars for element in var):
+            data = data[var]
         else:
             raise KeyError("You are asking for variables which we cannot find in the catalog!")
     else:
