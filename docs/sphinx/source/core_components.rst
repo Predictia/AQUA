@@ -109,7 +109,7 @@ Averaging and Aggregation
 Since AQUA is based on xarray, all spatial and temporal aggregation options are available by default. 
 On top of that, AQUA attempts to load or compute the grid point areas of each dataset so area-weighted averages can be produced without hassle. 
 When we instantiate the `Reader` object, grid areas for the source files are computed if not already available. 
-After this, we can use them for spatial averaging using the `fldmean` method, obtaining timeseries of global (field) averages.
+After this, we can use them for spatial averaging using the `fldmean` method, obtaining time series of global (field) averages.
 For example, if we run the following commands:
 
 .. code-block:: python
@@ -117,7 +117,7 @@ For example, if we run the following commands:
     tprate = data.tprate
     global_mean = reader.fldmean(tprate)
 
-we get a timeseries of the global average tprate.
+we get a time series of the global average tprate.
 
 Input data may not be available at the desired time frequency. It is possible to perform time averaging at a given
 frequency by specifying a frequency in the reader definition and then using the `timmean` method. 
