@@ -28,6 +28,7 @@ dependencies:
 # these below are only required for running notebooks
   - ipykernel
   - healpy
+  - fdb
 # these are pip-based since it provides more recent versions or packages unavailable on conda-forge
   - pip
   - pip:
