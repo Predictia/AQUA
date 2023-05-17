@@ -136,29 +136,40 @@ class Reader(FixerMixin, RegridMixin):
         self.dst_space_coord = ["lon", "lat"]
 
         if regrid:
+            if not self.vert_coord:
+                self.vert_coord = ["2d"]
+            if not isinstance(self.vert_coord, list):
+                self.vert_coord = [self.vert_coord]
+            
+            self.weightsfile = {}
+            self.weights = {}
+            self.regridder = {}
 
-            # compute correct filename ending
-            levname = "3d" if self.vert_coord else "2d"
+            for vc in self.vert_coord:
 
-            self.weightsfile = os.path.join(
-                cfg_regrid["weights"]["path"],
-                cfg_regrid["weights"]["template"].format(model=model,
-                                                         exp=exp,
-                                                         method=method,
-                                                         target=regrid,
-                                                         source=self.source,
-                                                         level=levname))
+                # compute correct filename ending
+                levname = "2d" if vc == "2d" else f"3d-{vc}"
 
-            # If weights do not exist, create them
-            if rebuild or not os.path.exists(self.weightsfile):
-                if os.path.exists(self.weightsfile):
-                    os.unlink(self.weightsfile)
-                self._make_weights_file(self.weightsfile, source_grid,
-                                        cfg_regrid, regrid=regrid,
-                                        extra=extra, zoom=zoom, nproc=nproc)
+                self.weightsfile.update({levname: os.path.join(
+                    cfg_regrid["weights"]["path"],
+                    cfg_regrid["weights"]["template"].format(model=model,
+                                                            exp=exp,
+                                                            method=method,
+                                                            target=regrid,
+                                                            source=self.source,
+                                                            level=levname))
+                                        })
 
-            self.weights = xr.open_mfdataset(self.weightsfile)
-            self.regridder = rg.Regridder(weights=self.weights, vert_coord=self.vert_coord)
+                # If weights do not exist, create them
+                if rebuild or not os.path.exists(self.weightsfile[vc]):
+                    if os.path.exists(self.weightsfile[vc]):
+                        os.unlink(self.weightsfile[vc])
+                    self._make_weights_file(self.weightsfile[vc], source_grid,
+                                            cfg_regrid, regrid=regrid, vert_coord=vc,
+                                            extra=extra, zoom=zoom, nproc=nproc)
+
+                self.weights.update({vc: xr.open_mfdataset(self.weightsfile)})
+                self.regridder.update({vc: rg.Regridder(weights=self.weights, vert_coord=vc)})
 
         if areas:
             self.src_areafile = os.path.join(
