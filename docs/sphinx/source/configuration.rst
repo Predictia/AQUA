@@ -1,10 +1,10 @@
 Configuration
 =============
 
-AQUA configuration is based on a configuration folder `config` which includes a few different files, both local and machine-dependent. 
-The `config.yml` includes the most important path to be stored.
+AQUA configuration is based on a configuration folder `config`, which includes a few different files, both local and machine-dependent. 
+The `config.yml` includes the most crucial path to be stored.
 
-Then, machine-dependent folders are used to specify the properties of the data access and of the AQUA functions, as the interpolation features.
+Then, machine-dependent folders are used to specify the data access properties and the AQUA functions as the interpolation features.
 
 The `config` folder is structured as follows:
 
@@ -35,10 +35,10 @@ In the `config.yaml` file, the following paths are specified:
 
 
 The `data_models` folder contains the data model configuration files, which are used to specify the data model of the datasets.
-The `fixes` folder contains the fixer configuration files, which are used to fix the data in terms of variable names and units.
+The `fixes` folder contains the fixer configuration files used to fix the data in terms of variable names and units.
 
-Each machine folder contains a `catalog.yaml` file, which specifies the data access properties,
-and a `regrid.yaml` file, which specifies the interpolation properties. 
+Each machine folder contains a `catalog.yaml` file specifying the data access properties
+and a `regrid.yaml` file specifying the interpolation properties. 
 The `catalog` folder inside each `machine` folder contains intake catalogs for individual datasets.
 
-For more detailed description of the content in the machine folder, see section on :doc:`adding_data`.
+For a more detailed description of the content in the machine folder, see the section on :doc:`adding_data`.
