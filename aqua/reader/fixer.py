@@ -371,6 +371,7 @@ class FixerMixin():
             if offset != 0:
                 data += offset
             log_history(data, "units changed by AQUA fixer")
+            data.attrs.pop('target_units', None)
 
 
 def normalize_units(src):
