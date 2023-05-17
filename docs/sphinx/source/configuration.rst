@@ -39,6 +39,6 @@ The `fixes` folder contains the fixer configuration files used to fix the data i
 
 Each machine folder contains a `catalog.yaml` file specifying the data access properties
 and a `regrid.yaml` file specifying the interpolation properties. 
-The `catalog` folder inside each `machine` folder contains intake catalogs for individual datasets.
+The `catalog` folder inside each `machine` folder contains intake catalogues for individual datasets.
 
 For a more detailed description of the content in the machine folder, see the section on :doc:`adding_data`.
