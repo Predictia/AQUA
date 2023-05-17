@@ -2,11 +2,6 @@
 
 import os
 import sys
-import subprocess
-import tempfile
-import json
-import warnings
-import types
 
 import intake
 import intake_esm
@@ -294,7 +289,7 @@ class Reader(FixerMixin, RegridMixin):
         return data
 
     def regrid(self, data):
-        """Call the regridder function returnin container or iterator"""
+        """Call the regridder function returning container or iterator"""
         if type(data) is types.GeneratorType:
             for ds in data:
                 yield self._regrid(ds)
