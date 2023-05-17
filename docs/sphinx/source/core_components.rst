@@ -68,7 +68,7 @@ The reader returns an xarray.Dataset with raw ICON data on the original grid.
 Interpolation and Regridding
 ----------------------------
 AQUA provides functions to interpolate and regrid data to match the spatial resolution of different datasets. 
-AQUA regridding functionalities are based on the external tool `smmregrid <https://intake.readthedocs.io/en/stable/>`_ which 
+AQUA regridding functionalities are based on the external tool `smmregrid <https://github.com/jhardenberg/smmregrid>` which 
 operates sparse matrix computation based on externally-computed weights. 
 
 The idea of the regridder is first to generate the weights for the interpolation and then to use them for each regridding operation. 
