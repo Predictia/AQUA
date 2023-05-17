@@ -10,7 +10,7 @@ users - diagnostics developers or climate researchers interested in accessing mo
 For this reason, whatever object accessed by AQUA is delivered as a `xarray <https://docs.xarray.dev/en/stable/>`_ object.
 The package is built around a few core concepts:
 
-- Data reading and preprocessing: Data are exposed through `intake <https://intake.readthedocs.io/en/stable/>`_ catalogs 
+- Data reading and preprocessing: Data are exposed through `intake <https://intake.readthedocs.io/en/stable/>`_ catalogues 
  and represented as `xarray <https://docs.xarray.dev/en/stable/>`_ objects. This allows us to easily read and preprocess data from various sources, including local files, remote servers, and cloud storage, from climate models and observational datasets.
 - Data fixing: AQUA provides capabilities to change metadata (e.g., variable names) and data themselves
  (e.g., convert to different units) so that model data reach the users with a common data format.
