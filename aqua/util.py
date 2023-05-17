@@ -68,12 +68,14 @@ def get_config_dir():
     """
 
     # set of predefined folders to browse
-    configdirs = ['./config', '../config', '../../config']
-    homedir = os.environ.get('HOME')
+    configdirs = ['./config', '../config', '../../config', '../../../config']
 
     # if the home is defined
+    homedir = os.environ.get('HOME')
     if homedir:
         configdirs.append(os.path.join(homedir, '.aqua', 'config'))
+    
+    # autosearch
     for configdir in configdirs:
         if os.path.exists(os.path.join(configdir, "config.yaml")):
             break
