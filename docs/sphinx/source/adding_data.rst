@@ -57,7 +57,7 @@ The next step is to add this catalog to the `config/machines/levante/catalogs.ya
         args:
           path: "{{CATALOG_DIR}}/yearly_SST/main.yaml"
 
-The last thing to do is to add grid infromation about the data to the `config/machines/levante/regrid.yaml` file. In the `source_grids:`
+The last thing to do is to add grid infromation about the data to the `config/machines/levante/regrid.yaml` file. In the :doc:`source_grids`
 section of the file we add the following entry:
 
 .. code-block:: yaml
