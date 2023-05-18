@@ -4,7 +4,7 @@ import re
 from dask_jobqueue import SLURMCluster  # pip
 from dask.distributed import Client, progress
 from aqua.logger import log_configure
-from aqua.util import create_folder
+from aqua.util import create_folder, get_machine, get_config_dir
 
 """
 The Slurm module contains functions to create and control the SLURM job:
@@ -134,8 +134,8 @@ def max_resources_per_node(queue="compute"):
 
 
 def job(exclusive=False, max_resources=False, cores=1, memory="10 GB",
-        queue="compute", walltime='02:30:00', jobs=1, account="bb1153",
-        path_to_output='.', loglevel='WARNING'):
+        configdir=None, queue=None, account=None, walltime='02:30:00',
+        jobs=1, path_to_output='.', loglevel='WARNING', machine=None):
     """
     Submitting the Job to the SLURM queue
 
@@ -151,24 +151,52 @@ def job(exclusive=False, max_resources=False, cores=1, memory="10 GB",
                                         Defaults to 1.
         memory (str, optional):         The real memory required per node.
                                         Defaults to "10 GB".
+        configdir (str, optional):      The path to the directory with the
+                                        configuration files.
         queue (str, optional):          The name of the queue to which SLURM
                                         submits the job.
-                                        Defaults to "compute".
+                                        Defaults to None.
         walltime (str, optional):       The duration for which the nodes remain
                                         allocated to you.
                                         Defaults to '02:30:00'.
         jobs (int, optional):           The factor of assignment scaling across
                                         multiple nodes. Defaults to 1.
         account (str, optional):        The account to which SLURM charges the
-                                        job. Defaults to "bb1153" (levante).
+                                        job. Defaults to None.
         path_to_output (str, optional): The path to the directory,
                                         which will contain logs/errors and
                                         output of Slurm Jobs. Defaults is '.'
         loglevel (str, optional):       The level of logging.
                                         Defaults to 'WARNING'.
+        machine (str, optional):        The name of the machine.
+                                        Defaults to None.
     """
     # Initializing the logger
     logger = log_configure(log_level=loglevel, log_name='slurm')
+
+    # Getting the machine name
+    if machine is None:
+        if configdir is None:
+            configdir = get_config_dir()
+        machine_name = get_machine(configdir=configdir)
+    else:
+        machine_name = machine
+
+    # Setting default values for the queue and account
+    if queue is None:
+        if machine_name == "levante":
+            queue = "compute"
+        elif machine_name == "lumi":
+            queue = "small"
+        else:
+            raise Exception("The queue is not defined. Please, define the queue manually.")
+    if account is None:
+        if machine_name == "levante":
+            account = "bb1153"
+        elif machine_name == "lumi":
+            account = "project_465000454"
+        else:
+            raise Exception("The account is not defined. Please, define the account manually.")
 
     # Creating the directory for logs and output
     logs_path, output_path = output_dir(path_to_output=path_to_output,
