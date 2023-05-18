@@ -11,7 +11,7 @@ from metpy.units import units, DimensionalityError
 import numpy as np
 import smmregrid as rg
 
-from aqua.util import load_yaml
+from aqua.util import load_yaml, load_multi_yaml
 from aqua.util import get_reader_filenames, get_config_dir, get_machine
 from aqua.util import log_history
 from aqua.logger import log_configure
@@ -23,48 +23,42 @@ from .reader_utils import check_catalog_source
 
 
 class Reader(FixerMixin, RegridMixin):
-    """General reader for NextGEMS data (on Levante for now)"""
+    """General reader for NextGEMS data."""
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
                  regrid=None, method="ycon", zoom=None, configdir=None,
-                 level=None, areas=True, var=None, vars=None,  # pylint: disable=W0622
+                 level=None, areas=True,  # pylint: disable=W0622
                  datamodel=None, streaming=False, stream_step=1, stream_unit='steps',
                  stream_startdate=None, rebuild=False, loglevel=None):
         """
-        The Reader constructor.
-        It uses the catalog `config/config.yaml` to identify the required data.
+        Initializes the Reader class, which uses the catalog `config/config.yaml` to identify the required data.
 
-        Arguments:
-            model (str):            model ID
-            exp (str):              experiment ID
-            source (str):           source ID
-            regrid (str):           perform regridding to grid `regrid`, as defined in `config/regrid.yaml` (None)
-            method (str):           regridding method (ycon)
-            zoom (int):             healpix zoom level
-            configdir (str)         folder where the config/catalog files are located (config)
-            level (int):            level to extract if input data are 3D (starting from 0)
-            areas (bool):           compute pixel areas if needed (True)
-            var (str, list):        variable(s) which we will extract; vars is a synonym (None)
-            datamodel (str):        destination data model for coordinates, overrides the one in fixes.yaml (None)
-            streaming (bool):       if to retreive data in a streaming mode (False)
-            stream_step (int):      the number of time steps to stream the data by (Default = 1)
-            stream_unit (str):      the unit of time to stream the data by
-                                    (e.g. 'hours', 'days', 'months', 'years') (None)
-            stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
-            rebuild (bool):         force rebuilding of area and weight files
-            loglevel (string):      Level of logging according to logging module
-                                    (default: log_level_default of loglevel())
+        Args:
+            model (str, optional): Model ID. Defaults to "ICON".
+            exp (str, optional): Experiment ID. Defaults to "tco2559-ng5".
+            source (str, optional): Source ID. Defaults to None.
+            regrid (str, optional): Perform regridding to grid `regrid`, as defined in `config/regrid.yaml`. Defaults to None.
+            method (str, optional): Regridding method. Defaults to "ycon".
+            zoom (int, optional): Healpix zoom level. Defaults to None.
+            configdir (str, optional): Folder where the config/catalog files are located. Defaults to None.
+            level (int, optional): Level to extract if input data are 3D (starting from 0). Defaults to None.
+            areas (bool, optional): Compute pixel areas if needed. Defaults to True.
+            var (str or list, optional): Variable(s) to extract; "vars" is a synonym. Defaults to None.
+            datamodel (str, optional): Destination data model for coordinates, overrides the one in fixes.yaml. Defaults to None.
+            streaming (bool, optional): If to retrieve data in a streaming mode. Defaults to False.
+            stream_step (int, optional): The number of time steps to stream the data by. Defaults to 1.
+            stream_unit (str, optional): The unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years'). Defaults to 'steps'.
+            stream_startdate (str, optional): The starting date for streaming the data (e.g. '2020-02-25'). Defaults to None.
+            rebuild (bool, optional): Force rebuilding of area and weight files. Defaults to False.
+            loglevel (str, optional): Level of logging according to logging module. Defaults to log_level_default of loglevel().
 
         Returns:
-            A `Reader` class object.
+            Reader: A `Reader` class object.
         """
 
         # define the internal logger
         self.logger = log_configure(log_level=loglevel, log_name='Reader')
-
-        if vars:
-            var = vars
-        self.var = var
+        
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
@@ -98,8 +92,19 @@ class Reader(FixerMixin, RegridMixin):
         self.machine = get_machine(self.configdir)
 
         # get configuration from the machine
-        self.catalog_file, self.regrid_file, self.fixer_file = get_reader_filenames(self.configdir, self.machine)
+        self.catalog_file, self.regrid_file, self.fixer_folder, self.config_file = get_reader_filenames(self.configdir, self.machine)
         self.cat = intake.open_catalog(self.catalog_file)
+
+        # check source existence
+        self.source = check_catalog_source(self.cat, self.model, self.exp, source, name="catalog")
+
+        # get fixes dictionary and find them
+        self.fixes_dictionary = load_multi_yaml(self.fixer_folder)
+        self.fixes = self.find_fixes()
+
+        # Store the machine-specific CDO path if available
+        cfg_base = load_yaml(self.config_file)
+        self.cdo = cfg_base["cdo"].get(self.machine, "cdo")
 
         # load and check the regrid
         cfg_regrid = load_yaml(self.regrid_file)
@@ -107,13 +112,18 @@ class Reader(FixerMixin, RegridMixin):
         source_grid = cfg_regrid["source_grids"][self.model][self.exp][source_grid_id]
         self.vertcoord = source_grid.get("vertcoord", None)  # Some more checks needed
 
+        # Expose grid information for the source
+        sgridpath = source_grid.get("path", None)
+        if sgridpath:
+            self.src_grid = xr.open_dataset(sgridpath, decode_times=False)
+        else:
+            self.src_grid = None
+
         self.dst_datamodel = datamodel
         # Default destination datamodel (unless specified in instantiating the Reader)
         if not self.dst_datamodel:
-            fixes = load_yaml(self.fixer_file)
-            self.dst_datamodel = fixes["defaults"].get("dst_datamodel", None)
+            self.dst_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
 
-        self.source = check_catalog_source(self.cat, self.model, self.exp, source, name="catalog")
 
         self.src_space_coord = source_grid.get("space_coord", None)
         self.space_coord = self.src_space_coord
@@ -155,12 +165,19 @@ class Reader(FixerMixin, RegridMixin):
 
             # If source areas do not exist, create them
             if rebuild or not os.path.exists(self.src_areafile):
-                if os.path.exists(self.src_areafile):
-                    os.unlink(self.src_areafile)
-                self._make_src_area_file(self.src_areafile, source_grid,
-                                         gridpath=cfg_regrid["cdo-paths"]["download"],
-                                         icongridpath=cfg_regrid["cdo-paths"]["icon"],
-                                         zoom=zoom)
+                # Another possibility: was a "cellarea" file provided in regrid.yaml?
+                cellareas = source_grid.get("cellareas", None)
+                cellarea_var = source_grid.get("cellarea_var", None)
+                if cellareas and cellarea_var:
+                    xr.open_mfdataset(cellareas)[cellarea_var].rename("cell_area").squeeze().to_netcdf(self.src_areafile)
+                else:
+                    # We have to reconstruct it
+                    if os.path.exists(self.src_areafile):
+                        os.unlink(self.src_areafile)
+                    self._make_src_area_file(self.src_areafile, source_grid,
+                                             gridpath=cfg_regrid["cdo-paths"]["download"],
+                                             icongridpath=cfg_regrid["cdo-paths"]["icon"],
+                                             zoom=zoom)
 
             self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
 
@@ -213,8 +230,6 @@ class Reader(FixerMixin, RegridMixin):
 
         if vars:
             var = vars
-        if not var:
-            var = self.var
 
         # Extract data from cat.
         # If this is an ESM-intake catalogue use first dictionary value,
@@ -235,14 +250,20 @@ class Reader(FixerMixin, RegridMixin):
                                           )
             data = list(data.values())[0]
         else:
+            data = esmcat.to_dask()
+
             if var:
                 # conversion to list guarantee that Dataset is produced
                 if isinstance(var, str):
                     var = var.split()
-                data = esmcat.to_dask()[var]
 
-            else:
-                data = esmcat.to_dask()
+                # get loadvar
+                loadvar = self.get_fixer_varname(var) if fix else var
+
+                if all(element in data.data_vars for element in loadvar):
+                    data = data[loadvar]
+                else:
+                    raise KeyError("You are asking for variables which we cannot find in the catalog!")
 
         # select only a specific level when reading. Level coord names defined in regrid.yaml
         if self.level is not None:
@@ -270,6 +291,10 @@ class Reader(FixerMixin, RegridMixin):
                 data = self.streamer.stream(data, stream_step=stream_step,
                                             stream_unit=stream_unit,
                                             stream_startdate=stream_startdate)
+         
+        # safe check that we provide only what exactly asked by var
+        if var:
+            data = data[var]
 
         return data
 
@@ -307,11 +332,11 @@ class Reader(FixerMixin, RegridMixin):
             freq = self.freq
 
         # translate frequency in pandas-style time
-        if freq == 'mon':
+        if freq == 'monthly':
             resample_freq = '1M'
-        elif freq == 'day':
+        elif freq == 'daily':
             resample_freq = '1D'
-        elif freq == 'yr':
+        elif freq == 'yearly':
             resample_freq = '1Y'
         else:
             resample_freq = freq
@@ -321,7 +346,7 @@ class Reader(FixerMixin, RegridMixin):
             self.logger.info('Resamplig to %s frequency...', str(resample_freq))
             out = data.resample(time=resample_freq).mean()
             # for now, we set initial time of the averaging period following ECMWF standard
-            # HACK: we ignore hours/sec to uniform the output structure 
+            # HACK: we ignore hours/sec to uniform the output structure
             proper_time = data.time.resample(time=resample_freq).min()
             out['time'] = np.array(proper_time.values, dtype='datetime64[h]')
         except ValueError:
