@@ -61,9 +61,16 @@ jobs:
             echo "Generated coverage report:"
             echo "${COVERAGE_REPORT}"
           fi
-      - name: Publish coverage reports
+      - name: Publish coverage reports (stdout)
         # Publish the coverage reports in only one matrix job run.
-        # Only run if running in a pull request: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-contexts
+        # Only run if **NOT** running in a pull request (see step below).
+        if: ${{ github.event_name != 'pull_request' && matrix.python-version == '3.10' }}
+        run: |
+          echo "${{ env.COVERAGE_REPORT }}"
+      - name: Publish coverage reports (bot)
+        # Publish the coverage reports in only one matrix job run.
+        # Only run if running in a pull request.
+        # See for more: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-contexts
         if: ${{ github.event_name == 'pull_request' && matrix.python-version == '3.10' }}
         # Comment on an issue or pull request using GH Actions tooling:
         # https://github.com/actions/github-script#comment-on-an-issue
@@ -82,7 +89,7 @@ jobs:
 
             // Find any comment already made by the bot.
             const botComment = comments.find(comment => comment.user.id === 41898282)
-            const commentBody = `${{ env.COVERAGE_REPORT }}`
+            const commentBody = `${{ env.COVERAGE_REPORT }}`.replace(/_/g, '\\_')
 
             if (botComment) {
               console.log(`Updating comment in ${context.repo.owner}/${context.repo.repo}, comment ID: ${botComment.id}`)
