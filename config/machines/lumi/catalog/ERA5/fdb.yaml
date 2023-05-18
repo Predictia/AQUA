@@ -1,0 +1,13 @@
+sources:
+    monthly:
+        args:
+            request:
+                levtype: "sfc"
+                date: 20010401/to/20010501
+                time: 0000/to/1800/by/0600
+                step: "0"
+                param: [2t]
+            step: 'M'
+        description: ''
+        driver: gsv
+        #metadata: {step: 'M'}
