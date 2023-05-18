@@ -11,3 +11,7 @@ AQUA_tests.tar.gz
 **/*.bak
 *.err
 *.out
+.coverage
+coverage.xml
+coverage/
+
