@@ -84,7 +84,11 @@ addopts = "-v"
 testpaths = [
     "tests"
 ]
-markers = []
+markers = [
+    "aqua: mark test as AQUA framework",
+    "slow: tests which are slow",
+    "dummy: mark test for dummy diagnostic"
+]
 
 # This appears to be the correct configuration, but for some reason
 # pytest-cov doesn't appear to be reading this? We are passing some
