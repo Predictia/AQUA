@@ -16,18 +16,22 @@ The Slurm module contains functions to create and control the SLURM job:
 """
 
 
-def squeue(username="$USER"):
+def squeue(username="$USER", verbose=True):
     """Checking the status of a SLURM job
 
     Args:
         username (str, optional): Name of the user who submitted
                                   the job to the queue.
                                   Defaults to "$USER".
+        verbose (bool, optional): If True, more info are printed.
 
     Returns:
         str:   The status of all jobs of the user in a SLURM queue
     """
-    squeue_user = os.system("squeue --user="+str(username))
+    if verbose:
+        squeue_user = os.system("squeue --user="+str(username)+" --format=\"%10i %5C %5D %10t %20j %10M %20S %20E %20P %20m\"")
+    else:
+        squeue_user = os.system("squeue --user="+str(username))
     return squeue_user
 
 
