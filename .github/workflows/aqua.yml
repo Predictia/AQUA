@@ -63,7 +63,8 @@ jobs:
           fi
       - name: Publish coverage reports
         # Publish the coverage reports in only one matrix job run.
-        if: matrix.python-version == '3.10'
+        # Only run if running in a pull request: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-contexts
+        if: ${{ github.event_name == 'pull_request' && matrix.python-version == '3.10' }}
         # Comment on an issue or pull request using GH Actions tooling:
         # https://github.com/actions/github-script#comment-on-an-issue
         uses: actions/github-script@v6
