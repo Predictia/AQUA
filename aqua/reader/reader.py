@@ -143,6 +143,7 @@ class Reader(FixerMixin, RegridMixin):
                                                          method=method,
                                                          target=regrid,
                                                          source=self.source,
+                                                         zoom=self.zoom,
                                                          level=("2d" if level is None else level)))
 
             # If weights do not exist, create them
