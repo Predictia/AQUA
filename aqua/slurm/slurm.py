@@ -3,6 +3,8 @@ import re
 
 from dask_jobqueue import SLURMCluster  # pip
 from dask.distributed import Client, progress
+from aqua.logger import log_configure
+from aqua.util import create_folder
 
 """
 The Slurm module contains functions to create and control the SLURM job:
@@ -17,7 +19,8 @@ The Slurm module contains functions to create and control the SLURM job:
 
 
 def squeue(username="$USER", verbose=True):
-    """Checking the status of a SLURM job
+    """
+    Checking the status of a SLURM job
 
     Args:
         username (str, optional): Name of the user who submitted
@@ -26,7 +29,8 @@ def squeue(username="$USER", verbose=True):
         verbose (bool, optional): If True, more info are printed.
 
     Returns:
-        str:   The status of all jobs of the user in a SLURM queue
+        squeue_user (str):   The status of all jobs of the user
+                             in a SLURM queue
     """
     if verbose:
         squeue_user = os.system("squeue --user="+str(username)+" --format=\"%10i %5C %5D %10t %20j %10M %20S %20E %20P %20m\"")
@@ -35,7 +39,7 @@ def squeue(username="$USER", verbose=True):
     return squeue_user
 
 
-def output_dir(path_to_output='.'):
+def output_dir(path_to_output='.', loglevel='WARNING'):
     """
     Creating the directory for output if it does not exist
 
@@ -43,57 +47,73 @@ def output_dir(path_to_output='.'):
         path_to_output (str, optional): The path to the directory,
                                         which will contain logs/errors and
                                         output of Slurm Jobs. Defaults is '.'
+        loglevel (str, optional):       The level of logging.
+                                        Defaults to 'WARNING'.
 
     Returns:
-        str: The path to the directory for logs/errors
-        str: The path to the directory for output
+        logs_path (str):    The path to the directory for logs/errors
+        output_path (str):  The path to the directory for output
     """
-
     logs_path = str(path_to_output)+"/slurm/logs"
     output_path = str(path_to_output)+"/slurm/output"
 
-    if not os.path.exists(str(path_to_output)+"/slurm"):
-        os.makedirs(str(path_to_output)+"/slurm")
-    if not os.path.exists(str(path_to_output)+"/slurm/logs"):
-        os.makedirs(logs_path)
-    if not os.path.exists(str(path_to_output)+"/slurm/output"):
-        os.makedirs(output_path)
+    # Creating the directory for logs and output
+    create_folder(folder=str(path_to_output)+"/slurm", loglevel=loglevel)
+    create_folder(folder=logs_path, loglevel=loglevel)
+    create_folder(folder=output_path, loglevel=loglevel)
 
     return logs_path, output_path
 
 
-def exctract_sinfo(sinfo_str=' '):
-    """_summary_
+def exctract_sinfo(sinfo_str=None):
+    """
+    Extracting the information about the queue
 
     Args:
-        sinfo_str (str, optional): _description_. Defaults to ' '.
+        sinfo_str (str):   String with the info to extract.
 
     Returns:
-        _type_: _description_
+        new_list (list):    List with the extracted info
     """
-    with os.popen(sinfo_str) as f:
-        f.readline()
-        f.readline()
-        _ = f.readline()
-    list_with_empty_strings = re.split(r'[\n ]', _)
-    new_list = [x for x in list_with_empty_strings if x != '']
+
+    if sinfo_str:
+        with os.popen(sinfo_str) as f:
+            f.readline()
+            f.readline()
+            _ = f.readline()
+        list_with_empty_strings = re.split(r'[\n ]', _)
+        new_list = [x for x in list_with_empty_strings if x != '']
+    else:
+        raise ValueError("sinfo_str is None")
+
     return new_list
 
 
 def max_resources_per_node(queue="compute"):
-    """_summary_
+    """
+    Extracting the maximum resources available on the node for the queue
 
     Args:
-        queue (str, optional): _description_. Defaults to "compute".
-
-    Raises:
-        Exception: _description_
-        Exception: _description_
+        queue (str, optional):  The name of the queue to which maximum resources
+                                available on the node are extracted.
+                                Defaults to "compute".
 
     Returns:
-        _type_: _description_
+        max_memory (str):       The maximum amount of memory available on the
+                                node for the queue
+        max_walltime (str):     The maximum amount of walltime available on the
+                                node for the queue
+        max_cpus (str):         The maximum number of cpus available on the
+                                node for the queue
+        max_sockets (str):      The maximum number of sockets available on the
+                                node for the queue
+        max_cores (str):        The maximum number of cores available on the
+                                node for the queue
+        max_threads (str):      The maximum number of threads available on the
+                                node for the queue
     """
     max_resources = exctract_sinfo("sinfo  --partition="+str(queue)+" -lNe")
+
     if max_resources[2] == queue:
         max_cpus = max_resources[4]
         max_memory = str(float(max_resources[6])/1024)+" GB"
@@ -115,7 +135,7 @@ def max_resources_per_node(queue="compute"):
 
 def job(exclusive=False, max_resources=False, cores=1, memory="10 GB",
         queue="compute", walltime='02:30:00', jobs=1, account="bb1153",
-        path_to_output='.'):
+        path_to_output='.', loglevel='WARNING'):
     """
     Submitting the Job to the SLURM queue
 
@@ -144,10 +164,17 @@ def job(exclusive=False, max_resources=False, cores=1, memory="10 GB",
         path_to_output (str, optional): The path to the directory,
                                         which will contain logs/errors and
                                         output of Slurm Jobs. Defaults is '.'
+        loglevel (str, optional):       The level of logging.
+                                        Defaults to 'WARNING'.
     """
+    # Initializing the logger
+    logger = log_configure(log_level=loglevel, log_name='slurm')
 
-    logs_path, output_path = output_dir(path_to_output=path_to_output)
+    # Creating the directory for logs and output
+    logs_path, output_path = output_dir(path_to_output=path_to_output,
+                                        loglevel=loglevel)
 
+    # Creating the extra arguments for the job submission
     if exclusive:
         extra_args = [
             "--error="+str(logs_path)+"/dask-worker-%j.err",
@@ -176,11 +203,14 @@ def job(exclusive=False, max_resources=False, cores=1, memory="10 GB",
     )
 
     client = Client(cluster)
-    print(cluster.job_script())
+    logger.info("Submitting the job to the SLURM queue")
+    logger.warning(cluster.job_script())
+
+    # Scaling the cluster
     cluster.scale(jobs=jobs)
 
 
-def scancel(all=True, Job_ID=None):
+def scancel(all=True, Job_ID=None, loglevel='WARNING'):
     """
     scancel() is used to signal or cancel jobs in the queue
 
@@ -189,9 +219,15 @@ def scancel(all=True, Job_ID=None):
                                     all user jobs in the queue.
         Job_ID (str, optional):     The SLURM_JOB_ID of a job to cancel in the queue.
                                     Defaults to None.
+        loglevel (str, optional):   The level of logging.
+                                    Defaults to 'WARNING'.
     """
+    logger = log_configure(log_level=loglevel, log_name='slurm')
+
     if Job_ID is None:
         if all:
+            logger.info("Cancelling all user jobs in the queue")
             os.system("scancel -u ${USER}")
     else:
+        logger.info("Cancelling the job with ID: " + str(Job_ID))
         os.system("scancel " + str(Job_ID))
