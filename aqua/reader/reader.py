@@ -538,7 +538,7 @@ def reader_fdb(esmcat, var, startdate, enddate):
     """Read fdb data. Returns an iterator."""
     # These are all needed in theory
     if not startdate:
-        startdate='20000101'
+        startdate='20050401'
     if not enddate:
         enddate=startdate
     if not var:
