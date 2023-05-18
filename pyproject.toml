@@ -80,7 +80,7 @@ find = {}
 version = {attr = "aqua.__version__"}
 
 [tool.pytest.ini_options]
-addopts = "-v"
+addopts = "-v --cov=aqua --cov-config=.coveragerc"
 testpaths = [
     "tests"
 ]
