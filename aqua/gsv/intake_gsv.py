@@ -14,7 +14,7 @@ class GSVSource(base.DataSource):
     version = '0.0.1'
     partition_access = True
 
-    def __init__(self, request, step, startdate="20200101", enddate="20201201", var='167', metadata=None, **kwargs):
+    def __init__(self, request, step, startdate="20050401", enddate="20050405", var='167', metadata=None, **kwargs):
         self._request = request
         self._kwargs = kwargs
         self._dates = make_date_list(startdate, enddate, step=step)

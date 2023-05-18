@@ -46,7 +46,6 @@ source_grids:
   ERA5:
     fdb:
       default:
-        path: /users/jvonhar/work/aqua/grids/era5.sample.grib
         space_coord: ["lon", "lat"]
 
 

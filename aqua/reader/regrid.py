@@ -62,6 +62,8 @@ class RegridMixin():
             # there is no source grid path at all defined in the regrid.yaml file:
             # let's reconstruct it from the file itself
             data = self.retrieve(fix=False)
+            if type(data) is types.GeneratorType:
+                data = next(data)
             temp_file = tempfile.NamedTemporaryFile(mode='w')
             sgridpath = temp_file.name
             _get_spatial_sample(data, self.src_space_coord).to_netcdf(sgridpath)
