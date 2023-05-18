@@ -45,7 +45,7 @@ jobs:
         # NOTE: We could gain a few seconds in the build, if needed,
         #       by running with coverage in only one matrix job run.
         run: |
-          pytest --cov=aqua --cov-report=xml --cov-branch -m aqua
+          pytest --cov=aqua --cov-report=xml --cov-branch -m "aqua or slow"
 
           if [[ "${{ matrix.python-version }}" = "3.10" ]]; then
             # Here we store the output of pycobertura (a tool that parses the
