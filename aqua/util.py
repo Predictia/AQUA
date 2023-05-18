@@ -198,8 +198,8 @@ def read_eccodes_dic(filename):
     Returns:
     - A dictionary containing the contents of the ecCodes definition file.
     """
-
-    fn = os.path.join(eccodes.codes_definition_path(), 'grib2', filename)
+    fn = eccodes.codes_definition_path().split(':')[0]  # LUMI fix, take only first
+    fn = os.path.join(fn, 'grib2', filename)
     with open(fn, "r", encoding='utf-8') as file:
         text = file.read()
     text = text.replace(" =", ":").replace('{', '').replace('}', '').replace(';', '').replace('\t', '    ')
@@ -229,7 +229,8 @@ def read_eccodes_def(filename):
     keylist = keylist[:-1]
 
     # WMO lists
-    fn = os.path.join(eccodes.codes_definition_path(), 'grib2', filename)
+    fn = eccodes.codes_definition_path().split(':')[0]  # LUMI fix, take only first
+    fn = os.path.join(fn, 'grib2', filename)
     with open(fn, "r", encoding='utf-8') as f:
         for line in f:
             line = line.replace(" =", "").replace('{', '').replace('}', '').replace(';', '').replace('\t', '#    ')
