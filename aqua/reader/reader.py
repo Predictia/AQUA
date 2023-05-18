@@ -299,10 +299,8 @@ class Reader(FixerMixin, RegridMixin):
     def regrid(self, data):
         """Call the regridder function returning container or iterator"""
         if type(data) is types.GeneratorType:
-            print("generator")
-            return _regridgen(data)
+            return self._regridgen(data)
         else:
-            print("not generator")
             return self._regrid(data)
 
     def _regridgen(self, data):
