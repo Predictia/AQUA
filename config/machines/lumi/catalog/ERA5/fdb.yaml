@@ -3,11 +3,11 @@ sources:
         args:
             request:
                 levtype: "sfc"
-                date: 20050401/to/20050405
-                time: 0000/to/1800/by/0600
+                date: 20050401
+                time: 0000/to/2300/by/0100
                 step: "0"
                 param: [2t, tp]
-            step: 'H'
+            step: 'D'
         description: 'Test FDB data'
         driver: gsv
         #metadata: {step: 'M'}

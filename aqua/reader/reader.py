@@ -260,7 +260,6 @@ class Reader(FixerMixin, RegridMixin):
 
         log_history_iter(data, "retrieved by AQUA fixer")   
 
-
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
 
         # These do not work in the iterator case
@@ -298,7 +297,6 @@ class Reader(FixerMixin, RegridMixin):
         return data
 
     def regrid(self, data):
-        print("DDDDD")
         """Call the regridder function returning container or iterator"""
         if type(data) is types.GeneratorType:
             print("generator")
@@ -537,8 +535,7 @@ def reader_esm(esmcat, var):
 def reader_fdb(esmcat, var, startdate, enddate):
     """Read fdb data. Returns an iterator."""
     # These are all needed in theory
-    if not startdate:
-        startdate='20050401'
+
     if not enddate:
         enddate=startdate
     if not var:

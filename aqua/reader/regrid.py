@@ -61,7 +61,7 @@ class RegridMixin():
         if not sgridpath:
             # there is no source grid path at all defined in the regrid.yaml file:
             # let's reconstruct it from the file itself
-            data = self.retrieve(fix=False)
+            data = self.retrieve(fix=False, startdate=None)
             if type(data) is types.GeneratorType:
                 data = next(data)
             temp_file = tempfile.NamedTemporaryFile(mode='w')
@@ -82,7 +82,7 @@ class RegridMixin():
                                             extra=src_extra)
         # Make sure that the new DataArray uses the expected spatial dimensions
         grid_area = _rename_dims(grid_area, self.src_space_coord)
-        data = self.retrieve(fix=False)
+        data = self.retrieve(fix=False, startdate=None)
         if type(data) is types.GeneratorType:
             data = next(data)
         grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.src_space_coord})
@@ -109,7 +109,7 @@ class RegridMixin():
         if not sgridpath:
             # there is no source grid path at all defined in the regrid.yaml file:
             # let's reconstruct it from the file itself
-            data = self.retrieve(fix=False)
+            data = self.retrieve(fix=False, startdate=None)
             if type(data) is types.GeneratorType:
                 data = next(data)
             temp_file = tempfile.NamedTemporaryFile(mode='w')

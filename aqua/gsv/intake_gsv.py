@@ -14,12 +14,17 @@ class GSVSource(base.DataSource):
     version = '0.0.1'
     partition_access = True
 
-    def __init__(self, request, step, startdate="20050401", enddate="20050405", var='167', metadata=None, **kwargs):
+    def __init__(self, request, step, startdate=None, enddate=None, var='167', metadata=None, **kwargs):
         self._request = request
         self._kwargs = kwargs
-        self._dates = make_date_list(startdate, enddate, step=step)
+        if startdate and enddate:
+            self._dates = make_date_list(startdate, enddate, step=step)
+            ndates = len(self._dates)
+        else:
+            ndates = 1  # read only one
+            self._dates = None
         self._var = var
-        self._npartitions = len(self._dates)
+        self._npartitions = ndates
         self.gsv = GSVRetriever()
         self._dataset = None
         super(GSVSource, self).__init__(metadata=metadata)
@@ -37,7 +42,8 @@ class GSVSource(base.DataSource):
         )
 
     def _get_partition(self, i):
-        self._request["date"] = self._dates[i]
+        if self._dates:
+            self._request["date"] = self._dates[i]
         self._request["param"] = self._var
         dataset = self.gsv.request_data(self._request)
         return dataset
