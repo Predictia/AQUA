@@ -7,7 +7,7 @@ import intake
 import intake_esm
 import xarray as xr
 
-from metpy.units import units, DimensionalityError
+# from metpy.units import units, DimensionalityError
 import numpy as np
 import smmregrid as rg
 
@@ -58,7 +58,7 @@ class Reader(FixerMixin, RegridMixin):
 
         # define the internal logger
         self.logger = log_configure(log_level=loglevel, log_name='Reader')
-        
+
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
@@ -196,7 +196,7 @@ class Reader(FixerMixin, RegridMixin):
 
             self.grid_area = self.src_grid_area
 
-    def retrieve(self, regrid=False, timmean=False, decumulate=False,
+    def retrieve(self, regrid=False, timmean=False,
                  fix=True, apply_unit_fix=True, var=None, vars=None,  # pylint: disable=W0622
                  streaming=False, stream_step=None, stream_unit=None,
                  stream_startdate=None, streaming_generator=False):
@@ -206,11 +206,11 @@ class Reader(FixerMixin, RegridMixin):
         Arguments:
             regrid (bool):          if to regrid the retrieved data (False)
             timmean (bool):         if to average the retrieved data (False)
-            decumulate (bool):      if to remove the cumulation from data (False)
             fix (bool):             if to perform a fix (var name, units, coord name adjustments) (True)
             apply_unit_fix (bool):  if to already adjust units by multiplying by a factor or adding
                                     an offset (this can also be done later with the `apply_unit_fix` method) (True)
-            var (str, list):  variable(s) which we will extract; vars is a synonym (None)
+            var (str, list):        the variable(s) to retrieve (None), vars is a synonym
+                                    if None, all variables are retrieved
             streaming (bool):       if to retreive data in a streaming mode (False)
             streaming_generator (bool):  if to return a generator object for data streaming (False).
             stream_step (int):      the number of time steps to stream the data by (Default = 1)
@@ -272,9 +272,9 @@ class Reader(FixerMixin, RegridMixin):
         log_history(data, "retrieved by AQUA retriever")
 
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
-        if decumulate:
+        #if decumulate:
             # data = data.map(self.decumulate, keep_attrs=True)
-            data = data.map(self.decumulate)
+            # data = data.map(self.decumulate)
         if self.freq and timmean:
             data = self.timmean(data)
         if self.targetgrid and regrid:
@@ -359,107 +359,6 @@ class Reader(FixerMixin, RegridMixin):
         log_history(out, f"resampled to frequency {resample_freq} by AQUA timmean")
         return out
 
-    def _check_if_accumulated_auto(self, data):
-        """To check if a DataArray is accumulated.
-        Arbitrary check on the first 20 timesteps"""
-
-        # randomly pick a few timesteps from a gridpoint
-        ndims = [dim for dim in data.dims if data[dim].size > 1][1:]
-        pindex = {dim: 0 for dim in ndims}
-
-        # extract the first 20 timesteps and do the derivative
-        check = data.isel(pindex).isel(time=slice(None, 20)).diff(dim='time').values
-
-        # check all derivative are positive or all negative
-        condition = (check >= 0).all() or (check <= 0).all()
-
-        return condition
-
-    def _check_if_accumulated(self, data):
-        """To check if a DataArray is accumulated.
-        On a list of variables defined by the GRIB names
-
-        Args:
-            data (xr.DataArray): field to be processed
-
-        Returns:
-            bool: True if decumulation is necessary, False if no
-        """
-
-        decumvars = ['tp', 'e', 'slhf', 'sshf',
-                     'tsr', 'ttr', 'ssr', 'str',
-                     'tsrc', 'ttrc', 'ssrc', 'strc',
-                     'tisr', 'tprate', 'mer', 'tp', 'cp', 'lsp']
-
-        if data.name in decumvars:
-            return True
-        else:
-            return False
-
-    def decumulate(self, data, cumulation_time=None, check=True):
-        """
-        Test function to remove cumulative effect on IFS fluxes.
-        Cumulation times are estimated from the intervals of the data, but
-        can be specified manually
-
-        Args:
-            data (xr.DataArray):     field to be processed
-            cumulation_time (float): optional, specific cumulation time
-            check (bool):            if to check if the variable needs to be decumulated
-
-        Returns:
-            A xarray.DataArray where the cumulation time has been removed
-        """
-        if check:
-            if not self._check_if_accumulated(data):
-                return data
-
-        # which frequency are the data?
-        if not cumulation_time:
-            cumulation_time = (data.time[1]-data.time[0]).values/np.timedelta64(1, 's')
-
-        # get the derivatives
-        deltas = data.diff(dim='time') / cumulation_time
-
-        # add a first timestep empty to align the original and derived fields
-        zeros = xr.zeros_like(data.isel(time=0))
-        deltas = xr.concat([zeros, deltas], dim='time').transpose('time', ...)
-
-        # universal mask based on the change of month (shifted by one timestep)
-        mask = ~(data['time.month'] != data['time.month'].shift(time=1))
-        mask = mask.shift(time=1, fill_value=False)
-
-        # check which records are kept
-        # print(data.time[~mask])
-
-        # kaboom: exploit where
-        clean = deltas.where(mask, data/cumulation_time)
-
-        # remove the first timestep (no sense in cumulated)
-        clean = clean.isel(time=slice(1, None))
-
-        # rollback the time axis by half the cumulation time
-        clean['time'] = clean.time - np.timedelta64(int(cumulation_time/2), 's')
-
-        # WARNING: HACK FOR EVAPORATION
-        # print(clean.units)
-        if clean.units == 'm of water equivalent':
-            clean.attrs['units'] = 'm'
-
-        # use metpy units to divide by seconds
-        new_units = (units(clean.units)/units('s'))
-
-        # usual case for radiative fluxes
-        try:
-            clean.attrs['units'] = str(new_units.to('W/m^2').units)
-        except DimensionalityError:
-            clean.attrs['units'] = str(new_units.units)
-
-        # add an attribute that can be later used to infer about decumulation
-        clean.attrs['decumulated'] = 1
-
-        return clean
-
     def _check_if_regridded(self, data):
         """
         Checks if a dataset or Datarray has been regridded.
@@ -501,3 +400,105 @@ class Reader(FixerMixin, RegridMixin):
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
 
         return out
+
+    ## TODO: this is not used anymore, check if it can be deleted
+    # def _check_if_accumulated_auto(self, data):
+    #     """To check if a DataArray is accumulated.
+    #     Arbitrary check on the first 20 timesteps"""
+
+    #     # randomly pick a few timesteps from a gridpoint
+    #     ndims = [dim for dim in data.dims if data[dim].size > 1][1:]
+    #     pindex = {dim: 0 for dim in ndims}
+
+    #     # extract the first 20 timesteps and do the derivative
+    #     check = data.isel(pindex).isel(time=slice(None, 20)).diff(dim='time').values
+
+    #     # check all derivative are positive or all negative
+    #     condition = (check >= 0).all() or (check <= 0).all()
+
+    #     return condition
+
+    # def _check_if_accumulated(self, data):
+    #     """To check if a DataArray is accumulated.
+    #     On a list of variables defined by the GRIB names
+
+    #     Args:
+    #         data (xr.DataArray): field to be processed
+
+    #     Returns:
+    #         bool: True if decumulation is necessary, False if no
+    #     """
+
+    #     decumvars = ['tp', 'e', 'slhf', 'sshf',
+    #                  'tsr', 'ttr', 'ssr', 'str',
+    #                  'tsrc', 'ttrc', 'ssrc', 'strc',
+    #                  'tisr', 'tprate', 'mer', 'tp', 'cp', 'lsp']
+
+    #     if data.name in decumvars:
+    #         return True
+    #     else:
+    #         return False
+
+    # def decumulate(self, data, cumulation_time=None, check=True):
+    #     """
+    #     Test function to remove cumulative effect on IFS fluxes.
+    #     Cumulation times are estimated from the intervals of the data, but
+    #     can be specified manually
+
+    #     Args:
+    #         data (xr.DataArray):     field to be processed
+    #         cumulation_time (float): optional, specific cumulation time
+    #         check (bool):            if to check if the variable needs to be decumulated
+
+    #     Returns:
+    #         A xarray.DataArray where the cumulation time has been removed
+    #     """
+    #     if check:
+    #         if not self._check_if_accumulated(data):
+    #             return data
+
+    #     # which frequency are the data?
+    #     if not cumulation_time:
+    #         cumulation_time = (data.time[1]-data.time[0]).values/np.timedelta64(1, 's')
+
+    #     # get the derivatives
+    #     deltas = data.diff(dim='time') / cumulation_time
+
+    #     # add a first timestep empty to align the original and derived fields
+    #     zeros = xr.zeros_like(data.isel(time=0))
+    #     deltas = xr.concat([zeros, deltas], dim='time').transpose('time', ...)
+
+    #     # universal mask based on the change of month (shifted by one timestep)
+    #     mask = ~(data['time.month'] != data['time.month'].shift(time=1))
+    #     mask = mask.shift(time=1, fill_value=False)
+
+    #     # check which records are kept
+    #     # print(data.time[~mask])
+
+    #     # kaboom: exploit where
+    #     clean = deltas.where(mask, data/cumulation_time)
+
+    #     # remove the first timestep (no sense in cumulated)
+    #     clean = clean.isel(time=slice(1, None))
+
+    #     # rollback the time axis by half the cumulation time
+    #     clean['time'] = clean.time - np.timedelta64(int(cumulation_time/2), 's')
+
+    #     # WARNING: HACK FOR EVAPORATION
+    #     # print(clean.units)
+    #     if clean.units == 'm of water equivalent':
+    #         clean.attrs['units'] = 'm'
+
+    #     # use metpy units to divide by seconds
+    #     new_units = (units(clean.units)/units('s'))
+
+    #     # usual case for radiative fluxes
+    #     try:
+    #         clean.attrs['units'] = str(new_units.to('W/m^2').units)
+    #     except DimensionalityError:
+    #         clean.attrs['units'] = str(new_units.units)
+
+    #     # add an attribute that can be later used to infer about decumulation
+    #     clean.attrs['decumulated'] = 1
+
+    #     return clean
