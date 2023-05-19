@@ -7,7 +7,7 @@ import intake
 import intake_esm
 import xarray as xr
 
-#from metpy.units import units, DimensionalityError
+# from metpy.units import units, DimensionalityError
 import numpy as np
 import smmregrid as rg
 
@@ -58,7 +58,7 @@ class Reader(FixerMixin, RegridMixin):
 
         # define the internal logger
         self.logger = log_configure(log_level=loglevel, log_name='Reader')
-        
+
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
@@ -357,6 +357,49 @@ class Reader(FixerMixin, RegridMixin):
         log_history(out, f"resampled to frequency {resample_freq} by AQUA timmean")
         return out
 
+    def _check_if_regridded(self, data):
+        """
+        Checks if a dataset or Datarray has been regridded.
+
+        Arguments:
+            data (xr.DataArray or xarray.DataDataset):  the input data
+        Returns:
+            A boolean value
+        """
+
+        if isinstance(data, xr.Dataset):
+            att = list(data.data_vars.values())[0].attrs
+        else:
+            att = data.attrs
+
+        return att.get("regridded", False)
+
+    def fldmean(self, data):
+        """
+        Perform a weighted global average.
+
+        Arguments:
+            data (xr.DataArray or xarray.DataDataset):  the input data
+        Returns:
+            the value of the averaged field
+        """
+
+        # If these data have been regridded we should use the destination grid info
+        if self._check_if_regridded(data):
+            space_coord = self.dst_space_coord
+            grid_area = self.dst_grid_area
+        else:
+            space_coord = self.src_space_coord
+            grid_area = self.src_grid_area
+
+        # check if coordinates are aligned
+        xr.align(grid_area, data, join='exact')
+
+        out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
+
+        return out
+
+    ## TODO: this is not used anymore, check if it can be deleted
     # def _check_if_accumulated_auto(self, data):
     #     """To check if a DataArray is accumulated.
     #     Arbitrary check on the first 20 timesteps"""
@@ -457,45 +500,3 @@ class Reader(FixerMixin, RegridMixin):
     #     clean.attrs['decumulated'] = 1
 
     #     return clean
-
-    def _check_if_regridded(self, data):
-        """
-        Checks if a dataset or Datarray has been regridded.
-
-        Arguments:
-            data (xr.DataArray or xarray.DataDataset):  the input data
-        Returns:
-            A boolean value
-        """
-
-        if isinstance(data, xr.Dataset):
-            att = list(data.data_vars.values())[0].attrs
-        else:
-            att = data.attrs
-
-        return att.get("regridded", False)
-
-    def fldmean(self, data):
-        """
-        Perform a weighted global average.
-
-        Arguments:
-            data (xr.DataArray or xarray.DataDataset):  the input data
-        Returns:
-            the value of the averaged field
-        """
-
-        # If these data have been regridded we should use the destination grid info
-        if self._check_if_regridded(data):
-            space_coord = self.dst_space_coord
-            grid_area = self.dst_grid_area
-        else:
-            space_coord = self.src_space_coord
-            grid_area = self.src_grid_area
-
-        # check if coordinates are aligned
-        xr.align(grid_area, data, join='exact')
-
-        out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
-
-        return out
