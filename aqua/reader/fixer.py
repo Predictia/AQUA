@@ -8,7 +8,7 @@ import xarray as xr
 import cf2cdm
 from metpy.units import units
 
-from aqua.util import _eval_formula, get_eccodes_attr
+from aqua.util import eval_formula, get_eccodes_attr
 from aqua.util import log_history
 
 
@@ -113,7 +113,7 @@ class FixerMixin():
                 # This is a derived variable, let's compute it and create the new variable
                 if formula:
                     try:
-                        data[varname] = _eval_formula(formula, data)
+                        data[varname] = eval_formula(formula, data)
                         source = varname
                         attributes.update({"derived": formula})
                         self.logger.info("Derived %s from %s", var, formula)
@@ -359,8 +359,8 @@ class FixerMixin():
             data (xr.DataArray):  input DataArray
         """
         target_units = data.attrs.get("target_units", None)
-        units =  data.attrs.get("units", None)
-        if target_units and units != target_units:
+        real_units =  data.attrs.get("units", None)
+        if target_units and real_units != target_units:
             d = {"src_units": data.attrs["units"], "units_fixed": 1}
             data.attrs.update(d)
             data.attrs["units"] = normalize_units(target_units)
@@ -389,7 +389,7 @@ def units_extra_definition():
     # needed to work with metpy 1.4.0 see
     # https://github.com/Unidata/MetPy/issues/2884
     units._on_redefinition = 'ignore'
-    units.define('fraction = [] = frac')
+    units.define('fraction = [] = Fraction = frac')
     units.define('psu = 1e-3 frac')
     units.define('PSU = 1e-3 frac')
     units.define('Sv = 1e+6 m^3/s')
