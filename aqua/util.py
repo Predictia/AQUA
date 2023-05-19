@@ -86,7 +86,7 @@ def get_config_dir():
     return configdir
 
 
-def _eval_formula(mystring, xdataset):
+def eval_formula(mystring, xdataset):
     """Evaluate the cmd string provided by the yaml file
     producing a parsing for the derived variables"""
 
@@ -350,7 +350,7 @@ def create_folder(folder, loglevel=None):
 def log_history(data, msg):
     """Elementary provenance logger in the history attribute"""
 
-    if isinstance(data, xr.DataArray) or isinstance(data, xr.Dataset):
+    if isinstance(data, (xr.DataArray, xr.Dataset)):
         now = datetime.datetime.now()
         date_now = now.strftime("%Y-%m-%d %H:%M:%S")
         hist = data.attrs.get("history", "") + f"{date_now} {msg};\n"
