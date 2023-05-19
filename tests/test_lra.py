@@ -10,7 +10,7 @@ from aqua import LRAgenerator
 def lra_arguments(request):
     return request.param
 
-@pytest.mark.lra
+@pytest.mark.aqua
 class TestLRA():
     """Class for LRA Tests"""
 
