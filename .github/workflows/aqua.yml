@@ -62,7 +62,7 @@ jobs:
         #       by running with coverage in only one matrix job run.
         run: |
           # Produce the HTML report. Defaults to writing in htmlcov/index.html.
-          pytest --cov=aqua --cov-report=html --cov-branch -m "aqua or slow"
+          pytest --cov=aqua --cov-report=html --cov-report=xml --cov-branch -m "aqua or slow"
           
           if [[ ${COVERAGE_ENABLED} ]]; then
             # Extract the top header of the pytest HTML report.
@@ -77,12 +77,21 @@ jobs:
             # Then calls sed with an expression that replaces the HTML a
             # elements by only its text.
             COV_TABLE=$(cat htmlcov/index.html | htmlq --pretty 'table' | tr -d '\n' | tr -s ' ' | sed 's|<a[^>]*>\([^<]*\)</a>|\1|g')
-          
+
             # Produce an simplified HTML report.
             echo "${COV_HEADER}${COV_TABLE}" > coverage.html
-          
+
             # Now simply use pandoc to convert HTML to Markdown.
-            pandoc --from html --to 'markdown_strict+pipe_tables' coverage.html -o coverage.md            
+            pandoc --from html --to 'markdown_strict+pipe_tables' coverage.html -o coverage.md
+
+            # Append the missing lines, using pycobertura (which was used previously,
+            # but replaced by pandoc/htmlq due to missing branch coverage info
+            # https://github.com/aconrad/pycobertura/issues/167
+            pycobertura show coverage.xml --format markdown --source aqua | awk -F"|" '{print "|" $2 "|" $6 "|"}' > missing.md
+          
+            echo -en '\n\n## Missing Lines\n\n' >> coverage.md
+
+            cat missing.md >> coverage.md
           fi
       - name: Publish coverage reports (stdout)
         # Publish the coverage reports in only one matrix job run.
@@ -113,7 +122,11 @@ jobs:
             // Find any comment already made by the bot.
             const botComment = comments.find(comment => comment.user.id === 41898282)
             const fs = require("fs").promises
-            const commentBody = await fs.readFile("coverage.md", "utf8")
+            let commentBody = await fs.readFile("coverage.md", "utf8")
+            // Replace _ by \_ since it is Markdown. Pandoc already adds it,
+            // but pycobertura does not adds it. Thus the negative lookahead
+            // ignoring already escaped underscores.
+            commentBody = `${commentBody}`.replace(/_(?<!\\_)/g, '\\_')
 
             if (botComment) {
               console.log(`Updating comment in ${context.repo.owner}/${context.repo.repo}, comment ID: ${botComment.id}`)

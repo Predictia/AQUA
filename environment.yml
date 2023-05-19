@@ -33,6 +33,7 @@ dependencies:
   - pytest-cov
   - coverage[toml]
   - pandoc
+  - pycobertura
 # these below are only required for documentation
   - sphinx
   - sphinx-rtd-theme
