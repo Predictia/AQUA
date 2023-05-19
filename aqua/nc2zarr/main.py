@@ -63,13 +63,15 @@ def multi2Zarr(files, inline_threshold=200, save = True, name = "singleZarr", pa
             zarr_files.append(zarr_file)
         mzz = MultiZarrToZarr(
             zarr_files,
-            concat_dims=["time"]
+            concat_dims=["time"],
+            coo_map={"time": "INDEX"} 
         )
         out = mzz.translate()
     elif 'json' in namewithextension:
         mzz = MultiZarrToZarr(
             files,
-            concat_dims=["time"]
+            concat_dims=["time"],
+            coo_map={"time": "INDEX"}        
         )
         out = mzz.translate()
     if save:
