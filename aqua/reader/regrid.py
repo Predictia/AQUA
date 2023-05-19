@@ -106,8 +106,20 @@ class RegridMixin():
             data = self.retrieve(fix=False)
             temp_file = tempfile.NamedTemporaryFile(mode='w')
             sgridpath = temp_file.name
-            _get_spatial_sample(data, self.src_space_coord).to_netcdf(sgridpath)
+            data = _get_spatial_sample(data, self.src_space_coord)
+            if vert_coord:
+                varsel = [var for var in data.data_vars if vert_coord in data[var].dims]
+                if varsel:
+                    data = data[varsel]
+                else:
+                    raise ValueError(f"No variable with the name {vert_coord} found in the dataset")
+            data.to_netcdf(sgridpath)
         else:
+            if isinstance(sgridpath, list):
+                if vert_coord:
+                    sgridpath = sgridpath[vert_coord]
+                else:
+                    raise ValueError("You must specify a vert_coord in regrid.yaml if you have more than one source grid")
             temp_file = None
             if zoom:
                 sgridpath = sgridpath.format(zoom=9-zoom)

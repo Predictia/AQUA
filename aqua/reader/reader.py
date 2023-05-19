@@ -112,7 +112,7 @@ class Reader(FixerMixin, RegridMixin):
         source_grid_id = check_catalog_source(cfg_regrid["source_grids"],
                                               self.model, self.exp, source, name='regrid')
         source_grid = cfg_regrid["source_grids"][self.model][self.exp][source_grid_id]
-        self.vert_coord = source_grid.get("vert_coord", None)  # Some more checks needed
+        self.vert_coord = source_grid.get("vert_coord", None)
 
         # Expose grid information for the source
         sgridpath = source_grid.get("path", None)
@@ -135,24 +135,23 @@ class Reader(FixerMixin, RegridMixin):
                 self.vert_coord = ["2d"]
             if not isinstance(self.vert_coord, list):
                 self.vert_coord = [self.vert_coord]
-            
+
             self.weightsfile = {}
             self.weights = {}
             self.regridder = {}
 
             for vc in self.vert_coord:
-
                 # compute correct filename ending
                 levname = "2d" if vc == "2d" else f"3d-{vc}"
 
                 self.weightsfile.update({levname: os.path.join(
                     cfg_regrid["weights"]["path"],
                     cfg_regrid["weights"]["template"].format(model=model,
-                                                            exp=exp,
-                                                            method=method,
-                                                            target=regrid,
-                                                            source=self.source,
-                                                            level=levname))
+                                                             exp=exp,
+                                                             method=method,
+                                                             target=regrid,
+                                                             source=self.source,
+                                                             level=levname))
                                         })
 
                 # If weights do not exist, create them
@@ -163,8 +162,8 @@ class Reader(FixerMixin, RegridMixin):
                                             cfg_regrid, regrid=regrid, vert_coord=vc,
                                             extra=extra, zoom=zoom, nproc=nproc)
 
-                self.weights.update({vc: xr.open_mfdataset(self.weightsfile)})
-                self.regridder.update({vc: rg.Regridder(weights=self.weights, vert_coord=vc)})
+                self.weights.update({vc: xr.open_mfdataset(self.weightsfile[vc])})
+                self.regridder.update({vc: rg.Regridder(weights=self.weights[vc], vert_coord=vc)})
 
         if areas:
             self.src_areafile = os.path.join(
