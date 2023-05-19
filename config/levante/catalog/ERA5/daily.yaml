@@ -1,0 +1,22 @@
+plugins:
+  source:
+    - module: intake_xarray
+    - module: gribscan
+
+
+sources:
+  tp:
+    description: tp daily, ERA5 data
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/scratch/b/b382267/ERA5/sf/fc/1D/228/Grouped/228.json
+      
+  t2m:
+    description: t2m daily, ERA5 data
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/scratch/b/b382267/ERA5/sf/an/1D/167/GroupedZ/167.json

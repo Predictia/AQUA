@@ -4,3 +4,9 @@ sources:
     driver: yaml_file_cat
     args:
         path: "{{CATALOG_DIR}}/era5.yaml"
+
+  daily:
+    description: daily ERA5 data
+    driver: yaml_file_cat
+    args:
+        path: "{{CATALOG_DIR}}/daily.yaml"

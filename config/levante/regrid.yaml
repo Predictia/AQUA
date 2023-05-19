@@ -208,6 +208,15 @@ source_grids:
     past:
       default:
         space_coord: ["lon", "lat"]
+    monthly:
+      default:
+        space_coord: ["lon", "lat"]
+    daily:
+      default:
+        space_coord: ["lon", "lat"]
+    3hourly:
+      default:
+        space_coord: ["lon", "lat"]
 
   AVISO:
     ssh-L4:
@@ -231,6 +240,10 @@ source_grids:
 
   ERA5:
     era5:
+      default:
+        path: /work/bb1153/b382075/nextgems/grids/n320_unstructured.nc
+        space_coord: ["values"]
+    daily:
       default:
         path: /work/bb1153/b382075/nextgems/grids/n320_unstructured.nc
         space_coord: ["values"]

@@ -4,3 +4,22 @@ sources:
     driver: yaml_file_cat
     args:
         path: "{{CATALOG_DIR}}/past.yaml"
+
+  monthly:
+    description: monthly MSWEP v280 data
+    driver: yaml_file_cat
+    args:
+        path: "{{CATALOG_DIR}}/monthly.yaml"
+
+  daily:
+    description: daily MSWEP v280 data
+    driver: yaml_file_cat
+    args:
+        path: "{{CATALOG_DIR}}/daily.yaml"
+
+
+  3hourly:
+    description: 3hourly MSWEP v280 data
+    driver: yaml_file_cat
+    args:
+        path: "{{CATALOG_DIR}}/3hourly.yaml"

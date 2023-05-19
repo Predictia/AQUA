@@ -1,0 +1,40 @@
+plugins:
+  source:
+    - module: intake_xarray
+
+sources:
+  1979-1989:
+    description: daily MSWEP_V280 data from 1979 to 1989
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/1979_1989.json 
+
+
+  1990-1999:
+    description: daily MSWEP_V280 data from 1990 to 1999
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/1990_1999.json 
+
+  2000-2009:
+    description: daily MSWEP_V280 data from 2000 to 2009
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/2000_2009.json 
+
+  2010-2020:
+    description: daily MSWEP_V280 data from 2010 to 2020
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/2010_2020.json 
+
+
+
