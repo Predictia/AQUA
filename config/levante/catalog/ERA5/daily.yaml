@@ -11,7 +11,7 @@ sources:
     args:
       consolidated: False
       urlpath: 
-      - reference::/scratch/b/b382267/ERA5/sf/fc/1D/228/Grouped/228.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/ERA5/sf/fc/1D/228/GroupedZ/228.json
       
   t2m:
     description: t2m-daily (167), 2 metre temperature, ERA5 data
@@ -19,4 +19,4 @@ sources:
     args:
       consolidated: False
       urlpath: 
-      - reference::/scratch/b/b382267/ERA5/sf/an/1D/167/GroupedZ/167.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/ERA5/sf/an/1D/167/GroupedZ/167.json
