@@ -209,6 +209,8 @@ class Reader(FixerMixin, RegridMixin):
             fix (bool):             if to perform a fix (var name, units, coord name adjustments) (True)
             apply_unit_fix (bool):  if to already adjust units by multiplying by a factor or adding
                                     an offset (this can also be done later with the `apply_unit_fix` method) (True)
+            var (str, list):        the variable(s) to retrieve (None), vars is a synonym
+                                    if None, all variables are retrieved
             streaming (bool):       if to retreive data in a streaming mode (False)
             streaming_generator (bool):  if to return a generator object for data streaming (False).
             stream_step (int):      the number of time steps to stream the data by (Default = 1)

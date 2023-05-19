@@ -14,7 +14,7 @@ def check_catalog_source(cat, model, exp, source, name="dictionary"):
         name (str, optional): The name used for printing. Defaults to "dictionary".
 
     Returns:
-        str: An updated source ID. If the source is not specified, "default" 
+        str: An updated source ID. If the source is not specified, "default"
             is chosen, or, if missing, the first source.
     """
 
