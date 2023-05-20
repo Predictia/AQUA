@@ -206,9 +206,11 @@ source_grids:
           - -setgrid,/work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_griddes_nodes_IFS.nc
           - -selname,cell_area
       original_3d:
-        path: /work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_fesom_mask.nc
+        path: 
+          nz1: /work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_fesom_mask_nz1.nc
+          nz: /work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_fesom_mask_nz.nc
         space_coord: ["nod2"]
-        vertcoord: nz1
+        vertcoord: ["nz1", "nz"]
         extra: 
           - -setgrid,/work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_griddes_nodes_IFS.nc 
 

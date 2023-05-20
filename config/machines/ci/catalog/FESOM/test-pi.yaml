@@ -32,5 +32,7 @@ sources:
       urlpath:
       - ./AQUA_tests/models/FESOM/short/temp.fesom.1985.nc
       - ./AQUA_tests/models/FESOM/short/temp.fesom.1986.nc
+      - ./AQUA_tests/models/FESOM/short/w.fesom.1985.nc
+      - ./AQUA_tests/models/FESOM/short/w.fesom.1986.nc
     description: original 3d output
     driver: netcdf
