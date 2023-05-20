@@ -149,11 +149,22 @@ source_grids:
           - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc 
           - -selname,cell_area
       original_3d:
-        path: /work/bb1153/b382075/nextgems/grids/NG5_fesom_mask.nc
+        path:
+          nz: /work/bb1153/b382075/nextgems/grids/NG5_nodes_fesom_mask_nz.nc
+          nz1: /work/bb1153/b382075/nextgems/grids/NG5_nodes_fesom_mask_nz1.nc
         space_coord: ["nod2"]
-        vert_coord: nz1
+        vert_coord: ["nz", "nz1"]
         extra: 
           - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc 
+      default:  # default covers all simple cases where this can be computed automatically (eg LRA)
+        space_coord: ["lon", "lat"]
+      original_3d_elem:
+        path: 
+          nz1: /work/bb1153/b382075/nextgems/grids/NG5_elem_fesom_mask_nz1.nc
+        space_coord: ["elem"]
+        vert_coord: ["nz1"]
+        extra: 
+          - -setgrid,/work/bb1153/b382075/nextgems/grids/NG5_griddes_elem_IFS.nc 
       default:  # default covers all simple cases where this can be computed automatically (eg LRA)
         space_coord: ["lon", "lat"]
         
@@ -176,11 +187,20 @@ source_grids:
           - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc 
           - -selname,cell_area
       original_3d:
-        path: /work/bb1153/b382075/nextgems/grids/NG5_fesom_mask.nc
+        path: 
+          nz: /work/bb1153/b382075/nextgems/grids/NG5_nodes_fesom_mask_nz.nc
+          nz1: /work/bb1153/b382075/nextgems/grids/NG5_nodes_fesom_mask_nz1.nc
         space_coord: ["nod2"]
-        vert_coord: nz1
+        vert_coord: ["nz", "nz1"]
         extra: 
           - -setgrid,/work/bb1153/b382075/nextgems/grids/NG5_griddes_nodes_IFS.nc 
+      original_3d_elem:
+        path: 
+          nz1: /work/bb1153/b382075/nextgems/grids/NG5_elem_fesom_mask_nz1.nc
+        space_coord: ["elem"]
+        vert_coord: ["nz1"]
+        extra: 
+          - -setgrid,/work/bb1153/b382075/nextgems/grids/NG5_griddes_elems_IFS.nc 
       default:  # default covers all simple cases where this can be computed automatically (eg LRA)
         space_coord: ["lon", "lat"]
 
