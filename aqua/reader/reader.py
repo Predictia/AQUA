@@ -21,6 +21,10 @@ from .fixer import FixerMixin
 from .regrid import RegridMixin
 from .reader_utils import check_catalog_source, group_shared_dims
 
+# default spatial dimensions and vertical coordinates
+default_space_dims = ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude', 'latitude',
+                      'cell', 'cells', 'ncells', 'values', 'value', 'nod2', 'pix', 'elem']
+
 
 class Reader(FixerMixin, RegridMixin):
     """General reader for NextGEMS data."""
@@ -163,7 +167,7 @@ class Reader(FixerMixin, RegridMixin):
                                             extra=extra, zoom=zoom, nproc=nproc)
 
                 self.weights.update({vc: xr.open_mfdataset(self.weightsfile[vc])})
-                self.regridder.update({vc: rg.Regridder(weights=self.weights[vc], vert_coord=vc)})
+                self.regridder.update({vc: rg.Regridder(weights=self.weights[vc], vert_coord=vc, space_dims=default_space_dims)})
 
         if areas:
             self.src_areafile = os.path.join(
