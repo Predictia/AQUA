@@ -151,7 +151,7 @@ source_grids:
       original_3d:
         path: /work/bb1153/b382075/nextgems/grids/NG5_fesom_mask.nc
         space_coord: ["nod2"]
-        vertcoord: nz1
+        vert_coord: nz1
         extra: 
           - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc 
       default:  # default covers all simple cases where this can be computed automatically (eg LRA)
@@ -163,11 +163,11 @@ source_grids:
         space_coord: ["lon", "lat"]
       interpolated_global_TS:
         path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_3d.nc
-        vertcoord: depth
+        vert_coord: depth
         space_coord: ["lon", "lat"]
       interpolated_global_UV:
         path: /work/bb1153/b382075/nextgems/grids/fesom_tco2559_interpolated_3d.nc
-        vertcoord: depth
+        vert_coord: depth
         space_coord: ["lon", "lat"]
       original_2d:
         path: /work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc
@@ -178,7 +178,7 @@ source_grids:
       original_3d:
         path: /work/bb1153/b382075/nextgems/grids/NG5_fesom_mask.nc
         space_coord: ["nod2"]
-        vertcoord: nz1
+        vert_coord: nz1
         extra: 
           - -setgrid,/work/bb1153/b382075/nextgems/grids/NG5_griddes_nodes_IFS.nc 
       default:  # default covers all simple cases where this can be computed automatically (eg LRA)
@@ -210,7 +210,7 @@ source_grids:
           nz1: /work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_fesom_mask_nz1.nc
           nz: /work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_fesom_mask_nz.nc
         space_coord: ["nod2"]
-        vertcoord: ["nz1", "nz"]
+        vert_coord: ["nz1", "nz"]
         extra: 
           - -setgrid,/work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_griddes_nodes_IFS.nc 
 
@@ -233,7 +233,7 @@ source_grids:
     woa18_2005_2017:
       default:
         path: /pool/data/AWICM/FESOM2/INITIAL/WOA18/WOA18_2005_2017/woa18_A5B7_t00_04.nc
-        vertcoord: depth
+        vert_coord: depth
         space_coord: ["lon", "lat"]
 
   CERES:

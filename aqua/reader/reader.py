@@ -115,11 +115,12 @@ class Reader(FixerMixin, RegridMixin):
         self.vert_coord = source_grid.get("vert_coord", None)
 
         # Expose grid information for the source
-        sgridpath = source_grid.get("path", None)
-        if sgridpath:
-            self.src_grid = xr.open_dataset(sgridpath, decode_times=False)
-        else:
-            self.src_grid = None
+        # XXXXX
+        # sgridpath = source_grid.get("path", None)
+        # if sgridpath:
+        #     self.src_grid = xr.open_dataset(sgridpath, decode_times=False)
+        # else:
+        #     self.src_grid = None
 
         self.dst_datamodel = datamodel
         # Default destination datamodel (unless specified in instantiating the Reader)
@@ -140,11 +141,12 @@ class Reader(FixerMixin, RegridMixin):
             self.weights = {}
             self.regridder = {}
 
+            print("VERT VOORDS ARE:", self.vert_coord)
             for vc in self.vert_coord:
                 # compute correct filename ending
                 levname = "2d" if vc == "2d" else f"3d-{vc}"
 
-                self.weightsfile.update({levname: os.path.join(
+                self.weightsfile.update({vc: os.path.join(
                     cfg_regrid["weights"]["path"],
                     cfg_regrid["weights"]["template"].format(model=model,
                                                              exp=exp,
@@ -153,7 +155,7 @@ class Reader(FixerMixin, RegridMixin):
                                                              source=self.source,
                                                              level=levname))
                                         })
-
+                print("WEIGHTSFILE IS:", self.weightsfile)
                 # If weights do not exist, create them
                 if rebuild or not os.path.exists(self.weightsfile[vc]):
                     if os.path.exists(self.weightsfile[vc]):

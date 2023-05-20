@@ -35,7 +35,7 @@ source_grids:
           nz1: ./AQUA_tests/grids/pi_fesom_mask_nz1.nc
           nz: ./AQUA_tests/grids/pi_fesom_mask_nz.nc
         space_coord: ["nod2"]
-        vertcoord: ["nz1", "nz"]
+        vert_coord: ["nz1", "nz"]
         extra: 
           - -setgrid,./AQUA_tests/grids/pi_griddes_nodes_IFS.nc 
 
