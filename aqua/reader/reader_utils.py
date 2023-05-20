@@ -1,4 +1,5 @@
 """Common functions for the Reader"""
+import xarray as xr
 
 
 def check_catalog_source(cat, model, exp, source, name="dictionary"):
@@ -42,7 +43,7 @@ def group_shared_dims(ds, shared_dims, others=None):
     Groups variables in a dataset that share the same dimension.
 
     Arguments:
-        ds (xarray.Dataset): Input dataset to group variables
+        ds (xarray.Dataset or xarray.DataArray): Input dataset or dataarray to group variables
         shared_dims (list): List of shared dimensions
         others (str, optional): Name of group for variables not in `shared_dims`.
                                 Not computed if not specified.
@@ -50,6 +51,17 @@ def group_shared_dims(ds, shared_dims, others=None):
     Returns:
         Dictionary containing datasets that share the same dimension
     """
+
+    # Is this a DataArray?
+    if not isinstance(ds, xr.Dataset):
+        dim = [x for x in shared_dims if x in ds.dims]
+        if dim:
+            return {dim[0]: ds}
+        else:
+            if others:
+                return {others: ds}
+            else:
+                raise ValueError("No shared dimensions found.")
 
     shared_vars = {}
     for dim in shared_dims:
@@ -65,4 +77,5 @@ def group_shared_dims(ds, shared_dims, others=None):
                 vlist.append(var)
         if vlist:
             shared_vars.update({others: ds[vlist]})
+  
     return shared_vars

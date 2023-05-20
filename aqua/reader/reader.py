@@ -319,12 +319,14 @@ class Reader(FixerMixin, RegridMixin):
         # Iterate over list of groups of variables, regridding them separately
         out = []
         for vc, data in datadic.items():
-            print("Regridding ", vc)
-            print(data)
             out.append(self.regridder[vc].regrid(data))
 
-        out = xr.merge(out)
-        
+        if len(out) > 1:
+            out = xr.merge(out)
+        else:
+            # If this was a single dataarray
+            out = out[0]
+
         out.attrs["regridded"] = 1
         # set these two to the target grid (but they are actually not used so far)
         self.grid_area = self.dst_grid_area
