@@ -32,7 +32,10 @@ class RegridMixin():
 
         # Make sure that grid areas contain exactly the same coordinates
         data = self.retrieve(fix=False)
-        data = self.regridder.regrid(data.isel(time=0))
+        if isinstance(self.regridder, dict):
+            data = self.regridder[list(self.regridder.keys())[0]].regrid(data.isel(time=0))
+        else:
+            data = self.regridder.regrid(data.isel(time=0))
         grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.dst_space_coord})
 
         grid_area.to_netcdf(self.dst_areafile)
@@ -63,14 +66,17 @@ class RegridMixin():
             temp_file = tempfile.NamedTemporaryFile(mode='w')
             sgridpath = temp_file.name
             data = _get_spatial_sample(data, self.src_space_coord)
-            if vert_coord:
-                varsel = [var for var in data.data_vars if vert_coord in data[var].dims]
+            if self.vert_coord:
+                varsel = [var for var in data.data_vars if self.vert_coord in data[var].dims]
                 if varsel:
                     data = data[varsel]
                 else:
-                    raise ValueError(f"No variable with the name {vert_coord} found in the dataset")
+                    raise ValueError(f"No variable with the name {self.vert_coord} found in the dataset")
             data.to_netcdf(sgridpath)
         else:
+            # If this is a 3D dataset with multiple vertical dims, take only the first one
+            if isinstance(sgridpath, dict):
+                sgridpath = sgridpath[list(sgridpath.keys())[0]]
             temp_file = None
             if zoom:
                 sgridpath = sgridpath.format(zoom=9-zoom)
@@ -79,7 +85,7 @@ class RegridMixin():
         self.logger.warning("Attempting to generate it ...")
         self.logger.warning("Source grid: %s", sgridpath)
         src_extra = source_grid.get("extra", [])
-        print("areas sgroidpath:", sgridpath)
+
         grid_area = self.cdo_generate_areas(source=sgridpath,
                                             gridpath=gridpath,
                                             icongridpath=icongridpath,
@@ -109,7 +115,7 @@ class RegridMixin():
         """
 
         sgridpath = source_grid.get("path", None)
-        print("SGRIDPATH IS:", sgridpath)
+
         if not sgridpath:
             # there is no source grid path at all defined in the regrid.yaml file:
             # let's reconstruct it from the file itself
@@ -148,7 +154,7 @@ class RegridMixin():
         else:
             extra = []
         extra = extra + src_extra
-        print("VERT COORD", vert_coord)
+
         weights = rg.cdo_generate_weights(source_grid=sgridpath,
                                           target_grid=cfg_regrid["target_grids"][regrid],
                                           method='ycon',

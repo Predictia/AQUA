@@ -141,7 +141,6 @@ class Reader(FixerMixin, RegridMixin):
             self.weights = {}
             self.regridder = {}
 
-            print("VERT VOORDS ARE:", self.vert_coord)
             for vc in self.vert_coord:
                 # compute correct filename ending
                 levname = "2d" if vc == "2d" else f"3d-{vc}"
@@ -155,7 +154,6 @@ class Reader(FixerMixin, RegridMixin):
                                                              source=self.source,
                                                              level=levname))
                                         })
-                print("WEIGHTSFILE IS:", self.weightsfile)
                 # If weights do not exist, create them
                 if rebuild or not os.path.exists(self.weightsfile[vc]):
                     if os.path.exists(self.weightsfile[vc]):
