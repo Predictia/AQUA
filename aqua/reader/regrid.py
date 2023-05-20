@@ -299,3 +299,33 @@ def _get_spatial_sample(data, space_coord):
     extra_dims = list(set(dims) - set(space_coord))
     da_out = data.isel({dim: 0 for dim in extra_dims})
     return da_out
+
+
+def _group_shared_dims(ds, shared_dims, others=None):
+    """
+    Groups variables in a dataset that share the same dimension.
+
+    Arguments:
+        ds (xarray.Dataset): Input dataset to group variables
+        shared_dims (list): List of shared dimensions
+        others (str, optional): Name of group for variables not in `shared_dims`.
+                                Not computed if not specified.
+
+    Returns:
+        Dictionary containing datasets that share the same dimension
+    """
+
+    shared_vars = {}
+    for dim in shared_dims:
+        vlist = []
+        for var in ds.data_vars:
+            if dim in ds[var].dims:
+                vlist.append(var)
+        shared_vars.update({dim: ds[vlist]})
+    if others:
+        vlist = []
+        for var in ds.data_vars:
+            if not any(x in shared_dims for x in ds[var].dims):
+                vlist.append(var)
+        shared_vars.update({others: ds[vlist]})
+    return shared_vars

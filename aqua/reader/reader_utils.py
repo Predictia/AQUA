@@ -35,3 +35,34 @@ def check_catalog_source(cat, model, exp, source, name="dictionary"):
         source = list(cat[model][exp].keys())[0]  # take first source if none provided
 
     return source
+
+
+def group_shared_dims(ds, shared_dims, others=None):
+    """
+    Groups variables in a dataset that share the same dimension.
+
+    Arguments:
+        ds (xarray.Dataset): Input dataset to group variables
+        shared_dims (list): List of shared dimensions
+        others (str, optional): Name of group for variables not in `shared_dims`.
+                                Not computed if not specified.
+
+    Returns:
+        Dictionary containing datasets that share the same dimension
+    """
+
+    shared_vars = {}
+    for dim in shared_dims:
+        vlist = []
+        for var in ds.data_vars:
+            if dim in ds[var].dims:
+                vlist.append(var)
+        shared_vars.update({dim: ds[vlist]})
+    if others:
+        vlist = []
+        for var in ds.data_vars:
+            if not any(x in shared_dims for x in ds[var].dims):
+                vlist.append(var)
+        if vlist:
+            shared_vars.update({others: ds[vlist]})
+    return shared_vars

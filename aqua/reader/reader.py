@@ -19,7 +19,7 @@ from aqua.logger import log_configure
 from .streaming import Streaming
 from .fixer import FixerMixin
 from .regrid import RegridMixin
-from .reader_utils import check_catalog_source
+from .reader_utils import check_catalog_source, group_shared_dims
 
 
 class Reader(FixerMixin, RegridMixin):
@@ -311,8 +311,20 @@ class Reader(FixerMixin, RegridMixin):
             A xarray.Dataset containing the regridded data.
         """
 
-        out = self.regridder.regrid(data)
+        if self.vert_coord == ["2d"]:
+            datadic = {"2d": data}
+        else:
+            datadic = group_shared_dims(data, self.vert_coord, others="2d")
 
+        # Iterate over list of groups of variables, regridding them separately
+        out = []
+        for vc, data in datadic.items():
+            print("Regridding ", vc)
+            print(data)
+            out.append(self.regridder[vc].regrid(data))
+
+        out = xr.merge(out)
+        
         out.attrs["regridded"] = 1
         # set these two to the target grid (but they are actually not used so far)
         self.grid_area = self.dst_grid_area
