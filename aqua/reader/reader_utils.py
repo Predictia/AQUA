@@ -79,3 +79,19 @@ def group_shared_dims(ds, shared_dims, others=None):
             shared_vars.update({others: ds[vlist]})
 
     return shared_vars
+
+
+def set_attrs(ds, attrs):
+    """
+    Set an attribute for all variables in an xarray.Dataset
+
+    Args:
+        ds (xarray.Dataset or xarray.DataArray): Dataset to set attributes on
+        attrs (dict): Dictionary of attributes to set
+    """
+    if isinstance(ds, xr.Dataset):
+        for var in ds.data_vars:
+            ds[var].attrs.update(attrs)
+    else:
+        ds.attrs.update(attrs)
+    return ds

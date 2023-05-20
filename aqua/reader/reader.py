@@ -19,7 +19,7 @@ from aqua.logger import log_configure
 from .streaming import Streaming
 from .fixer import FixerMixin
 from .regrid import RegridMixin
-from .reader_utils import check_catalog_source, group_shared_dims
+from .reader_utils import check_catalog_source, group_shared_dims, set_attrs
 
 # default spatial dimensions and vertical coordinates
 default_space_dims = ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude', 'latitude',
@@ -331,7 +331,8 @@ class Reader(FixerMixin, RegridMixin):
             # If this was a single dataarray
             out = out[0]
 
-        out.attrs["regridded"] = 1
+        out = set_attrs(out, {"regridded": 1})  # set regridded attribute to 1 for all vars
+
         # set these two to the target grid (but they are actually not used so far)
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
