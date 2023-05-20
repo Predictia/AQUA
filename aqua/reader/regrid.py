@@ -53,29 +53,12 @@ class RegridMixin():
             None
         """
 
-        sgridpath = source_grid.get("path", None)
-        if not sgridpath:
-            # there is no source grid path at all defined in the regrid.yaml file:
-            # let's reconstruct it from the file itself
-            # XXX This part duplicated
-            data = self.retrieve(fix=False)
-            temp_file = tempfile.NamedTemporaryFile(mode='w')
-            sgridpath = temp_file.name
-            data = _get_spatial_sample(data, self.src_space_coord)
-            if self.vert_coord:
-                varsel = [var for var in data.data_vars if self.vert_coord in data[var].dims]
-                if varsel:
-                    data = data[varsel]
-                else:
-                    raise ValueError(f"No variable with the name {self.vert_coord} found in the dataset")
-            data.to_netcdf(sgridpath)
+        if self.vert_coord and self.vert_coord != ["2d"]:
+            vert_coord = self.vert_coord[0]  # We need only the first one for areas
         else:
-            # If this is a 3D dataset with multiple vertical dims, take only the first one
-            if isinstance(sgridpath, dict):
-                sgridpath = sgridpath[list(sgridpath.keys())[0]]
-            temp_file = None
-            if zoom:
-                sgridpath = sgridpath.format(zoom=9-zoom)
+            vert_coord = None
+
+        sgridpath = self._get_source_gridpath(source_grid, vert_coord, zoom)
 
         self.logger.warning("Source areas file not found: %s", areafile)
         self.logger.warning("Attempting to generate it ...")
@@ -110,31 +93,7 @@ class RegridMixin():
             None
         """
 
-        sgridpath = source_grid.get("path", None)
-
-        if not sgridpath:
-            # there is no source grid path at all defined in the regrid.yaml file:
-            # let's reconstruct it from the file itself
-            data = self.retrieve(fix=False)
-            temp_file = tempfile.NamedTemporaryFile(mode='w')
-            sgridpath = temp_file.name
-            data = _get_spatial_sample(data, self.src_space_coord)
-            if vert_coord:
-                varsel = [var for var in data.data_vars if vert_coord in data[var].dims]
-                if varsel:
-                    data = data[varsel]
-                else:
-                    raise ValueError(f"No variable with the name {vert_coord} found in the dataset")
-            data.to_netcdf(sgridpath)
-        else:
-            if isinstance(sgridpath, dict):
-                if vert_coord:
-                    sgridpath = sgridpath[vert_coord]
-                else:
-                    raise ValueError("You must specify a vert_coord in regrid.yaml if you have more than one source grid")
-            temp_file = None
-            if zoom:
-                sgridpath = sgridpath.format(zoom=9-zoom)
+        sgridpath = self._get_source_gridpath(source_grid, vert_coord, zoom)
 
         self.logger.warning("Weights file not found: %s", weightsfile)
         self.logger.warning("Attempting to generate it ...")
@@ -162,6 +121,45 @@ class RegridMixin():
                                           nproc=nproc)
         weights.to_netcdf(weightsfile)
         self.logger.warning("Success!")
+
+    def _get_source_gridpath(self, source_grid, vert_coord, zoom):
+        """
+        Helper function to get the source grid path.
+
+        Args:
+            source_grid (dict): The source grid specification.
+
+        Returns:
+            str: The source grid path.
+        """
+
+        sgridpath = source_grid.get("path", None)
+
+        if not sgridpath:
+            # there is no source grid path at all defined in the regrid.yaml file:
+            # let's reconstruct it from the file itself
+            data = self.retrieve(fix=False)
+            temp_file = tempfile.NamedTemporaryFile(mode='w')
+            sgridpath = temp_file.name
+            data = _get_spatial_sample(data, self.src_space_coord)
+            if vert_coord:
+                varsel = [var for var in data.data_vars if vert_coord in data[var].dims]
+                if varsel:
+                    data = data[varsel]
+                else:
+                    raise ValueError(f"No variable with the name {vert_coord} found in the dataset")
+            data.to_netcdf(sgridpath)
+        else:
+            if isinstance(sgridpath, dict):
+                if vert_coord:
+                    sgridpath = sgridpath[vert_coord]
+                else:
+                    raise ValueError("You must specify a vert_coord in regrid.yaml if you have more than one source grid")
+            temp_file = None
+            if zoom:
+                sgridpath = sgridpath.format(zoom=9-zoom)
+
+        return sgridpath
 
     def cdo_generate_areas(self, source, icongridpath=None, gridpath=None, extra=None):
         """

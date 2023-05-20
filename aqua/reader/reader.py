@@ -116,7 +116,13 @@ class Reader(FixerMixin, RegridMixin):
         source_grid_id = check_catalog_source(cfg_regrid["source_grids"],
                                               self.model, self.exp, source, name='regrid')
         source_grid = cfg_regrid["source_grids"][self.model][self.exp][source_grid_id]
+
+        # Normalize vert_coord to list
         self.vert_coord = source_grid.get("vert_coord", None)
+        if not self.vert_coord:
+            self.vert_coord = ["2d"]
+        if not isinstance(self.vert_coord, list):
+            self.vert_coord = [self.vert_coord]
 
         # Expose grid information for the source
         # XXXXX
@@ -136,11 +142,6 @@ class Reader(FixerMixin, RegridMixin):
         self.dst_space_coord = ["lon", "lat"]
 
         if regrid:
-            if not self.vert_coord:
-                self.vert_coord = ["2d"]
-            if not isinstance(self.vert_coord, list):
-                self.vert_coord = [self.vert_coord]
-
             self.weightsfile = {}
             self.weights = {}
             self.regridder = {}
