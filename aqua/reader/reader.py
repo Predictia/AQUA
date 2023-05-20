@@ -281,7 +281,7 @@ class Reader(FixerMixin, RegridMixin):
         if self.freq and timmean:
             data = self.timmean(data)
         if self.targetgrid and regrid:
-            data = self.regridder.regrid(data)
+            data = self.regrid(data)
             self.grid_area = self.dst_grid_area
         if fix:   # Do not change easily this order. The fixer assumes to be after regridding
             data = self.fixer(data, apply_unit_fix=apply_unit_fix)

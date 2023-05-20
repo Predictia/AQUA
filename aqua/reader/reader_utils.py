@@ -77,5 +77,5 @@ def group_shared_dims(ds, shared_dims, others=None):
                 vlist.append(var)
         if vlist:
             shared_vars.update({others: ds[vlist]})
-  
+
     return shared_vars
