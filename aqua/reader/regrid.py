@@ -31,11 +31,7 @@ class RegridMixin():
         grid_area = self.cdo_generate_areas(source=dst_extra)
 
         # Make sure that grid areas contain exactly the same coordinates
-        data = self.retrieve(fix=False)
-        if isinstance(self.regridder, dict):
-            data = self.regridder[list(self.regridder.keys())[0]].regrid(data.isel(time=0))
-        else:
-            data = self.regridder.regrid(data.isel(time=0))
+        data = self.retrieve(fix=False, regrid=True)
         grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.dst_space_coord})
 
         grid_area.to_netcdf(self.dst_areafile)
