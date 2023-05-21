@@ -153,7 +153,16 @@ class Reader(FixerMixin, RegridMixin):
             self.weights = {}
             self.regridder = {}
 
-            for vc in self.vert_coord:
+            # List of vertical coordinates or 2d to iterate over
+            if sgridpath:
+                if isinstance(sgridpath, dict):
+                    vclist = sgridpath.keys()
+                else:
+                    vclist = self.vert_coord
+            else:
+                vclist = self.vert_coord
+
+            for vc in vclist:
                 # compute correct filename ending
                 levname = "2d" if vc == "2d" else f"3d-{vc}"
 
