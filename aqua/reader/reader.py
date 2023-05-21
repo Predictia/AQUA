@@ -429,6 +429,7 @@ class Reader(FixerMixin, RegridMixin):
         return out
 
     # TODO: this is not used anymore, check if it can be deleted
+    
     # def _check_if_accumulated_auto(self, data):
     #     """To check if a DataArray is accumulated.
     #     Arbitrary check on the first 20 timesteps"""
