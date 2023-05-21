@@ -93,6 +93,9 @@ class RegridMixin():
             None
         """
 
+        if vert_coord == "2d":
+            vert_coord = None
+
         sgridpath = self._get_source_gridpath(source_grid, vert_coord, zoom)
 
         self.logger.warning("Weights file not found: %s", weightsfile)

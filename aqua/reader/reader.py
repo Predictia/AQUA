@@ -172,7 +172,8 @@ class Reader(FixerMixin, RegridMixin):
                                             extra=extra, zoom=zoom, nproc=nproc)
 
                 self.weights.update({vc: xr.open_mfdataset(self.weightsfile[vc])})
-                self.regridder.update({vc: rg.Regridder(weights=self.weights[vc], vert_coord=vc, space_dims=default_space_dims)})
+                vc2 = None if vc == "2d" else vc
+                self.regridder.update({vc: rg.Regridder(weights=self.weights[vc], vert_coord=vc2, space_dims=default_space_dims)})
 
         if areas:
             self.src_areafile = os.path.join(
@@ -429,7 +430,7 @@ class Reader(FixerMixin, RegridMixin):
         return out
 
     # TODO: this is not used anymore, check if it can be deleted
-    
+
     # def _check_if_accumulated_auto(self, data):
     #     """To check if a DataArray is accumulated.
     #     Arbitrary check on the first 20 timesteps"""
