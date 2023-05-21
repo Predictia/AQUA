@@ -133,7 +133,7 @@ class Reader(FixerMixin, RegridMixin):
                     self.src_grid.update({k: xr.open_dataset(v, decode_times=False)})
             else:
                 if self.vert_coord:
-                    self.src_grid = {self.vert_coord: xr.open_dataset(sgridpath, decode_times=False)}
+                    self.src_grid = {self.vert_coord[0]: xr.open_dataset(sgridpath, decode_times=False)}
                 else:
                     self.src_grid = {"2d": xr.open_dataset(sgridpath, decode_times=False)}
         else:
