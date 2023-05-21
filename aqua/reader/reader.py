@@ -119,18 +119,22 @@ class Reader(FixerMixin, RegridMixin):
 
         # Normalize vert_coord to list
         self.vert_coord = source_grid.get("vert_coord", None)
-        if not self.vert_coord:
+        if not self.vert_coord:  # If not specified we assume that this is only a 2D case
             self.vert_coord = ["2d"]
         if not isinstance(self.vert_coord, list):
             self.vert_coord = [self.vert_coord]
 
-        # Expose grid information for the source
-        # XXXXX
-        # sgridpath = source_grid.get("path", None)
-        # if sgridpath:
-        #     self.src_grid = xr.open_dataset(sgridpath, decode_times=False)
-        # else:
-        #     self.src_grid = None
+        # Expose grid information for the source as a dictionary of open xarrays
+        sgridpath = source_grid.get("path", None)
+        if sgridpath:
+            if isinstance(sgridpath, dict):
+                self.src_grid = {}
+                for k, v in sgridpath.items():
+                    self.src_grid.update({k: xr.open_dataset(v, decode_times=False)})
+            else:
+                self.src_grid = {"2d": xr.open_dataset(sgridpath, decode_times=False)}
+        else:
+            self.src_grid = None
 
         self.dst_datamodel = datamodel
         # Default destination datamodel (unless specified in instantiating the Reader)
