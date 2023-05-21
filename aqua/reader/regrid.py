@@ -62,7 +62,7 @@ class RegridMixin():
 
         self.logger.warning("Source areas file not found: %s", areafile)
         self.logger.warning("Attempting to generate it ...")
-        self.logger.warning("Source grid: %s", sgridpath)
+
         src_extra = source_grid.get("extra", [])
 
         grid_area = self.cdo_generate_areas(source=sgridpath,
@@ -100,7 +100,6 @@ class RegridMixin():
 
         self.logger.warning("Weights file not found: %s", weightsfile)
         self.logger.warning("Attempting to generate it ...")
-        self.logger.warning("Source grid: %s", sgridpath)
 
         # hack to  pass a correct list of all options
         src_extra = source_grid.get("extra", [])
@@ -133,17 +132,18 @@ class RegridMixin():
             source_grid (dict): The source grid specification.
 
         Returns:
-            str: The source grid path.
+            xarray.DataArray: The source grid path.
         """
 
         sgridpath = source_grid.get("path", None)
+        self.logger.warning("Source grid: %s", sgridpath)
 
         if not sgridpath:
             # there is no source grid path at all defined in the regrid.yaml file:
             # let's reconstruct it from the file itself
+
             data = self.retrieve(fix=False)
-            temp_file = tempfile.NamedTemporaryFile(mode='w')
-            sgridpath = temp_file.name
+
             data = _get_spatial_sample(data, self.src_space_coord)
             if vert_coord:
                 varsel = [var for var in data.data_vars if vert_coord in data[var].dims]
@@ -151,16 +151,16 @@ class RegridMixin():
                     data = data[varsel]
                 else:
                     raise ValueError(f"No variable with the name {vert_coord} found in the dataset")
-            data.to_netcdf(sgridpath)
+            sgridpath = data
         else:
             if isinstance(sgridpath, dict):
                 if vert_coord:
                     sgridpath = sgridpath[vert_coord]
                 else:
                     raise ValueError("You must specify a vert_coord in regrid.yaml if you have more than one source grid")
-            temp_file = None
             if zoom:
                 sgridpath = sgridpath.format(zoom=9-zoom)
+            sgridpath = xr.open_dataset(sgridpath)
 
         return sgridpath
 
