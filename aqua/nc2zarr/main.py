@@ -64,14 +64,14 @@ def multi2Zarr(files, inline_threshold=200, save = True, name = "singleZarr", pa
         mzz = MultiZarrToZarr(
             zarr_files,
             concat_dims=["time"],
-            coo_map={"time": "INDEX"} 
+            #coo_map={"time": "INDEX"} 
         )
         out = mzz.translate()
     elif 'json' in namewithextension:
         mzz = MultiZarrToZarr(
             files,
             concat_dims=["time"],
-            coo_map={"time": "INDEX"}        
+            #coo_map={"time": "INDEX"}        
         )
         out = mzz.translate()
     if save:
