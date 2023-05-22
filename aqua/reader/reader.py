@@ -100,7 +100,7 @@ class Reader(FixerMixin, RegridMixin):
         # safe check for zoom into the catalog parameters
         if 'zoom' in self.cat[self.model][self.exp].metadata.get('parameters', {}).keys() and self.zoom is None:
 
-            self.logger.error('No zoom specified but room required, setting zoom=0')
+            self.logger.warning('No zoom specified but the source requires it, setting zoom=0')
             self.zoom = 0
 
         # get fixes dictionary and find them
