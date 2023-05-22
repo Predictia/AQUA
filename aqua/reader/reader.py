@@ -181,7 +181,7 @@ class Reader(FixerMixin, RegridMixin):
                         os.unlink(self.weightsfile[vc])
                     self._make_weights_file(self.weightsfile[vc], source_grid,
                                             cfg_regrid, regrid=regrid, vert_coord=vc,
-                                            extra=extra, zoom=zoom)
+                                            extra=extra, zoom=zoom, method=method)
 
                 self.weights.update({vc: xr.open_mfdataset(self.weightsfile[vc])})
                 vc2 = None if vc == "2d" else vc

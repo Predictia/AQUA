@@ -76,7 +76,7 @@ class RegridMixin():
         grid_area.to_netcdf(areafile)
         self.logger.warning("Success!")
 
-    def _make_weights_file(self, weightsfile, source_grid, cfg_regrid,
+    def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, method='ycon',
                            regrid=None, extra=None, zoom=None, vert_coord=None):
         """
         Helper function to produce weights file.
@@ -88,8 +88,8 @@ class RegridMixin():
             regrid (str, optional): The regrid option. Defaults to None.
             extra (str or list, optional): Extra command(s) to apply to source grid before weight generation. Defaults to None.
             zoom (int, optional): The zoom level for the grid (for HealPix grids). Defaults to None.
-            vert_coord (str, optional):  The vertical coordinate to use for weight generation. Defaults to None.
-
+            vert_coord (str, optional): The vertical coordinate to use for weight generation. Defaults to None.
+            method (str, optional): The interpolation method to be used (see CDO manual). Defaults to 'ycon'.
         Returns:
             None
         """
@@ -115,7 +115,7 @@ class RegridMixin():
 
         weights = rg.cdo_generate_weights(source_grid=sgridpath,
                                           target_grid=cfg_regrid["target_grids"][regrid],
-                                          method='ycon',
+                                          method=method,
                                           gridpath=cfg_regrid["cdo-paths"]["download"],
                                           icongridpath=cfg_regrid["cdo-paths"]["icon"],
                                           extra=extra,
