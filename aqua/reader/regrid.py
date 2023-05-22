@@ -144,13 +144,19 @@ class RegridMixin():
 
             data = self.retrieve(fix=False)
 
-            data = _get_spatial_sample(data, self.src_space_coord)
+            # If we have also a vertical coordinate, include it in the sample
+            coords = self.src_space_coord
+            if vert_coord:
+                coords.append(vert_coord)
+
+            data = _get_spatial_sample(data, coords)
+
             if vert_coord:
                 varsel = [var for var in data.data_vars if vert_coord in data[var].dims]
                 if varsel:
                     data = data[varsel]
                 else:
-                    raise ValueError(f"No variable with the name {vert_coord} found in the dataset")
+                    raise ValueError(f"No variable with dimension {vert_coord} found in the dataset")
             sgridpath = data
         else:
             if isinstance(sgridpath, dict):
