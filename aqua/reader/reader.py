@@ -33,7 +33,7 @@ class Reader(FixerMixin, RegridMixin):
                  regrid=None, method="ycon", zoom=None, configdir=None,
                  areas=True,  # pylint: disable=W0622
                  datamodel=None, streaming=False, stream_step=1, stream_unit='steps',
-                 stream_startdate=None, rebuild=False, loglevel=None, nproc=16):
+                 stream_startdate=None, rebuild=False, loglevel=None, nproc=4):
         """
         Initializes the Reader class, which uses the catalog `config/config.yaml` to identify the required data.
 
@@ -70,6 +70,7 @@ class Reader(FixerMixin, RegridMixin):
         if (exp == "hpx") and not zoom:
             zoom = 9
         self.zoom = zoom
+        self.nproc = nproc
         self.freq = freq
         self.vert_coord = None
         self.deltat = 1
@@ -118,9 +119,8 @@ class Reader(FixerMixin, RegridMixin):
         source_grid = cfg_regrid["source_grids"][self.model][self.exp][source_grid_id]
 
         # Normalize vert_coord to list
-        self.vert_coord = source_grid.get("vert_coord", None)
-        if not self.vert_coord:  # If not specified we assume that this is only a 2D case
-            self.vert_coord = ["2d"]
+        self.vert_coord = source_grid.get("vert_coord", "2d")  # If not specified we assume that this is only a 2D case
+
         if not isinstance(self.vert_coord, list):
             self.vert_coord = [self.vert_coord]
 
@@ -181,7 +181,7 @@ class Reader(FixerMixin, RegridMixin):
                         os.unlink(self.weightsfile[vc])
                     self._make_weights_file(self.weightsfile[vc], source_grid,
                                             cfg_regrid, regrid=regrid, vert_coord=vc,
-                                            extra=extra, zoom=zoom, nproc=nproc)
+                                            extra=extra, zoom=zoom)
 
                 self.weights.update({vc: xr.open_mfdataset(self.weightsfile[vc])})
                 vc2 = None if vc == "2d" else vc
@@ -340,8 +340,8 @@ class Reader(FixerMixin, RegridMixin):
 
         # Iterate over list of groups of variables, regridding them separately
         out = []
-        for vc, data in datadic.items():
-            out.append(self.regridder[vc].regrid(data))
+        for vc, dd in datadic.items():
+            out.append(self.regridder[vc].regrid(dd))
 
         if len(out) > 1:
             out = xr.merge(out)
