@@ -440,6 +440,32 @@ class Reader(FixerMixin, RegridMixin):
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
 
         return out
+    
+    def vertinterp(self, data, levels, units = 'Pa', vert_coord='plev', method='linear'):
+        """
+        A basic vertical interpolation based on interp function
+        of xarray within AQUA
+
+        Args:
+            data (DataArray): your dataset
+            levels (float, or list): The level you want to interpolate the vertical coordinate
+            units (str, optional, ): The units of your vertical axis. Default 'Pa'
+            vert_coord (str, optional): The name of the vertical coordinate. Default 'plev'
+            method (str, optional): The type of interpolation method supported by interp()
+        
+        Return
+            A DataArray with the new interpolated vertical dimension
+        """
+
+        # verify units are good
+        if data[vert_coord].units != units:
+            data = data.metpy.convert_coordinate_units(vert_coord, units)
+
+        # very simple interpolation
+        final = data.interp({vert_coord: levels}, method=method)
+
+        return final
+    
 
     # TODO: this is not used anymore, check if it can be deleted
 
