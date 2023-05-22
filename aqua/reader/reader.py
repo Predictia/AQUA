@@ -457,12 +457,17 @@ class Reader(FixerMixin, RegridMixin):
             A DataArray with the new interpolated vertical dimension
         """
 
+        # error if vert_coord is not there
+        if vert_coord not in data.coords:
+            raise KeyError(f'The vert_coord={vert_coord} is not in the data!')
+
         # verify units are good
         if data[vert_coord].units != units:
             data = data.metpy.convert_coordinate_units(vert_coord, units)
 
         # very simple interpolation
         final = data.interp({vert_coord: levels}, method=method)
+
 
         return final
     
