@@ -1,6 +1,6 @@
 weights:
    path: /work/bb1153/b382075/nextgems/weights
-   template: weights_{model}_{exp}_{source}_z{zoom}_{method}_{target}_l{level}.nc
+   template: weights_{model}_{exp}_{source}_{method}_{target}_l{level}.nc
 
 areas:
    path: /work/bb1153/b382075/nextgems/weights

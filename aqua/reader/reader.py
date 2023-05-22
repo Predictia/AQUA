@@ -2,6 +2,7 @@
 
 import os
 import sys
+import re
 
 import intake
 import intake_esm
@@ -26,7 +27,7 @@ class Reader(FixerMixin, RegridMixin):
     """General reader for NextGEMS data."""
 
     def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
-                 regrid=None, method="ycon", zoom=0, configdir=None,
+                 regrid=None, method="ycon", zoom=None, configdir=None,
                  level=None, areas=True,  # pylint: disable=W0622
                  datamodel=None, streaming=False, stream_step=1, stream_unit='steps',
                  stream_startdate=None, rebuild=False, loglevel=None):
@@ -39,7 +40,7 @@ class Reader(FixerMixin, RegridMixin):
             source (str, optional): Source ID. Defaults to None.
             regrid (str, optional): Perform regridding to grid `regrid`, as defined in `config/regrid.yaml`. Defaults to None.
             method (str, optional): Regridding method. Defaults to "ycon".
-            zoom (int):             healpix zoom level. (Default 0, i.e. the coarser option)
+            zoom (int):             healpix zoom level. (Default: None)
             configdir (str, optional): Folder where the config/catalog files are located. Defaults to None.
             level (int, optional): Level to extract if input data are 3D (starting from 0). Defaults to None.
             areas (bool, optional): Compute pixel areas if needed. Defaults to True.
@@ -136,15 +137,20 @@ class Reader(FixerMixin, RegridMixin):
             if (level is None) and self.vertcoord:
                 raise RuntimeError("This is a masked 3d source: you should specify a specific level.")
 
-            self.weightsfile = os.path.join(
-                cfg_regrid["weights"]["path"],
-                cfg_regrid["weights"]["template"].format(model=model,
+            template_file = cfg_regrid["weights"]["template"].format(model=model,
                                                          exp=exp,
                                                          method=method,
                                                          target=regrid,
                                                          source=self.source,
-                                                         zoom=self.zoom,
-                                                         level=("2d" if level is None else level)))
+                                                         level=("2d" if level is None else level))
+
+            # add the zoom level in the template file (same as done in areas)
+            if zoom is not None:
+                template_file = re.sub(r'\.nc', '_z' + str(zoom) + r'\g<0>', template_file)
+
+            self.weightsfile = os.path.join(
+                cfg_regrid["weights"]["path"],
+                template_file)
 
             # If weights do not exist, create them
             if rebuild or not os.path.exists(self.weightsfile):
@@ -158,9 +164,16 @@ class Reader(FixerMixin, RegridMixin):
             self.regridder = rg.Regridder(weights=self.weights)
 
         if areas:
+            
+            template_file = cfg_regrid["areas"]["src_template"].format(model=model, exp=exp, source=self.source)
+
+            # add the zoom level in the template file (same as done in weights)
+            if zoom is not None:
+                template_file = re.sub(r'\.nc', '_z' + str(zoom) + r'\g<0>', template_file)
+
             self.src_areafile = os.path.join(
                 cfg_regrid["areas"]["path"],
-                cfg_regrid["areas"]["src_template"].format(model=model, exp=exp, source=self.source))
+                template_file)
 
             # If source areas do not exist, create them
             if rebuild or not os.path.exists(self.src_areafile):
@@ -220,7 +233,8 @@ class Reader(FixerMixin, RegridMixin):
             A xarray.Dataset containing the required data.
         """
 
-        self.cat = intake.open_catalog(self.catalog_file)
+        # this is done in the __init__
+        #self.cat = intake.open_catalog(self.catalog_file)
         # Extract subcatalogue
         if self.zoom:
             esmcat = self.cat[self.model][self.exp][self.source](zoom=self.zoom)
