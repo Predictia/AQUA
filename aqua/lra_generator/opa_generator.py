@@ -175,14 +175,13 @@ class OPAgenerator():
             self.logger.warning('Initializing the streaming generator...')
             self.reader.reset_stream()
             data_gen = self.reader.retrieve(streaming_generator=True,
-                                            stream_step=1,
+                                            stream_step=5,
                                             stream_unit='days')
 
             for data in data_gen:
                 self.logger.info(f"start_date: {data.time[0].values} stop_date: {data.time[-1].values}")
-                vardata = data[variable].load()
                 if self.definitive:
-                    opa_mean.compute(vardata)
+                    opa_mean.compute(data[variable])
 
         self._close_dask()
 
