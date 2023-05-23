@@ -126,12 +126,20 @@ source_grids:
       #   space_coord: ["lon", "lat"]
     ngc3026:
       default:
-        path: '/work/bb1153/b382076/grids/healpix_grids/icon_hpx{zoom}.nc'
+        path:
+          2d: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_2d.nc
+          depth_full: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_depth_full.nc
+          depth_half: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_depth_half.nc
         space_coord: ["cell"]
+        vert_coord: ["depth_half", "depth_full"]
     ngc3028:
       default:
-        path: '/work/bb1153/b382076/grids/healpix_grids/icon_hpx{zoom}.nc'
+        path:
+          2d: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_2d.nc
+          depth_full: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_depth_full.nc
+          depth_half: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_depth_half.nc
         space_coord: ["cell"]
+        vert_coord: ["depth_half", "depth_full"]
   
   FESOM:
     tco3999-ng5:  

@@ -135,7 +135,7 @@ class Reader(FixerMixin, RegridMixin):
             if isinstance(sgridpath, dict):
                 self.src_grid = {}
                 for k, v in sgridpath.items():
-                    self.src_grid.update({k: xr.open_dataset(v, decode_times=False)})
+                    self.src_grid.update({k: xr.open_dataset(v.format(zoom=self.zoom), decode_times=False)})
             else:
                 if self.vert_coord:
                     self.src_grid = {self.vert_coord[0]: xr.open_dataset(sgridpath.format(zoom=self.zoom), decode_times=False)}

@@ -164,7 +164,7 @@ class RegridMixin():
                 if vert_coord:
                     sgridpath = sgridpath[vert_coord]
                 else:
-                    raise ValueError("You must specify a vert_coord in regrid.yaml if you have more than one source grid")
+                    sgridpath = sgridpath["2d"]
             if zoom is not None:
                 sgridpath = sgridpath.format(zoom=zoom)
             sgridpath = xr.open_dataset(sgridpath)
