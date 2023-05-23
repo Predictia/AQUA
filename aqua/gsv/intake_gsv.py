@@ -6,7 +6,13 @@ from intake.source import base
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-from gsv.retriever import GSVRetriever
+# Test if FDB5 binary library is available
+try:
+    from gsv.retriever import GSVRetriever
+    gsv_available = True
+except RuntimeError:
+    print("FDB5 binary library not present on system, disabling FDB support.")
+    gsv_available = False
 
 class GSVSource(base.DataSource):
     container = 'xarray'
@@ -25,7 +31,10 @@ class GSVSource(base.DataSource):
             self._dates = None
         self._var = var
         self._npartitions = ndates
-        self.gsv = GSVRetriever()
+        if gsv_available:
+            self.gsv = GSVRetriever()
+        else:
+            self.gsv = None
         self._dataset = None
         super(GSVSource, self).__init__(metadata=metadata)
 
