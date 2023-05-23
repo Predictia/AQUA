@@ -127,17 +127,21 @@ source_grids:
     ngc3026:
       default:
         path:
-          2d: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_2d.nc
-          depth_full: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_depth_full.nc
-          depth_half: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_depth_half.nc
+          2d: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_atm_2d.nc
+          depth_full: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_oce_depth_full.nc
+          depth_half: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_oce_depth_half.nc
         space_coord: ["cell"]
         vert_coord: ["depth_half", "depth_full"]
     ngc3028:
       default:
         path:
-          2d: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_2d.nc
-          depth_full: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_depth_full.nc
-          depth_half: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_depth_half.nc
+          2d: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_atm_2d.nc
+          depth_full: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_oce_depth_full.nc
+          depth_half: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_oce_depth_half.nc
+          # level_full: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_atm_2d.nc
+          # level_half: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_atm_2d.nc
+          # soil_depth_energy_level: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_atm_2d.nc
+          # soil_depth_water_level: /work/bb1153/b382075/nextgems/grids/healpix/icon_hpx{zoom}_atm_2d.nc
         space_coord: ["cell"]
         vert_coord: ["depth_half", "depth_full"]
   
