@@ -113,7 +113,7 @@ source_grids:
         path: /pool/data/ICON/grids/public/mpim/0015/icon_grid_0015_R02B09_G.nc
         extra: "-selname,cell_index" 
         space_coord: ["cell"]
-        vert_coord: depth_full
+        vert_coord: ["depth_full", "depth_half"]
       intake-esm-test: 
         path: /pool/data/ICON/grids/public/mpim/0015/icon_grid_0015_R02B09_G.nc
         extra: "-selname,cell_index" 
