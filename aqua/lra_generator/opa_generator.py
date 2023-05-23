@@ -32,7 +32,7 @@ class OPAgenerator():
         return self.nproc > 1
 
     def __init__(self,
-                 model=None, exp=None, source=None,
+                 model=None, exp=None, source=None, zoom=None,
                  var=None, vars=None, frequency=None,
                  outdir=None, tmpdir=None, configdir=None,
                  loglevel=None, overwrite=False, definitive=False,
@@ -63,6 +63,8 @@ class OPAgenerator():
             self.source = source
         else:
             raise KeyError('Please specify source.')
+        
+        self.zoom = zoom
 
         if not configdir:
             self.configdir = get_config_dir()
@@ -117,7 +119,8 @@ class OPAgenerator():
 
         # Initialize the reader
         self.reader = Reader(model=self.model, exp=self.exp,
-                             source=self.source, configdir=self.configdir,
+                             source=self.source, zoom=self.zoom, 
+                             configdir=self.configdir,
                              loglevel=self.loglevel)
 
         self.logger.info('Getting the timedelta to inform the OPA...')
@@ -128,7 +131,7 @@ class OPAgenerator():
         Get the timedelta from the catalog
         """
 
-        data = self.reader.retrieve()
+        data = self.reader.retrieve(var=self.var)
         time_diff = np.diff(data.time.values).astype('timedelta64[m]')
         self.timedelta = time_diff[0].astype(int)
         self.logger.info('Timedelta is %s', str(self.timedelta))

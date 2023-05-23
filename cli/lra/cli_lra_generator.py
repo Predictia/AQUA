@@ -65,18 +65,20 @@ if __name__ == '__main__':
             for source in config['catalog'][model][exp].keys():
                 for varname in config['catalog'][model][exp][source]['vars']:
 
+                    # get the zoom level
+                    zoom_level = config['catalog'][model][exp][source].get('zoom', None)
                     # init the OPA
                     if use_opa:
-                        opa = OPAgenerator(model=model, exp=exp, source=source,
+                        opa = OPAgenerator(model=model, exp=exp, source=source, zoom=zoom_level,
                                             var=varname, frequency=frequency,
                                             outdir=opadir, tmpdir=tmpdir, configdir=configdir,
-                                            loglevel=loglevel, definitive=definitive, nproc=1)
+                                            loglevel=loglevel, definitive=definitive, nproc=workers)
                         entry = opa.entry_name
                     else:
                         entry = source
                     
                     # init the LRA
-                    lra = LRAgenerator(model=model, exp=exp, source=entry,
+                    lra = LRAgenerator(model=model, exp=exp, source=entry, zoom=zoom_level,
                                         var=varname, resolution=resolution,
                                         frequency=frequency, fix=fix,
                                         outdir=outdir, tmpdir=tmpdir, configdir=configdir,

@@ -27,7 +27,7 @@ class LRAgenerator():
         return self.nproc > 1
 
     def __init__(self,
-                 model=None, exp=None, source=None,
+                 model=None, exp=None, source=None, zoom=None,
                  var=None, vars=None, configdir=None,
                  resolution=None, frequency=None, fix=True,
                  outdir=None, tmpdir=None, nproc=1,
@@ -41,6 +41,7 @@ class LRAgenerator():
             source (string):         The sourceid name from the catalog
             var (str, list):         Variable(s) to be processed and archived
                                      in LRA,vars in a synonim
+            zoom (int):              Healpix level of zoom
             resolution (string):     The target resolution for the LRA
             frequency (string,opt):  The target frequency for averaging the
                                      LRA, if no frequency is specified,
@@ -101,6 +102,8 @@ class LRAgenerator():
             self.source = source
         else:
             raise KeyError('Please specify source.')
+        
+        self.zoom = zoom
 
         if not configdir:
             self.configdir = get_config_dir()
@@ -174,12 +177,12 @@ class LRAgenerator():
 
         # Initialize the reader
         self.reader = Reader(model=self.model, exp=self.exp,
-                             source=self.source,
+                             source=self.source, zoom=self.zoom,
                              regrid=self.resolution, freq=self.frequency,
                              configdir=self.configdir, loglevel=self.loglevel)
 
         self.logger.warning('Retrieving data...')
-        self.data = self.reader.retrieve(fix=self.fix)
+        self.data = self.reader.retrieve(var = self.var, fix=self.fix)
         self.logger.debug(self.data)
 
     def generate_lra(self):
