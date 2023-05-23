@@ -89,8 +89,8 @@ Path to combined dataset: /work/bb1153/b382267/Observations_Zarr/ERA5/sf/an/1D/C
 |   202     |    mn2t       |   K       |   Minimum temperature at 2 metres since previous post-processing    |  Path_fc/202.json         |
 |   205     |    ro         |   m       |   Runoff                                  |  Path_fc/205.json         |
 |   208     |    tsrc       |   J m-2   |   Top net solar radiation, clear sky      | Path_fc/208.json         |
-|   209     |    ttrc       |   J m-2   |    Top net thermal radiation, clear sky   |  Path_fc/         |
-|   210     |    ssrc       |   J m-2   |   Surface net short-wave (solar) radiation, clear sky                 |  Path_fc/         |
+|   209     |    ttrc       |   J m-2   |    Top net thermal radiation, clear sky   |  Path_fc/209.json         |
+|   210     |    ssrc       |   J m-2   |   Surface net short-wave (solar) radiation, clear sky                 |  Path_fc/210.json         |
 |   211     |    strc       |   J m-2   |    Surface net long-wave (thermal) radiation, clear sky               |     Path_fc/         |
 |   212     |    tisr       |   J m-2   |    TOA incident solar radiation           |  Path_fc/         |
 |   228     |    tp         |   m       |    Total precipitation   |    Path_fc/228.json         |

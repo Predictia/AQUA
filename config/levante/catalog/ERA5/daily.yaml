@@ -270,6 +270,22 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/ERA5/sf/an/1D/all/208.json
 
+  ttrc:
+    description: ttrc-daily (209), Top net thermal radiation, clear sky, ERA5 data
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/ERA5/sf/an/1D/all/209.json
+
+  ssrc:
+    description: ssrc-daily (210), Surface net short-wave (solar) radiation, clear sky, ERA5 data
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/ERA5/sf/an/1D/all/210.json
+
 
   t2m:
     description: t2m-daily (167), 2 metre temperature, ERA5 data
