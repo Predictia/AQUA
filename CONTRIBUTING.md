@@ -14,6 +14,34 @@ Please note that the `main` branch is *not* protected.
 Anyway, pushing directly to `main` is forbidden and if not agreed in advance, your changes will be reverted.
 Please use Pull Requests instead.
 
+### Creating a Pull Request
+
+Pull requests can be created directly in the AQUA repository, creating your own fork of the repository is not mandatory.
+
+When creating a Pull Request, please make sure to:
+- add a meaningful title and description
+- reference the issue it solves in the description, if any
+- start from the `main` branch if your Pull Request wants to be merged in the `main` branch
+- point to the correct branch
+
+If your Pull Request is adding some new dependencies, please make sure to state it in the description.
+
+### Finalizing a Pull Request
+
+If your Pull Request is a work in progress, please add `[WIP]` to the title.
+When your Pull Request is ready to be reviewed, please remove `[WIP]` from the title.
+A label `ready to merge` can be added to the Pull Request to indicate that it is ready to be reviewed and hopefully merged in the opinion of the author.
+
+Before asking for a review, please make sure to:
+- be up to date with the `main` branch
+- run the tests successfully
+- if a new dependency has been added, please make sure to update the `environment.yml` and `pyproject.toml` files
+- if a new feature has been added, please make sure to update the documentation accordingly
+- add docstrings to your code
+- remove any file unrelated to your Pull Request
+
+Do not merge your Pull Request yourself, it will be merged by the AQUA team.
+
 ## Reporting issues
 
 Before opening an issue, please [search the if the issue already exists][https://docs.github.com/en/github/searching-for-information-on-github/searching-on-github/searching-issues-and-pull-requests#search-by-the-title-body-or-comments]. If it does, please add a comment to the existing issue instead of opening a new one.
