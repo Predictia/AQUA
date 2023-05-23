@@ -11,6 +11,18 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Monthly/MonthlyGrouped/1979_2020.json
 
+  daily:
+    description: daily MSWEP_V280 data from 1979 to 2020
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/1979_1989.json 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/1990_1999.json 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/2000_2009.json 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/2010_2020.json
+
+
 
   daily_1979_1989:
     description: daily MSWEP_V280 data from 1979 to 1989

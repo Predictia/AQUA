@@ -3,6 +3,55 @@ plugins:
     - module: intake_xarray
 
 sources:
+  3hourly:
+    description: 3hourly MSWEP_V280 data from 1979 till 2020
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1979.json 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1980.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1981.json 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1982.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1983.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1984.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1985.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1986.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1987.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1988.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1989.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1990.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1991.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1992.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1993.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1994.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1995.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1996.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1997.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1998.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1999.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2000.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2001.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2002.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2003.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2004.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2005.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2006.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2007.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2008.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2009.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2010.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2011.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2012.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2013.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2014.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2015.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2016.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2017.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2018.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2019.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2020.json
+
   y1979:
     description: 3hourly MSWEP_V280 data for 1979
     driver: zarr

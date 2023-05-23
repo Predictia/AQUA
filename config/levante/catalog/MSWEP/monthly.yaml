@@ -3,7 +3,7 @@ plugins:
     - module: intake_xarray
 
 sources:
-  1979-2020:
+  monthly:
     description: monthly MSWEP_V280 data
     driver: zarr
     args:
