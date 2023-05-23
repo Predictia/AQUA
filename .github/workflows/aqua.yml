@@ -27,8 +27,8 @@ jobs:
       run:
         shell: bash -l {0}
     steps:
-      - name: Install fdb5
-        run: sudo apt-get install -y fdb5
+#      - name: Install fdb5
+#        run: sudo apt-get install -y fdb5
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Provision with Micromamba
