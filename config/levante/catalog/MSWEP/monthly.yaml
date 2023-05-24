@@ -3,7 +3,16 @@ plugins:
     - module: intake_xarray
 
 sources:
-  monthly:
+
+  zarr:
+    description: monthly MSWEP_V280 data
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/monthly/monthly.zarr
+
+  json:
     description: monthly MSWEP_V280 data
     driver: zarr
     args:

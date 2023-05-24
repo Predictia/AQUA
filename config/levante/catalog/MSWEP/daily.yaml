@@ -4,7 +4,58 @@ plugins:
 
 sources:
 
-  daily:
+  
+
+  zarr:
+    description: daily MSWEP_V280 data from 1979 to 2020
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/1979.zarr 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/1980.zarr 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/1981.zarr 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/1982.zarr 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/1983.zarr 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/1984.zarr 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/1985.zarr 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/1986.zarr 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/1987.zarr 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/1988.zarr 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/1989.zarr 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/1990.zarr 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/1991.zarr 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/1992.zarr 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/1993.zarr 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/1994.zarr  
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/1995.zarr  
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/1996.zarr 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/1997.zarr 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/1998.zarr 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/1999.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/2000.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/2001.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/2002.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/2003.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/2004.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/2005.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/2006.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/2007.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/2008.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/2009.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/2010.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/2011.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/2012.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/2013.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/2014.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/2015.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/2016.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/2017.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/2018.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/2019.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/2020.zarr
+
+  json:
     description: daily MSWEP_V280 data from 1979 to 2020
     driver: zarr
     args:
@@ -16,7 +67,7 @@ sources:
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/2010_2020.json
 
       
-  1979-1989:
+  json_1979-1989:
     description: daily MSWEP_V280 data from 1979 to 1989
     driver: zarr
     args:
@@ -25,7 +76,7 @@ sources:
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/1979_1989.json 
 
 
-  1990-1999:
+  json_1990-1999:
     description: daily MSWEP_V280 data from 1990 to 1999
     driver: zarr
     args:
@@ -33,7 +84,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/1990_1999.json 
 
-  2000-2009:
+  json_2000-2009:
     description: daily MSWEP_V280 data from 2000 to 2009
     driver: zarr
     args:
@@ -41,7 +92,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/2000_2009.json 
 
-  2010-2020:
+  json_2010-2020:
     description: daily MSWEP_V280 data from 2010 to 2020
     driver: zarr
     args:
@@ -50,7 +101,7 @@ sources:
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/2010_2020.json 
 
 
-  y1979:
+  json_1979:
     description: daily MSWEP_V280 data for 1979
     driver: zarr
     args:
@@ -58,7 +109,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/1979.json 
 
-  y1980:
+  json_1980:
     description: daily MSWEP_V280 data for 1980
     driver: zarr
     args:
@@ -66,7 +117,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/1980.json 
 
-  y1981:
+  json_1981:
     description: daily MSWEP_V280 data for 1981
     driver: zarr
     args:
@@ -75,7 +126,7 @@ sources:
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/1981.json 
 
 
-  y1982:
+  json_1982:
     description: daily MSWEP_V280 data for 1982
     driver: zarr
     args:
@@ -83,7 +134,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/1982.json 
 
-  y1983:
+  json_1983:
     description: daily MSWEP_V280 data for 1983
     driver: zarr
     args:
@@ -91,7 +142,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/1983.json 
 
-  y1984:
+  json_1984:
     description: daily MSWEP_V280 data for 1984
     driver: zarr
     args:
@@ -99,7 +150,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/1984.json 
 
-  y1985:
+  json_1985:
     description: daily MSWEP_V280 data for 1985
     driver: zarr
     args:
@@ -107,7 +158,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/1985.json 
 
-  y1986:
+  json_1986:
     description: daily MSWEP_V280 data for 1986
     driver: zarr
     args:
@@ -116,7 +167,7 @@ sources:
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/1986.json 
 
 
-  y1987:
+  json_1987:
     description: daily MSWEP_V280 data for 1987
     driver: zarr
     args:
@@ -124,7 +175,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/1987.json 
 
-  y1988:
+  json_1988:
     description: daily MSWEP_V280 data for 1988
     driver: zarr
     args:
@@ -133,7 +184,7 @@ sources:
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/1988.json 
 
 
-  y1989:
+  json_1989:
     description: daily MSWEP_V280 data for 1989
     driver: zarr
     args:
@@ -142,7 +193,7 @@ sources:
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/1989.json 
 
 
-  y1990:
+  json_1990:
     description: daily MSWEP_V280 data for 1990
     driver: zarr
     args:
@@ -150,7 +201,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/1990.json 
 
-  y1991:
+  json_1991:
     description: daily MSWEP_V280 data for 1991
     driver: zarr
     args:
@@ -159,7 +210,7 @@ sources:
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/1991.json 
 
 
-  y1992:
+  json_1992:
     description: daily MSWEP_V280 data for 1992
     driver: zarr
     args:
@@ -167,7 +218,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/1992.json
 
-  y1993:
+  json_1993:
     description: daily MSWEP_V280 data for 1993
     driver: zarr
     args:
@@ -176,7 +227,7 @@ sources:
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/1993.json  
 
   
-  y1994:
+  json_1994:
     description: daily MSWEP_V280 data for 1994
     driver: zarr
     args:
@@ -184,7 +235,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/1994.json 
 
-  y1995:
+  json_1995:
     description: daily MSWEP_V280 data for 1995
     driver: zarr
     args:
@@ -193,7 +244,7 @@ sources:
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/1995.json 
 
 
-  y1996:
+  json_1996:
     description: daily MSWEP_V280 data for 1996
     driver: zarr
     args:
@@ -201,7 +252,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/1996.json 
 
-  y1997:
+  json_1997:
     description: daily MSWEP_V280 data for 1997
     driver: zarr
     args:
@@ -210,7 +261,7 @@ sources:
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/1997.json 
 
 
-  y1998:
+  json_1998:
     description: daily MSWEP_V280 data for 1998
     driver: zarr
     args:
@@ -218,7 +269,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/1998.json 
 
-  y1999:
+  json_1999:
     description: daily MSWEP_V280 data for 1999
     driver: zarr
     args:
@@ -226,7 +277,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/1999.json 
 
-  y2000:
+  json_2000:
     description: daily MSWEP_V280 data for 2000
     driver: zarr
     args:
@@ -235,7 +286,7 @@ sources:
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/2000.json 
 
 
-  y2001:
+  json_2001:
     description: daily MSWEP_V280 data for 2001
     driver: zarr
     args:
@@ -243,7 +294,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/2001.json 
 
-  y2002:
+  json_2002:
     description: daily MSWEP_V280 data for 2002
     driver: zarr
     args:
@@ -251,7 +302,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/2002.json 
 
-  y2003:
+  json_2003:
     description: daily MSWEP_V280 data for 2003
     driver: zarr
     args:
@@ -259,7 +310,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/2003.json 
 
-  y2004:
+  json_2004:
     description: daily MSWEP_V280 data for 2004
     driver: zarr
     args:
@@ -267,7 +318,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/2004.json 
 
-  y2005:
+  json_2005:
     description: daily MSWEP_V280 data for 2005
     driver: zarr
     args:
@@ -276,7 +327,7 @@ sources:
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/2005.json 
 
 
-  y2006:
+  json_2006:
     description: daily MSWEP_V280 data for 2006
     driver: zarr
     args:
@@ -285,7 +336,7 @@ sources:
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/2006.json 
 
 
-  y2007:
+  json_2007:
     description: daily MSWEP_V280 data for 2007
     driver: zarr
     args:
@@ -294,7 +345,7 @@ sources:
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/2007.json 
 
 
-  y2008:
+  json_2008:
     description: daily MSWEP_V280 data for 2008
     driver: zarr
     args:
@@ -302,7 +353,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/2008.json 
 
-  y2009:
+  json_2009:
     description: daily MSWEP_V280 data for 2009
     driver: zarr
     args:
@@ -310,7 +361,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/2009.json 
 
-  y2010:
+  json_2010:
     description: daily MSWEP_V280 data for 2010
     driver: zarr
     args:
@@ -318,7 +369,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/2010.json 
 
-  y2011:
+  json_2011:
     description: daily MSWEP_V280 data for 2011
     driver: zarr
     args:
@@ -326,7 +377,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/2011.json 
 
-  y2012:
+  json_2012:
     description: daily MSWEP_V280 data for 2012
     driver: zarr
     args:
@@ -334,7 +385,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/2012.json 
 
-  y2013:
+  json_2013:
     description: daily MSWEP_V280 data for 2013
     driver: zarr
     args:
@@ -342,7 +393,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/2013.json 
 
-  y2014:
+  json_2014:
     description: daily MSWEP_V280 data for 2014
     driver: zarr
     args:
@@ -351,7 +402,7 @@ sources:
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/2014.json 
 
 
-  y2015:
+  json_2015:
     description: daily MSWEP_V280 data for 2015
     driver: zarr
     args:
@@ -360,7 +411,7 @@ sources:
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/2015.json 
 
 
-  y2016:
+  json_2016:
     description: daily MSWEP_V280 data for 2016
     driver: zarr
     args:
@@ -368,7 +419,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/2016.json 
 
-  y2017:
+  json_2017:
     description: daily MSWEP_V280 data for 2017
     driver: zarr
     args:
@@ -376,7 +427,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/2017.json 
 
-  y2018:
+  json_2018:
     description: daily MSWEP_V280 data for 2018
     driver: zarr
     args:
@@ -384,7 +435,7 @@ sources:
       urlpath: 
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/2018.json 
 
-  y2019:
+  json_2019:
     description: daily MSWEP_V280 data for 2019
     driver: zarr
     args:
@@ -393,7 +444,7 @@ sources:
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByYear/2019.json 
 
 
-  y2020:
+  json_2020:
     description: daily MSWEP_V280 data for 2020
     driver: zarr
     args:
@@ -405,3 +456,10 @@ sources:
   
 
 
+  big_zarr_test:
+    description: daily MSWEP_V280 data from 1979 to 2020
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/daily_zarr/out_big_zarr 
