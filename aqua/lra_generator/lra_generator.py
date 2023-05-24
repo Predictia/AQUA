@@ -339,6 +339,11 @@ class LRAgenerator():
             temp_data = self.reader.timmean(temp_data)
         temp_data = self.reader.regrid(temp_data)
 
+        # remove regridded attribute to avoid issues with Reader
+        # https://github.com/oloapinivad/AQUA/issues/147
+        if 'regridded' in temp_data.attrs:
+            del temp_data.attrs['regridded']
+
         # Splitting data into yearly files
         years = set(temp_data.time.dt.year.values)
         for year in years:
@@ -395,11 +400,9 @@ class LRAgenerator():
         self.logger.warning('Writing file %s...', outfile)
 
         # Write data to file, lazy evaluation
-        write_job =\
-            month_data.to_netcdf(outfile,
-                                    encoding={'time':
-                                            self.time_encoding},
-                                    compute=False)
+        write_job = month_data.to_netcdf(outfile,
+                                encoding={'time': self.time_encoding},
+                                compute=False)
 
         if self.dask:
             w_job = write_job.persist()
