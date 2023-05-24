@@ -24,18 +24,13 @@ def log_configure(log_level=None, log_name=None):
     # fix the log level
     log_level = _check_loglevel(log_level)
 
-    # if our logger is already out there, update the logging level
+    # if our logger is already out there, update the logging level and return
     if logger.handlers:
         if log_level != logging.getLevelName(logger.getEffectiveLevel()):
             logger.setLevel(log_level)
             logger.info('Updating the log_level to %s', log_level)
         return logger
 
-    # clear the handlers of the possibly previously configured logger
-    #for handler in logger.handlers[:]:
-    #    logging.critical('Cleaning handlers')
-    #    logger.removeHandler(handler)
-    
     # avoid duplication/propagation of loggers
     logger.propagate = False
 
@@ -48,10 +43,10 @@ def log_configure(log_level=None, log_name=None):
         datefmt='%Y-%m-%d %H:%M:%S')
 
     # create console handler which logs
-    ch = logging.StreamHandler()
+    terminal = logging.StreamHandler()
     #ch.setLevel(log_level)
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
+    terminal.setFormatter(formatter)
+    logger.addHandler(terminal)
 
     # this can be used in future to log to file
     # fh = logging.FileHandler('spam.log')
