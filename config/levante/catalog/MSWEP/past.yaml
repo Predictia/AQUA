@@ -5,73 +5,43 @@ plugins:
 sources:
   monthly:
     description: monthly MSWEP_V280 data
-    driver: zarr
+    driver: netcdf
+    #cache:
+    #  - argkey: urlpath
+    #    regex: ''
+    #    type: file
     args:
-      consolidated: False
-      urlpath: 
-      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Monthly/MonthlyGrouped/1979_2020.json
+      urlpath: '/work/bb1153/b382075/datasets/MSWEP_V280/Past/Monthly/*.nc'
+      chunks: {}
+      xarray_kwargs:
+        decode_times: True
 
   daily:
-    description: daily MSWEP_V280 data from 1979 to 2020
-    driver: zarr
+    description: daily MSWEP_V280 data
+    driver: netcdf
+    #cache:
+    #  - argkey: urlpath
+    #    regex: ''
+    #    type: file
     args:
-      consolidated: False
-      urlpath: 
-      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/1979_1989.json 
-      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/1990_1999.json 
-      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/2000_2009.json 
-      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/2010_2020.json
-
-
-
-  daily_1979_1989:
-    description: daily MSWEP_V280 data from 1979 to 1989
-    driver: zarr
-    args:
-      consolidated: False
-      urlpath: 
-      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/1979_1989.json 
-
-
-  daily_1990_1999:
-    description: daily MSWEP_V280 data from 1990 to 1999
-    driver: zarr
-    args:
-      consolidated: False
-      urlpath: 
-      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/1990_1999.json 
-
-  daily_2000_2009:
-    description: daily MSWEP_V280 data from 2000 to 2009
-    driver: zarr
-    args:
-      consolidated: False
-      urlpath: 
-      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/2000_2009.json 
-
-  daily_2010_2020:
-    description: daily MSWEP_V280 data from 2010 to 2020
-    driver: zarr
-    args:
-      consolidated: False
-      urlpath: 
-      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/2010_2020.json 
-
-
+      urlpath: '/work/bb1153/b382075/datasets/MSWEP_V280/Past/Daily/*.nc'
+      chunks: {}
+      xarray_kwargs:
+        decode_times: True
 
   3hourly:
     description: 3 hourly MSWEP_V280 data
-    driver: zarr
+    driver: netcdf
+    #cache:
+    #  - argkey: urlpath
+    #    regex: ''
+    #    type: file
     args:
-      consolidated: False
-      compat: override
-      combine: nested
-      urlpath:  '/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyZarr/*.json' 
-      
+      urlpath: '/work/bb1153/b382075/datasets/MSWEP_V280/Past/3hourly/*.nc'
+      chunks: {}
+      xarray_kwargs:
+        decode_times: True
 
-
-
-  # old part 
   monthlyz:
     description: monthly MSWEP_V280 data
     driver: zarr
@@ -98,4 +68,3 @@ sources:
       - reference::/work/bb1153/b382075/datasets/MSWEP_V280/mswep_past_daily5.json
       - reference::/work/bb1153/b382075/datasets/MSWEP_V280/mswep_past_daily6.json
       - reference::/work/bb1153/b382075/datasets/MSWEP_V280/mswep_past_daily7.json
-
