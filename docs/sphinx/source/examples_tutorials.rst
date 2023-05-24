@@ -15,6 +15,7 @@ Some example notebooks include:
 5. `Spatial (field) averaging <https://github.com/oloapinivad/AQUA/blob/main/notebooks/reader/fldmean.ipynb>`_
 6. `Access to other datasets <https://github.com/oloapinivad/AQUA/blob/main/notebooks/reader/datasets.ipynb>`_
 7. `Streaming emulator <https://github.com/oloapinivad/AQUA/blob/main/notebooks/reader/streaming.ipynb>`_
+8. `Interactive dask-job  <https://github.com/oloapinivad/AQUA/blob/main/notebooks/slurm/slurm.ipynb>`_
 
 
 
