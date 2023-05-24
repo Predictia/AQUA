@@ -219,6 +219,7 @@ class LRAgenerator():
         # define the block to be uploaded into the catalog
         block_cat = {
             'driver': 'netcdf',
+            'description': f'LRA data {self.frequency} at {self.resolution}',
             'args': {
                 'urlpath': os.path.join(self.outdir, f'*{self.exp}_{self.resolution}_{self.frequency}_????.nc'),
                 'chunks': {},

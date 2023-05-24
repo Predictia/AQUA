@@ -65,6 +65,8 @@ class OPAgenerator():
             raise KeyError('Please specify source.')
         
         self.zoom = zoom
+        if zoom is not None:
+            self.logger.info('Zoom level set at: %s', str(zoom))
 
         if not configdir:
             self.configdir = get_config_dir()
@@ -220,7 +222,15 @@ class OPAgenerator():
         regridfile = os.path.join(self.configdir, 'machines', self.machine,
                                   'regrid.yaml')
         cat_file = load_yaml(regridfile)
-        regrid_entry = cat_file['source_grids'][self.model][self.exp][self.source]
+        dictexp =  cat_file['source_grids'][self.model][self.exp]
+        if self.source in dictexp:
+            regrid_entry = dictexp[self.source]
+        elif 'default' in dictexp:
+            self.logger.warning('No entry found for source %s, assuming the default', self.source)
+            regrid_entry = dictexp['default']
+        else:
+            raise KeyError('Cannot find experiment information regrid file')
+        
         cat_file['source_grids'][self.model][self.exp][self.entry_name] = copy.deepcopy(regrid_entry)
 
         with open(regridfile, 'w', encoding='utf-8') as file:
