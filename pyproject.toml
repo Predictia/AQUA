@@ -1,0 +1,121 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+# For setuptools: https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
+[project]
+name = "aqua"
+dynamic = ["version"]
+authors = [
+    {name = "The AQUA team", email = "p.davini@isac.cnr.it"}
+]
+description = "AQUA; a model evaluation framework for high-resolution climate model simulations"
+readme = "README.md"
+keywords = [
+    "diagnostics"
+]
+license = {text = "Private"}
+classifiers = [
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Science/Research",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: Implementation :: CPython"
+]
+dependencies = [
+    "cfgrib",
+    "dask",
+    "dask_jobqueue",
+    "docker",
+    "gribscan",
+    "ecCodes",
+    "intake",
+    "intake-esm<=2021.8.17",
+    "intake-xarray",
+    "jinja2",
+    "metpy",
+    "numpy",
+    "pandas",
+    "pyYAML",
+    "sparse",
+    "xarray",
+    "smmregrid",
+    "one_pass@git+https://oauth2:-nnxqtXxyrs3LrJubtH1@earth.bsc.es/gitlab/digital-twins/de_340/one_pass.git@v0.2.1"
+]
+
+[project.optional-dependencies]
+docs = [
+    "sphinx==6.1.*",
+    "sphinx-rtd-theme==1.2.*"
+]
+tests = [
+    "pytest==7.3.*",
+    "pytest-cov==4.0.*",
+    "coverage[toml]==7.2.*",
+    "pandoc==2.*",
+    "pycobertura==3.0.*"
+]
+all = [
+    "aqua[tests]",
+    "aqua[docs]"
+]
+
+[project.urls]
+homepage = "https://github.com/oloapinivad/AQUA/"
+documentation = "https://github.com/oloapinivad/AQUA/"
+repository = "https://github.com/oloapinivad/AQUA/"
+issues = "https://github.com/oloapinivad/AQUA/issues/"
+
+[tool.setuptools.package-data]
+platforms = [
+    "any"
+]
+
+[tool.setuptools.packages]
+find = {}
+
+[tool.setuptools.dynamic]
+version = {attr = "aqua.__version__"}
+
+[tool.pytest.ini_options]
+addopts = "-v --cov=aqua --cov-config=.coveragerc"
+testpaths = [
+    "tests"
+]
+markers = [
+    "aqua: mark test as AQUA framework",
+    "slow: tests which are slow",
+    "dummy: mark test for dummy diagnostic"
+]
+
+# This appears to be the correct configuration, but for some reason
+# pytest-cov doesn't appear to be reading this? We are passing some
+# options via the command-line for now, but this needs to be fixed.
+# Ref: https://github.com/pytest-dev/pytest-cov/issues/390
+[tool.coverage.run]
+branch = true
+command_line = '-m pytest tests'
+source = ["aqua"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+show_missing = true
+ignore_errors = true
+exclude_lines = [
+  "pragma: no cover",
+  "def __repr__",
+  "def __str__",
+  "raise AssertionError",
+  "raise NotImplementedError",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+  "if typing.TYPE_CHECKING:"
+]
+
+[tool.coverage.html]
+show_contexts = true
+directory = "coverage/html"
