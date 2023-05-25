@@ -182,10 +182,6 @@ class OPAgenerator():
                          "checkpoint_filepath": self.tmpdir
         }
 
-        # get info on the checkpoint file
-        if self.checkpoint:
-            self.checkpoint_file = self.opa_dict["checkpoint_file"]
-
         return Opa(self.opa_dict)
 
     def generate_opa(self):
@@ -201,6 +197,10 @@ class OPAgenerator():
 
             self.logger.warning('Initializing the OPA')
             opa_mean = self._configure_opa(variable)
+
+             # get info on the checkpoint file
+            if self.checkpoint:
+                self.checkpoint_file = opa_mean.checkpoint_file
             # self.checkpoint_file = opa_mean.checkpoint_file
             # self.remove_checkpoint()
             print(vars(opa_mean))
