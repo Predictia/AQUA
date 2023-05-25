@@ -81,6 +81,12 @@ source_grids:
       WAM_1h_native:
         path: /work/bm1235/ifs-grids/tco_grids/tco1279_grid.nc
         space_coord: ["value"]
+      2D_monthly_0.25deg:
+        space_coord: ["value"]
+        extra: -setgrid,/work/bb1153/b382075/nextgems/grids/grid_lonlat_025.txt
+      3D_monthly_0.25deg:
+        space_coord: ["value"]
+        extra: -setgrid,/work/bb1153/b382075/nextgems/grids/grid_lonlat_025.txt
     tco1279-orca025-cycle3:
       default: 
         space_coord: ["lon", "lat"]
@@ -99,6 +105,12 @@ source_grids:
       WAM_1h_native:
         path: /work/bm1235/ifs-grids/tco_grids/tco1279_grid.nc
         space_coord: ["value"]
+      2D_monthly_0.25deg:
+        space_coord: ["value"]
+        extra: -setgrid,/work/bb1153/b382075/nextgems/grids/grid_lonlat_025.txt
+      3D_monthly_0.25deg:
+        space_coord: ["value"]
+        extra: -setgrid,/work/bb1153/b382075/nextgems/grids/grid_lonlat_025.txt
   
     tco1279-orca025:
       ICMGG_atm2d: 
@@ -225,6 +237,7 @@ source_grids:
     tco2559-ng5-cycle3:
       default:  # default covers all simple cases where this can be computed automatically (eg LRA)
         space_coord: ["lon", "lat"]
+
       # 2D_1h_native:
       #   path: /work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc
       #   space_coord: ["nod2"]
