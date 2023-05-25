@@ -177,7 +177,6 @@ class OPAgenerator():
 
             for data in data_gen:
                 self.logger.info(f"start_date: {data.time[0].values} stop_date: {data.time[-1].values}")
-                #vardata = data[variable].load()
                 if self.definitive:
                     opa_mean.compute(data[variable])
 
