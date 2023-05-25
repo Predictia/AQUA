@@ -313,7 +313,8 @@ class OPAgenerator():
         """Clean after a OPA run"""
 
         self._remove_catalog_entry()
-        self._remove_checkpoint()
+        if self.checkpoint:
+            self._remove_checkpoint()
         self._remove_data()
 
     def _set_dask(self):
