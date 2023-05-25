@@ -342,6 +342,7 @@ class LRAgenerator():
         # remove regridded attribute to avoid issues with Reader
         # https://github.com/oloapinivad/AQUA/issues/147
         if 'regridded' in temp_data.attrs:
+            self.logger.info('Removing regridding attribute...')
             del temp_data.attrs['regridded']
 
         # Splitting data into yearly files
