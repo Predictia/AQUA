@@ -1,0 +1,634 @@
+plugins:
+  source:
+    - module: intake_xarray
+
+sources:
+  zarr:
+    description: 3hourly MSWEP_V280 data
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1979_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1979_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1979_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1979_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1980_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1980_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1980_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1980_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1981_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1981_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1981_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1981_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1982_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1982_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1982_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1982_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1983_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1983_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1983_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1983_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1984_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1984_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1984_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1984_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1985_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1985_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1985_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1985_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1986_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1986_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1986_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1986_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1987_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1987_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1987_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1987_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1988_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1988_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1988_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1988_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1989_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1989_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1989_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1989_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1990_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1990_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1990_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1990_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1991_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1991_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1991_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1991_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1992_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1992_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1992_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1992_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1993_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1993_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1993_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1993_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1994_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1994_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1994_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1994_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1995_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1995_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1995_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1995_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1996_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1996_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1996_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1996_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1997_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1997_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1997_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1997_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1998_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1998_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1998_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1998_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1999_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1999_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1999_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.1999_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2000_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2000_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2000_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2000_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2001_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2001_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2001_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2001_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2002_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2002_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2002_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2002_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2003_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2003_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2003_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2003_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2004_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2004_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2004_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2004_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2005_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2005_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2005_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2005_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2006_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2006_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2006_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2006_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2007_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2007_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2007_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2007_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2008_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2008_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2008_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2008_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2009_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2009_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2009_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2009_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2010_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2010_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2010_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2010_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2011_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2011_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2011_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2011_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2012_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2012_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2012_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2012_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2013_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2013_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2013_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2013_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2014_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2014_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2014_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2014_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2015_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2015_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2015_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2015_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2016_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2016_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2016_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2016_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2017_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2017_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2017_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2017_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2018_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2018_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2018_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2018_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2019_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2019_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2019_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2019_4m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2020_1m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2020_2m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2020_3m.zarr
+      - /work/bb1153/b382267/Observations_Zarr/MSWEP_V280/3hourly_zarr/mswep.3h.2020_4m.zarr
+
+  netcdf:
+    description: monthly MSWEP_V280 data
+    driver: netcdf
+    args:
+      urlpath: 
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.1979.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.1980.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.1981.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.1982.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.1983.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.1984.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.1985.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.1986.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.1987.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.1988.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.1989.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.1990.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.1991.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.1992.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.1993.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.1994.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.1995.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.1996.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.1997.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.1998.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.1999.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.2000.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.2001.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.2002.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.2003.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.2004.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.2005.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.2006.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.2007.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.2008.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.2009.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.2010.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.2011.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.2012.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.2013.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.2014.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.2015.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.2016.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.2017.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.2018.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.2019.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/3hourly/mswep.3h.2020.nc'
+
+  json:
+    description: 3hourly MSWEP_V280 data
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1979.json 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1980.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1981.json 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1982.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1983.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1984.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1985.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1986.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1987.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1988.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1989.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1990.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1991.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1992.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1993.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1994.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1995.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1996.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1997.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1998.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1999.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2000.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2001.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2002.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2003.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2004.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2005.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2006.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2007.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2008.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2009.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2010.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2011.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2012.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2013.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2014.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2015.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2016.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2017.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2018.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2019.json
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2020.json
+
+  
+
+
+  json_1979:
+    description: 3hourly MSWEP_V280 data for 1979
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1979.json 
+
+  json_1980:
+    description: 3hourly MSWEP_V280 data for 1980
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1980.json 
+
+  json_1981:
+    description: 3hourly MSWEP_V280 data for 1981
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1981.json 
+
+
+  json_1982:
+    description: 3hourly MSWEP_V280 data for 1982
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1982.json 
+
+  json_1983:
+    description: 3hourly MSWEP_V280 data for 1983
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1983.json 
+
+  json_1984:
+    description: 3hourly MSWEP_V280 data for 1984
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1984.json 
+
+  json_1985:
+    description: 3hourly MSWEP_V280 data for 1985
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1985.json 
+
+  json_1986:
+    description: 3hourly MSWEP_V280 data for 1986
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1986.json 
+
+
+  json_1987:
+    description: 3hourly MSWEP_V280 data for 1987
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1987.json 
+
+  json_1988:
+    description: 3hourly MSWEP_V280 data for 1988
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1988.json 
+
+
+  json_1989:
+    description: 3hourly MSWEP_V280 data for 1989
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1989.json 
+
+
+  json_1990:
+    description: 3hourly MSWEP_V280 data for 1990
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1990.json 
+
+  json_1991:
+    description: 3hourly MSWEP_V280 data for 1991
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1991.json 
+
+
+  json_1992:
+    description: 3hourly MSWEP_V280 data for 1992
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1992.json
+
+  json_1993:
+    description: 3hourly MSWEP_V280 data for 1993
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1993.json  
+
+  
+  json_1994:
+    description: 3hourly MSWEP_V280 data for 1994
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1994.json 
+
+  json_1995:
+    description: 3hourly MSWEP_V280 data for 1995
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1995.json 
+
+
+  json_1996:
+    description: 3hourly MSWEP_V280 data for 1996
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1996.json 
+
+  json_1997:
+    description: 3hourly MSWEP_V280 data for 1997
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1997.json 
+
+
+  json_1998:
+    description: 3hourly MSWEP_V280 data for 1998
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1998.json 
+
+  json_1999:
+    description: 3hourly MSWEP_V280 data for 1999
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/1999.json 
+
+  json_2000:
+    description: 3hourly MSWEP_V280 data for 2000
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2000.json 
+
+
+  json_2001:
+    description: 3hourly MSWEP_V280 data for 2001
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2001.json 
+
+  json_2002:
+    description: 3hourly MSWEP_V280 data for 2002
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2002.json 
+
+  json_2003:
+    description: 3hourly MSWEP_V280 data for 2003
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2003.json 
+
+  json_2004:
+    description: 3hourly MSWEP_V280 data for 2004
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2004.json 
+
+  json_2005:
+    description: 3hourly MSWEP_V280 data for 2005
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2005.json 
+
+
+  json_2006:
+    description: 3hourly MSWEP_V280 data for 2006
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2006.json 
+
+
+  json_2007:
+    description: 3hourly MSWEP_V280 data for 2007
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2007.json 
+
+
+  json_2008:
+    description: 3hourly MSWEP_V280 data for 2008
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2008.json 
+
+  json_2009:
+    description: 3hourly MSWEP_V280 data for 2009
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2009.json 
+
+  json_2010:
+    description: 3hourly MSWEP_V280 data for 2010
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2010.json 
+
+  json_2011:
+    description: 3hourly MSWEP_V280 data for 2011
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2011.json 
+
+  json_2012:
+    description: 3hourly MSWEP_V280 data for 2012
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2012.json 
+
+  json_2013:
+    description: 3hourly MSWEP_V280 data for 2013
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2013.json 
+
+  json_2014:
+    description: 3hourly MSWEP_V280 data for 2014
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2014.json 
+
+
+  json_2015:
+    description: 3hourly MSWEP_V280 data for 2015
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2015.json 
+
+
+  json_2016:
+    description: 3hourly MSWEP_V280 data for 2016
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2016.json 
+
+  json_2017:
+    description: 3hourly MSWEP_V280 data for 2017
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2017.json 
+
+  json_2018:
+    description: 3hourly MSWEP_V280 data for 2018
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2018.json 
+
+  json_2019:
+    description: 3hourly MSWEP_V280 data for 2019
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2019.json 
+
+
+  json_2020:
+    description: 3hourly MSWEP_V280 data for 2020
+    driver: zarr
+    args:
+      consolidated: False
+      urlpath: 
+      - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/3hourly/3hourlyGrouped/GroupedByYear/2020.json 
+
+
+  
+

@@ -67,6 +67,57 @@ sources:
       - reference::/work/bb1153/b382267/Observations_Zarr/MSWEP_V280/Past/Daily/DailyGrouped/GroupedByRange/2010_2020.json
 
       
+  netcdf:
+    description: monthly MSWEP_V280 data
+    driver: netcdf
+    args:
+      urlpath: 
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.1979.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.1980.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.1981.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.1982.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.1983.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.1984.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.1985.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.1986.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.1987.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.1988.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.1989.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.1990.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.1991.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.1992.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.1993.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.1994.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.1995.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.1996.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.1997.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.1998.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.1999.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.2000.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.2001.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.2002.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.2003.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.2004.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.2005.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.2006.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.2007.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.2008.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.2009.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.2010.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.2011.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.2012.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.2013.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.2014.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.2015.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.2016.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.2017.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.2018.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.2019.nc'
+      - '/work/bb1153/b382075/datasets/MSWEP_V280_NEW/Past/Daily/mswep.day.2020.nc'
+      chunks: {}
+      xarray_kwargs:
+        decode_times: True
+
   json_1979-1989:
     description: daily MSWEP_V280 data from 1979 to 1989
     driver: zarr
