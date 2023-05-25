@@ -37,6 +37,7 @@ sources:
       driver: netcdf
   lra-r100-monthly:
     description: LRA data monthly at r100
+    driver: 'netcdf'
     args:
       urlpath: /work/bb1153/b382076/LRAv3/IFS/tco2559-ng5/r100/monthly/*tco2559-ng5_r100_monthly_????.nc
       chunks: {}
