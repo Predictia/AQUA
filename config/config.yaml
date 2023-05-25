@@ -1,6 +1,6 @@
 # machine dependent configuration file for AQUA
 # so far nothing is really strict
-machine: mafalda
+machine: lumi
 
 reader: 
   catalog: '{configdir}/machines/{machine}/catalog.yaml'
@@ -8,5 +8,5 @@ reader:
   fixer: '{configdir}/fixes'
 
 cdo:
+  lumi: /users/jvonhar/mambaforge/aqua/bin/cdo
   levante: /home/m/m214003/local/bin/cdo  # CDO 2.2.0 by Uwe Schulzweida (HEALPix support)
-  lumi: /scratch/project_465000454/devaraju/SW/LUMI-22.08/C/python-xarray/bin/cdo

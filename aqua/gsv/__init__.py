@@ -1,5 +1,5 @@
 import intake  # Import this first to avoid circular imports during discovery.
-#from intake.container import register_container
+# from intake.container import register_container
 
 from .intake_gsv import GSVSource
 

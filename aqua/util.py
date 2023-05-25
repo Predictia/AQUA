@@ -12,6 +12,10 @@ from collections import defaultdict
 import yaml
 import eccodes
 import xarray as xr
+import string
+import random
+import datetime
+import types
 from aqua.logger import log_configure
 
 
@@ -218,7 +222,8 @@ def read_eccodes_def(filename):
     """
 
     # ECMWF lists
-    fn = os.path.join(eccodes.codes_definition_path(), 'grib2',  'localConcepts', 'ecmf', filename)
+    fn = eccodes.codes_definition_path().split(':')[0]  # LUMI fix, take only first
+    fn = os.path.join(fn, 'grib2',  'localConcepts', 'ecmf', filename)
     keylist = []
     with open(fn, "r", encoding='utf-8') as f:
         for line in f:
@@ -292,6 +297,17 @@ def generate_random_string(length):
     return random_string
 
 
+def log_history_iter(data, msg):
+    """Elementary provenance logger in the history attribute also for iterators."""
+    if type(data) is types.GeneratorType:
+        for ds in data:
+            ds = log_history(ds, msg)
+            yield ds
+    else:
+        data = log_history(data, msg)
+        return data
+
+
 def get_arg(args, arg, default):
     """
     Support function to get arguments
@@ -309,24 +325,6 @@ def get_arg(args, arg, default):
     if not res:
         res = default
     return res
-
-# def get_arg(args, arg, default):
-#     """
-#     Support function to get arguments
-
-#     Args:
-#         args: the arguments
-#         arg: the argument to get
-#         default: the default value
-
-#     Returns:
-#         The argument value or the default value
-#     """
-
-#     res = getattr(args, arg)
-#     if not res:
-#         res = default
-#     return res
 
 
 def create_folder(folder, loglevel=None):
@@ -358,6 +356,7 @@ def log_history(data, msg):
         hist = data.attrs.get("history", "") + f"{date_now} {msg};\n"
         data.attrs.update({"history": hist})
 
+
 def file_is_complete(filename, logger=logging.getLogger()):
 
     """Basic check to see if file exists and that includes values which are not NaN
@@ -386,3 +385,4 @@ def file_is_complete(filename, logger=logging.getLogger()):
         check = True
 
     return check
+

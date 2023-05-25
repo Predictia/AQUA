@@ -6,18 +6,18 @@ import re
 
 import intake
 import intake_esm
+import types
 import xarray as xr
 
 # from metpy.units import units, DimensionalityError
 import numpy as np
 import smmregrid as rg
 
-import aqua.gsv
-
 from aqua.util import load_yaml, load_multi_yaml
 from aqua.util import get_reader_filenames, get_config_dir, get_machine
-from aqua.util import log_history
+from aqua.util import log_history, log_history_iter
 from aqua.logger import log_configure
+import aqua.gsv
 
 from .streaming import Streaming
 from .fixer import FixerMixin
@@ -222,7 +222,7 @@ class Reader(FixerMixin, RegridMixin):
                  startdate=None, enddate=None):
         """
         Perform a data retrieve.
-
+        
         Arguments:
             regrid (bool):          if to regrid the retrieved data (False)
             timmean (bool):         if to average the retrieved data (False)
@@ -251,85 +251,81 @@ class Reader(FixerMixin, RegridMixin):
 
         if vars:
             var = vars
+        fiter = False
 
-        # Extract data from cat.
-        # If this is an ESM-intake catalogue use first dictionary value,
-        # else extract directly a dask dataset
-        if isinstance(esmcat, intake_esm.core.esm_datastore):
-            cdf_kwargs = esmcat.metadata.get('cdf_kwargs', {"chunks": {"time": 1}})
-            query = esmcat.metadata['query']
-            if var:
-                query_var = esmcat.metadata.get('query_var', 'short_name')
-                # Convert to list if not already
-                query[query_var] = var.split() if isinstance(var, str) else var
-            subcat = esmcat.search(**query)
-            data = subcat.to_dataset_dict(cdf_kwargs=cdf_kwargs,
-                                          zarr_kwargs=dict(consolidated=True),
-                                          # decode_times=True,
-                                          # use_cftime=True)
-                                          progressbar=False
-                                          )
-            data = list(data.values())[0]
-        # If this is a fdb sorce pass variable as argument
-        elif isinstance(esmcat, aqua.gsv.intake_gsv.GSVSource):
-            # These are all needed in theory
-            if not startdate:
-                startdate = '20000101'
-            if not enddate:
-                enddate = startdate
-            if not var:
-                var = '167'
-            data = esmcat(startdate=startdate, enddate=enddate, var=var).to_dask()
+        # get loadvar
+        if var:
+            loadvar = self.get_fixer_varname(var) if fix else var
         else:
-            data = esmcat.to_dask()
+            loadvar = None
 
-            if var:
-                # conversion to list guarantee that Dataset is produced
-                if isinstance(var, str):
-                    var = var.split()
-
-                # get loadvar
-                loadvar = self.get_fixer_varname(var) if fix else var
-
-                if all(element in data.data_vars for element in loadvar):
-                    data = data[loadvar]
-                else:
-                    raise KeyError("You are asking for variables which we cannot find in the catalog!")
+        # If this is an ESM-intake catalogue use first dictionary value,
+        if isinstance(esmcat, intake_esm.core.esm_datastore):
+            data = reader_esm(esmcat, loadvar)   
+        # If this is an fdb entry 
+        elif isinstance(esmcat, aqua.gsv.intake_gsv.GSVSource):
+            data = reader_fdb(esmcat, loadvar, startdate, enddate)
+            fiter = True  # this returs an iterator
+        else:
+            data = reader_intake(esmcat, loadvar)  # Returns a generator object
 
         # select only a specific level when reading. Level coord names defined in regrid.yaml
         if self.level is not None:
-            data = data.isel({self.vertcoord: self.level})
+            if fiter:
+                data = (ds.isel({self.vert_coord: self.level}) for ds in data)
+            else:
+                data = data.isel({self.vert_coord: self.level})
 
-        log_history(data, "retrieved by AQUA retriever")
+        log_history_iter(data, "retrieved by AQUA fixer")   
 
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
-        # if decumulate:
-        # data = data.map(self.decumulate, keep_attrs=True)
-        # data = data.map(self.decumulate)
-        if self.freq and timmean:
-            data = self.timmean(data)
-        if self.targetgrid and regrid:
-            data = self.regridder.regrid(data)
-            self.grid_area = self.dst_grid_area
-        if fix:   # Do not change easily this order. The fixer assumes to be after regridding
-            data = self.fixer(data, apply_unit_fix=apply_unit_fix)
-        if streaming or self.streaming or streaming_generator:
-            if streaming_generator:
-                data = self.streamer.stream_generator(data, stream_step=stream_step,
-                                                      stream_unit=stream_unit,
-                                                      stream_startdate=stream_startdate)
-            else:
-                data = self.streamer.stream(data, stream_step=stream_step,
-                                            stream_unit=stream_unit,
-                                            stream_startdate=stream_startdate)
 
+        # These do not work in the iterator case
+        if not fiter:
+            # if decumulate:
+                # data = data.map(self.decumulate)
+            if self.freq and timmean:
+                data = self.timmean(data)
+
+        if self.targetgrid and regrid:
+            if fiter:
+                data = (self.regridder.regrid(ds) for ds in data)
+            else:
+                data = self.regridder.regrid(data)
+            self.grid_area = self.dst_grid_area 
+        if fix:
+            data = self.fixer(data, apply_unit_fix=apply_unit_fix)  # fixer accepts also iterators
+
+        if not fiter:
+            # This is not needed if we already have an iterator
+            if streaming or self.streaming or streaming_generator:
+                if streaming_generator:
+                    data = self.streamer.stream_generator(data, stream_step=stream_step,
+                                                        stream_unit=stream_unit,
+                                                        stream_startdate=stream_startdate)
+                else:
+                    data = self.streamer.stream(data, stream_step=stream_step,
+                                                stream_unit=stream_unit,
+                                                stream_startdate=stream_startdate)
+         
         # safe check that we provide only what exactly asked by var
-        if var:
-            data = data[var]
+        #if var:
+        #    data = data[var]
 
         return data
 
     def regrid(self, data):
+        """Call the regridder function returning container or iterator"""
+        if type(data) is types.GeneratorType:
+            return self._regridgen(data)
+        else:
+            return self._regrid(data)
+
+    def _regridgen(self, data):
+        for ds in data:
+            yield self._regrid(ds)
+
+    def _regrid(self, data):
         """
         Perform regridding of the input dataset.
 
@@ -432,7 +428,53 @@ class Reader(FixerMixin, RegridMixin):
 
         return out
 
-    # TODO: this is not used anymore, check if it can be deleted
+
+def reader_esm(esmcat, var):
+    """Reads intake-esm entry. Returns a dataset."""
+    cdf_kwargs = esmcat.metadata.get('cdf_kwargs', {"chunks": {"time":1}})
+    query = esmcat.metadata['query']
+    if var:
+        query_var = esmcat.metadata.get('query_var', 'short_name')
+        # Convert to list if not already
+        query[query_var] = var.split() if isinstance(var, str) else var
+    subcat = esmcat.search(**query)
+    data = subcat.to_dataset_dict(cdf_kwargs=cdf_kwargs,
+                                    zarr_kwargs=dict(consolidated=True),
+                                        #decode_times=True,
+                                        #use_cftime=True)
+                                    progressbar=False
+                                    )
+    return list(data.values())[0]
+
+
+def reader_fdb(esmcat, var, startdate, enddate):
+    """Read fdb data. Returns an iterator."""
+    # These are all needed in theory
+
+    if not enddate:
+        enddate=startdate
+    if not var:
+        var='167'
+    return esmcat(startdate=startdate, enddate=enddate, var=var).read_chunked()
+
+
+def reader_intake(esmcat, var):
+    """Read regular intake entry. Returns dataset."""
+    if var:
+        # conversion to list guarantee that Dataset is produced
+        if isinstance(var, str):
+            var = var.split()
+        data = esmcat.to_dask()
+        if all(element in data.data_vars for element in var):
+            data = data[var]
+        else:
+            raise KeyError("You are asking for variables which we cannot find in the catalog!")
+    else:
+        data = esmcat.to_dask()
+    return data
+
+  
+    ## TODO: this is not used anymore, check if it can be deleted
     # def _check_if_accumulated_auto(self, data):
     #     """To check if a DataArray is accumulated.
     #     Arbitrary check on the first 20 timesteps"""
@@ -533,3 +575,4 @@ class Reader(FixerMixin, RegridMixin):
     #     clean.attrs['decumulated'] = 1
 
     #     return clean
+

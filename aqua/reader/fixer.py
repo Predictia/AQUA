@@ -4,6 +4,7 @@ import os
 import re
 import json
 import warnings
+import types
 import xarray as xr
 import cf2cdm
 from metpy.units import units
@@ -51,8 +52,21 @@ class FixerMixin():
                                     self.model, self.exp, self.source)
                 return None
         return fixes
+    
 
-    def fixer(self, data, apply_unit_fix=False):
+    def fixer(self, data, **kwargs):
+        """Call the fixer function returnin container or iterator"""
+        if type(data) is types.GeneratorType:
+            return self._fixergen(data, **kwargs)
+        else:
+            return self._fixer(data, **kwargs)
+
+    def _fixergen(self, data, **kwargs):
+        """Iterator version of the fixer"""
+        for ds in data:
+            yield self._fixer(ds, **kwargs)
+
+    def _fixer(self, data, apply_unit_fix=False):
         """
         Perform fixes (var name, units, coord name adjustments) of the input dataset.
 

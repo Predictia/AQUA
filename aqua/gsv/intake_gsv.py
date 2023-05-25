@@ -6,8 +6,13 @@ from intake.source import base
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-sys.path.append("../gsv_interface")
-from gsv.retriever import GSVRetriever
+# Test if FDB5 binary library is available
+try:
+    from gsv.retriever import GSVRetriever
+    gsv_available = True
+except RuntimeError:
+    print("FDB5 binary library not present on system, disabling FDB support.")
+    gsv_available = False
 
 class GSVSource(base.DataSource):
     container = 'xarray'
@@ -15,13 +20,21 @@ class GSVSource(base.DataSource):
     version = '0.0.1'
     partition_access = True
 
-    def __init__(self, request, step, startdate="20200101", enddate="20201201", var='167', metadata=None, **kwargs):
+    def __init__(self, request, step, startdate=None, enddate=None, var='167', metadata=None, **kwargs):
         self._request = request
         self._kwargs = kwargs
-        self._dates = make_date_list(startdate, enddate, step=step)
+        if startdate and enddate:
+            self._dates = make_date_list(startdate, enddate, step=step)
+            ndates = len(self._dates)
+        else:
+            ndates = 1  # read only one
+            self._dates = None
         self._var = var
-        self._npartitions = len(self._dates)
-        self.gsv = GSVRetriever()
+        self._npartitions = ndates
+        if gsv_available:
+            self.gsv = GSVRetriever()
+        else:
+            self.gsv = None
         self._dataset = None
         super(GSVSource, self).__init__(metadata=metadata)
 
@@ -38,7 +51,8 @@ class GSVSource(base.DataSource):
         )
 
     def _get_partition(self, i):
-        self._request["date"] = self._dates[i]
+        if self._dates:
+            self._request["date"] = self._dates[i]
         self._request["param"] = self._var
         dataset = self.gsv.request_data(self._request)
         return dataset
@@ -49,7 +63,7 @@ class GSVSource(base.DataSource):
         return ds
     
     def to_dask(self):
-        return self.read()
+        return self.read_chunked()
     
     # def _load(self):
     #     self._dataset = self._get_partition(0)
