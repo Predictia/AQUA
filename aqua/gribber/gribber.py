@@ -106,9 +106,9 @@ class Gribber():
         self.logger.info("Gribfile wildcard: %s", self.gribfiles)
 
         # Get catalog filename
-        self.catalogfile = os.path.join(self.configdir, self.machine,
-                                        'catalog', self.model,
-                                        self.exp+'.yaml')
+        self.catalogfile = os.path.join(self.configdir, 'machines',
+                                        self.machine, 'catalog',
+                                        self.model, self.exp+'.yaml')
         self.logger.warning("Catalog file: %s", self.catalogfile)
 
         # Get JSON filename
@@ -353,8 +353,8 @@ class Gribber():
         self.logger.info(block_main)
 
         # Write main catalog file
-        mainfilepath = os.path.join(self.configdir, self.machine, 'catalog',
-                                    self.model, 'main.yaml')
+        mainfilepath = os.path.join(self.configdir, 'machines', self.machine,
+                                    'catalog', self.model, 'main.yaml')
         main_file = load_yaml(mainfilepath)
 
         # Check if source already exists
