@@ -94,10 +94,10 @@ class RegridMixin():
             None
         """
 
-        if vert_coord == "2d":
-            vert_coord = None
-
         sgridpath = self._get_source_gridpath(source_grid, vert_coord, zoom)
+
+        if vert_coord == "2d" or vert_coord == "2dm":  # if 2d we need to pass None to smmregrid
+            vert_coord = None
 
         self.logger.warning("Weights file not found: %s", weightsfile)
         self.logger.warning("Attempting to generate it ...")
@@ -147,17 +147,19 @@ class RegridMixin():
 
             # If we have also a vertical coordinate, include it in the sample
             coords = self.src_space_coord
-            if vert_coord:
+
+            if vert_coord and vert_coord != "2d" and vert_coord != "2dm":
                 coords.append(vert_coord)
 
             data = _get_spatial_sample(data, coords)
 
-            if vert_coord:
+            if vert_coord and vert_coord != "2d" and vert_coord != "2dm":
                 varsel = [var for var in data.data_vars if vert_coord in data[var].dims]
                 if varsel:
                     data = data[varsel]
                 else:
                     raise ValueError(f"No variable with dimension {vert_coord} found in the dataset")
+
             sgridpath = data
         else:
             if isinstance(sgridpath, dict):
