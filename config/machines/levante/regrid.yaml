@@ -250,10 +250,14 @@ source_grids:
         space_coord: ["lon", "lat"]
 
   ERA5:
-    era5:
+    era5-dkrz:
       default:
         path: /work/bb1153/b382075/nextgems/grids/n320_unstructured.nc
-        space_coord: ["values"]
+        space_coord: ["values"]  
+    era5:
+      default:
+        path: /work/bb1153/b382076/ERA5/grids/r025_grid.nc
+        space_coord: ["lon", "lat"]
 
   OSI-SAF:
     osi-450:
