@@ -13,15 +13,13 @@ body:
     attributes:
       label: machine
       description: Which machine are you using?
+      options:
+      - Levante
+      - Lumi
+      - MN4
+      - Others
     validations:
       required: true
-    options:
-      - label: "levante"
-        value: "levante"
-      - label: "lumi"
-        value: "lumi"
-      - label: "others"
-        value: "others"
   - type: textarea
     id: what-happened
     attributes:
@@ -30,7 +28,7 @@ body:
       placeholder: Tell us what happened.
     validations:
       required: true
-  - type: code
+  - type: textarea
     id: code
     attributes:
       label: Code to reproduce the issue
