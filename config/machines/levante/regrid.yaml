@@ -84,9 +84,13 @@ source_grids:
       2D_monthly_0.25deg:
         space_coord: ["value"]
         extra: -setgrid,/work/bb1153/b382075/nextgems/grids/grid_lonlat_025.txt
+        cellareas: /work/bb1153/b382075/nextgems/grids/cellarea_unstructured_025.nc
+        cellarea_var: cell_area
       3D_monthly_0.25deg:
         space_coord: ["value"]
         extra: -setgrid,/work/bb1153/b382075/nextgems/grids/grid_lonlat_025.txt
+        cellareas: /work/bb1153/b382075/nextgems/grids/cellarea_unstructured_025.nc
+        cellarea_var: cell_area
     tco1279-orca025-cycle3:
       default: 
         space_coord: ["lon", "lat"]
@@ -108,9 +112,13 @@ source_grids:
       2D_monthly_0.25deg:
         space_coord: ["value"]
         extra: -setgrid,/work/bb1153/b382075/nextgems/grids/grid_lonlat_025.txt
+        cellareas: /work/bb1153/b382075/nextgems/grids/cellarea_unstructured_025.nc
+        cellarea_var: cell_area
       3D_monthly_0.25deg:
         space_coord: ["value"]
         extra: -setgrid,/work/bb1153/b382075/nextgems/grids/grid_lonlat_025.txt
+        cellareas: /work/bb1153/b382075/nextgems/grids/cellarea_unstructured_025.nc
+        cellarea_var: cell_area
   
     tco1279-orca025:
       ICMGG_atm2d: 
