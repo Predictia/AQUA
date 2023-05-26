@@ -1,9 +1,9 @@
 """Runs an AQUA diagnostic using Docker"""
 
-import yaml
 import os
 import docker
 from jinja2 import Template, FileSystemLoader, Environment
+from ruamel import yaml
 
 def rundiag(cmd = None, config = '.',
             machine_file=r'machine.yaml',

@@ -9,7 +9,7 @@ import string
 import sys
 import logging
 from collections import defaultdict
-import yaml
+from ruamel import yaml
 import eccodes
 import xarray as xr
 from aqua.logger import log_configure
@@ -28,7 +28,7 @@ def load_yaml(infile):
 
     try:
         with open(infile, 'r', encoding='utf-8') as file:
-            cfg = yaml.load(file, Loader=yaml.FullLoader)
+            cfg = yaml.load(file)#, Loader=yaml.FullLoader)
     except IOError:
         sys.exit(f'ERROR: {infile} not found: you need to have this configuration file!')
     return cfg

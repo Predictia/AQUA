@@ -6,7 +6,7 @@ import os
 from time import time
 import glob
 import dask
-import yaml
+from ruamel import yaml
 import xarray as xr
 from dask.distributed import Client, LocalCluster, progress
 from dask.diagnostics import ProgressBar

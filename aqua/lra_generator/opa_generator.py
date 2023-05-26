@@ -3,7 +3,7 @@
 import os
 import copy
 import warnings
-import yaml
+from ruamel import yaml
 import dask
 import numpy as np
 from dask.distributed import Client, LocalCluster

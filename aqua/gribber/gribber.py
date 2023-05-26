@@ -5,7 +5,7 @@ Gribber module for integrate gribscan within AQUA
 import os
 import subprocess
 from glob import glob
-import yaml
+from ruamel import yaml
 from aqua.logger import log_configure
 from aqua.util import load_yaml, create_folder
 from aqua.util import get_config_dir, get_machine
@@ -106,7 +106,7 @@ class Gribber():
         self.logger.info("Gribfile wildcard: %s", self.gribfiles)
 
         # Get catalog filename
-        self.catalogfile = os.path.join(self.configdir, self.machine,
+        self.catalogfile = os.path.join(self.configdir, 'machines',self.machine,
                                         'catalog', self.model,
                                         self.exp+'.yaml')
         self.logger.warning("Catalog file: %s", self.catalogfile)
@@ -353,7 +353,7 @@ class Gribber():
         self.logger.info(block_main)
 
         # Write main catalog file
-        mainfilepath = os.path.join(self.configdir, self.machine, 'catalog',
+        mainfilepath = os.path.join(self.configdir, 'machines', self.machine, 'catalog',
                                     self.model, 'main.yaml')
         main_file = load_yaml(mainfilepath)
 
