@@ -10,8 +10,8 @@ import re
 import subprocess
 import time
 
-def waiting_for_slurm_response():
-    return time.sleep(2)
+def waiting_for_slurm_response(number=2):
+    return time.sleep(number)
 
 @pytest.fixture
 def username():
@@ -23,7 +23,6 @@ def get_last_jobid(username):
         return None
     else: 
         int(re.findall(r'\d+', squeue_info)[0])
-
 
 
 def test_slurm_availability_for_user(username):
@@ -39,19 +38,21 @@ def test_job_submition(username):
     """
     #slurm.job()
     if get_last_jobid(username)!=None:
-        old_Job_ID = get_last_jobid(username)
+        squeue_info = str(subprocess.check_output("squeue --user="+str(username),  stderr=subprocess.STDOUT, shell=True))
+        old_Job_ID = re.findall(r'\d+', squeue_info)
         slurm.job()
         waiting_for_slurm_response()
-        new_Job_ID =  get_last_jobid(username) 
+        squeue_info = str(subprocess.check_output("squeue --user="+str(username),  stderr=subprocess.STDOUT, shell=True))
+        new_Job_ID =  re.findall(r'\d+', squeue_info)
         assert new_Job_ID!=old_Job_ID
     else:
         slurm.job()
         waiting_for_slurm_response()
         if get_last_jobid(username)==None:
             waiting_for_slurm_response()
-            waiting_for_slurm_response()
-            waiting_for_slurm_response()
-        assert get_last_jobid(username)!=None
+        squeue_info = str(subprocess.check_output("squeue --user="+str(username),  stderr=subprocess.STDOUT, shell=True))
+        last_jobid = re.findall(r'\d+', squeue_info)
+        assert last_jobid!=None
 
 @pytest.fixture
 def Job_ID(username):
