@@ -263,10 +263,6 @@ source_grids:
       default:
         path: /work/bb1153/b382075/nextgems/grids/n320_unstructured.nc
         space_coord: ["values"]
-    daily:
-      default:
-        path: /work/bb1153/b382075/nextgems/grids/n320_unstructured.nc
-        space_coord: ["values"]
 
   OSI-SAF:
     osi-450:
