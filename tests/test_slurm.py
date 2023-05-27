@@ -17,13 +17,6 @@ def waiting_for_slurm_response(number=2):
 def username():
     return "$USER"
 
-def get_last_jobid(username):
-    squeue_info = str(subprocess.check_output("squeue --user="+str(username),  stderr=subprocess.STDOUT, shell=True))
-    if  re.findall(r'\d+', squeue_info)==[]:
-        return None
-    else: 
-        int(re.findall(r'\d+', squeue_info)[0])
-
 
 def test_slurm_availability_for_user(username):
     """Testing the slurm availability for the user on the current machine
@@ -36,22 +29,31 @@ def test_slurm_availability_for_user(username):
 def test_job_submition(username):
     """Testing the submition of the job to Slurm queue 
     """
-    #slurm.job()
-    if get_last_jobid(username)!=None:
-        squeue_info = str(subprocess.check_output("squeue --user="+str(username),  stderr=subprocess.STDOUT, shell=True))
-        old_Job_ID = re.findall(r'\d+', squeue_info)
+    squeue_info = str(subprocess.check_output("squeue --user="+str(username),  stderr=subprocess.STDOUT, shell=True))
+    if  re.findall(r'\d+', squeue_info)==[]:
+        old_Job_ID=None
+    else: 
+        old_Job_ID=int(re.findall(r'\d+', squeue_info)[0])
+
+    if old_Job_ID!=None:
+
         slurm.job()
+
         waiting_for_slurm_response()
         squeue_info = str(subprocess.check_output("squeue --user="+str(username),  stderr=subprocess.STDOUT, shell=True))
         new_Job_ID =  re.findall(r'\d+', squeue_info)
         assert new_Job_ID!=old_Job_ID
     else:
+
         slurm.job()
+
         waiting_for_slurm_response()
-        if get_last_jobid(username)==None:
-            waiting_for_slurm_response()
         squeue_info = str(subprocess.check_output("squeue --user="+str(username),  stderr=subprocess.STDOUT, shell=True))
         last_jobid = re.findall(r'\d+', squeue_info)
+        if last_jobid==None:
+            waiting_for_slurm_response()
+            squeue_info = str(subprocess.check_output("squeue --user="+str(username),  stderr=subprocess.STDOUT, shell=True))
+            last_jobid = re.findall(r'\d+', squeue_info)
         assert last_jobid!=None
 
 @pytest.fixture
