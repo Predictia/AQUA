@@ -571,8 +571,6 @@ def reader_fdb(esmcat, var, startdate, enddate):
 
     if not enddate:
         enddate=startdate
-    if not var:
-        var='167'
     return esmcat(startdate=startdate, enddate=enddate, var=var).read_chunked()
 
 

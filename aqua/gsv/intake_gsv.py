@@ -53,7 +53,8 @@ class GSVSource(base.DataSource):
     def _get_partition(self, i):
         if self._dates:
             self._request["date"] = self._dates[i]
-        self._request["param"] = self._var
+        if self._var:  # if no var provided keep the default in the catalogue
+            self._request["param"] = self._var
         dataset = self.gsv.request_data(self._request)
         return dataset
 
