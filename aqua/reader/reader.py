@@ -48,7 +48,6 @@ class Reader(FixerMixin, RegridMixin):
             method (str, optional): Regridding method. Defaults to "ycon".
             zoom (int):             healpix zoom level. (Default: None)
             configdir (str, optional): Folder where the config/catalog files are located. Defaults to None.
-            level (int, optional): Level to extract if input data are 3D (starting from 0). Defaults to None.
             areas (bool, optional): Compute pixel areas if needed. Defaults to True.
             var (str or list, optional): Variable(s) to extract; "vars" is a synonym. Defaults to None.
             datamodel (str, optional): Destination data model for coordinates, overrides the one in fixes.yaml. Defaults to None.
@@ -301,13 +300,6 @@ class Reader(FixerMixin, RegridMixin):
             fiter = True  # this returs an iterator
         else:
             data = reader_intake(esmcat, loadvar)  # Returns a generator object
-
-        # select only a specific level when reading. Level coord names defined in regrid.yaml
-        if self.level is not None:
-            if fiter:
-                data = (ds.isel({self.vert_coord: self.level}) for ds in data)
-            else:
-                data = data.isel({self.vert_coord: self.level})
 
         log_history_iter(data, "retrieved by AQUA retriever")   
 
