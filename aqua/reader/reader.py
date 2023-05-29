@@ -509,6 +509,70 @@ class Reader(FixerMixin, RegridMixin):
                                 self.model, self.exp, self.source)
             return None
 
+    def vertinterp(self, data, levels=None, vert_coord='plev', units=None, method='linear'):
+        """
+        A basic vertical interpolation based on interp function
+        of xarray within AQUA. Given an xarray object, will interpolate the vertical dimension along 
+        the vert_coord. If it is a Dataset, only variables with the required vertical coordinate
+        will be interpolated
+
+        Args:
+            data (DataArray, Dataset): your dataset
+            levels (float, or list): The level you want to interpolate the vertical coordinate
+            units (str, optional, ): The units of your vertical axis. Default 'Pa'
+            vert_coord (str, optional): The name of the vertical coordinate. Default 'plev'
+            method (str, optional): The type of interpolation method supported by interp()
+        
+        Return
+            A DataArray or a Dataset with the new interpolated vertical dimension
+        """
+
+        if levels is None:
+            raise KeyError('Levels for interpolation must be specified')
+
+        # error if vert_coord is not there
+        if vert_coord not in data.coords:
+            raise KeyError(f'The vert_coord={vert_coord} is not in the data!')
+        
+        # if you not specified the units, guessing from the data
+        if units is None:
+            if hasattr(data[vert_coord], 'units'):
+                self.logger.warning('Units of vert_coord=%s has not defined, reading from the data', vert_coord)
+                units = data[vert_coord].units
+            else:
+                raise ValueError('Original dataset has not unit on the vertical axis, failing!')
+
+        if isinstance(data, xr.DataArray):
+            final = self._vertinterp(data=data, levels=levels, units=units,
+                                     vert_coord=vert_coord, method=method)
+
+        elif isinstance(data, xr.Dataset):
+            selected_vars = [da for da in data.data_vars if vert_coord in data[da].coords]
+            final = data[selected_vars].map(self._vertinterp, keep_attrs=True,
+                                            levels=levels, units=units,
+                                            vert_coord=vert_coord, method=method)
+        else:
+            raise ValueError('This is not an xarray object!')
+
+
+        return final
+    
+    def _vertinterp(self, data, levels=None, units = 'Pa', vert_coord='plev', method='linear'):
+
+        # verify units are good
+        if data[vert_coord].units != units:
+            self.logger.warning('Converting vert_coord units to interpolate from %s to %s',
+                                data[vert_coord].units, units)
+            data = data.metpy.convert_coordinate_units(vert_coord, units)
+
+        # very simple interpolation
+        final = data.interp({vert_coord: levels}, method=method)
+
+        return final
+
+
+    
+
     # TODO: this is not used anymore, check if it can be deleted
 
     # def _check_if_accumulated_auto(self, data):
