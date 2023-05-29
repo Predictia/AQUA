@@ -89,6 +89,9 @@ models:
                     t:
                         source: ta
                         grib: true
+                    q: 
+                        source: hus
+                        grib: true
                     u:
                         source: ua
                         grib: true
