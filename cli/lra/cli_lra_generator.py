@@ -52,6 +52,7 @@ if __name__ == '__main__':
     use_opa = config['opa']['use_opa']
     opadir =  config['opa']['opadir']
     opacheckpoint =  config['opa']['opacheckpoint']
+    opastreamstep =  config['opa']['opastreamstep']
 
     definitive = get_arg(args, 'definitive', False)
     overwrite = get_arg(args, 'overwrite', False)
@@ -72,6 +73,7 @@ if __name__ == '__main__':
                     if use_opa:
                         opa = OPAgenerator(model=model, exp=exp, source=source, zoom=zoom_level,
                                             var=varname, frequency=frequency, checkpoint = opacheckpoint,
+                                            stream_step=opastreamstep,
                                             outdir=opadir, tmpdir=tmpdir, configdir=configdir,
                                             loglevel=loglevel, definitive=definitive, nproc=workers)
                         entry = opa.entry_name
