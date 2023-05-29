@@ -3,10 +3,10 @@
 
 from aqua import Reader
 
-resos=['r025', 'r050', 'r100']
-model='ICON'
+resos=['r025', 'r100']
+model=['ICON']
 exp=['ngc3026', 'ngc3028']
-source='P1D'
+source=['P1D']
 
 
 for reso in resos:
