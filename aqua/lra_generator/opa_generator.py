@@ -33,7 +33,8 @@ class OPAgenerator():
 
     def __init__(self,
                  model=None, exp=None, source=None, zoom=None,
-                 var=None, vars=None, frequency=None, checkpoint=True,
+                 var=None, vars=None, frequency=None,
+                 checkpoint=True, stream_step=5,
                  outdir=None, tmpdir=None, configdir=None,
                  loglevel=None, overwrite=False, definitive=False,
                  nproc=1):
@@ -49,6 +50,7 @@ class OPAgenerator():
             var (str, list):         Variable(s) to be processed,vars in a synonim
             frequency (string):      The target frequency for averaging the OPA
             checkpoint (bool, opt):  Whether OPA should use or not checkpointing
+            stream_step (int, opt):  How many days OPA should load at once
             outdir (string):         Where the LRA is
             tmpdir (string):         Where to store temporary files,
                                      default is None.
@@ -67,6 +69,7 @@ class OPAgenerator():
         self.logger = log_configure(loglevel, 'opa_generator')
         self.loglevel = loglevel
         self.checkpoint = checkpoint
+        self.stream_step = stream_step
 
         self.overwrite = overwrite
         if self.overwrite:
@@ -208,7 +211,7 @@ class OPAgenerator():
             self.logger.warning('Initializing the streaming generator...')
             self.reader.reset_stream()
             data_gen = self.reader.retrieve(streaming_generator=True,
-                                            stream_step=5,
+                                            stream_step=self.stream_step,
                                             stream_unit='days')
 
             for data in data_gen:
