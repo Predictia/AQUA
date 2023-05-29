@@ -213,15 +213,6 @@ source_grids:
     past:
       default:
         space_coord: ["lon", "lat"]
-    monthly:
-      default:
-        space_coord: ["lon", "lat"]
-    daily:
-      default:
-        space_coord: ["lon", "lat"]
-    3hourly:
-      default:
-        space_coord: ["lon", "lat"]
 
   AVISO:
     ssh-L4:
