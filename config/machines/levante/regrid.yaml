@@ -273,6 +273,40 @@ source_grids:
     tco2559-ng5-cycle3:
       default:  # default covers all simple cases where this can be computed automatically (eg LRA)
         space_coord: ["lon", "lat"]
+      2D_monthly_native:
+        space_coord: ['nod2']
+        extra: 
+          - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc 
+      2D_1h_native:
+        space_coord: ['nod2']
+        extra: 
+          - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc 
+      2D_daily_native:
+        space_coord: ['nod2']
+        extra: 
+          - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc 
+      2D_monthly_native_elem:
+        space_coord: ['elem']
+        extra: 
+          - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_elems_IFS.nc 
+      3D_daily_native:
+        path: 
+          nz: /work/bb1153/b382075/nextgems/grids/NG5_nodes_fesom_mask_nz.nc
+          nz1: /work/bb1153/b382075/nextgems/grids/NG5_nodes_fesom_mask_nz1.nc
+        space_coord: ["nod2"]
+        vert_coord: ["nz", "nz1"]
+        extra: 
+          - -setgrid,/work/bb1153/b382075/nextgems/grids/NG5_griddes_nodes_IFS.nc 
+      3D_daily_native_elem:
+        space_coord: ["elem"]
+        extra: 
+          - -setgrid,/work/bb1153/b382075/nextgems/grids/NG5_griddes_elems_IFS.nc 
+    
+
+
+
+      
+      
 
       # 2D_1h_native:
       #   path: /work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc
