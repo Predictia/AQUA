@@ -68,7 +68,6 @@ class Reader(FixerMixin, RegridMixin):
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
-        self.zoom = zoom
         self.nproc = nproc
         self.freq = freq
         self.vert_coord = None
@@ -103,11 +102,8 @@ class Reader(FixerMixin, RegridMixin):
         # check source existence
         self.source = check_catalog_source(self.cat, self.model, self.exp, source, name="catalog")
 
-        # safe check for zoom into the catalog parameters
-        if 'zoom' in self.cat[self.model][self.exp].metadata.get('parameters', {}).keys() and self.zoom is None:
-
-            self.logger.warning('No zoom specified but the source requires it, setting zoom=0')
-            self.zoom = 0
+        # check that you defined zoom in a correct way
+        self.zoom = self._check_zoom(zoom)
 
         # get fixes dictionary and find them
         self.fixes_dictionary = load_multi_yaml(self.fixer_folder)
@@ -479,6 +475,103 @@ class Reader(FixerMixin, RegridMixin):
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
 
         return out
+    
+    def _check_zoom(self, zoom):
+
+        """
+        Function to check if the zoom parameter is included in the metadata of the 
+        source and performs a few safety checks. 
+        It could be extended to any other metadata flag.
+        
+        Arguments:
+            zoom (integer):
+
+        Returns: 
+            zoom after check has been processed
+        """
+
+        # safe check for zoom into the catalog parameters (at exp or source level)
+        shortcat = self.cat[self.model][self.exp]
+        metadata1 = 'zoom' in shortcat.metadata.get('parameters', {}).keys()
+        metadata2 = 'zoom' in shortcat[self.source].metadata.get('parameters', {}).keys()
+        metadata = metadata1 or metadata2
+        if zoom is None:
+            if metadata:
+                self.logger.warning('No zoom specified but the source requires it, setting zoom=0')
+                return 0
+            return zoom
+
+        if zoom is not None:
+            if metadata:
+                return zoom
+
+            self.logger.warning('%s %s %s has not zoom option, disabling zoom=None',
+                                self.model, self.exp, self.source)
+            return None
+
+    def vertinterp(self, data, levels=None, vert_coord='plev', units=None, method='linear'):
+        """
+        A basic vertical interpolation based on interp function
+        of xarray within AQUA. Given an xarray object, will interpolate the vertical dimension along 
+        the vert_coord. If it is a Dataset, only variables with the required vertical coordinate
+        will be interpolated
+
+        Args:
+            data (DataArray, Dataset): your dataset
+            levels (float, or list): The level you want to interpolate the vertical coordinate
+            units (str, optional, ): The units of your vertical axis. Default 'Pa'
+            vert_coord (str, optional): The name of the vertical coordinate. Default 'plev'
+            method (str, optional): The type of interpolation method supported by interp()
+        
+        Return
+            A DataArray or a Dataset with the new interpolated vertical dimension
+        """
+
+        if levels is None:
+            raise KeyError('Levels for interpolation must be specified')
+
+        # error if vert_coord is not there
+        if vert_coord not in data.coords:
+            raise KeyError(f'The vert_coord={vert_coord} is not in the data!')
+        
+        # if you not specified the units, guessing from the data
+        if units is None:
+            if hasattr(data[vert_coord], 'units'):
+                self.logger.warning('Units of vert_coord=%s has not defined, reading from the data', vert_coord)
+                units = data[vert_coord].units
+            else:
+                raise ValueError('Original dataset has not unit on the vertical axis, failing!')
+
+        if isinstance(data, xr.DataArray):
+            final = self._vertinterp(data=data, levels=levels, units=units,
+                                     vert_coord=vert_coord, method=method)
+
+        elif isinstance(data, xr.Dataset):
+            selected_vars = [da for da in data.data_vars if vert_coord in data[da].coords]
+            final = data[selected_vars].map(self._vertinterp, keep_attrs=True,
+                                            levels=levels, units=units,
+                                            vert_coord=vert_coord, method=method)
+        else:
+            raise ValueError('This is not an xarray object!')
+
+
+        return final
+    
+    def _vertinterp(self, data, levels=None, units = 'Pa', vert_coord='plev', method='linear'):
+
+        # verify units are good
+        if data[vert_coord].units != units:
+            self.logger.warning('Converting vert_coord units to interpolate from %s to %s',
+                                data[vert_coord].units, units)
+            data = data.metpy.convert_coordinate_units(vert_coord, units)
+
+        # very simple interpolation
+        final = data.interp({vert_coord: levels}, method=method)
+
+        return final
+
+
+    
 
     # TODO: this is not used anymore, check if it can be deleted
 
