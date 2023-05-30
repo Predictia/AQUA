@@ -29,9 +29,11 @@ models:
                     zos:
                         derived: ssh
                         grib: true
-                    ocpt: 
-                         source: temp
-                         grib: true
+                    ocpt:
+                        source: temp 
+                        src_units: degC
+                        grib: true
+                        units: degC # Override units from grib tables
                     uo:
                         source: u
                         grib: true
