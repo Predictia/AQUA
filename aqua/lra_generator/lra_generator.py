@@ -6,7 +6,7 @@ import os
 from time import time
 import glob
 import dask
-from ruamel import yaml
+from ruamel.yaml import YAML
 import xarray as xr
 from dask.distributed import Client, LocalCluster, progress
 from dask.diagnostics import ProgressBar
@@ -233,10 +233,11 @@ class LRAgenerator():
                                    'catalog', self.model, self.exp+'.yaml')
 
         # load, add the block and close
+        yaml = YAML()
         cat_file = load_yaml(catalogfile)
         cat_file['sources'][entry_name] = block_cat
         with open(catalogfile, 'w', encoding='utf-8') as file:
-            yaml.dump(cat_file, file, sort_keys=False)
+            yaml.dump(cat_file, file)
 
 
     def _set_dask(self):
@@ -306,11 +307,11 @@ class LRAgenerator():
             filename = filename.replace("*", str(year) + str(month).zfill(2))
 
         return filename
-    
+
     def check_integrity(self, varname):
 
         """To check if the LRA entry is fine before running"""
-                     
+      
         yearfiles = self.get_filename(varname)
         yearfiles = glob.glob(yearfiles)
         checks = [file_is_complete(yearfile) for yearfile in yearfiles]
@@ -386,7 +387,6 @@ class LRAgenerator():
 
         t_end = time()
         self.logger.info('Process took {:.4f} seconds'.format(t_end-t_beg))
-
 
     def _write_var_month(self, month_data, outfile):
         """Write a single chunk of data - Xarray Dataset - to a specific file 
