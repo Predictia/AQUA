@@ -299,6 +299,9 @@ source_grids:
           - -setgrid,/work/bb1153/b382075/nextgems/grids/NG5_griddes_nodes_IFS.nc 
       3D_daily_native_elem:
         space_coord: ["elem"]
+        path:
+          nz1: /work/bb1153/b382075/nextgems/grids/NG5_elem_fesom_mask_nz1.nc
+        vert_coord: ["nz1"]
         extra: 
           - -setgrid,/work/bb1153/b382075/nextgems/grids/NG5_griddes_elems_IFS.nc 
     
