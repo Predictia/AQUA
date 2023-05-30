@@ -56,15 +56,19 @@ def load_multi_yaml(folder_path):
     return dict(merged_dict)
 
 
-def get_config_dir():
+def get_config_dir(filename='config.yaml'):
     """
     Return the path to the configuration directory,
     searching in a list of pre-defined directories.
 
+    Generalized to work for config files with different names.
+
      Args:
-        None
+        filename (str): the name of the configuration file
+                        Default is 'config.yaml'
+
      Returns:
-         configdir (str): the dir of the catalog file and other config files
+        configdir (str): the dir of the catalog file and other config files
     """
 
     # set of predefined folders to browse
@@ -77,7 +81,7 @@ def get_config_dir():
     
     # autosearch
     for configdir in configdirs:
-        if os.path.exists(os.path.join(configdir, "config.yaml")):
+        if os.path.exists(os.path.join(configdir, filename)):
             break
     return configdir
 
