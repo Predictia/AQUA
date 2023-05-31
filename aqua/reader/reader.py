@@ -1,7 +1,6 @@
 """The main AQUA Reader class"""
 
 import os
-import sys
 import re
 
 import intake
@@ -23,40 +22,78 @@ from .regrid import RegridMixin
 from .reader_utils import check_catalog_source, group_shared_dims, set_attrs
 
 # default spatial dimensions and vertical coordinates
-default_space_dims = ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude', 'latitude',
-                      'cell', 'cells', 'ncells', 'values', 'value', 'nod2', 'pix', 'elem']
+default_space_dims = ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude',
+                      'latitude', 'cell', 'cells', 'ncells', 'values',
+                      'value', 'nod2', 'pix', 'elem']
 
 
 class Reader(FixerMixin, RegridMixin):
     """General reader for NextGEMS data."""
 
-    def __init__(self, model="ICON", exp="tco2559-ng5", source=None, freq=None,
+    def __init__(self, model=None, exp=None, source=None, freq=None, fix=True,
                  regrid=None, method="ycon", zoom=None, configdir=None,
-                 areas=True,  # pylint: disable=W0622
-                 datamodel=None, streaming=False, stream_step=1, stream_unit='steps',
-                 stream_startdate=None, rebuild=False, loglevel=None, nproc=4):
+                 areas=True, datamodel=None, streaming=False, stream_step=1,
+                 stream_unit='steps', stream_startdate=None, rebuild=False,
+                 loglevel=None, nproc=4):
         """
-        Initializes the Reader class, which uses the catalog `config/config.yaml` to identify the required data.
+        Initializes the Reader class, which uses the catalog
+        `config/config.yaml` to identify the required data.
 
         Args:
-            model (str, optional): Model ID. Defaults to "ICON".
-            exp (str, optional): Experiment ID. Defaults to "tco2559-ng5".
-            source (str, optional): Source ID. Defaults to None.
-            regrid (str, optional): Perform regridding to grid `regrid`, as defined in `config/regrid.yaml`. Defaults to None.
-            method (str, optional): Regridding method. Defaults to "ycon".
-            zoom (int):             healpix zoom level. (Default: None)
-            configdir (str, optional): Folder where the config/catalog files are located. Defaults to None.
-            level (int, optional): Level to extract if input data are 3D (starting from 0). Defaults to None.
-            areas (bool, optional): Compute pixel areas if needed. Defaults to True.
-            var (str or list, optional): Variable(s) to extract; "vars" is a synonym. Defaults to None.
-            datamodel (str, optional): Destination data model for coordinates, overrides the one in fixes.yaml. Defaults to None.
-            streaming (bool, optional): If to retrieve data in a streaming mode. Defaults to False.
-            stream_step (int, optional): The number of time steps to stream the data by. Defaults to 1.
-            stream_unit (str, optional): The unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years'). Defaults to 'steps'.
-            stream_startdate (str, optional): The starting date for streaming the data (e.g. '2020-02-25'). Defaults to None.
-            rebuild (bool, optional): Force rebuilding of area and weight files. Defaults to False.
-            loglevel (str, optional): Level of logging according to logging module. Defaults to log_level_default of loglevel().
-            nproc (int,optional): Number of processes to use for weights generation. Defaults to 16.
+            model (str):                        Model ID. Defaults to None.
+            exp (str):                          Experiment ID.
+                                                Defaults to None.
+            source (str, optional):             Source ID. Defaults to None.
+            freq (str, optional):               Frequency for timmean.
+                                                Defaults to None.
+            fix (bool, optional):               Apply fixes to the data.
+                                                Defaults to True.
+            regrid (str, optional):             Perform regridding to grid
+                                                `regrid`, as defined in
+                                                `config/regrid.yaml`.
+                                                Defaults to None.
+            method (str, optional):             Regridding method.
+                                                Defaults to "ycon".
+            zoom (int):                         healpix zoom level.
+                                                Defaults to None.
+            configdir (str, optional):          Folder where the
+                                                config/catalog files are
+                                                located. Defaults to None.
+            level (int, optional):              Level to extract if input data
+                                                are 3D (starting from 0).
+                                                Defaults to None.
+            areas (bool, optional):             Compute pixel areas if needed.
+                                                Defaults to True.
+            var (str or list, optional):        Variable(s) to extract;
+                                                "vars" is a synonym.
+                                                Defaults to None.
+            datamodel (str, optional):          Destination data model for
+                                                coordinates, overrides the one
+                                                in fixes.yaml.
+                                                Defaults to None.
+            streaming (bool, optional):         If True retrieve data in a
+                                                streaming mode.
+                                                Defaults to False.
+            stream_step (int, optional):        The number of time steps to
+                                                stream the data by.
+                                                Defaults to 1.
+            stream_unit (str, optional):        The unit of time to stream the
+                                                data by (e.g. 'hours', 'days',
+                                                'months', 'years').
+                                                Defaults to 'steps'.
+            stream_startdate (str, optional):   The starting date for
+                                                streaming the data (e.g. '2020-02-25').
+                                                Defaults to None.
+            rebuild (bool, optional):           Force rebuilding of area and
+                                                weight files.
+                                                Defaults to False.
+            loglevel (str, optional):           Level of logging according to
+                                                logging module.
+                                                Defaults to log_level_default
+                                                of loglevel().
+            nproc (int,optional):               Number of processes to use for
+                                                weights generation.
+                                                Defaults to 4.
 
         Returns:
             Reader: A `Reader` class object.
@@ -83,10 +120,10 @@ class Reader(FixerMixin, RegridMixin):
                                   stream_unit=stream_unit,
                                   stream_startdate=stream_startdate,
                                   loglevel=loglevel)
-        # Export streaming methods
-        self.reset_stream = self.streamer.reset_stream
-        self.stream = self.streamer.stream
-        self.stream_generator = self.streamer.stream_generator
+        # Export streaming methods TO DO: probably useless
+        # self.reset_stream = self.streamer.reset_stream
+        # self.stream = self.streamer.stream
+        # self.stream_generator = self.streamer.stream_generator
 
         if not configdir:
             self.configdir = get_config_dir()
@@ -100,58 +137,68 @@ class Reader(FixerMixin, RegridMixin):
         self.cat = intake.open_catalog(self.catalog_file)
 
         # check source existence
-        self.source = check_catalog_source(self.cat, self.model, self.exp, source, name="catalog")
+        self.source = check_catalog_source(self.cat, self.model, self.exp,
+                                           source, name="catalog")
 
         # check that you defined zoom in a correct way
         self.zoom = self._check_zoom(zoom)
 
         # get fixes dictionary and find them
-        self.fixes_dictionary = load_multi_yaml(self.fixer_folder)
-        self.fixes = self.find_fixes()
+        self.fix = fix
+        if self.fix:
+            self.fixes_dictionary = load_multi_yaml(self.fixer_folder)
+            self.fixes = self.find_fixes()
 
         # Store the machine-specific CDO path if available
         cfg_base = load_yaml(self.config_file)
         self.cdo = cfg_base["cdo"].get(self.machine, "cdo")
 
         # load and check the regrid
-        cfg_regrid = load_yaml(self.regrid_file)
-        source_grid_id = check_catalog_source(cfg_regrid["source_grids"],
-                                              self.model, self.exp, source, name='regrid')
-        source_grid = cfg_regrid["source_grids"][self.model][self.exp][source_grid_id]
+        if regrid or areas:
+            cfg_regrid = load_yaml(self.regrid_file)
+            source_grid_id = check_catalog_source(cfg_regrid["source_grids"],
+                                                  self.model, self.exp,
+                                                  self.source, name='regrid')
+            source_grid = cfg_regrid["source_grids"][self.model][self.exp][source_grid_id]
 
-        # Normalize vert_coord to list
-        self.vert_coord = source_grid.get("vert_coord", "2d")  # If not specified we assume that this is only a 2D case
+            # Normalize vert_coord to list
+            self.vert_coord = source_grid.get("vert_coord", "2d")  # If not specified we assume that this is only a 2D case
 
-        if not isinstance(self.vert_coord, list):
-            self.vert_coord = [self.vert_coord]
+            if not isinstance(self.vert_coord, list):
+                self.vert_coord = [self.vert_coord]
 
-        self.masked_att = source_grid.get("masked", None)  # Optional selection of masked variables
+            self.masked_att = source_grid.get("masked", None)  # Optional selection of masked variables
 
-        # Expose grid information for the source as a dictionary of open xarrays
-        sgridpath = source_grid.get("path", None)
-        if sgridpath:
-            if isinstance(sgridpath, dict):
-                self.src_grid = {}
-                for k, v in sgridpath.items():
-                    self.src_grid.update({k: xr.open_dataset(v.format(zoom=self.zoom), decode_times=False)})
-            else:
-                if self.vert_coord:
-                    self.src_grid = {self.vert_coord[0]: xr.open_dataset(sgridpath.format(zoom=self.zoom), decode_times=False)}
+            # Expose grid information for the source as a dictionary of
+            # open xarrays
+            sgridpath = source_grid.get("path", None)
+            if sgridpath:
+                if isinstance(sgridpath, dict):
+                    self.src_grid = {}
+                    for k, v in sgridpath.items():
+                        self.src_grid.update({k: xr.open_dataset(v.format(zoom=self.zoom),
+                                                                decode_times=False)})
                 else:
-                    self.src_grid = {"2d": xr.open_dataset(sgridpath.format(zoom=self.zoom), decode_times=False)}
-        else:
-            self.src_grid = None
+                    if self.vert_coord:
+                        self.src_grid = {self.vert_coord[0]: xr.open_dataset(sgridpath.format(zoom=self.zoom),
+                                                                            decode_times=False)}
+                    else:
+                        self.src_grid = {"2d": xr.open_dataset(sgridpath.format(zoom=self.zoom),
+                                                            decode_times=False)}
+            else:
+                self.src_grid = None
 
-        self.dst_datamodel = datamodel
-        # Default destination datamodel (unless specified in instantiating the Reader)
-        if not self.dst_datamodel:
-            self.dst_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
-
-        self.src_space_coord = source_grid.get("space_coord", None)
-        self.space_coord = self.src_space_coord
-        self.dst_space_coord = ["lon", "lat"]
+        if self.fix:
+            self.dst_datamodel = datamodel
+            # Default destination datamodel
+            # (unless specified in instantiating the Reader)
+            if not self.dst_datamodel:
+                self.dst_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
 
         if regrid:
+            self.src_space_coord = source_grid.get("space_coord", None)
+            self.space_coord = self.src_space_coord
+            self.dst_space_coord = ["lon", "lat"]
 
             self.weightsfile = {}
             self.weights = {}
@@ -170,16 +217,18 @@ class Reader(FixerMixin, RegridMixin):
                 # compute correct filename ending
                 levname = vc if vc == "2d" or vc == "2dm" else f"3d-{vc}"
 
-                template_file = cfg_regrid["weights"]["template"].format(model=model,
-                                                                         exp=exp,
+                template_file = cfg_regrid["weights"]["template"].format(model=self.model,
+                                                                         exp=self.exp,
                                                                          method=method,
                                                                          target=regrid,
                                                                          source=self.source,
                                                                          level=levname)
 
-                # add the zoom level in the template file (same as done in areas)
+                # add the zoom level in the template file
                 if self.zoom is not None:
-                    template_file = re.sub(r'\.nc', '_z' + str(self.zoom) + r'\g<0>', template_file)
+                    template_file = re.sub(r'\.nc',
+                                           '_z' + str(self.zoom) + r'\g<0>',
+                                           template_file)
 
                 self.weightsfile.update({vc: os.path.join(
                     cfg_regrid["weights"]["path"],
@@ -190,20 +239,26 @@ class Reader(FixerMixin, RegridMixin):
                     if os.path.exists(self.weightsfile[vc]):
                         os.unlink(self.weightsfile[vc])
                     self._make_weights_file(self.weightsfile[vc], source_grid,
-                                            cfg_regrid, regrid=regrid, vert_coord=vc,
-                                            extra=extra, zoom=self.zoom, method=method)
+                                            cfg_regrid, regrid=regrid,
+                                            vert_coord=vc, extra=extra,
+                                            zoom=self.zoom, method=method)
 
                 self.weights.update({vc: xr.open_mfdataset(self.weightsfile[vc])})
                 vc2 = None if vc == "2d" or vc == "2dm" else vc
-                self.regridder.update({vc: rg.Regridder(weights=self.weights[vc], vert_coord=vc2, space_dims=default_space_dims)})
+                self.regridder.update({vc: rg.Regridder(weights=self.weights[vc],
+                                                        vert_coord=vc2,
+                                                        space_dims=default_space_dims)})
 
         if areas:
+            template_file = cfg_regrid["areas"]["src_template"].format(model=self.model,
+                                                                       exp=self.exp,
+                                                                       source=self.source)
 
-            template_file = cfg_regrid["areas"]["src_template"].format(model=model, exp=exp, source=self.source)
-
-            # add the zoom level in the template file (same as done in weights)
+            # add the zoom level in the template file
             if self.zoom is not None:
-                template_file = re.sub(r'\.nc', '_z' + str(self.zoom) + r'\g<0>', template_file)
+                template_file = re.sub(r'\.nc',
+                                       '_z' + str(self.zoom) + r'\g<0>',
+                                       template_file)
 
             self.src_areafile = os.path.join(
                 cfg_regrid["areas"]["path"],
@@ -215,6 +270,7 @@ class Reader(FixerMixin, RegridMixin):
                 cellareas = source_grid.get("cellareas", None)
                 cellarea_var = source_grid.get("cellarea_var", None)
                 if cellareas and cellarea_var:
+                    self.logger.warning("Using cellareas file provided in regrid.yaml")
                     xr.open_mfdataset(cellareas)[cellarea_var].rename("cell_area").squeeze().to_netcdf(self.src_areafile)
                 else:
                     # We have to reconstruct it
@@ -243,32 +299,42 @@ class Reader(FixerMixin, RegridMixin):
             self.grid_area = self.src_grid_area
 
     def retrieve(self, regrid=False, timmean=False,
-                 fix=True, apply_unit_fix=True, var=None, vars=None,  # pylint: disable=W0622
-                 streaming=False, stream_step=None, stream_unit=None,
+                 apply_unit_fix=True, var=None, vars=None,
+                 streaming=False, stream_step=1, stream_unit=None,
                  stream_startdate=None, streaming_generator=False):
         """
         Perform a data retrieve.
 
         Arguments:
-            regrid (bool):          if to regrid the retrieved data (False)
-            timmean (bool):         if to average the retrieved data (False)
-            fix (bool):             if to perform a fix (var name, units, coord name adjustments) (True)
-            apply_unit_fix (bool):  if to already adjust units by multiplying by a factor or adding
-                                    an offset (this can also be done later with the `apply_unit_fix` method) (True)
-            var (str, list):        the variable(s) to retrieve (None), vars is a synonym
-                                    if None, all variables are retrieved
-            streaming (bool):       if to retreive data in a streaming mode (False)
-            streaming_generator (bool):  if to return a generator object for data streaming (False).
-            stream_step (int):      the number of time steps to stream the data by (Default = 1)
-            stream_unit (str):      the unit of time to stream the data by
-                                    (e.g. 'hours', 'days', 'months', 'years') (None)
-            stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
+            regrid (bool):              if to regrid the retrieved data
+                                        Defaults to False
+            timmean (bool):             if to average the retrieved data
+                                        Defaults to False
+            apply_unit_fix (bool):      if to already adjust units by
+                                        multiplying by a factor or adding
+                                        an offset (this can also be done later
+                                        with the `apply_unit_fix` method).
+                                        Defaults to True
+            var (str, list):            the variable(s) to retrieve.
+                                        Defaults to None
+                                        vars is a synonym.
+                                        if None, all variables are retrieved
+            streaming (bool):           if to retreive data in a streaming
+                                        mode. Defaults to False
+            streaming_generator (bool): if to return a generator object for
+                                        data streaming. Defaults to False
+            stream_step (int):          the number of time steps to stream the
+                                        data by. Defaults to 1
+            stream_unit (str):          the unit of time to stream the data
+                                        by (e.g. 'hours', 'days', 'months',
+                                        'years'). Defaults to None
+            stream_startdate (str):     the starting date for streaming the
+                                        data (e.g. '2020-02-25').
+                                        Defaults to None
         Returns:
             A xarray.Dataset containing the required data.
         """
 
-        # this is done in the __init__
-        # self.cat = intake.open_catalog(self.catalog_file)
         # Extract subcatalogue
         if self.zoom:
             esmcat = self.cat[self.model][self.exp][self.source](zoom=self.zoom)
@@ -305,7 +371,7 @@ class Reader(FixerMixin, RegridMixin):
                     var = var.split()
 
                 # get loadvar
-                loadvar = self.get_fixer_varname(var) if fix else var
+                loadvar = self.get_fixer_varname(var) if self.fix else var
 
                 if all(element in data.data_vars for element in loadvar):
                     data = data[loadvar]
@@ -315,19 +381,19 @@ class Reader(FixerMixin, RegridMixin):
         log_history(data, "retrieved by AQUA retriever")
 
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
-        # if decumulate:
-        #     data = data.map(self.decumulate, keep_attrs=True)
-        #     data = data.map(self.decumulate)
         if self.freq and timmean:
             data = self.timmean(data)
         if self.targetgrid and regrid:
             data = self.regrid(data)
             self.grid_area = self.dst_grid_area
-        if fix:   # Do not change easily this order. The fixer assumes to be after regridding
+        # Do not change easily this order.
+        # The fixer assumes to be after regridding!
+        if self.fix:
             data = self.fixer(data, apply_unit_fix=apply_unit_fix)
         if streaming or self.streaming or streaming_generator:
             if streaming_generator:
-                data = self.streamer.stream_generator(data, stream_step=stream_step,
+                data = self.streamer.stream_generator(data,
+                                                      stream_step=stream_step,
                                                       stream_unit=stream_unit,
                                                       stream_startdate=stream_startdate)
             else:
@@ -355,7 +421,8 @@ class Reader(FixerMixin, RegridMixin):
             datadic = {"2d": data}
         else:
             datadic = group_shared_dims(data, self.vert_coord, others="2d",
-                                        masked="2dm", masked_att=self.masked_att)
+                                        masked="2dm",
+                                        masked_att=self.masked_att)
 
         # Iterate over list of groups of variables, regridding them separately
         out = []
@@ -368,9 +435,11 @@ class Reader(FixerMixin, RegridMixin):
             # If this was a single dataarray
             out = out[0]
 
-        out = set_attrs(out, {"regridded": 1})  # set regridded attribute to 1 for all vars
+        # set regridded attribute to 1 for all vars
+        out = set_attrs(out, {"regridded": 1})
 
-        # set these two to the target grid (but they are actually not used so far)
+        # set these two to the target grid
+        # (but they are actually not used so far)
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
 
@@ -383,8 +452,10 @@ class Reader(FixerMixin, RegridMixin):
 
         Arguments:
             data (xr.Dataset):  the input xarray.Dataset
+            freq (str):         the frequency of the averaging.
+                                Defaults to None
         Returns:
-            A xarray.Dataset containing the regridded data.
+            A xarray.Dataset containing the time averaged data.
         """
 
         if freq is None:
@@ -404,16 +475,17 @@ class Reader(FixerMixin, RegridMixin):
             # resample
             self.logger.info('Resamplig to %s frequency...', str(resample_freq))
             out = data.resample(time=resample_freq).mean()
-            # for now, we set initial time of the averaging period following ECMWF standard
+            # for now, we set initial time of the averaging period following
+            # ECMWF standard
             # HACK: we ignore hours/sec to uniform the output structure
             proper_time = data.time.resample(time=resample_freq).min()
             out['time'] = np.array(proper_time.values, dtype='datetime64[h]')
         except ValueError:
-            sys.exit('Cant find a frequency to resample, aborting!')
+            raise ValueError('Cant find a frequency to resample, aborting!')
 
         # check for NaT
         if np.any(np.isnat(out.time)):
-            self.logger.warning('Resampling cannot produce output for all frequency step, is your input data correct?')
+            raise ValueError('Resampling cannot produce output for all frequency step, is your input data correct?')
 
         log_history(out, f"resampled to frequency {resample_freq} by AQUA timmean")
         return out
@@ -445,7 +517,8 @@ class Reader(FixerMixin, RegridMixin):
             the value of the averaged field
         """
 
-        # If these data have been regridded we should use the destination grid info
+        # If these data have been regridded we should use
+        # the destination grid info
         if self._check_if_regridded(data):
             space_coord = self.dst_space_coord
             grid_area = self.dst_grid_area
@@ -471,22 +544,20 @@ class Reader(FixerMixin, RegridMixin):
                     # something else
                     raise ValueError(f'{coord} has a mismatch in coordinate values!') from err
 
-
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
 
         return out
-    
+
     def _check_zoom(self, zoom):
-
         """
-        Function to check if the zoom parameter is included in the metadata of the 
-        source and performs a few safety checks. 
+        Function to check if the zoom parameter is included in the metadata of
+        the source and performs a few safety checks.
         It could be extended to any other metadata flag.
-        
-        Arguments:
-            zoom (integer):
 
-        Returns: 
+        Arguments:
+            zoom (int): the zoom level to be checked
+
+        Returns:
             zoom after check has been processed
         """
 
@@ -495,13 +566,13 @@ class Reader(FixerMixin, RegridMixin):
         metadata1 = 'zoom' in shortcat.metadata.get('parameters', {}).keys()
 
         # check at source level (within the parameters)
-        #metadata2 = 'zoom' in shortcat[self.source].metadata.get('parameters', {}).keys()
+        # metadata2 = 'zoom' in shortcat[self.source].metadata.get('parameters', {}).keys()
         checkentry = shortcat[self.source].describe()['user_parameters']
         if len(checkentry) > 0:
             metadata2 = 'zoom' in checkentry[0]['name']
         else:
             metadata2 = False
-        
+
         # combine the two flags
         metadata = metadata1 or metadata2
         if zoom is None:
@@ -518,20 +589,24 @@ class Reader(FixerMixin, RegridMixin):
                                 self.model, self.exp, self.source)
             return None
 
-    def vertinterp(self, data, levels=None, vert_coord='plev', units=None, method='linear'):
+    def vertinterp(self, data, levels=None, vert_coord='plev', units=None,
+                   method='linear'):
         """
         A basic vertical interpolation based on interp function
-        of xarray within AQUA. Given an xarray object, will interpolate the vertical dimension along 
-        the vert_coord. If it is a Dataset, only variables with the required vertical coordinate
-        will be interpolated
+        of xarray within AQUA. Given an xarray object, will interpolate the
+        vertical dimension along the vert_coord.
+        If it is a Dataset, only variables with the required vertical
+        coordinate will be interpolated.
 
         Args:
-            data (DataArray, Dataset): your dataset
-            levels (float, or list): The level you want to interpolate the vertical coordinate
-            units (str, optional, ): The units of your vertical axis. Default 'Pa'
-            vert_coord (str, optional): The name of the vertical coordinate. Default 'plev'
-            method (str, optional): The type of interpolation method supported by interp()
-        
+            data (DataArray, Dataset):      data to be interpolated
+            levels (float, or list):        The level you want to interpolate,
+                                            or a list of levels. Default is None
+                                            the vertical coordinate
+            units (str, optional, ):        The units of your vertical axis. Default 'Pa'
+            vert_coord (str, optional):     The name of the vertical coordinate. Default 'plev'
+            method (str, optional):         The type of interpolation method supported by interp()
+
         Return
             A DataArray or a Dataset with the new interpolated vertical dimension
         """
@@ -542,7 +617,7 @@ class Reader(FixerMixin, RegridMixin):
         # error if vert_coord is not there
         if vert_coord not in data.coords:
             raise KeyError(f'The vert_coord={vert_coord} is not in the data!')
-        
+
         # if you not specified the units, guessing from the data
         if units is None:
             if hasattr(data[vert_coord], 'units'):
@@ -565,7 +640,7 @@ class Reader(FixerMixin, RegridMixin):
 
 
         return final
-    
+
     def _vertinterp(self, data, levels=None, units = 'Pa', vert_coord='plev', method='linear'):
 
         # verify units are good
@@ -580,7 +655,7 @@ class Reader(FixerMixin, RegridMixin):
         return final
 
 
-    
+
 
     # TODO: this is not used anymore, check if it can be deleted
 
