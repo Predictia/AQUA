@@ -120,10 +120,11 @@ class Reader(FixerMixin, RegridMixin):
                                   stream_unit=stream_unit,
                                   stream_startdate=stream_startdate,
                                   loglevel=loglevel)
+
         # Export streaming methods TO DO: probably useless
-        # self.reset_stream = self.streamer.reset_stream
-        # self.stream = self.streamer.stream
-        # self.stream_generator = self.streamer.stream_generator
+        self.reset_stream = self.streamer.reset_stream
+        self.stream = self.streamer.stream
+        self.stream_generator = self.streamer.stream_generator
 
         if not configdir:
             self.configdir = get_config_dir()
@@ -188,6 +189,9 @@ class Reader(FixerMixin, RegridMixin):
             else:
                 self.src_grid = None
 
+            self.src_space_coord = source_grid.get("space_coord", None)
+            self.space_coord = self.src_space_coord
+
         if self.fix:
             self.dst_datamodel = datamodel
             # Default destination datamodel
@@ -196,8 +200,6 @@ class Reader(FixerMixin, RegridMixin):
                 self.dst_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
 
         if regrid:
-            self.src_space_coord = source_grid.get("space_coord", None)
-            self.space_coord = self.src_space_coord
             self.dst_space_coord = ["lon", "lat"]
 
             self.weightsfile = {}
