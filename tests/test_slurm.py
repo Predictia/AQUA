@@ -13,61 +13,54 @@ import time
 def waiting_for_slurm_response(number=2):
     return time.sleep(number)
 
-
 @pytest.fixture
 def username():
     return "$USER"
+
+def get_squeue_info(username):
+    """
+    The function returns the information about all submitted jobs to the Slurm queue by the user.
+    Returns:
+        (str): the information about all submitted jobs
+    """
+    return  str(subprocess.check_output("squeue --user="+str(username),
+                                        stderr=subprocess.STDOUT,
+                                        shell=True))
+def get_last_job_id(username):
+    """
+    The function returns the JobID of the last submitted job.
+
+    Returns:
+        int or NoneType: the JobID 
+    """
+    if re.findall(r'\d+', get_squeue_info(username)) == []:
+        return None
+    else:
+        return int(re.findall(r'\d+', get_squeue_info(username))[0])
 
 
 @pytest.mark.slow
 def test_slurm_availability_for_user(username):
     """Testing the slurm availability for the user on the current machine """
-    squeue_info = str(subprocess.check_output("squeue --user="+str(username),
-                                              stderr=subprocess.STDOUT,
-                                              shell=True))
-    assert "Invalid user" not in squeue_info
-    assert "command not found" not in squeue_info
-    assert "error" not in squeue_info
-
+    assert "Invalid user" not in get_squeue_info(username) 
+    assert "command not found" not in get_squeue_info(username) 
+    assert "error" not in get_squeue_info(username) 
 
 @pytest.mark.slow
 def test_job_submition(username):
     """Testing the submition of the job to Slurm queue """
-    squeue_info = str(subprocess.check_output("squeue --user="+str(username),
-                                              stderr=subprocess.STDOUT,
-                                              shell=True))
-    if re.findall(r'\d+', squeue_info) == []:
-        old_Job_ID = None
-    else:
-        old_Job_ID = int(re.findall(r'\d+', squeue_info)[0])
-
+    old_Job_ID = get_last_job_id(username)
     if old_Job_ID is not None:
 
         slurm.job()
 
         waiting_for_slurm_response()
-        squeue_info = str(subprocess.check_output("squeue --user="+str(username),
-                                                  stderr=subprocess.STDOUT,
-                                                  shell=True))
-        new_Job_ID = re.findall(r'\d+', squeue_info)
+        new_Job_ID = get_last_job_id(username)
         assert new_Job_ID != old_Job_ID
     else:
-
         slurm.job()
-
         waiting_for_slurm_response()
-        squeue_info = str(subprocess.check_output("squeue --user="+str(username),
-                                                  stderr=subprocess.STDOUT,
-                                                  shell=True))
-        last_jobid = re.findall(r'\d+', squeue_info)
-        if last_jobid is None:
-            waiting_for_slurm_response()
-            squeue_info = str(subprocess.check_output("squeue --user="+str(username),
-                                                      stderr=subprocess.STDOUT,
-                                                      shell=True))
-            last_jobid = re.findall(r'\d+', squeue_info)
-        assert last_jobid is not None
-
+        assert get_last_job_id(username) is not None
 
 @pytest.fixture
 def Job_ID(username):
@@ -77,29 +70,16 @@ def Job_ID(username):
     Returns:
         int: The JobID of last submitted job
     """
-    waiting_for_slurm_response()
-    waiting_for_slurm_response()
-    squeue_info = str(subprocess.check_output("squeue --user="+str(username),
-                                              stderr=subprocess.STDOUT,
-                                              shell=True))
-    return int(re.findall(r'\d+', squeue_info)[0])
+    waiting_for_slurm_response(4)
+    return get_last_job_id(username)
 
-
-@pytest.fixture
 def get_job_status(username, Job_ID):
     """
     The function returns the status of the submitted job by the Slurm user.
-
-    Raises:
-        Exception: "The job is not in the Slurm queue"
-
     Returns:
-        str: the status of the submitted job by the Slurm user: 'R', 'P' or 'CG'.
+        str: the status of the submitted job by the Slurm user: 'R', 'PD', 'CG' or None.
     """
-    squeue_info = str(subprocess.check_output("squeue --user="+str(username),
-                                              stderr=subprocess.STDOUT,
-                                              shell=True))
-    if str(Job_ID) in squeue_info:
+    if str(Job_ID) in get_squeue_info(username):
         job_status_in_slurm = "squeue --job="+str(Job_ID)
         squeue_info = str(subprocess.check_output(job_status_in_slurm,
                                                   stderr=subprocess.STDOUT,
@@ -107,22 +87,17 @@ def get_job_status(username, Job_ID):
         job_status = list(filter(None, re.split(' ', re.split('[)\\n]', squeue_info)[1])))[5]
         return job_status
     else:
-        raise Exception("The job is not in the Slurm queue")
-
+        return None
 
 @pytest.mark.slow
 def test_job_presence_in_queue(username, Job_ID):
     """ Testing the presence of the job to Slurm queue """
-    squeue_info = str(subprocess.check_output("squeue --user="+str(username),
-                                              stderr=subprocess.STDOUT,
-                                              shell=True))
-    assert str(Job_ID) in squeue_info
-
+    assert str(Job_ID) in get_squeue_info(username) 
 
 @pytest.mark.slow
-def test_logfile_creation(Job_ID):
+def test_logfile_creation(username, Job_ID):
     """ Testing the log file creation """
-    if get_job_status == 'R':
+    if get_job_status(username, Job_ID)== 'R':
         waiting_for_slurm_response()
         log_repo = slurm.output_dir()[0]
         log_files = [f for f in listdir(log_repo) if isfile(join(log_repo, f))]
@@ -130,9 +105,9 @@ def test_logfile_creation(Job_ID):
 
 
 @pytest.mark.slow
-def test_outputfile_creation(Job_ID):
+def test_outputfile_creation(username, Job_ID):
     """Testing the output file creation """
-    if get_job_status == 'R':
+    if get_job_status(username, Job_ID) == 'R':
         waiting_for_slurm_response()
         output_repo = slurm.output_dir()[1]
         output_files = [f for f in listdir(output_repo) if isfile(join(output_repo, f))]
@@ -141,19 +116,15 @@ def test_outputfile_creation(Job_ID):
 
 @pytest.mark.slow
 def test_job_cancelation(username, Job_ID):
-    """Testing the job cancelation
-    """
-    squeue_info = str(subprocess.check_output("squeue --user="+str(username),
-                                              stderr=subprocess.STDOUT,
-                                              shell=True))
-    assert str(Job_ID) in squeue_info
+    """Testing the job cancelation """
+    assert str(Job_ID) in get_squeue_info(username) 
 
     if get_job_status == 'CG':
         raise Exception("The job has already been canceled. The current function cannot test the slurm.scalcel(). \
                         Try to do a test with another job")
     else:
         slurm.scancel(all=False, Job_ID=Job_ID)
-        waiting_for_slurm_response()
-        waiting_for_slurm_response()
-        assert get_job_status != 'R' or get_job_status != 'P'
-        assert get_job_status == 'CG' or str(Job_ID) not in squeue_info
+        waiting_for_slurm_response(4)
+        job_status = get_job_status(username, Job_ID)
+        assert job_status != 'R' or job_status != 'PD'
+        assert job_status == 'CG' or job_status == None 
