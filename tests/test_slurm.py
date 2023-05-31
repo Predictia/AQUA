@@ -156,4 +156,4 @@ def test_job_cancelation(username, Job_ID):
         waiting_for_slurm_response()
         waiting_for_slurm_response()
         assert get_job_status != 'R' or get_job_status != 'P'
-        assert get_job_status != 'CG' or str(Job_ID) not in squeue_info
+        assert get_job_status == 'CG' or str(Job_ID) not in squeue_info
