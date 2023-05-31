@@ -231,8 +231,9 @@ source_grids:
         vert_coord: ["nz1"]
         extra: 
           - -setgrid,/work/bb1153/b382075/nextgems/grids/NG5_griddes_elem_IFS.nc 
-      default:  # default covers all simple cases where this can be computed automatically (eg LRA)
-        space_coord: ["lon", "lat"]
+      # it is a duplicate
+      #default:  # default covers all simple cases where this can be computed automatically (eg LRA)
+      #  space_coord: ["lon", "lat"]
         
     tco2559-ng5:
       interpolated_global2d:
