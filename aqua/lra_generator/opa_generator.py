@@ -274,14 +274,12 @@ class OPAgenerator():
                             self.model, self.exp, self.entry_name)
 
         # find the catalog of my experiment
-        yaml = YAML()
         catalogfile = os.path.join(self.configdir, 'machines', self.machine,
                                    'catalog', self.model, self.exp+'.yaml')
         cat_file = load_yaml(catalogfile)
         if self.entry_name in cat_file['sources']:
             del cat_file['sources'][self.entry_name]
-        with open(catalogfile, 'w', encoding='utf-8') as file:
-            yaml.dump(cat_file, file)
+        dump_yaml(outfile=catalogfile, cfg=cat_file)
 
         # find the regrid of my experiment
         regridfile = os.path.join(self.configdir, 'machines', self.machine,
