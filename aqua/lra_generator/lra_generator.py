@@ -151,7 +151,8 @@ class LRAgenerator():
         self.reader = Reader(model=self.model, exp=self.exp,
                              source=self.source, zoom=self.zoom,
                              regrid=self.resolution, freq=self.frequency,
-                             configdir=self.configdir, loglevel=self.loglevel)
+                             configdir=self.configdir, loglevel=self.loglevel,
+                             fix=self.fix)
 
         # Initialize variables used by methods
         self.data = None
@@ -181,7 +182,7 @@ class LRAgenerator():
                              self.resolution)
 
         self.logger.warning('Retrieving data...')
-        self.data = self.reader.retrieve(var = self.var, fix=self.fix)
+        self.data = self.reader.retrieve(var = self.var)
         self.logger.debug(self.data)
 
     def generate_lra(self):

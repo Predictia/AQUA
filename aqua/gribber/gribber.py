@@ -150,9 +150,9 @@ class Gribber():
         """
         self.reader = Reader(model=self.model, exp=self.exp,
                              source=self.source, configdir=self.configdir,
-                             loglevel=self.logger.level)
+                             loglevel=self.logger.level,fix=False)
 
-        data = self.reader.retrieve(fix=False)
+        data = self.reader.retrieve()
         assert len(data) > 0
 
     def _check_steps(self):
