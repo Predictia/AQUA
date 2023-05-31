@@ -302,7 +302,7 @@ class Reader(FixerMixin, RegridMixin):
 
     def retrieve(self, regrid=False, timmean=False,
                  apply_unit_fix=True, var=None, vars=None,
-                 streaming=False, stream_step=1, stream_unit=None,
+                 streaming=False, stream_step=None, stream_unit=None,
                  stream_startdate=None, streaming_generator=False):
         """
         Perform a data retrieve.
@@ -326,7 +326,7 @@ class Reader(FixerMixin, RegridMixin):
             streaming_generator (bool): if to return a generator object for
                                         data streaming. Defaults to False
             stream_step (int):          the number of time steps to stream the
-                                        data by. Defaults to 1
+                                        data by. Defaults to None
             stream_unit (str):          the unit of time to stream the data
                                         by (e.g. 'hours', 'days', 'months',
                                         'years'). Defaults to None
