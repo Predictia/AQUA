@@ -16,6 +16,7 @@ Welcome to AQUA's documentation!
    core_components
    adding_data
    tests
+   slurm
    diagnostics/index
    examples_tutorials
    api_reference
