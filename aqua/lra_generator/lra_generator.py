@@ -147,16 +147,12 @@ class LRAgenerator():
 
         create_folder(self.outdir, loglevel=self.loglevel)
 
-        # Initialize the reader
-        self.reader = Reader(model=self.model, exp=self.exp,
-                             source=self.source, zoom=self.zoom,
-                             regrid=self.resolution, freq=self.frequency,
-                             configdir=self.configdir, loglevel=self.loglevel)
 
         # Initialize variables used by methods
         self.data = None
         self.cluster = None
         self.client = None
+        self.reader = None
 
     # def _assign_key(self, name, key):
 
@@ -171,6 +167,14 @@ class LRAgenerator():
         """
         Retrieve data from the catalog
         """
+
+        # Initialize the reader
+        self.reader = Reader(model=self.model, exp=self.exp,
+                             source=self.source, zoom=self.zoom,
+                             regrid=self.resolution, freq=self.frequency,
+                             configdir=self.configdir, loglevel=self.loglevel)
+
+
         self.logger.info('Accessing catalog for %s-%s-%s...',
                          self.model, self.exp, self.source)
         if self.frequency:
