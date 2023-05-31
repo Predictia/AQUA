@@ -22,6 +22,7 @@ The dask-job initialization
 The job can be launched to the queue with the following command in the Notebook cell:
 
 .. code-block:: python
+
 	slurm.job()
  
 
@@ -44,12 +45,14 @@ The function slurm.job() has an argument `exclusive=False` by default. Exclusive
 is reserving entire node for the Job.
 
 .. code-block:: python
+
 	slurm.job(exclusive=True)
 
 By default, the user will get the entire `compute` node on Levante and `small` on Lumi. If you would like to reserve a 
 node on a different queue, specify the queue's name as an argument of the function:
 
 .. code-block:: python
+
 	slurm.job(exclusive=True, queue = "gpu")
 
 
@@ -61,12 +64,14 @@ to `max_resources_per_node=True`, the number of cores, memory, and walltime will
 memory, and walltime.
 
 .. code-block:: python
+
 	slurm.job(max_resources=True)
 
 If you would like to get the node with maximum resources from the queue, different from the default,  
 specify as an argument of function:
 
 .. code-block:: python
+
 	slurm.job(max_resources=True,  queue = "gpu")
 
 
@@ -80,6 +85,7 @@ Therefore, the paths for log and output are:
 
 Users can specify the different paths for the SLURM output:
 .. code-block:: python
+
 	slurm.job(path_to_output="/any/other/folder/")
 
 
@@ -89,12 +95,14 @@ The dask-job cancelation
 The user can cancel all submitted Jobs by
 
 .. code-block:: python
+	
 	slurm.scancel()
 
 If the user would like to cancel the specific Job,  he needs to know the Job_ID of that Job. 
 The Job_ID can be found with the function slurm.squeue(), which returns the information about all user Slurm Jobs on the machine. 
 Then the user can cancel the particular Job as:
 .. code-block:: python
+
 	slurm.scancel(all=False, Job_ID=5000000)
 
 
