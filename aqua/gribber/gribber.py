@@ -5,11 +5,11 @@ Gribber module for integrate gribscan within AQUA
 import os
 import subprocess
 from glob import glob
-from ruamel.yaml import YAML
 from aqua.logger import log_configure
-from aqua.util import load_yaml, create_folder
+from aqua.util import load_yaml, dump_yaml, create_folder
 from aqua.util import get_config_dir, get_machine
 from aqua.reader import Reader
+
 
 class Gribber():
     """
@@ -106,9 +106,9 @@ class Gribber():
         self.logger.info("Gribfile wildcard: %s", self.gribfiles)
 
         # Get catalog filename
-        self.catalogfile = os.path.join(self.configdir, 'machines',self.machine,
-                                        'catalog', self.model,
-                                        self.exp+'.yaml')
+        self.catalogfile = os.path.join(self.configdir, 'machines',
+                                        self.machine, 'catalog',
+                                        self.model, self.exp+'.yaml')
         self.logger.warning("Catalog file: %s", self.catalogfile)
 
         # Get JSON filename
@@ -328,9 +328,7 @@ class Gribber():
             cat_file['sources'][self.source] = block_cat
 
         # Write catalog file
-        yaml = YAML()
-        with open(self.catalogfile, 'w', encoding='utf-8') as file:
-            yaml.dump(cat_file, file)
+        dump_yaml(outfile=self.catalogfile, cfg=cat_file)
 
     def _create_main_catalog(self):
         """
@@ -372,9 +370,7 @@ class Gribber():
             main_file['sources'][self.source] = block_main
 
         # Write catalog file
-        yaml = YAML()
-        with open(mainfilepath, 'w', encoding='utf-8') as file:
-            yaml.dump(main_file, file)
+        dump_yaml(outfile=mainfilepath, cfg=main_file)
 
     def help(self):
         """

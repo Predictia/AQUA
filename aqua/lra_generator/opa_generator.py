@@ -3,13 +3,12 @@
 import os
 import copy
 import warnings
-from ruamel.yaml import YAML
 import dask
 import numpy as np
 from dask.distributed import Client, LocalCluster
 from one_pass.opa import Opa
 from aqua.logger import log_configure
-from aqua.util import create_folder, load_yaml
+from aqua.util import create_folder, load_yaml, dump_yaml
 from aqua.util import get_config_dir, get_machine
 from aqua.reader import Reader
 
@@ -247,11 +246,9 @@ class OPAgenerator():
                                    'catalog', self.model, self.exp+'.yaml')
 
         # load, add the block and close
-        yaml = YAML()
         cat_file = load_yaml(catalogfile)
         cat_file['sources'][self.entry_name] = block_cat
-        with open(catalogfile, 'w', encoding='utf-8') as file:
-            yaml.dump(cat_file, file)
+        dump_yaml(outfile=catalogfile, cfg=cat_file)
 
         # find the regrid of my experiment
         regridfile = os.path.join(self.configdir, 'machines', self.machine,
@@ -268,8 +265,7 @@ class OPAgenerator():
 
         cat_file['source_grids'][self.model][self.exp][self.entry_name] = copy.deepcopy(regrid_entry)
 
-        with open(regridfile, 'w', encoding='utf-8') as file:
-            yaml.dump(cat_file, file)
+        dump_yaml(outfile=regridfile, cfg=cat_file)
 
     def _remove_catalog_entry(self):
         """Remove the entries"""
@@ -294,8 +290,7 @@ class OPAgenerator():
         if self.entry_name in cat_file['source_grids'][self.model][self.exp]:
             del cat_file['source_grids'][self.model][self.exp][self.entry_name]
 
-        with open(regridfile, 'w', encoding='utf-8') as file:
-            yaml.dump(cat_file, file)
+        dump_yaml(outfile=regridfile, cfg=cat_file)
 
     def _remove_checkpoint(self):
         """Be sure that the checkpoint is removed"""
