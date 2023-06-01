@@ -352,8 +352,8 @@ class Gribber():
         self.logger.info(block_main)
 
         # Write main catalog file
-        mainfilepath = os.path.join(self.configdir, 'machines', self.machine, 'catalog',
-                                    self.model, 'main.yaml')
+        mainfilepath = os.path.join(self.configdir, 'machines', self.machine,
+                                    'catalog', self.model, 'main.yaml')
         main_file = load_yaml(mainfilepath)
 
         # Check if source already exists
