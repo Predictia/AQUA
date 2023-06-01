@@ -312,6 +312,8 @@ class Reader(FixerMixin, RegridMixin):
                 else:
                     try:
                         data = data[var]
+                        self.logger.warning(f"You are asking for var {loadvar} which is not in the catalog.")
+                        self.logger.warning(f"Returning {var} instead.")
                     except:
                         raise KeyError("You are asking for variables which we cannot find in the catalog!")
 
