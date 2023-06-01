@@ -5,11 +5,11 @@ Gribber module for integrate gribscan within AQUA
 import os
 import subprocess
 from glob import glob
-import yaml
 from aqua.logger import log_configure
-from aqua.util import load_yaml, create_folder
+from aqua.util import load_yaml, dump_yaml, create_folder
 from aqua.util import get_config_dir, get_machine
 from aqua.reader import Reader
+
 
 class Gribber():
     """
@@ -328,8 +328,7 @@ class Gribber():
             cat_file['sources'][self.source] = block_cat
 
         # Write catalog file
-        with open(self.catalogfile, 'w', encoding='utf-8') as file:
-            yaml.dump(cat_file, file, sort_keys=False)
+        dump_yaml(outfile=self.catalogfile, cfg=cat_file)
 
     def _create_main_catalog(self):
         """
@@ -371,8 +370,7 @@ class Gribber():
             main_file['sources'][self.source] = block_main
 
         # Write catalog file
-        with open(mainfilepath, 'w', encoding='utf-8') as file:
-            yaml.dump(main_file, file, sort_keys=False)
+        dump_yaml(outfile=mainfilepath, cfg=main_file)
 
     def help(self):
         """

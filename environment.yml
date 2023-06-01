@@ -25,9 +25,16 @@ dependencies:
   - intake-esm<=2021.8.17
   - intake
   - intake-xarray
+  - ruamel.yaml
 # these below are only required for running notebooks
   - ipykernel
   - healpy
+# these below are only required for tests
+  - pytest
+  - pytest-cov
+  - coverage[toml]
+  - pandoc
+  - pycobertura
 # these below are only required for documentation
   - sphinx
   - sphinx-rtd-theme
@@ -35,6 +42,7 @@ dependencies:
   - pip
   - pip:
     - sparse
+    - dask_jobqueue
     - docker
     - gribscan
     - smmregrid
