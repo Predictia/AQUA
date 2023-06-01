@@ -45,7 +45,7 @@ def get_last_job_id(username):
         return int(re.findall(r'\d+', get_squeue_info(username))[0])
 
 
-@pytest.mark.slow
+@pytest.mark.sbatch
 def test_slurm_availability_for_user(username):
     """Testing the slurm availability for the user on the current machine """
     assert "Invalid user" not in get_squeue_info(username)
@@ -53,7 +53,7 @@ def test_slurm_availability_for_user(username):
     assert "error" not in get_squeue_info(username)
 
 
-@pytest.mark.slow
+@pytest.mark.sbatch
 def test_job_submition(username):
     """Testing the submition of the job to Slurm queue """
     old_Job_ID = get_last_job_id(username)
@@ -101,13 +101,13 @@ def get_job_status(username, Job_ID):
         return None
 
 
-@pytest.mark.slow
+@pytest.mark.sbatch
 def test_job_presence_in_queue(username, Job_ID):
     """ Testing the presence of the job to Slurm queue """
     assert str(Job_ID) in get_squeue_info(username)
 
 
-@pytest.mark.slow
+@pytest.mark.sbatch
 def test_logfile_creation(username, Job_ID):
     """ Testing the log file creation """
     if get_job_status(username, Job_ID) == 'R':
@@ -117,7 +117,7 @@ def test_logfile_creation(username, Job_ID):
         assert 'dask-worker-'+str(Job_ID)+'.err' in log_files
 
 
-@pytest.mark.slow
+@pytest.mark.sbatch
 def test_outputfile_creation(username, Job_ID):
     """Testing the output file creation """
     if get_job_status(username, Job_ID) == 'R':
@@ -127,7 +127,7 @@ def test_outputfile_creation(username, Job_ID):
         assert 'dask-worker-'+str(Job_ID)+'.out' in output_files
 
 
-@pytest.mark.slow
+@pytest.mark.sbatch
 def test_job_cancelation(username, Job_ID):
     """Testing the job cancelation """
     assert str(Job_ID) in get_squeue_info(username)
