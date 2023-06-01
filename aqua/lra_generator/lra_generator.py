@@ -316,7 +316,7 @@ class LRAgenerator():
         yearfiles = self.get_filename(varname)
         yearfiles = glob.glob(yearfiles)
         checks = [file_is_complete(yearfile) for yearfile in yearfiles]
-        all_checks_true = all(checks)
+        all_checks_true = all(checks) and len(checks)>0
         if all_checks_true and not self.overwrite:
             self.logger.warning('All the data seem there for var %s...', varname)
             self.definitive = False
