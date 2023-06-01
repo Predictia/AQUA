@@ -14,7 +14,7 @@ models:
                         #src_units: m
                         grib: true
             monthly:
-                data_model: False
+                data_model: cf
                 vars:
                     msl:
                         grib: true
