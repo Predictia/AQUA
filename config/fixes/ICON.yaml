@@ -89,6 +89,7 @@ models:
                     ocpt:
                         source: to
                         grib: true
+                        units: degC
                     t:
                         source: ta
                         grib: true
