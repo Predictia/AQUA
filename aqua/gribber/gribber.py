@@ -72,8 +72,8 @@ class Gribber():
 
         if model:
             self.model = model
-            if model is not "IFS":
-                self.logger.debug("Other models than IFS are experimental.")
+            if self.model != "IFS":
+                self.logger.warning("Other models than IFS are experimental.")
         else:
             raise KeyError('Please specify model.')
 
@@ -316,18 +316,21 @@ class Gribber():
         """
         Create JSON file.
         """
-        jsonname = self.jsondir + self.tgt_json
-        self.logger.info(f"Creating JSON file {jsonname}...")
+        self.logger.info(f"Creating JSON file {self.jsonfile}...")
+
+        if self.model != 'IFS':
+            self.logger.warning("Model %s is experimental.", self.model)
+            self.logger.warning("JSON file may have a different name.")
 
         #  to be improved without using subprocess
         if self.model == 'IFS':
-            cmd = ['gribscan-build', '-o', jsonname, '--magician', 'ifs',
-                '--prefix', self.datadir + '/'] +\
-                glob(os.path.join(self.tmpdir, '*index'))
+            cmd = ['gribscan-build', '-o', self.jsondir, '--magician', 'ifs',
+                   '--prefix', self.datadir + '/'] +\
+                   glob(os.path.join(self.tmpdir, '*index'))
         else:
             self.logger.warning("Model %s is experimental.", self.model)
-            cmd = ['gribscan-build', '-o', jsonname,
-                '--prefix', self.datadir + '/'] +\
+            cmd = ['gribscan-build', '-o', self.jsondir,
+                   '--prefix', self.datadir + '/'] +\
                 glob(os.path.join(self.tmpdir, '*index'))
         subprocess.run(cmd)
 
