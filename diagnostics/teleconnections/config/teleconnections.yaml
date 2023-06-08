@@ -1,0 +1,9 @@
+# Configuration file of the teleconnections diagnostic
+
+# MJO
+MJO:
+  field: mtntrf
+  latN:  10
+  latS: -10
+  lonW:  30
+  lonE:  200
