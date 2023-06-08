@@ -53,6 +53,10 @@ docs = [
     "sphinx==6.1.*",
     "sphinx-rtd-theme==1.2.*"
 ]
+notebooks = [
+    "ipykernel",
+    "healpy"
+]
 tests = [
     "pytest==7.3.*",
     "pytest-cov==4.0.*",
@@ -61,8 +65,9 @@ tests = [
     "pycobertura==3.0.*"
 ]
 all = [
-    "aqua[tests]",
-    "aqua[docs]"
+    "aqua[docs]",
+    "aqua[notebooks]",
+    "aqua[tests]"
 ]
 
 [project.urls]
