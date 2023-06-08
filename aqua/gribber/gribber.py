@@ -73,7 +73,7 @@ class Gribber():
         if model:
             self.model = model
             if model is not "IFS":
-                self.logger.debug("Other models than IFS are experimental.")
+                self.logger.warning("Other models than IFS are experimental.")
         else:
             raise KeyError('Please specify model.')
 
