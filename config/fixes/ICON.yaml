@@ -102,13 +102,13 @@ models:
                         grib: true
                     uo:
                         source: u
-                        grib: true
+                        grib: false # HACK was true
                     v:
                         source: va
                         grib: true
                     vo:
                         source: v
-                        grib: true
+                        grib: false # HACK was true
         hpx: 
             default:
                 data_model: false
