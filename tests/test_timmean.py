@@ -4,13 +4,15 @@ import pytest
 import numpy as np
 from aqua import Reader
 
+loglevel = "DEBUG"
+
 @pytest.mark.aqua
 class TestTimmean():
 
     @pytest.mark.parametrize('var',['2t','ttr'])
     def test_timmean_monthly(self, var):
         """Timmean test for monthly aggregation"""
-        reader = Reader(model="IFS", exp="test-tco79", source='long', freq='monthly')
+        reader = Reader(model="IFS", exp="test-tco79", source='long', freq='monthly', loglevel=loglevel)
         data = reader.retrieve(fix=False)
         avg = reader.timmean(data[var])
         nmonths = len(np.unique(data.time.dt.month))
@@ -22,7 +24,7 @@ class TestTimmean():
     @pytest.mark.parametrize('var',['2t','ttr'])
     def test_timmean_daily(self, var):
         """Timmean test for daily aggregation"""
-        reader = Reader(model="IFS", exp="test-tco79", source='long', freq='daily')
+        reader = Reader(model="IFS", exp="test-tco79", source='long', freq='daily', loglevel=loglevel)
         data = reader.retrieve(fix=False)
         avg = reader.timmean(data[var])
         unique, counts = np.unique(avg.time.dt.day, return_counts=True)
@@ -34,7 +36,7 @@ class TestTimmean():
         
     def test_timmean_monthly_reader(self):
         """Timmean test for monthly aggregation from Reader directly"""
-        reader = Reader(model="IFS", exp="test-tco79", source='long', freq='monthly')
+        reader = Reader(model="IFS", exp="test-tco79", source='long', freq='monthly', loglevel=loglevel)
         data = reader.retrieve(fix=False, timmean=True)
         nmonths = len(np.unique(data.time.dt.month))
         unique, counts = np.unique(data['2t'].time.dt.month, return_counts=True)
@@ -44,13 +46,13 @@ class TestTimmean():
 
     def test_timmean_yearly_reader(self):
         """Timmean test for yearly aggregation from Reader directly"""
-        reader = Reader(model="IFS", exp="test-tco79", source='long', freq='yearly')
+        reader = Reader(model="IFS", exp="test-tco79", source='long', freq='yearly', loglevel=loglevel)
         data = reader.retrieve(fix=False, timmean=True)
         assert data['ttr'].shape == (1, 9, 18)
 
     def test_timmean_pandas_reader(self):
         """Timmean test for weekly aggregation based on pandas labels from Reader directly"""
-        reader = Reader(model="IFS", exp="test-tco79", source='long', freq='W-MON')
+        reader = Reader(model="IFS", exp="test-tco79", source='long', freq='W-MON', loglevel=loglevel)
         data = reader.retrieve(var='2t', timmean=True)
         assert data['2t'].shape == (29, 9, 18)
 

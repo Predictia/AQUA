@@ -3,13 +3,15 @@
 import pytest
 from aqua import Reader
 
+loglevel = 'DEBUG'
+
 @pytest.mark.aqua
 #@pytest.mark.skip(reason="excluded from GH actions")
 def test_fixer():
     """Test basic fixing"""
 
     ntime = [10, 20, 1000]  # points in time to be checked (includes 1 month jump)
-    reader = Reader(model="IFS", exp="test-tco79", source="long")
+    reader = Reader(model="IFS", exp="test-tco79", source="long", loglevel=loglevel)
     data0 = reader.retrieve(var=['2t', 'ttr'], fix=False)  # Retrieve not fixed data
     ttr0 = data0.ttr[ntime, 0, 0]
     tas0 = data0['2t'][ntime, 5, 5]

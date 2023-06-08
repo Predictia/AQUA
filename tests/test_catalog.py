@@ -5,6 +5,8 @@ import xarray
 from aqua import Reader, catalogue, inspect_catalogue
 from aqua.reader.reader_utils import check_catalog_source
 
+loglevel = "DEBUG"
+
 @pytest.fixture(params=[(model, exp, source)
                         for model in catalogue()
                         for exp in catalogue()[model]
@@ -22,7 +24,7 @@ def reader(request):
         pytest.skip()
     if model == 'ERA5':
         pytest.skip()
-    myread = Reader(model=model, exp=exp, source=source, areas=False)
+    myread = Reader(model=model, exp=exp, source=source, areas=False, loglevel=loglevel)
     data = myread.retrieve(fix=False)
     return myread, data
 

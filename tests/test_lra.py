@@ -3,6 +3,8 @@ import pytest
 import xarray as xr
 from aqua import LRAgenerator
 
+loglevel = "DEBUG"
+
 @pytest.fixture(
     params=[("IFS", "test-tco79", "long", "2t", "lra_test")]
 )
@@ -18,7 +20,7 @@ class TestLRA():
     def test_definitive_false(self, lra_arguments):
             model, exp, source, var, outdir = lra_arguments
             test = LRAgenerator(model=model, exp=exp, source=source, var=var, outdir=outdir, 
-                                resolution='r100', frequency='monthly')
+                                resolution='r100', frequency='monthly', loglevel=loglevel)
             test.retrieve()
             test.generate_lra()
             assert os.path.isdir(os.path.join(os.getcwd(), outdir, "IFS/test-tco79/r100/monthly"))
@@ -27,7 +29,8 @@ class TestLRA():
     def test_definitive_true(self, lra_arguments):
             model, exp, source, var, outdir = lra_arguments
             test = LRAgenerator(model=model, exp=exp, source=source, var=var, outdir=outdir, 
-                                resolution='r100', frequency='monthly', definitive = True)
+                                resolution='r100', frequency='monthly', definitive = True,
+                                loglevel=loglevel)
             test.retrieve()
             year = test.data.sel(time=test.data.time.dt.year == 2020)
             month = year.sel(time=year.time.dt.month == 1)
@@ -45,7 +48,7 @@ class TestLRA():
     def test_dask_entry(self, lra_arguments):
             model, exp, source, var, outdir = lra_arguments
             test = LRAgenerator(model=model, exp=exp, source=source, var=var, outdir=outdir, tmpdir = 'tmpdir',
-                                resolution='r100', frequency='monthly', nproc=2)
+                                resolution='r100', frequency='monthly', nproc=2, loglevel=loglevel)
             test.retrieve()
             test.generate_lra()
             test.create_catalog_entry()

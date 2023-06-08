@@ -4,10 +4,11 @@ from aqua import Reader, catalogue
 
 # pytest approximation, to bear with different machines
 approx_rel=1e-4
+loglevel = "DEBUG"
 
 @pytest.fixture
 def reader_instance():
-    return Reader(model="FESOM", exp="test-pi", source="original_2d", regrid="r200")
+    return Reader(model="FESOM", exp="test-pi", source="original_2d", regrid="r200", loglevel=loglevel)
 
 # aqua class for tests
 @pytest.mark.aqua
@@ -31,7 +32,7 @@ class TestAqua:
         """
         Test the initialization of the Reader class
         """
-        reader = Reader(model="FESOM", exp="test-pi", source="original_2d", configdir = "config")
+        reader = Reader(model="FESOM", exp="test-pi", source="original_2d", configdir="config", loglevel=loglevel)
         assert reader.model == "FESOM"
         assert reader.exp == "test-pi"
         assert reader.source == "original_2d"
@@ -79,6 +80,6 @@ class TestAqua:
         Test if the Reader class works with different combinations of arguments
         """
         model, exp, source, regrid, variable = reader_arguments
-        reader = Reader(model=model, exp=exp, source=source, regrid=regrid)
+        reader = Reader(model=model, exp=exp, source=source, regrid=regrid, loglevel=loglevel)
         data = reader.retrieve(fix=False)
         assert len(data) > 0

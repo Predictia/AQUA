@@ -3,6 +3,7 @@
 import pytest
 from aqua import Reader
 
+loglevel = "DEBUG"
 
 @pytest.fixture(
     params=[
@@ -23,7 +24,7 @@ class TestRegridder():
         checking output grid dimension and
         fraction of land (i.e. any missing points)"""
         model, exp, source, variable, ratio = reader_arguments
-        reader = Reader(model=model, exp=exp, source=source, regrid="r200")
+        reader = Reader(model=model, exp=exp, source=source, regrid="r200", loglevel=loglevel)
         data = reader.retrieve(fix=False)
         rgd = reader.regrid(data[variable])
         assert len(rgd.lon) == 180
@@ -34,7 +35,7 @@ class TestRegridder():
         """Test interpolation on FESOM, at different grid rebuilding weights,
         checking output grid dimension and fraction of land (i.e. any missing points)"""
         reader = Reader(model='FESOM', exp='test-pi', source='original_2d',
-                        regrid='r100', rebuild=True)
+                        regrid='r100', rebuild=True, loglevel=loglevel)
         rgd = reader.retrieve(vars='sst', fix=False, regrid=True)
         ratio = rgd['sst'].isnull().sum()/rgd['sst'].size  # land fraction
 
@@ -47,7 +48,7 @@ class TestRegridder():
         """Test the case where no source grid path is specified in the regrid.yaml file
         and areas/weights are reconstructed from the file itself"""
         reader = Reader(model='IFS', exp='test-tco79', source='long',
-                        regrid='r100', rebuild=True)
+                        regrid='r100', rebuild=True, loglevel=loglevel)
         rgd = reader.retrieve(vars='ttr', fix=False, regrid=True)
         assert len(rgd.lon) == 360
         assert len(rgd.lat) == 180
@@ -57,7 +58,7 @@ class TestRegridder():
         """Test interpolation on FESOM, at different grid rebuilding weights,
         checking output grid dimension and fraction of land (i.e. any missing points)"""
         reader = Reader(model='FESOM', exp='test-pi', source='original_3d',
-                        regrid='r100', rebuild=True)
+                        regrid='r100', rebuild=True, loglevel=loglevel)
         rgd = reader.retrieve(vars='temp', fix=False, regrid=True)
         ratio1 = rgd.temp.isel(nz1=0).isnull().sum()/rgd.temp.isel(nz1=0).size  # land fraction
         ratio2 = rgd.temp.isel(nz1=40).isnull().sum()/rgd.temp.isel(nz1=40).size  # land fraction

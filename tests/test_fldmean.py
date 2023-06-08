@@ -3,6 +3,8 @@
 import pytest
 from aqua import Reader
 
+loglevel = "DEBUG"
+
 @pytest.mark.aqua
 class TestFldmean():
 
@@ -10,7 +12,7 @@ class TestFldmean():
                             [('short', 285.75920, 2), ('long', 285.86724, 4728)])
     def test_fldmean_ifs(self, source, value, shape):
         """Fldmean test for IFS"""
-        reader = Reader(model="IFS", exp="test-tco79", source=source)
+        reader = Reader(model="IFS", exp="test-tco79", source=source, loglevel=loglevel)
         data = reader.retrieve()
         avg = reader.fldmean(data['2t']).values
         assert avg.shape == (shape,)
@@ -20,7 +22,7 @@ class TestFldmean():
 
     def test_fldmean_fesom(self):
         """Fldmean test for FESOM"""
-        reader = Reader(model="FESOM", exp="test-pi", source='original_2d')
+        reader = Reader(model="FESOM", exp="test-pi", source='original_2d', loglevel=loglevel)
         data = reader.retrieve()
         avg = reader.fldmean(data['sst']).values
         assert avg.shape == (2,)
