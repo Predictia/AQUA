@@ -93,11 +93,16 @@ class FixerMixin():
                 # This is a grib variable, use eccodes to find attributes
                 if grib:
                     # Get relevant eccodes attribues
-                    attributes.update(get_eccodes_attr(var))
-                    sn = attributes.get("shortName", None)
-                    if (sn != '~') and (var != sn):
-                        varname = sn
-                        self.logger.info("Grib attributes for %s: %s", varname, attributes)
+                    try:
+                        attributes.update(get_eccodes_attr(var))
+                        sn = attributes.get("shortName", None)
+                        if (sn != '~') and (var != sn):
+                            varname = sn
+                            self.logger.info("Grib attributes for %s: %s", varname, attributes)
+                    except TypeError:
+                        self.logger.warning("Cannot get eccodes attributes for %s", var)
+                        self.logger.warning("Information may be missing in the output file")
+                        self.logger.warning("Please check your version of eccodes")
 
                 varlist[var] = varname
 
