@@ -48,10 +48,10 @@ models:
                         grib: true
                     sivn:
                         source: vice
-                        grib: true
+                        grib: false # HACK was true
                     siue:
                         source: uice
-                        grib: true
+                        grib: false # HACK was true
                     vdf: 
                         source: Kv
                         grib: true
