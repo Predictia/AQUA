@@ -36,22 +36,22 @@ models:
                         units: degC # Override units from grib tables
                     uo:
                         source: u
-                        grib: false # HACK was true
+                        grib: true
                     vo:
                         source: v
-                        grib: false # HACK was true
+                        grib: true
                     wo:
                         source: w
-                        grib: false # HACK was true
+                        grib: true
                     so:
                         source: salt
                         grib: true
                     sivn:
                         source: vice
-                        grib: false # HACK was true
+                        grib: true
                     siue:
                         source: uice
-                        grib: false # HACK was true
+                        grib: true
                     vdf: 
                         source: Kv
                         grib: true
