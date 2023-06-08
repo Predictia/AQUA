@@ -69,7 +69,6 @@ class Reader(FixerMixin, RegridMixin):
         self.exp = exp
         self.model = model
         self.targetgrid = regrid
-        self.zoom = zoom
         self.nproc = nproc
         self.freq = freq
         self.vert_coord = None
@@ -104,11 +103,8 @@ class Reader(FixerMixin, RegridMixin):
         # check source existence
         self.source = check_catalog_source(self.cat, self.model, self.exp, source, name="catalog")
 
-        # safe check for zoom into the catalog parameters
-        if 'zoom' in self.cat[self.model][self.exp].metadata.get('parameters', {}).keys() and self.zoom is None:
-
-            self.logger.warning('No zoom specified but the source requires it, setting zoom=0')
-            self.zoom = 0
+        # check that you defined zoom in a correct way
+        self.zoom = self._check_zoom(zoom)
 
         # get fixes dictionary and find them
         self.fixes_dictionary = load_multi_yaml(self.fixer_folder)
@@ -286,6 +282,10 @@ class Reader(FixerMixin, RegridMixin):
 
         # get loadvar
         if var:
+            if isinstance(var, str):
+                var = var.split()
+            self.logger.info(f"Retrieving variables: {var}")
+
             loadvar = self.get_fixer_varname(var) if fix else var
         else:
             loadvar = None
@@ -299,10 +299,11 @@ class Reader(FixerMixin, RegridMixin):
             data = reader_fdb(esmcat, loadvar, startdate, enddate)
             fiter = True  # this returs an iterator
         else:
-            data = reader_intake(esmcat, loadvar)  # Returns a generator object
+            data = reader_intake(esmcat, var, loadvar)  # Returns a generator object
 
         log_history_iter(data, "retrieved by AQUA retriever")   
 
+       
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
 
         # These do not work in the iterator case
@@ -480,6 +481,48 @@ class Reader(FixerMixin, RegridMixin):
 
         return out
     
+    def _check_zoom(self, zoom):
+
+        """
+        Function to check if the zoom parameter is included in the metadata of the 
+        source and performs a few safety checks. 
+        It could be extended to any other metadata flag.
+        
+        Arguments:
+            zoom (integer):
+
+        Returns: 
+            zoom after check has been processed
+        """
+
+        # safe check for zoom into the catalog parameters (at exp level)
+        shortcat = self.cat[self.model][self.exp]
+        metadata1 = 'zoom' in shortcat.metadata.get('parameters', {}).keys()
+
+        # check at source level (within the parameters)
+        #metadata2 = 'zoom' in shortcat[self.source].metadata.get('parameters', {}).keys()
+        checkentry = shortcat[self.source].describe()['user_parameters']
+        if len(checkentry) > 0:
+            metadata2 = 'zoom' in checkentry[0]['name']
+        else:
+            metadata2 = False
+        
+        # combine the two flags
+        metadata = metadata1 or metadata2
+        if zoom is None:
+            if metadata:
+                self.logger.warning('No zoom specified but the source requires it, setting zoom=0')
+                return 0
+            return zoom
+
+        if zoom is not None:
+            if metadata:
+                return zoom
+
+            self.logger.warning('%s %s %s has not zoom option, disabling zoom=None',
+                                self.model, self.exp, self.source)
+            return None
+
     def vertinterp(self, data, levels=None, vert_coord='plev', units=None, method='linear'):
         """
         A basic vertical interpolation based on interp function
@@ -574,17 +617,19 @@ def reader_fdb(esmcat, var, startdate, enddate):
     return esmcat(startdate=startdate, enddate=enddate, var=var).read_chunked()
 
 
-def reader_intake(esmcat, var):
+def reader_intake(esmcat, var, loadvar):
     """Read regular intake entry. Returns dataset."""
-    if var:
-        # conversion to list guarantee that Dataset is produced
-        if isinstance(var, str):
-            var = var.split()
+    if loadvar:
         data = esmcat.to_dask()
-        if all(element in data.data_vars for element in var):
-            data = data[var]
+        if all(element in data.data_vars for element in loadvar):
+            data = data[loadvar]
         else:
-            raise KeyError("You are asking for variables which we cannot find in the catalog!")
+            try:
+                data = data[var]
+                #self.logger.warning(f"You are asking for var {var} which is already fixed from {loadvar}.")
+                #self.logger.warning(f"Would be safer to run with fix=False")
+            except:
+                raise KeyError("You are asking for variables which we cannot find in the catalog!")
     else:
         data = esmcat.to_dask()
     return data
