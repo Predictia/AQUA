@@ -293,17 +293,16 @@ class Reader(FixerMixin, RegridMixin):
         fiter = False
         # If this is an ESM-intake catalogue use first dictionary value,
         if isinstance(esmcat, intake_esm.core.esm_datastore):
-            data = reader_esm(esmcat, loadvar)   
+            data = self.reader_esm(esmcat, loadvar)   
         # If this is an fdb entry 
         elif isinstance(esmcat, aqua.gsv.intake_gsv.GSVSource):
-            data = reader_fdb(esmcat, loadvar, startdate, enddate)
+            data = self.reader_fdb(esmcat, loadvar, startdate, enddate)
             fiter = True  # this returs an iterator
         else:
-            data = reader_intake(esmcat, var, loadvar)  # Returns a generator object
+            data = self.reader_intake(esmcat, var, loadvar)  # Returns a generator object
 
         log_history_iter(data, "retrieved by AQUA retriever")   
-
-       
+               
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
 
         # These do not work in the iterator case
@@ -584,156 +583,44 @@ class Reader(FixerMixin, RegridMixin):
 
         return final
 
+    def reader_esm(self, esmcat, var):
+        """Reads intake-esm entry. Returns a dataset."""
+        cdf_kwargs = esmcat.metadata.get('cdf_kwargs', {"chunks": {"time":1}})
+        query = esmcat.metadata['query']
+        if var:
+            query_var = esmcat.metadata.get('query_var', 'short_name')
+            # Convert to list if not already
+            query[query_var] = var.split() if isinstance(var, str) else var
+        subcat = esmcat.search(**query)
+        data = subcat.to_dataset_dict(cdf_kwargs=cdf_kwargs,
+                                        zarr_kwargs=dict(consolidated=True),
+                                            #decode_times=True,
+                                            #use_cftime=True)
+                                        progressbar=False
+                                        )
+        return list(data.values())[0]
 
-    
+    def reader_fdb(self, esmcat, var, startdate, enddate):
+        """Read fdb data. Returns an iterator."""
+        # These are all needed in theory
 
-    # TODO: this is not used anymore, check if it can be deleted
+        if not enddate:
+            enddate=startdate
+        return esmcat(startdate=startdate, enddate=enddate, var=var).read_chunked()
 
-
-def reader_esm(esmcat, var):
-    """Reads intake-esm entry. Returns a dataset."""
-    cdf_kwargs = esmcat.metadata.get('cdf_kwargs', {"chunks": {"time":1}})
-    query = esmcat.metadata['query']
-    if var:
-        query_var = esmcat.metadata.get('query_var', 'short_name')
-        # Convert to list if not already
-        query[query_var] = var.split() if isinstance(var, str) else var
-    subcat = esmcat.search(**query)
-    data = subcat.to_dataset_dict(cdf_kwargs=cdf_kwargs,
-                                    zarr_kwargs=dict(consolidated=True),
-                                        #decode_times=True,
-                                        #use_cftime=True)
-                                    progressbar=False
-                                    )
-    return list(data.values())[0]
-
-
-def reader_fdb(esmcat, var, startdate, enddate):
-    """Read fdb data. Returns an iterator."""
-    # These are all needed in theory
-
-    if not enddate:
-        enddate=startdate
-    return esmcat(startdate=startdate, enddate=enddate, var=var).read_chunked()
-
-
-def reader_intake(esmcat, var, loadvar):
-    """Read regular intake entry. Returns dataset."""
-    if loadvar:
-        data = esmcat.to_dask()
-        if all(element in data.data_vars for element in loadvar):
-            data = data[loadvar]
+    def reader_intake(self, esmcat, var, loadvar):
+        """Read regular intake entry. Returns dataset."""
+        if loadvar:
+            data = esmcat.to_dask()
+            if all(element in data.data_vars for element in loadvar):
+                data = data[loadvar]
+            else:
+                try:
+                    data = data[var]
+                    self.logger.warning(f"You are asking for var {var} which is already fixed from {loadvar}.")
+                    self.logger.warning(f"Would be safer to run with fix=False")
+                except:
+                    raise KeyError("You are asking for variables which we cannot find in the catalog!")
         else:
-            try:
-                data = data[var]
-                #self.logger.warning(f"You are asking for var {var} which is already fixed from {loadvar}.")
-                #self.logger.warning(f"Would be safer to run with fix=False")
-            except:
-                raise KeyError("You are asking for variables which we cannot find in the catalog!")
-    else:
-        data = esmcat.to_dask()
-    return data
-
-  
-    ## TODO: this is not used anymore, check if it can be deleted
-    # def _check_if_accumulated_auto(self, data):
-    #     """To check if a DataArray is accumulated.
-    #     Arbitrary check on the first 20 timesteps"""
-
-    #     # randomly pick a few timesteps from a gridpoint
-    #     ndims = [dim for dim in data.dims if data[dim].size > 1][1:]
-    #     pindex = {dim: 0 for dim in ndims}
-
-    #     # extract the first 20 timesteps and do the derivative
-    #     check = data.isel(pindex).isel(time=slice(None, 20)).diff(dim='time').values
-
-    #     # check all derivative are positive or all negative
-    #     condition = (check >= 0).all() or (check <= 0).all()
-
-    #     return condition
-
-    # def _check_if_accumulated(self, data):
-    #     """To check if a DataArray is accumulated.
-    #     On a list of variables defined by the GRIB names
-
-    #     Args:
-    #         data (xr.DataArray): field to be processed
-
-    #     Returns:
-    #         bool: True if decumulation is necessary, False if no
-    #     """
-
-    #     decumvars = ['tp', 'e', 'slhf', 'sshf',
-    #                  'tsr', 'ttr', 'ssr', 'str',
-    #                  'tsrc', 'ttrc', 'ssrc', 'strc',
-    #                  'tisr', 'tprate', 'mer', 'tp', 'cp', 'lsp']
-
-    #     if data.name in decumvars:
-    #         return True
-    #     else:
-    #         return False
-
-    # def decumulate(self, data, cumulation_time=None, check=True):
-    #     """
-    #     Test function to remove cumulative effect on IFS fluxes.
-    #     Cumulation times are estimated from the intervals of the data, but
-    #     can be specified manually
-
-    #     Args:
-    #         data (xr.DataArray):     field to be processed
-    #         cumulation_time (float): optional, specific cumulation time
-    #         check (bool):            if to check if the variable needs to be decumulated
-
-    #     Returns:
-    #         A xarray.DataArray where the cumulation time has been removed
-    #     """
-    #     if check:
-    #         if not self._check_if_accumulated(data):
-    #             return data
-
-    #     # which frequency are the data?
-    #     if not cumulation_time:
-    #         cumulation_time = (data.time[1]-data.time[0]).values/np.timedelta64(1, 's')
-
-    #     # get the derivatives
-    #     deltas = data.diff(dim='time') / cumulation_time
-
-    #     # add a first timestep empty to align the original and derived fields
-    #     zeros = xr.zeros_like(data.isel(time=0))
-    #     deltas = xr.concat([zeros, deltas], dim='time').transpose('time', ...)
-
-    #     # universal mask based on the change of month (shifted by one timestep)
-    #     mask = ~(data['time.month'] != data['time.month'].shift(time=1))
-    #     mask = mask.shift(time=1, fill_value=False)
-
-    #     # check which records are kept
-    #     # print(data.time[~mask])
-
-    #     # kaboom: exploit where
-    #     clean = deltas.where(mask, data/cumulation_time)
-
-    #     # remove the first timestep (no sense in cumulated)
-    #     clean = clean.isel(time=slice(1, None))
-
-    #     # rollback the time axis by half the cumulation time
-    #     clean['time'] = clean.time - np.timedelta64(int(cumulation_time/2), 's')
-
-    #     # WARNING: HACK FOR EVAPORATION
-    #     # print(clean.units)
-    #     if clean.units == 'm of water equivalent':
-    #         clean.attrs['units'] = 'm'
-
-    #     # use metpy units to divide by seconds
-    #     new_units = (units(clean.units)/units('s'))
-
-    #     # usual case for radiative fluxes
-    #     try:
-    #         clean.attrs['units'] = str(new_units.to('W/m^2').units)
-    #     except DimensionalityError:
-    #         clean.attrs['units'] = str(new_units.units)
-
-    #     # add an attribute that can be later used to infer about decumulation
-    #     clean.attrs['decumulated'] = 1
-
-    #     return clean
-
+            data = esmcat.to_dask()
+        return data
