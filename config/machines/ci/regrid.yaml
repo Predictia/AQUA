@@ -47,3 +47,13 @@ source_grids:
       long: 
         space_coord: ["lon", "lat"]
 
+  ICON:
+    test-healpix:
+      short:
+        path: ./AQUA_tests/grids/icon_healpix0.nc
+        space_coord: ["x"]
+    test-r2b0:
+      short:
+        path: ./AQUA_tests/models/ICON/test-lowres/r2b0.nc
+        space_coord: ["cell"]
+
