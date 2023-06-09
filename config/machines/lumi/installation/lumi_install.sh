@@ -3,11 +3,12 @@
 #####################################################################
 # Begin of user input
 machine=lumi 
-user=<USER> # change this to your username
+user=$USER # change this to your username
 
 # define AQUA path
 if [[ -z "${AQUA}" ]]; then
-  export AQUA="/users/${user}/AQUA"
+  #export AQUA="/users/${user}/AQUA"
+  export AQUA=$(realpath $(dirname "$0")"/../../../..")
   echo "AQUA path has been set to ${AQUA}"
 else
   echo "AQUA path is already defined as ${AQUA}"
@@ -23,6 +24,9 @@ echo "Installation path has been set to ${INSTALLATION_PATH}"
 # change machine name in config file
 sed -i "/^machine:/c\\machine: ${machine}" "${AQUA}/config/config.yaml"
 echo "Machine name in config file has been set to ${machine}"
+
+sed -i "/^  lumi:/c\\  lumi: ${INSTALLATION_PATH}/bin/cdo" "${AQUA}/config/config.yaml"
+echo "CDO in config file now points to ${INSTALLATION_PATH}/bin/cdo"
 
 install_aqua() {
   # clean up environment
