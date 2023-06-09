@@ -3,11 +3,15 @@ models:
     experiment: tco2559-ng5
     source: original_2d
     regrid: r005
+    variable: ssh
+    zoom:
     timespan: ['2020-01-20', '2020-12-31']
   # - name: ICON
-  #   experiment: Experiment B
-  #   source: Source B
-  #   regrid: r005
+  #   experiment: ngc3026
+  #   source: P1D
+  #   regrid:
+  #   variable: zos
+  #   zoom: 3
   #   timespan: ['2020-01-20', '2020-12-31']
   # - name: NEMO
   #   experiment: Experiment C
@@ -21,6 +25,11 @@ base_model:
     source: daily,
     regrid: r005
   }
+
+subplot_options:
+  { scale_min: 0.1,
+    scale_max: 0.7
+  } 
 
 output_directory: /work/ab0995/a270223/AQUA/diagnostics/SSH/output
 

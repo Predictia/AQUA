@@ -66,10 +66,10 @@ def save_standard_deviation_to_file(output_directory, model_name, std_dev_data):
         model_name (str): Name of the model.
         std_dev_data (xarray.DataArray): Computed standard deviation data.
     """
-    output_file = os.path.join(output_directory, f"{model_name['name']}_std_dev.nc")
+    output_file = os.path.join(output_directory, f"{model_name}_std_dev.nc")
     std_dev_data.to_netcdf(output_file)
 
-def visualize_subplots(ssh_data_list, fig, axes):
+def visualize_subplots(config, ssh_data_list, fig, axes):
     """
     Visualize the SSH variability data as subplots using Cartopy.
     
@@ -77,12 +77,14 @@ def visualize_subplots(ssh_data_list, fig, axes):
         ssh_data_list (list): List of SSH variability data arrays to visualize.
         axes (list): List of subplot axes.
     """
+    min_value = config["subplot_options"]["scale_min"]
+    max_value = config["subplot_options"]["scale_max"]
     for i, data in enumerate(ssh_data_list):
         if i < len(axes):
             ax = axes[i]
             ax.set_title(f"Model {i+1}")
             ax.coastlines()
-            data.plot(ax=ax, transform=ccrs.PlateCarree())
+            data.plot(ax=ax, transform=ccrs.PlateCarree(), vmin=min_value, vmax=max_value)
 
     if len(ssh_data_list) < len(axes):
         for j in range(len(ssh_data_list), len(axes)):
@@ -179,7 +181,7 @@ def main():
         
         print("computation complete, saving output file")
         # saving the computation in output files
-        save_standard_deviation_to_file(config['output_directory'], model_name, ssh_std_dev_data)
+        save_standard_deviation_to_file(config['output_directory'], model_name['name'], ssh_std_dev_data)
         
         print("output saved, now regridding using the aqua regridder")
         # regridding the data and plotting for visualization
