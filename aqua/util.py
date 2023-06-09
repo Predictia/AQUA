@@ -9,6 +9,7 @@ import string
 import sys
 import logging
 from collections import defaultdict
+from ruamel.yaml import YAML
 import yaml
 import eccodes
 import xarray as xr
@@ -25,10 +26,11 @@ def load_yaml(infile):
     Returns:
         A dictionary with the yaml file keys
     """
+    yaml = YAML(typ='rt')  # default, if not specified, is 'rt' (round-trip)
 
     try:
         with open(infile, 'r', encoding='utf-8') as file:
-            cfg = yaml.load(file, Loader=yaml.FullLoader)
+            cfg = yaml.load(file)
     except IOError:
         sys.exit(f'ERROR: {infile} not found: you need to have this configuration file!')
     return cfg
@@ -36,51 +38,93 @@ def load_yaml(infile):
 
 def load_multi_yaml(folder_path):
     """
-    Load and merge all yaml files located in a given folder into a single dictionary.
+    Load and merge all yaml files located in a given folder
+    into a single dictionary.
 
     Args:
-        folder_path(str): The path of the folder containing the yaml files to be merged.
+        folder_path(str):   The path of the folder containing the yaml
+                            files to be merged.
 
     Returns:
         A dictionary containing the merged contents of all the yaml files.
     """
+    yaml = YAML()  # default, if not specified, is 'rt' (round-trip)
 
     merged_dict = defaultdict(dict)
     for filename in os.listdir(folder_path):
         if filename.endswith(('.yml', '.yaml')):
             file_path = os.path.join(folder_path, filename)
             with open(file_path, 'r', encoding='utf-8') as file:
-                yaml_dict = yaml.safe_load(file)
+                yaml_dict = yaml.load(file)
                 for key, value in yaml_dict.items():
                     merged_dict[key].update(value)
     return dict(merged_dict)
 
 
-def get_config_dir():
+def dump_yaml(outfile=None, cfg=None, typ='rt'):
+    """
+    Dump to a custom yaml file
+
+    Args:
+        outfile(str):   a file path
+        cfg(dict):      a dictionary to be dumped
+        typ(str):       the type of YAML initialisation.
+                        Default is 'rt' (round-trip)
+    """
+    # Initialize YAML object
+    yaml = YAML(typ=typ)
+
+    # Check input
+    if outfile is None:
+        raise ValueError('ERROR: outfile not defined')
+    if cfg is None:
+        raise ValueError('ERROR: cfg not defined')
+
+    # Dump the dictionary
+    with open(outfile, 'w', encoding='utf-8') as file:
+        yaml.dump(cfg, file)
+
+
+def get_config_dir(filename='config.yaml'):
     """
     Return the path to the configuration directory,
     searching in a list of pre-defined directories.
 
-     Args:
-        None
-     Returns:
-         configdir (str): the dir of the catalog file and other config files
+    Generalized to work for config files with different names.
+
+    Args:
+        filename (str): the name of the configuration file
+                        Default is 'config.yaml'
+
+    Returns:
+        configdir (str): the dir of the catalog file and other config files
+
+    Raises:
+        FileNotFoundError: if no config file is found in the predefined folders
     """
 
     # set of predefined folders to browse
-    configdirs = ['./config', '../config', '../../config']
-    homedir = os.environ.get('HOME')
+    configdirs = ['./config', '../config', '../../config', '../../../config']
 
     # if the home is defined
+    homedir = os.environ.get('HOME')
     if homedir:
         configdirs.append(os.path.join(homedir, '.aqua', 'config'))
+
+    # if the AQUA is defined
+    aquadir = os.environ.get('AQUA')
+    if aquadir:
+        configdirs.append(os.path.join(aquadir, 'config'))
+
+    # autosearch
     for configdir in configdirs:
-        if os.path.exists(os.path.join(configdir, "config.yaml")):
-            break
-    return configdir
+        if os.path.exists(os.path.join(configdir, filename)):
+            return configdir
+
+    raise FileNotFoundError(f"No config file {filename} found in {configdirs}")
 
 
-def _eval_formula(mystring, xdataset):
+def eval_formula(mystring, xdataset):
     """Evaluate the cmd string provided by the yaml file
     producing a parsing for the derived variables"""
 
@@ -172,13 +216,16 @@ def get_reader_filenames(configdir, machine):
     config_file = os.path.join(configdir, "config.yaml")
     if os.path.exists(config_file):
         base = load_yaml(os.path.join(configdir, "config.yaml"))
-        catalog_file = base['reader']['catalog'].format(machine=machine, configdir=configdir)
+        catalog_file = base['reader']['catalog'].format(machine=machine,
+                                                        configdir=configdir)
         if not os.path.exists(catalog_file):
             sys.exit(f'Cannot find catalog file in {catalog_file}')
-        regrid_file = base['reader']['regrid'].format(machine=machine, configdir=configdir)
+        regrid_file = base['reader']['regrid'].format(machine=machine,
+                                                      configdir=configdir)
         if not os.path.exists(regrid_file):
             sys.exit(f'Cannot find catalog file in {regrid_file}')
-        fixer_folder = base['reader']['fixer'].format(machine=machine, configdir=configdir)
+        fixer_folder = base['reader']['fixer'].format(machine=machine,
+                                                      configdir=configdir)
         if not os.path.exists(fixer_folder):
             sys.exit(f'Cannot find catalog file in {fixer_folder}')
 
@@ -196,8 +243,8 @@ def read_eccodes_dic(filename):
     Returns:
     - A dictionary containing the contents of the ecCodes definition file.
     """
-
-    fn = os.path.join(eccodes.codes_definition_path(), 'grib2', filename)
+    fn = eccodes.codes_definition_path().split(':')[0]  # LUMI fix, take only first
+    fn = os.path.join(fn, 'grib2', filename)
     with open(fn, "r", encoding='utf-8') as file:
         text = file.read()
     text = text.replace(" =", ":").replace('{', '').replace('}', '').replace(';', '').replace('\t', '    ')
@@ -216,7 +263,8 @@ def read_eccodes_def(filename):
     """
 
     # ECMWF lists
-    fn = os.path.join(eccodes.codes_definition_path(), 'grib2',  'localConcepts', 'ecmf', filename)
+    fn = os.path.join(eccodes.codes_definition_path(), 'grib2',
+                      'localConcepts', 'ecmf', filename)
     keylist = []
     with open(fn, "r", encoding='utf-8') as f:
         for line in f:
@@ -227,7 +275,8 @@ def read_eccodes_def(filename):
     keylist = keylist[:-1]
 
     # WMO lists
-    fn = os.path.join(eccodes.codes_definition_path(), 'grib2', filename)
+    fn = eccodes.codes_definition_path().split(':')[0]  # LUMI fix, take only first
+    fn = os.path.join(fn, 'grib2', filename)
     with open(fn, "r", encoding='utf-8') as f:
         for line in f:
             line = line.replace(" =", "").replace('{', '').replace('}', '').replace(';', '').replace('\t', '#    ')
@@ -349,11 +398,12 @@ def create_folder(folder, loglevel=None):
 def log_history(data, msg):
     """Elementary provenance logger in the history attribute"""
 
-    if isinstance(data, xr.DataArray) or isinstance(data, xr.Dataset):
+    if isinstance(data, (xr.DataArray, xr.Dataset)):
         now = datetime.datetime.now()
         date_now = now.strftime("%Y-%m-%d %H:%M:%S")
         hist = data.attrs.get("history", "") + f"{date_now} {msg};\n"
         data.attrs.update({"history": hist})
+
 
 def file_is_complete(filename, logger=logging.getLogger()):
 
@@ -368,18 +418,18 @@ def file_is_complete(filename, logger=logging.getLogger()):
             xfield = xr.open_dataset(filename)
             varname = list(xfield.data_vars)[0]
             if xfield[varname].isnull().all():
-            #if xfield[varname].isnull().all(dim=['lon','lat']).all():
+            # if xfield[varname].isnull().all(dim=['lon','lat']).all():
                 logger.error('File %s is full of NaN! Recomputing...', filename)
-                check=True
+                check = False
             else:
-                check=False
+                check = True
                 logger.info('File %s seems ok!', filename)
         # we have no clue which kind of exception might show up
         except ValueError:
             logger.info('Something wrong with file %s! Recomputing...', filename)
-            check= True
+            check = False
     else:
         logger.info('File %s not found...', filename)
-        check = True
+        check = False
 
     return check

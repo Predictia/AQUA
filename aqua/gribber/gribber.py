@@ -5,11 +5,11 @@ Gribber module for integrate gribscan within AQUA
 import os
 import subprocess
 from glob import glob
-import yaml
 from aqua.logger import log_configure
-from aqua.util import load_yaml, create_folder
+from aqua.util import load_yaml, dump_yaml, create_folder
 from aqua.util import get_config_dir, get_machine
 from aqua.reader import Reader
+
 
 class Gribber():
     """
@@ -28,65 +28,34 @@ class Gribber():
                  overwrite=False
                  ) -> None:
         """
-        Initialize class.
+        Initialize the Gribber class.
 
-        Parameters
-        ----------
-        model : str
-            Model name
-        exp : str
-            Experiment name
-        source : str
-            Source name
-        nprocs : int, optional
-            Number of processors, by default 1
-        dirdict : dict, optional
-            Dictionary with directories
-            data: data directory
-            tmp: temporary directory
-            json: JSON directory (output)
-            configdir: catalog directory to update
-        description : str, optional
-            Description of the experiment, by default None
-        loglevel : str, optional
-            Log level, by default None
-        overwrite : bool, optional
-            Overwrite JSON file and indices if they exist, by default False
+        Args:
+            model (str, optional): Model name. Defaults to None.
+            exp (str, optional): Experiment name. Defaults to None.
+            source (str, optional): Source name. Defaults to None.
+            nprocs (int, optional): Number of processors. Defaults to 1.
+            dirdict (dict, optional): Dictionary with directories:
+                data: data directory
+                tmp: temporary directory
+                json: JSON directory (output)
+                configdir: catalog directory to update
+                Defaults to {'datadir': None, 'tmpdir': None, 'jsondir': None, 'configdir': None}.
+            description (str, optional): Description of the experiment. Defaults to None.
+            loglevel (str, optional): Log level. Defaults to None.
+            overwrite (bool, optional): Overwrite JSON file and indices if they exist. Defaults to False.
 
-        Methods
-        -------
-        create_entry()
-            Create catalog entry.
-
-        _check_steps()
-            Check which steps have to be performed.
-
-        _check_dir()
-            Check if directories exist.
-
-        _check_indices()
-            Check if indices exist.
-
-        _check_json()
-            Check if JSON file exists.
-
-        _check_catalog()
-            Check if catalog file exists.
-
-        _create_symlinks()
-            Create symlinks to GRIB files.
-
-        _create_indices()
-            Create indices for GRIB files.
-
-        _create_json()
-            Create JSON file.
-
-        _create_catalog_entry()
-            Create catalog entry.
-
-        help()
-            Print help.
+        Methods:
+            Only private methods are listed here.
+            _check_steps(): Check which steps have to be performed.
+            _check_dir(): Check if directories exist.
+            _check_indices(): Check if indices exist.
+            _check_json(): Check if JSON file exists.
+            _check_catalog(): Check if catalog file exists.
+            _create_symlinks(): Create symlinks to GRIB files.
+            _create_indices(): Create indices for GRIB files.
+            _create_json(): Create JSON file.
+            _create_catalog_entry(): Create catalog entry.
         """
         self.logger = log_configure(loglevel, 'gribber')
         self.overwrite = overwrite
@@ -137,9 +106,9 @@ class Gribber():
         self.logger.info("Gribfile wildcard: %s", self.gribfiles)
 
         # Get catalog filename
-        self.catalogfile = os.path.join(self.configdir, self.machine,
-                                        'catalog', self.model,
-                                        self.exp+'.yaml')
+        self.catalogfile = os.path.join(self.configdir, 'machines',
+                                        self.machine, 'catalog',
+                                        self.model, self.exp+'.yaml')
         self.logger.warning("Catalog file: %s", self.catalogfile)
 
         # Get JSON filename
@@ -359,8 +328,7 @@ class Gribber():
             cat_file['sources'][self.source] = block_cat
 
         # Write catalog file
-        with open(self.catalogfile, 'w', encoding='utf-8') as file:
-            yaml.dump(cat_file, file, sort_keys=False)
+        dump_yaml(outfile=self.catalogfile, cfg=cat_file)
 
     def _create_main_catalog(self):
         """
@@ -384,8 +352,8 @@ class Gribber():
         self.logger.info(block_main)
 
         # Write main catalog file
-        mainfilepath = os.path.join(self.configdir, self.machine, 'catalog',
-                                    self.model, 'main.yaml')
+        mainfilepath = os.path.join(self.configdir, 'machines', self.machine,
+                                    'catalog', self.model, 'main.yaml')
         main_file = load_yaml(mainfilepath)
 
         # Check if source already exists
@@ -402,8 +370,7 @@ class Gribber():
             main_file['sources'][self.source] = block_main
 
         # Write catalog file
-        with open(mainfilepath, 'w', encoding='utf-8') as file:
-            yaml.dump(main_file, file, sort_keys=False)
+        dump_yaml(outfile=mainfilepath, cfg=main_file)
 
     def help(self):
         """
