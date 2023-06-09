@@ -137,12 +137,13 @@ class RegridMixin():
         """
 
         sgridpath = source_grid.get("path", None)
-        self.logger.warning("Source grid: %s", sgridpath)
+        self.logger.info("Source grid: %s", sgridpath)
 
         if not sgridpath:
             # there is no source grid path at all defined in the regrid.yaml file:
             # let's reconstruct it from the file itself
 
+            self.logger.info('Grid file is not defined, retrieving the source itself...')
             data = self.retrieve(fix=False)
 
             # If we have also a vertical coordinate, include it in the sample
@@ -245,7 +246,8 @@ class RegridMixin():
 
         except subprocess.CalledProcessError as err:
             # Print the CDO error message
-            self.logger.critical(err.output.decode())
+            #self.logger.critical(err.output.decode('utf-8'))
+            self.logger.critical(err.stderr.decode('utf-8'))
             raise
 
         finally:
