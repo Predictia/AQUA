@@ -19,3 +19,13 @@ models:
                     msl:
                         grib: true
                         source: MSL
+        fdb:
+            default:
+                deltat: 86400
+                data_model: cf
+                vars:
+                    2t:
+                        source: 2t
+                        src_units: K
+                        grib: true
+            
