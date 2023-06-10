@@ -4,9 +4,10 @@ import os
 import sys
 import re
 
+import types
 import intake
 import intake_esm
-import types
+
 import xarray as xr
 
 # from metpy.units import units, DimensionalityError
@@ -24,9 +25,14 @@ from .fixer import FixerMixin
 from .regrid import RegridMixin
 from .reader_utils import check_catalog_source, group_shared_dims, set_attrs
 
+
 # default spatial dimensions and vertical coordinates
 default_space_dims = ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude', 'latitude',
                       'cell', 'cells', 'ncells', 'values', 'value', 'nod2', 'pix', 'elem']
+
+
+# set default options for xarray
+xr.set_options(keep_attrs="True")
 
 
 class Reader(FixerMixin, RegridMixin):
@@ -250,7 +256,7 @@ class Reader(FixerMixin, RegridMixin):
                  startdate=None, enddate=None):
         """
         Perform a data retrieve.
-        
+
         Arguments:
             regrid (bool):          if to regrid the retrieved data (False)
             timmean (bool):         if to average the retrieved data (False)
@@ -284,7 +290,7 @@ class Reader(FixerMixin, RegridMixin):
         if var:
             if isinstance(var, str):
                 var = var.split()
-            self.logger.info(f"Retrieving variables: {var}")
+            self.logger.info("Retrieving variables: %s", var)
 
             loadvar = self.get_fixer_varname(var) if fix else var
         else:
@@ -293,16 +299,16 @@ class Reader(FixerMixin, RegridMixin):
         fiter = False
         # If this is an ESM-intake catalogue use first dictionary value,
         if isinstance(esmcat, intake_esm.core.esm_datastore):
-            data = self.reader_esm(esmcat, loadvar)   
-        # If this is an fdb entry 
+            data = self.reader_esm(esmcat, loadvar)
+        # If this is an fdb entry
         elif isinstance(esmcat, aqua.gsv.intake_gsv.GSVSource):
             data = self.reader_fdb(esmcat, loadvar, startdate, enddate)
             fiter = True  # this returs an iterator
         else:
             data = self.reader_intake(esmcat, var, loadvar)  # Returns a generator object
 
-        log_history_iter(data, "retrieved by AQUA retriever")   
-               
+        log_history_iter(data, "retrieved by AQUA retriever")
+
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
 
         # These do not work in the iterator case
@@ -312,7 +318,7 @@ class Reader(FixerMixin, RegridMixin):
 
         if self.targetgrid and regrid:
             data = self.regrid(data)
-            self.grid_area = self.dst_grid_area 
+            self.grid_area = self.dst_grid_area
         if fix:
             data = self.fixer(data, apply_unit_fix=apply_unit_fix)  # fixer accepts also iterators
 
@@ -321,13 +327,13 @@ class Reader(FixerMixin, RegridMixin):
             if streaming or self.streaming or streaming_generator:
                 if streaming_generator:
                     data = self.streamer.stream_generator(data, stream_step=stream_step,
-                                                        stream_unit=stream_unit,
-                                                        stream_startdate=stream_startdate)
+                                                          stream_unit=stream_unit,
+                                                          stream_startdate=stream_startdate)
                 else:
                     data = self.streamer.stream(data, stream_step=stream_step,
                                                 stream_unit=stream_unit,
                                                 stream_startdate=stream_startdate)
-         
+
         # safe check that we provide only what exactly asked by var
         # if var:
         #    data = data[var]
@@ -336,7 +342,7 @@ class Reader(FixerMixin, RegridMixin):
 
     def regrid(self, data):
         """Call the regridder function returning container or iterator"""
-        if type(data) is types.GeneratorType:
+        if isinstance(data, types.GeneratorType):
             return self._regridgen(data)
         else:
             return self._regrid(data)
@@ -475,22 +481,21 @@ class Reader(FixerMixin, RegridMixin):
                     # something else
                     raise ValueError(f'{coord} has a mismatch in coordinate values!') from err
 
-
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
 
         return out
-    
+
     def _check_zoom(self, zoom):
 
         """
-        Function to check if the zoom parameter is included in the metadata of the 
-        source and performs a few safety checks. 
+        Function to check if the zoom parameter is included in the metadata of the
+        source and performs a few safety checks.
         It could be extended to any other metadata flag.
-        
+
         Arguments:
             zoom (integer):
 
-        Returns: 
+        Returns:
             zoom after check has been processed
         """
 
@@ -499,13 +504,13 @@ class Reader(FixerMixin, RegridMixin):
         metadata1 = 'zoom' in shortcat.metadata.get('parameters', {}).keys()
 
         # check at source level (within the parameters)
-        #metadata2 = 'zoom' in shortcat[self.source].metadata.get('parameters', {}).keys()
+        # metadata2 = 'zoom' in shortcat[self.source].metadata.get('parameters', {}).keys()
         checkentry = shortcat[self.source].describe()['user_parameters']
         if len(checkentry) > 0:
             metadata2 = 'zoom' in checkentry[0]['name']
         else:
             metadata2 = False
-        
+
         # combine the two flags
         metadata = metadata1 or metadata2
         if zoom is None:
@@ -525,7 +530,7 @@ class Reader(FixerMixin, RegridMixin):
     def vertinterp(self, data, levels=None, vert_coord='plev', units=None, method='linear'):
         """
         A basic vertical interpolation based on interp function
-        of xarray within AQUA. Given an xarray object, will interpolate the vertical dimension along 
+        of xarray within AQUA. Given an xarray object, will interpolate the vertical dimension along
         the vert_coord. If it is a Dataset, only variables with the required vertical coordinate
         will be interpolated
 
@@ -535,7 +540,7 @@ class Reader(FixerMixin, RegridMixin):
             units (str, optional, ): The units of your vertical axis. Default 'Pa'
             vert_coord (str, optional): The name of the vertical coordinate. Default 'plev'
             method (str, optional): The type of interpolation method supported by interp()
-        
+
         Return
             A DataArray or a Dataset with the new interpolated vertical dimension
         """
@@ -546,7 +551,7 @@ class Reader(FixerMixin, RegridMixin):
         # error if vert_coord is not there
         if vert_coord not in data.coords:
             raise KeyError(f'The vert_coord={vert_coord} is not in the data!')
-        
+
         # if you not specified the units, guessing from the data
         if units is None:
             if hasattr(data[vert_coord], 'units'):
@@ -567,10 +572,9 @@ class Reader(FixerMixin, RegridMixin):
         else:
             raise ValueError('This is not an xarray object!')
 
-
         return final
-    
-    def _vertinterp(self, data, levels=None, units = 'Pa', vert_coord='plev', method='linear'):
+
+    def _vertinterp(self, data, levels=None, units='Pa', vert_coord='plev', method='linear'):
 
         # verify units are good
         if data[vert_coord].units != units:
@@ -585,7 +589,7 @@ class Reader(FixerMixin, RegridMixin):
 
     def reader_esm(self, esmcat, var):
         """Reads intake-esm entry. Returns a dataset."""
-        cdf_kwargs = esmcat.metadata.get('cdf_kwargs', {"chunks": {"time":1}})
+        cdf_kwargs = esmcat.metadata.get('cdf_kwargs', {"chunks": {"time": 1}})
         query = esmcat.metadata['query']
         if var:
             query_var = esmcat.metadata.get('query_var', 'short_name')
@@ -593,11 +597,11 @@ class Reader(FixerMixin, RegridMixin):
             query[query_var] = var.split() if isinstance(var, str) else var
         subcat = esmcat.search(**query)
         data = subcat.to_dataset_dict(cdf_kwargs=cdf_kwargs,
-                                        zarr_kwargs=dict(consolidated=True),
-                                            #decode_times=True,
-                                            #use_cftime=True)
-                                        progressbar=False
-                                        )
+                                      zarr_kwargs=dict(consolidated=True),
+                                      # decode_times=True,
+                                      # use_cftime=True)
+                                      progressbar=False
+                                      )
         return list(data.values())[0]
 
     def reader_fdb(self, esmcat, var, startdate, enddate):
@@ -605,7 +609,7 @@ class Reader(FixerMixin, RegridMixin):
         # These are all needed in theory
 
         if not enddate:
-            enddate=startdate
+            enddate = startdate
         return esmcat(startdate=startdate, enddate=enddate, var=var).read_chunked()
 
     def reader_intake(self, esmcat, var, loadvar):
@@ -617,8 +621,8 @@ class Reader(FixerMixin, RegridMixin):
             else:
                 try:
                     data = data[var]
-                    self.logger.warning(f"You are asking for var {var} which is already fixed from {loadvar}.")
-                    self.logger.warning(f"Would be safer to run with fix=False")
+                    self.logger.warning("You are asking for var %s which is already fixed from %s.", var, loadvar)
+                    self.logger.warning("It would be safer to run with fix=False")
                 except:
                     raise KeyError("You are asking for variables which we cannot find in the catalog!")
         else:
