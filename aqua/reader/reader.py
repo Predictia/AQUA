@@ -32,7 +32,7 @@ default_space_dims = ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude', 'latitude',
 
 
 # set default options for xarray
-xr.set_options(keep_attrs="True")
+xr.set_options(keep_attrs=True)
 
 
 class Reader(FixerMixin, RegridMixin):
