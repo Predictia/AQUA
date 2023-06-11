@@ -2,10 +2,10 @@
 
 import os
 
+import types
 import subprocess
 import tempfile
 import xarray as xr
-import types
 
 import smmregrid as rg
 
@@ -33,7 +33,7 @@ class RegridMixin():
 
         # Make sure that grid areas contain exactly the same coordinates
         data = self.retrieve(fix=False, regrid=True)
-        if type(data) is types.GeneratorType:
+        if isinstance(data, types.GeneratorType):
             data = next(data)
 
         grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.dst_space_coord})
@@ -76,7 +76,7 @@ class RegridMixin():
         # Make sure that the new DataArray uses the expected spatial dimensions
         grid_area = _rename_dims(grid_area, self.src_space_coord)
         data = self.retrieve(fix=False, startdate=None)
-        if type(data) is types.GeneratorType:
+        if isinstance(data, types.GeneratorType):
             data = next(data)
         grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.src_space_coord})
         grid_area.to_netcdf(areafile)
@@ -150,7 +150,7 @@ class RegridMixin():
             # let's reconstruct it from the file itself
 
             data = self.retrieve(fix=False)
-            if type(data) is types.GeneratorType:
+            if isinstance(data, types.GeneratorType):
                 data = next(data)
 
             # If we have also a vertical coordinate, include it in the sample
