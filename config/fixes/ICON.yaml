@@ -144,3 +144,7 @@ models:
                     mtntrf:
                         derived: -rlut
                         grib: true
+                    sst:
+                        source: ts
+                        grib: false
+                        src_units: K
