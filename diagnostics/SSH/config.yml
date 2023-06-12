@@ -1,3 +1,4 @@
+# Models for which sea surface height (SSH) variability is to be evaluated.
 models:
   - name: FESOM
     experiment: tco2559-ng5
@@ -6,19 +7,20 @@ models:
     variable: ssh
     zoom:
     timespan: ['2020-01-20', '2020-12-31']
-  # - name: ICON
-  #   experiment: ngc3026
-  #   source: P1D
-  #   regrid:
-  #   variable: zos
-  #   zoom: 3
-  #   timespan: ['2020-01-20', '2020-12-31']
+  - name: ICON
+    experiment: ngc3026
+    source: P1D
+    regrid: r100
+    variable: zos
+    zoom: 7
+    timespan: ['2020-01-20', '2020-12-31']
   # - name: NEMO
   #   experiment: Experiment C
   #   source: Source C
   #   regrid: r005
   #   timespan: ['2020-01-20', '2020-12-31']
 
+# This is the model against which other models are compared.
 base_model: 
   { name: AVISO,
     experiment: ssh-L4,
@@ -26,17 +28,20 @@ base_model:
     regrid: r005
   }
 
+# These are options to adjust subplots visualizations.
 subplot_options:
   { scale_min: 0.1,
-    scale_max: 0.7
+    scale_max: 0.7,
+    cmap: viridis
   } 
 
+# Please specific the path to the directory where the outputs should be saved. If output directory/ folder does not exist, please make one.
 output_directory: /work/ab0995/a270223/AQUA/diagnostics/SSH/output
 
-# as default one timespan for all but user can overwrite timespans for each model by entering the timespan in the individual model configurations.
+# As default one timespan for all models will be set but this can be overwritten for each model by entering the timespan in the individual model configurations.
 timespan: {start: '2020-01-20', end: '2020-12-31'}
 
-
+# This is the current dask configuration which works for the inputs above. It could be adjusted based on the system this application is run.
 dask_cluster:
   n_workers: 16
   threads_per_worker: 1

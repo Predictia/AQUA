@@ -85,25 +85,26 @@ class sshVariability():
         std_dev_data.to_netcdf(output_file)
 
     @staticmethod
-    def visualize_subplots(config, ssh_data_list, fig, axes):
+    def visualize_subplots(config, ssh_data_dict, fig, axes):
         """
         Visualize the SSH variability data as subplots using Cartopy.
 
         Args:
-            ssh_data_list (list): List of SSH variability data arrays to visualize.
+            ssh_data_dict (dict): Dictionary of SSH variability data arrays with model names to visualize.
             axes (list): List of subplot axes.
         """
-        for i, data in enumerate(ssh_data_list):
+        for i, (model_name, data) in enumerate(ssh_data_dict.items()):
             if i < len(axes):
                 ax = axes[i]
-                ax.set_title(f"Model {i+1}")
+                data.plot(ax=ax, transform=ccrs.PlateCarree(), vmin=config["subplot_options"]["scale_min"], vmax=config["subplot_options"]["scale_max"], cmap=config["subplot_options"]["cmap"])
+                ax.set_title(f"{model_name}")
                 ax.coastlines()
-                data.plot(ax=ax, transform=ccrs.PlateCarree(), vmin=config["subplot_options"]["scale_min"], vmax=config["subplot_options"]["scale_max"])
 
-        if len(ssh_data_list) < len(axes):
-            for j in range(len(ssh_data_list), len(axes)):
+        if len(ssh_data_dict) < len(axes):
+            for j in range(len(ssh_data_dict), len(axes)):
                 fig.delaxes(axes[j])
         fig.tight_layout()
+
 
     @staticmethod
     def save_subplots_as_jpeg(config, filename, fig):
@@ -166,11 +167,12 @@ class sshVariability():
         print("computation for AVISO ssh complete, saving output file")
         self.save_standard_deviation_to_file(config['output_directory'], "AVISO", aviso_ssh_std)
         
-        ssh_data_list = []
-        ssh_data_list.append(aviso_ssh_std)
+        ssh_data_dict = {}
+        ssh_data_dict[config['base_model']['name']] = aviso_ssh_std
 
         # Create a figure and axes for subplots
-        fig, axes = plt.subplots(nrows=len(config['models'])+1, ncols=1, figsize=(10, 6), subplot_kw={'projection': ccrs.PlateCarree()})
+        fig, axes = plt.subplots(nrows=len(config['models'])+1, ncols=1, figsize=(12, 8), subplot_kw={'projection': ccrs.PlateCarree()})
+        fig.suptitle("SSH Variability", x=0.5)
 
         # By applying np.ravel() to the axes object, it flattens the 2-dimensional array into a 1-dimensional array. This means that each subplot is now accessible through a single index, rather than using row and column indices.
         # This reshaping of the axes object allows for easier iteration over the subplots when visualizing or modifying them, as it simplifies the indexing and looping operations.
@@ -195,7 +197,7 @@ class sshVariability():
                 warnings.warn("Model does not have a custom timespan, using default.", UserWarning)
                 timespan_start = config['timespan']['start']
                 timespan_end = config['timespan']['end']
-            ssh_std_dev_data = ssh_data.sel(time=slice(timespan_start, timespan_end)).std(axis=0).persist()
+            ssh_std_dev_data = ssh_data.sel(time=slice(timespan_start, timespan_end)).std(axis=0, keep_attrs=True).persist()
             
             print("computation complete, saving output file")
             # saving the computation in output files
@@ -204,10 +206,11 @@ class sshVariability():
             print("output saved, now regridding using the aqua regridder")
             # regridding the data and plotting for visualization
             ssh_std_dev_regrid = reader.regrid(ssh_std_dev_data)
-            ssh_data_list.append(ssh_std_dev_regrid)
+            ssh_data_dict[model_name['name']] = ssh_std_dev_regrid
 
         print("visualizing the data in subplots")
-        self.visualize_subplots(ssh_data_list, fig, axes)
+        # self.visualize_subplots(config, ssh_data_list, fig, axes)
+        self.visualize_subplots(config, ssh_data_dict, fig, axes)
 
         print("Saving plots as JPEG output file")
         self.save_subplots_as_jpeg(config, "subplots_output.jpeg", fig)

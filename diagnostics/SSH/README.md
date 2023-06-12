@@ -13,9 +13,7 @@ This application calculates the sea surface height standard deviation for multip
 - Aqua
 
 ## Installation
-
-1. Clone the repository: `git clone xxxxxx`
-2. Install the required Python packages: `pip install -r requirements.txt`
+The code works on both py3.10 and py3.9.  Recommended installation through mamba (a package manager for conda-forge). Please follow the README.md instructions for AQUA.
 
 ## Configuration
 
@@ -27,5 +25,5 @@ The application requires a YAML configuration file (`config.yml`) to specify the
 The application will calculate the SSH standard deviation for AVISO and the other specified models, save the results as NetCDF files, generate subplots for visualization, and save the subplots as a JPEG image.
 
 ## Output
-NetCDF files: The computed SSH standard deviation for each model will be saved as separate NetCDF files.
+NetCDF files: The computed SSH standard deviation for each model will be saved as separate NetCDF files. These output files are ungridded data. For visualization this data is regridded using AQUA regridder.
 Subplots: The subplots showing the SSH variability for each model will be saved as a JPEG image.
