@@ -20,7 +20,7 @@ models:
                         grib: true
                         source: MSL
                     sst:
-                        grib: true
+                        grib: false
                         source: SSTK
                         src_units: K
                     2t:
