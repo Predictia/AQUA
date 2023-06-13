@@ -1,4 +1,4 @@
-# Create the ECmean4 environment:
+# Create the environment:
 # mamba env create -f environment.yml 
 # or if you really want to use conda
 # conda env create -f environment.yml
@@ -21,8 +21,7 @@ dependencies:
   - cartopy
   - cfunits
   - metpy
-  - cdo>=2.2.0 # for healpix support
-  - intake-esm<=2021.8.17
+  - cdo>=2.2.0 #for healpix support
   - intake
   - intake-xarray
   - ruamel.yaml

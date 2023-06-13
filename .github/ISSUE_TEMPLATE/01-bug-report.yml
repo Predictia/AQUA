@@ -17,6 +17,7 @@ body:
       - Levante
       - Lumi
       - MN4
+      - CI
       - Others
     validations:
       required: true
