@@ -22,7 +22,6 @@ models:
                     sst:
                         grib: true
                         source: SSTK
-                        units: K
         fdb:
             default:
                 deltat: 86400
