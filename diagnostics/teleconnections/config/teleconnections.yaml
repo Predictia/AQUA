@@ -15,10 +15,3 @@ ENSO:
   lonW: -170
   latS: -5
   lonE: -120
-
-ENSO_2t:
-  field: 2t
-  latN:  5
-  lonW: -170
-  latS: -5
-  lonE: -120
