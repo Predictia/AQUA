@@ -10,7 +10,7 @@ models:
   - name: ICON
     experiment: ngc3026
     source: P1D
-    regrid: r100
+    regrid: r100 #r005 is computationally demanding and takes over 2 hours.
     variable: zos
     zoom: 7
     timespan: ['2020-01-20', '2020-12-31']
