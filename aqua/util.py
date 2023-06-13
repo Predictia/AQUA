@@ -115,7 +115,7 @@ def get_config_dir(filename='config.yaml'):
         configdirs.append(os.path.join(aquadir, 'config'))
 
     # set of predefined folders to browse
-    configdirs.append(['./config', '../config', '../../config', '../../../config'])
+    configdirs.extend(['./config', '../config', '../../config', '../../../config'])
 
     # if the home is defined
     homedir = os.environ.get('HOME')
