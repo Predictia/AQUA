@@ -2,15 +2,8 @@
 
 This application calculates the sea surface height standard deviation for multiple models (e.g. FESOM, ICON, NEMO) and compares them against the AVISO model. It also provides visualization of the SSH variability for the models.
 
-## Requirements
-
-- Python 3.7 or above
-- Dask
-- Xarray
-- NumPy
-- Matplotlib
+## Requirements (majority of them are covered under environment set up for AQUA)
 - Cartopy
-- Aqua
 
 ## Installation
 The code works on both py3.10 and py3.9.  Recommended installation through mamba (a package manager for conda-forge). Please follow the README.md instructions for AQUA.

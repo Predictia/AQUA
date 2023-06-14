@@ -4,7 +4,7 @@ models:
     experiment: tco2559-ng5
     source: original_2d
     regrid: r005
-    variable: ssh
+    variable: zos
     zoom:
     timespan: ['2020-01-20', '2020-12-31']
   - name: ICON
@@ -14,10 +14,12 @@ models:
     variable: zos
     zoom: 7
     timespan: ['2020-01-20', '2020-12-31']
-  # - name: NEMO
-  #   experiment: Experiment C
-  #   source: Source C
-  #   regrid: r005
+  # - name: FESOM
+  #   experiment: tco2559-ng5-cycle3
+  #   source: 2D_daily_native
+  #   regrid: r100
+  #   variable: zos
+  #   zoom:
   #   timespan: ['2020-01-20', '2020-12-31']
 
 # This is the model against which other models are compared.

@@ -16,7 +16,9 @@ import sys
 # command below takes to the parent directory
 sys.path.append("../..") 
 import aqua
-from aqua import Reader, catalogue
+from aqua import Reader, catalogue, util, logger
+
+logger = logger.log_configure(log_level='INFO', log_name='ssh_logger')
 
 
 class sshVariability():
@@ -27,24 +29,9 @@ class sshVariability():
         Args:
             config_file (str): Path to the YAML configuration file.
         """
-        self.config = self.load_config(config_file)
+        self.config = util.load_yaml(config_file)
 
     # static method is a method that belongs to the class itself rather than an instance of the class. Unlike regular methods, static methods don't have access to the instance or its attributes and don't require the self parameter.
-    
-    @staticmethod
-    def load_config(file_path):
-        """
-        Load the configuration from a YAML file (read and parse the file).
-        
-        Args:
-            file_path (str): Path to the YAML configuration file.
-        
-        Returns:
-            dict: Configuration dictionary.
-        """
-        with open(file_path, "r") as config_file:
-            config = yaml.safe_load(config_file)
-        return config
 
     @staticmethod
     def validate_time_ranges(config):
@@ -68,7 +55,7 @@ class sshVariability():
         # len(set(time_ranges)) gives the number of unique elements in the set, which indicates the number of different time ranges present in the time_ranges list.
         # len(set(time_ranges)) > 1 checks if there is more than one unique time range in the time_ranges list. If the condition is true, it means that the time ranges are not equal across models, and further action can be taken based on this information.
         if len(set(time_ranges)) > 1:
-            warnings.warn("Time ranges are not equal across models.", UserWarning)
+            logger.warning("Time ranges are not equal across models.")
 
     
     @staticmethod
@@ -132,7 +119,7 @@ class sshVariability():
         Run the sshVariability.
         """
         # Load the configuration - reading and parsing the YAML configuration file.
-        config = self.load_config("../config.yml")
+        config = util.load_yaml('../config.yml')
         
         # Comparing user timespan inputs across the models
         self.validate_time_ranges(config)
@@ -140,35 +127,40 @@ class sshVariability():
         # Initialize the Dask cluster
         cluster = dd.LocalCluster(**config['dask_cluster'])
         client = dd.Client(cluster)
-        print(f"Dask Dashboard URL: {client.dashboard_link}")
+        # Get the Dask dashboard URL
+        logger.info(f"Dask Dashboard URL: {client.dashboard_link}")
+
+        # logger.info(f"Dask Dashboard URL: {client.dashboard_link}")
 
         workers = client.scheduler_info()["workers"]
         worker_count = len(workers)
         total_memory = format_bytes(sum(w["memory_limit"] for w in workers.values() if w["memory_limit"]))
         memory_text = f"Workers={worker_count}, Memory={total_memory}"
-        print(memory_text)
+        logger.info(memory_text)
 
         # Load AVISO data and get its time span
         # idea: think in context of streaming data.
         reader = Reader(model=config['base_model']['name'], exp=config['base_model']['experiment'], source=config['base_model']['source'])
-        aviso_cat = reader.retrieve(fix=False)
+        aviso_cat = reader.retrieve(fix=True)
         aviso_time_min = np.datetime64(aviso_cat.time.min().values)
         aviso_time_max = np.datetime64(aviso_cat.time.max().values)
-        print("AVISO data spans from ",aviso_time_min, "to ", aviso_time_max)
+        logger.info("AVISO data spans from %s to %s",aviso_time_min, aviso_time_max)
         
-        aviso_ssh = aviso_cat['adt']
+        aviso_ssh = aviso_cat['adt'] # Absolute dynamic topography, sea_surface_height_above_geoid
         
-        print("Now computing std on AVISO ssh for the provided timespan")
+        logger.info("Now computing std on AVISO ssh for the provided timespan")
         # Get the user-defined timespan from the configuration
         timespan_start = config['timespan']['start']
         timespan_end = config['timespan']['end']
         aviso_ssh_std = aviso_ssh.sel(time=slice(timespan_start, timespan_end)).std(axis=0).persist()
         # saving the computation in output files
-        print("computation for AVISO ssh complete, saving output file")
+        logger.info("computation for AVISO ssh complete, saving output file")
         self.save_standard_deviation_to_file(config['output_directory'], "AVISO", aviso_ssh_std)
         
         ssh_data_dict = {}
-        ssh_data_dict[config['base_model']['name']] = aviso_ssh_std
+        # ssh_data_dict[config['base_model']['name']] = aviso_ssh_std
+        ssh_data_dict[f"{config['base_model']['name']}:{config['base_model']['experiment']}"] = aviso_ssh_std
+
 
         # Create a figure and axes for subplots
         fig, axes = plt.subplots(nrows=len(config['models'])+1, ncols=1, figsize=(12, 8), subplot_kw={'projection': ccrs.PlateCarree()})
@@ -179,16 +171,16 @@ class sshVariability():
         axes = np.ravel(axes)
 
         # Load data and calculate standard deviation for each model
-        print("Now loading data for other models to compare against AVISO ssh variability")
+        logger.info("Now loading data for other models to compare against AVISO ssh variability")
         for model_name in config['models']:
             
-            print("initializing AQUA reader to read the model inputs for {}".format(model_name))
+            logger.info("initializing AQUA reader to read the model inputs for {}".format(model_name))
             reader = Reader(model=model_name['name'], exp=model_name['experiment'], source=model_name['source'], regrid=model_name['regrid'], zoom=model_name['zoom'])
-            model_data = reader.retrieve(fix=False)
+            model_data = reader.retrieve(fix=True)
             
             ssh_data = model_data[model_name['variable']]
             
-            print("Getting SSH data complete for {}, now computing standard deviation on the default timestamp".format(model_name['name']))
+            logger.info("Getting SSH data complete for {}, now computing standard deviation on the default timestamp".format(model_name['name']))
             # computing std
             if 'timespan' in model_name and model_name['timespan']:
                 timespan_start = parse(model_name['timespan'][0])
@@ -199,20 +191,22 @@ class sshVariability():
                 timespan_end = config['timespan']['end']
             ssh_std_dev_data = ssh_data.sel(time=slice(timespan_start, timespan_end)).std(axis=0, keep_attrs=True).persist()
             
-            print("computation complete, saving output file")
+            logger.info("computation complete, saving output file")
             # saving the computation in output files
             self.save_standard_deviation_to_file(config['output_directory'], model_name['name'], ssh_std_dev_data)
             
-            print("output saved, now regridding using the aqua regridder")
+            logger.info("output saved, now regridding using the aqua regridder")
             # regridding the data and plotting for visualization
             ssh_std_dev_regrid = reader.regrid(ssh_std_dev_data)
-            ssh_data_dict[model_name['name']] = ssh_std_dev_regrid
+            # ssh_data_dict[model_name['name']] = ssh_std_dev_regrid
+            ssh_data_dict[f"{model_name['name']}:{model_name['experiment']}"] = ssh_std_dev_regrid
 
-        print("visualizing the data in subplots")
+
+        logger.info("visualizing the data in subplots")
         # self.visualize_subplots(config, ssh_data_list, fig, axes)
         self.visualize_subplots(config, ssh_data_dict, fig, axes)
 
-        print("Saving plots as JPEG output file")
+        logger.info("Saving plots as JPEG output file")
         self.save_subplots_as_jpeg(config, "subplots_output.jpeg", fig)
 
         # Close the Dask client and cluster
