@@ -1,0 +1,10 @@
+name: global-timeseries
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.9,<3.11
+  - matplotlib
+  - pip
+  - pip:
+    # pip install -e of AQUA itself
+    - -e ./../../[all] # this is the path to the AQUA root folder
