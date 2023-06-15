@@ -168,7 +168,8 @@ class RegridMixin():
                 else:
                     raise ValueError(f"No variable with dimension {vert_coord} found in the dataset")
 
-            sgridpath = data
+            # We need only one variable
+            sgridpath = data[list(data.data_vars)[0]]
         else:
             if isinstance(sgridpath, dict):
                 if vert_coord:
