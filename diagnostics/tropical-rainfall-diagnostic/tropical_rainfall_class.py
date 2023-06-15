@@ -327,6 +327,34 @@ class TR_PR_Diagnostic:
                 data=data.sel(time=slice(time))
         return data
 
+    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
+    def dataset_into_1d(self, data, variable_1 = 'tprate', sort = False): 
+        """ Function to convert Dataset into 1D array.
+
+        Args:
+            data (xarray):                  The Dataset
+            variable_1 (str, optional):     The variable of the Dataset. Defaults to 'tprate'.
+            sort (bool, optional):          The flag to sort the array. Defaults to False.
+
+        Returns:
+            xarray: The 1D array.
+        """ 
+           
+        coord_lat, coord_lon = self.coordinate_names(data)
+
+        try: 
+            data = data[variable_1]
+        except KeyError:
+            data = data 
+
+        try:
+            data_1d  = data.stack(total=['time', coord_lat, coord_lon])  # 
+        except KeyError:
+            data_1d  = data.stack(total=[coord_lat, coord_lon])
+        if sort == True:
+            data_1d  = data_1d.sortby(data_1d)
+        return data_1d
+
   
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
     def preprocessing(self, data, preprocess = True,  variable_1="tprate", trop_lat=None, 
@@ -363,7 +391,8 @@ class TR_PR_Diagnostic:
                 ds_var = ds_per_time
             ds_per_lat = self.latitude_band(ds_var, trop_lat=self.trop_lat)
             if dask_array == True:
-                ds = da.from_array(ds_per_lat)
+                ds_1d = self.dataset_into_1d(ds_per_lat)
+                ds = da.from_array(ds_1d)
                 return ds
             else:
                 return ds_per_lat
@@ -374,7 +403,7 @@ class TR_PR_Diagnostic:
                   data_with_global_atributes=None,
                   s_time = None, f_time = None, s_year = None, f_year = None, s_month = None, f_month = None, 
                   num_of_bins = None, first_edge = None,  width_of_bin  = None,   bins=0, 
-                  dask = False, delay=False, lazy=False, create_xarray=True, path_to_save=None):
+                  dask = False, lazy=False, create_xarray=True, path_to_save=None):
         """Function to create a histogram of the Dataset
 
         Args:
@@ -393,44 +422,77 @@ class TR_PR_Diagnostic:
             xarray: Histogram of the Dataset
         """
                
-        if weights is not None:
-            if dask:
-                hist_counts=self.dask_factory_weights(data=data, preprocess=preprocess,  trop_lat=trop_lat,  variable_1=variable_1,  
+        if lazy:
+            if weights is not None:
+                hist_counts=self.dask_factory_weights(data=data, weights=weights, preprocess=preprocess,  
+                                                      trop_lat=trop_lat,  variable_1=variable_1,  
                                                       s_time=s_time, f_time=f_time,
                                                       s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month, 
-                                                      num_of_bins=num_of_bins, first_edge=first_edge,  width_of_bin=width_of_bin,  bins=bins,   
-                                                      delay=delay, lazy=lazy)
+                                                      num_of_bins=num_of_bins, first_edge=first_edge,  
+                                                      width_of_bin=width_of_bin,  bins=bins,   
+                                                      lazy=lazy)
             else:
-                hist_counts=self.hist1d_np(data=data, weights=weights, preprocess=preprocess,   trop_lat=trop_lat, variable_1=variable_1,  
-                                           s_time=s_time, f_time = f_time,   
-                                           s_year = s_year, f_year =f_year, s_month = s_month, f_month = f_month, 
-                                           num_of_bins=num_of_bins, first_edge=first_edge,  width_of_bin=width_of_bin,  bins=bins)
+                hist_counts=self.dask_factory(data=data, preprocess = preprocess,   
+                                                  trop_lat = trop_lat,  variable_1 = variable_1,  
+                                                  s_time = s_time , f_time = f_time, 
+                                                  s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, 
+                                                  num_of_bins = num_of_bins, first_edge = first_edge,  
+                                                  width_of_bin  = width_of_bin,   bins =bins, 
+                                                  lazy=lazy)
+
+
+        elif weights is not None:
+            if dask:
+                hist_counts=self.dask_factory_weights(data=data, weights=weights, preprocess=preprocess,  
+                                                      trop_lat=trop_lat,  variable_1=variable_1,  
+                                                      s_time=s_time, f_time=f_time,
+                                                      s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month, 
+                                                      num_of_bins=num_of_bins, first_edge=first_edge,  
+                                                      width_of_bin=width_of_bin,  bins=bins,   
+                                                      lazy=lazy)
+            else:
+                hist_counts=self.hist1d_np(data=data, weights=weights, preprocess=preprocess,   
+                                            trop_lat=trop_lat, variable_1=variable_1,  
+                                            s_time=s_time, f_time = f_time,   
+                                            s_year = s_year, f_year =f_year, s_month = s_month, f_month = f_month, 
+                                            num_of_bins=num_of_bins, first_edge=first_edge,  
+                                            width_of_bin=width_of_bin,  bins=bins)
         else:
             if dask:
-                if delay or lazy:
-                    hist_counts=self.dask_factory(data=data, preprocess = preprocess,   trop_lat = trop_lat,  variable_1 = variable_1,  
-                                                  s_time = s_time , f_time = f_time, s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, 
-                                                  num_of_bins = num_of_bins, first_edge = first_edge,  width_of_bin  = width_of_bin,   bins =bins, 
-                                                  delay =delay, lazy=lazy)
-                else:
-                    hist_counts=self.dask_boost(data=data, preprocess=preprocess, trop_lat=trop_lat,  variable_1=variable_1,  
-                                                s_time=s_time, f_time=f_time, 
-                                                s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month, 
-                                                num_of_bins=num_of_bins, first_edge=first_edge,  width_of_bin=width_of_bin,  bins=bins)
+                #if lazy:
+                #    hist_counts=self.dask_factory(data=data, preprocess = preprocess,   
+                #                                  trop_lat = trop_lat,  variable_1 = variable_1,  
+                #                                  s_time = s_time , f_time = f_time, 
+                #                                  s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, 
+                #                                  num_of_bins = num_of_bins, first_edge = first_edge,  
+                #                                  width_of_bin  = width_of_bin,   bins =bins, 
+                #                                  lazy=lazy)
+                #else:
+                hist_counts=self.dask_boost(data=data, preprocess=preprocess, 
+                                            trop_lat=trop_lat,  variable_1=variable_1,  
+                                            s_time=s_time, f_time=f_time, 
+                                            s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month, 
+                                            num_of_bins=num_of_bins, first_edge=first_edge, 
+                                            width_of_bin=width_of_bin,  bins=bins)
             elif bins!=0 or self.bins!=0:
-                hist_counts=self.hist1d_np(data=data, weights=weights, preprocess=preprocess,   trop_lat=trop_lat, variable_1=variable_1,  
+                hist_counts=self.hist1d_np(data=data, weights=weights, preprocess=preprocess,   
+                                           trop_lat=trop_lat, variable_1=variable_1,  
                                            s_time=s_time, f_time = f_time,   
                                            s_year = s_year, f_year =f_year, s_month = s_month, f_month = f_month, 
-                                           num_of_bins=num_of_bins, first_edge=first_edge,  width_of_bin=width_of_bin,  bins=bins)
+                                           num_of_bins=num_of_bins, first_edge=first_edge,  
+                                           width_of_bin=width_of_bin,  bins=bins)
             else:
-                hist_counts=self.hist1d_fast(data=data, preprocess=preprocess,   trop_lat=trop_lat, variable_1=variable_1,  
+                hist_counts=self.hist1d_fast(data=data, preprocess=preprocess,   
+                                             trop_lat=trop_lat, variable_1=variable_1,  
                                              s_time=s_time, f_time=f_time, 
                                              s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month, 
-                                             num_of_bins=num_of_bins, first_edge=first_edge,  width_of_bin=width_of_bin,  bins=bins)
+                                             num_of_bins=num_of_bins, first_edge=first_edge,  
+                                             width_of_bin=width_of_bin,  bins=bins)
                 
         if data_with_global_atributes is None:
             data_with_global_atributes=data
-        if create_xarray:
+
+        if not lazy and create_xarray:
             tprate_dataset = self.histogram_to_xarray(hist_counts=hist_counts, path_to_save=path_to_save, data_with_global_atributes=data_with_global_atributes)
             
             data_with_final_grid=self.preprocessing(data=data, preprocess=preprocess,   trop_lat=trop_lat, variable_1=variable_1, 
@@ -675,6 +737,10 @@ class TR_PR_Diagnostic:
                                       s_time = self.s_time, f_time = self.f_time, 
                                       s_year=self.s_year, f_year=self.f_year, s_month=self.s_month, f_month=self.f_month,  
                                       sort = False, dask_array = False)
+            weights = self.preprocessing(weights, preprocess=preprocess, variable_1=variable_1, trop_lat=self.trop_lat, 
+                                      s_time = self.s_time, f_time = self.f_time, 
+                                      s_year=self.s_year, f_year=self.f_year, s_month=self.s_month, f_month=self.f_month,  
+                                      sort = False, dask_array = False)
         if 'DataArray' in str(type(weights)):
             weights = self.latitude_band(weights, trop_lat=self.trop_lat)
             hist_np=0
@@ -768,10 +834,10 @@ class TR_PR_Diagnostic:
         
          
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def dask_factory(self, data, preprocess = True,   trop_lat = 10,  variable_1 = 'tprate',  
+    def dask_factory(self, data, weights=None, preprocess = True,   trop_lat = 10,  variable_1 = 'tprate',  
                      s_time = None, f_time = None, s_year = None, f_year = None, s_month = None, f_month = None, 
                      num_of_bins = None, first_edge = None,  width_of_bin  = None,   bins = 0, 
-                     delay = False, lazy=False):
+                     lazy=False):
         """ Function to create a dask array of the frequency histogram of the specified variable in the Dataset.
         Args:
             data (xarray):                 The Dataset.
@@ -794,15 +860,26 @@ class TR_PR_Diagnostic:
         
 
         if preprocess == True:
-            data = self.preprocessing(data, preprocess=preprocess, variable_1=variable_1, trop_lat=trop_lat, 
+            data_dask = self.preprocessing(data, preprocess=preprocess, variable_1=variable_1, trop_lat=trop_lat, 
                                       s_time = self.s_time, f_time = self.f_time, 
-                                      s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  sort = False, dask_array = False)
-
-
-        h = dh.factory(data, 
-                axes=(bh.axis.Regular(self.num_of_bins, self.first_edge, last_edge),))     
+                                      s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  
+                                      sort=False, dask_array=True)
+            if weights is not None:
+                weights_dask = self.preprocessing(weights, preprocess=preprocess, variable_1=variable_1, trop_lat=trop_lat, 
+                                      s_time = self.s_time, f_time = self.f_time,
+                                      s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  
+                                      sort=False, dask_array=True)
+        else:
+            data_dask=data
+            weights_dask= weights
+        if weights is None:
+            h = dh.factory(data_dask, 
+                axes=(bh.axis.Regular(self.num_of_bins, self.first_edge, last_edge),))   
+        else: 
+            h = dh.factory(data_dask, weights_dask, 
+                axes=(bh.axis.Regular(self.num_of_bins, self.first_edge, last_edge),))  
         counts, edges = h.to_dask_array()
-        if not delay  or not lazy:
+        if not lazy: 
             counts = counts.compute()
             edges = edges.compute()
         
@@ -815,10 +892,10 @@ class TR_PR_Diagnostic:
 
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def dask_factory_weights(self, data, preprocess = True,  trop_lat = 10,  variable_1 = 'tprate',  
+    def dask_factory_weights(self, data, weights=None, preprocess = True,  trop_lat = 10,  variable_1 = 'tprate',  
                              s_time = None, f_time = None, s_year = None, f_year = None, s_month = None, f_month = None, 
                              num_of_bins = None, first_edge = None,  width_of_bin  = None,  bins = 0,   
-                             delay = False, lazy=False):
+                             lazy=False):
         """ Function to calculate the histogram with weights.
         Args:
             data (xarray):                  The Dataset.
@@ -842,12 +919,26 @@ class TR_PR_Diagnostic:
         if preprocess == True:
             data = self.preprocessing(data, preprocess=preprocess, variable_1=variable_1, trop_lat=trop_lat, 
                                       s_time = self.s_time, f_time = self.f_time,
-                                      s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  sort = False, dask_array = False)
+                                      s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  
+                                      sort=False, dask_array=False)
+            
+            weights = self.preprocessing(weights, preprocess=preprocess, variable_1=variable_1, trop_lat=trop_lat, 
+                                      s_time = self.s_time, f_time = self.f_time,
+                                      s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  
+                                      sort=False, dask_array=False)
+
 
         ref = bh.Histogram(bh.axis.Regular(self.num_of_bins, self.first_edge, last_edge), storage=bh.storage.Weight())
-        h = dh.factory(data, weights=data, histref=ref)
-        counts, edges = h.to_dask_array()
-        if not delay  or not lazy:
+        counts=0
+        for i in range(0, data.time.size):
+            data_dask = data.isel(time=i)
+            data_dask = da.from_array(data_dask.stack(total=['lat', 'lon']))
+            weights_dask=da.from_array(weights.stack(total=['lat', 'lon']))
+        
+            h = dh.factory(data_dask, weights=weights_dask, histref=ref)
+            _counts, edges = h.to_dask_array()
+            counts=+_counts
+        if not lazy: 
             counts = counts.compute()
             edges = edges.compute()
         
@@ -883,14 +974,15 @@ class TR_PR_Diagnostic:
         last_edge = self.first_edge  + self.num_of_bins*self.width_of_bin
 
         if preprocess == True:
-            data = self.preprocessing(data, preprocess=preprocess, variable_1=variable_1, trop_lat=trop_lat, 
+            data_dask = self.preprocessing(data, preprocess=preprocess, variable_1=variable_1, trop_lat=trop_lat, 
                                       s_time = self.s_time, f_time = self.f_time, 
                                       s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  
-                                      sort = False, dask_array = False)
-
+                                      sort = False, dask_array=True)
+        else:
+            data_dask=data
 
         h = dhb.Histogram(dh.axis.Regular(self.num_of_bins, self.first_edge, last_edge),  storage=dh.storage.Double(), )
-        h.fill(data)
+        h.fill(data_dask)
         
         counts, edges = h.to_dask_array()
         print(counts, edges)

@@ -11,3 +11,4 @@ dependencies:
     - fast_histogram
     - boost_histogram
     - dask_histogram
+    
