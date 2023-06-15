@@ -27,7 +27,7 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 
 - Fixed a bug in the `Gribber` class that was not reading the correct yaml catalogue file
 
-## [v0.1-alpha]
+## v0.1-alpha
 
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
@@ -37,7 +37,10 @@ Documentations is completed and notebooks are working.
 [unreleased]: https://github.com/oloapinivad/AQUA/compare/HEAD...dev
 [v0.1-beta]: https://github.com/oloapinivad/AQUA/compare/v0.1-alpha...v0.1-beta
 
-## [Template]
+## Template
+
+This is a template for the changelog.
+Introduce the categories that you need and remove the ones that you don't need in the changelog.
 
 ### Added
 
