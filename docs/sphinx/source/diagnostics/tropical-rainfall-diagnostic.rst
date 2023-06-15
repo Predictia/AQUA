@@ -16,7 +16,7 @@ The main attributes of `TR_PR_Diagnostic` Class
 
 The most crucial attributes of the class are:
 
- - `trop_lat (int or float)``:            
+ - `trop_lat (int or float)`:            
 
     the latitude of the tropical zone.  
     The default value of the attribute is equal to 10. 
@@ -45,12 +45,21 @@ The most crucial attributes of the class are:
 
   The user can update all class attributes in the way as the `trop_lat` attribute. 
 
-- `num_of_bins (int)`:            the number of bins,
-- `first_edge (int, float)`:    the first edge of the bin,
-- `width_of_bin (int, float)`:  the width of the bin. If the user initializes the `num_of_bins`, `first_edge`, and  `width_of_bin`,  the diagnostic will calculate the 
+ - `num_of_bins (int)`:            
+ 
+    the number of bins,
+ - `first_edge (int, float)`:    
+ 
+    the first edge of the bin,
+ - `width_of_bin (int, float)`:  
+ 
+    the width of the bin. If the user initializes the `num_of_bins`, `first_edge`, and  `width_of_bin`,  
+    the diagnostic will calculate the 
     histograms with continuous uniform binning, i.e., all bins in the histogram will have the same width.
 
-- `bins (np.ndarray, list)`:            the bins.  If the user wants to perform the calculation for non-uniform binning (for example, log-spaced), 
+ - `bins (np.ndarray, list)`:            
+ 
+    the bins.  If the user wants to perform the calculation for non-uniform binning (for example, log-spaced), 
     use the `bins` attribute of the diagnostic instead of `num_of_bins`, `first_edge`, and `width_of_bin`.
 
 
