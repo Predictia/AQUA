@@ -16,60 +16,56 @@ The main attributes of `TR_PR_Diagnostic` Class
 
 The most crucial attributes of the class are:
 
- - `trop_lat (int or float)`:            
+* `trop_lat (int or float)`:            
 
-    the latitude of the tropical zone.  
-    The default value of the attribute is equal to 10. 
-    The user can easily modify the value tropical latitude band. The first way to do that is to set a new default value during the initialization of the class. 
+  the latitude of the tropical zone.  
+  The default value of the attribute is equal to 10. 
+  The user can easily modify the value tropical latitude band. The first way to do that is to set a new default value during the initialization of the class. 
  
-  .. code-block:: python
+    .. code-block:: python
 
-    from tropical_rainfall_class import TR_PR_Diagnostic as TR_PR_Diag
-    diag = TR_PR_Diag(trop_lat=20)
+      from tropical_rainfall_class import TR_PR_Diagnostic as TR_PR_Diag
+      diag = TR_PR_Diag(trop_lat=20)
 
   Another way is to modify the tropical latitude after the initialization of the class: 
   
-  .. code-block:: python
+    .. code-block:: python
 
-    diag.trop_lat=15
+      diag.trop_lat=15
 
   The user can modify the latitude band by parsing the argument `trop_lat` to the functions. In this case, not only will a function use a new value of `trop_lat`, 
   but it will also update the class's default value. For example:
   
-  .. code-block:: python
+    .. code-block:: python
 
-    diag.histogram(ifs, trop_lat=90)
-    diag.trop_lat
+      diag.histogram(ifs, trop_lat=90)
+      diag.trop_lat
   
   While the user set `trop_lat=90`, the diagnostic will calculate the global precipitation, not tropical. 
 
   The user can update all class attributes in the way as the `trop_lat` attribute. 
 
- - `num_of_bins (int)`:            
- 
-    the number of bins,
- - `first_edge (int, float)`:    
- 
-    the first edge of the bin,
- - `width_of_bin (int, float)`:  
- 
-    the width of the bin. If the user initializes the `num_of_bins`, `first_edge`, and  `width_of_bin`,  
-    the diagnostic will calculate the 
-    histograms with continuous uniform binning, i.e., all bins in the histogram will have the same width.
+* `num_of_bins (int)`:            
+  the number of bins,
+* `first_edge (int, float)`:    
+  the first edge of the bin,
+* `width_of_bin (int, float)`:  
+  the width of the bin. If the user initializes the `num_of_bins`, `first_edge`, and  `width_of_bin`,  
+  the diagnostic will calculate the 
+  histograms with continuous uniform binning, i.e., all bins in the histogram will have the same width.
 
- - `bins (np.ndarray, list)`:            
- 
-    the bins.  If the user wants to perform the calculation for non-uniform binning (for example, log-spaced), 
-    use the `bins` attribute of the diagnostic instead of `num_of_bins`, `first_edge`, and `width_of_bin`.
+* `bins (np.ndarray, list)`:            
+  the bins.  If the user wants to perform the calculation for non-uniform binning (for example, log-spaced), 
+  use the `bins` attribute of the diagnostic instead of `num_of_bins`, `first_edge`, and `width_of_bin`.
 
 
 
-- `s_time (int, str)`:          The start time of the time interval. 
-- `f_time (int, str)`:          The end time of the time interval. 
-- `s_year (int)`:               The start year of the time interval. 
-- `f_year (int)`:               The end year of the time interval. 
-- `s_month (int)`:              The start month of the time interval. 
-- `f_month (int)`:               The end month of the time interval. 
+* `s_time (int, str)`:          The start time of the time interval. 
+* `f_time (int, str)`:          The end time of the time interval. 
+* `s_year (int)`:               The start year of the time interval. 
+* `f_year (int)`:               The end year of the time interval. 
+* `s_month (int)`:              The start month of the time interval. 
+* `f_month (int)`:               The end month of the time interval. 
 
 You can specify `s_time` and `f_time` as integers. For example, 
 There is the possibility of specifying only the year band or only the months' band. For example, we can select June, July, and August in a whole dataset as
