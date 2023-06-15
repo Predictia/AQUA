@@ -1,8 +1,8 @@
 import pytest
 import sys
 sys.path.insert(1, './diagnostics/teleconnections/')
-from cdotesting import cdo_station_based_comparison
-from cdotesting import cdo_regional_mean_comparison
+from cdo_testing import cdo_station_based_comparison
+from cdo_testing import cdo_regional_mean_comparison
 from tools import load_namelist, lon_180_to_360
 
 
@@ -11,7 +11,7 @@ approx_rel = 1e-4
 loglevel = 'DEBUG'
 
 
-@pytest.mark.parametrize("module_name", ['cdotesting', 'index', 'plots',
+@pytest.mark.parametrize("module_name", ['cdo_testing', 'index', 'plots',
                                          'tools'])
 @pytest.mark.teleconnections
 def test_import(module_name):
