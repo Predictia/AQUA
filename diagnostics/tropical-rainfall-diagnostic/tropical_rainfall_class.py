@@ -113,7 +113,7 @@ class TR_PR_Diagnostic:
 
         if bins!=0 and isinstance(bins, np.ndarray):
             self.bins = bins            
-        elif bins!=0 and not isinstance(bins, np.ndarray):
+        elif bins!=0 and not isinstance(bins, (np.ndarray, list)):
             raise Exception("bins must to be array")
 
 
@@ -383,19 +383,25 @@ class TR_PR_Diagnostic:
         self.class_attributes_update(trop_lat=trop_lat,  s_time=s_time, f_time=f_time,  
                                s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month)
         if preprocess == True:
-            ds_per_time = self.time_band(data, s_time=self.s_time, f_time=self.f_time, 
+            if 'time' in data.coords:
+                data_per_time_band = self.time_band(data, s_time=self.s_time, f_time=self.f_time, 
                                         s_year=self.s_year, f_year=self.f_year, s_month=self.s_month, f_month=self.f_month)
-            try: 
-                ds_var = ds_per_time[variable_1]
-            except KeyError: 
-                ds_var = ds_per_time
-            ds_per_lat = self.latitude_band(ds_var, trop_lat=self.trop_lat)
-            if dask_array == True:
-                ds_1d = self.dataset_into_1d(ds_per_lat)
-                ds = da.from_array(ds_1d)
-                return ds
             else:
-                return ds_per_lat
+                data_per_time_band = data
+            
+            try: 
+                data_variable = data_per_time_band[variable_1]
+            except KeyError: 
+                data_variable = data_per_time_band
+
+            data_per_lat_band = self.latitude_band(data_variable, trop_lat=self.trop_lat)
+            
+            if dask_array == True:
+                data_1d = self.dataset_into_1d(data_per_lat_band)
+                dask_data = da.from_array(data_1d)
+                return dask_data
+            else:
+                return data_per_lat_band
         else:
             return data
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
@@ -442,7 +448,14 @@ class TR_PR_Diagnostic:
 
 
         elif weights is not None:
-            if dask:
+            if bins!=0 or self.bins!=0: #dask:
+                hist_counts=self.hist1d_np(data=data, weights=weights, preprocess=preprocess,   
+                                            trop_lat=trop_lat, variable_1=variable_1,  
+                                            s_time=s_time, f_time = f_time,   
+                                            s_year = s_year, f_year =f_year, s_month = s_month, f_month = f_month, 
+                                            num_of_bins=num_of_bins, first_edge=first_edge,  
+                                            width_of_bin=width_of_bin,  bins=bins)
+            else:
                 hist_counts=self.dask_factory_weights(data=data, weights=weights, preprocess=preprocess,  
                                                       trop_lat=trop_lat,  variable_1=variable_1,  
                                                       s_time=s_time, f_time=f_time,
@@ -450,13 +463,6 @@ class TR_PR_Diagnostic:
                                                       num_of_bins=num_of_bins, first_edge=first_edge,  
                                                       width_of_bin=width_of_bin,  bins=bins,   
                                                       lazy=lazy)
-            else:
-                hist_counts=self.hist1d_np(data=data, weights=weights, preprocess=preprocess,   
-                                            trop_lat=trop_lat, variable_1=variable_1,  
-                                            s_time=s_time, f_time = f_time,   
-                                            s_year = s_year, f_year =f_year, s_month = s_month, f_month = f_month, 
-                                            num_of_bins=num_of_bins, first_edge=first_edge,  
-                                            width_of_bin=width_of_bin,  bins=bins)
         else:
             if dask:
                 #if lazy:
@@ -568,12 +574,15 @@ class TR_PR_Diagnostic:
             xarray: The xarray.Dataset with the histogram.
         """
         tprate_dataset = hist_counts.to_dataset(name="counts")
-        tprate_dataset.attrs = data_with_global_atributes.attrs
+        
         hist_frequency = self.convert_counts_to_frequency(hist_counts)
         tprate_dataset['frequency'] = hist_frequency
 
         hist_pdf = self.convert_counts_to_pdf(hist_counts)
         tprate_dataset['pdf'] = hist_pdf
+
+        if data_with_global_atributes is not None:  
+            tprate_dataset.attrs = data_with_global_atributes.attrs
 
         if path_to_save is not None:
             self.save_histogram(dataset=tprate_dataset, path_to_save=path_to_save)
@@ -737,10 +746,11 @@ class TR_PR_Diagnostic:
                                       s_time = self.s_time, f_time = self.f_time, 
                                       s_year=self.s_year, f_year=self.f_year, s_month=self.s_month, f_month=self.f_month,  
                                       sort = False, dask_array = False)
-            weights = self.preprocessing(weights, preprocess=preprocess, variable_1=variable_1, trop_lat=self.trop_lat, 
-                                      s_time = self.s_time, f_time = self.f_time, 
-                                      s_year=self.s_year, f_year=self.f_year, s_month=self.s_month, f_month=self.f_month,  
-                                      sort = False, dask_array = False)
+            
+            #weights = self.preprocessing(weights, preprocess=preprocess, variable_1=variable_1, trop_lat=self.trop_lat, 
+            #                          s_time = self.s_time, f_time = self.f_time, 
+            #                          s_year=self.s_year, f_year=self.f_year, s_month=self.s_month, f_month=self.f_month,  
+            #                          sort = False, dask_array = False)
         if 'DataArray' in str(type(weights)):
             weights = self.latitude_band(weights, trop_lat=self.trop_lat)
             hist_np=0
@@ -887,7 +897,7 @@ class TR_PR_Diagnostic:
         center_of_bin = [self.first_edge + self.width_of_bin*(j+0.5) for j in range(0, self.num_of_bins)]
         counts_per_bin =  xr.DataArray(counts, coords=[center_of_bin], dims=["center_of_bin"])
         counts_per_bin = counts_per_bin.assign_coords(width=("center_of_bin", width_table))
-        counts_per_bin.attrs = data.attrs  
+        counts_per_bin.attrs = data[variable_1].attrs  
         return  counts_per_bin
 
 
@@ -922,11 +932,13 @@ class TR_PR_Diagnostic:
                                       s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  
                                       sort=False, dask_array=False)
             
-            weights = self.preprocessing(weights, preprocess=preprocess, variable_1=variable_1, trop_lat=trop_lat, 
-                                      s_time = self.s_time, f_time = self.f_time,
-                                      s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  
-                                      sort=False, dask_array=False)
+            #weights = self.preprocessing(weights, preprocess=preprocess, variable_1=variable_1, trop_lat=trop_lat, 
+            #                          s_time = self.s_time, f_time = self.f_time,
+            #                          s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  
+            #                          sort=False, dask_array=False)
 
+
+            weights = self.latitude_band(weights, trop_lat=self.trop_lat)
 
         ref = bh.Histogram(bh.axis.Regular(self.num_of_bins, self.first_edge, last_edge), storage=bh.storage.Weight())
         counts=0
@@ -993,7 +1005,7 @@ class TR_PR_Diagnostic:
         center_of_bin = [self.first_edge + self.width_of_bin*(j+0.5) for j in range(0, self.num_of_bins)]
         counts_per_bin =  xr.DataArray(counts[0], coords=[center_of_bin], dims=["center_of_bin"])
         counts_per_bin = counts_per_bin.assign_coords(width=("center_of_bin", width_table))
-        counts_per_bin.attrs = data.attrs
+        counts_per_bin.attrs = data[variable_1].attrs
         return  counts_per_bin
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
