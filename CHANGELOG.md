@@ -32,8 +32,6 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-## Commits diff
-
 [unreleased]: https://github.com/oloapinivad/AQUA/compare/HEAD...dev
 [v0.1-beta]: https://github.com/oloapinivad/AQUA/compare/v0.1-alpha...v0.1-beta
 
