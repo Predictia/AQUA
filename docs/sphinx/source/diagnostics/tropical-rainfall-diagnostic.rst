@@ -47,8 +47,10 @@ The most crucial attributes of the class are:
 
 * `num_of_bins (int)`:            
   the number of bins,
+
 * `first_edge (int, float)`:    
   the first edge of the bin,
+
 * `width_of_bin (int, float)`:  
   the width of the bin. If the user initializes the `num_of_bins`, `first_edge`, and  `width_of_bin`,  
   the diagnostic will calculate the 
@@ -61,10 +63,15 @@ The most crucial attributes of the class are:
 
 
 * `s_time (int, str)`:          The start time of the time interval. 
+
 * `f_time (int, str)`:          The end time of the time interval. 
+
 * `s_year (int)`:               The start year of the time interval. 
+
 * `f_year (int)`:               The end year of the time interval. 
+
 * `s_month (int)`:              The start month of the time interval. 
+
 * `f_month (int)`:               The end month of the time interval. 
 
 You can specify `s_time` and `f_time` as integers. For example, 
@@ -105,18 +112,27 @@ are `high-speed` because they are based on `boost_histogram` and `dask_histogram
 
 
 The output of the histogram function is xarray.Dataset, which has two coordinates 
-- `center_of_bin`:   the center of each bin
-- `width`:           width of each bin
+
+* `center_of_bin`:   the center of each bin
+
+* `width`:           width of each bin
+
 We used two coordinated instead of one to allow the user usage of not uniformal binning if needed. 
 The array.Dataset  contains three variables:
-- `counts`:       the number of observations that fall into each bin
-- `frequency`:    the number of cases in each bin, normalized by the total number of counts. The sum of the frequencies equals 1.
-- `pdf`:          the number of cases in each bin, normalized by the total number of counts and width of each bin. 
+
+* `counts`:       the number of observations that fall into each bin
+
+* `frequency`:    the number of cases in each bin, normalized by the total number of counts. The sum of the frequencies equals 1.
+
+* `pdf`:          the number of cases in each bin, normalized by the total number of counts and width of each bin. 
 
 local and global attributes. Local attributes contain the information about the time and space grid for which diagnostic performed the calculations:
-- `time_band`:    the value of time of the first and last element in the dataset and the frequency of the time grid
-- `lat_band`:     the maximum and minimum values of the tropical latitude band and the frequency of the latitude grid
-- `lon_band`:     the maximum and minimum values of the longitude and the frequency of the longitude grid
+
+* `time_band`:    the value of time of the first and last element in the dataset and the frequency of the time grid
+
+* `lat_band`:     the maximum and minimum values of the tropical latitude band and the frequency of the latitude grid
+
+* `lon_band`:     the maximum and minimum values of the longitude and the frequency of the longitude grid
 
 Global attribute `history` contains the information about when the histogram was calculated and values of `time_band`, `lat_band`, and `lon_band`.
 
@@ -166,6 +182,13 @@ attributes.
 
 If you want to merge all histograms if the specified repository, set the following flag: `all=True.`
 
+  .. code-block:: python
+
+    path_to_histograms='/path/to/folder/with/histograms/'
+
+    merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, all=True)
+    merged_histograms
+
 The function will merge all histograms into single histograms. In order to avoid possible mistakes, keep the histograms obtained for 
 different models in different repositories. 
 
@@ -173,6 +196,12 @@ different models in different repositories.
 If you want to merge only a specific number of histograms, set the function `multi`-argument. 
 The function will sort the files in the repository and take the first `multi` number of histograms in the repo.
 
+  .. code-block:: python
+
+    path_to_histograms='/path/to/folder/with/histograms/'
+
+    merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, multi=10)
+    merged_histograms
 
 
 Notebooks 
@@ -201,7 +230,7 @@ The notebook folder contains the following notebooks:
     - saving the obtained histogram with the histogram into storage per each chunk of any data during the stream, 
     - loading all or multiple histograms from storage and merging them into a single histogram. 
 
- - `histogram_comparison.ipynb`:
+ - `histogram comparison for different climate models <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical-rainfall-diagnostic/notebooks/histogram_comparison.ipynb>`_:
 
     The notebook demonstrates:
     - a simple comparison of obtained histograms for different climate models, 
