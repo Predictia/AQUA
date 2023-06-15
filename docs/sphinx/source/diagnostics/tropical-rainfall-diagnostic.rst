@@ -15,20 +15,27 @@ The main attributes of `TR_PR_Diagnostic` Class
 
 
 The most crucial attributes of the class are:
-- trop_lat (int or float):              the latitude of the tropical zone.  The default value of the attribute is equal to 10. 
-  The user can easily modify the value tropical latitude band. The first way to do that is to set a new default value during the initialization of the class. 
+
+ - `trop_lat (int or float)``:            
+
+    the latitude of the tropical zone.  
+    The default value of the attribute is equal to 10. 
+    The user can easily modify the value tropical latitude band. The first way to do that is to set a new default value during the initialization of the class. 
+ 
   .. code-block:: python
 
     from tropical_rainfall_class import TR_PR_Diagnostic as TR_PR_Diag
     diag = TR_PR_Diag(trop_lat=20)
 
   Another way is to modify the tropical latitude after the initialization of the class: 
+  
   .. code-block:: python
 
     diag.trop_lat=15
 
   The user can modify the latitude band by parsing the argument `trop_lat` to the functions. In this case, not only will a function use a new value of `trop_lat`, 
   but it will also update the class's default value. For example:
+  
   .. code-block:: python
 
     diag.histogram(ifs, trop_lat=90)
@@ -38,31 +45,32 @@ The most crucial attributes of the class are:
 
   The user can update all class attributes in the way as the `trop_lat` attribute. 
 
-- num_of_bins (int):            the number of bins,
-- first_edge (int, float):    the first edge of the bin,
-- width_of_bin (int, float):  the width of the bin. If the user initializes the `num_of_bins`, `first_edge`, and  `width_of_bin`,  the diagnostic will calculate the 
-  histograms with continuous uniform binning, i.e., all bins in the histogram will have the same width.
+- `num_of_bins (int)`:            the number of bins,
+- `first_edge (int, float)`:    the first edge of the bin,
+- `width_of_bin (int, float)`:  the width of the bin. If the user initializes the `num_of_bins`, `first_edge`, and  `width_of_bin`,  the diagnostic will calculate the 
+    histograms with continuous uniform binning, i.e., all bins in the histogram will have the same width.
 
-- bins (np.ndarray, list):            the bins.  If the user wants to perform the calculation for non-uniform binning (for example, log-spaced), 
-use the `bins` attribute of the diagnostic instead of `num_of_bins`, `first_edge`, and `width_of_bin`.
+- `bins (np.ndarray, list)`:            the bins.  If the user wants to perform the calculation for non-uniform binning (for example, log-spaced), 
+    use the `bins` attribute of the diagnostic instead of `num_of_bins`, `first_edge`, and `width_of_bin`.
 
 
 
-- s_time (int, str):          The start time of the time interval. 
-- f_time (int, str):          The end time of the time interval. 
-- s_year (int):               The start year of the time interval. 
-- f_year (int):               The end year of the time interval. 
-- s_month (int):              The start month of the time interval. 
-- f_month (int):               The end month of the time interval. 
+- `s_time (int, str)`:          The start time of the time interval. 
+- `f_time (int, str)`:          The end time of the time interval. 
+- `s_year (int)`:               The start year of the time interval. 
+- `f_year (int)`:               The end year of the time interval. 
+- `s_month (int)`:              The start month of the time interval. 
+- `f_month (int)`:               The end month of the time interval. 
 
- with a specific time band
 You can specify `s_time` and `f_time` as integers. For example, 
 There is the possibility of specifying only the year band or only the months' band. For example, we can select June, July, and August in a whole dataset as
 Also, you can specify `s_time` and `f_time` as strings. For example, 
 
 The histogram calculation
 -------------------------
+
 The simplest example of a histogram calculation is: 
+
 .. code-block:: python
 
     diag = TR_PR_Diag(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-5))
@@ -92,18 +100,18 @@ are `high-speed` because they are based on `boost_histogram` and `dask_histogram
 
 
 The output of the histogram function is xarray.Dataset, which has two coordinates 
-- center_of_bin:   the center of each bin
-- width:           width of each bin
+- `center_of_bin`:   the center of each bin
+- `width`:           width of each bin
 We used two coordinated instead of one to allow the user usage of not uniformal binning if needed. 
 The array.Dataset  contains three variables:
-- counts:       the number of observations that fall into each bin
-- frequency:    the number of cases in each bin, normalized by the total number of counts. The sum of the frequencies equals 1.
-- pdf:          the number of cases in each bin, normalized by the total number of counts and width of each bin. 
+- `counts`:       the number of observations that fall into each bin
+- `frequency`:    the number of cases in each bin, normalized by the total number of counts. The sum of the frequencies equals 1.
+- `pdf`:          the number of cases in each bin, normalized by the total number of counts and width of each bin. 
 
 local and global attributes. Local attributes contain the information about the time and space grid for which diagnostic performed the calculations:
-- time_band:    the value of time of the first and last element in the dataset and the frequency of the time grid
-- lat_band:     the maximum and minimum values of the tropical latitude band and the frequency of the latitude grid
-- lon_band:     the maximum and minimum values of the longitude and the frequency of the longitude grid
+- `time_band`:    the value of time of the first and last element in the dataset and the frequency of the time grid
+- `lat_band`:     the maximum and minimum values of the tropical latitude band and the frequency of the latitude grid
+- `lon_band`:     the maximum and minimum values of the longitude and the frequency of the longitude grid
 
 Global attribute `history` contains the information about when the histogram was calculated and values of `time_band`, `lat_band`, and `lon_band`.
 
@@ -113,6 +121,7 @@ The lazy mode
 
 Calculation of histogram of global or tropical precipitation can be done in the lazy (or delayed) mode. To perform calculations in the so-called lazy mode, 
 use the flag `lazy` in the histogram function. 
+
   .. code-block:: python
 
     hist_icon_lazy=diag.histogram(icon, lazy=True)
@@ -128,6 +137,7 @@ The function `data_with_global_atributes` argument is needed to populate Dataset
 
 The histogram plots 
 -------------------
+
 The diagnostic contains the simple in-the-use function to create the histogram plot. The user can create plots of the obtained data in 
 different styles and scales. 
 
@@ -162,7 +172,9 @@ The function will sort the files in the repository and take the first `multi` nu
 
 Notebooks 
 ---------
+
 The notebook folder contains the following notebooks:
+
  - `ICON histogram calculation <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical-rainfall-diagnostic/notebooks/ICON_histogram_calculation.ipynb>`_: 
 
     The notebook demonstrates the major abilities of tropical rainfall diagnostic: 
