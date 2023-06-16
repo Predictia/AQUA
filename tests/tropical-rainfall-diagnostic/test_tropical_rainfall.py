@@ -12,7 +12,7 @@ from os import remove
 from aqua import Reader
 import sys
 
-sys.path.insert(0, '../../diagnostics/tropical-rainfall-diagnostic/')
+sys.path.insert(0, './diagnostics/tropical-rainfall-diagnostic/')
 from tropical_rainfall_class import TR_PR_Diagnostic as TR_PR_Diag
 
 @pytest.fixture(params=[
