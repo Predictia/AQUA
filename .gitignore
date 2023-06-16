@@ -14,5 +14,5 @@ AQUA_tests.tar.gz
 .coverage
 coverage.xml
 coverage/
-*.DS_Store # mac temp files
+**/*.DS_Store # mac temp files
 
