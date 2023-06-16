@@ -9,12 +9,17 @@ import re
 from os import listdir
 from os.path import isfile, join
 from os import remove
-from aqua import Reader
-import sys
 
-sys.path.insert(0, './diagnostics/tropical-rainfall-diagnostic/')
+from aqua import Reader
+from aqua.util import create_folder
+
+import sys
+path_to_diagnostic='./diagnostics/tropical-rainfall-diagnostic/'
+sys.path.insert(1, path_to_diagnostic)
 from tropical_rainfall_class import TR_PR_Diagnostic as TR_PR_Diag
 
+
+@pytest.mark.tropical_rainfall
 @pytest.fixture(params=[
     Reader(model="ICON", exp="ngc2009", source="lra-r100-monthly"),
     Reader(model="IFS", exp="tco2559-ng5", source="lra-r100-monthly"),
@@ -108,7 +113,10 @@ def test_histogram_pdf(histogram_output):
 def test_histogram_load_to_memory(histogram_output):
     """ Testing the histogram load to memory
     """
-    path_to_save='./test_output/histograms/'
+    path_to_save=str(path_to_diagnostic)+"/test_output/histograms/"
+    create_folder(folder=str(path_to_diagnostic)+"test_output/", loglevel='WARNING')
+    create_folder(folder=str(path_to_diagnostic)+"test_output/histograms/", loglevel='WARNING')
+    
     # Cleaning the repository with histograms before new test
     histogram_list = [f for f in listdir(path_to_save) if isfile(join(path_to_save, f))]
     histograms_list_full_path = [str(path_to_save)+str(histogram_list[i]) for i in range(0, len(histogram_list))]
@@ -143,7 +151,8 @@ def test_units_convertation(reader):
 def test_figure_load_to_memory(histogram_output):
     """ Testing the figure load to memory
     """
-    path_to_save='./test_output/plots/'
+    create_folder(folder=str(path_to_diagnostic)+"test_output/plots/", loglevel='WARNING')
+    path_to_save=str(path_to_diagnostic)+"/test_output/plots/"
     hist = histogram_output
     diag = TR_PR_Diag()
     diag.hist_figure(hist, path_to_save=str(path_to_save)+'test_fig_saving.png')
@@ -236,7 +245,7 @@ def test_histogram_merge(histogram_output):
 
     diag = TR_PR_Diag()
 
-    path_to_save='./test_output/histograms/'
+    path_to_save=str(path_to_diagnostic)+"/test_output/histograms/"
     diag.save_histogram(dataset=hist_2, path_to_save=path_to_save, name_of_file='test_merge')
     
     hist_merged = diag.merge_two_datasets(tprate_dataset_1=hist_1, tprate_dataset_2=hist_2)
