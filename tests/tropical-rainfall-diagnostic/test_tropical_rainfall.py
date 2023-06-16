@@ -16,8 +16,7 @@ from aqua.util import create_folder
 import sys
 path_to_diagnostic='./diagnostics/tropical-rainfall-diagnostic/'
 sys.path.insert(1, path_to_diagnostic)
-from tropical_rainfall_class import TR_PR_Diagnostic as TR_PR_Diag
-
+#from tropical_rainfall_class import TR_PR_Diagnostic as TR_PR_Diag
 
 @pytest.mark.tropical_rainfall
 @pytest.fixture(params=[
