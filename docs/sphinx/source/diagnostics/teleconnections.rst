@@ -15,8 +15,8 @@ You will need to be on levante to be able to run by yourself the notebooks.
 
 Teleconnections available:
 
-- NAO
-- ENSO
+- NAO: notebook available `diagnostics/teleconnections/notebooks/NAO.ipynb`
+- ENSO: notebook available `diagnostics/teleconnections/notebooks/ENSO_nino3.4.ipynb`
 
 More diagnostics or functionalities can be added in the future.
 A configuration file is available in the `config` folder.
@@ -30,12 +30,12 @@ The following steps are necessary to run the diagnostic (we're taking the NAO as
 
 1. Import the necessary functions from the `index.py` file and from the `AQUA` framework.
 
-```python
-from aqua import Reader
-from index import station_based_index
-from plots import index_plot
-from tools import load_namelist
-```
+.. code-block:: python
+
+  from aqua import Reader
+  from index import station_based_index
+  from plots import index_plot
+  from tools import load_namelist
 
 Please notice that at the moment in order to import the functions from the `index.py` file,
 the `teleconnections` folder needs to be in the same folder as the notebook or script.
@@ -44,28 +44,28 @@ An example is available in the `notebooks` folder.
 
 2. Load the config specific of your teleconnection.
 
-```python
-diagname  = 'teleconnections'
-telecname = 'NAO'
+.. code-block:: python
+  
+  diagname  = 'teleconnections'
+  telecname = 'NAO'
 
-config = load_namelist(diagname)
-field = namelist[telecname]['field']
-```
+  config = load_namelist(diagname)
+  field = namelist[telecname]['field']
 
 Without any argument, the `load_namelist` function will load the default config file, trying to get the correct path.
 
 The dictionary extracted from the config file will be used to set the parameters of the diagnostic.
 For NAO:
 
-```yaml
-# NAO coordinates
-NAO:
-  field: msl
-  lat1: 37.7
-  lon1: -25.7
-  lat2: 64.1
-  lon2: -22
-```
+.. code-block:: yaml
+  
+  # NAO coordinates
+  NAO:
+    field: msl
+    lat1: 37.7
+    lon1: -25.7
+    lat2: 64.1
+    lon2: -22
 
 Please notice that the `field` parameter is the name of the field in the data.
 It may be different for different datasets and fix features available in the `AQUA` framework may be needed to automatize the access to data.
@@ -75,13 +75,13 @@ It may be different for different datasets and fix features available in the `AQ
 Reader is a class of the AQUA framework that can be used to load the data.
 It has to be initialized with the details of the data to be loaded.
 
-```python
-model = 'IFS'
-exp = 'tco1279-orca025-cycle3'
-source = '2D_monthly_native'
+.. code-block:: python
+  
+  model = 'IFS'
+  exp = 'tco1279-orca025-cycle3'
+  source = '2D_monthly_native'
 
-reader = Reader(model=model,exp=exp,source=source,regrid='r025')
-```
+  reader = Reader(model=model,exp=exp,source=source,regrid='r025')
 
 Regrid of the data, time aggregation and fix features may be needed to automatize and simplify the access to data.
 Check the `AQUA` framework documentation for more details.
@@ -89,9 +89,9 @@ What is needed to run the diagnostic is a `xarray.Dataarray` object with the dat
 
 4. Run the diagnostic
 
-```python
-nao = station_based_index(field=infile,namelist=namelist,telecname=telecname)
-```
+.. code-block:: python
+  
+  nao = station_based_index(field=infile,namelist=namelist,telecname=telecname)
 
 5. Plot the results
 
