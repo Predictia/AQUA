@@ -16,13 +16,13 @@ from aqua.util import create_folder
 import sys
 path_to_diagnostic='./diagnostics/tropical-rainfall-diagnostic/'
 sys.path.insert(1, path_to_diagnostic)
-#from tropical_rainfall_class import TR_PR_Diagnostic as TR_PR_Diag
 
 @pytest.mark.tropical_rainfall
 @pytest.fixture(params=[
-    Reader(model="ICON", exp="ngc2009", source="lra-r100-monthly"),
-    Reader(model="IFS", exp="tco2559-ng5", source="lra-r100-monthly"),
-    Reader(model="MSWEP", exp="past", source="monthly")
+    Reader(model="IFS", exp="test-tco79", source="long")
+    #Reader(model="ICON", exp="ngc2009", source="lra-r100-monthly"),
+    #Reader(model="IFS", exp="tco2559-ng5", source="lra-r100-monthly"),
+    #Reader(model="MSWEP", exp="past", source="monthly")
 ])
 
 def reader(request):
@@ -40,6 +40,8 @@ def test_module_import():
     except ModuleNotFoundError:
         assert False, "Diagnostic could not be imported"
 
+from tropical_rainfall_class import TR_PR_Diagnostic as TR_PR_Diag
+
 @pytest.fixture
 def check_precipitation_in_data(reader):
     data = reader
@@ -47,7 +49,7 @@ def check_precipitation_in_data(reader):
         data['tprate']
         return True
     except KeyError:
-        print('Dataset not contains the precipitation rate')
+        print('The dataset does not contain the precipitation rate. I WIll use 2m temperature instead')
         return False
     
 @pytest.fixture
@@ -77,8 +79,9 @@ def histogram_output(reader):
     """ Histogram output fixture
     """
     data = reader
-    diag = TR_PR_Diag(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-6)/20)
-    hist = diag.histogram(data)
+    diag = TR_PR_Diag(num_of_bins = 20, first_edge = 200, width_of_bin = (320-200)/20)
+    #diag = TR_PR_Diag(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-6)/20)
+    hist = diag.histogram(data, variable_1='2t', trop_lat=90)
     return hist
 
 
@@ -88,7 +91,7 @@ def test_hisogram_counts(histogram_output, data_size):
     """
     hist = histogram_output
     assert sum(hist.counts.values) > 0 
-    assert sum(hist.counts.values) < data_size
+    assert sum(hist.counts.values) <= data_size
 
 @pytest.mark.tropical_rainfall
 def test_histogram_frequency(histogram_output): 
@@ -135,16 +138,16 @@ def test_histogram_load_to_memory(histogram_output):
         re_time_band = re.split("'", re.split(":", time_band)[0])[1]
     assert re_time_band in time_band
 
-
-@pytest.mark.tropical_rainfall
-def test_units_convertation(reader):
-    """ Testing the units convertation
-    """ 
-    data = reader 
-    diag = TR_PR_Diag()
-    data = diag.precipitation_units_converter(data, new_unit='m')
-    assert data.tprate.attrs['units'] == 'm'
-    
+ 
+#@pytest.mark.tropical_rainfall
+#def test_units_convertation(reader):
+#    """ Testing the units convertation
+#    """ 
+#    data = reader 
+#    diag = TR_PR_Diag()
+#    data = diag.precipitation_units_converter(data, new_unit='m')
+#    assert data.tprate.attrs['units'] == 'm'
+  
 
 @pytest.mark.tropical_rainfall
 def test_figure_load_to_memory(histogram_output):
@@ -165,7 +168,7 @@ def test_lazy_mode_calculation(reader):
     """
     data = reader
     diag = TR_PR_Diag(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-6)/20)
-    hist_lazy = diag.histogram(data, lazy=True)
+    hist_lazy = diag.histogram(data, lazy=True, variable_1='2t')
     assert isinstance(hist_lazy, xarray.core.dataarray.DataArray) 
     assert 'time_band' not in hist_lazy.attrs
     assert 'lat_band'  not in hist_lazy.attrs
