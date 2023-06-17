@@ -524,7 +524,10 @@ class TR_PR_Diagnostic:
         """
         if path_to_save is not None and name_of_file is not None:
             time_band=dataset.counts.attrs['time_band']
-            name_of_file = name_of_file +'_'+ re.split(":", re.split(", ", time_band)[0])[0]+'_' + re.split(":", re.split(", ", time_band)[1])[0]
+            try:
+                name_of_file = name_of_file +'_'+ re.split(":", re.split(", ", time_band)[0])[0]+'_' + re.split(":", re.split(", ", time_band)[1])[0]
+            except IndexError:
+                name_of_file = name_of_file +'_'+ re.split("'", re.split(":", time_band)[0])[1]
             path_to_save = path_to_save + name_of_file + '_histogram.pkl'
         
         if path_to_save is not None:
@@ -544,17 +547,33 @@ class TR_PR_Diagnostic:
         Returns:
             xarray: The xarray with the grid.
         """
+        if data.time.size>1:
+            time_band = str(data.time[0].values)+', '+str(data.time[-1].values)+', freq='+str(time_interpreter(data))
+        else:
+            time_band = str(data.time.values)
+        if data.lat.size>1:
+            latitude_step  = data.lat[1].values - data.lat[0].values
+            lat_band = str(data.lat[0].values)+', '+str(data.lat[-1].values)+', freq='+str(latitude_step)
+        else:
+            lat_band = data.lat.values
+            latitude_step = data.lat.values
+        if data.lon.size>1:
+            longitude_step = data.lon[1].values - data.lon[0].values
+            lon_band = str(data.lon[0].values)+', '+str(data.lon[-1].values)+', freq='+str(longitude_step)
+        else:   
+            longitude_step = data.lon.values 
+            lon_band = data.lon.values 
 
-        time_band = str(data.time[0].values)+', '+str(data.time[-1].values)+', freq='+str(time_interpreter(data))
-        latitude_step  = data.lat[1].values - data.lat[0].values
-        longitude_step = data.lon[1].values - data.lon[0].values
-        lat_band = str(data.lat[0].values)+', '+str(data.lat[-1].values)+', freq='+str(latitude_step)
-        lon_band = str(data.lon[0].values)+', '+str(data.lon[-1].values)+', freq='+str(longitude_step)
+        
+        
         if variable is None:
             current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             history_update=str(current_time)+' histogram is calculated for time_band: ['+str(time_band)+']; lat_band: ['+str(lat_band)+']; lon_band: ['+str(lon_band)+'];\n '
-            history_attr  = tprate_dataset.attrs['history'] + history_update
-            tprate_dataset.attrs['history'] = history_attr
+            try:
+                history_attr  = tprate_dataset.attrs['history'] + history_update
+                tprate_dataset.attrs['history'] = history_attr
+            except KeyError:
+                print("The obtained xarray.Dataset doesn't have global attributes. Consider adding global attributes manually to the dataset.")
         else:
             tprate_dataset[variable].attrs['time_band']=time_band
             tprate_dataset[variable].attrs['lat_band'] =lat_band
