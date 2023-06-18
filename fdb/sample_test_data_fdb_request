@@ -1,0 +1,12 @@
+retrieve,
+        date=20080101,
+        domain=g,
+        time=1200,
+        step=0,
+        param=130,
+        levtype=pl,
+        levelist=1000,
+        class=ea,
+        expver=0001,
+        stream=oper,
+        type=an
