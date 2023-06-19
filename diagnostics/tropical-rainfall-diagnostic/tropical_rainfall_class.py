@@ -1132,7 +1132,8 @@ class TR_PR_Diagnostic:
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
     def hist_figure(self,  data, weights=None, frequency = False, pdf = True, smooth = True, step = False, color_map = False,  \
                     ls = '-', ylogscale=True, xlogscale = False, color = 'tab:blue',  figsize=1, legend='_Hidden', 
-                    varname = 'Precipitation', plot_title = None,  add = None, fig=None, path_to_figure = None):
+                    varname = 'Precipitation', plot_title = None,  loc='upper right', 
+                    add = None, fig=None, path_to_figure = None):
         """ Function to generate a histogram figure based on the provided data.
 
         Args:
@@ -1152,6 +1153,7 @@ class TR_PR_Diagnostic:
             legend (str, optional):     The legend label for the plot. Default is '_Hidden'.
             varname (str, optional):    The name of the variable for the x-axis label. Default is 'Precipitation'.
             plot_title (str, optional): The title of the plot. Default is None.
+            loc(str, optional):         The location of the legend. Default to 'upper right'. 
             add (tuple, optional):      Tuple of (fig, ax) to add the plot to an existing figure.
             fig (object, optional):     The figure object to plot on. If provided, ignores the 'add' argument.
             path_to_figure (str, optional): The path to save the figure. If provided, saves the figure at the specified path.
@@ -1233,7 +1235,7 @@ class TR_PR_Diagnostic:
 
 
         if legend!='_Hidden':
-            plt.legend(loc='upper right', fontsize=12)
+            plt.legend(loc=loc, fontsize=12) #
         # set the spacing between subplots
         plt.tight_layout()
         if path_to_figure is not None and isinstance(path_to_figure, str):
