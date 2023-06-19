@@ -7,6 +7,7 @@ import xarray as xr
 
 from aqua.logger import log_configure
 
+
 def set_layout(fig, ax, title=None, xlabel=None, ylabel=None, xlog=False,
                ylog=False, xlim=None, ylim=None):
     """
@@ -49,7 +50,7 @@ def set_layout(fig, ax, title=None, xlabel=None, ylabel=None, xlog=False,
 
 def cor_plot(indx, field, plot=True, projection_type='PlateCarree',
              contour=False, levels=8, save=False, outputdir='./',
-             filename='cor.png', **kwargs):
+             filename='cor.png', loglevel='WARNING', **kwargs):
     """
     Evaluate and plot correlation map of a teleconnection index
     and a DataArray field.
@@ -71,6 +72,8 @@ def cor_plot(indx, field, plot=True, projection_type='PlateCarree',
                                 default is './'
         filename (str,opt):     name of the figure file,
                                 default is 'cor.png'
+        loglevel (str,opt):     log level for the logger,
+                                default is 'WARNING'
         **kwargs:               additional arguments for set_layout
 
     Returns:
@@ -78,6 +81,9 @@ def cor_plot(indx, field, plot=True, projection_type='PlateCarree',
         fig (Figure,opt):       Figure object
         ax (Axes,opt):          Axes object
     """
+    # 0. -- Configure the logger --
+    logger = log_configure(loglevel, 'cor_plot')
+
     # 1. -- List of accepted projection maps --
     projection_types = {
         'PlateCarree': ccrs.PlateCarree(),
@@ -90,6 +96,9 @@ def cor_plot(indx, field, plot=True, projection_type='PlateCarree',
 
     # 3. -- Plot the regression map --
     proj = projection_types.get(projection_type, ccrs.PlateCarree())
+    # Warn if the projection type is not in the list
+    if proj == ccrs.PlateCarree() and projection_type != 'PlateCarree':
+        logger.warning('Projection type not found, falling back to PlateCarree')
 
     if plot:
         fig, ax = plt.subplots(subplot_kw={'projection': proj}, figsize=(8, 4))
@@ -98,6 +107,7 @@ def cor_plot(indx, field, plot=True, projection_type='PlateCarree',
         if contour:
             cor.plot.contourf(ax=ax, transform=ccrs.PlateCarree(),
                               levels=levels)
+            logger.info('Contour plot')
         else:
             cor.plot(ax=ax, transform=ccrs.PlateCarree())
 
@@ -106,9 +116,11 @@ def cor_plot(indx, field, plot=True, projection_type='PlateCarree',
         # 4. -- Save the figure --
         if save:
             fig.savefig(outputdir + filename)
+            logger.info('Figure saved in ' + outputdir + filename)
 
         return cor, fig, ax
     else:
+        logger.info('No plot requested')
         return cor
 
 
@@ -147,14 +159,14 @@ def index_plot(indx, save=False, outputdir='./', filename='index.png',
         logger.warning('Steps are not filled if a change in sign occurs')
 
         plt.fill_between(indx.time, indx.values, where=indx.values >= 0,
-                        step="pre", alpha=0.6, color='red')
+                         step="pre", alpha=0.6, color='red')
         plt.fill_between(indx.time, indx.values, where=indx.values < 0,
-                        step="pre", alpha=0.6, color='blue')
+                         step="pre", alpha=0.6, color='blue')
     else:
         plt.fill_between(indx.time, indx.values, where=indx.values >= 0,
-                        alpha=0.6, color='red', interpolate=True)
+                         alpha=0.6, color='red', interpolate=True)
         plt.fill_between(indx.time, indx.values, where=indx.values < 0,
-                        alpha=0.6, color='blue', interpolate=True)
+                         alpha=0.6, color='blue', interpolate=True)
     indx.plot.step(ax=ax, color='black', alpha=0.8)
 
     ax.hlines(y=0, xmin=min(indx['time']), xmax=max(indx['time']),
@@ -173,7 +185,7 @@ def index_plot(indx, save=False, outputdir='./', filename='index.png',
 
 def reg_plot(indx, field, plot=True, projection_type='PlateCarree',
              contour=False, levels=8, save=False, outputdir='./',
-             filename='reg.png', **kwargs):
+             filename='reg.png', loglevel='WARNING', **kwargs):
     """
     Evaluate and plot regression map of a teleconnection index
     and a DataArray field
@@ -193,6 +205,8 @@ def reg_plot(indx, field, plot=True, projection_type='PlateCarree',
                                 default is False
         outputdir (str,opt):    directory to save the plot
         filename (str,opt):     filename of the plot
+        loglevel (str,opt):     log level for the logger,
+                                default is 'WARNING'
         **kwargs:               additional arguments for set_layout
 
     Returns:
@@ -200,6 +214,9 @@ def reg_plot(indx, field, plot=True, projection_type='PlateCarree',
         fig (Figure,opt):       Figure object
         ax (Axes,opt):          Axes object
     """
+    # 0. -- Configure the logger --
+    logger = log_configure(loglevel, 'reg_plot')
+
     # 1. -- List of accepted projection maps --
     projection_types = {
         'PlateCarree': ccrs.PlateCarree(),
@@ -213,6 +230,9 @@ def reg_plot(indx, field, plot=True, projection_type='PlateCarree',
 
     # 3. -- Plot the regression map --
     proj = projection_types.get(projection_type, ccrs.PlateCarree())
+    # Warn if the projection type is not in the list
+    if proj == ccrs.PlateCarree() and projection_type != 'PlateCarree':
+        logger.warning('Projection type not found, falling back to PlateCarree')
 
     if plot:
         fig, ax = plt.subplots(subplot_kw={'projection': proj}, figsize=(8, 4))
@@ -229,14 +249,16 @@ def reg_plot(indx, field, plot=True, projection_type='PlateCarree',
         # 4. -- Save the figure --
         if save:
             fig.savefig(outputdir + filename)
+            logger.info('Figure saved in ' + outputdir + filename)
 
         return reg, fig, ax
     else:
+        logger.info('No plot requested')
         return reg
 
 
 def simple_plot(field, save=False, outputdir='./', filename='plot.png',
-                **kwargs):
+                loglevel='WARNING', **kwargs):
     """
     Simple plot of a DataArray field
 
@@ -244,11 +266,17 @@ def simple_plot(field, save=False, outputdir='./', filename='plot.png',
         field (DataArray):      field DataArray
         outputdir (str,opt):    directory to save the plot
         filename (str,opt):     filename of the plot
+        loglevel (str,opt):     log level for the logger,
+                                default is 'WARNING'
+        **kwargs:               additional arguments for set_layout
 
     Returns:
         fig (Figure):           Figure object
         ax (Axes):              Axes object
     """
+    # 0. -- Configure the logger --
+    logger = log_configure('WARNING', 'simple_plot')
+
     # 1. -- Generate the figure --
     fig, ax = plt.subplots(figsize=(12, 8))
 
@@ -261,5 +289,6 @@ def simple_plot(field, save=False, outputdir='./', filename='plot.png',
     # 4. -- Save the figure --
     if save:
         fig.savefig(outputdir + filename)
+        logger.info('Figure saved in ' + outputdir + filename)
 
     return fig, ax
