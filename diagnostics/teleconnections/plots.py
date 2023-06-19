@@ -162,12 +162,13 @@ def index_plot(indx, save=False, outputdir='./', filename='index.png',
                          step="pre", alpha=0.6, color='red')
         plt.fill_between(indx.time, indx.values, where=indx.values < 0,
                          step="pre", alpha=0.6, color='blue')
+        indx.plot.step(ax=ax, color='black', alpha=0.8)
     else:
         plt.fill_between(indx.time, indx.values, where=indx.values >= 0,
                          alpha=0.6, color='red', interpolate=True)
         plt.fill_between(indx.time, indx.values, where=indx.values < 0,
                          alpha=0.6, color='blue', interpolate=True)
-    indx.plot.step(ax=ax, color='black', alpha=0.8)
+        indx.plot(ax=ax, color='black', alpha=0.8)
 
     ax.hlines(y=0, xmin=min(indx['time']), xmax=max(indx['time']),
               color='black')
