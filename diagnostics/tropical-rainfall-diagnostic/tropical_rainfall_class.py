@@ -359,8 +359,9 @@ class TR_PR_Diagnostic:
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
     def preprocessing(self, data, preprocess = True,  variable_1="tprate", trop_lat=None, 
                        s_time = None, f_time = None,  
-                       s_year = None, f_year = None, s_month = None, f_month = None, sort = False, dask_array = False):
-        """Preprocessing the Dataset
+                       s_year = None, f_year = None, s_month = None, f_month = None, 
+                       sort = False, dask_array = False):
+        """ Function to preprocess the Dataset according to provided arguments and attributes of the class.
 
         Args:
             data (xarray):                  The Dataset.
@@ -409,23 +410,33 @@ class TR_PR_Diagnostic:
                   data_with_global_atributes=None,
                   s_time = None, f_time = None, s_year = None, f_year = None, s_month = None, f_month = None, 
                   num_of_bins = None, first_edge = None,  width_of_bin  = None,   bins=0, 
-                  dask = False, lazy=False, create_xarray=True, path_to_save=None):
-        """Function to create a histogram of the Dataset
+                  dask = False, lazy=False, create_xarray=True, path_to_histogram=None):
+        """ Function to calculate a histogram of the Dataset.
 
         Args:
-            data (xarray):                  The Dataset.
-            preprocess (bool, optional):    If sort is True, the functiom preprocess Dataset. Defaults to True.
-            trop_lat (float, optional):     The maximumal and minimal tropical latitude values in Dataset.  Defaults to 10.
-            variable_1 (str, optional):     The variable of the Dataset. Defaults to 'tprate'.
-            weights (array, optional):      The weights of the data. Defaults to None.
-            data_with_global_atributes (xarray, optional): The Dataset with global atributes. Defaults to None.
-            s_time (str/int, optional):     The starting time value/index in Dataset. Defaults to None.
-            f_time (str/int, optional):     The final time value/index in Dataset. Defaults to None.
-            s_year (int, optional):         The starting year in Dataset. Defaults to None.
-            f_year (int, optional):         The final year in Dataset. Defaults to None.
+            data (xarray.Dataset):          The input Dataset.
+            preprocess (bool, optional):    If True, preprocesses the Dataset. Defaults to True.
+            trop_lat (float, optional):     The maximum absolute value of tropical latitude in the Dataset. Defaults to 10.
+            variable_1 (str, optional):     The variable of interest in the Dataset. Defaults to 'tprate'.
+            weights (array-like, optional): The weights of the data. Defaults to None.
+            data_with_global_attributes (xarray.Dataset, optional): The Dataset with global attributes. Defaults to None.
+            s_time (str/int, optional):     The starting time value/index in the Dataset. Defaults to None.
+            f_time (str/int, optional):     The final time value/index in the Dataset. Defaults to None.
+            s_year (int, optional):         The starting year in the Dataset. Defaults to None.
+            f_year (int, optional):         The final year in the Dataset. Defaults to None.
+            s_month (int, optional):        The starting month in the Dataset. Defaults to None.
+            f_month (int, optional):        The final month in the Dataset. Defaults to None.
+            num_of_bins (int, optional):    The number of bins for the histogram. Defaults to None.
+            first_edge (float, optional):   The starting edge value for the bins. Defaults to None.
+            width_of_bin (float, optional): The width of each bin. Defaults to None.
+            bins (int, optional):           The number of bins for the histogram (alternative argument to 'num_of_bins'). Defaults to 0.
+            dask (bool, optional):          If True, performs calculations using Dask. Defaults to False.
+            lazy (bool, optional):          If True, delays computation until necessary. Defaults to False.
+            create_xarray (bool, optional): If True, creates an xarray dataset from the histogram counts. Defaults to True.
+            path_to_histogram (str, optional):   The path to save the xarray dataset. Defaults to None.
 
         Returns:
-            xarray: Histogram of the Dataset
+            xarray.Dataset or numpy.ndarray: The histogram of the Dataset.
         """
                
         if lazy:
@@ -499,7 +510,7 @@ class TR_PR_Diagnostic:
             data_with_global_atributes=data
 
         if not lazy and create_xarray:
-            tprate_dataset = self.histogram_to_xarray(hist_counts=hist_counts, path_to_save=path_to_save, data_with_global_atributes=data_with_global_atributes)
+            tprate_dataset = self.histogram_to_xarray(hist_counts=hist_counts, path_to_histogram=path_to_histogram, data_with_global_atributes=data_with_global_atributes)
             
             data_with_final_grid=self.preprocessing(data=data, preprocess=preprocess,   trop_lat=trop_lat, variable_1=variable_1, 
                                                     s_time=s_time, f_time=f_time, 
@@ -512,40 +523,43 @@ class TR_PR_Diagnostic:
             return hist_counts
         
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def save_histogram(self, dataset=None, path_to_save=None, name_of_file=None):
+    def save_histogram(self, dataset=None, path_to_histogram=None, name_of_file=None):
         """ Function to save the histogram.
 
         Args:
             dataset (xarray, optional): The Dataset with the histogram. Defaults to None.
-            path_to_save (str, optional): The path to save the histogram. Defaults to None.
+            path_to_histogram (str, optional): The path to save the histogram. Defaults to None.
 
         Returns:
             str: The path to save the histogram.
         """
-        if path_to_save is not None and name_of_file is not None:
+        if path_to_histogram is not None and name_of_file is not None:
             time_band=dataset.counts.attrs['time_band']
             try:
                 name_of_file = name_of_file +'_'+ re.split(":", re.split(", ", time_band)[0])[0]+'_' + re.split(":", re.split(", ", time_band)[1])[0]
             except IndexError:
                 name_of_file = name_of_file +'_'+ re.split("'", re.split(":", time_band)[0])[1]
-            path_to_save = path_to_save + name_of_file + '_histogram.pkl'
+            path_to_histogram = path_to_histogram + name_of_file + '_histogram.pkl'
         
-        if path_to_save is not None:
-            with open(path_to_save, 'wb') as output:
+        if path_to_histogram is not None:
+            with open(path_to_histogram, 'wb') as output:
                 pickle.dump(dataset, output)
-        return path_to_save
+        return path_to_histogram
     
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
     def grid_attributes(self, data=None, tprate_dataset=None, variable=None):
         """ Function to add the attributes with information about the space and time grid to the Dataset.
 
         Args:
-            data (xarray, optional):    . Defaults to None.
-            dataset (xarray, optional): . Defaults to None.
-            variable (str, optional):   . Defaults to None.
+            data (xarray, optional):            The Dataset with a final time and space grif, for which calculations were performed. Defaults to None.
+            tprate_dataset (xarray, optional):  Created Dataset by the diagnostics, which we would like to populate with attributes. Defaults to None.
+            variable (str, optional):           The name of the Variable objects (not a physical variable) of the created Dataset. Defaults to None.
 
         Returns:
-            xarray: The xarray with the grid.
+            xarray.Dataset: The updated dataset with grid attributes. The grid attributes include time_band, lat_band, and lon_band.
+
+        Raises:
+            KeyError: If the obtained xarray.Dataset doesn't have global attributes.
         """
         if data.time.size>1:
             time_band = str(data.time[0].values)+', '+str(data.time[-1].values)+', freq='+str(time_interpreter(data))
@@ -582,12 +596,12 @@ class TR_PR_Diagnostic:
         return tprate_dataset
     
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def histogram_to_xarray(self,  hist_counts=None, path_to_save=None, data_with_global_atributes=None):
+    def histogram_to_xarray(self,  hist_counts=None, path_to_histogram=None, data_with_global_atributes=None):
         """ Function to convert the histogram to xarray.Dataset.
 
         Args:
             hist_counts (xarray, optional):     The histogram with counts. Defaults to None.
-            path_to_save (str, optional):       The path to save the histogram. Defaults to None.
+            path_to_histogram (str, optional):       The path to save the histogram. Defaults to None.
 
         Returns:
             xarray: The xarray.Dataset with the histogram.
@@ -603,16 +617,33 @@ class TR_PR_Diagnostic:
         if data_with_global_atributes is not None:  
             tprate_dataset.attrs = data_with_global_atributes.attrs
 
-        if path_to_save is not None:
-            self.save_histogram(dataset=tprate_dataset, path_to_save=path_to_save)
+        if path_to_histogram is not None:
+            self.save_histogram(dataset=tprate_dataset, path_to_histogram=path_to_histogram)
         return tprate_dataset
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def load_histogram(self, path_to_dataset=None, multi=None, all=None):
-        """ Function to load/open the histogram from the storage."""
-        with open(path_to_dataset, 'rb') as data:
-            dataset = pickle.load(data)
-        return dataset
+    def load_histogram(self, path_to_histogram=None):
+        """ Function to load a histogram dataset from a file using pickle.
+
+        Args:
+            path_to_histogram (str): The path to the dataset file.
+
+        Returns:
+            object: The loaded histogram dataset.
+
+        Raises:
+            FileNotFoundError: If the specified dataset file is not found.
+            pickle.UnpicklingError: If an error occurs during the unpickling process.
+        
+        """
+        try:
+            with open(path_to_histogram, 'rb') as data:
+                dataset = pickle.load(data)
+            return dataset
+        except FileNotFoundError:
+            raise FileNotFoundError("The specified dataset file was not found.")
+        except pickle.UnpicklingError as e:
+            raise pickle.UnpicklingError("An error occurred during the unpickling process: " + str(e))
     
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
     def merge_two_datasets(self, tprate_dataset_1=None, tprate_dataset_2=None):
@@ -670,9 +701,9 @@ class TR_PR_Diagnostic:
 
         for i in range(0, len(histograms_to_load)):
             if i==0:
-                dataset = self.load_histogram(path_to_dataset=histograms_to_load[i])
+                dataset = self.load_histogram(path_to_histogram=histograms_to_load[i])
             else:
-                dataset = self.merge_two_datasets(tprate_dataset_1=dataset, tprate_dataset_2=self.load_histogram(path_to_dataset=histograms_to_load[i]))
+                dataset = self.merge_two_datasets(tprate_dataset_1=dataset, tprate_dataset_2=self.load_histogram(path_to_histogram=histograms_to_load[i]))
 
         return dataset
     
@@ -682,7 +713,7 @@ class TR_PR_Diagnostic:
     def hist1d_fast(self, data, preprocess = True,   trop_lat = 10, variable_1 = 'tprate',  
                     s_time = None, f_time = None, s_year = None, f_year = None, s_month = None, f_month = None, 
                     num_of_bins = None, first_edge = None,  width_of_bin  = None,   bins = 0):
-        """Calculating the histogram with the use of fast_histogram.histogram1d (***fast_histogram*** package)
+        """ Function to calculate a histogram of the Dataset with the use of fast_histogram.histogram1d.
 
         Args:
             data (xarray):                  The Dataset.
@@ -754,8 +785,15 @@ class TR_PR_Diagnostic:
             f_year (int, optional):         The final year in Dataset. Defaults to None.
             s_month (int, optional):        The starting month in Dataset. Defaults to None.
             f_month (int, optional):        The final month in Dataset. Defaults to None.
+
+            num_of_bins (int, optional):    The number of bins in the histogram. Defaults to None.
+            first_edge (float, optional):   The first edge of the histogram. Defaults to None.
+            width_of_bin (float, optional): The width of the bins in the histogram. Defaults to None.
+            bins (array, optional):         The array of bins in the histogram. Defaults to 0.
             
-        Returns:"""
+        Returns:
+            xarray: The frequency histogram of the specified variable in the Dataset
+        """ 
         self.class_attributes_update(s_time = s_time, f_time = f_time,  trop_lat = trop_lat, 
                                s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, 
                                first_edge = first_edge, num_of_bins = num_of_bins, width_of_bin = width_of_bin, bins = bins)
@@ -766,10 +804,6 @@ class TR_PR_Diagnostic:
                                       s_year=self.s_year, f_year=self.f_year, s_month=self.s_month, f_month=self.f_month,  
                                       sort = False, dask_array = False)
             
-            #weights = self.preprocessing(weights, preprocess=preprocess, variable_1=variable_1, trop_lat=self.trop_lat, 
-            #                          s_time = self.s_time, f_time = self.f_time, 
-            #                          s_year=self.s_year, f_year=self.f_year, s_month=self.s_month, f_month=self.f_month,  
-            #                          sort = False, dask_array = False)
         if 'DataArray' in str(type(weights)):
             weights = self.latitude_band(weights, trop_lat=self.trop_lat)
             hist_np=0
@@ -805,8 +839,7 @@ class TR_PR_Diagnostic:
     def hist1d_pyplot(self, data, weights=None,preprocess = True,  trop_lat = 10,  variable_1 = 'tprate',  
                       s_time = None, f_time = None,  s_year = None, f_year = None, s_month = None, f_month = None, 
                       num_of_bins = None, first_edge = None,  width_of_bin  = None,  bins = 0):
-        """ Function to create a 1D histogram of the specified variable in the Dataset using 
-        (***matplotlib*** package)
+        """ Function to create a 1D histogram of the specified variable in the Dataset using matplotlib package.
         Args:
             data (xarray):                  The Dataset.
             preprocess (bool, optional):    If sort is True, the functiom preprocess Dataset. Defaults to True.
@@ -817,7 +850,16 @@ class TR_PR_Diagnostic:
             s_year (int, optional):         The starting year in Dataset. Defaults to None.
             f_year (int, optional):         The final year in Dataset. Defaults to None.
             s_month (int, optional):        The starting month in Dataset. Defaults to None.
-            f_month (int, optional):        The final month in Dataset. Defaults to None.""" 
+            f_month (int, optional):        The final month in Dataset. Defaults to None.
+
+            num_of_bins (int, optional):    The number of bins in the histogram. Defaults to None.
+            first_edge (float, optional):   The first edge of the histogram. Defaults to None.
+            width_of_bin (float, optional): The width of the bins in the histogram. Defaults to None.
+            bins (array, optional):         The array of bins in the histogram. Defaults to 0.
+
+        Returns:
+            xarray: The frequency histogram of the specified variable in the Dataset
+        """ 
         self.class_attributes_update(s_time = s_time, f_time = f_time,  trop_lat = trop_lat, 
                                s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, 
                                first_edge = first_edge, num_of_bins = num_of_bins, width_of_bin = width_of_bin, bins=bins)  
@@ -867,7 +909,7 @@ class TR_PR_Diagnostic:
                      s_time = None, f_time = None, s_year = None, f_year = None, s_month = None, f_month = None, 
                      num_of_bins = None, first_edge = None,  width_of_bin  = None,   bins = 0, 
                      lazy=False):
-        """ Function to create a dask array of the frequency histogram of the specified variable in the Dataset.
+        """ Function to create a dask array of the counts histogram of the specified variable in the Dataset.
         Args:
             data (xarray):                 The Dataset.
             preprocess (bool, optional):    If preprocess is True, the function preprocess the Dataset. Defaults to True.
@@ -879,8 +921,15 @@ class TR_PR_Diagnostic:
             f_year (int, optional):         The final year in Dataset. Defaults to None.
             s_month (int, optional):        The starting month in Dataset. Defaults to None.
             f_month (int, optional):        The final month in Dataset. Defaults to None.
+
+            num_of_bins (int, optional):    The number of bins in the histogram. Defaults to None.
+            first_edge (float, optional):   The first edge of the histogram. Defaults to None.
+            width_of_bin (float, optional): The width of the bins in the histogram. Defaults to None.
+            bins (array, optional):         The array of bins in the histogram. Defaults to 0.
             
-        Returns:"""
+        Returns:
+            xarray: The frequency histogram of the specified variable in the Dataset
+        """ 
         self.class_attributes_update(s_time = s_time, f_time = f_time, trop_lat = trop_lat, 
                                s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, first_edge = first_edge, 
                                num_of_bins = num_of_bins, width_of_bin = width_of_bin)
@@ -937,8 +986,15 @@ class TR_PR_Diagnostic:
             f_year (int, optional):         The final year in Dataset. Defaults to None.
             s_month (int, optional):        The starting month in Dataset. Defaults to None.
             f_month (int, optional):        The final month in Dataset. Defaults to None.
+
+            num_of_bins (int, optional):    The number of bins in the histogram. Defaults to None.
+            first_edge (float, optional):   The first edge of the histogram. Defaults to None.
+            width_of_bin (float, optional): The width of the bins in the histogram. Defaults to None.
+            bins (array, optional):         The array of bins in the histogram. Defaults to 0.
             
-        Returns:"""
+        Returns:
+            xarray: The frequency histogram of the specified variable in the Dataset
+        """ 
         self.class_attributes_update(s_time = s_time, f_time = f_time, trop_lat = trop_lat, 
                                s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, first_edge = first_edge, 
                                num_of_bins = num_of_bins, width_of_bin = width_of_bin)    
@@ -950,12 +1006,6 @@ class TR_PR_Diagnostic:
                                       s_time = self.s_time, f_time = self.f_time,
                                       s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  
                                       sort=False, dask_array=False)
-            
-            #weights = self.preprocessing(weights, preprocess=preprocess, variable_1=variable_1, trop_lat=trop_lat, 
-            #                          s_time = self.s_time, f_time = self.f_time,
-            #                          s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  
-            #                          sort=False, dask_array=False)
-
 
             weights = self.latitude_band(weights, trop_lat=self.trop_lat)
 
@@ -997,7 +1047,14 @@ class TR_PR_Diagnostic:
             f_year (int, optional):         The final year in Dataset. Defaults to None.
             s_month (int, optional):        The starting month in Dataset. Defaults to None.
             f_month (int, optional):        The final month in Dataset. Defaults to None.
-        Returns: the counts histogram."""
+
+            num_of_bins (int, optional):    The number of bins in the histogram. Defaults to None.
+            first_edge (float, optional):   The first edge of the histogram. Defaults to None.
+            width_of_bin (float, optional): The width of the bins in the histogram. Defaults to None.
+            bins (array, optional):         The array of bins in the histogram. Defaults to 0.
+        Returns:
+            xarray: The frequency histogram of the specified variable in the Dataset
+        """ 
         self.class_attributes_update(s_time = s_time, f_time = f_time,  trop_lat = trop_lat, 
                                s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, first_edge = first_edge, 
                                num_of_bins = num_of_bins, width_of_bin = width_of_bin) 
@@ -1075,11 +1132,34 @@ class TR_PR_Diagnostic:
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
     def hist_figure(self,  data, weights=None, frequency = False, pdf = True, smooth = True, step = False, color_map = False,  \
                     ls = '-', ylogscale=True, xlogscale = False, color = 'tab:blue',  figsize=1, legend='_Hidden', 
-                    varname = 'Precipitation', plot_title = None,  add = None, fig=None, path_to_save = None):
-        """ Function to plot the histogram.
+                    varname = 'Precipitation', plot_title = None,  add = None, fig=None, path_to_figure = None):
+        """ Function to generate a histogram figure based on the provided data.
 
         Args:
-            data (xarray): The counts."""
+            data:                       The data for the histogram.
+            weights (optional):         An array of weights for the data. Default is None.
+            frequency (bool, optional): Whether to plot frequency. Default is False.
+            pdf (bool, optional):       Whether to plot the probability density function (PDF). Default is True.
+            smooth (bool, optional):    Whether to plot a smooth line. Default is True.
+            step (bool, optional):      Whether to plot a step line. Default is False.
+            color_map (bool or str, optional): Whether to apply a color map to the histogram bars.
+                If True, uses the 'viridis' color map. If a string, uses the specified color map. Default is False.
+            ls (str, optional):         The line style for the plot. Default is '-'.
+            ylogscale (bool, optional): Whether to use a logarithmic scale for the y-axis. Default is True.
+            xlogscale (bool, optional): Whether to use a logarithmic scale for the x-axis. Default is False.
+            color (str, optional):      The color of the plot. Default is 'tab:blue'.
+            figsize (float, optional):  The size of the figure. Default is 1.
+            legend (str, optional):     The legend label for the plot. Default is '_Hidden'.
+            varname (str, optional):    The name of the variable for the x-axis label. Default is 'Precipitation'.
+            plot_title (str, optional): The title of the plot. Default is None.
+            add (tuple, optional):      Tuple of (fig, ax) to add the plot to an existing figure.
+            fig (object, optional):     The figure object to plot on. If provided, ignores the 'add' argument.
+            path_to_figure (str, optional): The path to save the figure. If provided, saves the figure at the specified path.
+
+
+        Returns:
+            A tuple (fig, ax) containing the figure and axes objects.
+            """
         if add is None and fig is None:
             fig, ax = plt.subplots( figsize=(8*figsize,5*figsize) )
         elif add is not None: 
@@ -1156,14 +1236,14 @@ class TR_PR_Diagnostic:
             plt.legend(loc='upper right', fontsize=12)
         # set the spacing between subplots
         plt.tight_layout()
-        if path_to_save is not None and isinstance(path_to_save, str):
-            plt.savefig(path_to_save)
+        if path_to_figure is not None and isinstance(path_to_figure, str):
+            plt.savefig(path_to_figure)
         return {fig, ax}   
 
 
 
 
-
+# separate branch, PR, not part of this diagnostic?
 def time_interpreter(dataset):
     """Identifying unit of timestep in the Dataset
 
@@ -1197,7 +1277,6 @@ def time_interpreter(dataset):
                 timestep = dataset.time[1] - dataset.time[0]
                 n_minutes = int(timestep/(60  * 10**9) )
                 return str(n_minutes)+'m'
-                # separate branch, PR, not part of this diagnostic
         else:
             return 1
 

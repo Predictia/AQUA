@@ -20,9 +20,6 @@ sys.path.insert(1, path_to_diagnostic)
 @pytest.mark.tropical_rainfall
 @pytest.fixture(params=[
     Reader(model="IFS", exp="test-tco79", source="long")
-    #Reader(model="ICON", exp="ngc2009", source="lra-r100-monthly"),
-    #Reader(model="IFS", exp="tco2559-ng5", source="lra-r100-monthly"),
-    #Reader(model="MSWEP", exp="past", source="monthly")
 ])
 
 def reader(request):
@@ -54,6 +51,7 @@ def check_precipitation_in_data(reader):
     
 @pytest.fixture
 def data_size(reader):
+    """ Return total size of Dataset"""
     data = reader
     if 'DataArray' in str(type(data)):
         size = data.size
@@ -80,7 +78,6 @@ def histogram_output(reader):
     """
     data = reader
     diag = TR_PR_Diag(num_of_bins = 20, first_edge = 200, width_of_bin = (320-200)/20)
-    #diag = TR_PR_Diag(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-6)/20)
     hist = diag.histogram(data, variable_1='2t', trop_lat=90)
     return hist
 
@@ -115,20 +112,20 @@ def test_histogram_pdf(histogram_output):
 def test_histogram_load_to_memory(histogram_output):
     """ Testing the histogram load to memory
     """
-    path_to_save=str(path_to_diagnostic)+"/test_output/histograms/"
+    path_to_histogram=str(path_to_diagnostic)+"/test_output/histograms/"
     create_folder(folder=str(path_to_diagnostic)+"test_output/", loglevel='WARNING')
     create_folder(folder=str(path_to_diagnostic)+"test_output/histograms/", loglevel='WARNING')
     
     # Cleaning the repository with histograms before new test
-    histogram_list = [f for f in listdir(path_to_save) if isfile(join(path_to_save, f))]
-    histograms_list_full_path = [str(path_to_save)+str(histogram_list[i]) for i in range(0, len(histogram_list))]
+    histogram_list = [f for f in listdir(path_to_histogram) if isfile(join(path_to_histogram, f))]
+    histograms_list_full_path = [str(path_to_histogram)+str(histogram_list[i]) for i in range(0, len(histogram_list))]
     for i in range(0, len(histograms_list_full_path)):
         remove(histograms_list_full_path[i])
 
     hist = histogram_output
     diag = TR_PR_Diag()
-    diag.save_histogram(dataset=hist, path_to_save=path_to_save, name_of_file='test_hist_saving')
-    files = [f for f in listdir(path_to_save) if isfile(join(path_to_save, f))]
+    diag.save_histogram(dataset=hist, path_to_histogram=path_to_histogram, name_of_file='test_hist_saving')
+    files = [f for f in listdir(path_to_histogram) if isfile(join(path_to_histogram, f))]
     assert 'test_hist_saving' in files[0]
 
     time_band=hist.counts.attrs['time_band']
@@ -138,33 +135,23 @@ def test_histogram_load_to_memory(histogram_output):
         re_time_band = re.split("'", re.split(":", time_band)[0])[1]
     assert re_time_band in time_band
 
- 
-#@pytest.mark.tropical_rainfall
-#def test_units_convertation(reader):
-#    """ Testing the units convertation
-#    """ 
-#    data = reader 
-#    diag = TR_PR_Diag()
-#    data = diag.precipitation_units_converter(data, new_unit='m')
-#    assert data.tprate.attrs['units'] == 'm'
-  
 
 @pytest.mark.tropical_rainfall
 def test_figure_load_to_memory(histogram_output):
-    """ Testing the figure load to memory
+    """ Testing the saving of the figure
     """
     create_folder(folder=str(path_to_diagnostic)+"test_output/plots/", loglevel='WARNING')
-    path_to_save=str(path_to_diagnostic)+"/test_output/plots/"
+    path_to_figure=str(path_to_diagnostic)+"/test_output/plots/"
     hist = histogram_output
     diag = TR_PR_Diag()
-    diag.hist_figure(hist, path_to_save=str(path_to_save)+'test_fig_saving.png')
-    files = [f for f in listdir(path_to_save) if isfile(join(path_to_save, f))]
+    diag.hist_figure(hist, path_to_figure=str(path_to_figure)+'test_fig_saving.png')
+    files = [f for f in listdir(path_to_figure) if isfile(join(path_to_figure, f))]
     assert 'test_fig_saving.png' in files
 
     
 @pytest.mark.tropical_rainfall
 def test_lazy_mode_calculation(reader):
-    """ Testing the lazy mode calculation
+    """ Testing the lazy mode of the calculation
     """
     data = reader
     diag = TR_PR_Diag(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-6)/20)
@@ -247,14 +234,10 @@ def test_histogram_merge(histogram_output):
 
     diag = TR_PR_Diag()
 
-    path_to_save=str(path_to_diagnostic)+"/test_output/histograms/"
-    diag.save_histogram(dataset=hist_2, path_to_save=path_to_save, name_of_file='test_merge')
+    path_to_histogram=str(path_to_diagnostic)+"/test_output/histograms/"
+    diag.save_histogram(dataset=hist_2, path_to_histogram=path_to_histogram, name_of_file='test_merge')
     
     hist_merged = diag.merge_two_datasets(tprate_dataset_1=hist_1, tprate_dataset_2=hist_2)
     counts_merged= sum(hist_merged.counts.values)
     assert counts_merged==(counts_1+counts_2)
-
-    #hist_merged_from_mem = diag.merge_list_of_histograms(path_to_histograms=path_to_save, all=True)
-    #counts_merged_from_mem= sum(hist_merged_from_mem .counts.values)
-    #assert counts_merged_from_mem==(counts_1+counts_2)
 
