@@ -33,17 +33,17 @@ The most crucial attributes of the class are:
 
       diag.trop_lat=15
 
-  The user can modify the latitude band by parsing the argument `trop_lat` to the functions. In this case, not only will a function use a new value of `trop_lat`, 
-  but it will also update the class's default value. For example:
+ The user can modify the latitude band by parsing the argument `trop_lat` to the functions of the class. 
+ In this instance, a function uses a new value for 'trop_lat' and modifies the class's default value. For example:
   
     .. code-block:: python
 
       diag.histogram(ifs, trop_lat=90)
       diag.trop_lat
   
-  While the user set `trop_lat=90`, the diagnostic will calculate the global precipitation, not tropical. 
+  While the user has specified 'trop_lat=90', the diagnostic will calculate global precipitation instead of tropical. 
 
-  The user can update all class attributes in the way as the `trop_lat` attribute. 
+  **All class attributes are editable in the same way as the 'trop_lat' attribute.**
 
 * `num_of_bins (int)`:            
   the number of bins,
@@ -52,73 +52,117 @@ The most crucial attributes of the class are:
   the first edge of the bin,
 
 * `width_of_bin (int, float)`:  
-  the width of the bin. If the user initializes the `num_of_bins`, `first_edge`, and  `width_of_bin`,  
+  the width of the bin. 
+  
+  If the user initializes the `num_of_bins`, `first_edge`, and  `width_of_bin`,  
   the diagnostic will calculate the 
-  histograms with continuous uniform binning, i.e., all bins in the histogram will have the same width.
+  histograms with **continuous uniform binning**, i.e., all bins in the histogram will have the same width.
 
 * `bins (np.ndarray, list)`:            
-  the bins.  If the user wants to perform the calculation for non-uniform binning (for example, log-spaced), 
+  the bins.  If the user wants to perform the calculation for **non-uniform binning** (for example, log-spaced), 
   use the `bins` attribute of the diagnostic instead of `num_of_bins`, `first_edge`, and `width_of_bin`.
 
 
+The class has the following time-related attributes, which help define the dataset's time band: 
 
-* `s_time (int, str)`:          The start time of the time interval. 
+* `s_time (int, str)`:          the start time of the time interval, 
 
-* `f_time (int, str)`:          The end time of the time interval. 
+* `f_time (int, str)`:          the end time of the time interval,
 
-* `s_year (int)`:               The start year of the time interval. 
+* `s_year (int)`:               the start year of the time interval, 
 
-* `f_year (int)`:               The end year of the time interval. 
+* `f_year (int)`:               the end year of the time interval,
 
-* `s_month (int)`:              The start month of the time interval. 
+* `s_month (int)`:              the start month of the time interval, 
 
-* `f_month (int)`:               The end month of the time interval. 
+* `f_month (int)`:              the end month of the time interval. 
 
-You can specify `s_time` and `f_time` as integers. For example, 
-There is the possibility of specifying only the year band or only the months' band. For example, we can select June, July, and August in a whole dataset as
-Also, you can specify `s_time` and `f_time` as strings. For example, 
+  The user can specify `s_time` and `f_time` as integers. If the user needs to calculate 
+  the histogram for the first 100 time steps, he can initialize the diagnostic as follows: 
+  
+    .. code-block:: python
+
+      diag = TR_PR_Diag(bins=bins, s_time=0, f_time=100)
+      diag.histogram(mswep)
+
+  The user can specify `s_time` and `f_time` as strings with any separators between year/month/day/hour/minute:
+  
+    .. code-block:: python
+
+      diag.s_time = '2020:01'
+      diag.f_time ='2020/03/20/12'
+
+  There is the option to specify the year range:
+
+    .. code-block:: python
+
+      diag.s_year = 2020
+      diag.f_year = 2025
+
+  or month range:
+
+    .. code-block:: python
+
+      diag.s_month = 3
+      diag.f_month = 6
+
+  or both the year and month range at the same time:
+
+    .. code-block:: python
+
+      diag.s_year = 2012
+      diag.s_month = 9
+      diag.f_month = 11
+
+
+All class attributes are optional, but the time-related attributes are of lesser diagnostic relevance.
+
+
+**Reminder**: Although all attributes are optional, the user must define or `bins` attribute of the diagnostic 
+or `num_of_bins`, `first_edge`, and `width_of_bin` for histogram calculation.
 
 The histogram calculation
 -------------------------
 
-The simplest example of a histogram calculation is: 
+The most straightforward illustration of a histogram calculation
 
-.. code-block:: python
+* with continuous uniform binning:
 
-    diag = TR_PR_Diag(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-5))
-    diag.histogram(ifs)
+  .. code-block:: python
 
-or with the log-spaced binning:
+      diag = TR_PR_Diag(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-5))
+      diag.histogram(ifs)
 
-.. code-block:: python
+* with the log-spaced binning:
 
-    diag = TR_PR_Diag()
+  .. code-block:: python
 
-    bins = [1.00000000e-09, 1.63789371e-09, 2.68269580e-09, 4.39397056e-09,
-       7.19685673e-09, 1.17876863e-08, 1.93069773e-08, 3.16227766e-08,
-       5.17947468e-08, 8.48342898e-08, 1.38949549e-07, 2.27584593e-07,
-       3.72759372e-07, 6.10540230e-07, 1.00000000e-06]
-    diag.histogram(ifs)
+      diag = TR_PR_Diag()
+      bins = numpy.logspace(-9, -6, 15)
+      diag.histogram(ifs)
 
 
+* with weights
+  
+    .. code-block:: python
 
+        diag.histogram(icon, weights=reader.grid_area)
 
-The function provides the opportunity to calculate the histogram with weights. Compared to standard methods, such computations 
-are `high-speed` because they are based on `boost_histogram` and `dask_histogram` packages (see `env-tropical-rainfall.yml` file).
+  Compared to standard methods, such computations 
+  are `high-speed` because they are based on `boost_histogram` and `dask_histogram` packages (see `env-tropical-rainfall.yml` file).
 
-.. code-block:: python
-
-    diag.histogram(icon, weights=reader.grid_area)
-
-
+  
 The output of the histogram function is xarray.Dataset, which has two coordinates 
 
 * `center_of_bin`:   the center of each bin
 
 * `width`:           width of each bin
 
+
 We used two coordinated instead of one to allow the user usage of not uniformal binning if needed. 
-The array.Dataset  contains three variables:
+
+
+The xarray.Dataset  contains three variables:
 
 * `counts`:       the number of observations that fall into each bin
 
@@ -126,13 +170,14 @@ The array.Dataset  contains three variables:
 
 * `pdf`:          the number of cases in each bin, normalized by the total number of counts and width of each bin. 
 
-local and global attributes. Local attributes contain the information about the time and space grid for which diagnostic performed the calculations:
+The obtained xarray.Dataset contains both local and global attributes. 
+Local attributes specify the time and space grid for which the diagnostic performed calculations:
 
-* `time_band`:    the value of time of the first and last element in the dataset and the frequency of the time grid
+* `time_band`:    the value of time of the first and last element in the dataset and the frequency of the time grid,
 
-* `lat_band`:     the maximum and minimum values of the tropical latitude band and the frequency of the latitude grid
+* `lat_band`:     the maximum and minimum values of the tropical latitude band and the frequency of the latitude grid,
 
-* `lon_band`:     the maximum and minimum values of the longitude and the frequency of the longitude grid
+* `lon_band`:     the maximum and minimum values of the longitude and the frequency of the longitude grid.
 
 Global attribute `history` contains the information about when the histogram was calculated and values of `time_band`, `lat_band`, and `lon_band`.
 
@@ -140,17 +185,16 @@ Global attribute `history` contains the information about when the histogram was
 The lazy mode 
 --------------
 
-Calculation of histogram of global or tropical precipitation can be done in the lazy (or delayed) mode. To perform calculations in the so-called lazy mode, 
-use the flag `lazy` in the histogram function. 
+The user can calculate the histogram of global or tropical precipitation in the so-called lazy (or delayed) mode. 
+To do this, the user needs to set the `lazy`` flag to True.
 
   .. code-block:: python
 
     hist_icon_lazy=diag.histogram(icon, lazy=True)
 
-In the case of lazy calculation, the function's output will be different:  the xarray.DataArray will contain only non-computed counts. If user want 
-to add frequency and pdf variables to the histogram Dataset, apply the following function `histogram_to_xarray` (but only when you are actually 
-ready to compute the histogram).
-The function `data_with_global_atributes` argument is needed to populate Dataset with global attributes. 
+If the user is ready to compute the histogram, 
+he can apply the function `histogram_to_xarray` to add frequency and pdf variables to the dataset.
+The function `data_with_global_atributes` argument is needed to populate Dataset with global attributes: 
 
   .. code-block:: python
 
@@ -159,25 +203,31 @@ The function `data_with_global_atributes` argument is needed to populate Dataset
 The histogram plots 
 -------------------
 
-The diagnostic contains the simple in-the-use function to create the histogram plot. The user can create plots of the obtained data in 
-different styles and scales. 
+The diagnostic contains the simple in-the-use function to create the histogram plot. 
+The user can create plots of the obtained data in  different styles and scales. 
 
 
 
 Output 
 ------
 
-The diagnostic already provides unique names for the histograms. Namely, the name of the histogram includes the starting and final time 
-steps for which the diagnostic performs the calculations in the following format: `year-month-day-hour`. The name of the file, which you 
-specified, would be added at the beginning of the file name. 
-For example, for one day of the icon data (freq=30m) the name of the histogram is `icon_2020-01-20T00_2020-01-20T23_histogram.pkl`.
+The diagnostic already provides unique names for the files which contain the histogram.  
+The file's name includes the first and last time steps, for which the diagnostic does the calculations, in the following format: `year-month-day-hour`. 
+The name of the file, which the user specified, would be added at the beginning of the file name. 
+For example, for one day of the icon data (`freq=30m`) 
 
+  .. code-block:: python
+
+    path_to_save='/work/bb1153/b382267/AQUA/histograms/'
+    diag.save_histogram(dataset=hist_icon, path_to_save=path_to_save, name_of_file='icon')
+
+the name of the histogram is `icon_2020-01-20T00_2020-01-20T23_histogram.pkl`.
 
 List of histograms 
 ------------------
 
-The diagnostic can merge any set of histograms into one, automatically recalculating the frequencies and pdf values and updating the 
-attributes.
+The diagnostic can combine any number of histograms into a single histogram, recalculating 
+the frequencies and pdf values and modifying the attributes automatically.
 
 
 If you want to merge all histograms if the specified repository, set the following flag: `all=True.`
@@ -189,12 +239,11 @@ If you want to merge all histograms if the specified repository, set the followi
     merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, all=True)
     merged_histograms
 
-The function will merge all histograms into single histograms. In order to avoid possible mistakes, keep the histograms obtained for 
-different models in different repositories. 
+**Reminder**: Store the obtained histograms for distinct models in separate repositories to avoid possible errors. 
 
 
 If you want to merge only a specific number of histograms, set the function `multi`-argument. 
-The function will sort the files in the repository and take the first `multi` number of histograms in the repo.
+The function will sort the files in the repository and take the first `multi` number of histograms in the repository.
 
   .. code-block:: python
 
@@ -217,6 +266,7 @@ The notebook folder contains the following notebooks:
     - calculation of the histograms in the form of xarray, 
     - saving the histograms in the storage,
     - and loading the histograms from storage.
+    
  - `ICON histogram plotting <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical-rainfall-diagnostic/notebooks/ICON_histogram_plotting.ipynb>`_:
 
     The notebook demonstrates the abilities of the histogram plotting functions:
@@ -234,5 +284,5 @@ The notebook folder contains the following notebooks:
 
     The notebook demonstrates:
     - a simple comparison of obtained histograms for different climate models, 
-    - ability to merge a few separate plots into a single one. 
+    - the ability to merge a few separate plots into a single one. 
 
