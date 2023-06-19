@@ -599,7 +599,7 @@ class Reader(FixerMixin, RegridMixin):
             query[query_var] = var.split() if isinstance(var, str) else var
         subcat = esmcat.search(**query)
         data = subcat.to_dataset_dict(cdf_kwargs=cdf_kwargs,
-                                      zarr_kwargs=dict(consolidated=True),
+                                      # zarr_kwargs=dict(consolidated=True),
                                       # decode_times=True,
                                       # use_cftime=True)
                                       progressbar=False
