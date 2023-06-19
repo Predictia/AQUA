@@ -37,6 +37,10 @@ The notebook folder contains the following notebooks:
     - a simple comparison of obtained histograms for different climate models, 
     - ability to merge a few separate plots into a single one. 
 
+ - `diagnostic_example_for_2t.ipynb`:
+    The notebook illustrates that:
+    - The tropical precipitation diagnostic can be applied to any climate model variable. 
+
 Read the documentation for a detailed description of the diagnostic and diagnostic usage.
 
 ##  Enviroment 

@@ -307,6 +307,7 @@ Below is an additional example of a histogram plot.
 
 
 
+
 Notebooks 
 ---------
 
@@ -339,4 +340,9 @@ The notebook folder contains the following notebooks:
     The notebook demonstrates:
     - a simple comparison of obtained histograms for different climate models, 
     - the ability to merge a few separate plots into a single one. 
+
+ - `The applications of the diagnostic <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical-rainfall-diagnostic/notebooks/diagnostic_example_for_2t.ipynb>`_:
+
+    The notebook illustrates that:
+    - The tropical precipitation diagnostic can be applied to any climate model variable.  
 
