@@ -206,6 +206,56 @@ The histogram plots
 The diagnostic contains the simple in-the-use function to create the histogram plot. 
 The user can create plots of the obtained data in  different styles and scales. 
 
+The simplest way to plot the histogram is:
+
+  .. code-block:: python
+    diag.hist_figure(hist_icon) 
+
+The function `hist_figure` has an extensive set of arguments.
+
+# The first and major group of arguments relates to the histogram type: 
+
+   * `pdf`-histogram: `pdf=True`, also it is the default value, 
+
+   * `frequency`-histogram: `frequency=True, pdf=False`,
+
+   * `counts`-histogram: `frequency=False, pdf=False`.
+
+# The second group of arguments related to the plot style:
+
+   * `smooth` (bool, True by default): if True, smooth 2D line
+
+   * `step` (bool, False by default): if True, step line 
+
+   * `color_map` (bool/str, False/'viridis' by default): if not False, color map plot
+
+# The third set of arguments involves the figure settings:
+
+   * `ls` (str, '-'): The line style for the plot. 
+
+   * `ylogscale` (bool, True): The logarithmic scale for the y-axis. 
+
+   * `xlogscale` (bool, False): The logarithmic scale for the x-axis. 
+
+   * `color` (str, 'tab:blue'): The color of the plot. 
+ 
+   * `figsize` (float, 1): The size of the figure. 
+
+   * `legend` (str, '_Hidden'): The legend label for the plot. 
+
+   * `varname` (str, 'Precipitation'): The variable's name for the x-axis label. 
+
+   * `plot_title` (str, None): The plot's title.
+ 
+   * `loc` (str, 'upper right'): The location of the legend. 
+
+   * `add/fig` (tuple, None): Tuple of (fig, ax) to add the plot to an existing figure. / The figure object to plot on.
+
+   * `path_to_figure` (str, None): The path to save the figure. If provided, saves the figure at the specified path.
+
+
+
+
 
 
 Output 

@@ -4,7 +4,7 @@ The main purpose of tropical rainfall diagnostic is to provide the xarray.Datase
 
 ## Python Module 
 
-The main module or Python script of tropical rainfall diagnostic is `tropical_rainfall_class.py`. 
+The module of tropical rainfall diagnostic is `tropical_rainfall_class.py`. 
 
 
 ## Notebooks 
