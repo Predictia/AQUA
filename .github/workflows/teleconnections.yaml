@@ -56,9 +56,6 @@ jobs:
           crate: htmlq
           cache-key: cargo-coverage
 
-      - run: cargo install htmlq
-        if: ${{ env.COVERAGE_ENABLED }}
-
       - name: Download and setup framework tests
         run: |
           ./download_data_for_tests.sh
