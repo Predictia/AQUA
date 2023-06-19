@@ -33,8 +33,8 @@ The most crucial attributes of the class are:
 
       diag.trop_lat=15
 
- The user can modify the latitude band by parsing the argument `trop_lat` to the functions of the class. 
- In this instance, a function uses a new value for 'trop_lat' and modifies the class's default value. For example:
+  The user can modify the latitude band by parsing the argument `trop_lat` to the functions of the class. 
+  In this instance, a function uses a new value for 'trop_lat' and modifies the class's default value. For example:
   
     .. code-block:: python
 
@@ -43,7 +43,7 @@ The most crucial attributes of the class are:
   
   While the user has specified 'trop_lat=90', the diagnostic will calculate global precipitation instead of tropical. 
 
-  **All class attributes are editable in the same way as the 'trop_lat' attribute.**
+  **Note:** All class attributes are editable in the same way as the 'trop_lat' attribute.
 
 * `num_of_bins (int)`:            
   the number of bins,
@@ -266,7 +266,7 @@ The notebook folder contains the following notebooks:
     - calculation of the histograms in the form of xarray, 
     - saving the histograms in the storage,
     - and loading the histograms from storage.
-    
+
  - `ICON histogram plotting <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical-rainfall-diagnostic/notebooks/ICON_histogram_plotting.ipynb>`_:
 
     The notebook demonstrates the abilities of the histogram plotting functions:
