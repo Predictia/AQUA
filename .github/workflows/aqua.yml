@@ -50,10 +50,9 @@ jobs:
           environment-file: environment.yml
           environment-name: aqua
           cache-downloads: true
-          cache-environment: true
+          cache-environment: false
           condarc: |
             channels:
-              - numba
               - conda-forge
           create-args: >-
               python=${{ matrix.python-version }}
