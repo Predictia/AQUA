@@ -22,25 +22,39 @@ More diagnostics or functionalities can be added in the future.
 A configuration file is available in the `config` folder.
 It can be customized to add new teleconnections or to change the default parameters of the diagnostic.
 
+How to install the diagnostic
+-----------------------------
+
+The diagnostic is available in the `teleconnections` folder inside the `diagnostics` folder.
+Inside the `teleconnections` folder there is a `pyproject.toml` file that can be used to install the diagnostic as a package.
+An `env-teleconnections.yml` file is also available to create a conda environment with all the dependencies needed to run the diagnostic.
+
+To install the diagnostic as a package, run the following command from the `teleconnections` folder:
+
+.. code-block:: bash
+
+  pip install .
+
+To create a conda environment with all the dependencies needed to run the diagnostic, run the following command from the `teleconnections` folder:
+
+.. code-block:: bash
+
+  conda env create -f env-teleconnections.yml
+
 How to run the diagnostic
 -------------------------
 
 The diagnostic can be run in a notebook or in a script.
 The following steps are necessary to run the diagnostic (we're taking the NAO as an example):
 
-1. Import the necessary functions from the `index.py` file and from the `AQUA` framework.
+1. Import the necessary functions from the `teleconnections` package and from the `AQUA` framework.
 
 .. code-block:: python
 
   from aqua import Reader
   from index import station_based_index
-  from plots import index_plot
-  from tools import load_namelist
-
-Please notice that at the moment in order to import the functions from the `index.py` file,
-the `teleconnections` folder needs to be in the same folder as the notebook or script.
-A possible hack is to use `sys.path.append` to add the `teleconnections` folder to the path.
-An example is available in the `notebooks` folder.
+  from teleconnections.plots import index_plot
+  from teleconnections.tools import load_namelist
 
 2. Load the config specific of your teleconnection.
 
