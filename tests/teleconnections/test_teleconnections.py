@@ -1,9 +1,9 @@
 import pytest
 import sys
 sys.path.insert(1, './diagnostics/teleconnections/')
-from cdo_testing import cdo_station_based_comparison
-from cdo_testing import cdo_regional_mean_comparison
-from tools import load_namelist, lon_180_to_360
+from teleconnections.cdo_testing import cdo_station_based_comparison
+from teleconnections.cdo_testing import cdo_regional_mean_comparison
+from teleconnections.tools import load_namelist, lon_180_to_360
 
 
 # pytest approximation, to bear with different machines
