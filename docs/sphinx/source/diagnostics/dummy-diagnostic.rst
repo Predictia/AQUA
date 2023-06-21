@@ -10,18 +10,11 @@ This section should contain a short description of the contents of the diagnosti
 It can contain references to literature (we have a reference list below).
 Please try to adhere to the following scheme as far as possible.
 
-Available demo notebooks
-------------------------
-
-Notebooks are stored in diagnostics/dummy-diagnostic/notebooks
-
-* `dummy.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/dummy-diagnostic/notebooks/dummy.ipynb>`_
-        
-
 Input variables
 ---------------
 
-* `tprate` (precipitation rate)
+* `tprate` (total precipitation rate, GRIB paramid 260048)
+* `2t`     (2 metre temperature, GRIB pramid 167)
 
 Output 
 ------
@@ -47,7 +40,13 @@ Example Plot(s)
 
     An illustration of the big void left by this diagnostic
 
+Available demo notebooks
+------------------------
 
+Notebooks are stored in diagnostics/dummy-diagnostic/notebooks
+
+* `dummy.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/dummy-diagnostic/notebooks/dummy.ipynb>`_
+        
 Detailed API
 ------------
 
