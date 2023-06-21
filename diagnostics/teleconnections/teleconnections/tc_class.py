@@ -15,6 +15,7 @@ class Teleconnection():
                  telecname=None, configdir=None, regrid='r100',
                  savefig=False, outputfig=None,
                  savefile=False, outputdir=None,
+                 filename=None,
                  months_window=3, loglevel='WARNING'):
         """Initialize teleconnection object."""
 
@@ -65,22 +66,27 @@ class Teleconnection():
 
         # Output variables
         self.savefig = savefig
-        if self.savefig:
-            if outputfig:
-                self.outputfig = outputfig
-            else:
-                self.warning('No figure folder specified, using current folder')
-                self.outputfig = '.'
+        if outputfig:
+            self.outputfig = outputfig
+        else:
+            self.logger.warning('No figure folder specified, using current folder')
+            self.outputfig = '.'
         self.logger.debug('Figure output folder: {}'.format(self.outputfig))
 
         self.savefile = savefile
-        if self.savefile:
-            if outputdir:
-                self.outputdir = outputdir
-            else:
-                self.warning('No output folder specified, using current folder')
-                self.outputdir = '.'
+        if outputdir:
+            self.outputdir = outputdir
+        else:
+            self.logger.warning('No output folder specified, using current folder')
+            self.outputdir = '.'
         self.logger.debug('Output folder: {}'.format(self.outputdir))
+
+        if self.savefile or self.savefig:
+            if filename:
+                self.filename = filename
+            else:
+                self.filename = self.telecname
+            self.logger.debug('Filename: {}'.format(self.filename))
 
         # Initialize reader
         self._reader()
@@ -98,7 +104,6 @@ class Teleconnection():
         self.reader = Reader(model=self.model, exp=self.exp, source=self.source,
                              regrid=self.regrid, loglevel=self.loglevel)
         self.logger.info('Reader initialized')
-        self.logger.debug(self.reader)
 
     def retrieve(self):
         """Retrieve teleconnection data."""
@@ -132,9 +137,9 @@ class Teleconnection():
                                              loglevel=self.loglevel)
 
         if self.savefile:
-            filename = self.outputdir + '/' + self.telecname + '_index.nc'
-            self.index.to_netcdf(filename)
-            self.logger.info('Index saved to {}'.format(filename))
+            file = self.outputdir + '/' + self.filename + '_index.nc'
+            self.index.to_netcdf(file)
+            self.logger.info('Index saved to {}'.format(file))
 
     def evaluate_regression(self):
         """Calculate teleconnection regression."""
@@ -142,10 +147,10 @@ class Teleconnection():
         self.logger.warning('Not implemented yet')
         pass
 
-        if savefile:
-            filename = self.outputdir + '/' + self.telecname + '_reg.nc'
-            self.reg.to_netcdf(filename)
-            self.logger.info('Regression saved to {}'.format(filename))
+        if self.savefile:
+            file = self.outputdir + '/' + self.filename + '_reg.nc'
+            self.reg.to_netcdf(file)
+            self.logger.info('Regression saved to {}'.format(file))
 
     def evaluate_correlation(self):
         """Calculate teleconnection correlation."""
@@ -153,10 +158,10 @@ class Teleconnection():
         self.logger.warning('Not implemented yet')
         pass
 
-        if savefile:
-            filename = self.outputdir + '/' + self.telecname + '_corr.nc'
-            self.corr.to_netcdf(filename)
-            self.logger.info('Correlation saved to {}'.format(filename))
+        if self.savefile:
+            file = self.outputdir + '/' + self.filename + '_corr.nc'
+            self.corr.to_netcdf(file)
+            self.logger.info('Correlation saved to {}'.format(file))
 
     def plot_index(self, step=False, **kwargs):
         """Plot teleconnection index."""
@@ -165,5 +170,5 @@ class Teleconnection():
             self.logger.warning('No index has been calculated, trying to calculate')
             self.evaluate_index()
 
-        index_plot(index=self.index, save=self.savefig, outputdir=self.outputfig,
-                   loglevel=self.loglevel, **kwargs)
+        index_plot(indx=self.index, save=self.savefig, outputdir=self.outputfig,
+                   loglevel=self.loglevel, step=step, **kwargs)
