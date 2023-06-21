@@ -87,8 +87,12 @@ class Teleconnection():
             self.data = self.reader.retrieve(var=self.var, fix=False)
         self.logger.info('Data retrieved')
 
-    def index(self):
+    def evaluate_index(self):
         """Calculate teleconnection index."""
+
+        if self.data is None:
+            self.logger.warning('No retrieve has been performed, trying to retrieve')
+            self.retrieve()
 
         if self.telec_type == 'station':
             self.index = station_based_index(field=self.data[self.var],
@@ -102,3 +106,13 @@ class Teleconnection():
                                              telecname=self.telecname,
                                              months_window=self.months_window,
                                              loglevel=self.loglevel)
+            
+    def evaluate_regression(self):
+        """Calculate teleconnection regression."""
+
+        pass
+
+    def evaluate_correlation(self):
+        """Calculate teleconnection correlation."""
+
+        pass
