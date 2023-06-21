@@ -120,7 +120,7 @@ class RegridMixin():
         extra = extra + src_extra
 
         weights = rg.cdo_generate_weights(source_grid=sgridpath,
-                                          target_grid=cfg_regrid["target_grids"][regrid],
+                                          target_grid=cfg_regrid["grids"][regrid],
                                           method=method,
                                           gridpath=cfg_regrid["cdo-paths"]["download"],
                                           icongridpath=cfg_regrid["cdo-paths"]["icon"],
