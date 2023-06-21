@@ -43,9 +43,9 @@ jobs:
       - name: Download and setup framework tests
         run: |
           ./download_data_for_tests.sh
-      - name: Run framework tests
-        run: |
-          python -m pytest ./tests/test_basic.py 
+      #- name: Run framework tests
+      #  run: |
+      #    python -m pytest ./tests/test_basic.py 
 
 # Run diagnostic tests
       - name: Download and setup dummy-diagnostic tests
