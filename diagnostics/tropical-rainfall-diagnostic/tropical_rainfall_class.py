@@ -11,12 +11,12 @@ import matplotlib.pyplot as plt
 from matplotlib import colors
 from matplotlib.ticker import PercentFormatter
 
-import fast_histogram 
-import boost_histogram as bh #pip
+#import fast_histogram 
+#import boost_histogram as bh #pip
 import dask.array as da
 import dask_histogram as dh # pip
-import dask_histogram.boost as dhb
-import dask
+#import dask_histogram.boost as dhb
+#import dask
  
 
 
@@ -405,122 +405,7 @@ class TR_PR_Diagnostic:
                 return data_per_lat_band
         else:
             return data
-    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def histogram(self, data, preprocess = True,   trop_lat = 10, variable_1 = 'tprate',   weights = None, 
-                  data_with_global_atributes=None,
-                  s_time = None, f_time = None, s_year = None, f_year = None, s_month = None, f_month = None, 
-                  num_of_bins = None, first_edge = None,  width_of_bin  = None,   bins=0, 
-                  dask = False, lazy=False, create_xarray=True, path_to_histogram=None):
-        """ Function to calculate a histogram of the Dataset.
-
-        Args:
-            data (xarray.Dataset):          The input Dataset.
-            preprocess (bool, optional):    If True, preprocesses the Dataset. Defaults to True.
-            trop_lat (float, optional):     The maximum absolute value of tropical latitude in the Dataset. Defaults to 10.
-            variable_1 (str, optional):     The variable of interest in the Dataset. Defaults to 'tprate'.
-            weights (array-like, optional): The weights of the data. Defaults to None.
-            data_with_global_attributes (xarray.Dataset, optional): The Dataset with global attributes. Defaults to None.
-            s_time (str/int, optional):     The starting time value/index in the Dataset. Defaults to None.
-            f_time (str/int, optional):     The final time value/index in the Dataset. Defaults to None.
-            s_year (int, optional):         The starting year in the Dataset. Defaults to None.
-            f_year (int, optional):         The final year in the Dataset. Defaults to None.
-            s_month (int, optional):        The starting month in the Dataset. Defaults to None.
-            f_month (int, optional):        The final month in the Dataset. Defaults to None.
-            num_of_bins (int, optional):    The number of bins for the histogram. Defaults to None.
-            first_edge (float, optional):   The starting edge value for the bins. Defaults to None.
-            width_of_bin (float, optional): The width of each bin. Defaults to None.
-            bins (int, optional):           The number of bins for the histogram (alternative argument to 'num_of_bins'). Defaults to 0.
-            dask (bool, optional):          If True, performs calculations using Dask. Defaults to False.
-            lazy (bool, optional):          If True, delays computation until necessary. Defaults to False.
-            create_xarray (bool, optional): If True, creates an xarray dataset from the histogram counts. Defaults to True.
-            path_to_histogram (str, optional):   The path to save the xarray dataset. Defaults to None.
-
-        Returns:
-            xarray.Dataset or numpy.ndarray: The histogram of the Dataset.
-        """
-               
-        if lazy:
-            if weights is not None:
-                hist_counts=self.dask_factory_weights(data=data, weights=weights, preprocess=preprocess,  
-                                                      trop_lat=trop_lat,  variable_1=variable_1,  
-                                                      s_time=s_time, f_time=f_time,
-                                                      s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month, 
-                                                      num_of_bins=num_of_bins, first_edge=first_edge,  
-                                                      width_of_bin=width_of_bin,  bins=bins,   
-                                                      lazy=lazy)
-            else:
-                hist_counts=self.dask_factory(data=data, preprocess = preprocess,   
-                                                  trop_lat = trop_lat,  variable_1 = variable_1,  
-                                                  s_time = s_time , f_time = f_time, 
-                                                  s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, 
-                                                  num_of_bins = num_of_bins, first_edge = first_edge,  
-                                                  width_of_bin  = width_of_bin,   bins =bins, 
-                                                  lazy=lazy)
-
-
-        elif weights is not None:
-            if bins!=0 or self.bins!=0: #dask:
-                hist_counts=self.hist1d_np(data=data, weights=weights, preprocess=preprocess,   
-                                            trop_lat=trop_lat, variable_1=variable_1,  
-                                            s_time=s_time, f_time = f_time,   
-                                            s_year = s_year, f_year =f_year, s_month = s_month, f_month = f_month, 
-                                            num_of_bins=num_of_bins, first_edge=first_edge,  
-                                            width_of_bin=width_of_bin,  bins=bins)
-            else:
-                hist_counts=self.dask_factory_weights(data=data, weights=weights, preprocess=preprocess,  
-                                                      trop_lat=trop_lat,  variable_1=variable_1,  
-                                                      s_time=s_time, f_time=f_time,
-                                                      s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month, 
-                                                      num_of_bins=num_of_bins, first_edge=first_edge,  
-                                                      width_of_bin=width_of_bin,  bins=bins,   
-                                                      lazy=lazy)
-        else:
-            if dask:
-                #if lazy:
-                #    hist_counts=self.dask_factory(data=data, preprocess = preprocess,   
-                #                                  trop_lat = trop_lat,  variable_1 = variable_1,  
-                #                                  s_time = s_time , f_time = f_time, 
-                #                                  s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, 
-                #                                  num_of_bins = num_of_bins, first_edge = first_edge,  
-                #                                  width_of_bin  = width_of_bin,   bins =bins, 
-                #                                  lazy=lazy)
-                #else:
-                hist_counts=self.dask_boost(data=data, preprocess=preprocess, 
-                                            trop_lat=trop_lat,  variable_1=variable_1,  
-                                            s_time=s_time, f_time=f_time, 
-                                            s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month, 
-                                            num_of_bins=num_of_bins, first_edge=first_edge, 
-                                            width_of_bin=width_of_bin,  bins=bins)
-            elif bins!=0 or self.bins!=0:
-                hist_counts=self.hist1d_np(data=data, weights=weights, preprocess=preprocess,   
-                                           trop_lat=trop_lat, variable_1=variable_1,  
-                                           s_time=s_time, f_time = f_time,   
-                                           s_year = s_year, f_year =f_year, s_month = s_month, f_month = f_month, 
-                                           num_of_bins=num_of_bins, first_edge=first_edge,  
-                                           width_of_bin=width_of_bin,  bins=bins)
-            else:
-                hist_counts=self.hist1d_fast(data=data, preprocess=preprocess,   
-                                             trop_lat=trop_lat, variable_1=variable_1,  
-                                             s_time=s_time, f_time=f_time, 
-                                             s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month, 
-                                             num_of_bins=num_of_bins, first_edge=first_edge,  
-                                             width_of_bin=width_of_bin,  bins=bins)
-                
-        if data_with_global_atributes is None:
-            data_with_global_atributes=data
-
-        if not lazy and create_xarray:
-            tprate_dataset = self.histogram_to_xarray(hist_counts=hist_counts, path_to_histogram=path_to_histogram, data_with_global_atributes=data_with_global_atributes)
-            
-            data_with_final_grid=self.preprocessing(data=data, preprocess=preprocess,   trop_lat=trop_lat, variable_1=variable_1, 
-                                                    s_time=s_time, f_time=f_time, 
-                                                    s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month, 
-                                                    sort = False, dask_array = False)
-            for variable in (None, 'counts', 'frequency', 'pdf'):
-                tprate_dataset=self.grid_attributes(data=data_with_final_grid, tprate_dataset=tprate_dataset, variable=variable)
-            return tprate_dataset
-        else:
-            return hist_counts
+    
         
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
     def save_histogram(self, dataset=None, path_to_histogram=None, name_of_file=None):
@@ -596,7 +481,7 @@ class TR_PR_Diagnostic:
         return tprate_dataset
     
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def histogram_to_xarray(self,  hist_counts=None, path_to_histogram=None, data_with_global_atributes=None):
+    def populate_histogram(self,  tprate_dataset=None, path_to_histogram=None, data_with_global_atributes=None):
         """ Function to convert the histogram to xarray.Dataset.
 
         Args:
@@ -605,17 +490,15 @@ class TR_PR_Diagnostic:
 
         Returns:
             xarray: The xarray.Dataset with the histogram.
-        """
-        tprate_dataset = hist_counts.to_dataset(name="counts")
-        
-        hist_frequency = self.convert_counts_to_frequency(hist_counts)
+        """        
+        hist_frequency = self.convert_counts_to_frequency(tprate_dataset.counts)
         tprate_dataset['frequency'] = hist_frequency
 
-        hist_pdf = self.convert_counts_to_pdf(hist_counts)
+        hist_pdf = self.convert_counts_to_pdf(tprate_dataset.counts)
         tprate_dataset['pdf'] = hist_pdf
 
-        if data_with_global_atributes is not None:  
-            tprate_dataset.attrs = data_with_global_atributes.attrs
+        #if data_with_global_atributes is not None:  
+        #    tprate_dataset.attrs = data_with_global_atributes.attrs
 
         if path_to_histogram is not None:
             self.save_histogram(dataset=tprate_dataset, path_to_histogram=path_to_histogram)
@@ -706,383 +589,108 @@ class TR_PR_Diagnostic:
                 dataset = self.merge_two_datasets(tprate_dataset_1=dataset, tprate_dataset_2=self.load_histogram(path_to_histogram=histograms_to_load[i]))
 
         return dataset
-    
-        
+
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def hist1d_fast(self, data, preprocess = True,   trop_lat = 10, variable_1 = 'tprate',  
-                    s_time = None, f_time = None, s_year = None, f_year = None, s_month = None, f_month = None, 
-                    num_of_bins = None, first_edge = None,  width_of_bin  = None,   bins = 0):
-        """ Function to calculate a histogram of the Dataset with the use of fast_histogram.histogram1d.
-
-        Args:
-            data (xarray):                  The Dataset.
-            preprocess (bool, optional):    If sort is True, the functiom preprocess Dataset. Defaults to True.
-            variable_1 (str, optional):     The variable of the Dataset. Defaults to 'tprate'.
-            trop_lat (float, optional):     The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
-            s_time (str/int, optional):     The starting time value/index in Dataset. Defaults to None.
-            f_time (str/int, optional):     The final time value/index in Dataset. Defaults to None.
-            s_year (int, optional):         The starting year in Dataset. Defaults to None.
-            f_year (int, optional):         The final year in Dataset. Defaults to None.
-            s_month (int, optional):        The starting month in Dataset. Defaults to None.
-            f_month (int, optional):        The final month in Dataset. Defaults to None.
-            sort (bool, optional):          If sort is True, the DataArray is sorted. Defaults to False.
-            dask_array (bool, optional):    If sort is True, the function return daskarray. Defaults to False.
-            
-            num_of_bins (int, optional):    The number of bins in the histogram. Defaults to None.
-            first_edge (float, optional):   The first edge of the histogram. Defaults to None.
-            width_of_bin (float, optional): The width of the bins in the histogram. Defaults to None.
-            bins (array, optional):         The array of bins in the histogram. Defaults to 0.
-
-        Returns:
-            xarray: The frequency histogram of the specified variable in the Dataset
-        """        
-        self.class_attributes_update(s_time = s_time, f_time = f_time, trop_lat = trop_lat, 
-                               s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, 
-                               first_edge = first_edge, num_of_bins = num_of_bins, width_of_bin = width_of_bin, bins = bins)
-
-
-        if preprocess == True:
-            data = self.preprocessing(data, preprocess=preprocess,  variable_1=variable_1, trop_lat=trop_lat, 
-                                      s_time = self.s_time, f_time = self.f_time,
-                                      s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  
-                                      sort = False, dask_array = False)
-        if isinstance(self.bins, int):
-            width_table = [self.width_of_bin for j in range(0, self.num_of_bins)]  
-            center_of_bin = [self.first_edge + self.width_of_bin*(j+0.5) for j in range(0, self.num_of_bins)]
-            hist_fast   = fast_histogram.histogram1d(data, 
-                                                   range=[self.first_edge, self.first_edge + (self.num_of_bins)*self.width_of_bin], 
-                                                   bins = self.num_of_bins)
-        else: 
-            bin_table = self.bins
-            width_table = [bin_table[i+1]-bin_table[i] for i in range(0, len(self.bins)-1)]
-            center_of_bin = [bin_table[i] + 0.5*width_table[i] for i in range(0, len(self.bins)-1)]
-            hist_fast = fast_histogram.histogram1d(data, 
-                                                   range=[min(self.bins),max(self.bins)], bins = len(self.bins)-1)   
-        
-        
-        counts_per_bin =  xr.DataArray(hist_fast, coords=[center_of_bin], dims=["center_of_bin"])
-        counts_per_bin = counts_per_bin.assign_coords(width=("center_of_bin", width_table))
-        counts_per_bin.attrs = data.attrs
-        return  counts_per_bin 
-    
-    
-    
-    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def hist1d_np(self, data, weights=None, preprocess = True,   trop_lat = 10, variable_1 = 'tprate',  
+    def histogram(self, data, weights=None, preprocess = True,  trop_lat = 10,  variable_1 = 'tprate',  
+                  data_with_global_atributes=None,
                   s_time = None, f_time = None, s_year = None, f_year = None, s_month = None, f_month = None, 
-                  num_of_bins = None, first_edge = None,  width_of_bin  = None,  bins = 0):
-        """ Function to calculate the histogram with the use of numpy.histogram.
+                  num_of_bins = None, first_edge = None,  width_of_bin  = None,  bins = 0,   
+                  lazy=False, create_xarray=True, path_to_histogram=None):
+        """ Function to calculate a histogram of the Dataset.
 
         Args:
-            data (xarray):                  The Dataset.
-            preprocess (bool, optional):    If sort is True, the functiom preprocess Dataset. Defaults to True.
-            variable_1 (str, optional):     The variable of the Dataset. Defaults to 'tprate'.
-            trop_lat (float, optional):     The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
-            s_time (str/int, optional):     The starting time value/index in Dataset. Defaults to None.
-            f_time (str/int, optional):     The final time value/index in Dataset. Defaults to None.
-            s_year (int, optional):         The starting year in Dataset. Defaults to None.
-            f_year (int, optional):         The final year in Dataset. Defaults to None.
-            s_month (int, optional):        The starting month in Dataset. Defaults to None.
-            f_month (int, optional):        The final month in Dataset. Defaults to None.
-
-            num_of_bins (int, optional):    The number of bins in the histogram. Defaults to None.
-            first_edge (float, optional):   The first edge of the histogram. Defaults to None.
-            width_of_bin (float, optional): The width of the bins in the histogram. Defaults to None.
-            bins (array, optional):         The array of bins in the histogram. Defaults to 0.
-            
-        Returns:
-            xarray: The frequency histogram of the specified variable in the Dataset
-        """ 
-        self.class_attributes_update(s_time = s_time, f_time = f_time,  trop_lat = trop_lat, 
-                               s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, 
-                               first_edge = first_edge, num_of_bins = num_of_bins, width_of_bin = width_of_bin, bins = bins)
-        
-        if preprocess == True:
-            data = self.preprocessing(data, preprocess=preprocess, variable_1=variable_1, trop_lat=self.trop_lat, 
-                                      s_time = self.s_time, f_time = self.f_time, 
-                                      s_year=self.s_year, f_year=self.f_year, s_month=self.s_month, f_month=self.f_month,  
-                                      sort = False, dask_array = False)
-            
-        if 'DataArray' in str(type(weights)):
-            weights = self.latitude_band(weights, trop_lat=self.trop_lat)
-            hist_np=0
-            for i in range(0, len(data.time)):
-                data_element = data.isel(time=i)
-                if isinstance(self.bins, int):
-                    hist_np = np.histogram(data_element, weights=weights, \
-                                           range=[self.first_edge, self.first_edge + (self.num_of_bins )*self.width_of_bin], \
-                                           bins = (self.num_of_bins))
-                else:
-                    hist_np = np.histogram(data_element,  weights=weights, bins = self.bins) 
-                width_table = [hist_np[1][i+1]-hist_np[1][i] for i in range(0, len(hist_np[1])-1)]
-                center_of_bin = [hist_np[1][i] + 0.5*width_table[i] for i in range(0, len(hist_np[1])-1)]
-                counts_per_bin =+  xr.DataArray(hist_np[0], coords=[center_of_bin], dims=["center_of_bin"])
-                counts_per_bin = counts_per_bin.assign_coords(width=("center_of_bin", width_table))
-        else: 
-            if isinstance(self.bins, int):
-                hist_np = np.histogram(data, weights=weights, 
-                                       range=[self.first_edge, self.first_edge + (self.num_of_bins )*self.width_of_bin], 
-                                       bins = (self.num_of_bins))
-            else:
-                hist_np = np.histogram(data,  weights=weights, bins = self.bins) 
-            
-            width_table = [hist_np[1][i+1]-hist_np[1][i] for i in range(0, len(hist_np[1])-1)]
-            center_of_bin = [hist_np[1][i] + 0.5*width_table[i] for i in range(0, len(hist_np[1])-1)]
-            counts_per_bin =  xr.DataArray(hist_np[0], coords=[center_of_bin], dims=["center_of_bin"])
-            counts_per_bin = counts_per_bin.assign_coords(width=("center_of_bin", width_table))
-       
-        counts_per_bin.attrs = data.attrs
-        return  counts_per_bin
-        
-    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def hist1d_pyplot(self, data, weights=None,preprocess = True,  trop_lat = 10,  variable_1 = 'tprate',  
-                      s_time = None, f_time = None,  s_year = None, f_year = None, s_month = None, f_month = None, 
-                      num_of_bins = None, first_edge = None,  width_of_bin  = None,  bins = 0):
-        """ Function to create a 1D histogram of the specified variable in the Dataset using matplotlib package.
-        Args:
-            data (xarray):                  The Dataset.
-            preprocess (bool, optional):    If sort is True, the functiom preprocess Dataset. Defaults to True.
-            variable_1 (str, optional):     The variable of the Dataset. Defaults to 'tprate'.
-            trop_lat (float, optional):     The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
-            s_time (str/int, optional):     The starting time value/index in Dataset. Defaults to None.
-            f_time (str/int, optional):     The final time value/index in Dataset. Defaults to None.
-            s_year (int, optional):         The starting year in Dataset. Defaults to None.
-            f_year (int, optional):         The final year in Dataset. Defaults to None.
-            s_month (int, optional):        The starting month in Dataset. Defaults to None.
-            f_month (int, optional):        The final month in Dataset. Defaults to None.
-
-            num_of_bins (int, optional):    The number of bins in the histogram. Defaults to None.
-            first_edge (float, optional):   The first edge of the histogram. Defaults to None.
-            width_of_bin (float, optional): The width of the bins in the histogram. Defaults to None.
-            bins (array, optional):         The array of bins in the histogram. Defaults to 0.
+            data (xarray.Dataset):          The input Dataset.
+            preprocess (bool, optional):    If True, preprocesses the Dataset. Defaults to True.
+            trop_lat (float, optional):     The maximum absolute value of tropical latitude in the Dataset. Defaults to 10.
+            variable_1 (str, optional):     The variable of interest in the Dataset. Defaults to 'tprate'.
+            weights (array-like, optional): The weights of the data. Defaults to None.
+            data_with_global_attributes (xarray.Dataset, optional): The Dataset with global attributes. Defaults to None.
+            s_time (str/int, optional):     The starting time value/index in the Dataset. Defaults to None.
+            f_time (str/int, optional):     The final time value/index in the Dataset. Defaults to None.
+            s_year (int, optional):         The starting year in the Dataset. Defaults to None.
+            f_year (int, optional):         The final year in the Dataset. Defaults to None.
+            s_month (int, optional):        The starting month in the Dataset. Defaults to None.
+            f_month (int, optional):        The final month in the Dataset. Defaults to None.
+            num_of_bins (int, optional):    The number of bins for the histogram. Defaults to None.
+            first_edge (float, optional):   The starting edge value for the bins. Defaults to None.
+            width_of_bin (float, optional): The width of each bin. Defaults to None.
+            bins (int, optional):           The number of bins for the histogram (alternative argument to 'num_of_bins'). Defaults to 0.
+            lazy (bool, optional):          If True, delays computation until necessary. Defaults to False.
+            create_xarray (bool, optional): If True, creates an xarray dataset from the histogram counts. Defaults to True.
+            path_to_histogram (str, optional):   The path to save the xarray dataset. Defaults to None.
 
         Returns:
-            xarray: The frequency histogram of the specified variable in the Dataset
-        """ 
-        self.class_attributes_update(s_time = s_time, f_time = f_time,  trop_lat = trop_lat, 
-                               s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, 
-                               first_edge = first_edge, num_of_bins = num_of_bins, width_of_bin = width_of_bin, bins=bins)  
-
-        if preprocess == True:
-            data = self.preprocessing(data, preprocess=preprocess, variable_1=variable_1, trop_lat=trop_lat, 
-                                      s_time = self.s_time, f_time = self.f_time, 
-                                      s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  
-                                      sort = False, dask_array = False)
-
-        if isinstance(self.bins, int):
-            bins = [self.first_edge  + i*self.width_of_bin for i in range(0, self.num_of_bins+1)]
-            left_edges_table   = [self.first_edge + self.width_of_bin*j for j in range(0, self.num_of_bins)]  
-            width_table = [self.width_of_bin for j in range(0, self.num_of_bins)]  
-            center_of_bin = [bins[i] + 0.5*width_table[i] for i in range(0, len(bins)-1)]
-        else:
-            bins = self.bins
-            left_edges_table =[self.bins[i] for i in range(0, len(self.bins)-1)]
-            width_table = [self.bins[i+1]-self.bins[i] for i in range(0, len(self.bins)-1)]
-            center_of_bin = [self.bins[i] + 0.5*width_table[i] for i in range(0, len(self.bins)-1)]
-            
-
-        coord_lat, coord_lon = self.coordinate_names(data)
-
-        if 'DataArray' in str(type(weights)):
-            weights = self.latitude_band(weights, trop_lat=self.trop_lat)
-            weights=weights.stack(total=[coord_lat, coord_lon])
-            for i in range(0, len(data.time)):
-                data_element = data.isel(time=i)
-                data_element=data_element.stack(total=[coord_lat, coord_lon])
-                hist_pyplt = plt.hist(x = data_element, bins = bins, weights=weights)
-                counts_per_bin =+  xr.DataArray(hist_pyplt[0], coords=[center_of_bin], dims=["center_of_bin"])
-        else:    
-            data_element=data.stack(total=['time', coord_lat, coord_lon])
-            hist_pyplt = plt.hist(x = data_element, bins = bins)
-            counts_per_bin =  xr.DataArray(hist_pyplt[0], coords=[center_of_bin], dims=["center_of_bin"])
-        plt.close()
-
-        counts_per_bin = counts_per_bin.assign_coords(width=("center_of_bin", width_table))
-        counts_per_bin.attrs = data.attrs
-        return  counts_per_bin
-
-        
-         
-    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def dask_factory(self, data, weights=None, preprocess = True,   trop_lat = 10,  variable_1 = 'tprate',  
-                     s_time = None, f_time = None, s_year = None, f_year = None, s_month = None, f_month = None, 
-                     num_of_bins = None, first_edge = None,  width_of_bin  = None,   bins = 0, 
-                     lazy=False):
-        """ Function to create a dask array of the counts histogram of the specified variable in the Dataset.
-        Args:
-            data (xarray):                 The Dataset.
-            preprocess (bool, optional):    If preprocess is True, the function preprocess the Dataset. Defaults to True.
-            variable_1 (str, optional):     The variable of the Dataset. Defaults to 'tprate'.
-            trop_lat (float, optional):     The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
-            s_time (str/int, optional):     The starting time value/index in Dataset. Defaults to None.
-            f_time (str/int, optional):     The final time value/index in Dataset. Defaults to None.
-            s_year (int, optional):         The starting year in Dataset. Defaults to None.
-            f_year (int, optional):         The final year in Dataset. Defaults to None.
-            s_month (int, optional):        The starting month in Dataset. Defaults to None.
-            f_month (int, optional):        The final month in Dataset. Defaults to None.
-
-            num_of_bins (int, optional):    The number of bins in the histogram. Defaults to None.
-            first_edge (float, optional):   The first edge of the histogram. Defaults to None.
-            width_of_bin (float, optional): The width of the bins in the histogram. Defaults to None.
-            bins (array, optional):         The array of bins in the histogram. Defaults to 0.
-            
-        Returns:
-            xarray: The frequency histogram of the specified variable in the Dataset
-        """ 
-        self.class_attributes_update(s_time = s_time, f_time = f_time, trop_lat = trop_lat, 
-                               s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, first_edge = first_edge, 
-                               num_of_bins = num_of_bins, width_of_bin = width_of_bin)
-
-        last_edge = self.first_edge  + self.num_of_bins*self.width_of_bin
-        
-
-        if preprocess == True:
-            data_dask = self.preprocessing(data, preprocess=preprocess, variable_1=variable_1, trop_lat=trop_lat, 
-                                      s_time = self.s_time, f_time = self.f_time, 
-                                      s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  
-                                      sort=False, dask_array=True)
-            if weights is not None:
-                weights_dask = self.preprocessing(weights, preprocess=preprocess, variable_1=variable_1, trop_lat=trop_lat, 
-                                      s_time = self.s_time, f_time = self.f_time,
-                                      s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  
-                                      sort=False, dask_array=True)
-        else:
-            data_dask=data
-            weights_dask= weights
-        if weights is None:
-            h = dh.factory(data_dask, 
-                axes=(bh.axis.Regular(self.num_of_bins, self.first_edge, last_edge),))   
-        else: 
-            h = dh.factory(data_dask, weights_dask, 
-                axes=(bh.axis.Regular(self.num_of_bins, self.first_edge, last_edge),))  
-        counts, edges = h.to_dask_array()
-        if not lazy: 
-            counts = counts.compute()
-            edges = edges.compute()
-        
-        width_table = [self.width_of_bin for j in range(0, self.num_of_bins)]  
-        center_of_bin = [self.first_edge + self.width_of_bin*(j+0.5) for j in range(0, self.num_of_bins)]
-        counts_per_bin =  xr.DataArray(counts, coords=[center_of_bin], dims=["center_of_bin"])
-        counts_per_bin = counts_per_bin.assign_coords(width=("center_of_bin", width_table))
-        counts_per_bin.attrs = data[variable_1].attrs  
-        return  counts_per_bin
-
-
-    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def dask_factory_weights(self, data, weights=None, preprocess = True,  trop_lat = 10,  variable_1 = 'tprate',  
-                             s_time = None, f_time = None, s_year = None, f_year = None, s_month = None, f_month = None, 
-                             num_of_bins = None, first_edge = None,  width_of_bin  = None,  bins = 0,   
-                             lazy=False):
-        """ Function to calculate the histogram with weights.
-        Args:
-            data (xarray):                  The Dataset.
-            preprocess (bool, optional):    If sort is True, the functiom preprocess Dataset. Defaults to True.
-            variable_1 (str, optional):     The variable of the Dataset. Defaults to 'tprate'.
-            trop_lat (float, optional):     The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
-            s_time (str/int, optional):     The starting time value/index in Dataset. Defaults to None.
-            f_time (str/int, optional):     The final time value/index in Dataset. Defaults to None.
-            s_year (int, optional):         The starting year in Dataset. Defaults to None.
-            f_year (int, optional):         The final year in Dataset. Defaults to None.
-            s_month (int, optional):        The starting month in Dataset. Defaults to None.
-            f_month (int, optional):        The final month in Dataset. Defaults to None.
-
-            num_of_bins (int, optional):    The number of bins in the histogram. Defaults to None.
-            first_edge (float, optional):   The first edge of the histogram. Defaults to None.
-            width_of_bin (float, optional): The width of the bins in the histogram. Defaults to None.
-            bins (array, optional):         The array of bins in the histogram. Defaults to 0.
-            
-        Returns:
-            xarray: The frequency histogram of the specified variable in the Dataset
-        """ 
+            xarray.Dataset or numpy.ndarray: The histogram of the Dataset.
+        """
         self.class_attributes_update(s_time = s_time, f_time = f_time, trop_lat = trop_lat, 
                                s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, first_edge = first_edge, 
                                num_of_bins = num_of_bins, width_of_bin = width_of_bin)    
 
-        last_edge = self.first_edge  + self.num_of_bins*self.width_of_bin
+        if isinstance(self.bins, int):
+            bins = [self.first_edge  + i*self.width_of_bin for i in range(0, self.num_of_bins+1)]
+            width_table = [self.width_of_bin for j in range(0, self.num_of_bins)]  
+            center_of_bin = [bins[i] + 0.5*width_table[i] for i in range(0, len(bins)-1)]
+        else:
+            bins = self.bins
+            width_table = [self.bins[i+1]-self.bins[i] for i in range(0, len(self.bins)-1)]
+            center_of_bin = [self.bins[i] + 0.5*width_table[i] for i in range(0, len(self.bins)-1)]
 
+
+        data_original=data
         if preprocess == True:
             data = self.preprocessing(data, preprocess=preprocess, variable_1=variable_1, trop_lat=trop_lat, 
                                       s_time = self.s_time, f_time = self.f_time,
                                       s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  
                                       sort=False, dask_array=False)
+            
+        data_with_final_grid=data
 
+        if weights is not None:
             weights = self.latitude_band(weights, trop_lat=self.trop_lat)
 
-        ref = bh.Histogram(bh.axis.Regular(self.num_of_bins, self.first_edge, last_edge), storage=bh.storage.Weight())
-        counts=0
-        for i in range(0, data.time.size):
-            data_dask = data.isel(time=i)
-            data_dask = da.from_array(data_dask.stack(total=['lat', 'lon']))
-            weights_dask=da.from_array(weights.stack(total=['lat', 'lon']))
+            data, weights =  xr.broadcast(data, weights)
+            weights=weights.stack(total=['time', 'lat', 'lon'])
+            weights_dask=da.from_array(weights)
+    
+
+        data_dask = da.from_array(data.stack(total=['time', 'lat', 'lon'])) 
         
-            h = dh.factory(data_dask, weights=weights_dask, histref=ref)
-            _counts, edges = h.to_dask_array()
-            counts=+_counts
+        if weights is not None:
+            counts, edges = dh.histogram(data_dask, bins=bins,   weights=weights_dask, storage=dh.storage.Weight()) 
+        else: 
+            counts, edges = dh.histogram(data_dask, bins=bins,  storage=dh.storage.Weight()) 
         if not lazy: 
             counts = counts.compute()
             edges = edges.compute()
-        
-        width_table = [self.width_of_bin for j in range(0, self.num_of_bins)]  
-        center_of_bin = [self.first_edge + self.width_of_bin*(j+0.5) for j in range(0, self.num_of_bins)]
+
+        width_table = [edges[i+1]-edges[i] for i in range(0, len(edges)-1)]
+        center_of_bin = [edges[i] + 0.5*width_table[i] for i in range(0, len(edges)-1)]
         counts_per_bin =  xr.DataArray(counts, coords=[center_of_bin], dims=["center_of_bin"])
+        
         counts_per_bin = counts_per_bin.assign_coords(width=("center_of_bin", width_table))
         counts_per_bin.attrs = data.attrs        
-        return  counts_per_bin
+        
+        if data_with_global_atributes is None:
+            data_with_global_atributes=data_original
 
-
-    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def dask_boost(self, data, preprocess = True, trop_lat = 10,  variable_1 = 'tprate',  
-                   s_time = None, f_time = None, s_year = None, f_year = None, s_month = None, f_month = None, 
-                   num_of_bins = None, first_edge = None,  width_of_bin  = None,  bins = 0):
-        """ Function to calculate the histogram of the specified variable in the Dataset.
-        Args:
-            data (xarray):                  The Dataset.
-            preprocess (bool, optional):    If sort is True, the functiom preprocess Dataset. Defaults to True.
-            variable_1 (str, optional):     The variable of the Dataset. Defaults to 'tprate'.
-            trop_lat (float, optional):     The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
-            s_time (str/int, optional):     The starting time value/index in Dataset. Defaults to None.
-            f_time (str/int, optional):     The final time value/index in Dataset. Defaults to None.
-            s_year (int, optional):         The starting year in Dataset. Defaults to None.
-            f_year (int, optional):         The final year in Dataset. Defaults to None.
-            s_month (int, optional):        The starting month in Dataset. Defaults to None.
-            f_month (int, optional):        The final month in Dataset. Defaults to None.
-
-            num_of_bins (int, optional):    The number of bins in the histogram. Defaults to None.
-            first_edge (float, optional):   The first edge of the histogram. Defaults to None.
-            width_of_bin (float, optional): The width of the bins in the histogram. Defaults to None.
-            bins (array, optional):         The array of bins in the histogram. Defaults to 0.
-        Returns:
-            xarray: The frequency histogram of the specified variable in the Dataset
-        """ 
-        self.class_attributes_update(s_time = s_time, f_time = f_time,  trop_lat = trop_lat, 
-                               s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, first_edge = first_edge, 
-                               num_of_bins = num_of_bins, width_of_bin = width_of_bin) 
-
-        last_edge = self.first_edge  + self.num_of_bins*self.width_of_bin
-
-        if preprocess == True:
-            data_dask = self.preprocessing(data, preprocess=preprocess, variable_1=variable_1, trop_lat=trop_lat, 
-                                      s_time = self.s_time, f_time = self.f_time, 
-                                      s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  
-                                      sort = False, dask_array=True)
+        if not lazy and create_xarray:
+            tprate_dataset = counts_per_bin.to_dataset(name="counts")
+            tprate_dataset.attrs = data_with_global_atributes.attrs
+            tprate_dataset = self.populate_histogram(tprate_dataset=tprate_dataset, path_to_histogram=path_to_histogram, 
+                                                      data_with_global_atributes=data_with_global_atributes)
+            
+            
+            for variable in (None, 'counts', 'frequency', 'pdf'):
+                tprate_dataset=self.grid_attributes(data=data_with_final_grid, tprate_dataset=tprate_dataset, variable=variable)
+            return tprate_dataset
         else:
-            data_dask=data
-
-        h = dhb.Histogram(dh.axis.Regular(self.num_of_bins, self.first_edge, last_edge),  storage=dh.storage.Double(), )
-        h.fill(data_dask)
+            tprate_dataset = counts_per_bin.to_dataset(name="counts")
+            tprate_dataset.attrs = data_with_global_atributes.attrs
+            counts_per_bin=self.grid_attributes(data=data_with_final_grid, tprate_dataset=tprate_dataset, variable='counts')
+            tprate_dataset=self.grid_attributes(data=data_with_final_grid, tprate_dataset=tprate_dataset)
+            return counts_per_bin
         
-        counts, edges = h.to_dask_array()
-        print(counts, edges)
-        counts =  dask.compute(counts)
-        edges = dask.compute(edges[0]) 
-        
-        width_table = [self.width_of_bin for j in range(0, self.num_of_bins)]  
-        center_of_bin = [self.first_edge + self.width_of_bin*(j+0.5) for j in range(0, self.num_of_bins)]
-        counts_per_bin =  xr.DataArray(counts[0], coords=[center_of_bin], dims=["center_of_bin"])
-        counts_per_bin = counts_per_bin.assign_coords(width=("center_of_bin", width_table))
-        counts_per_bin.attrs = data[variable_1].attrs
-        return  counts_per_bin
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
     def convert_counts_to_frequency(self, data):
