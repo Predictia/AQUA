@@ -144,7 +144,7 @@ def test_figure_load_to_memory(histogram_output):
     path_to_figure=str(path_to_diagnostic)+"/test_output/plots/"
     hist = histogram_output
     diag = TR_PR_Diag()
-    diag.hist_figure(hist, path_to_figure=str(path_to_figure)+'test_fig_saving.png')
+    diag.histogram_plot(hist, path_to_figure=str(path_to_figure)+'test_fig_saving.png')
     files = [f for f in listdir(path_to_figure) if isfile(join(path_to_figure, f))]
     assert 'test_fig_saving.png' in files
 
@@ -155,7 +155,7 @@ def test_lazy_mode_calculation(reader):
     """
     data = reader
     diag = TR_PR_Diag(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-6)/20)
-    hist_lazy = diag.histogram(data, lazy=True, variable_1='2t')
+    hist_lazy = diag.histogram(data, lazy=True, model_variable='2t')
     assert 'frequency'  not in hist_lazy.attrs
     assert 'pdf'  not in hist_lazy.variables
 
