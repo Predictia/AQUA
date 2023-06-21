@@ -78,7 +78,7 @@ def histogram_output(reader):
     """
     data = reader
     diag = TR_PR_Diag(num_of_bins = 20, first_edge = 200, width_of_bin = (320-200)/20)
-    hist = diag.histogram(data, variable_1='2t', trop_lat=90)
+    hist = diag.histogram(data, model_variable='2t', trop_lat=90)
     return hist
 
 
