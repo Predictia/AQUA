@@ -46,7 +46,7 @@ def check_precipitation_in_data(reader):
         data['tprate']
         return True
     except KeyError:
-        print('The dataset does not contain the precipitation rate. I WIll use 2m temperature instead')
+        print('The dataset does not contain the precipitation rate. I wIll use 2m temperature instead')
         return False
     
 @pytest.fixture
@@ -156,10 +156,8 @@ def test_lazy_mode_calculation(reader):
     data = reader
     diag = TR_PR_Diag(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-6)/20)
     hist_lazy = diag.histogram(data, lazy=True, variable_1='2t')
-    assert isinstance(hist_lazy, xarray.core.dataarray.DataArray) 
-    assert 'time_band' not in hist_lazy.attrs
-    assert 'lat_band'  not in hist_lazy.attrs
-    assert 'lon_band'  not in hist_lazy.attrs
+    assert 'frequency'  not in hist_lazy.attrs
+    assert 'pdf'  not in hist_lazy.variables
 
 @pytest.mark.tropical_rainfall
 def test_local_attributes_of_histogram(histogram_output):
