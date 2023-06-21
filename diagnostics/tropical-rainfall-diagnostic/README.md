@@ -46,8 +46,6 @@ Read the documentation for a detailed description of the diagnostic and diagnost
 ##  Enviroment 
 
 `env-tropical-rainfall.yml` file contains the minimal requirement for tropical diagnostic: 
- - fast_histogram, 
- - boost_histogram, and 
  - dask_histogram. 
 
 

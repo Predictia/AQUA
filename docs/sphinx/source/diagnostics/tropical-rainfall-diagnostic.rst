@@ -149,7 +149,7 @@ The most straightforward illustration of a histogram calculation
         diag.histogram(icon, weights=reader.grid_area)
 
   Compared to standard methods, such computations 
-  are `high-speed` because they are based on `boost_histogram` and `dask_histogram` packages (see `env-tropical-rainfall.yml` file).
+  are `high-speed` because they are based on `dask_histogram` package (see `env-tropical-rainfall.yml` file).
 
   
 The output of the histogram function is xarray.Dataset, which has two coordinates 

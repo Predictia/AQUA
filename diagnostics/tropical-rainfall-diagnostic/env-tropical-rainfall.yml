@@ -8,7 +8,5 @@ channels:
   - conda-forge
 dependencies:
   - pip:
-    - fast_histogram
-    - boost_histogram
     - dask_histogram
     

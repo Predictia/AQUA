@@ -11,12 +11,8 @@ import matplotlib.pyplot as plt
 from matplotlib import colors
 from matplotlib.ticker import PercentFormatter
 
-#import fast_histogram 
-#import boost_histogram as bh #pip
 import dask.array as da
 import dask_histogram as dh # pip
-#import dask_histogram.boost as dhb
-#import dask
  
 
 
