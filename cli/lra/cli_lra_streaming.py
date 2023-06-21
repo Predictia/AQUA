@@ -50,7 +50,9 @@ if __name__ == '__main__':
     opadir =  config['opa']['opadir']
     opacheckpoint =  config['opa']['opacheckpoint']
     opastreamstep =  config['opa']['opastreamstep']
-    opastreambreak =  config['opa']['opastreambreak']
+    use_gsv =  config['gsv']['use_gsv']
+    gsv_start =  str(config['gsv']['start'])
+    gsv_end =  str(config['gsv']['end'])
     definitive = get_arg(args, 'definitive', False)
     overwrite = get_arg(args, 'overwrite', False)
     workers = get_arg(args, 'workers', 1)
@@ -67,11 +69,11 @@ if __name__ == '__main__':
                     # init the OPA
                     opa = OPAgenerator(model=model, exp=exp, source=source, zoom=zoom_level,
                                         var=varname, frequency=frequency, checkpoint = opacheckpoint,
-                                        stream_step=opastreamstep, stream_break=opastreambreak,
+                                        stream_step=opastreamstep,
                                         outdir=opadir, tmpdir=tmpdir, configdir=configdir,
                                         loglevel=loglevel, definitive=definitive, nproc=workers)
                     opa.retrieve()
-                    opa.generate_opa()
+                    opa.generate_opa(gsv=use_gsv, start=gsv_start, end=gsv_end)
                     opa.create_catalog_entry()
 
                 for varname in variables:

@@ -5,6 +5,7 @@ import copy
 import warnings
 import dask
 import numpy as np
+import xarray as xr
 from dask.distributed import Client, LocalCluster
 from one_pass.opa import Opa
 from aqua.logger import log_configure
@@ -34,7 +35,6 @@ class OPAgenerator():
                  model=None, exp=None, source=None, zoom=None,
                  var=None, vars=None, frequency=None,
                  checkpoint=True, stream_step=5,
-                 stream_break=None,
                  outdir=None, tmpdir=None, configdir=None,
                  loglevel=None, overwrite=False, definitive=False,
                  nproc=1):
@@ -70,7 +70,6 @@ class OPAgenerator():
         self.loglevel = loglevel
         self.checkpoint = checkpoint
         self.stream_step = stream_step
-        self.stream_break = stream_break
 
         self.overwrite = overwrite
         if self.overwrite:
@@ -165,6 +164,9 @@ class OPAgenerator():
         """
 
         data = self.reader.retrieve(var=self.var)
+        if not isinstance(data, xr.Dataset):
+            data = next(data)
+        
         time_diff = np.diff(data.time.values).astype('timedelta64[m]')
         self.timedelta = time_diff[0].astype(int)
         self.logger.info('Timedelta is %s minutes', str(self.timedelta))
@@ -188,7 +190,7 @@ class OPAgenerator():
 
         return Opa(self.opa_dict)
 
-    def generate_opa(self):
+    def generate_opa(self, gsv=False, start=None, end=None):
         """
         Run the actual computation of the OPA looping on the dataset
         and on the variables
@@ -210,26 +212,23 @@ class OPAgenerator():
             # self.remove_checkpoint()
             print(vars(opa_mean))
 
-            self.logger.warning('Initializing the streaming generator...')
-            self.reader.reset_stream()
-            data_gen = self.reader.retrieve(streaming_generator=True,
-                                            stream_step=self.stream_step,
-                                            stream_unit='days')
+            if not gsv: 
+                self.logger.warning('Initializing the streaming generator...')
+                self.reader.reset_stream()
+                data_gen = self.reader.retrieve(streaming_generator=True,
+                                                stream_step=self.stream_step,
+                                                stream_unit='days',
+                                                var=self.var)
+            else: 
+                self.logger.warning('Initializing the FDB access...')
+                data_gen = self.reader.retrieve(startdate=start, enddate=end, var=self.var)
             
-            date_start=None
-
             for data in data_gen:
                 self.logger.info(f"start_date: {data.time[0].values} stop_date: {data.time[-1].values}")
-                if date_start is None:
-                    date_start=data.time[0].values
-                if self.stream_break is not None:
-                    days_processed = (data.time[0].values-date_start) / np.timedelta64(1, 'D')
-                    self.logger.info('Days processed %s', days_processed)
-                    if days_processed > self.stream_break:
-                        break
-                
+                               
                 if self.definitive:
                     mydata = data[variable]#.load()
+                    print(mydata)
                     opa_mean.compute(mydata)
                     if os.path.exists(self.checkpoint_file):
                         file_size = os.path.getsize(self.checkpoint_file)
