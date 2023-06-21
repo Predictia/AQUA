@@ -34,6 +34,7 @@ class OPAgenerator():
                  model=None, exp=None, source=None, zoom=None,
                  var=None, vars=None, frequency=None,
                  checkpoint=True, stream_step=5,
+                 stream_break=None,
                  outdir=None, tmpdir=None, configdir=None,
                  loglevel=None, overwrite=False, definitive=False,
                  nproc=1):
@@ -69,6 +70,7 @@ class OPAgenerator():
         self.loglevel = loglevel
         self.checkpoint = checkpoint
         self.stream_step = stream_step
+        self.stream_break = stream_break
 
         self.overwrite = overwrite
         if self.overwrite:
@@ -213,9 +215,19 @@ class OPAgenerator():
             data_gen = self.reader.retrieve(streaming_generator=True,
                                             stream_step=self.stream_step,
                                             stream_unit='days')
+            
+            date_start=None
 
             for data in data_gen:
                 self.logger.info(f"start_date: {data.time[0].values} stop_date: {data.time[-1].values}")
+                if date_start is None:
+                    date_start=data.time[0].values
+                if self.stream_break is not None:
+                    days_processed = (data.time[0].values-date_start) / np.timedelta64(1, 'D')
+                    self.logger.info('Days processed %s', days_processed)
+                    if days_processed > self.stream_break:
+                        break
+                
                 if self.definitive:
                     mydata = data[variable]#.load()
                     opa_mean.compute(mydata)
@@ -246,6 +258,19 @@ class OPAgenerator():
                 }
             }
         }
+
+        if self.zoom:
+            block_zoom = {
+                'parameters': {
+                    'zoom': {
+                        'allowed': [self.zoom],
+                        'default': self.zoom,
+                        'description': 'zoom resolution of the dataset',
+                        'type': 'int'
+                    }
+                }
+            }
+            block_cat.update(block_zoom)
 
         # find the catalog of my experiment
         catalogfile = os.path.join(self.configdir, 'machines', self.machine,
