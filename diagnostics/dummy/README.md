@@ -3,26 +3,34 @@
 This is a dummy diagnostic that does nothing.
 It is meant to be used as a template for new diagnostics.
 
-## Notes for developers
+## Description
 
-Please remove these notes when you are done and adapt this `README` file.
+Concise overview that explains the purpose, key features, and benefits of your diagnostics.
+For example, 
 
-### Folders
+## Table of Contents
 
-- `diagnostics/dummy-diagnostic`: contains the code of the diagnostic
-- `diagnostics/dummy-diagnostic/notebooks`: contains notebooks with examples of how to use the diagnostic
-- `tests/dummy-diagnostic/`: contains tests for the diagnostic. Please add tests for all the functions you add to the diagnostic. Please load data that are needed for the tests not in the git. You may need to add data to the catalogue for the `ci` machine. If you need to add data to this catalogue, please contact the AQUA team. Tests run with a github action when you push to the repository in a pull request to the main branch. Note that the workflow file is in the `.github` folder. Modify it accordingly to your diagnostic and uncomment the lines to run the tests when you are ready. Please keep in mind that the suggested way to proceed is based on the creation of a `@pytest.mark.yourdiag` marker so that you can select only the test that you need in the workflow (see the workflow example). This marker has to be added in the `pytest.ini` file.  
-- `diagnostics/dummy-diagnostic/data`: contains data for the tests if needed. Please do not commit large files to git. You can add data to the `.gitignore` file if needed. Make always use of the `Reader` class and functions available in the framework to load data. If you need to add data to the catalogue, please contact the AQUA team.
-- `env-dummy.yml`: contains the dependencies for the diagnostic. It is used to create a conda environment for the diagnostic. Diagnostics should be developed in separate environments to avoid conflicts between diagnostics that may need different python packages. Always check that the diagnostic works with the latest version of the framework and eventually update the dependencies in the `env-dummy.yml` file. (If you have suggestions on how to improve this, please let us know.s)
-- `docs/sphinx/sorce/diagnostics/dummy-diagnostic.rts`: contains the documentation for the diagnostic. Please add documentation for all the functions you add to the diagnostic. The documentation is built with sphinx.
+* [Installation Instructions](#installation-instructions)
 
-### Code
+  - [Installation on Levante](#installation-on-levante)
 
-Please add docstrings to all the functions you add to the diagnostic.
-Make sure that the code passes the `flake8` checks.
-Take advantage as much as possible of the functions available in the framework. If new data or functions that you think may be useful for other diagnostics are needed, please contact the AQUA team. It may be added to the framework.
+  - [Installation on Lumi](#installation-on-lumi)
 
-## Installation
+* [Diagnostic structure](#diagnostic-structure)
+
+* [Code](#code)
+
+* [Data requirements](#data-requirements)
+
+* [Examples](#examples)
+
+* [Contributing](#contributing)
+
+## Installation Instructions
+
+Clearly explain how to install and set up your project. Include any dependencies, system requirements, or environment configurations that users should be aware of.
+
+### Installation on Levante
 
 To install this diagnostic you can use conda.
 The `environment.yml` file contains the dependencies for this diagnostic.
@@ -52,8 +60,43 @@ The diagnostic environment is compatible with python 3.9 and 3.10 and with the A
 Different diagnostic environments may be not compatible with each other.
 If you want to use multiple diagnostics at the same time, it is recommended to use the different environments for each of them.
 
-## Examples
+### Installation on Lumi 
 
-The `notebooks` folder contains notebooks with examples of how to use the diagnostic and its main functions.
+## Diagnostic structure 
+
+- **diagnostics/**: The root directory of the diagnostic.
+
+  - **dummy-diagnostic/**: contains the code of the diagnostic
+
+    - **notebooks/**: contains notebooks with examples of how to use the diagnostic
+
+    - **data/**: contains data for the tests if needed. Please do not commit large files to git. You can add data to the `.gitignore` file if needed. Make always use of the `Reader` class and functions available in the framework to load data. If you need to add data to the catalogue, please contact the AQUA team.
+
+    - **env-dummy.yml**: contains the dependencies for the diagnostic. It is used to create a conda environment for the diagnostic. Diagnostics should be developed in separate environments to avoid conflicts between diagnostics that may need different python packages. Always check that the diagnostic works with the latest version of the framework and eventually update the dependencies in the `env-dummy.yml` file. (If you have suggestions on how to improve this, please let us know.s)
+
+- **tests/**
+
+  - **dummy-diagnostic/**: contains tests for the diagnostic. Please add tests for all the functions you add to the diagnostic. Please load data that are needed for the tests not in the git. You may need to add data to the catalogue for the `ci` machine. If you need to add data to this catalogue, please contact the AQUA team. Tests run with a github action when you push to the repository in a pull request to the main branch. Note that the workflow file is in the `.github` folder. Modify it accordingly to your diagnostic and uncomment the lines to run the tests when you are ready. Please keep in mind that the suggested way to proceed is based on the creation of a `@pytest.mark.yourdiag` marker so that you can select only the test that you need in the workflow (see the workflow example). This marker has to be added in the `pytest.ini` file.  
+
+
+
+- **docs/sphinx/sorce/diagnostics/dummy-diagnostic.rts**: contains the documentation for the diagnostic. Please add documentation for all the functions you add to the diagnostic. The documentation is built with sphinx.
+
+## Code
+
+Please add docstrings to all the functions you add to the diagnostic.
+Make sure that the code passes the `flake8` checks.
+Take advantage as much as possible of the functions available in the framework. If new data or functions that you think may be useful for other diagnostics are needed, please contact the AQUA team. It may be added to the framework.
+
+
+## Data requirements  
+
+## Examples
+Provide examples or sample use cases that demonstrate your project's capabilities. This can help users understand the potential applications and inspire them to use your diagnostic.
+
+The **notebooks** folder contains notebooks with examples of how to use the diagnostic and its main functions.
 Please note that notebooks may load data from the DKRZ cluster, so they may not work outside of it.
 
+## Contributing
+
+Include your contact information or any official channels (such as email, GitHub profile) through which users can reach out to you for support, questions, or feedback.
