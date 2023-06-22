@@ -4,10 +4,12 @@ Dummy Diagnostic
 Description
 -----------
 
-Dummy diagnostic is a simple diagnostic that does nothing.
-This documentation is an empty placeholder to remind you to write some documentation for your diagnostic.
-This section should contain a short description of the contents of the diagnostic and of its scientific basis. 
-It can contain references to literature (we have a reference list below).
+Dummy diagnostic provides an example on how diagnostics of the AQUA framework should be organised and written.
+In this case the dummy diagnostic reads a field a computes the global mean using the fldmean method from the reader according to...
+In particular, this documentation provides an example on how a diagnostic developer should write documentation about his/her diagnostic,
+covering a short description of its contents and of its scientific basis. 
+In case the diagnostic is bae on some already published material it is strongly 
+recommended to include references to the inherent literature (we have a reference list below).
 Please try to adhere to the following scheme as far as possible.
 
 Input variables
@@ -19,7 +21,10 @@ Input variables
 Output 
 ------
 
-Nothing in this case. List here types of files/datasets produced by the diagnostic
+List here types of files/datasets produced by the diagnostic
+
+Methods used
+---------------
 
 Observations
 ------------
