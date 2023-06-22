@@ -86,7 +86,7 @@ def group_shared_dims(ds, shared_dims, others=None, masked=None,
             return {dim[0]: ds}
         else:
             if others:
-                if check_att(ds, masked_att) or ds.name in masked_vars:
+                if check_att(ds, masked_att) or (masked_vars is not None and ds.name in masked_vars):
                     return {masked: ds}
                 else:
                     return {others: ds}
@@ -105,7 +105,7 @@ def group_shared_dims(ds, shared_dims, others=None, masked=None,
         vlistm = []
         for var in ds.data_vars:
             if not any(x in shared_dims for x in ds[var].dims):
-                if check_att(ds[var], masked_att) or var in masked_vars:
+                if check_att(ds[var], masked_att) or (masked_vars is not None and var in masked_vars):
                     vlistm.append(var)
                 else:
                     vlist.append(var)
