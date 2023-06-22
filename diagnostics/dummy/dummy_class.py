@@ -1,7 +1,9 @@
 """Dummy diagnostic for testing purposes"""
+import os
 import xarray as xr
 
 from aqua.logger import log_configure
+from aqua.util import load_yaml
 from aqua.reader import Reader
 
 
@@ -10,6 +12,7 @@ class DummyDiagnostic():
     def __init__(self, model=None, exp=None, source=None,
                  configdir=None, regrid=None,
                  timemean=False, freq=None,
+                 var=None, custom_diagvar="I'm a custom variable",
                  savefig=False, outputfig=None,
                  savefile=False, outputdir=None,
                  filename=None, loglevel='WARNING'):
@@ -61,6 +64,16 @@ class DummyDiagnostic():
                                   considering that it will be the one used by the Reader class
                                   if the user does not specify it.
                                   Consider also that this value will be used only if timemean is True.
+            var (str, opt):       the variable name to be used by the Reader class in the retrieve method.
+                                  Default is None.
+                                  Please change it to the default value that you want to use,
+                                  considering that it will be the one used by the Reader class
+                                  if the user does not specify it.
+                                  It may be a list as well, since the Reader class can handle lists.
+            custom_diagvar (str): the variable name to be used by the Reader class in the compute method.
+                                  Default is "I'm a custom variable".
+                                  Please change it to the default value that you want to use,
+                                  add more of them if your diagnostic needs more than one variable.
             savefig (bool, opt):  whether to save the figures or not.
                                   Default is False to not produce figures files in the notebooks.
                                   Consider that it may be suggested to have it True by default
@@ -89,11 +102,138 @@ class DummyDiagnostic():
             None
 
         Raises:
+            ValueError: if model, exp or source are not specified.
+            V
         """
 
         # Configure logger
         self.loglevel = loglevel # Set the log level to the one passed to the class
         self.logger = log_configure(self.loglevel, 'Dummy') # Please change the name of the logger to the name of your diagnostic
+
+        # Reader variables
+        # This is a block that initializes the variables that will be used by the Reader class.
+        # Please adapt it to your needs.
+        # Consider that this example is instantiating only one Reader class.
+        # If you need to instantiate more than one Reader class, please adapt it to your needs.
+        # You may instantiate more Reader classes here or you instead instantiate them
+        # on multiple instances of the diagnostic class.
+        # It will depend on your internal methods.
+        if model: # here model, exp, source are mandatory, check if it is the case for your diagnostic.
+            self.model = model
+        else:
+            raise ValueError('model must be specified')
+
+        if exp:
+            self.exp = exp
+        else:
+            raise ValueError('exp must be specified')
+
+        if source:
+            self.source = source
+        else:
+            raise ValueError('source must be specified')
+        
+        self.regrid = regrid # adapt or remove if you do not need it
+        if self.regrid is None:
+            self.logger.warning('No regridding will be performed')
+        self.logger.info('Regridding resolution: {}'.format(self.regrid))
+
+        self.timemean = timemean # adapt or remove if you do not need it
+        self.freq = freq
+        if self.timemean:
+            self.logger.warning('Time mean will be computed')
+            if self.freq is None:
+                raise ValueError('freq must be specified if timemean is True')
+            self.logger.info('Time mean frequency: {}'.format(self.freq))
+        # Consider that the Reader has more arguments that can be passed to it.
+        # Please adapt the code to your needs.
+        # You can find more information about the Reader class in the documentation.
+
+        # Diagnostic variables
+        # This is a block that initializes the variables that will be used by the diagnostic.
+        # Please adapt it to your needs.
+        self.var = var # adapt or remove if you do not need it
+        if self.var is None:
+            raise ValueError('var must be specified') # you may have (and probably should) a default different from None
+        # If you want to retrieve all data consider removing the var argument from the class __init__.
+        
+        self.custom_diagvar = custom_diagvar
+        self.logger.info('Custom diagnostic variable: {}'.format(self.custom_diagvar))
+
+        self.configdir = configdir # adapt or remove if you do not need it
+        if self.configdir is None:
+            self.logger.warning('No config directory specified')
+        else:
+            self.logger.info('Config directory: {}'.format(self.configdir))
+        
+        # Here you can load the config files if you have any.
+        self.config = load_yaml(self.configdir, 'config.yaml')
+        
+        # Output variables
+        # This is a block that initializes the variables that will be used to save the data.
+        # Please adapt it to your needs.
+        # Here we set two folders, one for the figures and one for the data.
+        self.savefig = savefig # adapt or remove if you do not need it
+        if outputfig:
+            self.outputfig = outputfig
+        else:
+            self.logger.info('No figure folder specified, trying to use the config file setting')
+            try:
+                self.outputfig = self.config['outputfig']
+                # Check if the path exists
+                if not os.path.exists(self.outputfig):
+                    self.logger.warning('Figure output folder does not exist, creating it')
+                    os.makedirs(self.outputfig)
+            except KeyError:
+                self.logger.warning('No figure folder specified, using the current directory')
+                self.outputfig = os.getcwd()
+        self.logger.debug('Figure output folder: {}'.format(self.outputfig))
+
+        self.savefile = savefile # adapt or remove if you do not need it
+        if outputdir:
+            self.outputdir = outputdir
+        else:
+            self.logger.info('No data folder specified, trying to use the config file setting')
+            try:
+                self.outputdir = self.config['outputdir']
+                # Check if the path exists
+                if not os.path.exists(self.outputdir):
+                    self.logger.warning('Data output folder does not exist, creating it')
+                    os.makedirs(self.outputdir)
+            except KeyError:
+                self.logger.warning('No data folder specified, using the current directory')
+                self.outputdir = os.getcwd()
+        self.logger.debug('Data output folder: {}'.format(self.outputdir))
+
+        self.filename = filename # adapt or remove if you do not need it
+        if self.filename is None:
+            self.logger.info('No filename specified, using the config file setting')
+            try:
+                self.filename = self.config['filename']
+            except KeyError:
+                self.logger.warning('No filename specified, using the default one')
+                self.filename = 'dummy.nc'
+        self.logger.debug('Output filename: {}'.format(self.filename))
+
+        # Initialize the Reader class
+        # This is a block that initializes the Reader class.
+        # Please adapt it to your needs.
+        # Consider that this example is instantiating only one Reader class.
+        self.reader = Reader(model=self.model, exp=self.exp, source=self.source, regrid=self.regrid,
+                             timemean=self.timemean, freq=self.freq, loglevel=self.loglevel)
+        
+        # Plese if some more initialization is needed for the diagnostic, do it in this functions.
+
+    def retrieve(self): # Notice that self should be contained in every method
+        """The retrieve method.
+        This method retrieves the data from the Reader class.
+        
+        Args:
+            None
+        
+        Returns:
+            None
+        """
 
     def run(self):
         """The run method.""
