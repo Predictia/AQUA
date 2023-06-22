@@ -1,5 +1,11 @@
 # At the moment diagnostics have to create their own environment
 # with the required dependencies.
+# To install the diagnostic in a new conda environment run:
+# conda env create -f env-dummy.yml
+# To install the diagnostic in an existing conda environment run:
+# conda env update -f env-dummy.yml
+# To activate the environment run:
+# conda activate dummy-diagnostic
 
 name: dummy
 channels:
