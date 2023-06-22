@@ -320,3 +320,4 @@ class DummyDiagnostic():
 
 # Notice that more methods can be added to the class, and they can be explicit or not.
 # Consider adding or not plot methods, depending on your needs.
+
