@@ -11,7 +11,7 @@ The dummy diagnostic follows a class structure and consists of the files:
 * `dummy_func.py`: a python file which contains functions that are called and used in the dummy class;
 * `env-dummy.yml`: a yml file with the required dependencies for the dummy diagnostic;
 * `notebooks/dummy.ipynb`: an ipython notebook which uses the dymmy class and its methods;
-* `README.md` : a reame file which contains some tecnical information on how to install the dummy diagnostic and its environment. 
+* `README.md` : a readme file which contains some tecnical information on how to install the dummy diagnostic and its environment. 
 
 This documentation provides also guidelines on how a diagnostic developer should write documentation about his/her diagnostic,
 covering a short description of its contents and of its scientific basis. 
