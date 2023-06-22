@@ -313,6 +313,13 @@ source_grids:
         vert_coord: ["nz", "nz1"]
         extra: 
           - -setgrid,/work/bb1153/b382075/nextgems/grids/NG5_griddes_nodes_IFS.nc 
+      3D_daily_native_zarr:
+        path: 
+          nz1: /work/bb1153/b382075/nextgems/grids/NG5_nodes_fesom_mask_nz1.nc
+        space_coord: ["nod2"]
+        vert_coord: ["nz1"]
+        extra: 
+          - -setgrid,/work/bb1153/b382075/nextgems/grids/NG5_griddes_nodes_IFS.nc 
       3D_daily_native_elem:
         space_coord: ["elem"]
         path:
@@ -423,7 +430,7 @@ source_grids:
   WOA18:
     woa18_2005_2017:
       default:
-        path: /pool/data/AWICM/FESOM2/INITIAL/WOA18/WOA18_2005_2017/woa18_A5B7_t00_04.nc
+        # path: /pool/data/AWICM/FESOM2/INITIAL/WOA18/WOA18_2005_2017/woa18_A5B7_t00_04.nc
         vert_coord: depth
         space_coord: ["lon", "lat"]
 
@@ -460,8 +467,14 @@ source_grids:
         space_coord: ["values"]  
     era5:
       default:
-        path: /work/bb1153/b382076/ERA5/grids/r025_grid.nc
+        path: 
+          2d: /work/bb1153/b382075/nextgems/grids/r025_grid.nc
+          2dm: /work/bb1153/b382075/nextgems/grids/r025_grid_masked.nc
+        masked_vars:
+          - sst
+          - SSTK
         space_coord: ["lon", "lat"]
+        vert_coord: ["2d", "2dm"]  # If the case is more complex than simply "2d" we need to specify this  
 
   OSI-SAF:
     osi-450:
