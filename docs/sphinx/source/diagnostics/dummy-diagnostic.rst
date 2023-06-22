@@ -9,13 +9,13 @@ The dummy diagnostic follows a class structure and consists of the files:
 
 * `dummy_class.py`: a python file in which the DummyDiagnostic class constructor and the other class methods are included;
 * `dummy_func.py`: a python file which contains functions that are called and used in the dummy class;
-* `env-dummy.yml`: a yml file with the required dependencies for the dummy diagnostic;
+* `env-dummy.yml`: a yaml file with the required dependencies for the dummy diagnostic;
 * `notebooks/dummy.ipynb`: an ipython notebook which uses the dymmy class and its methods;
 * `README.md` : a readme file which contains some tecnical information on how to install the dummy diagnostic and its environment. 
 
 This documentation provides also guidelines on how a diagnostic developer should write documentation about his/her diagnostic,
 covering a short description of its contents and of its scientific basis. 
-In case the diagnostic is bae on some already published material it is strongly 
+In case the diagnostic is based on some already published material it is strongly 
 recommended to include references to the inherent literature (we have a reference list below).
 Please try to adhere to the following scheme as far as possible.
 
@@ -33,15 +33,24 @@ List here types of files/datasets produced by the diagnostic
 Methods used
 ------------
 
-Examples from the DummyDiagnostic class:
+Examples from the DummyDiagnostic class contained in the dummy_class.py file:
 
 * "DummyDiagnostic": the Dummy diagnostic class;
-* "__init__": the Dummy diagnostic class;
-* "_reader": method to initialise the Reader class;
 * "retrieve": method to retrieve the data from the Reader class;
+* "fldmean": method to compute the field mean of the retrieved data;
+* "multiplication": method to compute the multiplication of the retrieved data. 
+                    It is an example of method that uses of external functions of the module dummy_func
 
 ...
 
+Functions used
+--------------
+
+Example of functions contained in the dummy_func.py file:
+
+* "dummy_func": dummy function used in the dummy class.
+
+Note that it is important to add docstrings to each method or function.
 
 Observations
 ------------
