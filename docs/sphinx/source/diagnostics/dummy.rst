@@ -1,10 +1,10 @@
-Dummy Diagnostic
+Dummy
 ================
 
 Description
 -----------
 
-Dummy diagnostic provides an example on how diagnostics of the AQUA framework should be organised and written.
+Dummy provides an example on how diagnostics of the AQUA framework should be organised and written.
 The dummy diagnostic follows a class structure and consists of the files:
 
 * `dummy_class.py`: a python file in which the DummyDiagnostic class constructor and the other class methods are included;
