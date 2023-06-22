@@ -373,7 +373,7 @@ class LRAgenerator():
 
                 # real writing
                 if self.definitive:
-                    self._write_var_month(month_data, outfile)
+                    self.write_chunk(month_data, outfile)
 
                     # check everything is correct
                     filecheck = file_is_complete(outfile, self.logger)
@@ -389,7 +389,7 @@ class LRAgenerator():
         t_end = time()
         self.logger.info('Process took {:.4f} seconds'.format(t_end-t_beg))
 
-    def _write_var_month(self, month_data, outfile):
+    def write_chunk(self, data, outfile):
         """Write a single chunk of data - Xarray Dataset - to a specific file
         using dask if required and monitoring the progress"""
 
@@ -401,7 +401,7 @@ class LRAgenerator():
         self.logger.warning('Writing file %s...', outfile)
 
         # Write data to file, lazy evaluation
-        write_job = month_data.to_netcdf(outfile,
+        write_job = data.to_netcdf(outfile,
                                 encoding={'time': self.time_encoding},
                                 compute=False)
 

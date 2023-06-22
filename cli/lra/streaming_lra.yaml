@@ -1,7 +1,7 @@
 #This include the option for the regridding
 target:
   resolution: r100
-  frequency: monthly
+  frequency: daily
   outdir: /pfs/lustrep3/projappl/project_465000454/padavini/LRA
   tmpdir: /pfs/lustrep3/projappl/project_465000454/padavini/tmp
 
@@ -12,7 +12,6 @@ loglevel: INFO
 opa:
   use_opa: True
   opacheckpoint: True
-  opastreamstep: None
   opadir: /pfs/lustrep3/projappl/project_465000454/padavini/one_pass
 
 # do you want to use GSV direct access
@@ -26,4 +25,4 @@ catalog:
   ERA5:
     fdb:
       fdb-test:
-        vars: ['tp']
+        vars: ['tp', '2t']

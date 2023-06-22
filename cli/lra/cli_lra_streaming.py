@@ -11,6 +11,8 @@ import argparse
 from aqua import LRAgenerator
 from aqua import OPAgenerator
 from aqua.util import load_yaml, get_arg
+from glob import glob
+import os
 
 
 def parse_arguments(args):
@@ -37,25 +39,33 @@ if __name__ == '__main__':
 
     args = parse_arguments(sys.argv[1:])
     
-    file = get_arg(args, 'config', 'stream_config.yaml')
+    file = get_arg(args, 'config', 'streaming_lra.yaml')
     print('Reading configuration yaml file..')
 
     config = load_yaml(file)
+
+    # model setup
     resolution = config['target']['resolution']
     frequency = config['target']['frequency']
     outdir = config['target']['outdir']
     tmpdir = config['target']['tmpdir']
     configdir = config['configdir']
-    loglevel= config['loglevel']
+
+
+    #opa setup
     opadir =  config['opa']['opadir']
     opacheckpoint =  config['opa']['opacheckpoint']
-    opastreamstep =  config['opa']['opastreamstep']
+
+    # gsv setup
     use_gsv =  config['gsv']['use_gsv']
     gsv_start =  str(config['gsv']['start'])
     gsv_end =  str(config['gsv']['end'])
+
+    # configuration of the tool
     definitive = get_arg(args, 'definitive', False)
     overwrite = get_arg(args, 'overwrite', False)
     workers = get_arg(args, 'workers', 1)
+    loglevel= config['loglevel']
     loglevel = get_arg(args, 'loglevel', loglevel)
 
     for model in config['catalog'].keys():
@@ -68,31 +78,39 @@ if __name__ == '__main__':
                     zoom_level = config['catalog'][model][exp][source].get('zoom', None)
                     # init the OPA
                     opa = OPAgenerator(model=model, exp=exp, source=source, zoom=zoom_level,
-                                        var=varname, frequency=frequency, checkpoint = opacheckpoint,
-                                        stream_step=opastreamstep,
+                                        var=varname, frequency=frequency, checkpoint = opacheckpoint, stream_step=None,
                                         outdir=opadir, tmpdir=tmpdir, configdir=configdir,
                                         loglevel=loglevel, definitive=definitive, nproc=workers)
                     opa.retrieve()
                     opa.generate_opa(gsv=use_gsv, start=gsv_start, end=gsv_end)
                     opa.create_catalog_entry()
 
+       
+                # LRA will run only if NetCDF files from OPA are found
                 for varname in variables:
-                    # init the LRA
-                    lra = LRAgenerator(model=model, exp=exp, source=opa.entry_name, zoom=zoom_level,
-                                        var=varname, resolution=resolution,
-                                        frequency=frequency, fix=False,
-                                        outdir=outdir, tmpdir=tmpdir, configdir=configdir,
-                                        nproc=workers, loglevel=loglevel,
-                                        definitive=definitive, overwrite=overwrite)
-                    
-                    # check that your LRA is not already there (it will not work in streaming mode)
-                    #check = lra.check_integrity(varname)
+                    opa_files = glob(f"{opa.outdir}/*{varname}*.nc")
 
-                    lra.retrieve()
-                    lra.generate_lra()
-                    lra.create_catalog_entry()
+                    if opa_files: 
+                        print('Netcdf files found in %s: Launching LRA', opa.outdir)
+                        # init the LRA
+                        lra = LRAgenerator(model=model, exp=exp, source=opa.entry_name, zoom=zoom_level,
+                                            var=varname, resolution=resolution,
+                                            frequency=frequency, fix=False,
+                                            outdir=outdir, tmpdir=tmpdir, configdir=configdir,
+                                            nproc=workers, loglevel=loglevel,
+                                            definitive=definitive, overwrite=overwrite)
+                        
+                        # check that your LRA is not already there (it will not work in streaming mode)
+                        #check = lra.check_integrity(varname)
+
+                        lra.retrieve()
+                        lra.generate_lra()
+                        lra.create_catalog_entry()
                 
+                # cleaning the opa NetCDF files
                 for varname in variables:
-                    opa.clean()
+                    opa_files = glob(f"{opa.outdir}/*{varname}*.nc")
+                    for file_name in opa_files:
+                        os.remove(file_name)
 
     print('LRA run completed. Have yourself a beer!')

@@ -179,7 +179,7 @@ class OPAgenerator():
         self.opa_dict = {
                          "stat": "mean",
                          "stat_freq": self.frequency,
-                         "output_freq": "monthly",
+                         "output_freq": "daily",
                          "time_step": self.timedelta,
                          "variable": var,
                          "save": True,
@@ -208,6 +208,8 @@ class OPAgenerator():
             if self.checkpoint:
                 self.checkpoint_file = opa_mean.checkpoint_file
 
+            opa_mean.checkpoint_file_zarr = opa_mean.checkpoint_file + ".zarr"
+
             # self.checkpoint_file = opa_mean.checkpoint_file
             # self.remove_checkpoint()
             print(vars(opa_mean))
@@ -228,7 +230,7 @@ class OPAgenerator():
                                
                 if self.definitive:
                     mydata = data[variable]#.load()
-                    print(mydata)
+                    #print(mydata)
                     opa_mean.compute(mydata)
                     if os.path.exists(self.checkpoint_file):
                         file_size = os.path.getsize(self.checkpoint_file)
