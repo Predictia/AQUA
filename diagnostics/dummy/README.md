@@ -6,7 +6,18 @@ It is meant to be used as a template for new diagnostics.
 ## Description
 
 Concise overview that explains the purpose, key features, and benefits of your diagnostics.
-For example, 
+
+Below you can find the example:
+
+The dummy-diagnostic proving for the user an excellent example of
+
+* how to organize the diagnostic structure,
+* how to maintain the class and functions,
+* how to write the docstrings,
+* how to compose the primary sphinx documentation,
+* how to organize the notebooks, 
+* how to implement simple pytest, and 
+* how to write the readme file.
 
 ## Table of Contents
 
@@ -23,6 +34,7 @@ For example,
 * [Data requirements](#data-requirements)
 
 * [Examples](#examples)
+
 
 * [Contributing](#contributing)
 
@@ -91,12 +103,37 @@ Take advantage as much as possible of the functions available in the framework. 
 
 ## Data requirements  
 
+For example: "The diagnostic can be performed only on regridded data" or "The diagnostic can be done only with monthly data."
+
 ## Examples
 Provide examples or sample use cases that demonstrate your project's capabilities. This can help users understand the potential applications and inspire them to use your diagnostic.
 
+For each notebook, write at least 2-3 sentences describing each notebook. The description needs to be short but clear about what it is about, not only for developers. 
+
+Below you can find the example:
+
 The **notebooks** folder contains notebooks with examples of how to use the diagnostic and its main functions.
 Please note that notebooks may load data from the DKRZ cluster, so they may not work outside of it.
+The notebook folder contains the following notebooks:
+
+ - **Save_data_to_storage.ipynb**: 
+
+    The notebook demonstrates the major abilities of dummy diagnostic: 
+    - initialization of an object of the diagnostic class, 
+    - selection of the class attributes,  
+    - saving the datain the storage,
+    - and loading the data from storage.
+
+ - **Save_figure_to_storage.ipynb**:
+
+    The notebook demonstrates the abilities of the histogram plotting functions:
+    - selection of the plot style: step line style, 2D smooth line style, and different color maps,
+    - selection of the plot size, axes scales, 
+    - saving plot into storage, 
+    - plotting the counts, frequencies, and Probability density function (pdf) from the obtained histograms.
+
 
 ## Contributing
 
 Include your contact information or any official channels (such as email, GitHub profile) through which users can reach out to you for support, questions, or feedback.
+
