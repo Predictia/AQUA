@@ -47,7 +47,7 @@ Do not merge your Pull Request yourself, it will be merged by the AQUA team.
 
 ## Reporting issues
 
-Before opening an issue, please [search the if the issue already exists][https://docs.github.com/en/github/searching-for-information-on-github/searching-on-github/searching-issues-and-pull-requests#search-by-the-title-body-or-comments]. If it does, please add a comment to the existing issue instead of opening a new one.
+Before opening an issue, please [search the if the issue already exists](https://docs.github.com/en/github/searching-for-information-on-github/searching-on-github/searching-issues-and-pull-requests#search-by-the-title-body-or-comments). If it does, please add a comment to the existing issue instead of opening a new one.
 
 As a general rule, if you are unsure, please open an issue anyway and we will help you.
 There is no automatic assignement of issues to anyone. 

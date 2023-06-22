@@ -9,7 +9,7 @@ AQUA provides a collection of built-in diagnostics to analyze climate model outp
 .. toctree::
    :maxdepth: 1
 
-   dummy-diagnostic
+   dummy
    ssh_variability
    tropical-rainfall-diagnostic
 
