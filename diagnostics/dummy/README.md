@@ -97,40 +97,41 @@ If you want to use multiple diagnostics at the same time, it is recommended to u
 ## Code
 
 Please add docstrings to all the functions you add to the diagnostic.
+You can find an example of how to write the docstrings in the `dummy_class.py` file. 
+
 Make sure that the code passes the `flake8` checks.
-Take advantage as much as possible of the functions available in the framework. If new data or functions that you think may be useful for other diagnostics are needed, please contact the AQUA team. It may be added to the framework.
+Take advantage as much as possible of the functions available in the framework. 
+
+If new data or functions that you think may be useful for other diagnostics are needed, please contact the AQUA team. It may be added to the framework.
 
 
 ## Data requirements  
 
-For example: "The diagnostic can be performed only on regridded data" or "The diagnostic can be done only with monthly data."
+Please specify if your diagnostic can only be performed on data with a particular time or space grid. 
+
+For instance, "The dummy diagnostic can only be performed on regridded data" or "The diagnostic can only be performed on monthly data".
 
 ## Examples
-Provide examples or sample use cases that demonstrate your project's capabilities. This can help users understand the potential applications and inspire them to use your diagnostic.
 
-For each notebook, write at least 2-3 sentences describing each notebook. The description needs to be short but clear about what it is about, not only for developers. 
-
-Below you can find the example:
-
-The **notebooks** folder contains notebooks with examples of how to use the diagnostic and its main functions.
+The notebooks demonstrate your diagnostic's capabilities, help users understand the potential applications, and inspire them to use it.
 Please note that notebooks may load data from the DKRZ cluster, so they may not work outside of it.
-The notebook folder contains the following notebooks:
+
+The **notebook/** folder contains the following notebooks:
 
  - **Save_data_to_storage.ipynb**: 
 
     The notebook demonstrates the major abilities of dummy diagnostic: 
     - initialization of an object of the diagnostic class, 
     - selection of the class attributes,  
-    - saving the datain the storage,
-    - and loading the data from storage.
+    - saving the data in the storage, and 
+    - loading the data from storage.
 
  - **Save_figure_to_storage.ipynb**:
 
     The notebook demonstrates the abilities of the histogram plotting functions:
-    - selection of the plot style: step line style, 2D smooth line style, and different color maps,
-    - selection of the plot size, axes scales, 
-    - saving plot into storage, 
-    - plotting the counts, frequencies, and Probability density function (pdf) from the obtained histograms.
+    - selection of the plot style,
+    - selection of the plot size, axes scales, and 
+    - saving plot into storage.
 
 
 ## Contributing
