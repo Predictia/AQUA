@@ -46,7 +46,7 @@ Clearly explain how to install and set up your project. Include any dependencies
 
 To install this diagnostic you can use conda.
 The `environment.yml` file contains the dependencies for this diagnostic.
-It is located in `AQUA/diagnostics/dummy-diagnostic/env-dummy.yml`.
+It is located in `AQUA/diagnostics/dummy/env-dummy.yml`.
 
 To install the diagnostic in a new conda environment run:
 
@@ -78,7 +78,7 @@ If you want to use multiple diagnostics at the same time, it is recommended to u
 
 - **diagnostics/**: The root directory of the diagnostic.
 
-  - **dummy-diagnostic/**: contains the code of the diagnostic
+  - **dummy/**: contains the code of the diagnostic
 
     - **notebooks/**: contains notebooks with examples of how to use the diagnostic
 
@@ -88,7 +88,7 @@ If you want to use multiple diagnostics at the same time, it is recommended to u
 
 - **tests/**
 
-  - **dummy-diagnostic/**: contains tests for the diagnostic. Please add tests for all the functions you add to the diagnostic. Please load data that are needed for the tests not in the git. You may need to add data to the catalogue for the `ci` machine. If you need to add data to this catalogue, please contact the AQUA team. Tests run with a github action when you push to the repository in a pull request to the main branch. Note that the workflow file is in the `.github` folder. Modify it accordingly to your diagnostic and uncomment the lines to run the tests when you are ready. Please keep in mind that the suggested way to proceed is based on the creation of a `@pytest.mark.yourdiag` marker so that you can select only the test that you need in the workflow (see the workflow example). This marker has to be added in the `pytest.ini` file.  
+  - **dummy/**: contains tests for the diagnostic. Please add tests for all the functions you add to the diagnostic. Please load data that are needed for the tests not in the git. You may need to add data to the catalogue for the `ci` machine. If you need to add data to this catalogue, please contact the AQUA team. Tests run with a github action when you push to the repository in a pull request to the main branch. Note that the workflow file is in the `.github` folder. Modify it accordingly to your diagnostic and uncomment the lines to run the tests when you are ready. Please keep in mind that the suggested way to proceed is based on the creation of a `@pytest.mark.yourdiag` marker so that you can select only the test that you need in the workflow (see the workflow example). This marker has to be added in the `pytest.ini` file.  
 
 
 
@@ -118,20 +118,18 @@ Please note that notebooks may load data from the DKRZ cluster, so they may not 
 
 The **notebook/** folder contains the following notebooks:
 
- - **Save_data_to_storage.ipynb**: 
+- **Save_data_to_storage.ipynb**: 
+  The notebook demonstrates the major abilities of dummy diagnostic: 
+  - initialization of an object of the diagnostic class, 
+  - selection of the class attributes,  
+  - saving the data in the storage, and 
+  - loading the data from storage.
 
-    The notebook demonstrates the major abilities of dummy diagnostic: 
-    - initialization of an object of the diagnostic class, 
-    - selection of the class attributes,  
-    - saving the data in the storage, and 
-    - loading the data from storage.
-
- - **Save_figure_to_storage.ipynb**:
-
-    The notebook demonstrates the abilities of the histogram plotting functions:
-    - selection of the plot style,
-    - selection of the plot size, axes scales, and 
-    - saving plot into storage.
+- **Save_figure_to_storage.ipynb**:
+  The notebook demonstrates the abilities of the histogram plotting functions:
+  - selection of the plot style,
+  - selection of the plot size, axes scales, and 
+  - saving plot into storage.
 
 
 ## Contributing
