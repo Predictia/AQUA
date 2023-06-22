@@ -1,0 +1,7 @@
+# Config file for dummy diagnostics
+# This file is in YAML format
+# Adapt it to your needs
+
+conf1:
+  - 'spec1'
+  - 'spec2'
