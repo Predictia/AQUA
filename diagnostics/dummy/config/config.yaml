@@ -5,3 +5,8 @@
 conf1:
   - 'spec1'
   - 'spec2'
+
+# It may contains folder defaults
+outputfig: './figs'
+outputdir: './output'
+filename: 'dummy'
