@@ -92,7 +92,7 @@ If you want to use multiple diagnostics at the same time, it is recommended to u
 
 
 
-- **docs/sphinx/sorce/diagnostics/dummy-diagnostic.rts**: contains the documentation for the diagnostic. Please add documentation for all the functions you add to the diagnostic. The documentation is built with sphinx.
+- **docs/sphinx/sorce/diagnostics/dummy.rts**: contains the documentation for the diagnostic. Please add documentation for all the functions you add to the diagnostic. The documentation is built with sphinx.
 
 ## Code
 
