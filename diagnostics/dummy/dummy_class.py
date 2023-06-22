@@ -1,10 +1,17 @@
 """Dummy diagnostic for testing purposes"""
 import os
+import sys
 import xarray as xr
 
 from aqua.logger import log_configure
 from aqua.util import load_yaml
 from aqua.reader import Reader
+
+# This is to access the dummy_func.py file
+# Please import only functions that are used in the class
+# and not the entire module
+sys.path.insert(0, '../')
+from dummy_func import dummy_func
 
 
 class DummyDiagnostic():
@@ -103,11 +110,13 @@ class DummyDiagnostic():
 
         Raises:
             ValueError: if model, exp or source are not specified.
-            V
+            ValueError: if freq is not specified and timemean is True.
+            ValueError: if var is not specified.
+            KeyError: 
         """
 
         # Configure logger
-        self.loglevel = loglevel # Set the log level to the one passed to the class
+        self.loglevel = loglevel  # Set the log level to the one passed to the class
         self.logger = log_configure(self.loglevel, 'Dummy') # Please change the name of the logger to the name of your diagnostic
 
         # Reader variables
@@ -118,7 +127,7 @@ class DummyDiagnostic():
         # You may instantiate more Reader classes here or you instead instantiate them
         # on multiple instances of the diagnostic class.
         # It will depend on your internal methods.
-        if model: # here model, exp, source are mandatory, check if it is the case for your diagnostic.
+        if model:  # here model, exp, source are mandatory, check if it is the case for your diagnostic.
             self.model = model
         else:
             raise ValueError('model must be specified')
@@ -133,12 +142,12 @@ class DummyDiagnostic():
         else:
             raise ValueError('source must be specified')
         
-        self.regrid = regrid # adapt or remove if you do not need it
+        self.regrid = regrid  # adapt or remove if you do not need it
         if self.regrid is None:
             self.logger.warning('No regridding will be performed')
         self.logger.info('Regridding resolution: {}'.format(self.regrid))
 
-        self.timemean = timemean # adapt or remove if you do not need it
+        self.timemean = timemean  # adapt or remove if you do not need it
         self.freq = freq
         if self.timemean:
             self.logger.warning('Time mean will be computed')
@@ -154,26 +163,31 @@ class DummyDiagnostic():
         # Please adapt it to your needs.
         self.var = var # adapt or remove if you do not need it
         if self.var is None:
-            raise ValueError('var must be specified') # you may have (and probably should) a default different from None
+            raise ValueError('var must be specified')  # you may have (and probably should) a default different from None
         # If you want to retrieve all data consider removing the var argument from the class __init__.
         
         self.custom_diagvar = custom_diagvar
         self.logger.info('Custom diagnostic variable: {}'.format(self.custom_diagvar))
 
-        self.configdir = configdir # adapt or remove if you do not need it
+        self.configdir = configdir  # adapt or remove if you do not need it
         if self.configdir is None:
             self.logger.warning('No config directory specified')
         else:
             self.logger.info('Config directory: {}'.format(self.configdir))
         
         # Here you can load the config files if you have any.
-        self.config = load_yaml(self.configdir, 'config.yaml')
+        try:
+            self.config = load_yaml(self.configdir, 'config.yaml') # customise the name of the config file if you need it
+        except FileNotFoundError:
+            self.logger.warning('Config file not found')
+            self.logger.warning('Please be sure all the settings are passed as arguments')
+            self.config = None
         
         # Output variables
         # This is a block that initializes the variables that will be used to save the data.
         # Please adapt it to your needs.
         # Here we set two folders, one for the figures and one for the data.
-        self.savefig = savefig # adapt or remove if you do not need it
+        self.savefig = savefig  # adapt or remove if you do not need it
         if outputfig:
             self.outputfig = outputfig
         else:
@@ -189,7 +203,7 @@ class DummyDiagnostic():
                 self.outputfig = os.getcwd()
         self.logger.debug('Figure output folder: {}'.format(self.outputfig))
 
-        self.savefile = savefile # adapt or remove if you do not need it
+        self.savefile = savefile  # adapt or remove if you do not need it
         if outputdir:
             self.outputdir = outputdir
         else:
@@ -205,7 +219,7 @@ class DummyDiagnostic():
                 self.outputdir = os.getcwd()
         self.logger.debug('Data output folder: {}'.format(self.outputdir))
 
-        self.filename = filename # adapt or remove if you do not need it
+        self.filename = filename  # adapt or remove if you do not need it
         if self.filename is None:
             self.logger.info('No filename specified, using the config file setting')
             try:
@@ -216,24 +230,93 @@ class DummyDiagnostic():
         self.logger.debug('Output filename: {}'.format(self.filename))
 
         # Initialize the Reader class
-        # This is a block that initializes the Reader class.
-        # Please adapt it to your needs.
-        # Consider that this example is instantiating only one Reader class.
-        self.reader = Reader(model=self.model, exp=self.exp, source=self.source, regrid=self.regrid,
-                             timemean=self.timemean, freq=self.freq, loglevel=self.loglevel)
-        
+        self._reader()  # self has not to be passed to the method as it is contained in the class
+
         # Plese if some more initialization is needed for the diagnostic, do it in this functions.
 
-    def retrieve(self): # Notice that self should be contained in every method
-        """The retrieve method.
-        This method retrieves the data from the Reader class.
-        
+    def _reader(self):
+        """The reader method.
+        This method initializes the Reader class.
+
         Args:
             None
-        
+
         Returns:
             None
         """
 
-    def run(self):
-        """The run method.""
+        self.reader = Reader(model=self.model, exp=self.exp, source=self.source, regrid=self.regrid,
+                             timemean=self.timemean, freq=self.freq, loglevel=self.loglevel)
+        self.logger.debug('Reader class initialized')
+
+    def retrieve(self):  # Notice that self should be contained in every method
+        """The retrieve method.
+        This method retrieves the data from the Reader class.
+        It is an explicit method, so no "_" at the beginning.
+        If your methods are not explicit, add "_" at the beginning of the method name.
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            ValueError: if the variable is not found
+        """
+
+        try:
+            self.data = self.reader.retrieve(var=self.var)
+        except ValueError:
+            try:
+                self.logger.warning('Variable {} not found'.format(self.var))
+                self.logger.warning('Trying to retrieve without fixing')
+                self.data = self.reader.retrieve(var=self.var, fix=False)
+            except ValueError:
+                raise ValueError('Variable {} not found'.format(self.var))
+        self.logger.info('Data retrieved')
+
+    def fldmean(self):
+        """The fldmean method.
+        This method computes the field mean of the retrieved data.
+        It is an example of method that does not use of external functions of the module
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            TypeError: if the variable is not a string
+        """
+        if self.var is str:
+            self.fldmean = self.reader.fldmean(self.data)
+            self.logger.info('Field mean computed')
+            self.logger.info('Field mean: {}'.format(self.fldmean))
+        else:
+            raise TypeError('Variable is not a string, cannot compute field mean')
+
+    def multiplication(self):
+        """The multiplication method.
+        This method computes the multiplication of the retrieved data.
+        It is an example of method that uses of external functions of the module
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+
+        self.multiplication = dummy_func(self.data)  # dummy_func is a function defined in the module
+
+    def _secret_method(self):
+        """The secret method.
+        This method is a secret one, so it has "_" at the beginning.
+        If your methods are explicit, remove "_" at the beginning of the method name.
+        """
+        self.logger.debug('This is a secret method')
+
+# Notice that more methods can be added to the class, and they can be explicit or not.
+# Consider adding or not plot methods, depending on your needs.
