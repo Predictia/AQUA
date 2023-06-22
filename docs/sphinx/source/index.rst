@@ -7,10 +7,23 @@ Welcome to AQUA's documentation!
 ================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
-   intro
-
+   introduction
+   installation
+   configuration
+   getting_started
+   core_components
+   lra
+   adding_data
+   tests
+   slurm
+   diagnostics/index
+   examples_tutorials
+   api_reference
+   troubleshooting_faq
+   contributing
+   references_acknowledgments
 
 
 Indices and tables
