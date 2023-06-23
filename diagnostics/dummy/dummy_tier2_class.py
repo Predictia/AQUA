@@ -1,6 +1,6 @@
-""" The module contains a simple example of the class for Tier 2 dummy diagnostic. 
+""" The module contains a simple example of the class for dummy diagnostic. 
 
-.. moduleauthor:: AQUA team <dummy_developer>
+.. moduleauthor:: AQUA team
 
 """
 
@@ -8,7 +8,6 @@ class DummyDiagnostic:
     """This class is a minimal version of the Dummy Diagnostic.
     """
     def __init__(self,
-            trop_lat = 10, 
             s_year      = None,
             f_year      = None, 
             s_month     = None,
@@ -18,27 +17,20 @@ class DummyDiagnostic:
         """ The constructor of the class.
 
         Args:
-            trop_lat (int or float, optional):      The latitude of the tropical zone. Defaults to 10.
             s_year (int, optional):                 The start year of the time interval. Defaults to None.
             f_year (int, optional):                 The end year of the time interval. Defaults to None.
             s_month (int, optional):                The start month of the time interval. Defaults to None.
             f_month (int, optional):                The end month of the time interval. Defaults to None."""
 
         
-
-        self.trop_lat   = trop_lat  
         self.s_year     = s_year
         self.f_year     = f_year   
         self.s_month    = s_month
         self.f_month    = f_month    
 
-    def class_attributes_update(self, trop_lat = None, 
-                          s_year = None, f_year = None, s_month = None, f_month = None):
+    def class_attributes_update(self, s_year = None, f_year = None, s_month = None, f_month = None):
         """ Function to update the class attributes.
-        
-        :param trop_lat: the latitude of the tropical zone
-        :type trop_lat: int or float
-        
+
         :param s_year: the start year of the time interval
         :type s_year: int
         
@@ -50,11 +42,6 @@ class DummyDiagnostic:
         
         :param f_month: the end month of the time interval
         :type f_month: int"""
-        
-        if trop_lat is not None and isinstance(trop_lat, (int, float)):        
-            self.trop_lat = trop_lat
-        elif trop_lat is not None and not isinstance(trop_lat, (int, float)):
-            raise Exception("trop_lat must to be integer or float")
         
         if s_year is not None and isinstance(s_year, int):          
             self.s_year = s_year
@@ -75,22 +62,7 @@ class DummyDiagnostic:
             self.f_month = f_month
         elif f_month is not None and not isinstance(f_month, int):
             raise Exception("f_month must to be integer")     
-
-    
-    def latitude_band(self, data, trop_lat=None): 
-        """ Function to select the Dataset for specified latitude range
-
-        Args:
-            data (xarray):                  The Dataset
-            trop_lat (int/float, optional): The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
-
-        Returns:
-            xarray: The Dataset only for selected latitude range. 
-        """    
-        
-        
-        self.class_attributes_update( trop_lat=trop_lat )
-        return data.where(abs(data.lat) <= self.trop_lat, drop=True)  
+ 
     
     def time_band(self, data, s_year = None, f_year = None, s_month = None, f_month = None): 
         """ Function to select the Dataset for specified time range
