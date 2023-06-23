@@ -7,13 +7,13 @@ from aqua.util import dump_yaml, load_yaml
 from aqua.util import get_config_dir, get_machine
 
 
-def opa_catalog_entry(datadir, model, exp, source, zoom=None ,frequency='monthly'):
+def opa_catalog_entry(datadir, model, exp, source, frequency='monthly'):
     """
     Create an entry in the AQUA catalog based on the presence of output from OPA in datadir
     to be used by the LRA generator in both source and regrid yaml
     """
 
-    entry_name=f'{source}-{frequency}'
+    entry_name=f'opa-{frequency}'
     logging.warning('Creating catalog entry %s %s %s', model, exp, entry_name)
 
     # define the block to be uploaded into the catalog
@@ -28,18 +28,18 @@ def opa_catalog_entry(datadir, model, exp, source, zoom=None ,frequency='monthly
         }
     }
 
-    if zoom:
-        block_zoom = {
-            'parameters': {
-                'zoom': {
-                    'allowed': [zoom],
-                    'default': zoom,
-                    'description': 'zoom resolution of the dataset',
-                    'type': 'int'
-                }
-            }
-        }
-        block_cat.update(block_zoom)
+    # if zoom:
+    #     block_zoom = {
+    #         'parameters': {
+    #             'zoom': {
+    #                 'allowed': [zoom],
+    #                 'default': zoom,
+    #                 'description': 'zoom resolution of the dataset',
+    #                 'type': 'int'
+    #             }
+    #         }
+    #     }
+    #     block_cat.update(block_zoom)
 
     configdir = get_config_dir()
     machine = get_machine(configdir)
