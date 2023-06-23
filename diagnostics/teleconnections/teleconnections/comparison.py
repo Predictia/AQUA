@@ -31,3 +31,46 @@ class TeleconnectionComparison():
         for i in range(len(self.models)):
             self.logger.debug('Model: {}/{}/{}'.format(self.models[i], self.exps[i], self.sources[i]))
 
+        self.teleconnection = []
+        for i in range(len(self.models)):
+            self.logger.debug('Open dataset: {}/{}/{}'.format(self.models[i], self.exps[i], self.sources[i]))
+            self.teleconnection.append(Teleconnection(model=self.models[i],
+                                                      exp=self.exps[i],
+                                                      source=self.sources[i],
+                                                      telecname=self.telecname,
+                                                      savefig=savefig,
+                                                      outputfig=outputfig,
+                                                      savefile=savefile,
+                                                      outputdir=outputdir,
+                                                      loglevel=self.loglevel))
+
+    def index_comparison():
+        """Compare teleconnection indices."""
+        for i in range(len(self.models)):
+            self.teleconnection[i].evaluate_index()
+
+    def plot_comparison():
+        """Plot teleconnection indices."""
+        # Here we need to use the plot function from the teleconnection func
+        # I need to modify the plot function to accept a list of teleconnection objects
+        pass
+
+    def regression():
+        """Perform regression."""
+    # Here we need to use the plot function from the teleconnection func
+        # I need to modify the plot function to accept a list of teleconnection objects
+        pass
+
+    def correlation():
+        """Perform correlation."""
+        # Here we need to use the plot function from the teleconnection func
+        # I need to modify the plot function to accept a list of teleconnection objects
+        pass
+
+    def NCAR_comparison():
+        """Compare teleconnection indices with NCAR."""
+        # Here we need to use the plot function from the notebook
+        # I need to modify the plot function to accept a list of teleconnection objects
+        # and to make it different for each teleconnection
+        
+        pass
