@@ -7,9 +7,8 @@
 class DummyDiagnostic:
     """This class is a minimal version of the Dummy Diagnostic.
     """
-    def class_attributes_update(self,   trop_lat = None,  s_time = None, f_time = None,  
-                          s_year = None, f_year = None, s_month = None, f_month = None, 
-                          num_of_bins = None, first_edge = None, width_of_bin = None, bins=0):
+    def class_attributes_update(self, trop_lat = None, 
+                          s_year = None, f_year = None, s_month = None, f_month = None):
         """ Function to update the class attributes.
         
         :param trop_lat: the latitude of the tropical zone
@@ -93,8 +92,7 @@ class DummyDiagnostic:
         self.class_attributes_update( trop_lat=trop_lat )
         return data.where(abs(data.lat) <= self.trop_lat, drop=True)  
     
-    def time_band(self, data,  s_time = None, f_time = None, s_year = None, f_year = None,
-        s_month = None, f_month = None): 
+    def time_band(self, data, s_year = None, f_year = None, s_month = None, f_month = None): 
         """ Function to select the Dataset for specified time range
 
         Args:
