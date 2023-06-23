@@ -17,12 +17,13 @@ from dummy_func import dummy_func
 class DummyDiagnostic():
     """Dummy diagnostic class"""
     def __init__(self, model=None, exp=None, source=None,
+                 custom_diagvar="I'm a custom variable",
                  configdir=None, regrid=None,
-                 timemean=False, freq=None,
-                 var=None, custom_diagvar="I'm a custom variable",
+                 freq=None, var=None,
                  savefig=False, outputfig=None,
                  savefile=False, outputdir=None,
-                 filename=None, loglevel='WARNING'):
+                 filename=None,
+                 loglevel='WARNING'):
         """
         The DummyDiagnostic constructor.
         The init method is used to initialize the class.
@@ -48,7 +49,7 @@ class DummyDiagnostic():
                                   Default is None.
             source (str):         the source name to be used by the Reader class.
                                   Default is None.
-            configdir (str):      the path to the directory containing the config files.
+            configdir (str, opt): the path to the directory containing the config files.
                                   Default is None. Please change it to the path of your config files,
                                   if you have any or if there is a clear config directory.
             regrid (str, opt):    whether to regrid the data or not.
@@ -56,27 +57,23 @@ class DummyDiagnostic():
                                   Please change it to the default value that you want to use,
                                   considering that it will be the one used by the Reader class
                                   if the user does not specify it.
-            timemean (bool,opt):  whether to compute the time mean or not.
-                                  Default is False.
-                                  Please change it to the default value that you want to use,
-                                  considering that it will be the one used by the Reader class
-                                  if the user does not specify it.
+            freq (str, opt):      the frequency of the data temporal aggregation.
+                                  Default is None.
+                                  If None is passed, no temporal aggregation will be performed.
                                   Consider that time mean can be a very long operation.
                                   If you want to compute the time mean, please consider
                                   making use of the parallelization capabilities of xarray.
                                   You can find more examples in the lra or gribber framework code.
-            freq (str, opt):      the frequency of the data temporal aggregation.
-                                  Default is None.
                                   Please change it to the default value that you want to use,
                                   considering that it will be the one used by the Reader class
                                   if the user does not specify it.
-                                  Consider also that this value will be used only if timemean is True.
             var (str, opt):       the variable name to be used by the Reader class in the retrieve method.
                                   Default is None.
                                   Please change it to the default value that you want to use,
                                   considering that it will be the one used by the Reader class
                                   if the user does not specify it.
-                                  It may be a list as well, since the Reader class can handle lists.
+                                  It may be a list as well, since the Reader class can handle lists,
+                                  in this example it is a string for simplicity.
             custom_diagvar (str): the variable name to be used by the Reader class in the compute method.
                                   Default is "I'm a custom variable".
                                   Please change it to the default value that you want to use,
@@ -105,9 +102,6 @@ class DummyDiagnostic():
                                   Possible values are 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
                                   with decreasing order of verbosity and increasing importance.
 
-        Returns:
-            None
-
         Raises:
             ValueError: if model, exp or source are not specified.
             ValueError: if freq is not specified and timemean is True.
@@ -116,7 +110,7 @@ class DummyDiagnostic():
 
         # Configure logger
         self.loglevel = loglevel  # Set the log level to the one passed to the class
-        self.logger = log_configure(self.loglevel, 'Dummy') # Please change the name of the logger to the name of your diagnostic
+        self.logger = log_configure(self.loglevel, 'Dummy')  # Please change the name of the logger to the name of your diagnostic
 
         # Reader variables
         # This is a block that initializes the variables that will be used by the Reader class.
@@ -146,12 +140,9 @@ class DummyDiagnostic():
             self.logger.warning('No regridding will be performed')
         self.logger.info('Regridding resolution: {}'.format(self.regrid))
 
-        self.timemean = timemean  # adapt or remove if you do not need it
-        self.freq = freq
-        if self.timemean:
+        self.freq = freq # adapt or remove if you do not need it
+        if self.freq:
             self.logger.warning('Time mean will be computed')
-            if self.freq is None:
-                raise ValueError('freq must be specified if timemean is True')
             self.logger.info('Time mean frequency: {}'.format(self.freq))
         # Consider that the Reader has more arguments that can be passed to it.
         # Please adapt the code to your needs.
@@ -163,10 +154,34 @@ class DummyDiagnostic():
         self.var = var  # adapt or remove if you do not need it
         if self.var is None:
             raise ValueError('var must be specified')  # you may have (and probably should) a default different from None
+        if type(self.var) is not str:  # it is a string in this example, but it may be a list as well
+            raise ValueError('var must be a string')
         # If you want to retrieve all data consider removing the var argument from the class __init__.
 
-        self.custom_diagvar = custom_diagvar
-        self.logger.info('Custom diagnostic variable: {}'.format(self.custom_diagvar))
+        # Here we first load a configuration file and then we load the diagnostic variables.
+        # If no variable is specified in the configuration file, the default value is used.
+        self._load_config(configdir)  # adapt or remove if you do not need it, check the method
+        self._load_diagvar(custom_diagvar)  # adapt or remove if you do not need it, check the method
+
+        # Output variables
+        # This is a block that initializes the variables that will be used to save the data.
+        # Please adapt it to your needs.
+        # Here we set two folders, one for the figures and one for the data.
+        self._load_figs_options(savefig, outputfig)  # adapt or remove if you do not need it, check the method
+        self._load_data_options(savefile, outputdir, filename)  # adapt or remove if you do not need it, check the method
+
+        # Initialize the Reader class
+        self._reader()  # self has not to be passed to the method as it is contained in the class
+
+        # Plese if some more initialization is needed for the diagnostic, do it in this functions.
+
+    def _load_config(self, configdir=None):
+        """Load the config file, if one is present.
+
+        Args:
+            configdir (str): path to the config directory.
+                             Default is None.
+        """
 
         self.configdir = configdir  # adapt or remove if you do not need it
         if self.configdir is None:
@@ -184,56 +199,97 @@ class DummyDiagnostic():
             self.logger.warning('Please be sure all the settings are passed as arguments')
             self.config = None
 
-        # Output variables
-        # This is a block that initializes the variables that will be used to save the data.
-        # Please adapt it to your needs.
-        # Here we set two folders, one for the figures and one for the data.
+    def _load_diagvar(self, custom_diagvar):
+        """Load the diagnostic variables from the config file, if one is present.
+
+        Args:
+            custom_diagvar (srt):  example of diagnostic variables.
+                                   See init for the class default value.
+        """
+        try:
+            self.logger.info('Loading diagnostic variables from config file')
+            self.custom_diagvar = self.config['custom_diagvar']
+        except (KeyError, TypeError):
+            self.logger.warning('No diagnostic variables specified, using the default ones')
+            self.custom_diagvar = custom_diagvar
+        self.logger.debug('Diagnostic variables: {}'.format(self.custom_diagvar))
+
+    def _load_figs_options(self, savefig=False, outputfig=None):
+        """Load the figure options.
+
+        Args:
+            savefig (bool): whether to save the figures.
+                            Default is False.
+            outputfig (str): path to the figure output directory.
+                             Default is None.
+                             See init for the class default value.
+        """
         self.savefig = savefig  # adapt or remove if you do not need it
-        if outputfig:
-            self.outputfig = outputfig
-        else:
-            self.logger.info('No figure folder specified, trying to use the config file setting')
-            try:
-                self.outputfig = self.config['outputfig']
-                # Check if the path exists
-                if not os.path.exists(self.outputfig):
-                    self.logger.warning('Figure output folder does not exist, creating it')
-                    os.makedirs(self.outputfig)
-            except (KeyError, TypeError):
-                self.logger.warning('No figure folder specified, using the current directory')
-                self.outputfig = os.getcwd()
-        self.logger.debug('Figure output folder: {}'.format(self.outputfig))
 
+        if self.savefig:
+            self.logger.info('Figures will be saved')
+            self._load_folder_info(outputfig, 'figure')
+
+    def _load_data_options(self, savefile=False, outputdir=None, filename=None):
+        """Load the data options.
+
+        Args:
+            savefile (bool): whether to save the data.
+                             Default is False.
+            outputdir (str): path to the data output directory.
+                             Default is None.
+                             See init for the class default value.
+            filename (str): name of the output file.
+                            Default is None.
+                            See init for the class default value.
+        """
         self.savefile = savefile  # adapt or remove if you do not need it
-        if outputdir:
-            self.outputdir = outputdir
-        else:
-            self.logger.info('No data folder specified, trying to use the config file setting')
+
+        if self.savefile:
+            self.logger.info('Data will be saved')
+            self._load_folder_info(outputdir, 'data')
+            if filename is None:
+                self.logger.info('No filename specified, using the config file setting')
+                try:
+                    filename = self.config['filename']
+                except (KeyError, TypeError):
+                    self.logger.warning('No filename specified, using the default one')
+                    filename = 'dummy.nc'
+            self.logger.debug('Output filename: {}'.format(filename))
+            self.filename = filename
+
+    def _load_folder_info(self, folder=None, folder_type=None):
+        """Load the folder information.
+
+        Args:
+            folder (str): path to the folder.
+                          Default is None.
+            folder_type (str): type of the folder.
+                               Default is None.
+        """
+        if not folder:
+            self.logger.info('No {} folder specified, trying to use the config file setting'.format(folder_type))
             try:
-                self.outputdir = self.config['outputdir']
+                if folder_type == 'figure':
+                    folder = self.config['outputfig']
+                elif folder_type == 'data':
+                    folder = self.config['outputdir']
                 # Check if the path exists
-                if not os.path.exists(self.outputdir):
-                    self.logger.warning('Data output folder does not exist, creating it')
-                    os.makedirs(self.outputdir)
+                if not os.path.exists(folder):
+                    self.logger.warning('{} folder does not exist, creating it'.format(folder_type))
+                    os.makedirs(folder)
             except (KeyError, TypeError):
-                self.logger.warning('No data folder specified, using the current directory')
-                self.outputdir = os.getcwd()
-        self.logger.debug('Data output folder: {}'.format(self.outputdir))
+                self.logger.warning('No {} folder specified, using the current directory'.format(folder_type))
+                folder = os.getcwd()
 
-        self.filename = filename  # adapt or remove if you do not need it
-        if self.filename is None:
-            self.logger.info('No filename specified, using the config file setting')
-            try:
-                self.filename = self.config['filename']
-            except (KeyError, TypeError):
-                self.logger.warning('No filename specified, using the default one')
-                self.filename = 'dummy.nc'
-        self.logger.debug('Output filename: {}'.format(self.filename))
+        # Store the folder in the class
+        if folder_type == 'figure':
+            self.outputfig = folder
+            self.logger.debug('Figure output folder: {}'.format(self.outputfig))
+        elif folder_type == 'data':
+            self.outputdir = folder
+            self.logger.debug('Data output folder: {}'.format(self.outputdir))
 
-        # Initialize the Reader class
-        self._reader()  # self has not to be passed to the method as it is contained in the class
-
-        # Plese if some more initialization is needed for the diagnostic, do it in this functions.
 
     def _reader(self):
         """The reader method.
@@ -268,6 +324,12 @@ class DummyDiagnostic():
 
         try:
             self.data = self.reader.retrieve(var=self.var)
+            if self.freq:
+                self.logger.debug('Temporal aggregation of data')
+                self.data = self.reader.timmean(self.data)
+            if self.regrid:
+                self.logger.debug('Regridding data')
+                self.data = self.reader.regrid(self.data)
         except ValueError:
             try:
                 self.logger.warning('Variable {} not found'.format(self.var))
@@ -311,6 +373,8 @@ class DummyDiagnostic():
         """
 
         self.multiplication = dummy_func(self.data)  # dummy_func is a function defined in the module
+        self.logger.info('Multiplication computed')
+        self.logger.debug('Multiplication: {}'.format(self.multiplication))
 
     def _secret_method(self):
         """The secret method.
@@ -318,6 +382,7 @@ class DummyDiagnostic():
         If your methods are explicit, remove "_" at the beginning of the method name.
         """
         self.logger.debug('This is a secret method')
+        self.logger.debug('Congratulations, you found it!')
 
 # Notice that more methods can be added to the class, and they can be explicit or not.
 # Consider adding or not plot methods, depending on your needs.
