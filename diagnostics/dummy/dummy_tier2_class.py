@@ -7,6 +7,31 @@
 class DummyDiagnostic:
     """This class is a minimal version of the Dummy Diagnostic.
     """
+    def __init__(self,
+            trop_lat = 10, 
+            s_year      = None,
+            f_year      = None, 
+            s_month     = None,
+            f_month     = None):
+        
+        
+        """ The constructor of the class.
+
+        Args:
+            trop_lat (int or float, optional):      The latitude of the tropical zone. Defaults to 10.
+            s_year (int, optional):                 The start year of the time interval. Defaults to None.
+            f_year (int, optional):                 The end year of the time interval. Defaults to None.
+            s_month (int, optional):                The start month of the time interval. Defaults to None.
+            f_month (int, optional):                The end month of the time interval. Defaults to None."""
+
+        
+
+        self.trop_lat   = trop_lat  
+        self.s_year     = s_year
+        self.f_year     = f_year   
+        self.s_month    = s_month
+        self.f_month    = f_month    
+
     def class_attributes_update(self, trop_lat = None, 
                           s_year = None, f_year = None, s_month = None, f_month = None):
         """ Function to update the class attributes.
@@ -49,32 +74,7 @@ class DummyDiagnostic:
         if f_month is not None and isinstance(f_month, int):         
             self.f_month = f_month
         elif f_month is not None and not isinstance(f_month, int):
-            raise Exception("f_month must to be integer")
-
-    def __init__(self,
-            trop_lat = 10, 
-            s_year      = None,
-            f_year      = None, 
-            s_month     = None,
-            f_month     = None):
-        
-        
-        """ The constructor of the class.
-
-        Args:
-            trop_lat (int or float, optional):      The latitude of the tropical zone. Defaults to 10.
-            s_year (int, optional):                 The start year of the time interval. Defaults to None.
-            f_year (int, optional):                 The end year of the time interval. Defaults to None.
-            s_month (int, optional):                The start month of the time interval. Defaults to None.
-            f_month (int, optional):                The end month of the time interval. Defaults to None."""
-
-        
-
-        self.trop_lat   = trop_lat  
-        self.s_year     = s_year
-        self.f_year     = f_year   
-        self.s_month    = s_month
-        self.f_month    = f_month         
+            raise Exception("f_month must to be integer")     
 
     
     def latitude_band(self, data, trop_lat=None): 
