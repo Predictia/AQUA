@@ -59,7 +59,7 @@ def opa_catalog_entry(datadir, model, exp, source, zoom=None ,frequency='monthly
     cat_file = load_yaml(regridfile)
     dictexp = cat_file['source_grids'][model][exp]
     if source in dictexp:
-        regrid_entry = dictexp[entry]
+        regrid_entry = dictexp[entry_name]
     elif 'default' in dictexp:
         logging.warning('No entry found for source %s, assuming the default', source)
         regrid_entry = dictexp['default']
@@ -69,3 +69,5 @@ def opa_catalog_entry(datadir, model, exp, source, zoom=None ,frequency='monthly
     cat_file['source_grids'][model][exp][entry_name] = copy.deepcopy(regrid_entry)
 
     dump_yaml(outfile=regridfile, cfg=cat_file)
+
+    return entry_name
