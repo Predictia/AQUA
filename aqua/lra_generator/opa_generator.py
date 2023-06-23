@@ -207,6 +207,8 @@ class OPAgenerator():
              # get info on the checkpoint file
             if self.checkpoint:
                 self.checkpoint_file = opa_mean.checkpoint_file
+                # HACK: solve the problem with one-pass @ git+https://earth.bsc.es/gitlab/digital-twins/de_340/one_pass.git@3b90576652a8510171225af2de8d86fde3b315ff
+                opa_mean.checkpoint_file_zarr = opa_mean.checkpoint_file + ".zarr"
 
             opa_mean.checkpoint_file_zarr = opa_mean.checkpoint_file + ".zarr"
 
