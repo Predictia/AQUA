@@ -72,10 +72,6 @@ class DummyDiagnostic:
             s_month (int, optional):        The starting month of the Dataset.  Defaults to None.
             f_month (int, optional):        The ending month of the Dataset.  Defaults to None.
 
-        Raises:
-            Exception: "s_year and f_year must to be integer"
-            Exception: "s_month and f_month must to be integer"
-
         Returns:
             xarray: The Dataset only for selected time range. 
         """   
@@ -87,7 +83,10 @@ class DummyDiagnostic:
         elif self.s_year != None and self.f_year != None:
             data = data.where(data['time.year'] >= self.s_year, drop=True)
             data = data.where(data['time.year'] <= self.f_year, drop=True)
+        
         if self.s_month != None and self.f_month != None:
             data = data.where(data['time.month'] >= self.s_month, drop=True)
             data = data.where(data['time.month'] <= self.f_month, drop=True)  
+        elif self.s_year == None and self.f_year == None:
+            print('The function returns the original dataset because all arguments are None')
         return data 
