@@ -179,7 +179,7 @@ class OPAgenerator():
         self.opa_dict = {
                          "stat": "mean",
                          "stat_freq": self.frequency,
-                         "output_freq": "daily",
+                         "output_freq": "monthly",
                          "time_step": self.timedelta,
                          "variable": var,
                          "save": True,
