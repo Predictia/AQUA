@@ -14,7 +14,7 @@ sys.path.insert(0, '../')
 from dummy_func import dummy_func
 
 
-class DummyDiagnostic():
+class DummyDiagnosticWrapper():
     """Dummy diagnostic class
 
     This is a dummy diagnostic class for testing purposes.
