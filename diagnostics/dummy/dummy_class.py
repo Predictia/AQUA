@@ -112,7 +112,6 @@ class DummyDiagnostic():
             ValueError: if model, exp or source are not specified.
             ValueError: if freq is not specified and timemean is True.
             ValueError: if var is not specified.
-            KeyError: 
         """
 
         # Configure logger
@@ -141,7 +140,7 @@ class DummyDiagnostic():
             self.source = source
         else:
             raise ValueError('source must be specified')
-        
+
         self.regrid = regrid  # adapt or remove if you do not need it
         if self.regrid is None:
             self.logger.warning('No regridding will be performed')
@@ -161,11 +160,11 @@ class DummyDiagnostic():
         # Diagnostic variables
         # This is a block that initializes the variables that will be used by the diagnostic.
         # Please adapt it to your needs.
-        self.var = var # adapt or remove if you do not need it
+        self.var = var  # adapt or remove if you do not need it
         if self.var is None:
             raise ValueError('var must be specified')  # you may have (and probably should) a default different from None
         # If you want to retrieve all data consider removing the var argument from the class __init__.
-        
+
         self.custom_diagvar = custom_diagvar
         self.logger.info('Custom diagnostic variable: {}'.format(self.custom_diagvar))
 
@@ -174,15 +173,17 @@ class DummyDiagnostic():
             self.logger.warning('No config directory specified')
         else:
             self.logger.info('Config directory: {}'.format(self.configdir))
-        
+
         # Here you can load the config files if you have any.
         try:
-            self.config = load_yaml(self.configdir, 'config.yaml') # customise the name of the config file if you need it
-        except FileNotFoundError:
+            configname = 'config.yaml'  # adapt or remove if you do not need it
+            configpath = os.path.join(self.configdir, configname)  # adapt or remove if you do not need it
+            self.config = load_yaml(configpath)  # customise the name of the config file if you need it
+        except (FileNotFoundError, TypeError):
             self.logger.warning('Config file not found')
             self.logger.warning('Please be sure all the settings are passed as arguments')
             self.config = None
-        
+
         # Output variables
         # This is a block that initializes the variables that will be used to save the data.
         # Please adapt it to your needs.
@@ -198,7 +199,7 @@ class DummyDiagnostic():
                 if not os.path.exists(self.outputfig):
                     self.logger.warning('Figure output folder does not exist, creating it')
                     os.makedirs(self.outputfig)
-            except KeyError:
+            except (KeyError, TypeError):
                 self.logger.warning('No figure folder specified, using the current directory')
                 self.outputfig = os.getcwd()
         self.logger.debug('Figure output folder: {}'.format(self.outputfig))
@@ -214,7 +215,7 @@ class DummyDiagnostic():
                 if not os.path.exists(self.outputdir):
                     self.logger.warning('Data output folder does not exist, creating it')
                     os.makedirs(self.outputdir)
-            except KeyError:
+            except (KeyError, TypeError):
                 self.logger.warning('No data folder specified, using the current directory')
                 self.outputdir = os.getcwd()
         self.logger.debug('Data output folder: {}'.format(self.outputdir))
@@ -224,7 +225,7 @@ class DummyDiagnostic():
             self.logger.info('No filename specified, using the config file setting')
             try:
                 self.filename = self.config['filename']
-            except KeyError:
+            except (KeyError, TypeError):
                 self.logger.warning('No filename specified, using the default one')
                 self.filename = 'dummy.nc'
         self.logger.debug('Output filename: {}'.format(self.filename))
