@@ -5,6 +5,17 @@ Description
 -----------
 
 Dummy provides an example on how diagnostics of the AQUA framework should be organised and written.
+This documentation provides also guidelines on how a diagnostic developer should write documentation about his/her diagnostic,
+covering a short description of its contents and of its scientific basis. The documentation should explain in a clear and concise manner
+what the diagnostic is about and what it is supposed to be doing  and the motivation behind it (i.e. which phenomenon or physical process 
+is diagnosed and why it is important in the context of the analysis of high-resulution climate simulations).
+In case the diagnostic is based on some already published material it is strongly 
+recommended to include references to the inherent literature (we have a reference list below).
+Please try to adhere to the suggested scheme as far as possible.
+
+structure
+-----------
+
 The dummy diagnostic follows a class structure and consists of the files:
 
 * `dummy_class.py`: a python file in which the DummyDiagnostic class constructor and the other class methods are included;
@@ -13,13 +24,7 @@ The dummy diagnostic follows a class structure and consists of the files:
 * `notebooks/dummy.ipynb`: an ipython notebook which uses the dymmy class and its methods;
 * `README.md` : a readme file which contains some tecnical information on how to install the dummy diagnostic and its environment. 
 
-This documentation provides also guidelines on how a diagnostic developer should write documentation about his/her diagnostic,
-covering a short description of its contents and of its scientific basis. 
-In case the diagnostic is based on some already published material it is strongly 
-recommended to include references to the inherent literature (we have a reference list below).
-Please try to adhere to the following scheme as far as possible.
-
-Input variables example:
+Input variables example
 ------------------------
 
 * `tprate` (total precipitation rate, GRIB paramid 260048)
