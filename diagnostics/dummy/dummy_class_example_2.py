@@ -31,17 +31,15 @@ class DummyDiagnostic:
     def class_attributes_update(self, s_year = None, f_year = None, s_month = None, f_month = None):
         """ Function to update the class attributes.
 
-        :param s_year: the start year of the time interval
-        :type s_year: int
-        
-        :param f_year: the end year of the time interval
-        :type f_year: int
-        
-        :param s_month: the start month of the time interval
-        :type s_month: int
-        
-        :param f_month: the end month of the time interval
-        :type f_month: int"""
+        Args: 
+            s_year (int, optional):         The starting year of the Dataset.  Defaults to None.
+            f_year (int, optional):         The ending year of the Dataset.  Defaults to None.
+            s_month (int, optional):        The starting month of the Dataset.  Defaults to None.
+            f_month (int, optional):        The ending month of the Dataset.
+        Returns:
+            NoneType: None 
+        """
+
         
         if s_year is not None and isinstance(s_year, int):          
             self.s_year = s_year
@@ -69,10 +67,10 @@ class DummyDiagnostic:
 
         Args:
             data (xarray):                  The Dataset
-            s_year (str, optional):         The starting year of the Dataset.  Defaults to None.
-            f_year (str, optional):         The ending year of the Dataset.  Defaults to None.
-            s_month (str, optional):        The starting month of the Dataset.  Defaults to None.
-            f_month (str, optional):        The ending month of the Dataset.  Defaults to None.
+            s_year (int, optional):         The starting year of the Dataset.  Defaults to None.
+            f_year (int, optional):         The ending year of the Dataset.  Defaults to None.
+            s_month (int, optional):        The starting month of the Dataset.  Defaults to None.
+            f_month (int, optional):        The ending month of the Dataset.  Defaults to None.
 
         Raises:
             Exception: "s_year and f_year must to be integer"
