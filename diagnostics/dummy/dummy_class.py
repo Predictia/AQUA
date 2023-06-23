@@ -247,7 +247,7 @@ class DummyDiagnostic():
         """
 
         self.reader = Reader(model=self.model, exp=self.exp, source=self.source, regrid=self.regrid,
-                             timemean=self.timemean, freq=self.freq, loglevel=self.loglevel)
+                             freq=self.freq, loglevel=self.loglevel)
         self.logger.debug('Reader class initialized')
 
     def retrieve(self):  # Notice that self should be contained in every method
@@ -291,7 +291,7 @@ class DummyDiagnostic():
         Raises:
             TypeError: if the variable is not a string
         """
-        if self.var is str:
+        if type(self.var) is str:
             self.fldmean = self.reader.fldmean(self.data)
             self.logger.info('Field mean computed')
             self.logger.info('Field mean: {}'.format(self.fldmean))
@@ -321,4 +321,3 @@ class DummyDiagnostic():
 
 # Notice that more methods can be added to the class, and they can be explicit or not.
 # Consider adding or not plot methods, depending on your needs.
-
