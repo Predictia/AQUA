@@ -1,23 +1,8 @@
 # Dummy diagnostic
 
-This is a dummy diagnostic that does nothing.
-It is meant to be used as a template for new diagnostics.
+The `README.md` file contains recommendations for the structure of your diagnostic. 
 
-## Description
-
-Concise overview that explains the purpose, key features, and benefits of your diagnostics.
-
-Below you can find the example:
-
-The dummy-diagnostic proving for the user an excellent example of
-
-* how to organize the diagnostic structure,
-* how to maintain the class and functions,
-* how to write the docstrings,
-* how to compose the primary sphinx documentation,
-* how to organize the notebooks, 
-* how to implement simple pytest, and 
-* how to write the readme file.
+As a template for the actual `README.md`, please, use the `README_template.md.` in the same repository. 
 
 ## Table of Contents
 
@@ -31,22 +16,16 @@ The dummy-diagnostic proving for the user an excellent example of
 
 * [Code](#code)
 
-* [Data requirements](#data-requirements)
-
 * [Examples](#examples)
-
-
-* [Contributing](#contributing)
 
 ## Installation Instructions
 
-Clearly explain how to install and set up your project. Include any dependencies, system requirements, or environment configurations that users should be aware of.
+Test installation, set up, and run your diagnostic on `Lumi` and `Levante.` If the installation requires additional dependencies, system requirements, environment configurations, or run directs specific data, you must document it.
 
 ### Installation on Levante
 
-To install this diagnostic you can use conda.
-The `environment.yml` file contains the dependencies for this diagnostic.
-It is located in `AQUA/diagnostics/dummy/env-dummy.yml`.
+To install the diagnostic on `Levante` you can use conda.
+You should create an `AQUA/diagnostics/dummy/env-dummy.yml` file and include all the necessary dependencies for your diagnostic. 
 
 To install the diagnostic in a new conda environment run:
 
@@ -105,34 +84,22 @@ Take advantage as much as possible of the functions available in the framework.
 If new data or functions that you think may be useful for other diagnostics are needed, please contact the AQUA team. It may be added to the framework.
 
 
-## Data requirements  
-
-Please specify if your diagnostic can only be performed on data with a particular time or space grid. 
-
-For instance, "The dummy diagnostic can only be performed on regridded data" or "The diagnostic can only be performed on monthly data".
-
 ## Examples
 
-The notebooks demonstrate your diagnostic's capabilities, help users understand the potential applications, and inspire them to use it.
-Please note that notebooks may load data from the DKRZ cluster, so they may not work outside of it.
-
-The **notebook/** folder contains the following notebooks:
-
-- **Save_data_to_storage.ipynb**: 
-  The notebook demonstrates the major abilities of dummy diagnostic: 
-  - initialization of an object of the diagnostic class, 
-  - selection of the class attributes,  
-  - saving the data in the storage, and 
-  - loading the data from storage.
-
-- **Save_figure_to_storage.ipynb**:
-  The notebook demonstrates the abilities of the histogram plotting functions:
-  - selection of the plot style,
-  - selection of the plot size, axes scales, and 
-  - saving plot into storage.
+The **notebook/** folder should contain the notebooks with clear demonstration capabilities and applications of your diagnostic. 
+This notebook should be named after the diagnostic itself or a particular functionality and have an extension .ipynb.
 
 
-## Contributing
+Recommendations for notebook structure:
+ - Reduce the number of packages you're importing. Try to keep all imports in your module (`dummy_class.py` and `dummy_func.py`).
 
-Include your contact information or any official channels (such as email, GitHub profile) through which users can reach out to you for support, questions, or feedback.
+ - Do not produce too long notebooks. If needed, split the notebook into a few based on diagnostic applications.
+
+ - Split the notebook into sections and create the Table of Content. (you can find the example of it in **notebook/dummy.ipynb**)
+
+ - Provide well-described comments to help users understand the functionality of your diagnostic.
+
+ **Please note that notebooks may load data from the DKRZ cluster, so they may not work outside of it.**
+
+
 
