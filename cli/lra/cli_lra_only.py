@@ -65,6 +65,10 @@ if __name__ == '__main__':
             for source in config['catalog'][model][exp].keys():
                 variables = config['catalog'][model][exp][source]['vars']
 
+                print(f'LRA Processing {model}-{exp}-{source}')
+
+                # update the dir
+                opadir = os.path.join(opadir, model, exp, frequency)
                 # check if files are there
                 opa_files = glob(f"{opadir}/*{frequency}*.nc")
                 if opa_files: 
@@ -75,7 +79,7 @@ if __name__ == '__main__':
                                                     source='opa', frequency='monthly')
 
 
-                        print('Netcdf files found in %s: Launching LRA', opadir)
+                        print(f'Netcdf files found in {opadir}: Launching LRA')
 
                         # init the LRA
                         zoom_level = config['catalog'][model][exp][source].get('zoom', None)
@@ -92,8 +96,10 @@ if __name__ == '__main__':
                         lra.create_catalog_entry()
                 
                     # cleaning the opa NetCDF files
-                    for varname in variables:
-                        for file_name in opa_files:
-                            os.remove(file_name)
+                    #for varname in variables:
+                    #    for file_name in opa_files:
+                    #        os.remove(file_name)
+                else:
+                    print(f'There are no Netcdf files in {opadir}')
 
     print('LRA run completed. Have yourself a beer!')

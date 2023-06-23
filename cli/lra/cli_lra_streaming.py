@@ -85,7 +85,7 @@ if __name__ == '__main__':
                     opa.generate_opa(gsv=use_gsv, start=gsv_start, end=gsv_end)
                     opa.create_catalog_entry()
 
-       
+    
                 # LRA will run only if NetCDF files from OPA are found
                 for varname in variables:
                     opa_files = glob(f"{opa.outdir}/*{varname}*.nc")
