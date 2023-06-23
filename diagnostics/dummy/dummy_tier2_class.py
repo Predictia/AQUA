@@ -129,3 +129,4 @@ class DummyDiagnostic:
                 data = data.where(data['time.month'] <= self.f_month, drop=True)  
             else:
                 raise Exception("s_month and f_month must to be integer") 
+        return data 
