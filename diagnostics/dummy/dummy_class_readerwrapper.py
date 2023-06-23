@@ -15,7 +15,15 @@ from dummy_func import dummy_func
 
 
 class DummyDiagnostic():
-    """Dummy diagnostic class"""
+    """Dummy diagnostic class
+
+    This is a dummy diagnostic class for testing purposes.
+
+    Methods (only public):
+        retrieve: retrieve data from the data Reader class.
+        fldmean: compute the field mean of the data.
+        multiplication: multiply the data by a constant.
+    """
     def __init__(self, model=None, exp=None, source=None,
                  custom_diagvar="I'm a custom variable",
                  configdir=None, regrid=None,
@@ -50,7 +58,8 @@ class DummyDiagnostic():
             source (str):         the source name to be used by the Reader class.
                                   Default is None.
             configdir (str, opt): the path to the directory containing the config files.
-                                  Default is None. Please change it to the path of your config files,
+                                  Default is None.
+                                  Please change it to the path of your config files,
                                   if you have any or if there is a clear config directory.
             regrid (str, opt):    whether to regrid the data or not.
                                   Default is None.
@@ -93,7 +102,7 @@ class DummyDiagnostic():
                                   Default is None. If None is passed, the data will be saved
                                   in the current directory.
             filename (str, opt):  the custon name of the output file.
-                                  Default is None. 
+                                  Default is None.
                                   Please consider changing it to the default value that you want to use.
             loglevel (str):       the log level.
                                   Default is 'WARNING'.
@@ -102,10 +111,12 @@ class DummyDiagnostic():
                                   Possible values are 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL',
                                   with decreasing order of verbosity and increasing importance.
 
+        Returns:
+            A DummyDiagnostic class instance.
+
         Raises:
             ValueError: if model, exp or source are not specified.
-            ValueError: if freq is not specified and timemean is True.
-            ValueError: if var is not specified.
+            ValueError: if var is not specified or it is not a string.
         """
 
         # Configure logger
@@ -266,6 +277,10 @@ class DummyDiagnostic():
                           Default is None.
             folder_type (str): type of the folder.
                                Default is None.
+                            
+        Raises:
+            KeyError: if the folder_type is not recognised.
+            TypeError: if the folder_type is not a string.
         """
         if not folder:
             self.logger.info('No {} folder specified, trying to use the config file setting'.format(folder_type))
@@ -290,16 +305,9 @@ class DummyDiagnostic():
             self.outputdir = folder
             self.logger.debug('Data output folder: {}'.format(self.outputdir))
 
-
     def _reader(self):
         """The reader method.
         This method initializes the Reader class.
-
-        Args:
-            None
-
-        Returns:
-            None
         """
 
         self.reader = Reader(model=self.model, exp=self.exp, source=self.source, regrid=self.regrid,
@@ -311,12 +319,6 @@ class DummyDiagnostic():
         This method retrieves the data from the Reader class.
         It is an explicit method, so no "_" at the beginning.
         If your methods are not explicit, add "_" at the beginning of the method name.
-
-        Args:
-            None
-
-        Returns:
-            None
 
         Raises:
             ValueError: if the variable is not found
@@ -344,12 +346,6 @@ class DummyDiagnostic():
         This method computes the field mean of the retrieved data.
         It is an example of method that does not use of external functions of the module
 
-        Args:
-            None
-
-        Returns:
-            None
-
         Raises:
             TypeError: if the variable is not a string
         """
@@ -364,12 +360,6 @@ class DummyDiagnostic():
         """The multiplication method.
         This method computes the multiplication of the retrieved data.
         It is an example of method that uses of external functions of the module
-
-        Args:
-            None
-
-        Returns:
-            None
         """
 
         self.multiplication = dummy_func(self.data)  # dummy_func is a function defined in the module
