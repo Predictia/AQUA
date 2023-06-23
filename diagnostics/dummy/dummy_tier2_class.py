@@ -113,20 +113,11 @@ class DummyDiagnostic:
         self.class_attributes_update(s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month)
 
         if self.s_year != None and self.f_year == None:
-            if isinstance(s_year, int):
-                data= data.where(data['time.year'] == self.s_year, drop=True)
-            else:
-                raise Exception("s_year must to be integer")
+            data= data.where(data['time.year'] == self.s_year, drop=True)
         elif self.s_year != None and self.f_year != None:
-            if isinstance(s_year, int) and isinstance(f_year, int): 
-                data = data.where(data['time.year'] >= self.s_year, drop=True)
-                data = data.where(data['time.year'] <= self.f_year, drop=True)
-            else:
-                raise Exception("s_year and f_year must to be integer") 
+            data = data.where(data['time.year'] >= self.s_year, drop=True)
+            data = data.where(data['time.year'] <= self.f_year, drop=True)
         if self.s_month != None and self.f_month != None:
-            if isinstance(s_month, int) and isinstance(f_month, int): 
-                data = data.where(data['time.month'] >= self.s_month, drop=True)
-                data = data.where(data['time.month'] <= self.f_month, drop=True)  
-            else:
-                raise Exception("s_month and f_month must to be integer") 
+            data = data.where(data['time.month'] >= self.s_month, drop=True)
+            data = data.where(data['time.month'] <= self.f_month, drop=True)  
         return data 
