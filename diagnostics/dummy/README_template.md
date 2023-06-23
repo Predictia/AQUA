@@ -1,7 +1,6 @@
 # Dummy diagnostic
 
-This is a dummy diagnostic that does nothing.
-It is meant to be used as a template for new diagnostics.
+The `README_template.md` meant to be used as a `README.md` template for new diagnostics.
 
 ## Description
 
@@ -15,14 +14,9 @@ Concise overview that explains the purpose, key features, and benefits of your d
 
   - [Installation on Lumi](#installation-on-lumi)
 
-* [Diagnostic structure](#diagnostic-structure)
-
-* [Code](#code)
-
 * [Data requirements](#data-requirements)
 
 * [Examples](#examples)
-
 
 * [Contributing](#contributing)
 
@@ -35,29 +29,6 @@ Clearly explain how to install and set up your project. Include any dependencies
 
 ### Installation on Lumi 
 
-## Diagnostic structure 
-
-- **diagnostics/**: The root directory of the diagnostic.
-
-  - **dummy/**: contains the code of the diagnostic
-
-    - **notebooks/**: contains notebooks with examples of how to use the diagnostic
-
-    - **data/**: contains data for the tests (if needed). 
-
-    - **env-dummy.yml**: contains the dependencies for the diagnostic. 
-
-- **tests/**
-
-  - **dummy/**: contains tests for the diagnostic.  The tests of the diagnostic have a marker `@pytest.mark.yourdiag`. 
-
-
-
-- **docs/sphinx/sorce/diagnostics/dummy.rts**: contains the documentation for the dummy diagnostic. 
-
-## Code
-
-Provide a brief description of your code.
 
 ## Data requirements  
 
