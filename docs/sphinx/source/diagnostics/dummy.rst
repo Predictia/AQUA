@@ -5,7 +5,7 @@ Description
 -----------
 
 Dummy provides an example on how diagnostics of the AQUA framework should be organised and written.
-This documentation provides also guidelines on how a diagnostic developer should write documentation about his/her diagnostic,
+This documentation provides also guidelines on how a diagnostic developer should write documentation about their diagnostic,
 covering a short description of its contents and of its scientific basis. The documentation should explain in a clear and concise manner
 what the diagnostic is about and what it is supposed to be doing  and the motivation behind it (i.e. which phenomenon or physical process 
 is diagnosed and why it is important in the context of the analysis of high-resulution climate simulations).
