@@ -13,7 +13,7 @@ In case the diagnostic is based on some already published material it is strongl
 recommended to include references to the inherent literature (we have a reference list below).
 Please try to adhere to the suggested scheme as far as possible.
 
-structure
+Structure
 -----------
 
 The dummy diagnostic follows a class structure and consists of the files:
