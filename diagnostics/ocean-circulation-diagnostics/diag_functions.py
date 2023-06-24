@@ -313,19 +313,19 @@ def plot_temporal_split(data):
     date_len = len(data.time)
     if date_len !=1:
         if (date_len % 2) ==0:
-            data_1= data.isel(time=slice(0, int(date_len/2))).mean("time")
-            data_2= data.isel(time=slice(int(date_len/2),date_len)).mean("time").mean("time")                    
+            data_1= data.isel(time=slice(0, int(date_len/2)))
+            data_2= data.isel(time=slice(int(date_len/2),date_len))                
         if (date_len % 2) !=0:
-            data_1= data.isel(time=slice(0, int((date_len-1)/2))).mean("time")
-            data_2= data.isel(time=slice(int((date_len-1)/2),date_len)).mean("time")                  
+            data_1= data.isel(time=slice(0, int((date_len-1)/2)))
+            data_2= data.isel(time=slice(int((date_len-1)/2),date_len))                  
 
     fig, (ax1, ax2, ax3) = plt.subplots(nrows=1,ncols=3,figsize=(14,8))
     fig.suptitle('Mean state annual T, S, rho0 stratification in the Labrador Sea', fontsize=16)
 
     ax1.set_ylim((4500,0))
 
-    ax1.plot(data_1.thetao, data.lev,'g-',linewidth=2.0)
-    ax1.plot(data_2.thetao, data.lev,'b-',linewidth=2.0)
+    ax1.plot(data_1.thetao.mean("time"), data.lev,'g-',linewidth=2.0)
+    ax1.plot(data_2.thetao.mean("time"), data.lev,'b-',linewidth=2.0)
 
 
     # ax1.plot(obsT1_ls_w_av.thetao,obsT1_ls_w_av.thetao.lev,'k:')
@@ -334,14 +334,15 @@ def plot_temporal_split(data):
     ax1.set_title("Temperature Profile", fontsize=14)
     ax1.set_ylabel("Depth (in m)",fontsize=12)
     ax1.set_xlabel("Temperature (in degC)",fontsize=12)
-    ax1.legend(["EXP first half","EXP last half","EN4 1950-1980","EN4 1990-2020"], loc='best')
+    ax1.legend([f"EXP first half {data_1.time[0].dt.year.data}- {data_1.time[-1].dt.year.data}",
+                f"EXP last half {data_2.time[0].dt.year.data}- {data_2.time[-1].dt.year.data}","EN4 1950-1980","EN4 1990-2020"], loc='best')
 
 
     # Now we plot salinity
     ax2.set_ylim((4500,0))
 
-    ax2.plot(data_1.so, data.lev,'g-',linewidth=2.0)
-    ax2.plot(data_2.so, data.lev,'b-',linewidth=2.0)
+    ax2.plot(data_1.so.mean("time"), data.lev,'g-',linewidth=2.0)
+    ax2.plot(data_2.so.mean("time"), data.lev,'b-',linewidth=2.0)
 
 
     # ax2.plot(obsS1_ls_w_av.so,obsS1_ls_w_av.so.lev,'k:')
@@ -354,8 +355,8 @@ def plot_temporal_split(data):
 
     ax3.set_ylim((4500,0))
 
-    ax3.plot(data_1.rho-1000, data.lev,'g-',linewidth=2.0)
-    ax3.plot(data_2.rho-1000, data.lev,'b-',linewidth=2.0)
+    ax3.plot(data_1.rho.mean("time")-1000, data.lev,'g-',linewidth=2.0)
+    ax3.plot(data_2.rho.mean("time")-1000, data.lev,'b-',linewidth=2.0)
 
 
     # ax3.plot(obsarho01_ls_w_av-1000,obsarho01_ls_w_av.lev,'k:')
