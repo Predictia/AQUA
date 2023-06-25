@@ -19,10 +19,6 @@ The tropical rainfalls diagnostic proving for the user an excellent example of
 
   - [Installation on Lumi](#installation-on-lumi)
 
-* [Diagnostic structure](#diagnostic-structure)
-
-* [Code](#code)
-
 * [Data requirements](#data-requirements)
 
 * [Examples](#examples)
@@ -58,30 +54,7 @@ conda env create -f $diagnostic_dir/merged.yml
 
 ### Installation on Lumi 
 
-## Diagnostic structure 
 
-- **diagnostics/**: The root directory of the diagnostic.
-
-  - **tropical-rainfall/**: contains the code of the diagnostic
-
-    - **notebooks/**: contains notebooks with examples of how to use the diagnostic
-
-    - **data/**: contains data for the tests if needed. Please do not commit large files to git. You can add data to the `.gitignore` file if needed. Make always use of the `Reader` class and functions available in the framework to load data. If you need to add data to the catalogue, please contact the AQUA team.
-
-    - **env-dummy.yml**: contains the dependencies for the diagnostic. It is used to create a conda environment for the diagnostic. Diagnostics should be developed in separate environments to avoid conflicts between diagnostics that may need different python packages. Always check that the diagnostic works with the latest version of the framework and eventually update the dependencies in the `env-dummy.yml` file. (If you have suggestions on how to improve this, please let us know.s)
-
-- **tests/**
-
-  - **tropical-rainfall/**: contains tests for the diagnostic. Please add tests for all the functions you add to the diagnostic. Please load data that are needed for the tests not in the git. You may need to add data to the catalogue for the `ci` machine. If you need to add data to this catalogue, please contact the AQUA team. Tests run with a github action when you push to the repository in a pull request to the main branch. Note that the workflow file is in the `.github` folder. Modify it accordingly to your diagnostic and uncomment the lines to run the tests when you are ready. Please keep in mind that the suggested way to proceed is based on the creation of a `@pytest.mark.tropical_rainfall` marker so that you can select only the test that you need in the workflow (see the workflow example). This marker has to be added in the `pytest.ini` file.  
-
-
-
-- **docs/sphinx/sorce/diagnostics/tropical-rainfall.rts**: contains the documentation for the diagnostic. Please add documentation for all the functions you add to the diagnostic. The documentation is built with sphinx.
-Read the documentation for a detailed description of the diagnostic and diagnostic usage.
-
-## Code
-
-The module of tropical rainfall diagnostic is `tropical_rainfall_class.py`. 
 
 
 ## Data requirements  
