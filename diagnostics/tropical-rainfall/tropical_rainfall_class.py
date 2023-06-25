@@ -29,32 +29,27 @@ class TR_PR_Diagnostic:
                           num_of_bins = None, first_edge = None, width_of_bin = None, bins=0):
         """ Function to update the class attributes.
         
-        :param trop_lat: the latitude of the tropical zone
-        :type trop_lat: int or float
-        
-        :param s_time: the start time of the time interval
-        :type s_time: int or str
-        
-        :param f_time: the end time of the time interval
-        :type f_time: int or str
-        
-        :param s_year: the start year of the time interval
-        :type s_year: int
-        
-        :param f_year: the end year of the time interval
-        :type f_year: int
-        
-        :param s_month: the start month of the time interval
-        :type s_month: int
-        
-        :param f_month: the end month of the time interval
-        :type f_month: int
-        
-        :param num_of_bins: the number of bins
-        :type num_of_bins: int
-        
-        :param first_edge: the first edge of the bin
-        :type first_edge: int or float"""
+        Parameters
+        ----------
+        trop_lat : int or float, optional
+            The latitude of the tropical region. The default is None.
+        s_time : int or str, optional
+            The start time of the diagnostic. The default is None.
+        f_time : int or str, optional
+            The end time of the diagnostic. The default is None.
+        s_year : int, optional
+            The start year of the diagnostic. The default is None.
+        f_year : int, optional
+            The end year of the diagnostic. The default is None.
+        s_month : int, optional
+            The start month of the diagnostic. The default is None.
+        f_month : int, optional
+            The end month of the diagnostic. The default is None.
+        num_of_bins : int, optional
+            The number of bins in the histogram. The default is None.
+        first_edge : float, optional
+            The first edge of the histogram. The default is None.
+        width_of_bin : float, optional"""
         
         if trop_lat is not None and isinstance(trop_lat, (int, float)):        
             self.trop_lat = trop_lat
@@ -254,22 +249,13 @@ class TR_PR_Diagnostic:
             if self.s_time != None and self.f_time != None:
                 data = data.isel(time=slice(self.s_time, self.f_time))
         elif self.s_year != None and self.f_year == None:
-            if isinstance(s_year, int):
-                data= data.where(data['time.year'] == self.s_year, drop=True)
-            else:
-                raise Exception("s_year must to be integer")
+            data= data.where(data['time.year'] == self.s_year, drop=True)
         elif self.s_year != None and self.f_year != None:
-            if isinstance(s_year, int) and isinstance(f_year, int): 
-                data = data.where(data['time.year'] >= self.s_year, drop=True)
-                data = data.where(data['time.year'] <= self.f_year, drop=True)
-            else:
-                raise Exception("s_year and f_year must to be integer") 
+            data = data.where(data['time.year'] >= self.s_year, drop=True)
+            data = data.where(data['time.year'] <= self.f_year, drop=True)
         if self.s_month != None and self.f_month != None:
-            if isinstance(s_month, int) and isinstance(f_month, int): 
-                data = data.where(data['time.month'] >= self.s_month, drop=True)
-                data = data.where(data['time.month'] <= self.f_month, drop=True)  
-            else:
-                raise Exception("s_month and f_month must to be integer") 
+            data = data.where(data['time.month'] >= self.s_month, drop=True)
+            data = data.where(data['time.month'] <= self.f_month, drop=True)  
         
         if isinstance(self.s_time, str) and isinstance(self.f_time, str):
             if  s_time != None and f_time != None:
