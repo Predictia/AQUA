@@ -1,3 +1,5 @@
+# Test of pre-push
+
 from datetime import datetime
 import numpy as np
 import xarray as xr
@@ -20,6 +22,7 @@ import dask_histogram as dh # pip
 .. moduleauthor:: AQUA team <natalia.nazarova@polito.it>
 
 """
+
 
 class TR_PR_Diagnostic:
     """This class is a minimal version of the Tropical Precipitation Diagnostic.
