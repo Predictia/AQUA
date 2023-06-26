@@ -16,6 +16,7 @@
   - [Library files](#library-files)
   - [Examples](#examples)
   - [Tests](#tests)
+  - [Contributing](#contributing)
 
 ## Description
 
@@ -143,3 +144,8 @@ All notebooks are in the `notebooks` folder.
 
 Tests are run with github actions, see `.github/workflows/teleconnections.yml` for details.
 Tests make use of the `cdotesting.py` file, that contains functions evaluating teleconnections with cdo bindings.
+
+## Contributing
+
+Contributions are welcome, please open an issue or a pull request.
+If you have any doubt or suggestion, please contact the AQUA team or Matteo Nurisso (m.nurisso@isac.cnr.it).
