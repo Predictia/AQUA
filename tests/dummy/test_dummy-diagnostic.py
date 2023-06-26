@@ -1,6 +1,6 @@
 import pytest
 import sys
-sys.path.insert(1, './diagnostics/dummy-diagnostic/')
+sys.path.insert(1, './diagnostics/dummy/')
 
 # test parameters if needed
 approx_rel = 1e-4
