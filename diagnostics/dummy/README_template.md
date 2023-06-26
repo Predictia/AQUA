@@ -60,6 +60,7 @@ Add details on the Lumi installation here
 ## Data requirements  
 
 Please specify if your diagnostic can only be performed on data with particular requirements. If your diagnostics have no Data requirements, you should also document that.
+If you diagnositcs requires observational/reanalysis data which is not available on Levante and/or Lumi, please contact the AQUA team providing clear specification and download path so that this data can be added to the catalog.
 
 ## Examples
 
