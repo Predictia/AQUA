@@ -1,7 +1,35 @@
 # Teleconnections diagnostic
 
+## Table of contents
+
+- [Teleconnections diagnostic](#teleconnections-diagnostic)
+  - [Table of contents](#table-of-contents)
+  - [Description](#description)
+    - [Teleconnections available:](#teleconnections-available)
+  - [Python module](#python-module)
+  - [Library files](#library-files)
+  - [Tests](#tests)
+  - [Notebooks](#notebooks)
+  - [Create the teleconnections env](#create-the-teleconnections-env)
+    - [Add kernel for DKRZ jupyterhub](#add-kernel-for-dkrz-jupyterhub)
+    - [Lumi installation](#lumi-installation)
+
+## Description
+
 The folder contains jupyter-notebooks and python scripts in order to evaluate teleconnections in the DE_340 AQUA model evaluation framework.
 The script are based on the `AQUA` framework.
+
+### Teleconnections available:
+
+At the moment the following teleconnections are available:
+
+- NAO (see NAO notebooks)
+- ENSO (see ENSO notebooks)
+
+These two teleconnections are evaluated with station-based indices or with the usage of regional means.
+Other teleconnections can be configured by modifying the `teleconnections.yaml` file in the `config` folder.
+
+See the documentation for more details on the teleconnections.
 
 ## Python module
 
@@ -17,18 +45,6 @@ Teleconnections evaluation without plots can be run with the `AQUA` framework on
 The `teleconnections` environment installs the `AQUA` framework with the `pip` installation method, and the other packages with the `conda` installation method.
 For this reason the `teleconnections` environment can have slightly different versions of the packages than the `AQUA` framework. 
 Basic framework tests are run with github actions, in order to check that the `teleconnections` environment is compatible with the `AQUA` framework.
-
-## Teleconnections available:
-
-At the moment the following teleconnections are available:
-
-- NAO (see NAO notebooks)
-- ENSO (see ENSO notebooks)
-
-These two teleconnections are evaluated with station-based indices or with the usage of regional means.
-Other teleconnections can be configured by modifying the `teleconnections.yaml` file in the `config` folder.
-
-See the documentation for more details on the teleconnections.
 
 ## Library files
 
