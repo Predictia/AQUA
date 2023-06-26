@@ -37,6 +37,8 @@ if __name__ == '__main__':
     config = load_yaml(file)
 
     loglevel = get_arg(args, 'loglevel', 'WARNING')
+
+    telecname = config['telecname']
     model = config['model']
     exp = config['exp']
     source = config['source']
@@ -50,9 +52,9 @@ if __name__ == '__main__':
         outputfig = None
     
     try:
-        outputfile = config['outputfile']
+        outputdir = config['outputdir']
     except KeyError:
-        outputfile = None
+        outputdir = None
     
     try:
         filename = config['filename']
@@ -60,8 +62,9 @@ if __name__ == '__main__':
         filename = None
 
     teleconnection = Teleconnection(model=model, exp=exp, source=source,
+                                    telecname=telecname,
                                     savefig=savefig, savefile=savefile,
-                                    outputfig=outputfig, outputfile=outputfile,
+                                    outputfig=outputfig, outputdir=outputdir,
                                     filename=filename, loglevel=loglevel)
     
     teleconnection.retrieve()

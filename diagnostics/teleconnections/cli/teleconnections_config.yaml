@@ -7,5 +7,5 @@ diagdir: None
 months_window: 3
 loglevel: DEBUG
 # outputfig: 'path/to/fig/folder'
-# outputfile: 'path/to/output/file'
+# outputdir: 'path/to/files/folder'
 # filename: 'custom_filename'
