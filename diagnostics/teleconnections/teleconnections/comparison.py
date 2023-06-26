@@ -1,6 +1,8 @@
+"""Module to compare different experiments telecoonection indices"""
 from aqua.logger import log_configure
 
 from teleconnections.tc_class import Teleconnection
+
 
 class TeleconnectionComparison():
     """Class to compare teleconnections of different models."""
@@ -44,33 +46,37 @@ class TeleconnectionComparison():
                                                       outputdir=outputdir,
                                                       loglevel=self.loglevel))
 
-    def index_comparison():
+    def index_comparison(self):
         """Compare teleconnection indices."""
         for i in range(len(self.models)):
             self.teleconnection[i].evaluate_index()
+            self.logger.debug('Teleconnection index for {}/{}/{}: {}'.format(self.models[i],
+                                                                            self.exps[i],
+                                                                            self.sources[i],
+                                                                            self.teleconnection[i].index))
 
-    def plot_comparison():
+    def plot_comparison(self):
         """Plot teleconnection indices."""
         # Here we need to use the plot function from the teleconnection func
         # I need to modify the plot function to accept a list of teleconnection objects
         pass
 
-    def regression():
+    def regression(self):
         """Perform regression."""
-    # Here we need to use the plot function from the teleconnection func
+        # Here we need to use the plot function from the teleconnection func
         # I need to modify the plot function to accept a list of teleconnection objects
         pass
 
-    def correlation():
+    def correlation(self):
         """Perform correlation."""
         # Here we need to use the plot function from the teleconnection func
         # I need to modify the plot function to accept a list of teleconnection objects
         pass
 
-    def NCAR_comparison():
+    def NCAR_comparison(self):
         """Compare teleconnection indices with NCAR."""
         # Here we need to use the plot function from the notebook
         # I need to modify the plot function to accept a list of teleconnection objects
         # and to make it different for each teleconnection
-        
+
         pass

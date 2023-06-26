@@ -63,6 +63,10 @@ class Teleconnection():
         if self.savefile or self.savefig:
             self._filename(filename)
 
+        # Data empty at the beginning
+        self.data = None
+        self.index = None
+
         # Initialize reader
         self._reader()
 
