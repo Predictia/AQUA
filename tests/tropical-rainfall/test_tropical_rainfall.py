@@ -14,7 +14,7 @@ from aqua import Reader
 from aqua.util import create_folder
 
 import sys
-path_to_diagnostic='./diagnostics/tropical-rainfall-diagnostic/'
+path_to_diagnostic='./diagnostics/tropical-rainfall/'
 sys.path.insert(1, path_to_diagnostic)
 
 @pytest.mark.tropical_rainfall
