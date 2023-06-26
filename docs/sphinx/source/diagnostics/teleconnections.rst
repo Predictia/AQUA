@@ -1,17 +1,10 @@
 Teleconnections diagnostic
 ==========================
 
-This package provides a diagnostic for teleconnections.
+This package provides a diagnostic for teleconnection indices evaluation and comparison with ERA5 reanalysis.
 
-Overview of available functionalities
--------------------------------------
-
-The diagnostic is available in the `teleconnections` folder inside the `diagnostics` folder.
-The core functions developed for the diagnostic are available in the `index.py` file.
-These functions can be run in a notebook or in a script.
-Examples of the usage of the functions are available in the `notebooks` folder, both for ERA5 and nextGEMS cycle3 data.
-Please notice that data necessary to run the diagnostic are not available in the repository. 
-You will need to be on levante to be able to run by yourself the notebooks.
+Description
+-----------
 
 Teleconnections available:
 
@@ -19,8 +12,56 @@ Teleconnections available:
 - ENSO: notebook available `diagnostics/teleconnections/notebooks/ENSO_nino3.4.ipynb`
 
 More diagnostics or functionalities can be added in the future.
+
+Structure
+---------
+
+The teleconnections diagnostic is a package with a class structure.
+It consists of the following library files:
+
+- `cdotesting.py` contains function evaluating teleconnections with cdo bindings, in order to test the python libraries (see tests section).
+- `index.py` contains functions for the direct evaluation of teleconnection indices. It is the core of the diagnostic.
+- `plots.py` contains functions for the visualization of time series and maps for teleconnection diagnostic.
+- `tc_class.py` contains the class that is used to run the diagnostic.
+- `tools.py` contains generic functions that may be useful to the whole diagnostic.
+
 A configuration file is available in the `config` folder.
 It can be customized to add new teleconnections or to change the default parameters of the diagnostic.
+
+An environment file is available as `env-teleconnections.yaml` in the main diagnostic folder.
+A `pyproject.toml` file is also available to install the diagnostic as a package.
+Please refer to the installation section for more details.
+
+Data with timeseries of teleconnection indices are available in the `data` folder as txt files.
+
+Notebooks are available in the `notebooks` folder, with detailed examples of the usage of the diagnostic,
+both for ERA5 and nextGEMS cycle3 data and as individual functions or as a class.
+These notebooks have been run on Levante.
+
+A command line interface is available in the `cli` folder.
+
+Tests are available in the `tests/teleconnections` folder, from the main `AQUA` folder.
+Please notice that running tests will require to install the specific environment for the diagnostic.
+
+Input variables
+---------------
+
+The diagnostic requires the following input variables:
+- `msl`: mean sea level pressure
+- `sst`: sea surface temperature
+
+The diagnostic can be run on any dataset that provides these variables.
+The diagnostic has been tested on ERA5 reanalysis and nextGEMS cycle3 data.
+
+Output
+------
+
+The diagnostic produces the following output:
+- `NAO`: North Atlantic Oscillation index
+- `ENSO`: El Niño Southern Oscillation index
+
+Regression and correlation plots are also produced.
+All these outputs can be stored both as images and as netCDF files.
 
 How to install the diagnostic
 -----------------------------
@@ -112,3 +153,27 @@ What is needed to run the diagnostic is a `xarray.Dataarray` object with the dat
 Some plot functions are available in the `plots.py` file.
 Optionally, the `xarray.Dataarray` object returned by the `station_based_index` function can be used to plot the results in any way,
 to save the results in a file or to do any other operation.
+
+Example plot
+------------
+
+.. figure:: figures/teleconnections.png
+   :width: 10 cm
+
+    Example plot of the NAO index for ERA5 data.
+
+Available demo notebooks
+------------------------
+
+To be updated with links to the correct repository path.
+
+Detailed API
+------------
+
+This section provides a detailed reference for the Application Programming Interface (API) of the "dummy" diagnostic,
+produced from the diagnostic function docstrings.
+
+.. automodule:: teleconnections
+    :members:
+    :undoc-members:
+    :show-inheritance:
