@@ -1,8 +1,11 @@
-dummy:
-  model: ERA5
-  exp: era5
-  source: monthly
-  var: msl
-  regrid: r100
-
-loglevel: INFO
+telecname: NAO # NAO or ENSO
+model: ERA5
+exp: era5
+source: monthly
+regrid: None
+diagdir: None
+months_window: 3
+loglevel: DEBUG
+# outputfig: 'path/to/fig/folder'
+# outputfile: 'path/to/output/file'
+# filename: 'custom_filename'

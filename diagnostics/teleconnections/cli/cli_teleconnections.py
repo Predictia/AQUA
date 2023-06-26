@@ -6,19 +6,20 @@ diagnostic
 '''
 import sys
 import argparse
-from aqua.util import load_yaml, get_arg
-sys.path.insert(0, '../')
-from dummy_class_readerwrapper import DummyDiagnosticWrapper
 
+from aqua.util import load_yaml, get_arg
+from teleconnections.tc_class import Teleconnection
 
 def parse_arguments(args):
     """
     Parse command line arguments
     """
 
-    parser = argparse.ArgumentParser(description='Dummy diagnostic CLI')
+    parser = argparse.ArgumentParser(description='Teleconnections diagnostic CLI')
     parser.add_argument('-c', '--config', type=str,
                         help='yaml configuration file')
+    parser.add_argument('-d', '--definitive', type=bool,
+                        help='if True, files are saved, default is False')
     parser.add_argument('-l', '--loglevel', type=str,
                         help='log level [default: WARNING]')
 
@@ -27,26 +28,46 @@ def parse_arguments(args):
 
 if __name__ == '__main__':
 
-    print('Running dummy diagnostic...')
+    print('Running teleconnections diagnostic...')
     args = parse_arguments(sys.argv[1:])
-    file = get_arg(args, 'config', 'dummy_config.yaml')
-    print('Reading configuration yaml file..')
 
+    # Read configuration file
+    file = get_arg(args, 'config', 'teleconnections_config.yaml')
+    print('Reading configuration yaml file..')
     config = load_yaml(file)
 
-    model = config['dummy']['model']
-    exp = config['dummy']['exp']
-    source = config['dummy']['source']
-    var = config['dummy']['var']
-    regrid = config['dummy']['regrid']
-    loglevel= config['loglevel']
+    loglevel = get_arg(args, 'loglevel', 'WARNING')
+    model = config['model']
+    exp = config['exp']
+    source = config['source']
 
-    loglevel = get_arg(args, 'loglevel', loglevel)
+    savefig = get_arg(args, 'definitive', False)
+    savefile = get_arg(args, 'definitive', False)
 
-    dummy = DummyDiagnosticWrapper(model=model, exp=exp, source=source, var=var,
-                                loglevel=loglevel, diagconfigdir='../config', regrid='r100')
-    dummy.retrieve()
-    dummy.multiplication()
+    try:
+        outputfig = config['outputfig']
+    except KeyError:
+        outputfig = None
+    
+    try:
+        outputfile = config['outputfile']
+    except KeyError:
+        outputfile = None
+    
+    try:
+        filename = config['filename']
+    except KeyError:
+        filename = None
 
+    teleconnection = Teleconnection(model=model, exp=exp, source=source,
+                                    savefig=savefig, savefile=savefile,
+                                    outputfig=outputfig, outputfile=outputfile,
+                                    filename=filename, loglevel=loglevel)
+    
+    teleconnection.retrieve()
+    teleconnection.evaluate_index()
+    # teleconnection.evaluate_correlation()
+    # teleconnection.evaluate_regression()
+    teleconnection.plot_index()
 
-    print('Dummy diagnostic test run completed. Go outside and live your life!')
+    print('Teleconnections diagnostic test run completed.')
