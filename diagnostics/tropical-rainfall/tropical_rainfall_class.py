@@ -16,7 +16,7 @@ import dask.array as da
 import dask_histogram as dh # pip
  
 
-
+from tropical_rainfall_func import time_interpreter
 """The module contains Tropical Precipitation Diagnostic:
 
 .. moduleauthor:: AQUA team <natalia.nazarova@polito.it>
@@ -501,17 +501,18 @@ class TR_PR_Diagnostic:
         Returns:
             str: The path to save the histogram.
         """
-        if path_to_histogram is not None and name_of_file is not None:
+        if path_to_histogram is not None: # and name_of_file is not None:
+            if name_of_file is None:
+                name_of_file='_'
             time_band=dataset.counts.attrs['time_band']
             try:
                 name_of_file = name_of_file +'_'+ re.split(":", re.split(", ", time_band)[0])[0]+'_' + re.split(":", re.split(", ", time_band)[1])[0]
             except IndexError:
                 name_of_file = name_of_file +'_'+ re.split("'", re.split(":", time_band)[0])[1]
-            path_to_histogram = path_to_histogram + name_of_file + '_histogram.pkl'
+            path_to_histogram = path_to_histogram + name_of_file + '_histogram.nc'
         
         if path_to_histogram is not None:
-            with open(path_to_histogram, 'wb') as output:
-                pickle.dump(dataset, output)
+            dataset.to_netcdf(path=path_to_histogram)
         return path_to_histogram
     
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
@@ -598,8 +599,7 @@ class TR_PR_Diagnostic:
         
         """
         try:
-            with open(path_to_histogram, 'rb') as data:
-                dataset = pickle.load(data)
+            dataset = xr.open_dataset(path_to_histogram)
             return dataset
         except FileNotFoundError:
             raise FileNotFoundError("The specified dataset file was not found.")
@@ -660,13 +660,16 @@ class TR_PR_Diagnostic:
         elif multi is not None:
             histograms_to_load = [str(path_to_histograms)+str(histogram_list[i]) for i in range(0, multi)]
 
-        for i in range(0, len(histograms_to_load)):
-            if i==0:
-                dataset = self.load_histogram(path_to_histogram=histograms_to_load[i])
-            else:
-                dataset = self.merge_two_datasets(tprate_dataset_1=dataset, tprate_dataset_2=self.load_histogram(path_to_histogram=histograms_to_load[i]))
+        if len(histograms_to_load)>0:
+            for i in range(0, len(histograms_to_load)):
+                if i==0:
+                    dataset = self.load_histogram(path_to_histogram=histograms_to_load[i])
+                else:
+                    dataset = self.merge_two_datasets(tprate_dataset_1=dataset, tprate_dataset_2=self.load_histogram(path_to_histogram=histograms_to_load[i]))
 
-        return dataset
+            return dataset
+        else:
+            raise Exception('The specified repository is empty.')
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
     def convert_counts_to_frequency(self, data):
@@ -827,43 +830,3 @@ class TR_PR_Diagnostic:
         return {fig, ax}   
 
 
-def time_interpreter(dataset):
-    """Identifying unit of timestep in the Dataset
-
-    Args:
-        dataset (xarray): The Dataset
-
-    Returns:
-        str: The unit of timestep in input Dataset
-    """
-
-    if dataset['time'].size==1:
-        return 'False. Load more timesteps then one'
-    try:
-        if np.count_nonzero(dataset['time.second'] == dataset['time.second'][0]) == dataset.time.size:
-            if np.count_nonzero(dataset['time.minute'] == dataset['time.minute'][0]) == dataset.time.size:
-                if  np.count_nonzero(dataset['time.hour'] == dataset['time.hour'][0]) == dataset.time.size:
-                    if np.count_nonzero(dataset['time.day'] == dataset['time.day'][0] ) == dataset.time.size or \
-                        np.count_nonzero([dataset['time.day'][i] in [1, 28, 29, 30, 31] for i in range(0, len(dataset['time.day']))]) == dataset.time.size:
-
-                        if np.count_nonzero(dataset['time.month'] == dataset['time.month'][0]) == dataset.time.size:
-                            return 'Y'
-                        else:
-                            return 'M'
-                    else:
-                        return 'D'
-                else:
-                    timestep = dataset.time[1] - dataset.time[0]
-                    n_hours = int(timestep/(60 * 60 * 10**9) )
-                    return str(n_hours)+'H'
-            else:
-                timestep = dataset.time[1] - dataset.time[0]
-                n_minutes = int(timestep/(60  * 10**9) )
-                return str(n_minutes)+'m'
-        else:
-            return 1
-
-    except KeyError and AttributeError:
-        timestep = dataset.time[1] - dataset.time[0]
-        if timestep >=28 and timestep <=31:
-            return 'M'
