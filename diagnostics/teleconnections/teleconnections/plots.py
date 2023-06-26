@@ -49,7 +49,7 @@ def set_layout(fig, ax, title=None, xlabel=None, ylabel=None, xlog=False,
 
 
 def cor_plot(indx, field, plot=True, projection_type='PlateCarree',
-             contour=False, levels=8, save=False, outputdir='./',
+             contour=False, levels=9, save=False, outputdir='./',
              filename='cor.png', loglevel='WARNING', **kwargs):
     """
     Evaluate and plot correlation map of a teleconnection index
@@ -185,7 +185,7 @@ def index_plot(indx, save=False, outputdir='./', filename='index.png',
 
 
 def reg_plot(indx, field, plot=True, projection_type='PlateCarree',
-             contour=False, levels=8, save=False, outputdir='./',
+             contour=False, levels=9, save=False, outputdir='./',
              filename='reg.png', loglevel='WARNING', **kwargs):
     """
     Evaluate and plot regression map of a teleconnection index
