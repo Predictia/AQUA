@@ -93,7 +93,8 @@ Available demo notebooks
 
 Notebooks are stored in diagnostics/dummy-diagnostic/notebooks
 
-* `dummy.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/dummy-diagnostic/notebooks/dummy.ipynb>`_
+* `dummy_class_readerwrapper.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/dummy/notebooks/dummy_class_readerwrapper.ipynb>`_
+* `dummy_class_timeband.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/dummy/notebooks/dummy_class_timeband.ipynb>`_
         
 Detailed API
 ------------

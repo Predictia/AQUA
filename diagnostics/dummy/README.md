@@ -47,11 +47,11 @@ This notebook should be named after the diagnostic itself or a particular functi
 
 
 Recommendations for notebook structure:
- - Reduce the number of packages you're importing. Try to keep all imports in your module (`dummy_class.py` and `dummy_func.py`).
+ - Reduce the number of packages you're importing. Try to keep all imports in your module (`dummy_class_reader.py`, or `dummy_class_timeband.py`, and `dummy_func.py`).
 
  - Do not produce too long notebooks. If needed, split the notebook into a few based on diagnostic applications.
 
- - Split the notebook into sections and create the Table of Content. (you can find the example of it in **notebook/dummy.ipynb**)
+ - Split the notebook into sections and create the Table of Content. (you can find the example of it in **notebook/dummy_class_timeband.ipynb**)
 
  - Provide well-described comments to help users understand the functionality of your diagnostic.
 
