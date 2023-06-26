@@ -1,3 +1,5 @@
+import numpy as np
+
 def time_interpreter(dataset):
     """Identifying unit of timestep in the Dataset
 
