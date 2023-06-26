@@ -1,11 +1,10 @@
-telecname: NAO # NAO or ENSO
-model: ERA5
-exp: era5
-source: monthly
-regrid: None
+telecname: 'NAO' # NAO or ENSO
+model: 'ERA5'
+exp: 'era5'
+source: 'monthly'
+regrid: 'r100'
 diagdir: None
 months_window: 3
-loglevel: DEBUG
 # outputfig: 'path/to/fig/folder'
 # outputdir: 'path/to/files/folder'
 # filename: 'custom_filename'
