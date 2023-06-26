@@ -51,7 +51,7 @@ Examples from the DummyDiagnostic class contained in the dummy_class.py file:
                     It is an example of method that uses of external functions of the module dummy_func
 
 Note that it is important to add docstrings to each method.
-We are following `Google docstring https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html`_
+We are following `Google-style docstring <https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html>`_
 
 :: note :
 
@@ -67,7 +67,7 @@ Example of functions contained in the dummy_func.py file:
 * "dummy_func": dummy function used in the dummy class.
 
 Note that it is important to add docstrings to each function.
-We are following `Google docstring https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html`_
+We are following `Google-style docstring <https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html>`_
 
 :: note :
 
