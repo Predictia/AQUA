@@ -1,4 +1,17 @@
-"""Module for teleconnection class."""
+"""Module for teleconnection class.
+
+This module contains the teleconnection class, which is used to
+evaluate teleconnection indices and regressions.
+The teleconnection class is initialized with one model, so that
+it can evaluate indices and regressions for a single model at a time.
+Multiples models can be evaluated by initializing multiple teleconnection
+objects.
+Different teleconnections can be evaluated for the same model.
+
+Available teleconnections:
+    - NAO
+    - ENSO
+"""
 import os
 
 import xarray as xr
@@ -14,12 +27,35 @@ class Teleconnection():
     """Class for teleconnection objects."""
 
     def __init__(self, model: str, exp: str, source: str,
-                 telecname: str, configdir=None, regrid='r100',
+                 telecname: str, diagdir=None, regrid='r100',
                  savefig=False, outputfig=None,
                  savefile=False, outputdir=None,
                  filename=None,
                  months_window: int = 3, loglevel: str = 'WARNING'):
-        """Initialize teleconnection object."""
+        """Initialize teleconnection object.
+
+        Args:
+            model (str):                    Model name.
+            exp (str):                      Experiment name.
+            source (str):                   Source name.
+            telecname (str):                Teleconnection name.
+                                            See documentation for available teleconnections.
+            diagdir (str, optional):        Path to diagnostics configuration folder.
+            regrid (str, optional):         Regridding resolution. Defaults to 'r100'.
+            savefig (bool, optional):       Save figures if True. Defaults to False.
+            outputfig (str, optional):      Output directory for figures.
+                                            If None, the current directory is used.
+            savefile (bool, optional):      Save files if True. Defaults to False.
+            outputdir (str, optional):      Output directory for files.
+                                            If None, the current directory is used.
+            filename (str, optional):       Output filename.
+            months_window (int, optional):  Months window for teleconnection
+                                            index. Defaults to 3.
+            loglevel (str, optional):       Log level. Defaults to 'WARNING'.
+
+        Raises:
+            ValueError: If telecname is not one of the available teleconnections.
+        """
 
         # Configure logger
         self.loglevel = loglevel
@@ -29,7 +65,8 @@ class Teleconnection():
         self.model = model
         self.exp = exp
         self.source = source
-        self.logger.debug('Open dataset: {}/{}/{}'.format(self.model, self.exp, self.source))
+        self.logger.debug('Open dataset: {}/{}/{}'.format(self.model, self.exp,
+                                                          self.source))
 
         self.regrid = regrid
         if self.regrid is None:
@@ -43,7 +80,7 @@ class Teleconnection():
         else:
             raise ValueError('telecname must be one of {}'.format(avail_telec))
 
-        self._load_namelist(configdir=configdir)
+        self._load_namelist(diagdir=diagdir)
 
         # Variable to be used for teleconnection
         self.var = self.namelist[self.telecname]['field']
@@ -59,49 +96,70 @@ class Teleconnection():
 
         # Output variables
         self._load_figs_options(savefig, outputfig)
-        self._load_data_options(savefile, outputdir, filename)
+        self._load_data_options(savefile, outputdir)
         if self.savefile or self.savefig:
             self._filename(filename)
 
         # Data empty at the beginning
         self.data = None
         self.index = None
+        self.regression = None
+        self.correlation = None
 
-        # Initialize reader
+        # Initialize the Reader class
+        # Notice that reader is a private method
+        # but **kwargs are passed to it so that it can be used to pass
+        # arguments to the reader if needed
         self._reader()
 
-    def _load_namelist(self, configdir=None):
-        """Load namelist."""
+    def _load_namelist(self, diagdir=None):
+        """Load namelist.
 
-        self.namelist = load_namelist('teleconnections', configdir)
+        Args:
+            diagdir (str, optional): Path to diagnostics configuration folder.
+                                     If None, the default diagnostics folder is used.
+        """
+
+        self.namelist = load_namelist('teleconnections', diagdir)
         self.logger.info('Namelist loaded')
         self.logger.debug(self.namelist)
 
-    def _reader(self):
-        """Initialize AQUA reader."""
+    def _reader(self, **kwargs):
+        """Initialize AQUA reader.
+
+        Args:
+            **kwargs: Keyword arguments to be passed to the reader.
+        """
 
         self.reader = Reader(model=self.model, exp=self.exp, source=self.source,
-                             regrid=self.regrid, loglevel=self.loglevel)
+                             regrid=self.regrid, loglevel=self.loglevel, **kwargs)
         self.logger.info('Reader initialized')
 
-    def retrieve(self):
-        """Retrieve teleconnection data."""
+    def retrieve(self, **kwargs):
+        """Retrieve teleconnection data.
+
+        Args:
+            **kwargs: Keyword arguments to be passed to the reader.
+        """
 
         try:
-            self.data = self.reader.retrieve(var=self.var)
+            self.data = self.reader.retrieve(var=self.var, **kwargs)
         except ValueError:
             self.logger.warning('Variable {} not found'.format(self.var))
-            self.logger.warning('Trying to retrieve without fixing')
+            self.logger.warning('Trying to retrieve without fixing and **kwargs')
             self.data = self.reader.retrieve(var=self.var, fix=False)
         self.logger.info('Data retrieved')
 
         if self.regrid:
-
             self.data = self.reader.regrid(self.data)
             self.logger.info('Data regridded')
 
-    def evaluate_index(self):
-        """Calculate teleconnection index."""
+    def evaluate_index(self, **kwargs):
+        """Calculate teleconnection index.
+
+        Args:
+            **kwargs: Keyword arguments to be passed to the index function.
+        """
 
         if self.data is None:
             self.logger.warning('No retrieve has been performed, trying to retrieve')
@@ -112,13 +170,13 @@ class Teleconnection():
                                              namelist=self.namelist,
                                              telecname=self.telecname,
                                              months_window=self.months_window,
-                                             loglevel=self.loglevel)
+                                             loglevel=self.loglevel, **kwargs)
         elif self.telec_type == 'regional':
             self.index = regional_mean_index(field=self.data[self.var],
                                              namelist=self.namelist,
                                              telecname=self.telecname,
                                              months_window=self.months_window,
-                                             loglevel=self.loglevel)
+                                             loglevel=self.loglevel, **kwargs)
 
         if self.savefile:
             file = self.outputdir + '/' + self.filename + '_index.nc'
@@ -154,8 +212,17 @@ class Teleconnection():
             self.logger.warning('No index has been calculated, trying to calculate')
             self.evaluate_index()
 
-        index_plot(indx=self.index, save=self.savefig, outputdir=self.outputfig,
-                   loglevel=self.loglevel, step=step, **kwargs)
+        if self.savefig:
+            # Set the filename
+            file = self.outputfig + '/' + self.filename + '_index.pdf'
+            self.logger.info('Index plot saved to {}'.format(file))
+            index_plot(indx=self.index, save=self.savefig,
+                       outputdir=self.outputfig, filename=file,
+                       loglevel=self.loglevel, step=step, **kwargs)
+        else:
+            index_plot(indx=self.index, save=self.savefig,
+                       loglevel=self.loglevel, step=step,
+                       **kwargs)
 
     def _load_figs_options(self, savefig=False, outputfig=None):
         """Load the figure options.
@@ -166,13 +233,13 @@ class Teleconnection():
                              Default is None.
                              See init for the class default value.
         """
-        self.savefig = savefig  # adapt or remove if you do not need it
+        self.savefig = savefig
 
         if self.savefig:
             self.logger.info('Figures will be saved')
             self._load_folder_info(outputfig, 'figure')
 
-    def _load_data_options(self, savefile=False, outputdir=None, filename=None):
+    def _load_data_options(self, savefile=False, outputdir=None):
         """Load the data options.
         Args:
             savefile (bool): whether to save the data.
@@ -180,11 +247,8 @@ class Teleconnection():
             outputdir (str): path to the data output directory.
                              Default is None.
                              See init for the class default value.
-            filename (str): name of the output file.
-                            Default is None.
-                            See init for the class default value.
         """
-        self.savefile = savefile  # adapt or remove if you do not need it
+        self.savefile = savefile
 
         if self.savefile:
             self.logger.info('Data will be saved')
@@ -200,7 +264,7 @@ class Teleconnection():
             self.logger.info('No filename specified, using the teleconnection name')
             filename = self.model + '_' + self.exp + '_' + self.source + '_' + self.telecname
         self.filename = filename
-        self.logger.debug('Output filename: {}'.format(filename))
+        self.logger.debug('Output filename: {}'.format(self.filename))
 
     def _load_folder_info(self, folder=None, folder_type=None):
         """Load the folder information.
