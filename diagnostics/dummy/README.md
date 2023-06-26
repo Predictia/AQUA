@@ -30,7 +30,7 @@ This list all the files you will find in the dummy diagnostic example. This fold
 
 A function-based approch is mandatatory. Usage of classes to wrap together the different functions is encouraged. Two different examples of classes are presented in this folder: 1. `DummyDiagnostic()` is a simple where the `Reader` capabilities are not included in the code while  2. `DummyDiagnosticWrapper()` incorporates the `Reader` call inside the class itself. Both approaches are possible and you are encouraged to choose the one the most fit your code. 
   
-Please add docstrings to all the functions you add to the diagnostic. We are following `Google docstring https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html`_
+Please add docstrings to all the functions you add to the diagnostic. We are following [Google-style docstring](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html).
 You can find an example of how to write the docstrings in the `dummy_class_reader.py` or in `dummy_func.py` file. 
 
 Make sure that the code passes the basic `flake8` checks. To improve the code format you can use `autopep8`.
