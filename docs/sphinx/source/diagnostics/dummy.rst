@@ -53,11 +53,8 @@ Examples from the DummyDiagnostic class contained in the dummy_class.py file:
 Note that it is important to add docstrings to each method.
 We are following `Google-style docstring <https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html>`_
 
-:: note :
-
+.. note::
     Please note that there is no need to list all the methods used, but the most important which are exposed to the users should be presented
-
-...
 
 Functions used
 --------------
@@ -69,8 +66,7 @@ Example of functions contained in the dummy_func.py file:
 Note that it is important to add docstrings to each function.
 We are following `Google-style docstring <https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html>`_
 
-:: note :
-
+.. note::
     Please note that there is no need to list all the methods used, but the most important which are exposed to the users should be presented
 
 Observations
