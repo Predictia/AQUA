@@ -366,12 +366,12 @@ class DummyDiagnosticWrapper():
         self.logger.info('Multiplication computed')
         self.logger.debug('Multiplication: {}'.format(self.multiplication))
 
-    def _secret_method(self):
-        """The secret method.
-        This method is a secret one, so it has "_" at the beginning.
+    def _private_method(self):
+        """The private method.
+        This method is a private one, so it has "_" at the beginning.
         If your methods are explicit, remove "_" at the beginning of the method name.
         """
-        self.logger.debug('This is a secret method')
+        self.logger.debug('This is a private method, should not be accessed from outside the class')
         self.logger.debug('Congratulations, you found it!')
 
 # Notice that more methods can be added to the class, and they can be explicit or not.
