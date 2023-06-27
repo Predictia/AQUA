@@ -10,6 +10,7 @@ dependencies:
   - python>=3.9,<3.11
   - ecCodes      
   - cdo
+  - pandoc
 # pip install -e of AQUA itself
   - pip
   - pip:
