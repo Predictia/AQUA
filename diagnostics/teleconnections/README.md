@@ -11,7 +11,6 @@
     - [Installation on Levante](#installation-on-levante)
     - [Add kernel for DKRZ jupyterhub](#add-kernel-for-dkrz-jupyterhub)
     - [Installation on Lumi](#installation-on-lumi)
-    - [Lumi installation](#lumi-installation)
   - [Data requirements](#data-requirements)
   - [Library files](#library-files)
   - [Examples](#examples)
@@ -44,10 +43,9 @@ The extra packages are:
 
 - python-cdo (needed for tests only)
 
-Teleconnections evaluation without tests can be run with the `AQUA` framework only.
-For this reason, at the moment if you want to run the diagnostic without tests, we suggest to use the `AQUA` framework only.
+Teleconnections evaluation without tests has the same dependencies of the `AQUA` framework.
 
-The `teleconnections` environment installs the `AQUA` framework with the `pip` installation method, and the other packages with the `conda` installation method.
+The `teleconnections` environment installs the `AQUA` framework with the `pip` installation method.
 For this reason the `teleconnections` environment can have slightly different versions of the packages than the `AQUA` framework.
 
 The `teleconnections` environment is compatible with python 3.9 and 3.10 as the `AQUA` framework.
@@ -57,9 +55,6 @@ The `teleconnections` environment is compatible with python 3.9 and 3.10 as the 
 
 The `env-teleconnections.yml` file can be used to create the `conda` environment needed to run the diagnostic.
 It is also possible to install the `teleconnections` environment with `pip`, since a `pyproject.toml` file is provided.
-
-We remind that at the actual version of the diagnostic, the `AQUA` framework is all is needed to run the diagnostic, so that you can simply follow the instructions in the `AQUA` documentation.
-A specific installation for teleconnections diagnostic is needed only if you want to run the tests.
 
 ### Installation on Levante
 
@@ -81,6 +76,7 @@ conda activate teleconnections
 ```
 
 or the name of the environment you chose to update.
+Please be aware that the command line tools require the existance of the `teleconnections` environment, change the submitter script accordingly.
 
 The diagnostic environment is compatible with python 3.9 and 3.10 and with the AQUA framework.
 Different diagnostic environments may be not compatible with each other.
@@ -104,12 +100,6 @@ The `lumi_installation.sh` script can be used to install the diagnostic on Lumi.
 Since at the moment the `AQUA` framework is all is needed to run the diagnostic, the `lumi_installation.sh` script available to install the `AQUA` framework is enough to run the diagnostic.
 
 It is available in the `AQUA` repository, in the `config/machines/lumi/installation` folder.
-
-### Lumi installation
-
-`conda` is not available on Lumi, so the environment has to be created manually.
-
-An installation tool similar to `lumi_installation.sh` has still to be written.
 
 ## Data requirements
 

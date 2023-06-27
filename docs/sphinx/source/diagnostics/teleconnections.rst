@@ -67,7 +67,7 @@ How to install the diagnostic
 -----------------------------
 
 The diagnostic is available in the `teleconnections` folder inside the `diagnostics` folder.
-Inside the `teleconnections` folder there is a `pyproject.toml` file that can be used to install the diagnostic as a package.
+Inside the `teleconnections` folder there is a `pyproject.toml` file that can be used to install the diagnostic as a package with pip.
 An `env-teleconnections.yml` file is also available to create a conda environment with all the dependencies needed to run the diagnostic.
 
 To install the diagnostic as a package, run the following command from the `teleconnections` folder:
@@ -153,6 +153,15 @@ What is needed to run the diagnostic is a `xarray.Dataarray` object with the dat
 Some plot functions are available in the `plots.py` file.
 Optionally, the `xarray.Dataarray` object returned by the `station_based_index` function can be used to plot the results in any way,
 to save the results in a file or to do any other operation.
+
+Command line interface
+----------------------
+
+The diagnostic can be run from the command line interface.
+The `cli` folder contains a `cli_teleconnections.py` file that can be used to run the diagnostic.
+A slurm script is also available in the `cli` folder to run the diagnostic on Levante (Lumi still to be tested).
+
+In the same folder a `teleconnections_config.yaml` file is available with an example of the configuration file that can pass to the cli script the main user dependant parameters.
 
 Example plot
 ------------
