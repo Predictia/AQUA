@@ -1,124 +1,239 @@
+import datetime
 import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
+import warnings
+warnings.filterwarnings("ignore")
 
 
-def wgt_area_mean(data, latN: float, latS: float,
-                  lonW: float, lonE: float):
 
-    data=data.sel(lat=slice(latN,latS), lon=slice(lonW,lonE))
-    t3gw=data.weighted(np.cos(np.deg2rad(data.lat)))
-    wgted_mean=t3gw.mean(("lat","lon"))
+def weighted_area_mean(data, latN: float, latS: float, lonW: float, lonE: float):
+    """
+    Compute the weighted area mean of data within the specified latitude and longitude bounds.
+
+    Parameters:
+        data (xarray.Dataset): Input data.
+        latN (float): Northern latitude bound.
+        latS (float): Southern latitude bound.
+        lonW (float): Western longitude bound.
+        lonE (float): Eastern longitude bound.
+
+    Returns:
+        xarray.Dataset: Weighted area mean of the input data.
+    """
+    data = data.sel(lat=slice(latN, latS), lon=slice(lonW, lonE))
+    weighted_data = data.weighted(np.cos(np.deg2rad(data.lat)))
+    wgted_mean = weighted_data.mean(("lat", "lon"))
     return wgted_mean
 
-def mean_value_plot(data,title):
-    data=fn.wgt_area_mean(data,-90,90,0,360)
-    fig, (ax1, ax2) = plt.subplots(nrows=1,ncols=2,
-                        figsize=(14,5))
 
+
+def mean_value_plot(data, title):
+    # Calculate weighted area mean
+    data = fn.weighted_area_mean(data, -90, 90, 0, 360)
+
+    # Create subplots
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
+
+    # Set the title
     fig.suptitle(title, fontsize=16)
-    levels=[0,100,500,1000,2000,3000,4000,5000]
-    for level in levels:
-        if level!=0:        
-            data_level=data.sel(lev=slice(None, level)).isel(lev=-1) 
-        else:
-            data_level=data.isel(lev=0)
-        data_level.thetao.plot.line(ax=ax1)
-        data_level.so.plot.line(ax=ax2)
-    ax1.set_title("Temperature", fontsize=14)
-    ax1.set_ylabel("Standardised Units (at the respective level)",fontsize=12)
-    ax1.set_xlabel("Time (in years)",fontsize=12)
-    ax1.legend(["0","100","500","1000","2000","3000","4000","5000"], loc='best')
 
+    # Define the levels for plotting
+    levels = [0, 100, 500, 1000, 2000, 3000, 4000, 5000]
+
+    # Plot data for each level
+    for level in levels:
+        if level != 0:
+            data_level = data.sel(lev=slice(None, level)).isel(lev=-1)
+        else:
+            data_level = data.isel(lev=0)
+
+        # Plot temperature
+        data_level.thetao.plot.line(ax=ax1)
+
+        # Plot salinity
+        data_level.so.plot.line(ax=ax2)
+
+    # Set properties for the temperature subplot
+    ax1.set_title("Temperature", fontsize=14)
+    ax1.set_ylabel("Standardized Units (at the respective level)", fontsize=12)
+    ax1.set_xlabel("Time (in years)", fontsize=12)
+    ax1.legend(["0", "100", "500", "1000", "2000", "3000", "4000", "5000"], loc="best")
+
+    # Set properties for the salinity subplot
     ax2.set_title("Salinity", fontsize=14)
-    ax2.set_ylabel("Standardised Units (at the respective level)",fontsize=12)
-    ax2.set_xlabel("Time (in years)",fontsize=12)
-    # ax1.set_legend(["0","100","500","1000","2000","3000","4000","5000"], loc='best')
-    plt.legend(["0","100","500","1000","2000","3000","4000","5000"], loc='best')
-    # plt.savefig('Timeseries-Global-standardized-anomalies.png',transparent=True)
+    ax2.set_ylabel("Standardized Units (at the respective level)", fontsize=12)
+    ax2.set_xlabel("Time (in years)", fontsize=12)
+    ax2.legend(["0", "100", "500", "1000", "2000", "3000", "4000", "5000"], loc="best")
+
+    # Adjust the layout and display the plot
+    plt.tight_layout()
+    plt.show()
+
+    # Return the last value of data_level
     return data_level
 
 
-def std_anom_wrt_initial(data, latN: float, latS: float,
-                  lonW: float, lonE: float,):
+
+
+def std_anom_wrt_initial(data, latN: float, latS: float, lonW: float, lonE: float):
+    """
+    Calculate the standard anomaly of input data relative to the initial time step.
+
+    Args:
+        data (DataArray): Input data to be processed.
+        latN (float): North latitude.
+        latS (float): South latitude.
+        lonW (float): West longitude.
+        lonE (float): East longitude.
+
+    Returns:
+        DataArray: Standard anomaly of the input data.
+    """
+    # Create an empty dataset to store the results
     std_anomaly = xr.Dataset()
-    wgted_mean=wgt_area_mean(data, latN, latS, lonW, lonE)
+
+    # Compute the weighted area mean over the specified latitude and longitude range
+    wgted_mean = weighted_area_mean(data, latN, latS, lonW, lonE)
+
+    # Calculate the anomaly from the initial time step for each variable
     for var in list(data.data_vars.keys()):
-        anomaly_from_initial=wgted_mean[var]-wgted_mean[var][0,]
-        std_anomaly[var]= anomaly_from_initial/anomaly_from_initial.std("time")
+        anomaly_from_initial = wgted_mean[var] - wgted_mean[var][0,]
+        
+        # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
+        std_anomaly[var] = anomaly_from_initial / anomaly_from_initial.std("time")
 
     return std_anomaly
-def std_anom_wrt_time_mean(data, latN: float, latS: float,
-                  lonW: float, lonE: float,):
+
+
+def std_anom_wrt_time_mean(data, latN: float, latS: float, lonW: float, lonE: float):
+    """
+    Calculate the standard anomaly of input data relative to the time mean.
+
+    Args:
+        data (DataArray): Input data to be processed.
+        latN (float): North latitude.
+        latS (float): South latitude.
+        lonW (float): West longitude.
+        lonE (float): East longitude.
+
+    Returns:
+        DataArray: Standard anomaly of the input data.
+    """
+    # Create an empty dataset to store the results
     std_anomaly = xr.Dataset()
-    wgted_mean=wgt_area_mean(data, latN, latS, lonW, lonE)
+
+    # Compute the weighted area mean over the specified latitude and longitude range
+    wgted_mean = weighted_area_mean(data, latN, latS, lonW, lonE)
+
+    # Calculate the anomaly from the time mean for each variable
     for var in list(data.data_vars.keys()):
-        anomaly_from_initial=wgted_mean[var]-wgted_mean[var].mean("time")
-        std_anomaly[var]= anomaly_from_initial/anomaly_from_initial.std("time")
+        anomaly_from_time_mean = wgted_mean[var] - wgted_mean[var].mean("time")
+        
+        # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
+        std_anomaly[var] = anomaly_from_time_mean / anomaly_from_time_mean.std("time")
 
     return std_anomaly
+
+
 
 def thetao_so_anom_plot(data, title):
-    # And we perform the corresponding hovmoller plot
-    fig, (ax1, ax2) = plt.subplots(nrows=1,ncols=2,
-                            figsize=(14,5))
+    """
+    Create a Hovmoller plot of temperature and salinity anomalies.
+
+    Args:
+        data (DataArray): Input data containing temperature (thetao) and salinity (so).
+        title (str): Title of the plot.
+
+    Returns:
+        None
+    """
+    # Create subplots for temperature and salinity plots
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
     fig.suptitle(title, fontsize=16)
 
-    tgt=data.thetao.transpose()
+    # Extract temperature data and plot the contour filled plot
+    tgt = data.thetao.transpose()
+    tgt.plot.contourf(levels=12, ax=ax1)
 
-    tgt.plot.contourf(levels=12,ax=ax1)
-    tgt.plot.contour(colors="black",levels=12,linewidths=0.5,ax=ax1)
+    # Add contour lines with black color and set the line width
+    tgt.plot.contour(colors="black", levels=12, linewidths=0.5, ax=ax1)
+
+    # Set the title, y-axis label, and x-axis label for the temperature plot
     ax1.set_title("Temperature", fontsize=14)
-    ax1.set_ylim((5500,0))
-    ax1.set_ylabel("Depth (in m)",fontsize=12)
-    ax1.set_xlabel("Time (in years)",fontsize=12)
+    ax1.set_ylim((5500, 0))
+    ax1.set_ylabel("Depth (in m)", fontsize=12)
+    ax1.set_xlabel("Time (in years)", fontsize=12)
 
-    sgt=data.so.transpose()
+    # Extract salinity data and plot the contour filled plot
+    sgt = data.so.transpose()
     sgt.plot.contourf(levels=12, ax=ax2)
-    sgt.plot.contour(colors="black",levels=12,linewidths=0.5, ax=ax2)
-    ax2.set_title("Salinity", fontsize=14)
-    ax2.set_ylim((5500,0))
-    ax2.set_ylabel("Depth (in m)",fontsize=12)
-    ax2.set_xlabel("Time (in years)",fontsize=12)
 
-    # plt.savefig('Hovmoller-Global-standardized-anomalies.png',transparent=True)
+    # Add contour lines with black color and set the line width
+    sgt.plot.contour(colors="black", levels=12, linewidths=0.5, ax=ax2)
+
+    # Set the title, y-axis label, and x-axis label for the salinity plot
+    ax2.set_title("Salinity", fontsize=14)
+    ax2.set_ylim((5500, 0))
+    ax2.set_ylabel("Depth (in m)", fontsize=12)
+    ax2.set_xlabel("Time (in years)", fontsize=12)
+
+    # Return the plot
     return
+
+
 
 def time_series(data, title):
-    # We now produce timeseries for GLOBAL temperature and salinity standardised anomalies at selected levels
-    fig, (ax1, ax2) = plt.subplots(nrows=1,ncols=2,
-                            figsize=(14,5))
+    """
+    Create time series plots of global temperature and salinity standardised anomalies at selected levels.
+
+    Args:
+        data (DataArray): Input data containing temperature (thetao) and salinity (so).
+        title (str): Title of the plots.
+
+    Returns:
+        None
+    """
+    # Create subplots for temperature and salinity time series plots
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
 
     fig.suptitle(title, fontsize=16)
-    
-    levels=[0,100,500,1000,2000,3000,4000,5000]
-    for level in levels:
-        if level!=0:        
-            data_level=data.sel(lev=slice(None, level)).isel(lev=-1) 
-        else:
-            data_level=data.isel(lev=0)
-        data_level.thetao.plot.line(ax=ax1)
-        data_level.so.plot.line(ax=ax2)
-        
-    ax1.set_title("Temperature", fontsize=14)
-    ax1.set_ylabel("Standardised Units (at the respective level)",fontsize=12)
-    ax1.set_xlabel("Time (in years)",fontsize=12)
-    ax1.legend(["0","100","500","1000","2000","3000","4000","5000"], loc='best')
 
+    # Define the levels at which to plot the time series
+    levels = [0, 100, 500, 1000, 2000, 3000, 4000, 5000]
+
+    # Iterate over the levels and plot the time series for each level
+    for level in levels:
+        if level != 0:
+            # Select the data at the specified level
+            data_level = data.sel(lev=slice(None, level)).isel(lev=-1)
+        else:
+            # Select the data at the surface level (0)
+            data_level = data.isel(lev=0)
+
+        # Plot the temperature time series
+        data_level.thetao.plot.line(ax=ax1)
+
+        # Plot the salinity time series
+        data_level.so.plot.line(ax=ax2)
+
+    # Set the title, y-axis label, and x-axis label for the temperature plot
+    ax1.set_title("Temperature", fontsize=14)
+    ax1.set_ylabel("Standardised Units (at the respective level)", fontsize=12)
+    ax1.set_xlabel("Time (in years)", fontsize=12)
+    ax1.legend(["0", "100", "500", "1000", "2000", "3000", "4000", "5000"], loc='best')
+
+    # Set the title, y-axis label, and x-axis label for the salinity plot
     ax2.set_title("Salinity", fontsize=14)
-    ax2.set_ylabel("Standardised Units (at the respective level)",fontsize=12)
-    ax2.set_xlabel("Time (in years)",fontsize=12)
-    # ax1.set_legend(["0","100","500","1000","2000","3000","4000","5000"], loc='best')
-    plt.legend(["0","100","500","1000","2000","3000","4000","5000"], loc='best')
-    # plt.savefig('Timeseries-Global-standardized-anomalies.png',transparent=True)
+    ax2.set_ylabel("Standardised Units (at the respective level)", fontsize=12)
+    ax2.set_xlabel("Time (in years)", fontsize=12)
+    plt.legend(["0", "100", "500", "1000", "2000", "3000", "4000", "5000"], loc='best')
+
+    # Return the plot
     return
 
 
 
-
-
-# Here we compute the density values at 0 level. For that we use the Equation of State that requires absolute salinity and conservative temperature as inputs
-# First we introduce a function to convert practical salinity to absolute salinity
 def convert_so(so):
     """
     Convert practical salinity to absolute.
@@ -142,9 +257,11 @@ def convert_so(so):
     """
     return so / 0.99530670233846
 
-# Here we introduce a function to convert potential temperature to conservative temperature
+
 def convert_thetao(absso, thetao):
     """
+    convert potential temperature to conservative temperature
+    
     Parameters
     ----------
     absso: dask.array.core.Array
@@ -181,11 +298,9 @@ def convert_thetao(absso, thetao):
         y*(-942.7827304544439e0 + y*(369.4389437509002e0 +
         (-33.83664947895248e0 - 9.987880382780322e0*y)*y))))))
 
-    # bigthetao = enthalpy/Specific heat
     return enthalpy/3991.86795711963
 
-# Finally we compute the potential in-situ density
-# First we define the associated function
+
 def compute_rho(absso, bigthetao, ref_pressure):
     """
     Computes the potential density in-situ.
@@ -299,74 +414,94 @@ def compute_rho(absso, bigthetao, ref_pressure):
     return r + r0
 
 
+    
 def convert_variables(data):
-    new_data=xr.Dataset()
-    so=convert_so(data.so)
-    thetao=convert_thetao(so, data.thetao)
-    rho=compute_rho(so, thetao, 0)
-    new_data=new_data.merge({"so": so, "thetao": thetao, "rho": rho})
-    return new_data
-    
-    
+    """
+    Convert variables in the given dataset to absolute salinity, conservative temperature, and potential density.
+
+    Parameters
+    ----------
+    data : xarray.Dataset
+        Dataset containing the variables to be converted.
+
+    Returns
+    -------
+    converted_data : xarray.Dataset
+        Dataset containing the converted variables: absolute salinity (so), conservative temperature (thetao),
+        and potential density (rho) at reference pressure 0 dbar.
+
+    """
+    converted_data = xr.Dataset()
+
+    # Convert practical salinity to absolute salinity
+    absso = convert_so(data.so)
+
+    # Convert potential temperature to conservative temperature
+    thetao = convert_thetao(absso, data.thetao)
+
+    # Compute potential density in-situ at reference pressure 0 dbar
+    rho = compute_rho(absso, thetao, 0)
+
+    # Merge the converted variables into a new dataset
+    converted_data = converted_data.merge({"so": absso, "thetao": thetao, "rho": rho})
+
+    return converted_data
+
+
+
+
 def plot_temporal_split(data, area_name):
+    """
+    Plot temporal split of mean state annual temperature, salinity, and density stratification.
+
+    Parameters
+    ----------
+    data : xarray.Dataset
+        Dataset containing the data for temperature (thetao), salinity (so), and density (rho).
+    area_name : str
+        Name of the area for the plot title.
+
+    Returns
+    -------
+    None
+
+    """
     date_len = len(data.time)
-    if date_len !=1:
-        if (date_len % 2) ==0:
-            data_1= data.isel(time=slice(0, int(date_len/2)))
-            data_2= data.isel(time=slice(int(date_len/2),date_len))                
-        if (date_len % 2) !=0:
-            data_1= data.isel(time=slice(0, int((date_len-1)/2)))
-            data_2= data.isel(time=slice(int((date_len-1)/2),date_len))                  
+    if date_len != 1:
+        if date_len % 2 == 0:
+            data_1 = data.isel(time=slice(0, int(date_len/2)))
+            data_2 = data.isel(time=slice(int(date_len/2), date_len))
+        else:
+            data_1 = data.isel(time=slice(0, int((date_len-1)/2)))
+            data_2 = data.isel(time=slice(int((date_len-1)/2), date_len))
 
-    fig, (ax1, ax2, ax3) = plt.subplots(nrows=1,ncols=3,figsize=(14,8))
-    fig.suptitle(f'Mean state annual T, S, rho0 stratification in the {area_name}', fontsize=16)
+    fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3, figsize=(14, 8))
+    fig.suptitle(f"Mean state annual T, S, rho0 stratification in {area_name}", fontsize=16)
 
-    ax1.set_ylim((4500,0))
-
-    ax1.plot(data_1.thetao.mean("time"), data.lev,'g-',linewidth=2.0)
-    ax1.plot(data_2.thetao.mean("time"), data.lev,'b-',linewidth=2.0)
-
-
-    # ax1.plot(obsT1_ls_w_av.thetao,obsT1_ls_w_av.thetao.lev,'k:')
-    # ax1.plot(obsT2_ls_w_av.thetao,obsT2_ls_w_av.thetao.lev,'k--')
-
+    ax1.set_ylim((4500, 0))
+    ax1.plot(data_1.thetao.mean("time"), data.lev, 'g-', linewidth=2.0)
+    ax1.plot(data_2.thetao.mean("time"), data.lev, 'b-', linewidth=2.0)
     ax1.set_title("Temperature Profile", fontsize=14)
-    ax1.set_ylabel("Depth (in m)",fontsize=12)
-    ax1.set_xlabel("Temperature (in degC)",fontsize=12)
-    ax1.legend([f"EXP first half {data_1.time[0].dt.year.data}- {data_1.time[-1].dt.year.data}",
-                f"EXP last half {data_2.time[0].dt.year.data}- {data_2.time[-1].dt.year.data}","EN4 1950-1980","EN4 1990-2020"], loc='best')
+    ax1.set_ylabel("Depth (m)", fontsize=12)
+    ax1.set_xlabel("Temperature (°C)", fontsize=12)
+    ax1.legend([f"EXP first half {data_1.time[0].dt.year.data}-{data_1.time[-1].dt.year.data}",
+                f"EXP last half {data_2.time[0].dt.year.data}-{data_2.time[-1].dt.year.data}",
+                "EN4 1950-1980", "EN4 1990-2020"], loc='best')
 
-
-    # Now we plot salinity
-    ax2.set_ylim((4500,0))
-
-    ax2.plot(data_1.so.mean("time"), data.lev,'g-',linewidth=2.0)
-    ax2.plot(data_2.so.mean("time"), data.lev,'b-',linewidth=2.0)
-
-
-    # ax2.plot(obsS1_ls_w_av.so,obsS1_ls_w_av.so.lev,'k:')
-    # ax2.plot(obsS2_ls_w_av.so,obsS2_ls_w_av.so.lev,'k--')
-
+    ax2.set_ylim((4500, 0))
+    ax2.plot(data_1.so.mean("time"), data.lev, 'g-', linewidth=2.0)
+    ax2.plot(data_2.so.mean("time"), data.lev, 'b-', linewidth=2.0)
     ax2.set_title("Salinity Profile", fontsize=14)
-    ax2.set_xlabel("Salinity (in psu)",fontsize=12)
-    #ax1.legend(["EXP","EN4 1950-1980","EN4 1990-2020"], loc='best')
-    #ax2.legend(["EXP","EN4 1950-1980","EN4 1990-2020"], loc='best')
+    ax2.set_xlabel("Salinity (psu)", fontsize=12)
 
-    ax3.set_ylim((4500,0))
-
-    ax3.plot(data_1.rho.mean("time")-1000, data.lev,'g-',linewidth=2.0)
-    ax3.plot(data_2.rho.mean("time")-1000, data.lev,'b-',linewidth=2.0)
-
-
-    # ax3.plot(obsarho01_ls_w_av-1000,obsarho01_ls_w_av.lev,'k:')
-    # ax3.plot(obsarho02_ls_w_av-1000,obsarho02_ls_w_av.lev,'k--')
-
+    ax3.set_ylim((4500, 0))
+    ax3.plot(data_1.rho.mean("time")-1000, data.lev, 'g-', linewidth=2.0)
+    ax3.plot(data_2.rho.mean("time")-1000, data.lev, 'b-', linewidth=2.0)
     ax3.set_title("Rho (ref 0) Profile", fontsize=14)
-    ax3.set_xlabel("Density anomaly(in kg/m3)",fontsize=12)
-    #ax1.legend(["EXP","EN4 1950-1980","EN4 1990-2020"], loc='best')
-    #ax2.legend(["EXP","EN4 1950-1980","EN4 1990-2020"], loc='best')
-    
-    return 
+    ax3.set_xlabel("Density Anomaly (kg/m³)", fontsize=12)
+
+    plt.show()
+
 
 
     
