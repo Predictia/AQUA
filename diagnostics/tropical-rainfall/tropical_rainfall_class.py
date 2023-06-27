@@ -631,7 +631,7 @@ class TR_PR_Diagnostic:
                 for attribute in tprate_dataset_1.counts.attrs:
                     dataset_3[variable].attrs                       = {**tprate_dataset_1[variable].attrs, **tprate_dataset_2[variable].attrs}
                     if tprate_dataset_1[variable].attrs[attribute]  != tprate_dataset_2[variable].attrs[attribute]:
-                        dataset_3[variable].attrs[attribute]        = str(tprate_dataset_1[variable].attrs[attribute])+';\n '+str(tprate_dataset_2[variable].attrs[attribute])
+                        dataset_3[variable].attrs[attribute]        = str(tprate_dataset_1[variable].attrs[attribute])+';\n ' + str(tprate_dataset_2[variable].attrs[attribute])
 
             return dataset_3
         
@@ -661,7 +661,8 @@ class TR_PR_Diagnostic:
                 if i == 0:
                     dataset = self.load_histogram(path_to_histogram = histograms_to_load[i])
                 else:
-                    dataset = self.merge_two_datasets(tprate_dataset_1 = dataset, tprate_dataset_2 = self.load_histogram(path_to_histogram = histograms_to_load[i]))
+                    dataset = self.merge_two_datasets(tprate_dataset_1 = dataset,
+                                                      tprate_dataset_2 = self.load_histogram(path_to_histogram = histograms_to_load[i]))
 
             return dataset
         else:
