@@ -14,6 +14,11 @@ will be able to check here what has changed.
 
 - Added the `changelog` file
 
+### Changed
+
+- Dummy diagnostic is now in the `dummy` folder (previously was `dummy-diagnostic`)
+- Tests and code is now working with python>=3.9 (previously python 3.11 was excluded)
+
 ## [v0.1-beta]
 
 This is the `AQUA` version that will be part of the Deliverable D340.7.1.1.

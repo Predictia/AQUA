@@ -7,7 +7,7 @@ name: aqua
 channels:
   - conda-forge
 dependencies:
-  - python>=3.9,<3.11
+  - python>=3.9
   - ecCodes      
   - cdo
   - pandoc
