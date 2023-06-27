@@ -4,10 +4,10 @@ def time_interpreter(dataset):
     """Identifying unit of timestep in the Dataset
 
     Args:
-        dataset (xarray): The Dataset
+        dataset (xarray):       The Dataset
 
     Returns:
-        str: The unit of timestep in input Dataset
+        str:                    The unit of timestep in input Dataset
     """
 
     if dataset['time'].size==1:

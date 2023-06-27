@@ -306,7 +306,12 @@ Below is an additional example of a histogram plot.
                xlogscale = True, ylogscale=True,  plot_title = "ICON, trop precipitation rate")
 
 
+You can find an example of the histogram obtained with the tropical-rainfall diagnostic below. 
 
+.. figure:: figures/tropical-rainfall-histogram.png
+    :width: 10cm
+
+    The pdf of tropical precipitation of the ICON data. 
 
 Notebooks 
 ---------
