@@ -29,7 +29,7 @@ Output
 ------
 
 * SSH variability for each input model in NetCDF format. 
-* Visualization of SSH Variability via subplots in jpeg format.
+* Visualization of SSH Variability via subplots in PDF format.
 
 Observations
 ------------

@@ -114,6 +114,29 @@ class sshVariability():
         # Save the figure as a JPEG file. fig.savefig() or plt.savefig() should accomplish the same task of saving the figure to a file. (DPI = dots per inch)
         fig.savefig(output_file, dpi=300, format='jpeg')
 
+
+    @staticmethod
+    def save_subplots_as_pdf(config, filename, fig):
+        """
+        Saves the subplots as a PDF file.
+
+        Parameters:
+            config (dict): The configuration dictionary containing the output directory.
+            filename (str): The name of the output file.
+            fig (plt.Figure): The figure object containing the subplots.
+        """
+        output_directory = config['output_directory']
+
+        # Create the output directory if it doesn't exist
+        # os.makedirs(output_directory, exist_ok=True)
+
+        # Set the output file path
+        output_file = os.path.join(output_directory, filename)
+
+        # Save the figure as a PDF file. fig.savefig() or plt.savefig() should accomplish the same task of saving the figure to a file. (DPI = dots per inch)
+        fig.savefig(output_file, format='pdf')
+
+
     def run(self):
         """
         Run the sshVariability.
@@ -159,12 +182,12 @@ class sshVariability():
         
         ssh_data_dict = {}
         # ssh_data_dict[config['base_model']['name']] = aviso_ssh_std
-        ssh_data_dict[f"{config['base_model']['name']}:{config['base_model']['experiment']}"] = aviso_ssh_std
+        ssh_data_dict[f"{config['base_model']['name']}:{config['base_model']['experiment']} {timespan_start} to {timespan_end}"] = aviso_ssh_std
 
 
         # Create a figure and axes for subplots
         fig, axes = plt.subplots(nrows=len(config['models'])+1, ncols=1, figsize=(12, 8), subplot_kw={'projection': ccrs.PlateCarree()})
-        fig.suptitle("SSH Variability", x=0.5)
+        fig.suptitle("SSH Variability")
 
         # By applying np.ravel() to the axes object, it flattens the 2-dimensional array into a 1-dimensional array. This means that each subplot is now accessible through a single index, rather than using row and column indices.
         # This reshaping of the axes object allows for easier iteration over the subplots when visualizing or modifying them, as it simplifies the indexing and looping operations.
@@ -199,15 +222,16 @@ class sshVariability():
             # regridding the data and plotting for visualization
             ssh_std_dev_regrid = reader.regrid(ssh_std_dev_data)
             # ssh_data_dict[model_name['name']] = ssh_std_dev_regrid
-            ssh_data_dict[f"{model_name['name']}:{model_name['experiment']}"] = ssh_std_dev_regrid
+            ssh_data_dict[f"{model_name['name']}:{model_name['experiment']} {model_name['timespan'][0]} to {model_name['timespan'][1]}"] = ssh_std_dev_regrid
 
 
         logger.info("visualizing the data in subplots")
         # self.visualize_subplots(config, ssh_data_list, fig, axes)
         self.visualize_subplots(config, ssh_data_dict, fig, axes)
 
-        logger.info("Saving plots as JPEG output file")
-        self.save_subplots_as_jpeg(config, "subplots_output.jpeg", fig)
+        logger.info("Saving plots as a PDF output file")
+        # self.save_subplots_as_jpeg(config, "subplots_output.jpeg", fig)
+        self.save_subplots_as_pdf(config, "subplots_output.pdf", fig)
 
         # Close the Dask client and cluster
         client.close()
