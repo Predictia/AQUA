@@ -15,4 +15,5 @@ AQUA_tests.tar.gz
 coverage.xml
 coverage/
 **/.DS_Store
+diagnostics/teleconnections/cli/teleconnections-submitter.sh
 
