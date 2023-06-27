@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --partition=<partition>
+#SBATCH --partition=<partition> # compute is suggested on levante
 #SBATCH --job-name=<job_name>
 #SBATCH --output=<job_name>_%j.out
 #SBATCH --error=<job_name>_%j.err
@@ -7,7 +7,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=<ntasks_per_node>
 #SBATCH --time=08:00:00
-#SBATCH --mem=200G 
+#SBATCH --mem=0
 set -e
 
 # configure AQUA folder path
@@ -43,8 +43,8 @@ if [ $machine == "lumi" ]; then
 fi
 
 # run the Python script
-# -c to specify the configuration file
+# -c to specify the configuration file (--config)
 # -d to run a definitive run (default is False)
 # -l to set the log level (default is WARNING)
 
-$AQUA/diagnostic/teleconnections/cli/cli_teleconnections.py --config $AQUA/diagnostic/teleconnections/cli/teleconnections_config.yaml 
+$AQUA/diagnostics/teleconnections/cli/cli_teleconnections.py --config $AQUA/diagnostics/teleconnections/cli/teleconnections_config.yaml 
