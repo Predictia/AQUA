@@ -50,7 +50,7 @@ jobs:
           environment-file: environment.yml
           environment-name: aqua
           cache-downloads: true
-          cache-environment: false
+          cache-environment: true
           condarc: |
             channels:
               - numba
