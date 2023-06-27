@@ -12,8 +12,9 @@ from matplotlib import colors
 import dask.array as da
 import dask_histogram as dh # pip
  
+from aqua.util import create_folder
 
-from tropical_rainfall_func import time_interpreter
+from tropical_rainfall_func import time_interpreter, convert_24hour_to_12hour_clock, convert_monthnumber_to_str
 """The module contains Tropical Precipitation Diagnostic:
 
 .. moduleauthor:: AQUA team <natalia.nazarova@polito.it>
@@ -500,7 +501,7 @@ class TR_PR_Diagnostic:
         """
         if path_to_histogram is not None:
             if name_of_file is None:
-                name_of_file = '_'
+                name_of_file    = '_'
             time_band           = dataset.counts.attrs['time_band']
             try:
                 name_of_file    = name_of_file +'_'+ re.split(":", re.split(", ", time_band)[0])[0]+'_' + re.split(":", re.split(", ", time_band)[1])[0]
@@ -509,6 +510,7 @@ class TR_PR_Diagnostic:
             path_to_histogram   = path_to_histogram + name_of_file + '_histogram.nc'
         
         if path_to_histogram is not None:
+            create_folder(folder=path_to_histogram, loglevel='WARNING')
             dataset.to_netcdf(path = path_to_histogram)
         return path_to_histogram
     
@@ -527,7 +529,7 @@ class TR_PR_Diagnostic:
         Raises:
             KeyError: If the obtained xarray.Dataset doesn't have global attributes.
         """
-        coord_lat, coord_lon = self.coordinate_names(data)
+        coord_lat, coord_lon= self.coordinate_names(data)
 
         if data.time.size>1:
             time_band       = str(data.time[0].values)+', '+str(data.time[-1].values)+', freq='+str(time_interpreter(data))
@@ -579,6 +581,7 @@ class TR_PR_Diagnostic:
         tprate_dataset['pdf']           = hist_pdf
 
         if path_to_histogram is not None:
+            create_folder(folder=path_to_histogram, loglevel='WARNING')
             self.save_histogram(dataset = tprate_dataset, path_to_histogram = path_to_histogram)
         return tprate_dataset
 
@@ -751,12 +754,14 @@ class TR_PR_Diagnostic:
         Returns:
             A tuple (fig, ax) containing the figure and axes objects.
             """
-        if add is None and fig is None:
-            fig, ax = plt.subplots( figsize = (8*figsize, 5*figsize) )
+        if fig is not None:
+                fig, ax  = fig
+                if color == 'tab:blue': color   = 'tab:orange'
+        elif add is None and fig is None:
+            fig, ax = plt.subplots( figsize=(8*figsize, 5*figsize) )
         elif add is not None:
-            fig, ax = add
-        elif fig is not None:
-            fig, ax = fig
+            fig, ax  = add 
+            if color == 'tab:blue': color   = 'tab:orange'
 
         if not pdf and not frequency:
             try:
@@ -827,8 +832,288 @@ class TR_PR_Diagnostic:
 
         if legend!='_Hidden':
             plt.legend(loc=loc,     fontsize=12)
+
         # set the spacing between subplots
         plt.tight_layout()
         if path_to_figure is not None and isinstance(path_to_figure, str):
+
+            create_folder(folder=path_to_figure, loglevel='WARNING')
+
             plt.savefig(path_to_figure)
         return {fig, ax}
+    
+
+    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
+    def mean_along_coordinate(self, data,           model_variable = 'tprate',      preprocess=True, 
+                              trop_lat = None,      coord   = 'time',               glob=False, 
+                              s_time   = None,      f_time  = None,
+                              s_year   = None,      f_year  = None,
+                              s_month  = None,      f_month = None):
+        """ Function to calculate the mean value of variable in Dataset.
+
+        Args:
+            data (xarray):                      The Dataset
+            model_variable (str, optional):     The variable of the Dataset.            Defaults to 'tprate'.
+            trop_lat (float, optional):         The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
+            coord (str, optional):              The coordinate of the Dataset.          Defaults to 'time'.
+            s_time (str, optional):             The starting time of the Dataset.       Defaults to None.
+            f_time (str, optional):             The ending time of the Dataset.         Defaults to None.
+            s_year (str, optional):             The starting year of the Dataset.       Defaults to None.
+            f_year (str, optional):             The ending year of the Dataset.         Defaults to None.
+            s_month (str, optional):            The starting month of the Dataset.      Defaults to None.
+            f_month (str, optional):            The ending month of the Dataset.        Defaults to None.
+
+        Returns:
+            xarray:         The mean value of variable.
+        """
+        if preprocess == True:
+            data = self.preprocessing(data,                                  preprocess = preprocess,
+                                      model_variable   = model_variable,     trop_lat= self.trop_lat,
+                                      s_time  = self.s_time,                 f_time  = self.f_time,
+                                      s_year  = self.s_year,                 f_year  = self.f_year,           
+                                      s_month = self.s_month,                f_month = self.f_month,
+                                      sort = False,                          dask_array = False)
+        coord_lat, coord_lon = self.coordinate_names(data)    
+        if coord in data.dims:
+            
+            self.class_attributes_update(trop_lat = trop_lat,
+                                         s_time   = s_time,          f_time  = f_time,
+                                         s_year   = s_year,          f_year  = f_year,
+                                         s_month  = s_month,         f_month = f_month)
+            if glob:
+                return data.mean()
+            else:
+                if coord    == 'time':
+                    return data.mean(coord_lat).mean(coord_lon)
+                elif coord  == coord_lat:
+                    return data.mean('time').mean(coord_lon)
+                elif coord  == coord_lon:
+                    return data.mean('time').mean(coord_lat)
+        else:
+            for i in data.dims:
+                coord = i
+            return data.median(coord)
+
+
+
+    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
+    def median_along_coordinate(self, data,                 trop_lat = None,        preprocess = True, 
+                                model_variable = 'tprate',  coord    = 'time',      glob       = False, 
+                                s_time  = None,             f_time   = None,
+                                s_year  = None,             f_year   = None,
+                                s_month = None,             f_month  = None):
+        """ Function to calculate the median value of variable in Dataset.
+
+        Args:
+            data (xarray):                      The Dataset
+            model_variable (str, optional):     The variable of the Dataset.            Defaults to 'tprate'.
+            trop_lat (float, optional):         The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
+            coord (str, optional):              The coordinate of the Dataset.          Defaults to 'time'.
+            s_time (str, optional):             The starting time of the Dataset.       Defaults to None.
+            f_time (str, optional):             The ending time of the Dataset.         Defaults to None.
+            s_year (str, optional):             The starting year of the Dataset.       Defaults to None.
+            f_year (str, optional):             The ending year of the Dataset.         Defaults to None.
+            s_month (str, optional):            The starting month of the Dataset.      Defaults to None.
+            f_month (str, optional):            The ending month of the Dataset.        Defaults to None.
+
+        Returns:
+            xarray: The median value of variable.
+        """      
+        if preprocess == True:
+            data = self.preprocessing(data,                                  preprocess = preprocess,
+                                      model_variable   = model_variable,     trop_lat= self.trop_lat,
+                                      s_time  = self.s_time,                 f_time  = self.f_time,
+                                      s_year  = self.s_year,                 f_year  = self.f_year,           
+                                      s_month = self.s_month,                f_month = self.f_month,
+                                      sort = False,                          dask_array = False)
+
+        coord_lat, coord_lon = self.coordinate_names(data)
+        if coord in data.dims:
+            self.class_attributes_update(trop_lat = trop_lat,
+                                         s_time   = s_time,         f_time  = f_time,
+                                         s_year   = s_year,         f_year  = f_year,
+                                         s_month  = s_month,        f_month = f_month)
+        
+            if glob:
+                return data.median(coord_lat).median(coord_lon).mean('time')
+            else:
+                if coord    == 'time':
+                    return data.median(coord_lat).median(coord_lon)
+                elif coord  == coord_lat:
+                    return data.median('time').median(coord_lon)
+                elif coord  == coord_lon:
+                    return data.median('time').median(coord_lat)
+            
+        else:
+            for i in data.dims:
+                coord = i
+            return data.median(coord)
+    
+    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
+    def mean_and_median_plot(self, data,                        glob=False,                     preprocess=True,      
+                             model_variable = 'tprate',         variability = False,            coord      = 'time',           
+                             trop_lat       = None,             get_mean    = True,             get_median = False,
+                             s_time         = None,             f_time      = None,             s_year     = None,             
+                             f_year         = None,             s_month     = None,             f_month    = None,
+                             legend         = '_Hidden',        figsize     = 1,                ls         = '-',
+                             maxticknum     = 12,               color       = 'tab:blue',       varname    = 'Precipitation',
+                             ylogscale      = False,            xlogscale   = False,            loc        = 'upper right', 
+                             add            = None,             fig         = None,             plot_title = None,             
+                             path_to_figure = None):
+        """ Function to plot the mean or median value of variable in Dataset.
+
+        Args:
+            data (xarray):                  The Dataset
+            model_variable (str, optional): The variable of the Dataset.            Defaults to 'tprate'.
+            coord (str, optional):          The coordinate of the Dataset.          Defaults to 'time'.
+            trop_lat (float, optional):     The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
+            variability (bool, optional):   The flag to calculate the variability of the variable.  Defaults to False.
+            get_mean (bool, optional):      The flag to calculate the mean of the variable.  Defaults to True.
+            get_median (bool, optional):    The flag to calculate the median of the variable.  Defaults to False.
+            s_time (str, optional):         The starting time of the Dataset.       Defaults to None.
+            f_time (str, optional):         The ending time of the Dataset.         Defaults to None.
+            s_year (str, optional):         The starting year of the Dataset.       Defaults to None."""
+
+        if fig is not None:
+            fig, ax  = fig
+            if color == 'tab:blue': color   = 'tab:orange'
+        elif add is None and fig is None:
+            fig, ax = plt.subplots( figsize=(8*figsize, 5*figsize) )
+        elif add is not None:
+            fig, ax  = add 
+            if color == 'tab:blue': color   = 'tab:orange'
+            
+
+        if preprocess == True:
+            data_with_final_grid = self.preprocessing(data,                                    preprocess = preprocess,
+                                                        model_variable   = model_variable,     trop_lat= self.trop_lat,
+                                                        s_time  = self.s_time,                 f_time  = self.f_time,
+                                                        s_year  = self.s_year,                 f_year  = self.f_year,           
+                                                        s_month = self.s_month,                f_month = self.f_month,
+                                                        sort = False,                          dask_array = False)
+
+        if get_mean:
+            data_average = self.mean_along_coordinate(data,                                     preprocess=preprocess, 
+                                                        glob       = glob,                      model_variable = model_variable,  
+                                                        trop_lat   = trop_lat,                  coord    = coord,
+                                                        s_time     = s_time,                    f_time   = f_time,
+                                                        s_year     = s_year,                    f_year   = f_year,
+                                                        s_month    = s_month,                   f_month  = f_month)
+        if get_median:
+            data_average = self.median_along_coordinate(data,                                   preprocess=preprocess, 
+                                                        glob       = glob,                      model_variable = model_variable,
+                                                        trop_lat   = trop_lat,                  coord    = coord,
+                                                        s_time     = s_time,                    f_time   = f_time,
+                                                        s_year     = s_year,                    f_year   = f_year,
+                                                        s_month    = s_month,                   f_month  = f_month)
+        
+        
+        if variability      and get_mean:
+            data_variability_from_average               = data_average.copy(deep=True)
+            data_variability_from_average.values        = (data_average.values -  data_average.mean(coord).values)/data_average.values
+        
+        coord_lat, coord_lon= self.coordinate_names(data)
+
+        if data[coord].size<=1:
+            raise Exception("The length of the coordinate should be more than 1.")
+        
+        # make a plot with different y-axis using second axis object
+        if coord            == 'time':
+            if 'm' in time_interpreter(data_with_final_grid):
+                labels      = [str(data_with_final_grid['time.hour'][i].values) + ':'+str(data_with_final_grid['time.minute'][i].values) 
+                                                                                    for i in range(0, data_with_final_grid.time.size) ] 
+                labels_int  = [float(data_with_final_grid['time.hour'][i].values)   for i in range(0, data_with_final_grid.time.size)]
+            elif 'H' in time_interpreter(data_with_final_grid):
+                labels      = [convert_24hour_to_12hour_clock(data_with_final_grid, i)  
+                                                                                    for i in range(0, data_with_final_grid.time.size) ]
+                labels_int  = [float(data_with_final_grid['time.hour'][i].values)   for i in range(0, data_with_final_grid.time.size)]
+            elif time_interpreter(data_with_final_grid) == 'D':
+                labels      = [str(data_with_final_grid['time.day'][i].values + convert_monthnumber_to_str(data_with_final_grid, i)) 
+                                                                                    for i in range(0, data_with_final_grid.time.size) ]
+                labels_int  = [float(data_with_final_grid['time.day'][i].values)    for i in range(0, data_with_final_grid.time.size)]
+            elif time_interpreter(data_with_final_grid) == 'M':   
+                labels      = [convert_monthnumber_to_str(data_with_final_grid, i)  
+                                                                                    for i in range(0, data_with_final_grid.time.size)] 
+                labels_int  = [float(data_with_final_grid['time.month'][i].values)  for i in range(0, data_with_final_grid.time.size)]
+            else:
+                labels      = [None for i in range(0, data_with_final_grid.time.size)]
+                labels_int  = [None for i in range(0, data_with_final_grid.time.size)]
+
+        elif coord          == coord_lat:
+            labels_int      = data_with_final_grid[coord_lat]
+        elif coord          == coord_lon:
+            labels_int      = data_with_final_grid[coord_lon]
+
+        if data_average.size== 1: 
+            if variability:
+                plt.axhline(y=float(data_variability_from_average),         color = color,  label = legend) 
+            else:
+                plt.axhline(y=float(data_average.values),                   color = color,  label = legend) 
+        else:
+            if variability:
+                plt.plot(labels_int,        data_variability_from_average,  color = color,  label = legend) 
+            else:
+                if coord == 'time':
+                    plt.scatter(labels_int, data_average,                   color = color,  label = legend) 
+                else:
+                    plt.plot(labels_int,    data_average,                   color = color,  label = legend) 
+
+        if coord == 'time':
+            plt.gca().set_xticks(labels_int,  labels)
+            
+    
+        #else:
+        plt.gca().xaxis.set_major_locator(plt.MaxNLocator(maxticknum))
+        plt.gca().tick_params(axis = 'both',   which = 'major',    pad = 10)
+        plt.xlim([min(labels_int),    max(labels_int)])
+        
+        plt.grid(True)
+
+        
+
+        if coord   == 'time':
+            plt.xlabel('Timestep index',                        fontsize=12)
+            if data['time.year'][0].values  == data['time.year'][-1].values:
+                plt.xlabel(str(data['time.year'][0].values),    fontsize=12)
+            else:
+                plt.xlabel(str(data['time.year'][0].values)+' - '+str(data['time.year'][-1].values), 
+                                                                fontsize=12)
+        elif coord == coord_lat:
+            plt.xlabel('Latitude',                              fontsize=12)
+        elif coord == coord_lon:
+            plt.xlabel('Longitude',                             fontsize=12)   
+        try:
+            plt.ylabel(str(varname)+', '+str(data[model_variable].attrs['units']),  
+                                                                fontsize=12)
+        except KeyError:
+            plt.ylabel(str(varname),                            fontsize=12)
+
+        if plot_title is None:
+            if variability:
+                plt.title('Bias of '         +str(varname),     fontsize=17,    pad=15)
+            elif not variability        and get_mean:
+                plt.title('Mean values of '  +str(varname),     fontsize=17,    pad=15)
+            elif not variability        and get_median:
+                plt.title('Median values of '+str(varname),     fontsize=17,    pad=15)
+        
+        if legend!='_Hidden':
+            plt.legend(loc=loc,                                 fontsize=12,    ncol=2)
+        if ylogscale:
+            plt.yscale('log')
+        if xlogscale:
+            plt.xscale('log')
+
+        # set the spacing between subplots
+        plt.tight_layout()
+        if path_to_figure is not None and isinstance(path_to_figure, str):
+
+            create_folder(folder=path_to_figure, loglevel='WARNING')
+
+            plt.savefig(path_to_figure,
+                        bbox_inches  = "tight",
+                        pad_inches   = 1,
+                        transparent  = True,
+                        facecolor    = "w",
+                        edgecolor    = 'w',
+                        orientation  = 'landscape')
+        return {fig, ax} 

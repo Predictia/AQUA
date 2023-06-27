@@ -40,3 +40,22 @@ def time_interpreter(dataset):
         timestep = dataset.time[1] - dataset.time[0]
         if timestep >=28 and timestep <=31:
             return 'M'
+        
+def convert_24hour_to_12hour_clock(data, ind):
+    if data['time.hour'][ind] > 12: return  str(data['time.hour'][ind].values - 12)+'PM' 
+    else: return str(data['time.hour'][ind].values)+'AM'
+
+
+def convert_monthnumber_to_str(data, ind):
+    if int(data['time.month'][ind]) == 1: return 'J'
+    elif int(data['time.month'][ind]) == 2: return 'F'
+    elif int(data['time.month'][ind]) == 3: return 'M'   
+    elif int(data['time.month'][ind]) == 4: return 'A'
+    elif int(data['time.month'][ind]) == 5: return 'M'
+    elif int(data['time.month'][ind]) == 6: return 'J'
+    elif int(data['time.month'][ind]) == 7: return 'J'
+    elif int(data['time.month'][ind]) == 8: return 'A'
+    elif int(data['time.month'][ind]) == 9: return 'S'
+    elif int(data['time.month'][ind]) == 10: return 'O'
+    elif int(data['time.month'][ind]) == 11: return 'N'
+    elif int(data['time.month'][ind]) == 12: return 'D'
