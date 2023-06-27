@@ -1,4 +1,4 @@
-Tropical Cyclones (TCs) detection, tracking and zoom in diagnostic
+Tropical Cyclones detection, tracking and zoom in diagnostic
 ==================================================================
 
 Description
@@ -34,6 +34,21 @@ Input variables
 
 Output 
 ------
+
+* tempest_output_yyyymmddThh.txt:            text files produced by Tempest DetectNodes with TCs centres coordinates and maximum wind at each time step; 
+* tempest_track_yyyymmddThh-yyyymmddThh.txt: text files produced by Tempest StitchNodes with TCs centres coordinates and maximum wind; 
+                                             for each TC trajectory (i.e. after tracking is applied); 
+* TC_var_yyyymmddThh.nc:                     netcdf files with selected variables in the vicinity of each TC centre detected at each time step
+* tempest_track_yyyymmddThh-yyyymmddThh.nc:  netcdf files with selected variables in the vicinity of each TC centre following TCs trajectories 
+                                             (includes time dimension, yyyymmddThh-yyyymmddThh states the start-end period considered)
+
+Example of outpud variables saved in the vicinity of TCs centres are:
+
+* `msl`     (Mean sea level pressure, GRIB paramid 151)
+* `10u`     (2m zonal wind, GRIB pramid 165)
+* `10v`     (2m meridional wind, GRIB pramid 166)
+* `pr`      (Total precipitation, GRIB pramid 228)
+* `10fg`    (10m wind gust since the last postprocessing, GRIB pramid 49)
 
 List here types of files/datasets produced by the diagnostic. Please keep in mind that diagnostic output should be both
 figures (PDF format is recommended) and data (NetCDF file is recommended). 
