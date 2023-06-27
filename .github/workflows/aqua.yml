@@ -53,7 +53,7 @@ jobs:
           cache-environment: false
           condarc: |
             channels:
-              - numbax
+              - numba
               - conda-forge
           create-args: >-
               python=${{ matrix.python-version }}
