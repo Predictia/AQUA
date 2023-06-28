@@ -13,5 +13,5 @@ loglevel: INFO
 catalog:
   ERA5:
     fdb:
-      fdb-test:
-        vars: ['2t']
+      source: fdb-test
+      vars: ['2t']
