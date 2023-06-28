@@ -10,7 +10,7 @@ models:
                         source: tp
                         grib: true
                         decumulate: true    
-                    var172143:  # cprate
+                    cprate:
                         source: cp
                         grib: true
                         decumulate: true
@@ -233,7 +233,7 @@ models:
                         source: tp
                         grib: true
                         decumulate: true    
-                    var172143:  # cprate
+                    cprate:
                         source: cp
                         grib: true
                         decumulate: true
