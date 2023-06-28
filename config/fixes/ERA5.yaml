@@ -14,6 +14,7 @@ models:
                         grib: true
                         source: E
                         src_units: m/day
+                        units: kg m**-2 s**-1
                     tprate: 
                         grib: true
                         source: TP
