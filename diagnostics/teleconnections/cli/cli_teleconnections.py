@@ -70,8 +70,8 @@ if __name__ == '__main__':
 
     teleconnection.retrieve()
     teleconnection.evaluate_index()
-    # teleconnection.evaluate_correlation()
-    # teleconnection.evaluate_regression()
+    teleconnection.evaluate_correlation()
+    teleconnection.evaluate_regression()
     teleconnection.plot_index()
 
     print('Teleconnections diagnostic test run completed.')
