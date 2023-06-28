@@ -59,17 +59,19 @@ If you are not working on Levante, remember to change the machine name in the `c
 Installation on Lumi
 --------------------
 
-If you are using LUMI, we cannot use pure conda enviornments due to the specific file system of the machine.
-A solution using containers must be implemented: the script `/config/machines/lumi/installation/lumi_install.sh` provides an installation of the correct environment.
+If you are using LUMI, you cannot use pure conda enviornments due to the Lustre filesystem.
+A solution using containers must be implemented based on containers, as described on `Lumi user-guide <https://docs.lumi-supercomputer.eu/software/installing/container-wrapper/>_`.
+The script `/config/machines/lumi/installation/lumi_install.sh` provides an installation of the correct environment.
 
 .. code-block:: bash
 
    ./config/machines/lumi/installation/lumi_install.sh
 
+This installs the AQUA environment into a container, and then setup the correct modules via a `load_aqua.sh` script that is generated and then called from the `.bash_profile`
+
 .. note ::
 
-   With the current configuration, you can have only one conda environment at the time on Lumi
-
+   Having multiple conda enviornments on Lumi is not straightforward, but is possible modifying your own `$PATH` pointing to the different conda binaries. Please check the Lumi user-guide mentioned above.
 
 Working with personal kernel in Jupyter Hub 
 -------------------------------------------
