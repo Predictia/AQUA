@@ -4,7 +4,7 @@ Tropical Cyclones detection, tracking and zoom in diagnostic
 Description
 -----------
 
-This diagnostic package provides a tool to detect tropical cyclones and compute their trajectory. Moreover it allows one to save selected variables
+This diagnostic package provides a tool to detect tropical cyclones (TCs) and compute their trajectory. Moreover it allows one to save selected variables
 in the vicinity of the TCs centres.
 Please write here in a clear and concise manner what the diagnostic is about 
 and what it is supposed to be doing and the motivation behind it (i.e. which phenomenon or physical process 
@@ -18,8 +18,14 @@ Structure
 
 The dummy diagnostic follows a class structure and consists of the files:
 
-* `dummy_class.py`: a python file in which the DummyDiagnostic class constructor and the other class methods are included;
-* `dummy_func.py`: a python file which contains functions that are called and used in the dummy class;
+* `notebooks/tropical_cyclones`: a python notebook which provides an example use of the TCs diagnostic, including the TCs class initialisation,
+                                 a wrapper function which calls the DetectNodes and StitchNodes functions from tempest-extremes (which now are implemented
+                                 as methods of the TCs class) and saves the data in the vicinity of the detected TCs at each time step and for the TCs tracks
+                                 in a considered time interval. Finally some plotting functions are included to plot some selected variables at a few time steps
+                                 and the TCs tracks in a particular period.
+* `functions_TCs.py`: a python file which contains some functions (external to the tropical cyclones class) to analyse the output text files
+                      produced by running the tempest-extremes methods DetectNodes and StitchNodes. Adapted from from the cymep repository
+                      by Colin Zarzycki (https://github.com/zarzycki/cymep).
 * `env-dummy.yml`: a yaml file with the required dependencies for the dummy diagnostic;
 * `notebooks/dummy.ipynb`: an ipython notebook which uses the dymmy class and its methods;
 * `README.md` : a readme file which contains some tecnical information on how to install the dummy diagnostic and its environment. 
@@ -35,6 +41,8 @@ Input variables
 Output 
 ------
 
+Here is a list of files produced by the tropical cyclones diagnostic:
+
 * tempest_output_yyyymmddThh.txt:            text files produced by Tempest DetectNodes with TCs centres coordinates and maximum wind at each time step; 
 * tempest_track_yyyymmddThh-yyyymmddThh.txt: text files produced by Tempest StitchNodes with TCs centres coordinates and maximum wind; 
                                              for each TC trajectory (i.e. after tracking is applied); 
@@ -45,13 +53,13 @@ Output
 Example of outpud variables saved in the vicinity of TCs centres are:
 
 * `msl`     (Mean sea level pressure, GRIB paramid 151)
-* `10u`     (2m zonal wind, GRIB pramid 165)
-* `10v`     (2m meridional wind, GRIB pramid 166)
+* `10u`     (10m zonal wind, GRIB pramid 165)
+* `10v`     (10m meridional wind, GRIB pramid 166)
 * `pr`      (Total precipitation, GRIB pramid 228)
 * `10fg`    (10m wind gust since the last postprocessing, GRIB pramid 49)
 
-List here types of files/datasets produced by the diagnostic. Please keep in mind that diagnostic output should be both
-figures (PDF format is recommended) and data (NetCDF file is recommended). 
+Figures include output variables in the vicinity of TCs centres at various time steps (useful to compare wind intensity, precipitation distribution
+and intensity between original resolution and a coarser resolution or with observations) and a figure with all the TCs tracks in the period considered.
 
 Methods used
 ------------
