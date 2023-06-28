@@ -75,14 +75,11 @@ Methods used
 
 Examples from the DummyDiagnostic class contained in the dummy_class.py file:
 
-* "DummyDiagnostic": the Dummy diagnostic class;
-* "retrieve": method to retrieve the data from the Reader class;
-* "fldmean": method to compute the field mean of the retrieved data;
-* "multiplication": method to compute the multiplication of the retrieved data. 
-                    It is an example of method that uses of external functions of the module dummy_func
+* "TCs": the tropical cyclones class;
+* "detect_nodes_zoomin": method to 
+* "stitch_nodes_zoomin": method to 
+* "multiplication": 
 
-Note that it is important to add docstrings to each method.
-We are following `Google-style docstring <https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html>`_
 
 .. note::
     Please note that there is no need to list all the methods used, but the most important which are exposed to the users should be presented
