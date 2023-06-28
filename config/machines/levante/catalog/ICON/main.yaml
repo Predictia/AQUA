@@ -14,6 +14,16 @@ sources:
     driver: yaml_file_cat
     args:
         path: "{{CATALOG_DIR}}/ngc3028.yaml"
+  test-healpix:
+    description: Healpix test data
+    driver: yaml_file_cat
+    args:
+        path: "{{CATALOG_DIR}}/test-healpix.yaml"
+  test-r2b0:
+    description: ICON r2b0 test data
+    driver: yaml_file_cat
+    args:
+        path: "{{CATALOG_DIR}}/test-r2b0.yaml"
 
 
   # grids:
