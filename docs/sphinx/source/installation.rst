@@ -56,13 +56,19 @@ If you are not working on Levante, remember to change the machine name in the `c
    
    machine: levante
 
-If you are using LUMI, the script `/config/machines/lumi/installation/lumi_install.sh` provides an installation of the correct environment.
-After putting your LUMI username under 'user' at the top of the script, you have to run the following:
+Installation on Lumi
+--------------------
+
+If you are using LUMI, we cannot use pure conda enviornments due to the specific file system of the machine.
+A solution using containers must be implemented: the script `/config/machines/lumi/installation/lumi_install.sh` provides an installation of the correct environment.
 
 .. code-block:: bash
 
    ./config/machines/lumi/installation/lumi_install.sh
 
+.. note ::
+
+   With the current configuration, you can have only one conda environment at the time on Lumi
 
 
 Working with personal kernel in Jupyter Hub 
