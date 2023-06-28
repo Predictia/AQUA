@@ -118,8 +118,8 @@ def test_histogram_load_to_memory(histogram_output):
     """ Testing the histogram load to memory
     """
     path_to_histogram       = str(path_to_diagnostic)+"/test_output/histograms/"
-    create_folder(folder    = str(path_to_diagnostic)+"test_output/",               loglevel = 'WARNING')
-    create_folder(folder    = str(path_to_diagnostic)+"test_output/histograms/",    loglevel = 'WARNING')
+    create_folder(folder    = str(path_to_diagnostic)+"/test_output/",               loglevel = 'WARNING')
+    create_folder(folder    = str(path_to_diagnostic)+"/test_output/histograms/",    loglevel = 'WARNING')
     
     # Cleaning the repository with histograms before new test
     histogram_list              = [f for f in listdir(path_to_histogram) if isfile(join(path_to_histogram, f))]
@@ -140,18 +140,17 @@ def test_histogram_load_to_memory(histogram_output):
         re_time_band        = re.split("'", re.split(":", time_band)[0])[1]
     assert re_time_band in time_band
 
-
 @pytest.mark.tropical_rainfall
-def test_figure_load_to_memory(histogram_output):
-    """ Testing the saving of the figure
+def test_hist_figure_load_to_memory(histogram_output):
+    """ Testing the saving of the figure with histogram
     """
-    create_folder(folder    = str(path_to_diagnostic) + "test_output/plots/", loglevel = 'WARNING')
+    create_folder(folder    = str(path_to_diagnostic) + "/test_output/plots/", loglevel = 'WARNING')
     path_to_figure          = str(path_to_diagnostic) + "/test_output/plots/"
     hist                    = histogram_output
     diag                    = TR_PR_Diag()
-    diag.histogram_plot(hist, path_to_figure = str(path_to_figure) + 'test_fig_saving.png')
+    diag.histogram_plot(hist, path_to_figure = str(path_to_figure) + 'test_hist_fig_saving.png')
     files                   = [f for f in listdir(path_to_figure) if isfile(join(path_to_figure, f))]
-    assert 'test_fig_saving.png' in files
+    assert 'test_hist_fig_saving.png' in files
 
 @pytest.mark.tropical_rainfall
 def test_lazy_mode_calculation(reader):
