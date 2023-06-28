@@ -82,32 +82,29 @@ else
   fi
 fi
 
-# check if the line is already present in the .bashrc file
-if ! grep -q 'module use /project/project_465000454/devaraju/modules/LUMI/22.08/C' ~/.bashrc; then
+# check if the line is already present in the load_aqua.sh file
+if ! grep -q 'module use /project/project_465000454/devaraju/modules/LUMI/22.08/C' ~/load_aqua.sh; then
     # if not, append it to the end of the file
-  echo 'module use /project/project_465000454/devaraju/modules/LUMI/22.08/C' >> ~/.bashrc
-  echo 'module purge' >> ~/.bashrc
-  echo 'module load pyfdb/0.0.2-cpeCray-22.08' >> ~/.bashrc
-  echo 'module load ecCodes/2.30.0-cpeCray-22.08' >> ~/.bashrc
-  echo 'module load python-climatedt/3.11.3-cpeCray-22.08.lua' >> ~/.bashrc
-  echo "modules for added to .bashrc. Please run 'source ~/.bashrc' to load the new configuration."
-else
-  echo "modules already present in .bashrc."
-fi
-
-# Config FDB5
-if ! grep -q 'export FDB5_CONFIG_FILE=/scratch/project_465000454/igonzalez/fdb-test/config.yaml' ~/.bashrc; then
-  echo 'export FDB5_CONFIG_FILE=/scratch/project_465000454/igonzalez/fdb-test/config.yaml' >> ~/.bashrc
-  echo 'export GSV_WEIGHTS_PATH=/scratch/project_465000454/igonzalez/gsv_weights' >> ~/.bashrc
+  echo 'module use /project/project_465000454/devaraju/modules/LUMI/22.08/C' >> ~/load_aqua.sh
+  echo 'module purge' >> ~/load_aqua.sh
+  echo 'module load pyfdb/0.0.2-cpeCray-22.08' >> ~/load_aqua.sh
+  echo 'module load ecCodes/2.30.0-cpeCray-22.08' >> ~/load_aqua.sh
+  echo 'module load python-climatedt/3.11.3-cpeCray-22.08.lua' >> ~/load_aqua.sh
+  
+  # Config FDB5
+  echo 'export FDB5_CONFIG_FILE=/scratch/project_465000454/igonzalez/fdb-test/config.yaml' >> ~/load_aqua.sh
+  echo 'export GSV_WEIGHTS_PATH=/scratch/project_465000454/igonzalez/gsv_weights' >> ~/load_aqua.sh
   echo "exports for FDB5 added to .bashrc. Please run 'source ~/.bashrc' to load the new configuration."
-else
-  echo "exports for FDB5 already present in .bashrc"
-fi
 
-if ! grep -q 'export PATH="'$INSTALLATION_PATH'/bin:$PATH"' ~/.bashrc; then
-  echo "# AQUA installation path" >> ~/.bashrc
-  echo 'export PATH="'$INSTALLATION_PATH'/bin:$PATH"' >> ~/.bashrc
-  echo "export PATH has been added to .bashrc. Please run 'source ~/.bashrc' to load the new configuration."
-else
-  echo "export PATH is already present in .bashrc."
-fi
+  echo "# AQUA installation path" >> ~/load_aqua.sh
+  echo 'export PATH="'$INSTALLATION_PATH'/bin:$PATH"' >> ~/load_aqua.sh
+  echo "export PATH has been added to .bashrc. Please run 'source ~/load_aqua.sh' to load the new configuration."
+
+read -p "Would you like to source load_aqua.sh in your .bash_profile? " -n 1 -r
+    echo 
+    if [[ $REPLY =~ ^[Yy]$ ]]
+    then
+      echo 'source  ~/load_aqua.sh' >> ~/.bash_profile
+    else
+      echo "source load_aqua.sh not added to .bash_profile"
+    fi 
