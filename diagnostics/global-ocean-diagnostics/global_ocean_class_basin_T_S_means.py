@@ -4,14 +4,12 @@ import global_ocean_func as fn
 
 class Global_OceanDiagnostic:
     def __init__(self, model, exp, source):
-        self.reader = Reader(model=model, exp=exp, source=source)
-        self.data = self.reader.retrieve()
-        self.data = self.data.rename({"nz1":"lev"})
-        self.data = self.data.rename({"ocpt":"thetao"})
-        self.data = self.data[["thetao","so"]]
+        self.reareader = Reader(model=model, exp=exp, source=source)
+        self.yearly_data= reader.retrieve()[["ocpt","so"]].resample(time="Y").mean()
+        self.yearly_data= self.yearly_data.rename({"nz1":"lev"})
+        self.yearly_data= self.yearly_data.rename({"ocpt":"thetao"})
         
     def process_data(self):
-        yearly_data = self.data.resample(time="Y").mean()
 
         self.global_mean_anom=fn.std_anom_wrt_initial(yearly_data,-90,90,0,360)
         self.atlantic_mean_anom=fn.std_anom_wrt_initial(yearly_data,-35,65,-80,30)
