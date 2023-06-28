@@ -10,7 +10,7 @@ models:
                         source: tp
                         grib: true
                         decumulate: true
-                        units: kg m**-2 s**-1 
+                        units: kg m**-2 s**-1
                     cprate:
                         source: cp
                         grib: true
@@ -85,40 +85,39 @@ models:
                 data_model: ifs
                 vars:
                     tprate:
+                        src_units: kg m**-2 s**-1
                         source: tp
                         grib: true
-                        decumulate: true
-                        units: kg m**-2 s**-1   
+                        units: kg m**-2 s**-1
                     cprate:
+                        src_units: kg m**-2 s**-1
                         source: cp
                         grib: true
-                        decumulate: true
                         units: kg m**-2 s**-1
                     mlsprt:
+                        src_units: kg m**-2 s**-1
                         source: lsp
                         grib: true
-                        decumulate: true
                         units: kg m**-2 s**-1 
                     erate:
+                        src_units: kg m**-2 s**-1
                         source: e
                         grib: true
-                        src_units: m
-                        decumulate: true
                         units: kg m**-2 s**-1 
                     esrate:
+                        src_units: kg m**-2 s**-1
                         source: es
                         grib: true
-                        decumulate: true
                         units: kg m**-2 s**-1 
                     mrort:
+                        src_units: kg m**-2 s**-1
                         source: ro
                         grib: true
-                        decumulate: true
                         units: kg m**-2 s**-1
                     mtsfr:
+                        src_units: kg m**-2 s**-1
                         source: sf
                         grib: true
-                        decumulate: true
                         units: kg m**-2 s**-1
                     mslhfl:
                         src_units: W/m2
@@ -160,28 +159,27 @@ models:
                     tprate:
                         source: tp
                         grib: true
-                        decumulate: true
-                        units: kg m**-2 s**-1   
+                        decumulate: true 
+                        units: kg m**-2 s**-1
                     erate:
                         source: e
                         grib: true
-                        src_units: m
-                        decumulate: true
+                        decumulate: true 
                         units: kg m**-2 s**-1 
                     esrate:
                         source: es
                         grib: true
-                        decumulate: true
+                        decumulate: true 
                         units: kg m**-2 s**-1
                     mrort:
                         source: ro
                         grib: true
-                        decumulate: true
+                        decumulate: true 
                         units: kg m**-2 s**-1
                     mtsfr:
                         source: sf
                         grib: true
-                        decumulate: true
+                        decumulate: true 
                         units: kg m**-2 s**-1
                     mslhfl:
                         source: slhf
@@ -226,40 +224,39 @@ models:
                 data_model: ifs
                 vars:
                     tprate:
+                        src_units: kg m**-2 s**-1
                         source: tp
                         grib: true
-                        decumulate: true
-                        units: kg m**-2 s**-1   
+                        units: kg m**-2 s**-1
                     cprate:
+                        src_units: kg m**-2 s**-1
                         source: cp
                         grib: true
-                        decumulate: true
                         units: kg m**-2 s**-1
                     mlsprt:
+                        src_units: kg m**-2 s**-1
                         source: lsp
                         grib: true
-                        decumulate: true
                         units: kg m**-2 s**-1 
                     erate:
+                        src_units: kg m**-2 s**-1
                         source: e
                         grib: true
-                        src_units: m
-                        decumulate: true
                         units: kg m**-2 s**-1 
                     esrate:
+                        src_units: kg m**-2 s**-1
                         source: es
                         grib: true
-                        decumulate: true
                         units: kg m**-2 s**-1 
                     mrort:
+                        src_units: kg m**-2 s**-1
                         source: ro
                         grib: true
-                        decumulate: true
                         units: kg m**-2 s**-1
                     mtsfr:
+                        src_units: kg m**-2 s**-1
                         source: sf
                         grib: true
-                        decumulate: true
                         units: kg m**-2 s**-1
                     mslhfl:
                         src_units: W/m2
@@ -302,7 +299,7 @@ models:
                         source: tp
                         grib: true
                         decumulate: true
-                        units: kg m**-2 s**-1   
+                        units: kg m**-2 s**-1
                     cprate:
                         source: cp
                         grib: true
