@@ -202,6 +202,10 @@ class sshVariability():
             model_data = reader.retrieve(fix=True)
             
             ssh_data = model_data[model_name['variable']]
+
+            model_data_time_min = np.datetime64(model_data.time.min().values)
+            model_data_time_max = np.datetime64(model_data.time.max().values)
+            logger.info("%s data spans from %s to %s",model_name['name'], model_data_time_min, model_data_time_max)
             
             logger.info("Getting SSH data complete for {}, now computing standard deviation on the default timestamp".format(model_name['name']))
             # computing std
