@@ -138,7 +138,6 @@ def test_histogram_load_to_memory(histogram_output):
         re_time_band        = re.split("'", re.split(":", time_band)[0])[1]
     assert re_time_band in time_band
 
-
 @pytest.mark.tropical_rainfall
 def test_hist_figure_load_to_memory(histogram_output):
     """ Testing the saving of the figure with histogram

@@ -457,7 +457,15 @@ source_grids:
         space_coord:
         - lon
         - lat
-  ERA5:
+  EN4:
+    en4:
+      default:
+       path:
+         so: /work/bb1153/b382119/EN4/so/
+         thetao: /work/bb1153/b382119/EN4/thetao
+       space_coord: ["lon", "lat"]
+       vert_coord: ["lev"]
+ERA5:
     era5-dkrz:
       default:
         path: /work/bb1153/b382075/nextgems/grids/n320_unstructured.nc
