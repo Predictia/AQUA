@@ -39,6 +39,7 @@ if [ $machine == "lumi" ]; then
 
     # get username
     username=$USER
+    # be aware that the path to mambaforge is hard-coded to the default environment name
     export PATH="/users/$username/mambaforge/teleconnections/bin:$PATH"
 fi
 
