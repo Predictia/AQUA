@@ -13,10 +13,7 @@ import dask.array as da
 import dask_histogram as dh # pip
  
 from aqua.util import create_folder
-
-from tropical_rainfall_func import time_interpreter, convert_24hour_to_12hour_clock, convert_monthnumber_to_str
-from tropical_rainfall_func import convert_length, convert_time, unit_splitter
-
+from tropical_rainfall_func import time_interpreter, convert_24hour_to_12hour_clock, convert_monthnumber_to_str, convert_length, convert_time, unit_splitter
 """The module contains Tropical Precipitation Diagnostic:
 
 .. moduleauthor:: AQUA team <natalia.nazarova@polito.it>
