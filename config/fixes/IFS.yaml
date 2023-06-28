@@ -6,7 +6,7 @@ models:
                 deltat: 3600
                 jump: month
                 vars:
-                    tprate:
+                    var260048:  # tprate (WMO)
                         source: tp
                         grib: true
                         decumulate: true    
@@ -76,9 +76,17 @@ models:
             default:
                 data_model: ifs
                 vars:
-                    tprate:
-                        src_units: m/s
+                    var260048:  # tprate (WMO)
+                        src_units: m s**-1
                         source: tp
+                        grib: true
+                    var172143:  # cprate
+                        src_units: m s**-1
+                        source: cp
+                        grib: true
+                    mlsprt:
+                        src_units: m s**-1
+                        source: lsp
                         grib: true
                     mtsfr:
                         src_units: W/m2
@@ -121,18 +129,10 @@ models:
                 deltat: 3600
                 jump: month
                 vars:
-                    tprate:
+                    var260048:  # tprate (WMO)
                         source: tp
                         grib: true
                         decumulate: true    
-                    var172143:  # cprate
-                        source: cp
-                        grib: true
-                        decumulate: true
-                    mlsprt:
-                        source: lsp
-                        grib: true
-                        decumulate: true  
                     erate:
                         source: e
                         grib: true
@@ -191,10 +191,10 @@ models:
             default:
                 data_model: ifs
                 vars:
-                    tprate:
-                        src_units: m/s
+                    var260048:  # tprate (WMO)
                         source: tp
                         grib: true
+                        decumulate: true    
                     mtsfr:
                         src_units: W/m2
                         source: sf
@@ -236,7 +236,7 @@ models:
                 deltat: 3600
                 jump: month
                 vars:
-                    tprate:
+                    var260048:  # tprate (WMO)
                         source: tp
                         grib: true
                         decumulate: true    
