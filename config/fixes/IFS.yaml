@@ -19,7 +19,8 @@ models:
                     mlsprt:
                         source: lsp
                         grib: true
-                        decumulate: true  
+                        decumulate: true
+                        units: kg m**-2 s**-1
                     erate:
                         source: e
                         grib: true
@@ -83,15 +84,41 @@ models:
             default:
                 data_model: ifs
                 vars:
-                    tprate:
-                        src_units: m s**-1
+                   tprate:
                         source: tp
                         grib: true
+                        decumulate: true
+                        units: kg m**-2 s**-1   
+                    cprate:
+                        source: cp
+                        grib: true
+                        decumulate: true
+                        units: kg m**-2 s**-1
+                    mlsprt:
+                        source: lsp
+                        grib: true
+                        decumulate: true
+                        units: kg m**-2 s**-1 
+                    erate:
+                        source: e
+                        grib: true
+                        src_units: m
+                        decumulate: true
+                        units: kg m**-2 s**-1 
+                    esrate:
+                        source: es
+                        grib: true
+                        decumulate: true
+                        units: kg m**-2 s**-1 
+                    mrort:
+                        source: ro
+                        grib: true
+                        decumulate: true
                         units: kg m**-2 s**-1
                     mtsfr:
-                        src_units: m s**-1
                         source: sf
                         grib: true
+                        decumulate: true
                         units: kg m**-2 s**-1
                     mslhfl:
                         src_units: W/m2
@@ -198,16 +225,41 @@ models:
             default:
                 data_model: ifs
                 vars:
-                    tprate:
-                        src_units: m s**-1
+                   tprate:
                         source: tp
                         grib: true
                         decumulate: true
                         units: kg m**-2 s**-1   
+                    cprate:
+                        source: cp
+                        grib: true
+                        decumulate: true
+                        units: kg m**-2 s**-1
+                    mlsprt:
+                        source: lsp
+                        grib: true
+                        decumulate: true
+                        units: kg m**-2 s**-1 
+                    erate:
+                        source: e
+                        grib: true
+                        src_units: m
+                        decumulate: true
+                        units: kg m**-2 s**-1 
+                    esrate:
+                        source: es
+                        grib: true
+                        decumulate: true
+                        units: kg m**-2 s**-1 
+                    mrort:
+                        source: ro
+                        grib: true
+                        decumulate: true
+                        units: kg m**-2 s**-1
                     mtsfr:
-                        src_units: m s**-1
                         source: sf
                         grib: true
+                        decumulate: true
                         units: kg m**-2 s**-1
                     mslhfl:
                         src_units: W/m2
