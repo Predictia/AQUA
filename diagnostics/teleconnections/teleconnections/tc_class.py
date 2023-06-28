@@ -187,7 +187,9 @@ class Teleconnection():
     def evaluate_regression(self):
         """Calculate teleconnection regression."""
 
-        self.regression = reg_evaluation(self.index, self.data[self.var],
+        data = self._adapt_data()
+
+        self.regression = reg_evaluation(self.index, data,
                                          loglevel=self.loglevel)
 
         if self.savefile:
@@ -198,7 +200,9 @@ class Teleconnection():
     def evaluate_correlation(self):
         """Calculate teleconnection correlation."""
 
-        self.correlation = reg_evaluation(self.index, self.data[self.var],
+        data = self._adapt_data()
+
+        self.correlation = cor_evaluation(self.index, data,
                                           loglevel=self.loglevel)
 
         if self.savefile:
@@ -299,3 +303,19 @@ class Teleconnection():
         elif folder_type == 'data':
             self.outputdir = folder
             self.logger.debug('Data output folder: {}'.format(self.outputdir))
+
+    def _adapt_data(self):
+        """Adapt the data so that the time dimension is the same as the index."""
+
+        if self.index is None:
+            self.logger.warning('No index has been calculated, trying to calculate')
+            self.evaluate_index()
+
+        # Select the variable
+        data = self.data[self.var]
+
+        # Select the months that are in the index
+        drop_count = self.months_window // 2
+        data = data.isel(time=slice(drop_count, -drop_count))
+
+        return data
