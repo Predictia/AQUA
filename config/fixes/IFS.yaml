@@ -84,7 +84,7 @@ models:
             default:
                 data_model: ifs
                 vars:
-                   tprate:
+                    tprate:
                         source: tp
                         grib: true
                         decumulate: true
@@ -225,7 +225,7 @@ models:
             default:
                 data_model: ifs
                 vars:
-                   tprate:
+                    tprate:
                         source: tp
                         grib: true
                         decumulate: true
