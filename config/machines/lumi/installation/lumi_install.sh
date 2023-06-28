@@ -99,12 +99,15 @@ if ! grep -q 'module use /project/project_465000454/devaraju/modules/LUMI/22.08/
   echo "# AQUA installation path" >> ~/load_aqua.sh
   echo 'export PATH="'$INSTALLATION_PATH'/bin:$PATH"' >> ~/load_aqua.sh
   echo "export PATH has been added to .bashrc. Please run 'source ~/load_aqua.sh' to load the new configuration."
+fi
 
+# ask if you want to add this to the bash profile
 read -p "Would you like to source load_aqua.sh in your .bash_profile? " -n 1 -r
-    echo 
-    if [[ $REPLY =~ ^[Yy]$ ]]
-    then
-      echo 'source  ~/load_aqua.sh' >> ~/.bash_profile
-    else
-      echo "source load_aqua.sh not added to .bash_profile"
-    fi 
+echo 
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+  echo 'source  ~/load_aqua.sh' >> ~/.bash_profile
+else
+  echo "source load_aqua.sh not added to .bash_profile"
+fi
+ 
