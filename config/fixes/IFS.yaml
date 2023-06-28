@@ -77,16 +77,8 @@ models:
                 data_model: ifs
                 vars:
                     tprate:
-                        src_units: kg m-2 s-1
+                        src_units: m/s
                         source: tp
-                        grib: true
-                    var172143:  # cprate
-                        src_units: kg m-2 s-1
-                        source: cp
-                        grib: true
-                    mlsprt:
-                        src_units: kg m-2 s-1
-                        source: lsp
                         grib: true
                     mtsfr:
                         src_units: W/m2
@@ -200,16 +192,8 @@ models:
                 data_model: ifs
                 vars:
                     tprate:
-                        src_units: kg m-2 s-1
+                        src_units: m/s
                         source: tp
-                        grib: true
-                    var172143:  # cprate
-                        src_units: kg m-2 s-1
-                        source: cp
-                        grib: true
-                    mlsprt:
-                        src_units: kg m-2 s-1
-                        source: lsp
                         grib: true
                     mtsfr:
                         src_units: W/m2
