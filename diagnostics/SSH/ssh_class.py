@@ -71,18 +71,54 @@ class sshVariability():
         output_file = os.path.join(output_directory, f"{model_name}_std_dev.nc")
         std_dev_data.to_netcdf(output_file)
 
+    # @staticmethod
+    # def visualize_subplots(config, ssh_data_dict, fig, axes):
+    #     """
+    #     Visualize the SSH variability data as subplots using Cartopy.
+
+    #     Args:
+    #         ssh_data_dict (dict): Dictionary of SSH variability data arrays with model names to visualize.
+    #         axes (list): List of subplot axes.
+    #     """
+    #     for i, (model_name, data) in enumerate(ssh_data_dict.items()):
+    #         if i < len(axes):
+    #             ax = axes[i]
+    #             data.plot(ax=ax, transform=ccrs.PlateCarree(), vmin=config["subplot_options"]["scale_min"], vmax=config["subplot_options"]["scale_max"], cmap=config["subplot_options"]["cmap"])
+    #             ax.set_title(f"{model_name}")
+    #             ax.coastlines()
+
+    #     if len(ssh_data_dict) < len(axes):
+    #         for j in range(len(ssh_data_dict), len(axes)):
+    #             fig.delaxes(axes[j])
+    #     fig.tight_layout()
+
     @staticmethod
     def visualize_subplots(config, ssh_data_dict, fig, axes):
         """
         Visualize the SSH variability data as subplots using Cartopy.
 
         Args:
+            config (dict): The configuration dictionary containing the flags for masking the boundaries.
             ssh_data_dict (dict): Dictionary of SSH variability data arrays with model names to visualize.
+            fig (plt.Figure): The figure object for the subplots.
             axes (list): List of subplot axes.
         """
+        # Retrieve the masking flags and boundary latitudes from the configuration
+        mask_northern_boundary = config.get("mask_northern_boundary", False)
+        mask_southern_boundary = config.get("mask_southern_boundary", False)
+        northern_boundary_latitude = config.get("northern_boundary_latitude", None)
+        southern_boundary_latitude = config.get("southern_boundary_latitude", None)
+
         for i, (model_name, data) in enumerate(ssh_data_dict.items()):
             if i < len(axes):
                 ax = axes[i]
+
+                # Apply masking if the model is "ICON" and the flags are enabled with boundary latitudes provided
+                if "ICON" in model_name and mask_northern_boundary and northern_boundary_latitude:
+                    data = data.where(data.lat < northern_boundary_latitude)
+                if "ICON" in model_name and mask_southern_boundary and southern_boundary_latitude:
+                    data = data.where(data.lat > southern_boundary_latitude)
+
                 data.plot(ax=ax, transform=ccrs.PlateCarree(), vmin=config["subplot_options"]["scale_min"], vmax=config["subplot_options"]["scale_max"], cmap=config["subplot_options"]["cmap"])
                 ax.set_title(f"{model_name}")
                 ax.coastlines()
