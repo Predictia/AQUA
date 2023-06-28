@@ -106,12 +106,12 @@ fi
 # ask if you want to add this to the bash profile
 read -p "Would you like to source load_aqua.sh in your .bash_profile? " -n 1 -r
 echo 
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
+if [[ $REPLY =~ ^[Yy]$ ]]; then
   if ! grep -q 'source  ~/load_aqua.sh' ~/.bash_profile; then
     echo 'source  ~/load_aqua.sh' >> ~/.bash_profile
   else 
     echo 'load_aqua.sh is already in your bash profile, not adding it again!'
+  fi
 else
   echo "source load_aqua.sh not added to .bash_profile"
 fi
