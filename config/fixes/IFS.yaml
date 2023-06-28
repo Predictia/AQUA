@@ -72,7 +72,8 @@ models:
                         grib: true
                         decumulate: true
         tco2559-ng5-cycle3:
-        # for this exp we have a lot of output from MultI/O, so default is without decumulation
+         # for this exp we have a lot of output from MultI/O, already decumulated and
+         # averaged monthly, so default is without decumulation
             default:
                 data_model: ifs
                 vars:
@@ -81,7 +82,7 @@ models:
                         source: tp
                         grib: true
                     mtsfr:
-                        src_units: W/m2
+                        src_units: m s**-1
                         source: sf
                         grib: true
                     mslhfl:
@@ -179,7 +180,8 @@ models:
                         grib: true
                         decumulate: true     
         tco1279-orca025-cycle3:
-         # for this exp we have a lot of output from MultI/O, so default is without decumulation
+         # for this exp we have a lot of output from MultI/O, already decumulated and
+         # averaged monthly, so default is without decumulation
             default:
                 data_model: ifs
                 vars:
@@ -189,7 +191,7 @@ models:
                         grib: true
                         decumulate: true    
                     mtsfr:
-                        src_units: W/m2
+                        src_units: m s**-1
                         source: sf
                         grib: true
                     mslhfl:
