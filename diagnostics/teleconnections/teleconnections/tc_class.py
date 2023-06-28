@@ -20,6 +20,7 @@ from aqua.logger import log_configure
 from aqua.reader import Reader
 from teleconnections.index import station_based_index, regional_mean_index
 from teleconnections.plots import index_plot
+from teleconnections.statistics import reg_evaluation, cor_evaluation
 from teleconnections.tools import load_namelist
 
 
@@ -186,8 +187,8 @@ class Teleconnection():
     def evaluate_regression(self):
         """Calculate teleconnection regression."""
 
-        self.logger.warning('Not implemented yet')
-        return
+        self.regression = reg_evaluation(self.index, self.data[self.var],
+                                         loglevel=self.loglevel)
 
         if self.savefile:
             file = self.outputdir + '/' + self.filename + '_reg.nc'
@@ -197,8 +198,8 @@ class Teleconnection():
     def evaluate_correlation(self):
         """Calculate teleconnection correlation."""
 
-        self.logger.warning('Not implemented yet')
-        return
+        self.correlation = reg_evaluation(self.index, self.data[self.var],
+                                          loglevel=self.loglevel)
 
         if self.savefile:
             file = self.outputdir + '/' + self.filename + '_corr.nc'
