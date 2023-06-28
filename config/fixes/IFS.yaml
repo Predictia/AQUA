@@ -6,7 +6,7 @@ models:
                 deltat: 3600
                 jump: month
                 vars:
-                    tprate:
+                    var260048:  # tprate (WMO)
                         source: tp
                         grib: true
                         decumulate: true    
@@ -76,16 +76,16 @@ models:
             default:
                 data_model: ifs
                 vars:
-                    tprate:
-                        src_units: kg m-2 s-1
+                    var260048:  # tprate (WMO)
+                        src_units: m s**-1
                         source: tp
                         grib: true
                     var172143:  # cprate
-                        src_units: kg m-2 s-1
+                        src_units: m s**-1
                         source: cp
                         grib: true
                     mlsprt:
-                        src_units: kg m-2 s-1
+                        src_units: m s**-1
                         source: lsp
                         grib: true
                     mtsfr:
@@ -129,7 +129,7 @@ models:
                 deltat: 3600
                 jump: month
                 vars:
-                    tprate:
+                    var260048:  # tprate (WMO)
                         source: tp
                         grib: true
                         decumulate: true    
@@ -199,8 +199,8 @@ models:
             default:
                 data_model: ifs
                 vars:
-                    tprate:
-                        src_units: kg m-2 s-1
+                    var260048:  # tprate (WMO)
+                        src_units: m s**-1
                         source: tp
                         grib: true
                     var172143:  # cprate
@@ -252,7 +252,7 @@ models:
                 deltat: 3600
                 jump: month
                 vars:
-                    tprate:
+                    var260048:  # tprate (WMO)
                         source: tp
                         grib: true
                         decumulate: true    
