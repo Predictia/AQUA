@@ -141,7 +141,7 @@ def test_histogram_load_to_memory(histogram_output):
 
 @pytest.mark.tropical_rainfall
 def test_hist_figure_load_to_memory(histogram_output):
-    """ Testing the saving of the figure
+    """ Testing the saving of the figure with histogram
     """
     create_folder(folder    = str(path_to_diagnostic) + "/test_output/plots/", loglevel = 'WARNING')
     path_to_figure          = str(path_to_diagnostic) + "/test_output/plots/"
@@ -185,7 +185,6 @@ def test_global_attributes_of_histogram(histogram_output):
 @pytest.mark.tropical_rainfall
 def test_variables_of_histogram(histogram_output):
     """ Testing the variables of histogram
-    
     """
     hist                    = histogram_output
     assert isinstance(hist, xarray.core.dataarray.Dataset) 
@@ -223,7 +222,8 @@ def test_latitude_band(reader):
 
 @pytest.mark.tropical_rainfall
 def test_histogram_merge(histogram_output):
-    """ Testing the histogram merge"""
+    """ Testing the histogram merge
+    """
     hist_1                  = histogram_output
     counts_1                = sum(hist_1.counts.values)
     
@@ -242,7 +242,7 @@ def test_histogram_merge(histogram_output):
 
 @pytest.mark.tropical_rainfall
 def test_mean_figure_load_to_memory(reader):
-    """ Testing the saving of the figure
+    """ Testing the saving of the figure of mean value
     """
     create_folder(folder    = str(path_to_diagnostic) + "/test_output/plots/", loglevel = 'WARNING')
     path_to_figure          = str(path_to_diagnostic) + "/test_output/plots/"
