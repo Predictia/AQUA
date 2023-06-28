@@ -412,14 +412,18 @@ def file_is_complete(filename, logger=logging.getLogger()):
         logger.info('File %s is found...', filename)
         try:
             xfield = xr.open_dataset(filename)
-            varname = list(xfield.data_vars)[0]
-            if xfield[varname].isnull().all():
-                # if xfield[varname].isnull().all(dim=['lon','lat']).all():
-                logger.error('File %s is full of NaN! Recomputing...', filename)
+            if len(xfield.data_vars) == 0:
+                logger.error('File %s is empty! Recomputing...', filename)
                 check = False
             else:
-                check = True
-                logger.info('File %s seems ok!', filename)
+                varname = list(xfield.data_vars)[0]
+                if xfield[varname].isnull().all():
+                    # if xfield[varname].isnull().all(dim=['lon','lat']).all():
+                    logger.error('File %s is full of NaN! Recomputing...', filename)
+                    check = False
+                else:
+                    check = True
+                    logger.info('File %s seems ok!', filename)
         # we have no clue which kind of exception might show up
         except ValueError:
             logger.info('Something wrong with file %s! Recomputing...', filename)
