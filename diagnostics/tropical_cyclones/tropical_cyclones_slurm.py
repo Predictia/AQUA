@@ -1,6 +1,6 @@
 """CLI interface to run the TempestExtemes TCs tracking"""
 
-from TCs_class_methods import TCs
+from AQUA.diagnostics.tropical_cyclones.class_methods_TCs import TCs
 from aqua.util import load_yaml
 import numpy as np
 from aqua.logger import log_configure

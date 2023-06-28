@@ -18,17 +18,26 @@ Structure
 
 The dummy diagnostic follows a class structure and consists of the files:
 
-* `notebooks/tropical_cyclones`: a python notebook which provides an example use of the TCs diagnostic, including the TCs class initialisation,
+* `notebooks/tropical_cyclones.ipynb`: a python notebook which provides an example use of the TCs diagnostic, including the TCs class initialisation,
                                  a wrapper function which calls the DetectNodes and StitchNodes functions from tempest-extremes (which now are implemented
                                  as methods of the TCs class) and saves the data in the vicinity of the detected TCs at each time step and for the TCs tracks
                                  in a considered time interval. Finally some plotting functions are included to plot some selected variables at a few time steps
-                                 and the TCs tracks in a particular period.
+                                 and the TCs tracks in a particular period;
+* `tropical_cyclones_slurm.py`: a python file with the tropical cyclones diagnostic as in the notebook, but to be executed as script;
+* `class_methods_TCs.py`: a python file in which the TCs class constructor and the other class methods are included; Some important methods are
+                          readwrite_from_intake, which acess data through the reader and stores them in an input file for the tempest-extremes methods, 
+                          DetectNodes (from tempest-extremes), which at each time step detects TCs centres, StitchNodes (tempest-extremes), which computes tracks from the
+                          TCs centres detected and store_fullres_field, which store the selected variables (at the original model resolution)
+                          in the vicinity of TCs centres for each track.
+                          See the `methods` paragraph for a complete description of all methods and functions.
 * `functions_TCs.py`: a python file which contains some functions (external to the tropical cyclones class) to analyse the output text files
                       produced by running the tempest-extremes methods DetectNodes and StitchNodes. Adapted from from the cymep repository
                       by Colin Zarzycki (https://github.com/zarzycki/cymep).
-* `env-dummy.yml`: a yaml file with the required dependencies for the dummy diagnostic;
-* `notebooks/dummy.ipynb`: an ipython notebook which uses the dymmy class and its methods;
-* `README.md` : a readme file which contains some tecnical information on how to install the dummy diagnostic and its environment. 
+* `plotting.py`: a python file which contains the plotting functions;
+* `run_TCs_slurm.sh`: bash script to run tropical_cyclones_slurm.py with sbatch;
+* `env-TCs.yml`: a yaml file with the required dependencies to creat the environment for the TCs diagnostic;
+* `config/config_levante.yml`: a yaml file in which all parameters are configured (including variables to save) and paths are specified. Version for Levante.
+* `README.md` : a readme file which contains some tecnical information on how to install the tropical cyclones diagnostic and its environment. 
 
 Input variables
 ---------------
