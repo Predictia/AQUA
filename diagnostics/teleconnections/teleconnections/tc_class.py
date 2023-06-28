@@ -14,6 +14,7 @@ Available teleconnections:
 """
 import os
 
+import numpy as np
 import xarray as xr
 
 from aqua.logger import log_configure
@@ -28,7 +29,8 @@ class Teleconnection():
     """Class for teleconnection objects."""
 
     def __init__(self, model: str, exp: str, source: str,
-                 telecname: str, diagdir=None, regrid='r100',
+                 telecname: str, diagdir=None, 
+                 regrid='r100', freq='monthly',
                  savefig=False, outputfig=None,
                  savefile=False, outputdir=None,
                  filename=None,
@@ -43,6 +45,7 @@ class Teleconnection():
                                             See documentation for available teleconnections.
             diagdir (str, optional):        Path to diagnostics configuration folder.
             regrid (str, optional):         Regridding resolution. Defaults to 'r100'.
+            freq (str, optional):           Frequency of the data. Defaults to 'monthly'.
             savefig (bool, optional):       Save figures if True. Defaults to False.
             outputfig (str, optional):      Output directory for figures.
                                             If None, the current directory is used.
@@ -73,6 +76,9 @@ class Teleconnection():
         if self.regrid is None:
             self.logger.warning('No regridding will be performed')
         self.logger.debug('Regridding resolution: {}'.format(self.regrid))
+
+        self.freq = freq
+        self.logger.debug('Frequency: {}'.format(self.freq))
 
         # Teleconnection variables
         avail_telec = ['NAO', 'ENSO']
@@ -133,7 +139,8 @@ class Teleconnection():
         """
 
         self.reader = Reader(model=self.model, exp=self.exp, source=self.source,
-                             regrid=self.regrid, loglevel=self.loglevel, **kwargs)
+                             regrid=self.regrid, freq=self.freq,
+                             loglevel=self.loglevel, **kwargs)
         self.logger.info('Reader initialized')
 
     def run(self):
@@ -164,6 +171,15 @@ class Teleconnection():
         if self.regrid:
             self.data = self.reader.regrid(self.data)
             self.logger.info('Data regridded')
+
+        if self.freq:
+            if self.freq == 'monthly':
+                # check if data is already monthly
+                if np.unique(self.data.time.dt.month.values).size == 12:
+                    self.logger.info('Data already monthly')
+                else:
+                    self.data = self.reader.timmean(self.data)
+                    self.logger.info('Time aggregated to {}'.format(self.freq))
 
     def evaluate_index(self, **kwargs):
         """Calculate teleconnection index.
