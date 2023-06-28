@@ -6,7 +6,7 @@ models:
                 deltat: 3600
                 jump: month
                 vars:
-                    var260048:  # tprate (WMO)
+                    tprate:
                         source: tp
                         grib: true
                         decumulate: true    
@@ -76,7 +76,7 @@ models:
             default:
                 data_model: ifs
                 vars:
-                    var260048:  # tprate (WMO)
+                    tprate:
                         src_units: m s**-1
                         source: tp
                         grib: true
@@ -129,7 +129,7 @@ models:
                 deltat: 3600
                 jump: month
                 vars:
-                    var260048:  # tprate (WMO)
+                    tprate:
                         source: tp
                         grib: true
                         decumulate: true    
@@ -199,7 +199,7 @@ models:
             default:
                 data_model: ifs
                 vars:
-                    var260048:  # tprate (WMO)
+                    tprate:
                         src_units: m s**-1
                         source: tp
                         grib: true
@@ -252,7 +252,7 @@ models:
                 deltat: 3600
                 jump: month
                 vars:
-                    var260048:  # tprate (WMO)
+                    tprate:
                         source: tp
                         grib: true
                         decumulate: true    
