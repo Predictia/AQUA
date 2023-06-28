@@ -13,7 +13,7 @@ import dask.array as da
 import dask_histogram as dh # pip
  
 
-from tropical_rainfall_func import time_interpreter
+from tropical_rainfall_func import time_interpreter, convert_length, convert_time, unit_splitter
 """The module contains Tropical Precipitation Diagnostic:
 
 .. moduleauthor:: AQUA team <natalia.nazarova@polito.it>
@@ -159,8 +159,8 @@ class TR_PR_Diagnostic:
         return coord_lat, coord_lon
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def precipitation_units_converter(self, data,   model_variable = 'tprate',  new_unit = 'm s**-1'):
-        """ Function to convert the units of precipitation.
+    def precipitation_rate_units_converter(self, data, model_variable = 'tprate', new_unit = 'm s**-1'):
+        """ Function to convert the units of precipitation rate.
 
         Args:
             data (xarray):                  The Dataset
@@ -170,21 +170,18 @@ class TR_PR_Diagnostic:
         Returns:
             xarray: The Dataset with converted units.
         """    
-        if data[model_variable].units       == new_unit:
-            return data
-        else:
-            if data[model_variable].units   == 'm':
-                if new_unit                 == 'm s**-1':
-                    data_copy                           = data.copy(deep = True)
-                    data_copy[model_variable].values    = data_copy[model_variable].values/(60*60*24)
+        try:
+            data        = data[model_variable]
+        except KeyError:
+            data        = data
 
-            elif data[model_variable].units == 'm s**-1':
-                if new_unit                 == 'm':
-                    data_copy                           = data.copy(deep = True)
-                    data_copy[model_variable].values    = data_copy[model_variable].values*(60*60*24)
-                
-            data_copy[model_variable].attrs['units']    = new_unit
-            return data_copy
+        from_space_unit, from_time_unit     = unit_splitter(data.units)
+        to_space_unit,   to_time_unit       = unit_splitter(new_unit)
+
+        data            = convert_length(data, from_space_unit, to_space_unit)
+        data            = convert_time(1/data,   from_time_unit,  to_time_unit)
+
+        return data
     
         
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
