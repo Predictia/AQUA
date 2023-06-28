@@ -136,6 +136,16 @@ class Teleconnection():
                              regrid=self.regrid, loglevel=self.loglevel, **kwargs)
         self.logger.info('Reader initialized')
 
+    def run(self):
+        """Run teleconnection analysis."""
+
+        self.retrieve()
+        self.evaluate_index()
+        self.evaluate_regression()
+        self.evaluate_correlation()
+
+        self.logger.info('Teleconnection analysis completed')
+
     def retrieve(self, **kwargs):
         """Retrieve teleconnection data.
 
@@ -305,7 +315,11 @@ class Teleconnection():
             self.logger.debug('Data output folder: {}'.format(self.outputdir))
 
     def _adapt_data(self):
-        """Adapt the data so that the time dimension is the same as the index."""
+        """Adapt the data so that the time dimension is the same as the index.
+
+        Returns:
+            xarray.DataArray: the data with the same time dimension as the index.
+        """
 
         if self.index is None:
             self.logger.warning('No index has been calculated, trying to calculate')
