@@ -18,10 +18,13 @@ def parse_arguments(args):
 
     parser = argparse.ArgumentParser(description='Teleconnections comparison CLI')
     parser.add_argument('-c', '--config', type=str,
+                        required=False,
                         help='yaml configuration file')
-    parser.add_argument('-d', '--definitive', type=bool,
+    parser.add_argument('-d', '--definitive', action='store_true',
+                        required=False,
                         help='if True, files are saved, default is False')
     parser.add_argument('-l', '--loglevel', type=str,
+                        required=False,
                         help='log level [default: WARNING]')
 
     return parser.parse_args(args)
@@ -120,6 +123,9 @@ if __name__ == '__main__':
     loglevel = get_arg(args, 'loglevel', 'WARNING')
     telecname = config['telecname']
 
+    savefig = get_arg(args, 'definitive', False)
+    savefile = get_arg(args, 'definitive', False)
+
     try:
         configdir = config['configdir']
     except KeyError:
@@ -145,6 +151,7 @@ if __name__ == '__main__':
         print('Initializing Teleconnection class for dataset_source: ',
               config['model'], config['exp'], config['source'])
         teleconnection = Teleconnection(telecname=telecname, **config,
+                                        savefig=savefig, savefile=savefile,
                                         configdir=configdir, loglevel=loglevel)
         teleconnection.retrieve()
         teleconnection.evaluate_index()
@@ -153,6 +160,7 @@ if __name__ == '__main__':
 
     # Initialize Teleconnection class for observational dataset
     teleconnection = Teleconnection(telecname=telecname, **obs_dict,
+                                    savefig=savefig, savefile=savefile,
                                     configdir=configdir, loglevel=loglevel)
     teleconnection.retrieve()
     teleconnection.evaluate_index()
