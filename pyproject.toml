@@ -42,6 +42,7 @@ dependencies = [
     "numpy",
     "pandas",
     "pyYAML",
+    "matplotlib",
     "ruamel.yaml",
     "sparse",
     "xarray",
