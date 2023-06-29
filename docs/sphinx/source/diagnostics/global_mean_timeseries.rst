@@ -27,8 +27,10 @@ Output
 
 The diagnostic produces two plots:
 
-* `timeseries.png` A comparison of ICON and IFS global mean temperature
-* `gregory.png`    A Gregory-like plot to analyse model drift in ICON
+* `timeseries.png`  A comparison of ICON and IFS global mean temperature
+* `gregory.png`     A Gregory-like plot to analyse model drift in ICON
+* `icon_2t_mean.nc` A Gregory-like plot to analyse model drift in ICON
+* `ifs_2t_mean.nc`  A Gregory-like plot to analyse model drift in ICON
 
 Observations
 ------------

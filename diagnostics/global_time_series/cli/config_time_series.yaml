@@ -12,6 +12,7 @@ timeseries:
                 label: "ICON"
             plot_era5: true
             resample: "M"
+            outfile: "icon_2t_mean.nc"
         ifs:
             model: "IFS"
             exp: "tco1279-orca025-cycle3"
@@ -22,6 +23,7 @@ timeseries:
                 color: "tab:red"
                 label: "IFS"
             resample: "M"
+            outfile: "ifs_2t_mean.nc"
     savefig: "timeseries.png"
 gregory:
     model: "ICON"

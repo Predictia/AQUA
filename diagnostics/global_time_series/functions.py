@@ -28,6 +28,7 @@ def plot_timeseries(
     reader_kw={},
     plot_kw={},
     ax=None,
+    outfile=None,
     **kwargs,
 ):
     """Plot a time series of the global mean value of a given variable.
@@ -40,6 +41,8 @@ def plot_timeseries(
         plot_era5 (bool): Include ERA5 reference data.
         reader_kw (dict): Additional keyword arguments passed to the `aqua.Reader`.
         plot_kw (dict): Additional keyword arguments passed to the plotting function.
+        ax (matplotlib.Axes): (Optional) axes to plot in.
+        outfile (str): (Optional) output file to store data.
     """
     if ax is None:
         ax = plt.gca()
@@ -53,6 +56,9 @@ def plot_timeseries(
         data = reader.timmean(data=data, freq=resample)
 
     data.plot(**plot_kw, ax=ax)
+
+    if outfile is not None:
+        data.to_netcdf(outfile)
 
     if plot_era5:
         get_reference_data(
