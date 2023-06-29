@@ -10,10 +10,10 @@ The file functions.py contains all the functions to load, process and plot the m
 
 Data requirements: 
 Variables needed for this diagnostic so far are:
-- ttr (total thermal radiadion): longwave radiation
-- tsr (total solar radiation): shortwave radiation
-- tnr (total net radiation): net radiation
-- 2t (2 meter temperature): only used for the Gregory plots.
+* ttr (total thermal radiadion): longwave radiation
+* tsr (total solar radiation): shortwave radiation
+* tnr (total net radiation): net radiation
+* 2t (2 meter temperature): only used for the Gregory plots.
 
 The data we retrieve through the provided functions have monthly timesteps and a 1x1 deg resolution. A higher resolution is not necessary for this diagnostic.
 
@@ -35,25 +35,25 @@ Example on how to load the datasets (e.g. IFS Cycle 3 4.4 km data) from the LRA:
     TOA_ifs_4km_gm, reader_ifs_4km, data_ifs_4km, TOA_ifs_4km, TOA_ifs_4km_r360x180 = radiation_diag.process_model_data(model =  'IFS' , exp = 'tco2559-ng5-cycle3' , source = 'lra-r100-monthly')
     
 The returned data contains:
-- TOA_ifs_4km_gm: Global means of the data
-- reader_ifs_4km: AQUA reader, that could also be retrieved via: 'reader = Reader(model=model,exp=exp,source=source)'
-- data_ifs_4km: returned xarray-dataset, that contains all the variables
-- TOA_ifs_4km: returned xarray-dataset, that contains the necessary variables for analysis
+* TOA_ifs_4km_gm: Global means of the data
+* reader_ifs_4km: AQUA reader, that could also be retrieved via: 'reader = Reader(model=model,exp=exp,source=source)'
+* data_ifs_4km: returned xarray-dataset, that contains all the variables
+* TOA_ifs_4km: returned xarray-dataset, that contains the necessary variables for analysis
 
 Some functions inside the radiation_diag class:
-- process_ceres_data(): Extracts CERES data for further analysis and creates global means.
-- process_model_data(): Extracts model output data for further analysis and creates global means.
-- process_era5_data(): Extracts ERA5 data for further analysis.
-- gregory_plot(): Creates a Gregory Plot with various models and ERA5 data.
-- barplot_model_data(): Creates a bar plot with various models and CERES data.
-- plot_maps(): Creates monthly bias maps of various models to show the bias wrt CERES data.
+* process_ceres_data(): Extracts CERES data for further analysis and creates global means.
+* process_model_data(): Extracts model output data for further analysis and creates global means.
+* process_era5_data(): Extracts ERA5 data for further analysis.
+* gregory_plot(): Creates a Gregory Plot with various models and ERA5 data.
+* barplot_model_data(): Creates a bar plot with various models and CERES data.
+* plot_maps(): Creates monthly bias maps of various models to show the bias wrt CERES data.
 
 Have a look at the 'functions_demo.ipynb' notebook to see some of the outputs of this diagnostic.
 
 
 Example plots
 -------------
-.. figure:: figures/radiation/GregoryPlot.png
+.. figure:: figures/radiation/Gregory_Plot.png
    :width: 200px
    :align: center
 
