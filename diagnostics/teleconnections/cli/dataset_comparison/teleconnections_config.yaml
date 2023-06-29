@@ -1,6 +1,7 @@
 telecname: 'NAO' # NAO or ENSO
 
 common_outputdir: '/home/b/b382289/aqua_telec_output'
+configdir: '/home/b/b382289/AQUA/diagnostics/teleconnections/config'
 
 # Create a new block for each dataset to compare
 sources:
@@ -9,8 +10,8 @@ sources:
     exp: 'tco1279-orca025-cycle3'
     source: '2D_monthly_native'
     regrid: 'r100'
-    freq: None
-    zoom: None
+    freq: False
+    zoom: False
     months_window: 3
     outputfig: common_outputdir
     outputdir: common_outputdir
@@ -19,9 +20,9 @@ sources:
     model: 'IFS'
     exp: 'tco2559-ng5-cycle3'
     source: 'lra-r100-monthly'
-    regrid: None
-    freq: None
-    zoom: None
+    regrid: False
+    freq: False
+    zoom: False
     months_window: 3
     outputfig: common_outputdir
     outputdir: common_outputdir
@@ -42,9 +43,9 @@ obs:
   model: 'ERA5'
   exp: 'era5'
   source: 'monthly'
-  regrid: None
-  freq: None
-  zoom: None
+  regrid: False
+  freq: False
+  zoom: False
   months_window: 3
   outputfig: common_outputdir
   outputdir: common_outputdir
