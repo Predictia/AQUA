@@ -11,7 +11,7 @@ def get_reference_data(varname, sel=None, resample=None):
     data = reader.retrieve().sel(sel)
 
     if resample is not None:
-        data = data.resample(time=resample).mean()
+        data = reader.timmean(data=data, freq=resample)
 
     try:
         return reader.fldmean(data[varname])
@@ -50,7 +50,7 @@ def plot_timeseries(
     data = reader.fldmean(data[variable])
 
     if resample is not None:
-        data = data.resample(time=resample).mean()
+        data = reader.timmean(data=data, freq=resample)
 
     data.plot(**plot_kw, ax=ax)
 
