@@ -1,5 +1,97 @@
-Dummy Diagnostic
-================
+===================
+Sea Ice Diagnostics
+===================
 
-Dummy diagnostic is a simple diagnostic that does nothing.
-This documentation is an empy placeholder to remind you to write some documentation for your diagnostic.
+Sea ice extent
+==============
+
+
+Description
+-----------
+
+The sea ice extent (SIE) is defined as the areal integral of all ocean grid cells that contain at least 15% of sea ice concentration (SIC). This threshold-based definition has its drawbacks (it is subjective, it is not as physical as sea ice area, it is not linear under time averaging) but has the advantage to be practical, as it corresponds to the surface enclosed by the sea ice edge.
+
+Further details on the definition can be gound on the National Snow and Ice Data Center (NSIDC) `website <https://nsidc.org/learn/ask-scientist/what-difference-between-sea-ice-area-and-extent#:~:text=Sea%20ice%20area%20is%20the,15%20percent%20sea%20ice%20cover>`_.
+
+As an index resulting from a spatial integral, the same SIE can be obtained from different SIC distributions. Therefore, for model evaluation, it is generally recommended to compute SIE over specific regions to exclude the possibility of error compensations.
+
+Structure
+-----------
+
+The sea ice extent diagnostic follows a class structure and consists of the files:
+
+* `seaice_class.py`: a python file in which the SeaIceExtent class constructor and the other class methods are included;
+* `dummy_func.py`: a python file which contains functions that are called and used in the dummy class;
+* `regions.yml`: a yaml file with the definitions of regions where SIE can be calculated
+* `notebooks/seaice.ipynb`: an ipython notebook which uses the `seaice_class` class and its methods;
+* `README.md`: a readme file which contains some technical information on how to install the sea ice diagnostic and its environment. 
+
+Input variables example
+------------------------
+
+* `ci` (sea ice concentration, GRIB paramid 31)
+
+Output 
+------
+
+The script produces `figSIE.pdf` and `figSIE.png`
+
+Methods used
+------------
+
+Examples from the seaIce class contained in the seaice_class.py file:
+
+* "run": method to retrieve the data and  compute the sea ice extent of the retrieved data. 
+
+Functions used
+--------------
+
+Example of functions contained in the dummy_func.py file:
+
+* "dummy_func": dummy function used in the dummy class.
+
+Note that it is important to add docstrings to each function.
+We are following `Google-style docstring <https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html>`_
+
+.. note::
+    Please note that there is no need to list all the methods used, but the most important which are exposed to the users should be presented
+
+Observations
+------------
+
+OSI-SAF osi-450. See Lavergne et al. (2019)
+
+
+References
+----------
+
+* Lavergne, T., Sørensen, A. M., Kern, S., Tonboe, R., Notz, D., Aaboe, S., Bell, L., Dybkjær, G., Eastwood, S., Gabarro, C., Heygster, G., Killie, M. A., Brandt Kreiner, M., Lavelle, J., Saldo, R., Sandven, S., & Pedersen, L. T. (2019). Version 2 of the EUMETSAT OSI SAF and ESA CCI sea-ice concentration climate data records. The Cryosphere, 13(1), 49–78. https://doi.org/10.5194/tc-13-49-2019
+
+
+
+Example Plot(s)
+---------------
+
+.. figure:: figures/figSIE.png
+    :width: 10cm
+
+    An illustration of the big void left by this diagnostic
+
+Available demo notebooks
+------------------------
+
+Notebooks are stored in diagnostics/dummy-diagnostic/notebooks
+
+* `dummy_class_readerwrapper.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/dummy/notebooks/dummy_class_readerwrapper.ipynb>`_
+* `dummy_class_timeband.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/dummy/notebooks/dummy_class_timeband.ipynb>`_
+        
+Detailed API
+------------
+
+This section provides a detailed reference for the Application Programming Interface (API) of the "dummy" diagnostic,
+produced from the diagnostic function docstrings.
+
+.. automodule:: dummy
+    :members:
+    :undoc-members:
+    :show-inheritance:
