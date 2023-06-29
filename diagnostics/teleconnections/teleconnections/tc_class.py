@@ -220,7 +220,7 @@ class Teleconnection():
 
         if self.savefile:
             file = self.outputdir + '/' + self.filename + '_reg.nc'
-            self.reg.to_netcdf(file)
+            self.regression.to_netcdf(file)
             self.logger.info('Regression saved to {}'.format(file))
 
     def evaluate_correlation(self):
@@ -233,7 +233,7 @@ class Teleconnection():
 
         if self.savefile:
             file = self.outputdir + '/' + self.filename + '_corr.nc'
-            self.corr.to_netcdf(file)
+            self.correlation.to_netcdf(file)
             self.logger.info('Correlation saved to {}'.format(file))
 
     def plot_index(self, step=False, **kwargs):
