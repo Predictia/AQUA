@@ -9,6 +9,9 @@ from cartopy.util import add_cyclic_point
 import calendar
 import math
 
+plotdir = './plots/AtmGlobalBiases/'
+if not os.path.exists(plotdir):
+    os.makedirs(plotdir)
 
 class AGM_diag:
 
@@ -89,8 +92,8 @@ class AGM_diag:
 
             cnplot = result.plot(ax=ax, cmap='RdBu_r', vmin=-10, vmax=10)
     
-            ax.set_title(
-                f'Bias of {var2_name} ({dataset2[var2_name].long_name}) [{var2.units}] ({statistic}) at {plev} Pa\n Experiment with respect to ERA5 Month {i + 1}')
+            ax.set_title(f'Bias of {var2_name}[{var2.units}] ({statistic}) at {plev} Pa\n Experiment with respect to ERA5 Month {i + 1}')
+            #f'Bias of {var2_name} ({dataset2[var2_name].long_name}) [{var2.units}] ({statistic}) at {plev} Pa\n Experiment with respect to ERA5 Month {i + 1}')
             ax.set_xlabel('Longitude')
             ax.set_ylabel('Latitude')
             fig.subplots_adjust(right=0.95)
@@ -103,7 +106,7 @@ class AGM_diag:
         plt.subplots_adjust(hspace=0.5)  # Adjust the spacing as desired
 
         # Save the figure as a PNG file
-        plt.savefig(plotdir + '1_' + dataset1_name + '_AtmosphericGlobalBiases_' + var1_name + '.png', dpi=300,
+        plt.savefig(plotdir+ dataset1_name + '_AtmosphericGlobalBiases_' + var1_name + '.png', dpi=300,
                     facecolor='white')
 
         return results, axs
@@ -179,8 +182,10 @@ class AGM_diag:
         else:
             fig.suptitle(f' Bias of {var2_name} ({dataset2[var2_name].long_name}).\n Experiment with respect to ERA5 \n Zonal Bias Plot for Each Month (Longitude)')
 
-       # plt.tight_layout()
-
+        # plt.tight_layout()
+        # Save the figure as a PNG file
+        plt.savefig(plotdir+ dataset1_name + '_plevels_AtmosphericGlobalBiases_' + var2_name + '.png', dpi=300,
+                    facecolor='white')
         plt.show()
     
     @staticmethod
