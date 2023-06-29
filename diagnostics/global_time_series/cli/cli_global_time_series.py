@@ -7,6 +7,7 @@ import sys
 import matplotlib.pyplot as plt
 
 from aqua.util import load_yaml
+
 sys.path.insert(0, "../")
 from functions import plot_timeseries, plot_gregory
 
@@ -25,15 +26,16 @@ def _main():
 
     if "timeseries" in config:
         fig, ax = plt.subplots()
-        plot_timeseries(**config["timeseries"], ax=ax)
+        for src_config in config["timeseries"]["sources"].values():
+            plot_timeseries(**src_config, ax=ax)
         if "savefig" in config["timeseries"]:
-             fig.savefig(config["timeseries"]["savefig"])
+            fig.savefig(config["timeseries"]["savefig"])
 
     if "gregory" in config:
         fig, ax = plt.subplots()
         plot_gregory(**config["gregory"], ax=ax)
         if "savefig" in config["gregory"]:
-             fig.savefig(config["gregory"]["savefig"])
+            fig.savefig(config["gregory"]["savefig"])
 
 
 if __name__ == "__main__":

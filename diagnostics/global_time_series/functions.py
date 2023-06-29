@@ -59,7 +59,8 @@ def plot_timeseries(
             variable,
             sel={"time": slice(data.time.min(), data.time.max())},
             resample=resample,
-        ).plot(color="grey", ax=ax)
+        ).plot(color="grey", label="ERA5", ax=ax)
+    ax.legend()
 
 
 def plot_gregory(model, exp, reader_kw={}, plot_kw={}, ax=None, **kwargs):
