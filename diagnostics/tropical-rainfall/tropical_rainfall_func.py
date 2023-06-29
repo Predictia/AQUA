@@ -1,6 +1,9 @@
 import numpy as np
+import pandas as pd
+import xarray
 import re
 
+""" """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
 def convert_length(value, from_unit, to_unit):
     """ Function to convert length units
 
@@ -59,7 +62,7 @@ def convert_length(value, from_unit, to_unit):
 
     return converted_value
 
-
+""" """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
 def convert_time(value, from_unit, to_unit):
     """ Function to convert time units
 
@@ -146,7 +149,7 @@ def convert_time(value, from_unit, to_unit):
 
     return converted_value
 
-
+""" """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
 def unit_splitter(unit):
     """ Function to split units into space and time units
 
@@ -164,6 +167,7 @@ def unit_splitter(unit):
         time_unit = 'days'
     return space_unit, time_unit
 
+""" """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
 def time_interpreter(dataset):
     """Identifying unit of timestep in the Dataset
 
@@ -204,22 +208,203 @@ def time_interpreter(dataset):
         timestep = dataset.time[1] - dataset.time[0]
         if timestep >=28 and timestep <=31:
             return 'M'
-        
+
+""" """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """         
 def convert_24hour_to_12hour_clock(data, ind):
-    if data['time.hour'][ind] > 12: return  str(data['time.hour'][ind].values - 12)+'PM' 
-    else: return str(data['time.hour'][ind].values)+'AM'
+    """ Function to convert 24 hour clock to 12 hour clock
 
+    Args:
+        data (xarray):                  The Dataset
+        ind (int):                      The index of the timestep
 
+    Returns:
+        str:                            The converted timestep
+    """
+    if data['time.hour'][ind] > 12:             return str(data['time.hour'][ind].values - 12)+'PM' 
+    else:                                       return str(data['time.hour'][ind].values)+'AM'
+
+""" """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """   
 def convert_monthnumber_to_str(data, ind):
-    if int(data['time.month'][ind]) == 1: return 'J'
-    elif int(data['time.month'][ind]) == 2: return 'F'
-    elif int(data['time.month'][ind]) == 3: return 'M'   
-    elif int(data['time.month'][ind]) == 4: return 'A'
-    elif int(data['time.month'][ind]) == 5: return 'M'
-    elif int(data['time.month'][ind]) == 6: return 'J'
-    elif int(data['time.month'][ind]) == 7: return 'J'
-    elif int(data['time.month'][ind]) == 8: return 'A'
-    elif int(data['time.month'][ind]) == 9: return 'S'
-    elif int(data['time.month'][ind]) == 10: return 'O'
-    elif int(data['time.month'][ind]) == 11: return 'N'
-    elif int(data['time.month'][ind]) == 12: return 'D'
+    """ Function to convert month number to string
+
+    Args:
+        data (xarray):                  The Dataset
+        ind (int):                      The index of the timestep
+
+    Returns:
+        str:                            The converted timestep
+    """
+    if int(data['time.month'][ind]) == 1:       return 'J'
+    elif int(data['time.month'][ind]) == 2:     return 'F'
+    elif int(data['time.month'][ind]) == 3:     return 'M'   
+    elif int(data['time.month'][ind]) == 4:     return 'A'
+    elif int(data['time.month'][ind]) == 5:     return 'M'
+    elif int(data['time.month'][ind]) == 6:     return 'J'
+    elif int(data['time.month'][ind]) == 7:     return 'J'
+    elif int(data['time.month'][ind]) == 8:     return 'A'
+    elif int(data['time.month'][ind]) == 9:     return 'S'
+    elif int(data['time.month'][ind]) == 10:    return 'O'
+    elif int(data['time.month'][ind]) == 11:    return 'N'
+    elif int(data['time.month'][ind]) == 12:    return 'D'
+
+""" """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """   
+def new_time_coordinate(data, dummy_data, freq = None, time_length = None, factor = None):
+    """ Function to create new time coordinate
+
+    Args:
+        data (xarray):                  The Dataset
+        dummy_data (xarray):            The Dataset
+        freq (str):                     The frequency of the time coordinate
+        time_length (int):              The length of the time coordinate
+        factor (int):                   The factor of the time coordinate
+
+    Returns:
+        pd.date_range:                  The time coordinate
+    """
+    if data.time.size > 1 and dummy_data.time.size > 1: 
+        if data['time'][0]              > dummy_data['time'][0]:
+            starting_time               = str(data['time'][0].values)
+        elif data['time'][0]            <= dummy_data['time'][0]:
+            starting_time               = str(dummy_data['time'][0].values)
+
+        if freq is None:
+            if time_interpreter(data)                   == time_interpreter(dummy_data):
+                freq                                    = time_interpreter(data)
+            else:
+                if (data['time'][1] - data['time'][0])  > (dummy_data['time'][1] - dummy_data['time'][0]):
+                    freq                                = time_interpreter(data)
+                else:
+                    freq                                = time_interpreter(dummy_data)
+
+        if time_length is None:
+            if factor is None:
+                if data['time'][-1]     < dummy_data['time'][-1]:
+                    final_time          = str(data['time'][-1].values)
+                elif data['time'][-1]   >= dummy_data['time'][-1]:
+                    final_time          = str(dummy_data['time'][-1].values)
+                return pd.date_range(start = starting_time, end = final_time, freq = freq) 
+            elif isinstance(factor, int) or isinstance(factor, float):
+                time_length             = data.time.size*abs(factor)
+                return pd.date_range(start = starting_time, freq = freq, periods = time_length) 
+            
+        else:
+            return     pd.date_range(start = starting_time, freq = freq, periods = time_length) 
+    else:
+        if data.time == dummy_data.time:
+            return data.time
+        else: 
+            raise Exception('The two datasets have different time coordinates')
+
+""" """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """           
+def new_space_coordinate(data, coord_name, new_length):
+    """ Function to create new space coordinate
+
+    Args:
+        data (xarray):                  The Dataset
+        coord_name (str):               The name of the space coordinate
+        new_length (int):               The length of the space coordinate
+
+    Returns:
+        list:                          The space coordinate
+    """
+    if  data[coord_name][0] > 0:
+        old_lenght              = data[coord_name][0].values-data[coord_name][-1].values
+        delta                   = (old_lenght-1) / (new_length-1)
+        new_coord               = [data[coord_name][0].values - i*delta for i in range(0, new_length)]
+    else:
+        old_lenght              = data[coord_name][-1].values - data[coord_name][0].values
+        delta                   = (old_lenght-1) / (new_length-1)
+        new_coord               = [data[coord_name][0].values + i*delta for i in range(0, new_length)]
+    return new_coord
+    
+""" """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """     
+def space_regrider(data, space_grid_factor = None, lat_length = None, lon_length = None):
+    """ Function to regrid the space coordinate
+
+    Args:
+        data (xarray):                  The Dataset
+        space_grid_factor (int):        The factor of the space coordinate
+        lat_length (int):               The length of the space coordinate
+        lon_length (int):               The length of the space coordinate
+
+    Returns:
+        xarray:                        The regridded Dataset
+    """
+    # work only for lat and lon only for now. Check the line with interpolation command and modify it in the future
+    if isinstance(space_grid_factor, int):
+        if space_grid_factor        > 0:
+            del_lat                 = float((float(data['lat'][1]) - float(data['lat'][0]))/2)
+            del_lon                 = float((float(data['lon'][1]) - float(data['lon'][0]))/2)
+            ds                      = []
+            new_dataset             = data.copy(deep = True)
+            #new_dataset[coord_name] = data[coord_name][:] 
+            for i in range(1, space_grid_factor):
+                new_dataset         = new_dataset.interp(lat = new_dataset['lat'][:] + del_lat, method = "linear", kwargs = {"fill_value": "extrapolate"})
+                new_dataset         = new_dataset.interp(lon = new_dataset['lon'][:] + del_lon, method = "linear", kwargs = {"fill_value": "extrapolate"})
+                ds.append(new_dataset)
+                del_lat             = del_lat/2
+                del_lon             = del_lon/2
+            combined                = xarray.concat(ds, dim = 'lat')
+            combined                = combined.sortby(combined['lat'])
+
+            #del_lon                 = float((float(data['lon'][1]) - float(data['lon'][0]))/2)
+            #ds                      = []
+            #for i in range(1, space_grid_factor):
+            #    new_dataset         = new_dataset.interp(lon = new_dataset['lon'][:] + del_lon, method = "linear", kwargs = {"fill_value": "extrapolate"}) 
+            #    ds.append(new_dataset)
+            #    del_lon             = del_lon/2
+            #combined                = xarray.concat(ds, dim = 'lon')
+            #combined                = combined.sortby(combined['lon'])
+
+            return combined
+        
+        elif space_grid_factor      < 0:
+            space_grid_factor       = abs(space_grid_factor)
+            new_dataset         = data.isel(lat = [i for i in range(0, data.lat.size, space_grid_factor)])
+            new_dataset         = data.isel(lon = [i for i in range(0, data.lon.size, space_grid_factor)])
+            return new_dataset
+        
+    if lon_length is not None and lat_length is not None:
+        new_lon_coord           = new_space_coordinate(data, coord_name='lon', new_length=lon_length)
+        new_lat_coord           = new_space_coordinate(data, coord_name='lat', new_length=lat_length)
+        new_dataset             = new_dataset.interp(lon = new_lon_coord, method = "linear", kwargs = {"fill_value": "extrapolate"})
+        new_dataset             = new_dataset.interp(lat = new_lat_coord, method = "linear", kwargs = {"fill_value": "extrapolate"})         
+        return new_dataset
+    
+    else:
+        return data
+
+""" """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """      
+def mirror_dummy_grid(data,  dummy_data, space_grid_factor = None, time_freq = None, time_length = None, time_grid_factor = None):
+    """ Function to mirror the dummy grid
+
+    Args:
+        data (xarray):                  The Dataset
+        dummy_data (xarray):            The Dataset
+        space_grid_factor (int):        The factor of the space coordinate
+        time_freq (str):                The frequency of the time coordinate
+        time_length (int):              The length of the time coordinate
+        time_grid_factor (int):         The factor of the time coordinate
+
+    Returns:
+        xarray:                        The regridded Dataset
+    """
+    # work only for lat and lon only for now. Check the line with interpolation command and modify it in the future
+    if 'xarray' in str(type(dummy_data)):
+        if space_grid_factor is not None:
+            dummy_data          = space_regrider(data = dummy_data, space_grid_factor = space_grid_factor)
+            new_dataset_lat_lon = space_regrider(data, lat_length = dummy_data.lat.size, lon_length = dummy_data.lon.size)
+        else:
+            new_dataset_lat_lon = space_regrider(data, lat_length = dummy_data.lat.size, lon_length = dummy_data.lon.size)
+        
+
+
+        if data.time.size>1 and dummy_data.time.size>1:
+            new_time_coord      = new_time_coordinate(data = data, dummy_data = dummy_data, freq = time_freq,
+                                                      time_length = time_length, factor = time_grid_factor)
+            new_data            = new_dataset_lat_lon.interp(time = new_time_coord, method = "linear", kwargs = {"fill_value": "extrapolate"})
+            new_dummy_data      = dummy_data.interp(         time = new_time_coord, method = "linear", kwargs = {"fill_value": "extrapolate"})
+
+            return new_data, new_dummy_data
+        else:
+            return new_dataset_lat_lon, dummy_data
