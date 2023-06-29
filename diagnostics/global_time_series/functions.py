@@ -13,7 +13,10 @@ def get_reference_data(varname, sel=None, resample=None):
     if resample is not None:
         data = data.resample(time=resample).mean()
 
-    return reader.fldmean(data[varname])
+    try:
+        return reader.fldmean(data[varname])
+    except KeyError:
+        raise KeyError(f"Could not retrieve {varname} from ERA5.")
 
 
 def plot_timeseries(
