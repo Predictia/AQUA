@@ -14,9 +14,6 @@ Available teleconnections:
 """
 import os
 
-import numpy as np
-import xarray as xr
-
 from aqua.logger import log_configure
 from aqua.reader import Reader
 from teleconnections.index import station_based_index, regional_mean_index
@@ -29,7 +26,7 @@ class Teleconnection():
     """Class for teleconnection objects."""
 
     def __init__(self, model: str, exp: str, source: str,
-                 telecname: str, diagdir=None,
+                 telecname: str, configdir=None,
                  regrid='r100', freq='monthly',
                  zoom=None,
                  savefig=False, outputfig=None,
@@ -44,7 +41,7 @@ class Teleconnection():
             source (str):                   Source name.
             telecname (str):                Teleconnection name.
                                             See documentation for available teleconnections.
-            diagdir (str, optional):        Path to diagnostics configuration folder.
+            configdir (str, optional):      Path to diagnostics configuration folder.
             regrid (str, optional):         Regridding resolution. Defaults to 'r100'.
             freq (str, optional):           Frequency of the data. Defaults to 'monthly'.
             zoom (str, optional):           Zoom for ICON data. Defaults to None.
@@ -93,7 +90,7 @@ class Teleconnection():
         else:
             raise ValueError('telecname must be one of {}'.format(avail_telec))
 
-        self._load_namelist(diagdir=diagdir)
+        self._load_namelist(configdir=configdir)
 
         # Variable to be used for teleconnection
         self.var = self.namelist[self.telecname]['field']
@@ -129,17 +126,17 @@ class Teleconnection():
         else:
             self._reader()
 
-    def _load_namelist(self, diagdir=None):
+    def _load_namelist(self, configdir=None):
         """Load namelist.
 
         Args:
-            diagdir (str, optional): Path to diagnostics configuration folder.
-                                     If None, the default diagnostics folder is used.
+            configdir (str, optional): Path to diagnostics configuration folder.
+                                       If None, the default diagnostics folder is used.
         """
 
-        self.namelist = load_namelist('teleconnections', diagdir)
+        self.namelist = load_namelist(diagname='teleconnections',
+                                      configdir=configdir)
         self.logger.info('Namelist loaded')
-        self.logger.debug(self.namelist)
 
     def _reader(self, **kwargs):
         """Initialize AQUA reader.
