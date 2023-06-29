@@ -131,3 +131,27 @@ class SeaIceExtent():
         fig.tight_layout()
         fig.savefig("./figExtent.png")
         
+
+        # A few maps
+        #import cartopy.crs as ccrs
+        #import matplotlib.pyplot as plt
+
+
+        #subplot_kws=dict(projection=ccrs.NorthPolarStereo(central_longitude=-30.0),
+        #                facecolor='grey')
+
+        #fig, ax = plt.subplots(1, 1, figsize = (8, 8))
+        #p = ax.plot(lon,lat, data.siconc.mean(),
+        #                vmin=0, vmax=1,
+        #                cmap=plt.cm.Blues,
+        #                subplot_kws=subplot_kws,
+        #                transform=ccrs.PlateCarree(),
+        #                add_labels=False,
+        #                add_colorbar=False)
+
+        # add separate colorbar
+        #cb = plt.colorbar(p, ticks=[-2,0,2,4,6,8,10,12], shrink=0.99)
+        #cb.ax.tick_params(labelsize=18)
+
+        #p.axes.gridlines(color='black', alpha=0.5, linestyle='--')
+        #p.axes.set_extent([-300, 60, 50, 90], ccrs.PlateCarree())
