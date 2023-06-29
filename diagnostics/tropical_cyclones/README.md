@@ -28,24 +28,24 @@ Clearly explain how to install and set up your project. Include any dependencies
 ### Installation on Levante
 
 To install the diagnostic on `Levante` you can use conda.
-You should create an `AQUA/diagnostics/dummy/env-dummy.yml` file and include all the necessary dependencies for your diagnostic. 
+You should create an `AQUA/diagnostics/dummy/env-TCs.yml` file and include all the necessary dependencies for your diagnostic. 
 
 To install the diagnostic in a new conda environment run:
 
 ```bash
-conda env create -f env-dummy.yml
+conda env create -f env-TCs.yml
 ```
 
 To install the diagnostic in an existing conda environment run:
 
 ```bash
-conda env update -f env-dummy.yml
+conda env update -f env-TCs.yml
 ```
 
 To activate the environment run:
 
 ```bash
-conda activate dummy-diagnostic
+conda activate TCs
 ```
 
 or the name of the environment you chose to update.
@@ -56,7 +56,7 @@ If you want to use multiple diagnostics at the same time, it is recommended to u
 
 ### Installation on Lumi 
 
-Add details on the Lumi installation here
+To be updated
 
 ## Data requirements  
 
