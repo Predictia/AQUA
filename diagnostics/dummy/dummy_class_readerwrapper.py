@@ -161,7 +161,7 @@ class DummyDiagnosticWrapper():
         self.var = var  # adapt or remove if you do not need it
         if self.var is None:
             raise ValueError('var must be specified')  # you may have (and probably should) a default different from None
-        if isinstance(self.var, str):  # it is a string in this example, but it may be a list as well
+        if not isinstance(self.var, str):  # it is a string in this example, but it may be a list as well
             raise ValueError('var must be a string')
         # If you want to retrieve all data consider removing the var argument from the class __init__.
 
@@ -345,11 +345,8 @@ class DummyDiagnosticWrapper():
         Raises:
             TypeError: if the variable is not a string
         """
-        if isinstance(self.var, str):
-            self.logger.info('Field mean computed')
-            return self.reader.fldmean(self.data)
-        else:
-            raise TypeError('Variable is not a string, cannot compute field mean')
+        self.logger.info('Field mean computed')
+        return self.reader.fldmean(self.data)
 
     def multiplication(self):
         """The multiplication method.
