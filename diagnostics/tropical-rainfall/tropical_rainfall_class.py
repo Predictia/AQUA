@@ -12,8 +12,11 @@ from   matplotlib import colors
 import dask.array as da
 import dask_histogram as dh # pip
  
+from aqua import Reader
 from aqua.util import create_folder
+
 from tropical_rainfall_func import time_interpreter, convert_24hour_to_12hour_clock, convert_monthnumber_to_str, convert_length, convert_time, unit_splitter
+from tropical_rainfall_func import mirror_dummy_grid
 """The module contains Tropical Precipitation Diagnostic:
 
 .. moduleauthor:: AQUA team <natalia.nazarova@polito.it>
@@ -978,6 +981,11 @@ class TR_PR_Diagnostic:
         elif add is not None:
             fig, ax  = add
             if color == 'tab:blue': color   = 'tab:orange'
+        
+        self.class_attributes_update(trop_lat = trop_lat, 
+                                     s_time   = s_time,         f_time  = f_time,
+                                     s_year   = s_year,         f_year  = f_year,
+                                     s_month  = s_month,        f_month = f_month)
             
 
         if preprocess == True:
@@ -992,16 +1000,16 @@ class TR_PR_Diagnostic:
             data_average = self.mean_along_coordinate(data,                                     preprocess=preprocess,
                                                         glob       = glob,                      model_variable = model_variable,
                                                         trop_lat   = trop_lat,                  coord    = coord,
-                                                        s_time     = s_time,                    f_time   = f_time,
-                                                        s_year     = s_year,                    f_year   = f_year,
-                                                        s_month    = s_month,                   f_month  = f_month)
+                                                        s_time  = self.s_time,                  f_time  = self.f_time,
+                                                        s_year  = self.s_year,                  f_year  = self.f_year,     
+                                                        s_month = self.s_month,                 f_month = self.f_month)
         if get_median:
             data_average = self.median_along_coordinate(data,                                   preprocess=preprocess,
                                                         glob       = glob,                      model_variable = model_variable,
                                                         trop_lat   = trop_lat,                  coord    = coord,
-                                                        s_time     = s_time,                    f_time   = f_time,
-                                                        s_year     = s_year,                    f_year   = f_year,
-                                                        s_month    = s_month,                   f_month  = f_month)
+                                                        s_time  = self.s_time,                 f_time  = self.f_time,
+                                                        s_year  = self.s_year,                 f_year  = self.f_year,     
+                                                        s_month = self.s_month,                f_month = self.f_month)
         
         
         if variability      and get_mean:
@@ -1108,3 +1116,104 @@ class TR_PR_Diagnostic:
                         edgecolor    = 'w',
                         orientation  = 'landscape')
         return {fig, ax}
+
+    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
+    def twin_data_and_observations(self, data,                          trop_lat = 10,                      model_variable = 'tprate',
+                                    s_time  = None,                     f_time   = None,                    s_year  = None,                  
+                                    f_year   = None,                    s_month = None,                     f_month  = None,
+                                    model = 'era5',                     source = 'monthly',                 plev = 0,  
+                                    space_grid_factor = None,           time_freq = None,                   preprocess = True,
+                                    time_length = None,                 time_grid_factor = None): 
+        
+        """ Function to regride the data and observations to the same grid. """
+
+        self.class_attributes_update(trop_lat = trop_lat, 
+                                    s_time   = s_time,                  f_time  = f_time,
+                                    s_year   = s_year,                  f_year  = f_year,
+                                    s_month  = s_month,                 f_month = f_month)
+         
+        if model                    == 'era5':
+            reader                  = Reader(model="ERA5", exp="era5", source=source)
+            observations            = reader.retrieve()
+            observations            = self.precipitation_rate_units_converter(observations.isel(plev = plev), model_variable = model_variable)
+
+        elif model                  == 'mswep':
+            reader                  = Reader(model="MSWEP", exp="past", source=source)
+            observations            = reader.retrieve()
+            observations            = self.precipitation_rate_units_converter(observations,  model_variable = model_variable)
+        else:
+            raise Exception("Unknown model. Please, check the catalogue and try one more time")
+
+
+        if preprocess == True:
+            observations = self.preprocessing(                  observations,                               preprocess = preprocess,
+                                                                model_variable   = model_variable,          trop_lat= self.trop_lat,
+                                                                s_time  = self.s_time,                      f_time  = self.f_time,
+                                                                s_year  = self.s_year,                      f_year  = self.f_year,     
+                                                                s_month = self.s_month,                     f_month = self.f_month,
+                                                                sort = False,                               dask_array = False)
+
+        data = self.precipitation_units_converter(data, model_variable   = model_variable)
+        
+        data_regrided, observations_regrided = mirror_dummy_grid(data = data,                               dummy_data = observations, 
+                                                                space_grid_factor = space_grid_factor,      time_freq   = time_freq, 
+                                                                time_length = time_length,                  time_grid_factor = time_grid_factor)
+        return data_regrided, observations_regrided
+
+    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
+    def normilized_forecast_metric(self, data,                          trop_lat = 10,                     
+                                    model = 'era5',                     source = 'monthly',                 
+                                    s_time  = None,                     f_time   = None,                    s_year  = None,                  
+                                    f_year   = None,                    s_month = None,                     f_month  = None,
+                                    time_isel = None,                   plev = 0,                           space_grid_factor = None, 
+                                    time_freq = None,                   time_length = None,                 time_grid_factor = None):
+        
+        self.class_attributes_update(trop_lat = trop_lat, 
+                                    s_time   = s_time,                  f_time  = f_time,
+                                    s_year   = s_year,                  f_year  = f_year,
+                                    s_month  = s_month,                 f_month = f_month)
+
+        data_regrided, observations_regrided =  self.twin_data_and_observations(data=data,                  model=model, source=source, 
+                                                                        plev=plev,                          trop_lat=trop_lat, 
+                                                                        s_time   = s_time,                  f_time  = f_time,
+                                                                        s_year   = s_year,                  f_year  = f_year,
+                                                                        s_month  = s_month,                 f_month = f_month,
+                                                                        time_length = time_length,          space_grid_factor = space_grid_factor, 
+                                                                        time_freq = time_freq,              time_grid_factor = time_grid_factor)
+        if time_isel is None:
+            nfm             = data_regrided.copy(deep=True)
+            nfm.values      = (data_regrided.values - observations_regrided.values) /  (data_regrided.values + observations_regrided.values)
+        else:
+            nfm             = data_regrided.isel(time=time_isel).copy(deep=True)
+            nfm.values      = (data_regrided.values - observations_regrided.values) /  (data_regrided.values + observations_regrided.values)
+        return nfm
+
+    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
+    def mean_absolute_percent_error(self, data,                          trop_lat = 10,                     
+                                    model = 'era5',                     source = 'monthly',                 
+                                    s_time  = None,                     f_time   = None,                    s_year  = None,                  
+                                    f_year   = None,                    s_month = None,                     f_month  = None,
+                                    time_isel = None,                   plev = 0,                           space_grid_factor = None, 
+                                    time_freq = None,                   time_length = None,                 time_grid_factor = None):
+        
+        self.class_attributes_update(trop_lat = trop_lat, 
+                                    s_time   = s_time,                  f_time  = f_time,
+                                    s_year   = s_year,                  f_year  = f_year,
+                                    s_month  = s_month,                 f_month = f_month)
+
+        data_regrided, observations_regrided =  self.twin_data_and_observations(data=data,                  model = model,  source=source, 
+                                                                        plev=plev,                          trop_lat=trop_lat, 
+                                                                        s_time   = s_time,                  f_time  = f_time,
+                                                                        s_year   = s_year,                  f_year  = f_year,
+                                                                        s_month  = s_month,                 f_month = f_month,
+                                                                        time_length = time_length,          space_grid_factor = space_grid_factor, 
+                                                                        time_freq = time_freq,              time_grid_factor = time_grid_factor)
+        if time_isel is None:
+            maoe            = data_regrided.copy(deep=True)
+            mape.values     = 100 * (observations_regrided.values - data_regrided.values) /  observations_regrided.values 
+        else:
+            mape            = data_regrided.isel(time=time_isel).copy(deep=True)
+            mape.values     = 100 * (observations_regrided.values - data_regrided.values) /  observations_regrided.values 
+        return mape
+
+    
