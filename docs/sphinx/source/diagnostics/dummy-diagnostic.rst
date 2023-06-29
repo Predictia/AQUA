@@ -9,23 +9,18 @@ Sea ice extent
 Description
 -----------
 
-The sea ice extent is defined as the areal integral of all ocean grid cells that contain at least 15% of sea ice concentration. This threshold-based definition has its drawbacks (it is subjective, it is not as physical as sea ice area, it is not linear under time averaging) but has the advantage to be practical, as it corresponds to the surface enclosed by the sea ice edge.
+The sea ice extent (SIE) is defined as the areal integral of all ocean grid cells that contain at least 15% of sea ice concentration (SIC). This threshold-based definition has its drawbacks (it is subjective, it is not as physical as sea ice area, it is not linear under time averaging) but has the advantage to be practical, as it corresponds to the surface enclosed by the sea ice edge.
 
-Further details on the definition can be gound on the National Snow and Ice Data Center (NSIDC) `website <https://nsidc.org/learn/ask-scientist/what-difference-between-sea-ice-area-and-extent#:~:text=Sea%20ice%20area%20is%20the,15%20percent%20sea%20ice%20cover>`_ 
+Further details on the definition can be gound on the National Snow and Ice Data Center (NSIDC) `website <https://nsidc.org/learn/ask-scientist/what-difference-between-sea-ice-area-and-extent#:~:text=Sea%20ice%20area%20is%20the,15%20percent%20sea%20ice%20cover>`_.
 
-Please write here in a clear and concise manner what the diagnostic is about 
-and what it is supposed to be doing and the motivation behind it (i.e. which phenomenon or physical process 
-is diagnosed and why it is important in the context of the analysis of high-resulution climate simulations).
-In case the diagnostic is based on some already published material it is strongly 
-recommended to include references to the inherent literature (we have a reference list below).
-
+As an index resulting from a spatial integral, the same SIE can be obtained from different SIC distributions. Therefore, for model evaluation, it is generally recommended to compute SIE over specific regions to exclude the possibility of error compensations.
 
 Structure
 -----------
 
-The dummy diagnostic follows a class structure and consists of the files:
+The sea ice extent diagnostic follows a class structure and consists of the files:
 
-* `dummy_class.py`: a python file in which the DummyDiagnostic class constructor and the other class methods are included;
+* `seaice_class.py`: a python file in which the SeaIceExtent class constructor and the other class methods are included;
 * `dummy_func.py`: a python file which contains functions that are called and used in the dummy class;
 * `env-dummy.yml`: a yaml file with the required dependencies for the dummy diagnostic;
 * `notebooks/dummy.ipynb`: an ipython notebook which uses the dymmy class and its methods;
