@@ -3,8 +3,8 @@ import pandas as pd
 import xarray
 import re
 
-import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm
+#import matplotlib.pyplot as plt
+#from matplotlib.colors import LogNorm
 
 
 """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
@@ -367,15 +367,14 @@ def space_regrider(data, space_grid_factor = None, lat_length = None, lon_length
             new_dataset             = data.isel(lat = [i for i in range(0, data.lat.size, space_grid_factor)])
             new_dataset             = data.isel(lon = [i for i in range(0, data.lon.size, space_grid_factor)])
             #return new_dataset
-    else: 
-
+    else:
         new_dataset = data
 
     if lon_length is not None and lat_length is not None:
         new_lon_coord           = new_space_coordinate(new_dataset, coord_name='lon', new_length=lon_length)
         new_lat_coord           = new_space_coordinate(new_dataset, coord_name='lat', new_length=lat_length)
         new_dataset             = new_dataset.interp(lon = new_lon_coord, method = "linear", kwargs = {"fill_value": "extrapolate"})
-        new_dataset             = new_dataset.interp(lat = new_lat_coord, method = "linear", kwargs = {"fill_value": "extrapolate"})         
+        new_dataset             = new_dataset.interp(lat = new_lat_coord, method = "linear", kwargs = {"fill_value": "extrapolate"})      
         
     return new_dataset
     
@@ -417,55 +416,3 @@ def mirror_dummy_grid(data,  dummy_data, space_grid_factor = None, time_freq = N
             return new_data, new_dummy_data
         else:
             return new_dataset_lat_lon, dummy_data
-        
-
-""" """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
-def image_creator(ds, trop_lat = 10,
-                  vmin = None, vmax = None, log=False, figsize =1, contour  = True,   label = 'test',  
-                  title = 'Tropical precipitation', resol = '110m'):
-    """Creating the image of the Dataset.
-
-    Args:
-        ds (xarray):                    The Dataset.
-        vmin (float, optional):         The minimal data value of the colormap. Defaults to None.
-        vmax (float, optional):         The maximal data value of the colormap. Defaults to None.
-        trop_lat (int/float, optional): Tropical latitudes borders. Defaults to 10.
-        figsize (int, optional):        The scale factor of the size of the created image. Defaults to 1.
-        contour (bool, optional):       The contour of continents. Defaults to True.
-        label (str, optional):          The name of created animation in the filesystem. Defaults to 'test'.
-        title (str, optional):          The title of the animation. Defaults to 'Tropical precipitation'.
-        resol (str, optional):          The resolution of contour of continents. Defaults to '110m'.
-    """    
-    if vmin != None:
-        ds = ds.where( ds > vmin, drop=True) 
-
-    if ds.time.size!=1:
-        snapshot = ds[0,:,:] 
-    else:
-        snapshot = ds
-    # First set up the figure, the axis, and the plot element we want to animate
-    fig = plt.figure( figsize=(8*figsize,5*figsize) )
-    
-    ax  = plt.axes(projection=ccrs.PlateCarree())
-    
-    if  contour:
-        ax.coastlines(resolution=resol)
-    
-    ax.gridlines() 
-
-    if log:
-        im = plt.imshow(snapshot, interpolation='nearest',  aspect='auto',  norm=LogNorm(vmin=vmin, vmax=vmax), alpha=0.9,
-                        extent = (-180, 180, - trop_lat, trop_lat), origin = 'upper')
-    else:
-        im = plt.imshow(snapshot, interpolation='nearest',  aspect='auto',  vmin=vmin, vmax=vmax, alpha=0.9,
-                        extent = (-180, 180, - trop_lat, trop_lat), origin = 'upper')
-
-    fig.colorbar(im)
-
-    plt.title( title,     fontsize =18)
-    plt.xlabel('longitude',                 fontsize =18)
-    plt.ylabel('latitude',                  fontsize =18)
-    plt.xticks([-180, -120, -60, 0, 60, 120, 180],  fontsize=14)   #, 240, 300, 360
-    plt.yticks([-90, -60, -30, 0, 30, 60, 90],      fontsize=14) 
-    plt.savefig('../notebooks/figures/'+str(label)+'.png')
-    print('Done!')

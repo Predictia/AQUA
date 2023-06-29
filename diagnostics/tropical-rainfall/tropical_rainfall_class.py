@@ -8,10 +8,13 @@ from os.path import isfile, join
 
 import matplotlib.pyplot as plt
 from   matplotlib import colors
+from   matplotlib.colors import LogNorm
 
 import dask.array as da
 import dask_histogram as dh # pip
  
+import cartopy.crs as ccrs
+
 from aqua import Reader
 from aqua.util import create_folder
 
@@ -1094,6 +1097,8 @@ class TR_PR_Diagnostic:
                 plt.title('Mean values of '  +str(varname),     fontsize=17,    pad=15)
             elif not variability        and get_median:
                 plt.title('Median values of '+str(varname),     fontsize=17,    pad=15)
+        else:
+            plt.title(plot_title,                               fontsize=17,    pad=15)
         
         if legend!='_Hidden':
             plt.legend(loc=loc,                                 fontsize=12,    ncol=2)
@@ -1119,15 +1124,15 @@ class TR_PR_Diagnostic:
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
     def twin_data_and_observations(self, data,                          trop_lat = 10,                      model_variable = 'tprate',
-                                    s_time  = None,                     f_time   = None,                    s_year  = None,                  
+                                    s_time  = None,                     f_time   = None,                    s_year  = None,               
                                     f_year   = None,                    s_month = None,                     f_month  = None,
-                                    model = 'era5',                     source = 'monthly',                 plev = 0,  
+                                    model = 'era5',                     source = 'monthly',                 plev = 0,
                                     space_grid_factor = None,           time_freq = None,                   preprocess = True,
-                                    time_length = None,                 time_grid_factor = None): 
+                                    time_length = None,                 time_grid_factor = None):
         
         """ Function to regride the data and observations to the same grid. """
 
-        self.class_attributes_update(trop_lat = trop_lat, 
+        self.class_attributes_update(trop_lat = trop_lat,
                                     s_time   = s_time,                  f_time  = f_time,
                                     s_year   = s_year,                  f_year  = f_year,
                                     s_month  = s_month,                 f_month = f_month)
@@ -1135,50 +1140,58 @@ class TR_PR_Diagnostic:
         if model                    == 'era5':
             reader                  = Reader(model="ERA5", exp="era5", source=source)
             observations            = reader.retrieve()
-            observations            = self.precipitation_rate_units_converter(observations.isel(plev = plev), model_variable = model_variable)
+            #observations            = self.precipitation_rate_units_converter(observations.isel(plev = plev), model_variable = model_variable)
 
         elif model                  == 'mswep':
             reader                  = Reader(model="MSWEP", exp="past", source=source)
             observations            = reader.retrieve()
-            observations            = self.precipitation_rate_units_converter(observations,  model_variable = model_variable)
+            #observations            = self.precipitation_rate_units_converter(observations,  model_variable = model_variable)
         else:
             raise Exception("Unknown model. Please, check the catalogue and try one more time")
 
 
         if preprocess == True:
-            observations = self.preprocessing(                  observations,                               preprocess = preprocess,
-                                                                model_variable   = model_variable,          trop_lat= self.trop_lat,
-                                                                s_time  = self.s_time,                      f_time  = self.f_time,
-                                                                s_year  = self.s_year,                      f_year  = self.f_year,     
-                                                                s_month = self.s_month,                     f_month = self.f_month,
-                                                                sort = False,                               dask_array = False)
+            data            = self.preprocessing(               data,                                       preprocess = preprocess,
+                                                                model_variable = model_variable,            trop_lat   = self.trop_lat,
+                                                                s_time  = self.s_time,                      f_time     = self.f_time,
+                                                                s_year  = self.s_year,                      f_year     = self.f_year,
+                                                                s_month = self.s_month,                     f_month    = self.f_month,
+                                                                sort    = False,                            dask_array = False)
+            observations    = self.preprocessing(               observations,                               preprocess = preprocess,
+                                                                model_variable = model_variable,            trop_lat   = self.trop_lat,
+                                                                s_time  = self.s_time,                      f_time     = self.f_time,
+                                                                s_year  = self.s_year,                      f_year     = self.f_year,
+                                                                s_month = self.s_month,                     f_month    = self.f_month,
+                                                                sort    = False,                            dask_array = False)
 
-        data = self.precipitation_units_converter(data, model_variable   = model_variable)
+        #data = self.precipitation_units_converter(data, model_variable   = model_variable)
         
-        data_regrided, observations_regrided = mirror_dummy_grid(data = data,                               dummy_data = observations, 
-                                                                space_grid_factor = space_grid_factor,      time_freq   = time_freq, 
+        data_regrided, observations_regrided = mirror_dummy_grid(data = data,                               dummy_data = observations,
+                                                                space_grid_factor = space_grid_factor,      time_freq  = time_freq,
                                                                 time_length = time_length,                  time_grid_factor = time_grid_factor)
         return data_regrided, observations_regrided
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
-    def normilized_forecast_metric(self, data,                          trop_lat = 10,                     
-                                    model = 'era5',                     source = 'monthly',                 
-                                    s_time  = None,                     f_time   = None,                    s_year  = None,                  
-                                    f_year   = None,                    s_month = None,                     f_month  = None,
-                                    time_isel = None,                   plev = 0,                           space_grid_factor = None, 
-                                    time_freq = None,                   time_length = None,                 time_grid_factor = None):
+    def normilized_forecast_metric(self, data,                          trop_lat = 10,                      model_variable = 'tprate',
+                                    model     = 'era5',                 source = 'monthly',                 plev = 0,
+                                    s_time    = None,                   f_time   = None,                    s_year  = None,                
+                                    f_year    = None,                   s_month = None,                     f_month  = None,
+                                    time_isel = None,                   time_length = None,                 space_grid_factor = None,
+                                    time_freq = None,                   time_grid_factor = None):
         
-        self.class_attributes_update(trop_lat = trop_lat, 
+        
+        self.class_attributes_update(trop_lat = trop_lat,
                                     s_time   = s_time,                  f_time  = f_time,
                                     s_year   = s_year,                  f_year  = f_year,
                                     s_month  = s_month,                 f_month = f_month)
 
-        data_regrided, observations_regrided =  self.twin_data_and_observations(data=data,                  model=model, source=source, 
-                                                                        plev=plev,                          trop_lat=trop_lat, 
+        data_regrided, observations_regrided =  self.twin_data_and_observations(data = data,                model_variable = model_variable,   
+                                                                        model = model,                      source = source,
+                                                                        plev = plev,                        trop_lat = trop_lat,
                                                                         s_time   = s_time,                  f_time  = f_time,
                                                                         s_year   = s_year,                  f_year  = f_year,
                                                                         s_month  = s_month,                 f_month = f_month,
-                                                                        time_length = time_length,          space_grid_factor = space_grid_factor, 
+                                                                        time_length = time_length,          space_grid_factor = space_grid_factor,
                                                                         time_freq = time_freq,              time_grid_factor = time_grid_factor)
         if time_isel is None:
             nfm             = data_regrided.copy(deep=True)
@@ -1189,31 +1202,135 @@ class TR_PR_Diagnostic:
         return nfm
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
-    def mean_absolute_percent_error(self, data,                          trop_lat = 10,                     
-                                    model = 'era5',                     source = 'monthly',                 
-                                    s_time  = None,                     f_time   = None,                    s_year  = None,                  
+    def mean_absolute_percent_error(self, data,                         trop_lat = None,                  
+                                    model = 'era5',                     source = 'monthly',            
+                                    s_time  = None,                     f_time   = None,                    s_year  = None,               
                                     f_year   = None,                    s_month = None,                     f_month  = None,
-                                    time_isel = None,                   plev = 0,                           space_grid_factor = None, 
+                                    time_isel = None,                   plev = 0,                           space_grid_factor = None,
                                     time_freq = None,                   time_length = None,                 time_grid_factor = None):
+        """ Function to calculate the mean absolute percent error. """
         
-        self.class_attributes_update(trop_lat = trop_lat, 
+        self.class_attributes_update(trop_lat = trop_lat,
                                     s_time   = s_time,                  f_time  = f_time,
                                     s_year   = s_year,                  f_year  = f_year,
                                     s_month  = s_month,                 f_month = f_month)
 
-        data_regrided, observations_regrided =  self.twin_data_and_observations(data=data,                  model = model,  source=source, 
-                                                                        plev=plev,                          trop_lat=trop_lat, 
-                                                                        s_time   = s_time,                  f_time  = f_time,
-                                                                        s_year   = s_year,                  f_year  = f_year,
-                                                                        s_month  = s_month,                 f_month = f_month,
-                                                                        time_length = time_length,          space_grid_factor = space_grid_factor, 
+        data_regrided, observations_regrided =  self.twin_data_and_observations(data = data,                model = model,  source = source,
+                                                                        plev=plev,                          trop_lat = self.trop_lat,
+                                                                        s_time   = self.s_time,             f_time  = self.f_time,
+                                                                        s_year   = self.s_year,             f_year  = self.f_year,
+                                                                        s_month  = self.s_month,            f_month = self.f_month,
+                                                                        time_length = time_length,          space_grid_factor = space_grid_factor,
                                                                         time_freq = time_freq,              time_grid_factor = time_grid_factor)
         if time_isel is None:
-            maoe            = data_regrided.copy(deep=True)
-            mape.values     = 100 * (observations_regrided.values - data_regrided.values) /  observations_regrided.values 
+            mape            = data_regrided.copy(deep=True)
+            mape.values     = 100 * (observations_regrided.values - data_regrided.values) /  observations_regrided.values
         else:
             mape            = data_regrided.isel(time=time_isel).copy(deep=True)
-            mape.values     = 100 * (observations_regrided.values - data_regrided.values) /  observations_regrided.values 
+            mape.values     = 100 * (observations_regrided.values - data_regrided.values) /  observations_regrided.values
         return mape
 
-    
+    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """    
+    def snapshot_plot(self,     data,                               preprocess=True,                    model = 'era5',              
+                                source = 'monthly',                 plev = 0,                           model_variable = 'tprate',                
+                                trop_lat       = None,              mape = False,                       nfm = False,              
+                                s_time         = None,              f_time      = None,                 s_year     = None,
+                                f_year         = None,              s_month     = None,                 f_month    = None,
+                                figsize     = 1,                    maxticknum     = 12,                colorbarname    = 'Precipitation',       
+                                vmin = None,                        vmax = None,                        contour  = True,
+                                plot_title = None,                  log = False,                        time_isel = None,
+                                space_grid_factor = None,           time_freq = None,                   time_length = None,                
+                                time_grid_factor = None,            path_to_figure = None,              resol = '110m'):
+        
+        """ Function to plot the mean or median value of variable in Dataset.
+
+        Args:"""
+
+        self.class_attributes_update(trop_lat = trop_lat,
+                                    s_time   = s_time,              f_time  = f_time,
+                                    s_year   = s_year,              f_year  = f_year,
+                                    s_month  = s_month,             f_month = f_month)
+            
+        if mape:
+            data  = self.mean_absolute_percent_error(data,          trop_lat = self.trop_lat,            
+                                    model = model,                  source = source,
+                                    s_time  = self.s_time,          f_time   = self.f_time,             s_year  = self.s_year,    
+                                    f_year   = self.f_year,         s_month = self.s_month,             f_month  = self.f_month,
+                                    time_isel = time_isel,          plev = plev,                        space_grid_factor = space_grid_factor,
+                                    time_freq = time_freq,          time_length = time_length,          time_grid_factor = time_grid_factor)
+        elif nfm:
+            data  = self.normilized_forecast_metric(data,           trop_lat = self.trop_lat,         
+                                    model = model,                  source = source,
+                                    s_time  = self.s_time,          f_time   = self.f_time,             s_year  = self.s_year,  
+                                    f_year   = self.f_year,         s_month = self.s_month,             f_month  = self.f_month,
+                                    time_isel = time_isel,          plev = plev,                        space_grid_factor = space_grid_factor,
+                                    time_freq = time_freq,          time_length = time_length,          time_grid_factor = time_grid_factor)         
+        else:
+            if preprocess           == True:
+                data                = self.preprocessing(           data,                               preprocess = preprocess,
+                                                                    trop_lat   = self.trop_lat,         model_variable = model_variable,       
+                                                                    s_time  = self.s_time,              f_time     = self.f_time,
+                                                                    s_year  = self.s_year,              f_year     = self.f_year,
+                                                                    s_month = self.s_month,             f_month    = self.f_month,
+                                                                    sort    = False,                    dask_array = False)
+        
+        if vmin                 != None:
+            data                = data.where( data > vmin, drop = True)
+        if time_isel is None:
+            if data.time.size   != 1:
+                snapshot        = data[0,:,:]
+            else:
+                snapshot        = data
+        else:
+            if isinstance(time_isel, int):
+                snapshot        = data.isel(time = time_isel)
+            else:
+                raise Exception('time_isel must be an integer')
+            
+        # First set up the figure, the axis, and the plot element we want to animate
+        fig = plt.figure( figsize = (8*figsize, 5*figsize) )
+        
+        ax                      = plt.axes(projection = ccrs.PlateCarree())
+        
+        if  contour:
+            ax.coastlines(resolution = resol)
+        
+        ax.gridlines()
+
+        if log:
+            im                  = plt.imshow(snapshot, interpolation = 'nearest',  aspect = 'auto',  norm = LogNorm(vmin = vmin, vmax = vmax), alpha = 0.9,
+                                             extent = (-180, 180, - self.trop_lat, self.trop_lat), origin = 'upper')
+        else:
+            im                  = plt.imshow(snapshot, interpolation = 'nearest',  aspect = 'auto',  vmin = vmin, vmax = vmax, alpha = 0.9,
+                                             extent = (-180, 180, - self.trop_lat, self.trop_lat), origin = 'upper')
+
+        cbar = fig.colorbar(im)
+        plt.xlabel('Longitude',                         fontsize = 18)
+        plt.ylabel('Latitude',                          fontsize = 18)
+        plt.xticks([-180, -120, -60, 0, 60, 120, 180],  fontsize = 14)
+        plt.yticks([-90, -60, -30, 0, 30, 60, 90],      fontsize = 14)
+
+        plt.gca().xaxis.set_major_locator(plt.MaxNLocator(maxticknum))
+        plt.gca().tick_params(axis = 'both',   which = 'major',             pad = 10)
+        
+        plt.grid(True)
+        if plot_title is not None:
+            plt.title(plot_title,                       fontsize = 17,      pad=15)
+        try:
+            cbar.set_label(colorbarname + ', ' + data.units, fontsize = 18)
+        except AttributeError:
+            cbar.set_label(colorbarname, fontsize = 14)
+        # set the spacing between subplots
+        plt.tight_layout()
+        if path_to_figure is not None and isinstance(path_to_figure, str):
+
+            #create_folder(folder=path_to_figure, loglevel='WARNING')
+
+            plt.savefig(path_to_figure,
+                        bbox_inches  = "tight",
+                        pad_inches   = 1,
+                        transparent  = True,
+                        facecolor    = "w",
+                        edgecolor    = 'w',
+                        orientation  = 'landscape')
+        return {fig, ax}
