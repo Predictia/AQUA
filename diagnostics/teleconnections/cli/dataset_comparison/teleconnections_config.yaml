@@ -1,6 +1,6 @@
 telecname: 'NAO' # NAO or ENSO
 
-common_outputdir: '/home/b/b382289/aqua_telec_output'
+common_outputdir: &common_outputdir '/home/b/b382289/aqua_telec_output'
 configdir: '/home/b/b382289/AQUA/diagnostics/teleconnections/config'
 
 # Create a new block for each dataset to compare
@@ -13,8 +13,8 @@ sources:
     freq: False
     zoom: False
     months_window: 3
-    outputfig: common_outputdir
-    outputdir: common_outputdir
+    outputfig: *common_outputdir
+    outputdir: *common_outputdir
     #filename: 'custom_filename'
   ifs2:
     model: 'IFS'
@@ -24,8 +24,8 @@ sources:
     freq: False
     zoom: False
     months_window: 3
-    outputfig: common_outputdir
-    outputdir: common_outputdir
+    outputfig: *common_outputdir
+    outputdir: *common_outputdir
     #filename: 'custom_filename'
   icon:
     model: 'ICON'
@@ -35,8 +35,8 @@ sources:
     freq: 'monthly'
     zoom: 6
     months_window: 3
-    outputfig: common_outputdir
-    outputdir: common_outputdir
+    outputfig: *common_outputdir
+    outputdir: *common_outputdir
     #filename: 'custom_filename'
 
 obs:
@@ -47,7 +47,7 @@ obs:
   freq: False
   zoom: False
   months_window: 3
-  outputfig: common_outputdir
-  outputdir: common_outputdir
+  outputfig: *common_outputdir
+  outputdir: *common_outputdir
   #filename: 'custom_filename'
  
