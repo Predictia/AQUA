@@ -1,17 +1,13 @@
 Tropical Cyclones detection, tracking and zoom in diagnostic
-==================================================================
+============================================================
 
 Description
 -----------
 
 This diagnostic package provides a tool to detect tropical cyclones (TCs) and compute their trajectory. Moreover it allows one to save selected variables
-in the vicinity of the TCs centres.
-Please write here in a clear and concise manner what the diagnostic is about 
-and what it is supposed to be doing and the motivation behind it (i.e. which phenomenon or physical process 
-is diagnosed and why it is important in the context of the analysis of high-resulution climate simulations).
-In case the diagnostic is based on some already published material it is strongly 
-recommended to include references to the inherent literature (we have a reference list below).
-
+in the vicinity of the TCs centres. The purpose of this diagnostic is to analyse how some variables of interest such as pressure, wind, wind gusts and precipitation
+associated with tropical cyclones are represented in high-resolution climate simulations, in particular their intensity and spatial pattern. Detection and tracking
+of TCs can be also used to compute TCs trajectories and compare them with other climate simulations and observations.
 
 Structure
 -----------
@@ -28,11 +24,10 @@ The dummy diagnostic follows a class structure and consists of the files:
                           readwrite_from_intake, which acess data through the reader and stores them in an input file for the tempest-extremes methods, 
                           DetectNodes (from tempest-extremes), which at each time step detects TCs centres, StitchNodes (tempest-extremes), which computes tracks from the
                           TCs centres detected and store_fullres_field, which store the selected variables (at the original model resolution)
-                          in the vicinity of TCs centres for each track.
+                          in the vicinity of TCs centres for each track;
                           See the `methods` paragraph for a complete description of all methods and functions.
 * `functions_TCs.py`: a python file which contains some functions (external to the tropical cyclones class) to analyse the output text files
-                      produced by running the tempest-extremes methods DetectNodes and StitchNodes. Adapted from from the cymep repository
-                      by Colin Zarzycki (https://github.com/zarzycki/cymep).
+                      produced by running the tempest-extremes methods DetectNodes and StitchNodes.
 * `plotting.py`: a python file which contains the plotting functions;
 * `run_TCs_slurm.sh`: bash script to run tropical_cyclones_slurm.py with sbatch;
 * `env-TCs.yml`: a yaml file with the required dependencies to creat the environment for the TCs diagnostic;
@@ -73,48 +68,57 @@ and intensity between original resolution and a coarser resolution or with obser
 Methods used
 ------------
 
-Examples from the DummyDiagnostic class contained in the dummy_class.py file:
+Examples from the DummyDiagnostic class contained in the class_methods_TCs.py file:
 
 * "TCs": the tropical cyclones class;
-* "detect_nodes_zoomin": method to 
-* "stitch_nodes_zoomin": method to 
-* "multiplication": 
-
-
-.. note::
-    Please note that there is no need to list all the methods used, but the most important which are exposed to the users should be presented
+* "catalog_init": initializes the Reader object for retrieving the atmospheric data needed (i.e. the input and output vars).
+* "data_retrieve": retrieves atmospheric data from the Reader and stores them in data arrays. It includes the posibility
+                   of simulating the streaming of data. It updates the stream_startdate and stream_enddate attributes if streaming is set to True.
+* "set_time_window": updates the n_days_freq and n_days_ext attributes of the Detector object to set the time window for the tempest extremes analysis.
+* "readwrite_from_intake": regrids the atmospheric data, saves it to disk as a netCDF file, and updates the tempest_dictionary and tempest_filein attributes of the Detector object.
+* "run_detect_nodes: runs the tempest extremes DetectNodes command on the regridded atmospheric data specified by the tempest_dictionary and tempest_filein attributes, saves the output to disk, and updates the tempest_fileout attribute of the Detector object.
+* "detect_nodes_zoomin": wrapper which calls the readwrite_from_intake, run_detect_nodes and store_detect_nodes methods in a time loop;
+* "stitch_nodes_zoomin": wrapper which calls the run stitch_nodes and store_stitch_nodes methods in a time loop.
+* "lonlatbox": creates a lon lat box of specified width (in degrees). Called to store the original resolution vars only in a box centred over the TCs centres.
+* "write_fullres_field": function to write original resolution variables around TCs centres and their trajectories. Output produced in a netcdf file.
 
 Functions used
 --------------
 
-Example of functions contained in the dummy_func.py file:
+The python file functions_TCs.py contains some functions used to analyse the raw output of tempest-extremes:
 
-* "dummy_func": dummy function used in the dummy class.
+* "getNodes": Retrieves nodes (i.e. TCs centres in thi s case) from a TempestExtremes file (.txt output from DetectNodes).
+* "getTrajectories": Retrieves trajectories from a TempestExtremes file (.txt file generated from StitchNodes).
 
-Note that it is important to add docstrings to each function.
-We are following `Google-style docstring <https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html>`_
-
-.. note::
-    Please note that there is no need to list all the methods used, but the most important which are exposed to the users should be presented
+These functions are largerly based on the ones found in the CyMeP repository by Colin Zarzycki (https://github.com/zarzycki/cymep).
 
 Observations
 ------------
 
-If relevant, list the observational datasets used by this diagnostic (e.g. for validation/comparison). Some examples are ERA5 reanalysis, CERES, MSWEP etc...
+Tropical cyclones tracks and variables structure in the vicinity of TCs are compared with ERA5 reanalysis data.
 
 References
 ----------
 
-* E. Empty, D. Dummy et al. (2023) The art of saying nothing. Emptyness, 1: 0-1. `DOI <http://doi.org/00.0000/e-00000-000.xxxx>`_
+* tempest-extremes GitHub: https://github.com/ClimateGlobalChange/tempestextremes
+* CyMeP GitHub: https://github.com/ClimateGlobalChange/tempestextremes
+* Ullrich, P.A., C.M. Zarzycki, E.E. McClenny, M.C. Pinheiro, A.M. Stansfield and K.A. Reed (2021) "TempestExtremes v2.1: A community framework for feature detection, tracking and analysis in large datasets" Geosci. Model. Dev. 14, pp. 5023–5048, 
+`DOI <10.5194/gmd-14-5023-2021>`. 
+* Zarzycki, C. M., P. A. Ullrich, and K. A. Reed, 2021: Metrics for Evaluating Tropical Cyclones in Climate Data. J. Appl. Meteor. Climatol., 60, 643–660, `DOI <https://doi.org/10.1175/JAMC-D-20-0149.1>`.
 
 
 Example Plot(s)
 ---------------
 
-.. figure:: figures/dummy-diagnostic1.png
+.. figure:: figures/tropical_cyclones1.png
     :width: 10cm
 
-    An illustration of the big void left by this diagnostic
+    Pressure in the vicinity of a tropical cyclone from IFS.
+
+.. figure:: figures/tropical_cyclones2.png
+    :width: 10cm
+    
+    Example of TCs tracks in a 10 day period from an IFS simulation.
 
 Available demo notebooks
 ------------------------
@@ -130,7 +134,7 @@ Detailed API
 This section provides a detailed reference for the Application Programming Interface (API) of the "dummy" diagnostic,
 produced from the diagnostic function docstrings.
 
-.. automodule:: dummy
+.. automodule:: tropical_cyclones
     :members:
     :undoc-members:
     :show-inheritance:
