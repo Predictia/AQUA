@@ -44,6 +44,21 @@ if __name__ == '__main__':
     exp = config['exp']
     source = config['source']
 
+    try:
+        regrid = config['regrid']
+    except KeyError:
+        regrid = None
+
+    try:  # zoom is needed if ICON
+        zoom = config['zoom']
+    except KeyError:
+        zoom = None
+
+    try:  # freq is needed if data are not natively monthly
+        freq = config['freq']
+    except KeyError:
+        freq = None
+
     savefig = get_arg(args, 'definitive', False)
     savefile = get_arg(args, 'definitive', False)
 
@@ -62,8 +77,15 @@ if __name__ == '__main__':
     except KeyError:
         filename = None
 
+    try:
+        months_window = config['months_window']
+    except KeyError:
+        months_window = 3 # default
+
     teleconnection = Teleconnection(model=model, exp=exp, source=source,
-                                    telecname=telecname,
+                                    telecname=telecname, regrid=regrid,
+                                    zoom=zoom, freq=freq,
+                                    months_window=months_window,
                                     savefig=savefig, savefile=savefile,
                                     outputfig=outputfig, outputdir=outputdir,
                                     filename=filename, loglevel=loglevel)
