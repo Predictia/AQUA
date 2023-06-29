@@ -29,8 +29,9 @@ class Teleconnection():
     """Class for teleconnection objects."""
 
     def __init__(self, model: str, exp: str, source: str,
-                 telecname: str, diagdir=None, 
+                 telecname: str, diagdir=None,
                  regrid='r100', freq='monthly',
+                 zoom=None,
                  savefig=False, outputfig=None,
                  savefile=False, outputdir=None,
                  filename=None,
@@ -46,6 +47,7 @@ class Teleconnection():
             diagdir (str, optional):        Path to diagnostics configuration folder.
             regrid (str, optional):         Regridding resolution. Defaults to 'r100'.
             freq (str, optional):           Frequency of the data. Defaults to 'monthly'.
+            zoom (str, optional):           Zoom for ICON data. Defaults to None.
             savefig (bool, optional):       Save figures if True. Defaults to False.
             outputfig (str, optional):      Output directory for figures.
                                             If None, the current directory is used.
@@ -79,6 +81,10 @@ class Teleconnection():
 
         self.freq = freq
         self.logger.debug('Frequency: {}'.format(self.freq))
+
+        self.zoom = zoom
+        if self.zoom is not None:
+            self.logger.debug('Zoom: {}'.format(self.zoom))
 
         # Teleconnection variables
         avail_telec = ['NAO', 'ENSO']
@@ -117,7 +123,11 @@ class Teleconnection():
         # Notice that reader is a private method
         # but **kwargs are passed to it so that it can be used to pass
         # arguments to the reader if needed
-        self._reader()
+
+        if self.zoom:
+            self._reader(zoom=self.zoom)
+        else:
+            self._reader()
 
     def _load_namelist(self, diagdir=None):
         """Load namelist.
@@ -145,6 +155,9 @@ class Teleconnection():
 
     def run(self):
         """Run teleconnection analysis."""
+
+        self.logger.debug('Running teleconnection analysis for data: {}/{}/{}'
+                          .format(self.model, self.exp, self.source))
 
         self.retrieve()
         self.evaluate_index()
@@ -174,12 +187,8 @@ class Teleconnection():
 
         if self.freq:
             if self.freq == 'monthly':
-                # check if data is already monthly
-                if np.unique(self.data.time.dt.month.values).size == 12:
-                    self.logger.info('Data already monthly')
-                else:
-                    self.data = self.reader.timmean(self.data)
-                    self.logger.info('Time aggregated to {}'.format(self.freq))
+                self.data = self.reader.timmean(self.data)
+                self.logger.info('Time aggregated to {}'.format(self.freq))
 
     def evaluate_index(self, **kwargs):
         """Calculate teleconnection index.
