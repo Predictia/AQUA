@@ -22,38 +22,26 @@ The sea ice extent diagnostic follows a class structure and consists of the file
 
 * `seaice_class.py`: a python file in which the SeaIceExtent class constructor and the other class methods are included;
 * `dummy_func.py`: a python file which contains functions that are called and used in the dummy class;
-* `env-dummy.yml`: a yaml file with the required dependencies for the dummy diagnostic;
-* `notebooks/dummy.ipynb`: an ipython notebook which uses the dymmy class and its methods;
-* `README.md` : a readme file which contains some tecnical information on how to install the dummy diagnostic and its environment. 
+* `regions.yml`: a yaml file with the definitions of regions where SIE can be calculated
+* `notebooks/seaice.ipynb`: an ipython notebook which uses the `seaice_class` class and its methods;
+* `README.md`: a readme file which contains some technical information on how to install the sea ice diagnostic and its environment. 
 
 Input variables example
 ------------------------
 
-* `tprate` (total precipitation rate, GRIB paramid 260048)
-* `2t`     (2 metre temperature, GRIB pramid 167)
+* `ci` (sea ice concentration, GRIB paramid 31)
 
 Output 
 ------
 
-List here types of files/datasets produced by the diagnostic. Please keep in mind that diagnostic output should be both
-figures (PDF format is recommended) and data (NetCDF file is recommended). 
+The script produces `figSIE.pdf` and `figSIE.png`
 
 Methods used
 ------------
 
-Examples from the DummyDiagnostic class contained in the dummy_class.py file:
+Examples from the seaIce class contained in the seaice_class.py file:
 
-* "DummyDiagnostic": the Dummy diagnostic class;
-* "retrieve": method to retrieve the data from the Reader class;
-* "fldmean": method to compute the field mean of the retrieved data;
-* "multiplication": method to compute the multiplication of the retrieved data. 
-                    It is an example of method that uses of external functions of the module dummy_func
-
-Note that it is important to add docstrings to each method.
-We are following `Google-style docstring <https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html>`_
-
-.. note::
-    Please note that there is no need to list all the methods used, but the most important which are exposed to the users should be presented
+* "run": method to retrieve the data and  compute the sea ice extent of the retrieved data. 
 
 Functions used
 --------------
@@ -71,18 +59,20 @@ We are following `Google-style docstring <https://sphinxcontrib-napoleon.readthe
 Observations
 ------------
 
-If relevant, list the observational datasets used by this diagnostic (e.g. for validation/comparison). Some examples are ERA5 reanalysis, CERES, MSWEP etc...
+OSI-SAF osi-450. See Lavergne et al. (2019)
+
 
 References
 ----------
 
-* E. Empty, D. Dummy et al. (2023) The art of saying nothing. Emptyness, 1: 0-1. `DOI <http://doi.org/00.0000/e-00000-000.xxxx>`_
+* Lavergne, T., Sørensen, A. M., Kern, S., Tonboe, R., Notz, D., Aaboe, S., Bell, L., Dybkjær, G., Eastwood, S., Gabarro, C., Heygster, G., Killie, M. A., Brandt Kreiner, M., Lavelle, J., Saldo, R., Sandven, S., & Pedersen, L. T. (2019). Version 2 of the EUMETSAT OSI SAF and ESA CCI sea-ice concentration climate data records. The Cryosphere, 13(1), 49–78. https://doi.org/10.5194/tc-13-49-2019
+
 
 
 Example Plot(s)
 ---------------
 
-.. figure:: figures/dummy-diagnostic1.png
+.. figure:: figures/figSIE.png
     :width: 10cm
 
     An illustration of the big void left by this diagnostic
