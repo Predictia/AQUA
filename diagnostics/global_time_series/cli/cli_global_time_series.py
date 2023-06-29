@@ -19,7 +19,7 @@ def _main():
         "--config",
         type=str,
         help="yaml configuration file",
-        default="config.yaml",
+        default="config_time_series.yaml",
     )
     args = parser.parse_args()
     config = load_yaml(args.config)
