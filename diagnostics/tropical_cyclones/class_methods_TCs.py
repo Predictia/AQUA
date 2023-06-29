@@ -36,8 +36,9 @@ class TCs():
 
     init(self, tdict=None, paths=None, model="IFS", exp="tco2559-ng5", boxdim=10, lowgrid='r100', highgrid='r010', var2store=None, streaming=False, frequency='6h', startdate=None, enddate=None, stream_step=1, stream_unit='days', stream_startdate=None, loglevel='INFO'): Constructor method that initializes the class attributes based on the input arguments or tdict dictionary.
     detect_nodes_zoomin(self): Method for detecting the nodes of TCs and storing variables in a box centred over the TCs centres at each time step.
+                               Wrapper which calls the readwrite_from_intake, run_detect_nodes and store_detect_nodes methods in a time loop;
     stitch_nodes_zoomin(self): Method for producing tracks of selected variables stored in netcdf files.
-    catalog_init(self): initializes three Reader objects for retrieving atmospheric data, with parameters such as model, exp, source, and vars. It logs a warning message if the streaming attribute is True.
+    catalog_init(self): "catalog_init": initializes the Reader object for retrieving the atmospheric data needed (i.e. the input and output vars).
     data_retrieve(self, reset_stream=False): retrieves atmospheric data from the Reader objects and assigns them to the data2d, data3d, and fullres attributes of the Detector object. It updates the stream_startdate and stream_enddate attributes if streaming is True.
     set_time_window: updates the n_days_freq and n_days_ext attributes of the Detector object to set the time window for the tempest extremes analysis.
     readwrite_from_intake: regrids the atmospheric data, saves it to disk as a netCDF file, and updates the tempest_dictionary and tempest_filein attributes of the Detector object.
@@ -101,7 +102,15 @@ class TCs():
         self.catalog_init()
 
     def detect_nodes_zoomin(self):
+        """
+        Detect nodes for the zoomed-in time range.
 
+        Parameters:
+        - self: Reference to the current instance of the class.
+
+        Returns:
+        None
+        """
         if self.streaming:
             timerange = pd.date_range(start=self.stream_startdate, end=self.stream_enddate, freq=self.frequency)
         else:
@@ -117,7 +126,19 @@ class TCs():
         
 
     def stitch_nodes_zoomin(self, startdate, enddate, n_days_freq, n_days_ext):
+        """
+        Wrapper for run_stitch_nodes and store_stitch_nodes for selected time period.
 
+        Args:
+        - self: Reference to the current instance of the class.
+        - startdate: Start date of the chosen period.
+        - enddate: End date of the chosen period.
+        - n_days_freq: Number of days for the frequency of time windows.
+        - n_days_ext: Number of days for the extension of time windows.
+
+        Returns:
+            None
+        """
         self.set_time_window(n_days_freq=n_days_freq, n_days_ext=n_days_ext)
 
         # periods specifies you want 1 block from startdate to enddate
@@ -131,6 +152,18 @@ class TCs():
 
 
     def catalog_init(self):
+        """
+        Initialize the catalog for data retrieval based on the specified model.
+
+        Args:
+        - self: Reference to the current instance of the class.
+
+        Returns:
+            None
+
+        Raises:
+        - Exception: If the specified model is not supported.
+        """
 
         if self.streaming == True:
             self.logger.warning(f'Initialised streaming for {self.stream_step} {self.stream_units} starting on {self.stream_startdate}')
@@ -152,6 +185,16 @@ class TCs():
         
 
     def data_retrieve(self, reset_stream=False):
+        """
+        Retrieve the necessary 2D and 3D data for analysis.
+
+        Args:
+        - self: Reference to the current instance of the class.
+        - reset_stream (optional): Boolean flag indicating whether to reset the stream. Default is False.
+
+        Returns:
+            None
+        """
 
         if reset_stream:
             self.reader2d.reset_stream()
@@ -169,11 +212,32 @@ class TCs():
             self.stream_startdate = self.data2d.time[0].values
 
     def set_time_window(self, n_days_freq = 30, n_days_ext = 10):
+        """
+        Set the time window parameters for frequency and extension.
+
+        Parameters:
+        - self: Reference to the current instance of the class.
+        - n_days_freq (optional): Number of days for the frequency of time windows. Default is 30.
+        - n_days_ext (optional): Number of days for the extension of time windows. Default is 10.
+
+        Returns:
+        None
+        """
 
         self.n_days_freq = n_days_freq
         self.n_days_ext = n_days_ext
         
     def readwrite_from_intake(self, timestep):
+        """
+        Read and write data from intake reader for the specified timestep.
+
+        Argss:
+        - self: Reference to the current instance of the class.
+        - timestep: Timestep for which to read and write the data.
+
+        Returns:
+            None
+        """
 
         self.logger.info(f'Running readwrite_from_intake() for {timestep}')
 
@@ -229,8 +293,6 @@ class TCs():
 
     def run_detect_nodes(self, timestep) : 
 
-        self.logger.info(f'Running run_detect_nodes() for timestep {timestep}')
-
         """"
         Basic function to call from command line tempest extremes DetectNodes
         Args:
@@ -238,8 +300,11 @@ class TCs():
             tempest_filein: file (netcdf) with low res data
             tempest_fileout: output file (.txt) from DetectNodes command
         Returns: 
-        detect_string: output file from DetectNodes in string format 
+            detect_string: output file from DetectNodes in string format 
         """
+        
+        self.logger.info(f'Running run_detect_nodes() for timestep {timestep}')
+        
         tempest_filein = self.tempest_filein
         tempest_dictionary = self.tempest_dictionary
         tempest_fileout = os.path.join(self.paths['tmpdir'], 'tempest_output_' + timestep + '.txt')
@@ -324,7 +389,18 @@ class TCs():
     
         return outfield
     
-    def prepare_stitch_nodes(self, block, dates_freq, dates_ext):
+    def prepare_stitch_nodes(self, block, dates_freq, dates_ext):      
+        """
+        Prepares the stitch nodes for the given block and time window by gathering relevant file paths and filenames.
+
+        Args:
+            block: Block for which the stitch nodes are being prepared.
+            dates_freq: DatetimeIndex with daily frequency for the time window.
+            dates_ext: Extended DatetimeIndex with the time window around the initial date.
+
+        Returns:
+            None
+        """
 
         # create list of file paths to include in glob pattern
         file_paths = [os.path.join(self.paths['tmpdir'], f"tempest_output_{date}T??.txt") for date in dates_ext.strftime('%Y%m%d')]
@@ -338,6 +414,16 @@ class TCs():
 
 
     def time_window(self, initial_date):
+        """
+        Creates a time window around the initial date by extending the dates index.
+
+        Args:
+            initial_date: Initial date of the time window.
+
+        Returns:
+            dates_freq: DatetimeIndex with daily frequency starting from the initial date.
+            dates_ext: Extended DatetimeIndex with the time window around the initial date.
+        """
 
         # create DatetimeIndex with daily frequency
         dates_freq = pd.date_range(start=initial_date, periods=self.n_days_freq, freq='D')
@@ -410,6 +496,18 @@ class TCs():
         self.reordered_tracks=reordered_tracks
 
     def store_stitch_nodes(self, block, dates_freq, write_fullres=True):
+        """
+        Store stitched tracks for each variable around the Nodes in NetCDF files.
+
+        Args:
+        - self: Reference to the current instance of the class.
+        - block: Block representing a specific time period.
+        - dates_freq: Frequencies of dates used for storing the tracks.
+        - write_fullres (optional): Boolean flag indicating whether to write full-resolution fields. Default is True.
+
+        Returns:
+                None
+        """
 
         if write_fullres:
             for var in self.var2store : 
@@ -434,10 +532,17 @@ class TCs():
                 store_file = os.path.join(self.paths['fulldir'], f'tempest_tracks_{var}_{block.strftime("%Y%m%d")}-{dates_freq[-1].strftime("%Y%m%d")}.nc')
                 write_fullres_field(xfield, store_file)
 
-
-
 def clean_files(filelist):
+    """
+    Removes the specified files from the filesystem.
 
+    Args:
+    - filelist (str or list): A single filename or a list of filenames to be removed.
+
+    Returns:
+        None
+
+    """
     if isinstance(filelist, str):
         filelist = [filelist]
 

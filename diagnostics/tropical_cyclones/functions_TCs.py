@@ -5,6 +5,21 @@ import numpy as np
 import re
 
 def getTrajectories(filename,nVars,headerDelimStr,isUnstruc):
+  """
+  Retrieves trajectories from a TempestExtremes file (.txt file generated from StitchNodes).
+
+  Args:
+      filename: Name of the TempestExtremes file.
+      nVars: Number of variables in each data point. Set to -1 to automatically determine from the data.
+      headerDelimStr: Delimiter string to identify header lines.
+      isUnstruc: Boolean flag indicating whether the data is unstructured.
+
+  Returns:
+      numtraj: Total number of trajectories.
+      maxNumPts: Maximum length of any trajectory.
+      prodata: Numpy array containing the trajectory data.
+    """
+    
   print("Getting trajectories from TempestExtremes file...")
   print("Running getTrajectories on '%s' with unstruc set to '%s'" % (filename, isUnstruc))
   print("nVars set to %d and headerDelimStr set to '%s'" % (nVars, headerDelimStr))
@@ -62,6 +77,19 @@ def getTrajectories(filename,nVars,headerDelimStr,isUnstruc):
 
 
 def getNodes(filename,nVars,isUnstruc):
+  """
+  Retrieves nodes from a TempestExtremes file (.txt output from DetectNodes).
+
+  Args:
+      filename: Name of the TempestExtremes file.
+      nVars: Number of variables in each data point. Set to -1 to automatically determine from the data.
+      isUnstruc: Boolean flag indicating whether the data is unstructured.
+
+  Returns:
+      numnodetimes: Total number of nodes.
+      maxNumPts: Maximum length of any node trajectory.
+      prodata: Numpy array containing the node data.
+  """
   print("Getting nodes from TempestExtremes file...")
 
   # Using the newer with construct to close the file automatically.
