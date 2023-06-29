@@ -13,7 +13,7 @@ The sea ice extent is defined as the areal integral of all ocean grid cells that
 
 Further details on the definition can be gound on the National Snow and Ice Data Center (NSIDC) `website<https://nsidc.org/learn/ask-scientist/what-difference-between-sea-ice-area-and-extent#:~:text=Sea%20ice%20area%20is%20the,15%20percent%20sea%20ice%20cover>`_.
 
-`Google-style docstring <https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html>`_ 
+`website <https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html>`_ 
 
 Please write here in a clear and concise manner what the diagnostic is about 
 and what it is supposed to be doing and the motivation behind it (i.e. which phenomenon or physical process 
