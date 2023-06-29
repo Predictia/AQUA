@@ -21,7 +21,6 @@ Structure
 The sea ice extent diagnostic follows a class structure and consists of the files:
 
 * `seaice_class.py`: a python file in which the SeaIceExtent class constructor and the other class methods are included;
-* `dummy_func.py`: a python file which contains functions that are called and used in the dummy class;
 * `regions.yml`: a yaml file with the definitions of regions where SIE can be calculated
 * `notebooks/seaice.ipynb`: an ipython notebook which uses the `seaice_class` class and its methods;
 * `README.md`: a readme file which contains some technical information on how to install the sea ice diagnostic and its environment. 
@@ -43,18 +42,6 @@ Examples from the seaIce class contained in the seaice_class.py file:
 
 * "run": method to retrieve the data and  compute the sea ice extent of the retrieved data. 
 
-Functions used
---------------
-
-Example of functions contained in the dummy_func.py file:
-
-* "dummy_func": dummy function used in the dummy class.
-
-Note that it is important to add docstrings to each function.
-We are following `Google-style docstring <https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html>`_
-
-.. note::
-    Please note that there is no need to list all the methods used, but the most important which are exposed to the users should be presented
 
 Observations
 ------------
@@ -77,21 +64,4 @@ Example Plot(s)
 
     An illustration of the big void left by this diagnostic
 
-Available demo notebooks
-------------------------
 
-Notebooks are stored in diagnostics/dummy-diagnostic/notebooks
-
-* `dummy_class_readerwrapper.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/dummy/notebooks/dummy_class_readerwrapper.ipynb>`_
-* `dummy_class_timeband.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/dummy/notebooks/dummy_class_timeband.ipynb>`_
-        
-Detailed API
-------------
-
-This section provides a detailed reference for the Application Programming Interface (API) of the "dummy" diagnostic,
-produced from the diagnostic function docstrings.
-
-.. automodule:: dummy
-    :members:
-    :undoc-members:
-    :show-inheritance:

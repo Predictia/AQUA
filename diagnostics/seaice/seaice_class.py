@@ -15,16 +15,21 @@ class SeaIceExtent():
         import sys
         sys.path.append("../")
         from    aqua import Reader,catalogue, inspect_catalogue
+        from    aqua.util import load_yaml
+        from    aqua.logger import log_configure
         import  datetime
         import  xarray as xr
         import  yaml
         import  numpy as np
         import  matplotlib.pyplot as plt
 
-        # Load regions information
-        with open("../regions.yml") as f:
-            regionDict = yaml.safe_load(f)
+        # define the internal logger
+        self.logger = log_configure(log_level = None, log_name = 'Reader')
 
+        # Load regions information
+        #with open("../regions.yml") as f:
+        #    regionDict = yaml.safe_load(f)
+        regionDict = load_yaml("../regions.yml")
 
         nRegions = len(myRegions)
         thresholdSeaIceExtent = 0.15
@@ -47,7 +52,7 @@ class SeaIceExtent():
             
             myReaders.append(reader)
 
-            print("Retrieving " + "\t".join([s.ljust(20) for s in setup]))
+            self.logger.info("Retrieving " + "\t".join([s.ljust(20) for s in setup]))
             data = reader.retrieve()
             myData.append(data)
             
@@ -66,7 +71,7 @@ class SeaIceExtent():
             # Iterate over regions
             for jr, region in enumerate(myRegions):
 
-                print("\tProducing diagnostic for region " + region)
+                self.logger.info("\tProducing diagnostic for region " + region)
                 # Create regional mask
                 latS, latN, lonW, lonE = regionDict[region]["latS"], regionDict[region]["latN"], regionDict[region]["lonW"], regionDict[region]["lonE"]
 
