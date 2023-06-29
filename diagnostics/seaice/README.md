@@ -3,7 +3,7 @@
 
 ### Folders
 
-- `diagnostics/dummy-diagnostic`: contains the code of the diagnostic
+- `diagnostics/seaice`: contains the code of the diagnostic
 - `diagnostics/dummy-diagnostic/notebooks`: contains notebooks with examples of how to use the diagnostic
 - `tests/dummy-diagnostic/`: contains tests for the diagnostic. Please add tests for all the functions you add to the diagnostic. Please load data that are needed for the tests not in the git. You may need to add data to the catalogue for the `ci` machine. If you need to add data to this catalogue, please contact the AQUA team. Tests run with a github action when you push to the repository in a pull request to the main branch. Note that the workflow file is in the `.github` folder. Modify it accordingly to your diagnostic and uncomment the lines to run the tests when you are ready. Please keep in mind that the suggested way to proceed is based on the creation of a `@pytest.mark.yourdiag` marker so that you can select only the test that you need in the workflow (see the workflow example). This marker has to be added in the `pytest.ini` file.  
 - `diagnostics/dummy-diagnostic/data`: contains data for the tests if needed. Please do not commit large files to git. You can add data to the `.gitignore` file if needed. Make always use of the `Reader` class and functions available in the framework to load data. If you need to add data to the catalogue, please contact the AQUA team.

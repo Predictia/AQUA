@@ -1,43 +1,133 @@
-from aqua import catalogue, reader
+
 
 """Sea ice diagnostics """
 
 class SeaIceExtent():
+
+
     """Sea ice extent class"""
     def __init__(self, option=None, configdir=None):
         """The SeaIceExtent constructor."""
 
-        self.option = option
-        self.configdir = configdir
-
-    def run(self):
-        """The run method."""
+    def run(self, mySetups = [["IFS",     "tco1279-orca025-cycle3",   "2D_monthly_native"     ]]):
+        """The run diag method."""
         
-        cat = catalogue(configdir=self.configdir)
-        print(cat)
 
-        # Experiment definition 
-        # ---------------------
-        model  = "FESOM"
-        exp    = "tco2559-ng5"
-        source = "original_2d"
-        regrid = "r025"
-        var    = "a_ice"
+        from    aqua import Reader,catalogue, inspect_catalogue
+        import  datetime
+        import  xarray as xr
+        import  numpy as np
+        import  matplotlib.pyplot as plt
 
-        year1 = 2020
-        year2 = 2020
+        # Parameters,  to be moved in a YAML file eventually
+                       # Region name          # southernmost latitude    # northernmost latitude   # westernmost longitude # easternmost longitude
+        regions = [ \
+                       [ "Arctic",            [0.0,                      90.0,                     0.0,                    360.0                 ]], \
+                       [ "Hudson Bay",        [50.0,                     63.0,                     265.0,                  285.0                 ]], \
+                       [ "Southern Ocean",    [-90.0,                    0.0,                      0.0,                    360.0                 ]], \
+                       [ "Ross Sea",          [-90.0,                    0.0,                      160.0,                  230.0                 ]], \
+                       [ "Amundsen-Bellingshausen Seas", [-90.0,         0.0,                      230.0,                  300.0                 ]], \
+                       [ "Weddell Sea",       [-90.0,                    0.0,                      300.0,                  20.0                  ]], \
+                       [ "Indian Ocean",      [-90.0,                    0.0,                      20.0,                   90.0                  ]], \
+                       [ "Pacific Ocean",     [-90.0,                    0.0,                      90.0,                   160.0                 ]], \
+                    ]
+        nRegions = len(regions)
+        thresholdSeaIceExtent = 0.15
 
-        reader = Reader(model   = model,
-                        exp     = exp,
-                        source  = source,
-                        regrid  = regrid,
-                        )
-        print(reader)
 
-        data = reader.retrieve(fix = True)
-        data
+        # Instantiate the various readers (one per setup) and retrieve the corresponding data
+        myReaders = list()
+        myData    = list()
+        myExtents = list()
+        for js, setup in enumerate(mySetups):
+            model, exp, source = setup[0], setup[1], setup[2]
+            
+            label = model + " " + exp + " " + source
 
-        mesh = xr.open_dataset('/work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc')
-        area = (mesh.cell_area * data.ci).sum(dim='nod2')
-        area_comp = area.compute()
-        area_comp.plot()
+            # Instantiate reader
+            reader = Reader(model  = model, \
+                        exp    = exp,   \
+                        source = source,\
+                    )
+            
+            myReaders.append(reader)
+
+            print("Retrieving " + "\t".join([s.ljust(20) for s in setup]))
+            data = reader.retrieve()
+            myData.append(data)
+            
+            # Renames
+            data=data.rename({"ci":"siconc"})
+
+
+            areacello = reader.grid_area
+            lat = data.coords["lat"]
+            lon = data.coords["lon"]
+
+            # Create mask based on threshold
+            siconc_mask = data.siconc.where(data.siconc > thresholdSeaIceExtent).where(data.siconc < 1.0)
+
+            regionExtents = list() # Will contain the time series for each region and for that setup
+            # Iterate over regions
+            for jr, region in enumerate(regions):
+
+                print("\tProducing diagnostic for region " + region[0])
+                # Create regional mask
+                latS, latN, lonW, lonE = regions[jr][1][0], regions[jr][1][1], regions[jr][1][2], regions[jr][1][3]
+
+                # Dealing with regions straddling the 180° meridian
+                if lonW > lonE:
+                    regionMask = (lat >= latS) & (lat <= latN) & ((lon >= lonW) | (lon <= lonE))
+                else:
+                    regionMask = (lat >= latS) & (lat <= latN) & (lon >= lonW) & (lon <= lonE)
+
+                areacello_mask = areacello.where(regionMask)
+            
+
+                # Create masks for summing later on
+                areacello_mask = areacello.where(regionMask)
+                
+                if source == "lra-r100-monthly" or model == "OSI-SAF":
+                    if source == "lra-r100-monthly":
+                        dim1Name, dim2Name = "lon", "lat"
+                    elif model == "OSI-SAF":
+                        dim1Name, dim2Name = "xc", "yc"
+                    myExtent = areacello.where(regionMask).where(siconc_mask.notnull()).sum(dim = [dim1Name, dim2Name]) / 1e12
+                else:
+                    myExtent = areacello.where(regionMask).where(siconc_mask.notnull()).sum(dim = "value") / 1e12
+
+                myExtent.attrs["units"] = "million km^2"
+                myExtent.attrs["long_name"] = "Sea ice extent"
+                regionExtents.append(myExtent)
+
+            # Save set of diagnostics for that setup
+            myExtents.append(regionExtents)
+
+
+        # Produce figure
+        # Print region area for information
+        #areaRegion = areacello.where(regionMask).sum()
+        #print(region[0] + " region area: " + str(areaRegion.data) + areaRegion.units)
+        sideSubPlot = int(np.ceil(np.sqrt(nRegions)))
+        print(sideSubPlot)
+        fig, ax = plt.subplots(sideSubPlot, sideSubPlot, figsize = (16, 12))
+        for js, setup in enumerate(mySetups):
+            label = " ".join([s for s in setup])
+            for jr, region in enumerate(regions):
+
+                extent = myExtents[js][jr]
+
+                jx = jr // sideSubPlot
+                jy = jr %  sideSubPlot
+
+            
+                ax[jx, jy].plot(extent.time, extent, label = label)
+            
+                ax[jx,jy].set_title("Sea ice extent: region " + region[0])
+        
+                ax[jx,jy].legend()
+                ax[jx,jy].set_ylabel(extent.units)
+                ax[jx,jy].grid()
+        fig.tight_layout()
+        fig.savefig("./figExtent.png")
+        
