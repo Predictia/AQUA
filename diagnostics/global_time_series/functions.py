@@ -7,21 +7,13 @@ from aqua import Reader
 
 def get_reference_data(varname, sel=None, resample=None):
     """Get ERA5 reference data for a given variable."""
-    _name_map = {
-        "2t": "T2M",
-        "mtnsrf": "TSR",
-        "mtntrf": "TTR",
-        "10u": "U",
-        "10v": "V",
-    }
-
-    reader = Reader(model="ERA5", exp="era5")
+    reader = Reader(model="ERA5", exp="era5", source="monthly")
     data = reader.retrieve().sel(sel)
 
     if resample is not None:
         data = data.resample(time=resample).mean()
 
-    return reader.fldmean(data[_name_map.get(varname, varname)])
+    return reader.fldmean(data[varname])
 
 
 def plot_timeseries(
