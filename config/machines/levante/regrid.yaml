@@ -461,7 +461,7 @@ source_grids:
     en4:
       default:
         path:
-          lev: /work/bb1153/b382119/EN4/so/so_192605.nc
+          lev: /work/bb1153/b382076/AQUA-archive/grids/EN4/en4-grid.nc
         space_coord: ["lon", "lat"]
         vert_coord: ["lev"]
   ERA5:
