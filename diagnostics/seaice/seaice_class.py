@@ -9,29 +9,24 @@ class SeaIceExtent():
     def __init__(self, option=None, configdir=None):
         """The SeaIceExtent constructor."""
 
-    def run(self, mySetups = [["IFS",     "tco1279-orca025-cycle3",   "2D_monthly_native"     ]]):
+    def run(self, mySetups = [["IFS",     "tco1279-orca025-cycle3",   "2D_monthly_native"     ]], myRegions = ["Arctic", "Southern Ocean"]):
         """The run diag method."""
         
-
+        import sys
+        sys.path.append("../")
         from    aqua import Reader,catalogue, inspect_catalogue
         import  datetime
         import  xarray as xr
+        import  yaml
         import  numpy as np
         import  matplotlib.pyplot as plt
 
-        # Parameters,  to be moved in a YAML file eventually
-                       # Region name          # southernmost latitude    # northernmost latitude   # westernmost longitude # easternmost longitude
-        regions = [ \
-                       [ "Arctic",            [0.0,                      90.0,                     0.0,                    360.0                 ]], \
-                       [ "Hudson Bay",        [50.0,                     63.0,                     265.0,                  285.0                 ]], \
-                       [ "Southern Ocean",    [-90.0,                    0.0,                      0.0,                    360.0                 ]], \
-                       [ "Ross Sea",          [-90.0,                    0.0,                      160.0,                  230.0                 ]], \
-                       [ "Amundsen-Bellingshausen Seas", [-90.0,         0.0,                      230.0,                  300.0                 ]], \
-                       [ "Weddell Sea",       [-90.0,                    0.0,                      300.0,                  20.0                  ]], \
-                       [ "Indian Ocean",      [-90.0,                    0.0,                      20.0,                   90.0                  ]], \
-                       [ "Pacific Ocean",     [-90.0,                    0.0,                      90.0,                   160.0                 ]], \
-                    ]
-        nRegions = len(regions)
+        # Load regions information
+        with open("../regions.yml") as f:
+            regionDict = yaml.safe_load(f)
+
+
+        nRegions = len(myRegions)
         thresholdSeaIceExtent = 0.15
 
 
@@ -69,11 +64,11 @@ class SeaIceExtent():
 
             regionExtents = list() # Will contain the time series for each region and for that setup
             # Iterate over regions
-            for jr, region in enumerate(regions):
+            for jr, region in enumerate(myRegions):
 
-                print("\tProducing diagnostic for region " + region[0])
+                print("\tProducing diagnostic for region " + region)
                 # Create regional mask
-                latS, latN, lonW, lonE = regions[jr][1][0], regions[jr][1][1], regions[jr][1][2], regions[jr][1][3]
+                latS, latN, lonW, lonE = regionDict[region]["latS"], regionDict[region]["latN"], regionDict[region]["lonW"], regionDict[region]["lonE"]
 
                 # Dealing with regions straddling the 180° meridian
                 if lonW > lonE:
@@ -109,11 +104,10 @@ class SeaIceExtent():
         #areaRegion = areacello.where(regionMask).sum()
         #print(region[0] + " region area: " + str(areaRegion.data) + areaRegion.units)
         sideSubPlot = int(np.ceil(np.sqrt(nRegions)))
-        print(sideSubPlot)
         fig, ax = plt.subplots(sideSubPlot, sideSubPlot, figsize = (16, 12))
         for js, setup in enumerate(mySetups):
             label = " ".join([s for s in setup])
-            for jr, region in enumerate(regions):
+            for jr, region in enumerate(myRegions):
 
                 extent = myExtents[js][jr]
 
@@ -123,13 +117,14 @@ class SeaIceExtent():
             
                 ax[jx, jy].plot(extent.time, extent, label = label)
             
-                ax[jx,jy].set_title("Sea ice extent: region " + region[0])
+                ax[jx,jy].set_title("Sea ice extent: region " + region)
         
                 ax[jx,jy].legend()
                 ax[jx,jy].set_ylabel(extent.units)
                 ax[jx,jy].grid()
         fig.tight_layout()
-        fig.savefig("./figExtent.png")
+        for fmt in ["png", "pdf"]:
+            fig.savefig("./figSIE." + fmt, dpi = 300)
         
 
         # A few maps
