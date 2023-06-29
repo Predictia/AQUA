@@ -9,7 +9,7 @@ This diagnostic computes and plots various (atmospheric) global mean time series
 Structure
 -----------
 
-* `README.md`: a readme file which contains some technical information on how to install the dummy diagnostic and its environment.
+* `README.md`: a readme file which contains some technical information on how to install the diagnostic and its environment.
 * `functions.py`: a python file in which the `plot_timeseries()` and `plot_gregory` functions are implemented
 * `notebooks/global_time_series.ipynb`: an ipython notebook which shows the usage of both functions
 * `cli/cli_global_time_series.py`: a CLI to run the diagnostic in an automated way

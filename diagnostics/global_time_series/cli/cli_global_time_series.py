@@ -13,7 +13,7 @@ from functions import plot_timeseries, plot_gregory
 
 
 def _main():
-    parser = argparse.ArgumentParser(description="Dummy diagnostic CLI")
+    parser = argparse.ArgumentParser(description="Global time series CLI")
     parser.add_argument(
         "-c",
         "--config",
