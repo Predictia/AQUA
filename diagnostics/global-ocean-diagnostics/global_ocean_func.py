@@ -2,31 +2,81 @@ import datetime
 import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
-import warnings
+import warnings, logging
+
 warnings.filterwarnings("ignore")
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 
-def weighted_area_mean(data, latN: float, latS: float, lonW: float, lonE: float):
+
+def weighted_area_mean(data, use_predefined_region: bool, region: str = None, latN: float = None, latS: float = None, lonW: float = None, lonE: float = None):
     """
     Compute the weighted area mean of data within the specified latitude and longitude bounds.
 
     Parameters:
         data (xarray.Dataset): Input data.
-        latN (float): Northern latitude bound.
-        latS (float): Southern latitude bound.
-        lonW (float): Western longitude bound.
-        lonE (float): Eastern longitude bound.
+        use_predefined_region (bool): Whether to use a predefined region or a custom region.
+        region (str, optional): Predefined region to use when use_predefined_region is True.
+                                Available options: "Indian Ocean", "Labrador Sea", "Global Ocean", "Atlantic Ocean",
+                                "Pacific Ocean", "Arctic Ocean", "Southern Ocean".
+                                Ignored when use_predefined_region is False.
+        latN (float, optional): Northern latitude bound. Required if use_predefined_region is False or region is not provided.
+        latS (float, optional): Southern latitude bound. Required if use_predefined_region is False or region is not provided.
+        lonW (float, optional): Western longitude bound. Required if use_predefined_region is False or region is not provided.
+        lonE (float, optional): Eastern longitude bound. Required if use_predefined_region is False or region is not provided.
 
     Returns:
         xarray.Dataset: Weighted area mean of the input data.
     """
+    if use_predefined_region:
+        if region == "Indian Ocean":
+            latN = -30.0
+            latS = 30.0
+            lonW = 100.0
+            lonE = 300.0
+        elif region == "Labrador Sea":
+            latN = 65.0
+            latS = 50.0
+            lonW = 300.0
+            lonE = 325.0
+        elif region == "Global Ocean":
+            latN = -90.0
+            latS = 90.0
+            lonW = 0.0
+            lonE = 360.0
+        elif region == "Atlantic Ocean":
+            latN = -35.0
+            latS = 65.0
+            lonW = -80.0
+            lonE = 30.0
+        elif region == "Pacific Ocean":
+            latN = -55.0
+            latS = 65.0
+            lonW = 120.0
+            lonE = 290.0
+        elif region == "Arctic Ocean":
+            latN = 65.0
+            latS = 90.0
+            lonW = 0.0
+            lonE = 360.0
+        elif region == "Southern Ocean":
+            latN = -80.0
+            latS = -55.0
+            lonW = -180.0
+            lonE = 180.0
+        else:
+            raise ValueError("Invalid region. Available options: 'Indian Ocean', 'Labrador Sea', 'Global Ocean', 'Atlantic Ocean', 'Pacific Ocean', 'Arctic Ocean', 'Southern Ocean'")
+
+    else:
+        if latN is None or latS is None or lonW is None or lonE is None:
+            raise ValueError("Latitude and longitude bounds must be provided when use_predefined_region is False.")
+
     data = data.sel(lat=slice(latN, latS), lon=slice(lonW, lonE))
     weighted_data = data.weighted(np.cos(np.deg2rad(data.lat)))
     wgted_mean = weighted_data.mean(("lat", "lon"))
     return wgted_mean
-
-
 
 def mean_value_plot(data, title):
     # Calculate weighted area mean
@@ -76,16 +126,19 @@ def mean_value_plot(data, title):
 
 
 
-def std_anom_wrt_initial(data, latN: float, latS: float, lonW: float, lonE: float):
+def std_anom_wrt_initial(data, use_predefined_region: bool, region: str = None, latN: float = None, latS: float = None, lonW: float = None, lonE: float = None):
     """
     Calculate the standard anomaly of input data relative to the initial time step.
 
     Args:
         data (DataArray): Input data to be processed.
-        latN (float): North latitude.
-        latS (float): South latitude.
-        lonW (float): West longitude.
-        lonE (float): East longitude.
+        use_predefined_region (bool): Whether to use a predefined region or a custom region.
+        region (str, optional): Predefined region to use when use_predefined_region is True.
+                                Ignored when use_predefined_region is False.
+        latN (float, optional): Northern latitude bound. Required if use_predefined_region is False or region is not provided.
+        latS (float, optional): Southern latitude bound. Required if use_predefined_region is False or region is not provided.
+        lonW (float, optional): Western longitude bound. Required if use_predefined_region is False or region is not provided.
+        lonE (float, optional): Eastern longitude bound. Required if use_predefined_region is False or region is not provided.
 
     Returns:
         DataArray: Standard anomaly of the input data.
@@ -94,16 +147,17 @@ def std_anom_wrt_initial(data, latN: float, latS: float, lonW: float, lonE: floa
     std_anomaly = xr.Dataset()
 
     # Compute the weighted area mean over the specified latitude and longitude range
-    wgted_mean = weighted_area_mean(data, latN, latS, lonW, lonE)
+    wgted_mean = weighted_area_mean(data, use_predefined_region, region, latN, latS, lonW, lonE)
 
     # Calculate the anomaly from the initial time step for each variable
     for var in list(data.data_vars.keys()):
-        anomaly_from_initial = wgted_mean[var] - wgted_mean[var][0,]
+        anomaly_from_initial = wgted_mean[var] - wgted_mean[var].isel(time=0)
         
         # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
-        std_anomaly[var] = anomaly_from_initial / anomaly_from_initial.std("time")
+        std_anomaly[var] = anomaly_from_initial / anomaly_from_initial.std(dim="time")
 
     return std_anomaly
+
 
 
 def std_anom_wrt_time_mean(data, latN: float, latS: float, lonW: float, lonE: float):
@@ -137,7 +191,7 @@ def std_anom_wrt_time_mean(data, latN: float, latS: float, lonW: float, lonE: fl
 
 
 
-def thetao_so_anom_plot(data, title):
+def thetao_so_anom_plot(data, region):
     """
     Create a Hovmoller plot of temperature and salinity anomalies.
 
@@ -150,7 +204,7 @@ def thetao_so_anom_plot(data, title):
     """
     # Create subplots for temperature and salinity plots
     fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
-    fig.suptitle(title, fontsize=16)
+    fig.suptitle(f"Standardised {region} T,S Anomalies (wrt first value)", fontsize=16)
 
     # Extract temperature data and plot the contour filled plot
     tgt = data.thetao.transpose()
@@ -177,19 +231,23 @@ def thetao_so_anom_plot(data, title):
     ax2.set_ylim((5500, 0))
     ax2.set_ylabel("Depth (in m)", fontsize=12)
     ax2.set_xlabel("Time (in years)", fontsize=12)
-
+    filename = f"./output/TS_anomalies_{region.replace(' ', '_').lower()}.png"
+    plt.savefig(filename)
+    logger.info(f"{filename} saved")
     # Return the plot
     return
 
 
 
-def time_series(data, title):
+def time_series(data, region, customise_level=False, levels=None):
     """
     Create time series plots of global temperature and salinity standardised anomalies at selected levels.
 
     Args:
         data (DataArray): Input data containing temperature (thetao) and salinity (so).
-        title (str): Title of the plots.
+        region (str): Region name.
+        customise_level (bool): Whether to use custom levels or predefined levels.
+        levels (list): List of levels to plot. Ignored if customise_level is False.
 
     Returns:
         None
@@ -197,10 +255,14 @@ def time_series(data, title):
     # Create subplots for temperature and salinity time series plots
     fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
 
-    fig.suptitle(title, fontsize=16)
+    fig.suptitle(f"Standardised {region} T,S Anomalies (wrt first value)", fontsize=16)
 
     # Define the levels at which to plot the time series
-    levels = [0, 100, 500, 1000, 2000, 3000, 4000, 5000]
+    if customise_level:
+        if levels is None:
+            raise ValueError("Custom levels are selected, but levels are not provided.")
+    else:
+        levels = [0, 100, 500, 1000, 2000, 3000, 4000, 5000]
 
     # Iterate over the levels and plot the time series for each level
     for level in levels:
@@ -210,28 +272,31 @@ def time_series(data, title):
         else:
             # Select the data at the surface level (0)
             data_level = data.isel(lev=0)
-
         # Plot the temperature time series
-        data_level.thetao.plot.line(ax=ax1)
+        data_level.thetao.plot.line(ax=ax1,label=f"{round(int(data_level.lev.data), -2)}")
 
         # Plot the salinity time series
-        data_level.so.plot.line(ax=ax2)
+        data_level.so.plot.line(ax=ax2,label=f"{round(int(data_level.lev.data), -2)}")
 
     # Set the title, y-axis label, and x-axis label for the temperature plot
     ax1.set_title("Temperature", fontsize=14)
     ax1.set_ylabel("Standardised Units (at the respective level)", fontsize=12)
     ax1.set_xlabel("Time (in years)", fontsize=12)
-    ax1.legend(["0", "100", "500", "1000", "2000", "3000", "4000", "5000"], loc='best')
+    ax1.legend(loc='best')
 
     # Set the title, y-axis label, and x-axis label for the salinity plot
     ax2.set_title("Salinity", fontsize=14)
     ax2.set_ylabel("Standardised Units (at the respective level)", fontsize=12)
     ax2.set_xlabel("Time (in years)", fontsize=12)
-    plt.legend(["0", "100", "500", "1000", "2000", "3000", "4000", "5000"], loc='best')
+    ax2.legend(loc='best')
+    filename = f"./output/TS_time_series_anomalies_{region.replace(' ', '_').lower()}.png"
+
+    plt.savefig(filename)
+    logger.info(f"{filename} saved")
+    plt.show()
 
     # Return the plot
     return
-
 
 
 def convert_so(so):

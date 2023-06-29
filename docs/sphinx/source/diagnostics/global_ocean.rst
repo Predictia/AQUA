@@ -21,8 +21,8 @@ The global_ocean diagnostic follows a class structure and consists of the files:
 Input variables example
 ------------------------
 
-* `tprate` (total precipitation rate, GRIB paramid 260048)
-* `2t`     (2 metre temperature, GRIB pramid 167)
+* `thetao` (total precipitation rate, GRIB paramid 151129)
+* `so`     (2 metre temperature, GRIB pramid 3088)
 
 Output 
 ------
@@ -42,14 +42,46 @@ Examples from the GlobaloOceanDiagnostic class contained in the global_ocean_cla
 
 ...
 
+.. Functions used
+.. --------------
+
+.. Example of functions contained in the global_ocean_func.py file:
+
+.. * "global_ocean_func": global_ocean function used in the global_ocean class.
+
+.. Note that it is important to add docstrings to each method or function.
+
+
+
 Functions used
 --------------
+The global_ocean_func.py file contains several functions that are utilized in the Global_OceanDiagnostic class. These functions provide various functionalities for processing and analyzing global ocean data. Below are the functions along with a brief description of each:
 
-Example of functions contained in the global_ocean_func.py file:
+* Function: std_anom_wrt_initial(data, use_predefined_region=True, region="Global Ocean")
+This function calculates the standardized anomalies of temperature and salinity data with respect to their initial values. It accepts the following parameters:
 
-* "global_ocean_func": global_ocean function used in the global_ocean class.
+data: A DataArray containing temperature (thetao) and salinity (so) data.
+use_predefined_region (optional): A boolean flag indicating whether to use a predefined region for anomaly calculation (default is True).
+region (optional): The name of the region to use if use_predefined_region is True (default is "Global Ocean").
+The function returns the calculated standardized anomalies as a DataArray.
 
-Note that it is important to add docstrings to each method or function.
+* Function: thetao_so_anom_plot(data, region)
+This function creates a Hovmoller plot of temperature and salinity anomalies. It accepts the following parameters:
+
+data: A DataArray containing temperature (thetao) and salinity (so) anomalies.
+region: The name of the region for which the anomalies are plotted.
+The function generates a contour-filled plot showing the temperature and salinity anomalies in the specified region.
+
+Function: time_series(data, region, customise_level=False, levels=None)
+This function creates time series plots of global temperature and salinity standardised anomalies at selected levels. It accepts the following parameters:
+
+data: A DataArray containing temperature (thetao) and salinity (so) anomalies.
+region: The name of the region for which the time series plots are generated.
+customise_level (optional): A boolean flag indicating whether to use custom levels or predefined levels (default is False).
+levels (optional): A list of levels at which to plot the time series. This parameter is ignored if customise_level is False.
+The function produces time series plots showing the standardised temperature and salinity anomalies at the specified levels in the given region.
+
+
 
 Observations
 ------------
@@ -65,7 +97,7 @@ References
 Example Plot(s)
 ---------------
 
-.. figure:: figures/global_ocean-diagnostic1.png
+.. figure:: ../../../../diagnostics/global-ocean-diagnostics/output/TS_time_series_anomalies_indian_ocean.png
     :width: 10cm
 
     An illustration of the big void left by this diagnostic
@@ -75,7 +107,7 @@ Available demo notebooks
 
 Notebooks are stored in diagnostics/global_oceandiagnostic/notebooks
 
-* `global_ocean.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/global_ocean-diagnostic/notebooks/global_ocean.ipynb>`_
+* `global_ocean_class_basin_T_S_means.ipynb <https://github.com/oloapinivad/AQUA/blob/devel/ocean/diagnostics/global-ocean-diagnostics/notebooks/global_ocean_class_basin_T_S_means.ipynb>`_
         
 Detailed API
 ------------
