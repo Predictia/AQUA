@@ -9,7 +9,7 @@ channels:
 dependencies:
   - python>=3.9
   - ecCodes      
-  - cdo
+  - cdo>=2.2.0
   - pandoc
   - pip
   - pip:

@@ -11,6 +11,5 @@ dependencies:
   - ecCodes      
   - cdo
   - pandoc
-# these are pip-based since it provides more recent versions or packages unavailable on conda-forge
   - pip
 
