@@ -153,8 +153,8 @@ if __name__ == '__main__':
         print('Initializing Teleconnection class for dataset_source: ',
               config['model'], config['exp'], config['source'])
         teleconnections.append(Teleconnection(telecname=telecname, **config,
-                                        savefig=savefig, savefile=savefile,
-                                        configdir=configdir, loglevel=loglevel))
+                                              savefig=savefig, savefile=savefile,
+                                              configdir=configdir, loglevel=loglevel))
 
     # Retrieve data, evaluate teleconnection index, correlation and regression
     for teleconnection in teleconnections:
@@ -167,8 +167,8 @@ if __name__ == '__main__':
 
     # Initialize Teleconnection class for observational dataset
     teleconnection_obs = Teleconnection(telecname=telecname, **obs_dict,
-                                    savefig=savefig, savefile=savefile,
-                                    configdir=configdir, loglevel=loglevel)
+                                        savefig=savefig, savefile=savefile,
+                                        configdir=configdir, loglevel=loglevel)
     teleconnection_obs.retrieve()
     teleconnection_obs.evaluate_index()
     teleconnection_obs.evaluate_correlation()
