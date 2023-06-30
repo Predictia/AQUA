@@ -2,6 +2,8 @@
 
 ## Issues closed by this pull request:
 
+Close 
+
 ----
 
 Please leave the checkboxes that apply to this pull request.
