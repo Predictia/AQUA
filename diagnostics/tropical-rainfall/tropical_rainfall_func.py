@@ -209,3 +209,9 @@ def time_interpreter(dataset):
         timestep = dataset.time[1] - dataset.time[0]
         if timestep >=28 and timestep <=31:
             return 'M'
+
+def extract_directory_path(string):
+    """
+    Extracts the directory path from a string.
+    """
+    return "/".join(string.split("/")[:-1]) + "/"

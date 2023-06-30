@@ -11,9 +11,11 @@ from matplotlib import colors
 
 import dask.array as da
 import dask_histogram as dh # pip
+
+from aqua.util import create_folder
  
 
-from tropical_rainfall_func import time_interpreter, convert_length, convert_time, unit_splitter
+from tropical_rainfall_func import time_interpreter, convert_length, convert_time, unit_splitter, extract_directory_path
 """The module contains Tropical Precipitation Diagnostic:
 
 .. moduleauthor:: AQUA team <natalia.nazarova@polito.it>
@@ -515,6 +517,8 @@ class TR_PR_Diagnostic:
         Returns:
             str: The path to save the histogram.
         """
+        create_folder(folder    = str(path_to_netcdf), loglevel = 'WARNING')
+
         if path_to_netcdf is not None:
             if name_of_file is None:
                 name_of_file    = '_'
@@ -847,5 +851,6 @@ class TR_PR_Diagnostic:
         # set the spacing between subplots
         plt.tight_layout()
         if path_to_figure is not None and isinstance(path_to_figure, str):
+            create_folder(folder    = extract_directory_path(path_to_figure), loglevel = 'WARNING')
             plt.savefig(path_to_figure)
         return {fig, ax}
