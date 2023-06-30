@@ -139,7 +139,7 @@ def test_histogram_load_to_memory(histogram_output):
 
     hist                    = histogram_output
     diag                    = TR_PR_Diag()
-    diag.save_histogram(dataset = hist, path_to_histogram = path_to_histogram, name_of_file = 'test_hist_saving')
+    diag.dataset_to_netcdf(dataset = hist, path_to_netcdf = path_to_histogram, name_of_file = 'test_hist_saving')
     files                   = [f for f in listdir(path_to_histogram) if isfile(join(path_to_histogram, f))]
     assert 'test_hist_saving' in files[0]
 
@@ -244,7 +244,7 @@ def test_histogram_merge(histogram_output):
     diag                    = TR_PR_Diag()
 
     path_to_histogram       = str(path_to_diagnostic)+"/test_output/histograms/"
-    diag.save_histogram(dataset = hist_2, path_to_histogram = path_to_histogram, name_of_file = 'test_merge')
+    diag.dataset_to_netcdf(dataset = hist_2, path_to_netcdf = path_to_histogram, name_of_file = 'test_merge')
     
     hist_merged             = diag.merge_two_datasets(tprate_dataset_1 = hist_1, tprate_dataset_2 = hist_2)
     counts_merged           = sum(hist_merged.counts.values)
