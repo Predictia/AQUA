@@ -59,6 +59,22 @@ Not tested yet - To be updated
 
 Variables needed to perform TCs detection and tracking through tempest-extremes are:
 
+Input variables
+---------------
+
+- `msl`     (Mean sea level pressure, GRIB paramid 151)
+- `z`       (Geopotential height, GRIB paramid 129 at 300 and 500 hPa and at the surface (orography))
+- `10u`     (2m zonal wind, GRIB pramid 165)
+- `10v`     (2m meridional wind, GRIB pramid 166)
+
+with 6 hourly resolution on a 1x1 degree regular grid. Examples of variables in which the zoom in is applied
+such that they are stored in a netcdf file along the TCs tracks are:
+
+- `msl`     (Mean sea level pressure, GRIB paramid 151)
+- `10u`     (10m zonal wind, GRIB pramid 165)
+- `10v`     (10m meridional wind, GRIB pramid 166)
+- `pr`      (Total precipitation, GRIB pramid 228)
+- `10fg`    (10m wind gust since the last postprocessing, GRIB pramid 49)
 
 ## Examples
 
