@@ -517,7 +517,8 @@ class TR_PR_Diagnostic:
         Returns:
             str: The path to save the histogram.
         """
-        create_folder(folder    = str(path_to_netcdf), loglevel = 'WARNING')
+        if path_to_netcdf is not None:
+            create_folder(folder    = str(path_to_netcdf), loglevel = 'WARNING')
 
         if path_to_netcdf is not None:
             if name_of_file is None:
@@ -735,7 +736,6 @@ class TR_PR_Diagnostic:
         else:
             raise Exception("Test failed.")
 
-
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
     def histogram_plot(self, data, \
                        weights = None,      frequency = False,      pdf = True, \
@@ -784,6 +784,7 @@ class TR_PR_Diagnostic:
                 data = data['counts']
             except KeyError:
                 data = data
+
         elif pdf and not frequency:
             try:
                 data = data['pdf']
