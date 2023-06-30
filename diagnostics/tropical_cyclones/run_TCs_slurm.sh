@@ -4,13 +4,13 @@
 #SBATCH -n 1
 #SBATCH --cpus-per-task=256
 #SBATCH --mem=50G
-#SBATCH -t 04:30:50
+#SBATCH -t 4:30:00
 #SBATCH --mail-type=FAIL       # Notify user by email in case of job failure
-#SBATCH --output=/home/b/b382216/AQUA/diagnostics/tempest/slurm_jobs/tempest_TCs.o%j    # File name for standard output
-#SBATCH --error=/home/b/b382216/AQUA/diagnostics/tempest/slurm_jobs/tempest_TCs.e%j
+#SBATCH --output=/home/b/b382216/AQUA/diagnostics/tropical_cyclones/slurm_jobs/TCs.out_%j    # File name for standard output
+#SBATCH --error=/home/b/b382216/AQUA/diagnostics/tropical_cyclones/slurm_jobs/TCs.err_%j     # File name for errors
 
 
-DIR=/home/b/b382216/AQUA/diagnostics/tempest
+DIR=/home/b/b382216/AQUA/diagnostics/tropical_cyclones
 
 # Begin of section with executable commands
 
