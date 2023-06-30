@@ -12,14 +12,18 @@ from   matplotlib.colors import LogNorm
 
 import dask.array as da
 import dask_histogram as dh # pip
+
+from aqua.util import create_folder
  
 import cartopy.crs as ccrs
 
 from aqua import Reader
 from aqua.util import create_folder
 
-from tropical_rainfall_func import time_interpreter, convert_24hour_to_12hour_clock, convert_monthnumber_to_str, convert_length, convert_time, unit_splitter
+from tropical_rainfall_func import time_interpreter, convert_24hour_to_12hour_clock, convert_monthnumber_to_str
 from tropical_rainfall_func import mirror_dummy_grid
+from tropical_rainfall_func import convert_length, convert_time, unit_splitter, extract_directory_path
+
 """The module contains Tropical Precipitation Diagnostic:
 
 .. moduleauthor:: AQUA team <natalia.nazarova@polito.it>
@@ -228,8 +232,6 @@ class TR_PR_Diagnostic:
         coord_lat, coord_lon = self.coordinate_names(data)
         self.class_attributes_update(trop_lat = trop_lat)
         return data.where(abs(data[coord_lat]) <= self.trop_lat, drop = True)
-    
-
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
     def time_band(self, data,
@@ -500,7 +502,7 @@ class TR_PR_Diagnostic:
             
             
             for variable in (None, 'counts', 'frequency', 'pdf'):
-                tprate_dataset  =self.grid_attributes(data = data_with_final_grid, tprate_dataset = tprate_dataset, variable = variable)
+                tprate_dataset  = self.grid_attributes(data = data_with_final_grid, tprate_dataset = tprate_dataset, variable = variable)
             return tprate_dataset
         else:
             tprate_dataset      = counts_per_bin.to_dataset(name="counts")
@@ -511,30 +513,32 @@ class TR_PR_Diagnostic:
         
         
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def save_histogram(self, dataset = None, path_to_histogram = None, name_of_file = None):
+    def dataset_to_netcdf(self, dataset = None, path_to_netcdf = None, name_of_file = None):
         """ Function to save the histogram.
 
         Args:
             dataset (xarray, optional):         The Dataset with the histogram.     Defaults to None.
-            path_to_histogram (str, optional):  The path to save the histogram.     Defaults to None.
+            path_to_netcdf (str, optional):  The path to save the histogram.     Defaults to None.
 
         Returns:
             str: The path to save the histogram.
         """
-        if path_to_histogram is not None:
-            #create_folder(folder=path_to_histogram, loglevel='WARNING')
+        if path_to_netcdf is not None:
+            create_folder(folder    = str(path_to_netcdf), loglevel = 'WARNING')
+
             if name_of_file is None:
                 name_of_file    = '_'
             time_band           = dataset.counts.attrs['time_band']
             try:
-                name_of_file    = name_of_file +'_'+ re.split(":", re.split(", ", time_band)[0])[0]+'_' + re.split(":", re.split(", ", time_band)[1])[0]
+                name_of_file    = name_of_file +'_'+ re.split(":", re.split(", ", time_band)[0])[0] +'_'+ re.split(":", re.split(", ", time_band)[1])[0]
             except IndexError:
                 name_of_file    = name_of_file +'_'+ re.split("'", re.split(":", time_band)[0])[1]
-            path_to_histogram   = path_to_histogram + name_of_file + '_histogram.nc'
+
+            path_to_netcdf      = path_to_netcdf + name_of_file + '_histogram.nc'
         
-        if path_to_histogram is not None:
-            dataset.to_netcdf(path = path_to_histogram)
-        return path_to_histogram
+        if path_to_netcdf is not None:
+            dataset.to_netcdf(path = path_to_netcdf)
+        return path_to_netcdf
     
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
     def grid_attributes(self, data = None, tprate_dataset = None, variable = None):
@@ -604,15 +608,15 @@ class TR_PR_Diagnostic:
         tprate_dataset['pdf']           = hist_pdf
 
         if path_to_histogram is not None:
-            self.save_histogram(dataset = tprate_dataset, path_to_histogram = path_to_histogram)
+            self.dataset_to_netcdf(dataset = tprate_dataset, path_to_netcdf = path_to_histogram)
         return tprate_dataset
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def load_histogram(self, path_to_histogram = None):
+    def open_dataset(self, path_to_netcdf = None):
         """ Function to load a histogram dataset from a file using pickle.
 
         Args:
-            path_to_histogram (str):    The path to the dataset file.
+            path_to_netcdf (str):       The path to the dataset file.
 
         Returns:
             object:                     The loaded histogram dataset.
@@ -622,7 +626,7 @@ class TR_PR_Diagnostic:
         
         """
         try:
-            dataset = xr.open_dataset(path_to_histogram)
+            dataset = xr.open_dataset(path_to_netcdf)
             return dataset
         except FileNotFoundError:
             raise FileNotFoundError("The specified dataset file was not found.")
@@ -673,22 +677,21 @@ class TR_PR_Diagnostic:
             xarray: The xarray.Dataset with the merged data.
         """
 
-        histogram_list = [f for f in listdir(path_to_histograms) if isfile(join(path_to_histograms, f))]
+        histogram_list          = [f for f in listdir(path_to_histograms) if isfile(join(path_to_histograms, f))]
         histogram_list.sort()
 
         if all:
-            histograms_to_load = [str(path_to_histograms) + str(histogram_list[i]) for i in range(0, len(histogram_list))]
+            histograms_to_load  = [str(path_to_histograms) + str(histogram_list[i]) for i in range(0, len(histogram_list))]
         elif multi is not None:
-            histograms_to_load = [str(path_to_histograms) + str(histogram_list[i]) for i in range(0, multi)]
+            histograms_to_load  = [str(path_to_histograms) + str(histogram_list[i]) for i in range(0, multi)]
 
-        if len(histograms_to_load)>0:
+        if len(histograms_to_load) > 0:
             for i in range(0, len(histograms_to_load)):
                 if i == 0:
-                    dataset = self.load_histogram(path_to_histogram = histograms_to_load[i])
+                    dataset     = self.open_dataset(path_to_netcdf = histograms_to_load[i])
                 else:
-                    dataset = self.merge_two_datasets(tprate_dataset_1 = dataset,
-                                                      tprate_dataset_2 = self.load_histogram(path_to_histogram = histograms_to_load[i]))
-
+                    dataset     = self.merge_two_datasets(tprate_dataset_1 = dataset,
+                                                      tprate_dataset_2 = self.open_dataset(path_to_netcdf = histograms_to_load[i]))
             return dataset
         else:
             raise Exception('The specified repository is empty.')
@@ -715,8 +718,6 @@ class TR_PR_Diagnostic:
         else:
             raise Exception("Test failed.")
 
-
-        
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
     def convert_counts_to_pdf(self, data):
         """ Function to convert the counts to the pdf.
@@ -858,9 +859,7 @@ class TR_PR_Diagnostic:
         # set the spacing between subplots
         plt.tight_layout()
         if path_to_figure is not None and isinstance(path_to_figure, str):
-
-            #create_folder(folder=path_to_figure, loglevel='WARNING')
-
+            create_folder(folder    = extract_directory_path(path_to_figure), loglevel = 'WARNING')
             plt.savefig(path_to_figure)
         return {fig, ax}
     

@@ -255,6 +255,13 @@ def convert_monthnumber_to_str(data, ind):
     elif int(data['time.month'][ind]) == 12:    return 'D'
 
 """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """   
+def extract_directory_path(string):
+    """
+    Extracts the directory path from a string.
+    """
+    return "/".join(string.split("/")[:-1]) + "/"
+
+""" """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
 def new_time_coordinate(data, dummy_data, freq = None, time_length = None, factor = None):
     """ Function to create new time coordinate
 
