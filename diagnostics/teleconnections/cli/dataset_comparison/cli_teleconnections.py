@@ -146,25 +146,39 @@ if __name__ == '__main__':
     # Search for entries under 'obs' key
     obs_dict = config['obs']
 
+    teleconnections = []
+
     # Initialize Teleconnection class
     for config in config_dict:
         print('Initializing Teleconnection class for dataset_source: ',
               config['model'], config['exp'], config['source'])
-        teleconnection = Teleconnection(telecname=telecname, **config,
+        teleconnections.append(Teleconnection(telecname=telecname, **config,
                                         savefig=savefig, savefile=savefile,
-                                        configdir=configdir, loglevel=loglevel)
+                                        configdir=configdir, loglevel=loglevel))
+
+    # Retrieve data, evaluate teleconnection index, correlation and regression
+    for teleconnection in teleconnections:
+        print('Retrieving data for dataset_source: ',
+                teleconnection.model, teleconnection.exp, teleconnection.source)
         teleconnection.retrieve()
         teleconnection.evaluate_index()
         teleconnection.evaluate_correlation()
         teleconnection.evaluate_regression()
 
     # Initialize Teleconnection class for observational dataset
-    teleconnection = Teleconnection(telecname=telecname, **obs_dict,
+    teleconnection_obs = Teleconnection(telecname=telecname, **obs_dict,
                                     savefig=savefig, savefile=savefile,
                                     configdir=configdir, loglevel=loglevel)
-    teleconnection.retrieve()
-    teleconnection.evaluate_index()
-    teleconnection.evaluate_correlation()
-    teleconnection.evaluate_regression()
+    teleconnection_obs.retrieve()
+    teleconnection_obs.evaluate_index()
+    teleconnection_obs.evaluate_correlation()
+    teleconnection_obs.evaluate_regression()
+
+    if savefig:
+        print('Saving figures...')
+        for teleconnection in teleconnections:
+            teleconnection.plot_index()
+
+        teleconnection_obs.plot_index()
 
     print('Teleconnections diagnostic test run completed.')
