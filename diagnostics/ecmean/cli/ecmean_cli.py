@@ -32,10 +32,12 @@ def reader_data(model, exp, keep_vars):
     """
 
     reader = Reader(model=model, exp=exp, source="lra-r100-monthly", areas=False)
-    return reader.retrieve(var=keep_vars, fix=False)
-    #if keep_vars is None:
-    #    return dataset
-    #return dataset[[value for value in keep_vars if value in data_atm.data_vars]]
+    data = reader.retrieve(fix=False)
+
+    # return only vars that are available
+    if keep_vars is None:
+        return data
+    return data[[value for value in keep_vars if value in data.data_vars]]
     
 if __name__ == '__main__':
 
