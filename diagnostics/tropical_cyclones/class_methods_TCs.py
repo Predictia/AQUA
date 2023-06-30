@@ -4,6 +4,7 @@ import subprocess
 from aqua import Reader
 from aqua.logger import log_configure
 from glob import glob
+import numpy as np
 import pandas as pd
 from datetime import datetime
 
@@ -100,6 +101,49 @@ class TCs():
             os.makedirs(self.paths[path], exist_ok=True)
 
         self.catalog_init()
+
+    def loop_streaming(self, tdict):
+
+        # retrieve the data and call detect nodes on the first chunk of data
+        self.data_retrieve()
+        self.detect_nodes_zoomin()
+
+        # parameters for stitch nodes (to save tracks of selected variables in netcdf)
+        n_days_stitch = tdict['stitch']['n_days_freq'] + tdict['stitch']['n_days_ext']
+        last_run_stitch = pd.Timestamp(tropical.startdate)
+
+        # loop to simulate streaming
+        while len(np.unique(self.data2d.time.dt.day)) == tdict['stream']['streamstep']:
+            self.data_retrieve()
+            self.logger.warning(f"New streaming from {pd.Timestamp(tropical.stream_startdate).strftime('%Y%m%dT%H')} to {pd.Timestamp(tropical.stream_enddate).strftime('%Y%m%dT%H')}")
+            timecheck = (self.data2d.time.values > np.datetime64(tdict['time']['enddate']))
+            
+            if timecheck.any():
+                self.stream_enddate = self.data2d.time.values[np.where(timecheck)[0][0]-1] 
+                self.logger.warning(f'Modifying the last stream date {self.stream_enddate}') 
+
+            # call to Tempest DetectNodes
+            self.detect_nodes_zoomin()
+
+            if timecheck.any():
+                break
+            
+            # add one hour since time ends at 23
+            dayspassed = (self.stream_enddate + np.timedelta64(1, 'h')- last_run_stitch) / np.timedelta64(1, 'D')
+
+            # call Tempest StitchNodes every n_days_freq days time period and save TCs tracks in a netcdf file
+            if (dayspassed >= n_days_stitch):
+                end_run_stitch = last_run_stitch + np.timedelta64(tdict['stitch']['n_days_freq'], 'D')
+                self.logger.warning(f'Running stitch nodes from {last_run_stitch} to {end_run_stitch}')
+                self.stitch_nodes_zoomin(startdate=last_run_stitch, enddate=end_run_stitch,
+                    n_days_freq=tdict['stitch']['n_days_freq'], n_days_ext=tdict['stitch']['n_days_ext'])
+                last_run_stitch = copy.deepcopy(end_run_stitch)
+
+        # end of the loop for the last chunk of data
+        end_run_stitch = np.datetime64(tdict['time']['enddate'])
+        self.logger.warning(f'Running stitch nodes from {last_run_stitch} to {end_run_stitch}')
+        self.stitch_nodes_zoomin(startdate=pd.Timestamp(last_run_stitch), enddate=pd.Timestamp(end_run_stitch),
+                    n_days_freq=tdict['stitch']['n_days_freq'], n_days_ext=tdict['stitch']['n_days_ext'])
 
     def detect_nodes_zoomin(self):
         """
@@ -270,11 +314,11 @@ class TCs():
         elif self.exp=="tco2559-ng5-cycle3":
             for var in self.varlist3d:
                 self.logger.info(f'Regridding 3D data for {var}')
-                lowres = self.reader3d.regrid(self.data3d[var].sel(time=timestep, level=[300,500]))
+                lowres = self.reader3d.regrid(self.data3d[var].sel(time=timestep, plev=[30000,50000]))
                 outfield = xr.merge([outfield, lowres.to_dataset(name=var)])
 
-            outfield['level'] = outfield['level'].astype(float)
-            outfield['level'].attrs['units'] = 'hPa'
+            outfield['plev'] = outfield['plev'].astype(float)
+            outfield['plev'].attrs['units'] = 'Pa'
             
         # check if output file exists
         if os.path.exists(fileout):
