@@ -2,10 +2,10 @@
 
 ## Description
 
-A diagnostic to identify tropical cyclones centres (mean sea level pressure minima) and compute their trajectories based 
-on the tempest-extremes python library (https://climate.ucdavis.edu/tempestextremes.php).
+A diagnostic to identify tropical cyclones (TCs) centres (mean sea level pressure minima) and compute their trajectories based 
+on the tempest-extremes python library (https://climate.ucdavis.edu/tempestextremes.php). In addition to detection and tracking
+it features the possibility to save selected variables in a box in the vicinity of TCs centres along trajectories.
 
-Describe zoomin
 
 ## Table of Contents
 
@@ -23,12 +23,11 @@ Describe zoomin
 
 ## Installation Instructions
 
-Clearly explain how to install and set up your project. Include any dependencies, system requirements, or environment configurations that users should be aware of. Test installation, set up, and run your diagnostic on `Lumi` and `Levante.` If the installation requires additional dependencies, system requirements, environment configurations, or run directs specific data, you must document it. 
-
 ### Installation on Levante
 
-To install the diagnostic on `Levante` you can use conda.
-You should create an `AQUA/diagnostics/dummy/env-TCs.yml` file and include all the necessary dependencies for your diagnostic. 
+To install the tropical_cyclones diagnostic on `Levante` you can use conda; the yaml file
+`AQUA/diagnostics/tropical_cyclones/env-TCs.yml` to create the dedicated conda environment includes the tempest-extremes package and
+all the necessary dependencies to run the tropical cyclones diagnostic.
 
 To install the diagnostic in a new conda environment run:
 
@@ -48,29 +47,28 @@ To activate the environment run:
 conda activate TCs
 ```
 
-or the name of the environment you chose to update.
-
 The diagnostic environment is compatible with python 3.9 and 3.10 and with the AQUA framework.
 Different diagnostic environments may be not compatible with each other.
 If you want to use multiple diagnostics at the same time, it is recommended to use the different environments for each of them.
 
 ### Installation on Lumi 
 
-To be updated
+Not tested yet - To be updated
 
 ## Data requirements  
 
-Please specify if your diagnostic can only be performed on data with particular requirements. If your diagnostics have no Data requirements, you should also document that.
-If you diagnositcs requires observational/reanalysis data which is not available on Levante and/or Lumi, please contact the AQUA team providing clear specification and download path so that this data can be added to the catalog.
+Variables needed to perform TCs detection and tracking through tempest-extremes are:
+
 
 ## Examples
 
 The **notebook/** folder contains the following notebooks:
 
-- **dummy.ipynb**: 
-  Provide a brief description for each notebook (2-3 sentences).
-- 
+- **tropical_cyclones.ipynb**: 
+  Notebook to explain and demonstrate the tropical cyclones diagnostic. It includes the main diagnostic feature which are the detection and tracking of tropical cyclones (usually performed on low resolution data) and the zoom in feature. The zoom in allows to save
+  some selected variables in the vicinity of tropical cyclones centres along their trajectories using original resolution data.
 
 ## Contributing
 
-Include your contact information or any official channels (such as email, GitHub profile) through which users can reach out to you for support, questions, or feedback.
+The tempest-extremes library is available at: https://climate.ucdavis.edu/tempestextremes.php
+Person responsible dor the development and mainteinance of the tropical cyclones diagnostic is Paolo Ghinassi (p.ghinass@isac.cnr.it)
