@@ -180,6 +180,12 @@ class DummyDiagnosticWrapper():
         # Initialize the Reader class
         self._reader()  # self has not to be passed to the method as it is contained in the class
 
+        self.fieldmean = None
+        self.product = None
+        self.outputdir = None
+        self.outputfig = None
+        self.data = None
+
         # Plese if some more initialization is needed for the diagnostic, do it in this functions.
 
     def _load_config(self, diagconfigdir=None):
@@ -346,7 +352,7 @@ class DummyDiagnosticWrapper():
             TypeError: if the variable is not a string
         """
         self.logger.info('Field mean computed')
-        return self.reader.fldmean(self.data)
+        self.fieldmean = self.reader.fldmean(self.data)
 
     def multiplication(self):
         """The multiplication method.
@@ -355,7 +361,7 @@ class DummyDiagnosticWrapper():
         """
 
         self.logger.info('Multiplication computed')
-        return dummy_func(self.data)  # dummy_func is a function defined in the module
+        self.product = dummy_func(self.data)  # dummy_func is a function defined in the module
 
     def _private_method(self):
         """The private method.
