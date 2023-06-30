@@ -4,7 +4,7 @@
 #SBATCH -n 1
 #SBATCH --cpus-per-task=256
 #SBATCH --mem=50G
-#SBATCH -t 4:30:00
+#SBATCH -t 6:30:00
 #SBATCH --mail-type=FAIL       # Notify user by email in case of job failure
 #SBATCH --output=/home/b/b382216/AQUA/diagnostics/tropical_cyclones/slurm_jobs/TCs.out_%j    # File name for standard output
 #SBATCH --error=/home/b/b382216/AQUA/diagnostics/tropical_cyclones/slurm_jobs/TCs.err_%j     # File name for errors
@@ -23,6 +23,6 @@ whereconda=/home/b/b382216/work/mambaforge
 #echo $whereconda/etc/profile.d/conda.sh
 source $whereconda/etc/profile.d/conda.sh
 conda activate TCs
-python $DIR/TCs_intake_slurm.py
+python $DIR/tropical_cyclones_slurm.py
 
 
