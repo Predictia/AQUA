@@ -1,9 +1,7 @@
 '''
 This module contains simple functions for data plotting.
 '''
-import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
-import xarray as xr
 
 from aqua.logger import log_configure
 
@@ -46,82 +44,6 @@ def set_layout(fig, ax, title=None, xlabel=None, ylabel=None, xlog=False,
         ax.set_ylim(ylim)
 
     return fig, ax
-
-
-def cor_plot(indx, field, plot=True, projection_type='PlateCarree',
-             contour=False, levels=9, save=False, outputdir='./',
-             filename='cor.png', loglevel='WARNING', **kwargs):
-    """
-    Evaluate and plot correlation map of a teleconnection index
-    and a DataArray field.
-
-    Args:
-        indx (DataArray):       index DataArray
-        field (DataArray):      field DataArray
-        projection_type (str):  projection style for cartopy
-                                If a wrong one is provided, it will fall back
-                                to PlateCarree
-        plot (bool):            enable or disable the plot output,
-                                true by default
-        contour (bool,opt):     enable or disable contour plot,
-                                default is False
-        levels (int,opt):       number of contour levels, default is 8
-        save (bool,opt):        enable or disable saving the figure,
-                                default is False
-        outputdir (str,opt):    output directory for the figure,
-                                default is './'
-        filename (str,opt):     name of the figure file,
-                                default is 'cor.png'
-        loglevel (str,opt):     log level for the logger,
-                                default is 'WARNING'
-        **kwargs:               additional arguments for set_layout
-
-    Returns:
-        reg (DataArray):        DataArray for regression map
-        fig (Figure,opt):       Figure object
-        ax (Axes,opt):          Axes object
-    """
-    # 0. -- Configure the logger --
-    logger = log_configure(loglevel, 'cor_plot')
-
-    # 1. -- List of accepted projection maps --
-    projection_types = {
-        'PlateCarree': ccrs.PlateCarree(),
-        'LambertConformal': ccrs.LambertConformal(),
-        'Mercator': ccrs.Mercator()
-    }
-
-    # 2. -- Evaluate the map --
-    cor = xr.corr(indx, field, dim="time")
-
-    # 3. -- Plot the regression map --
-    proj = projection_types.get(projection_type, ccrs.PlateCarree())
-    # Warn if the projection type is not in the list
-    if proj == ccrs.PlateCarree() and projection_type != 'PlateCarree':
-        logger.warning('Projection type not found, falling back to PlateCarree')
-
-    if plot:
-        fig, ax = plt.subplots(subplot_kw={'projection': proj}, figsize=(8, 4))
-
-        ax.coastlines()
-        if contour:
-            cor.plot.contourf(ax=ax, transform=ccrs.PlateCarree(),
-                              levels=levels)
-            logger.info('Contour plot')
-        else:
-            cor.plot(ax=ax, transform=ccrs.PlateCarree())
-
-        set_layout(fig, ax, **kwargs)
-
-        # 4. -- Save the figure --
-        if save:
-            fig.savefig(outputdir + filename)
-            logger.info('Figure saved in ' + outputdir + filename)
-
-        return cor, fig, ax
-    else:
-        logger.info('No plot requested')
-        return cor
 
 
 def index_plot(indx, save=False, outputdir='./', filename='index.png',
@@ -182,80 +104,6 @@ def index_plot(indx, save=False, outputdir='./', filename='index.png',
         logger.info('Figure saved in ' + outputdir + filename)
 
     return fig, ax
-
-
-def reg_plot(indx, field, plot=True, projection_type='PlateCarree',
-             contour=False, levels=9, save=False, outputdir='./',
-             filename='reg.png', loglevel='WARNING', **kwargs):
-    """
-    Evaluate and plot regression map of a teleconnection index
-    and a DataArray field
-
-    Args:
-        indx (DataArray):       index DataArray
-        field (DataArray):      field DataArray
-        plot (bool):            enable or disable the plot output,
-                                True by default
-        projection_type (str):  projection style for cartopy
-                                If a wrong one is provided, it will fall back
-                                to PlateCarree
-        contour (bool,opt):     enable or disable contour plot,
-                                default is False
-        levels (int,opt):       number of contour levels, default is 8
-        save (bool,opt):        enable or disable saving the plot,
-                                default is False
-        outputdir (str,opt):    directory to save the plot
-        filename (str,opt):     filename of the plot
-        loglevel (str,opt):     log level for the logger,
-                                default is 'WARNING'
-        **kwargs:               additional arguments for set_layout
-
-    Returns:
-        reg (DataArray):        DataArray for regression map
-        fig (Figure,opt):       Figure object
-        ax (Axes,opt):          Axes object
-    """
-    # 0. -- Configure the logger --
-    logger = log_configure(loglevel, 'reg_plot')
-
-    # 1. -- List of accepted projection maps --
-    projection_types = {
-        'PlateCarree': ccrs.PlateCarree(),
-        'LambertConformal': ccrs.LambertConformal(),
-        'Mercator': ccrs.Mercator()
-    }
-
-    # 2. -- Evaluate the regression --
-    reg = xr.cov(indx, field, dim="time")/indx.var(dim='time',
-                                                   skipna=True).values
-
-    # 3. -- Plot the regression map --
-    proj = projection_types.get(projection_type, ccrs.PlateCarree())
-    # Warn if the projection type is not in the list
-    if proj == ccrs.PlateCarree() and projection_type != 'PlateCarree':
-        logger.warning('Projection type not found, falling back to PlateCarree')
-
-    if plot:
-        fig, ax = plt.subplots(subplot_kw={'projection': proj}, figsize=(8, 4))
-
-        ax.coastlines()
-        if contour:
-            reg.plot.contourf(ax=ax, transform=ccrs.PlateCarree(),
-                              levels=levels)
-        else:
-            reg.plot(ax=ax, transform=ccrs.PlateCarree())
-
-        set_layout(fig, ax, **kwargs)
-
-        # 4. -- Save the figure --
-        if save:
-            fig.savefig(outputdir + filename)
-            logger.info('Figure saved in ' + outputdir + filename)
-
-        return reg, fig, ax
-    else:
-        logger.info('No plot requested')
-        return reg
 
 
 def simple_plot(field, save=False, outputdir='./', filename='plot.png',

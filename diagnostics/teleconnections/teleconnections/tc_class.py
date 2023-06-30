@@ -14,12 +14,11 @@ Available teleconnections:
 """
 import os
 
-import xarray as xr
-
 from aqua.logger import log_configure
 from aqua.reader import Reader
 from teleconnections.index import station_based_index, regional_mean_index
 from teleconnections.plots import index_plot
+from teleconnections.statistics import reg_evaluation, cor_evaluation
 from teleconnections.tools import load_namelist
 
 
@@ -27,7 +26,9 @@ class Teleconnection():
     """Class for teleconnection objects."""
 
     def __init__(self, model: str, exp: str, source: str,
-                 telecname: str, diagdir=None, regrid='r100',
+                 telecname: str, configdir=None,
+                 regrid='r100', freq='monthly',
+                 zoom=None,
                  savefig=False, outputfig=None,
                  savefile=False, outputdir=None,
                  filename=None,
@@ -40,8 +41,10 @@ class Teleconnection():
             source (str):                   Source name.
             telecname (str):                Teleconnection name.
                                             See documentation for available teleconnections.
-            diagdir (str, optional):        Path to diagnostics configuration folder.
+            configdir (str, optional):      Path to diagnostics configuration folder.
             regrid (str, optional):         Regridding resolution. Defaults to 'r100'.
+            freq (str, optional):           Frequency of the data. Defaults to 'monthly'.
+            zoom (str, optional):           Zoom for ICON data. Defaults to None.
             savefig (bool, optional):       Save figures if True. Defaults to False.
             outputfig (str, optional):      Output directory for figures.
                                             If None, the current directory is used.
@@ -73,6 +76,13 @@ class Teleconnection():
             self.logger.warning('No regridding will be performed')
         self.logger.debug('Regridding resolution: {}'.format(self.regrid))
 
+        self.freq = freq
+        self.logger.debug('Frequency: {}'.format(self.freq))
+
+        self.zoom = zoom
+        if self.zoom is not None:
+            self.logger.debug('Zoom: {}'.format(self.zoom))
+
         # Teleconnection variables
         avail_telec = ['NAO', 'ENSO']
         if telecname in avail_telec:
@@ -80,7 +90,7 @@ class Teleconnection():
         else:
             raise ValueError('telecname must be one of {}'.format(avail_telec))
 
-        self._load_namelist(diagdir=diagdir)
+        self._load_namelist(configdir=configdir)
 
         # Variable to be used for teleconnection
         self.var = self.namelist[self.telecname]['field']
@@ -110,19 +120,23 @@ class Teleconnection():
         # Notice that reader is a private method
         # but **kwargs are passed to it so that it can be used to pass
         # arguments to the reader if needed
-        self._reader()
 
-    def _load_namelist(self, diagdir=None):
+        if self.zoom:
+            self._reader(zoom=self.zoom)
+        else:
+            self._reader()
+
+    def _load_namelist(self, configdir=None):
         """Load namelist.
 
         Args:
-            diagdir (str, optional): Path to diagnostics configuration folder.
-                                     If None, the default diagnostics folder is used.
+            configdir (str, optional): Path to diagnostics configuration folder.
+                                       If None, the default diagnostics folder is used.
         """
 
-        self.namelist = load_namelist('teleconnections', diagdir)
+        self.namelist = load_namelist(diagname='teleconnections',
+                                      configdir=configdir)
         self.logger.info('Namelist loaded')
-        self.logger.debug(self.namelist)
 
     def _reader(self, **kwargs):
         """Initialize AQUA reader.
@@ -132,8 +146,22 @@ class Teleconnection():
         """
 
         self.reader = Reader(model=self.model, exp=self.exp, source=self.source,
-                             regrid=self.regrid, loglevel=self.loglevel, **kwargs)
+                             regrid=self.regrid, freq=self.freq,
+                             loglevel=self.loglevel, **kwargs)
         self.logger.info('Reader initialized')
+
+    def run(self):
+        """Run teleconnection analysis."""
+
+        self.logger.debug('Running teleconnection analysis for data: {}/{}/{}'
+                          .format(self.model, self.exp, self.source))
+
+        self.retrieve()
+        self.evaluate_index()
+        self.evaluate_regression()
+        self.evaluate_correlation()
+
+        self.logger.info('Teleconnection analysis completed')
 
     def retrieve(self, **kwargs):
         """Retrieve teleconnection data.
@@ -153,6 +181,11 @@ class Teleconnection():
         if self.regrid:
             self.data = self.reader.regrid(self.data)
             self.logger.info('Data regridded')
+
+        if self.freq:
+            if self.freq == 'monthly':
+                self.data = self.reader.timmean(self.data)
+                self.logger.info('Time aggregated to {}'.format(self.freq))
 
     def evaluate_index(self, **kwargs):
         """Calculate teleconnection index.
@@ -186,23 +219,27 @@ class Teleconnection():
     def evaluate_regression(self):
         """Calculate teleconnection regression."""
 
-        self.logger.warning('Not implemented yet')
-        return
+        data = self._adapt_data()
+
+        self.regression = reg_evaluation(self.index, data,
+                                         loglevel=self.loglevel)
 
         if self.savefile:
             file = self.outputdir + '/' + self.filename + '_reg.nc'
-            self.reg.to_netcdf(file)
+            self.regression.to_netcdf(file)
             self.logger.info('Regression saved to {}'.format(file))
 
     def evaluate_correlation(self):
         """Calculate teleconnection correlation."""
 
-        self.logger.warning('Not implemented yet')
-        return
+        data = self._adapt_data()
+
+        self.correlation = cor_evaluation(self.index, data,
+                                          loglevel=self.loglevel)
 
         if self.savefile:
             file = self.outputdir + '/' + self.filename + '_corr.nc'
-            self.corr.to_netcdf(file)
+            self.correlation.to_netcdf(file)
             self.logger.info('Correlation saved to {}'.format(file))
 
     def plot_index(self, step=False, **kwargs):
@@ -298,3 +335,23 @@ class Teleconnection():
         elif folder_type == 'data':
             self.outputdir = folder
             self.logger.debug('Data output folder: {}'.format(self.outputdir))
+
+    def _adapt_data(self):
+        """Adapt the data so that the time dimension is the same as the index.
+
+        Returns:
+            xarray.DataArray: the data with the same time dimension as the index.
+        """
+
+        if self.index is None:
+            self.logger.warning('No index has been calculated, trying to calculate')
+            self.evaluate_index()
+
+        # Select the variable
+        data = self.data[self.var]
+
+        # Select the months that are in the index
+        drop_count = self.months_window // 2
+        data = data.isel(time=slice(drop_count, -drop_count))
+
+        return data
