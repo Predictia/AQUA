@@ -159,7 +159,7 @@ class TR_PR_Diagnostic:
         return coord_lat, coord_lon
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def precipitation_rate_units_converter(self, data, model_variable = 'tprate', new_unit = 'm s**-1'):
+    def precipitation_rate_units_converter(self, data, model_variable = 'tprate', new_unit = 'kg m**-2 s**-1'):
         """ Function to convert the units of precipitation rate.
 
         Args:
@@ -175,13 +175,33 @@ class TR_PR_Diagnostic:
         except KeyError:
             data        = data
 
-        from_space_unit, from_time_unit     = unit_splitter(data.units)
-        to_space_unit,   to_time_unit       = unit_splitter(new_unit)
+        if data.units == new_unit:
+            return data
+        else:
+            from_mass_unit, from_space_unit, from_time_unit = unit_splitter(data.units)
+            to_mass_unit, to_space_unit,   to_time_unit     = unit_splitter(new_unit)
 
-        data            = convert_length(data, from_space_unit, to_space_unit)
-        data            = convert_time(1/data,   from_time_unit,  to_time_unit)
+            if data.units == 'kg m**-2 s**-1':
+                data            = 0.001 * data
+                data            = convert_length(data,   from_space_unit, to_space_unit)
+                data            = convert_time(data,     from_time_unit,  to_time_unit)
+            elif from_mass_unit is None and new_unit == 'kg m**-2 s**-1':
+                data            = convert_length(data,   from_space_unit, 'm')
+                data            = convert_time(data,     from_time_unit,  's')
+                data            = 1000 * data
+            else:
+                data            = convert_length(data,   from_space_unit, to_space_unit)
+                data            = convert_time(data,     from_time_unit,  to_time_unit)
 
-        return data
+            data.attrs['units'] = new_unit
+            current_time        = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            history_update      = str(current_time)+' the units of precipitation are converted from ' + str(data.units) + ' to ' + str(new_unit) + ';\n '
+            try:
+                history_attr                    = data.attrs['history'] + history_update
+                data.attrs['history']           = history_attr
+            except AttributeError:
+                data.attrs['history']           = history_update
+            return data
     
         
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 

@@ -18,19 +18,39 @@ import sys
 path_to_diagnostic='./diagnostics/tropical-rainfall/'
 sys.path.insert(1, path_to_diagnostic)
 
+approx_rel=1e-4
+
 @pytest.mark.tropical_rainfall
 @pytest.fixture
 def reader():
     if os.getenv('INPUT_ARG') is None:
         data                    = Reader(model="IFS", exp="test-tco79", source="long")
         retrieved               = data.retrieve()
-        return retrieved.isel(time = slice(10,11))
+        try:
+            retrieved_array     = retrieved['tprate']
+        except KeyError:
+            retrieved_array     = retrieved['2t']
+        return retrieved_array.isel(time = slice(10,11))
 
     elif str(os.getenv('INPUT_ARG'))=='levante':
         """reader_levante """
-        data                    = Reader(model="IFS", exp="tco2559-ng5", source="lra-r100-monthly")
+        data                    = Reader(model="ICON", exp="ngc2009", source="lra-r100-monthly")
         retrieved               = data.retrieve()
-        return retrieved.isel(time = slice(10,11))
+        try:
+            retrieved_array     = retrieved['tprate']
+        except KeyError:
+            retrieved_array     = retrieved['2t']
+        return retrieved_array.isel(time = slice(10,11))
+
+    elif str(os.getenv('INPUT_ARG'))=='lumi':
+        """reader_levante """
+        data                    = Reader(model="ERA5", exp="fdb", source="default")
+        retrieved               = data.retrieve()
+        try:
+            retrieved_array     = retrieved['tprate']
+        except KeyError:
+            retrieved_array     = retrieved['2t']
+        return retrieved_array.isel(time = slice(10,11))
 
 @pytest.mark.tropical_rainfall
 def test_module_import():
@@ -42,16 +62,6 @@ def test_module_import():
         assert False, "Diagnostic could not be imported"
 
 from tropical_rainfall_class import TR_PR_Diagnostic as TR_PR_Diag
-
-@pytest.fixture
-def check_precipitation_in_data(reader):
-    data                    = reader
-    try:
-        data['tprate']
-        return True
-    except KeyError:
-        print('The dataset does not contain the precipitation rate. I wIll use 2m temperature instead')
-        return False
     
 @pytest.fixture
 def data_size(reader):
@@ -81,10 +91,12 @@ def histogram_output(reader):
     """ Histogram output fixture
     """
     data                    = reader
-    diag                    = TR_PR_Diag(num_of_bins = 20, first_edge = 200, width_of_bin = (320-200)/20)
-    hist                    = diag.histogram(data, model_variable='2t', trop_lat=90)
+    if 'tprate' in data.shortName:
+        diag                = TR_PR_Diag(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-6)/20)
+    elif '2t' in data.shortName:
+        diag                = TR_PR_Diag(num_of_bins = 20, first_edge = 200, width_of_bin = (320-200)/20)
+    hist                    = diag.histogram(data, trop_lat=90)
     return hist
-
 
 @pytest.mark.tropical_rainfall
 def test_hisogram_counts(histogram_output, data_size): 
@@ -103,7 +115,6 @@ def test_histogram_frequency(histogram_output):
     frequency_sum           = sum(hist.frequency.values)
     assert frequency_sum -1 < 10**(-4)
 
-
 @pytest.mark.tropical_rainfall
 def test_histogram_pdf(histogram_output):
     """ Testing the histogram pdf
@@ -111,7 +122,6 @@ def test_histogram_pdf(histogram_output):
     hist                    = histogram_output
     pdf_sum                 = sum(hist.pdf.values*hist.width.values)
     assert pdf_sum-1        < 10**(-4)
-
 
 @pytest.mark.tropical_rainfall
 def test_histogram_load_to_memory(histogram_output):
@@ -158,7 +168,7 @@ def test_lazy_mode_calculation(reader):
     """
     data                    = reader
     diag                    = TR_PR_Diag(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-6)/20)
-    hist_lazy               = diag.histogram(data, lazy = True, model_variable = '2t')
+    hist_lazy               = diag.histogram(data, lazy = True)
     assert 'frequency'      not in hist_lazy.attrs
     assert 'pdf'            not in hist_lazy.variables
 
@@ -240,3 +250,42 @@ def test_histogram_merge(histogram_output):
     counts_merged           = sum(hist_merged.counts.values)
     assert counts_merged    == (counts_1 + counts_2)
 
+@pytest.mark.tropical_rainfall
+def test_units_converter(reader):
+    """ Testing convertation of units"""
+
+    data                        = reader
+    diag                        = TR_PR_Diag()
+
+    old_units                   = data.units
+
+    if 'tprate' in data.shortName:
+        old_mean_value          = float(data.mean().values)
+        data                    = diag.precipitation_rate_units_converter(data, new_unit = old_units)
+        new_mean_value          = float(data.mean().values)
+
+        assert old_mean_value   == new_mean_value
+
+        data                    = diag.precipitation_rate_units_converter(data, new_unit = 'cm s**-1')
+        mean_value_cmpersec     = float(data.mean().values)
+        data                    = diag.precipitation_rate_units_converter(data, new_unit = 'mm s**-1')
+        mean_value_mmpersec     = float(data.mean().values)
+
+        assert abs(mean_value_mmpersec/mean_value_cmpersec - 10) < 1e-3
+        assert data.units       == 'mm s**-1'
+
+        data                    = diag.precipitation_rate_units_converter(data, new_unit = 'm min**-1')
+        mean_value_mpermin      = float(data.mean().values)
+        data                    = diag.precipitation_rate_units_converter(data, new_unit = 'm days**-1')
+        mean_value_mperday      = float(data.mean().values)
+
+        assert abs(mean_value_mperday/mean_value_mpermin - 24*60) < 1e-3
+        assert data.units       == 'm days**-1'
+
+        data                    = diag.precipitation_rate_units_converter(data, new_unit = 'm year**-1')
+        mean_value_mperyear     = float(data.mean().values)
+
+        assert abs(mean_value_mperday/mean_value_mperyear -  0.00273973) < 1e-3
+        assert data.units       == 'm year**-1'
+    else:
+        assert False,       "The function converts units of precipitation, but provided dataarray doesn't contain the precipitation"
