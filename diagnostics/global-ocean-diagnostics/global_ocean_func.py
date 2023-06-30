@@ -78,18 +78,23 @@ def weighted_area_mean(data, use_predefined_region: bool, region: str = None, la
     wgted_mean = weighted_data.mean(("lat", "lon"))
     return wgted_mean
 
-def mean_value_plot(data, title):
+
+def mean_value_plot(data, region, customise_level=False, levels=None):
     # Calculate weighted area mean
-    data = fn.weighted_area_mean(data, -90, 90, 0, 360)
+    data = weighted_area_mean(data, True, region)
 
     # Create subplots
     fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
 
     # Set the title
-    fig.suptitle(title, fontsize=16)
+    fig.suptitle(region, fontsize=16)
 
     # Define the levels for plotting
-    levels = [0, 100, 500, 1000, 2000, 3000, 4000, 5000]
+    if customise_level:
+        if levels is None:
+            raise ValueError("Custom levels are selected, but levels are not provided.")
+    else:
+        levels = [0, 100, 500, 1000, 2000, 3000, 4000, 5000]
 
     # Plot data for each level
     for level in levels:
@@ -99,29 +104,31 @@ def mean_value_plot(data, title):
             data_level = data.isel(lev=0)
 
         # Plot temperature
-        data_level.thetao.plot.line(ax=ax1)
+        data_level.thetao.plot.line(ax=ax1,label=f"{round(int(data_level.lev.data), -2)}")
 
         # Plot salinity
-        data_level.so.plot.line(ax=ax2)
+        data_level.so.plot.line(ax=ax2,label=f"{round(int(data_level.lev.data), -2)}")
 
     # Set properties for the temperature subplot
     ax1.set_title("Temperature", fontsize=14)
     ax1.set_ylabel("Standardized Units (at the respective level)", fontsize=12)
     ax1.set_xlabel("Time (in years)", fontsize=12)
-    ax1.legend(["0", "100", "500", "1000", "2000", "3000", "4000", "5000"], loc="best")
+    ax1.legend(loc="best")
 
     # Set properties for the salinity subplot
     ax2.set_title("Salinity", fontsize=14)
     ax2.set_ylabel("Standardized Units (at the respective level)", fontsize=12)
     ax2.set_xlabel("Time (in years)", fontsize=12)
-    ax2.legend(["0", "100", "500", "1000", "2000", "3000", "4000", "5000"], loc="best")
+    ax2.legend(loc="best")
+    filename = f"./output/TS_{region.replace(' ', '_').lower()}_mean.png"
 
+    plt.savefig(filename)
+    logger.info(f"{filename} saved")
     # Adjust the layout and display the plot
-    plt.tight_layout()
     plt.show()
 
     # Return the last value of data_level
-    return data_level
+    return 
 
 
 
@@ -160,7 +167,7 @@ def std_anom_wrt_initial(data, use_predefined_region: bool, region: str = None, 
 
 
 
-def std_anom_wrt_time_mean(data, latN: float, latS: float, lonW: float, lonE: float):
+def std_anom_wrt_time_mean(data, use_predefined_region: bool, region: str = None, latN: float = None, latS: float = None, lonW: float = None, lonE: float = None):
     """
     Calculate the standard anomaly of input data relative to the time mean.
 
@@ -178,7 +185,7 @@ def std_anom_wrt_time_mean(data, latN: float, latS: float, lonW: float, lonE: fl
     std_anomaly = xr.Dataset()
 
     # Compute the weighted area mean over the specified latitude and longitude range
-    wgted_mean = weighted_area_mean(data, latN, latS, lonW, lonE)
+    wgted_mean = weighted_area_mean(data, use_predefined_region, region, latN, latS, lonW, lonE)    
 
     # Calculate the anomaly from the time mean for each variable
     for var in list(data.data_vars.keys()):
