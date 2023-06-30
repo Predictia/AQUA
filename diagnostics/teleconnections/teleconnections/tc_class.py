@@ -252,7 +252,8 @@ class Teleconnection():
         if self.savefig:
             # Set the filename
             filename = self.filename + '_index.pdf'
-            self.logger.info('Index plot saved to {}/{}'.format(self.outputfig, filename))
+            self.logger.info('Index plot saved to {}/{}'.format(self.outputfig,
+                                                                filename))
             index_plot(indx=self.index, save=self.savefig,
                        outputdir=self.outputfig, filename=filename,
                        loglevel=self.loglevel, step=step, **kwargs)

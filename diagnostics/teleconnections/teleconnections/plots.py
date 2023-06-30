@@ -1,6 +1,8 @@
 '''
 This module contains simple functions for data plotting.
 '''
+import os
+
 import matplotlib.pyplot as plt
 
 from aqua.logger import log_configure
@@ -100,8 +102,9 @@ def index_plot(indx, save=False, outputdir='./', filename='index.png',
 
     # 4. -- Save the figure --
     if save:
-        fig.savefig(outputdir + filename)
-        logger.info('Figure saved in ' + outputdir + filename)
+        filepath = os.path.join(outputdir, filename)
+        fig.savefig(filepath)
+        logger.info('Figure saved in ' + filepath)
 
     return fig, ax
 
@@ -139,5 +142,33 @@ def simple_plot(field, save=False, outputdir='./', filename='plot.png',
     if save:
         fig.savefig(outputdir + filename)
         logger.info('Figure saved in ' + outputdir + filename)
+
+    return fig, ax
+
+def comparison_index_plot(indxs=None, **kwargs):
+    """
+    Comparison plot of the indices
+
+    Args:
+        indxs (list):           list of indices xarray to plot
+        **kwargs:               additional arguments for set_layout
+    """
+    # 0. -- Configure the logger --
+    logger = log_configure(loglevel, 'comparison_index_plot')
+
+    if indxs is None:
+        raise ValueError('indxs is None')
+
+    # 1. -- Generate the figure --
+    fig, ax = plt.subplots(figsize=(12, 8))
+
+    # 2. -- Plot the index --
+    for indx in indxs:
+        # 2.1 -- Plot the index --
+        # Make use of the index_plot function
+        index_plot(indx, ax=ax, step=True, **kwargs)
+
+    # 3. -- Set the layout --
+    set_layout(fig, ax, **kwargs)
 
     return fig, ax
