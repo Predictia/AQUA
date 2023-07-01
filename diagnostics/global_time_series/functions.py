@@ -5,6 +5,12 @@ import matplotlib.pyplot as plt
 from aqua import Reader
 
 
+__all__ = [
+    "plot_timeseries",
+    "plot_gregory",
+]
+
+
 def get_reference_data(varname, sel=None, resample=None):
     """Get ERA5 reference data for a given variable."""
     reader = Reader(model="ERA5", exp="era5", source="monthly")
