@@ -90,12 +90,12 @@ def plot_gregory(model, exp, reader_kw={}, plot_kw={}, ax=None, **kwargs):
     reader = Reader(model, exp, **reader_kw)
     data = reader.retrieve()
 
+    ts = reader.timmean(data=reader.fldmean(data["2t"]), freq="M").values - 273.15
+    toa = reader.timmean(data=reader.fldmean(data["mtnsrf"] + data["mtntrf"]), freq="M").values
+
     ax.axhline(0, color="k", lw=0.8)
-    ax.plot(
-        reader.fldmean(data["2t"].resample(time="M").mean()) - 273.15,
-        reader.fldmean((data["mtnsrf"] + data["mtntrf"]).resample(time="M").mean()),
-        marker="o",
-        **plot_kw,
-    )
+    lh, = ax.plot(ts, toa, marker=".", **plot_kw)
+    ax.plot(ts[0], toa[0], marker=">", color="tab:green")
+    ax.plot(ts[-1], toa[-1], marker="<", color="tab:red")
     ax.set_xlabel("2m temperature / C")
     ax.set_ylabel(r"Net radiation TOA / $\rm Wm^{-2}$")
