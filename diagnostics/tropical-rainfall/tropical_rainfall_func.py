@@ -403,3 +403,21 @@ def mirror_dummy_grid(data,  dummy_data, space_grid_factor = None, time_freq = N
             return new_data, new_dummy_data
         else:
             return new_dataset_lat_lon, dummy_data
+
+def data_size(data):
+    """ Function to get the size of the data
+
+    Args:
+        data (xarray):                  The Dataset
+
+    Returns:
+        int:                           The size of the data
+    """
+    if 'DataArray' in str(type(data)):
+            _size = data.size
+    elif 'Dataset' in str(type(data)): 
+        _names = list(data.dims) 
+        _size = 1
+        for i in _names:
+            _size *= data[i].size
+    return _size

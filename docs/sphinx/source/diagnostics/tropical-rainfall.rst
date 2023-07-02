@@ -313,6 +313,55 @@ You can find an example of the histogram obtained with the tropical-rainfall dia
 
     The pdf of tropical precipitation of the ICON data. 
 
+Mean and Median Values 
+----------------------
+
+#. Mean values
+   The `mean_along_coordinate` function calculates the mean value of a model variable (by default of precipitation) 
+   along any coordinate or global mean. The function has an argument `coordinate`, which can be 
+
+   * `time` (by default)
+
+   * `lat` or `latitude`
+
+   * `lon` or `longitude`
+
+   For eample,
+   
+   .. code-block:: python
+
+     diag.mean_along_coordinate(ifs, coord='lat')
+
+   The function calculates the global mean value if the user sets the `glob = True`:
+   
+   .. code-block:: python
+
+     diag.mean_along_coordinate(ifs, glob=True)
+
+#. Median values
+
+   The `median_along_coordinate` function calculates the median value of a model variable (by default of precipitation) along any coordinate or global median.
+   The function has an argument `coordinate`, which can be 
+
+   * `time` (by default)
+
+   * `lat` or `latitude`
+
+   * `lon` or `longitude`
+
+    For eample,
+   
+   .. code-block:: python
+
+     diag.median_along_coordinate(ifs, coord='lat')
+
+  The function calculates the global median value if the user sets the `glob = True`:
+  
+  .. code-block:: python
+
+     diag.median_along_coordinate(icon, glob=True)
+
+
 Notebooks 
 ---------
 

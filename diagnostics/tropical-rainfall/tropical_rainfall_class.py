@@ -21,7 +21,7 @@ from aqua import Reader
 from aqua.util import create_folder
 
 from tropical_rainfall_func import time_interpreter, convert_24hour_to_12hour_clock, convert_monthnumber_to_str
-from tropical_rainfall_func import mirror_dummy_grid
+from tropical_rainfall_func import mirror_dummy_grid, data_size
 from tropical_rainfall_func import convert_length, convert_time, unit_splitter, extract_directory_path
 
 """The module contains Tropical Precipitation Diagnostic:
@@ -969,6 +969,8 @@ class TR_PR_Diagnostic:
             for i in data.dims:
                 coord = i
             return data.median(coord)
+        
+    
     
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
     def mean_and_median_plot(self, data,                        glob=False,                     preprocess=True,
@@ -1130,7 +1132,7 @@ class TR_PR_Diagnostic:
         plt.tight_layout()
         if path_to_figure is not None and isinstance(path_to_figure, str):
 
-            #create_folder(folder=path_to_figure, loglevel='WARNING')
+            create_folder(folder    = extract_directory_path(path_to_figure), loglevel = 'WARNING')
 
             plt.savefig(path_to_figure,
                         bbox_inches  = "tight",
@@ -1142,7 +1144,8 @@ class TR_PR_Diagnostic:
         return {fig, ax}
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
-    def twin_data_and_observations(self, data,                          trop_lat = 10,                      model_variable = 'tprate',
+    def twin_data_and_observations(self, data,                          dummy_data = None,                    trop_lat = 10,                      
+                                    model_variable = 'tprate',
                                     s_time  = None,                     f_time   = None,                    s_year  = None,               
                                     f_year   = None,                    s_month = None,                     f_month  = None,
                                     model = 'era5',                     source = 'monthly',                 plev = 0,
@@ -1155,19 +1158,31 @@ class TR_PR_Diagnostic:
                                     s_time   = s_time,                  f_time  = f_time,
                                     s_year   = s_year,                  f_year  = f_year,
                                     s_month  = s_month,                 f_month = f_month)
-         
-        if model                    == 'era5':
-            reader                  = Reader(model="ERA5", exp="era5", source=source)
-            observations            = reader.retrieve()
-            #observations            = self.precipitation_rate_units_converter(observations.isel(plev = plev), model_variable = model_variable)
+        try:
+            data                    = data[model_variable]
+        except KeyError:
+            data                    = data
+        new_unit = data.units
+        if dummy_data is None:
+            if model                    == 'era5':
+                reader                  = Reader(model="ERA5", exp="era5", source=source)
+                observations            = reader.retrieve()
+                observations            = self.precipitation_rate_units_converter(observations.isel(plev = plev), 
+                                                                                model_variable = model_variable, 
+                                                                                new_unit = new_unit)
 
-        elif model                  == 'mswep':
-            reader                  = Reader(model="MSWEP", exp="past", source=source)
-            observations            = reader.retrieve()
-            #observations            = self.precipitation_rate_units_converter(observations,  model_variable = model_variable)
+            elif model                  == 'mswep':
+                reader                  = Reader(model="MSWEP", exp="past", source=source)
+                observations            = reader.retrieve()
+                observations            = self.precipitation_rate_units_converter(observations,  
+                                                                                model_variable = model_variable, 
+                                                                                new_unit = new_unit)
+            dummy_data                  = observations
+    
         else:
-            raise Exception("Unknown model. Please, check the catalogue and try one more time")
-
+            dummy_data                  = self.precipitation_rate_units_converter(dummy_data,  
+                                                                                model_variable = model_variable, 
+                                                                                new_unit = new_unit)
 
         if preprocess == True:
             data            = self.preprocessing(               data,                                       preprocess = preprocess,
@@ -1176,48 +1191,52 @@ class TR_PR_Diagnostic:
                                                                 s_year  = self.s_year,                      f_year     = self.f_year,
                                                                 s_month = self.s_month,                     f_month    = self.f_month,
                                                                 sort    = False,                            dask_array = False)
-            observations    = self.preprocessing(               observations,                               preprocess = preprocess,
+            dummy_data      = self.preprocessing(               dummy_data,                                 preprocess = preprocess,
                                                                 model_variable = model_variable,            trop_lat   = self.trop_lat,
                                                                 s_time  = self.s_time,                      f_time     = self.f_time,
                                                                 s_year  = self.s_year,                      f_year     = self.f_year,
                                                                 s_month = self.s_month,                     f_month    = self.f_month,
                                                                 sort    = False,                            dask_array = False)
 
-        #data = self.precipitation_units_converter(data, model_variable   = model_variable)
         
-        data_regrided, observations_regrided = mirror_dummy_grid(data = data,                               dummy_data = observations,
+        data_regrided,  dummy_data_regrided = mirror_dummy_grid(data = data,                                dummy_data = dummy_data,
                                                                 space_grid_factor = space_grid_factor,      time_freq  = time_freq,
                                                                 time_length = time_length,                  time_grid_factor = time_grid_factor)
-        return data_regrided, observations_regrided
+        return data_regrided, dummy_data_regrided
+    
+
+    
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
-    def normilized_forecast_metric(self, data,                          trop_lat = 10,                      model_variable = 'tprate',
+    def normilized_forecast_metric(self, data,                          dummy_data = None,
+                                    trop_lat = 10,                      model_variable = 'tprate',
                                     model     = 'era5',                 source = 'monthly',                 plev = 0,
                                     s_time    = None,                   f_time   = None,                    s_year  = None,                
                                     f_year    = None,                   s_month = None,                     f_month  = None,
                                     time_isel = None,                   time_length = None,                 space_grid_factor = None,
                                     time_freq = None,                   time_grid_factor = None):
         
-        
+        """  """
         self.class_attributes_update(trop_lat = trop_lat,
                                     s_time   = s_time,                  f_time  = f_time,
                                     s_year   = s_year,                  f_year  = f_year,
                                     s_month  = s_month,                 f_month = f_month)
 
-        data_regrided, observations_regrided =  self.twin_data_and_observations(data = data,                model_variable = model_variable,   
+        data_regrided, dummy_data_regrided =  self.twin_data_and_observations(data = data,                
+                                                                        dummy_data = dummy_data,            model_variable = model_variable,   
                                                                         model = model,                      source = source,
-                                                                        plev = plev,                        trop_lat = trop_lat,
-                                                                        s_time   = s_time,                  f_time  = f_time,
-                                                                        s_year   = s_year,                  f_year  = f_year,
-                                                                        s_month  = s_month,                 f_month = f_month,
+                                                                        plev = plev,                        trop_lat = self.trop_lat,
+                                                                        s_time   = self.s_time,             f_time  = self.f_time,
+                                                                        s_year   = self.s_year,             f_year  = self.f_year,
+                                                                        s_month  = self.s_month,            f_month = self.f_month,
                                                                         time_length = time_length,          space_grid_factor = space_grid_factor,
                                                                         time_freq = time_freq,              time_grid_factor = time_grid_factor)
         if time_isel is None:
             nfm             = data_regrided.copy(deep=True)
-            nfm.values      = (data_regrided.values - observations_regrided.values) /  (data_regrided.values + observations_regrided.values)
+            nfm.values      = (data_regrided.values - dummy_data_regrided.values) /  (data_regrided.values + dummy_data_regrided.values)
         else:
             nfm             = data_regrided.isel(time=time_isel).copy(deep=True)
-            nfm.values      = (data_regrided.values - observations_regrided.values) /  (data_regrided.values + observations_regrided.values)
+            nfm.values      = (data_regrided.values - dummy_data_regrided.values) /  (data_regrided.values + dummy_data_regrided.values)
         return nfm
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
@@ -1343,7 +1362,7 @@ class TR_PR_Diagnostic:
         plt.tight_layout()
         if path_to_figure is not None and isinstance(path_to_figure, str):
 
-            #create_folder(folder=path_to_figure, loglevel='WARNING')
+            create_folder(folder    = extract_directory_path(path_to_figure), loglevel = 'WARNING')
 
             plt.savefig(path_to_figure,
                         bbox_inches  = "tight",
@@ -1353,3 +1372,232 @@ class TR_PR_Diagnostic:
                         edgecolor    = 'w',
                         orientation  = 'landscape')
         return {fig, ax}
+    
+    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
+    def confidence_interval_along_coordinate(self, data,                    model_variable = 'tprate',     
+                                    preprocess=True,                        glob=False,
+                                    trop_lat = None,                        coord   = 'time',               
+                                    s_time   = None,                        f_time  = None,
+                                    s_year   = None,                        f_year  = None,
+                                    s_month  = None,                        f_month = None):
+        """ Function to calculate the mean value of variable in Dataset.
+
+        Args:
+            data (xarray):                      The Dataset
+            model_variable (str, optional):     The variable of the Dataset.            Defaults to 'tprate'.
+            trop_lat (float, optional):         The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
+            coord (str, optional):              The coordinate of the Dataset.          Defaults to 'time'.
+            s_time (str, optional):             The starting time of the Dataset.       Defaults to None.
+            f_time (str, optional):             The ending time of the Dataset.         Defaults to None.
+            s_year (str, optional):             The starting year of the Dataset.       Defaults to None.
+            f_year (str, optional):             The ending year of the Dataset.         Defaults to None.
+            s_month (str, optional):            The starting month of the Dataset.      Defaults to None.
+            f_month (str, optional):            The ending month of the Dataset.        Defaults to None.
+
+        Returns:
+            xarray:         The mean value of variable.
+        """
+        self.class_attributes_update(trop_lat = trop_lat,
+                                    s_time   = s_time,                      f_time  = f_time,
+                                    s_year   = s_year,                      f_year  = f_year,
+                                    s_month  = s_month,                     f_month = f_month)
+        if preprocess == True:
+            data = self.preprocessing(data,                                 preprocess = preprocess,
+                                    model_variable   = model_variable,      trop_lat= self.trop_lat,
+                                    s_time  = self.s_time,                  f_time  = self.f_time,
+                                    s_year  = self.s_year,                  f_year  = self.f_year,   
+                                    s_month = self.s_month,                 f_month = self.f_month,
+                                    sort = False,                           dask_array = False)
+        coord_lat, coord_lon = self.coordinate_names(data)
+        
+        z_score                 = 2.58 # Z-score for 99% confidence interval    
+                                    ##1.645 # Z-score for 90% confidence interval    
+                                    ##1.96  # Z-score for 95% confidence interval    
+        if glob:
+            mean_y1 =  data.values.mean() 
+            std_y1  =  np.std(data.values)
+            n_y1    =  data_size(data)
+            margin_error_y1         = z_score * std_y1 / np.sqrt(n_y1)
+            confidence_interval_y1  = (mean_y1 - margin_error_y1, mean_y1 + margin_error_y1)
+
+        else:
+            if coord        == 'time':
+                y1          =  data.stack(total=[coord_lat, coord_lon]).values
+                mean_y1     =  data.mean(coord_lat).mean(coord_lon).values
+            elif coord  == coord_lat:
+                y1          =  data.stack(total=['time', coord_lon]).values
+                mean_y1     =  data.mean('time').mean(coord_lon).values
+            elif coord  == coord_lon:
+                y1          =  data.stack(total=['time', coord_lat]).values
+                mean_y1     =  data.mean('time').mean(coord_lat).values
+            
+            n_y1        =  len(y1[0])
+            confidence_interval_y1 = []
+            for i in range(0, len(mean_y1)):
+                std_y1          = np.std(y1[i])
+                margin_error_y1 = z_score * std_y1 / np.sqrt(n_y1)
+                confidence_interval_y1.append((mean_y1[i] - margin_error_y1, mean_y1[i] + margin_error_y1))
+        
+        return confidence_interval_y1
+    
+
+    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
+    def check_if_belong_to_confidence_interval(self, 
+                                    dataset_1,                              dataset_2 = None,               legend_1    = '_Hidden',
+                                    model_variable = 'tprate',              preprocess=True,                figsize     = 1, 
+                                    model = 'era5',                         source = 'monthly',             ls          = '-',
+                                    plev = 0,                               glob = False,                   maxticknum  = 12,
+                                    trop_lat = None,                        coord   = 'time',               ylogscale   = False,
+                                    s_time   = None,                        f_time  = None,                 varname     = 'Precipitation',
+                                    s_year   = None,                        f_year  = None,                 xlogscale   = False,
+                                    s_month  = None,                        f_month = None,                 loc         = 'upper right',
+                                    space_grid_factor = None,               time_freq = None,               plot_title  = None,
+                                    time_length = None,                     time_grid_factor = None,        path_to_figure = None,
+                                    plot = True,                            legend_2 = 'era5 monthly'):      
+        self.class_attributes_update(trop_lat = trop_lat,
+                                    s_time   = s_time,                      f_time  = f_time,
+                                    s_year   = s_year,                      f_year  = f_year,
+                                    s_month  = s_month,                     f_month = f_month)
+
+        dataset_1, dataset_2 =  self.twin_data_and_observations(data = dataset_1,                model_variable = model_variable,  
+                                    model = model,                          source = source,
+                                    plev = plev,                            trop_lat = trop_lat,
+                                    s_time   = s_time,                      f_time  = f_time,
+                                    s_year   = s_year,                      f_year  = f_year,
+                                    s_month  = s_month,                     f_month = f_month,
+                                    time_length = time_length,              space_grid_factor = space_grid_factor,
+                                    time_freq = time_freq,                  time_grid_factor = time_grid_factor)
+
+        coord_lat, coord_lon = self.coordinate_names(dataset_1)
+        interval_1 = self.confidence_interval_along_coordinate(dataset_1,                              model_variable = model_variable,     
+                                    preprocess=preprocess,                  trop_lat= self.trop_lat,     
+                                    coord     = coord,                      glob    = glob,
+                                    s_time    = self.s_time,                f_time  = self.f_time,
+                                    s_year    = self.s_year,                f_year  = self.f_year,
+                                    s_month   = self.s_month,               f_month = self.f_month)
+        interval_2 = self.confidence_interval_along_coordinate(dataset_2,                              model_variable = model_variable,    
+                                    preprocess=preprocess,                  trop_lat= self.trop_lat,     
+                                    coord     = coord,                      glob    = glob,
+                                    s_time    = self.s_time,                f_time  = self.f_time,
+                                    s_year    = self.s_year,                f_year  = self.f_year, 
+                                    s_month   = self.s_month,               f_month = self.f_month)
+
+        # Check if second dataset falls within the confidence interval of the first dataset
+        if glob:
+            mean_y2 =  dataset_2.values.mean()
+            mean_y1 =  dataset_1.values.mean()
+            is_within_confidence_interval_1   = interval_1[0] <= mean_y2 <= interval_1[1]
+            is_within_confidence_interval_2   = interval_2[0] <= mean_y1 <= interval_2[1]
+            if is_within_confidence_interval_1:
+                print("The second dataset is within the 95% confidence interval of the first dataset.")
+            else:
+                print("The second dataset is not within the 95% confidence interval of the first dataset.")
+        else:
+            if coord        == 'time':
+                mean_y2     =  dataset_2.mean(coord_lat).mean(coord_lon)
+                mean_y1     =  dataset_1.mean(coord_lat).mean(coord_lon)
+            elif coord  == coord_lat:
+                mean_y2     =  dataset_2.mean('time').mean(coord_lon)
+                mean_y1     =  dataset_1.mean('time').mean(coord_lon)
+            elif coord  == coord_lon:
+                mean_y2     =  dataset_2.mean('time').mean(coord_lat)
+                mean_y1     =  dataset_1.mean('time').mean(coord_lat)
+            is_within_confidence_interval_1 = []
+            is_within_confidence_interval_2 = []
+            for i in range(0, len(mean_y2)):
+                is_within_confidence_interval_1.append(interval_1[i][0] <= mean_y2[i] <= interval_1[i][1])
+                is_within_confidence_interval_2.append(interval_2[i][0] <= mean_y2[i] <= interval_2[i][1])
+            if all(is_within_confidence_interval_1):
+                print("The second dataset is within the 95% confidence interval of the first dataset.")
+            else:
+                print("The second dataset is not within the 95% confidence interval of the first dataset.")
+
+        if plot:
+            fig, ax = plt.subplots( figsize=(8*figsize, 5*figsize) )
+            #make a plot with different y-axis using second axis object
+            if coord            == 'time':
+                if 'm' in time_interpreter(dataset_1):
+                    labels      = [str(dataset_1['time.hour'][i].values) + ':'+str(dataset_1['time.minute'][i].values)
+                                                                                        for i in range(0, dataset_1.time.size)]
+                    labels_int  = [float(dataset_1['time.hour'][i].values)   for i in range(0, dataset_1.time.size)]
+                elif 'H' in time_interpreter(dataset_1):
+                    labels      = [convert_24hour_to_12hour_clock(dataset_1, i)
+                                                                                        for i in range(0, dataset_1.time.size)]
+                    labels_int  = [float(dataset_1['time.hour'][i].values)   for i in range(0, dataset_1.time.size)]
+                elif time_interpreter(dataset_1) == 'D':
+                    labels      = [str(dataset_1['time.day'][i].values + convert_monthnumber_to_str(dataset_1, i))
+                                                                                        for i in range(0, dataset_1.time.size)]
+                    labels_int  = [float(dataset_1['time.day'][i].values)    for i in range(0, dataset_1.time.size)]
+                elif time_interpreter(dataset_1) == 'M':
+                    labels      = [convert_monthnumber_to_str(dataset_1, i)
+                                                                                        for i in range(0, dataset_1.time.size)]
+                    labels_int  = [float(dataset_1['time.month'][i].values)  for i in range(0, dataset_1.time.size)]
+                else:
+                    labels      = [None for i in range(0, dataset_1.time.size)]
+                    labels_int  = [None for i in range(0, dataset_1.time.size)]
+
+            elif coord          == coord_lat:
+                labels_int      = dataset_1[coord_lat]
+            elif coord          == coord_lon:
+                labels_int      = dataset_1[coord_lon]
+            if glob:
+                plt.axhline(y = mean_y2, label = legend_2, color = 'tab:orange')
+                plt.axhline(y = mean_y1, label = legend_1, color = 'tab:blue')
+                plt.fill_between(labels_int, interval_1[0],interval_1[1],
+                                 alpha=0.9, color = 'tab:blue', label='99% Confidence Interval')
+                plt.fill_between(labels_int, interval_2[0],interval_2[1],
+                                 alpha=0.9, color = 'tab:orange', label='99% Confidence Interval')
+            else:
+                plt.plot(labels_int, mean_y2, label = legend_2, color = 'tab:orange')
+                plt.plot(labels_int, mean_y1, label = legend_1, color = 'tab:blue')
+                plt.fill_between(labels_int,
+                                 [interval_1[i][0] for i in range(0, len(interval_1))],
+                                 [interval_1[i][1] for i in range(0, len(interval_1))],
+                                 alpha=0.9, color = 'tab:blue', label='99% Confidence Interval')
+                plt.fill_between(labels_int,
+                                 [interval_2[i][0] for i in range(0, len(interval_2))],
+                                 [interval_2[i][1] for i in range(0, len(interval_2))],
+                                 alpha=0.9, color = 'tab:orange', label='99% Confidence Interval')
+            if coord   == 'time':
+                plt.xlabel('Timestep index',                        fontsize=12)
+                if dataset_1['time.year'][0].values  == dataset_1['time.year'][-1].values:
+                    plt.xlabel(str(dataset_1['time.year'][0].values),
+                                                                    fontsize=12)
+                else:
+                    plt.xlabel(str(dataset_1['time.year'][0].values)+' - '+str(dataset_1['time.year'][-1].values),
+                                                                    fontsize=12)
+            elif coord == coord_lat:
+                plt.xlabel('Latitude',                              fontsize=12)
+            elif coord == coord_lon:
+                plt.xlabel('Longitude',                             fontsize=12)
+            try:
+                plt.ylabel(str(varname)+', '+str(dataset_1[model_variable].attrs['units']),
+                                                                    fontsize=12)
+            except KeyError:
+                plt.ylabel(str(varname),                            fontsize=12)
+
+            plt.gca().xaxis.set_major_locator(plt.MaxNLocator(maxticknum))
+            plt.gca().tick_params(axis = 'both',   which = 'major',    pad = 10)
+            plt.legend()
+            plt.grid(True)
+            plt.title(plot_title,                               fontsize=17,    pad=15)
+            if legend_1!='_Hidden':
+                plt.legend(loc=loc,                                 fontsize=12,    ncol=2)
+            if ylogscale:
+                plt.yscale('log')
+            if xlogscale:
+                plt.xscale('log')
+            plt.show()
+            plt.tight_layout()
+            if path_to_figure is not None and isinstance(path_to_figure, str):
+
+                create_folder(folder    = extract_directory_path(path_to_figure), loglevel = 'WARNING')
+
+                plt.savefig(path_to_figure,
+                            bbox_inches  = "tight",
+                            pad_inches   = 1,
+                            transparent  = True,
+                            facecolor    = "w",
+                            edgecolor    = 'w',
+                            orientation  = 'landscape')
+            #return {fig, ax}
