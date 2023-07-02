@@ -1354,9 +1354,11 @@ class TR_PR_Diagnostic:
         plt.grid(True)
         if plot_title is not None:
             plt.title(plot_title,                       fontsize = 17,      pad=15)
-        try:
-            cbar.set_label(colorbarname + ', ' + data.units, fontsize = 18)
-        except AttributeError:
+        if mape:
+            cbar.set_label("MAPE, %", fontsize = 18)
+        elif nfm:
+            cbar.set_label("NFM", fontsize = 18)
+        else:
             cbar.set_label(colorbarname, fontsize = 14)
         # set the spacing between subplots
         plt.tight_layout()
@@ -1410,13 +1412,14 @@ class TR_PR_Diagnostic:
                                     sort = False,                           dask_array = False)
         coord_lat, coord_lon = self.coordinate_names(data)
         
-        z_score                 = 2.58 # Z-score for 99% confidence interval    
+        z_score             = 1.96  # Z-score for 95% confidence interval   
+                                    ##2.58 # Z-score for 99% confidence interval    
                                     ##1.645 # Z-score for 90% confidence interval    
-                                    ##1.96  # Z-score for 95% confidence interval    
+                                    ## 
         if glob:
-            mean_y1 =  data.values.mean() 
-            std_y1  =  np.std(data.values)
-            n_y1    =  data_size(data)
+            mean_y1         =  data.values.mean() 
+            std_y1          =  np.std(data.values)
+            n_y1            =  data_size(data)
             margin_error_y1         = z_score * std_y1 / np.sqrt(n_y1)
             confidence_interval_y1  = (mean_y1 - margin_error_y1, mean_y1 + margin_error_y1)
 
@@ -1431,11 +1434,11 @@ class TR_PR_Diagnostic:
                 y1          =  data.stack(total=['time', coord_lat]).values
                 mean_y1     =  data.mean('time').mean(coord_lat).values
             
-            n_y1        =  len(y1[0])
-            confidence_interval_y1 = []
+            n_y1                    =  len(y1[0])
+            confidence_interval_y1  = []
             for i in range(0, len(mean_y1)):
-                std_y1          = np.std(y1[i])
-                margin_error_y1 = z_score * std_y1 / np.sqrt(n_y1)
+                std_y1              = np.std(y1[i])
+                margin_error_y1     = z_score * std_y1 / np.sqrt(n_y1)
                 confidence_interval_y1.append((mean_y1[i] - margin_error_y1, mean_y1[i] + margin_error_y1))
         
         return confidence_interval_y1
@@ -1453,7 +1456,29 @@ class TR_PR_Diagnostic:
                                     s_month  = None,                        f_month = None,                 loc         = 'upper right',
                                     space_grid_factor = None,               time_freq = None,               plot_title  = None,
                                     time_length = None,                     time_grid_factor = None,        path_to_figure = None,
-                                    plot = True,                            legend_2 = 'era5 monthly'):      
+                                    plot = True,                            legend_2 = 'era5 monthly'):    
+        """ Function to check if second dataset belongs to the confidence intarval of the first dataset. 
+        Args:
+            data (xarray):                      The Dataset
+            model_variable (str, optional):     The variable of the Dataset.            Defaults to 'tprate'.
+            trop_lat (float, optional):         The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
+            coord (str, optional):              The coordinate of the Dataset.          Defaults to 'time'.
+            s_time (str, optional):             The starting time of the Dataset.       Defaults to None.
+            f_time (str, optional):             The ending time of the Dataset.         Defaults to None.
+            s_year (str, optional):             The starting year of the Dataset.       Defaults to None.
+            f_year (str, optional):             The ending year of the Dataset.         Defaults to None.
+            s_month (str, optional):            The starting month of the Dataset.      Defaults to None.
+            f_month (str, optional):            The ending month of the Dataset.        Defaults to None.
+            model(str, optional):               The name of the odel in the catalogue.  Defaults to 'era5'.
+            dataset_2(xarray, optional):        The second dataset. 
+            plev(int, optional):                The pressure level in era5 data.        Defaults to 0.
+
+
+         
+        Returns: 
+            Nonetype: None
+
+        """  
         self.class_attributes_update(trop_lat = trop_lat,
                                     s_time   = s_time,                      f_time  = f_time,
                                     s_year   = s_year,                      f_year  = f_year,
@@ -1544,20 +1569,20 @@ class TR_PR_Diagnostic:
                 plt.axhline(y = mean_y2, label = legend_2, color = 'tab:orange')
                 plt.axhline(y = mean_y1, label = legend_1, color = 'tab:blue')
                 plt.fill_between(labels_int, interval_1[0],interval_1[1],
-                                 alpha=0.9, color = 'tab:blue', label='99% Confidence Interval')
+                                 alpha=0.9, color = 'tab:blue', label='95% Confidence Interval')
                 plt.fill_between(labels_int, interval_2[0],interval_2[1],
-                                 alpha=0.9, color = 'tab:orange', label='99% Confidence Interval')
+                                 alpha=0.9, color = 'tab:orange', label='95% Confidence Interval')
             else:
                 plt.plot(labels_int, mean_y2, label = legend_2, color = 'tab:orange')
                 plt.plot(labels_int, mean_y1, label = legend_1, color = 'tab:blue')
                 plt.fill_between(labels_int,
                                  [interval_1[i][0] for i in range(0, len(interval_1))],
                                  [interval_1[i][1] for i in range(0, len(interval_1))],
-                                 alpha=0.9, color = 'tab:blue', label='99% Confidence Interval')
+                                 alpha=0.9, color = 'tab:blue', label='95% Confidence Interval')
                 plt.fill_between(labels_int,
                                  [interval_2[i][0] for i in range(0, len(interval_2))],
                                  [interval_2[i][1] for i in range(0, len(interval_2))],
-                                 alpha=0.9, color = 'tab:orange', label='99% Confidence Interval')
+                                 alpha=0.9, color = 'tab:orange', label='95% Confidence Interval')
             if coord   == 'time':
                 plt.xlabel('Timestep index',                        fontsize=12)
                 if dataset_1['time.year'][0].values  == dataset_1['time.year'][-1].values:
@@ -1587,7 +1612,7 @@ class TR_PR_Diagnostic:
                 plt.yscale('log')
             if xlogscale:
                 plt.xscale('log')
-            plt.show()
+            #plt.show()
             plt.tight_layout()
             if path_to_figure is not None and isinstance(path_to_figure, str):
 

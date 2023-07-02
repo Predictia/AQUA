@@ -361,6 +361,161 @@ Mean and Median Values
 
      diag.median_along_coordinate(icon, glob=True)
 
+The diagnostic provides a simple plotting function for mean and median values of precipitation. 
+For example, the function 
+
+  .. code-block:: python
+
+     add = diag.mean_and_median_plot(icon,          coord='lat', legend='mean',   figsize=0.8)
+     add = diag.mean_and_median_plot(icon, fig=add, coord='lat', legend='median', get_median=True)
+     diag.mean_and_median_plot(icon,       fig=add, coord='lat', legend='global', get_median=True, glob=True, color='k',
+                          loc='upper left')
+
+produces the following plot
+
+.. figure:: figures/trop-rainfall-mean-lat.png
+    :width: 10cm
+
+Mean Absolute Percent Error (MAPE) 
+----------------------------------
+
+The Mean Absolute Percent Error (MAPE) is a metric that quantifies the average percentage difference between the 
+predicted values and the actual values. It is calculated as the average of the absolute percentage errors for each data point.
+
+To calculate the MAPE, follow these steps:
+
+* Calculate the absolute error for each data point by taking the absolute difference between the predicted value 
+and the corresponding actual value.
+
+* Calculate the percentage error for each data point by dividing the absolute error by the actual value and multiplying by 100.
+
+The final formula for MAPE is:
+
+.. math::
+
+   \text{MAPE} = 100 \times \frac{\text{observations} - \text{dataset}}{\text{observations}}
+
+The most important feature of the function is that before comparing the confidence interval in the datasets function :
+
+* verifies that two datasets are in the same units and, if not, converts the units of the second dataset to the units of the first dataset.
+
+* re-grids the time and space grid of the dataset, which has a higher time or spatial resolution. 
+
+By default, the function compares provided dataset with `era5, monthly` data and returns a xarrray with the lowest spatial and time resolution between provided two. 
+The user can decrease the resolution even more by 
+
+* :math:`space\_grid\_factor`: if the factor is positive and integer, the space grid frequency will be increased in  $space\_grid\_factor$ times; 
+The space grid frequency will be decreased in $space\_grid\_factor$ times if the factor is negative and integer. 
+
+* :math:`time\_freq`: new frequency of time coordinates in the MAPE dataset (for example, "3H", "5D", "2M" etc.).
+
+* :math:`time\_grid\_factor`: the factor will proportionally decrease or increase the frequency of time coordinate (:math:`freq = freq \times time\_grid\_factor`).
+
+* :math:`time\_length`: the new length of the time coordinate.
+
+
+ The MAPE of `icon, monthly` data in comparison with `era, monthly` data can be computed as 
+
+.. code-block:: python
+
+  mape_icon = diag.mean_absolute_percent_error(icon, trop_lat=90)
+
+Normalized Forecast Metric (NFM)  
+--------------------------------
+
+Another formula to measure forecast bias is called Normalized Forecast Metric (Singh, 2021).
+
+NFM is equal to:
+
+.. math::
+
+    \text{{normalized\_forecast\_metric}} = \frac{{\text{{dataset}} - \text{{observations}}}}{{\text{{dataset}} + \text{{observations}}}}
+
+
+The result of this method should be between -1 (`under-forecast`) and 1, (`over-forecast`), with 0 indicating of no bias.
+
+The NFS of `icon, monthly` data in comparison with `era, monthly` data (default) can be computes as 
+
+.. code-block:: python
+
+  nfm_icon = diag.normilized_forecast_metric(icon, trop_lat=90)
+
+and with `mswep, monthly` data as:
+
+.. code-block:: python
+
+  nfm_ifs_mswep = diag.normilized_forecast_metric(ifs, model='mswep', trop_lat=90)
+
+The diagnostic provides a simple plotting function for MAPE and NFM datasets. For example, the function 
+
+.. code-block:: python
+
+  diag.snapshot_plot(nfm_ifs_mswep, trop_lat=90, vmin=-1, vmax=1,  colorbarname="NFM")
+
+produces the following plot
+
+.. figure:: figures/trop-rainfall-nfm-if-mswep.png
+    :width: 10cm
+
+95% Confidence Interval 
+-----------------------
+
+The formula used to calculate the confidence interval is following:A confidence interval is a range of values within which we believe the true population parameter is likely to fall, given the sample data and a specified level of confidence.
+
+The range of confidence interval we can find with the use of margin error:
+
+.. math::
+
+    \text{{Confidence\_interval}} = \left( \text{{Mean}} - \text{{Margin\_error}}, \text{{Mean}} + \text{{Margin\_error}} \right)
+
+
+
+In statistics, the margin of error represents the maximum amount of error or uncertainty associated with estimating a population parameter based on a sample. It quantifies the range within which the true population parameter is expected to fall.
+
+The formula used to calculate the margin error is following
+
+.. math::
+
+    \text{{Margin\_error}} = \frac{{Z\_score \times \text{{std}}(X_{\text{{pr}}})}}{{\sqrt{N}}}
+
+where 
+ * :math:`std(X_{pr})`` is the standart error of model variable, i.e., precipitation, 
+ * :math:`N` is the size of the dataset, 
+ * :math:`Z_{\text{{score}}} = 1.96`is value for a 95% confidence interval.
+
+
+
+The global confidence interval can be found with the `confidence_interval_along_coordinate` function and bool argument 
+`glob=True`: 
+
+.. code-block:: python
+
+  diag.median_along_coordinate(icon, glob=True)
+
+The confidence interval along some coordinate (time, latitude or longitude) can be found as: 
+
+.. code-block:: python
+
+  conf_interval_icon = diag.confidence_interval_along_coordinate(icon, coord='lat')
+  conf_interval_icon
+
+The `check_if_belong_to_confidence_interval` function checks if some dataset belongs to the confidence interval of the first dataset. 
+By definition, the function does the check for era5 data and provided dataset. 
+
+The most important feature of the function is that before comparing the confidence interval in the datasets function:
+
+* verifies that two datasets are in the same units and, if not, converts the units of the second dataset to the units of the first dataset, 
+
+* re-grids the time and space grid of the dataset, which has a higher time or spatial resolution. 
+
+
+The function also has a bool argument `plot`, which is `True` by definition. In that case, the function returns plots of the two datasets 
+(provided and `era5` by default) and their confidence intervals. For example,  
+
+.. figure:: figures/trop-rainfall-conf-interval.png
+    :width: 10cm
+
+
 
 Notebooks 
 ---------
