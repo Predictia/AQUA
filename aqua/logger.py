@@ -95,10 +95,10 @@ def log_history_iter(data, msg):
     """Elementary provenance logger in the history attribute also for iterators."""
     if isinstance(data, types.GeneratorType):
         for ds in data:
-            ds = log_history(ds, msg)
+            log_history(ds, msg)
             yield ds
     else:
-        data = log_history(data, msg)
+        log_history(data, msg)
         return data
 
 

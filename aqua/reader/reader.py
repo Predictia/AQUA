@@ -307,7 +307,7 @@ class Reader(FixerMixin, RegridMixin):
         else:
             data = self.reader_intake(esmcat, var, loadvar)  # Returns a generator object
 
-        log_history_iter(data, "retrieved by AQUA retriever")
+        data = log_history_iter(data, "retrieved by AQUA retriever")
 
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
 
