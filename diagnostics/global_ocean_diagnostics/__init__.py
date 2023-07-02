@@ -1,5 +1,5 @@
 
-"""Global Ocean module"""
+"""Global Ocean module""" 
 
 # The following lines are needed so that the DummyDiagnosticWrapper, DummyDiagnostic constructors
 # + the dummy_func function are available directly from the module "dummy"
