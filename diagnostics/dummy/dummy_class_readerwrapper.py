@@ -1,17 +1,13 @@
 """Dummy diagnostic for testing purposes"""
 import os
-import sys
-import xarray as xr
 
 from aqua.logger import log_configure
 from aqua.util import load_yaml
 from aqua.reader import Reader
 
-# This is to access the dummy_func.py file
 # Please import only functions that are used in the class
 # and not the entire module
-sys.path.insert(0, '../')
-from dummy_func import dummy_func
+from .dummy_func import dummy_func
 
 
 class DummyDiagnosticWrapper():
@@ -26,7 +22,7 @@ class DummyDiagnosticWrapper():
     """
     def __init__(self, model=None, exp=None, source=None,
                  custom_diagvar="I'm a custom variable",
-                 configdir=None, regrid=None,
+                 diagconfigdir=None, regrid=None,
                  freq=None, var=None,
                  savefig=False, outputfig=None,
                  savefile=False, outputdir=None,
@@ -57,7 +53,7 @@ class DummyDiagnosticWrapper():
                                   Default is None.
             source (str):         the source name to be used by the Reader class.
                                   Default is None.
-            configdir (str, opt): the path to the directory containing the config files.
+            diagconfigdir (str, opt): the path to the directory containing the config files.
                                   Default is None.
                                   Please change it to the path of your config files,
                                   if you have any or if there is a clear config directory.
@@ -149,12 +145,12 @@ class DummyDiagnosticWrapper():
         self.regrid = regrid  # adapt or remove if you do not need it
         if self.regrid is None:
             self.logger.warning('No regridding will be performed')
-        self.logger.info('Regridding resolution: {}'.format(self.regrid))
+        self.logger.info('Regridding resolution: %s', self.regrid)
 
-        self.freq = freq # adapt or remove if you do not need it
+        self.freq = freq  # adapt or remove if you do not need it
         if self.freq:
             self.logger.warning('Time mean will be computed')
-            self.logger.info('Time mean frequency: {}'.format(self.freq))
+            self.logger.info('Time mean frequency: %s', self.freq)
         # Consider that the Reader has more arguments that can be passed to it.
         # Please adapt the code to your needs.
         # You can find more information about the Reader class in the documentation.
@@ -165,13 +161,13 @@ class DummyDiagnosticWrapper():
         self.var = var  # adapt or remove if you do not need it
         if self.var is None:
             raise ValueError('var must be specified')  # you may have (and probably should) a default different from None
-        if type(self.var) is not str:  # it is a string in this example, but it may be a list as well
+        if not isinstance(self.var, str):  # it is a string in this example, but it may be a list as well
             raise ValueError('var must be a string')
         # If you want to retrieve all data consider removing the var argument from the class __init__.
 
         # Here we first load a configuration file and then we load the diagnostic variables.
         # If no variable is specified in the configuration file, the default value is used.
-        self._load_config(configdir)  # adapt or remove if you do not need it, check the method
+        self._load_config(diagconfigdir)  # adapt or remove if you do not need it, check the method
         self._load_diagvar(custom_diagvar)  # adapt or remove if you do not need it, check the method
 
         # Output variables
@@ -184,26 +180,32 @@ class DummyDiagnosticWrapper():
         # Initialize the Reader class
         self._reader()  # self has not to be passed to the method as it is contained in the class
 
+        self.fieldmean = None
+        self.product = None
+        self.outputdir = None
+        self.outputfig = None
+        self.data = None
+
         # Plese if some more initialization is needed for the diagnostic, do it in this functions.
 
-    def _load_config(self, configdir=None):
+    def _load_config(self, diagconfigdir=None):
         """Load the config file, if one is present.
 
         Args:
-            configdir (str): path to the config directory.
+            diagconfigdir (str): path to the config directory.
                              Default is None.
         """
 
-        self.configdir = configdir  # adapt or remove if you do not need it
-        if self.configdir is None:
+        self.diagconfigdir = diagconfigdir  # adapt or remove if you do not need it
+        if self.diagconfigdir is None:
             self.logger.warning('No config directory specified')
         else:
-            self.logger.info('Config directory: {}'.format(self.configdir))
+            self.logger.info('Config directory: %s', self.diagconfigdir)
 
         # Here you can load the config files if you have any.
         try:
-            configname = 'config.yaml'  # adapt or remove if you do not need it
-            configpath = os.path.join(self.configdir, configname)  # adapt or remove if you do not need it
+            configname = 'diagconfig.yaml'  # adapt or remove if you do not need it
+            configpath = os.path.join(self.diagconfigdir, configname)  # adapt or remove if you do not need it
             self.config = load_yaml(configpath)  # customise the name of the config file if you need it
         except (FileNotFoundError, TypeError):
             self.logger.warning('Config file not found')
@@ -223,7 +225,7 @@ class DummyDiagnosticWrapper():
         except (KeyError, TypeError):
             self.logger.warning('No diagnostic variables specified, using the default ones')
             self.custom_diagvar = custom_diagvar
-        self.logger.debug('Diagnostic variables: {}'.format(self.custom_diagvar))
+        self.logger.debug('Diagnostic variables: %s', self.custom_diagvar)
 
     def _load_figs_options(self, savefig=False, outputfig=None):
         """Load the figure options.
@@ -266,7 +268,7 @@ class DummyDiagnosticWrapper():
                 except (KeyError, TypeError):
                     self.logger.warning('No filename specified, using the default one')
                     filename = 'dummy.nc'
-            self.logger.debug('Output filename: {}'.format(filename))
+            self.logger.debug('Output filename: %s', filename)
             self.filename = filename
 
     def _load_folder_info(self, folder=None, folder_type=None):
@@ -277,13 +279,13 @@ class DummyDiagnosticWrapper():
                           Default is None.
             folder_type (str): type of the folder.
                                Default is None.
-                            
-        Raises:
+
+      Raises:
             KeyError: if the folder_type is not recognised.
             TypeError: if the folder_type is not a string.
         """
         if not folder:
-            self.logger.info('No {} folder specified, trying to use the config file setting'.format(folder_type))
+            self.logger.info('No %s folder specified, trying to use the config file setting', folder_type)
             try:
                 if folder_type == 'figure':
                     folder = self.config['outputfig']
@@ -291,19 +293,19 @@ class DummyDiagnosticWrapper():
                     folder = self.config['outputdir']
                 # Check if the path exists
                 if not os.path.exists(folder):
-                    self.logger.warning('{} folder does not exist, creating it'.format(folder_type))
+                    self.logger.warning('%s folder does not exist, creating it', folder_type)
                     os.makedirs(folder)
             except (KeyError, TypeError):
-                self.logger.warning('No {} folder specified, using the current directory'.format(folder_type))
+                self.logger.warning('No %s folder specified, using the current directory', folder_type)
                 folder = os.getcwd()
 
         # Store the folder in the class
         if folder_type == 'figure':
             self.outputfig = folder
-            self.logger.debug('Figure output folder: {}'.format(self.outputfig))
+            self.logger.debug('Figure output folder: %s', self.outputfig)
         elif folder_type == 'data':
             self.outputdir = folder
-            self.logger.debug('Data output folder: {}'.format(self.outputdir))
+            self.logger.debug('Data output folder: %s', self.outputdir)
 
     def _reader(self):
         """The reader method.
@@ -334,11 +336,11 @@ class DummyDiagnosticWrapper():
                 self.data = self.reader.regrid(self.data)
         except ValueError:
             try:
-                self.logger.warning('Variable {} not found'.format(self.var))
+                self.logger.warning('Variable %s not found', self.var)
                 self.logger.warning('Trying to retrieve without fixing')
                 self.data = self.reader.retrieve(var=self.var, fix=False)
             except ValueError:
-                raise ValueError('Variable {} not found'.format(self.var))
+                raise ValueError(f'Variable {self.var} not found')
         self.logger.info('Data retrieved')
 
     def fldmean(self):
@@ -349,29 +351,24 @@ class DummyDiagnosticWrapper():
         Raises:
             TypeError: if the variable is not a string
         """
-        if type(self.var) is str:
-            self.fldmean = self.reader.fldmean(self.data)
-            self.logger.info('Field mean computed')
-            self.logger.info('Field mean: {}'.format(self.fldmean))
-        else:
-            raise TypeError('Variable is not a string, cannot compute field mean')
+        self.logger.info('Field mean computed')
+        self.fieldmean = self.reader.fldmean(self.data)
 
     def multiplication(self):
         """The multiplication method.
-        This method computes the multiplication of the retrieved data.
+        This method computes the some product by a constant of the retrieved data.
         It is an example of method that uses of external functions of the module
         """
 
-        self.multiplication = dummy_func(self.data)  # dummy_func is a function defined in the module
         self.logger.info('Multiplication computed')
-        self.logger.debug('Multiplication: {}'.format(self.multiplication))
+        self.product = dummy_func(self.data)  # dummy_func is a function defined in the module
 
-    def _secret_method(self):
-        """The secret method.
-        This method is a secret one, so it has "_" at the beginning.
+    def _private_method(self):
+        """The private method.
+        This method is a private one, so it has "_" at the beginning.
         If your methods are explicit, remove "_" at the beginning of the method name.
         """
-        self.logger.debug('This is a secret method')
+        self.logger.debug('This is a private method, should not be accessed from outside the class')
         self.logger.debug('Congratulations, you found it!')
 
 # Notice that more methods can be added to the class, and they can be explicit or not.
