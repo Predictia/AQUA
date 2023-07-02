@@ -479,7 +479,7 @@ The formula used to calculate the margin error is following
 
 .. math::
 
-    Margin_error = \X{Z_score * \std\(X_{pr}\)}{ \sqrt{N} }  \frac {test1} {test2}
+  Margin_error = \X{Z_score * \std\(X_{pr}\)}{ \sqrt{N} }  \frac {test1} {test2}
 
 where
 
