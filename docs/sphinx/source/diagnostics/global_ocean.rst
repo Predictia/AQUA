@@ -103,7 +103,6 @@ If relevant, list the observational datasets used by this diagnostic (e.g. for v
 References
 ----------
 
-* E. Empty, D. global_ocean et al. (2023) The art of saying nothing. Emptyness, 1: 0-1. `DOI <http://doi.org/00.0000/e-00000-000.xxxx>`_
 
 
 Example Plot(s)
