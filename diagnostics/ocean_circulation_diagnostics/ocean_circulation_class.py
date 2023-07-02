@@ -1,12 +1,6 @@
 from aqua import Reader,catalogue, inspect_catalogue
-import datetime
-import xarray as xr
-import numpy as np
-import matplotlib.pyplot as plt
 import ocean_circulation_func as fn
-import warnings
-
-warnings.filterwarnings("ignore", message="Slicing is producing a large chunk.")
+from aqua.util import load_yaml
 
 
 class Ocean_circulationDiagnostic:
@@ -19,7 +13,7 @@ class Ocean_circulationDiagnostic:
         
     def process_data(self):
         yearly_data = self.data.resample(time="Y").mean()
-        self.labrador_sea_mean=fn.wgt_area_mean(yearly_data,50, 65, 300, 325)
+        self.labrador_sea_mean=fn.weighted_area_mean(yearly_data,50, 65, 300, 325)
         self.converted_labrador_sea_mean= fn.convert_variables(self.labrador_sea_mean)
         
     def plot_profile(self):
