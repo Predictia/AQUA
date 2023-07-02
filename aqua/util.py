@@ -1,6 +1,5 @@
 """Module containing general utility functions for AQUA"""
 
-import datetime
 import operator
 import os
 import random
@@ -12,7 +11,6 @@ from collections import defaultdict
 from ruamel.yaml import YAML
 import eccodes
 import xarray as xr
-import types
 from aqua.logger import log_configure
 
 

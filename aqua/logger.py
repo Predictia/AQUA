@@ -1,6 +1,9 @@
 """Module to implement logging configurations"""
 
 import logging
+import types
+import datetime
+import xarray as xr
 
 
 def log_configure(log_level=None, log_name=None):
@@ -44,7 +47,7 @@ def log_configure(log_level=None, log_name=None):
 
     # create console handler which logs
     terminal = logging.StreamHandler()
-    #ch.setLevel(log_level)
+    # ch.setLevel(log_level)
     terminal.setFormatter(formatter)
     logger.addHandler(terminal)
 
@@ -85,7 +88,7 @@ def _check_loglevel(log_level=None):
         logging.warning("Invalid logging level '%s' specified. Setting it back to default %s", log_level, log_level_default)
         log_level = log_level_default
 
-    return(log_level)
+    return log_level
 
 
 def log_history_iter(data, msg):

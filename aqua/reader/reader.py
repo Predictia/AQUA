@@ -485,7 +485,7 @@ class Reader(FixerMixin, RegridMixin):
                     if self.grid_area[coord].sortby(coord).equals(data.coords[coord].sortby(coord)):
                         self.logger.warning('%s is sorted in different way between area files and your dataset. Flipping it!', coord)
                         self.grid_area = self.grid_area.reindex({coord: list(reversed(self.grid_area[coord]))})
-                        #raise ValueError(f'{coord} is sorted in different way between area files and your dataset.') from err
+                        # raise ValueError(f'{coord} is sorted in different way between area files and your dataset.') from err
                     # something else
                     else:
                         raise ValueError(f'{coord} has a mismatch in coordinate values!') from err
