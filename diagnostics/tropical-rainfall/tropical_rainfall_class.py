@@ -1412,12 +1412,12 @@ class TR_PR_Diagnostic:
                                     sort = False,                           dask_array = False)
         coord_lat, coord_lon = self.coordinate_names(data)
         
-        z_score             = 1.96  # Z-score for 95% confidence interval   
-                                    ##2.58 # Z-score for 99% confidence interval    
+        z_score             = 1.96  # Z-score for 95% confidence interval
+                                    ##2.58 # Z-score for 99% confidence interval
                                     ##1.645 # Z-score for 90% confidence interval    
-                                    ## 
+                                    ##
         if glob:
-            mean_y1         =  data.values.mean() 
+            mean_y1         =  data.values.mean()
             std_y1          =  np.std(data.values)
             n_y1            =  data_size(data)
             margin_error_y1         = z_score * std_y1 / np.sqrt(n_y1)
@@ -1456,8 +1456,8 @@ class TR_PR_Diagnostic:
                                     s_month  = None,                        f_month = None,                 loc         = 'upper right',
                                     space_grid_factor = None,               time_freq = None,               plot_title  = None,
                                     time_length = None,                     time_grid_factor = None,        path_to_figure = None,
-                                    plot = True,                            legend_2 = 'era5 monthly'):    
-        """ Function to check if second dataset belongs to the confidence intarval of the first dataset. 
+                                    plot = True,                            legend_2 = 'era5 monthly'):
+        """ Function to check if second dataset belongs to the confidence intarval of the first dataset.
         Args:
             data (xarray):                      The Dataset
             model_variable (str, optional):     The variable of the Dataset.            Defaults to 'tprate'.
@@ -1470,15 +1470,13 @@ class TR_PR_Diagnostic:
             s_month (str, optional):            The starting month of the Dataset.      Defaults to None.
             f_month (str, optional):            The ending month of the Dataset.        Defaults to None.
             model(str, optional):               The name of the odel in the catalogue.  Defaults to 'era5'.
-            dataset_2(xarray, optional):        The second dataset. 
+            dataset_2(xarray, optional):        The second dataset.
             plev(int, optional):                The pressure level in era5 data.        Defaults to 0.
-
-
          
-        Returns: 
+        Returns:
             Nonetype: None
 
-        """  
+        """
         self.class_attributes_update(trop_lat = trop_lat,
                                     s_time   = s_time,                      f_time  = f_time,
                                     s_year   = s_year,                      f_year  = f_year,
