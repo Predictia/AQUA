@@ -38,8 +38,8 @@ def weighted_area_mean(data, use_predefined_region: bool, region: str = None, la
             lonW = 100.0
             lonE = 300.0
         elif region == "Labrador Sea":
-            latN = 65.0
-            latS = 50.0
+            latN = 50.0
+            latS = 65.0
             lonW = 300.0
             lonE = 325.0
         elif region == "Global Ocean":
