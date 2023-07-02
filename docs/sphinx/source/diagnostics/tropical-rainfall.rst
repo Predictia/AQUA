@@ -479,10 +479,11 @@ The formula used to calculate the margin error is following
 
 .. math::
 
-    Margin_error = \frac{Z_score \times std(X_{pr})}{\sqrt{N}}
+    Margin_error = \X{Z_score * \std\(X_{pr}\)}{ \sqrt{N} }  \frac {test1} {test2}
 
 where
- * :math:`std(X_{pr})` is the standart error of model variable, i.e., precipitation,
+
+ * :math:`std\(X_{pr}\)` is the standart error of model variable, i.e., precipitation,
  * :math:`N` is the size of the dataset,
  * :math:`Z_{score}=1.96` is value for a 95% confidence interval.
 
