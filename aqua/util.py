@@ -10,7 +10,6 @@ import sys
 import logging
 from collections import defaultdict
 from ruamel.yaml import YAML
-import yaml
 import eccodes
 import xarray as xr
 import types
@@ -246,12 +245,13 @@ def read_eccodes_dic(filename):
     Returns:
     - A dictionary containing the contents of the ecCodes definition file.
     """
+    yaml = YAML(typ='rt')
     fn = eccodes.codes_definition_path().split(':')[0]  # LUMI fix, take only first
     fn = os.path.join(fn, 'grib2', filename)
     with open(fn, "r", encoding='utf-8') as file:
         text = file.read()
     text = text.replace(" =", ":").replace('{', '').replace('}', '').replace(';', '').replace('\t', '    ')
-    return yaml.safe_load(text)
+    return yaml.load(text)
 
 
 def read_eccodes_def(filename):
