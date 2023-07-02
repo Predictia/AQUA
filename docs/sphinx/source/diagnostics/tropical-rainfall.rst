@@ -257,47 +257,47 @@ The simplest way to plot the histogram is:
   .. code-block:: python
     diag.hist_figure(hist_icon) 
 
-The function `hist_figure` has an extensive set of arguments.
+The function **hist_figure** has an extensive set of arguments.
 
 #. The first and major group of arguments relates to the histogram type: 
 
-   * `pdf`-histogram: `pdf=True`, also it is the default value, 
+   * `pdf`-histogram: **pdf=True**, also it is the default value, 
 
-   * `frequency`-histogram: `frequency=True, pdf=False`,
+   * `frequency`-histogram: **frequency=True, pdf=False**,
 
-   * `counts`-histogram: `frequency=False, pdf=False`.
+   * `counts`-histogram: **frequency=False, pdf=False**.
 
 #. The second group of arguments related to the plot style:
 
-   * `smooth` (bool, True by default): if True, smooth 2D line
+   * **smooth** (bool, True by default): if True, smooth 2D line
 
-   * `step` (bool, False by default): if True, step line 
+   * **step** (bool, False by default): if True, step line 
 
-   * `color_map` (bool/str, False/'viridis' by default): if not False, color map plot
+   * **color_map** (bool/str, False/'viridis' by default): if not False, color map plot
 
 #. The third set of arguments involves the figure settings:
 
-   * `ls` (str, '-'): The line style for the plot. 
+   * **ls** (str, '-'): The line style for the plot. 
 
-   * `ylogscale` (bool, True): The logarithmic scale for the y-axis. 
+   * **ylogscale** (bool, True): The logarithmic scale for the y-axis. 
 
-   * `xlogscale` (bool, False): The logarithmic scale for the x-axis. 
+   * **xlogscale** (bool, False): The logarithmic scale for the x-axis. 
 
-   * `color` (str, 'tab:blue'): The color of the plot. 
+   * **color** (str, 'tab:blue'): The color of the plot. 
  
-   * `figsize` (float, 1): The size of the figure. 
+   * **figsize** (float, 1): The size of the figure. 
 
-   * `legend` (str, '_Hidden'): The legend label for the plot. 
+   * **legend** (str, '_Hidden'): The legend label for the plot. 
 
-   * `varname` (str, 'Precipitation'): The variable's name for the x-axis label. 
+   * **varname** (str, 'Precipitation'): The variable's name for the x-axis label. 
 
-   * `plot_title` (str, None): The plot's title.
+   * **plot_title** (str, None): The plot's title.
  
-   * `loc` (str, 'upper right'): The location of the legend. 
+   * **loc** (str, 'upper right'): The location of the legend. 
 
-   * `add/fig` (tuple, None): Tuple of (fig, ax) to add the plot to an existing figure. / The figure object to plot on.
+   * **add/fig** (tuple, None): Tuple of (fig, ax) to add the plot to an existing figure.  The figure object to plot on.
 
-   * `path_to_figure` (str, None): The path to save the figure. If provided, saves the figure at the specified path.
+   * **path_to_figure** (str, None): The path to save the figure. If provided, saves the figure at the specified path.
 
 Below is an additional example of a histogram plot.
 
@@ -309,7 +309,7 @@ Below is an additional example of a histogram plot.
 You can find an example of the histogram obtained with the tropical-rainfall diagnostic below. 
 
 .. figure:: figures/tropical-rainfall-histogram.png
-    :width: 10cm
+    :width: 16cm
 
     The pdf of tropical precipitation of the ICON data. 
 
@@ -317,14 +317,14 @@ Mean and Median Values
 ----------------------
 
 #. Mean values
-   The `mean_along_coordinate` function calculates the mean value of a model variable (by default of precipitation) 
-   along any coordinate or global mean. The function has an argument `coordinate`, which can be 
+   The **mean_along_coordinate** function calculates the mean value of a model variable (by default of precipitation) 
+   along any coordinate or global mean. The function has an argument **coordinate**, which can be 
 
-   * `time` (by default)
+   * **time** (by default)
 
-   * `lat` or `latitude`
+   * **lat** or **latitude**
 
-   * `lon` or `longitude`
+   * **lon** or **longitude**
 
    For eample,
    
@@ -332,7 +332,7 @@ Mean and Median Values
 
      diag.mean_along_coordinate(ifs, coord='lat')
 
-   The function calculates the global mean value if the user sets the `glob = True`:
+   The function calculates the global mean value if the user sets the **glob = True**:
    
    .. code-block:: python
 
@@ -340,14 +340,15 @@ Mean and Median Values
 
 #. Median values
 
-   The `median_along_coordinate` function calculates the median value of a model variable (by default of precipitation) along any coordinate or global median.
-   The function has an argument `coordinate`, which can be 
+   The **median_along_coordinate** function calculates the median value of a model variable (by default of precipitation)
+   along any coordinate or global median.
+   The function has an argument **coordinate**, which can be 
 
-   * `time` (by default)
+   * **time** (by default)
 
-   * `lat` or `latitude`
+   * **lat** or **latitude**
 
-   * `lon` or `longitude`
+   * **lon** or **longitude**
 
     For eample,
    
@@ -355,7 +356,7 @@ Mean and Median Values
 
      diag.median_along_coordinate(ifs, coord='lat')
 
-  The function calculates the global median value if the user sets the `glob = True`:
+  The function calculates the global median value if the user sets the **glob = True**:
   
   .. code-block:: python
 
@@ -374,7 +375,7 @@ For example, the function
 produces the following plot
 
 .. figure:: figures/trop-rainfall-mean-lat.png
-    :width: 10cm
+    :width: 16cm
 
 Mean Absolute Percent Error (MAPE)
 ----------------------------------
@@ -393,7 +394,7 @@ The final formula for MAPE is:
 
 .. math::
 
-   \text{MAPE} = 100 \times \frac{\text{observations} - \text{dataset}}{\text{observations}}
+   MAPE = 100 * \frac{observations - dataset}{observations}
 
 The most important feature of the function is that before comparing the confidence interval in the datasets function :
 
@@ -401,20 +402,20 @@ The most important feature of the function is that before comparing the confiden
 
 * re-grids the time and space grid of the dataset, which has a higher time or spatial resolution.
 
-By default, the function compares provided dataset with `era5, monthly` data and returns a xarrray with the lowest spatial and time resolution between provided two.
+By default, the function compares provided dataset with *era5, monthly* data and returns a xarrray with the lowest spatial and time resolution between provided two.
 The user can decrease the resolution even more by
 
-* :math:`space\_grid\_factor`: if the factor is positive and integer, the space grid frequency will be increased in  $space\_grid\_factor$ times;
-The space grid frequency will be decreased in $space\_grid\_factor$ times if the factor is negative and integer.
+* :math:`space_grid_factor`: if the factor is positive and integer, the space grid frequency will be increased in  :math:`space_grid_factor` times;
+The space grid frequency will be decreased in :math:`space_grid_factor` times if the factor is negative and integer.
 
-* :math:`time\_freq`: new frequency of time coordinates in the MAPE dataset (for example, "3H", "5D", "2M" etc.).
+* :math:`time_freq`: new frequency of time coordinates in the MAPE dataset (for example, `3H`, `5D`, `2M` etc.).
 
-* :math:`time\_grid\_factor`: the factor will proportionally decrease or increase the frequency of time coordinate (:math:`freq = freq \times time\_grid\_factor`).
+* :math:`time_grid_factor`: the factor will proportionally decrease or increase the frequency of time coordinate (:math:`freq = freq * time_grid_factor`).
 
-* :math:`time\_length`: the new length of the time coordinate.
+* :math:`time_length`: the new length of the time coordinate.
 
 
- The MAPE of `icon, monthly` data in comparison with `era, monthly` data can be computed as
+ The MAPE of *icon, monthly* data in comparison with *era, monthly* data can be computed as
 
 .. code-block:: python
 
@@ -429,18 +430,18 @@ NFM is equal to:
 
 .. math::
 
-    \text{{normalized\_forecast\_metric}} = \frac{{\text{{dataset}} - \text{{observations}}}}{{\text{{dataset}} + \text{{observations}}}}
+    normalized_forecast_metric = \frac{dataset - observations}{dataset + observations}
 
 
-The result of this method should be between -1 (`under-forecast`) and 1, (`over-forecast`), with 0 indicating of no bias.
+The result of this method should be between -1 (**under-forecast**) and 1, (**over-forecast**), with 0 indicating of no bias.
 
-The NFS of `icon, monthly` data in comparison with `era, monthly` data (default) can be computes as
+The NFS of *icon, monthly* data in comparison with *era, monthly* data (default) can be computes as
 
 .. code-block:: python
 
   nfm_icon = diag.normilized_forecast_metric(icon, trop_lat=90)
 
-and with `mswep, monthly` data as:
+and with *mswep, monthly* data as:
 
 .. code-block:: python
 
@@ -455,38 +456,40 @@ The diagnostic provides a simple plotting function for MAPE and NFM datasets. Fo
 produces the following plot
 
 .. figure:: figures/trop-rainfall-nfm-if-mswep.png
-    :width: 10cm
+    :width: 16cm
 
 95% Confidence Interval
 -----------------------
 
-The formula used to calculate the confidence interval is following:A confidence interval is a range of values within which we believe the true population parameter is likely to fall, given the sample data and a specified level of confidence.
+The formula used to calculate the confidence interval is following:A confidence interval is a range of values within which 
+we believe the true population parameter is likely to fall, given the sample data and a specified level of confidence.
 
 The range of confidence interval we can find with the use of margin error:
 
 .. math::
 
-    \text{{Confidence\_interval}} = \left( \text{{Mean}} - \text{{Margin\_error}}, \text{{Mean}} + \text{{Margin\_error}} \right)
+    Confidence\_interval= \left( Mean - Margin\_error, Mean + Margin\_error \right)
 
 
 
-In statistics, the margin of error represents the maximum amount of error or uncertainty associated with estimating a population parameter based on a sample. It quantifies the range within which the true population parameter is expected to fall.
+In statistics, the margin of error represents the maximum amount of error or uncertainty associated with estimating a 
+population parameter based on a sample. It quantifies the range within which the true population parameter is expected to fall.
 
 The formula used to calculate the margin error is following
 
 .. math::
 
-    \text{{Margin\_error}} = \frac{{Z\_score \times \text{{std}}(X_{\text{{pr}}})}}{{\sqrt{N}}}
+    Margin_error = \frac{Z_score \times std(X_{pr})}{\sqrt{N}}
 
 where
- * :math:`std(X_{pr})`` is the standart error of model variable, i.e., precipitation,
+ * :math:`std(X_{pr})` is the standart error of model variable, i.e., precipitation,
  * :math:`N` is the size of the dataset,
- * :math:`Z_{\text{{score}}} = 1.96`is value for a 95% confidence interval.
+ * :math:`Z_{score}=1.96` is value for a 95% confidence interval.
 
 
 
-The global confidence interval can be found with the `confidence_interval_along_coordinate` function and bool argument
-`glob=True`:
+The global confidence interval can be found with the **confidence_interval_along_coordinate** function and bool argument
+**glob=True**:
 
 .. code-block:: python
 
@@ -499,7 +502,7 @@ The confidence interval along some coordinate (time, latitude or longitude) can 
   conf_interval_icon = diag.confidence_interval_along_coordinate(icon, coord='lat')
   conf_interval_icon
 
-The `check_if_belong_to_confidence_interval` function checks if some dataset belongs to the confidence interval of the first dataset.
+The **check_if_belong_to_confidence_interval** function checks if some dataset belongs to the confidence interval of the first dataset.
 By definition, the function does the check for era5 data and provided dataset.
 
 The most important feature of the function is that before comparing the confidence interval in the datasets function:
@@ -509,11 +512,11 @@ The most important feature of the function is that before comparing the confiden
 * re-grids the time and space grid of the dataset, which has a higher time or spatial resolution.
 
 
-The function also has a bool argument `plot`, which is `True` by definition. In that case, the function returns plots of the two datasets
-(provided and `era5` by default) and their confidence intervals. For example,
+The function also has a bool argument **plot**, which is **True** by definition. In that case, the function returns plots of the two datasets
+(provided and *era5* by default) and their confidence intervals. For example,
 
 .. figure:: figures/trop-rainfall-conf-interval.png
-    :width: 10cm
+    :width: 16cm
 
 
 
