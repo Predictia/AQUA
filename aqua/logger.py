@@ -94,12 +94,17 @@ def _check_loglevel(log_level=None):
 def log_history_iter(data, msg):
     """Elementary provenance logger in the history attribute also for iterators."""
     if isinstance(data, types.GeneratorType):
-        for ds in data:
-            log_history(ds, msg)
-            yield ds
+        data = _log_history_iter(data, msg)
     else:
         log_history(data, msg)
         return data
+
+
+def _log_history_iter(data, msg):
+    """Iterator loop convenience function for log_history_iter"""
+    for ds in data:
+        log_history(ds, msg)
+        yield ds
 
 
 def log_history(data, msg):
