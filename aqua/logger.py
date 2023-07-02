@@ -95,6 +95,7 @@ def log_history_iter(data, msg):
     """Elementary provenance logger in the history attribute also for iterators."""
     if isinstance(data, types.GeneratorType):
         data = _log_history_iter(data, msg)
+        return data
     else:
         log_history(data, msg)
         return data
