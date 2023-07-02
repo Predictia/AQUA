@@ -341,17 +341,6 @@ def generate_random_string(length):
     return random_string
 
 
-def log_history_iter(data, msg):
-    """Elementary provenance logger in the history attribute also for iterators."""
-    if isinstance(data, types.GeneratorType):
-        for ds in data:
-            ds = log_history(ds, msg)
-            yield ds
-    else:
-        data = log_history(data, msg)
-        return data
-
-
 def get_arg(args, arg, default):
     """
     Support function to get arguments
@@ -389,16 +378,6 @@ def create_folder(folder, loglevel=None):
         os.makedirs(folder)
     else:
         logger.warning('Folder %s already exists', folder)
-
-
-def log_history(data, msg):
-    """Elementary provenance logger in the history attribute"""
-
-    if isinstance(data, (xr.DataArray, xr.Dataset)):
-        now = datetime.datetime.now()
-        date_now = now.strftime("%Y-%m-%d %H:%M:%S")
-        hist = data.attrs.get("history", "") + f"{date_now} {msg};\n"
-        data.attrs.update({"history": hist})
 
 
 def file_is_complete(filename, logger=logging.getLogger()):

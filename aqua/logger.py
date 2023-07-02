@@ -86,3 +86,24 @@ def _check_loglevel(log_level=None):
         log_level = log_level_default
 
     return(log_level)
+
+
+def log_history_iter(data, msg):
+    """Elementary provenance logger in the history attribute also for iterators."""
+    if isinstance(data, types.GeneratorType):
+        for ds in data:
+            ds = log_history(ds, msg)
+            yield ds
+    else:
+        data = log_history(data, msg)
+        return data
+
+
+def log_history(data, msg):
+    """Elementary provenance logger in the history attribute"""
+
+    if isinstance(data, (xr.DataArray, xr.Dataset)):
+        now = datetime.datetime.now()
+        date_now = now.strftime("%Y-%m-%d %H:%M:%S")
+        hist = data.attrs.get("history", "") + f"{date_now} {msg};\n"
+        data.attrs.update({"history": hist})

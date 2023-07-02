@@ -16,8 +16,7 @@ import smmregrid as rg
 
 from aqua.util import load_yaml, load_multi_yaml
 from aqua.util import get_reader_filenames, get_config_dir, get_machine
-from aqua.util import log_history, log_history_iter
-from aqua.logger import log_configure
+from aqua.logger import log_configure, log_history, log_history_iter
 import aqua.gsv
 
 from .streaming import Streaming
