@@ -1,9 +1,6 @@
 
 """Global Ocean module""" 
 
-# The following lines are needed so that the DummyDiagnosticWrapper, DummyDiagnostic constructors
-# + the dummy_func function are available directly from the module "dummy"
-# so that we can do "from dummy import DummyDiagnostic"
 
 from .global_ocean_class_basin_T_S_means import Global_OceanDiagnostic
 from .global_ocean_func import *
