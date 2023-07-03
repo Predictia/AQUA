@@ -223,27 +223,27 @@ The diagnostic can combine any number of histograms into a single histogram, rec
 the frequencies and pdf values and modifying the attributes automatically.
 
 
-If you want to merge all histograms if the specified repository, set the following flag: `all=True.`
+If you want to merge all histograms if the specified repository, set the following flag: **all=True**.
 
-  .. code-block:: python
+.. code-block:: python
 
-    path_to_histograms='/path/to/folder/with/histograms/'
+  path_to_histograms='/path/to/folder/with/histograms/'
 
-    merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, all=True)
-    merged_histograms
+  merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, all=True)
+  merged_histograms
 
 **Reminder**: Store the obtained histograms for distinct models in separate repositories to avoid possible errors. 
 
 
-If you want to merge only a specific number of histograms, set the function `multi`-argument. 
-The function will sort the files in the repository and take the first `multi` number of histograms in the repository.
+If you want to merge only a specific number of histograms, set the function **multi**-argument. 
+The function will sort the files in the repository and take the first **multi** number of histograms in the repository.
 
-  .. code-block:: python
+.. code-block:: python
 
-    path_to_histograms='/path/to/folder/with/histograms/'
+  path_to_histograms='/path/to/folder/with/histograms/'
 
-    merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, multi=10)
-    merged_histograms
+  merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, multi=10)
+  merged_histograms
 
 
 The histogram plots 
@@ -301,15 +301,16 @@ The function **hist_figure** has an extensive set of arguments.
 
 Below is an additional example of a histogram plot.
 
-  .. code-block:: python
-    diag.hist_figure(histogram, smooth = False, color_map = 'gist_heat', figsize=0.7, 
+.. code-block:: python
+
+  diag.hist_figure(histogram, smooth = False, color_map = 'gist_heat', figsize=0.7, 
                xlogscale = True, ylogscale=True,  plot_title = "ICON, trop precipitation rate")
 
 
 You can find an example of the histogram obtained with the tropical-rainfall diagnostic below. 
 
 .. figure:: figures/tropical-rainfall-histogram.png
-    :width: 16cm
+    :width: 20cm
 
     The pdf of tropical precipitation of the ICON data. 
 
@@ -350,32 +351,34 @@ Mean and Median Values
 
    * **lon** or **longitude**
 
-    For eample,
+   For eample,
    
    .. code-block:: python
 
      diag.median_along_coordinate(ifs, coord='lat')
 
-  The function calculates the global median value if the user sets the **glob = True**:
+   The function calculates the global median value if the user sets the **glob = True**:
   
-  .. code-block:: python
+   .. code-block:: python
 
      diag.median_along_coordinate(icon, glob=True)
+
+
 
 The diagnostic provides a simple plotting function for mean and median values of precipitation.
 For example, the function
 
-  .. code-block:: python
+.. code-block:: python
 
-     add = diag.mean_and_median_plot(icon,          coord='lat', legend='mean',   figsize=0.8)
-     add = diag.mean_and_median_plot(icon, fig=add, coord='lat', legend='median', get_median=True)
-     diag.mean_and_median_plot(icon,       fig=add, coord='lat', legend='global', get_median=True, glob=True, color='k',
+  add = diag.mean_and_median_plot(icon,          coord='lat', legend='mean',   figsize=0.8)
+  add = diag.mean_and_median_plot(icon, fig=add, coord='lat', legend='median', get_median=True)
+  diag.mean_and_median_plot(icon,       fig=add, coord='lat', legend='global', get_median=True, glob=True, color='k',
                           loc='upper left')
 
 produces the following plot
 
 .. figure:: figures/trop-rainfall-mean-lat.png
-    :width: 16cm
+    :width: 20cm
 
 Mean Absolute Percent Error (MAPE)
 ----------------------------------
@@ -394,7 +397,7 @@ The final formula for MAPE is:
 
 .. math::
 
-   MAPE = 100 * \frac{observations - dataset}{observations}
+  MAPE = 100 * \frac{observations - dataset}{observations}
 
 The most important feature of the function is that before comparing the confidence interval in the datasets function :
 
@@ -415,7 +418,7 @@ The space grid frequency will be decreased in :math:`space_grid_factor` times if
 * :math:`time_length`: the new length of the time coordinate.
 
 
- The MAPE of *icon, monthly* data in comparison with *era, monthly* data can be computed as
+The MAPE of **icon, monthly** data in comparison with **era, monthly** data can be computed as
 
 .. code-block:: python
 
@@ -435,13 +438,13 @@ NFM is equal to:
 
 The result of this method should be between -1 (**under-forecast**) and 1, (**over-forecast**), with 0 indicating of no bias.
 
-The NFS of *icon, monthly* data in comparison with *era, monthly* data (default) can be computes as
+The NFS of **icon, monthly** data in comparison with **era, monthly** data (default) can be computes as
 
 .. code-block:: python
 
   nfm_icon = diag.normilized_forecast_metric(icon, trop_lat=90)
 
-and with *mswep, monthly* data as:
+and with **mswep, monthly** data as:
 
 .. code-block:: python
 
@@ -456,7 +459,7 @@ The diagnostic provides a simple plotting function for MAPE and NFM datasets. Fo
 produces the following plot
 
 .. figure:: figures/trop-rainfall-nfm-if-mswep.png
-    :width: 16cm
+    :width: 20cm
 
 95% Confidence Interval
 -----------------------
@@ -468,7 +471,7 @@ The range of confidence interval we can find with the use of margin error:
 
 .. math::
 
-    Confidence\_interval= \left( Mean - Margin\_error, Mean + Margin\_error \right)
+  Confidence_interval = ( Mean - Margin_error, Mean + Margin_error )
 
 
 
@@ -479,7 +482,7 @@ The formula used to calculate the margin error is following
 
 .. math::
 
-  Margin_error = \X{Z_score * \std\(X_{pr}\)}{ \sqrt{N} }  \frac {test1} {test2}
+  Margin_error = \frac{Z_score * std(X_{pr})}{ \sqrt{N} }  
 
 where
 
@@ -517,7 +520,7 @@ The function also has a bool argument **plot**, which is **True** by definition.
 (provided and *era5* by default) and their confidence intervals. For example,
 
 .. figure:: figures/trop-rainfall-conf-interval.png
-    :width: 16cm
+    :width: 20cm
 
 
 
