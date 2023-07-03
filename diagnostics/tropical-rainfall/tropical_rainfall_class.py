@@ -1594,7 +1594,7 @@ class TR_PR_Diagnostic:
             elif coord == coord_lon:
                 plt.xlabel('Longitude',                             fontsize=12)
             try:
-                plt.ylabel(str(varname)+', '+str(dataset_1[model_variable].attrs['units']),
+                plt.ylabel(str(varname)+', '+str(dataset_1.units),
                                                                     fontsize=12)
             except KeyError:
                 plt.ylabel(str(varname),                            fontsize=12)
@@ -1610,7 +1610,6 @@ class TR_PR_Diagnostic:
                 plt.yscale('log')
             if xlogscale:
                 plt.xscale('log')
-            #plt.show()
             plt.tight_layout()
             if path_to_figure is not None and isinstance(path_to_figure, str):
 

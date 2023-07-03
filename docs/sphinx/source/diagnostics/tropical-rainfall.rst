@@ -186,9 +186,9 @@ The lazy mode
 --------------
 
 The user can calculate the histogram of global or tropical precipitation in the so-called lazy (or delayed) mode. 
-To do this, the user needs to set the `lazy`` flag to True.
+To do this, the user needs to set the **lazy** flag to True.
 
-  .. code-block:: python
+.. code-block:: python
 
     hist_icon_lazy=diag.histogram(icon, lazy=True)
 
@@ -196,25 +196,25 @@ If the user is ready to compute the histogram,
 he can apply the function `histogram_to_xarray` to add frequency and pdf variables to the dataset.
 The function `data_with_global_atributes` argument is needed to populate Dataset with global attributes: 
 
-  .. code-block:: python
+.. code-block:: python
 
-    diag.histogram_to_xarray(hist_counts=hist_icon_lazy, data_with_global_atributes=icon)
+  diag.histogram_to_xarray(hist_counts=hist_icon_lazy, data_with_global_atributes=icon)
 
 
 Output 
 ------
 
 The diagnostic already provides unique names for the files which contain the histogram.  
-The file's name includes the first and last time steps, for which the diagnostic does the calculations, in the following format: `year-month-day-hour`. 
+The file's name includes the first and last time steps, for which the diagnostic does the calculations, in the following format: **year-month-day-hour**. 
 The name of the file, which the user specified, would be added at the beginning of the file name. 
-For example, for one day of the icon data (`freq=30m`) 
+For example, for one day of the icon data (**freq=30m**) 
 
-  .. code-block:: python
+.. code-block:: python
 
-    path_to_save='/work/bb1153/b382267/AQUA/histograms/'
-    diag.save_histogram(dataset=hist_icon, path_to_save=path_to_save, name_of_file='icon')
+  path_to_save='/work/bb1153/b382267/AQUA/histograms/'
+  diag.save_histogram(dataset=hist_icon, path_to_save=path_to_save, name_of_file='icon')
 
-the name of the histogram is `icon_2020-01-20T00_2020-01-20T23_histogram.pkl`.
+the name of the histogram is **icon_2020-01-20T00_2020-01-20T23_histogram.pkl**.
 
 List of histograms 
 ------------------
@@ -254,8 +254,9 @@ The user can create plots of the obtained data in  different styles and scales.
 
 The simplest way to plot the histogram is:
 
-  .. code-block:: python
-    diag.hist_figure(hist_icon) 
+.. code-block:: python
+  
+  diag.hist_figure(hist_icon) 
 
 The function **hist_figure** has an extensive set of arguments.
 
@@ -562,3 +563,20 @@ The notebook folder contains the following notebooks:
     The notebook illustrates that:
     - The tropical precipitation diagnostic can be applied to any climate model variable.  
 
+ - `The comparison with observations <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_mean/diagnostics/tropical-rainfall/notebooks/comparison_with_observations.ipynb>`_:
+
+    The notebook compares the presipitation from the different model with observations:
+    - calculations of Mean Absolute Percent Error (MAPE), 
+    - calculations of Normilized Forecast Metric (NFM),
+    - the flotting function for MAPE and NFM.
+
+ - `The mean and median values of tropical precipitation <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_mean/diagnostics/tropical-rainfall/notebooks/ICON_mean_and_median.ipynb>`_:
+
+    The notebook shows the results of:
+    - mean of tropical precipitation calculations,
+    - median of tropical precipitation calculations,
+    - ..
+
+ - `The 95% confidence interval <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_mean/diagnostics/tropical-rainfall/notebooks/confidence_interval.ipynb>`_:
+
+    The notebook shows ...
