@@ -999,12 +999,12 @@ class TR_PR_Diagnostic:
 
         if fig is not None:
             fig, ax  = fig
-            if color == 'tab:blue': color   = 'tab:orange'
+            #if color == 'tab:blue': color   = 'tab:orange'
         elif add is None and fig is None:
             fig, ax = plt.subplots( figsize=(8*figsize, 5*figsize) )
         elif add is not None:
             fig, ax  = add
-            if color == 'tab:blue': color   = 'tab:orange'
+            #if color == 'tab:blue': color   = 'tab:orange'
         
         self.class_attributes_update(trop_lat = trop_lat, 
                                      s_time   = s_time,         f_time  = f_time,
@@ -1073,17 +1073,17 @@ class TR_PR_Diagnostic:
 
         if data_average.size== 1:
             if variability:
-                plt.axhline(y=float(data_variability_from_average),         color = color,  label = legend)
+                plt.axhline(y=float(data_variability_from_average),         color = color,  label = legend,  ls = ls)
             else:
-                plt.axhline(y=float(data_average.values),                   color = color,  label = legend)
+                plt.axhline(y=float(data_average.values),                   color = color,  label = legend,  ls = ls)
         else:
             if variability:
-                plt.plot(labels_int,        data_variability_from_average,  color = color,  label = legend)
+                plt.plot(labels_int,        data_variability_from_average,  color = color,  label = legend,  ls = ls)
             else:
                 if coord == 'time':
-                    plt.scatter(labels_int, data_average,                   color = color,  label = legend)
+                    plt.scatter(labels_int, data_average,                   color = color,  label = legend,  ls = ls)
                 else:
-                    plt.plot(labels_int,    data_average,                   color = color,  label = legend) 
+                    plt.plot(labels_int,    data_average,                   color = color,  label = legend,  ls = ls) 
 
         if coord == 'time':
             plt.gca().set_xticks(labels_int,  labels)
@@ -1240,7 +1240,7 @@ class TR_PR_Diagnostic:
         return nfm
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
-    def mean_absolute_percent_error(self, data,                         trop_lat = None,                  
+    def mean_absolute_percent_error(self, data,                         trop_lat = None,                    dummy_data = None,         
                                     model = 'era5',                     source = 'monthly',            
                                     s_time  = None,                     f_time   = None,                    s_year  = None,               
                                     f_year   = None,                    s_month = None,                     f_month  = None,
@@ -1252,8 +1252,10 @@ class TR_PR_Diagnostic:
                                     s_time   = s_time,                  f_time  = f_time,
                                     s_year   = s_year,                  f_year  = f_year,
                                     s_month  = s_month,                 f_month = f_month)
-
-        data_regrided, observations_regrided =  self.twin_data_and_observations(data = data,                model = model,  source = source,
+         
+                                                                        
+        data_regrided, dummy_data_regrided =  self.twin_data_and_observations(data = data,                  dummy_data = dummy_data,
+                                                                        model = model,                      source = source,
                                                                         plev=plev,                          trop_lat = self.trop_lat,
                                                                         s_time   = self.s_time,             f_time  = self.f_time,
                                                                         s_year   = self.s_year,             f_year  = self.f_year,
@@ -1262,10 +1264,10 @@ class TR_PR_Diagnostic:
                                                                         time_freq = time_freq,              time_grid_factor = time_grid_factor)
         if time_isel is None:
             mape            = data_regrided.copy(deep=True)
-            mape.values     = 100 * (observations_regrided.values - data_regrided.values) /  observations_regrided.values
+            mape.values     = 100 * (dummy_data_regrided.values - data_regrided.values) /  dummy_data_regrided.values
         else:
             mape            = data_regrided.isel(time=time_isel).copy(deep=True)
-            mape.values     = 100 * (observations_regrided.values - data_regrided.values) /  observations_regrided.values
+            mape.values     = 100 * (dummy_data_regrided.values - data_regrided.values) /  dummy_data_regrided.values
         return mape
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """    
@@ -1336,10 +1338,10 @@ class TR_PR_Diagnostic:
         ax.gridlines()
 
         if log:
-            im                  = plt.imshow(snapshot, interpolation = 'nearest',  aspect = 'auto',  norm = LogNorm(vmin = vmin, vmax = vmax), alpha = 0.9,
+            im                  = plt.imshow(snapshot, cmap=plt.cm.RdBu, interpolation = 'bilinear',  aspect = 'auto',  norm = LogNorm(vmin = vmin, vmax = vmax), alpha = 0.9,
                                              extent = (-180, 180, - self.trop_lat, self.trop_lat), origin = 'upper')
         else:
-            im                  = plt.imshow(snapshot, interpolation = 'nearest',  aspect = 'auto',  vmin = vmin, vmax = vmax, alpha = 0.9,
+            im                  = plt.imshow(snapshot, cmap=plt.cm.RdBu, interpolation = 'bilinear',  aspect = 'auto',  vmin = vmin, vmax = vmax, alpha = 0.9,
                                              extent = (-180, 180, - self.trop_lat, self.trop_lat), origin = 'upper')
 
         cbar = fig.colorbar(im)
