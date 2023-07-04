@@ -57,6 +57,7 @@ def write_fullres_field(gfield, filestore, dask):
     }
     var_encoding = {var: single_var_encoding for var in gfield.data_vars}
     final_encoding = {**time_encoding, **var_encoding}
+    
     if isinstance(gfield, int):
         print(f"No tracks to write")
     else:

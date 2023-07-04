@@ -56,7 +56,7 @@ class DetectNodes():
 
         self.logger.info(f'Running readwrite_from_intake() for {timestep}')
         
-        fileout = os.path.join(self.paths['regdir'], f'regrid_{timestep}.nc')
+        fileout = os.path.join(self.paths['tmpdir'], f'regrid_{timestep}.nc')
 
         if self.model == 'IFS':
             # TO BE IMPROVED: check pressure levels units
@@ -149,9 +149,7 @@ class DetectNodes():
             subselect = self.fullres.sel(time=timestep)
             data = self.reader_fullres.regrid(subselect)
             self.logger.info(f'store_fullres_field for timestep {timestep}')
-
             xfield = self.store_fullres_field(data, self.tempest_nodes)
-            self.logger.info(f'store_fullres_field for timestep {timestep}')
             store_file = os.path.join(self.paths['fulldir'], f'TC_fullres_{timestep}.nc')
             write_fullres_field(xfield, store_file, self.aquadask.dask)
 

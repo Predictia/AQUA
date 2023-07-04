@@ -107,6 +107,10 @@ class TCs(DetectNodes, StitchNodes):
             self.stream_units=stream_unit
             self.stream_startdate=stream_startdate
 
+        # create directory structure
+        self.paths['tmpdir'] = os.path.join(self.paths['tmpdir'], self.model, self.exp)
+        self.paths['fulldir'] = os.path.join(self.paths['fulldir'], self.model, self.exp)
+
         for path in self.paths:
             os.makedirs(self.paths[path], exist_ok=True)
 
@@ -119,7 +123,7 @@ class TCs(DetectNodes, StitchNodes):
         self.detect_nodes_zoomin()
 
         # parameters for stitch nodes (to save tracks of selected variables in netcdf)
-        n_days_stitch = tdict['stitch']['n_days_freq'] + tdict['stitch']['n_days_ext']
+        n_days_stitch = tdict['stitch']['n_days_freq'] + 2*tdict['stitch']['n_days_ext']
         last_run_stitch = pd.Timestamp(self.startdate)
 
         # loop to simulate streaming
@@ -214,7 +218,7 @@ class TCs(DetectNodes, StitchNodes):
         else:
             self.data2d = self.reader2d.retrieve(vars = self.varlist2d)
             self.data3d = self.reader3d.retrieve(vars = self.varlist3d)
-            self.fullres = self.reader_fullres.retrieve( var = self.var2store)
+            self.fullres = self.reader_fullres.retrieve(var = self.var2store)
 
         if self.streaming:     
             self.stream_enddate = self.data2d.time[-1].values
@@ -252,27 +256,7 @@ class TCs(DetectNodes, StitchNodes):
     
         return outfield
     
-    def time_window(self, initial_date):
-        """
-        Creates a time window around the initial date by extending the dates index.
 
-        Args:
-            initial_date: Initial date of the time window.
-
-        Returns:
-            dates_freq: DatetimeIndex with daily frequency starting from the initial date.
-            dates_ext: Extended DatetimeIndex with the time window around the initial date.
-        """
-
-        # create DatetimeIndex with daily frequency
-        dates_freq = pd.date_range(start=initial_date, periods=self.n_days_freq, freq='D')
-
-        before = dates_freq.shift(-self.n_days_ext, freq='D')[0:self.n_days_ext]
-        after = dates_freq.shift(+self.n_days_ext, freq='D')[-self.n_days_ext:]
-
-        # concatenate the indexes to create a single index
-        dates_ext = before.append(dates_freq).append(after)
-        return dates_freq, dates_ext
 
 
  
