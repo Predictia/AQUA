@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import warnings, logging
 from aqua.util import load_yaml
+from aqua import Reader,catalogue, inspect_catalogue
 
 warnings.filterwarnings("ignore")
 
@@ -105,7 +106,7 @@ def mean_value_plot(data, region, customise_level=False, levels=None, outputfig=
             data_level = data.isel(lev=0)
 
         # Plot temperature
-        data_level.thetao.plot.line(ax=ax1,label=f"{round(int(data_level.lev.data), -2)}")
+        data_level.ocpt.plot.line(ax=ax1,label=f"{round(int(data_level.lev.data), -2)}")
 
         # Plot salinity
         data_level.so.plot.line(ax=ax2,label=f"{round(int(data_level.lev.data), -2)}")
@@ -199,12 +200,12 @@ def std_anom_wrt_time_mean(data, use_predefined_region: bool, region: str = None
 
 
 
-def thetao_so_anom_plot(data, region, outputfig="./figs"):
+def ocpt_so_anom_plot(data, region, outputfig="./figs"):
     """
     Create a Hovmoller plot of temperature and salinity anomalies.
 
     Args:
-        data (DataArray): Input data containing temperature (thetao) and salinity (so).
+        data (DataArray): Input data containing temperature (ocpt) and salinity (so).
         title (str): Title of the plot.
 
     Returns:
@@ -215,7 +216,7 @@ def thetao_so_anom_plot(data, region, outputfig="./figs"):
     fig.suptitle(f"Standardised {region} T,S Anomalies (wrt first value)", fontsize=16)
 
     # Extract temperature data and plot the contour filled plot
-    tgt = data.thetao.transpose()
+    tgt = data.ocpt.transpose()
     tgt.plot.contourf(levels=12, ax=ax1)
 
     # Add contour lines with black color and set the line width
@@ -252,7 +253,7 @@ def time_series(data, region, customise_level=False, levels=None, outputfig="./f
     Create time series plots of global temperature and salinity standardised anomalies at selected levels.
 
     Args:
-        data (DataArray): Input data containing temperature (thetao) and salinity (so).
+        data (DataArray): Input data containing temperature (ocpt) and salinity (so).
         region (str): Region name.
         customise_level (bool): Whether to use custom levels or predefined levels.
         levels (list): List of levels to plot. Ignored if customise_level is False.
@@ -281,7 +282,7 @@ def time_series(data, region, customise_level=False, levels=None, outputfig="./f
             # Select the data at the surface level (0)
             data_level = data.isel(lev=0)
         # Plot the temperature time series
-        data_level.thetao.plot.line(ax=ax1,label=f"{round(int(data_level.lev.data), -2)}")
+        data_level.ocpt.plot.line(ax=ax1,label=f"{round(int(data_level.lev.data), -2)}")
 
         # Plot the salinity time series
         data_level.so.plot.line(ax=ax2,label=f"{round(int(data_level.lev.data), -2)}")
@@ -331,7 +332,7 @@ def convert_so(so):
     return so / 0.99530670233846
 
 
-def convert_thetao(absso, thetao):
+def convert_ocpt(absso, ocpt):
     """
     convert potential temperature to conservative temperature
     
@@ -339,12 +340,12 @@ def convert_thetao(absso, thetao):
     ----------
     absso: dask.array.core.Array
         Masked array containing the absolute salinity values.
-    thetao: dask.array.core.Array
+    ocpt: dask.array.core.Array
         Masked array containing the potential temperature values (degC).
 
     Returns
     -------
-    bigthetao: dask.array.core.Array
+    bigocpt: dask.array.core.Array
         Masked array containing the conservative temperature values (degC).
 
     Note
@@ -353,7 +354,7 @@ def convert_thetao(absso, thetao):
 
     """
     x = np.sqrt(0.0248826675584615*absso)
-    y = thetao*0.025e0
+    y = ocpt*0.025e0
     enthalpy = 61.01362420681071e0 + y*(168776.46138048015e0 +
         y*(-2735.2785605119625e0 + y*(2574.2164453821433e0 +
         y*(-1536.6644434977543e0 + y*(545.7340497931629e0 +
@@ -374,7 +375,7 @@ def convert_thetao(absso, thetao):
     return enthalpy/3991.86795711963
 
 
-def compute_rho(absso, bigthetao, ref_pressure):
+def compute_rho(absso, bigocpt, ref_pressure):
     """
     Computes the potential density in-situ.
 
@@ -382,7 +383,7 @@ def compute_rho(absso, bigthetao, ref_pressure):
     ----------
     absso: dask.array.core.Array
         Masked array containing the absolute salinity values (g/kg).
-    bigthetao: dask.array.core.Array
+    bigocpt: dask.array.core.Array
         Masked array containing the conservative temperature values (degC).
     ref_pressure: float
         Reference pressure (dbar).
@@ -403,7 +404,7 @@ def compute_rho(absso, bigthetao, ref_pressure):
     Zu = 1e4
     deltaS = 32.
     ss = np.sqrt((absso+deltaS)/SAu)
-    tt = bigthetao / CTu
+    tt = bigocpt / CTu
     pp = ref_pressure / Zu
 
     # vertical reference profile of density
@@ -500,7 +501,7 @@ def convert_variables(data):
     Returns
     -------
     converted_data : xarray.Dataset
-        Dataset containing the converted variables: absolute salinity (so), conservative temperature (thetao),
+        Dataset containing the converted variables: absolute salinity (so), conservative temperature (ocpt),
         and potential density (rho) at reference pressure 0 dbar.
 
     """
@@ -510,13 +511,13 @@ def convert_variables(data):
     absso = convert_so(data.so)
 
     # Convert potential temperature to conservative temperature
-    thetao = convert_thetao(absso, data.thetao)
+    ocpt = convert_ocpt(absso, data.ocpt)
 
     # Compute potential density in-situ at reference pressure 0 dbar
-    rho = compute_rho(absso, thetao, 0)
+    rho = compute_rho(absso, ocpt, 0)
 
     # Merge the converted variables into a new dataset
-    converted_data = converted_data.merge({"so": absso, "thetao": thetao, "rho": rho})
+    converted_data = converted_data.merge({"so": absso, "ocpt": ocpt, "rho": rho})
 
     return converted_data
 
@@ -530,7 +531,7 @@ def plot_temporal_split(data, area_name, outputfig="./figs"):
     Parameters
     ----------
     data : xarray.Dataset
-        Dataset containing the data for temperature (thetao), salinity (so), and density (rho).
+        Dataset containing the data for temperature (ocpt), salinity (so), and density (rho).
     area_name : str
         Name of the area for the plot title.
 
@@ -552,8 +553,8 @@ def plot_temporal_split(data, area_name, outputfig="./figs"):
     fig.suptitle(f"Mean state annual T, S, rho0 stratification in {area_name}", fontsize=16)
 
     ax1.set_ylim((4500, 0))
-    ax1.plot(data_1.thetao.mean("time"), data.lev, 'g-', linewidth=2.0)
-    ax1.plot(data_2.thetao.mean("time"), data.lev, 'b-', linewidth=2.0)
+    ax1.plot(data_1.ocpt.mean("time"), data.lev, 'g-', linewidth=2.0)
+    ax1.plot(data_2.ocpt.mean("time"), data.lev, 'b-', linewidth=2.0)
     ax1.set_title("Temperature Profile", fontsize=14)
     ax1.set_ylabel("Depth (m)", fontsize=12)
     ax1.set_xlabel("Temperature (°C)", fontsize=12)
@@ -579,7 +580,93 @@ def plot_temporal_split(data, area_name, outputfig="./figs"):
     logger.info(f"{filename} saved")
 
     plt.show()
+    return
 
+def compute_mld_monthly(rho):
+    """To compute the mixed layer depth from monthly density fields in discrete levels
+    Parameters
+    ----------
+    rho : xarray.DataArray for sigma0, dims must be time, space, depth (must be in metres)
+    Returns
+    -------
+    mld: xarray.DataArray, dims of time, space
+    
+      This function developed by Dhruv Balweda, Andrew Pauling, Sarah Ragen, Lettie Roach
+      
+    """
+    mld=rho
+    
+    # Here we identify the last level before 10m
+    slevs=rho.lev
+    ilev0=0
+    slevs
+    for ilev in range(len(slevs)):   
+     tlev = slevs[ilev]
+     if tlev<= 10: slev10=ilev
+
+    #  We take the last level before 10m  as our sigma0 surface reference
+
+    surf_ref = rho[:,slev10]
+
+    # We compute the density difference between surface and whole field
+    dens_diff = rho-surf_ref
+        
+    
+    # keep density differences exceeding threshold, discard other values
+    dens_diff = dens_diff.where(dens_diff > 0.03)   ### The threshold to exit the MLD is 0.03 kg/m3
+
+    # We determine the level at which the threshold is exceeded by the minimum margin
+    cutoff_lev=dens_diff.lev.where(dens_diff==dens_diff.min(["lev"])).max(["lev"])        
+    mld=cutoff_lev.rename("mld")
+
+    
+    # compute water depth
+    # note: pressure.lev, cocpt.lev, and abs_salinity.lev are identical
+#    test = sigma0.isel(time=0) + sigma0.lev
+#    bottom_depth = (
+#        pressure.lev.where(test == test.max(dim="lev"))
+#        .max(dim="lev")
+#        .rename("bottom_depth")
+#    )  # units 'meters'
+
+    # set MLD to water depth where MLD is NaN
+#    mld = mld.where(~np.isnan(mld), bottom_depth)
+
+    return mld
+
+def compute_mld_cont_monthly(rho):
+    """To compute the mixed layer depth from monthly density fields in continuous levels
+
+    Parameters
+    ----------
+    rho : xarray.DataArray for sigma0, dims must be time, space, depth (must be in metres)
+    Returns
+    -------
+    mld: xarray.DataArray, dims of time, space
+    
+      This function developed by Dhruv Balweda, Andrew Pauling, Sarah Ragen, Lettie Roach
+      
+    """
+    # mld=rho
+    # Here we identify the last level before 10m
+    slevs=rho.lev
+    ilev0=0
+    
+    # slevs
+    for ilev in range(len(slevs)):   
+     tlev = slevs[ilev]
+     if tlev<= 10: slev10=ilev
+    #  We take the density at 10m as the mean of the upper and lower level around 10 m
+    surf_ref = (rho[:,slev10]+rho[:,slev10+1])/2
+    # We compute the density difference between surface and whole field
+    dens_diff = rho-surf_ref
+    # keep density differences exceeding threshold, discard other values
+    dens_diff = dens_diff.where(dens_diff > 0.03)   ### The threshold to exit the MLD is 0.03 kg/m3
+    cutoff_lev=dens_diff.lev.where(dens_diff==dens_diff.min(["lev"])).max(["lev"])
+    mld=cutoff_lev.rename("mld")
+
+
+    return mld
 
 
     
