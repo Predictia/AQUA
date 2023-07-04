@@ -1,10 +1,10 @@
 import os
 import subprocess
-import datetime
 import xarray as xr
 import pandas as pd
 from glob import glob
-from util import write_fullres_field
+from datetime import datetime
+from tcs_utils import write_fullres_field, clean_files
 
 class StitchNodes():
     """Class Mixin to take care of stitch nodes"""
@@ -28,12 +28,12 @@ class StitchNodes():
 
         # periods specifies you want 1 block from startdate to enddate
         for block in pd.date_range(start=startdate, end=enddate, periods=1):
-            dates_freq, dates_ext = self.time_window(block)
-            self.logger.warning(f'running stitch nodes from {block.strftime("%Y%m%d")}-{dates_freq[-1].strftime("%Y%m%d")}')
-            self.prepare_stitch_nodes(block, dates_freq, dates_ext)
+            self.time_window(block)
+            self.logger.warning(f'running stitch nodes from {block.strftime("%Y%m%d")}-{self.dates_freq[-1].strftime("%Y%m%d")}')
+            self.prepare_stitch_nodes(block)
             self.run_stitch_nodes(maxgap='6h')
             self.reorder_tracks()
-            self.store_stitch_nodes(block, dates_freq)
+            self.store_stitch_nodes(block)
 
     def set_time_window(self, n_days_freq = 30, n_days_ext = 10):
         """
@@ -52,7 +52,7 @@ class StitchNodes():
         self.n_days_ext = n_days_ext
 
     
-    def prepare_stitch_nodes(self, block, dates_freq, dates_ext):      
+    def prepare_stitch_nodes(self, block):      
         """
         Prepares the stitch nodes for the given block and time window by gathering relevant file paths and filenames.
 
@@ -66,14 +66,17 @@ class StitchNodes():
         """
 
         # create list of file paths to include in glob pattern
-        file_paths = [os.path.join(self.paths['tmpdir'], f"tempest_output_{date}T??.txt") for date in dates_ext.strftime('%Y%m%d')]
+        file_paths = [os.path.join(
+            self.paths['tmpdir'], f"tempest_output_{date}T??.txt") for date in self.n_days_ext.strftime('%Y%m%d')]
+        
         # use glob to get list of filenames that match the pattern
         filenames = []
         for file_path in file_paths:
             filenames.extend(sorted(glob(file_path)))
 
         self.tempest_filenames = filenames
-        self.track_file = os.path.join(self.paths['tmpdir'], f'tempest_track_{block.strftime("%Y%m%d")}-{dates_freq[-1].strftime("%Y%m%d")}.txt')
+        self.track_file = os.path.join(
+            self.paths['tmpdir'], f'tempest_track_{block.strftime("%Y%m%d")}-{self.n_days_freq[-1].strftime("%Y%m%d")}.txt')
 
 
     def run_stitch_nodes(self, maxgap = '24h', mintime = '54h'):
@@ -136,7 +139,7 @@ class StitchNodes():
             
         self.reordered_tracks=reordered_tracks
 
-    def store_stitch_nodes(self, block, dates_freq, write_fullres=True):
+    def store_stitch_nodes(self, block, write_fullres=True):
         """
         Store stitched tracks for each variable around the Nodes in NetCDF files.
 
@@ -151,25 +154,44 @@ class StitchNodes():
         """
 
         if write_fullres:
-            for var in self.var2store : 
-                self.logger.warning(f"storing stitched tracks for {var}")
-                # initialise full_res fields at 0 before the loop
-                xfield = 0
-                for idx in self.reordered_tracks.keys():
-                    #print(datetime.strptime(idx, '%Y%m%d%H').strftime('%Y%m%d'))
-                    #print (dates.strftime('%Y%m%d'))
-                    if datetime.strptime(idx, '%Y%m%d%H').strftime('%Y%m%d') in dates_freq.strftime('%Y%m%d'):
 
-                        timestep = datetime.strptime(idx, '%Y%m%d%H').strftime('%Y%m%dT%H')
-                        fullres_file = os.path.join(self.paths['fulldir'], f'TC_{var}_{timestep}.nc')
-                        fullres_field = xr.open_mfdataset(fullres_file)[var]
+            for idx in self.reordered_tracks.keys():
+                #print(datetime.strptime(idx, '%Y%m%d%H').strftime('%Y%m%d'))
+                #print (dates.strftime('%Y%m%d'))
+                if datetime.strptime(idx, '%Y%m%d%H').strftime('%Y%m%d') in self.n_days_freq.strftime('%Y%m%d'):
 
-                        # get the full res field and store the required values around the Nodes
-                        xfield = self.store_fullres_field(xfield, fullres_field, self.reordered_tracks[idx])
+                    timestep = datetime.strptime(idx, '%Y%m%d%H').strftime('%Y%m%dT%H')
+                    fullres_file = os.path.join(self.paths['fulldir'], f'TC_fullres_{timestep}.nc')
+                    fullres_field = xr.open_mfdataset(fullres_file)
 
-                self.logger.info(f"writing netcdf file")
+                    # get the full res field and store the required values around the Nodes
+                    xfield = self.store_fullres_field(fullres_field, self.reordered_tracks[idx])
+            
+            store_file = os.path.join(self.paths['fulldir'], 
+                                      f'tempest_tracks_{block.strftime("%Y%m%d")}-{self.n_days_freq[-1].strftime("%Y%m%d")}.nc')
+            write_fullres_field(xfield, store_file, self.aquadask.dask)
+            fullres_field.close()
+            #clean_files([fullres_file])
+        
+            # for var in self.var2store : 
+            #     #self.logger.warning(f"storing stitched tracks for {var}")
+            #     # initialise full_res fields at 0 before the loop
+            #     xfield = 0
+            #     for idx in self.reordered_tracks.keys():
+            #         #print(datetime.strptime(idx, '%Y%m%d%H').strftime('%Y%m%d'))
+            #         #print (dates.strftime('%Y%m%d'))
+            #         if datetime.strptime(idx, '%Y%m%d%H').strftime('%Y%m%d') in dates_freq.strftime('%Y%m%d'):
 
-                # store the file
-                store_file = os.path.join(self.paths['fulldir'], f'tempest_tracks_{var}_{block.strftime("%Y%m%d")}-{dates_freq[-1].strftime("%Y%m%d")}.nc')
-                write_fullres_field(xfield, store_file)
+            #             timestep = datetime.strptime(idx, '%Y%m%d%H').strftime('%Y%m%dT%H')
+            #             fullres_file = os.path.join(self.paths['fulldir'], f'TC_{var}_{timestep}.nc')
+            #             fullres_field = xr.open_mfdataset(fullres_file)[var]
+
+            #             # get the full res field and store the required values around the Nodes
+            #             xfield = self.store_fullres_field(xfield, fullres_field, self.reordered_tracks[idx])
+
+            #     self.logger.info(f"writing netcdf file")
+
+            #     # store the file
+            #     store_file = os.path.join(self.paths['fulldir'], f'tempest_tracks_{var}_{block.strftime("%Y%m%d")}-{dates_freq[-1].strftime("%Y%m%d")}.nc')
+            #     write_fullres_field(xfield, store_file, self.nproc)
 

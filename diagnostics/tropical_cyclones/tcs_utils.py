@@ -1,5 +1,6 @@
 import os
-import xarray as xr
+from dask.distributed import progress
+from dask.diagnostics import ProgressBar
 
 def clean_files(filelist):
     """
@@ -33,21 +34,44 @@ def lonlatbox(lon, lat, delta) :
     """
     return [float(lon) - delta, float(lon) +delta, float(lat) -delta, float(lat) + delta]
 
-def write_fullres_field(gfield, filestore): 
+def write_fullres_field(gfield, filestore, dask): 
 
     """
     Writes the high resolution file (netcdf) format with values only within the box
     Args:
         gfield: field to write
         filestore: file to save
+        dask: if dask is active or not
     """
 
-    time_encoding = {'units': 'days since 1970-01-01',
-                 'calendar': 'standard',
-                 'dtype': 'float64'}
-    var_encoding = {"zlib": True, "complevel": 1}
+    time_encoding = {
+        'time': 
+                {
+                'units': 'days since 1970-01-01',
+                'calendar': 'standard',
+                'dtype': 'float64'
+                }
+    }
+    single_var_encoding = {
+        "zlib": True, "complevel": 1
+    }
+    var_encoding = {var: single_var_encoding for var in gfield.data_vars}
+    final_encoding = {**time_encoding, **var_encoding}
     if isinstance(gfield, int):
         print(f"No tracks to write")
     else:
-        gfield.where(gfield!=0).to_netcdf(filestore,  encoding={'time': time_encoding, gfield.name: var_encoding})
-        gfield.close()
+        gfield = gfield.where(gfield!=0)
+        save_file = gfield.to_netcdf(filestore, 
+                                    encoding=final_encoding, 
+                                    compute=False)
+        
+        if dask:
+            w_job = save_file.persist()
+            progress(w_job)
+            del w_job
+        else:
+            with ProgressBar():
+                save_file.compute()
+    
+
+        #gfield.close()

@@ -1,8 +1,9 @@
 import os
 import subprocess
+from time import time
 import xarray as xr
 import pandas as pd
-from util import clean_files, write_fullres_field
+from tcs_utils import clean_files, write_fullres_field
 
 class DetectNodes():
     """Class Mixin to take care of detect nodes"""
@@ -18,17 +19,27 @@ class DetectNodes():
         None
         """
         if self.streaming:
-            timerange = pd.date_range(start=self.stream_startdate, end=self.stream_enddate, freq=self.frequency)
+            timerange = pd.date_range(start=self.stream_startdate, 
+                                      end=self.stream_enddate, 
+                                      freq=self.frequency)
         else:
-            timerange = pd.date_range(start=self.startdate, end=self.enddate, freq=self.frequency)
-        
+            timerange = pd.date_range(start=self.startdate, 
+                                      end=self.enddate, 
+                                      freq=self.frequency)
+            
+        self.aquadask.set_dask()
         for tstep in timerange.strftime('%Y%m%dT%H'):
+            tic = time()
             self.logger.warning(f"processing time step {tstep}")
             self.readwrite_from_intake(tstep)
             self.run_detect_nodes(tstep)
             clean_files([self.tempest_filein])
             self.read_lonlat_nodes()
             self.store_detect_nodes(tstep)
+            toc = time()
+            self.logger.info('DetectNodes done in {:.4f} seconds'.format(toc - tic))
+        self.aquadask.close_dask()
+
 
     
     def readwrite_from_intake(self, timestep):
@@ -44,41 +55,25 @@ class DetectNodes():
         """
 
         self.logger.info(f'Running readwrite_from_intake() for {timestep}')
-
-        outfield = 0
+        
         fileout = os.path.join(self.paths['regdir'], f'regrid_{timestep}.nc')
 
-        for var in self.varlist2d:
-            self.logger.info(f'Regridding 2D data for {var}')
-            lowres = self.reader2d.regrid(self.data2d[var].sel(time=timestep))
-            if isinstance(outfield, xr.Dataset):
-                if var in '10u':
-                    varout = 'u10m'
-                elif var in '10v':
-                    varout = 'v10m'
-                else: 
-                    varout = var
-                outfield = xr.merge([outfield, lowres.to_dataset(name=varout)])
-            else:
-                outfield = lowres.to_dataset(name=var)
-        
-        if self.exp=="tco2559-ng5":
-            for var in self.varlist3d:
-                self.logger.info(f'Regridding 3D data for {var}')
-                lowres = self.reader3d.regrid(self.data3d[var].sel(time=timestep, plev=[30000,50000]))
-                outfield = xr.merge([outfield, lowres.to_dataset(name=var)])
+        if self.model == 'IFS':
+            # TO BE IMPROVED: check pressure levels units
+            # an import could be using metpy
+            # lowres3d = lowres3d.metpy.convert_coordinate_units('plev', 'Pa')
 
-            outfield['plev'] = outfield['plev'].astype(float)
-            outfield['plev'].attrs['units'] = 'Pa'
-            
-        elif self.exp=="tco2559-ng5-cycle3":
-            for var in self.varlist3d:
-                self.logger.info(f'Regridding 3D data for {var}')
-                lowres = self.reader3d.regrid(self.data3d[var].sel(time=timestep, plev=[30000,50000]))
-                outfield = xr.merge([outfield, lowres.to_dataset(name=var)])
+            # this assumes that only required 2D data has been retrieved
+            lowres2d = self.reader2d.regrid(self.data2d.sel(time=timestep))
+            lowres3d = self.reader3d.regrid(self.data3d.sel(time=timestep, plev=[30000,50000]))
+            outfield = xr.merge([lowres2d, lowres3d])
+            if '10u' in outfield.data_vars:
+                outfield = outfield.rename({'10u': 'u10m'})
+            if '10v' in outfield.data_vars:
+                outfield = outfield.rename({'10v': 'v10m'})
 
-            outfield['plev'] = outfield['plev'].astype(float)
-            outfield['plev'].attrs['units'] = 'Pa'
+        else:
+            raise KeyError(f'Atmospheric model {self.model} not supported')
             
         # check if output file exists
         if os.path.exists(fileout):
@@ -89,9 +84,10 @@ class DetectNodes():
         outfield.to_netcdf(fileout)
         outfield.close()
         
-        self.tempest_dictionary = {'lon': 'lon', 'lat': 'lat', 
-                    'psl': 'msl', 'zg': 'z',
-                    'uas': 'u10m', 'vas': 'v10m'}
+        self.tempest_dictionary = {
+            'lon': 'lon', 'lat': 'lat', 
+            'psl': 'msl', 'zg': 'z',
+            'uas': 'u10m', 'vas': 'v10m'}
         self.tempest_filein=fileout
 
     def read_lonlat_nodes(self):
@@ -112,7 +108,9 @@ class DetectNodes():
         first = lines[0].split('\t')
         date = first[0] + first[1].zfill(2) + first[2].zfill(2) + first[4].rstrip().zfill(2)
         lon_lat = [line.split('\t')[3:] for line in lines[1:]]
-        self.tempest_nodes = {'date': date, 'lon': [val[0] for val in lon_lat], 'lat': [val[1] for val in lon_lat]}
+        self.tempest_nodes = {'date': date, 
+                              'lon': [val[0] for val in lon_lat],
+                              'lat': [val[1] for val in lon_lat]}
 
     
     def run_detect_nodes(self, timestep) : 
@@ -148,13 +146,21 @@ class DetectNodes():
         # in case you want to write netcdf file with ullres field after Detect Nodes
         if write_fullres:
           # loop on variables to write to disk only the subset of high res files
-            for var in self.var2store:
+            subselect = self.fullres.sel(time=timestep)
+            data = self.reader_fullres.regrid(subselect)
+            self.logger.info(f'store_fullres_field for timestep {timestep}')
 
-                subselect = self.fullres[var].sel(time=timestep)
-                data = self.reader_fullres.regrid(subselect)
-                data.name = var
-                xfield = self.store_fullres_field(0, data, self.tempest_nodes)
-                self.logger.info(f'store_fullres_field for timestep {timestep}')
-                store_file = os.path.join(self.paths['fulldir'], f'TC_{var}_{timestep}.nc')
-                write_fullres_field(xfield, store_file)
+            xfield = self.store_fullres_field(data, self.tempest_nodes)
+            self.logger.info(f'store_fullres_field for timestep {timestep}')
+            store_file = os.path.join(self.paths['fulldir'], f'TC_fullres_{timestep}.nc')
+            write_fullres_field(xfield, store_file, self.aquadask.dask)
+
+            # for var in self.var2store:
+
+            #     subselect = self.fullres[var].sel(time=timestep)
+            #     data = self.reader_fullres.regrid(subselect)
+            #     xfield = self.store_fullres_field(0, data, self.tempest_nodes)
+            #     self.logger.info(f'store_fullres_field for timestep {timestep}')
+            #     store_file = os.path.join(self.paths['fulldir'], f'TC_{var}_{timestep}.nc')
+            #     write_fullres_field(xfield, store_file)
     
