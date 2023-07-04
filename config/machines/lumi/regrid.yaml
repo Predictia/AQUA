@@ -47,6 +47,10 @@ source_grids:
       original_2d:
         path: ../AQUA_tests_short/grids/tco79_grid.nc
         space_coord: ["rgrid"]
+    ecearth-tco399:
+      default:
+        path: /pfs/lustrep3/projappl/project_465000454/padavini/aqua/grids/tco399_grid.nc
+        space_coord: ["value"]
   ERA5:
     fdb:
       default:
