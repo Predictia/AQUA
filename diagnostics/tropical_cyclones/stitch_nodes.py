@@ -200,11 +200,12 @@ class StitchNodes():
                     # get the full res field and store the required values around the Nodes
                     datalist.append(self.store_fullres_field(fullres_field, self.reordered_tracks[idx]))
             
-            xfield = xr.concat(datalist, dim='time')
-            store_file = os.path.join(self.paths['fulldir'], 
+            if len(datalist)>0: 
+                xfield = xr.concat(datalist, dim='time')
+                store_file = os.path.join(self.paths['fulldir'], 
                                       f'tempest_tracks_{block.strftime("%Y%m%d")}-{dates_freq[-1].strftime("%Y%m%d")}.nc')
-            write_fullres_field(xfield, store_file, self.aquadask.dask)
-            fullres_field.close()
+                write_fullres_field(xfield, store_file, self.aquadask.dask)
+                fullres_field.close()
             #clean_files([fullres_file])
         
             # for var in self.var2store : 
