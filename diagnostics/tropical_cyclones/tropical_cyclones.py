@@ -173,7 +173,8 @@ class TCs(DetectNodes, StitchNodes):
         Raises:
         - Exception: If the specified model is not supported.
         """
-
+        self.logger.warning(f'Model{self.model} - Exp: {self.exp}')
+        
         if self.streaming == True:
             self.logger.warning(f'Initialised streaming for {self.stream_step} {self.stream_units} starting on {self.stream_startdate}')
         if self.model in 'IFS':
