@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH -p compute
+#SBATCH -p shared
 #SBATCH -A bb1153
-#SBATCH -n 1
-#SBATCH --cpus-per-task=256
+#SBATCH -n 4
+#SBATCH --cpus-per-task=64
 #SBATCH --mem=50G
-#SBATCH -t 6:30:00
+#SBATCH -t 6-00:00:00          # walltime
 #SBATCH --mail-type=FAIL       # Notify user by email in case of job failure
 #SBATCH --output=/home/b/b382216/AQUA/diagnostics/tropical_cyclones/slurm_jobs/TCs.out_%j    # File name for standard output
 #SBATCH --error=/home/b/b382216/AQUA/diagnostics/tropical_cyclones/slurm_jobs/TCs.err_%j     # File name for errors
