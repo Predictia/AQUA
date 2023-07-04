@@ -1,0 +1,175 @@
+import os
+import subprocess
+import datetime
+import xarray as xr
+import pandas as pd
+from glob import glob
+from util import write_fullres_field
+
+class StitchNodes():
+    """Class Mixin to take care of stitch nodes"""
+
+
+    def stitch_nodes_zoomin(self, startdate, enddate, n_days_freq, n_days_ext):
+        """
+        Wrapper for run_stitch_nodes and store_stitch_nodes for selected time period.
+
+        Args:
+        - self: Reference to the current instance of the class.
+        - startdate: Start date of the chosen period.
+        - enddate: End date of the chosen period.
+        - n_days_freq: Number of days for the frequency of time windows.
+        - n_days_ext: Number of days for the extension of time windows.
+
+        Returns:
+            None
+        """
+        self.set_time_window(n_days_freq=n_days_freq, n_days_ext=n_days_ext)
+
+        # periods specifies you want 1 block from startdate to enddate
+        for block in pd.date_range(start=startdate, end=enddate, periods=1):
+            dates_freq, dates_ext = self.time_window(block)
+            self.logger.warning(f'running stitch nodes from {block.strftime("%Y%m%d")}-{dates_freq[-1].strftime("%Y%m%d")}')
+            self.prepare_stitch_nodes(block, dates_freq, dates_ext)
+            self.run_stitch_nodes(maxgap='6h')
+            self.reorder_tracks()
+            self.store_stitch_nodes(block, dates_freq)
+
+    def set_time_window(self, n_days_freq = 30, n_days_ext = 10):
+        """
+        Set the time window parameters for frequency and extension.
+
+        Parameters:
+        - self: Reference to the current instance of the class.
+        - n_days_freq (optional): Number of days for the frequency of time windows. Default is 30.
+        - n_days_ext (optional): Number of days for the extension of time windows. Default is 10.
+
+        Returns:
+        None
+        """
+
+        self.n_days_freq = n_days_freq
+        self.n_days_ext = n_days_ext
+
+    
+    def prepare_stitch_nodes(self, block, dates_freq, dates_ext):      
+        """
+        Prepares the stitch nodes for the given block and time window by gathering relevant file paths and filenames.
+
+        Args:
+            block: Block for which the stitch nodes are being prepared.
+            dates_freq: DatetimeIndex with daily frequency for the time window.
+            dates_ext: Extended DatetimeIndex with the time window around the initial date.
+
+        Returns:
+            None
+        """
+
+        # create list of file paths to include in glob pattern
+        file_paths = [os.path.join(self.paths['tmpdir'], f"tempest_output_{date}T??.txt") for date in dates_ext.strftime('%Y%m%d')]
+        # use glob to get list of filenames that match the pattern
+        filenames = []
+        for file_path in file_paths:
+            filenames.extend(sorted(glob(file_path)))
+
+        self.tempest_filenames = filenames
+        self.track_file = os.path.join(self.paths['tmpdir'], f'tempest_track_{block.strftime("%Y%m%d")}-{dates_freq[-1].strftime("%Y%m%d")}.txt')
+
+
+    def run_stitch_nodes(self, maxgap = '24h', mintime = '54h'):
+
+        """"
+        Basic function to call from command line tempest extremes StitchNodes
+
+        Args:
+            infiles_list: .txt file (output from DetectNodes) with all TCs centres dates&coordinates
+            tempest_fileout: output file (.txt) from StitchNodes command
+            dir: directory where to store the temporary file with all concatenated detect nodes
+
+        Returns: 
+        stitch_string: output file from StitchNodes in string format 
+        """
+
+        full_nodes = os.path.join(self.paths['tmpdir'],'full_nodes.txt')
+        if os.path.exists(full_nodes):
+                os.remove(full_nodes)
+
+        with open(full_nodes, 'w') as outfile:
+            for fname in sorted(self.tempest_filenames):
+                with open(fname) as infile:
+                    outfile.write(infile.read())
+
+        stitch_string = f'StitchNodes --in {full_nodes} --out {self.track_file} --in_fmt lon,lat,slp,wind --range 8.0 --mintime {mintime} ' \
+            f'--maxgap {maxgap} --threshold wind,>=,10.0,10;lat,<=,50.0,10;lat,>=,-50.0,10'
+        
+        subprocess.run(stitch_string.split(), stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    
+    def reorder_tracks(self):
+
+        """
+        Open the total track files, reorder tracks in time then creates a dict with time and lons lats pair of every track
+
+        Args:
+            track_file: input track file from tempest StitchNodes
+        
+        Returns:
+            reordered_tracks: python dictionary with date lon lat of TCs centres after StitchNodes has been run
+        """
+
+        with open(self.track_file) as file:
+            lines = file.read().splitlines()
+            parts_list = [line.split("\t") for line in lines if len(line.split("\t")) > 6]
+            #print(parts_list)
+            tracks ={'slon': [parts[3] for parts in parts_list],
+                'slat':  [parts[4] for parts in parts_list],
+                'date': [parts[7] + parts[8].zfill(2) + parts[9].zfill(2) + parts[10].zfill(2) for parts in parts_list],
+            }
+
+        reordered_tracks = {}
+        for tstep in tracks['date'] : 
+            #idx = tracks['date'].index(tstep)
+            idx = [i for i, e in enumerate(tracks['date']) if e == tstep]
+            reordered_tracks[tstep] = {}
+            reordered_tracks[tstep]['date'] = tstep
+            reordered_tracks[tstep]['lon'] = [tracks['slon'][k] for k in idx]
+            reordered_tracks[tstep]['lat'] = [tracks['slat'][k] for k in idx]
+            
+        self.reordered_tracks=reordered_tracks
+
+    def store_stitch_nodes(self, block, dates_freq, write_fullres=True):
+        """
+        Store stitched tracks for each variable around the Nodes in NetCDF files.
+
+        Args:
+        - self: Reference to the current instance of the class.
+        - block: Block representing a specific time period.
+        - dates_freq: Frequencies of dates used for storing the tracks.
+        - write_fullres (optional): Boolean flag indicating whether to write full-resolution fields. Default is True.
+
+        Returns:
+                None
+        """
+
+        if write_fullres:
+            for var in self.var2store : 
+                self.logger.warning(f"storing stitched tracks for {var}")
+                # initialise full_res fields at 0 before the loop
+                xfield = 0
+                for idx in self.reordered_tracks.keys():
+                    #print(datetime.strptime(idx, '%Y%m%d%H').strftime('%Y%m%d'))
+                    #print (dates.strftime('%Y%m%d'))
+                    if datetime.strptime(idx, '%Y%m%d%H').strftime('%Y%m%d') in dates_freq.strftime('%Y%m%d'):
+
+                        timestep = datetime.strptime(idx, '%Y%m%d%H').strftime('%Y%m%dT%H')
+                        fullres_file = os.path.join(self.paths['fulldir'], f'TC_{var}_{timestep}.nc')
+                        fullres_field = xr.open_mfdataset(fullres_file)[var]
+
+                        # get the full res field and store the required values around the Nodes
+                        xfield = self.store_fullres_field(xfield, fullres_field, self.reordered_tracks[idx])
+
+                self.logger.info(f"writing netcdf file")
+
+                # store the file
+                store_file = os.path.join(self.paths['fulldir'], f'tempest_tracks_{var}_{block.strftime("%Y%m%d")}-{dates_freq[-1].strftime("%Y%m%d")}.nc')
+                write_fullres_field(xfield, store_file)
+
