@@ -365,6 +365,11 @@ class Reader(FixerMixin, RegridMixin):
         if self.vert_coord == ["2d"]:
             datadic = {"2d": data}
         else:
+            self.logger.debug("Grouping variables that share the same dimension")
+            self.logger.debug("Vert coord: %s", self.vert_coord)
+            self.logger.debug("masked_att: %s", self.masked_att)
+            self.logger.debug("masked_vars: %s", self.masked_vars)
+
             datadic = group_shared_dims(data, self.vert_coord, others="2d",
                                         masked="2dm", masked_att=self.masked_att,
                                         masked_vars=self.masked_vars)
@@ -479,9 +484,12 @@ class Reader(FixerMixin, RegridMixin):
                 if not self.grid_area[coord].equals(data.coords[coord]):
                     # if they are fine when sorted, there is a sorting mismatch
                     if self.grid_area[coord].sortby(coord).equals(data.coords[coord].sortby(coord)):
-                        raise ValueError(f'{coord} is sorted in different way between area files and your dataset.') from err
+                        self.logger.warning('%s is sorted in different way between area files and your dataset. Flipping it!', coord)
+                        self.grid_area = self.grid_area.reindex({coord: list(reversed(self.grid_area[coord]))})
+                        #raise ValueError(f'{coord} is sorted in different way between area files and your dataset.') from err
                     # something else
-                    raise ValueError(f'{coord} has a mismatch in coordinate values!') from err
+                    else:
+                        raise ValueError(f'{coord} has a mismatch in coordinate values!') from err
 
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
 
