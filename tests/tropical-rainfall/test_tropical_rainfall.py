@@ -15,7 +15,7 @@ from aqua.util import create_folder
 
 import os
 import sys
-path_to_diagnostic='./diagnostics/tropical_rainfall/'
+path_to_diagnostic='./diagnostics/'
 sys.path.insert(1, path_to_diagnostic)
 
 approx_rel=1e-4
