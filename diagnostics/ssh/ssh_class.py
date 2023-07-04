@@ -11,10 +11,10 @@ import matplotlib.pyplot as plt
 import warnings
 from dateutil.parser import parse
 
-# hack to access aqua
-import sys
-# command below takes to the parent directory
-sys.path.append("../..") 
+# # hack to access aqua
+# import sys
+# # command below takes to the parent directory
+# sys.path.append("../..") 
 import aqua
 from aqua import Reader, catalogue, util, logger
 
