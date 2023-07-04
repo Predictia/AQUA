@@ -15,7 +15,7 @@ from aqua.util import create_folder
 
 import os
 import sys
-path_to_diagnostic='./diagnostics/tropical-rainfall/'
+path_to_diagnostic='./diagnostics/tropical_rainfall/'
 sys.path.insert(1, path_to_diagnostic)
 
 approx_rel=1e-4
@@ -57,11 +57,11 @@ def test_module_import():
     """Testing the import of tropical rainfall diagnostic
     """
     try:
-        from tropical_rainfall_class import TR_PR_Diagnostic as TR_PR_Diag
+        from tropical_rainfall import Tropical_Rainfall
     except ModuleNotFoundError:
         assert False, "Diagnostic could not be imported"
 
-from tropical_rainfall_class import TR_PR_Diagnostic as TR_PR_Diag
+from tropical_rainfall import Tropical_Rainfall
     
 @pytest.fixture
 def data_size(reader):
@@ -80,7 +80,7 @@ def data_size(reader):
 def test_update_default_attribute():
     """ Testing the update of default attributes
     """
-    diag                    = TR_PR_Diag()
+    diag                    = Tropical_Rainfall()
     old_trop_lat_value      = diag.trop_lat
     diag.class_attributes_update(trop_lat = 20)
     new_trop_lat_value      = diag.trop_lat
@@ -92,9 +92,9 @@ def histogram_output(reader):
     """
     data                    = reader
     if 'tprate' in data.shortName:
-        diag                = TR_PR_Diag(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-6)/20)
+        diag                = Tropical_Rainfall(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-6)/20)
     elif '2t' in data.shortName:
-        diag                = TR_PR_Diag(num_of_bins = 20, first_edge = 200, width_of_bin = (320-200)/20)
+        diag                = Tropical_Rainfall(num_of_bins = 20, first_edge = 200, width_of_bin = (320-200)/20)
     hist                    = diag.histogram(data, trop_lat=90)
     return hist
 
@@ -137,7 +137,7 @@ def test_histogram_load_to_memory(histogram_output):
     for i in range(0, len(histograms_list_full_path)):
         remove(histograms_list_full_path[i])
     hist                    = histogram_output
-    diag                    = TR_PR_Diag()
+    diag                    = Tropical_Rainfall()
     diag.dataset_to_netcdf(dataset = hist, path_to_netcdf = path_to_histogram, name_of_file = 'test_hist_saving')
     files                   = [f for f in listdir(path_to_histogram) if isfile(join(path_to_histogram, f))]
     assert 'test_hist_saving' in files[0]
@@ -162,7 +162,7 @@ def test_hist_figure_load_to_memory(histogram_output):
         remove(figure_list_full_path[i])
 
     hist                    = histogram_output
-    diag                    = TR_PR_Diag()
+    diag                    = Tropical_Rainfall()
     diag.histogram_plot(hist, path_to_figure = str(path_to_figure) + 'test_hist_fig_saving.png')
     files                   = [f for f in listdir(path_to_figure) if isfile(join(path_to_figure, f))]
     assert 'test_hist_fig_saving.png' in files
@@ -172,7 +172,7 @@ def test_lazy_mode_calculation(reader):
     """ Testing the lazy mode of the calculation
     """
     data                    = reader
-    diag                    = TR_PR_Diag(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-6)/20)
+    diag                    = Tropical_Rainfall(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-6)/20)
     hist_lazy               = diag.histogram(data, lazy = True)
     assert 'frequency'      not in hist_lazy.attrs
     assert 'pdf'            not in hist_lazy.variables
@@ -231,7 +231,7 @@ def test_latitude_band(reader):
     """
     data                    = reader
     max_lat_value           = max(data.lat.values[0], data.lat.values[-1])
-    diag                    = TR_PR_Diag(trop_lat = 10)
+    diag                    = Tropical_Rainfall(trop_lat = 10)
     data_trop               = diag.latitude_band(data)
     assert max_lat_value    > max(data_trop.lat.values[0], data_trop.lat.values[-1])
     assert 10               > data_trop.lat.values[-1]
@@ -246,7 +246,7 @@ def test_histogram_merge(histogram_output):
     hist_2                  = histogram_output
     counts_2                = sum(hist_2.counts.values)
 
-    diag                    = TR_PR_Diag()
+    diag                    = Tropical_Rainfall()
 
     path_to_histogram       = str(path_to_diagnostic)+"/test_output/histograms/"
     diag.dataset_to_netcdf(dataset = hist_2, path_to_netcdf = path_to_histogram, name_of_file = 'test_merge')
@@ -261,7 +261,7 @@ def test_mean_figure_load_to_memory(reader):
     """
     create_folder(folder    = str(path_to_diagnostic) + "/test_output/plots/", loglevel = 'WARNING')
     path_to_figure          = str(path_to_diagnostic) + "/test_output/plots/"
-    diag                    = TR_PR_Diag()
+    diag                    = Tropical_Rainfall()
     data                    = reader
     diag.mean_and_median_plot(data, model_variable='2t', coord='lon', legend='test',
                               path_to_figure = str(path_to_figure) + 'test_mean_fig_saving.png')
@@ -273,7 +273,7 @@ def test_units_converter(reader):
     """ Testing convertation of units"""
 
     data                        = reader
-    diag                        = TR_PR_Diag()
+    diag                        = Tropical_Rainfall()
 
     old_units                   = data.units
 
