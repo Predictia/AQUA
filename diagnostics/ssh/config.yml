@@ -1,12 +1,12 @@
 # Models for which sea surface height (SSH) variability is to be evaluated.
 models:
-  # - name: FESOM
-  #   experiment: tco2559-ng5
-  #   source: original_2d
-  #   regrid: r005
-  #   variable: zos
-  #   zoom:
-  #   timespan: ['2020-01-20', '2020-12-31']
+  - name: ICON
+    experiment: ngc3028
+    source: P1D
+    regrid: r100
+    variable: zos
+    zoom: 7
+    timespan: ['2020-01-20', '2025-07-22']
   - name: ICON
     experiment: ngc3026
     source: P1D
