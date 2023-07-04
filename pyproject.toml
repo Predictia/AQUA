@@ -40,6 +40,7 @@ dependencies = [
     "metpy",
     "numpy",
     "pandas",
+    "pydantic<2.0.0",
     "pyYAML",
     "ruamel.yaml",
     "sparse",

@@ -34,7 +34,6 @@ dependencies:
   - coverage[toml]
   - pandoc
   - pycobertura
-  - pydantic <= 1.10.10
 # these below are only required for documentation
   - sphinx
   - sphinx-rtd-theme
