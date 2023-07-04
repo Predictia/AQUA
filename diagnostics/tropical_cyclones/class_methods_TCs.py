@@ -110,12 +110,12 @@ class TCs():
 
         # parameters for stitch nodes (to save tracks of selected variables in netcdf)
         n_days_stitch = tdict['stitch']['n_days_freq'] + tdict['stitch']['n_days_ext']
-        last_run_stitch = pd.Timestamp(tropical.startdate)
+        last_run_stitch = pd.Timestamp(self.startdate)
 
         # loop to simulate streaming
         while len(np.unique(self.data2d.time.dt.day)) == tdict['stream']['streamstep']:
             self.data_retrieve()
-            self.logger.warning(f"New streaming from {pd.Timestamp(tropical.stream_startdate).strftime('%Y%m%dT%H')} to {pd.Timestamp(tropical.stream_enddate).strftime('%Y%m%dT%H')}")
+            self.logger.warning(f"New streaming from {pd.Timestamp(self.stream_startdate).strftime('%Y%m%dT%H')} to {pd.Timestamp(self.stream_enddate).strftime('%Y%m%dT%H')}")
             timecheck = (self.data2d.time.values > np.datetime64(tdict['time']['enddate']))
             
             if timecheck.any():
@@ -389,20 +389,16 @@ class TCs():
         # in case you want to write netcdf file with ullres field after Detect Nodes
         if write_fullres:
           # loop on variables to write to disk only the subset of high res files
-          for var in self.var2store : 
+            for var in self.var2store:
 
-                #if var in ['tp']:     
-                    #varfile = 'tprate'
-                #else:
-                    #varfile = var
-                varfile = var
-                subselect = self.fullres[varfile].sel(time=timestep)
+                subselect = self.fullres[var].sel(time=timestep)
                 data = self.reader_fullres.regrid(subselect)
                 data.name = var
                 xfield = self.store_fullres_field(0, data, self.tempest_nodes)
                 self.logger.info(f'store_fullres_field for timestep {timestep}')
                 store_file = os.path.join(self.paths['fulldir'], f'TC_{var}_{timestep}.nc')
                 write_fullres_field(xfield, store_file)
+
 
     def store_fullres_field(self, mfield, xfield, nodes): 
 
@@ -626,5 +622,3 @@ def write_fullres_field(gfield, filestore):
     else:
         gfield.where(gfield!=0).to_netcdf(filestore,  encoding={'time': time_encoding, gfield.name: var_encoding})
         gfield.close()
-
-
