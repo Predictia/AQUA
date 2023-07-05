@@ -11,8 +11,48 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
+def predefined_regions(region):
+    region = region.lower()
+    if region in ["indian ocean", "indian_ocean"]:
+        latN = -30.0
+        latS = 30.0
+        lonW = 100.0
+        lonE = 300.0
+    elif region in ["labrador sea"]:
+        latN = 65.0
+        latS = 50.0
+        lonW = 300.0
+        lonE = 325.0
+    elif region in ["global ocean"]:
+        latN = -90.0
+        latS = 90.0
+        lonW = 0.0
+        lonE = 360.0
+    elif region in ["atlantic ocean"]:
+        latN = -35.0
+        latS = 65.0
+        lonW = -80.0
+        lonE = 30.0
+    elif region in ["pacific ocean"]:
+        latN = -55.0
+        latS = 65.0
+        lonW = 120.0
+        lonE = 290.0
+    elif region in ["arctic ocean"]:
+        latN = 65.0
+        latS = 90.0
+        lonW = 0.0
+        lonE = 360.0
+    elif region in ["southern ocean"]:
+        latN = -80.0
+        latS = -55.0
+        lonW = -180.0
+        lonE = 180.0
+    else:
+        raise ValueError("Invalid region. Available options: 'Indian Ocean', 'Labrador Sea', 'Global Ocean', 'Atlantic Ocean', 'Pacific Ocean', 'Arctic Ocean', 'Southern Ocean'")
+    return latN, latS, lonW, lonE
 
-def weighted_area_mean(data, use_predefined_region: bool, region: str = None, latN: float = None, latS: float = None, lonW: float = None, lonE: float = None):
+def weighted_area_mean(data, use_predefined_region: bool, region: str = None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None):
     """
     Compute the weighted area mean of data within the specified latitude and longitude bounds.
 
@@ -23,8 +63,9 @@ def weighted_area_mean(data, use_predefined_region: bool, region: str = None, la
                                 Available options: "Indian Ocean", "Labrador Sea", "Global Ocean", "Atlantic Ocean",
                                 "Pacific Ocean", "Arctic Ocean", "Southern Ocean".
                                 Ignored when use_predefined_region is False.
-        latN (float, optional): Northern latitude bound. Required if use_predefined_region is False or region is not provided.
+        
         latS (float, optional): Southern latitude bound. Required if use_predefined_region is False or region is not provided.
+        latN (float, optional): Northern latitude bound. Required if use_predefined_region is False or region is not provided.
         lonW (float, optional): Western longitude bound. Required if use_predefined_region is False or region is not provided.
         lonE (float, optional): Eastern longitude bound. Required if use_predefined_region is False or region is not provided.
 
@@ -32,49 +73,14 @@ def weighted_area_mean(data, use_predefined_region: bool, region: str = None, la
         xarray.Dataset: Weighted area mean of the input data.
     """
     if use_predefined_region:
-        if region == "Indian Ocean":
-            latN = -30.0
-            latS = 30.0
-            lonW = 100.0
-            lonE = 300.0
-        elif region == "Labrador Sea":
-            latN = 65.0
-            latS = 50.0
-            lonW = 300.0
-            lonE = 325.0
-        elif region == "Global Ocean":
-            latN = -90.0
-            latS = 90.0
-            lonW = 0.0
-            lonE = 360.0
-        elif region == "Atlantic Ocean":
-            latN = -35.0
-            latS = 65.0
-            lonW = -80.0
-            lonE = 30.0
-        elif region == "Pacific Ocean":
-            latN = -55.0
-            latS = 65.0
-            lonW = 120.0
-            lonE = 290.0
-        elif region == "Arctic Ocean":
-            latN = 65.0
-            latS = 90.0
-            lonW = 0.0
-            lonE = 360.0
-        elif region == "Southern Ocean":
-            latN = -80.0
-            latS = -55.0
-            lonW = -180.0
-            lonE = 180.0
-        else:
-            raise ValueError("Invalid region. Available options: 'Indian Ocean', 'Labrador Sea', 'Global Ocean', 'Atlantic Ocean', 'Pacific Ocean', 'Arctic Ocean', 'Southern Ocean'")
+        latN, latS, lonW, lonE= predefined_regions(region)
 
     else:
-        if latN is None or latS is None or lonW is None or lonE is None:
+        if  latS is None or latN is None or lonW is None or lonE is None:
             raise ValueError("Latitude and longitude bounds must be provided when use_predefined_region is False.")
 
     data = data.sel(lat=slice(latN, latS), lon=slice(lonW, lonE))
+    logger.info(f"Seleced this region {latS}S : {latN}N, {lonW} : {lonE}")
     weighted_data = data.weighted(np.cos(np.deg2rad(data.lat)))
     wgted_mean = weighted_data.mean(("lat", "lon"))
     return wgted_mean
@@ -105,7 +111,7 @@ def mean_value_plot(data, region, customise_level=False, levels=None, outputfig=
             data_level = data.isel(lev=0)
 
         # Plot temperature
-        data_level.thetao.plot.line(ax=ax1,label=f"{round(int(data_level.lev.data), -2)}")
+        data_level.ocpt.plot.line(ax=ax1,label=f"{round(int(data_level.lev.data), -2)}")
 
         # Plot salinity
         data_level.so.plot.line(ax=ax2,label=f"{round(int(data_level.lev.data), -2)}")
@@ -199,12 +205,12 @@ def std_anom_wrt_time_mean(data, use_predefined_region: bool, region: str = None
 
 
 
-def thetao_so_anom_plot(data, region, outputfig="./figs"):
+def ocpt_so_anom_plot(data, region, outputfig="./figs"):
     """
     Create a Hovmoller plot of temperature and salinity anomalies.
 
     Args:
-        data (DataArray): Input data containing temperature (thetao) and salinity (so).
+        data (DataArray): Input data containing temperature (ocpt) and salinity (so).
         title (str): Title of the plot.
 
     Returns:
@@ -215,7 +221,7 @@ def thetao_so_anom_plot(data, region, outputfig="./figs"):
     fig.suptitle(f"Standardised {region} T,S Anomalies (wrt first value)", fontsize=16)
 
     # Extract temperature data and plot the contour filled plot
-    tgt = data.thetao.transpose()
+    tgt = data.ocpt.transpose()
     tgt.plot.contourf(levels=12, ax=ax1)
 
     # Add contour lines with black color and set the line width
@@ -252,7 +258,7 @@ def time_series(data, region, customise_level=False, levels=None, outputfig="./f
     Create time series plots of global temperature and salinity standardised anomalies at selected levels.
 
     Args:
-        data (DataArray): Input data containing temperature (thetao) and salinity (so).
+        data (DataArray): Input data containing temperature (ocpt) and salinity (so).
         region (str): Region name.
         customise_level (bool): Whether to use custom levels or predefined levels.
         levels (list): List of levels to plot. Ignored if customise_level is False.
@@ -281,7 +287,7 @@ def time_series(data, region, customise_level=False, levels=None, outputfig="./f
             # Select the data at the surface level (0)
             data_level = data.isel(lev=0)
         # Plot the temperature time series
-        data_level.thetao.plot.line(ax=ax1,label=f"{round(int(data_level.lev.data), -2)}")
+        data_level.ocpt.plot.line(ax=ax1,label=f"{round(int(data_level.lev.data), -2)}")
 
         # Plot the salinity time series
         data_level.so.plot.line(ax=ax2,label=f"{round(int(data_level.lev.data), -2)}")
@@ -331,7 +337,7 @@ def convert_so(so):
     return so / 0.99530670233846
 
 
-def convert_thetao(absso, thetao):
+def convert_ocpt(absso, ocpt):
     """
     convert potential temperature to conservative temperature
     
@@ -339,12 +345,12 @@ def convert_thetao(absso, thetao):
     ----------
     absso: dask.array.core.Array
         Masked array containing the absolute salinity values.
-    thetao: dask.array.core.Array
+    ocpt: dask.array.core.Array
         Masked array containing the potential temperature values (degC).
 
     Returns
     -------
-    bigthetao: dask.array.core.Array
+    bigocpt: dask.array.core.Array
         Masked array containing the conservative temperature values (degC).
 
     Note
@@ -353,7 +359,7 @@ def convert_thetao(absso, thetao):
 
     """
     x = np.sqrt(0.0248826675584615*absso)
-    y = thetao*0.025e0
+    y = ocpt*0.025e0
     enthalpy = 61.01362420681071e0 + y*(168776.46138048015e0 +
         y*(-2735.2785605119625e0 + y*(2574.2164453821433e0 +
         y*(-1536.6644434977543e0 + y*(545.7340497931629e0 +
@@ -374,7 +380,7 @@ def convert_thetao(absso, thetao):
     return enthalpy/3991.86795711963
 
 
-def compute_rho(absso, bigthetao, ref_pressure):
+def compute_rho(absso, bigocpt, ref_pressure):
     """
     Computes the potential density in-situ.
 
@@ -382,7 +388,7 @@ def compute_rho(absso, bigthetao, ref_pressure):
     ----------
     absso: dask.array.core.Array
         Masked array containing the absolute salinity values (g/kg).
-    bigthetao: dask.array.core.Array
+    bigocpt: dask.array.core.Array
         Masked array containing the conservative temperature values (degC).
     ref_pressure: float
         Reference pressure (dbar).
@@ -403,7 +409,7 @@ def compute_rho(absso, bigthetao, ref_pressure):
     Zu = 1e4
     deltaS = 32.
     ss = np.sqrt((absso+deltaS)/SAu)
-    tt = bigthetao / CTu
+    tt = bigocpt / CTu
     pp = ref_pressure / Zu
 
     # vertical reference profile of density
@@ -500,7 +506,7 @@ def convert_variables(data):
     Returns
     -------
     converted_data : xarray.Dataset
-        Dataset containing the converted variables: absolute salinity (so), conservative temperature (thetao),
+        Dataset containing the converted variables: absolute salinity (so), conservative temperature (ocpt),
         and potential density (rho) at reference pressure 0 dbar.
 
     """
@@ -510,13 +516,13 @@ def convert_variables(data):
     absso = convert_so(data.so)
 
     # Convert potential temperature to conservative temperature
-    thetao = convert_thetao(absso, data.thetao)
+    ocpt = convert_ocpt(absso, data.ocpt)
 
     # Compute potential density in-situ at reference pressure 0 dbar
-    rho = compute_rho(absso, thetao, 0)
+    rho = compute_rho(absso, ocpt, 0)
 
     # Merge the converted variables into a new dataset
-    converted_data = converted_data.merge({"so": absso, "thetao": thetao, "rho": rho})
+    converted_data = converted_data.merge({"so": absso, "ocpt": ocpt, "rho": rho})
 
     return converted_data
 
@@ -530,7 +536,7 @@ def plot_temporal_split(data, area_name, outputfig="./figs"):
     Parameters
     ----------
     data : xarray.Dataset
-        Dataset containing the data for temperature (thetao), salinity (so), and density (rho).
+        Dataset containing the data for temperature (ocpt), salinity (so), and density (rho).
     area_name : str
         Name of the area for the plot title.
 
@@ -552,8 +558,8 @@ def plot_temporal_split(data, area_name, outputfig="./figs"):
     fig.suptitle(f"Mean state annual T, S, rho0 stratification in {area_name}", fontsize=16)
 
     ax1.set_ylim((4500, 0))
-    ax1.plot(data_1.thetao.mean("time"), data.lev, 'g-', linewidth=2.0)
-    ax1.plot(data_2.thetao.mean("time"), data.lev, 'b-', linewidth=2.0)
+    ax1.plot(data_1.ocpt.mean("time"), data.lev, 'g-', linewidth=2.0)
+    ax1.plot(data_2.ocpt.mean("time"), data.lev, 'b-', linewidth=2.0)
     ax1.set_title("Temperature Profile", fontsize=14)
     ax1.set_ylabel("Depth (m)", fontsize=12)
     ax1.set_xlabel("Temperature (°C)", fontsize=12)
