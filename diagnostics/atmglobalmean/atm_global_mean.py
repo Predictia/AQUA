@@ -8,209 +8,94 @@ import cartopy.feature as cfeature
 from cartopy.util import add_cyclic_point
 import calendar
 import math
+import datetime as dt
+import matplotlib.gridspec as gridspec
+from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
+from aqua import Reader, catalogue, inspect_catalogue
 
-plotdir = './plots/AtmGlobalBiases/'
-if not os.path.exists(plotdir):
-    os.makedirs(plotdir)
-
+outputfig = "./output/figs"
+if not os.path.exists(outputfig):
+    os.makedirs(outputfig)
+outputdir = "./output/data"    
+if not os.path.exists(outputdir):
+    os.makedirs(outputdir)
+    
+    
 class AGM_diag:
+    '''
+        A class for atmospheric global biases analysis and visualization.
+
+        Args:
+            dataset1 (xarray.Dataset): First dataset to compare.
+            dataset2 (xarray.Dataset): Second dataset to compare.
+            var_name (str): Name of the variable to analyze.
+            time_range (slice or tuple): Time range to select the data from the datasets.
+            plev (int or None): Pressure level to select the data from the datasets. If None, all levels are considered.
+            statistic (str): Statistic to calculate for each month or season. Options: 'mean', 'max', 'min', 'diff', 'std'.
+
+        Returns:
+            results (list): List of xarray.DataArray objects containing the calculated biases for each month or season.
+            axs (list): List of matplotlib Axes objects representing the subplots for each month or season.
+
+        Methods:
+
+            compare_datasets_plev(dataset1, dataset2, var_name, time_range, plot_latitude=True):
+                Compares two datasets and calculates the bias for the specified variable over time.
+                Generates a zonal bias plot for each month showing the bias at different pressure levels or latitudes.
+
+            seasonal_bias(dataset1, dataset2, var_name, year, plev, statistic):
+                Compares two datasets and calculates the bias for the specified variable for each season of a given year.
+                Generates a plot for each season showing the bias on a map.
+
+        Note:
+            - The datasets should be in xarray.Dataset format.
+            - The `var_name` should match the variable name in the datasets.
+            - The `time_range` should be a slice or tuple representing the desired time range.
+            - The `plev` should be an integer representing the pressure level or None for all levels.
+            - The `statistic` should be one of the following: 'mean', 'max', 'min', 'diff', 'std'.
+        '''
 
     @staticmethod
-    def compare_datasets(dataset1, dataset2, var1_name, var2_name, time_range, plev, statistic):
+    def seasonal_bias(dataset1, dataset2, var_name, year, plev, statistic, model_label1, model_label2):
+        '''
+        Plot the seasonal bias maps between two datasets for a specific variable and year.
+
+        Args:
+            dataset1 (xarray.Dataset): The first dataset. Choose here between:
+                                                        data_tco2559 (IFS 4.4 km)
+                                                        data_tco1279 (IFS 9 km)
+                                                        data_icon (ICON 5 km)
+                                                        data_era5 (ERA5 reanalysis)
+            dataset2 (xarray.Dataset): The second dataset. Note: If this dataset is data_era5 (ERA5 data) it provides a bias calculation with
+                                        respect to the ERA5 climatology from 2000 to 2020. You can choose like for dataset1
+            var_name (str): The name of the variable to compare (Examples: 2t, tprate, mtntrf, mtnsrf,...)
+            year (int): The year for which to calculate the bias.
+            plev (float or None): The desired pressure level in Pa. If None, the variable is assumed to be at surface level.
+            statistic (str): The desired statistic to calculate for each season. Valid options are: 'mean', 'max', 'min', 'diff', and 'std'.
+            model_label1 and model_label2 (str): The desired labeling for the plot title and the filename for the respective datasets.
+
+        Raises:
+            ValueError: If an invalid statistic is provided.
+
+        Returns:
+            Four subplots with seasonal biases.
+        '''
         
-        var1 = dataset1[var1_name]
-        var2 = dataset2[var2_name]
+        var1 = dataset1[var_name]
+        var2 = dataset2[var_name]
+        
+        reader_era5 = Reader(model="ERA5", exp="era5", source="monthly")
+        data_era5 = reader_era5.retrieve(fix=True)
+        data_era5 = data_era5.sel(time=slice('2000-01-01', '2020-12-31'))
+        
+        reader_tco2559 = Reader(model = 'IFS', exp = 'tco2559-ng5-cycle3', source = 'lra-r100-monthly')
+        data_tco2559 = reader_tco2559.retrieve(fix = False)
 
-        if dataset1 == 'data_tco2559':
-            dataset1_name = 'tco2559'
-        elif dataset1 == 'data_era5':
-            dataset1_name = 'ERA5'
-        elif dataset1 == 'data_icon':
-            dataset1_name = 'ICON'
-        elif dataset1 == 'data_tco1279':
-            dataset1_name = 'tco1279'
+        reader_tco1279 = Reader(model="IFS", exp="tco1279-orca025-cycle3",source =  'lra-r100-monthly')
+        data_tco1279 = reader_tco1279.retrieve(fix = False)
 
-        if dataset2 == 'data_tco2559':
-            dataset2_name = 'tco2559'
-        elif dataset2 == 'data_era5':
-            dataset2_name = 'ERA5'
-        elif dataset2 == 'data_icon':
-            dataset2_name = 'ICON'
-        elif dataset2 == 'data_tco1279':
-            dataset2_name = 'tco1279'
-
-        # Convert units if necessary
-        # if var1_units != var2_units:
-        # Perform unit conversion here
-        # ...
-        #     pass
-
-        # Select the desired time range
-        var1 = var1.sel(time=time_range)
-        var2 = var2.sel(time=time_range)
-
-        # Select the desired pressure level if provided
-        if plev is not None:
-            var1 = var1.sel(plev=plev)
-            var2 = var2.sel(plev=plev)
-
-        # Calculate the desired statistic for each month
-        results = []
-        for month in var1.time.dt.month:
-            var1_month = var1.sel(time=var1.time.dt.month == month)
-            var2_month = var2.sel(time=var2.time.dt.month == month)
-            if statistic == 'mean':
-                result_month = var2_month.mean(dim='time') - var1_month.mean(dim='time')
-            elif statistic == 'max':
-                result_month = var2_month.max(dim='time') - var1_month.max(dim='time')
-            elif statistic == 'min':
-                result = (var1.min(dim='time'), var2.min(dim='time'))
-            elif statistic == 'diff':
-                result = (var1 - var2)
-            elif statistic == 'std':
-                result = (var1.std(dim='time'), var2.std(dim='time'))
-            else:
-                raise ValueError("Invalid statistic. Please choose one of 'mean', 'std', 'max', 'min', or 'diff'.")
-            results.append(result_month)
-
-        # Create a cartopy projection
-        projection = ccrs.PlateCarree()
-
-        # Plot the bias maps for each month
-        fig, axs = plt.subplots(len(results), figsize=(7, 3 * len(results)), subplot_kw={'projection': projection})
-        if len(results) == 1:
-            axs = [axs]  # Convert axs to a list if only one plot
-        for i, result in enumerate(results):
-            ax = axs[i]
-
-            # Add coastlines to the plot
-            ax.add_feature(cfeature.COASTLINE)
-
-            # Add other cartographic features (optional)
-            ax.add_feature(cfeature.LAND, facecolor='lightgray')
-            ax.add_feature(cfeature.OCEAN)
-
-            cnplot = result.plot(ax=ax, cmap='RdBu_r', vmin=-10, vmax=10)
-    
-            ax.set_title(f'Bias of {var2_name}[{var2.units}] ({statistic}) at {plev} Pa\n Experiment with respect to ERA5 Month {i + 1}')
-            #f'Bias of {var2_name} ({dataset2[var2_name].long_name}) [{var2.units}] ({statistic}) at {plev} Pa\n Experiment with respect to ERA5 Month {i + 1}')
-            ax.set_xlabel('Longitude')
-            ax.set_ylabel('Latitude')
-            fig.subplots_adjust(right=0.95)
-
-        # plotlevels=np.arange(-50,51,10)
-        global small_fonts
-        small_fonts = 8
-
-        plt.tight_layout()
-        plt.subplots_adjust(hspace=0.5)  # Adjust the spacing as desired
-
-        # Save the figure as a PNG file
-        plt.savefig(plotdir+ dataset1_name + '_AtmosphericGlobalBiases_' + var1_name + '.png', dpi=300,
-                    facecolor='white')
-
-        return results, axs
-
-    @staticmethod
-    def compare_datasets_plev(dataset1, dataset2, var1_name, var2_name, time_range, plot_latitude=True):
-        bias = dataset1[var1_name].sel(time=time_range) - dataset2[var2_name].sel(time=time_range)
-
-        # Get the pressure levels and coordinate values
-        plev = bias['plev'].values
-        if plot_latitude:
-            coord_name = 'lat'
-            coord_values = bias['lat'].values
-        else:
-            coord_name = 'lon'
-            coord_values = bias['lon'].values
-
-        # Find common coordinate values
-        common_coord = np.intersect1d(dataset1[coord_name], dataset2[coord_name])
-
-        # Get indices of common coordinate values
-        coord_indices = np.where(np.isin(coord_values, common_coord))
-
-        # Slice bias and coordinate arrays using common indices
-        bias = bias.isel(**{coord_name: coord_indices[0]})
-        coord_values = coord_values[coord_indices]
-
-        # Calculate the number of months based on the sliced time range
-        num_months = len(bias['time'])
-
-        if num_months == 0:
-            print("No data available for the specified time range.")
-            return None, None
-
-        # Calculate the number of rows and columns for the grid layout
-        num_cols = math.ceil(math.sqrt(num_months))
-        num_rows = math.ceil(num_months / num_cols)
-
-        # Create subplots for each month in a grid layout
-        fig, axes = plt.subplots(nrows=num_rows, ncols=num_cols, figsize=(15, 15))
-
-        # Flatten the axes array for easier iteration
-        axes = axes.flatten()
-
-        # Iterate over each month and plot the bias
-        for i, ax in enumerate(axes[:num_months]):
-            month_bias = bias.isel(time=i)
-            month_title = month_bias['time'].dt.strftime('%B %Y').item()
-
-            z_values = np.mean(month_bias, axis=2)  # Take the mean along the time axis
-
-            # Adjust the dimensions of coord_values and plev
-            coord_values_2d, plev_2d = np.meshgrid(coord_values, plev)
-            cax = ax.contourf(coord_values_2d, plev_2d, z_values, cmap='RdBu_r')  #, levels=20)
-            ax.set_title(f'{month_title}')
-            ax.set_yscale('log')
-            ax.set_ylabel('Pressure Level (Pa)')
-            ax.set_xlabel('Coordinate Value')
-            ax.invert_yaxis()
-            ax.set_xlim(coord_values.min(), coord_values.max())  
-
-        # Remove empty subplots if there are any
-        for ax in axes[num_months:]:
-            fig.delaxes(ax)
-
-        # Add colorbar
-        cbar = fig.colorbar(cax, ax=axes, shrink=0.6)
-        cbar.set_label(f'{var2_name} ({dataset2[var2_name].units})')  # Add variable name and unit to the colorbar label
-
-        # Set plot title and axis labels
-        if plot_latitude:
-            fig.suptitle(f' Bias of {var2_name} ({dataset2[var2_name].long_name}).\n Experiment with respect to ERA5 \n Zonal Bias Plot for Each Month (Latitude)')
-        else:
-            fig.suptitle(f' Bias of {var2_name} ({dataset2[var2_name].long_name}).\n Experiment with respect to ERA5 \n Zonal Bias Plot for Each Month (Longitude)')
-
-        # plt.tight_layout()
-        # Save the figure as a PNG file
-        plt.savefig(plotdir+ dataset1_name + '_plevels_AtmosphericGlobalBiases_' + var2_name + '.png', dpi=300,
-                    facecolor='white')
-        plt.show()
-    
-    @staticmethod
-    def seasonal_bias(dataset1, dataset2, var1_name, var2_name, year, plev, statistic):
-        var1 = dataset1[var1_name]
-        var2 = dataset2[var2_name]
-    
-        if dataset1 == 'data_tco2559':
-            dataset1_name = 'tco2559'
-        elif dataset1 =='data_era5':
-            dataset1_name = 'ERA5'
-        elif dataset1 == 'data_icon':
-            dataset1_name ='ICON'
-        elif dataset1 == 'data_tco1279':
-            dataset1_name = 'tco1279'
-    
-    
-        if dataset2 == 'data_tco2559':
-            dataset2_name = 'tco2559'
-        elif dataset2 =='data_era5':
-            dataset2_name = 'ERA5'
-        elif dataset2 == 'data_icon':
-            dataset2_name = 'ICON'
-        elif dataset2 == 'data_tco1279':
-            dataset2_name = 'tco1279'
+        reader_icon = Reader(model = "ICON", exp = "ngc3028", source = 'lra-r100-monthly')
+        data_icon = reader_icon.retrieve(fix = False)
        
         var1_year = var1.sel(time=var1.time.dt.year == year)
         var2_year = var2.sel(time=var2.time.dt.year == year)
@@ -224,8 +109,12 @@ class AGM_diag:
         season_ranges = {'DJF': [12, 1, 2], 'MAM': [3, 4, 5], 'JJA': [6, 7, 8], 'SON': [9, 10, 11]}
         results = []
         for season, months in season_ranges.items():
-            var1_season = var1_year.sel(time=var1_year.time.dt.month.isin(months))
-            var2_season = var2_year.sel(time=var2_year.time.dt.month.isin(months))
+            if dataset1 == data_era5:
+                var1_season = var1.sel(time=var1.time.dt.month.isin(months))
+            else:
+                var1_season = var1.sel(time=(var1.time.dt.year == year) & (var1.time.dt.month.isin(months)))
+            var2_season = var2.sel(time=var2.time.dt.month.isin(months))
+
             if statistic == 'mean':
                 result_season = var2_season.mean(dim='time') - var1_season.mean(dim='time')
             elif statistic == 'max':
@@ -238,44 +127,215 @@ class AGM_diag:
                 result_season = var1_season.std(dim='time') - var2_season.std(dim='time')
             else:
                 raise ValueError("Invalid statistic. Please choose one of 'mean', 'std', 'max', 'min', or 'diff'.")
+
             results.append(result_season)
-    
         # Create a cartopy projection
         projection = ccrs.PlateCarree()
-    
+
+        # Calculate the number of rows and columns for the subplot grid
+        num_rows = 2
+        num_cols = 2
+
+       
         # Plot the bias maps for each season
-        fig, axs = plt.subplots(len(results), figsize=(7, 3 * len(results)), subplot_kw={'projection': projection})  
-        if len(results) == 1:
-            axs = [axs]  # Convert axs to a list if only one plot
-        for i, result in enumerate(results):
-            ax = axs[i]
-                
+        fig = plt.figure(figsize=(15, 10))
+        gs = gridspec.GridSpec(num_rows, num_cols, figure=fig)
+
+        # Create a list to store the plotted objects
+        cnplots = []
+
+        for i, (result, season) in enumerate(zip(results, season_ranges.keys())):
+            ax = fig.add_subplot(gs[i], projection=projection)
+
             # Add coastlines to the plot
             ax.add_feature(cfeature.COASTLINE)
-        
+
             # Add other cartographic features (optional)
             ax.add_feature(cfeature.LAND, facecolor='lightgray')
-            ax.add_feature(cfeature.OCEAN)
-        
-            cnplot = result.plot(ax=ax, cmap='RdBu_r', vmin=-10, vmax=10)
-        
-            ax.set_title(f'Bias of {var2_name} ({dataset2[var2_name].long_name}) [{var2.units}] ({statistic}) at {plev} Pa\n Experiment {dataset1_name} with respect to {dataset2_name} \n {season}')
+            ax.add_feature(cfeature.OCEAN, facecolor='lightblue')
+            # Set latitude and longitude tick labels
+            ax.set_xticks(np.arange(-180, 181, 60), crs=projection)
+            ax.set_yticks(np.arange(-90, 91, 30), crs=projection)
+            ax.xaxis.set_major_formatter(LongitudeFormatter())
+            ax.yaxis.set_major_formatter(LatitudeFormatter())
+
+
+            # Plot the bias data using the corresponding cnplot object
+            cnplot = result.plot(ax=ax, cmap='RdBu_r', add_colorbar = False)
+            cnplots.append(cnplot)
+
+           # ax.add_feature(cfeature.OCEAN)
+            ax.set_title(f'{season}')
             ax.set_xlabel('Longitude')
             ax.set_ylabel('Latitude')
-            fig.subplots_adjust(right=0.95)
-        
-        global small_fonts
-        small_fonts = 8
-   
-        plt.tight_layout()
-        plt.subplots_adjust(hspace=0.5)
-    
-        # Save the figure as a PNG file
-        if plotdir:
-            dataset_name = dataset1.attrs.get('name', 'dataset')
-            variable_name = dataset1[var1_name].attrs.get('long_name', var1_name)
-            file_name = f"{dataset_name}_{var1_name}_SeasonalBiases_{variable_name}{year}.png"
-            plt.savefig(plotdir + '/' + file_name, dpi=300, facecolor='white')
-        #plt.savefig(plotdir+'_'+dataset1_name+'SeasonalBias'+year+'.png', dpi=300, facecolor='white')
 
-        return results, axs
+        # Remove any empty subplots if the number of results is less than the number of subplots
+        if len(results) < num_rows * num_cols:
+            for i in range(len(results), num_rows * num_cols):
+                fig.delaxes(fig.axes[i])
+
+        # Add a colorbar
+        cbar_ax = fig.add_axes([0.25, 0.05, 0.5, 0.02])  # Adjust the position and size of the colorbar
+        cbar = fig.colorbar(cnplots[0], cax=cbar_ax, orientation='horizontal')
+        cbar.set_label(f'Bias [{var2.units}]')
+
+        # Set the overall figure title
+        # Set the overall title        
+        if dataset2 == 'data_era5':
+            if plev is not None:
+                overall_title = f'Bias of {var_name} ({dataset2[var_name].long_name}) [{var2.units}] ({statistic}) at {plev} Pa\n Experiment {model_label1} {year} with respect to ERA5 climatology (2000-2020)'
+            else:
+                overall_title = f'Bias of {var_name} ({dataset2[var_name].long_name}) [{var2.units}] ({statistic})\n Experiment {model_label1}  {year} with respect to ERA5 climatology (2000-2020)'
+                    
+        else:
+            if plev is not None:
+                overall_title = f'Bias of {var_name} ({dataset2[var_name]}) [{var2.units}] ({statistic})\n Experiment {model_label1}  {year} with respect to {model_label2}'
+            else:
+                overall_title = f'Bias of {var_name} ({dataset2[var_name]}) [{var2.units}] ({statistic}) at {plev} Pa\n Experiment {model_label1}  {year} with respect to {model_label2}'
+
+        # Set the title above the subplots
+        fig.suptitle(overall_title, fontsize=14, fontweight='bold')
+        plt.subplots_adjust(hspace=0.5)
+        
+        filename = f"{outputfig}/Seasonal_Bias_Plot_{model_label1}_{var_name}_{statistic}_{year}.pdf"
+        plt.savefig(filename, dpi = 300, format = 'pdf')
+        plt.show()
+                                                                    
+        # Write the data into a NetCDF file
+        data_directory = outputdir
+        data_filename = f"Seasonal_Bias_Data_{model_label1}_{var_name}_{statistic}_{year}.nc"
+        data_path = os.path.join(data_directory, data_filename)
+
+        data_array = xr.concat(results, dim='season')
+        data_array.attrs = var1.attrs  # Copy attributes from var1 to the data_array
+        data_array.attrs['statistic'] = statistic
+        data_array.attrs['dataset1'] = model_label1
+        data_array.attrs['dataset2'] = model_label2
+        data_array.attrs['year'] = year
+
+        data_array.to_netcdf(data_path)
+        
+        print(f"The seasonal bias plots have been saved to {outputfig}.")
+        print(f"The seasonal bias data has been saved to {outputdir}.")
+        
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------                                                              
+    
+    @staticmethod
+    def compare_datasets_plev(dataset1, var_name, time_range, model_label):
+        """
+        Compare two datasets and plot the zonal bias for a selected model time range with respect to the ERA5 climatology from 2000-2020.
+
+        Args:
+            dataset1 (xarray.Dataset): The first dataset.
+            dataset2 (xarray.Dataset): The second dataset.
+            var_name (str): The variable name to compare (examples: q, u, v, t)
+            time_range (slice or str): The time range to select from the datasets. Should be a valid slice or a string in 'YYYY-MM-DD' format.
+            data_era5 (xarray.Dataset or None): The ERA5 dataset for calculating the climatology. Set to None if not chosen.
+            plot_latitude (bool): True to plot latitude on the x-axis, False to plot longitude.
+
+        Returns:
+            None
+        """
+        # Calculate the bias between dataset1 and dataset2
+        reader_era5 = Reader(model="ERA5", exp="era5", source="monthly")
+        data_era5 = reader_era5.retrieve(fix=True)
+        data_era5 = data_era5.sel(time=slice('2000-01-01', '2020-12-31'))
+        bias = dataset1[var_name].sel(time=time_range) - data_era5[var_name].mean(dim='time')
+
+        # Get the pressure levels and coordinate values
+        plev = bias['plev'].values
+        coord_values = bias['lat'].values
+
+        # Calculate the mean bias along the time axis
+        mean_bias = bias.mean(dim='time')
+
+        # Create the z-values for the contour plot
+        coord_values_2d, plev_2d = np.meshgrid(coord_values, plev)
+        z_values = np.mean(mean_bias, axis=2)
+
+        # Create the plot
+        fig, ax = plt.subplots(figsize=(10, 8))
+        cax = ax.contourf(coord_values_2d, plev_2d, z_values, cmap='RdBu_r')
+        ax.set_title(f'Bias of {var_name} ({data_era5[var_name].long_name})\n Experiment {model_label} with respect to ERA5 Climatology (2000-2020).\n Selected model time range: {time_range}.')
+        ax.set_yscale('log')
+        ax.set_ylabel('Pressure Level (Pa)')
+        ax.set_xlabel('Latitude')
+        ax.invert_yaxis()
+        ax.set_xlim(-90, 90)
+
+        # Add colorbar
+        cbar = fig.colorbar(cax)
+        cbar.set_label(f'{var_name} ({data_era5[var_name].units})')
+
+        plt.show()
+        # Save the pdf file
+        filename = f"{outputfig}/Vertical_biases_{model_label}_{var_name}.pdf"
+        plt.savefig(filename, dpi = 300, format = 'pdf')
+    
+         # Save the data into a NetCDF file
+        filename = f"{outputdir}/Vertical_bias_{model_label}_{var_name}.nc"
+        mean_bias.to_netcdf(filename)
+        print(f"The vertical bias plots have been saved to {outputfig}.")
+        print(f"The vertical bias data has been saved to {outputdir}.")
+        
+        
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------                                           
+    
+    @staticmethod
+    def plot_map_with_stats(dataset, var_name, time_range, model_label):
+        """
+        Plot a map of a chosen variable from a dataset with colorbar and statistics.
+
+        Args:
+            dataset (xarray.Dataset): The dataset containing the variable.
+            var_name (str): The name of the variable to plot.
+            time_range (slice or str): The time range to select from the dataset. Should be a valid slice or a string in 'YYYY-MM-DD' format.
+        """
+        # Calculate statistics
+        var_data = dataset[var_name].sel(time=time_range).mean(dim='time')
+        weights = np.cos(np.deg2rad(dataset.lat))
+        weighted_data = var_data.weighted(weights)
+        var_mean = weighted_data.mean(('lon', 'lat')).values.item()
+        var_std = var_data.std().values.item()
+        var_min = var_data.min().values.item()
+        var_max = var_data.max().values.item()
+        
+#         # get the era 5 data for calculating the RMSE (serves as observation data)
+#         reader_era5 = Reader(model="ERA5", exp="era5", source="monthly")
+#         data_era5 = reader_era5.retrieve(fix=True)
+
+#         # Calculate RMSE
+#         obs_data = data_era5[var_name].mean(dim='time')  # Get the observed data for comparison
+#         n = len(var_data.values)
+#         rmse = np.sqrt(((obs_data - var_data) ** 2).mean().values.item())
+
+        # Plot the map
+        fig = plt.figure(figsize=(10, 8))
+        ax = plt.axes(projection=ccrs.PlateCarree())
+        cmap = 'RdBu_r'  # Choose a colormap (reversed)
+        im = ax.pcolormesh(var_data.lon, var_data.lat, var_data.values, cmap=cmap, transform=ccrs.PlateCarree())
+
+        # Set plot title and axis labels
+        ax.set_title(f'Map of {var_name} from {time_range} for {model_label}')
+        ax.set_xlabel('Longitude')
+        ax.set_ylabel('Latitude')
+
+        # Add continents and landlines
+        ax.add_feature(cfeature.LAND, edgecolor='black', facecolor='gray')
+        ax.add_feature(cfeature.COASTLINE)
+
+        # Add colorbar (reversed)
+        cbar = fig.colorbar(im, ax=ax, shrink=0.6, extend='both')
+        cbar.set_label(f'{var_name} ({dataset[var_name].units})')
+        cbar.set_ticks(np.linspace(var_data.max(), var_data.min(), num=11))
+
+        # Display statistics below the plot
+        stat_text = f'Mean: {var_mean:.2f} {dataset[var_name].units}    Std: {var_std:.2f}    Min: {var_min:.2f}    Max: {var_max:.2f}'
+        ax.text(0.5, -0.3, stat_text, transform=ax.transAxes, ha='center')
+
+        plt.show()
+
+        
+ 
