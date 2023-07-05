@@ -65,4 +65,9 @@ Example Plot(s)
 
     An illustration of the big void left by this diagnostic
 
+Available demo notebooks
+------------------------
 
+Notebooks are stored in diagnostics/seaice/notebooks
+
+* `seaice.ipynb <https://github.com/oloapinivad/AQUA/blob/develop_seaice/diagnostics/seaice/notebooks/seaice.ipynb>`_
