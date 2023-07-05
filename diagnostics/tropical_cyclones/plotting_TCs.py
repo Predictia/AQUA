@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import matplotlib.ticker as mticker
@@ -91,6 +92,6 @@ def plot_trajectories(trajfile, plotdir):
                     marker=".",
                     alpha=0.8,
                     transform=ccrs.PlateCarree()) ## Important
+    os.makedirs(plotdir, exist_ok=True)
+    plt.savefig(plotdir + "tracks.png", bbox_inches='tight', dpi=350)
     plt.show()
-    # create DatetimeIndex with daily frequency
-    plt.savefig(plotdir + f"tracks.png", bbox_inches='tight', dpi=350)
