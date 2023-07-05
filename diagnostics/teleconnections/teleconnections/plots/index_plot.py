@@ -7,7 +7,6 @@ import os
 import matplotlib.pyplot as plt
 
 from aqua.logger import log_configure
-
 from teleconnections.plots import set_layout
 
 
