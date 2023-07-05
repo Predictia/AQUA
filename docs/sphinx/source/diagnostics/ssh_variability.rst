@@ -15,8 +15,8 @@ The SSH diagnostic follows a class structure and consists of the files:
 * `notebooks/ssh_example_4outputs.ipynb`: an ipython notebook which uses the ssh_class and its methods;
 * `README.md` : a readme file which contains technical information on how to install the SSH diagnostic and its environment. 
 
-Input variables example
-------------------------
+input variables
+---------------
 
 * `name` (Model ID e.g. FESOM or ICON)
 * `experiment` (Experiment ID)
@@ -41,15 +41,21 @@ Available demo notebooks
 
 Notebooks are stored in diagnostics/SSH/notebooks
 
-* `ssh_example_4outputs.ipynb <https://github.com/oloapinivad/AQUA/blob/devel/ssh2/diagnostics/SSH/notebooks/ssh_example_4outputs.ipynb>`_
-        
+* `ssh_example_outputs.ipynb <https://github.com/oloapinivad/AQUA/blob/devel/ssh2/diagnostics/SSH/notebooks/ssh_example_outputs.ipynb>`_
+
+Example Plot(s)
+---------------
+
+.. figure:: figures/ssh_variability_output.png
+    :width: 10cm        
+
 Detailed API
 ------------
 
 This section provides a detailed reference for the Application Programming Interface (API) of the "SSH" diagnostic,
 produced from the diagnostic function docstrings.
 
-.. automodule:: SSH
+.. automodule:: ssh
     :members:
     :undoc-members:
     :show-inheritance:
