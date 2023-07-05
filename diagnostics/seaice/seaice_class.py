@@ -46,8 +46,8 @@ class SeaIceExtent():
 
             # Instantiate reader
             reader = Reader(model  = model, \
-                        exp    = exp,   \
-                        source = source,\
+                            exp    = exp,   \
+                            source = source,\
                     )
             
             myReaders.append(reader)
