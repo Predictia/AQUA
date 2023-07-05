@@ -3,10 +3,9 @@ import cartopy.mpl.ticker as cticker
 import matplotlib.pyplot as plt
 import numpy as np
 
-from cartopy.util import add_cyclic_point
-
 from aqua.logger import log_configure
-from teleconnections.plots import minmax_maps, plot_box
+
+from .plot_utils import minmax_maps, plot_box
 
 
 def maps_plot(maps=None, models=None, exps=None, save=False, **kwargs):
@@ -33,6 +32,7 @@ def maps_plot(maps=None, models=None, exps=None, save=False, **kwargs):
     fig, axs = plt.subplots(nrows=nrows, ncols=ncols,
                             subplot_kw={'projection': ccrs.PlateCarree()},
                             figsize=figsize)
+    axs = axs.flatten()
 
     # Evaluate min and max values for the common colorbar
     vmin, vmax = minmax_maps(maps)
@@ -56,11 +56,6 @@ def maps_plot(maps=None, models=None, exps=None, save=False, **kwargs):
         except IndexError:
             logger.info('Plotting map {}'.format(i))
 
-        data = maps[i]
-
-        # Add the cyclic point
-        data, lons = add_cyclic_point(data, coord=data.lon)
-
         # Contour plot
         cs = maps[i].plot.contourf(ax=axs[i], transform=ccrs.PlateCarree(),
                                    cmap='RdBu_r', levels=nlevels,
@@ -71,7 +66,7 @@ def maps_plot(maps=None, models=None, exps=None, save=False, **kwargs):
         try:
             axs[i].set_title('{} {}'.format(models[i], exps[i]))
         except IndexError:
-            log.warning('No title for map {}'.format(i))
+            logger.warning('No title for map {}'.format(i))
 
         # Coastlines
         axs[i].coastlines()
