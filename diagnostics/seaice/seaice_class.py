@@ -58,18 +58,24 @@ class SeaIceExtent():
 
             self.logger.info("Retrieving " + "\t".join([s.ljust(20) for s in setup]))
             data = reader.retrieve()
-            myData.append(data)
-            
-            # Renames
-            data=data.rename({"ci":"siconc"})
+
+
+            if model == "OSI-SAF":
+            #    print(data.siconc)
+            #    stop
+                data=data.rename({"siconc":"ci"})        
 
 
             areacello = reader.grid_area
             lat = data.coords["lat"]
             lon = data.coords["lon"]
 
+            # Important: recenter the lon in the conventional 0-360 range
+            lon = (lon + 360) % 360
+            lon.attrs["units"] = "degrees"
+
             # Create mask based on threshold
-            siconc_mask = data.siconc.where(data.siconc > thresholdSeaIceExtent).where(data.siconc < 1.0)
+            ci_mask = data.ci.where(data.ci > thresholdSeaIceExtent).where(data.ci < 1.0)
 
             regionExtents = list() # Will contain the time series for each region and for that setup
             # Iterate over regions
@@ -85,20 +91,26 @@ class SeaIceExtent():
                 else:
                     regionMask = (lat >= latS) & (lat <= latN) & (lon >= lonW) & (lon <= lonE)
 
-                areacello_mask = areacello.where(regionMask)
-            
-
+                #fig, ax = plt.subplots(1,1)
+                #regionMask.plot()
+                #fig.savefig(region + "-" + label + ".png")
+                #plt.close(fig)
                 # Create masks for summing later on
                 areacello_mask = areacello.where(regionMask)
+
+                #print(region)
+                #print(areacello_mask.sum().values)
+
+                # Print area of region
                 
                 if source == "lra-r100-monthly" or model == "OSI-SAF":
                     if source == "lra-r100-monthly":
                         dim1Name, dim2Name = "lon", "lat"
                     elif model == "OSI-SAF":
                         dim1Name, dim2Name = "xc", "yc"
-                    myExtent = areacello.where(regionMask).where(siconc_mask.notnull()).sum(dim = [dim1Name, dim2Name]) / 1e12
+                    myExtent = areacello.where(regionMask).where(ci_mask.notnull()).sum(dim = [dim1Name, dim2Name]) / 1e12
                 else:
-                    myExtent = areacello.where(regionMask).where(siconc_mask.notnull()).sum(dim = "value") / 1e12
+                    myExtent = areacello.where(regionMask).where(ci_mask.notnull()).sum(dim = "value") / 1e12
 
                 myExtent.attrs["units"] = "million km^2"
                 myExtent.attrs["long_name"] = "Sea ice extent"
@@ -112,25 +124,21 @@ class SeaIceExtent():
         # Print region area for information
         #areaRegion = areacello.where(regionMask).sum()
         #print(region[0] + " region area: " + str(areaRegion.data) + areaRegion.units)
-        sideSubPlot = int(np.ceil(np.sqrt(nRegions)))
-        fig, ax = plt.subplots(sideSubPlot, sideSubPlot, figsize = (16, 12))
+        fig, ax = plt.subplots(nRegions, figsize = (13, 3 * nRegions))
         for js, setup in enumerate(mySetups):
             label = " ".join([s for s in setup])
             for jr, region in enumerate(myRegions):
-
                 extent = myExtents[js][jr]
 
-                jx = jr // sideSubPlot
-                jy = jr %  sideSubPlot
+                ax[jr].plot(extent.time, extent, label = label)
+            
+                ax[jr].set_title("Sea ice extent: region " + region)
+        
+                ax[jr].legend()
+                ax[jr].set_ylabel(extent.units)
+                ax[jr].grid()
 
             
-                ax[jx, jy].plot(extent.time, extent, label = label)
-            
-                ax[jx,jy].set_title("Sea ice extent: region " + region)
-        
-                ax[jx,jy].legend()
-                ax[jx,jy].set_ylabel(extent.units)
-                ax[jx,jy].grid()
         fig.tight_layout()
         for fmt in ["png", "pdf"]:
             fig.savefig("./figSIE." + fmt, dpi = 300)
@@ -145,7 +153,7 @@ class SeaIceExtent():
         #                facecolor='grey')
 
         #fig, ax = plt.subplots(1, 1, figsize = (8, 8))
-        #p = ax.plot(lon,lat, data.siconc.mean(),
+        #p = ax.plot(lon,lat, data.ci.mean(),
         #                vmin=0, vmax=1,
         #                cmap=plt.cm.Blues,
         #                subplot_kws=subplot_kws,
