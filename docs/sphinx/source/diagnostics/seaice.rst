@@ -25,15 +25,16 @@ The sea ice extent diagnostic follows a class structure and consists of the file
 * `notebooks/seaice.ipynb`: an ipython notebook which uses the `seaice_class` class and its methods;
 * `README.md`: a readme file which contains some technical information on how to install the sea ice diagnostic and its environment. 
 
-Input variables example
-------------------------
+Input variables
+---------------
 
 * `ci` (sea ice concentration, GRIB paramid 31)
+* usual model-specific invariants (latitude, longitude, grid cell areas)
 
 Output 
 ------
 
-The script produces `figSIE.pdf` and `figSIE.png`
+The script produces `figSIE.pdf` and `figSIE.png`,  two figures showing the full seasonal cycles of sea ice extent in the specified regions for the available time of integrations.
 
 Methods used
 ------------
