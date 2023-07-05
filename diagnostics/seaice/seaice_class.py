@@ -1,30 +1,34 @@
-
+import sys
+sys.path.append("../")
+from    aqua import Reader,catalogue, inspect_catalogue
+from    aqua.util import load_yaml
+from    aqua.logger import log_configure
+import  datetime
+import  xarray as xr
+import  yaml
+import  numpy as np
+import  matplotlib.pyplot as plt
 
 """Sea ice diagnostics """
 
 class SeaIceExtent():
-
 
     """Sea ice extent class"""
     def __init__(self, option=None, configdir=None):
         """The SeaIceExtent constructor."""
 
     def run(self, mySetups = [["IFS",     "tco1279-orca025-cycle3",   "2D_monthly_native"     ]], myRegions = ["Arctic", "Southern Ocean"]):
-        """The run diag method."""
+        """The run diagnostic method. Takes two inputs:
+            mySetups    A list of 3-item lists indicating which setups need to be plotted. A setup = model, experiment, source
+            
+            myRegions   A list of regions available in the regions.yml file
+            
+            The method produces as output a figure with the seasonal cycles of sea ice extent in the regions for the setups"""
         
-        import sys
-        sys.path.append("../")
-        from    aqua import Reader,catalogue, inspect_catalogue
-        from    aqua.util import load_yaml
-        from    aqua.logger import log_configure
-        import  datetime
-        import  xarray as xr
-        import  yaml
-        import  numpy as np
-        import  matplotlib.pyplot as plt
+    
 
         # define the internal logger
-        self.logger = log_configure(log_level = None, log_name = 'Reader')
+        self.logger = log_configure(log_level = "info", log_name = 'Reader')
 
         # Load regions information
         #with open("../regions.yml") as f:
