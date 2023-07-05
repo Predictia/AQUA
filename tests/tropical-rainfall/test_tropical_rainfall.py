@@ -294,11 +294,11 @@ def test_units_converter(reader):
 
         data                    = diag.precipitation_rate_units_converter(data, new_unit = 'm min**-1')
         mean_value_mpermin      = float(data.mean().values)
-        data                    = diag.precipitation_rate_units_converter(data, new_unit = 'm days**-1')
+        data                    = diag.precipitation_rate_units_converter(data, new_unit = 'm day**-1')
         mean_value_mperday      = float(data.mean().values)
 
         assert abs(mean_value_mperday/mean_value_mpermin - 24*60) < 1e-3
-        assert data.units       == 'm days**-1'
+        assert data.units       == 'm day**-1'
 
         data                    = diag.precipitation_rate_units_converter(data, new_unit = 'm year**-1')
         mean_value_mperyear     = float(data.mean().values)

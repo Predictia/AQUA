@@ -8,6 +8,9 @@ from os.path import isfile, join
 
 import matplotlib.pyplot as plt
 from   matplotlib import colors
+import matplotlib.colors as colors
+import matplotlib.cbook as cbook
+from matplotlib import cm
 from   matplotlib.colors import LogNorm
 
 import dask.array as da
@@ -16,6 +19,8 @@ import dask_histogram as dh # pip
 from aqua.util import create_folder
  
 import cartopy.crs as ccrs
+import cartopy.mpl.ticker as cticker
+from cartopy.util import add_cyclic_point
 
 from aqua import Reader
 from aqua.util import create_folder
@@ -182,14 +187,32 @@ class Tropical_Rainfall:
         """    
         try:
             data        = data[model_variable]
-        except KeyError:
+        except KeyError or TypeError:
             data        = data
 
+        #try:
+        #    data.units
+        #except AttributeError:
+        #    from_mass_unit, from_space_unit, from_time_unit     = unit_splitter(old_unit)
+        ##    to_mass_unit,   to_space_unit,   to_time_unit       = unit_splitter(new_unit)
+        #
+        #    if data.units == 'kg m**-2 s**-1':
+        #        data            = 0.001 * data
+        #        data            = convert_length(data,   from_space_unit, to_space_unit)
+        #        data            = convert_time(data,     from_time_unit,  to_time_unit)
+        #    elif from_mass_unit is None and new_unit == 'kg m**-2 s**-1':
+        #        data            = convert_length(data,   from_space_unit, 'm')
+        #        data            = convert_time(data,     from_time_unit,  's')
+        ##        data            = 1000 * data
+        #    else:
+        #        data            = convert_length(data,   from_space_unit, to_space_unit)
+        #        data            = convert_time(data,     from_time_unit,  to_time_unit)
+        #    return data 
         if data.units == new_unit:
             return data
         else:
-            from_mass_unit, from_space_unit, from_time_unit = unit_splitter(data.units)
-            to_mass_unit, to_space_unit,   to_time_unit     = unit_splitter(new_unit)
+            from_mass_unit, from_space_unit, from_time_unit     = unit_splitter(data.units)
+            to_mass_unit,   to_space_unit,   to_time_unit       = unit_splitter(new_unit)
 
             if data.units == 'kg m**-2 s**-1':
                 data            = 0.001 * data
@@ -209,10 +232,10 @@ class Tropical_Rainfall:
             try:
                 history_attr                    = data.attrs['history'] + history_update
                 data.attrs['history']           = history_attr
-            except AttributeError:
+            except AttributeError or KeyError:
                 data.attrs['history']           = history_update
-            return data
-    
+            return data 
+        
         
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
     def latitude_band(self, data, trop_lat = None):
@@ -491,6 +514,8 @@ class Tropical_Rainfall:
         
         counts_per_bin      = counts_per_bin.assign_coords(width=("center_of_bin", width_table))
         counts_per_bin.attrs= data.attrs
+        counts_per_bin.center_of_bin.attrs['units'] = data.units
+        counts_per_bin.center_of_bin.attrs['history'] = 'Units are added to the bins to coordinate'
         
         if data_with_global_atributes is None:
             data_with_global_atributes = data_original
@@ -581,7 +606,8 @@ class Tropical_Rainfall:
                 history_attr                    = tprate_dataset.attrs['history'] + history_update
                 tprate_dataset.attrs['history'] = history_attr
             except KeyError:
-                print("The obtained xarray.Dataset doesn't have global attributes. Consider adding global attributes manually to the dataset.")
+                pass
+                #print("The obtained xarray.Dataset doesn't have global attributes. Consider adding global attributes manually to the dataset.")
         else:
             tprate_dataset[variable].attrs['time_band'] = time_band
             tprate_dataset[variable].attrs['lat_band']  = lat_band
@@ -742,7 +768,7 @@ class Tropical_Rainfall:
 
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
-    def histogram_plot(self, data, \
+    def histogram_plot(self, data,          new_unit = None,
                        weights = None,      frequency = False,      pdf = True, \
                        smooth  = True,      step = False,           color_map = False, \
                        ls = '-',            ylogscale = True,       xlogscale = False, \
@@ -812,19 +838,23 @@ class Tropical_Rainfall:
                     data = self.convert_counts_to_frequency(data)
             data = self.convert_counts_to_frequency(data)
         
+        if new_unit is not None:
+            x       = (self.precipitation_rate_units_converter(data.center_of_bin, new_unit=new_unit)).values
+        else:
+            x       =   data.center_of_bin.values
         if smooth:
-            plt.plot(data.center_of_bin, data,
+            plt.plot(x, data,
                 linewidth=3.0, ls = ls, color = color, label = legend)
             plt.grid(True)
         elif step:
-            plt.step(data.center_of_bin, data,
+            plt.step(x, data,
                 linewidth=3.0, ls = ls, color = color, label = legend)
             plt.grid(True)
         elif color_map:
             if weights is None:
-                N, bins, patches = plt.hist(x = data.center_of_bin, bins = data.center_of_bin, weights = data,    label = legend)
+                N, bins, patches    = plt.hist(x = x, bins = x, weights = data,    label = legend)
             else:
-                N, bins, patches = plt.hist(x = data.center_of_bin, bins = data.center_of_bin, weights = weights, label = legend)
+                N, bins, patches    = plt.hist(x = x, bins = x, weights = weights, label = legend)
             
             fracs   = ((N**(1 / 5)) / N.max())
             norm    = colors.Normalize(fracs.min(), fracs.max())
@@ -835,9 +865,10 @@ class Tropical_Rainfall:
                 elif isinstance(color_map, str):
                     color = plt.cm.get_cmap(color_map)(norm(thisfrac))
                 thispatch.set_facecolor(color)
-            
-        plt.xlabel(varname+", "+str(data.attrs['units']), fontsize=14)
-        
+        if new_unit is None:
+            plt.xlabel(varname+", ["+str(data.attrs['units'])+"]", fontsize=14)
+        else:
+            plt.xlabel(varname+", ["+str(new_unit)+"]", fontsize=14)
         if ylogscale:
             plt.yscale('log')
         if xlogscale:
@@ -860,7 +891,7 @@ class Tropical_Rainfall:
         plt.tight_layout()
         if path_to_figure is not None and isinstance(path_to_figure, str):
             create_folder(folder    = extract_directory_path(path_to_figure), loglevel = 'WARNING')
-            plt.savefig(path_to_figure)
+            plt.savefig(path_to_figure,     format="pdf",   bbox_inches="tight")
         return {fig, ax}
     
 
@@ -1270,6 +1301,157 @@ class Tropical_Rainfall:
             mape.values     = 100 * (dummy_data_regrided.values - data_regrided.values) /  dummy_data_regrided.values
         return mape
 
+
+    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """    
+    def plot_095level(self,     data,                               preprocess=True,                    seasons = True,     
+                                source = 'monthly',                 plev = 0,                           model_variable = 'tprate',                
+                                trop_lat       = None,              mape = False,                       nfm = False,              
+                                s_time         = None,              f_time      = None,                 s_year     = None,
+                                f_year         = None,              s_month     = None,                 f_month    = None,
+                                figsize     = 1,                    maxticknum     = 12,                colorbarname    = 'Precipitation',       
+                                vmin = None,                        vmax = None,                        contour  = True,
+                                plot_title = None,                  log = False,                        time_isel = None,
+                                space_grid_factor = None,           time_freq = None,                   time_length = None,                
+                                time_grid_factor = None,            path_to_figure = None,              resol = '110m', 
+                                new_unit = None,                    val_min = None,                     val_max=None,                   
+                                color_map ='RdBu'):
+        
+        """ Function to plot the mean or median value of variable in Dataset.
+
+        Args:"""
+        self.class_attributes_update(trop_lat = trop_lat,
+                                    s_time   = s_time,              f_time  = f_time,
+                                    s_year   = s_year,              f_year  = f_year,
+                                    s_month  = s_month,             f_month = f_month)
+       
+        clevs=np.arange(vmin,vmax,(vmax-vmin)/10)  
+
+        if seasons:
+            fig, axes = plt.subplots(ncols=2, nrows=2, subplot_kw={'projection': ccrs.PlateCarree()},
+                                     figsize=(11*figsize, 8.5*figsize), layout='constrained')
+            
+            if preprocess           == True:
+                DJF_1               = self.preprocessing(           data,                               preprocess = preprocess,
+                                                                    trop_lat   = self.trop_lat,         model_variable = model_variable,
+                                                                    s_month = 12,                       f_month    = 12)
+                DJF_2               = self.preprocessing(           data,                               preprocess = preprocess,
+                                                                    trop_lat   = self.trop_lat,         model_variable = model_variable,
+                                                                    s_month = 1,                        f_month    = 2)
+                DJF                 = xr.concat([DJF_1, DJF_2], dim = 'time')
+                DJF_mean            = DJF.mean('time')
+                
+                MAM                 = self.preprocessing(           data,                               preprocess = preprocess,
+                                                                    trop_lat   = self.trop_lat,         model_variable = model_variable,
+                                                                    s_month = 3,                        f_month    = 5)
+                MAM_mean            = MAM.mean('time')
+                
+                JJA                 = self.preprocessing(           data,                               preprocess = preprocess,
+                                                                    trop_lat   = self.trop_lat,         model_variable = model_variable,
+                                                                    s_month = 6,                        f_month    = 8)
+                JJA_mean            = JJA.mean('time')
+
+                SON                 = self.preprocessing(           data,                               preprocess = preprocess,
+                                                                    trop_lat   = self.trop_lat,         model_variable = model_variable,
+                                                                    s_month = 9,                        f_month    = 11)
+                SON_mean            = SON.mean('time')
+
+            
+            all_season  = [DJF_mean, MAM_mean, JJA_mean, SON_mean]
+            titles      = ["DJF", "MAM", "JJA", "SON"]
+
+            axs=axes.flatten()
+            for i in range(0, len(all_season)):
+                one_season = all_season[i]
+                
+                if new_unit is not None:
+                    one_season          = self.precipitation_rate_units_converter(one_season, new_unit=new_unit)
+                if vmin                 != None:
+                    one_season          = one_season.where(one_season > vmin)
+                one_season, lons        = add_cyclic_point(one_season, coord=data['lon'])
+                
+
+                im1 = axs[i].contourf(lons, data['lat'], one_season, clevs,
+                          transform = ccrs.PlateCarree(),  
+                          cmap='coolwarm', extend='both')
+
+                axs[i].set_title(titles[i], fontsize = 17)
+
+                axs[i].coastlines()
+
+                # Longitude labels
+                axs[i].set_xticks(np.arange(-180,181,60), crs=ccrs.PlateCarree())
+                lon_formatter = cticker.LongitudeFormatter()
+                axs[i].xaxis.set_major_formatter(lon_formatter)
+
+                # Latitude labels
+                axs[i].set_yticks(np.arange(-90,91,30), crs=ccrs.PlateCarree())
+                lat_formatter = cticker.LatitudeFormatter()
+                axs[i].yaxis.set_major_formatter(lat_formatter)
+                axs[i].grid(True)
+        
+        else:
+            fig, axes = plt.subplots(ncols=3, nrows=4, subplot_kw={'projection': ccrs.PlateCarree()},
+                                     figsize=(11*figsize, 8.5*figsize), layout='constrained')
+            all_months=[]
+            for i in range(1, 13):
+                if preprocess           == True:
+                    mon                 = self.preprocessing(         data,                               preprocess = preprocess,
+                                                                    trop_lat   = self.trop_lat,         model_variable = model_variable,
+                                                                    s_month = i,                        f_month    = i)
+                    mon_mean            = mon.mean('time')
+                    if new_unit is not None:
+                        mon_mean        = (self.precipitation_rate_units_converter(mon_mean, new_unit=new_unit))
+                if vmin                 != None:
+                    mon_mean                = mon_mean.where(mon_mean > vmin)
+                mon_mean, lons = add_cyclic_point(mon_mean, coord=data['lon'])
+                all_months.append(mon_mean)
+            titles =['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 
+                     'October', 'November', 'December']
+            axs=axes.flatten()
+            
+            for i in range(0, len(all_months)):
+                im1 =axs[i].contourf(lons, data['lat'], all_months[i], clevs,
+                          transform = ccrs.PlateCarree(),  vmin = vmin, vmax = vmax, 
+                          cmap='coolwarm', extend='both')
+
+                axs[i].set_title(titles[i], fontsize = 17)
+
+                axs[i].coastlines()
+
+                # Longitude labels
+                axs[i].set_xticks(np.arange(-180,181,60), crs=ccrs.PlateCarree())
+                lon_formatter = cticker.LongitudeFormatter()
+                axs[i].xaxis.set_major_formatter(lon_formatter)
+
+                # Latitude labels
+                axs[i].set_yticks(np.arange(-90,91,30), crs=ccrs.PlateCarree())
+                lat_formatter = cticker.LatitudeFormatter()
+                axs[i].yaxis.set_major_formatter(lat_formatter)
+                axs[i].grid(True)
+        #fig.tight_layout()
+        if new_unit is None:
+            unit = DJF_1.attrs['units']
+        else:
+            unit = new_unit
+        # Draw the colorbar
+        cbar = fig.colorbar(im1, ax=axes[:, :], location='bottom' ) 
+        cbar.set_label(model_variable+", ["+str(unit)+"]", fontsize = 14)
+
+        if plot_title is not None:
+            plt.suptitle(plot_title,                       fontsize = 17)
+
+        if path_to_figure is not None and isinstance(path_to_figure, str):
+
+            create_folder(folder    = extract_directory_path(path_to_figure), loglevel = 'WARNING')
+
+            plt.savefig(path_to_figure,
+                        bbox_inches  = "tight",
+                        pad_inches   = 1,
+                        transparent  = True,
+                        facecolor    = "w",
+                        edgecolor    = 'w',
+                        orientation  = 'landscape')
+    
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """    
     def snapshot_plot(self,     data,                               preprocess=True,                    model = 'era5',              
                                 source = 'monthly',                 plev = 0,                           model_variable = 'tprate',                
@@ -1376,6 +1558,56 @@ class Tropical_Rainfall:
                         edgecolor    = 'w',
                         orientation  = 'landscape')
         return {fig, ax}
+    
+    def get_95percent_level(self, data = None, original_hist = None, value = 0.05, rel_err = 0.1, model_variable='tprate', 
+                            new_unit = None):        
+
+        rel_error           = value*rel_error 
+        counts_sum          = sum(original_hist.counts)
+        relative_value      = [float((original_hist.counts[i]/counts_sum).values) for i in range(0, len(original_hist.counts))]
+        new_sum             = 0
+
+        for i in range(len(relative_value)-1, 0, -1):
+            new_sum         += relative_value[i]
+            if new_sum      > 0.05:
+                break
+        
+        bin_i               = float(original_hist.center_of_bin[i-1].values)
+        del_bin             = float(original_hist.center_of_bin[i].values) - float(original_hist.center_of_bin[i-1].values)
+        last_bin            = float(original_hist.center_of_bin[-1].values)
+
+        print(bin_i, del_bin, last_bin)
+
+        self.num_of_bins    = None
+        self.first_edge     = None
+        self.width_of_bin   = None
+
+        for i in range(0, 100):
+            print(i, del_bin)
+            self.bins       = [0, bin_i + 0.5*del_bin, last_bin]
+            new_hist        = self.histogram(data)
+
+            counts_sum      = sum(new_hist.counts.values)
+            threshold       = new_hist.counts[-1].values/counts_sum
+            if abs(threshold-value) < rel_err:
+                break
+            if threshold     < value:
+                del_bin     =  del_bin - abs(0.5*del_bin)
+            else:
+                del_bin     =  del_bin + abs(0.5*del_bin) 
+
+        try:
+            units           = data[model_variable].units
+        except KeyError:
+            units           = data.units
+
+        bin_value = bin_i + del_bin
+
+        if new_unit is not None:
+            bin_value        = (self.precipitation_rate_units_converter(bin_value, new_unit=new_unit))
+            units = new_unit
+
+        return bin_value, units, threshold
     
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
     def confidence_interval_along_coordinate(self, data,                    model_variable = 'tprate',     
