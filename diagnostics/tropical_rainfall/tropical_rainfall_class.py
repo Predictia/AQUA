@@ -1013,7 +1013,7 @@ class Tropical_Rainfall:
                              maxticknum     = 12,               color       = 'tab:blue',       varname    = 'Precipitation',
                              ylogscale      = False,            xlogscale   = False,            loc        = 'upper right',
                              add            = None,             fig         = None,             plot_title = None,   
-                             path_to_figure = None):
+                             path_to_figure = None,             new_unit    = None):
         """ Function to plot the mean or median value of variable in Dataset.
 
         Args:
@@ -1101,7 +1101,16 @@ class Tropical_Rainfall:
             labels_int      = data_with_final_grid[coord_lat]
         elif coord          == coord_lon:
             labels_int      = data_with_final_grid[coord_lon]
-
+        
+        if new_unit is not None:
+            data_average    = self.precipitation_rate_units_converter(data_average, new_unit=new_unit)
+            units = new_unit
+        else:
+            try:
+                units = data[model_variable].attrs['units']
+            except KeyError:
+                units = data_average.units 
+           
         if data_average.size== 1:
             if variability:
                 plt.axhline(y=float(data_variability_from_average),         color = color,  label = legend,  ls = ls)
@@ -1137,7 +1146,7 @@ class Tropical_Rainfall:
         elif coord == coord_lon:
             plt.xlabel('Longitude',                             fontsize=12)
         try:
-            plt.ylabel(str(varname)+', '+str(data[model_variable].attrs['units']),
+            plt.ylabel(str(varname)+', '+str(units),
                                                                 fontsize=12)
         except KeyError:
             plt.ylabel(str(varname),                            fontsize=12)
