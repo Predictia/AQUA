@@ -1,6 +1,6 @@
 """CLI interface to run the TempestExtemes TCs tracking"""
 
-from class_methods_TCs import TCs
+from tropical_cyclones import TCs
 from aqua.util import load_yaml
 import numpy as np
 from aqua.logger import log_configure
@@ -10,7 +10,7 @@ import copy
 mainlogger = log_configure('INFO', log_name='MAIN')
 
 # load the config file
-tdict = load_yaml('config/config_levante.yml')
+tdict = load_yaml('config/config.yml')
 
 # initialise tropical class with streaming options
 tropical = TCs(tdict=tdict, streaming=True, stream_step=tdict['stream']['streamstep'], stream_unit="days", 

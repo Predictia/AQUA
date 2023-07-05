@@ -4,7 +4,7 @@ Tropical Cyclones detection, tracking and zoom in diagnostic
 Description
 -----------
 
-This diagnostic package provides a tool to detect tropical cyclones (TCs) and compute their trajectory. Moreover it allows one to save selected variables
+This diagnostic package provides a tool to detect tropical cyclones (TCs) and compute their trajectories. Moreover it allows one to save selected variables
 in the vicinity of the TCs centres. The purpose of this diagnostic is to analyse how some variables of interest such as pressure, wind, wind gusts and precipitation
 associated with tropical cyclones are represented in high-resolution climate simulations, in particular their intensity and spatial pattern. Detection and tracking
 of TCs can be also used to compute TCs trajectories and compare them with other climate simulations and observations.
@@ -12,26 +12,27 @@ of TCs can be also used to compute TCs trajectories and compare them with other 
 Structure
 -----------
 
-The dummy diagnostic follows a class structure and consists of the files:
+The tropical cyclones diagnostic follows a class structure and consists of the files:
 
 * `notebooks/tropical_cyclones.ipynb`: a python notebook which provides an example use of the TCs diagnostic, including the TCs class initialisation,
                                  a wrapper function which calls the DetectNodes and StitchNodes functions from tempest-extremes (which now are implemented
                                  as methods of the TCs class) and saves the data in the vicinity of the detected TCs at each time step and for the TCs tracks
                                  in a considered time interval. Finally some plotting functions are included to plot some selected variables at a few time steps
                                  and the TCs tracks in a particular period;
-* `tropical_cyclones_slurm.py`: a python file with the tropical cyclones diagnostic as in the notebook, but to be executed as script;
-* `class_methods_TCs.py`: a python file in which the TCs class constructor and the other class methods are included; Some important methods are
-                          readwrite_from_intake, which acess data through the reader and stores them in an input file for the tempest-extremes methods, 
-                          DetectNodes (from tempest-extremes), which at each time step detects TCs centres, StitchNodes (tempest-extremes), which computes tracks from the
-                          TCs centres detected and store_fullres_field, which store the selected variables (at the original model resolution)
-                          in the vicinity of TCs centres for each track;
-                          See the `methods` paragraph for a complete description of all methods and functions.
-* `functions_TCs.py`: a python file which contains some functions (external to the tropical cyclones class) to analyse the output text files
-                      produced by running the tempest-extremes methods DetectNodes and StitchNodes.
+* `tropical_cyclones.py`: a python file in which the TCs class constructor and the other class methods are included; it contains the wrapper function
+                          which retrieves data from the reader and prepares them for DetectNodes and StitchNodes, it runs DetectNodes and StitchNodes
+                          and finally saves the variables in the vicinity of TCs tracks in a netcdf file;
+* `detect_nodes.py`: class with all methods related to DetectNodes;
+* `stitch_nodes.py`: class with all methods related to StitchNodes;
+* `tempest_utils.py`: a python file which contains some functions (external to the tropical cyclones class) to analyse the output text files
+                      produced by running the tempest-extremes methods DetectNodes and StitchNodes;
+* `tcs_utils.py`:     contains some functions external to the TCs class but called by the TCs class methods;
 * `plotting.py`: a python file which contains the plotting functions;
+* `aqua_dask.py`: python file which contains a class to initialise Dask and its methods to set and close Dask when it is needed;
+* `tropical_cyclones_slurm.py`: a python file with the tropical cyclones diagnostic as in the notebook, but to be executed as script;
 * `run_TCs_slurm.sh`: bash script to run tropical_cyclones_slurm.py with sbatch;
 * `env-TCs.yml`: a yaml file with the required dependencies to creat the environment for the TCs diagnostic;
-* `config/config_levante.yml`: a yaml file in which all parameters are configured (including variables to save) and paths are specified. Version for Levante.
+* `config/config.yml`: a yaml file in which all parameters are configured (including variables to save) and paths are specified. Version for Levante.
 * `README.md` : a readme file which contains some tecnical information on how to install the tropical cyclones diagnostic and its environment. 
 
 Input variables
@@ -68,29 +69,36 @@ and intensity between original resolution and a coarser resolution or with obser
 Methods used
 ------------
 
-Examples from the DummyDiagnostic class contained in the class_methods_TCs.py file:
+Examples from the TCs class contained in the tropical_cyclones.py and its related detect_nodes.py and stitch_nodes.py files:
 
 * "TCs": the tropical cyclones class;
 * "catalog_init": initializes the Reader object for retrieving the atmospheric data needed (i.e. the input and output vars).
 * "data_retrieve": retrieves atmospheric data from the Reader and stores them in data arrays. It includes the posibility
-                   of simulating the streaming of data. It updates the stream_startdate and stream_enddate attributes if streaming is set to True.
-* "set_time_window": updates the n_days_freq and n_days_ext attributes of the Detector object to set the time window for the tempest extremes analysis.
+                   of simulating the streaming of data. It updates the stream_startdate and stream_enddate attributes if streaming is set to True;
+* "loop_streaming": Wrapper for data retrieve, DetectNodes and StitchNodes. Simulates streaming data processing by retrieving data in chunks 
+                    and performing TCs node detection and stitching looping over time steps;
 * "readwrite_from_intake": regrids the atmospheric data, saves it to disk as a netCDF file, and updates the tempest_dictionary and tempest_filein attributes of the Detector object.
 * "run_detect_nodes: runs the tempest extremes DetectNodes command on the regridded atmospheric data specified by the tempest_dictionary and tempest_filein attributes, saves the output to disk, and updates the tempest_fileout attribute of the Detector object.
 * "detect_nodes_zoomin": wrapper which calls the readwrite_from_intake, run_detect_nodes and store_detect_nodes methods in a time loop;
-* "stitch_nodes_zoomin": wrapper which calls the run stitch_nodes and store_stitch_nodes methods in a time loop.
-* "lonlatbox": creates a lon lat box of specified width (in degrees). Called to store the original resolution vars only in a box centred over the TCs centres.
-* "write_fullres_field": function to write original resolution variables around TCs centres and their trajectories. Output produced in a netcdf file.
+* "stitch_nodes_zoomin": wrapper which calls the run stitch_nodes and store_stitch_nodes methods in a time loop;
+* "lonlatbox": creates a lon lat box of specified width (in degrees). Called to store the original resolution vars only in a box centred over the TCs centres;
+* "store_fullres_field": function to write original resolution variables around TCs centres and their trajectories. Output produced in a netcdf file.
 
 Functions used
 --------------
 
-The python file functions_TCs.py contains some functions used to analyse the raw output of tempest-extremes:
+The python file tempest_utils.py contains some functions used to analyse the raw output of tempest-extremes:
 
 * "getNodes": Retrieves nodes (i.e. TCs centres in thi s case) from a TempestExtremes file (.txt output from DetectNodes).
 * "getTrajectories": Retrieves trajectories from a TempestExtremes file (.txt file generated from StitchNodes).
 
 These functions are largerly based on the ones found in the CyMeP repository by Colin Zarzycki (https://github.com/zarzycki/cymep).
+
+The python file tcs_utils.py contains some functions called by the TCs class and the DetectNodes and StitchNodes classes but external to them:
+
+* "lonlatbox": define the list for the box to retain high res data in the vicinity of the TC centres;
+* "write_fullres_field": writes the high resolution file (netcdf) format with values only within the TCs centres box.
+
 
 Observations
 ------------
@@ -123,15 +131,15 @@ Example Plot(s)
 Available demo notebooks
 ------------------------
 
-Notebooks are stored in diagnostics/dummy-diagnostic/notebooks
+Notebooks are stored in diagnostics/tropical_cyclones/notebooks
 
-* `dummy_class_readerwrapper.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/dummy/notebooks/dummy_class_readerwrapper.ipynb>`_
-* `dummy_class_timeband.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/dummy/notebooks/dummy_class_timeband.ipynb>`_
+* `tropical_cyclones.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/tropical_cyclones/notebooks/tropical_cyclones.ipynb>`_
+
         
 Detailed API
 ------------
 
-This section provides a detailed reference for the Application Programming Interface (API) of the "dummy" diagnostic,
+This section provides a detailed reference for the Application Programming Interface (API) of the "tropical_cyclones" diagnostic,
 produced from the diagnostic function docstrings.
 
 .. automodule:: tropical_cyclones
