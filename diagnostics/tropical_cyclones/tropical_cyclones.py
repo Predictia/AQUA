@@ -39,14 +39,9 @@ class TCs(DetectNodes, StitchNodes):
     Methods:
 
     init(self, tdict=None, paths=None, model="IFS", exp="tco2559-ng5", boxdim=10, lowgrid='r100', highgrid='r010', var2store=None, streaming=False, frequency='6h', startdate=None, enddate=None, stream_step=1, stream_unit='days', stream_startdate=None, loglevel='INFO'): Constructor method that initializes the class attributes based on the input arguments or tdict dictionary.
-    detect_nodes_zoomin(self): Method for detecting the nodes of TCs and storing variables in a box centred over the TCs centres at each time step.
-                               Wrapper which calls the readwrite_from_intake, run_detect_nodes and store_detect_nodes methods in a time loop;
-    stitch_nodes_zoomin(self): Method for producing tracks of selected variables stored in netcdf files.
+    loop_streaming (init, tdict): Wrapper for data retrieve, DetectNodes and StitchNodes;
     catalog_init(self): "catalog_init": initializes the Reader object for retrieving the atmospheric data needed (i.e. the input and output vars).
     data_retrieve(self, reset_stream=False): retrieves atmospheric data from the Reader objects and assigns them to the data2d, data3d, and fullres attributes of the Detector object. It updates the stream_startdate and stream_enddate attributes if streaming is True.
-    set_time_window: updates the n_days_freq and n_days_ext attributes of the Detector object to set the time window for the tempest extremes analysis.
-    readwrite_from_intake: regrids the atmospheric data, saves it to disk as a netCDF file, and updates the tempest_dictionary and tempest_filein attributes of the Detector object.
-    run_detect_nodes: runs the tempest extremes DetectNodes command on the regridded atmospheric data specified by the tempest_dictionary and tempest_filein attributes, saves the output to disk, and updates the tempest_fileout attribute of the Detector object.
 
     """
 
@@ -117,6 +112,20 @@ class TCs(DetectNodes, StitchNodes):
         self.catalog_init()
 
     def loop_streaming(self, tdict):
+        
+        """
+        Wrapper for data retrieve, DetectNodes and StitchNodes.
+        Simulates streaming data processing by retrieving data in chunks 
+        and performing TCs node detection and stitching looping over time steps.
+
+        Args:
+            self: The current object instance.
+            tdict: A dictionary containing various parameters for streaming and stitching.
+
+        Returns:
+            None
+        """
+
 
         # retrieve the data and call detect nodes on the first chunk of data
         self.data_retrieve()
