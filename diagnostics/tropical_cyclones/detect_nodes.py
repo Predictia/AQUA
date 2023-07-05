@@ -6,11 +6,21 @@ import pandas as pd
 from tcs_utils import clean_files, write_fullres_field
 
 class DetectNodes():
-    """Class Mixin to take care of detect nodes"""
-
+    """
+    Class Mixin to take care of detect nodes.
+    
+    Methods:
+    
+    detect_nodes_zoomin: detect_nodes_zoomin(self): Method for detecting the nodes of TCs and storing variables in a box centred over the TCs centres at each time step.
+                                                    Wrapper which calls the readwrite_from_intake, run_detect_nodes and store_detect_nodes methods in a time loop.
+    readwrite_from_intake: regrids the atmospheric data, saves it to disk as a netCDF file, and updates the tempest_dictionary and tempest_filein attributes of the Detector object.
+    run_detect_nodes: runs the tempest extremes DetectNodes command on the regridded atmospheric data specified by the tempest_dictionary and tempest_filein attributes, saves the output to disk, and updates
+                      the tempest_fileout attribute of the Detector object.
+    
+    """
     def detect_nodes_zoomin(self):
         """
-        Detect nodes for the zoomed-in time range.
+        Wrapper to read, prepare data and run DetectNodes at each time step
 
         Parameters:
         - self: Reference to the current instance of the class.

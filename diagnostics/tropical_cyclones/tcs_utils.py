@@ -1,3 +1,5 @@
+# contains some functions external to the TCs class (defined in the tropical_cyclones.py file)
+
 import os
 from dask.distributed import progress
 from dask.diagnostics import ProgressBar
@@ -37,11 +39,14 @@ def lonlatbox(lon, lat, delta) :
 def write_fullres_field(gfield, filestore, dask): 
 
     """
-    Writes the high resolution file (netcdf) format with values only within the box
+    Writes the high resolution file (netcdf) format with values only within the TCs centres box
+    
     Args:
         gfield: field to write
         filestore: file to save
         dask: if dask is active or not
+    Returns:
+        None
     """
 
     time_encoding = {

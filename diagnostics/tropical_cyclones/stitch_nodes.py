@@ -8,9 +8,16 @@ from datetime import datetime
 from tcs_utils import write_fullres_field
 
 class StitchNodes():
-    """Class Mixin to take care of stitch nodes"""
+    """
+    Class Mixin to take care of stitch nodes
 
-
+    Methods:
+    stitch_nodes_zoomin(self, startdate, enddate, n_days_freq, n_days_ext): Method for producing tracks of selected variables stored in netcdf files.
+    run_stitch_nodes(self, maxgap = '24h', mintime = '54h'): basic function to call from command line tempest extremes StitchNodes.
+    time_window(self, initial_date): creates a time window around the initial date by extending the dates index.
+    store_stitch_nodes(self, block, dates_freq, write_fullres=True): store stitched tracks for each variable around the Nodes in NetCDF files.
+    """
+    
     def stitch_nodes_zoomin(self, startdate, enddate, n_days_freq, n_days_ext):
         """
         Wrapper for run_stitch_nodes and store_stitch_nodes for selected time period.
@@ -113,12 +120,12 @@ class StitchNodes():
         Basic function to call from command line tempest extremes StitchNodes
 
         Args:
-            infiles_list: .txt file (output from DetectNodes) with all TCs centres dates&coordinates
-            tempest_fileout: output file (.txt) from StitchNodes command
-            dir: directory where to store the temporary file with all concatenated detect nodes
+            self: The current object instance.
+            maxgap (str): The maximum time gap allowed between consecutive nodes (default: '24h').
+            mintime (str): The minimum track duration required for a node to be included (default: '54h').
 
-        Returns: 
-        stitch_string: output file from StitchNodes in string format 
+        Returns:
+            None
         """
 
         self.logger.warning('Running stitch nodes...')
