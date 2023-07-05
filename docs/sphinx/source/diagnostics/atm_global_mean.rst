@@ -35,9 +35,10 @@ Import the necessary functions from the `AQUA` framework and import the AGM_diag
 Methods used
 ------------
 Following methods are used in the AGM_diag class (inside the atm_global_mean.py file):
-* "seasonal_bias": Plot the seasonal bias maps between two datasets for a specific variable and year.
-* "compare_datasets_plev":  Compare two datasets and plot the zonal bias for a selected model time range with respect to the ERA5 climatology from 2000-2020.
-* "plot_map_with_stats": Plot a map of a chosen variable from a dataset with colorbar and statistics.
+
+* seasonal_bias: Plot the seasonal bias maps between two datasets for a specific variable and year.
+* compare_datasets_plev:  Compare two datasets and plot the zonal bias for a selected model time range with respect to the ERA5 climatology from 2000-2020.
+* plot_map_with_stats: Plot a map of a chosen variable from a dataset with colorbar and statistics.
 * README.md : a readme file which contains some basic information about this tool.
 
 
