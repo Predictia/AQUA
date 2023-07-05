@@ -5,9 +5,9 @@ This module contains simple function for index plotting.
 import os
 
 import matplotlib.pyplot as plt
-
 from aqua.logger import log_configure
-from teleconnections.plots import set_layout
+
+from .plot_utils import set_layout
 
 
 def index_plot(indx, save=False, outputdir='./', filename='index.png',
