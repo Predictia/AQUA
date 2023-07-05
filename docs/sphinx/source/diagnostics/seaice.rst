@@ -63,7 +63,6 @@ Example Plot(s)
 .. figure:: figures/figSIE.png
     :width: 10cm
 
-    An illustration of the big void left by this diagnostic
 
 Available demo notebooks
 ------------------------
