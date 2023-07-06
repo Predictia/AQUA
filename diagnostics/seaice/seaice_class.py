@@ -26,9 +26,10 @@ class SeaIceExtent:
         self.nRegions = None
         self.thresholdSeaIceExtent = 0.15
 
-    def configure(self, 
-        mySetups=[["IFS", "tco1279-orca025-cycle3", "2D_monthly_native"]],
-        myRegions=["Arctic", "Southern Ocean"]):
+    def configure(self,
+                  mySetups=[["IFS", "tco1279-orca025-cycle3",
+                             "2D_monthly_native"]],
+                  myRegions=["Arctic", "Southern Ocean"]):
 
         self.nRegions = len(myRegions)
         self.myRegions = myRegions
@@ -43,15 +44,14 @@ class SeaIceExtent:
 
             The method produces as output a figure with the seasonal cycles
             of sea ice extent in the regions for the setups"""
-     
+
         self.configure(**kwargs)
-        
+
         self.computeExtent()
 
         self.plotExtent()
-        
-        self.createNetCDF()
 
+        self.createNetCDF()
 
     def computeExtent(self):
 
@@ -60,8 +60,6 @@ class SeaIceExtent:
         self.myExtents = list()
         for js, setup in enumerate(self.mySetups):
             model, exp, source = setup[0], setup[1], setup[2]
-
-            label = model + " " + exp + " " + source
 
             # Instantiate reader
             reader = Reader(model=model, exp=exp, source=source)
@@ -84,8 +82,8 @@ class SeaIceExtent:
             ci_mask = data.ci.where((data.ci > self.thresholdSeaIceExtent) &
                                     (data.ci < 1.0))
 
-            self.regionExtents = list()  # Will contain the time series for each
-            # region and for that setup
+            self.regionExtents = list()  # Will contain the time series
+            # for each region and for that setup
             # Iterate over regions
             for jr, region in enumerate(self.myRegions):
 
@@ -160,7 +158,7 @@ class SeaIceExtent:
         fig.tight_layout()
         for fmt in ["png", "pdf"]:
             outputDir = "./figures/" + str(fmt) + "/"
-            
+
             fig.savefig(outputDir + "figSIE." + fmt, dpi=300)
 
     def createNetCDF(self):
@@ -168,7 +166,6 @@ class SeaIceExtent:
         # NetCDF creation (one per setup)
         for js, setup in enumerate(self.mySetups):
             dataset = xr.Dataset()
-            label = " ".join([s for s in setup])
             for jr, region in enumerate(self.myRegions):
 
                 if (setup[0] == "OSI-SAF" and setup[2][:2] == "nh" and
@@ -182,6 +179,6 @@ class SeaIceExtent:
                     dataset[varName] = self.myExtents[js][jr]
 
                     outputDir = "./NetCDF/"
-              
+
                     dataset.to_netcdf(outputDir + "/" + "seaIceExtent_" +
                                       "_".join([s for s in setup]) + ".nc")
