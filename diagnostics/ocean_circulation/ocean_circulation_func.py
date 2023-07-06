@@ -12,72 +12,95 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
+def predefined_regions(region):
+    region = region.lower()
+    if region in ["indian ocean", "indian_ocean"]:
+        latS = 30.0
+        latN = -30.0
+        lonW = 100.0
+        lonE = 300.0
+    elif region in ["labrador sea"]:
+        latS = 50.0
+        latN = 65.0
+        lonW = 300.0
+        lonE = 325.0
+    elif region in ["global ocean"]:
+        latS = 90.0
+        latN = -90.0
+        lonW = 0.0
+        lonE = 360.0
+    elif region in ["atlantic ocean"]:
+        latS = 65.0
+        latN = -35.0
+        lonW = -80.0
+        lonE = 30.0
+    elif region in ["pacific ocean"]:
+        latS = 65.0
+        latN = -55.0
+        lonW = 120.0
+        lonE = 290.0
+    elif region in ["arctic ocean"]:
+        latS = 90.0
+        latN = 65.0
+        lonW = 0.0
+        lonE = 360.0
+    elif region in ["southern ocean"]: 
+        latS = -55.0
+        latN = -80.0
+        lonW = -180.0
+        lonE = 180.0
+    else:
+        raise ValueError("Invalid region. Available options: 'Indian Ocean', 'Labrador Sea', 'Global Ocean', 'Atlantic Ocean', 'Pacific Ocean', 'Arctic Ocean', 'Southern Ocean'")
+    return latS, latN, lonW, lonE
 
-def weighted_area_mean(data, use_predefined_region: bool, region: str = None, latN: float = None, latS: float = None, lonW: float = None, lonE: float = None):
+def convert_longitudes(data):
+    # Shift longitudes from -180 to 180 range to 0 to 360 range
+    data = data.assign_coords(lon=(((data["lon"] + 180) % 360) - 180))
+    # Roll the data so that the prime meridian is at the center
+    data = data.roll(lon=int(len(data['lon']) / 2), roll_coords=True)
+    
+    return data
+
+def weighted_area_mean(data, region=None, latS: float=None, latN: float=None, lonW: float=None, lonE: float=None):
     """
     Compute the weighted area mean of data within the specified latitude and longitude bounds.
 
     Parameters:
         data (xarray.Dataset): Input data.
-        use_predefined_region (bool): Whether to use a predefined region or a custom region.
-        region (str, optional): Predefined region to use when use_predefined_region is True.
-                                Available options: "Indian Ocean", "Labrador Sea", "Global Ocean", "Atlantic Ocean",
-                                "Pacific Ocean", "Arctic Ocean", "Southern Ocean".
-                                Ignored when use_predefined_region is False.
-        latN (float, optional): Northern latitude bound. Required if use_predefined_region is False or region is not provided.
-        latS (float, optional): Southern latitude bound. Required if use_predefined_region is False or region is not provided.
-        lonW (float, optional): Western longitude bound. Required if use_predefined_region is False or region is not provided.
-        lonE (float, optional): Eastern longitude bound. Required if use_predefined_region is False or region is not provided.
+        
+        region (str, optional): Predefined region name. If provided, latitude and longitude bounds will be fetched from predefined regions.
+        
+        latS (float, optional): Southern latitude bound. Required if region is not provided or None.
+        
+        latN (float, optional): Northern latitude bound. Required if region is not provided or None.
+        
+        lonW (float, optional): Western longitude bound. Required if region is not provided or None.
+        
+        lonE (float, optional): Eastern longitude bound. Required if region is not provided or None.
 
     Returns:
         xarray.Dataset: Weighted area mean of the input data.
     """
-    if use_predefined_region:
-        if region == "Indian Ocean":
-            latN = -30.0
-            latS = 30.0
-            lonW = 100.0
-            lonE = 300.0
-        elif region == "Labrador Sea":
-            latN = 50.0
-            latS = 65.0
-            lonW = 300.0
-            lonE = 325.0
-        elif region == "Global Ocean":
-            latN = -90.0
-            latS = 90.0
-            lonW = 0.0
-            lonE = 360.0
-        elif region == "Atlantic Ocean":
-            latN = -35.0
-            latS = 65.0
-            lonW = -80.0
-            lonE = 30.0
-        elif region == "Pacific Ocean":
-            latN = -55.0
-            latS = 65.0
-            lonW = 120.0
-            lonE = 290.0
-        elif region == "Arctic Ocean":
-            latN = 65.0
-            latS = 90.0
-            lonW = 0.0
-            lonE = 360.0
-        elif region == "Southern Ocean":
-            latN = -80.0
-            latS = -55.0
-            lonW = -180.0
-            lonE = 180.0
-        else:
-            raise ValueError("Invalid region. Available options: 'Indian Ocean', 'Labrador Sea', 'Global Ocean', 'Atlantic Ocean', 'Pacific Ocean', 'Arctic Ocean', 'Southern Ocean'")
-
-    else:
+    print(data)
+    if region is None:
         if latN is None or latS is None or lonW is None or lonE is None:
-            raise ValueError("Latitude and longitude bounds must be provided when use_predefined_region is False.")
-
-    data = data.sel(lat=slice(latN, latS), lon=slice(lonW, lonE))
+            raise ValueError("When region is None, latN, latS, lonW, lonE values need to be specified.")
+        
+        if lonW < 0 or lonE < 0:
+            data = convert_longitudes(data)
+    else:
+        print(data)
+        # Obtain latitude and longitude boundaries for the predefined region
+        latN, latS, lonW, lonE = predefined_regions(region)
+    
+    # Perform data slicing based on the specified or predefined latitude and longitude boundaries
+    data = data.sel(lat=slice(latS, latN), lon=slice(lonW, lonE))
+    # Calculate weighted data based on cosine of latitude
+    print(data)
     weighted_data = data.weighted(np.cos(np.deg2rad(data.lat)))
+    # Calculate weighted mean along latitude and longitude axes
     wgted_mean = weighted_data.mean(("lat", "lon"))
+    
     return wgted_mean
 
 
@@ -522,18 +545,21 @@ def convert_variables(data):
     return converted_data
 
 
-
-
-def plot_temporal_split(data, area_name, outputfig="./figs"):
+def plot_strat_1dataset_2halves_month(data, area_name, month):
     """
-    Plot temporal split of mean state annual temperature, salinity, and density stratification.
+    Plot the mean state annual temperature, salinity, and density stratification splitting the temporal window in 2 halves 
+    to identified potential changes in stratification in the selected Month (provided with a number)
 
     Parameters
     ----------
-    data : xarray.Dataset
-        Dataset containing the data for temperature (ocpt), salinity (so), and density (rho).
+    datamod : xarray.Dataset
+        Model dataset containing inputs of potential temperature (ocpt), practical salinity (so), and density (rho).
+    dataobs : xarray.Dataset
+        Obs dataset containing inputs of potential temperature (ocpt), practical salinity (so), and density (rho)
     area_name : str
         Name of the area for the plot title.
+    month :  integer
+        Number of the month on which to compute the climatologies
 
     Returns
     -------
@@ -549,8 +575,81 @@ def plot_temporal_split(data, area_name, outputfig="./figs"):
             data_1 = data.isel(time=slice(0, int((date_len-1)/2)))
             data_2 = data.isel(time=slice(int((date_len-1)/2), date_len))
 
+
+
     fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3, figsize=(14, 8))
-    fig.suptitle(f"Mean state annual T, S, rho0 stratification in {area_name}", fontsize=16)
+    fig.suptitle(f"Mean state annual T, S, rho0 stratification in {area_name} in {month}", fontsize=16)
+
+    ax1.set_ylim((4500, 0))
+    ax1.plot(data_1.ocpt[data_1.time.dt.month==month].mean("time"), data.lev, 'g-', linewidth=2.0)
+    ax1.plot(data_2.ocpt[data_2.time.dt.month==month].mean("time"), data.lev, 'b-', linewidth=2.0)
+    ax1.set_title("Temperature Profile", fontsize=14)
+    ax1.set_ylabel("Depth (m)", fontsize=12)
+    ax1.set_xlabel("Temperature (°C)", fontsize=12)
+    ax1.legend([f"EXP first half {data_1.time[0].dt.year.data}-{data_1.time[-1].dt.year.data}",
+                f"EXP last half {data_2.time[0].dt.year.data}-{data_2.time[-1].dt.year.data}"], loc='best')
+
+    ax2.set_ylim((4500, 0))
+    ax2.plot(data_1.so[data_1.time.dt.month==month].mean("time"), data.lev, 'g-', linewidth=2.0)
+    ax2.plot(data_2.so[data_2.time.dt.month==month].mean("time"), data.lev, 'b-', linewidth=2.0)
+    ax2.set_title("Salinity Profile", fontsize=14)
+    ax2.set_xlabel("Salinity (psu)", fontsize=12)
+
+    ax3.set_ylim((4500, 0))
+    ax3.plot(data_1.rho[data_1.time.dt.month==month].mean("time")-1000, data.lev, 'g-', linewidth=2.0)
+    ax3.plot(data_2.rho[data_2.time.dt.month==month].mean("time")-1000, data.lev, 'b-', linewidth=2.0)
+    ax3.set_title("Rho (ref 0) Profile", fontsize=14)
+    ax3.set_xlabel("Density Anomaly (kg/m³)", fontsize=12)
+
+    #   To be added:
+#   1) NEED TO SAVE PLOTS AND CLIMATOLOGIES AS NETCDF FILES
+#   2) FINDING A WAY TO SPECIFY THE MONTH AND DATASETS IN THE FIGURE TITLES/LABELS
+
+#    filename = f"{outputfig}/vertical_TS_{area_name.replace(' ', '_').lower()}_mean.png"
+
+#    plt.savefig(filename)
+#    logger.info(f"{filename} saved")
+
+    plt.show()
+    return
+
+#   reader = Reader(model='EN4',exp='en4',source='monthly')
+#     den4=reader.retrieve()
+#     den4=den4.rename({"depth":"lev"}) # We standardise the name for the vertical dimension
+#     den4=den4[["ocpt","so"]].resample(time="M").mean()
+#     den4_ls_mean=fn.weighted_area_mean(den4,True, 'Labrador Sea')
+#     rho_t_s_labrador_en4= fn.convert_variables(den4_ls_mean)
+    
+def split_time_equally(data):
+    date_len = len(data.time)
+    if date_len != 1:
+        if date_len % 2 == 0:
+            data_1 = data.isel(time=slice(0, int(date_len/2)))
+            data_2 = data.isel(time=slice(int(date_len/2), date_len))
+        else:
+            data_1 = data.isel(time=slice(0, int((date_len-1)/2)))
+            data_2 = data.isel(time=slice(int((date_len-1)/2), date_len))
+    return data_1, data_2
+
+def monthly_climatology(data, month):
+    data = data.where(data.time.dt.month == 4,  drop=True)
+    return data
+
+
+def plot_temporal_split_new(data, region=None, month = None, latS: float=None, latN: float=None, lonW: float=None,
+                            lonE: float=None, outputfig="./figs"):
+    print(data)
+    data = weighted_area_mean(data, region, latS, latN, lonE, lonW)
+    data = convert_variables(data)
+    
+    data_1, data_2 = split_time_equally(data)
+    print(data_1)
+    data_1 = monthly_climatology(data_1, month)
+    data_2 = monthly_climatology(data_2, month)
+    print(data_1)
+    
+    fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3, figsize=(14, 8))
+    fig.suptitle(f"Mean state annual T, S, rho0 stratification in {region}", fontsize=16)
 
     ax1.set_ylim((4500, 0))
     ax1.plot(data_1.ocpt.mean("time"), data.lev, 'g-', linewidth=2.0)
@@ -574,13 +673,72 @@ def plot_temporal_split(data, area_name, outputfig="./figs"):
     ax3.set_title("Rho (ref 0) Profile", fontsize=14)
     ax3.set_xlabel("Density Anomaly (kg/m³)", fontsize=12)
     
-    filename = f"{outputfig}/vertical_TS_{area_name.replace(' ', '_').lower()}_mean.png"
+    filename = f"{outputfig}/vertical_TS_{region.replace(' ', '_').lower()}_mean.png"
 
     plt.savefig(filename)
     logger.info(f"{filename} saved")
 
     plt.show()
-    return
+    return data_1
+    
+
+# def plot_temporal_split(data, area_name, outputfig="./figs"):
+#     """
+#     Plot temporal split of mean state annual temperature, salinity, and density stratification.
+
+#     Parameters
+#     ----------
+#     data : xarray.Dataset
+#         Dataset containing the data for temperature (ocpt), salinity (so), and density (rho).
+#     area_name : str
+#         Name of the area for the plot title.
+
+#     Returns
+#     -------
+#     None
+
+#     """
+#     date_len = len(data.time)
+#     if date_len != 1:
+#         if date_len % 2 == 0:
+#             data_1 = data.isel(time=slice(0, int(date_len/2)))
+#             data_2 = data.isel(time=slice(int(date_len/2), date_len))
+#         else:
+#             data_1 = data.isel(time=slice(0, int((date_len-1)/2)))
+#             data_2 = data.isel(time=slice(int((date_len-1)/2), date_len))
+
+#     fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3, figsize=(14, 8))
+#     fig.suptitle(f"Mean state annual T, S, rho0 stratification in {area_name}", fontsize=16)
+
+#     ax1.set_ylim((4500, 0))
+#     ax1.plot(data_1.ocpt.mean("time"), data.lev, 'g-', linewidth=2.0)
+#     ax1.plot(data_2.ocpt.mean("time"), data.lev, 'b-', linewidth=2.0)
+#     ax1.set_title("Temperature Profile", fontsize=14)
+#     ax1.set_ylabel("Depth (m)", fontsize=12)
+#     ax1.set_xlabel("Temperature (°C)", fontsize=12)
+#     ax1.legend([f"EXP first half {data_1.time[0].dt.year.data}-{data_1.time[-1].dt.year.data}",
+#                 f"EXP last half {data_2.time[0].dt.year.data}-{data_2.time[-1].dt.year.data}",
+#                 "EN4 1950-1980", "EN4 1990-2020"], loc='best')
+
+#     ax2.set_ylim((4500, 0))
+#     ax2.plot(data_1.so.mean("time"), data.lev, 'g-', linewidth=2.0)
+#     ax2.plot(data_2.so.mean("time"), data.lev, 'b-', linewidth=2.0)
+#     ax2.set_title("Salinity Profile", fontsize=14)
+#     ax2.set_xlabel("Salinity (psu)", fontsize=12)
+
+#     ax3.set_ylim((4500, 0))
+#     ax3.plot(data_1.rho.mean("time")-1000, data.lev, 'g-', linewidth=2.0)
+#     ax3.plot(data_2.rho.mean("time")-1000, data.lev, 'b-', linewidth=2.0)
+#     ax3.set_title("Rho (ref 0) Profile", fontsize=14)
+#     ax3.set_xlabel("Density Anomaly (kg/m³)", fontsize=12)
+    
+#     filename = f"{outputfig}/vertical_TS_{area_name.replace(' ', '_').lower()}_mean.png"
+
+#     plt.savefig(filename)
+#     logger.info(f"{filename} saved")
+
+#     plt.show()
+#     return
 
 def compute_mld_monthly(rho):
     """To compute the mixed layer depth from monthly density fields in discrete levels
