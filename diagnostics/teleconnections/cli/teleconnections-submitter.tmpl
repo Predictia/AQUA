@@ -27,7 +27,7 @@ if [ $machine == "levante" ]; then
     conda activate teleconnections
 fi 
 
-function load_environment_AQUA() {
+function load_environment_teleconnections() {
 	# Load env modules on LUMI
     module purge
     module use LUMI/22.08
@@ -36,7 +36,7 @@ function load_environment_AQUA() {
 
 # if machine is lumi use modules
 if [ $machine == "lumi" ]; then
-    load_environment_AQUA
+    load_environment_teleconnections
 
     # get username
     username=$USER
@@ -45,9 +45,19 @@ if [ $machine == "lumi" ]; then
 fi
 
 # run the Python script
+
+# You can run 2 different scripts:
+# - single_dataset: to compute the teleconnections for a single dataset
+# - dataset_comparison: to compare the teleconnections for different datasets
+#                       and an observational dataset
+# Uncomment the script you want to run
+
 # -c to specify the configuration file (--config)
 # -d to run a definitive run (default is False)
 # -l to set the log level (default is WARNING)
 
-$AQUA/diagnostics/teleconnections/cli/dataset_comparison/cli_teleconnections.py \
---config $AQUA/diagnostics/teleconnections/cli/dataset_comparison/teleconnections_config.yaml -d
+# $AQUA/diagnostics/teleconnections/cli/dataset_comparison/cli_teleconnections.py \
+# --config $AQUA/diagnostics/teleconnections/cli/dataset_comparison/teleconnections_config.yaml -d
+
+# $AQUA/diagnostics/teleconnections/cli/single_dataset/cli_teleconnections.py \
+# --config $AQUA/diagnostics/teleconnections/cli/single_dataset/teleconnections_config.yaml -d
