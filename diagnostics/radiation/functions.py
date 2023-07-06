@@ -5,19 +5,24 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-import cartopy.crs as ccrs
+#import cartopy.crs as ccrs
 import calendar 
 from cdo import *
 import dask
 import seaborn as sns
+import cartopy.crs as ccrs
+from matplotlib.legend_handler import HandlerTuple
 from aqua import Reader, catalogue, inspect_catalogue
 
-plotdir = './plots/RadiationTOA/'
-if not os.path.exists(plotdir):
-    os.makedirs(plotdir)
+outputfig = "./output/figs"
+if not os.path.exists(outputfig):
+    os.makedirs(outputfig)
+outputdir = "./output/data"    
+if not os.path.exists(outputdir):
+    os.makedirs(outputdir)
+cdo = cdo.Cdo(tempdir='./tmp/cdo-py')
 
-cdo = cdo.Cdo(tempdir='/scratch/b/b382257/tmp/cdo-py')
-    
+
 class radiation_diag:
     
     @staticmethod
@@ -204,7 +209,8 @@ class radiation_diag:
         
     #--------------------------------------------------------------------------------------------------------------------------------------------
     #--------------------------------------------------------------------------------------------------------------------------------------------           
-        
+    
+    @staticmethod     
     def gregory_plot(data_era5, model_list, reader_dict):
         
         """
@@ -232,7 +238,11 @@ class radiation_diag:
         # Create the plot and axes
         fig, ax = plt.subplots()
         # Colors for the plots
-        colors = ["b", "r", "c", "m", "y", "k"]
+        colors = ["orange", "gray", "dodgerblue", "yellow", "indigo", "violet"]
+        
+        # Plot the data for each model
+        handles = []
+        labels = []
  
         # Plot the data for ERA5 (2000-2020)
         era5_2t_2000_2020 = data_era5["T2M"].sel(time=slice('2000-01-01', '2020-12-31'))
@@ -241,51 +251,77 @@ class radiation_diag:
         era5_tsr_2000_2020_resampled = (era5_tsr_2000_2020.resample(time="M").mean())/86400 
         era5_ttr_2000_2020 = data_era5["TTR"].sel(time=slice('2000-01-01', '2020-12-31'))
         era5_ttr_2000_2020_resampled = (era5_ttr_2000_2020.resample(time="M").mean())/86400 
-        ax.plot(
+        
+       # Plot the data
+        line = ax.plot(
             reader_era5.fldmean(era5_2t_2000_2020_resampled)-273.15,
             reader_era5.fldmean(era5_tsr_2000_2020_resampled) + reader_era5.fldmean(era5_ttr_2000_2020_resampled),
             marker="o",
-            color="g",
+            color="mediumseagreen",
             linestyle="-",
             markersize=3,
             label="ERA5 2000-2020",
         )
-    
-        # Plot the data for each model
+        handles.append(line[0])  # Append the line object itself
+        model_name_era5 = "ERA5 2000-2020"
+        labels.append(model_name_era5)
+
         for i, model in enumerate(model_list):
             model_name = model.lower()
-            #model_reader = globals()["reader_" + model_name]
-            #model_data = globals()["data_" + model_name]
             model_reader = reader_dict[model_name]
             model_data = model_reader.retrieve(fix=True)
-            model_color = colors[(i + 1) % len(colors)]  # Rotate colors for each model
-            ax.plot(
-                #model_data["2t"].resample(time="M").mean().weighted(model_reader.areacella).mean(dim=["lon", "lat"]),
-                #(model_data["mtnsrf"] + model_data["mtntrf"]).resample(time="M").mean().weighted(model_reader.areacella).mean(dim=["lon", "lat"]),
-                model_reader.fldmean(model_data["2t"].resample(time="M").mean())-273.15,
-                model_reader.fldmean((model_data["mtnsrf"] + model_data["mtntrf"]).resample(time="M").mean()),
-                marker="o",
+            model_color = colors[i % len(colors)]  # Rotate colors for each model
+
+            ts = model_reader.fldmean(model_data["2t"].resample(time="M").mean()) - 273.15
+            rad = model_reader.fldmean((model_data["mtnsrf"] + model_data["mtntrf"]).resample(time="M").mean())
+
+            line, = ax.plot(
+                ts,
+                rad,
                 color=model_color,
                 linestyle="-",
+                marker="o",
                 markersize=5,
-                label = model_name
+                label=model_name
+            )
+            handles.append(line)  # Append the line object itself
+            labels.append(model_name)
+
+            ax.plot(
+                ts[0], rad[0],
+                marker="*",
+                color="black",
+                linestyle="-",
+                markersize=15,
+            )
+            ax.plot(
+                ts[-1], rad[-1],
+                marker="X",
+                color="tab:red",
+                linestyle="-",
+                markersize=15,
             )
 
         # Set labels and title
         ax.set_xlabel("2m temperature [$^{\circ} C$]", fontsize=12)
         ax.set_ylabel("Net radiation TOA [Wm$^{-2}$]", fontsize=12)
         ax.set_title("Gregory Plot", fontsize=14)
-        ax.legend()
+        #ax.set_suptitle("Black stars indicate the first value of the dataseries\n Red X indicate the last value of the dataseries.", fontsize=10)
+        ax.legend(handles, labels + ["Start", "End"], handler_map={tuple: HandlerTuple(ndivide=None)})
+        ax.text(0.5, -0.15, "Black stars indicate the first value of the dataseries\nRed X indicate the last value of the dataseries.",
+            transform=ax.transAxes, fontsize=8, verticalalignment='top', horizontalalignment='center')
         ax.tick_params(axis="both", which="major", labelsize=10)
         ax.grid(True, linestyle="--", linewidth=0.5)
-        plt.savefig(plotdir+'Gregory_Plot.png',dpi=300)
+        filename = f"{outputfig}/Gregory_Plot.pdf"
+        plt.savefig(filename, dpi = 300, format = 'pdf')
         plt.show()
-    
-
+        
+        print(f"Plot has been saved to {outputfig}.")
+       # print(f"Data has been saved to {outputdir}.")
     #--------------------------------------------------------------------------------------------------------------------------------------------
     #--------------------------------------------------------------------------------------------------------------------------------------------
     
-    
+    @staticmethod
     def barplot_model_data(datasets, model_names, year=None):
                 
         """
@@ -335,10 +371,11 @@ class radiation_diag:
         if year is not None:
             plt.title(f"Global Mean TOA radiation for different models ({year}) (all CERES years from 2001 to 2021)")
         else:
-            plt.title('Global Mean TOA radiation for different models (mean over all model times)')
-        plt.savefig(plotdir+'BarPlot.png',dpi=300)
+            plt.title('Global Mean TOA radiation for different models (mean over all model times).pdf')
+        filename = f"{outputfig}/BarPlot.pdf"
+        plt.savefig(filename, dpi = 300, format = 'pdf')   
         plt.show()
-
+        print(f"Plot has been saved to {outputfig}.")
         
     #--------------------------------------------------------------------------------------------------------------------------------------------
     #--------------------------------------------------------------------------------------------------------------------------------------------
@@ -440,14 +477,15 @@ class radiation_diag:
             axes[i].set_ylim([-6.5, 6.5])
 
         plt.suptitle('Global mean TOA radiation bias relative to CERES climatology - nextGEMS Cycle 3', fontsize=18)
-        plt.savefig(plotdir+'TimeSeries.png',dpi=300)
+        filename = f"{outputfig}/TimeSeries.pdf"
+        plt.savefig(filename, dpi = 300, format = 'pdf')
         plt.tight_layout()
         plt.show()
-
+        print(f"Plot has been saved to {outputfig}.")
         
     #------------------------------------------------------------------------------------------
     #------------------------------------------------------------------------------------------
-
+    @staticmethod
     def plot_bias(data,iax,title,plotlevels,lower,upper,index):
         """
         Plot the bias of the data on a map. The bias is calculated as the difference between the data and a reference and stippling is applied to highlight data points within the specified lower and upper thresholds.
@@ -482,6 +520,8 @@ class radiation_diag:
 
         return plot
 
+    
+    @staticmethod
     def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_clim, year='2020'):
         
         """
@@ -560,7 +600,26 @@ class radiation_diag:
 
         plt.suptitle(label+' TOA bias IFS ' + model_label + ' ' + year + '\nrel. to CERES climatology (2001-2021)',fontsize=small_fonts*2)
         # plt.tight_layout()
-        plt.savefig(plotdir+label+'_TOA_bias_maps_'+year+'_'+model_label+'.png',dpi=300)
+        filename = f"{outputfig}+{label}+'_TOA_bias_maps_'+{year}+'_'+{model_label}+'.pdf"
+        plt.savefig(filename, dpi = 300, format = 'pdf')
         plt.show()
+        print(f"Plot has been saved to {outputfig}.")
         
-  
+#--------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------
+    
+   # @staticmethod
+   # def boxplot_model_data(datasets, model_names, year=None):
+#         """
+#         Create Plot with various models and CERES. Variables ttr and tsr are plotted to show imbalances.
+#         Default mean for CERES data is the whole time range.
+
+#         Args:
+#             datasets:       a list of xarrayDataSets that should be plotted. Choose the global means (TOA_"model"_gm)
+#             model_names:    your desired naming for the plotting
+#             year:           the specific year to plot (optional)
+
+#         Returns:
+#             A box plot with median, quantiles, and whiskers
+#         """
+
