@@ -134,8 +134,7 @@ class SeaIceExtent:
             self.myExtents.append(self.regionExtents)
 
     def plotExtent(self):
-        """"""
-        # Produce figure and create NetCDF
+        """Produce figure """
         fig, ax = plt.subplots(self.nRegions, figsize=(13, 3 * self.nRegions))
 
         for jr, region in enumerate(self.myRegions):
@@ -160,9 +159,12 @@ class SeaIceExtent:
 
         fig.tight_layout()
         for fmt in ["png", "pdf"]:
-            fig.savefig("./figSIE." + fmt, dpi=300)
+            outputDir = "./figures/" + str(fmt) + "/"
+            
+            fig.savefig(outputDir + "figSIE." + fmt, dpi=300)
 
     def createNetCDF(self):
+        """create output files"""
         # NetCDF creation (one per setup)
         for js, setup in enumerate(self.mySetups):
             dataset = xr.Dataset()
@@ -178,4 +180,8 @@ class SeaIceExtent:
                     # NetCDF variable
                     varName = f"{setup[0]}_{setup[1]}_{setup[2]}_{region}"
                     dataset[varName] = self.myExtents[js][jr]
-                    dataset.to_netcdf("__".join([s for s in setup]) + ".nc")
+
+                    outputDir = "./NetCDF/"
+              
+                    dataset.to_netcdf(outputDir + "/" + "seaIceExtent_" +
+                                      "_".join([s for s in setup]) + ".nc")
