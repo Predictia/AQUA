@@ -1,4 +1,4 @@
-Atmospheric Global Mean Diagnostic
+Atmospheric Global Mean Biases Diagnostic
 =====================================
 
 The tool provides a flexible approach to analyze and visualize 2D biases for multiple atmospheric fields. It primarily focuses on comparing the fields with ERA5 data in different seasons to identify areas of significant biases. The tool supports the analysis of variables such as surface temperature, winds, temperature, and moisture along different pressure levels. The data this diagnostic uses is the nextGEMS cycle 3 data. For accessing the data the Low Resolution Archive (LRA) is used.
@@ -8,7 +8,12 @@ Description
 
 The file atm_global_mean.py contains the functions analyze the data and plot biases of the models
 
-Data requirements
+Structure
+---------
+The diagnostic follows a class structure and consists of the file:
+* atm_global_mean.py: a python file, where the class and the methods are included
+
+Input variables example
 -----------------
 Variables that can be analyzed within this tool are the following:
 
@@ -19,6 +24,11 @@ Variables that can be analyzed within this tool are the following:
 * Specific humidity (q)
 
 The data we retrieve through the provided functions have monthly timesteps and a 1x1 deg resolution. A higher resolution is not necessary for this diagnostic.
+
+
+Output
+------
+The output files generated in this diagnostic are figures, that are saved in a PDF format as well as NetCDF data to reproduce theese figures. 
 
 Run the diagnostic
 -------------------
@@ -32,8 +42,8 @@ Import the necessary functions from the `AQUA` framework and import the AGM_diag
   
   
 
-Methods used
-------------
+Functions used
+--------------
 Following methods are used in the AGM_diag class (inside the atm_global_mean.py file):
 
 * seasonal_bias: Plot the seasonal bias maps between two datasets for a specific variable and year.
@@ -41,20 +51,11 @@ Following methods are used in the AGM_diag class (inside the atm_global_mean.py 
 * plot_map_with_stats: Plot a map of a chosen variable from a dataset with colorbar and statistics.
 * README.md : a readme file which contains some basic information about this tool.
 
+Observations
+------------
+Data will be compared to ERA5 data
 
 
-Overall structure of this diagnostic
-------------------------------------
-* atm_global_mean.py: a python file, where the class and the methods are included
-* agm_ng3_seasons.ipynb: Notebook to demonstrate the seasonal_bias method with example plots
-* agm_ng3_plev.ipynb: Notebook to demonstrate the compare_datasets_plev method with example plots
-* agm_ng3_mean_plots.ipynb: Notebook to demonstrate the plot_map_with_stats method with example plots
-
-
-
-Output
-------
-The output files generated in this diagnostic are figures, that are saved in a PDF format as well as NetCDF data to reproduce theese figures. 
 
 Example plots
 -------------
@@ -64,6 +65,14 @@ Example plots
     
     Example map to visualize the bias of the 2t-variable IFS 4.4 km run with respect to the ERA5 climatology. 
     
+    
+Available demo noteboks
+------------------------
+    
+* agm_ng3_seasons.ipynb: Notebook to demonstrate the seasonal_bias method with example plots: https://github.com/oloapinivad/AQUA/blob/devel/atm_global_mean/diagnostics/atmglobalmean/notebooks/agm_ng3_seasons.ipynb
+* agm_ng3_plev.ipynb: Notebook to demonstrate the compare_datasets_plev method with example plots: https://github.com/oloapinivad/AQUA/blob/devel/atm_global_mean/diagnostics/atmglobalmean/notebooks/agm_ng3_plev_test.ipynb
+* agm_ng3_mean_plots.ipynb: Notebook to demonstrate the plot_map_with_stats method with example plots: https://github.com/oloapinivad/AQUA/blob/devel/atm_global_mean/diagnostics/atmglobalmean/notebooks/agm_ng3_mean_plots.ipynb
+
     
 Detailed API
 ------------
