@@ -14,38 +14,38 @@ logger = logging.getLogger(__name__)
 def predefined_regions(region):
     region = region.lower()
     if region in ["indian ocean", "indian_ocean"]:
-        latS = 30.0
-        latN = -30.0
+        latN = 30.0
+        latS = -30.0
         lonW = 100.0
         lonE = 300.0
     elif region in ["labrador sea"]:
-        latS = 50.0
         latN = 65.0
+        latS = 50.0
         lonW = 300.0
         lonE = 325.0
     elif region in ["global ocean"]:
-        latS = 90.0
-        latN = -90.0
+        latN = 90.0
+        latS = -90.0
         lonW = 0.0
         lonE = 360.0
     elif region in ["atlantic ocean"]:
-        latS = 65.0
-        latN = -35.0
+        latN = 65.0
+        latS = -35.0
         lonW = -80.0
         lonE = 30.0
     elif region in ["pacific ocean"]:
-        latS = 65.0
-        latN = -55.0
+        latN = 65.0
+        latS = -55.0
         lonW = 120.0
         lonE = 290.0
     elif region in ["arctic ocean"]:
-        latS = 90.0
-        latN = 65.0
+        latN = 90.0
+        latS = 65.0
         lonW = 0.0
         lonE = 360.0
     elif region in ["southern ocean"]: 
-        latS = -55.0
-        latN = -80.0
+        latN = -55.0
+        latS = -80.0
         lonW = -180.0
         lonE = 180.0
     else:
@@ -88,8 +88,8 @@ def weighted_area_mean(data, region=None, latS: float=None, latN: float=None, lo
             data = convert_longitudes(data)
     else:
         # Obtain latitude and longitude boundaries for the predefined region
-        latN, latS, lonW, lonE = predefined_regions(region)
-    
+        latS, latN, lonW, lonE = predefined_regions(region)
+    logger.info(f" data slicing for this region, latitude {latS} to {latN}, longitude {lonW} to {lonE}")
     # Perform data slicing based on the specified or predefined latitude and longitude boundaries
     data = data.sel(lat=slice(latS, latN), lon=slice(lonW, lonE))
     # Calculate weighted data based on cosine of latitude
