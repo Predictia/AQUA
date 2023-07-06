@@ -1,4 +1,4 @@
-"""atmospheric global mean biases module"""
+"""atm_global_mean"""
 from .atm_global_mean import AGM_diag
 
 __version__ = '0.0.1'

@@ -1,4 +1,4 @@
-# Diagnostic 
+# Atmospheric global mean biases diagnostic 
 
 The purpose of this diagnostic is to provide a set of basic statistics and plots for different variables and climate models. These models will be compared to reanalysis data (e.g. ERA5). It uses the AQUA framework to read and retrieve the cataloged data via the 'Reader' class. The diagnostic reads various model runs (NextGEMS Cycle 3 at the moment) through the Low Resolution Archive (LRA) to compute and plot global mean biases.
 
