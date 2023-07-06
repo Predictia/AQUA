@@ -13,8 +13,13 @@ sys.path.append("../")
 class SeaIceExtent:
     """Sea ice extent class"""
 
-    def __init__(self, option=None, configdir=None):
+    def __init__(self, option=None, configdir=None,
+                 loglevel="WARNING"):
         """The SeaIceExtent constructor."""
+
+        # Configure logger
+        self.loglevel = loglevel
+        self.logger = log_configure(self.loglevel, 'seaice')
         pass
 
     def run(
@@ -31,7 +36,7 @@ class SeaIceExtent:
             The method produces as output a figure with the seasonal cycles
             of sea ice extent in the regions for the setups"""
         # define the internal logger
-        self.logger = log_configure(log_level="info", log_name='Reader')
+      
 
         # Load regions information
         # with open("../regions.yml") as f:
