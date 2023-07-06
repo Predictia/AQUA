@@ -76,10 +76,16 @@ def weighted_area_mean(data, use_predefined_region: bool, region: str = None, la
         latN, latS, lonW, lonE= predefined_regions(region)
 
     else:
-        if  latS is None or latN is None or lonW is None or lonE is None:
-            raise ValueError("Latitude and longitude bounds must be provided when use_predefined_region is False.")
-
-    data = data.sel(lat=slice(latN, latS), lon=slice(lonW, lonE))
+        if not use_predefined_region and region is None:
+            if  latS is None or latN is None or lonW is None or lonE is None:
+                raise ValueError("Latitude and longitude bounds must be provided when use_predefined_region is False.")
+    if lonE is not None and lonW is not None:
+        logger.info(latS, latN)
+        if lonE < 0 or lonW < 0:
+            data = data.assign_coords(lon=(((data["lon"] + 180) % 360) - 180))
+            data = data.roll(lon=int(len(data['lon']) / 2), roll_coords=True)
+    data = data.sel(lat=slice(latS, latN), lon=slice(lonW, lonE))
+    print(data)
     logger.info(f"Seleced this region {latS}S : {latN}N, {lonW} : {lonE}")
     weighted_data = data.weighted(np.cos(np.deg2rad(data.lat)))
     wgted_mean = weighted_data.mean(("lat", "lon"))
