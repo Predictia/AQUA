@@ -10,7 +10,7 @@ import copy
 mainlogger = log_configure('INFO', log_name='MAIN')
 
 # load the config file
-tdict = load_yaml('config/config.yml')
+tdict = load_yaml('config/config_tcs.yaml')
 
 # initialise tropical class with streaming options
 tropical = TCs(tdict=tdict, streaming=True, stream_step=tdict['stream']['streamstep'], stream_unit="days", 
