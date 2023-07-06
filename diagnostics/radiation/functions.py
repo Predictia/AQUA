@@ -245,12 +245,12 @@ class radiation_diag:
         labels = []
  
         # Plot the data for ERA5 (2000-2020)
-        era5_2t_2000_2020 = data_era5["T2M"].sel(time=slice('2000-01-01', '2020-12-31'))
+        era5_2t_2000_2020 = data_era5["2t"].sel(time=slice('2000-01-01', '2020-12-31'))
         era5_2t_2000_2020_resampled = era5_2t_2000_2020.resample(time="M").mean()
-        era5_tsr_2000_2020 = data_era5["TSR"].sel(time=slice('2000-01-01', '2020-12-31'))
-        era5_tsr_2000_2020_resampled = (era5_tsr_2000_2020.resample(time="M").mean())/86400 
-        era5_ttr_2000_2020 = data_era5["TTR"].sel(time=slice('2000-01-01', '2020-12-31'))
-        era5_ttr_2000_2020_resampled = (era5_ttr_2000_2020.resample(time="M").mean())/86400 
+        era5_tsr_2000_2020 = data_era5["mtnsrf"].sel(time=slice('2000-01-01', '2020-12-31'))
+        era5_tsr_2000_2020_resampled = (era5_tsr_2000_2020.resample(time="M").mean())#/86400 
+        era5_ttr_2000_2020 = data_era5["mtntrf"].sel(time=slice('2000-01-01', '2020-12-31'))
+        era5_ttr_2000_2020_resampled = (era5_ttr_2000_2020.resample(time="M").mean())#/86400 
         
        # Plot the data
         line = ax.plot(
