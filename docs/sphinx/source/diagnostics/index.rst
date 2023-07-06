@@ -10,6 +10,7 @@ AQUA provides a collection of built-in diagnostics to analyze climate model outp
    :maxdepth: 1
 
    dummy
+   global_mean_timeseries
    ssh_variability
    teleconnections
 

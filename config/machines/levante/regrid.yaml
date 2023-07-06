@@ -482,7 +482,7 @@ source_grids:
 
   OSI-SAF:
     osi-450:
-      nh:
+      nh-monthly:
         space_coord:
         - xc
         - yc
@@ -490,7 +490,23 @@ source_grids:
         cellarea_var: areacello
         mask: /work/bb1153/b382075/nextgems/grids/grid_nh.nc
         mask_var: sftof
-      sh:
+      nh-daily:
+        space_coord:
+        - xc
+        - yc
+        cellareas: /work/bb1153/b382075/nextgems/grids/grid_nh.nc
+        cellarea_var: areacello
+        mask: /work/bb1153/b382075/nextgems/grids/grid_nh.nc
+        mask_var: sftof
+      sh-daily:
+        space_coord:
+        - xc
+        - yc
+        cellareas: /work/bb1153/b382075/nextgems/grids/grid_sh.nc
+        cellarea_var: areacello
+        mask: /work/bb1153/b382075/nextgems/grids/grid_nh.nc
+        mask_var: sftof
+      sh-monthly:
         space_coord:
         - xc
         - yc
