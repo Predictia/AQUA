@@ -23,7 +23,7 @@ from tropical_rainfall_func import time_interpreter, convert_length, convert_tim
 """
 
 
-class TR_PR_Diagnostic:
+class Tropical_Rainfall:
     """This class is a minimal version of the Tropical Precipitation Diagnostic.
     """
 
