@@ -1,9 +1,9 @@
+import os
 import pytest
-import sys
-sys.path.insert(1, './diagnostics/teleconnections/')
-from teleconnections.cdo_testing import cdo_station_based_comparison
-from teleconnections.cdo_testing import cdo_regional_mean_comparison
-from teleconnections.tools import load_namelist, lon_180_to_360
+
+if os.getenv('PYTEST_CURRENT_TEST') and 'teleconnections' in os.getenv('PYTEST_CURRENT_TEST'):
+    from teleconnections.cdo_testing import cdo_station_based_comparison, cdo_regional_mean_comparison
+    from teleconnections.tools import load_namelist, lon_180_to_360
 
 
 # pytest approximation, to bear with different machines
