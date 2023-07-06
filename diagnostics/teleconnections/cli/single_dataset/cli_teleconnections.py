@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 '''
-AQUA teleconnections command line interface. Reads configuration file and
-performs teleconnections diagnostic.
+AQUA teleconnections command line interface for a single dataset.
+Reads configuration file and performs teleconnections diagnostic.
 '''
 import sys
 import argparse
@@ -39,61 +39,28 @@ if __name__ == '__main__':
 
     loglevel = get_arg(args, 'loglevel', 'WARNING')
 
-    telecname = config['telecname']
-    model = config['model']
-    exp = config['exp']
-    source = config['source']
-
-    try:
-        regrid = config['regrid']
-    except KeyError:
-        regrid = None
-
-    try:  # zoom is needed if ICON
-        zoom = config['zoom']
-    except KeyError:
-        zoom = None
-
-    try:  # freq is needed if data are not natively monthly
-        freq = config['freq']
-    except KeyError:
-        freq = None
-
     savefig = get_arg(args, 'definitive', False)
     savefile = get_arg(args, 'definitive', False)
 
     try:
-        outputfig = config['outputfig']
+        configdir = config['configdir']
     except KeyError:
-        outputfig = None
+        configdir = None
 
-    try:
-        outputdir = config['outputdir']
-    except KeyError:
-        outputdir = None
+    # Get dataset configuration parameters
+    # Search for entries under 'sources' key
+    config_dict = config['source']
 
-    try:
-        filename = config['filename']
-    except KeyError:
-        filename = None
-
-    try:
-        months_window = config['months_window']
-    except KeyError:
-        months_window = 3 # default
-
-    teleconnection = Teleconnection(model=model, exp=exp, source=source,
-                                    telecname=telecname, regrid=regrid,
-                                    zoom=zoom, freq=freq,
-                                    months_window=months_window,
+    teleconnection = Teleconnection(**config,
                                     savefig=savefig, savefile=savefile,
-                                    outputfig=outputfig, outputdir=outputdir,
-                                    filename=filename, loglevel=loglevel)
+                                    configdir=configdir, loglevel=loglevel)
 
     teleconnection.retrieve()
     teleconnection.evaluate_index()
     teleconnection.evaluate_correlation()
     teleconnection.evaluate_regression()
-    teleconnection.plot_index()
+
+    if savefig:
+        teleconnection.plot_index()
 
     print('Teleconnections diagnostic test run completed.')
