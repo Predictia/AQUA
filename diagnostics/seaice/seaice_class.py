@@ -20,13 +20,21 @@ class SeaIceExtent:
         # Configure logger
         self.loglevel = loglevel
         self.logger = log_configure(self.loglevel, 'seaice')
-        pass
+        self.mySetups = None
+        self.regionDict = load_yaml("../regions.yml")
+        self.myRegions = None
+        self.nRegions = None
+        self.thresholdSeaIceExtent = 0.15
 
-    def run(
-        self,
+    def configure(self, 
         mySetups=[["IFS", "tco1279-orca025-cycle3", "2D_monthly_native"]],
-        myRegions=["Arctic", "Southern Ocean"],
-    ):
+        myRegions=["Arctic", "Southern Ocean"]):
+
+        self.nRegions = len(myRegions)
+        self.myRegions = myRegions
+        self.mySetups = mySetups
+
+    def run(self, **kwargs):
         """The run diagnostic method. Takes two inputs:
             mySetups    A list of 3-item lists indicating which setups need
             to be plotted. A setup = model, experiment, source
@@ -35,21 +43,22 @@ class SeaIceExtent:
 
             The method produces as output a figure with the seasonal cycles
             of sea ice extent in the regions for the setups"""
-        # define the internal logger
-        self.logger = log_configure(log_level="info", log_name='Reader')
+     
+        self.configure(**kwargs)
+        
+        self.computeExtent()
 
-        # Load regions information
-        # with open("../regions.yml") as f:
-        #     regionDict = yaml.safe_load(f)
-        regionDict = load_yaml("../regions.yml")
+        self.plotExtent()
+        
+        self.createNetCDF()
 
-        nRegions = len(myRegions)
-        thresholdSeaIceExtent = 0.15
+
+    def computeExtent(self):
 
         # Instantiate the various readers (one per setup) and retrieve the
         # corresponding data
-        myExtents = list()
-        for js, setup in enumerate(mySetups):
+        self.myExtents = list()
+        for js, setup in enumerate(self.mySetups):
             model, exp, source = setup[0], setup[1], setup[2]
 
             label = model + " " + exp + " " + source
@@ -72,21 +81,21 @@ class SeaIceExtent:
             lon.attrs["units"] = "degrees"
 
             # Create mask based on threshold
-            ci_mask = data.ci.where((data.ci > thresholdSeaIceExtent) &
+            ci_mask = data.ci.where((data.ci > self.thresholdSeaIceExtent) &
                                     (data.ci < 1.0))
 
-            regionExtents = list()  # Will contain the time series for each
+            self.regionExtents = list()  # Will contain the time series for each
             # region and for that setup
             # Iterate over regions
-            for jr, region in enumerate(myRegions):
+            for jr, region in enumerate(self.myRegions):
 
                 self.logger.info("\tProducing diagnostic for region " + region)
                 # Create regional mask
                 latS, latN, lonW, lonE = (
-                    regionDict[region]["latS"],
-                    regionDict[region]["latN"],
-                    regionDict[region]["lonW"],
-                    regionDict[region]["lonE"],
+                    self.regionDict[region]["latS"],
+                    self.regionDict[region]["latN"],
+                    self.regionDict[region]["lonW"],
+                    self.regionDict[region]["lonE"],
                 )
 
                 # Dealing with regions straddling the 180° meridian
@@ -119,24 +128,26 @@ class SeaIceExtent:
 
                 myExtent.attrs["units"] = "million km^2"
                 myExtent.attrs["long_name"] = "Sea ice extent"
-                regionExtents.append(myExtent)
+                self.regionExtents.append(myExtent)
 
             # Save set of diagnostics for that setup
-            myExtents.append(regionExtents)
+            self.myExtents.append(self.regionExtents)
 
+    def plotExtent(self):
+        """"""
         # Produce figure and create NetCDF
-        fig, ax = plt.subplots(nRegions, figsize=(13, 3 * nRegions))
+        fig, ax = plt.subplots(self.nRegions, figsize=(13, 3 * self.nRegions))
 
-        for jr, region in enumerate(myRegions):
-            for js, setup in enumerate(mySetups):
+        for jr, region in enumerate(self.myRegions):
+            for js, setup in enumerate(self.mySetups):
                 label = " ".join([s for s in setup])
-                extent = myExtents[js][jr]
+                extent = self.myExtents[js][jr]
 
                 # Don't plot osisaf nh in the south and conversely
                 if (setup[0] == "OSI-SAF" and setup[2][:2] == "nh" and
-                    regionDict[region]["latN"] < 20.0) or (
+                    self.regionDict[region]["latN"] < 20.0) or (
                         setup[0] == "OSI-SAF" and setup[2][:2] == "sh"
-                        and regionDict[region]["latS"] > -20.0):
+                        and self.regionDict[region]["latS"] > -20.0):
                     pass
                 else:
                     ax[jr].plot(extent.time, extent, label=label)
@@ -151,19 +162,20 @@ class SeaIceExtent:
         for fmt in ["png", "pdf"]:
             fig.savefig("./figSIE." + fmt, dpi=300)
 
+    def createNetCDF(self):
         # NetCDF creation (one per setup)
-        for js, setup in enumerate(mySetups):
+        for js, setup in enumerate(self.mySetups):
             dataset = xr.Dataset()
             label = " ".join([s for s in setup])
-            for jr, region in enumerate(myRegions):
+            for jr, region in enumerate(self.myRegions):
 
                 if (setup[0] == "OSI-SAF" and setup[2][:2] == "nh" and
-                    regionDict[region]["latN"] < 20.0) or (
+                    self.regionDict[region]["latN"] < 20.0) or (
                         setup[0] == "OSI-SAF" and setup[2][:2] == "sh"
-                        and regionDict[region]["latS"] > -20.0):
+                        and self.regionDict[region]["latS"] > -20.0):
                     pass
                 else:
                     # NetCDF variable
                     varName = f"{setup[0]}_{setup[1]}_{setup[2]}_{region}"
-                    dataset[varName] = myExtents[js][jr]
+                    dataset[varName] = self.myExtents[js][jr]
                     dataset.to_netcdf("__".join([s for s in setup]) + ".nc")
