@@ -604,7 +604,7 @@ class Tropical_Rainfall:
         tprate_dataset['pdf']           = hist_pdf
 
         if path_to_histogram is not None and name_of_file  is not None:
-            self.dataset_to_netcdf(dataset = tprate_dataset, path_to_netcdf = path_to_histogram, name_of_file = name_of_file) 
+            self.dataset_to_netcdf(dataset = tprate_dataset, path_to_netcdf = path_to_histogram, name_of_file = name_of_file)
         return tprate_dataset
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
