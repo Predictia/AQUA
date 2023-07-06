@@ -127,7 +127,6 @@ class SeaIceExtent:
         # Produce figure and create NetCDF
         fig, ax = plt.subplots(nRegions, figsize=(13, 3 * nRegions))
 
-        dataset = xr.Dataset()
         for jr, region in enumerate(myRegions):
             for js, setup in enumerate(mySetups):
                 label = " ".join([s for s in setup])
@@ -144,9 +143,7 @@ class SeaIceExtent:
                 else:
                     ax[jr].plot(extent.time, extent, label=label)
 
-                    # NetCDF variable
-                    varName = f"{setup[0]}_{setup[1]}_{setup[2]}_{region}"
-                    dataset[varName] = extent
+                    
             ax[jr].set_title("Sea ice extent: region " + region)
 
             ax[jr].legend()
@@ -158,4 +155,19 @@ class SeaIceExtent:
         for fmt in ["png", "pdf"]:
             fig.savefig("./figSIE." + fmt, dpi=300)
 
-        dataset.to_netcdf("SIE.nc")
+        # NetCDF creation (one per setup)
+        for js, setup in enumerate(mySetups):
+            dataset = xr.Dataset()
+            label = " ".join([s for s in setup])
+            for jr, region in enumerate(myRegions):
+
+                if (setup[0] == "OSI-SAF" and setup[2][:2] == "nh" and
+                    regionDict[region]["latN"] < 20.0) or (
+                        setup[0] == "OSI-SAF" and setup[2][:2] == "sh"
+                        and regionDict[region]["latS"] > -20.0):
+                    pass
+                else:
+                    # NetCDF variable
+                    varName = f"{setup[0]}_{setup[1]}_{setup[2]}_{region}"
+                    dataset[varName] = myExtents[js][jr]
+                    dataset.to_netcdf("__".join([s for s in setup]) + ".nc")
