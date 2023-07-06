@@ -1,6 +1,6 @@
 import sys
 import matplotlib.pyplot as plt
-
+import xarray as xr
 from aqua import Reader
 from aqua.util import load_yaml
 from aqua.logger import log_configure
@@ -36,7 +36,7 @@ class SeaIceExtent:
             The method produces as output a figure with the seasonal cycles
             of sea ice extent in the regions for the setups"""
         # define the internal logger
-      
+        self.logger = log_configure(log_level="info", log_name='Reader')
 
         # Load regions information
         # with open("../regions.yml") as f:
@@ -124,9 +124,10 @@ class SeaIceExtent:
             # Save set of diagnostics for that setup
             myExtents.append(regionExtents)
 
-        # Produce figure
+        # Produce figure and create NetCDF
         fig, ax = plt.subplots(nRegions, figsize=(13, 3 * nRegions))
 
+        dataset = xr.Dataset()
         for jr, region in enumerate(myRegions):
             for js, setup in enumerate(mySetups):
                 label = " ".join([s for s in setup])
@@ -142,12 +143,19 @@ class SeaIceExtent:
                     pass
                 else:
                     ax[jr].plot(extent.time, extent, label=label)
+
+                    # NetCDF variable
+                    varName = f"{setup[0]}_{setup[1]}_{setup[2]}_{region}"
+                    dataset[varName] = extent
             ax[jr].set_title("Sea ice extent: region " + region)
 
             ax[jr].legend()
             ax[jr].set_ylabel(extent.units)
             ax[jr].grid()
 
+
         fig.tight_layout()
         for fmt in ["png", "pdf"]:
             fig.savefig("./figSIE." + fmt, dpi=300)
+
+        dataset.to_netcdf("SIE.nc")
