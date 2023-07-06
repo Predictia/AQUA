@@ -1,11 +1,16 @@
 telecname: 'NAO' # NAO or ENSO
-model: 'ERA5'
-exp: 'era5'
-source: 'monthly'
-#regrid: 'r100'
-# freq: 'monthly' # uncomment if data are not monthly
-# zoom: None # needed only if ICON
-months_window: 3
-# outputfig: 'path/to/fig/folder'
-# outputdir: 'path/to/files/folder'
-# filename: 'custom_filename'
+
+common_outputdir: &common_outputdir './output'
+configdir: '/home/b/b382289/AQUA/diagnostics/teleconnections/config'
+
+source:
+  model: 'IFS'
+  exp: 'tco2559-ng5-cycle3'
+  source: 'lra-r100-monthly'
+  regrid: False
+  freq: False
+  zoom: False
+  months_window: 3
+  outputfig: *common_outputdir
+  outputdir: *common_outputdir
+  #filename: 'custom_filename'
