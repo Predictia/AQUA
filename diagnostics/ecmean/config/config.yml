@@ -5,7 +5,7 @@ model:
   name: AQUA
 
 dirs:
-  exp: /home/b/b382076/work/datasets/IFS-tco2559-ng5
+  exp: '' #not necessary we use xarray dataset instead of files
   clm: /home/b/b382076/AQUA/diagnostics/ecmean/ECmean4/ecmean/climatology
   tab: /work/bb1153/b382076/ecmean/tables
   fig: /work/bb1153/b382076/ecmean/figures
