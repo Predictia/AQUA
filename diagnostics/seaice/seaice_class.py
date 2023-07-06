@@ -124,46 +124,33 @@ class SeaIceExtent():
         # Print region area for information
         #areaRegion = areacello.where(regionMask).sum()
         #print(region[0] + " region area: " + str(areaRegion.data) + areaRegion.units)
+
         fig, ax = plt.subplots(nRegions, figsize = (13, 3 * nRegions))
-        for js, setup in enumerate(mySetups):
-            label = " ".join([s for s in setup])
-            for jr, region in enumerate(myRegions):
+
+        for jr, region in enumerate(myRegions):
+            print(region)
+            for js, setup in enumerate(mySetups):
+                label = " ".join([s for s in setup])
                 extent = myExtents[js][jr]
 
-                ax[jr].plot(extent.time, extent, label = label)
-            
-                ax[jr].set_title("Sea ice extent: region " + region)
-        
-                ax[jr].legend()
-                ax[jr].set_ylabel(extent.units)
-                ax[jr].grid()
+                # Don't plot the obs nh if the region is in sh and conversely
+                
+      
 
-            
+                # Don't plot osisaf nh in the south and conversely
+                if (setup[0] == "OSI-SAF" and setup[2][:2] == "nh" and regionDict[region]["latN"] < 20.0) or \
+                    (setup[0] == "OSI-SAF" and setup[2][:2] == "sh" and regionDict[region]["latS"] > -20.0):
+                    pass
+                else: 
+                    ax[jr].plot(extent.time, extent, label = label)
+            ax[jr].set_title("Sea ice extent: region " + region)
+        
+            ax[jr].legend()
+            ax[jr].set_ylabel(extent.units)
+            ax[jr].grid()
+
+            print("---------")
         fig.tight_layout()
         for fmt in ["png", "pdf"]:
             fig.savefig("./figSIE." + fmt, dpi = 300)
         
-
-        # A few maps
-        #import cartopy.crs as ccrs
-        #import matplotlib.pyplot as plt
-
-
-        #subplot_kws=dict(projection=ccrs.NorthPolarStereo(central_longitude=-30.0),
-        #                facecolor='grey')
-
-        #fig, ax = plt.subplots(1, 1, figsize = (8, 8))
-        #p = ax.plot(lon,lat, data.ci.mean(),
-        #                vmin=0, vmax=1,
-        #                cmap=plt.cm.Blues,
-        #                subplot_kws=subplot_kws,
-        #                transform=ccrs.PlateCarree(),
-        #                add_labels=False,
-        #                add_colorbar=False)
-
-        # add separate colorbar
-        #cb = plt.colorbar(p, ticks=[-2,0,2,4,6,8,10,12], shrink=0.99)
-        #cb.ax.tick_params(labelsize=18)
-
-        #p.axes.gridlines(color='black', alpha=0.5, linestyle='--')
-        #p.axes.set_extent([-300, 60, 50, 90], ccrs.PlateCarree())
