@@ -174,7 +174,7 @@ class Tropical_Rainfall:
         return coord_lat, coord_lon
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def precipitation_rate_units_converter(self, data, model_variable = 'tprate', new_unit = 'kg m**-2 s**-1'):
+    def precipitation_rate_units_converter(self, data, model_variable = 'tprate', old_unit = None,  new_unit = 'kg m**-2 s**-1'):
         """ Function to convert the units of precipitation rate.
 
         Args:
@@ -185,47 +185,35 @@ class Tropical_Rainfall:
         Returns:
             xarray: The Dataset with converted units.
         """    
-        try:
+        if 'Dataset' in str(type(data)):
             data        = data[model_variable]
-        except KeyError or TypeError:
+        else:
             data        = data
 
-        #try:
-        #    data.units
-        #except AttributeError:
-        #    from_mass_unit, from_space_unit, from_time_unit     = unit_splitter(old_unit)
-        ##    to_mass_unit,   to_space_unit,   to_time_unit       = unit_splitter(new_unit)
-        #
-        #    if data.units == 'kg m**-2 s**-1':
-        #        data            = 0.001 * data
-        #        data            = convert_length(data,   from_space_unit, to_space_unit)
-        #        data            = convert_time(data,     from_time_unit,  to_time_unit)
-        #    elif from_mass_unit is None and new_unit == 'kg m**-2 s**-1':
-        #        data            = convert_length(data,   from_space_unit, 'm')
-        #        data            = convert_time(data,     from_time_unit,  's')
-        ##        data            = 1000 * data
-        #    else:
-        #        data            = convert_length(data,   from_space_unit, to_space_unit)
-        #        data            = convert_time(data,     from_time_unit,  to_time_unit)
-        #    return data 
-        if data.units == new_unit:
-            return data
+        if 'DataArray' in str(type(data)):   #isinstance(data, xarray.core.dataarray.DataArray):
+            if data.units == new_unit:
+                return data
+      
+        if isinstance(data, (float, int)) and old_unit is not None:
+            from_mass_unit, from_space_unit, from_time_unit     = unit_splitter(old_unit)
         else:
             from_mass_unit, from_space_unit, from_time_unit     = unit_splitter(data.units)
-            to_mass_unit,   to_space_unit,   to_time_unit       = unit_splitter(new_unit)
+            old_unit  = data.units
+        to_mass_unit,   to_space_unit,   to_time_unit           = unit_splitter(new_unit)
 
-            if data.units == 'kg m**-2 s**-1':
-                data            = 0.001 * data
-                data            = convert_length(data,   from_space_unit, to_space_unit)
-                data            = convert_time(data,     from_time_unit,  to_time_unit)
-            elif from_mass_unit is None and new_unit == 'kg m**-2 s**-1':
-                data            = convert_length(data,   from_space_unit, 'm')
-                data            = convert_time(data,     from_time_unit,  's')
-                data            = 1000 * data
-            else:
-                data            = convert_length(data,   from_space_unit, to_space_unit)
-                data            = convert_time(data,     from_time_unit,  to_time_unit)
-
+        
+        if old_unit == 'kg m**-2 s**-1':
+            data            = 0.001 * data
+            data            = convert_length(data,   from_space_unit, to_space_unit)
+            data            = convert_time(data,     from_time_unit,  to_time_unit)
+        elif from_mass_unit is None and new_unit == 'kg m**-2 s**-1':
+            data            = convert_length(data,   from_space_unit, 'm')
+            data            = convert_time(data,     from_time_unit,  's')
+            data            = 1000 * data
+        else:
+            data            = convert_length(data,   from_space_unit, to_space_unit)
+            data            = convert_time(data,     from_time_unit,  to_time_unit)
+        if 'xarray' in str(type(data)):
             data.attrs['units'] = new_unit
             current_time        = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             history_update      = str(current_time)+' the units of precipitation are converted from ' + str(data.units) + ' to ' + str(new_unit) + ';\n '
@@ -234,7 +222,7 @@ class Tropical_Rainfall:
                 data.attrs['history']           = history_attr
             except AttributeError or KeyError:
                 data.attrs['history']           = history_update
-            return data 
+        return data 
         
         
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
@@ -1279,6 +1267,59 @@ class Tropical_Rainfall:
             nfm.values      = (data_regrided.values - dummy_data_regrided.values) /  (data_regrided.values + dummy_data_regrided.values)
         return nfm
 
+    def seasonal_or_monthly_mean(self,  data,                               preprocess=True,                    seasons = True,     
+                                        model_variable = 'tprate',          trop_lat       = None,              new_unit = None):
+        
+        self.class_attributes_update(trop_lat = trop_lat)
+        if seasons:
+            
+            if preprocess           == True:
+                DJF_1               = self.preprocessing(           data,                               preprocess = preprocess,
+                                                                    trop_lat   = self.trop_lat,         model_variable = model_variable,
+                                                                    s_month = 12,                       f_month    = 12)
+                DJF_2               = self.preprocessing(           data,                               preprocess = preprocess,
+                                                                    trop_lat   = self.trop_lat,         model_variable = model_variable,
+                                                                    s_month = 1,                        f_month    = 2)
+                DJF                 = xr.concat([DJF_1, DJF_2], dim = 'time')
+                DJF_mean            = DJF.mean('time')
+                
+                MAM                 = self.preprocessing(           data,                               preprocess = preprocess,
+                                                                    trop_lat   = self.trop_lat,         model_variable = model_variable,
+                                                                    s_month = 3,                        f_month    = 5)
+                MAM_mean            = MAM.mean('time')
+                
+                JJA                 = self.preprocessing(           data,                               preprocess = preprocess,
+                                                                    trop_lat   = self.trop_lat,         model_variable = model_variable,
+                                                                    s_month = 6,                        f_month    = 8)
+                JJA_mean            = JJA.mean('time')
+
+                SON                 = self.preprocessing(           data,                               preprocess = preprocess,
+                                                                    trop_lat   = self.trop_lat,         model_variable = model_variable,
+                                                                    s_month = 9,                        f_month    = 11)
+                SON_mean            = SON.mean('time')
+
+            
+            all_season  = [DJF_mean, MAM_mean, JJA_mean, SON_mean]
+
+            for i in range(0, len(all_season)):
+                
+                if new_unit is not None:
+                    all_season[i]           = self.precipitation_rate_units_converter(all_season[i], new_unit=new_unit)
+            return all_season
+    
+        else:
+            all_months=[]
+            for i in range(1, 13):
+                if preprocess           == True:
+                    mon                 = self.preprocessing(         data,                               preprocess = preprocess,
+                                                                    trop_lat   = self.trop_lat,         model_variable = model_variable,
+                                                                    s_month = i,                        f_month    = i)
+                    mon_mean            = mon.mean('time')
+                    if new_unit is not None:
+                        mon_mean        = self.precipitation_rate_units_converter(mon_mean, new_unit=new_unit)
+                all_months.append(mon_mean)
+            return all_months
+
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
     def mean_absolute_percent_error(self, data,                         trop_lat = None,                    dummy_data = None,         
                                     model = 'era5',                     source = 'monthly',            
@@ -1310,75 +1351,86 @@ class Tropical_Rainfall:
             mape.values     = 100 * (dummy_data_regrided.values - data_regrided.values) /  dummy_data_regrided.values
         return mape
 
-
-    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """    
+    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """   
     def plot_095level(self,     data,                               preprocess=True,                    seasons = True,     
-                                source = 'monthly',                 plev = 0,                           model_variable = 'tprate',                
-                                trop_lat       = None,              mape = False,                       nfm = False,              
-                                s_time         = None,              f_time      = None,                 s_year     = None,
-                                f_year         = None,              s_month     = None,                 f_month    = None,
-                                figsize     = 1,                    maxticknum     = 12,                colorbarname    = 'Precipitation',       
-                                vmin = None,                        vmax = None,                        contour  = True,
-                                plot_title = None,                  log = False,                        time_isel = None,
-                                space_grid_factor = None,           time_freq = None,                   time_length = None,                
-                                time_grid_factor = None,            path_to_figure = None,              resol = '110m', 
-                                new_unit = None,                    val_min = None,                     val_max=None,                   
-                                color_map ='RdBu'):
+                                                                    model_variable = 'tprate',          figsize     = 1,      
+                                trop_lat       = None,              plot_title = None,                  new_unit = None,      
+                                vmin = None,                        vmax = None,                        contour  = True,                           
+                                path_to_figure = None,              weights = None,                     level_95=True,
+                                value = 0.95,                       rel_error = 0.1):
+        
+        self.plot_seasons_or_months(  data,                         preprocess=preprocess,              seasons = seasons,     
+                                model_variable = model_variable,    figsize     = figsize,      
+                                trop_lat = trop_lat,                plot_title = plot_title,            new_unit = new_unit,      
+                                vmin = vmin,                        vmax = vmax,                        contour  = contour,                           
+                                path_to_figure = path_to_figure,    weights = weights,                  level_95=level_95,
+                                value = value,                      rel_error = rel_error)
+    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """   
+
+    def plot_bias(self,         data,                               preprocess=True,                    seasons = True,     
+                                dataset_2=None,                     model_variable = 'tprate',          figsize  = 1,      
+                                trop_lat       = None,              plot_title = None,                  new_unit = None,      
+                                vmin = None,                        vmax = None,                        contour  = True,                           
+                                path_to_figure = None,              weights = None,                     level_95=True):
+        
+        self.plot_seasons_or_months(  data,                         preprocess=preprocess,              seasons = seasons,     
+                                dataset_2 = dataset_2,              model_variable = model_variable,    figsize  = figsize,              
+                                trop_lat = trop_lat,                plot_title = plot_title,            new_unit = new_unit,      
+                                vmin = vmin,                        vmax = vmax,                        contour  = contour,                           
+                                path_to_figure = path_to_figure,    weights = weights,                  level_95=level_95)
+
+    
+    """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """    
+    def plot_seasons_or_months(self,     data,                      preprocess=True,                    seasons = True,     
+                                dataset_2=None,                     model_variable = 'tprate',          figsize     = 1,      
+                                trop_lat       = None,              plot_title = None,                  new_unit = None,      
+                                vmin = None,                        vmax = None,                        contour  = True,                           
+                                path_to_figure = None,              weights = None,                     level_95=True, 
+                                value = 0.95,                       rel_error = 0.1):
         
         """ Function to plot the mean or median value of variable in Dataset.
 
         Args:"""
-        self.class_attributes_update(trop_lat = trop_lat,
-                                    s_time   = s_time,              f_time  = f_time,
-                                    s_year   = s_year,              f_year  = f_year,
-                                    s_month  = s_month,             f_month = f_month)
-       
-        clevs=np.arange(vmin,vmax,(vmax-vmin)/10)  
-
+        self.class_attributes_update(trop_lat = trop_lat)
+        
+        
         if seasons:
-            fig, axes = plt.subplots(ncols=2, nrows=2, subplot_kw={'projection': ccrs.PlateCarree()},
+            fig, axes   = plt.subplots(ncols=2, nrows=2, subplot_kw={'projection': ccrs.PlateCarree()},
                                      figsize=(11*figsize, 8.5*figsize), layout='constrained')
             
-            if preprocess           == True:
-                DJF_1               = self.preprocessing(           data,                               preprocess = preprocess,
-                                                                    trop_lat   = self.trop_lat,         model_variable = model_variable,
-                                                                    s_month = 12,                       f_month    = 12)
-                DJF_2               = self.preprocessing(           data,                               preprocess = preprocess,
-                                                                    trop_lat   = self.trop_lat,         model_variable = model_variable,
-                                                                    s_month = 1,                        f_month    = 2)
-                DJF                 = xr.concat([DJF_1, DJF_2], dim = 'time')
-                DJF_mean            = DJF.mean('time')
-                
-                MAM                 = self.preprocessing(           data,                               preprocess = preprocess,
-                                                                    trop_lat   = self.trop_lat,         model_variable = model_variable,
-                                                                    s_month = 3,                        f_month    = 5)
-                MAM_mean            = MAM.mean('time')
-                
-                JJA                 = self.preprocessing(           data,                               preprocess = preprocess,
-                                                                    trop_lat   = self.trop_lat,         model_variable = model_variable,
-                                                                    s_month = 6,                        f_month    = 8)
-                JJA_mean            = JJA.mean('time')
-
-                SON                 = self.preprocessing(           data,                               preprocess = preprocess,
-                                                                    trop_lat   = self.trop_lat,         model_variable = model_variable,
-                                                                    s_month = 9,                        f_month    = 11)
-                SON_mean            = SON.mean('time')
-
+            all_season  = self.seasonal_or_monthly_mean(data,                preprocess = preprocess,        seasons  = seasons,     
+                                        model_variable = model_variable,    trop_lat = self.trop_lat,            new_unit = new_unit )
             
-            all_season  = [DJF_mean, MAM_mean, JJA_mean, SON_mean]
+            if vmin is None and vmax is None:
+                if level_95 is True and dataset_2 is None:
+                    bin_value,  units, threshold = self.get_95percent_level(data = data, original_hist = None, value = value, rel_error = rel_error, 
+                                                                            model_variable=model_variable, new_unit = new_unit, weights = weights,  
+                                                                            trop_lat = self.trop_lat) 
+                    vmin = bin_value
+                    vmax = 20*bin_value
+                else:
+                    vmax        = float(all_season[0].max().values)/10
+                    vmin        = 0
+            clevs           = np.arange(vmin, vmax, abs(vmax - vmin)/10) 
+
+            if dataset_2 is not None:
+                all_season_2 = self.seasonal_or_monthly_mean(dataset_2,                preprocess = preprocess,        seasons  = seasons,     
+                                        model_variable = model_variable,    trop_lat = self.trop_lat,            new_unit = new_unit )
+                for i in range(0, len(all_season)):
+                    all_season[i].values = all_season[i].values - all_season_2[i].values
+
+                data_new = data - dataset_2
             titles      = ["DJF", "MAM", "JJA", "SON"]
 
             axs=axes.flatten()
             for i in range(0, len(all_season)):
                 one_season = all_season[i]
                 
-                if new_unit is not None:
-                    one_season          = self.precipitation_rate_units_converter(one_season, new_unit=new_unit)
-                if vmin                 != None:
-                    one_season          = one_season.where(one_season > vmin)
-                one_season, lons        = add_cyclic_point(one_season, coord=data['lon'])
+                #if vmin                 != None:
+                one_season          = one_season.where(one_season > vmin)
+                one_season, lons    = add_cyclic_point(one_season, coord=data['lon'])
                 
-
+            
                 im1 = axs[i].contourf(lons, data['lat'], one_season, clevs,
                           transform = ccrs.PlateCarree(),  
                           cmap='coolwarm', extend='both')
@@ -1399,28 +1451,41 @@ class Tropical_Rainfall:
                 axs[i].grid(True)
         
         else:
-            fig, axes = plt.subplots(ncols=3, nrows=4, subplot_kw={'projection': ccrs.PlateCarree()},
+            fig, axes   = plt.subplots(ncols=3, nrows=4, subplot_kw={'projection': ccrs.PlateCarree()},
                                      figsize=(11*figsize, 8.5*figsize), layout='constrained')
-            all_months=[]
-            for i in range(1, 13):
-                if preprocess           == True:
-                    mon                 = self.preprocessing(         data,                               preprocess = preprocess,
-                                                                    trop_lat   = self.trop_lat,         model_variable = model_variable,
-                                                                    s_month = i,                        f_month    = i)
-                    mon_mean            = mon.mean('time')
-                    if new_unit is not None:
-                        mon_mean        = (self.precipitation_rate_units_converter(mon_mean, new_unit=new_unit))
-                if vmin                 != None:
-                    mon_mean                = mon_mean.where(mon_mean > vmin)
-                mon_mean, lons = add_cyclic_point(mon_mean, coord=data['lon'])
-                all_months.append(mon_mean)
+            all_months  = self.seasonal_or_monthly_mean(data,                preprocess = preprocess,        seasons  = seasons,     
+                                        model_variable = model_variable,     trop_lat = trop_lat,            new_unit = new_unit )
+
+            if vmin is None and vmax is None:
+                if level_95 is True and dataset_2 is None:
+                    bin_value,  units, threshold = self.get_95percent_level(data = data, original_hist = None, 
+                                                                            value = value, rel_error = rel_error, model_variable=model_variable, 
+                                                                            new_unit = new_unit, weights = weights,  trop_lat = self.trop_lat) 
+                    vmin = bin_value
+                    vmax = 20*bin_value
+                else:
+                    vmax        = float(all_months[6].max().values)
+                    vmin        = 0
+            clevs           = np.arange(vmin, vmax, (vmax - vmin)/10) 
+
+            if dataset_2 is not None:
+                all_months_2 = self.seasonal_or_monthly_mean(dataset_2,                preprocess = preprocess,        seasons  = seasons,     
+                                        model_variable = model_variable,    trop_lat = trop_lat,            new_unit = new_unit )
+                for i in range(0, len(all_months)):
+                    all_months[i].values = all_months[i].values - all_months_2[i].values
+
+            for i in range(0, len(all_months)):
+                #if vmin                 != None:
+                all_months[i]           = all_months[i].where(all_months[i] > vmin)
+                all_months[i], lons     = add_cyclic_point(all_months[i], coord=data['lon'])
+
             titles =['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 
                      'October', 'November', 'December']
             axs=axes.flatten()
             
             for i in range(0, len(all_months)):
                 im1 =axs[i].contourf(lons, data['lat'], all_months[i], clevs,
-                          transform = ccrs.PlateCarree(),  vmin = vmin, vmax = vmax, 
+                          transform = ccrs.PlateCarree(), #vmin = vmin, vmax = vmax, 
                           cmap='coolwarm', extend='both')
 
                 axs[i].set_title(titles[i], fontsize = 17)
@@ -1439,7 +1504,10 @@ class Tropical_Rainfall:
                 axs[i].grid(True)
         #fig.tight_layout()
         if new_unit is None:
-            unit = DJF_1.attrs['units']
+            try:
+                unit        = data[model_variable].units
+            except KeyError:
+                unit        = data.units
         else:
             unit = new_unit
         # Draw the colorbar
@@ -1568,10 +1636,18 @@ class Tropical_Rainfall:
                         orientation  = 'landscape')
         return {fig, ax}
     
-    def get_95percent_level(self, data = None, original_hist = None, value = 0.05, rel_err = 0.1, model_variable='tprate', 
-                            new_unit = None):        
+    def get_95percent_level(self, data = None, original_hist = None, value = 0.95, rel_error = 0.1, model_variable='tprate', 
+                            new_unit = None, weights = None,  trop_lat = None):        
 
+        value               = 1 - value
         rel_error           = value*rel_error 
+        if original_hist is None:
+
+            self.class_attributes_update(trop_lat = trop_lat)
+
+            original_hist = self.histogram(data,         weights = weights,       preprocess = True,      trop_lat = self.trop_lat,              model_variable = model_variable,
+                  num_of_bins = self.num_of_bins,   first_edge = self.first_edge,      width_of_bin  = self.width_of_bin,       bins = self.bins)
+        
         counts_sum          = sum(original_hist.counts)
         relative_value      = [float((original_hist.counts[i]/counts_sum).values) for i in range(0, len(original_hist.counts))]
         new_sum             = 0
@@ -1585,20 +1661,20 @@ class Tropical_Rainfall:
         del_bin             = float(original_hist.center_of_bin[i].values) - float(original_hist.center_of_bin[i-1].values)
         last_bin            = float(original_hist.center_of_bin[-1].values)
 
-        print(bin_i, del_bin, last_bin)
+        #print(bin_i, del_bin, last_bin)
 
         self.num_of_bins    = None
         self.first_edge     = None
         self.width_of_bin   = None
 
         for i in range(0, 100):
-            print(i, del_bin)
+            #print(i, del_bin)
             self.bins       = [0, bin_i + 0.5*del_bin, last_bin]
             new_hist        = self.histogram(data)
 
             counts_sum      = sum(new_hist.counts.values)
             threshold       = new_hist.counts[-1].values/counts_sum
-            if abs(threshold-value) < rel_err:
+            if abs(threshold-value) < rel_error:
                 break
             if threshold     < value:
                 del_bin     =  del_bin - abs(0.5*del_bin)
@@ -1613,10 +1689,10 @@ class Tropical_Rainfall:
         bin_value = bin_i + del_bin
 
         if new_unit is not None:
-            bin_value        = (self.precipitation_rate_units_converter(bin_value, new_unit=new_unit))
+            bin_value        = self.precipitation_rate_units_converter(bin_value, old_unit = units, new_unit = new_unit)
             units = new_unit
 
-        return bin_value, units, threshold
+        return bin_value, units, 1 - threshold
     
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
     def confidence_interval_along_coordinate(self, data,                    model_variable = 'tprate',     
