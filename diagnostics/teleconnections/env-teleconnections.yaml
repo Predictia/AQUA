@@ -11,6 +11,7 @@ channels:
 dependencies:
   - python>=3.9,<3.11
 # these are extra dependencies for teleconnections
+  - numpy<=1.24
 # these are needed only for plots
   - healpy # does not work with pip and AQUA at the moment (see #276)
   - cartopy # suggested to install with conda
