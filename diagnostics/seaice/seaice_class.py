@@ -132,8 +132,6 @@ class SeaIceExtent:
                 label = " ".join([s for s in setup])
                 extent = myExtents[js][jr]
 
-                # Don't plot the obs nh if the region is in sh and conversely
-
                 # Don't plot osisaf nh in the south and conversely
                 if (setup[0] == "OSI-SAF" and setup[2][:2] == "nh" and
                     regionDict[region]["latN"] < 20.0) or (
@@ -143,13 +141,11 @@ class SeaIceExtent:
                 else:
                     ax[jr].plot(extent.time, extent, label=label)
 
-                    
             ax[jr].set_title("Sea ice extent: region " + region)
 
             ax[jr].legend()
             ax[jr].set_ylabel(extent.units)
             ax[jr].grid()
-
 
         fig.tight_layout()
         for fmt in ["png", "pdf"]:
