@@ -15,38 +15,38 @@ logger = logging.getLogger(__name__)
 def predefined_regions(region):
     region = region.lower()
     if region in ["indian ocean", "indian_ocean"]:
-        latS = 30.0
-        latN = -30.0
+        latN = 30.0
+        latS = -30.0
         lonW = 100.0
         lonE = 300.0
     elif region in ["labrador sea"]:
-        latS = 50.0
         latN = 65.0
+        latS = 50.0
         lonW = 300.0
         lonE = 325.0
     elif region in ["global ocean"]:
-        latS = 90.0
-        latN = -90.0
+        latN = 90.0
+        latS = -90.0
         lonW = 0.0
         lonE = 360.0
     elif region in ["atlantic ocean"]:
-        latS = 65.0
-        latN = -35.0
+        latN = 65.0
+        latS = -35.0
         lonW = -80.0
         lonE = 30.0
     elif region in ["pacific ocean"]:
-        latS = 65.0
-        latN = -55.0
+        latN = 65.0
+        latS = -55.0
         lonW = 120.0
         lonE = 290.0
     elif region in ["arctic ocean"]:
-        latS = 90.0
-        latN = 65.0
+        latN = 90.0
+        latS = 65.0
         lonW = 0.0
         lonE = 360.0
     elif region in ["southern ocean"]: 
-        latS = -55.0
-        latN = -80.0
+        latN = -55.0
+        latS = -80.0
         lonW = -180.0
         lonE = 180.0
     else:
@@ -81,7 +81,6 @@ def weighted_area_mean(data, region=None, latS: float=None, latN: float=None, lo
     Returns:
         xarray.Dataset: Weighted area mean of the input data.
     """
-    print(data)
     if region is None:
         if latN is None or latS is None or lonW is None or lonE is None:
             raise ValueError("When region is None, latN, latS, lonW, lonE values need to be specified.")
@@ -89,19 +88,18 @@ def weighted_area_mean(data, region=None, latS: float=None, latN: float=None, lo
         if lonW < 0 or lonE < 0:
             data = convert_longitudes(data)
     else:
-        print(data)
         # Obtain latitude and longitude boundaries for the predefined region
-        latN, latS, lonW, lonE = predefined_regions(region)
-    
+        latS, latN, lonW, lonE = predefined_regions(region)
+    logger.info(f" data slicing for this region, latitude {latS} to {latN}, longitude {lonW} to {lonE}")
     # Perform data slicing based on the specified or predefined latitude and longitude boundaries
     data = data.sel(lat=slice(latS, latN), lon=slice(lonW, lonE))
     # Calculate weighted data based on cosine of latitude
-    print(data)
     weighted_data = data.weighted(np.cos(np.deg2rad(data.lat)))
     # Calculate weighted mean along latitude and longitude axes
     wgted_mean = weighted_data.mean(("lat", "lon"))
     
     return wgted_mean
+
 
 
 def mean_value_plot(data, region, customise_level=False, levels=None, outputfig="./figs"):
@@ -635,51 +633,84 @@ def monthly_climatology(data, month):
     data = data.where(data.time.dt.month == 4,  drop=True)
     return data
 
-
-def plot_temporal_split_new(data, region=None, month = None, latS: float=None, latN: float=None, lonW: float=None,
-                            lonE: float=None, outputfig="./figs"):
-    print(data)
+def load_obs_data(model='EN4',exp='en4',source='monthly'):
+    reader = Reader(model,exp,source)
+    den4=reader.retrieve()
+    den4=den4.rename({"depth":"lev"}) # We standardise the name for the vertical dimension
+    den4=den4[["ocpt","so"]].resample(time="M").mean()
+    return den4
+    
+def prepare_data_for_temporal_split(data, region=None, month = None, latS: float=None, latN: float=None, lonW: float=None,
+                            lonE: float=None):
     data = weighted_area_mean(data, region, latS, latN, lonE, lonW)
     data = convert_variables(data)
     
     data_1, data_2 = split_time_equally(data)
-    print(data_1)
+
     data_1 = monthly_climatology(data_1, month)
     data_2 = monthly_climatology(data_2, month)
-    print(data_1)
+    return data_1, data_2
+
+def crop_obs_overlap_time(mod_data, obs_data):
+    mod_data_time= mod_data.time  
+    obs_data_time=obs_data.time
+    common_time = xr.DataArray(np.intersect1d(mod_data_time, obs_data_time), dims='time')
+    if len(common_time) > 0:
+        obs_data = obs_data.sel(time=common_time)
+    return obs_data
+
+def plot_stratification(mod_data, region=None, month = None, latS: float=None, latN: float=None, lonW: float=None,
+                            lonE: float=None, outputfig="./figs"):
+    
+    obs_data= load_obs_data().interp(lev=mod_data.lev)
+    obs_data= crop_obs_overlap_time(mod_data, obs_data)
+
+    # if mod_data.time in obs_data.time
+    
+    obs_data_1, obs_data_2 = prepare_data_for_temporal_split(obs_data, region, month, latS, latN, lonE, lonW)
+    mod_data_1, mod_data_2 = prepare_data_for_temporal_split(mod_data, region, month, latS, latN, lonE, lonW)
+    
     
     fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3, figsize=(14, 8))
     fig.suptitle(f"Mean state annual T, S, rho0 stratification in {region}", fontsize=16)
 
     ax1.set_ylim((4500, 0))
-    ax1.plot(data_1.ocpt.mean("time"), data.lev, 'g-', linewidth=2.0)
-    ax1.plot(data_2.ocpt.mean("time"), data.lev, 'b-', linewidth=2.0)
+    ax1.plot(mod_data_1.ocpt.mean("time"), mod_data.lev, 'g-', linewidth=2.0)
+    ax1.plot(mod_data_2.ocpt.mean("time"), mod_data.lev, 'b-', linewidth=2.0)
+    ax1.plot(obs_data_1.ocpt.mean("time"), obs_data_1.lev, 'r-', linewidth=2.0)
     ax1.set_title("Temperature Profile", fontsize=14)
     ax1.set_ylabel("Depth (m)", fontsize=12)
     ax1.set_xlabel("Temperature (°C)", fontsize=12)
-    ax1.legend([f"EXP first half {data_1.time[0].dt.year.data}-{data_1.time[-1].dt.year.data}",
-                f"EXP last half {data_2.time[0].dt.year.data}-{data_2.time[-1].dt.year.data}",
-                "EN4 1950-1980", "EN4 1990-2020"], loc='best')
 
+    # print(obs_data_1.ocpt.mean("time"))
+    # print(obs_data_1.so.mean("time"))
+    
     ax2.set_ylim((4500, 0))
-    ax2.plot(data_1.so.mean("time"), data.lev, 'g-', linewidth=2.0)
-    ax2.plot(data_2.so.mean("time"), data.lev, 'b-', linewidth=2.0)
+    ax2.plot(mod_data_1.so.mean("time"), mod_data.lev, 'g-', linewidth=2.0)
+    ax2.plot(mod_data_2.so.mean("time"), mod_data.lev, 'b-', linewidth=2.0)
+    ax2.plot(obs_data_1.so.mean("time"), obs_data_1.lev, 'r-', linewidth=2.0)
     ax2.set_title("Salinity Profile", fontsize=14)
     ax2.set_xlabel("Salinity (psu)", fontsize=12)
 
     ax3.set_ylim((4500, 0))
-    ax3.plot(data_1.rho.mean("time")-1000, data.lev, 'g-', linewidth=2.0)
-    ax3.plot(data_2.rho.mean("time")-1000, data.lev, 'b-', linewidth=2.0)
+    ax3.plot(mod_data_1.rho.mean("time")-1000, mod_data.lev, 'g-', linewidth=2.0)
+    ax3.plot(mod_data_2.rho.mean("time")-1000, mod_data.lev, 'b-', linewidth=2.0)
+    ax3.plot(obs_data_1.rho.mean("time")-1000, obs_data_1.lev, 'r-', linewidth=2.0)
     ax3.set_title("Rho (ref 0) Profile", fontsize=14)
     ax3.set_xlabel("Density Anomaly (kg/m³)", fontsize=12)
     
+    ax1.legend([f"EXP first half {mod_data_1.time[0].dt.year.data}-{mod_data_1.time[-1].dt.year.data}",
+                f"EXP last half {mod_data_2.time[0].dt.year.data}-{mod_data_2.time[-1].dt.year.data}",
+                f"EN4 {obs_data_1.time[0].dt.year.data}-{obs_data_1.time[-1].dt.year.data}"], loc='best')
+
+
     filename = f"{outputfig}/vertical_TS_{region.replace(' ', '_').lower()}_mean.png"
 
     plt.savefig(filename)
     logger.info(f"{filename} saved")
 
     plt.show()
-    return data_1
+    return obs_data_1
     
 
 # def plot_temporal_split(data, area_name, outputfig="./figs"):
