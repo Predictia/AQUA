@@ -14,82 +14,72 @@ logger = logging.getLogger(__name__)
 def predefined_regions(region):
     region = region.lower()
     if region in ["indian ocean", "indian_ocean"]:
-        latN = -30.0
+        
         latS = 30.0
+        latN = -30.0
         lonW = 100.0
         lonE = 300.0
     elif region in ["labrador sea"]:
-        latN = 65.0
+        
         latS = 50.0
+        latN = 65.0
         lonW = 300.0
         lonE = 325.0
     elif region in ["global ocean"]:
-        latN = -90.0
+        
         latS = 90.0
+        latN = -90.0
         lonW = 0.0
         lonE = 360.0
     elif region in ["atlantic ocean"]:
-        latN = -35.0
+        
         latS = 65.0
+        latN = -35.0
         lonW = -80.0
         lonE = 30.0
     elif region in ["pacific ocean"]:
-        latN = -55.0
+        
         latS = 65.0
+        latN = -55.0
         lonW = 120.0
         lonE = 290.0
     elif region in ["arctic ocean"]:
-        latN = 65.0
+        
         latS = 90.0
+        latN = 65.0
         lonW = 0.0
         lonE = 360.0
     elif region in ["southern ocean"]:
-        latN = -80.0
+        
         latS = -55.0
+        latN = -80.0
         lonW = -180.0
         lonE = 180.0
     else:
         raise ValueError("Invalid region. Available options: 'Indian Ocean', 'Labrador Sea', 'Global Ocean', 'Atlantic Ocean', 'Pacific Ocean', 'Arctic Ocean', 'Southern Ocean'")
-    return latN, latS, lonW, lonE
+    return latS, latN, lonW, lonE
 
-def weighted_area_mean(data, use_predefined_region: bool, region: str = None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None):
-    """
-    Compute the weighted area mean of data within the specified latitude and longitude bounds.
+def convert_longitudes(data):
+    data = data.assign_coords(lon=(((data["lon"] + 180) % 360) - 180))
+    data = data.roll(lon=int(len(data['lon']) / 2), roll_coords=True)
+    return data
 
-    Parameters:
-        data (xarray.Dataset): Input data.
-        use_predefined_region (bool): Whether to use a predefined region or a custom region.
-        region (str, optional): Predefined region to use when use_predefined_region is True.
-                                Available options: "Indian Ocean", "Labrador Sea", "Global Ocean", "Atlantic Ocean",
-                                "Pacific Ocean", "Arctic Ocean", "Southern Ocean".
-                                Ignored when use_predefined_region is False.
-        
-        latS (float, optional): Southern latitude bound. Required if use_predefined_region is False or region is not provided.
-        latN (float, optional): Northern latitude bound. Required if use_predefined_region is False or region is not provided.
-        lonW (float, optional): Western longitude bound. Required if use_predefined_region is False or region is not provided.
-        lonE (float, optional): Eastern longitude bound. Required if use_predefined_region is False or region is not provided.
-
-    Returns:
-        xarray.Dataset: Weighted area mean of the input data.
-    """
-    if use_predefined_region:
-        latN, latS, lonW, lonE= predefined_regions(region)
-
+def weighted_area_mean(data, region= None, latS: float =None, latN: float =None, lonW: float =None, lonE: float =None):
+    
+    if region is None:
+        if latN is None or latS is None or lonW is None or lonE is None:
+            raise ValueError("latN, latS, lonW, lonE values need to be specfied when region = None" )
+        if lonW < 0 or lonE < 0:
+            data= convert_longitudes(data)
+            
     else:
-        if not use_predefined_region and region is None:
-            if  latS is None or latN is None or lonW is None or lonE is None:
-                raise ValueError("Latitude and longitude bounds must be provided when use_predefined_region is False.")
-    if lonE is not None and lonW is not None:
-        logger.info(latS, latN)
-        if lonE < 0 or lonW < 0:
-            data = data.assign_coords(lon=(((data["lon"] + 180) % 360) - 180))
-            data = data.roll(lon=int(len(data['lon']) / 2), roll_coords=True)
-    data = data.sel(lat=slice(latS, latN), lon=slice(lonW, lonE))
-    print(data)
-    logger.info(f"Seleced this region {latS}S : {latN}N, {lonW} : {lonE}")
+        latN, latS, lonW, lonE= predefined_regions(region)
+    logger.info(f" data slicing for this region, latitude {latS} to {latN}, longitude {lonW} to {lonE}")
+    data= data.sel(lat= slice(latS,latN), lon= slice(lonW, lonE))
     weighted_data = data.weighted(np.cos(np.deg2rad(data.lat)))
     wgted_mean = weighted_data.mean(("lat", "lon"))
     return wgted_mean
+
 
 
 def mean_value_plot(data, region, customise_level=False, levels=None, outputfig="./figs"):
@@ -146,28 +136,13 @@ def mean_value_plot(data, region, customise_level=False, levels=None, outputfig=
 
 
 
-def std_anom_wrt_initial(data, use_predefined_region: bool, region: str = None, latN: float = None, latS: float = None, lonW: float = None, lonE: float = None):
-    """
-    Calculate the standard anomaly of input data relative to the initial time step.
+def std_anom_wrt_initial(data, region= None, latS=None, latN=None, lonW=None, lonE=None):
 
-    Args:
-        data (DataArray): Input data to be processed.
-        use_predefined_region (bool): Whether to use a predefined region or a custom region.
-        region (str, optional): Predefined region to use when use_predefined_region is True.
-                                Ignored when use_predefined_region is False.
-        latN (float, optional): Northern latitude bound. Required if use_predefined_region is False or region is not provided.
-        latS (float, optional): Southern latitude bound. Required if use_predefined_region is False or region is not provided.
-        lonW (float, optional): Western longitude bound. Required if use_predefined_region is False or region is not provided.
-        lonE (float, optional): Eastern longitude bound. Required if use_predefined_region is False or region is not provided.
 
-    Returns:
-        DataArray: Standard anomaly of the input data.
-    """
-    # Create an empty dataset to store the results
     std_anomaly = xr.Dataset()
 
     # Compute the weighted area mean over the specified latitude and longitude range
-    wgted_mean = weighted_area_mean(data, use_predefined_region, region, latN, latS, lonW, lonE)
+    wgted_mean = weighted_area_mean(data, region, latS, latN, lonW, lonE)
 
     # Calculate the anomaly from the initial time step for each variable
     for var in list(data.data_vars.keys()):
