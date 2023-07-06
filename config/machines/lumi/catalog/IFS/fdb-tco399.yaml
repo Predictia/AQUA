@@ -6,7 +6,7 @@ sources:
         date: 20200120
         time: 0000/to/2300/by/0100
         step: "0"
-        param: [2t, msl]
+        param: 2t
       step: 'D'
     description: 'FDB data tco399 grid'
     driver: gsv
