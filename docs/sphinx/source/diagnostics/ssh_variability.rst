@@ -38,6 +38,12 @@ Notebooks are stored in diagnostics/SSH/notebooks
 
 * `ssh_example_outputs.ipynb <https://github.com/oloapinivad/AQUA/blob/devel/ssh2/diagnostics/ssh/notebooks/ssh_example_outputs.ipynb>`_
 
+References
+----------
+
+* Copernicus Climate Change Service, Climate Data Store, (2018): Sea level gridded data from satellite observations for the global ocean from 1993 to present. Copernicus Climate Change Service (C3S) Climate Data Store (CDS). DOI: 10.24381/cds.4c328c78 (Accessed on 01-Mar-2023)
+
+
 Example Plot(s)
 ---------------
 
