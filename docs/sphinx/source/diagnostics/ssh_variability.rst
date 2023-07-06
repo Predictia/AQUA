@@ -18,12 +18,7 @@ The SSH diagnostic follows a class structure and consists of the files:
 input variables
 ---------------
 
-* `name` (Model ID e.g. FESOM or ICON)
-* `experiment` (Experiment ID)
-* `source` (Source ID)
-* `regrid` (Perform regridding to grid `regrid`, as defined in `config/regrid.yaml`. Defaults to None.)
-* `zoom` (Healpix zoom level)
-* `timespan` (time range for which the SSH variability should be calculated)
+* `ssh` (Sea Surface Height from different models)
 
 Output 
 ------
