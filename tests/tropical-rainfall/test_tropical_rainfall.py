@@ -155,17 +155,17 @@ def test_hist_figure_load_to_memory(histogram_output):
     """ Testing the saving of the figure with histogram
     """
     create_folder(folder    = str(path_to_diagnostic) + "/test_output/plots/", loglevel = 'WARNING')
-    path_to_figure          = str(path_to_diagnostic) + "/test_output/plots/"
+    path_to_pdf          = str(path_to_diagnostic) + "/test_output/plots/"
     # Cleaning the repository with plots before new test
-    figure_list             = [f for f in listdir(path_to_figure) if isfile(join(path_to_figure, f))]
-    figure_list_full_path   = [str(path_to_figure)+str(figure_list[i]) for i in range(0, len(figure_list))]
+    figure_list             = [f for f in listdir(path_to_pdf) if isfile(join(path_to_pdf, f))]
+    figure_list_full_path   = [str(path_to_pdf)+str(figure_list[i]) for i in range(0, len(figure_list))]
     for i in range(0, len(figure_list_full_path)):
         remove(figure_list_full_path[i])
 
     hist                    = histogram_output
     diag                    = Tropical_Rainfall()
-    diag.histogram_plot(hist, path_to_figure = str(path_to_figure) + 'test_hist_fig_saving.png')
-    files                   = [f for f in listdir(path_to_figure) if isfile(join(path_to_figure, f))]
+    diag.histogram_plot(hist, path_to_pdf = str(path_to_pdf) + 'test_hist_fig_saving.png')
+    files                   = [f for f in listdir(path_to_pdf) if isfile(join(path_to_pdf, f))]
     assert 'test_hist_fig_saving.png' in files
 
 @pytest.mark.tropical_rainfall

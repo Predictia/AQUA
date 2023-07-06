@@ -21,7 +21,6 @@ from .tropical_rainfall_func import time_interpreter, convert_length, convert_ti
 
 """
 
-
 class Tropical_Rainfall:
     """This class is a minimal version of the Tropical Precipitation Diagnostic.
     """
@@ -404,7 +403,7 @@ class Tropical_Rainfall:
                   weights = None,       preprocess = True,      trop_lat = 10,              model_variable = 'tprate',
                   s_time = None,        f_time = None,          s_year = None,              f_year = None,      s_month = None,     f_month = None,
                   num_of_bins = None,   first_edge = None,      width_of_bin  = None,       bins = 0,
-                  lazy = False,         create_xarray = True,   path_to_histogram = None):
+                  lazy = False,         create_xarray = True,   path_to_histogram = None,   name_of_file=None):
         """ Function to calculate a histogram of the Dataset.
 
         Args:
@@ -491,17 +490,21 @@ class Tropical_Rainfall:
         if not lazy and create_xarray:
             tprate_dataset      = counts_per_bin.to_dataset(name="counts")
             tprate_dataset.attrs= data_with_global_atributes.attrs
-            tprate_dataset      = self.add_frequency_and_pdf(tprate_dataset = tprate_dataset, path_to_histogram = path_to_histogram)
+            tprate_dataset      = self.add_frequency_and_pdf(tprate_dataset = tprate_dataset)# , path_to_histogram = path_to_histogram)
             
             
             for variable in (None, 'counts', 'frequency', 'pdf'):
                 tprate_dataset  = self.grid_attributes(data = data_with_final_grid, tprate_dataset = tprate_dataset, variable = variable)
+            if path_to_histogram is not None and name_of_file is not None:
+                self.dataset_to_netcdf(tprate_dataset, path_to_netcdf = path_to_histogram, name_of_file = name_of_file)
             return tprate_dataset
         else:
             tprate_dataset      = counts_per_bin.to_dataset(name="counts")
             tprate_dataset.attrs= data_with_global_atributes.attrs
             counts_per_bin      = self.grid_attributes(data = data_with_final_grid, tprate_dataset = tprate_dataset, variable='counts')
             tprate_dataset      = self.grid_attributes(data = data_with_final_grid, tprate_dataset = tprate_dataset)
+            if path_to_histogram is not None and name_of_file is not None:
+                self.dataset_to_netcdf(tprate_dataset, path_to_netcdf = path_to_histogram, name_of_file = name_of_file)
             return counts_per_bin
         
         
@@ -528,7 +531,7 @@ class Tropical_Rainfall:
             except IndexError:
                 name_of_file    = name_of_file +'_'+ re.split("'", re.split(":", time_band)[0])[1]
 
-            path_to_netcdf      = path_to_netcdf + name_of_file + '_histogram.nc'
+            path_to_netcdf      = path_to_netcdf + 'trop_rainfall_' + name_of_file + '_histogram.nc'
         
         if path_to_netcdf is not None:
             dataset.to_netcdf(path = path_to_netcdf)
@@ -584,7 +587,7 @@ class Tropical_Rainfall:
         return tprate_dataset
     
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def add_frequency_and_pdf(self,  tprate_dataset = None, path_to_histogram = None):
+    def add_frequency_and_pdf(self,  tprate_dataset = None, path_to_histogram = None, name_of_file = None):
         """ Function to convert the histogram to xarray.Dataset.
 
         Args:
@@ -600,8 +603,8 @@ class Tropical_Rainfall:
         hist_pdf                        = self.convert_counts_to_pdf(tprate_dataset.counts)
         tprate_dataset['pdf']           = hist_pdf
 
-        if path_to_histogram is not None:
-            self.dataset_to_netcdf(dataset = tprate_dataset, path_to_netcdf = path_to_histogram)
+        if path_to_histogram is not None and name_of_file  is not None:
+            self.dataset_to_netcdf(dataset = tprate_dataset, path_to_netcdf = path_to_histogram, name_of_file = name_of_file) 
         return tprate_dataset
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
@@ -742,7 +745,8 @@ class Tropical_Rainfall:
                        ls = '-',            ylogscale = True,       xlogscale = False, \
                        color = 'tab:blue',  figsize = 1,            legend = '_Hidden', \
                        plot_title = None,   loc = 'upper right',    varname = 'Precipitation',  \
-                       add = None,          fig = None,             path_to_figure = None):
+                       add = None,          fig = None,             path_to_pdf = None,
+                       name_of_file = None):
         """ Function to generate a histogram figure based on the provided data.
 
         Args:
@@ -765,7 +769,7 @@ class Tropical_Rainfall:
             loc(str, optional):             The location of the legend.             Default to 'upper right'. 
             add (tuple, optional):          Tuple of (fig, ax) to add the plot to an existing figure.
             fig (object, optional):         The figure object to plot on. If provided, ignores the 'add' argument.
-            path_to_figure (str, optional): The path to save the figure. If provided, saves the figure at the specified path.
+            path_to_pdf (str, optional): The path to save the figure. If provided, saves the figure at the specified path.
 
 
         Returns:
@@ -848,9 +852,13 @@ class Tropical_Rainfall:
 
         if legend!='_Hidden':
             plt.legend(loc=loc,     fontsize=12)
+
+        if path_to_pdf is not None and name_of_file is not None:
+            path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_histogram.pdf'
+
         # set the spacing between subplots
         plt.tight_layout()
-        if path_to_figure is not None and isinstance(path_to_figure, str):
-            create_folder(folder    = extract_directory_path(path_to_figure), loglevel = 'WARNING')
-            plt.savefig(path_to_figure)
+        if path_to_pdf is not None and isinstance(path_to_pdf, str):
+            create_folder(folder    = extract_directory_path(path_to_pdf), loglevel = 'WARNING')
+            plt.savefig(path_to_pdf)
         return {fig, ax}
