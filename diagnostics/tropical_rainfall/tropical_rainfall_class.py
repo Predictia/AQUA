@@ -422,7 +422,7 @@ class Tropical_Rainfall:
                   weights = None,       preprocess = True,      trop_lat = 10,              model_variable = 'tprate',
                   s_time = None,        f_time = None,          s_year = None,              f_year = None,      s_month = None,     f_month = None,
                   num_of_bins = None,   first_edge = None,      width_of_bin  = None,       bins = 0,
-                  lazy = False,         create_xarray = True,   path_to_histogram = None):
+                  lazy = False,         create_xarray = True,   path_to_histogram = None,   name_of_file=None):
         """ Function to calculate a histogram of the Dataset.
 
         Args:
@@ -511,17 +511,22 @@ class Tropical_Rainfall:
         if not lazy and create_xarray:
             tprate_dataset      = counts_per_bin.to_dataset(name="counts")
             tprate_dataset.attrs= data_with_global_atributes.attrs
-            tprate_dataset      = self.add_frequency_and_pdf(tprate_dataset = tprate_dataset, path_to_histogram = path_to_histogram)
+            tprate_dataset      = self.add_frequency_and_pdf(tprate_dataset = tprate_dataset) #, path_to_histogram = path_to_histogram)
             
             
             for variable in (None, 'counts', 'frequency', 'pdf'):
                 tprate_dataset  = self.grid_attributes(data = data_with_final_grid, tprate_dataset = tprate_dataset, variable = variable)
+
+            if path_to_histogram is not None and name_of_file is not None:
+                self.dataset_to_netcdf(tprate_dataset, path_to_netcdf = path_to_histogram, name_of_file = name_of_file)
             return tprate_dataset
         else:
             tprate_dataset      = counts_per_bin.to_dataset(name="counts")
             tprate_dataset.attrs= data_with_global_atributes.attrs
             counts_per_bin      = self.grid_attributes(data = data_with_final_grid, tprate_dataset = tprate_dataset, variable='counts')
             tprate_dataset      = self.grid_attributes(data = data_with_final_grid, tprate_dataset = tprate_dataset)
+            if path_to_histogram is not None and name_of_file is not None:
+                self.dataset_to_netcdf(tprate_dataset, path_to_netcdf = path_to_histogram, name_of_file = name_of_file)
             return counts_per_bin
         
         
@@ -547,7 +552,7 @@ class Tropical_Rainfall:
             except IndexError:
                 name_of_file    = name_of_file +'_'+ re.split("'", re.split(":", time_band)[0])[1]
 
-            path_to_netcdf      = path_to_netcdf + name_of_file + '_histogram.nc'
+            path_to_netcdf      = path_to_netcdf + 'trop_rainfall_' + name_of_file + '_histogram.nc'
         
         if path_to_netcdf is not None:
             dataset.to_netcdf(path = path_to_netcdf)
@@ -604,7 +609,7 @@ class Tropical_Rainfall:
         return tprate_dataset
     
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def add_frequency_and_pdf(self,  tprate_dataset = None, path_to_histogram = None):
+    def add_frequency_and_pdf(self,  tprate_dataset = None, path_to_histogram = None, name_of_file = None):
         """ Function to convert the histogram to xarray.Dataset.
 
         Args:
@@ -621,12 +626,12 @@ class Tropical_Rainfall:
         hist_pdf                        = self.convert_counts_to_pdf(tprate_dataset.counts)
         tprate_dataset['pdf']           = hist_pdf
 
-        if path_to_histogram is not None:
-            self.dataset_to_netcdf(dataset = tprate_dataset, path_to_netcdf = path_to_histogram)
+        if path_to_histogram is not None and name_of_file  is not None:
+            self.dataset_to_netcdf(dataset = tprate_dataset, path_to_netcdf = path_to_histogram, name_of_file = name_of_file )
         return tprate_dataset
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def open_dataset(self, path_to_netcdf = None):
+    def open_dataset(self, path_to_netcdf = None, name_of_file = None):
         """ Function to load a histogram dataset from a file using pickle.
 
         Args:
@@ -762,7 +767,8 @@ class Tropical_Rainfall:
                        ls = '-',            ylogscale = True,       xlogscale = False, \
                        color = 'tab:blue',  figsize = 1,            legend = '_Hidden', \
                        plot_title = None,   loc = 'upper right',    varname = 'Precipitation',  \
-                       add = None,          fig = None,             path_to_figure = None):
+                       add = None,          fig = None,             path_to_pdf = None, 
+                       name_of_file = None):
         """ Function to generate a histogram figure based on the provided data.
 
         Args:
@@ -785,7 +791,7 @@ class Tropical_Rainfall:
             loc(str, optional):             The location of the legend.             Default to 'upper right'. 
             add (tuple, optional):          Tuple of (fig, ax) to add the plot to an existing figure.
             fig (object, optional):         The figure object to plot on. If provided, ignores the 'add' argument.
-            path_to_figure (str, optional): The path to save the figure. If provided, saves the figure at the specified path.
+            path_to_pdf (str, optional): The path to save the figure. If provided, saves the figure at the specified path.
 
 
         Returns:
@@ -875,11 +881,13 @@ class Tropical_Rainfall:
         if legend!='_Hidden':
             plt.legend(loc=loc,     fontsize=12)
 
+        if path_to_pdf is not None and name_of_file is not None:
+            path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_histogram.pdf'
         # set the spacing between subplots
         plt.tight_layout()
-        if path_to_figure is not None and isinstance(path_to_figure, str):
-            create_folder(folder    = extract_directory_path(path_to_figure), loglevel = 'WARNING')
-            plt.savefig(path_to_figure,     format="pdf",   bbox_inches="tight")
+        if path_to_pdf is not None and isinstance(path_to_pdf, str):
+            create_folder(folder    = extract_directory_path(path_to_pdf), loglevel = 'WARNING')
+            plt.savefig(path_to_pdf,  format="pdf",  bbox_inches="tight")
         return {fig, ax}
     
 
@@ -1001,7 +1009,7 @@ class Tropical_Rainfall:
                              maxticknum     = 12,               color       = 'tab:blue',       varname    = 'Precipitation',
                              ylogscale      = False,            xlogscale   = False,            loc        = 'upper right',
                              add            = None,             fig         = None,             plot_title = None,   
-                             path_to_figure = None,             new_unit    = None):
+                             path_to_pdf = None,             new_unit    = None,             name_of_file=None):
         """ Function to plot the mean or median value of variable in Dataset.
 
         Args:
@@ -1158,11 +1166,15 @@ class Tropical_Rainfall:
 
         # set the spacing between subplots
         plt.tight_layout()
-        if path_to_figure is not None and isinstance(path_to_figure, str):
+        if path_to_pdf is not None and name_of_file is not None:
+            path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_mean.pdf'
 
-            create_folder(folder    = extract_directory_path(path_to_figure), loglevel = 'WARNING')
+        if path_to_pdf is not None and isinstance(path_to_pdf, str):
 
-            plt.savefig(path_to_figure,
+            create_folder(folder    = extract_directory_path(path_to_pdf), loglevel = 'WARNING')
+
+            plt.savefig(path_to_pdf,
+                        format="pdf",
                         bbox_inches  = "tight",
                         pad_inches   = 1,
                         transparent  = True,
@@ -1356,28 +1368,30 @@ class Tropical_Rainfall:
                                                                     model_variable = 'tprate',          figsize     = 1,      
                                 trop_lat       = None,              plot_title = None,                  new_unit = None,      
                                 vmin = None,                        vmax = None,                        contour  = True,                           
-                                path_to_figure = None,              weights = None,                     level_95=True,
-                                value = 0.95,                       rel_error = 0.1):
+                                path_to_pdf = None,                 weights = None,                     level_95=True,
+                                value = 0.95,                       rel_error = 0.1,                    name_of_file = None):
         
         self.plot_seasons_or_months(  data,                         preprocess=preprocess,              seasons = seasons,     
                                 model_variable = model_variable,    figsize     = figsize,      
                                 trop_lat = trop_lat,                plot_title = plot_title,            new_unit = new_unit,      
                                 vmin = vmin,                        vmax = vmax,                        contour  = contour,                           
-                                path_to_figure = path_to_figure,    weights = weights,                  level_95=level_95,
-                                value = value,                      rel_error = rel_error)
+                                path_to_pdf = path_to_pdf,          weights = weights,                  level_95=level_95,
+                                value = value,                      rel_error = rel_error,              name_of_file=name_of_file)
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """   
 
     def plot_bias(self,         data,                               preprocess=True,                    seasons = True,     
                                 dataset_2=None,                     model_variable = 'tprate',          figsize  = 1,      
                                 trop_lat       = None,              plot_title = None,                  new_unit = None,      
                                 vmin = None,                        vmax = None,                        contour  = True,                           
-                                path_to_figure = None,              weights = None,                     level_95=True):
+                                path_to_pdf = None,                 weights = None,                     level_95=True,
+                                name_of_file = None):
         
         self.plot_seasons_or_months(  data,                         preprocess=preprocess,              seasons = seasons,     
                                 dataset_2 = dataset_2,              model_variable = model_variable,    figsize  = figsize,              
                                 trop_lat = trop_lat,                plot_title = plot_title,            new_unit = new_unit,      
                                 vmin = vmin,                        vmax = vmax,                        contour  = contour,                           
-                                path_to_figure = path_to_figure,    weights = weights,                  level_95=level_95)
+                                path_to_pdf = path_to_pdf,          weights = weights,                  level_95=level_95, 
+                                name_of_file=name_of_file)
 
     
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """    
@@ -1385,8 +1399,8 @@ class Tropical_Rainfall:
                                 dataset_2=None,                     model_variable = 'tprate',          figsize     = 1,      
                                 trop_lat       = None,              plot_title = None,                  new_unit = None,      
                                 vmin = None,                        vmax = None,                        contour  = True,                           
-                                path_to_figure = None,              weights = None,                     level_95=True, 
-                                value = 0.95,                       rel_error = 0.1):
+                                path_to_pdf = None,              weights = None,                     level_95=True, 
+                                value = 0.95,                       rel_error = 0.1,                    name_of_file = None):
         
         """ Function to plot the mean or median value of variable in Dataset.
 
@@ -1517,11 +1531,18 @@ class Tropical_Rainfall:
         if plot_title is not None:
             plt.suptitle(plot_title,                       fontsize = 17)
 
-        if path_to_figure is not None and isinstance(path_to_figure, str):
+        if path_to_pdf is not None and name_of_file is not None:
+            if seasons:
+                path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_seasons.pdf'
+            else:
+                path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_months.pdf'
 
-            create_folder(folder    = extract_directory_path(path_to_figure), loglevel = 'WARNING')
+        if path_to_pdf is not None and isinstance(path_to_pdf, str):
 
-            plt.savefig(path_to_figure,
+            create_folder(folder    = extract_directory_path(path_to_pdf), loglevel = 'WARNING')
+
+            plt.savefig(path_to_pdf,
+                        format="pdf",
                         bbox_inches  = "tight",
                         pad_inches   = 1,
                         transparent  = True,
@@ -1539,7 +1560,8 @@ class Tropical_Rainfall:
                                 vmin = None,                        vmax = None,                        contour  = True,
                                 plot_title = None,                  log = False,                        time_isel = None,
                                 space_grid_factor = None,           time_freq = None,                   time_length = None,                
-                                time_grid_factor = None,            path_to_figure = None,              resol = '110m'):
+                                time_grid_factor = None,            path_to_pdf = None,              resol = '110m', 
+                                name_of_file = None):
         
         """ Function to plot the mean or median value of variable in Dataset.
 
@@ -1623,11 +1645,15 @@ class Tropical_Rainfall:
             cbar.set_label(colorbarname, fontsize = 14)
         # set the spacing between subplots
         plt.tight_layout()
-        if path_to_figure is not None and isinstance(path_to_figure, str):
+        if path_to_pdf is not None and name_of_file is not None:
+            path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_snapshot.pdf'
 
-            create_folder(folder    = extract_directory_path(path_to_figure), loglevel = 'WARNING')
+        if path_to_pdf is not None and isinstance(path_to_pdf, str):
 
-            plt.savefig(path_to_figure,
+            create_folder(folder    = extract_directory_path(path_to_pdf), loglevel = 'WARNING')
+
+            plt.savefig(path_to_pdf,
+                        format="pdf",
                         bbox_inches  = "tight",
                         pad_inches   = 1,
                         transparent  = True,
@@ -1774,8 +1800,8 @@ class Tropical_Rainfall:
                                     s_year   = None,                        f_year  = None,                 xlogscale   = False,
                                     s_month  = None,                        f_month = None,                 loc         = 'upper right',
                                     space_grid_factor = None,               time_freq = None,               plot_title  = None,
-                                    time_length = None,                     time_grid_factor = None,        path_to_figure = None,
-                                    plot = True,                            legend_2 = 'era5 monthly'):
+                                    time_length = None,                     time_grid_factor = None,        path_to_pdf = None,
+                                    plot = True,                            legend_2 = 'era5 monthly',      name_of_file = None):
         """ Function to check if second dataset belongs to the confidence intarval of the first dataset.
         Args:
             data (xarray):                      The Dataset
@@ -1930,11 +1956,15 @@ class Tropical_Rainfall:
             if xlogscale:
                 plt.xscale('log')
             plt.tight_layout()
-            if path_to_figure is not None and isinstance(path_to_figure, str):
+            if path_to_pdf is not None and name_of_file is not None:
+                path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_confinterval.pdf'
 
-                create_folder(folder    = extract_directory_path(path_to_figure), loglevel = 'WARNING')
+            if path_to_pdf is not None and isinstance(path_to_pdf, str):
 
-                plt.savefig(path_to_figure,
+                create_folder(folder    = extract_directory_path(path_to_pdf), loglevel = 'WARNING')
+
+                plt.savefig(path_to_pdf, 
+                            format="pdf",
                             bbox_inches  = "tight",
                             pad_inches   = 1,
                             transparent  = True,
