@@ -158,6 +158,42 @@ def mean_value_plot(data, region, customise_level=False, levels=None, outputfig=
 def std_anom_wrt_initial(data, region=None, latS=None, latN=None, lonW=None, lonE=None):
     """
     Compute the standard anomaly with respect to the initial time step of data within the specified latitude and longitude bounds.
+    Normalization is done with respect to the standard deviation of the respective vertical level
+
+    Parameters:
+        data (xarray.Dataset): Input data.
+        
+        region (str, optional): Predefined region name. If provided, latitude and longitude bounds will be fetched from predefined regions.
+        
+        latS (float, optional): Southern latitude bound. Required if region is not provided or None.
+        
+        latN (float, optional): Northern latitude bound. Required if region is not provided or None.
+        
+        lonW (float, optional): Western longitude bound. Required if region is not provided or None.
+        
+        lonE (float, optional): Eastern longitude bound. Required if region is not provided or None.
+
+    Returns:
+        xarray.Dataset: Standardised anomaly with respect to the initial time step of the input data.
+    """
+
+    std_anomaly = xr.Dataset()
+
+    # Compute the weighted area mean over the specified latitude and longitude range
+    wgted_mean = weighted_area_mean(data, region, latS, latN, lonW, lonE)
+
+    # Calculate the anomaly from the initial time step for each variable
+    for var in list(data.data_vars.keys()):
+        anomaly_from_initial = wgted_mean[var] - wgted_mean[var].isel(time=0)
+        
+        # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
+        std_anomaly[var] = anomaly_from_initial / anomaly_from_initial.std(dim="time")
+
+    return std_anomaly
+
+def anom_wrt_initial(data, region=None, latS=None, latN=None, lonW=None, lonE=None):
+    """
+    Compute the anomaly with respect to the initial time step of data within the specified latitude and longitude bounds.
 
     Parameters:
         data (xarray.Dataset): Input data.
@@ -176,27 +212,22 @@ def std_anom_wrt_initial(data, region=None, latS=None, latN=None, lonW=None, lon
         xarray.Dataset: Standard anomaly with respect to the initial time step of the input data.
     """
 
-    std_anomaly = xr.Dataset()
+    anomaly = xr.Dataset()
 
     # Compute the weighted area mean over the specified latitude and longitude range
     wgted_mean = weighted_area_mean(data, region, latS, latN, lonW, lonE)
 
     # Calculate the anomaly from the initial time step for each variable
     for var in list(data.data_vars.keys()):
-        anomaly_from_initial = wgted_mean[var] - wgted_mean[var].isel(time=0)
-        
-        # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
-        std_anomaly[var] = anomaly_from_initial / anomaly_from_initial.std(dim="time")
-
-    return std_anomaly
-
-
+        anomaly[var] = wgted_mean[var] - wgted_mean[var].isel(time=0)
+    return anomaly
 
 
 def std_anom_wrt_time_mean(data, region=None, latS=None, latN=None, lonW=None, lonE=None):
     """
-    Compute the standard anomaly with respect to the time mean of data within the specified latitude and longitude bounds.
-
+    Compute the standardised anomaly with respect to the time mean of data within the specified latitude and longitude bounds.
+    Normalization is done with respect to the standard deviation of the respective vertical level
+   
     Parameters:
         data (xarray.Dataset): Input data.
         
@@ -211,7 +242,7 @@ def std_anom_wrt_time_mean(data, region=None, latS=None, latN=None, lonW=None, l
         lonE (float, optional): Eastern longitude bound. Required if region is not provided or None.
 
     Returns:
-        xarray.Dataset: Standard anomaly with respect to the time mean of the input data.
+        xarray.Dataset: Standardised anomaly with respect to the time mean of the input data.
     """
     # Create an empty dataset to store the results
     std_anomaly = xr.Dataset()
@@ -227,7 +258,6 @@ def std_anom_wrt_time_mean(data, region=None, latS=None, latN=None, lonW=None, l
         std_anomaly[var] = anomaly_from_time_mean / anomaly_from_time_mean.std("time")
 
     return std_anomaly
-
 
 
 
