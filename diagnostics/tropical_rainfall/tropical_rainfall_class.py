@@ -14,8 +14,7 @@ import dask_histogram as dh # pip
 
 from aqua.util import create_folder
  
-
-from tropical_rainfall_func import time_interpreter, convert_length, convert_time, unit_splitter, extract_directory_path
+from .tropical_rainfall_func import time_interpreter, convert_length, convert_time, unit_splitter, extract_directory_path
 """The module contains Tropical Precipitation Diagnostic:
 
 .. moduleauthor:: AQUA team <natalia.nazarova@polito.it>
