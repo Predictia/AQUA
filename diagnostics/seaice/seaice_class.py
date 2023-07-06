@@ -128,7 +128,6 @@ class SeaIceExtent():
         fig, ax = plt.subplots(nRegions, figsize = (13, 3 * nRegions))
 
         for jr, region in enumerate(myRegions):
-            print(region)
             for js, setup in enumerate(mySetups):
                 label = " ".join([s for s in setup])
                 extent = myExtents[js][jr]
@@ -149,7 +148,6 @@ class SeaIceExtent():
             ax[jr].set_ylabel(extent.units)
             ax[jr].grid()
 
-            print("---------")
         fig.tight_layout()
         for fmt in ["png", "pdf"]:
             fig.savefig("./figSIE." + fmt, dpi = 300)
