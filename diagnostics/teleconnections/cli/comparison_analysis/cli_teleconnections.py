@@ -8,6 +8,7 @@ import sys
 import argparse
 
 from aqua.util import load_yaml, get_arg
+from teleconnections.plots import maps_plot
 from teleconnections.tc_class import Teleconnection
 from teleconnections.tools import get_dataset_config
 
@@ -103,11 +104,65 @@ if __name__ == '__main__':
     teleconnection_obs.evaluate_regression()
 
     if savefig:
+        # Build lists for comparison plots
+        regs = []
+        corrs = []
+        models = []
+        exps = []
+
+        # Obs as first element
+        regs.append(teleconnection_obs.regression)
+        corrs.append(teleconnection_obs.correlation)
+        models.append(teleconnection_obs.model)
+        exps.append(teleconnection_obs.exp)
+
         if loglevel == 'DEBUG':
             print('Saving figures...')
         for teleconnection in teleconnections:
             teleconnection.plot_index()
 
+            # Build lists for comparison plots
+            regs.append(teleconnection.regression)
+            corrs.append(teleconnection.correlation)
+            models.append(teleconnection.model)
+            exps.append(teleconnection.exp)
+
         teleconnection_obs.plot_index()
+
+        # Comparison plots
+        # 1. Regression
+        title = telecname + ' regression'
+        filename = 'teleconnections' + '_' + telecname + '_regression' + '.pdf'
+        maps_plot(maps=regs, models=models, exps=exps, loglevel=loglevel, title=title,
+                  filename=filename, save=True)
+
+        # 2. Correlation
+        title = telecname + ' correlation'
+        filename = 'teleconnections' + '_' + telecname + '_correlation' + '.pdf'
+        maps_plot(maps=corrs, models=models, exps=exps, loglevel=loglevel, title=title,
+                  filename=filename, save=True)
+
+        # 3. Comparison with obs
+
+        # 3.1 Create xarray
+        reg_comp = []
+        corr_comp = []
+        for teleconnection in teleconnections:
+            comp = teleconnection.regression - teleconnection_obs.regression
+            reg_comp.append(comp)
+
+            comp = teleconnection.correlation - teleconnection_obs.correlation
+            corr_comp.append(comp)
+
+        # 3.2 Plot
+        title = telecname + ' regression comparison with ' + teleconnection_obs.model
+        filename = 'teleconnections' + '_' + telecname + '_regression_comparison' + '.pdf'
+        maps_plot(maps=reg_comp, models=models, exps=exps, loglevel=loglevel,
+                  title=title, filename=filename, save=True)
+
+        title = telecname + ' correlation comparison with ' + teleconnection_obs.model
+        filename = 'teleconnections' + '_' + telecname + '_correlation_comparison' + '.pdf'
+        maps_plot(maps=corr_comp, models=models, exps=exps, loglevel=loglevel,
+                  title=title, filename=filename, save=True)
 
     print('Teleconnections diagnostic test run completed.')
