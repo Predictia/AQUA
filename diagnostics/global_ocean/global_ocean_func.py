@@ -191,6 +191,35 @@ def std_anom_wrt_initial(data, region=None, latS=None, latN=None, lonW=None, lon
 
     return std_anomaly
 
+def reg_mean(data, region=None, latS=None, latN=None, lonW=None, lonE=None):
+    """
+    Computes the weighted box mean for some predefined or customized region
+
+    Parameters:
+        data (xarray.Dataset): Input data.
+        
+        region (str, optional): Predefined region name. If provided, latitude and longitude bounds will be fetched from predefined regions.
+        
+        latS (float, optional): Southern latitude bound. Required if region is not provided or None.
+        
+        latN (float, optional): Northern latitude bound. Required if region is not provided or None.
+        
+        lonW (float, optional): Western longitude bound. Required if region is not provided or None.
+        
+        lonE (float, optional): Eastern longitude bound. Required if region is not provided or None.
+
+    Returns:
+        xarray.Dataset: Standardised anomaly with respect to the initial time step of the input data.
+    """
+
+    reg_mean = xr.Dataset()
+
+    # Compute the weighted area mean over the specified latitude and longitude range
+    reg_mean = weighted_area_mean(data, region, latS, latN, lonW, lonE)
+
+
+    return reg_mean
+
 def anom_wrt_initial(data, region=None, latS=None, latN=None, lonW=None, lonE=None):
     """
     Compute the anomaly with respect to the initial time step of data within the specified latitude and longitude bounds.
@@ -259,8 +288,6 @@ def std_anom_wrt_time_mean(data, region=None, latS=None, latN=None, lonW=None, l
 
     return std_anomaly
 
-
-
 def ocpt_so_anom_plot(data, region, outputfig="./figs"):
     """
     Create a Hovmoller plot of temperature and salinity anomalies.
@@ -307,7 +334,97 @@ def ocpt_so_anom_plot(data, region, outputfig="./figs"):
     # Return the plot
     return
 
+def ocpt_so_std_plot(data, region, outputfig="./figs"):
+    """
+    Create a Hovmoller plot of temperature and salinity standardised anomalies.
 
+    Args:
+        data (DataArray): Input data containing temperature (ocpt) and salinity (so).
+        title (str): Title of the plot.
+
+    Returns:
+        None
+    """
+    # Create subplots for temperature and salinity plots
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
+    fig.suptitle(f"Standardised {region} T,S Anomalies (wrt first value)", fontsize=16)
+
+    # Extract temperature data and plot the contour filled plot
+    tgt = data.ocpt.transpose()
+    tgt.plot.contourf(levels=12, ax=ax1)
+
+    # Add contour lines with black color and set the line width
+    tgt.plot.contour(colors="black", levels=12, linewidths=0.5, ax=ax1)
+
+    # Set the title, y-axis label, and x-axis label for the temperature plot
+    ax1.set_title("Temperature", fontsize=14)
+    ax1.set_ylim((5500, 0))
+    ax1.set_ylabel("Depth (in m)", fontsize=12)
+    ax1.set_xlabel("Time (in years)", fontsize=12)
+
+    # Extract salinity data and plot the contour filled plot
+    sgt = data.so.transpose()
+    sgt.plot.contourf(levels=12, ax=ax2)
+
+    # Add contour lines with black color and set the line width
+    sgt.plot.contour(colors="black", levels=12, linewidths=0.5, ax=ax2)
+
+    # Set the title, y-axis label, and x-axis label for the salinity plot
+    ax2.set_title("Salinity", fontsize=14)
+    ax2.set_ylim((5500, 0))
+    ax2.set_ylabel("Depth (in m)", fontsize=12)
+    ax2.set_xlabel("Time (in years)", fontsize=12)
+    filename = f"{outputfig}/TS_anomalies_{region.replace(' ', '_').lower()}.png"
+    plt.savefig(filename)
+    logger.info(f"{filename} saved")
+    # Return the plot
+    return
+
+def ocpt_so_full_plot(data, region, outputfig="./figs"):
+    """
+    Create a Hovmoller plot of temperature and salinity full values.
+
+    Args:
+        data (DataArray): Input data containing temperature (ocpt) and salinity (so).
+        title (str): Title of the plot.
+
+    Returns:
+        None
+    """
+    # Create subplots for temperature and salinity plots
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
+    fig.suptitle(f"Full {region} T,S values", fontsize=16)
+
+    # Extract temperature data and plot the contour filled plot
+    tgt = data.ocpt.transpose()
+    tgt.plot.contourf(levels=12, ax=ax1)
+
+    # Add contour lines with black color and set the line width
+    tgt.plot.contour(colors="black", levels=12, linewidths=0.5, ax=ax1)
+
+    # Set the title, y-axis label, and x-axis label for the temperature plot
+    ax1.set_title("Temperature", fontsize=14)
+    ax1.set_ylim((5500, 0))
+    ax1.set_ylabel("Depth (in m)", fontsize=12)
+    ax1.set_xlabel("Time (in years)", fontsize=12)
+
+    # Extract salinity data and plot the contour filled plot
+    sgt = data.so.transpose()
+    sgt.plot.contourf(levels=12, ax=ax2)
+
+    # Add contour lines with black color and set the line width
+    sgt.plot.contour(colors="black", levels=12, linewidths=0.5, ax=ax2)
+
+    # Set the title, y-axis label, and x-axis label for the salinity plot
+    ax2.set_title("Salinity", fontsize=14)
+    ax2.set_ylim((5500, 0))
+    ax2.set_ylabel("Depth (in m)", fontsize=12)
+    ax2.set_xlabel("Time (in years)", fontsize=12)
+    filename = f"{outputfig}/TS_anomalies_{region.replace(' ', '_').lower()}.png"
+    plt.savefig(filename)
+    logger.info(f"{filename} saved")
+    # Return the plot
+    return
 
 def time_series(data, region, customise_level=False, levels=None, outputfig="./figs"):
     """
@@ -360,6 +477,87 @@ def time_series(data, region, customise_level=False, levels=None, outputfig="./f
     ax2.set_xlabel("Time (in years)", fontsize=12)
     ax2.legend(loc='best')
     filename = f"{outputfig}/TS_time_series_anomalies_{region.replace(' ', '_').lower()}.png"
+
+    plt.savefig(filename)
+    logger.info(f"{filename} saved")
+    plt.show()
+
+    # Return the plot
+    return
+
+def time_series_custom(data, region, type,customise_level=False, levels=None, outputfig="./figs"):
+    """
+    Create time series plots of global temperature and salinity standardised anomalies at selected levels.
+
+    Args:
+        data (DataArray): Input data containing temperature (ocpt) and salinity (so).
+        region (str): Region name.
+        customise_level (bool): Whether to use custom levels or predefined levels.
+        levels (list): List of levels to plot. Ignored if customise_level is False.
+        type (str): Type of timeseries between FullValue, Anomaly, StdAnomaly
+
+    Returns:
+        None
+    """
+    # Create subplots for temperature and salinity time series plots
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
+
+
+    # Reads the type of timeseries to plot
+
+    if type is None:
+        raise ValueError("Please specify whether it is a 'FullValue', 'Anomaly' or 'StdAnomaly' timeseries")
+    elif type == 'FullValue':
+        ylabT="Potential Temperature (in °C)"
+        ylabS="Practical Salinity (in psu)"
+        ttype="Full Values"
+    elif type == 'Anomaly':
+        ylabT="Potential Temperature Anomaly (in °C)"
+        ylabS="Practical Salinity Anomaly(in psu)"
+        ttype="Anomalies"
+    elif type == 'StdAnomaly':
+        ylabT="Standardised Units"
+        ylabS="Standardised Units"
+        ttype="Standardised Anomalies"
+
+    
+
+    # Define the levels at which to plot the time series
+    if customise_level:
+        if levels is None:
+            raise ValueError("Custom levels are selected, but levels are not provided.")
+    else:
+        levels = [0, 100, 500, 1000, 2000, 3000, 4000, 5000]
+
+    # Iterate over the levels and plot the time series for each level
+    for level in levels:
+        if level != 0:
+            # Select the data at the specified level
+            data_level = data.sel(lev=slice(None, level)).isel(lev=-1)
+        else:
+            # Select the data at the surface level (0)
+            data_level = data.isel(lev=0)
+        # Plot the temperature time series
+        data_level.ocpt.plot.line(ax=ax1,label=f"{round(int(data_level.lev.data), -2)}")
+
+        # Plot the salinity time series
+        data_level.so.plot.line(ax=ax2,label=f"{round(int(data_level.lev.data), -2)}")
+
+    fig.suptitle(f"Spatially-averaged {region} T,S {ttype}", fontsize=16)
+
+
+    # Set the title, y-axis label, and x-axis label for the temperature plot
+    ax1.set_title("Temperature", fontsize=14)
+    ax1.set_ylabel(ylabT, fontsize=12)
+    ax1.set_xlabel("Time (in years)", fontsize=12)
+    ax1.legend(loc='best')
+
+    # Set the title, y-axis label, and x-axis label for the salinity plot
+    ax2.set_title("Salinity", fontsize=14)
+    ax2.set_ylabel(ylabS, fontsize=12)
+    ax2.set_xlabel("Time (in years)", fontsize=12)
+    ax2.legend(loc='best')
+    filename = f"{outputfig}/TS_time_series_{type.replace(' ', '_').lower()}_{region.replace(' ', '_').lower()}.png"
 
     plt.savefig(filename)
     logger.info(f"{filename} saved")
