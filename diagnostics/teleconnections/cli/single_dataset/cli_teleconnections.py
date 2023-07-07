@@ -8,6 +8,7 @@ import sys
 import argparse
 
 from aqua.util import load_yaml, get_arg
+from teleconnections.plots import single_map_plot
 from teleconnections.tc_class import Teleconnection
 from teleconnections.tools import get_dataset_config
 
@@ -67,5 +68,7 @@ if __name__ == '__main__':
 
     if savefig:
         teleconnection.plot_index()
+        single_map_plot(map=teleconnection.regression, loglevel=loglevel,
+                        **config_dict, save=True)
 
     print('Teleconnections diagnostic test run completed.')
