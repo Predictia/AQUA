@@ -146,7 +146,8 @@ if __name__ == '__main__':
         if loglevel == 'DEBUG':
             print('Obtaining config for dataset_source: ', dataset_source)
 
-        config_dict.append(get_dataset_config(dataset_source))
+        config_dict.append(get_dataset_config(sources=sources,
+                                              dataset_source=dataset_source))
 
     # Get observational dataset configuration parameters
     # Search for entries under 'obs' key
