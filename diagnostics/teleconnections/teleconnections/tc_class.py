@@ -16,7 +16,7 @@ import os
 
 from aqua.logger import log_configure
 from aqua.reader import Reader
-from teleconnections.index import station_based_index, regional_mean_index
+from teleconnections.index import station_based_index, regional_mean_anomalies
 from teleconnections.plots import index_plot
 from teleconnections.statistics import reg_evaluation, cor_evaluation
 from teleconnections.tools import load_namelist
@@ -222,12 +222,13 @@ class Teleconnection():
                                              months_window=self.months_window,
                                              loglevel=self.loglevel, **kwargs)
         elif self.telec_type == 'region':
-            self.index = regional_mean_index(field=self.data[self.var],
-                                             namelist=self.namelist,
-                                             telecname=self.telecname,
-                                             months_window=self.months_window,
-                                             loglevel=self.loglevel, **kwargs)
-     
+            self.index = regional_mean_anomalies(field=self.data[self.var],
+                                                 namelist=self.namelist,
+                                                 telecname=self.telecname,
+                                                 months_window=self.months_window,
+                                                 loglevel=self.loglevel,
+                                                 **kwargs)
+
         if self.index is None:
             self.logger.critical('Index not calculated')
             return
@@ -389,6 +390,10 @@ class Teleconnection():
 
         # Select the variable
         data = self.data[self.var]
+
+        if self.telecname != 'NAO':
+            self.logger.debug('Teleconnection name is not NAO, data will not be adapted')
+            return data
 
         # Select the months that are in the index
         drop_count = self.months_window // 2
