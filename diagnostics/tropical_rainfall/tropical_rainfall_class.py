@@ -194,7 +194,7 @@ class Tropical_Rainfall:
             if data.units == new_unit:
                 return data
       
-        if isinstance(data, (float, int)) and old_unit is not None:
+        if isinstance(data, (float, int, np.ndarray)) and old_unit is not None:
             from_mass_unit, from_space_unit, from_time_unit     = unit_splitter(old_unit)
         else:
             from_mass_unit, from_space_unit, from_time_unit     = unit_splitter(data.units)
@@ -807,35 +807,28 @@ class Tropical_Rainfall:
             if color == 'tab:blue': color   = 'tab:orange'
 
         if not pdf and not frequency:
-            try:
+            if 'Dataset' in str(type(data)):
                 data = data['counts']
-            except KeyError:
-                data = data
-        elif pdf and not frequency:
-            try:
-                data = data['pdf']
-            except KeyError:
-                try:
-                    data = data['counts']
-                    data = self.convert_counts_to_pdf(data)
-                except KeyError:
-                    data = self.convert_counts_to_pdf(data)
-
-        elif not pdf and frequency:
-            try:
-                data = data['frequency']
-            except KeyError:
-                try:
-                    data = data['counts']
-                    data = self.convert_counts_to_frequency(data)
-                except KeyError:
-                    data = self.convert_counts_to_frequency(data)
+        elif pdf and not frequency:     
+            if 'Dataset' in str(type(data)):
+                data = data['counts']
+            #data.center_of_bin.values   = self.precipitation_rate_units_converter(data.center_of_bin.values, old_unit=data.units, new_unit=new_unit)
+            #data.width.values           = self.precipitation_rate_units_converter(data.width.values, old_unit=data.units, new_unit=new_unit)
+            data = self.convert_counts_to_pdf(data)
+        elif not pdf and frequency:    
+            if 'Dataset' in str(type(data)):
+                data = data['counts']
+            #data.center_of_bin.values   = self.precipitation_rate_units_converter(data.center_of_bin.values, old_unit=data.units, new_unit=new_unit)
+            #data.width.values           = self.precipitation_rate_units_converter(data.width.values, old_unit=data.units, new_unit=new_unit)
             data = self.convert_counts_to_frequency(data)
         
+        x       =   data.center_of_bin.values
         if new_unit is not None:
-            x       = (self.precipitation_rate_units_converter(data.center_of_bin, new_unit=new_unit)).values
-        else:
-            x       =   data.center_of_bin.values
+            converter       = self.precipitation_rate_units_converter(1, old_unit = data.center_of_bin.units, new_unit=new_unit)
+            x = converter * x
+            data = data/converter
+        #else:
+        
         if smooth:
             plt.plot(x, data,
                 linewidth=3.0, ls = ls, color = color, label = legend)
@@ -1280,7 +1273,8 @@ class Tropical_Rainfall:
         return nfm
 
     def seasonal_or_monthly_mean(self,  data,                               preprocess=True,                    seasons = True,     
-                                        model_variable = 'tprate',          trop_lat       = None,              new_unit = None):
+                                        model_variable = 'tprate',          trop_lat       = None,              new_unit = None, 
+                                        coord = None):
         
         self.class_attributes_update(trop_lat = trop_lat)
         if seasons:
@@ -1310,6 +1304,11 @@ class Tropical_Rainfall:
                                                                     s_month = 9,                        f_month    = 11)
                 SON_mean            = SON.mean('time')
 
+                if coord == 'lon' or coord == 'lat':
+                    DJF_mean = DJF_mean.mean(coord)
+                    MAM_mean = MAM_mean.mean(coord)
+                    JJA_mean = JJA_mean.mean(coord) 
+                    SON_mean = SON_mean.mean(coord)        
             
             all_season  = [DJF_mean, MAM_mean, JJA_mean, SON_mean]
 
