@@ -85,12 +85,12 @@ def maps_plot(maps=None, models=None, exps=None, save=False, **kwargs):
         axs[i].coastlines()
 
         # Longitude labels
-        axs[i].set_xticks(np.arange(-180,181,60), crs=ccrs.PlateCarree())
+        axs[i].set_xticks(np.arange(-180, 181, 60), crs=ccrs.PlateCarree())
         lon_formatter = cticker.LongitudeFormatter()
         axs[i].xaxis.set_major_formatter(lon_formatter)
 
         # Latitude labels
-        axs[i].set_yticks(np.arange(-90,91,30), crs=ccrs.PlateCarree())
+        axs[i].set_yticks(np.arange(-90, 91, 30), crs=ccrs.PlateCarree())
         lat_formatter = cticker.LatitudeFormatter()
         axs[i].yaxis.set_major_formatter(lat_formatter)
 
@@ -170,12 +170,12 @@ def single_map_plot(map=None, save=False, **kwargs):
     ax.coastlines()
 
     # Longitude labels
-    ax.set_xticks(np.arange(-180,181,60), crs=ccrs.PlateCarree())
+    ax.set_xticks(np.arange(-180, 181, 60), crs=ccrs.PlateCarree())
     lon_formatter = cticker.LongitudeFormatter()
     ax.xaxis.set_major_formatter(lon_formatter)
 
     # Latitude labels
-    ax.set_yticks(np.arange(-90,91,30), crs=ccrs.PlateCarree())
+    ax.set_yticks(np.arange(-90, 91, 30), crs=ccrs.PlateCarree())
     lat_formatter = cticker.LatitudeFormatter()
     ax.yaxis.set_major_formatter(lat_formatter)
 
