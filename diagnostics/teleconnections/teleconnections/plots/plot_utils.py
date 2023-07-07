@@ -25,7 +25,7 @@ def plot_box(num_plots=0):
     return num_rows, num_cols
 
 
-def minmax_maps(maps=None):
+def minmax_maps(maps: list):
     """
     Find the minimum and maximum values of the maps values
     for a list of maps.
