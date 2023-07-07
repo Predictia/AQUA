@@ -13,6 +13,7 @@ Available teleconnections:
     - ENSO
 """
 import os
+import xarray as xr
 
 from aqua.logger import log_configure
 from aqua.reader import Reader
@@ -247,8 +248,12 @@ class Teleconnection():
 
         data = self._adapt_data()
 
-        self.regression = reg_evaluation(self.index, data,
-                                         loglevel=self.loglevel)
+        if self.telec_type == 'station':
+            self.regression = reg_evaluation(self.index, data,
+                                            loglevel=self.loglevel)
+        elif self.telec_type == 'region':
+            self.logger.warning('Regression not implemented for regional teleconnections')
+            return
 
         if self.savefile:
             file = self.outputdir + '/' + self.filename + '_regression.nc'
@@ -264,8 +269,12 @@ class Teleconnection():
 
         data = self._adapt_data()
 
-        self.correlation = cor_evaluation(self.index, data,
-                                          loglevel=self.loglevel)
+        if self.telec_type == 'station':
+            self.correlation = cor_evaluation(self.index, data,
+                                            loglevel=self.loglevel)
+        elif self.telec_type == 'region':
+            self.correlation = xr.corr(self.index, self.data[self.var],
+                                       dim='time')
 
         if self.savefile:
             file = self.outputdir + '/' + self.filename + '_correlation.nc'
