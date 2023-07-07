@@ -994,7 +994,7 @@ class Tropical_Rainfall:
     
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
     def mean_and_median_plot(self, data,                        glob=False,                     preprocess=True,
-                             model_variable = 'tprate',         variability = False,            coord      = 'time',  
+                             model_variable = 'tprate',         variability = False,            coord      = 'lat',  
                              trop_lat       = None,             get_mean    = True,             get_median = False,
                              s_time         = None,             f_time      = None,             s_year     = None,    
                              f_year         = None,             s_month     = None,             f_month    = None,
@@ -1002,7 +1002,8 @@ class Tropical_Rainfall:
                              maxticknum     = 12,               color       = 'tab:blue',       varname    = 'Precipitation',
                              ylogscale      = False,            xlogscale   = False,            loc        = 'upper right',
                              add            = None,             fig         = None,             plot_title = None,   
-                             path_to_pdf = None,             new_unit    = None,             name_of_file=None):
+                             path_to_pdf = None,                new_unit    = None,             name_of_file=None,
+                             seasons = True):
         """ Function to plot the mean or median value of variable in Dataset.
 
         Args:
@@ -1017,13 +1018,6 @@ class Tropical_Rainfall:
             f_time (str, optional):         The ending time of the Dataset.         Defaults to None.
             s_year (str, optional):         The starting year of the Dataset.       Defaults to None."""
 
-        if fig is not None:
-            fig, ax  = fig
-            #if color == 'tab:blue': color   = 'tab:orange'
-        elif add is None and fig is None:
-            fig, ax = plt.subplots( figsize=(8*figsize, 5*figsize) )
-        elif add is not None:
-            fig, ax  = add
             #if color == 'tab:blue': color   = 'tab:orange'
         
         self.class_attributes_update(trop_lat = trop_lat, 
@@ -1041,7 +1035,12 @@ class Tropical_Rainfall:
                                                         sort = False,                          dask_array = False)
 
         if get_mean:
-            data_average = self.mean_along_coordinate(data,                                     preprocess=preprocess,
+            if seasons: 
+                data_average = self.seasonal_or_monthly_mean(data,                               preprocess=preprocess,                  seasons = seasons,     
+                                                        model_variable = model_variable,         trop_lat       = trop_lat,              new_unit = new_unit, 
+                                                        coord = coord)
+            else:
+                data_average = self.mean_along_coordinate(data,                                     preprocess=preprocess,
                                                         glob       = glob,                      model_variable = model_variable,
                                                         trop_lat   = trop_lat,                  coord    = coord,
                                                         s_time  = self.s_time,                  f_time  = self.f_time,
@@ -1091,7 +1090,10 @@ class Tropical_Rainfall:
         elif coord          == coord_lon:
             labels_int      = data_with_final_grid[coord_lon]
         
-        if new_unit is not None:
+        if new_unit is not None and seasons:
+            data_average    = self.precipitation_rate_units_converter(data_average[0], new_unit=new_unit)
+            units = new_unit
+        elif new_unit is not None:
             data_average    = self.precipitation_rate_units_converter(data_average, new_unit=new_unit)
             units = new_unit
         else:
@@ -1099,63 +1101,128 @@ class Tropical_Rainfall:
                 units = data[model_variable].attrs['units']
             except KeyError:
                 units = data_average.units 
-           
-        if data_average.size== 1:
-            if variability:
-                plt.axhline(y=float(data_variability_from_average),         color = color,  label = legend,  ls = ls)
-            else:
-                plt.axhline(y=float(data_average.values),                   color = color,  label = legend,  ls = ls)
-        else:
-            if variability:
-                plt.plot(labels_int,        data_variability_from_average,  color = color,  label = legend,  ls = ls)
-            else:
-                if coord == 'time':
-                    plt.scatter(labels_int, data_average,                   color = color,  label = legend,  ls = ls)
+        if seasons:
+            if fig is not None:
+                
+                ax1, ax2, ax3, ax4 = fig[1], fig[2], fig[3], fig[4]
+                fig = fig[0]
+                axs = [ax1, ax2, ax3, ax4]
+            #if color == 'tab:blue': color   = 'tab:orange'
+            elif add is None and fig is None:
+                fig, ax  = plt.subplots(ncols=2, nrows=2,
+                                     figsize=(11*figsize, 8.5*figsize), layout='constrained')
+                [ax1, ax2, ax3, ax4] = [ ax[0,0], ax[0,1], ax[1,0], ax[1,1]]
+                axs = [ ax[0,0], ax[0,1], ax[1,0], ax[1,1]]
+            elif add is not None:
+                fig = add 
+                ax1, ax2, ax3, ax4, som = add
+                axs = [ ax1, ax2, ax3, ax4 ]
+            data_average = self.seasonal_or_monthly_mean(data,                               preprocess = preprocess,                  seasons = seasons,     
+                                                        model_variable = model_variable,     trop_lat = self.trop_lat,              new_unit = new_unit, 
+                                                        coord = coord)
+            
+            titles      = ["DJF", "MAM", "JJA", "SON"]
+
+            
+            for i in range(0, len(data_average)):
+                one_season = data_average[i]
+                if coord=='lat':
+                    axs[i].plot(one_season.lon,    one_season,                   color = color,  label = legend,  ls = ls)
+                elif coord=='lon':
+                    axs[i].plot(one_season.lat,    one_season,                   color = color,  label = legend,  ls = ls)  
+
+                axs[i].set_title(titles[i], fontsize = 17)
+
+
+                # Longitude labels
+                axs[i].xaxis.set_major_locator(plt.MaxNLocator(maxticknum))
+                axs[i].tick_params(axis = 'both',   which = 'major',    pad = 10)
+
+                # Latitude labels
+                if coord == 'lat':
+                    axs[i].set_xlabel('Latitude',                              fontsize=12)
+                elif coord == 'lon':
+                    axs[i].set_xlabel('Longitude',                             fontsize=12)
+                try:
+                    axs[i].set_ylabel(str(varname)+', '+str(units),
+                                                                        fontsize=12)
+                except KeyError:
+                    axs[i].set_ylabel(str(varname),                            fontsize=12)
+
+                if ylogscale:
+                    axs[i].set_yscale('log')
+                if xlogscale:
+                    axs[i].set_xscale('log')
+                
+                axs[i].grid(True)
+            if legend!='_Hidden':
+                ax1.legend(loc=loc,                                 fontsize=12,    ncol=2)
+            if plot_title is not None:
+                plt.suptitle(plot_title,                       fontsize = 17)
+        else:   
+            if fig is not None:
+                fig, ax  = fig
+            #if color == 'tab:blue': color   = 'tab:orange'
+            elif add is None and fig is None:
+                fig, ax = plt.subplots( figsize=(8*figsize, 5*figsize) )
+            elif add is not None:
+                fig, ax  = add
+            if data_average.size== 1:
+                if variability:
+                    plt.axhline(y=float(data_variability_from_average),         color = color,  label = legend,  ls = ls)
                 else:
-                    plt.plot(labels_int,    data_average,                   color = color,  label = legend,  ls = ls) 
-
-        if coord == 'time':
-            plt.gca().set_xticks(labels_int,  labels)
-
-        plt.gca().xaxis.set_major_locator(plt.MaxNLocator(maxticknum))
-        plt.gca().tick_params(axis = 'both',   which = 'major',    pad = 10)
-        plt.xlim([min(labels_int),    max(labels_int)])
-        
-        plt.grid(True)
-
-        if coord   == 'time':
-            plt.xlabel('Timestep index',                        fontsize=12)
-            if data['time.year'][0].values  == data['time.year'][-1].values:
-                plt.xlabel(str(data['time.year'][0].values),    fontsize=12)
+                    plt.axhline(y=float(data_average.values),                   color = color,  label = legend,  ls = ls)
             else:
-                plt.xlabel(str(data['time.year'][0].values)+' - '+str(data['time.year'][-1].values),
-                                                                fontsize=12)
-        elif coord == coord_lat:
-            plt.xlabel('Latitude',                              fontsize=12)
-        elif coord == coord_lon:
-            plt.xlabel('Longitude',                             fontsize=12)
-        try:
-            plt.ylabel(str(varname)+', '+str(units),
-                                                                fontsize=12)
-        except KeyError:
-            plt.ylabel(str(varname),                            fontsize=12)
+                if variability:
+                    plt.plot(labels_int,        data_variability_from_average,  color = color,  label = legend,  ls = ls)
+                else:
+                    if coord == 'time':
+                        plt.scatter(labels_int, data_average,                   color = color,  label = legend,  ls = ls)
+                    else:
+                        plt.plot(labels_int,    data_average,                   color = color,  label = legend,  ls = ls) 
 
-        if plot_title is None:
-            if variability:
-                plt.title('Bias of '         +str(varname),     fontsize=17,    pad=15)
-            elif not variability        and get_mean:
-                plt.title('Mean values of '  +str(varname),     fontsize=17,    pad=15)
-            elif not variability        and get_median:
-                plt.title('Median values of '+str(varname),     fontsize=17,    pad=15)
-        else:
-            plt.title(plot_title,                               fontsize=17,    pad=15)
-        
-        if legend!='_Hidden':
-            plt.legend(loc=loc,                                 fontsize=12,    ncol=2)
-        if ylogscale:
-            plt.yscale('log')
-        if xlogscale:
-            plt.xscale('log')
+            if coord == 'time':
+                plt.gca().set_xticks(labels_int,  labels)
+
+            plt.gca().xaxis.set_major_locator(plt.MaxNLocator(maxticknum))
+            plt.gca().tick_params(axis = 'both',   which = 'major',    pad = 10)
+            plt.xlim([min(labels_int),    max(labels_int)])
+            
+            plt.grid(True)
+
+            if coord   == 'time':
+                plt.xlabel('Timestep index',                        fontsize=12)
+                if data['time.year'][0].values  == data['time.year'][-1].values:
+                    plt.xlabel(str(data['time.year'][0].values),    fontsize=12)
+                else:
+                    plt.xlabel(str(data['time.year'][0].values)+' - '+str(data['time.year'][-1].values),
+                                                                    fontsize=12)
+            elif coord == coord_lat:
+                plt.xlabel('Latitude',                              fontsize=12)
+            elif coord == coord_lon:
+                plt.xlabel('Longitude',                             fontsize=12)
+            try:
+                plt.ylabel(str(varname)+', '+str(units),
+                                                                    fontsize=12)
+            except KeyError:
+                plt.ylabel(str(varname),                            fontsize=12)
+
+            if plot_title is None:
+                if variability:
+                    plt.title('Bias of '         +str(varname),     fontsize=17,    pad=15)
+                elif not variability        and get_mean:
+                    plt.title('Mean values of '  +str(varname),     fontsize=17,    pad=15)
+                elif not variability        and get_median:
+                    plt.title('Median values of '+str(varname),     fontsize=17,    pad=15)
+            else:
+                plt.title(plot_title,                               fontsize=17,    pad=15)
+            
+            if legend!='_Hidden':
+                plt.legend(loc=loc,                                 fontsize=12,    ncol=2)
+            if ylogscale:
+                plt.yscale('log')
+            if xlogscale:
+                plt.xscale('log')
 
         # set the spacing between subplots
         plt.tight_layout()
@@ -1174,7 +1241,10 @@ class Tropical_Rainfall:
                         facecolor    = "w",
                         edgecolor    = 'w',
                         orientation  = 'landscape')
-        return {fig, ax}
+        if seasons:
+            return [fig,  ax1, ax2, ax3, ax4]
+        else:
+            return [fig,  ax]
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
     def twin_data_and_observations(self, data,                          dummy_data = None,                    trop_lat = 10,                      
