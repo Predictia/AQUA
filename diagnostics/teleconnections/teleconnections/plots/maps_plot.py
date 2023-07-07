@@ -198,12 +198,13 @@ def single_map_plot(map=None, save=False, **kwargs):
             logger.info('Creating output directory {}'.format(outputdir))
             os.makedirs(outputdir)
         try:
-            filename = model + '_' + exp + '.pdf'
+            filename = kwargs.get('filename')
         except ValueError:
             try:
-                filename = kwargs.get('filename')
+                filename = model + '_' + exp + '.pdf'
             except ValueError:
                 filename = 'map.pdf'
+
         logger.info('Saving figure to {}/{}'.format(outputdir, filename))
         fig.savefig('{}/{}'.format(outputdir, filename), format='pdf',
                     dpi=300, bbox_inches='tight')
