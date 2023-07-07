@@ -61,7 +61,8 @@ def convert_longitudes(data):
     
     return data
 
-def weighted_area_mean(data, region=None, latS: float=None, latN: float=None, lonW: float=None, lonE: float=None):
+
+def area_selection(data, region=None, latS: float=None, latN: float=None, lonW: float=None, lonE: float=None):
     """
     Compute the weighted area mean of data within the specified latitude and longitude bounds.
 
@@ -90,17 +91,20 @@ def weighted_area_mean(data, region=None, latS: float=None, latN: float=None, lo
     else:
         # Obtain latitude and longitude boundaries for the predefined region
         latS, latN, lonW, lonE = predefined_regions(region)
-    logger.info(f" data slicing for this region, latitude {latS} to {latN}, longitude {lonW} to {lonE}")
+    logger.info(f" data selected for this region, latitude {latS} to {latN}, longitude {lonW} to {lonE}")
     # Perform data slicing based on the specified or predefined latitude and longitude boundaries
     data = data.sel(lat=slice(latS, latN), lon=slice(lonW, lonE))
+    
+    return data
+
+def weighted_area_mean(data, region=None, latS: float=None, latN: float=None, lonW: float=None, lonE: float=None):
+    
+    data = area_selection(data, region, latS =None, latN =None, lonW =None, lonE =None )
     # Calculate weighted data based on cosine of latitude
     weighted_data = data.weighted(np.cos(np.deg2rad(data.lat)))
     # Calculate weighted mean along latitude and longitude axes
     wgted_mean = weighted_data.mean(("lat", "lon"))
-    
     return wgted_mean
-
-
 
 def mean_value_plot(data, region, customise_level=False, levels=None, outputfig="./figs"):
     # Calculate weighted area mean
@@ -530,86 +534,18 @@ def convert_variables(data):
 
     # Convert practical salinity to absolute salinity
     absso = convert_so(data.so)
-
+    logger.info("practical salinity converted to absolute salinity")
     # Convert potential temperature to conservative temperature
     ocpt = convert_ocpt(absso, data.ocpt)
-
+    logger.info("potential temperature converted to conservative temperature")
     # Compute potential density in-situ at reference pressure 0 dbar
     rho = compute_rho(absso, ocpt, 0)
-
+    logger.info("Calculated potential density in-situ at reference pressure 0 dbar ")
     # Merge the converted variables into a new dataset
     converted_data = converted_data.merge({"ocpt": ocpt, "so": absso, "rho": rho})
 
     return converted_data
 
-
-def plot_strat_1dataset_2halves_month(data, area_name, month):
-    """
-    Plot the mean state annual temperature, salinity, and density stratification splitting the temporal window in 2 halves 
-    to identified potential changes in stratification in the selected Month (provided with a number)
-
-    Parameters
-    ----------
-    datamod : xarray.Dataset
-        Model dataset containing inputs of potential temperature (ocpt), practical salinity (so), and density (rho).
-    dataobs : xarray.Dataset
-        Obs dataset containing inputs of potential temperature (ocpt), practical salinity (so), and density (rho)
-    area_name : str
-        Name of the area for the plot title.
-    month :  integer
-        Number of the month on which to compute the climatologies
-
-    Returns
-    -------
-    None
-
-    """
-    date_len = len(data.time)
-    if date_len != 1:
-        if date_len % 2 == 0:
-            data_1 = data.isel(time=slice(0, int(date_len/2)))
-            data_2 = data.isel(time=slice(int(date_len/2), date_len))
-        else:
-            data_1 = data.isel(time=slice(0, int((date_len-1)/2)))
-            data_2 = data.isel(time=slice(int((date_len-1)/2), date_len))
-
-
-
-    fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3, figsize=(14, 8))
-    fig.suptitle(f"Mean state annual T, S, rho0 stratification in {area_name} in {month}", fontsize=16)
-
-    ax1.set_ylim((4500, 0))
-    ax1.plot(data_1.ocpt[data_1.time.dt.month==month].mean("time"), data.lev, 'g-', linewidth=2.0)
-    ax1.plot(data_2.ocpt[data_2.time.dt.month==month].mean("time"), data.lev, 'b-', linewidth=2.0)
-    ax1.set_title("Temperature Profile", fontsize=14)
-    ax1.set_ylabel("Depth (m)", fontsize=12)
-    ax1.set_xlabel("Temperature (°C)", fontsize=12)
-    ax1.legend([f"EXP first half {data_1.time[0].dt.year.data}-{data_1.time[-1].dt.year.data}",
-                f"EXP last half {data_2.time[0].dt.year.data}-{data_2.time[-1].dt.year.data}"], loc='best')
-
-    ax2.set_ylim((4500, 0))
-    ax2.plot(data_1.so[data_1.time.dt.month==month].mean("time"), data.lev, 'g-', linewidth=2.0)
-    ax2.plot(data_2.so[data_2.time.dt.month==month].mean("time"), data.lev, 'b-', linewidth=2.0)
-    ax2.set_title("Salinity Profile", fontsize=14)
-    ax2.set_xlabel("Salinity (psu)", fontsize=12)
-
-    ax3.set_ylim((4500, 0))
-    ax3.plot(data_1.rho[data_1.time.dt.month==month].mean("time")-1000, data.lev, 'g-', linewidth=2.0)
-    ax3.plot(data_2.rho[data_2.time.dt.month==month].mean("time")-1000, data.lev, 'b-', linewidth=2.0)
-    ax3.set_title("Rho (ref 0) Profile", fontsize=14)
-    ax3.set_xlabel("Density Anomaly (kg/m³)", fontsize=12)
-
-    #   To be added:
-#   1) NEED TO SAVE PLOTS AND CLIMATOLOGIES AS NETCDF FILES
-#   2) FINDING A WAY TO SPECIFY THE MONTH AND DATASETS IN THE FIGURE TITLES/LABELS
-
-#    filename = f"{outputfig}/vertical_TS_{area_name.replace(' ', '_').lower()}_mean.png"
-
-#    plt.savefig(filename)
-#    logger.info(f"{filename} saved")
-
-    plt.show()
-    return
    
 def split_time_equally(data):
     date_len = len(data.time)
@@ -628,6 +564,7 @@ def load_obs_data(model='EN4',exp='en4',source='monthly'):
     den4=reader.retrieve()
     den4=den4.rename({"depth":"lev"}) # We standardise the name for the vertical dimension
     den4=den4[["ocpt","so"]].resample(time="M").mean()
+    logger.info(f"loaded {model} data")
     return den4
     
 def crop_obs_overlap_time(mod_data, obs_data):
@@ -636,12 +573,16 @@ def crop_obs_overlap_time(mod_data, obs_data):
     common_time = xr.DataArray(np.intersect1d(mod_data_time, obs_data_time), dims='time')
     if len(common_time) > 0:
         obs_data = obs_data.sel(time=common_time)
+    logger.info("selected the available temporal obs data compare to ")
     return obs_data
 
 def prepare_data_for_stratification_plot(data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
                             lonE: float=None):
     data = weighted_area_mean(data, region, latS, latN, lonE, lonW)
     data = convert_variables(data)
+    data_rho = data["rho"] -1000
+    data["rho"] = data_rho
+    # print(data)
     data = data_time_selection(data, time)
     return data
 
@@ -674,12 +615,12 @@ def data_time_selection(data, time):
         data = data.where(data.time.dt.month == 12, drop=True)
     elif time in ["yearly", "year", "Y"]:
         data = data.groupby('time.year').mean(dim='time')
-    elif time in ["3m"]:
+    elif time in ["JJA"]:
         data = data.where((data['time.month'] >= 6) & (data['time.month'] <= 8), drop=True)
     else:
         raise ValueError("""Invalid month input. Please provide a valid name. Among this:
                          Yearly, 3M, Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec """)
-    
+    logger.info(f"data selected for {time} climatology")
     return data
 
 
@@ -687,23 +628,36 @@ def compare_arrays(mod_data, obs_data):
     if (obs_data.time == mod_data.time).all() and (len(mod_data.time) == len(obs_data.time)):
         mod_data_list = [mod_data]
         obs_data = obs_data
+        logger.info("obs data and model data time scale fully matched")
     elif (obs_data.time == mod_data.time).any():
         mod_data_ov = mod_data.sel(time=obs_data.time)
         mod_data_list= [mod_data_ov, mod_data]
         obs_data = obs_data
+        logger.info("Model and Obs data time partly matched")
     else:
         mod_data_list = split_time_equally(mod_data)
         obs_data = obs_data
+        logger.info("Model data time is not avaiable for the obs data")
     
     return mod_data_list, obs_data
+
+def plot_file_saving(data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
+                            lonE: float=None, outputfig="./figs", plot_name = None):
+    if region in [None, "custom", "Custom"]:
+        region = "custom"
+        filename = f"{outputfig}/{plot_name}_{time}_{region.replace(' ', '_').lower()}_lat_{latS}_{latN}_lon_{lonW}_{lonE}_mean.png"
+    else: 
+        filename = f"{outputfig}/{plot_name}_{time}_{region.replace(' ', '_').lower()}_mean.png"
+
+    plt.savefig(filename)
+    logger.info(f"{filename} saved")
+    return filename
+
 
 def plot_stratification(mod_data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
                             lonE: float=None, outputfig="./figs"):
     obs_data= load_obs_data().interp(lev=mod_data.lev)
     obs_data= crop_obs_overlap_time(mod_data, obs_data)
-
-    obs_data.rho = obs_data.rho -1000
-    mod_data.rho = mod_data.rho -1000
     
     obs_data = prepare_data_for_stratification_plot(obs_data, region, time, latS, latN, lonE, lonW)
     mod_data = prepare_data_for_stratification_plot(mod_data, region, time, latS, latN, lonE, lonW)
@@ -712,6 +666,7 @@ def plot_stratification(mod_data, region=None, time = None, latS: float=None, la
     fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(14, 8))
     fig.suptitle(f"Mean state annual T, S, rho0 stratification in {region}", fontsize=16)
 
+    logger.info("Stratification plot is in process")
     for i, var in zip(range(len(axs)), ["ocpt", "so", "rho"]):
         axs[i].set_ylim((4500, 0))
         axs[i].plot(mod_data_list[0][var].mean("time"), mod_data.lev, 'g-', linewidth=2.0)
@@ -737,158 +692,12 @@ def plot_stratification(mod_data, region=None, time = None, latS: float=None, la
             axs[i].legend([f"EXP {mod_data_list[0].time[0].dt.year.data}-{mod_data_list[0].time[-1].dt.year.data}"], loc='best')
 
 
-    filename = f"{outputfig}/vertical_TS_{region.replace(' ', '_').lower()}_mean.png"
-
-    plt.savefig(filename)
-    logger.info(f"{filename} saved")
+    file = plot_file_saving(mod_data, region, time, latS, latN, lonE, lonW, outputfig, plot_name= "stratification")
 
     plt.show()
     return 
     
 
-# def plot_temporal_split(data, area_name, outputfig="./figs"):
-#     """
-#     Plot temporal split of mean state annual temperature, salinity, and density stratification.
-
-#     Parameters
-#     ----------
-#     data : xarray.Dataset
-#         Dataset containing the data for temperature (ocpt), salinity (so), and density (rho).
-#     area_name : str
-#         Name of the area for the plot title.
-
-#     Returns
-#     -------
-#     None
-
-#     """
-#     date_len = len(data.time)
-#     if date_len != 1:
-#         if date_len % 2 == 0:
-#             data_1 = data.isel(time=slice(0, int(date_len/2)))
-#             data_2 = data.isel(time=slice(int(date_len/2), date_len))
-#         else:
-#             data_1 = data.isel(time=slice(0, int((date_len-1)/2)))
-#             data_2 = data.isel(time=slice(int((date_len-1)/2), date_len))
-
-#     fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3, figsize=(14, 8))
-#     fig.suptitle(f"Mean state annual T, S, rho0 stratification in {area_name}", fontsize=16)
-
-#     ax1.set_ylim((4500, 0))
-#     ax1.plot(data_1.ocpt.mean("time"), data.lev, 'g-', linewidth=2.0)
-#     ax1.plot(data_2.ocpt.mean("time"), data.lev, 'b-', linewidth=2.0)
-#     ax1.set_title("Temperature Profile", fontsize=14)
-#     ax1.set_ylabel("Depth (m)", fontsize=12)
-#     ax1.set_xlabel("Temperature (°C)", fontsize=12)
-#     ax1.legend([f"EXP first half {data_1.time[0].dt.year.data}-{data_1.time[-1].dt.year.data}",
-#                 f"EXP last half {data_2.time[0].dt.year.data}-{data_2.time[-1].dt.year.data}",
-#                 "EN4 1950-1980", "EN4 1990-2020"], loc='best')
-
-#     ax2.set_ylim((4500, 0))
-#     ax2.plot(data_1.so.mean("time"), data.lev, 'g-', linewidth=2.0)
-#     ax2.plot(data_2.so.mean("time"), data.lev, 'b-', linewidth=2.0)
-#     ax2.set_title("Salinity Profile", fontsize=14)
-#     ax2.set_xlabel("Salinity (psu)", fontsize=12)
-
-#     ax3.set_ylim((4500, 0))
-#     ax3.plot(data_1.rho.mean("time")-1000, data.lev, 'g-', linewidth=2.0)
-#     ax3.plot(data_2.rho.mean("time")-1000, data.lev, 'b-', linewidth=2.0)
-#     ax3.set_title("Rho (ref 0) Profile", fontsize=14)
-#     ax3.set_xlabel("Density Anomaly (kg/m³)", fontsize=12)
-    
-#     filename = f"{outputfig}/vertical_TS_{area_name.replace(' ', '_').lower()}_mean.png"
-
-#     plt.savefig(filename)
-#     logger.info(f"{filename} saved")
-
-#     plt.show()
-#     return
-
-def compute_mld_monthly(rho):
-    """To compute the mixed layer depth from monthly density fields in discrete levels
-    Parameters
-    ----------
-    rho : xarray.DataArray for sigma0, dims must be time, space, depth (must be in metres)
-    Returns
-    -------
-    mld: xarray.DataArray, dims of time, space
-    
-      This function developed by Dhruv Balweda, Andrew Pauling, Sarah Ragen, Lettie Roach
-      
-    """
-    mld=rho
-    
-    # Here we identify the last level before 10m
-    slevs=rho.lev
-    ilev0=0
-    slevs
-    for ilev in range(len(slevs)):   
-     tlev = slevs[ilev]
-     if tlev<= 10: slev10=ilev
-
-    #  We take the last level before 10m  as our sigma0 surface reference
-
-    surf_ref = rho[:,slev10]
-
-    # We compute the density difference between surface and whole field
-    dens_diff = rho-surf_ref
-        
-    
-    # keep density differences exceeding threshold, discard other values
-    dens_diff = dens_diff.where(dens_diff > 0.03)   ### The threshold to exit the MLD is 0.03 kg/m3
-
-    # We determine the level at which the threshold is exceeded by the minimum margin
-    cutoff_lev=dens_diff.lev.where(dens_diff==dens_diff.min(["lev"])).max(["lev"])        
-    mld=cutoff_lev.rename("mld")
-
-    
-    # compute water depth
-    # note: pressure.lev, cocpt.lev, and abs_salinity.lev are identical
-#    test = sigma0.isel(time=0) + sigma0.lev
-#    bottom_depth = (
-#        pressure.lev.where(test == test.max(dim="lev"))
-#        .max(dim="lev")
-#        .rename("bottom_depth")
-#    )  # units 'meters'
-
-    # set MLD to water depth where MLD is NaN
-#    mld = mld.where(~np.isnan(mld), bottom_depth)
-
-    return mld
-
-def compute_mld_cont_monthly(rho):
-    """To compute the mixed layer depth from monthly density fields in continuous levels
-
-    Parameters
-    ----------
-    rho : xarray.DataArray for sigma0, dims must be time, space, depth (must be in metres)
-    Returns
-    -------
-    mld: xarray.DataArray, dims of time, space
-    
-      This function developed by Dhruv Balweda, Andrew Pauling, Sarah Ragen, Lettie Roach
-      
-    """
-    # mld=rho
-    # Here we identify the last level before 10m
-    slevs=rho.lev
-    ilev0=0
-    
-    # slevs
-    for ilev in range(len(slevs)):   
-     tlev = slevs[ilev]
-     if tlev<= 10: slev10=ilev
-    #  We take the density at 10m as the mean of the upper and lower level around 10 m
-    surf_ref = (rho[:,slev10]+rho[:,slev10+1])/2
-    # We compute the density difference between surface and whole field
-    dens_diff = rho-surf_ref
-    # keep density differences exceeding threshold, discard other values
-    dens_diff = dens_diff.where(dens_diff > 0.03)   ### The threshold to exit the MLD is 0.03 kg/m3
-    cutoff_lev=dens_diff.lev.where(dens_diff==dens_diff.min(["lev"])).max(["lev"])
-    mld=cutoff_lev.rename("mld")
-
-
-    return mld
 
 
 def compute_mld_cont(rho):
@@ -908,11 +717,8 @@ def compute_mld_cont(rho):
     -------
     mld: xarray.DataArray, dims of time, space
     
-      ll
       
     """
-    mld=rho
-    rho_t0=rho.isel(time=slice(0,1))
     # Here we identify the first level to represent the surfac
     surf_dens= rho.isel(lev=slice(0,1)).mean("lev") 
 
@@ -933,21 +739,33 @@ def compute_mld_cont(rho):
     
     depth=rho.lev.where(rho > -9999).max(["lev"]) # Here we identify the last level of the ocean
    
-    slevs=rho.lev
-    ##print(slevs.values)
+    ##print(slevs.values)      ll
     ddif=cutoff_lev2-cutoff_lev1
     # The MLD is established by linearly interpolating to the level on which the difference wrt to the reference is zero
     rdif1=dens_diff.where(dens_diff.lev==cutoff_lev1).max(["lev"])  #rho diff in first lev
     
     rdif2=dens_diff.where(dens_diff.lev==cutoff_lev2).max(["lev"]) # rho diff in second lev
-    
     mld=cutoff_lev1+((ddif)*(rdif1))/(rdif1-rdif2)
     mld=np.fmin(mld,depth) # The MLD is set as the maximum depth if the threshold is not exceeded before
-    mld=mld.rename("mld")
+    # mld=mld.rename("mld")
     
     return mld    
 
-def plot_mld_nhclim_obs_mod(datamod, dataobs, month):
+def data_for_plot_spatial_mld(data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
+                            lonE: float=None):
+    data = area_selection(data, region, latS, latN, lonE, lonW)
+    data = convert_variables(data)
+    # print(data)
+    data = compute_mld_cont(data)
+    # print(data)
+    data = data_time_selection(data, time)
+    
+    return data
+
+        
+
+def plot_spatial_mld(data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
+                            lonE: float=None, outputfig="./figs"):
     """
     Plots the climatology of mixed layer depth in the NH as computed with de Boyer Montegut (2004)'s criteria in 
     an observational dataset and a model dataset, allowing the user to select the month the climatology is computed
@@ -968,23 +786,20 @@ def plot_mld_nhclim_obs_mod(datamod, dataobs, month):
 
     """
     
-    datamod_clim=datamod[datamod.time.dt.month==month].mean("time") # To select the month and compute its climatology
-    dataobs_clim=dataobs[dataobs.time.dt.month==month].mean("time") # To select the month and compute its climatology
-
+    datamod_clim=data_for_plot_spatial_mld(data, region, time, latS, latN, lonE, lonW).mean("time") # To select the month and compute its climatology
+    obs_data = load_obs_data(model='EN4',exp='en4',source='monthly')
+    dataobs_clim=data_for_plot_spatial_mld(obs_data, region, time, latS, latN, lonE, lonW).mean("time") # To select the month and compute its climatology
+    
+    logger.info("Spatial MLD plot is in process")
     fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(22, 4))
     fig.suptitle("Mean state Month mixed layer depth", fontsize=16)
-
-    datamod_clim = datamod_clim.assign_coords(lon=(((datamod_clim.lon + 180) % 360) - 180))
-    datamod_clim = datamod_clim.roll(lon=int(len(datamod_clim['lon']) / 2), roll_coords=True)
-    datamod_clim.sel(lat=slice(40,90), lon=slice(-90,60)).plot(ax=ax1)
     
+    datamod_clim["rho"].plot(ax=ax1)
     ax1.set_title("Model climatology", fontsize=14)
     ax1.set_ylabel("Latitude", fontsize=12)
     ax1.set_xlabel("Longitude", fontsize=12)
 
-    dataobs_clim = dataobs_clim.assign_coords(lon=(((dataobs_clim.lon + 180) % 360) - 180))
-    dataobs_clim = dataobs_clim.roll(lon=int(len(dataobs_clim['lon']) / 2), roll_coords=True)
-    dataobs_clim.sel(lat=slice(40,90), lon=slice(-90,60)).plot(ax=ax2)
+    dataobs_clim["rho"].plot(ax=ax2)
     ax2.set_title("OBS climatology", fontsize=14)
     ax2.set_ylabel("Latitude", fontsize=12)
     ax2.set_xlabel("Longitude", fontsize=12)
@@ -994,10 +809,6 @@ def plot_mld_nhclim_obs_mod(datamod, dataobs, month):
 #   2) NEED TO SAVE PLOTS AND CLIMATOLOGIES AS NETCDF FILES
 #   3) FINDING A WAY TO SPECIFY MONTH AND DATASETS IN THE FIGURES
     
-#    filename = f"{outputfig}/vertical_TS_{area_name.replace(' ', '_').lower()}_mean.png"
-
-#    plt.savefig(filename)
-#    logger.info(f"{filename} saved")
-
+    file = plot_file_saving(data, region, time, latS, latN, lonE, lonW, outputfig, plot_name= "spatial_MLD")
     plt.show()
     return
