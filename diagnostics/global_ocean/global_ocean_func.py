@@ -482,7 +482,7 @@ def ocpt_so_hov_plot(data, region, type, outputfig="./figs"):
     ax2.set_ylabel("Depth (in m)", fontsize=12)
     ax2.set_xlabel("Time (in years)", fontsize=12)
 
-    filename = f"{outputfig}/TS_anomalies_{region.replace(' ', '_').lower()}.png"
+    filename = f"{outputfig}/Hovmoller_TS_{type.replace(' ', '_')}_{region.replace(' ', '_').lower()}.png"
     plt.savefig(filename)
     logger.info(f"{filename} saved")
     # Return the plot
@@ -903,8 +903,131 @@ def plot_temporal_split(data, area_name, outputfig="./figs"):
     plt.show()
 
 
+def linregress_3D(y_array):
+    """
+    Computes the linear regression against the temporal dimension of a 3D array formated in time, latitude and longitude
 
+    The function was copied from https://stackoverflow.com/questions/52108417/how-to-apply-linear-regression-to-every-pixel-in-a-large-multi-dimensional-array
+    and is a very efficient way to compute trends in 3D arrays
+
+    The drawback is that it returns the coefficients in a simple array, not as xarray, but this can be corrected with the
+    companion function array2xarray
+
+    Parameters
+    ----------
+    data : y_array.Dataset
     
+    Dataset containing a single 3D field with time, latitude and longitude as coordinates
+ 
+
+    Returns
+    -------
+    n,slope,intercept,p_val,r_square,rmse
+
+    """
+    
+    x_array=np.empty(y_array.shape)
+    for i in range(y_array.shape[0]): x_array[i,:,:]=i+1 # This would be fine if time series is not too long. Or we can use i+yr (e.g. 2019).
+    x_array[np.isnan(y_array)]=np.nan
+    # Compute the number of non-nan over each (lon,lat) grid box.
+    n=np.sum(~np.isnan(x_array),axis=0)
+    # Compute mean and standard deviation of time series of x_array and y_array over each (lon,lat) grid box.
+    x_mean=np.nanmean(x_array,axis=0)
+    y_mean=np.nanmean(y_array,axis=0)
+    x_std=np.nanstd(x_array,axis=0)
+    y_std=np.nanstd(y_array,axis=0)
+    # Compute co-variance between time series of x_array and y_array over each (lon,lat) grid box.
+    cov=np.nansum((x_array-x_mean)*(y_array-y_mean),axis=0)/n
+    # Compute correlation coefficients between time series of x_array and y_array over each (lon,lat) grid box.
+    cor=cov/(x_std*y_std)
+    # Compute slope between time series of x_array and y_array over each (lon,lat) grid box.
+    slope=cov/(x_std**2)
+    # Compute intercept between time series of x_array and y_array over each (lon,lat) grid box.
+    intercept=y_mean-x_mean*slope
+    # Compute tstats, stderr, and p_val between time series of x_array and y_array over each (lon,lat) grid box.
+    tstats=cor*np.sqrt(n-2)/np.sqrt(1-cor**2)
+    stderr=slope/tstats
+    from scipy.stats import t
+    p_val=t.sf(tstats,n-2)*2
+    # Compute r_square and rmse between time series of x_array and y_array over each (lon,lat) grid box.
+    # r_square also equals to cor**2 in 1-variable lineare regression analysis, which can be used for checking.
+    r_square=np.nansum((slope*x_array+intercept-y_mean)**2,axis=0)/np.nansum((y_array-y_mean)**2,axis=0)
+    rmse=np.sqrt(np.nansum((y_array-slope*x_array-intercept)**2,axis=0)/n)
+    # Do further filteration if needed (e.g. We stipulate at least 3 data records are needed to do regression analysis) and return values
+    n=n*1.0 # convert n from integer to float to enable later use of np.nan
+    n[n<3]=np.nan
+    slope[np.isnan(n)]=np.nan
+    intercept[np.isnan(n)]=np.nan
+    p_val[np.isnan(n)]=np.nan
+    r_square[np.isnan(n)]=np.nan
+    rmse[np.isnan(n)]=np.nan
+    return n,slope,intercept,p_val,r_square,rmse
+  
+def array2xarray(array,y_array):
+    """
+    Provides the longitudinal and latitudinal information of a given xarray to a simple array (to be used after linregress_3D)
+
+    Parameters
+    ----------
+    array : input array Dataset
+    
+    y_array:  xarray Dataset with target coordinate information 
+
+    Returns
+    -------
+    xarray
+
+    """
+    xarray=xr.DataArray(array,coords={"lat": y_array.lat,"lon": y_array.lon},name=str(y_array.name),dims=["lat","lon"])
+    
+    return xarray
 
 
+def lintrend_2D(y_array):
+    """
+    Simplified version of linregress_3D that computes the trends in a 3D array formated in time, latitude and longitude coordinates
+
+    It outputs the trends in xarray format
+
+    Parameters
+    ----------
+    data : y_array.Dataset
+    
+    Dataset containing a single 3D field with time, latitude and longitude as coordinates
+ 
+
+    Returns
+    -------
+    n,slope,intercept,p_val,r_square,rmse
+
+    """
+    
+    x_array=np.empty(y_array.shape)
+    for i in range(y_array.shape[0]): x_array[i,:,:]=i+1 # This would be fine if time series is not too long. Or we can use i+yr (e.g. 2019).
+    x_array[np.isnan(y_array)]=np.nan
+    # Compute the number of non-nan over each (lon,lat) grid box.
+    n=np.sum(~np.isnan(x_array),axis=0)
+    # Compute mean and standard deviation of time series of x_array and y_array over each (lon,lat) grid box.
+    x_mean=np.nanmean(x_array,axis=0)
+    y_mean=np.nanmean(y_array,axis=0)
+    x_std=np.nanstd(x_array,axis=0)
+    y_std=np.nanstd(y_array,axis=0)
+    # Compute co-variance between time series of x_array and y_array over each (lon,lat) grid box.
+    cov=np.nansum((x_array-x_mean)*(y_array-y_mean),axis=0)/n
+    # Compute correlation coefficients between time series of x_array and y_array over each (lon,lat) grid box.
+    cor=cov/(x_std*y_std)
+    # Compute slope between time series of x_array and y_array over each (lon,lat) grid box.
+    trend=cov/(x_std**2)
+    
+    # Do further filteration if needed (e.g. We stipulate at least 3 data records are needed to do regression analysis) and return values
+    n=n*1.0 # convert n from integer to float to enable later use of np.nan
+    n[n<3]=np.nan
+    trend[np.isnan(n)]=np.nan
+    
+    #trend=xr.DataArray(trend,coords={"lat": y_array.lat,"lon": y_array.lon},name=str(y_array.name),dims=["lat","lon"])
+    trend=xr.DataArray(trend,coords={"lat": y_array.lat,"lon": y_array.lon},name=f"{y_array.name} trends",dims=["lat","lon"])
+    trend.attrs['units'] = f"{y_array.units}/year"
+
+    #data.ocpt.attrs['units'] = 'Standardised Units'
+    return trend
 
