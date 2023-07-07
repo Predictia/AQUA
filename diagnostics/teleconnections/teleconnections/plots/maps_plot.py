@@ -1,3 +1,5 @@
+import os
+
 import cartopy.crs as ccrs
 import cartopy.mpl.ticker as cticker
 import matplotlib.pyplot as plt
@@ -13,6 +15,17 @@ def maps_plot(maps=None, models=None, exps=None, save=False, **kwargs):
     Plot maps (regression, correlation, etc.)
     A list of xarray.DataArray objects is expected
     and a map is plotted for each of them
+
+    Args:
+        maps (list):        list of xarray.DataArray objects
+        models (list):      list of models
+        exps (list):        list of experiments
+        save (bool, opt):   save the figure
+        **kwargs:           additional arguments
+
+    Raises:
+        ValueError:         if maps is None
+        ValueError:         if models or exps is None
     """
     loglevel = kwargs.get('loglevel', 'WARNING')
     logger = log_configure(loglevel, 'maps_plot')
@@ -102,4 +115,95 @@ def maps_plot(maps=None, models=None, exps=None, save=False, **kwargs):
         fig.savefig('{}/{}'.format(outputdir, filename), format='pdf',
                     dpi=300, bbox_inches='tight')
 
-    fig.show()
+
+def single_map_plot(map=None, save=False, **kwargs):
+    """
+    Plot a single map (regression, correlation, etc.)
+    An xarray.DataArray objects is expected
+    and a map is plotted
+
+    Args:
+        map (xarray.DataArray): xarray.DataArray object
+        save (bool, opt):       save the figure
+        **kwargs:               additional arguments
+
+    Raises:
+        ValueError: if no map is provided
+    """
+    loglevel = kwargs.get('loglevel', 'WARNING')
+    logger = log_configure(loglevel, 'single_map_plot')
+
+    if map is None:
+        raise ValueError('Nothing to plot')
+
+    model = kwargs.get('model', 'model')
+    exp = kwargs.get('exp', 'exp')
+
+    # Generate the figure
+    figsize = kwargs.get('figsize', (11, 8.5))
+
+    fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()},
+                           figsize=figsize)
+
+    # Set the number of levels for the colorbar
+    nlevels = kwargs.get('nlevels', 11)
+
+    # Plot the map
+    try:
+        logger.info('Plotting model {} experiment {}'.format(model, exp))
+    except ValueError:
+        logger.info('Plotting map')
+
+    # Contour plot
+    cs = map.plot.contourf(ax=ax, transform=ccrs.PlateCarree(),
+                           cmap='RdBu_r', levels=nlevels,
+                           add_colorbar=False, add_labels=False,
+                           extend='both')
+
+    # Title
+    try:
+        ax.set_title('{} {}'.format(model, exp))
+    except ValueError:
+        logger.warning('No title for map')
+
+    # Coastlines
+    ax.coastlines()
+
+    # Longitude labels
+    ax.set_xticks(np.arange(-180,181,60), crs=ccrs.PlateCarree())
+    lon_formatter = cticker.LongitudeFormatter()
+    ax.xaxis.set_major_formatter(lon_formatter)
+
+    # Latitude labels
+    ax.set_yticks(np.arange(-90,91,30), crs=ccrs.PlateCarree())
+    lat_formatter = cticker.LatitudeFormatter()
+    ax.yaxis.set_major_formatter(lat_formatter)
+
+    # Adjust the location of the subplots on the page to make room for the colorbar
+    fig.subplots_adjust(bottom=0.25, top=0.9, left=0.05, right=0.95,
+                        wspace=0.1, hspace=0.5)
+
+    # Add a colorbar axis at the bottom of the graph
+    cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.02])
+
+    # Add the colorbar
+    fig.colorbar(cs, cax=cbar_ax, orientation='horizontal')
+
+    # Save the figure
+    if save is True:
+        outputdir = kwargs.get('outputdir', '.')
+
+        # check the outputdir exists and create it if necessary
+        if not os.path.exists(outputdir):
+            logger.info('Creating output directory {}'.format(outputdir))
+            os.makedirs(outputdir)
+        try:
+            filename = model + '_' + exp + '.pdf'
+        except ValueError:
+            try:
+                filename = kwargs.get('filename')
+            except ValueError:
+                filename = 'map.pdf'
+        logger.info('Saving figure to {}/{}'.format(outputdir, filename))
+        fig.savefig('{}/{}'.format(outputdir, filename), format='pdf',
+                    dpi=300, bbox_inches='tight')
