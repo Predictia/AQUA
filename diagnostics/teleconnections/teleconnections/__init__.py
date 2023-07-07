@@ -27,7 +27,8 @@ __all__ = ['station_based_cdo', 'regional_mean_cdo', 'regional_anomalies_cdo',
 # 0.0.7: CLI refined, get_dataset_config moved to tools, tools refactor
 # 0.0.6: plots submodules added
 # 0.0.5: comparison_index_plot, cli for single and multiple datasets added
-# 0.0.4: Added cor_evaluation and reg_evaluation based on sacpy, removed deprecated functions
+# 0.0.4: Added cor_evaluation and reg_evaluation based on sacpy, 
+#        removed deprecated functions
 # 0.0.3: Class Teleconnection added
 # 0.0.2: Added package version
 # 0.0.1: Initial version
