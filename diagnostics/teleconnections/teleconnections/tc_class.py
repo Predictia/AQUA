@@ -259,7 +259,12 @@ class Teleconnection():
             self.logger.info('Correlation saved to {}'.format(file))
 
     def plot_index(self, step=False, **kwargs):
-        """Plot teleconnection index."""
+        """Plot teleconnection index.
+        
+        Args:
+            step (bool, optional): If True, plot the index with a step function (experimental)
+            **kwargs: Keyword arguments to be passed to the index_plot function.
+        """
 
         if self.index is None:
             self.logger.warning('No index has been calculated, trying to calculate')
@@ -280,7 +285,7 @@ class Teleconnection():
                        **kwargs)
         else:
             index_plot(indx=self.index, save=self.savefig,
-                       loglevel=self.loglevel, step=step,
+                       loglevel=self.loglevel, step=step, title=title,
                        **kwargs)
 
     def _load_figs_options(self, savefig=False, outputfig=None):
