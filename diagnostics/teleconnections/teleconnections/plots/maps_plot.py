@@ -136,8 +136,8 @@ def single_map_plot(map=None, save=False, **kwargs):
     if map is None:
         raise ValueError('Nothing to plot')
 
-    model = kwargs.get('model', 'model')
-    exp = kwargs.get('exp', 'exp')
+    model = kwargs.get('model')
+    exp = kwargs.get('exp')
 
     # Generate the figure
     figsize = kwargs.get('figsize', (11, 8.5))
@@ -161,10 +161,14 @@ def single_map_plot(map=None, save=False, **kwargs):
                            extend='both')
 
     # Title
-    try:
-        ax.set_title('{} {}'.format(model, exp))
-    except ValueError:
-        logger.warning('No title for map')
+    title = kwargs.get('title')
+    if title is not None:
+        ax.set_title(title)
+    else:
+        try:
+            ax.set_title('{} {}'.format(model, exp))
+        except ValueError:
+            logger.warning('No title for map')
 
     # Coastlines
     ax.coastlines()
@@ -187,7 +191,12 @@ def single_map_plot(map=None, save=False, **kwargs):
     cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.02])
 
     # Add the colorbar
-    fig.colorbar(cs, cax=cbar_ax, orientation='horizontal')
+    cbar_label = kwargs.get('cbar_label')
+    if cbar_label is not None:
+        fig.colorbar(cs, cax=cbar_ax, orientation='horizontal',
+                     label=cbar_label)
+    else:
+        fig.colorbar(cs, cax=cbar_ax, orientation='horizontal')
 
     # Save the figure
     if save is True:
