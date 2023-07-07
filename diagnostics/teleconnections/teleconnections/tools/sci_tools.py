@@ -30,12 +30,18 @@ def area_selection(indat, lat=None, lon=None, box_brd=True):
         if lat[0] > lat[1]:
             raise ValueError('lat must be specified in ascending order')
         else:
-            lat_coord = indat.lat
+            try:
+                lat_coord = indat.lat
+            except AttributeError:
+                raise AttributeError('lat not found in input data')
     if lon:
         if lon[0] > lon[1]:
             raise ValueError('lon must be specified in ascending order')
         else:
-            lon_coord = indat.lon
+            try:
+                lon_coord = indat.lon
+            except AttributeError:
+                raise AttributeError('lon not found in input data')
 
     # 2. -- Select area --
     if box_brd:
@@ -53,7 +59,7 @@ def area_selection(indat, lat=None, lon=None, box_brd=True):
             iplon = lon_coord.where((lon_coord > lon[0]) &
                                     (lon_coord < lon[1]), drop=True)
 
-    # 3. -- Are selection --
+    # 3. -- Area selection --
     odat = indat
     if lat:
         odat = odat.sel(lat=iplat)
@@ -63,7 +69,7 @@ def area_selection(indat, lat=None, lon=None, box_brd=True):
     return odat
 
 
-def lon_180_to_360(lon):
+def lon_180_to_360(lon: float):
     """
     Convert longitude [-180,180] to [0,360] range.
 
@@ -78,7 +84,7 @@ def lon_180_to_360(lon):
     return lon
 
 
-def lon_360_to_180(lon):
+def lon_360_to_180(lon: float):
     """
     Convert longitude [0,360] to [-180,180] range.
 
