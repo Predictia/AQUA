@@ -30,23 +30,28 @@ def parse_arguments(args):
     return parser.parse_args(args)
 
 
-def get_dataset_config(dataset_source=None, config_dict=None):
+def get_dataset_config(sources=None, dataset_source=None, config_dict=None):
     """
     Get configuration parameters for a given dataset_source
 
     Args:
+        sources (dict): dictionary with configuration parameters
         dataset_source (str): dataset source name
+        config_dict (dict, opt): dictionary to store configuration parameters
 
     Returns:
         config_dict (dict): dictionary with configuration parameters
                             of the individual dataset_source
 
     Raises:
-        ValueError: if dataset_source is None
+        ValueError: if dataset_source or sources is None
     """
 
     if dataset_source is None:
         raise ValueError('dataset_source is None')
+
+    if sources is None:
+        raise ValueError('sources is None')
 
     if config_dict is None:
         config_dict = {}
@@ -138,7 +143,8 @@ if __name__ == '__main__':
     config_dict = []
 
     for dataset_source in sources:
-        print('Obtaining config for dataset_source: ', dataset_source)
+        if loglevel == 'DEBUG':
+            print('Obtaining config for dataset_source: ', dataset_source)
 
         config_dict.append(get_dataset_config(dataset_source))
 
@@ -150,16 +156,21 @@ if __name__ == '__main__':
 
     # Initialize Teleconnection class
     for config in config_dict:
-        print('Initializing Teleconnection class for dataset_source: ',
-              config['model'], config['exp'], config['source'])
+        if loglevel == 'DEBUG':
+            print('Initializing Teleconnection class for dataset_source: ',
+                  config['model'], config['exp'], config['source'])
         teleconnections.append(Teleconnection(telecname=telecname, **config,
-                                              savefig=savefig, savefile=savefile,
-                                              configdir=configdir, loglevel=loglevel))
+                                              savefig=savefig,
+                                              savefile=savefile,
+                                              configdir=configdir,
+                                              loglevel=loglevel))
 
     # Retrieve data, evaluate teleconnection index, correlation and regression
     for teleconnection in teleconnections:
-        print('Retrieving data for dataset_source: ',
-                teleconnection.model, teleconnection.exp, teleconnection.source)
+        if loglevel == 'DEBUG':
+            print('Retrieving data for dataset_source: ',
+                  teleconnection.model, teleconnection.exp,
+                  teleconnection.source)
         teleconnection.retrieve()
         teleconnection.evaluate_index()
         teleconnection.evaluate_correlation()
@@ -175,7 +186,8 @@ if __name__ == '__main__':
     teleconnection_obs.evaluate_regression()
 
     if savefig:
-        print('Saving figures...')
+        if loglevel == 'DEBUG':
+            print('Saving figures...')
         for teleconnection in teleconnections:
             teleconnection.plot_index()
 
