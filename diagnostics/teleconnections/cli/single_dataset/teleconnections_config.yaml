@@ -1,6 +1,6 @@
 telecname: 'NAO' # NAO or ENSO
 
-common_outputdir: &common_outputdir './output'
+common_outputdir: &common_outputdir './output' # common output directory for figures and netcdf files
 configdir: '/home/b/b382289/AQUA/diagnostics/teleconnections/config'
 
 source:
