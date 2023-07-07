@@ -535,7 +535,7 @@ def convert_variables(data):
     ocpt = convert_ocpt(absso, data.ocpt)
 
     # Compute potential density in-situ at reference pressure 0 dbar
-    rho = compute_rho(absso, ocpt, 0) -1000
+    rho = compute_rho(absso, ocpt, 0)
 
     # Merge the converted variables into a new dataset
     converted_data = converted_data.merge({"ocpt": ocpt, "so": absso, "rho": rho})
@@ -610,14 +610,7 @@ def plot_strat_1dataset_2halves_month(data, area_name, month):
 
     plt.show()
     return
-
-#   reader = Reader(model='EN4',exp='en4',source='monthly')
-#     den4=reader.retrieve()
-#     den4=den4.rename({"depth":"lev"}) # We standardise the name for the vertical dimension
-#     den4=den4[["ocpt","so"]].resample(time="M").mean()
-#     den4_ls_mean=fn.weighted_area_mean(den4,True, 'Labrador Sea')
-#     rho_t_s_labrador_en4= fn.convert_variables(den4_ls_mean)
-    
+   
 def split_time_equally(data):
     date_len = len(data.time)
     if date_len != 1:
@@ -709,6 +702,9 @@ def plot_stratification(mod_data, region=None, time = None, latS: float=None, la
     obs_data= load_obs_data().interp(lev=mod_data.lev)
     obs_data= crop_obs_overlap_time(mod_data, obs_data)
 
+    obs_data.rho = obs_data.rho -1000
+    mod_data.rho = mod_data.rho -1000
+    
     obs_data = prepare_data_for_stratification_plot(obs_data, region, time, latS, latN, lonE, lonW)
     mod_data = prepare_data_for_stratification_plot(mod_data, region, time, latS, latN, lonE, lonW)
     mod_data_list, obs_data=  compare_arrays(mod_data, obs_data)
@@ -895,7 +891,113 @@ def compute_mld_cont_monthly(rho):
     return mld
 
 
+def compute_mld_cont(rho):
+    """To compute the mixed layer depth from density fields in continous levels
+    using the same criteria as in de Boyer and Montegut (2004). The continuous distribution of MLD
+    values is achieved by performing an interpolation between the first level that exceeds the
+    threshold and the one immediately after to linearly estimate where the 0.03 value would be reached
+
+    Warning!!: It does not provide reasonable estimates in some instances in which the upper level 
+    has higher densities than the lower one. This function is therefore not recommended until this
+    issue is addressed and corrected
+
+    Parameters
+    ----------
+    rho : xarray.DataArray for sigma0, dims must be time, space, depth (must be in metres)
+    Returns
+    -------
+    mld: xarray.DataArray, dims of time, space
     
+      ll
+      
+    """
+    mld=rho
+    rho_t0=rho.isel(time=slice(0,1))
+    # Here we identify the first level to represent the surfac
+    surf_dens= rho.isel(lev=slice(0,1)).mean("lev") 
 
 
+    # We compute the density anomaly between surface and whole field
+    dens_ano = rho-surf_dens
+    
+    # We define now a sigma difference wrt to the threshold of 0.03 kg/m3 in de Boyer Montegut (2004)
+    dens_diff=dens_ano-0.03
 
+    # Now we only keep the levels for which the threshold has not been surpassed
+    dens_diff2 = dens_diff.where(dens_diff < 0)   ### The threshold in de Boyer Montegut (2004)
+
+    # And keep the deepest one
+    cutoff_lev1=dens_diff2.lev.where(dens_diff2>-9999).max(["lev"]) 
+    # And the following one (for which the threshold will have been overcome)
+    cutoff_lev2=dens_diff2.lev.where(dens_diff2.lev > cutoff_lev1).min(["lev"])
+    
+    depth=rho.lev.where(rho > -9999).max(["lev"]) # Here we identify the last level of the ocean
+   
+    slevs=rho.lev
+    ##print(slevs.values)
+    ddif=cutoff_lev2-cutoff_lev1
+    # The MLD is established by linearly interpolating to the level on which the difference wrt to the reference is zero
+    rdif1=dens_diff.where(dens_diff.lev==cutoff_lev1).max(["lev"])  #rho diff in first lev
+    
+    rdif2=dens_diff.where(dens_diff.lev==cutoff_lev2).max(["lev"]) # rho diff in second lev
+    
+    mld=cutoff_lev1+((ddif)*(rdif1))/(rdif1-rdif2)
+    mld=np.fmin(mld,depth) # The MLD is set as the maximum depth if the threshold is not exceeded before
+    mld=mld.rename("mld")
+    
+    return mld    
+
+def plot_mld_nhclim_obs_mod(datamod, dataobs, month):
+    """
+    Plots the climatology of mixed layer depth in the NH as computed with de Boyer Montegut (2004)'s criteria in 
+    an observational dataset and a model dataset, allowing the user to select the month the climatology is computed
+    (the recommended one is march (month=3) that is when the NH MLD peaks)
+
+    Parameters
+    ----------
+    datamod : xarray.Dataset
+        Model Dataset containing 2D fields of density (rho).
+    dataobs : xarray.Dataset
+        Observational dataset containing 2D fields of density (rho)
+    month : integer
+        Number of the month on which to compute the climatologies
+
+    Returns
+    -------
+    None
+
+    """
+    
+    datamod_clim=datamod[datamod.time.dt.month==month].mean("time") # To select the month and compute its climatology
+    dataobs_clim=dataobs[dataobs.time.dt.month==month].mean("time") # To select the month and compute its climatology
+
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(22, 4))
+    fig.suptitle("Mean state Month mixed layer depth", fontsize=16)
+
+    datamod_clim = datamod_clim.assign_coords(lon=(((datamod_clim.lon + 180) % 360) - 180))
+    datamod_clim = datamod_clim.roll(lon=int(len(datamod_clim['lon']) / 2), roll_coords=True)
+    datamod_clim.sel(lat=slice(40,90), lon=slice(-90,60)).plot(ax=ax1)
+    
+    ax1.set_title("Model climatology", fontsize=14)
+    ax1.set_ylabel("Latitude", fontsize=12)
+    ax1.set_xlabel("Longitude", fontsize=12)
+
+    dataobs_clim = dataobs_clim.assign_coords(lon=(((dataobs_clim.lon + 180) % 360) - 180))
+    dataobs_clim = dataobs_clim.roll(lon=int(len(dataobs_clim['lon']) / 2), roll_coords=True)
+    dataobs_clim.sel(lat=slice(40,90), lon=slice(-90,60)).plot(ax=ax2)
+    ax2.set_title("OBS climatology", fontsize=14)
+    ax2.set_ylabel("Latitude", fontsize=12)
+    ax2.set_xlabel("Longitude", fontsize=12)
+
+#   To be added:
+#   1) USE COMMON COLORBAR FOR BOTH FIGURES
+#   2) NEED TO SAVE PLOTS AND CLIMATOLOGIES AS NETCDF FILES
+#   3) FINDING A WAY TO SPECIFY MONTH AND DATASETS IN THE FIGURES
+    
+#    filename = f"{outputfig}/vertical_TS_{area_name.replace(' ', '_').lower()}_mean.png"
+
+#    plt.savefig(filename)
+#    logger.info(f"{filename} saved")
+
+    plt.show()
+    return
