@@ -221,12 +221,16 @@ class Teleconnection():
                                              telecname=self.telecname,
                                              months_window=self.months_window,
                                              loglevel=self.loglevel, **kwargs)
-        elif self.telec_type == 'regional':
+        elif self.telec_type == 'region':
             self.index = regional_mean_index(field=self.data[self.var],
                                              namelist=self.namelist,
                                              telecname=self.telecname,
                                              months_window=self.months_window,
                                              loglevel=self.loglevel, **kwargs)
+     
+        if self.index is None:
+            self.logger.critical('Index not calculated')
+            return
 
         if self.savefile:
             file = self.outputdir + '/' + self.filename + '_index.nc'
