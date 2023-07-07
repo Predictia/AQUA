@@ -27,7 +27,7 @@ class Teleconnection():
 
     def __init__(self, model: str, exp: str, source: str,
                  telecname: str, configdir=None,
-                 regrid='r100', freq='monthly',
+                 regrid=None, freq=None,
                  zoom=None,
                  savefig=False, outputfig=None,
                  savefile=False, outputdir=None,
@@ -42,8 +42,8 @@ class Teleconnection():
             telecname (str):                Teleconnection name.
                                             See documentation for available teleconnections.
             configdir (str, optional):      Path to diagnostics configuration folder.
-            regrid (str, optional):         Regridding resolution. Defaults to 'r100'.
-            freq (str, optional):           Frequency of the data. Defaults to 'monthly'.
+            regrid (str, optional):         Regridding resolution. Defaults to None.
+            freq (str, optional):           Frequency of the data. Defaults to None.
             zoom (str, optional):           Zoom for ICON data. Defaults to None.
             savefig (bool, optional):       Save figures if True. Defaults to False.
             outputfig (str, optional):      Output directory for figures.
@@ -74,9 +74,13 @@ class Teleconnection():
         self.regrid = regrid
         if self.regrid is None:
             self.logger.warning('No regridding will be performed')
+            self.logger.info('Be sure that the data is already regridded')
         self.logger.debug('Regridding resolution: {}'.format(self.regrid))
 
         self.freq = freq
+        if self.freq is None:
+            self.logger.warning('No time aggregation will be performed')
+            self.logger.info('Be sure that the data is already monthly aggregated')
         self.logger.debug('Frequency: {}'.format(self.freq))
 
         self.zoom = zoom
@@ -194,6 +198,10 @@ class Teleconnection():
             **kwargs: Keyword arguments to be passed to the index function.
         """
 
+        if self.index is not None:
+            self.logger.warning('Index already calculated, skipping')
+            return
+
         if self.data is None:
             self.logger.warning('No retrieve has been performed, trying to retrieve')
             self.retrieve()
@@ -219,6 +227,10 @@ class Teleconnection():
     def evaluate_regression(self):
         """Calculate teleconnection regression."""
 
+        if self.regression is not None:
+            self.logger.warning('Regression already calculated, skipping')
+            return
+
         data = self._adapt_data()
 
         self.regression = reg_evaluation(self.index, data,
@@ -231,6 +243,10 @@ class Teleconnection():
 
     def evaluate_correlation(self):
         """Calculate teleconnection correlation."""
+
+        if self.correlation is not None:
+            self.logger.warning('Correlation already calculated, skipping')
+            return
 
         data = self._adapt_data()
 
@@ -249,6 +265,10 @@ class Teleconnection():
             self.logger.warning('No index has been calculated, trying to calculate')
             self.evaluate_index()
 
+        title = kwargs.get('title', None)
+        if title is None:
+            title = 'Index' + ' ' + self.telecname + ' ' + self.model + ' ' + self.exp
+
         if self.savefig:
             # Set the filename
             filename = self.filename + '_index.pdf'
@@ -256,7 +276,8 @@ class Teleconnection():
                                                                 filename))
             index_plot(indx=self.index, save=self.savefig,
                        outputdir=self.outputfig, filename=filename,
-                       loglevel=self.loglevel, step=step, **kwargs)
+                       loglevel=self.loglevel, step=step, title=title,
+                       **kwargs)
         else:
             index_plot(indx=self.index, save=self.savefig,
                        loglevel=self.loglevel, step=step,
