@@ -131,14 +131,18 @@ if __name__ == '__main__':
 
         # Comparison plots
         # 1. Regression
-        title = telecname + ' regression'
-        filename = 'teleconnections' + '_' + telecname + '_regression' + '.pdf'
+        title = telecname + ' regression maps'
+        filename = 'teleconnections_all-models_' + teleconnection_obs.model + '_' + telecname + '_regression.pdf'
+        if loglevel == 'DEBUG' or loglevel == 'INFO':
+            print('Saving regression comparison plot: ' + filename)
         maps_plot(maps=regs, models=models, exps=exps, loglevel=loglevel, title=title,
                   filename=filename, save=True)
 
         # 2. Correlation
-        title = telecname + ' correlation'
-        filename = 'teleconnections' + '_' + telecname + '_correlation' + '.pdf'
+        title = telecname + ' correlation maps'
+        if loglevel == 'DEBUG' or loglevel == 'INFO':
+            print('Saving correlation comparison plot: ' + filename)
+        filename = 'teleconnections_all-models_' + teleconnection_obs.model + '_' + telecname + '_correlation.pdf'
         maps_plot(maps=corrs, models=models, exps=exps, loglevel=loglevel, title=title,
                   filename=filename, save=True)
 
@@ -155,13 +159,17 @@ if __name__ == '__main__':
             corr_comp.append(comp)
 
         # 3.2 Plot
-        title = telecname + ' regression comparison with ' + teleconnection_obs.model
-        filename = 'teleconnections' + '_' + telecname + '_regression_comparison' + '.pdf'
+        title = telecname + ' regression maps comparison with ' + teleconnection_obs.model
+        filename = 'teleconnections_all-models_' + teleconnection_obs.model + '_' + telecname + '_regression_diff.pdf'
+        if loglevel == 'DEBUG' or loglevel == 'INFO':
+            print('Saving regression difference plot: ' + filename)
         maps_plot(maps=reg_comp, models=models, exps=exps, loglevel=loglevel,
                   title=title, filename=filename, save=True)
 
-        title = telecname + ' correlation comparison with ' + teleconnection_obs.model
-        filename = 'teleconnections' + '_' + telecname + '_correlation_comparison' + '.pdf'
+        title = telecname + ' correlation maps comparison with ' + teleconnection_obs.model
+        filename = 'teleconnections_all-models_' + teleconnection_obs.model + '_' + telecname + '_correlation_diff.pdf'
+        if loglevel == 'DEBUG' or loglevel == 'INFO':
+            print('Saving correlation difference plot: ' + filename)
         maps_plot(maps=corr_comp, models=models, exps=exps, loglevel=loglevel,
                   title=title, filename=filename, save=True)
 
