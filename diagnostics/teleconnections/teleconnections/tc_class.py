@@ -155,7 +155,16 @@ class Teleconnection():
         self.logger.info('Reader initialized')
 
     def run(self):
-        """Run teleconnection analysis."""
+        """Run teleconnection analysis.
+
+        The analysis consists of:
+        - Retrieving the data
+        - Evaluating the teleconnection index
+        - Evaluating the regression
+        - Evaluating the correlation
+
+        This methods can be also run separately.
+        """
 
         self.logger.debug('Running teleconnection analysis for data: {}/{}/{}'
                           .format(self.model, self.exp, self.source))
@@ -237,7 +246,7 @@ class Teleconnection():
                                          loglevel=self.loglevel)
 
         if self.savefile:
-            file = self.outputdir + '/' + self.filename + '_reg.nc'
+            file = self.outputdir + '/' + self.filename + '_regression.nc'
             self.regression.to_netcdf(file)
             self.logger.info('Regression saved to {}'.format(file))
 
@@ -254,13 +263,13 @@ class Teleconnection():
                                           loglevel=self.loglevel)
 
         if self.savefile:
-            file = self.outputdir + '/' + self.filename + '_corr.nc'
+            file = self.outputdir + '/' + self.filename + '_correlation.nc'
             self.correlation.to_netcdf(file)
             self.logger.info('Correlation saved to {}'.format(file))
 
     def plot_index(self, step=False, **kwargs):
         """Plot teleconnection index.
-        
+
         Args:
             step (bool, optional): If True, plot the index with a step function (experimental)
             **kwargs: Keyword arguments to be passed to the index_plot function.
@@ -325,8 +334,8 @@ class Teleconnection():
                             Default is None.
         """
         if filename is None:
-            self.logger.info('No filename specified, using the teleconnection name')
-            filename = self.model + '_' + self.exp + '_' + self.source + '_' + self.telecname
+            self.logger.info('No filename specified, using the default name')
+            filename = 'teleconnections_' + self.model + '_' + self.exp + '_' + self.source + '_' + self.telecname
         self.filename = filename
         self.logger.debug('Output filename: {}'.format(self.filename))
 
