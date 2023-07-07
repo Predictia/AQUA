@@ -426,6 +426,68 @@ def ocpt_so_full_plot(data, region, outputfig="./figs"):
     # Return the plot
     return
 
+def ocpt_so_hov_plot(data, region, type, outputfig="./figs"):
+    """
+    Create a Hovmoller plot of temperature and salinity full values.
+
+    Args:
+        data (DataArray): Input data containing temperature (ocpt) and salinity (so).
+        region (str): Region that is represented in the plot.
+        type (str): Type of timeseries between FullValue, Anomaly, StdAnomaly
+
+
+    Returns:
+        None
+    """
+    # Reads the type of timeseries to plot
+
+    if type is None:
+        raise ValueError("Please specify whether it is a 'FullValue', 'Anomaly' or 'StdAnomaly' timeseries")
+    elif type == 'FullValue':
+        ttype="Full Values"
+    elif type == 'Anomaly':
+        ttype="Anomalies"
+    elif type == 'StdAnomaly':
+        data.ocpt.attrs['units'] = 'Standardised Units'
+        data.so.attrs['units'] = 'Standardised Units'
+        ttype="Standardised Anomalies"
+
+    # Create subplots for temperature and salinity plots
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
+    fig.suptitle(f"{type} {region} T,S evolution", fontsize=16)
+
+    # Extract temperature data and plot the contour filled plot
+    tgt = data.ocpt.transpose()
+    tgt.plot.contourf(levels=12, ax=ax1)
+
+    # Add contour lines with black color and set the line width
+    tgt.plot.contour(colors="black", levels=12, linewidths=0.5, ax=ax1)
+
+    # Set the title, y-axis label, and x-axis label for the temperature plot
+    ax1.set_title("Temperature", fontsize=14)
+    ax1.set_ylim((5500, 0))
+    ax1.set_ylabel("Depth (in m)", fontsize=12)
+    ax1.set_xlabel("Time (in years)", fontsize=12)
+
+    # Extract salinity data and plot the contour filled plot
+    sgt = data.so.transpose()
+    sgt.plot.contourf(levels=12, ax=ax2)
+
+    # Add contour lines with black color and set the line width
+    sgt.plot.contour(colors="black", levels=12, linewidths=0.5, ax=ax2)
+
+    # Set the title, y-axis label, and x-axis label for the salinity plot
+    ax2.set_title("Salinity", fontsize=14)
+    ax2.set_ylim((5500, 0))
+    ax2.set_ylabel("Depth (in m)", fontsize=12)
+    ax2.set_xlabel("Time (in years)", fontsize=12)
+
+    filename = f"{outputfig}/TS_anomalies_{region.replace(' ', '_').lower()}.png"
+    plt.savefig(filename)
+    logger.info(f"{filename} saved")
+    # Return the plot
+    return
+
 def time_series(data, region, customise_level=False, levels=None, outputfig="./figs"):
     """
     Create time series plots of global temperature and salinity standardised anomalies at selected levels.
