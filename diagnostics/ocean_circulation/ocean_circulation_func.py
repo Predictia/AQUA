@@ -535,10 +535,10 @@ def convert_variables(data):
     ocpt = convert_ocpt(absso, data.ocpt)
 
     # Compute potential density in-situ at reference pressure 0 dbar
-    rho = compute_rho(absso, ocpt, 0)
+    rho = compute_rho(absso, ocpt, 0) -1000
 
     # Merge the converted variables into a new dataset
-    converted_data = converted_data.merge({"so": absso, "ocpt": ocpt, "rho": rho})
+    converted_data = converted_data.merge({"ocpt": ocpt, "so": absso, "rho": rho})
 
     return converted_data
 
@@ -629,9 +629,6 @@ def split_time_equally(data):
             data_2 = data.isel(time=slice(int((date_len-1)/2), date_len))
     return data_1, data_2
 
-def monthly_climatology(data, month):
-    data = data.where(data.time.dt.month == 4,  drop=True)
-    return data
 
 def load_obs_data(model='EN4',exp='en4',source='monthly'):
     reader = Reader(model,exp,source)
@@ -640,17 +637,6 @@ def load_obs_data(model='EN4',exp='en4',source='monthly'):
     den4=den4[["ocpt","so"]].resample(time="M").mean()
     return den4
     
-def prepare_data_for_temporal_split(data, region=None, month = None, latS: float=None, latN: float=None, lonW: float=None,
-                            lonE: float=None):
-    data = weighted_area_mean(data, region, latS, latN, lonE, lonW)
-    data = convert_variables(data)
-    
-    data_1, data_2 = split_time_equally(data)
-
-    data_1 = monthly_climatology(data_1, month)
-    data_2 = monthly_climatology(data_2, month)
-    return data_1, data_2
-
 def crop_obs_overlap_time(mod_data, obs_data):
     mod_data_time= mod_data.time  
     obs_data_time=obs_data.time
@@ -659,49 +645,100 @@ def crop_obs_overlap_time(mod_data, obs_data):
         obs_data = obs_data.sel(time=common_time)
     return obs_data
 
-def plot_stratification(mod_data, region=None, month = None, latS: float=None, latN: float=None, lonW: float=None,
-                            lonE: float=None, outputfig="./figs"):
+def prepare_data_for_stratification_plot(data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
+                            lonE: float=None):
+    data = weighted_area_mean(data, region, latS, latN, lonE, lonW)
+    data = convert_variables(data)
+    data = data_time_selection(data, time)
+    return data
+
+def data_time_selection(data, time):
+    if type(time) is str:
+        time = time.lower()
+    if time in ["jan", "january", "1"]:
+        data = data.where(data.time.dt.month == 1, drop=True)
+    elif time in ["feb", "february", "2"]:
+        data = data.where(data.time.dt.month == 2, drop=True)
+    elif time in ["mar", "march", "3"]:
+        data = data.where(data.time.dt.month == 3, drop=True)
+    elif time in ["apr", "april", "4"]:
+        data = data.where(data.time.dt.month == 4, drop=True)
+    elif time in ["may", "5"]:
+        data = data.where(data.time.dt.month == 5, drop=True)
+    elif time in ["jun", "june", "6"]:
+        data = data.where(data.time.dt.month == 6, drop=True)
+    elif time in ["jul", "july", "7"]:
+        data = data.where(data.time.dt.month == 7, drop=True)
+    elif time in ["aug", "august", "8"]:
+        data = data.where(data.time.dt.month == 8, drop=True)
+    elif time in ["sep", "sept", "september", "9"]:
+        data = data.where(data.time.dt.month == 9, drop=True)
+    elif time in ["oct", "october", "10"]:
+        data = data.where(data.time.dt.month == 10, drop=True)
+    elif time in ["nov", "november", "11"]:
+        data = data.where(data.time.dt.month == 11, drop=True)
+    elif time in ["dec", "december", "12"]:
+        data = data.where(data.time.dt.month == 12, drop=True)
+    elif time in ["yearly", "year", "Y"]:
+        data = data.groupby('time.year').mean(dim='time')
+    elif time in ["3m"]:
+        data = data.where((data['time.month'] >= 6) & (data['time.month'] <= 8), drop=True)
+    else:
+        raise ValueError("""Invalid month input. Please provide a valid name. Among this:
+                         Yearly, 3M, Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec """)
     
+    return data
+
+
+def compare_arrays(mod_data, obs_data):
+    if (obs_data.time == mod_data.time).all() and (len(mod_data.time) == len(obs_data.time)):
+        mod_data_list = [mod_data]
+        obs_data = obs_data
+    elif (obs_data.time == mod_data.time).any():
+        mod_data_ov = mod_data.sel(time=obs_data.time)
+        mod_data_list= [mod_data_ov, mod_data]
+        obs_data = obs_data
+    else:
+        mod_data_list = split_time_equally(mod_data)
+        obs_data = obs_data
+    
+    return mod_data_list, obs_data
+
+def plot_stratification(mod_data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
+                            lonE: float=None, outputfig="./figs"):
     obs_data= load_obs_data().interp(lev=mod_data.lev)
     obs_data= crop_obs_overlap_time(mod_data, obs_data)
 
-    # if mod_data.time in obs_data.time
+    obs_data = prepare_data_for_stratification_plot(obs_data, region, time, latS, latN, lonE, lonW)
+    mod_data = prepare_data_for_stratification_plot(mod_data, region, time, latS, latN, lonE, lonW)
+    mod_data_list, obs_data=  compare_arrays(mod_data, obs_data)
     
-    obs_data_1, obs_data_2 = prepare_data_for_temporal_split(obs_data, region, month, latS, latN, lonE, lonW)
-    mod_data_1, mod_data_2 = prepare_data_for_temporal_split(mod_data, region, month, latS, latN, lonE, lonW)
-    
-    
-    fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3, figsize=(14, 8))
+    fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(14, 8))
     fig.suptitle(f"Mean state annual T, S, rho0 stratification in {region}", fontsize=16)
 
-    ax1.set_ylim((4500, 0))
-    ax1.plot(mod_data_1.ocpt.mean("time"), mod_data.lev, 'g-', linewidth=2.0)
-    ax1.plot(mod_data_2.ocpt.mean("time"), mod_data.lev, 'b-', linewidth=2.0)
-    ax1.plot(obs_data_1.ocpt.mean("time"), obs_data_1.lev, 'r-', linewidth=2.0)
-    ax1.set_title("Temperature Profile", fontsize=14)
-    ax1.set_ylabel("Depth (m)", fontsize=12)
-    ax1.set_xlabel("Temperature (°C)", fontsize=12)
-
-    # print(obs_data_1.ocpt.mean("time"))
-    # print(obs_data_1.so.mean("time"))
-    
-    ax2.set_ylim((4500, 0))
-    ax2.plot(mod_data_1.so.mean("time"), mod_data.lev, 'g-', linewidth=2.0)
-    ax2.plot(mod_data_2.so.mean("time"), mod_data.lev, 'b-', linewidth=2.0)
-    ax2.plot(obs_data_1.so.mean("time"), obs_data_1.lev, 'r-', linewidth=2.0)
-    ax2.set_title("Salinity Profile", fontsize=14)
-    ax2.set_xlabel("Salinity (psu)", fontsize=12)
-
-    ax3.set_ylim((4500, 0))
-    ax3.plot(mod_data_1.rho.mean("time")-1000, mod_data.lev, 'g-', linewidth=2.0)
-    ax3.plot(mod_data_2.rho.mean("time")-1000, mod_data.lev, 'b-', linewidth=2.0)
-    ax3.plot(obs_data_1.rho.mean("time")-1000, obs_data_1.lev, 'r-', linewidth=2.0)
-    ax3.set_title("Rho (ref 0) Profile", fontsize=14)
-    ax3.set_xlabel("Density Anomaly (kg/m³)", fontsize=12)
-    
-    ax1.legend([f"EXP first half {mod_data_1.time[0].dt.year.data}-{mod_data_1.time[-1].dt.year.data}",
-                f"EXP last half {mod_data_2.time[0].dt.year.data}-{mod_data_2.time[-1].dt.year.data}",
-                f"EN4 {obs_data_1.time[0].dt.year.data}-{obs_data_1.time[-1].dt.year.data}"], loc='best')
+    for i, var in zip(range(len(axs)), ["ocpt", "so", "rho"]):
+        axs[i].set_ylim((4500, 0))
+        axs[i].plot(mod_data_list[0][var].mean("time"), mod_data.lev, 'g-', linewidth=2.0)
+        if len(mod_data_list) > 1:
+            axs[i].plot(mod_data_list[1][var].mean("time"), mod_data.lev, 'b-', linewidth=2.0)
+            if var == "ocpt":
+                axs[i].legend(f"EXP {mod_data_list[1].time[0].dt.year.data}-{mod_data_list[1].time[-1].dt.year.data}")
+        axs[i].plot(obs_data[var].mean("time"), obs_data.lev, 'r-', linewidth=2.0)
+        if var == "ocpt":
+            axs[i].set_title("Temperature Profile", fontsize=14)
+            axs[i].set_ylabel("Depth (m)", fontsize=15)
+            axs[i].set_xlabel("Temperature (°C)", fontsize=12)
+            # axs[i].legend([f"EXP first half {mod_data_list[0].time[0].dt.year.data}-{mod_data_list[0].time[-1].dt.year.data}"], loc='best')
+                    # f"EN4 {obs_data.time[0].dt.year.data}-{obs_data.time[-1].dt.year.data}"], loc='best')
+            #         f"EXP last half {mod_data_list[1].time[0].dt.year.data}-{mod_data_list[1].time[-1].dt.year.data}"], loc='best')
+        if var == "so":
+            axs[i].set_title("Salinity Profile", fontsize=14)
+            axs[i].set_xlabel("Salinity (psu)", fontsize=12)
+            axs[i].legend([f"EN4 {obs_data.time[0].dt.year.data}-{obs_data.time[-1].dt.year.data}"], loc='best')
+        if var == "rho":
+            axs[i].set_title("Rho (ref 0) Profile", fontsize=14)
+            axs[i].set_xlabel("Density Anomaly (kg/m³)", fontsize=12)
+            axs[i].legend([f"EXP {mod_data_list[0].time[0].dt.year.data}-{mod_data_list[0].time[-1].dt.year.data}"], loc='best')
 
 
     filename = f"{outputfig}/vertical_TS_{region.replace(' ', '_').lower()}_mean.png"
@@ -710,7 +747,7 @@ def plot_stratification(mod_data, region=None, month = None, latS: float=None, l
     logger.info(f"{filename} saved")
 
     plt.show()
-    return obs_data_1
+    return 
     
 
 # def plot_temporal_split(data, area_name, outputfig="./figs"):
