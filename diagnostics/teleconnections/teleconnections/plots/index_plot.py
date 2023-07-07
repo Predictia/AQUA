@@ -7,8 +7,6 @@ import os
 import matplotlib.pyplot as plt
 from aqua.logger import log_configure
 
-from .plot_utils import set_layout
-
 
 def index_plot(indx, save=False, outputdir='./', filename='index.png',
                step=False, loglevel='WARNING', **kwargs):
@@ -33,13 +31,13 @@ def index_plot(indx, save=False, outputdir='./', filename='index.png',
         fig (Figure):           Figure object
         ax (Axes):              Axes object
     """
-    # 0. -- Configure the logger --
+    # Configure the logger
     logger = log_configure(loglevel, 'index_plot')
 
-    # 1. -- Generate the figure --
+    # Generate the figure
     fig, ax = plt.subplots(figsize=(12, 8))
 
-    # 2. -- Plot the index --
+    # Plot the index
     if step:
         logger.warning('Step plot has some issues with fill_between')
         logger.warning('Steps are not filled if a change in sign occurs')
@@ -59,10 +57,12 @@ def index_plot(indx, save=False, outputdir='./', filename='index.png',
     ax.hlines(y=0, xmin=min(indx['time']), xmax=max(indx['time']),
               color='black')
 
-    # 3. -- Set the layout --
-    set_layout(fig, ax, **kwargs)
+    title = kwargs.get('title')
 
-    # 4. -- Save the figure --
+    if title is not None:
+        ax.set_title(title)
+
+    # Save the figure
     if save:
         filepath = os.path.join(outputdir, filename)
         fig.savefig(filepath)
