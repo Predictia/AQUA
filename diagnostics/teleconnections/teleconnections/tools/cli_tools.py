@@ -4,6 +4,7 @@ This module contains cli tools for the teleconnections diagnostic.
   dataset from configuration file
 '''
 
+
 def get_dataset_config(sources=None, dataset_source=None, config_dict=None):
     """
     Get configuration parameters for a given dataset_source
