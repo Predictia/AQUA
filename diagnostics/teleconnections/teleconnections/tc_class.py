@@ -16,7 +16,7 @@ import os
 
 from aqua.logger import log_configure
 from aqua.reader import Reader
-from teleconnections.index import station_based_index, regional_mean_index
+from teleconnections.index import station_based_index, regional_mean_anomalies
 from teleconnections.plots import index_plot
 from teleconnections.statistics import reg_evaluation, cor_evaluation
 from teleconnections.tools import load_namelist
@@ -250,11 +250,11 @@ class Teleconnection():
                                              loglevel=self.loglevel, **kwargs)
         elif self.telec_type == 'region':
             self.logger.debug('Calculating {} index'.format(self.telecname))
-            self.index = regional_mean_index(field=self.data[self.var],
-                                             namelist=self.namelist,
-                                             telecname=self.telecname,
-                                             months_window=self.months_window,
-                                             loglevel=self.loglevel, **kwargs)
+            self.index = regional_mean_anomalies(field=self.data[self.var],
+                                                 namelist=self.namelist,
+                                                 telecname=self.telecname,
+                                                 months_window=self.months_window,
+                                                 loglevel=self.loglevel, **kwargs)
 
         self.logger.debug(self.telecname + ' index calculated')
         if self.index is None:
