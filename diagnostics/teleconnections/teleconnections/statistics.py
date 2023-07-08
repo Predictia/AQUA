@@ -1,50 +1,50 @@
 """Module for computing regression maps."""
-import sacpy as scp
+import xarray as xr
 
 from aqua.logger import log_configure
+from teleconnections.tools import _check_dim
 
 
-def reg_evaluation(indx, data, dim="time", loglevel="WARNING"):
-    """Compute regression maps.
+def reg_evaluation(indx, data, dim='time'):
+    """
+    Evaluate regression map of a teleconnection index
+    and a DataArray field
 
     Args:
-        indx (xarray.DataArray): Index to regress against.
-        data (xarray.DataArray): Data to regress.
-        dim (str, optional): Dimension to regress over. Defaults to "time".
-        loglevel (str, optional): Logging level. Defaults to "WARNING".
+        indx (DataArray):       index DataArray
+        data (DataArray):       data DataArray
 
     Returns:
-        xarray.DataArray: Regression maps.
+        reg (DataArray):        DataArray for regression map
+        fig (Figure,opt):       Figure object
+        ax (Axes,opt):          Axes object
     """
+    _check_dim(indx, dim)
+    _check_dim(data, dim)
 
-    log = log_configure(loglevel, "Regression")
+    reg = xr.cov(indx, data, dim=dim)/indx.var(dim=dim,
+                                               skipna=True).values
 
-    log.info("Computing regression")
-
-    # Compute regression
-    linreg = scp.LinReg(indx, data)
-
-    return linreg.slope
+    return reg
 
 
-def cor_evaluation(indx, data, dim="time", loglevel="WARNING"):
-    """Compute correlation maps.
+def cor_evaluation(indx, data, dim='time'):
+    """
+    Evaluate correlation map of a teleconnection index
+    and a DataArray field
 
     Args:
-        indx (xarray.DataArray): Index to regress against.
-        data (xarray.DataArray): Data to regress.
-        dim (str, optional): Dimension to regress over. Defaults to "time".
-        loglevel (str, optional): Logging level. Defaults to "WARNING".
+        indx (DataArray):       index DataArray
+        data (DataArray):       data DataArray
 
     Returns:
-        xarray.DataArray: Correlation maps.
+        cor (DataArray):        DataArray for correlation map
+        fig (Figure,opt):       Figure object
+        ax (Axes,opt):          Axes object
     """
+    _check_dim(indx, dim)
+    _check_dim(data, dim)
 
-    log = log_configure(loglevel, "Correlation")
+    cor = xr.corr(indx, data, dim=dim)
 
-    log.info("Computing correlation")
-
-    # Compute correlation
-    linreg = scp.LinReg(indx, data)
-
-    return linreg.corr
+    return cor
