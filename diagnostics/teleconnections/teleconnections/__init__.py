@@ -11,7 +11,7 @@ from .tools import load_namelist, lon_180_to_360, lon_360_to_180
 from .tools import area_selection, wgt_area_mean
 from .tools import get_dataset_config
 
-__version__ = '0.0.7'
+__version__ = '0.0.8'
 
 __all__ = ['station_based_cdo', 'regional_mean_cdo', 'regional_anomalies_cdo',
            'station_based_index', 'regional_mean_index',
@@ -24,6 +24,9 @@ __all__ = ['station_based_cdo', 'regional_mean_cdo', 'regional_anomalies_cdo',
            'wgt_area_mean', 'get_dataset_config']
 
 # Change log
+# 0.0.8: regression and correlation refactored
+#        Added the possibility to evaluate them with a different variable 
+#        from the variable used to evaluate the index
 # 0.0.7: CLI refined, get_dataset_config moved to tools, tools refactor
 # 0.0.6: plots submodules added
 # 0.0.5: comparison_index_plot, cli for single and multiple datasets added
