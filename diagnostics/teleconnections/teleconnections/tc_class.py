@@ -242,17 +242,23 @@ class Teleconnection():
             self.retrieve()
 
         if self.telec_type == 'station':
+            self.logger.debug('Calculating {} index'.format(self.telecname))
             self.index = station_based_index(field=self.data[self.var],
                                              namelist=self.namelist,
                                              telecname=self.telecname,
                                              months_window=self.months_window,
                                              loglevel=self.loglevel, **kwargs)
-        elif self.telec_type == 'regional':
+        elif self.telec_type == 'region':
+            self.logger.debug('Calculating {} index'.format(self.telecname))
             self.index = regional_mean_index(field=self.data[self.var],
                                              namelist=self.namelist,
                                              telecname=self.telecname,
                                              months_window=self.months_window,
                                              loglevel=self.loglevel, **kwargs)
+
+        self.logger.debug(self.telecname + ' index calculated')
+        if self.index is None:
+            raise ValueError('Index not calculated')
 
         if self.savefile:
             file = self.outputdir + '/' + self.filename + '_index.nc'
@@ -460,31 +466,41 @@ class Teleconnection():
             data (xarray.DataArray): Data to be used for the regression or correlation.
             dim (str): Dimension to be used for the regression or correlation.
         """
+        if self.index is None:
+            self.logger.warning('No index has been calculated, trying to calculate')
+            self.evaluate_index()
 
-        if var is None:
+        if var is None:  # Use the teleconnection variable
             self.logger.debug('No variable specified, using teleconnection variable')
             var = self.var
-        if data is None and var is None:
+            self.logger.debug('Variable: {}'.format(var))
+
+        if data is None and var == self.var:  # Use the teleconnection data
             self.logger.debug('No data specified, using teleconnection data')
             if self.data is None:
                 self.logger.warning('No data has been loaded, trying to retrieve it')
-                self.retrieve()
+                self.retrieve()  # this will load the data in self.data
             data = self.data
+            data = data[var]
+
+            return data, dim
 
         if var != self.var:
             self.logger.debug('Variable {} is different from teleconnection variable {}'.format(var, self.var))
             self.logger.warning("The result won't be saved as teleconnection attribute")
 
-        try:
-            data = data[var]
-        except KeyError:
-            self.logger.debug('Variable {} not found'.format(var))
-            self.logger.debug('Trying to retrieve it')
-            data = self.retrieve(var=var)
-            data = data[var]
+            if data is not None:
+                try:
+                    data = data[var]
+                except KeyError:
+                    return data, dim
 
-        if self.index is None:
-            self.logger.warning('No index has been calculated, trying to calculate')
-            self.evaluate_index()
+                return data, dim
+            else:  # data is None
+                self.logger.debug('No data specified, trying to retrieve it')
+                data = self.retrieve(var=var)
+                data = data[var]
+
+                return data, dim
 
         return data, dim
