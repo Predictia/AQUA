@@ -44,10 +44,12 @@ Examples from the ocean_circulationDiagnostic class contained in the ocean_circu
 
 Functions used
 --------------
+
 .. code-block:: python
     fn.plot_stratification(data, region= False,time = "JJA",latS, latN, lonW, lonE, output= True, output_dir="./output")
 This function plots the stratification which includes the vertical temperature, salinity, and density data.
 To run this function any spatial-temporal model data required, providing if you want some oredefined regions and the climatology time and output directory.
+
 .. code-block:: python
     fn.plot_spatial_mld(dmod, region= "gulf_of_mexico",time = "JJA", output= True, output_dir="./output")
 This function plots the spatial Mixed layer depth(MLD) which includes the spatial MLD, salinity, and density data.
