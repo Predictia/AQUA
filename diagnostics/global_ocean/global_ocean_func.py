@@ -1100,7 +1100,7 @@ def multilevel_t_s_trend_plot(data1, data2, region, customise_level=False, level
         if levels is None:
             raise ValueError("Custom levels are selected, but levels are not provided.")
     else:
-        levels = [0, 100, 500, 1000, 2000, 3000, 4000, 5000]
+        levels = [0, 200, 800, 1500, 3000, 5000]
 
     # Plot data for each level
     for level in levels:
