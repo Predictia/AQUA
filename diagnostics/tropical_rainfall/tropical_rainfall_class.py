@@ -1017,8 +1017,6 @@ class Tropical_Rainfall:
             s_time (str, optional):         The starting time of the Dataset.       Defaults to None.
             f_time (str, optional):         The ending time of the Dataset.         Defaults to None.
             s_year (str, optional):         The starting year of the Dataset.       Defaults to None."""
-
-            #if color == 'tab:blue': color   = 'tab:orange'
         
         self.class_attributes_update(trop_lat = trop_lat, 
                                      s_time   = s_time,         f_time  = f_time,
@@ -1105,27 +1103,32 @@ class Tropical_Rainfall:
             y_lim_max=self.precipitation_rate_units_converter(15, old_unit='mm/day', new_unit=new_unit)
             if fig is not None:
                 
-                ax1, ax2, ax3, ax4, ax5 = fig[1], fig[2], fig[3], fig[4], fig[5]
+                ax1, ax2, ax3, ax4, ax5, ax_twin_5 = fig[1], fig[2], fig[3], fig[4], fig[5], fig[6]
                 fig = fig[0]
                 axs = [ax1, ax2, ax3, ax4, ax5]
-            #if color == 'tab:blue': color   = 'tab:orange'
+                
             elif add is None and fig is None:
-                fig = plt.figure(figsize=(11*figsize, 8.5*figsize), layout='constrained')
+                fig = plt.figure(figsize=(11*figsize, 10*figsize), layout='constrained')
                 gs = fig.add_gridspec(3,2)
-                ax1 = fig.add_subplot(gs[0, 0])
-                ax2 = fig.add_subplot(gs[0, 1])
-                ax3 = fig.add_subplot(gs[1, 0])
-                ax4 = fig.add_subplot(gs[1, 1])
-                ax5 = fig.add_subplot(gs[2, :])
-                #fig, ax  = plt.subplots(ncols=2, nrows=2,
-                #                     )
-                #[ax1, ax2, ax3, ax4] = [ ax[0,0], ax[0,1], ax[1,0], ax[1,1]]
-                #axs = [ ax[0,0], ax[0,1], ax[1,0], ax[1,1]]
-                axs = [ax1, ax2, ax3, ax4, ax5]
+                if coord=='lat':
+                    ax1 = fig.add_subplot(gs[0, 0], projection=ccrs.PlateCarree())
+                    ax2 = fig.add_subplot(gs[0, 1], projection=ccrs.PlateCarree())
+                    ax3 = fig.add_subplot(gs[1, 0], projection=ccrs.PlateCarree())
+                    ax4 = fig.add_subplot(gs[1, 1], projection=ccrs.PlateCarree())
+                    ax5 = fig.add_subplot(gs[2, :], projection=ccrs.PlateCarree())
+                    ax_twin_5 = ax5.twinx()
+                else:
+                    ax1 = fig.add_subplot(gs[0, 0])
+                    ax2 = fig.add_subplot(gs[0, 1])
+                    ax3 = fig.add_subplot(gs[1, 0])
+                    ax4 = fig.add_subplot(gs[1, 1])
+                    ax5 = fig.add_subplot(gs[2, :])
+                    ax_twin_5 = ax4.twinx()
+                axs = [ax1, ax2, ax3, ax4, ax5, ax_twin_5]
             elif add is not None:
                 fig = add 
-                ax1, ax2, ax3, ax4, ax5 = add
-                axs = [ ax1, ax2, ax3, ax4, ax5 ]
+                ax1, ax2, ax3, ax4, ax5, ax_twin_5 = add
+                axs = [ ax1, ax2, ax3, ax4, ax5]
             data_average = self.seasonal_or_monthly_mean(data,                               preprocess = preprocess,                  seasons = seasons,     
                                                         model_variable = model_variable,     trop_lat = self.trop_lat,              new_unit = new_unit, 
                                                         coord = coord)
@@ -1135,45 +1138,82 @@ class Tropical_Rainfall:
             
             for i in range(0, len(data_average)):
                 one_season = data_average[i]
-                if coord=='lat':
-                    axs[i].plot(one_season.lon,    one_season,                   color = color,  label = legend,  ls = ls)
-                elif coord=='lon':
-                    axs[i].plot(one_season.lat,    one_season,                   color = color,  label = legend,  ls = ls)  
 
-                axs[i].set_title(titles[i], fontsize = 17)
-
-
-                # Longitude labels
-                axs[i].xaxis.set_major_locator(plt.MaxNLocator(maxticknum))
-                axs[i].tick_params(axis = 'both',   which = 'major',    pad = 10)
-
+                axs[i].set_title(titles[i], fontsize = 16)
                 # Latitude labels
                 if coord == 'lat':
                     axs[i].set_xlabel('Longitude',                              fontsize=12)
                 elif coord == 'lon':
                     axs[i].set_xlabel('Latitude',                             fontsize=12)
-                try:
-                    axs[i].set_ylabel(str(varname)+', '+str(units),
-                                                                        fontsize=12)
-                except KeyError:
-                    axs[i].set_ylabel(str(varname),                            fontsize=12)
-
+               
                 if ylogscale:
                     axs[i].set_yscale('log')
                 if xlogscale:
                     axs[i].set_xscale('log')
-                axs[i].set_ylim([0, y_lim_max])
+                
                 if coord=='lat':
-                    axs[i].coastlines()
+                    # twin object for two different y-axis on the sample plot
+                    #      transform = ccrs.PlateCarree(), extend='both')
+                    ax_span = axs[i].twinx()
+                    ax_span.axhspan(-self.trop_lat, self.trop_lat,  alpha=0.05, color='tab:red')
+                    ax_span.set_ylim([-90,90])
+                    ax_span.set_xlim([-180,180])
+                    ax_span.set_xticks([])
+                    ax_span.set_yticks([])
+
+                    axs[i].coastlines(alpha=0.5)
+                    axs[i].set_xticks(np.arange(-180,181,60), crs=ccrs.PlateCarree())
+                    lon_formatter = cticker.LongitudeFormatter()
+                    axs[i].xaxis.set_major_formatter(lon_formatter)
+
+                    # Latitude labels
+                    axs[i].set_yticks(np.arange(-90,90,30), crs=ccrs.PlateCarree())
+                    lat_formatter = cticker.LatitudeFormatter()
+                    axs[i].yaxis.set_major_formatter(lat_formatter)
+                    
+                    #
+                    if i < 4:
+                        ax_twin = axs[i].twinx()
+                        ax_twin.set_frame_on(True)
+                        ax_twin.plot(one_season.lon - 180,    one_season, 
+                                    color = color,  label = legend,  ls = ls)
+                        ax_twin.set_ylim([0, y_lim_max])
+                        ax_twin.set_ylabel(str(varname)+', '+str(units),
+                                                                                    fontsize=12)
+                    else: 
+                        ax_twin_5.set_frame_on(True)
+                        ax_twin_5.plot(one_season.lon - 180,    one_season, 
+                                    color = color,  label = legend,  ls = ls)
+                        ax_twin_5.set_ylim([0, y_lim_max])
+                        ax_twin_5.set_ylabel(str(varname)+', '+str(units),
+                                                                                    fontsize=12)
+                        
+                else:   
+                    axs[i].plot(one_season.lat,    one_season,                   color = color,  label = legend,  ls = ls)  
+                    axs[i].set_ylim([0, y_lim_max])
+                    axs[i].set_xlabel('Latitude',                               fontsize=12)
+                    try:
+                        axs[i].set_ylabel(str(varname)+', '+str(units),
+                                                                                fontsize=12)
+                    except KeyError:
+                        axs[i].set_ylabel(str(varname),                         fontsize=12)
+
+
                 axs[i].grid(True)
-            if legend!='_Hidden':
-                ax5.legend(loc=loc,                                 fontsize=12,    ncol=2)
-            if plot_title is not None:
-                plt.suptitle(plot_title,                       fontsize = 17)
+            if coord=='lat':
+                if legend!='_Hidden':
+                    ax_twin_5.legend(loc=loc,    fontsize=12,    ncol=2)
+                if plot_title is not None:
+                    plt.suptitle(plot_title,                       fontsize = 17)
+            else: 
+                if legend!='_Hidden':
+                    ax5.legend(loc=loc,    fontsize=12,    ncol=2)
+                if plot_title is not None:
+                    plt.suptitle(plot_title,                       fontsize = 17)
+            
         else:   
             if fig is not None:
                 fig, ax  = fig
-            #if color == 'tab:blue': color   = 'tab:orange'
             elif add is None and fig is None:
                 fig, ax = plt.subplots( figsize=(8*figsize, 5*figsize) )
             elif add is not None:
@@ -1234,9 +1274,8 @@ class Tropical_Rainfall:
                 plt.yscale('log')
             if xlogscale:
                 plt.xscale('log')
-
+               
         # set the spacing between subplots
-        plt.tight_layout()
         if path_to_pdf is not None and name_of_file is not None:
             path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_mean.pdf'
 
@@ -1253,7 +1292,7 @@ class Tropical_Rainfall:
                         edgecolor    = 'w',
                         orientation  = 'landscape')
         if seasons:
-            return [fig,  ax1, ax2, ax3, ax4, ax5]
+            return [fig,  ax1, ax2, ax3, ax4, ax5, ax_twin_5]
         else:
             return [fig,  ax]
 
@@ -1421,17 +1460,14 @@ class Tropical_Rainfall:
         
         
         if seasons:
-            #fig, axes   = plt.subplots(ncols=2, nrows=2, 
-            #                         figsize=(11*figsize, 8.5*figsize), layout='constrained')
             
-            fig = plt.figure(figsize=(11*figsize, 8.5*figsize), layout='constrained')
+            fig = plt.figure(figsize=(11*figsize, 10*figsize), layout='constrained')
             gs = fig.add_gridspec(3,2)
-            ax1 = fig.add_subplot(gs[0, 0], projection='ccrs.PlateCarree()')
-            ax2 = fig.add_subplot(gs[0, 1])
-            ax3 = fig.add_subplot(gs[1, 0])
-            ax4 = fig.add_subplot(gs[1, 1])
-            ax5 = fig.add_subplot(gs[2, :])
-            #axs=axes.flatten()
+            ax1 = fig.add_subplot(gs[0, 0], projection=ccrs.PlateCarree())
+            ax2 = fig.add_subplot(gs[0, 1], projection=ccrs.PlateCarree())
+            ax3 = fig.add_subplot(gs[1, 0], projection=ccrs.PlateCarree())
+            ax4 = fig.add_subplot(gs[1, 1], projection=ccrs.PlateCarree())
+            ax5 = fig.add_subplot(gs[2, :], projection=ccrs.PlateCarree())
             axs = [ax1, ax2, ax3, ax4, ax5]
             all_season  = self.seasonal_or_monthly_mean(data,                preprocess = preprocess,        seasons  = seasons,     
                                         model_variable = model_variable,    trop_lat = self.trop_lat,            new_unit = new_unit )
@@ -1546,7 +1582,7 @@ class Tropical_Rainfall:
         else:
             unit = new_unit
         # Draw the colorbar
-        cbar = fig.colorbar(im1, ax=axes[:, :], location='bottom' ) 
+        cbar = fig.colorbar(im1, ax=ax5, location='bottom' ) 
         cbar.set_label(model_variable+", ["+str(unit)+"]", fontsize = 14)
 
         if plot_title is not None:
