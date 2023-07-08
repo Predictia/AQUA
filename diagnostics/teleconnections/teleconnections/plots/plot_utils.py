@@ -44,4 +44,3 @@ def minmax_maps(maps: list):
     vmax = minmax[1]
 
     return vmin, vmax
-
