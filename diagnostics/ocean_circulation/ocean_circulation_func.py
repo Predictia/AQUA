@@ -1,4 +1,4 @@
-import datetime
+import datetime, os
 import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
@@ -83,9 +83,7 @@ def predefined_regions(region):
     return latS, latN, lonW, lonE
 
 def convert_longitudes(data):
-    # Shift longitudes from -180 to 180 range to 0 to 360 range
     data = data.assign_coords(lon=(((data["lon"] + 180) % 360) - 180))
-    # Roll the data so that the prime meridian is at the center
     data = data.roll(lon=int(len(data['lon']) / 2), roll_coords=True)
     
     return data
@@ -120,7 +118,7 @@ def area_selection(data, region=None, latS: float=None, latN: float=None, lonW: 
         latS, latN, lonW, lonE = predefined_regions(region)
     if lonW < 0 or lonE < 0:
             data = convert_longitudes(data)
-    logger.info(f" data selected for this region, latitude {latS} to {latN}, longitude {lonW} to {lonE}")
+    logger.info(f"Selected for this region (latitude {latS} to {latN}, longitude {lonW} to {lonE})")
     # Perform data slicing based on the specified or predefined latitude and longitude boundaries
     data = data.sel(lat=slice(latS, latN), lon=slice(lonW, lonE))
     
@@ -129,13 +127,11 @@ def area_selection(data, region=None, latS: float=None, latN: float=None, lonW: 
 def weighted_area_mean(data, region=None, latS: float=None, latN: float=None, lonW: float=None, lonE: float=None):
     
     data = area_selection(data, region, latS =None, latN =None, lonW =None, lonE =None )
-    # Calculate weighted data based on cosine of latitude
     weighted_data = data.weighted(np.cos(np.deg2rad(data.lat)))
-    # Calculate weighted mean along latitude and longitude axes
     wgted_mean = weighted_data.mean(("lat", "lon"))
     return wgted_mean
 
-def mean_value_plot(data, region, customise_level=False, levels=None, outputfig="./figs"):
+def mean_value_plot(data, region, customise_level=False, levels=None, outputfig="figs"):
     # Calculate weighted area mean
     data = weighted_area_mean(data, True, region)
 
@@ -254,7 +250,7 @@ def std_anom_wrt_time_mean(data, use_predefined_region: bool, region: str = None
 
 
 
-def ocpt_so_anom_plot(data, region, outputfig="./figs"):
+def ocpt_so_anom_plot(data, region, outputfig="figs"):
     """
     Create a Hovmoller plot of temperature and salinity anomalies.
 
@@ -302,7 +298,7 @@ def ocpt_so_anom_plot(data, region, outputfig="./figs"):
 
 
 
-def time_series(data, region, customise_level=False, levels=None, outputfig="./figs"):
+def time_series(data, region, customise_level=False, levels=None, outputfig="figs"):
     """
     Create time series plots of global temperature and salinity standardised anomalies at selected levels.
 
@@ -618,13 +614,12 @@ def prepare_data_for_stratification_plot(data, region=None, time = None, latS: f
     data = convert_variables(data)
     data_rho = data["rho"] -1000
     data["rho"] = data_rho
-    # print(data)
     data = data_time_selection(data, time)
     return data
 
 def data_time_selection(data, time):
-    if type(time) is str:
-        time = time.lower()
+    
+    time = time.lower()
     if time in ["jan", "january", "1", 1]:
         data = data.where(data.time.dt.month == 1, drop=True)
     elif time in ["feb", "february", "2", 2]:
@@ -683,21 +678,19 @@ def compare_arrays(mod_data, obs_data):
     
     return mod_data_list, obs_data_selected
 
-def plot_file_saving(data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
-                            lonE: float=None, outputfig="./figs", plot_name = None):
+def plot_naming(data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
+                            lonE: float=None, outputfig="figs", plot_name = None):
     if region in [None, "custom", "Custom"]:
         region = "custom"
-        filename = f"{outputfig}/{plot_name}_{time}_{region.replace(' ', '_').lower()}_lat_{latS}_{latN}_lon_{lonW}_{lonE}_mean.png"
+        filename = f"{plot_name}_{time}_{region.replace(' ', '_').lower()}_lat_{latS}_{latN}_lon_{lonW}_{lonE}_mean"
     else: 
-        filename = f"{outputfig}/{plot_name}_{time}_{region.replace(' ', '_').lower()}_mean.png"
+        filename = f"{plot_name}_{time}_{region.replace(' ', '_').lower()}_mean"
 
-    plt.savefig(filename)
-    logger.info(f"{filename} saved")
     return filename
 
 
 def plot_stratification(mod_data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
-                            lonE: float=None, outputfig="./figs"):
+                            lonE: float=None, outputfig="figs", output= "output"):
     obs_data= load_obs_data().interp(lev=mod_data.lev)
     obs_data= crop_obs_overlap_time(mod_data, obs_data)
     
@@ -710,17 +703,35 @@ def plot_stratification(mod_data, region=None, time = None, latS: float=None, la
     fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(14, 8))
     logger.info("Stratification plot is in process")
     
+    file_name = plot_naming(mod_data, region, time, latS, latN, lonE, lonW, outputfig, plot_name= "stratification")
+    current_time= f'{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
+    output_path = f"{output}/{current_time}_{file_name}"
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+    
     legend_list = []
     for i, var in zip(range(len(axs)), ["ocpt", "so", "rho"]):
         axs[i].set_ylim((4500, 0))
-        axs[i].plot(mod_data_list[0][var].mean("time"), mod_data.lev, 'g-', linewidth=2.0)
-        legend_list.append(f"EXP first half {mod_data_list[0].time[0].dt.year.data}-{mod_data_list[0].time[-1].dt.year.data}")
+        data_1 = mod_data_list[0][var].mean("time")
+        
+        axs[i].plot(data_1, data_1.lev, 'g-', linewidth=2.0)
+        legend_info = f"Model {mod_data_list[0].time[0].dt.year.data}-{mod_data_list[0].time[-1].dt.year.data}"
+        legend_list.append(legend_info)
+        data_1.to_netcdf(f'{output_path}/{file_name}_{legend_info.replace(" ","_")}.nc')
+        
+        
         if len(mod_data_list) > 1:
-            axs[i].plot(mod_data_list[1][var].mean("time"), mod_data.lev, 'b-', linewidth=2.0)
-            legend_list.append(f"EXP last half {mod_data_list[1].time[0].dt.year.data}-{mod_data_list[1].time[-1].dt.year.data}")
+            data_2 = mod_data_list[1][var].mean("time")
+            axs[i].plot(data_2, data_2.lev, 'b-', linewidth=2.0)
+            legend_info = f"Model {mod_data_list[1].time[0].dt.year.data}-{mod_data_list[1].time[-1].dt.year.data}"
+            legend_list.append(legend_info)
+            data_2.to_netcdf(f'{output_path}/{file_name}_{legend_info.replace(" ","_")}.nc')
         if obs_data != None:
-            axs[i].plot(obs_data[var].mean("time"), obs_data.lev, 'r-', linewidth=2.0)
-            legend_list.append(f"EN4 {obs_data.time[0].dt.year.data}-{obs_data.time[-1].dt.year.data}")
+            data_3 = obs_data[var].mean("time")
+            axs[i].plot(data_3, data_3.lev, 'r-', linewidth=2.0)
+            legend_info = f"Obs {obs_data.time[0].dt.year.data}-{obs_data.time[-1].dt.year.data}"
+            legend_list.append(legend_info)
+            data_3.to_netcdf(f'{output_path}/{file_name}_{legend_info.replace(" ","_")}.nc')
         
     fig.suptitle(f"Mean state {time.upper()} T, S, rho0 stratification in {region}", fontsize=20, weight='bold')
     axs[0].set_title("Temperature Profile", fontsize=14, weight='bold')
@@ -739,8 +750,9 @@ def plot_stratification(mod_data, region=None, time = None, latS: float=None, la
 
     axs[0].legend(legend_list, loc='best')
 
-    file = plot_file_saving(mod_data, region, time, latS, latN, lonE, lonW, outputfig, plot_name= "stratification")
-
+    plt.savefig(f"{outputfig}/{file_name}.png")
+    logger.info(f"{outputfig}/{file_name} saved")
+    logger.info(f"Data used in the plot, saved here : {output_path}")
     plt.show()
     return 
     
@@ -768,7 +780,6 @@ def compute_mld_cont(rho):
     """
     # Here we identify the first level to represent the surfac
     surf_dens= rho.isel(lev=slice(0,1)).mean("lev") 
-
 
     # We compute the density anomaly between surface and whole field
     dens_ano = rho-surf_dens
@@ -805,14 +816,15 @@ def data_for_plot_spatial_mld(data, region=None, time = None, latS: float=None, 
     # print(data)
     data = compute_mld_cont(data)
     # print(data)
+    # print(time)
     data = data_time_selection(data, time)
     
     return data
 
         
 
-def plot_spatial_mld(data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
-                            lonE: float=None, outputfig="./figs"):
+def plot_spatial_mld(mod_data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
+                            lonE: float=None, outputfig="figs", output= "output"):
     """
     Plots the climatology of mixed layer depth in the NH as computed with de Boyer Montegut (2004)'s criteria in 
     an observational dataset and a model dataset, allowing the user to select the month the climatology is computed
@@ -833,23 +845,35 @@ def plot_spatial_mld(data, region=None, time = None, latS: float=None, latN: flo
 
     """
     
-    datamod_clim=data_for_plot_spatial_mld(data, region, time, latS, latN, lonE, lonW).mean("time") # To select the month and compute its climatology
+    mod_clim=data_for_plot_spatial_mld(mod_data, region, time, latS, latN, lonE, lonW).mean("time") # To select the month and compute its climatology
     obs_data = load_obs_data(model='EN4',exp='en4',source='monthly')
-    dataobs_clim=data_for_plot_spatial_mld(obs_data, region, time, latS, latN, lonE, lonW).mean("time") # To select the month and compute its climatology
+    obs_clim=data_for_plot_spatial_mld(obs_data, region, time, latS, latN, lonE, lonW).mean("time") # To select the month and compute its climatology
     
-    mod_clim = datamod_clim["rho"]
-    obs_clim = dataobs_clim["rho"]
+    mod_clim = mod_clim["rho"]
+    obs_clim = obs_clim["rho"]
     
     
     logger.info("Spatial MLD plot is in process")
-    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(22, 4))
-    fig.suptitle("Mean state Month mixed layer depth", fontsize=20, weight='bold')
+    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(22, 8))
     
+    fig.suptitle(f"{region} Mean state {time.upper()} mixed layer depth", fontsize=25, weight='bold')
+    
+    file_name = plot_naming(mod_clim, region, time, latS, latN, lonE, lonW, outputfig, plot_name= "spatial_MLD")
+    current_time= f'{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
+    output_path = f"{output}/{current_time}_{file_name}"
+ 
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+    
+    # axs[0].set_extent([78,100,4,25])    
     cs1=axs[0].contourf(mod_clim.lon,mod_clim.lat,mod_clim,
                         levels=np.linspace(np.min(mod_clim),np.max(mod_clim),27),cmap='seismic',extend='both')
+    mod_clim.to_netcdf(f'{output_path}/{file_name}_Rho.nc')
+    
     cs1=axs[1].contourf(obs_clim.lon,obs_clim.lat,obs_clim,
                         levels=np.linspace(np.min(mod_clim),np.max(mod_clim),27),cmap='seismic',extend='both')
- 
+    obs_clim.to_netcdf(f'{output_path}/{file_name}_Rho.nc')
+    
     axs[0].set_title("Model climatology", fontsize=14, weight='bold')
     axs[0].set_ylabel("Latitude", fontsize=12)
     axs[0].set_xlabel("Longitude", fontsize=12)
@@ -861,15 +885,11 @@ def plot_spatial_mld(data, region=None, time = None, latS: float=None, latN: flo
     
     cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])  # Adjust the position and size as needed
     fig.colorbar(cs1, cax=cbar_ax)
-    # cs1_ax=fig.add_axes([0.93,0.56,0.02,0.3])
-    # cba=fig.colorbar(cs1,cax=cs1_ax)
-    plt.subplots_adjust(wspace=0.1)
-
-#   To be added:
-#   1) USE COMMON COLORBAR FOR BOTH FIGURES
-#   2) NEED TO SAVE PLOTS AND CLIMATOLOGIES AS NETCDF FILES
-#   3) FINDING A WAY TO SPECIFY MONTH AND DATASETS IN THE FIGURES
     
-    file = plot_file_saving(data, region, time, latS, latN, lonE, lonW, outputfig, plot_name= "spatial_MLD")
+
+    plt.subplots_adjust(top=0.80, wspace=0.1)
+    plt.savefig(f"{outputfig}/{file_name}.png")
+    logger.info(f"{outputfig}/{file_name} saved")
+    
     plt.show()
     return
