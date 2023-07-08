@@ -1157,7 +1157,7 @@ class Tropical_Rainfall:
                     ax_span = axs[i].twinx()
                     ax_span.axhspan(-self.trop_lat, self.trop_lat,  alpha=0.05, color='tab:red')
                     ax_span.set_ylim([-90,90])
-                    ax_span.set_xlim([-180,180])
+                    #ax_span.set_xlim([-180,180])
                     ax_span.set_xticks([])
                     ax_span.set_yticks([])
 
@@ -1167,7 +1167,7 @@ class Tropical_Rainfall:
                     axs[i].xaxis.set_major_formatter(lon_formatter)
 
                     # Latitude labels
-                    axs[i].set_yticks(np.arange(-90,90,30), crs=ccrs.PlateCarree())
+                    axs[i].set_yticks(np.arange(-90,91,30), crs=ccrs.PlateCarree())
                     lat_formatter = cticker.LatitudeFormatter()
                     axs[i].yaxis.set_major_formatter(lat_formatter)
                     
@@ -1573,7 +1573,6 @@ class Tropical_Rainfall:
                 lat_formatter = cticker.LatitudeFormatter()
                 axs[i].yaxis.set_major_formatter(lat_formatter)
                 axs[i].grid(True)
-        #fig.tight_layout()
         if new_unit is None:
             try:
                 unit        = data[model_variable].units
