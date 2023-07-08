@@ -176,29 +176,55 @@ class Teleconnection():
 
         self.logger.info('Teleconnection analysis completed')
 
-    def retrieve(self, **kwargs):
+    def retrieve(self, var=None, **kwargs):
         """Retrieve teleconnection data.
 
         Args:
+            var (str, optional): Variable to be retrieved.
+                                 If None, the variable specified in the namelist
             **kwargs: Keyword arguments to be passed to the reader.
+
+        Returns:
+            xarray.DataArray: Data retrieved if a variable is specified.
         """
+        if var is None:
+            try:
+                self.data = self.reader.retrieve(var=self.var, **kwargs)
+            except ValueError:
+                self.logger.warning('Variable {} not found'.format(self.var))
+                self.logger.warning('Trying to retrieve without fixing and **kwargs')
+                self.data = self.reader.retrieve(var=self.var, fix=False)
+            self.logger.info('Data retrieved')
 
-        try:
-            self.data = self.reader.retrieve(var=self.var, **kwargs)
-        except ValueError:
-            self.logger.warning('Variable {} not found'.format(self.var))
-            self.logger.warning('Trying to retrieve without fixing and **kwargs')
-            self.data = self.reader.retrieve(var=self.var, fix=False)
-        self.logger.info('Data retrieved')
+            if self.regrid:
+                self.data = self.reader.regrid(self.data)
+                self.logger.info('Data regridded')
 
-        if self.regrid:
-            self.data = self.reader.regrid(self.data)
-            self.logger.info('Data regridded')
+            if self.freq:
+                if self.freq == 'monthly':
+                    self.data = self.reader.timmean(self.data)
+                    self.logger.info('Time aggregated to {}'.format(self.freq))
 
-        if self.freq:
-            if self.freq == 'monthly':
-                self.data = self.reader.timmean(self.data)
-                self.logger.info('Time aggregated to {}'.format(self.freq))
+            return
+        else:
+            try:
+                data = self.reader.retrieve(var=var, **kwargs)
+            except ValueError:
+                self.logger.warning('Variable {} not found'.format(var))
+                self.logger.warning('Trying to retrieve without fixing and **kwargs')
+                data = self.reader.retrieve(var=var, fix=False)
+            self.logger.info('Data retrieved')
+
+            if self.regrid:
+                data = self.reader.regrid(data)
+                self.logger.info('Data regridded')
+
+            if self.freq:
+                if self.freq == 'monthly':
+                    data = self.reader.timmean(data)
+                    self.logger.info('Time aggregated to {}'.format(self.freq))
+
+            return data
 
     def evaluate_index(self, **kwargs):
         """Calculate teleconnection index.
@@ -438,7 +464,7 @@ class Teleconnection():
         if var is None:
             self.logger.debug('No variable specified, using teleconnection variable')
             var = self.var
-        if data is None:
+        if data is None and var is None:
             self.logger.debug('No data specified, using teleconnection data')
             if self.data is None:
                 self.logger.warning('No data has been loaded, trying to retrieve it')
@@ -455,6 +481,7 @@ class Teleconnection():
             self.logger.debug('Variable {} not found'.format(var))
             self.logger.debug('Trying to retrieve it')
             data = self.retrieve(var=var)
+            data = data[var]
 
         if self.index is None:
             self.logger.warning('No index has been calculated, trying to calculate')
