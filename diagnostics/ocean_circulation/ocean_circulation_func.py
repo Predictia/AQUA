@@ -14,41 +14,70 @@ logger = logging.getLogger(__name__)
 
 def predefined_regions(region):
     region = region.lower()
-    if region in ["indian ocean", "indian_ocean"]:
-        latN = 30.0
-        latS = -30.0
-        lonW = 100.0
-        lonE = 300.0
-    elif region in ["labrador sea"]:
-        latN = 65.0
-        latS = 50.0
-        lonW = 300.0
-        lonE = 325.0
-    elif region in ["global ocean"]:
-        latN = 90.0
-        latS = -90.0
-        lonW = 0.0
-        lonE = 360.0
-    elif region in ["atlantic ocean"]:
-        latN = 65.0
-        latS = -35.0
-        lonW = -80.0
-        lonE = 30.0
-    elif region in ["pacific ocean"]:
-        latN = 65.0
-        latS = -55.0
-        lonW = 120.0
-        lonE = 290.0
-    elif region in ["arctic ocean"]:
-        latN = 90.0
-        latS = 65.0
-        lonW = 0.0
-        lonE = 360.0
-    elif region in ["southern ocean"]: 
-        latN = -55.0
-        latS = -80.0
-        lonW = -180.0
-        lonE = 180.0
+    if region in ["indian_ocean", "indian ocean"]:
+        latN, latS, lonW, lonE = 30.0, -30.0, 100.0, 300.0
+    elif region in ["labrador_sea", "labrador sea"]:
+        latN, latS, lonW, lonE = 65.0, 50.0, 300.0, 325.0
+    elif region in ["global_ocean", "global ocean"]:
+        latN, latS, lonW, lonE = 90.0, -90.0, 0.0, 360.0
+    elif region in ["atlantic_ocean", "atlantic ocean"]:
+        latN, latS, lonW, lonE = 65.0, -35.0, -80.0, 30.0
+    elif region in ["pacific_ocean", "pacific ocean"]:
+        latN, latS, lonW, lonE = 65.0, -55.0, 120.0, 290.0
+    elif region in ["arctic_ocean", "arctic ocean"]:
+        latN, latS, lonW, lonE = 90.0, 65.0, 0.0, 360.0
+    elif region in ["southern_ocean", "southern ocean"]:
+        latN, latS, lonW, lonE = -55.0, -80.0, -180.0, 180.0
+    elif region in ["bering_sea", "bering sea"]:
+        latN, latS, lonW, lonE = 66.0, 53.0, 168.0, -178.0
+    elif region in ["gulf_of_mexico", "gulf of mexico"]:
+        latN, latS, lonW, lonE = 30.0, 18.0, -97.0, -81.0
+    elif region in ["hudson_bay", "hudson bay"]:
+        latN, latS, lonW, lonE = 63.0, 51.0, -95.0, -75.0
+    elif region in ["red_sea", "red sea"]:
+        latN, latS, lonW, lonE = 30.0, 12.0, 32.0, 44.0
+    elif region in ["persian_gulf", "persian gulf"]:
+        latN, latS, lonW, lonE = 30.0, 24.0, 48.0, 56.0
+    elif region in ["adriatic_sea", "adriatic sea"]:
+        latN, latS, lonW, lonE = 45.0, 40.0, 13.0, 19.0
+    elif region in ["caribbean_sea", "caribbean sea"]:
+        latN, latS, lonW, lonE = 23.0, 9.0, -85.0, -60.0
+    elif region in ["sea_of_japan", "sea of japan"]:
+        latN, latS, lonW, lonE = 43.0, 34.0, 129.0, 132.0
+    elif region in ["mediterranean_sea", "mediterranean sea"]:
+        latN, latS, lonW, lonE = 46.0, 30.0, -6.0, 36.0
+    elif region in ["black_sea", "black sea"]:
+        latN, latS, lonW, lonE = 45.0, 41.0, 27.0, 41.0
+    elif region in ["south_china_sea", "south china sea"]:
+        latN, latS, lonW, lonE = 21.0, 3.0, 99.0, 121.0
+    elif region in ["arabian_sea", "arabian sea"]:
+        latN, latS, lonW, lonE = 25.0, 12.0, 50.0, 70.0
+    elif region in ["coral_sea", "coral sea"]:
+        latN, latS, lonW, lonE = -10.0, -24.0, 147.0, 157.0
+    elif region in ["timor_sea", "timor sea"]:
+        latN, latS, lonW, lonE = -10.0, -13.0, 123.0, 129.0
+    elif region in ["gulf_of_alaska", "gulf of alaska"]:
+        latN, latS, lonW, lonE = 60.0, 48.0, -145.0, -136.0
+    elif region in ["east_china_sea", "east china sea"]:
+        latN, latS, lonW, lonE = 35.0, 30.0, 120.0, 128.0
+    elif region in ["labrador_sea", "labrador sea"]:
+        latN, latS, lonW, lonE = 62.0, 50.0, -63.0, -35.0
+    elif region in ["sea_of_okhotsk", "sea of okhotsk"]:
+        latN, latS, lonW, lonE = 60.0, 45.0, 142.0, 163.0
+    elif region in ["philippine_sea", "philippine sea"]:
+        latN, latS, lonW, lonE = 25.0, 5.0, 117.0, 135.0
+    elif region in ["ross_sea", "ross sea"]:
+        latN, latS, lonW, lonE = -60.0, -78.0, 160.0, -150.0
+    elif region in ["sargasso_sea", "sargasso sea"]:
+        latN, latS, lonW, lonE = 35.0, 20.0, -70.0, -50.0
+    elif region in ["andaman_sea", "andaman sea"]:
+        latN, latS, lonW, lonE = 20.0, 6.0, 93.0, 98.0
+    elif region in ["weddell_sea", "weddell sea"]:
+        latN, latS, lonW, lonE = -60.0, -78.0, -45.0, 20.0
+    elif region in ["java_sea", "java sea"]:
+        latN, latS, lonW, lonE = -6.0, -8.0, 105.0, 117.0
+    elif region in ["beaufort_sea", "beaufort sea"]:
+        latN, latS, lonW, lonE = 79.0, 68.0, -140.0, -148.0
     else:
         raise ValueError("Invalid region. Available options: 'Indian Ocean', 'Labrador Sea', 'Global Ocean', 'Atlantic Ocean', 'Pacific Ocean', 'Arctic Ocean', 'Southern Ocean'")
     return latS, latN, lonW, lonE
@@ -86,11 +115,11 @@ def area_selection(data, region=None, latS: float=None, latN: float=None, lonW: 
         if latN is None or latS is None or lonW is None or lonE is None:
             raise ValueError("When region is None, latN, latS, lonW, lonE values need to be specified.")
         
-        if lonW < 0 or lonE < 0:
-            data = convert_longitudes(data)
     else:
         # Obtain latitude and longitude boundaries for the predefined region
         latS, latN, lonW, lonE = predefined_regions(region)
+    if lonW < 0 or lonE < 0:
+            data = convert_longitudes(data)
     logger.info(f" data selected for this region, latitude {latS} to {latN}, longitude {lonW} to {lonE}")
     # Perform data slicing based on the specified or predefined latitude and longitude boundaries
     data = data.sel(lat=slice(latS, latN), lon=slice(lonW, lonE))
@@ -549,14 +578,21 @@ def convert_variables(data):
    
 def split_time_equally(data):
     date_len = len(data.time)
-    if date_len != 1:
+    data_1 = None
+    data_2 = None
+    if date_len == 0:
+        raise("Time lenth is 0 in the data")
+    elif date_len == 1:
+        data = data
+    else :
+        data = None
         if date_len % 2 == 0:
             data_1 = data.isel(time=slice(0, int(date_len/2)))
             data_2 = data.isel(time=slice(int(date_len/2), date_len))
         else:
             data_1 = data.isel(time=slice(0, int((date_len-1)/2)))
             data_2 = data.isel(time=slice(int((date_len-1)/2), date_len))
-    return data_1, data_2
+    return [data, data_1, data_2]
 
 
 def load_obs_data(model='EN4',exp='en4',source='monthly'):
@@ -589,34 +625,40 @@ def prepare_data_for_stratification_plot(data, region=None, time = None, latS: f
 def data_time_selection(data, time):
     if type(time) is str:
         time = time.lower()
-    if time in ["jan", "january", "1"]:
+    if time in ["jan", "january", "1", 1]:
         data = data.where(data.time.dt.month == 1, drop=True)
-    elif time in ["feb", "february", "2"]:
+    elif time in ["feb", "february", "2", 2]:
         data = data.where(data.time.dt.month == 2, drop=True)
-    elif time in ["mar", "march", "3"]:
+    elif time in ["mar", "march", "3", 3]:
         data = data.where(data.time.dt.month == 3, drop=True)
-    elif time in ["apr", "april", "4"]:
+    elif time in ["apr", "april", "4",4]:
         data = data.where(data.time.dt.month == 4, drop=True)
-    elif time in ["may", "5"]:
+    elif time in ["may", "5", 5]:
         data = data.where(data.time.dt.month == 5, drop=True)
-    elif time in ["jun", "june", "6"]:
+    elif time in ["jun", "june", "6", 6]:
         data = data.where(data.time.dt.month == 6, drop=True)
-    elif time in ["jul", "july", "7"]:
+    elif time in ["jul", "july", "7", 7]:
         data = data.where(data.time.dt.month == 7, drop=True)
-    elif time in ["aug", "august", "8"]:
+    elif time in ["aug", "august", "8", 8]:
         data = data.where(data.time.dt.month == 8, drop=True)
-    elif time in ["sep", "sept", "september", "9"]:
+    elif time in ["sep", "sept", "september", "9", 9]:
         data = data.where(data.time.dt.month == 9, drop=True)
-    elif time in ["oct", "october", "10"]:
+    elif time in ["oct", "october", "10", 10]:
         data = data.where(data.time.dt.month == 10, drop=True)
-    elif time in ["nov", "november", "11"]:
+    elif time in ["nov", "november", "11", 11]:
         data = data.where(data.time.dt.month == 11, drop=True)
-    elif time in ["dec", "december", "12"]:
+    elif time in ["dec", "december", "12", 12]:
         data = data.where(data.time.dt.month == 12, drop=True)
-    elif time in ["yearly", "year", "Y"]:
+    elif time in ["yearly", "year", "y"]:
         data = data.groupby('time.year').mean(dim='time')
-    elif time in ["JJA"]:
+    if time in ["jja", "jun_jul_aug", "jun-jul-aug", "june-july-august", "june_july_august"]:
         data = data.where((data['time.month'] >= 6) & (data['time.month'] <= 8), drop=True)
+    elif time in ["fma", "feb_mar_apr", "feb-mar-apr", "february-march-april", "february_march_april"]:
+        data = data.where((data['time.month'] >= 2) & (data['time.month'] <= 4), drop=True)
+    elif time in ["djf", "dec_jan_feb", "dec-jan-feb", "december-january-february", "december_january_february"]:
+        data = data.where((data['time.month'] == 12) | (data['time.month'] <= 2), drop=True)
+    elif time in ["son", "sep_oct_nov", "sep-oct-nov", "september-october-november", "september_october_november"]:
+        data = data.where((data['time.month'] >= 9) & (data['time.month'] <= 11), drop=True)
     else:
         raise ValueError("""Invalid month input. Please provide a valid name. Among this:
                          Yearly, 3M, Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec """)
@@ -627,19 +669,19 @@ def data_time_selection(data, time):
 def compare_arrays(mod_data, obs_data):
     if (obs_data.time == mod_data.time).all() and (len(mod_data.time) == len(obs_data.time)):
         mod_data_list = [mod_data]
-        obs_data = obs_data
+        obs_data_selected = obs_data
         logger.info("obs data and model data time scale fully matched")
     elif (obs_data.time == mod_data.time).any():
         mod_data_ov = mod_data.sel(time=obs_data.time)
         mod_data_list= [mod_data_ov, mod_data]
-        obs_data = obs_data
+        obs_data_selected = obs_data
         logger.info("Model and Obs data time partly matched")
     else:
         mod_data_list = split_time_equally(mod_data)
-        obs_data = obs_data
+        obs_data_selected = None
         logger.info("Model data time is not avaiable for the obs data")
     
-    return mod_data_list, obs_data
+    return mod_data_list, obs_data_selected
 
 def plot_file_saving(data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
                             lonE: float=None, outputfig="./figs", plot_name = None):
@@ -663,34 +705,39 @@ def plot_stratification(mod_data, region=None, time = None, latS: float=None, la
     mod_data = prepare_data_for_stratification_plot(mod_data, region, time, latS, latN, lonE, lonW)
     mod_data_list, obs_data=  compare_arrays(mod_data, obs_data)
     
-    fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(14, 8))
-    fig.suptitle(f"Mean state annual T, S, rho0 stratification in {region}", fontsize=16)
+    mod_data_list = list(filter(lambda value: value is not None, mod_data_list))
 
+    fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(14, 8))
     logger.info("Stratification plot is in process")
+    
+    legend_list = []
     for i, var in zip(range(len(axs)), ["ocpt", "so", "rho"]):
         axs[i].set_ylim((4500, 0))
         axs[i].plot(mod_data_list[0][var].mean("time"), mod_data.lev, 'g-', linewidth=2.0)
+        legend_list.append(f"EXP first half {mod_data_list[0].time[0].dt.year.data}-{mod_data_list[0].time[-1].dt.year.data}")
         if len(mod_data_list) > 1:
             axs[i].plot(mod_data_list[1][var].mean("time"), mod_data.lev, 'b-', linewidth=2.0)
-            if var == "ocpt":
-                axs[i].legend(f"EXP {mod_data_list[1].time[0].dt.year.data}-{mod_data_list[1].time[-1].dt.year.data}")
-        axs[i].plot(obs_data[var].mean("time"), obs_data.lev, 'r-', linewidth=2.0)
-        if var == "ocpt":
-            axs[i].set_title("Temperature Profile", fontsize=14)
-            axs[i].set_ylabel("Depth (m)", fontsize=15)
-            axs[i].set_xlabel("Temperature (°C)", fontsize=12)
-            # axs[i].legend([f"EXP first half {mod_data_list[0].time[0].dt.year.data}-{mod_data_list[0].time[-1].dt.year.data}"], loc='best')
-                    # f"EN4 {obs_data.time[0].dt.year.data}-{obs_data.time[-1].dt.year.data}"], loc='best')
-            #         f"EXP last half {mod_data_list[1].time[0].dt.year.data}-{mod_data_list[1].time[-1].dt.year.data}"], loc='best')
-        if var == "so":
-            axs[i].set_title("Salinity Profile", fontsize=14)
-            axs[i].set_xlabel("Salinity (psu)", fontsize=12)
-            axs[i].legend([f"EN4 {obs_data.time[0].dt.year.data}-{obs_data.time[-1].dt.year.data}"], loc='best')
-        if var == "rho":
-            axs[i].set_title("Rho (ref 0) Profile", fontsize=14)
-            axs[i].set_xlabel("Density Anomaly (kg/m³)", fontsize=12)
-            axs[i].legend([f"EXP {mod_data_list[0].time[0].dt.year.data}-{mod_data_list[0].time[-1].dt.year.data}"], loc='best')
+            legend_list.append(f"EXP last half {mod_data_list[1].time[0].dt.year.data}-{mod_data_list[1].time[-1].dt.year.data}")
+        if obs_data != None:
+            axs[i].plot(obs_data[var].mean("time"), obs_data.lev, 'r-', linewidth=2.0)
+            legend_list.append(f"EN4 {obs_data.time[0].dt.year.data}-{obs_data.time[-1].dt.year.data}")
+        
+    fig.suptitle(f"Mean state {time.upper()} T, S, rho0 stratification in {region}", fontsize=20, weight='bold')
+    axs[0].set_title("Temperature Profile", fontsize=14, weight='bold')
+    axs[0].set_ylabel("Depth (m)", fontsize=15)
+    axs[0].set_xlabel("Temperature (°C)", fontsize=12)
 
+    axs[1].set_title("Salinity Profile", fontsize=14, weight='bold')
+    axs[1].set_xlabel("Salinity (psu)", fontsize=12)
+    # axs[1].set_ylabel("", fontsize=0)
+    axs[1].set_yticklabels([]) 
+
+    axs[2].set_title("Rho (ref 0) Profile", fontsize=14, weight='bold')
+    axs[2].set_xlabel("Density Anomaly (kg/m³)", fontsize=12)
+    # axs[2].set_ylabel("", fontsize=0)
+    axs[2].set_yticklabels([]) 
+
+    axs[0].legend(legend_list, loc='best')
 
     file = plot_file_saving(mod_data, region, time, latS, latN, lonE, lonW, outputfig, plot_name= "stratification")
 
@@ -790,19 +837,33 @@ def plot_spatial_mld(data, region=None, time = None, latS: float=None, latN: flo
     obs_data = load_obs_data(model='EN4',exp='en4',source='monthly')
     dataobs_clim=data_for_plot_spatial_mld(obs_data, region, time, latS, latN, lonE, lonW).mean("time") # To select the month and compute its climatology
     
-    logger.info("Spatial MLD plot is in process")
-    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(22, 4))
-    fig.suptitle("Mean state Month mixed layer depth", fontsize=16)
+    mod_clim = datamod_clim["rho"]
+    obs_clim = dataobs_clim["rho"]
     
-    datamod_clim["rho"].plot(ax=ax1)
-    ax1.set_title("Model climatology", fontsize=14)
-    ax1.set_ylabel("Latitude", fontsize=12)
-    ax1.set_xlabel("Longitude", fontsize=12)
-
-    dataobs_clim["rho"].plot(ax=ax2)
-    ax2.set_title("OBS climatology", fontsize=14)
-    ax2.set_ylabel("Latitude", fontsize=12)
-    ax2.set_xlabel("Longitude", fontsize=12)
+    
+    logger.info("Spatial MLD plot is in process")
+    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(22, 4))
+    fig.suptitle("Mean state Month mixed layer depth", fontsize=20, weight='bold')
+    
+    cs1=axs[0].contourf(mod_clim.lon,mod_clim.lat,mod_clim,
+                        levels=np.linspace(np.min(mod_clim),np.max(mod_clim),27),cmap='seismic',extend='both')
+    cs1=axs[1].contourf(obs_clim.lon,obs_clim.lat,obs_clim,
+                        levels=np.linspace(np.min(mod_clim),np.max(mod_clim),27),cmap='seismic',extend='both')
+ 
+    axs[0].set_title("Model climatology", fontsize=14, weight='bold')
+    axs[0].set_ylabel("Latitude", fontsize=12)
+    axs[0].set_xlabel("Longitude", fontsize=12)
+    
+    axs[1].set_title("OBS climatology", fontsize=14, weight='bold')
+    # axs[1].set_ylabel("Latitude", fontsize=12)
+    axs[1].set_xlabel("Longitude", fontsize=12)
+    axs[1].set_yticklabels([]) 
+    
+    cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])  # Adjust the position and size as needed
+    fig.colorbar(cs1, cax=cbar_ax)
+    # cs1_ax=fig.add_axes([0.93,0.56,0.02,0.3])
+    # cba=fig.colorbar(cs1,cax=cs1_ax)
+    plt.subplots_adjust(wspace=0.1)
 
 #   To be added:
 #   1) USE COMMON COLORBAR FOR BOTH FIGURES
