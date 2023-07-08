@@ -5,7 +5,7 @@ ECmean4 Performance Indices
 Those numbers provides an estimates of the DE_340 models climatological *skill* of some selected atmospheric and oceanic fields.
 
 Description
-===========
+-----------
 
 The diagnotic computes the `Reichler and Kim Performance Indices <https://journals.ametsoc.org/view/journals/bams/89/3/bams-89-3-303.xml>`_, usually known as PIs. 
 Following the ECmean4 implementation, some minor differences from the original definition has been introduced, so that the PIs are computed on a common (1x1 deg) grid rather than on the model grid.
