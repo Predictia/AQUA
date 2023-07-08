@@ -51,11 +51,8 @@ Examples from the ocean_circulationDiagnostic class contained in the ocean_circu
 Functions used
 --------------
 
-Example of functions contained in the ocean_circulation_func.py file:
-
-* "ocean_circulation_func": ocean_circulation function used in the ocean_circulation class.
-
-Note that it is important to add docstrings to each method or function.
+fn.plot_stratification(data, region= False,time = "JJA",latS, latN, lonW, lonE, output= True, output_dir="./output")
+fn.plot_spatial_mld(dmod, region= "gulf_of_mexico",time = "JJA", output= True, output_dir="./output")
 
 Observations
 ------------
@@ -71,17 +68,22 @@ References
 Example Plot(s)
 ---------------
 
-.. figure:: figures/ocean_circulation-diagnostic1.png
+.. figure:: figures/ocean_circulation1.png
     :width: 10cm
 
-    An illustration of the big void left by this diagnostic
+    This is stratification plot. 
+
+.. figure:: figures/ocean_circulation2.png
+    :width: 10cm
+
+    This mixed layer depth plot
 
 Available demo notebooks
 ------------------------
 
 Notebooks are stored in diagnostics/ocean_circulation-diagnostic/notebooks
 
-* `ocean_circulation.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/ocean_circulation-diagnostic/notebooks/ocean_circulation.ipynb>`_
+* `ocean_circulation.ipynb <https://github.com/oloapinivad/AQUA/blob/devel/ocean_circulation/diagnostics/ocean_circulation/notebooks/ocean_circulation.ipynb>`_
         
 Detailed API
 ------------
