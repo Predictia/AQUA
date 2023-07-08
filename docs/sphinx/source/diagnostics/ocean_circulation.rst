@@ -36,26 +36,39 @@ Examples from the ocean_circulationDiagnostic class contained in the ocean_circu
 
 * "ocean_circulationDiagnostic": the ocean_circulation diagnostic class;
 * "retrieve": method to retrieve the data from the Reader class;
-* "fldmean": method to compute the field mean of the retrieved data;
-* "multiplication": method to compute the multiplication of the retrieved data. 
-                    It is an example of method that uses of external functions of the module ocean_circulation_func
+* 
 
 ...
 
-Functions used
+Functions Used
 --------------
 
-.. code-block:: python
-    fn.plot_stratification(data, region= False,time = "JJA",latS, latN, lonW, lonE, output= True, output_dir="./output")
+The `ocean_circulation` diagnostic package includes the following functions:
 
-This function plots the stratification which includes the vertical temperature, salinity, and density data.
-To run this function any spatial-temporal model data required, providing if you want some oredefined regions and the climatology time and output directory.
+### `fn.plot_stratification(data, region=False, time="JJA", latS, latN, lonW, lonE, output=True, output_dir="./output")`
 
-.. code-block:: python
-    fn.plot_spatial_mld(dmod, region= "gulf_of_mexico",time = "JJA", output= True, output_dir="./output")
-ç
-This function plots the spatial Mixed layer depth(MLD) which includes the spatial MLD, salinity, and density data.
-To run this function any spatial-temporal model data required, providing if you want some oredefined regions and the climatology time and output directory.
+This function plots the stratification, including the vertical temperature, salinity, and density data.
+
+**Parameters:**
+- `data`: Spatial-temporal model data required for plotting.
+- `region` (optional): Predefined regions for the plot.
+- `time` (optional): Climatology time for the plot.
+- `latS`, `latN`, `lonW`, `lonE`: Latitude and longitude ranges for the plot.
+- `output` (optional): Boolean value to specify if the plot should be saved as an output file.
+- `output_dir` (optional): Output directory for saving the plot.
+
+### `fn.plot_spatial_mld(dmod, region="gulf_of_mexico", time="JJA", output=True, output_dir="./output")`
+
+This function plots the spatial Mixed Layer Depth (MLD), including the MLD, salinity, and density data.
+
+**Parameters:**
+- `dmod`: Spatial-temporal model data required for plotting.
+- `region` (optional): Predefined regions for the plot.
+- `time` (optional): Climatology time for the plot.
+- `output` (optional): Boolean value to specify if the plot should be saved as an output file.
+- `output_dir` (optional): Output directory for saving the plot.
+
+These functions are used in the `ocean_circulation` diagnostic package to visualize and analyze ocean circulation data.
 
 Observations
 ------------
