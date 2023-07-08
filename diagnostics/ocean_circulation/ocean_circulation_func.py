@@ -605,7 +605,7 @@ def crop_obs_overlap_time(mod_data, obs_data):
     common_time = xr.DataArray(np.intersect1d(mod_data_time, obs_data_time), dims='time')
     if len(common_time) > 0:
         obs_data = obs_data.sel(time=common_time)
-    logger.info("selected the available temporal obs data compare to ")
+        logger.info("selected the overlaped time of the obs data compare to the model")
     return obs_data
 
 def prepare_data_for_stratification_plot(data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
@@ -678,19 +678,25 @@ def compare_arrays(mod_data, obs_data):
     
     return mod_data_list, obs_data_selected
 
-def plot_naming(data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
-                            lonE: float=None, outputfig="figs", plot_name = None):
+def dir_creation(data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
+                            lonE: float=None, output_dir = True , plot_name = None):
     if region in [None, "custom", "Custom"]:
         region = "custom"
         filename = f"{plot_name}_{time}_{region.replace(' ', '_').lower()}_lat_{latS}_{latN}_lon_{lonW}_{lonE}_mean"
     else: 
         filename = f"{plot_name}_{time}_{region.replace(' ', '_').lower()}_mean"
-
-    return filename
+    
+    current_time = f'{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
+    output_path = f"{output_dir}/{current_time}_{filename}"
+    fig_dir = f"{output_path}/figs"
+    data_dir = f"{output_path}/data"
+    os.makedirs(fig_dir)
+    os.makedirs(data_dir)
+    return output_path, fig_dir, data_dir, filename
 
 
 def plot_stratification(mod_data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
-                            lonE: float=None, outputfig="figs", output= "output"):
+                            lonE: float=None,  output= True, output_dir = "output"):
     obs_data= load_obs_data().interp(lev=mod_data.lev)
     obs_data= crop_obs_overlap_time(mod_data, obs_data)
     
@@ -703,11 +709,10 @@ def plot_stratification(mod_data, region=None, time = None, latS: float=None, la
     fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(14, 8))
     logger.info("Stratification plot is in process")
     
-    file_name = plot_naming(mod_data, region, time, latS, latN, lonE, lonW, outputfig, plot_name= "stratification")
-    current_time= f'{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
-    output_path = f"{output}/{current_time}_{file_name}"
-    if not os.path.exists(output_path):
-        os.makedirs(output_path)
+    
+    if output == True:
+        output_path, fig_dir, data_dir, filename = dir_creation(mod_data, region, time, latS, latN, lonE, lonW, output_dir, plot_name= "stratification")
+    
     
     legend_list = []
     for i, var in zip(range(len(axs)), ["ocpt", "so", "rho"]):
@@ -717,7 +722,7 @@ def plot_stratification(mod_data, region=None, time = None, latS: float=None, la
         axs[i].plot(data_1, data_1.lev, 'g-', linewidth=2.0)
         legend_info = f"Model {mod_data_list[0].time[0].dt.year.data}-{mod_data_list[0].time[-1].dt.year.data}"
         legend_list.append(legend_info)
-        data_1.to_netcdf(f'{output_path}/{file_name}_{legend_info.replace(" ","_")}.nc')
+        if output == True: data_1.to_netcdf(f'{data_dir}/{filename}_{legend_info.replace(" ","_")}.nc')
         
         
         if len(mod_data_list) > 1:
@@ -725,13 +730,13 @@ def plot_stratification(mod_data, region=None, time = None, latS: float=None, la
             axs[i].plot(data_2, data_2.lev, 'b-', linewidth=2.0)
             legend_info = f"Model {mod_data_list[1].time[0].dt.year.data}-{mod_data_list[1].time[-1].dt.year.data}"
             legend_list.append(legend_info)
-            data_2.to_netcdf(f'{output_path}/{file_name}_{legend_info.replace(" ","_")}.nc')
+            if output == True: data_2.to_netcdf(f'{data_dir}/{filename}_{legend_info.replace(" ","_")}.nc')
         if obs_data != None:
             data_3 = obs_data[var].mean("time")
             axs[i].plot(data_3, data_3.lev, 'r-', linewidth=2.0)
             legend_info = f"Obs {obs_data.time[0].dt.year.data}-{obs_data.time[-1].dt.year.data}"
             legend_list.append(legend_info)
-            data_3.to_netcdf(f'{output_path}/{file_name}_{legend_info.replace(" ","_")}.nc')
+            if output == True: data_3.to_netcdf(f'{data_dir}/{filename}_{legend_info.replace(" ","_")}.nc')
         
     fig.suptitle(f"Mean state {time.upper()} T, S, rho0 stratification in {region}", fontsize=20, weight='bold')
     axs[0].set_title("Temperature Profile", fontsize=14, weight='bold')
@@ -750,9 +755,9 @@ def plot_stratification(mod_data, region=None, time = None, latS: float=None, la
 
     axs[0].legend(legend_list, loc='best')
 
-    plt.savefig(f"{outputfig}/{file_name}.png")
-    logger.info(f"{outputfig}/{file_name} saved")
-    logger.info(f"Data used in the plot, saved here : {output_path}")
+    if output == True:
+        plt.savefig(f"{fig_dir}/{filename}.png")
+        logger.info(f" Figure and data used in the plot, saved here : {output_path}")
     plt.show()
     return 
     
@@ -824,7 +829,7 @@ def data_for_plot_spatial_mld(data, region=None, time = None, latS: float=None, 
         
 
 def plot_spatial_mld(mod_data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
-                            lonE: float=None, outputfig="figs", output= "output"):
+                            lonE: float=None, output= False, output_dir= "output"):
     """
     Plots the climatology of mixed layer depth in the NH as computed with de Boyer Montegut (2004)'s criteria in 
     an observational dataset and a model dataset, allowing the user to select the month the climatology is computed
@@ -848,31 +853,28 @@ def plot_spatial_mld(mod_data, region=None, time = None, latS: float=None, latN:
     mod_clim=data_for_plot_spatial_mld(mod_data, region, time, latS, latN, lonE, lonW).mean("time") # To select the month and compute its climatology
     obs_data = load_obs_data(model='EN4',exp='en4',source='monthly')
     obs_clim=data_for_plot_spatial_mld(obs_data, region, time, latS, latN, lonE, lonW).mean("time") # To select the month and compute its climatology
-    
+    obs_data= crop_obs_overlap_time(mod_data, obs_data)
+
     mod_clim = mod_clim["rho"]
     obs_clim = obs_clim["rho"]
     
+    if output == True:
+        output_path, fig_dir, data_dir, filename = dir_creation(mod_data, region, time, latS, latN, lonE, lonW, output_dir, plot_name= "spatial_MLD")
     
     logger.info("Spatial MLD plot is in process")
     fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(22, 8))
     
+    
     fig.suptitle(f"{region} Mean state {time.upper()} mixed layer depth", fontsize=25, weight='bold')
     
-    file_name = plot_naming(mod_clim, region, time, latS, latN, lonE, lonW, outputfig, plot_name= "spatial_MLD")
-    current_time= f'{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
-    output_path = f"{output}/{current_time}_{file_name}"
- 
-    if not os.path.exists(output_path):
-        os.makedirs(output_path)
-    
-    # axs[0].set_extent([78,100,4,25])    
     cs1=axs[0].contourf(mod_clim.lon,mod_clim.lat,mod_clim,
                         levels=np.linspace(np.min(mod_clim),np.max(mod_clim),27),cmap='seismic',extend='both')
-    mod_clim.to_netcdf(f'{output_path}/{file_name}_Rho.nc')
     
     cs1=axs[1].contourf(obs_clim.lon,obs_clim.lat,obs_clim,
                         levels=np.linspace(np.min(mod_clim),np.max(mod_clim),27),cmap='seismic',extend='both')
-    obs_clim.to_netcdf(f'{output_path}/{file_name}_Rho.nc')
+    if output == True:
+        mod_clim.to_netcdf(f'{data_dir}/{filename}_Rho.nc')
+        obs_clim.to_netcdf(f'{data_dir}/{filename}_Rho.nc')
     
     axs[0].set_title("Model climatology", fontsize=14, weight='bold')
     axs[0].set_ylabel("Latitude", fontsize=12)
@@ -888,8 +890,10 @@ def plot_spatial_mld(mod_data, region=None, time = None, latS: float=None, latN:
     
 
     plt.subplots_adjust(top=0.80, wspace=0.1)
-    plt.savefig(f"{outputfig}/{file_name}.png")
-    logger.info(f"{outputfig}/{file_name} saved")
+    
+    if output == True:
+        plt.savefig(f"{fig_dir}/{filename}.png")
+        logger.info(f"Figure and data used for this plot are saved here: {output_path}")
     
     plt.show()
     return

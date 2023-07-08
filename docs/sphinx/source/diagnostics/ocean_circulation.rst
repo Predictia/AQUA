@@ -27,8 +27,8 @@ The ocean_circulation diagnostic follows a class structure and consists of the f
 Input variables example
 ------------------------
 
-* `tprate` (total precipitation rate, GRIB paramid 260048)
-* `2t`     (2 metre temperature, GRIB pramid 167)
+* `ocpt` (Ocean potential temperature, GRIB paramid 150129)
+* `so`     (Sea water practical salinity, GRIB pramid 151130)
 
 Output 
 ------
@@ -60,12 +60,12 @@ Note that it is important to add docstrings to each method or function.
 Observations
 ------------
 
-If relevant, list the observational datasets used by this diagnostic (e.g. for validation/comparison). Some examples are ERA5 reanalysis, CERES, MSWEP etc...
+EN4 Observation datasets user in this diagnostics.
 
 References
 ----------
 
-* E. Empty, D. ocean_circulation et al. (2023) The art of saying nothing. Emptyness, 1: 0-1. `DOI <http://doi.org/00.0000/e-00000-000.xxxx>`_
+.. * E. Empty, D. ocean_circulation et al. (2023) The art of saying nothing. Emptyness, 1: 0-1. `DOI <http://doi.org/00.0000/e-00000-000.xxxx>`_
 
 
 Example Plot(s)
