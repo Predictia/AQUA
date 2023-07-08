@@ -153,8 +153,6 @@ def mean_value_plot(data, region, customise_level=False, levels=None, outputfig=
     return 
 
 
-
-
 def std_anom_wrt_initial(data, region=None, latS=None, latN=None, lonW=None, lonE=None):
     """
     Compute the standard anomaly with respect to the initial time step of data within the specified latitude and longitude bounds.
@@ -1031,3 +1029,117 @@ def lintrend_2D(y_array):
     #data.ocpt.attrs['units'] = 'Standardised Units'
     return trend
 
+def lintrend_3D(y_array):
+    """
+    Simplified version of linregress_3D that computes the trends in a 4D array formated in time, depth, latitude and longitude coordinates
+
+    It outputs the trends in xarray format
+
+    Parameters
+    ----------
+    data : y_array.Dataset
+    
+    Dataset containing a single 4D field with time, depth, latitude and longitude as coordinates
+ 
+
+    Returns
+    -------
+    n,slope,intercept,p_val,r_square,rmse
+
+    """
+    
+    x_array=np.empty(y_array.shape)
+    for i in range(y_array.shape[0]): x_array[i,:,:,:]=i+1 # This would be fine if time series is not too long. Or we can use i+yr (e.g. 2019).
+    x_array[np.isnan(y_array)]=np.nan
+    # Compute the number of non-nan over each (lon,lat) grid box.
+    n=np.sum(~np.isnan(x_array),axis=0)
+    # Compute mean and standard deviation of time series of x_array and y_array over each (lon,lat) grid box.
+    x_mean=np.nanmean(x_array,axis=0)
+    y_mean=np.nanmean(y_array,axis=0)
+    x_std=np.nanstd(x_array,axis=0)
+    y_std=np.nanstd(y_array,axis=0)
+    # Compute co-variance between time series of x_array and y_array over each (lon,lat) grid box.
+    cov=np.nansum((x_array-x_mean)*(y_array-y_mean),axis=0)/n
+    # Compute correlation coefficients between time series of x_array and y_array over each (lon,lat) grid box.
+    cor=cov/(x_std*y_std)
+    # Compute slope between time series of x_array and y_array over each (lon,lat) grid box.
+    trend=cov/(x_std**2)
+    
+    # Do further filteration if needed (e.g. We stipulate at least 3 data records are needed to do regression analysis) and return values
+    n=n*1.0 # convert n from integer to float to enable later use of np.nan
+    n[n<3]=np.nan
+    trend[np.isnan(n)]=np.nan
+    
+    #trend=xr.DataArray(trend,coords={"lat": y_array.lat,"lon": y_array.lon},name=str(y_array.name),dims=["lat","lon"])
+    trend=xr.DataArray(trend,coords={"lev": y_array.lev,"lat": y_array.lat,"lon": y_array.lon},name=f"{y_array.name} trends",dims=["lev","lat","lon"])
+    trend.attrs['units'] = f"{y_array.units}/year"
+
+    #data.ocpt.attrs['units'] = 'Standardised Units'
+    return trend
+
+def multilevel_t_s_trend_plot(data1, data2, region, customise_level=False, levels=None, outputfig="./figs"):
+    """
+    Plots spatial trends at different vertical levels for two variables
+
+    Parameters
+    ----------
+    data1 : y_array of dataset1 containing a single 3D field with trends as a function of depth, lat and lon
+ 
+    data2 : y_array of dataset2 containing a single 3D field with trends as a function of depth, lat and lon
+
+    region (str): Region name
+    
+    customise_level (bool): Whether to use custom levels or predefined levels.
+
+    levels (list): List of levels to plot. Ignored if customise_level is False.
+
+    """
+
+    # Define the levels for plotting
+    if customise_level:
+        if levels is None:
+            raise ValueError("Custom levels are selected, but levels are not provided.")
+    else:
+        levels = [0, 100, 500, 1000, 2000, 3000, 4000, 5000]
+
+    # Plot data for each level
+    for level in levels:
+        if level != 0:
+            data_level = data.sel(lev=slice(None, level)).isel(lev=-1)
+        else:
+            data_level = data.isel(lev=0)
+
+        # Plot temperature
+        data_level.ocpt.plot.line(ax=ax1,label=f"{round(int(data_level.lev.data), -2)}")
+
+        # Plot salinity
+        data_level.so.plot.line(ax=ax2,label=f"{round(int(data_level.lev.data), -2)}")
+
+    nlev=len(levels)
+    
+    # Create subplots
+    fig, (ax1, ax2) = plt.subplots(nrows=nlev, ncols=2)
+
+    # Set the title
+    fig.suptitle(region, fontsize=16)
+
+    # Set properties for the temperature subplot
+    ax1.set_title("Temperature", fontsize=14)
+    ax1.set_ylabel("Standardized Units (at the respective level)", fontsize=12)
+    ax1.set_xlabel("Time (in years)", fontsize=12)
+    ax1.legend(loc="best")
+
+    # Set properties for the salinity subplot
+    ax2.set_title("Salinity", fontsize=14)
+    ax2.set_ylabel("Standardized Units (at the respective level)", fontsize=12)
+    ax2.set_xlabel("Time (in years)", fontsize=12)
+    ax2.legend(loc="best")
+    filename = f"{outputfig}/TS_{region.replace(' ', '_').lower()}_mean.png"
+
+    plt.savefig(filename)
+    logger.info(f"{filename} saved")
+    # Adjust the layout and display the plot
+    plt.show()
+
+    # Return the last value of data_level
+    return
