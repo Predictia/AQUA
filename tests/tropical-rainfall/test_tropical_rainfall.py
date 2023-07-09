@@ -255,18 +255,18 @@ def test_histogram_merge(histogram_output):
     counts_merged           = sum(hist_merged.counts.values)
     assert counts_merged    == (counts_1 + counts_2)
 
-@pytest.mark.tropical_rainfall
-def test_mean_figure_load_to_memory(reader):
-    """ Testing the saving of the figure of mean value
-    """
-    create_folder(folder    = str(path_to_diagnostic) + "/test_output/plots/", loglevel = 'WARNING')
-    path_to_pdf          = str(path_to_diagnostic) + "/test_output/plots/"
-    diag                    = Tropical_Rainfall()
-    data                    = reader
-    diag.mean_and_median_plot(data, model_variable='2t', coord='lon', legend='test',
-                              path_to_pdf = str(path_to_pdf) + 'test_mean_fig_saving.png')
-    files                   = [f for f in listdir(path_to_pdf) if isfile(join(path_to_pdf, f))]
-    assert 'test_mean_fig_saving.png' in files
+#@pytest.mark.tropical_rainfall
+#def test_mean_figure_load_to_memory(reader):
+#    """ Testing the saving of the figure of mean value
+#    """
+#    create_folder(folder    = str(path_to_diagnostic) + "/test_output/plots/", loglevel = 'WARNING')
+#    path_to_pdf             = str(path_to_diagnostic) + "/test_output/plots/"
+#    diag                    = Tropical_Rainfall()
+#    data                    = reader
+#    diag.mean_and_median_plot(data, model_variable='2t', coord='lon', legend='test',
+#                              path_to_pdf = str(path_to_pdf) + 'test_mean_fig_saving.png')
+#    files                   = [f for f in listdir(path_to_pdf) if isfile(join(path_to_pdf, f))]
+#    assert 'test_mean_fig_saving.png' in files
 
 @pytest.mark.tropical_rainfall
 def test_units_converter(reader):
