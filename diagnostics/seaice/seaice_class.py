@@ -175,7 +175,7 @@ class SeaIceExtent:
                     pass
                 else:
                     # NetCDF variable
-                    varName = f"{setup[0]}_{setup[1]}_{setup[2]}_{region}"
+                    varName = f"{setup[0]}_{setup[1]}_{setup[2]}_{region.replace(' ', '')}"
                     dataset[varName] = self.myExtents[js][jr]
 
                     outputDir = "./NetCDF/"
