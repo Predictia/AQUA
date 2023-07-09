@@ -29,7 +29,6 @@ The source code is organized in the following way:
 - `index.py` contains functions for the direct evaluation of teleconnection indices.
 - `statistics.py` contains functions for the regression and correlation analysis.
 - `tc_class.py` contains the class that is used to run the diagnostic.
-It consists of the following library files:
 
 A configuration file is available in the `config` folder.
 It can be customized to add new teleconnections or to change the default parameters of the diagnostic.
@@ -84,7 +83,7 @@ Example plot
 .. figure:: figures/teleconnections.png
    :width: 10 cm
 
-    Example plot of the NAO index for ERA5 data.
+   Example plot of the NAO index for ERA5 data.
 
 Available demo notebooks
 ------------------------
