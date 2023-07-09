@@ -186,9 +186,9 @@ The lazy mode
 --------------
 
 The user can calculate the histogram of global or tropical precipitation in the so-called lazy (or delayed) mode. 
-To do this, the user needs to set the `lazy`` flag to True.
+To do this, the user needs to set the **lazy** flag to True.
 
-  .. code-block:: python
+.. code-block:: python
 
     hist_icon_lazy=diag.histogram(icon, lazy=True)
 
@@ -196,25 +196,25 @@ If the user is ready to compute the histogram,
 he can apply the function `histogram_to_xarray` to add frequency and pdf variables to the dataset.
 The function `data_with_global_atributes` argument is needed to populate Dataset with global attributes: 
 
-  .. code-block:: python
+.. code-block:: python
 
-    diag.histogram_to_xarray(hist_counts=hist_icon_lazy, data_with_global_atributes=icon)
+  diag.histogram_to_xarray(hist_counts=hist_icon_lazy, data_with_global_atributes=icon)
 
 
 Output 
 ------
 
 The diagnostic already provides unique names for the files which contain the histogram.  
-The file's name includes the first and last time steps, for which the diagnostic does the calculations, in the following format: `year-month-day-hour`. 
+The file's name includes the first and last time steps, for which the diagnostic does the calculations, in the following format: **year-month-day-hour**. 
 The name of the file, which the user specified, would be added at the beginning of the file name. 
-For example, for one day of the icon data (`freq=30m`) 
+For example, for one day of the icon data (**freq=30m**) 
 
-  .. code-block:: python
+.. code-block:: python
 
-    path_to_save='/work/bb1153/b382267/AQUA/histograms/'
-    diag.save_histogram(dataset=hist_icon, path_to_save=path_to_save, name_of_file='icon')
+  path_to_save='/work/bb1153/b382267/AQUA/histograms/'
+  diag.save_histogram(dataset=hist_icon, path_to_save=path_to_save, name_of_file='icon')
 
-the name of the histogram is `icon_2020-01-20T00_2020-01-20T23_histogram.pkl`.
+the name of the histogram is **icon_2020-01-20T00_2020-01-20T23_histogram.pkl**.
 
 List of histograms 
 ------------------
@@ -223,27 +223,27 @@ The diagnostic can combine any number of histograms into a single histogram, rec
 the frequencies and pdf values and modifying the attributes automatically.
 
 
-If you want to merge all histograms if the specified repository, set the following flag: `all=True.`
+If you want to merge all histograms if the specified repository, set the following flag: **all=True**.
 
-  .. code-block:: python
+.. code-block:: python
 
-    path_to_histograms='/path/to/folder/with/histograms/'
+  path_to_histograms='/path/to/folder/with/histograms/'
 
-    merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, all=True)
-    merged_histograms
+  merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, all=True)
+  merged_histograms
 
 **Reminder**: Store the obtained histograms for distinct models in separate repositories to avoid possible errors. 
 
 
-If you want to merge only a specific number of histograms, set the function `multi`-argument. 
-The function will sort the files in the repository and take the first `multi` number of histograms in the repository.
+If you want to merge only a specific number of histograms, set the function **multi**-argument. 
+The function will sort the files in the repository and take the first **multi** number of histograms in the repository.
 
-  .. code-block:: python
+.. code-block:: python
 
-    path_to_histograms='/path/to/folder/with/histograms/'
+  path_to_histograms='/path/to/folder/with/histograms/'
 
-    merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, multi=10)
-    merged_histograms
+  merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, multi=10)
+  merged_histograms
 
 
 The histogram plots 
@@ -254,64 +254,276 @@ The user can create plots of the obtained data in  different styles and scales.
 
 The simplest way to plot the histogram is:
 
-  .. code-block:: python
-    diag.hist_figure(hist_icon) 
+.. code-block:: python
+  
+  diag.hist_figure(hist_icon) 
 
-The function `hist_figure` has an extensive set of arguments.
+The function **hist_figure** has an extensive set of arguments.
 
 #. The first and major group of arguments relates to the histogram type: 
 
-   * `pdf`-histogram: `pdf=True`, also it is the default value, 
+   * `pdf`-histogram: **pdf=True**, also it is the default value, 
 
-   * `frequency`-histogram: `frequency=True, pdf=False`,
+   * `frequency`-histogram: **frequency=True, pdf=False**,
 
-   * `counts`-histogram: `frequency=False, pdf=False`.
+   * `counts`-histogram: **frequency=False, pdf=False**.
 
 #. The second group of arguments related to the plot style:
 
-   * `smooth` (bool, True by default): if True, smooth 2D line
+   * **smooth** (bool, True by default): if True, smooth 2D line
 
-   * `step` (bool, False by default): if True, step line 
+   * **step** (bool, False by default): if True, step line 
 
-   * `color_map` (bool/str, False/'viridis' by default): if not False, color map plot
+   * **color_map** (bool/str, False/'viridis' by default): if not False, color map plot
 
 #. The third set of arguments involves the figure settings:
 
-   * `ls` (str, '-'): The line style for the plot. 
+   * **ls** (str, '-'): The line style for the plot. 
 
-   * `ylogscale` (bool, True): The logarithmic scale for the y-axis. 
+   * **ylogscale** (bool, True): The logarithmic scale for the y-axis. 
 
-   * `xlogscale` (bool, False): The logarithmic scale for the x-axis. 
+   * **xlogscale** (bool, False): The logarithmic scale for the x-axis. 
 
-   * `color` (str, 'tab:blue'): The color of the plot. 
+   * **color** (str, 'tab:blue'): The color of the plot. 
  
-   * `figsize` (float, 1): The size of the figure. 
+   * **figsize** (float, 1): The size of the figure. 
 
-   * `legend` (str, '_Hidden'): The legend label for the plot. 
+   * **legend** (str, '_Hidden'): The legend label for the plot. 
 
-   * `varname` (str, 'Precipitation'): The variable's name for the x-axis label. 
+   * **varname** (str, 'Precipitation'): The variable's name for the x-axis label. 
 
-   * `plot_title` (str, None): The plot's title.
+   * **plot_title** (str, None): The plot's title.
  
-   * `loc` (str, 'upper right'): The location of the legend. 
+   * **loc** (str, 'upper right'): The location of the legend. 
 
-   * `add/fig` (tuple, None): Tuple of (fig, ax) to add the plot to an existing figure. / The figure object to plot on.
+   * **add/fig** (tuple, None): Tuple of (fig, ax) to add the plot to an existing figure.  The figure object to plot on.
 
-   * `path_to_figure` (str, None): The path to save the figure. If provided, saves the figure at the specified path.
+   * **path_to_figure** (str, None): The path to save the figure. If provided, saves the figure at the specified path.
 
 Below is an additional example of a histogram plot.
 
-  .. code-block:: python
-    diag.hist_figure(histogram, smooth = False, color_map = 'gist_heat', figsize=0.7, 
+.. code-block:: python
+
+  diag.hist_figure(histogram, smooth = False, color_map = 'gist_heat', figsize=0.7, 
                xlogscale = True, ylogscale=True,  plot_title = "ICON, trop precipitation rate")
 
 
 You can find an example of the histogram obtained with the tropical-rainfall diagnostic below. 
 
 .. figure:: figures/tropical-rainfall-histogram.png
-    :width: 10cm
+    :width: 20cm
 
     The pdf of tropical precipitation of the ICON data. 
+
+Mean and Median Values 
+----------------------
+
+#. Mean values
+   The **mean_along_coordinate** function calculates the mean value of a model variable (by default of precipitation) 
+   along any coordinate or global mean. The function has an argument **coordinate**, which can be 
+
+   * **time** (by default)
+
+   * **lat** or **latitude**
+
+   * **lon** or **longitude**
+
+   For eample,
+   
+   .. code-block:: python
+
+     diag.mean_along_coordinate(ifs, coord='lat')
+
+   The function calculates the global mean value if the user sets the **glob = True**:
+   
+   .. code-block:: python
+
+     diag.mean_along_coordinate(ifs, glob=True)
+
+#. Median values
+
+   The **median_along_coordinate** function calculates the median value of a model variable (by default of precipitation)
+   along any coordinate or global median.
+   The function has an argument **coordinate**, which can be 
+
+   * **time** (by default)
+
+   * **lat** or **latitude**
+
+   * **lon** or **longitude**
+
+   For eample,
+   
+   .. code-block:: python
+
+     diag.median_along_coordinate(ifs, coord='lat')
+
+   The function calculates the global median value if the user sets the **glob = True**:
+  
+   .. code-block:: python
+
+     diag.median_along_coordinate(icon, glob=True)
+
+
+
+The diagnostic provides a simple plotting function for mean and median values of precipitation.
+For example, the function
+
+.. code-block:: python
+
+  add = diag.mean_and_median_plot(icon,          coord='lat', legend='mean',   figsize=0.8)
+  add = diag.mean_and_median_plot(icon, fig=add, coord='lat', legend='median', get_median=True)
+  diag.mean_and_median_plot(icon,       fig=add, coord='lat', legend='global', get_median=True, glob=True, color='k',
+                          loc='upper left')
+
+produces the following plot
+
+.. figure:: figures/trop-rainfall-mean-lat.png
+    :width: 20cm
+
+Mean Absolute Percent Error (MAPE)
+----------------------------------
+
+The Mean Absolute Percent Error (MAPE) is a metric that quantifies the average percentage difference between the
+predicted values and the actual values. It is calculated as the average of the absolute percentage errors for each data point.
+
+To calculate the MAPE, follow these steps:
+
+* Calculate the absolute error for each data point by taking the absolute difference between the predicted value
+and the corresponding actual value.
+
+* Calculate the percentage error for each data point by dividing the absolute error by the actual value and multiplying by 100.
+
+The final formula for MAPE is:
+
+.. math::
+
+  MAPE = 100 * \frac{observations - dataset}{observations}
+
+The most important feature of the function is that before comparing the confidence interval in the datasets function :
+
+* verifies that two datasets are in the same units and, if not, converts the units of the second dataset to the units of the first dataset.
+
+* re-grids the time and space grid of the dataset, which has a higher time or spatial resolution.
+
+By default, the function compares provided dataset with *era5, monthly* data and returns a xarrray with the lowest spatial and time resolution between provided two.
+The user can decrease the resolution even more by
+
+* :math:`space_grid_factor`: if the factor is positive and integer, the space grid frequency will be increased in  :math:`space_grid_factor` times;
+The space grid frequency will be decreased in :math:`space_grid_factor` times if the factor is negative and integer.
+
+* :math:`time_freq`: new frequency of time coordinates in the MAPE dataset (for example, `3H`, `5D`, `2M` etc.).
+
+* :math:`time_grid_factor`: the factor will proportionally decrease or increase the frequency of time coordinate (:math:`freq = freq * time_grid_factor`).
+
+* :math:`time_length`: the new length of the time coordinate.
+
+
+The MAPE of **icon, monthly** data in comparison with **era, monthly** data can be computed as
+
+.. code-block:: python
+
+  mape_icon = diag.mean_absolute_percent_error(icon, trop_lat=90)
+
+Normalized Forecast Metric (NFM)
+--------------------------------
+
+Another formula to measure forecast bias is called Normalized Forecast Metric (Singh, 2021).
+
+NFM is equal to:
+
+.. math::
+
+    normalized_forecast_metric = \frac{dataset - observations}{dataset + observations}
+
+
+The result of this method should be between -1 (**under-forecast**) and 1, (**over-forecast**), with 0 indicating of no bias.
+
+The NFS of **icon, monthly** data in comparison with **era, monthly** data (default) can be computes as
+
+.. code-block:: python
+
+  nfm_icon = diag.normilized_forecast_metric(icon, trop_lat=90)
+
+and with **mswep, monthly** data as:
+
+.. code-block:: python
+
+  nfm_ifs_mswep = diag.normilized_forecast_metric(ifs, model='mswep', trop_lat=90)
+
+The diagnostic provides a simple plotting function for MAPE and NFM datasets. For example, the function
+
+.. code-block:: python
+
+  diag.snapshot_plot(nfm_ifs_mswep, trop_lat=90, vmin=-1, vmax=1,  colorbarname="NFM")
+
+produces the following plot
+
+.. figure:: figures/trop-rainfall-nfm-if-mswep.png
+    :width: 20cm
+
+95% Confidence Interval
+-----------------------
+
+The formula used to calculate the confidence interval is following:A confidence interval is a range of values within which 
+we believe the true population parameter is likely to fall, given the sample data and a specified level of confidence.
+
+The range of confidence interval we can find with the use of margin error:
+
+.. math::
+
+  Confidence_interval = ( Mean - Margin_error, Mean + Margin_error )
+
+
+
+In statistics, the margin of error represents the maximum amount of error or uncertainty associated with estimating a 
+population parameter based on a sample. It quantifies the range within which the true population parameter is expected to fall.
+
+The formula used to calculate the margin error is following
+
+.. math::
+
+  Margin_error = \frac{Z_score * std(X_{pr})}{ \sqrt{N} }  
+
+where
+
+ * :math:`std\(X_{pr}\)` is the standart error of model variable, i.e., precipitation,
+ * :math:`N` is the size of the dataset,
+ * :math:`Z_{score}=1.96` is value for a 95% confidence interval.
+
+
+
+The global confidence interval can be found with the **confidence_interval_along_coordinate** function and bool argument
+**glob=True**:
+
+.. code-block:: python
+
+  diag.median_along_coordinate(icon, glob=True)
+
+The confidence interval along some coordinate (time, latitude or longitude) can be found as:
+
+.. code-block:: python
+
+  conf_interval_icon = diag.confidence_interval_along_coordinate(icon, coord='lat')
+  conf_interval_icon
+
+The **check_if_belong_to_confidence_interval** function checks if some dataset belongs to the confidence interval of the first dataset.
+By definition, the function does the check for era5 data and provided dataset.
+
+The most important feature of the function is that before comparing the confidence interval in the datasets function:
+
+* verifies that two datasets are in the same units and, if not, converts the units of the second dataset to the units of the first dataset,
+
+* re-grids the time and space grid of the dataset, which has a higher time or spatial resolution.
+
+
+The function also has a bool argument **plot**, which is **True** by definition. In that case, the function returns plots of the two datasets
+(provided and *era5* by default) and their confidence intervals. For example,
+
+.. figure:: figures/trop-rainfall-conf-interval.png
+    :width: 20cm
+
+
 
 Notebooks 
 ---------
@@ -351,3 +563,20 @@ The notebook folder contains the following notebooks:
     The notebook illustrates that:
     - The tropical precipitation diagnostic can be applied to any climate model variable.  
 
+ - `The comparison with observations <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_mean/diagnostics/tropical-rainfall/notebooks/comparison_with_observations.ipynb>`_:
+
+    The notebook compares the presipitation from the different model with observations:
+    - calculations of Mean Absolute Percent Error (MAPE), 
+    - calculations of Normilized Forecast Metric (NFM),
+    - the flotting function for MAPE and NFM.
+
+ - `The mean and median values of tropical precipitation <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_mean/diagnostics/tropical-rainfall/notebooks/ICON_mean_and_median.ipynb>`_:
+
+    The notebook shows the results of:
+    - mean of tropical precipitation calculations,
+    - median of tropical precipitation calculations,
+    - ..
+
+ - `The 95% confidence interval <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_mean/diagnostics/tropical-rainfall/notebooks/confidence_interval.ipynb>`_:
+
+    The notebook shows ...
