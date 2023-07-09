@@ -54,7 +54,6 @@ if __name__ == '__main__':
     # Search for entries under 'sources' key
     config_dict = get_dataset_config(sources=config,
                                      dataset_source='source')
-    print(config_dict)
 
     teleconnection = Teleconnection(telecname=telecname, configdir=configdir,
                                     **config_dict,  # from cli config file
