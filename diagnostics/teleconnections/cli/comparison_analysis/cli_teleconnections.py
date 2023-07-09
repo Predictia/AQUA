@@ -9,7 +9,7 @@ import sys
 import argparse
 
 from aqua.util import load_yaml, get_arg
-from teleconnections.plots import maps_plot
+from teleconnections.plots import single_map_plot
 from teleconnections.tc_class import Teleconnection
 from teleconnections.tools import get_dataset_config
 
@@ -100,83 +100,118 @@ if __name__ == '__main__':
     teleconnection_obs.run()
 
     if savefig:
-        # Build lists for comparison plots
-        regs = []
-        corrs = []
-        models = []
-        exps = []
+        # # Build lists for comparison plots
+        # regs = []
+        # corrs = []
+        # models = []
+        # exps = []
 
-        # Obs as first element
-        regs.append(teleconnection_obs.regression)
-        corrs.append(teleconnection_obs.correlation)
-        models.append(teleconnection_obs.model)
-        exps.append(teleconnection_obs.exp)
+        # # Obs as first element
+        # regs.append(teleconnection_obs.regression)
+        # corrs.append(teleconnection_obs.correlation)
+        # models.append(teleconnection_obs.model)
+        # exps.append(teleconnection_obs.exp)
 
         if loglevel == 'DEBUG':
             print('Saving figures...')
         for teleconnection in teleconnections:
+            # Index
             teleconnection.plot_index()
 
-            # Build lists for comparison plots
-            regs.append(teleconnection.regression)
-            corrs.append(teleconnection.correlation)
-            models.append(teleconnection.model)
-            exps.append(teleconnection.exp)
+            # Regression
+            filename = 'teleconnections_' + teleconnection.model + '_' + teleconnection.exp + '_' + teleconnection.source + '_'
+            filename = filename + telecname + '_regression.pdf'
+            title = telecname + ' regression map' + ' (' + teleconnection.model + ', ' + teleconnection.exp + ')'
+            single_map_plot(map=teleconnection.regression, loglevel=loglevel,
+                            save=True, outputdir=teleconnection.outputfig,
+                            filename=filename, title=title)
+
+            # Correlation
+            filename = 'teleconnections_' + teleconnection.model + '_' + teleconnection.exp + '_' + teleconnection.source + '_'
+            filename = filename + telecname + '_correlation.pdf'
+            title = telecname + ' correlation map' + ' (' + teleconnection.model + ', ' + teleconnection.exp + ')'
+            single_map_plot(map=teleconnection.correlation, loglevel=loglevel,
+                            save=True, outputdir=teleconnection.outputfig,
+                            filename=filename, title=title)
+
+            # # Build lists for comparison plots
+            # regs.append(teleconnection.regression)
+            # corrs.append(teleconnection.correlation)
+            # models.append(teleconnection.model)
+            # exps.append(teleconnection.exp)
 
         teleconnection_obs.plot_index()
 
-        # Comparison plots
-        outputfig = common_outputfig
+        # Regression
+        filename = 'teleconnections_' + teleconnection_obs.model + '_' + teleconnection_obs.exp + '_' + teleconnection_obs.source + '_'
+        filename = filename + telecname + '_regression.pdf'
+        title = telecname + ' regression map' + ' (' + teleconnection_obs.model + ', ' + teleconnection_obs.exp + ')'
+        single_map_plot(map=teleconnection_obs.regression, loglevel=loglevel,
+                        save=True, outputdir=teleconnection_obs.outputfig,
+                        filename=filename, title=title)
 
-        # 1. Regression
-        title = telecname + ' regression maps'
-        filename = 'teleconnections_all-models_' + teleconnection_obs.model + '_' + telecname + '_regression.pdf'
-        filename = os.path.join(outputfig, filename)
-        if loglevel == 'DEBUG' or loglevel == 'INFO':
-            print('Saving regression comparison plot: ' + filename)
-        maps_plot(maps=regs, models=models, exps=exps, loglevel=loglevel, title=title,
-                  filename=filename, save=True)
+        # Correlation
+        filename = 'teleconnections_' + teleconnection_obs.model + '_' + teleconnection_obs.exp + '_' + teleconnection_obs.source + '_'
+        filename = filename + telecname + '_correlation.pdf'
+        title = telecname + ' correlation map' + ' (' + teleconnection_obs.model + ', ' + teleconnection_obs.exp + ')'
+        single_map_plot(map=teleconnection_obs.correlation, loglevel=loglevel,
+                        save=True, outputdir=teleconnection_obs.outputfig,
+                        filename=filename, title=title)
 
-        # 2. Correlation
-        title = telecname + ' correlation maps'
-        if loglevel == 'DEBUG' or loglevel == 'INFO':
-            print('Saving correlation comparison plot: ' + filename)
-        filename = 'teleconnections_all-models_' + teleconnection_obs.model + '_' + telecname + '_correlation.pdf'
-        filename = os.path.join(outputfig, filename)
-        maps_plot(maps=corrs, models=models, exps=exps, loglevel=loglevel, title=title,
-                  filename=filename, save=True)
+        # # Comparison plots
+        # Pipeline under construction
+        # outputfig = common_outputfig
 
-        # 3. Comparison with obs
+        # # 1. Regression
+        # title = telecname + ' regression maps'
+        # filename = 'teleconnections_all-models_' + teleconnection_obs.model + '_' + telecname + '_regression.pdf'
+        # filename = os.path.join(outputfig, filename)
+        # if loglevel == 'DEBUG' or loglevel == 'INFO':
+        #     print('Saving regression comparison plot: ' + filename)
+        # maps_plot(maps=regs, models=models, exps=exps, loglevel=loglevel, title=title,
+        #           filename=filename, save=True)
 
-        # 3.1 Create xarray
-        reg_comp = []
-        corr_comp = []
-        for teleconnection in teleconnections:
-            comp = teleconnection.regression - teleconnection_obs.regression
-            reg_comp.append(comp)
+        # # 2. Correlation
+        # title = telecname + ' correlation maps'
+        # if loglevel == 'DEBUG' or loglevel == 'INFO':
+        #     print('Saving correlation comparison plot: ' + filename)
+        # filename = 'teleconnections_all-models_' + teleconnection_obs.model + '_' + telecname + '_correlation.pdf'
+        # filename = os.path.join(outputfig, filename)
+        # maps_plot(maps=corrs, models=models, exps=exps, loglevel=loglevel, title=title,
+        #           filename=filename, save=True)
 
-            comp = teleconnection.correlation - teleconnection_obs.correlation
-            corr_comp.append(comp)
+        # # 3. Comparison with observations
+        #
+        #
+        # # 3.1 Create xarray
+        # reg_comp = []
+        # corr_comp = []
+        # for teleconnection in teleconnections:
+        #     comp = teleconnection.regression - teleconnection_obs.regression
+        #     reg_comp.append(comp)
 
-        # pop first element of models and exps since obs is first
-        models.pop(0)
-        exps.pop(0)
+        #     comp = teleconnection.correlation - teleconnection_obs.correlation
+        #     corr_comp.append(comp)
 
-        # 3.2 Plot
-        title = telecname + ' regression maps comparison with ' + teleconnection_obs.model
-        filename = 'teleconnections_all-models_' + teleconnection_obs.model + '_' + telecname + '_regression_diff.pdf'
-        filename = os.path.join(outputfig, filename)
-        if loglevel == 'DEBUG' or loglevel == 'INFO':
-            print('Saving regression difference plot: ' + filename)
-        maps_plot(maps=reg_comp, models=models, exps=exps, loglevel=loglevel,
-                  title=title, filename=filename, save=True)
+        # # pop first element of models and exps since obs is first
+        # models.pop(0)
+        # exps.pop(0)
 
-        title = telecname + ' correlation maps comparison with ' + teleconnection_obs.model
-        filename = 'teleconnections_all-models_' + teleconnection_obs.model + '_' + telecname + '_correlation_diff.pdf'
-        filename = os.path.join(outputfig, filename)
-        if loglevel == 'DEBUG' or loglevel == 'INFO':
-            print('Saving correlation difference plot: ' + filename)
-        maps_plot(maps=corr_comp, models=models, exps=exps, loglevel=loglevel,
-                  title=title, filename=filename, save=True)
+        # # 3.2 Plot
+        # title = telecname + ' regression maps comparison with ' + teleconnection_obs.model
+        # filename = 'teleconnections_all-models_' + teleconnection_obs.model + '_' + telecname + '_regression_diff.pdf'
+        # filename = os.path.join(outputfig, filename)
+        # if loglevel == 'DEBUG' or loglevel == 'INFO':
+        #     print('Saving regression difference plot: ' + filename)
+        # maps_plot(maps=reg_comp, models=models, exps=exps, loglevel=loglevel,
+        #           title=title, filename=filename, save=True)
+
+        # title = telecname + ' correlation maps comparison with ' + teleconnection_obs.model
+        # filename = 'teleconnections_all-models_' + teleconnection_obs.model + '_' + telecname + '_correlation_diff.pdf'
+        # filename = os.path.join(outputfig, filename)
+        # if loglevel == 'DEBUG' or loglevel == 'INFO':
+        #     print('Saving correlation difference plot: ' + filename)
+        # maps_plot(maps=corr_comp, models=models, exps=exps, loglevel=loglevel,
+        #           title=title, filename=filename, save=True)
 
     print('Teleconnections diagnostic test run completed.')
