@@ -391,14 +391,15 @@ For example, the function
 
 produces the following plot
 
-Example Plot(s)
----------------
-
 .. figure:: figures/trop_rainfall_icon_ngc3028_ifs_tco2559_ng5_ifs_tco1279_orca025_mswep_lra_r100_monthly_comparison_along_lat_mean.png
     :width: 20cm
 
+Bias between model and observations 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. figure:: figures/trop_rainfall_icon_ngc3028_mswep_lra_r100_monthly_bias_seasons.png
     :width: 20cm
+
+
 
 
 
@@ -407,35 +408,35 @@ Available demo notebooks
 
 The notebook folder contains the following notebooks:
 
- - `histogram calculation <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical_rainfall/notebooks/histogram_calculation.ipynb>`_: 
+#. `Histogram Calculation <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical_rainfall/notebooks/histogram_calculation.ipynb>`_: 
 
-    The notebook demonstrates the major abilities of tropical rainfall diagnostic: 
+   The notebook demonstrates the major abilities of tropical rainfall diagnostic: 
     - initialization of an object of the diagnostic class, 
     - selection of the class attributes,  
     - calculation of the histograms in the form of xarray, 
     - saving the histograms in the storage,
     - and loading the histograms from storage.
 
- - `histogram plotting <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical_rainfall/notebooks/histogram_plotting.ipynb>`_:
+#. `Histogram Plotting <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical_rainfall/notebooks/histogram_plotting.ipynb>`_:
 
-    The notebook demonstrates the abilities of the histogram plotting functions:
+   The notebook demonstrates the abilities of the histogram plotting functions:
     - selection of the plot style: step line style, 2D smooth line style, and different color maps,
     - selection of the plot size, axes scales, 
     - saving plot into storage, 
     - plotting the counts, frequencies, and Probability density function (pdf) from the obtained histograms.
 
- - `diagnostic during streaming <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical_rainfall/notebooks/diagnostic_vs_streaming.ipynb>`_:
+#. `Diagnostic During Streaming <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical_rainfall/notebooks/diagnostic_vs_streaming.ipynb>`_:
 
-    The notebook demonstrates the usage of diagnostic during the streaming mode:
+   The notebook demonstrates the usage of diagnostic during the streaming mode:
     - saving the obtained histogram with the histogram into storage per each chunk of any data during the stream, 
     - loading all or multiple histograms from storage and merging them into a single histogram. 
 
- - `comparison of lowres cicle3 models <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical_rainfall/notebooks/comparison_of_lowres_models.ipynb>`_:
+#. `Comparison of Low-Resolution Cicle3 Models <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical_rainfall/notebooks/comparison_of_lowres_models.ipynb>`_:
 
-    The notebook demonstrates:
+   The notebook demonstrates:
     - histogram comparison for different climate models,
     - the ability to merge a few separate plots into a single one, 
-    - mean of tropical and global precipitation calculations,
+    - mean of tropical and global precipitation calculations for different climate models,
     - bias between climatological model and observations. 
 
 Detailed API

@@ -88,11 +88,10 @@ The **notebook/** folder contains the following notebooks:
  - **comparison_of_lowres_models.ipynb**:
 
     The notebook demonstrates:
-    - a simple comparison of obtained histograms for different climate models, 
-    - ability to merge a few separate plots into a single one, 
-    - mean of tropical and global precipitation calculations,
+    - histogram comparison for different climate models,
+    - the ability to merge a few separate plots into a single one, 
+    - mean of tropical and global precipitation calculations for different climate models,
     - bias between climatological model and observations. 
-
 
 
 ## Contributing
