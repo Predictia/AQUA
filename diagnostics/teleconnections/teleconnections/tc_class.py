@@ -333,7 +333,7 @@ class Teleconnection():
 
         if self.savefile and var is None:
             file = self.outputdir + '/' + self.filename + '_correlation.nc'
-            self.regression.to_netcdf(file)
+            self.correlation.to_netcdf(file)
             self.logger.info('Correlation saved to {}'.format(file))
         elif self.savefile and var is not None:
             file = self.outputdir + '/' + self.filename + '_correlation_{}.nc'.format(var)
