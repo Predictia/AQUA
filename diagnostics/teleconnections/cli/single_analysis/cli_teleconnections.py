@@ -21,7 +21,8 @@ def parse_arguments(args):
     parser = argparse.ArgumentParser(description='Teleconnections CLI')
     parser.add_argument('-c', '--config', type=str,
                         help='yaml configuration file')
-    parser.add_argument('-d', '--definitive', type=bool,
+    parser.add_argument('-d', '--definitive', action='store_true',
+                        required=False,
                         help='if True, files are saved, default is False')
     parser.add_argument('-l', '--loglevel', type=str,
                         help='log level [default: WARNING]')
@@ -68,6 +69,12 @@ if __name__ == '__main__':
     if savefig:
         teleconnection.plot_index()
         single_map_plot(map=teleconnection.regression, loglevel=loglevel,
-                        **config_dict, save=True)
+                        outputdir=teleconnection.outputfig,
+                        filename=teleconnection.filename + '_regression.pdf',
+                        save=True, cbar_label=teleconnection.var)
+        single_map_plot(map=teleconnection.correlation, loglevel=loglevel,
+                        outputdir=teleconnection.outputfig,
+                        filename=teleconnection.filename + '_correlation.pdf',
+                        save=True, cbar_label='Pearson correlation')
 
     print('Teleconnections diagnostic test run completed.')
