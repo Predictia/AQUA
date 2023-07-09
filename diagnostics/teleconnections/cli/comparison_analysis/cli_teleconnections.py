@@ -4,6 +4,7 @@
 AQUA teleconnections command line interface. Reads configuration file and
 performs teleconnections diagnostic.
 '''
+import os
 import sys
 import argparse
 
@@ -56,6 +57,7 @@ if __name__ == '__main__':
     # Get dataset configuration parameters
     # Search for entries under 'sources' key
     sources = config['sources']
+    common_outputfig = config['common_outputfig']
 
     config_dict = []
 
@@ -89,19 +91,13 @@ if __name__ == '__main__':
             print('Retrieving data for dataset_source: ',
                   teleconnection.model, teleconnection.exp,
                   teleconnection.source)
-        teleconnection.retrieve()
-        teleconnection.evaluate_index()
-        teleconnection.evaluate_correlation()
-        teleconnection.evaluate_regression()
+        teleconnection.run()
 
     # Initialize Teleconnection class for observational dataset
     teleconnection_obs = Teleconnection(telecname=telecname, **obs_dict,
                                         savefig=savefig, savefile=savefile,
                                         configdir=configdir, loglevel=loglevel)
-    teleconnection_obs.retrieve()
-    teleconnection_obs.evaluate_index()
-    teleconnection_obs.evaluate_correlation()
-    teleconnection_obs.evaluate_regression()
+    teleconnection_obs.run()
 
     if savefig:
         # Build lists for comparison plots
@@ -130,9 +126,12 @@ if __name__ == '__main__':
         teleconnection_obs.plot_index()
 
         # Comparison plots
+        outputfig = common_outputfig
+
         # 1. Regression
         title = telecname + ' regression maps'
         filename = 'teleconnections_all-models_' + teleconnection_obs.model + '_' + telecname + '_regression.pdf'
+        filename = os.path.join(outputfig, filename)
         if loglevel == 'DEBUG' or loglevel == 'INFO':
             print('Saving regression comparison plot: ' + filename)
         maps_plot(maps=regs, models=models, exps=exps, loglevel=loglevel, title=title,
@@ -143,6 +142,7 @@ if __name__ == '__main__':
         if loglevel == 'DEBUG' or loglevel == 'INFO':
             print('Saving correlation comparison plot: ' + filename)
         filename = 'teleconnections_all-models_' + teleconnection_obs.model + '_' + telecname + '_correlation.pdf'
+        filename = os.path.join(outputfig, filename)
         maps_plot(maps=corrs, models=models, exps=exps, loglevel=loglevel, title=title,
                   filename=filename, save=True)
 
@@ -158,9 +158,14 @@ if __name__ == '__main__':
             comp = teleconnection.correlation - teleconnection_obs.correlation
             corr_comp.append(comp)
 
+        # pop first element of models and exps since obs is first
+        models.pop(0)
+        exps.pop(0)
+
         # 3.2 Plot
         title = telecname + ' regression maps comparison with ' + teleconnection_obs.model
         filename = 'teleconnections_all-models_' + teleconnection_obs.model + '_' + telecname + '_regression_diff.pdf'
+        filename = os.path.join(outputfig, filename)
         if loglevel == 'DEBUG' or loglevel == 'INFO':
             print('Saving regression difference plot: ' + filename)
         maps_plot(maps=reg_comp, models=models, exps=exps, loglevel=loglevel,
@@ -168,6 +173,7 @@ if __name__ == '__main__':
 
         title = telecname + ' correlation maps comparison with ' + teleconnection_obs.model
         filename = 'teleconnections_all-models_' + teleconnection_obs.model + '_' + telecname + '_correlation_diff.pdf'
+        filename = os.path.join(outputfig, filename)
         if loglevel == 'DEBUG' or loglevel == 'INFO':
             print('Saving correlation difference plot: ' + filename)
         maps_plot(maps=corr_comp, models=models, exps=exps, loglevel=loglevel,
