@@ -361,6 +361,8 @@ class Teleconnection():
         if title is None:
             title = 'Index' + ' ' + self.telecname + ' ' + self.model + ' ' + self.exp
 
+        ylabel = self.telecname + ' index'
+
         if self.savefig:
             # Set the filename
             filename = self.filename + '_index.pdf'
@@ -369,11 +371,11 @@ class Teleconnection():
             index_plot(indx=self.index, save=self.savefig,
                        outputdir=self.outputfig, filename=filename,
                        loglevel=self.loglevel, step=step, title=title,
-                       **kwargs)
+                       ylabel=ylabel, **kwargs)
         else:
             index_plot(indx=self.index, save=self.savefig,
                        loglevel=self.loglevel, step=step, title=title,
-                       **kwargs)
+                       ylabel=ylabel, **kwargs)
 
     def _load_figs_options(self, savefig=False, outputfig=None):
         """Load the figure options.
