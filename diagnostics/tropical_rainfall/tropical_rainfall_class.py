@@ -13,11 +13,12 @@ import matplotlib.cbook as cbook
 from matplotlib import cm
 from   matplotlib.colors import LogNorm
 
+
 import dask.array as da
 import dask_histogram as dh # pip
 
 from aqua.util import create_folder
- 
+
 import cartopy.crs as ccrs
 import cartopy.mpl.ticker as cticker
 from cartopy.util import add_cyclic_point
@@ -34,7 +35,6 @@ from .tropical_rainfall_func import convert_length, convert_time, unit_splitter,
 .. moduleauthor:: AQUA team <natalia.nazarova@polito.it>
 
 """
-
 
 class Tropical_Rainfall:
     """This class is a minimal version of the Tropical Precipitation Diagnostic.
@@ -223,7 +223,6 @@ class Tropical_Rainfall:
             except AttributeError or KeyError:
                 data.attrs['history']           = history_update
         return data 
-        
         
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
     def latitude_band(self, data, trop_lat = None):
@@ -543,7 +542,6 @@ class Tropical_Rainfall:
         """
         if path_to_netcdf is not None:
             create_folder(folder    = str(path_to_netcdf), loglevel = 'WARNING')
-
             if name_of_file is None:
                 name_of_file    = '_'
             time_band           = dataset.counts.attrs['time_band']
@@ -573,7 +571,7 @@ class Tropical_Rainfall:
         Raises:
             KeyError: If the obtained xarray.Dataset doesn't have global attributes.
         """
-        coord_lat, coord_lon= self.coordinate_names(data)
+        coord_lat, coord_lon = self.coordinate_names(data)
 
         if data.time.size>1:
             time_band       = str(data.time[0].values)+', '+str(data.time[-1].values)+', freq='+str(time_interpreter(data))
@@ -619,7 +617,6 @@ class Tropical_Rainfall:
         Returns:
             xarray: The xarray.Dataset with the histogram.
         """        
-        #create_folder(folder=path_to_histogram, loglevel='WARNING')
         hist_frequency                  = self.convert_counts_to_frequency(tprate_dataset.counts)
         tprate_dataset['frequency']     = hist_frequency
 
@@ -812,14 +809,10 @@ class Tropical_Rainfall:
         elif pdf and not frequency:     
             if 'Dataset' in str(type(data)):
                 data = data['counts']
-            #data.center_of_bin.values   = self.precipitation_rate_units_converter(data.center_of_bin.values, old_unit=data.units, new_unit=new_unit)
-            #data.width.values           = self.precipitation_rate_units_converter(data.width.values, old_unit=data.units, new_unit=new_unit)
             data = self.convert_counts_to_pdf(data)
         elif not pdf and frequency:    
             if 'Dataset' in str(type(data)):
                 data = data['counts']
-            #data.center_of_bin.values   = self.precipitation_rate_units_converter(data.center_of_bin.values, old_unit=data.units, new_unit=new_unit)
-            #data.width.values           = self.precipitation_rate_units_converter(data.width.values, old_unit=data.units, new_unit=new_unit)
             data = self.convert_counts_to_frequency(data)
         
         x       =   data.center_of_bin.values
@@ -827,7 +820,6 @@ class Tropical_Rainfall:
             converter       = self.precipitation_rate_units_converter(1, old_unit = data.center_of_bin.units, new_unit=new_unit)
             x = converter * x
             data = data/converter
-        #else:
         
         if smooth:
             plt.plot(x, data,
@@ -876,6 +868,7 @@ class Tropical_Rainfall:
 
         if path_to_pdf is not None and name_of_file is not None:
             path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_histogram.pdf'
+
         # set the spacing between subplots
         plt.tight_layout()
         if path_to_pdf is not None and isinstance(path_to_pdf, str):
@@ -1605,4 +1598,4 @@ class Tropical_Rainfall:
                         facecolor    = "w",
                         edgecolor    = 'w',
                         orientation  = 'landscape')
-    
+  
