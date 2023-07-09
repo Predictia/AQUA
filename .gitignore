@@ -5,7 +5,7 @@ diagnostics/ecmean/ECmean4
 cli/*.err
 cli/*.out
 docs/sphinx/build/*
-# *.nc
+*.nc
 AQUA_tests/
 AQUA_tests.tar.gz
 **/*.bak

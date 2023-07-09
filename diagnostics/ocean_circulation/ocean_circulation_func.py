@@ -2,6 +2,7 @@ import datetime, os
 import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
 import warnings, logging
 from aqua.util import load_yaml
 from aqua import Reader,catalogue, inspect_catalogue
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 def predefined_regions(region):
     region = region.lower()
     if region in ["indian_ocean", "indian ocean"]:
-        latN, latS, lonW, lonE = 30.0, -30.0, 100.0, 300.0
+        latN, latS, lonW, lonE = 30.0, -30.0, 30 ,110.0
     elif region in ["labrador_sea", "labrador sea"]:
         latN, latS, lonW, lonE = 65.0, 50.0, 300.0, 325.0
     elif region in ["global_ocean", "global ocean"]:
@@ -862,34 +863,48 @@ def plot_spatial_mld(mod_data, region=None, time = None, latS: float=None, latN:
         output_path, fig_dir, data_dir, filename = dir_creation(mod_data, region, time, latS, latN, lonE, lonW, output_dir, plot_name= "spatial_MLD")
     
     logger.info("Spatial MLD plot is in process")
-    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(22, 8))
+    fig, axs = plt.subplots(nrows=1, ncols=2, subplot_kw={'projection': ccrs.PlateCarree()}, figsize=(22, 8),)
+
     
+    fig.suptitle(f'Mean state of {time.upper()} mixed layer depth in {region.replace("_"," ").upper()}', fontsize=27, weight='bold')
     
-    fig.suptitle(f"{region} Mean state {time.upper()} mixed layer depth", fontsize=25, weight='bold')
-    
-    cs1=axs[0].contourf(mod_clim.lon,mod_clim.lat,mod_clim,
+    cs1=axs[0].contourf(mod_clim.lon,mod_clim.lat,mod_clim, projection=ccrs.PlateCarree(),
                         levels=np.linspace(np.min(mod_clim),np.max(mod_clim),27),cmap='seismic',extend='both')
     
-    cs1=axs[1].contourf(obs_clim.lon,obs_clim.lat,obs_clim,
+    cs1=axs[1].contourf(obs_clim.lon,obs_clim.lat,obs_clim, projection=ccrs.PlateCarree(),
                         levels=np.linspace(np.min(mod_clim),np.max(mod_clim),27),cmap='seismic',extend='both')
+    
     if output == True:
         mod_clim.to_netcdf(f'{data_dir}/{filename}_Rho.nc')
         obs_clim.to_netcdf(f'{data_dir}/{filename}_Rho.nc')
     
-    axs[0].set_title("Model climatology", fontsize=14, weight='bold')
-    axs[0].set_ylabel("Latitude", fontsize=12)
-    axs[0].set_xlabel("Longitude", fontsize=12)
-    
-    axs[1].set_title("OBS climatology", fontsize=14, weight='bold')
+    axs[0].set_title("Model climatology", fontsize=18, weight='bold')
+    axs[0].set_ylabel("Latitude", fontsize=14)
+    axs[0].set_xlabel("Longitude", fontsize=14)
+
+    axs[1].set_title("OBS climatology", fontsize=18, weight='bold')
     # axs[1].set_ylabel("Latitude", fontsize=12)
-    axs[1].set_xlabel("Longitude", fontsize=12)
+    axs[1].set_xlabel("Longitude", fontsize=14)
     axs[1].set_yticklabels([]) 
+
     
     cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])  # Adjust the position and size as needed
     fig.colorbar(cs1, cax=cbar_ax)
     
+    gl = axs[0].gridlines(crs=ccrs.PlateCarree(), draw_labels=True,linewidth=0,)
+    gl.top_labels = False
+    gl.bottom_labels = True
+    gl.right_labels = False
+    
+    gl = axs[1].gridlines(crs=ccrs.PlateCarree(), draw_labels=True,linewidth=0,)
+    gl.top_labels = False
+    gl.bottom_labels = True
+    gl.right_labels = False
+    gl.left_labels = False
 
-    plt.subplots_adjust(top=0.80, wspace=0.1)
+    plt.subplots_adjust(top=0.85, wspace=0.1)
+    axs[0].coastlines()
+    axs[1].coastlines()
     
     if output == True:
         plt.savefig(f"{fig_dir}/{filename}.png")
