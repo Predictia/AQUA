@@ -1,6 +1,7 @@
 telecname: 'NAO' # NAO or ENSO
 
-common_outputdir: &common_outputdir '/home/b/b382289/aqua_telec_output'
+common_outputdir: &common_outputdir '/home/b/b382289/aqua_telec_output/data'
+common_outputfig: &common_outputfig '/home/b/b382289/aqua_telec_output/figs'
 configdir: '/home/b/b382289/AQUA/diagnostics/teleconnections/config'
 
 # Create a new block for each dataset to compare
@@ -10,21 +11,21 @@ sources:
     exp: 'tco1279-orca025-cycle3'
     source: '2D_monthly_native'
     regrid: 'r100'
-    freq: False
-    zoom: False
+    freq: null
+    zoom: null
     months_window: 3
-    outputfig: *common_outputdir
+    outputfig: *common_outputfig
     outputdir: *common_outputdir
     #filename: 'custom_filename'
   ifs2:
     model: 'IFS'
     exp: 'tco2559-ng5-cycle3'
     source: 'lra-r100-monthly'
-    regrid: False
-    freq: False
-    zoom: False
+    regrid: null
+    freq: null
+    zoom: null
     months_window: 3
-    outputfig: *common_outputdir
+    outputfig: *common_outputfig
     outputdir: *common_outputdir
     #filename: 'custom_filename'
   icon:
@@ -35,7 +36,7 @@ sources:
     freq: 'monthly'
     zoom: 6
     months_window: 3
-    outputfig: *common_outputdir
+    outputfig: *common_outputfig
     outputdir: *common_outputdir
     #filename: 'custom_filename'
 
@@ -43,11 +44,11 @@ obs:
   model: 'ERA5'
   exp: 'era5'
   source: 'monthly'
-  regrid: False
-  freq: False
-  zoom: False
+  regrid: null
+  freq: null
+  zoom: null
   months_window: 3
-  outputfig: *common_outputdir
+  outputfig: *common_outputfig
   outputdir: *common_outputdir
   #filename: 'custom_filename'
  
