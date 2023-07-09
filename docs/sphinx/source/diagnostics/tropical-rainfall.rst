@@ -3,15 +3,27 @@ Tropical rainfall diagnostic
 
 The goal of tropical rainfall diagnostic is to provide fast and straightforward precipitation analysis in tropical or global areas. 
 
-Overview of Available Diagnostics
----------------------------------
+
+Description
+-----------
 
 The current version of tropical rainfall diagnostic successfully achieves the minimal requirements: it can calculate the histograms 
 in the form of xarrays.Dataset, which contains the counts, frequencies, and probability distribution functions (pdf) for specified bins.
 
+Structure
+-----------
 
-The main attributes of `TR_PR_Diagnostic` Class
------------------------------------------------
+The dummy diagnostic follows a class structure and consists of the files:
+
+* `dummy_class.py`: a python file in which the DummyDiagnostic class constructor and the other class methods are included;
+* `dummy_func.py`: a python file which contains functions that are called and used in the dummy class;
+* `env-dummy.yml`: a yaml file with the required dependencies for the dummy diagnostic;
+* `notebooks/dummy.ipynb`: an ipython notebook which uses the dymmy class and its methods;
+* `README.md` : a readme file which contains some tecnical information on how to install the dummy diagnostic and its environment. 
+
+
+The main attributes of `Tropical_Rainfall` Class
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 The most crucial attributes of the class are:
@@ -24,8 +36,8 @@ The most crucial attributes of the class are:
  
     .. code-block:: python
 
-      from tropical_rainfall_class import TR_PR_Diagnostic as TR_PR_Diag
-      diag = TR_PR_Diag(trop_lat=20)
+      from tropical_rainfall import Tropical_Rainfall
+      diag = Tropical_Rainfall(trop_lat=20)
 
   Another way is to modify the tropical latitude after the initialization of the class: 
   
@@ -82,7 +94,7 @@ The class has the following time-related attributes, which help define the datas
   
     .. code-block:: python
 
-      diag = TR_PR_Diag(bins=bins, s_time=0, f_time=100)
+      diag = Tropical_Rainfall(bins=bins, s_time=0, f_time=100)
       diag.histogram(mswep)
 
   The user can specify `s_time` and `f_time` as strings with any separators between year/month/day/hour/minute:
@@ -122,7 +134,7 @@ All class attributes are optional, but the time-related attributes are of lesser
 or `num_of_bins`, `first_edge`, and `width_of_bin` for histogram calculation.
 
 The histogram calculation
--------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The most straightforward illustration of a histogram calculation
 
@@ -130,14 +142,14 @@ The most straightforward illustration of a histogram calculation
 
   .. code-block:: python
 
-      diag = TR_PR_Diag(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-5))
+      diag = Tropical_Rainfall(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-5))
       diag.histogram(ifs)
 
 * with the log-spaced binning:
 
   .. code-block:: python
 
-      diag = TR_PR_Diag()
+      diag = Tropical_Rainfall()
       bins = numpy.logspace(-9, -6, 15)
       diag.histogram(ifs)
 
@@ -183,7 +195,8 @@ Global attribute `history` contains the information about when the histogram was
 
 
 The lazy mode 
---------------
+"""""""""""""
+
 
 The user can calculate the histogram of global or tropical precipitation in the so-called lazy (or delayed) mode. 
 To do this, the user needs to set the **lazy** flag to True.
@@ -202,7 +215,7 @@ The function `data_with_global_atributes` argument is needed to populate Dataset
 
 
 Output 
-------
+""""""
 
 The diagnostic already provides unique names for the files which contain the histogram.  
 The file's name includes the first and last time steps, for which the diagnostic does the calculations, in the following format: **year-month-day-hour**. 
@@ -214,7 +227,7 @@ For example, for one day of the icon data (**freq=30m**)
   path_to_save='/work/bb1153/b382267/AQUA/histograms/'
   diag.save_histogram(dataset=hist_icon, path_to_save=path_to_save, name_of_file='icon')
 
-the name of the histogram is **icon_2020-01-20T00_2020-01-20T23_histogram.pkl**.
+the name of the histogram is **trop_rainfall_icon_ngc3028_lra_r100_monthly_2020-01-21T00_2025-07-01T00_histogram.nc**
 
 List of histograms 
 ------------------
@@ -247,7 +260,7 @@ The function will sort the files in the repository and take the first **multi** 
 
 
 The histogram plots 
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 The diagnostic contains the simple in-the-use function to create the histogram plot. 
 The user can create plots of the obtained data in  different styles and scales. 
@@ -316,7 +329,7 @@ You can find an example of the histogram obtained with the tropical-rainfall dia
     The pdf of tropical precipitation of the ICON data. 
 
 Mean and Median Values 
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 #. Mean values
    The **mean_along_coordinate** function calculates the mean value of a model variable (by default of precipitation) 
@@ -378,26 +391,24 @@ For example, the function
 
 produces the following plot
 
-.. figure:: figures/trop_rainfall_icon_ngc3028_ifs_tco2559_ng5_ifs_tco1279_orca025_mswep_lra_r100_monthly_comparison_along_lat_mean.pdf
+Example Plot(s)
+---------------
+
+.. figure:: figures/trop_rainfall_icon_ngc3028_ifs_tco2559_ng5_ifs_tco1279_orca025_mswep_lra_r100_monthly_comparison_along_lat_mean.png
     :width: 20cm
 
-
-.. figure:: figures/trop_rainfall_icon_ngc3028_ifs_tco2559_ng5_ifs_tco1279_orca025_mswep_lra_r100_monthly_comparison_along_lon_mean.pdf
+.. figure:: figures/trop_rainfall_icon_ngc3028_mswep_lra_r100_monthly_bias_seasons.png
     :width: 20cm
 
-
-.. figure:: figures/trop_rainfall_icon_ngc3028_mswep_lra_r100_monthly_bias_seasons.pdf
+.. figure:: figures/trop_rainfall_icon_ngc3028_ifs_tco2559_ng5_ifs_tco1279_orca025_mswep_lra_r100_monthly_comparison_histogram.png
     :width: 20cm
 
-.. figure:: figures/trop_rainfall_icon_ngc3028_ifs_tco2559_ng5_ifs_tco1279_orca025_mswep_lra_r100_monthly_comparison_histogram.pdf
-    :width: 20cm
-
-Notebooks 
----------
+Available demo notebooks
+------------------------
 
 The notebook folder contains the following notebooks:
 
- - `ICON histogram calculation <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical-rainfall-diagnostic/notebooks/ICON_histogram_calculation.ipynb>`_: 
+ - `histogram calculation <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical_rainfall/notebooks/histogram_calculation.ipynb>`_: 
 
     The notebook demonstrates the major abilities of tropical rainfall diagnostic: 
     - initialization of an object of the diagnostic class, 
@@ -406,44 +417,34 @@ The notebook folder contains the following notebooks:
     - saving the histograms in the storage,
     - and loading the histograms from storage.
 
- - `ICON histogram plotting <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical-rainfall-diagnostic/notebooks/ICON_histogram_plotting.ipynb>`_:
+ - `histogram plotting <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical_rainfall/notebooks/histogram_plotting.ipynb>`_:
 
     The notebook demonstrates the abilities of the histogram plotting functions:
     - selection of the plot style: step line style, 2D smooth line style, and different color maps,
     - selection of the plot size, axes scales, 
     - saving plot into storage, 
     - plotting the counts, frequencies, and Probability density function (pdf) from the obtained histograms.
- - `diagnostic during streaming <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical-rainfall-diagnostic/notebooks/diagnostic_vs_streaming.ipynb>`_:
+
+ - `diagnostic during streaming <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical_rainfall/notebooks/diagnostic_vs_streaming.ipynb>`_:
 
     The notebook demonstrates the usage of diagnostic during the streaming mode:
     - saving the obtained histogram with the histogram into storage per each chunk of any data during the stream, 
     - loading all or multiple histograms from storage and merging them into a single histogram. 
 
- - `histogram comparison for different climate models <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical-rainfall-diagnostic/notebooks/histogram_comparison.ipynb>`_:
+ - `comparison of lowres cicle3 models <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical_rainfall/notebooks/comparison_of_lowres_models.ipynb>`_:
 
     The notebook demonstrates:
-    - a simple comparison of obtained histograms for different climate models, 
+    - histogram comparison for different climate models
     - the ability to merge a few separate plots into a single one. 
+    - mean of tropical and global precipitation calculations
 
- - `The applications of the diagnostic <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical-rainfall-diagnostic/notebooks/diagnostic_example_for_2t.ipynb>`_:
+Detailed API
+------------
 
-    The notebook illustrates that:
-    - The tropical precipitation diagnostic can be applied to any climate model variable.  
+This section provides a detailed reference for the Application Programming Interface (API) of the "tropical_rainfall" diagnostic,
+produced from the diagnostic function docstrings.
 
- - `The comparison with observations <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_mean/diagnostics/tropical-rainfall/notebooks/comparison_with_observations.ipynb>`_:
-
-    The notebook compares the presipitation from the different model with observations:
-    - calculations of Mean Absolute Percent Error (MAPE), 
-    - calculations of Normilized Forecast Metric (NFM),
-    - the flotting function for MAPE and NFM.
-
- - `The mean and median values of tropical precipitation <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_mean/diagnostics/tropical-rainfall/notebooks/ICON_mean_and_median.ipynb>`_:
-
-    The notebook shows the results of:
-    - mean of tropical precipitation calculations,
-    - median of tropical precipitation calculations,
-    - ..
-
- - `The 95% confidence interval <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_mean/diagnostics/tropical-rainfall/notebooks/confidence_interval.ipynb>`_:
-
-    The notebook shows ...
+.. automodule:: tropical_rainfall
+    :members:
+    :undoc-members:
+    :show-inheritance:

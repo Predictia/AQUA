@@ -765,7 +765,7 @@ class Tropical_Rainfall:
                        color = 'tab:blue',  figsize = 1,            legend = '_Hidden', \
                        plot_title = None,   loc = 'upper right',    varname = 'Precipitation',  \
                        add = None,          fig = None,             path_to_pdf = None, 
-                       name_of_file = None):
+                       name_of_file = None, pdf_format=True):
         """ Function to generate a histogram figure based on the provided data.
 
         Args:
@@ -866,14 +866,24 @@ class Tropical_Rainfall:
         if legend!='_Hidden':
             plt.legend(loc=loc,     fontsize=12)
 
-        if path_to_pdf is not None and name_of_file is not None:
-            path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_histogram.pdf'
+        if pdf_format:
+            if path_to_pdf is not None and name_of_file is not None:
+                path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_histogram.pdf'
 
-        # set the spacing between subplots
-        plt.tight_layout()
-        if path_to_pdf is not None and isinstance(path_to_pdf, str):
-            create_folder(folder    = extract_directory_path(path_to_pdf), loglevel = 'WARNING')
-            plt.savefig(path_to_pdf,  format="pdf",  bbox_inches="tight")
+            # set the spacing between subplots
+            #plt.tight_layout()
+            if path_to_pdf is not None and isinstance(path_to_pdf, str):
+                create_folder(folder    = extract_directory_path(path_to_pdf), loglevel = 'WARNING')
+                plt.savefig(path_to_pdf,  format="pdf",  bbox_inches="tight")
+        else:
+            if path_to_pdf is not None and name_of_file is not None:
+                path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_histogram.png'
+
+            # set the spacing between subplots
+            #plt.tight_layout()
+            if path_to_pdf is not None and isinstance(path_to_pdf, str):
+                create_folder(folder    = extract_directory_path(path_to_pdf), loglevel = 'WARNING')
+                plt.savefig(path_to_pdf,  bbox_inches="tight")
         return {fig, ax}
     
 
@@ -996,7 +1006,7 @@ class Tropical_Rainfall:
                              ylogscale      = False,            xlogscale   = False,            loc        = 'upper right',
                              add            = None,             fig         = None,             plot_title = None,   
                              path_to_pdf = None,                new_unit    = None,             name_of_file=None,
-                             seasons = True):
+                             seasons = True,                    pdf_format=True):
         """ Function to plot the mean or median value of variable in Dataset.
 
         Args:
@@ -1267,23 +1277,38 @@ class Tropical_Rainfall:
                 plt.yscale('log')
             if xlogscale:
                 plt.xscale('log')
-               
-        # set the spacing between subplots
-        if path_to_pdf is not None and name_of_file is not None:
-            path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_mean.pdf'
+        if pdf_format:      
+            # set the spacing between subplots
+            if path_to_pdf is not None and name_of_file is not None:
+                path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_mean.pdf'
 
-        if path_to_pdf is not None and isinstance(path_to_pdf, str):
+            if path_to_pdf is not None and isinstance(path_to_pdf, str):
 
-            create_folder(folder    = extract_directory_path(path_to_pdf), loglevel = 'WARNING')
+                create_folder(folder    = extract_directory_path(path_to_pdf), loglevel = 'WARNING')
 
-            plt.savefig(path_to_pdf,
-                        format="pdf",
-                        bbox_inches  = "tight",
-                        pad_inches   = 1,
-                        transparent  = True,
-                        facecolor    = "w",
-                        edgecolor    = 'w',
-                        orientation  = 'landscape')
+                plt.savefig(path_to_pdf,
+                            format="pdf",
+                            bbox_inches  = "tight",
+                            pad_inches   = 1,
+                            transparent  = True,
+                            facecolor    = "w",
+                            edgecolor    = 'w',
+                            orientation  = 'landscape')
+        else:
+            if path_to_pdf is not None and name_of_file is not None:
+                path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_mean.png'
+
+            if path_to_pdf is not None and isinstance(path_to_pdf, str):
+
+                create_folder(folder    = extract_directory_path(path_to_pdf), loglevel = 'WARNING')
+
+                plt.savefig(path_to_pdf,
+                            bbox_inches  = "tight",
+                            pad_inches   = 1,
+                            transparent  = True,
+                            facecolor    = "w",
+                            edgecolor    = 'w',
+                            orientation  = 'landscape')
         if seasons:
             return [fig,  ax1, ax2, ax3, ax4, ax5, ax_twin_5]
         else:
@@ -1428,14 +1453,14 @@ class Tropical_Rainfall:
                                 trop_lat       = None,              plot_title = None,                  new_unit = None,      
                                 vmin = None,                        vmax = None,                        contour  = True,                           
                                 path_to_pdf = None,                 weights = None,                     level_95=True,
-                                name_of_file = None):
+                                name_of_file = None,                pdf_format=True):
         
         self.plot_seasons_or_months(  data,                         preprocess=preprocess,              seasons = seasons,     
                                 dataset_2 = dataset_2,              model_variable = model_variable,    figsize  = figsize,              
                                 trop_lat = trop_lat,                plot_title = plot_title,            new_unit = new_unit,      
                                 vmin = vmin,                        vmax = vmax,                        contour  = contour,                           
                                 path_to_pdf = path_to_pdf,          weights = weights,                  level_95=level_95, 
-                                name_of_file=name_of_file)
+                                name_of_file=name_of_file,          pdf_format=pdf_format)
 
     
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """    
@@ -1443,8 +1468,9 @@ class Tropical_Rainfall:
                                 dataset_2=None,                     model_variable = 'tprate',          figsize     = 1,      
                                 trop_lat       = None,              plot_title = None,                  new_unit = None,      
                                 vmin = None,                        vmax = None,                        contour  = True,                           
-                                path_to_pdf = None,              weights = None,                     level_95=True, 
-                                value = 0.95,                       rel_error = 0.1,                    name_of_file = None):
+                                path_to_pdf = None,                 weights = None,                     level_95=True, 
+                                value = 0.95,                       rel_error = 0.1,                    name_of_file = None,
+                                pdf_format=True):
         
         """ Function to plot the mean or median value of variable in Dataset.
 
@@ -1580,22 +1606,41 @@ class Tropical_Rainfall:
         if plot_title is not None:
             plt.suptitle(plot_title,                       fontsize = 17)
 
-        if path_to_pdf is not None and name_of_file is not None:
-            if seasons:
-                path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_seasons.pdf'
-            else:
-                path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_months.pdf'
+        if pdf_format:
+            if path_to_pdf is not None and name_of_file is not None:
+                if seasons:
+                    path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_seasons.pdf'
+                else:
+                    path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_months.pdf'
 
-        if path_to_pdf is not None and isinstance(path_to_pdf, str):
+            if path_to_pdf is not None and isinstance(path_to_pdf, str):
 
-            create_folder(folder    = extract_directory_path(path_to_pdf), loglevel = 'WARNING')
+                create_folder(folder    = extract_directory_path(path_to_pdf), loglevel = 'WARNING')
 
-            plt.savefig(path_to_pdf,
-                        format="pdf",
-                        bbox_inches  = "tight",
-                        pad_inches   = 1,
-                        transparent  = True,
-                        facecolor    = "w",
-                        edgecolor    = 'w',
-                        orientation  = 'landscape')
+                plt.savefig(path_to_pdf,
+                            format="pdf",
+                            bbox_inches  = "tight",
+                            pad_inches   = 1,
+                            transparent  = True,
+                            facecolor    = "w",
+                            edgecolor    = 'w',
+                            orientation  = 'landscape')
+        else:
+            if path_to_pdf is not None and name_of_file is not None:
+                if seasons:
+                    path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_seasons.png'
+                else:
+                    path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_months.png'
+
+            if path_to_pdf is not None and isinstance(path_to_pdf, str):
+
+                create_folder(folder    = extract_directory_path(path_to_pdf), loglevel = 'WARNING')
+
+                plt.savefig(path_to_pdf,
+                            bbox_inches  = "tight",
+                            pad_inches   = 1,
+                            transparent  = True,
+                            facecolor    = "w",
+                            edgecolor    = 'w',
+                            orientation  = 'landscape')
   
