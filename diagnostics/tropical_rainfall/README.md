@@ -1,15 +1,14 @@
 # Diagnostic of tropical rainfalls
 
-The main purpose of tropical rainfall diagnostic is to provide the xarray.Dataset, which contains histograms of precipitation for any climate model in tropical latitudes. 
+The tropical-rainfall diagnostic analyzes rainfall variability in the tropical zone and compares the climatological models' predictions with observations.  The mean precipitation variability is an excellent indicator of the accuracy of climatological simulations.
+
 
 
 ## Description
 
+The module comprises Python-implemented source files, an environment file, tests, demonstration files, and a command line interface. You can find a detailed description of the module in the aqua documentation. 
 
-The tropical rainfalls diagnostic proving for the user an excellent example of
-
-* ...
-
+Below you can find a quick start to the tropical_rainfall module. 
 
 ## Table of Contents
 
@@ -59,12 +58,13 @@ conda env create -f $diagnostic_dir/merged.yml
 
 ## Data requirements  
 
-
+The following are the requirements for input climatological data:
+Data must include the precipitation rate variable (**tprate**) in a latitude and longitude grid. 
 
 ## Examples
 
 The **notebook/** folder contains the following notebooks:
- - **ICON_histogram_calculation.ipynb**: 
+ - **histogram_calculation.ipynb**: 
 
     The notebook demonstrates the major abilities of tropical rainfall diagnostic: 
     - initialization of an object of the diagnostic class, 
@@ -72,7 +72,7 @@ The **notebook/** folder contains the following notebooks:
     - calculation of the histograms in the form of xarray, 
     - saving the histograms in the storage,
     - and loading the histograms from storage.
- - **ICON_histogram_plotting.ipynb**:
+ - **histogram_plotting.ipynb**:
 
     The notebook demonstrates the abilities of the histogram plotting functions:
     - selection of the plot style: step line style, 2D smooth line style, and different color maps,
@@ -85,22 +85,19 @@ The **notebook/** folder contains the following notebooks:
     - saving the obtained histogram with the histogram into storage per each chunk of any data during the stream, 
     - loading all or multiple histograms from storage and merging them into a single histogram. 
 
- - **histogram_comparison.ipynb**:
+ - **comparison_of_lowres_models.ipynb**:
 
     The notebook demonstrates:
     - a simple comparison of obtained histograms for different climate models, 
-    - ability to merge a few separate plots into a single one. 
-
- - **diagnostic_example_for_2t.ipynb**:
-    The notebook illustrates that:
-    - The tropical precipitation diagnostic can be applied to any climate model variable. 
+    - ability to merge a few separate plots into a single one, 
+    - mean of tropical and global precipitation calculations,
+    - bias between climatological model and observations. 
 
 
 
 ## Contributing
 
-Include your contact information or any official channels (such as email, GitHub profile) through which users can reach out to you for support, questions, or feedback.
-
+The tropical_rainfall module is in a developing stage and will be significantly improved in the near future. If you have any suggestions, comments, or problems with its usage, please get in touch with the AQUA team. 
 
 
 

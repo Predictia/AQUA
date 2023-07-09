@@ -13,13 +13,13 @@ in the form of xarrays.Dataset, which contains the counts, frequencies, and prob
 Structure
 -----------
 
-The dummy diagnostic follows a class structure and consists of the files:
+The tropical-rainfall diagnostic follows a class structure and consists of the files:
 
-* `dummy_class.py`: a python file in which the DummyDiagnostic class constructor and the other class methods are included;
-* `dummy_func.py`: a python file which contains functions that are called and used in the dummy class;
-* `env-dummy.yml`: a yaml file with the required dependencies for the dummy diagnostic;
-* `notebooks/dummy.ipynb`: an ipython notebook which uses the dymmy class and its methods;
-* `README.md` : a readme file which contains some tecnical information on how to install the dummy diagnostic and its environment. 
+* `tropical_rainfall_class.py`: a python file in which the **Tropical_Rainfall** class constructor and the other class methods are included;
+* `tropical_rainfall_func.py`: a python file which contains functions that are called and used in the tropical-rainfall class;
+* `env-tropical-rainfall.yml`: a yaml file with the required dependencies for the tropical-rainfall diagnostic;
+* `notebooks/*.ipynb`: an ipython notebook which uses the dymmy class and its methods;
+* `README.md` : a readme file which contains some tecnical information on how to install the tropical-rainfall diagnostic and its environment. 
 
 
 The main attributes of `Tropical_Rainfall` Class
@@ -215,7 +215,7 @@ The function `data_with_global_atributes` argument is needed to populate Dataset
 
 
 Output 
-""""""
+^^^^^^
 
 The diagnostic already provides unique names for the files which contain the histogram.  
 The file's name includes the first and last time steps, for which the diagnostic does the calculations, in the following format: **year-month-day-hour**. 
@@ -230,7 +230,7 @@ For example, for one day of the icon data (**freq=30m**)
 the name of the histogram is **trop_rainfall_icon_ngc3028_lra_r100_monthly_2020-01-21T00_2025-07-01T00_histogram.nc**
 
 List of histograms 
-------------------
+^^^^^^^^^^^^^^^^^^
 
 The diagnostic can combine any number of histograms into a single histogram, recalculating 
 the frequencies and pdf values and modifying the attributes automatically.
@@ -323,7 +323,7 @@ Below is an additional example of a histogram plot.
 
 You can find an example of the histogram obtained with the tropical-rainfall diagnostic below. 
 
-.. figure:: figures/tropical-rainfall-histogram.png
+.. figure:: figures/trop_rainfall_icon_ngc3028_ifs_tco2559_ng5_ifs_tco1279_orca025_mswep_lra_r100_monthly_comparison_histogram.png
     :width: 20cm
 
     The pdf of tropical precipitation of the ICON data. 
@@ -400,8 +400,7 @@ Example Plot(s)
 .. figure:: figures/trop_rainfall_icon_ngc3028_mswep_lra_r100_monthly_bias_seasons.png
     :width: 20cm
 
-.. figure:: figures/trop_rainfall_icon_ngc3028_ifs_tco2559_ng5_ifs_tco1279_orca025_mswep_lra_r100_monthly_comparison_histogram.png
-    :width: 20cm
+
 
 Available demo notebooks
 ------------------------
@@ -434,9 +433,10 @@ The notebook folder contains the following notebooks:
  - `comparison of lowres cicle3 models <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical_rainfall/notebooks/comparison_of_lowres_models.ipynb>`_:
 
     The notebook demonstrates:
-    - histogram comparison for different climate models
-    - the ability to merge a few separate plots into a single one. 
-    - mean of tropical and global precipitation calculations
+    - histogram comparison for different climate models,
+    - the ability to merge a few separate plots into a single one, 
+    - mean of tropical and global precipitation calculations,
+    - bias between climatological model and observations. 
 
 Detailed API
 ------------
