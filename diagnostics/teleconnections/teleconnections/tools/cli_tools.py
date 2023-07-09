@@ -40,20 +40,10 @@ def get_dataset_config(sources=None, dataset_source=None, config_dict=None):
     source = sources[dataset_source]['source']
     config_dict['source'] = source
 
-    try:
-        regrid = sources[dataset_source]['regrid']
-        if regrid is False:
-            regrid = None
-    except KeyError:
-        regrid = None
+    regrid = sources[dataset_source]['regrid']
     config_dict['regrid'] = regrid
 
-    try:
-        freq = sources[dataset_source]['freq']
-        if freq is False:
-            freq = None
-    except KeyError:
-        freq = None
+    freq = sources[dataset_source]['freq']
     config_dict['freq'] = freq
 
     try:
