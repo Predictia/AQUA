@@ -1125,13 +1125,21 @@ def multilevel_t_s_trend_plot(data1, data2, region, customise_level=False, level
     #cutoff_lev=dens_diff.lev.where(dens_diff==dens_diff.min(["lev"])).max(["lev"])
 
     # Set the title
-    ##fig.suptitle(f'Long-term {region} trends', fontsize=16)
+    fig.suptitle(f'Long-term {region} trends', fontsize=14)
+    name1=data1.name
+    name2=data2.name
 
     ilev=0
     #data1.where(data1.lev==int(10)).min(["lev"]).plot()
     for levi in levels:
         data1.interp(lev=levi).plot.contourf(levels=12, ax=axs[ilev,0])
+        axs[ilev,0].set_title(f"{name1} @ {levi}", fontsize=10)
+        axs[ilev,0].set_ylabel("Latitude (in deg North)", fontsize=8)
+        axs[ilev,0].set_xlabel("Longitude (in de East)", fontsize=8)
         data2.interp(lev=levi).plot.contourf(levels=12, ax=axs[ilev,1])
+        axs[ilev,1].set_title(f"{name2} @ {levi}", fontsize=10)
+        axs[ilev,1].set_ylabel("Latitude (in deg North)", fontsize=8)
+        axs[ilev,1].set_xlabel("Longitude (in de East)", fontsize=8)
         ilev=ilev+1
 
     # Add contour lines with black color and set the line width
