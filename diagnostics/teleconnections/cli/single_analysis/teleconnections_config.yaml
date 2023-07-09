@@ -7,9 +7,9 @@ source:
   model: 'IFS'
   exp: 'tco2559-ng5-cycle3'
   source: 'lra-r100-monthly'
-  regrid: False
-  freq: False
-  zoom: False
+  regrid: null
+  freq: null
+  zoom: null
   months_window: 3
   outputfig: *common_outputdir
   outputdir: *common_outputdir
