@@ -378,12 +378,19 @@ For example, the function
 
 produces the following plot
 
-.. figure:: figures/trop-rainfall-mean-lat.png
+.. figure:: figures/trop_rainfall_icon_ngc3028_ifs_tco2559_ng5_ifs_tco1279_orca025_mswep_lra_r100_monthly_comparison_along_lat_mean.pdf
     :width: 20cm
 
 
+.. figure:: figures/trop_rainfall_icon_ngc3028_ifs_tco2559_ng5_ifs_tco1279_orca025_mswep_lra_r100_monthly_comparison_along_lon_mean.pdf
+    :width: 20cm
 
 
+.. figure:: figures/trop_rainfall_icon_ngc3028_mswep_lra_r100_monthly_bias_seasons.pdf
+    :width: 20cm
+
+.. figure:: figures/trop_rainfall_icon_ngc3028_ifs_tco2559_ng5_ifs_tco1279_orca025_mswep_lra_r100_monthly_comparison_histogram.pdf
+    :width: 20cm
 
 Notebooks 
 ---------
