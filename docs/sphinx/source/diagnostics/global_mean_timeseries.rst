@@ -58,7 +58,7 @@ Detailed API
 This section provides a detailed reference for the Application Programming Interface (API) of the "global_mean_timeseries" diagnostic,
 produced from the diagnostic function docstrings.
 
-.. automodule:: global_mean_timeseries
+.. automodule:: global_time_series
     :members:
     :undoc-members:
     :show-inheritance:
