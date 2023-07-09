@@ -629,7 +629,7 @@ class Reader(FixerMixin, RegridMixin):
         Args:
             esmcat (intake.catalog.Catalog): your catalog
             var (str): Variable to load
-            loadvar (list of str): List of variables to load 
+            loadvar (list of str): List of variables to load
             keep (str, optional): which duplicate entry to keep ("first" (default), "last" or None)
 
         Returns:
@@ -654,6 +654,6 @@ class Reader(FixerMixin, RegridMixin):
         len0 = len(data.time)
         data = data.drop_duplicates(dim='time', keep=keep)
         if len(data.time) != len0:
-             self.logger.warning("Duplicate entries found along the time axis, keeping the %s one.", keep)
+            self.logger.warning("Duplicate entries found along the time axis, keeping the %s one.", keep)
 
         return data
