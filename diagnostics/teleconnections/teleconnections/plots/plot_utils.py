@@ -38,8 +38,9 @@ def minmax_maps(maps: list):
         vmax (float): Maximum value of the maps.
     """
 
-    minmax = (min([map.values.min() for map in maps]),
-              max([map.values.max() for map in maps]))
+    minmax = (min([map.min().values for map in maps]),
+              max([map.max().values for map in maps]))
+
     vmin = minmax[0]
     vmax = minmax[1]
 
