@@ -10,7 +10,8 @@ from aqua.logger import log_configure
 from .plot_utils import minmax_maps, plot_box
 
 
-def maps_plot(maps=None, models=None, exps=None, save=False, **kwargs):
+def maps_plot(maps=None, models=None, exps=None, 
+              titles=None, save=False, **kwargs):
     """
     Plot maps (regression, correlation, etc.)
     A list of xarray.DataArray objects is expected
@@ -20,12 +21,10 @@ def maps_plot(maps=None, models=None, exps=None, save=False, **kwargs):
         maps (list):        list of xarray.DataArray objects
         models (list):      list of models
         exps (list):        list of experiments
+        titles (list, opt): list of titles for each map
+                            overrides models and exps standard titles
         save (bool, opt):   save the figure
         **kwargs:           additional arguments
-
-    Raises:
-        ValueError:         if maps is None
-        ValueError:         if models or exps is None
     """
     loglevel = kwargs.get('loglevel', 'WARNING')
     logger = log_configure(loglevel, 'maps_plot')
@@ -33,10 +32,10 @@ def maps_plot(maps=None, models=None, exps=None, save=False, **kwargs):
     if maps is None:
         raise ValueError('Nothing to plot')
 
-    if models is None:
-        raise ValueError('No models provided')
-    if exps is None:
-        raise ValueError('No experiments provided')
+    if models is None and titles is None:
+        logger.warning('No titles provided')
+    if exps is None and titles is None:
+        logger.warning('No titles provided')
 
     # Generate the figure
     nrows, ncols = plot_box(len(maps))
@@ -66,7 +65,7 @@ def maps_plot(maps=None, models=None, exps=None, save=False, **kwargs):
         try:
             logger.info('Plotting model {} experiment {}'.format(models[i],
                                                                  exps[i]))
-        except IndexError:
+        except TypeError:
             logger.info('Plotting map {}'.format(i))
 
         # Contour plot
@@ -76,10 +75,13 @@ def maps_plot(maps=None, models=None, exps=None, save=False, **kwargs):
                                    extend='both', vmin=vmin, vmax=vmax)
 
         # Title
-        try:
-            axs[i].set_title('{} {}'.format(models[i], exps[i]))
-        except IndexError:
-            logger.warning('No title for map {}'.format(i))
+        if titles is not None:
+            axs[i].set_title(titles[i])
+        else:  # Use models and exps
+            try:
+                axs[i].set_title('{} {}'.format(models[i], exps[i]))
+            except TypeError:
+                logger.warning('No title for map {}'.format(i))
 
         # Coastlines
         axs[i].coastlines()
@@ -104,8 +106,15 @@ def maps_plot(maps=None, models=None, exps=None, save=False, **kwargs):
     # Add the colorbar
     fig.colorbar(cs, cax=cbar_ax, orientation='horizontal')
 
+    # Colorbar label
+    cbar_label = kwargs.get('cbar_label', '')
+    if cbar_label is not None:
+        cbar_ax.set_xlabel(cbar_label)
+
     # Add a super title
-    fig.suptitle(kwargs.get('title', 'Maps'), fontsize=16)
+    title = kwargs.get('title')
+    if title is not None:
+        fig.suptitle(title, fontsize=16)
 
     # Save the figure
     if save is True:
