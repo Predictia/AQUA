@@ -10,7 +10,7 @@ from aqua.logger import log_configure
 from .plot_utils import minmax_maps, plot_box
 
 
-def maps_plot(maps=None, models=None, exps=None, 
+def maps_plot(maps=None, models=None, exps=None,
               titles=None, save=False, **kwargs):
     """
     Plot maps (regression, correlation, etc.)
@@ -27,7 +27,7 @@ def maps_plot(maps=None, models=None, exps=None,
         **kwargs:           additional arguments
     """
     loglevel = kwargs.get('loglevel', 'WARNING')
-    logger = log_configure(loglevel, 'maps_plot')
+    logger = log_configure(loglevel, 'Multiple maps')
 
     if maps is None:
         raise ValueError('Nothing to plot')
@@ -140,7 +140,7 @@ def single_map_plot(map=None, save=False, **kwargs):
         ValueError: if no map is provided
     """
     loglevel = kwargs.get('loglevel', 'WARNING')
-    logger = log_configure(loglevel, 'single_map_plot')
+    logger = log_configure(loglevel, 'Single map')
 
     if map is None:
         raise ValueError('Nothing to plot')
@@ -205,7 +205,11 @@ def single_map_plot(map=None, save=False, **kwargs):
         fig.colorbar(cs, cax=cbar_ax, orientation='horizontal',
                      label=cbar_label)
     else:
-        fig.colorbar(cs, cax=cbar_ax, orientation='horizontal')
+        try:
+            fig.colorbar(cs, cax=cbar_ax, orientation='horizontal',
+                         label=map.short_name)
+        except AttributeError:
+            fig.colorbar(cs, cax=cbar_ax, orientation='horizontal')
 
     # Save the figure
     if save is True:
