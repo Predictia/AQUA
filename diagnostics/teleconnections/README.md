@@ -1,53 +1,29 @@
 # Teleconnections diagnostic
 
-## Table of contents
-
-- [Teleconnections diagnostic](#teleconnections-diagnostic)
-  - [Table of contents](#table-of-contents)
-  - [Description](#description)
-    - [Teleconnections available:](#teleconnections-available)
-  - [Python module](#python-module)
-  - [Installation instructions](#installation-instructions)
-    - [Installation on Levante](#installation-on-levante)
-    - [Add kernel for DKRZ jupyterhub](#add-kernel-for-dkrz-jupyterhub)
-    - [Installation on Lumi](#installation-on-lumi)
-  - [Data requirements](#data-requirements)
-  - [Library files](#library-files)
-  - [Examples](#examples)
-  - [Tests](#tests)
-  - [Contributing](#contributing)
-
 ## Description
 
 The folder contains jupyter-notebooks and python scripts in order to evaluate teleconnections in the DE_340 AQUA model evaluation framework.
 The script are based on the `AQUA` framework.
 
-### Teleconnections available:
-
 At the moment the following teleconnections are available:
 
-- NAO (see NAO notebooks)
-- ENSO (see ENSO notebooks)
-
-These two teleconnections are evaluated with station-based indices or with the usage of regional means.
-Other teleconnections can be configured by modifying the `teleconnections.yaml` file in the `config` folder.
+- NAO
+- ENSO
 
 See the documentation for more details on the teleconnections.
 
-## Python module
+## Table of contents
 
-The python package is based on the `AQUA` framework.
-A list of its dependencies can be found in the `environment.yml` file in the `AQUA` root of the repository.
-Additionally, a specific list of the packages needed other that the framework environment can be found in the `env-teleconnections.yml` and the `pyproject.tomf` files
-The extra packages needed to run the teleconnections diagnostic are:
-
-- python-cdo (needed for tests only)
-- sacpy
-
-The `teleconnections` environment installs the `AQUA` framework with the `pip` installation method.
-For this reason the `teleconnections` environment can have slightly different versions of the packages than the `AQUA` framework.
-
-The `teleconnections` environment is compatible with python 3.9 and 3.10 as the `AQUA` framework.
+- [Teleconnections diagnostic](#teleconnections-diagnostic)
+  - [Description](#description)
+  - [Table of contents](#table-of-contents)
+  - [Installation instructions](#installation-instructions)
+    - [Installation on Levante](#installation-on-levante)
+      - [Add kernel for DKRZ jupyterhub](#add-kernel-for-dkrz-jupyterhub)
+    - [Installation on Lumi](#installation-on-lumi)
+  - [Data requirements](#data-requirements)
+  - [Examples](#examples)
+  - [Contributing](#contributing)
 
 ## Installation instructions
 
@@ -75,12 +51,12 @@ conda activate teleconnections
 ```
 
 or the name of the environment you chose to update.
-Please be aware that the command line tools require the existance of the `teleconnections` environment, change the submitter script accordingly.
+Please be aware that the command line tools require the existance of the `teleconnections` environment, change the submitter script accordingly if you want to use a different environment name.
 
 The diagnostic environment is compatible with python 3.9 and 3.10.
 Different diagnostic environments may be not compatible with each other, so if you're using multiple diagnostics, it is recommended to a different environment for each of them.
 
-### Add kernel for DKRZ jupyterhub
+#### Add kernel for DKRZ jupyterhub
 
 Documentation on adding kernels: https://docs.dkrz.de/doc/software%26services/jupyterhub/kernels.html#use-your-own-kernel
 
@@ -93,6 +69,7 @@ python -m ipykernel install --user --name teleconnections --display-name="teleco
 ### Installation on Lumi
 
 Since `conda` is not available on Lumi, a different installation procedure is required.
+The simplest way to install the diagnostic is to use the `pip` installation method, adding the package to the list of pip packages in the aqua installation script, available in the `/config/machines/lumi/installation/` folder.
 
 ## Data requirements
 
@@ -109,26 +86,12 @@ Data are already available on Levante.
 
 Additionally, NCAR data with monthly values of NAO and ENSO indices are available in the `data` folder.
 
-## Library files
-
-- `cdotesting.py` contains function evaluating teleconnections with cdo bindings, in order to test the python libraries (see tests section).
-- `index.py` contains functions for the direct evaluation of teleconnection indices. It is the core of the diagnostic.
-- `plots.py` contains functions for the visualization of time series and maps for teleconnection diagnostic.
-- `statistics.py` contains functions for regression and correlation analysis.
-- `tc_class.py` contains the class that is used to run the diagnostic.
-- `tools.py` contains generic functions that may be useful to the whole diagnostic.
-
 ## Examples
 
 All notebooks are in the `notebooks` folder.
 
 - `NAO/ENSO` contain the respective teleconnections analysis performed on ERA5 data.
-- The same analysis performed on the nextGEMS cycle3 data is available in the same folder, in the notebook with the cycle3 suffix.
-
-## Tests
-
-Tests are run with github actions, see `.github/workflows/teleconnections.yml` for details.
-Tests make use of the `cdotesting.py` file, that contains functions evaluating teleconnections with cdo bindings.
+- `NAO_cycle3/ENSO_cycle3` contains the plot routines to compare the teleconnections between ERA5 and the nextGEMS simulations.
 
 ## Contributing
 
