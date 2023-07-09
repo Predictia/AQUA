@@ -32,10 +32,11 @@ def index_plot(indx, save=False, outputdir='./', filename='index.png',
         ax (Axes):              Axes object
     """
     # Configure the logger
-    logger = log_configure(loglevel, 'index_plot')
+    logger = log_configure(loglevel, 'Index plot')
 
     # Generate the figure
-    fig, ax = plt.subplots(figsize=(12, 8))
+    figsize = kwargs.get('figsize', (11, 8.5))
+    fig, ax = plt.subplots(figsize=figsize)
 
     # Plot the index
     if step:
@@ -61,6 +62,15 @@ def index_plot(indx, save=False, outputdir='./', filename='index.png',
 
     if title is not None:
         ax.set_title(title)
+        logger.debug('Title set to ' + title)
+
+    # Set the ylabel
+    ylabel = kwargs.get('ylabel')
+    if ylabel is not None:
+        ax.set_ylabel(ylabel)
+        logger.debug('ylabel set to ' + ylabel)
+    else:
+        ax.set_ylabel('Index')
 
     # Save the figure
     if save:
