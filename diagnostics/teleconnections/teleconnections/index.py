@@ -31,11 +31,11 @@ def station_based_index(field, namelist, telecname, months_window=3,
 
     # 2. -- Acquiring latitude and longitude of stations --
     if field.lon.min() < 0:
-        logger.info('Data longitudes are -180-180, not converting')
+        logger.debug('Data longitudes are -180-180, not converting')
         lon1 = namelist[telecname]['lon1']
         lon2 = namelist[telecname]['lon2']
     else:
-        logger.info('Data longitudes are 0-360, converting teleconnection coords')
+        logger.debug('Data longitudes are 0-360, converting teleconnection coords')
         lon1 = lon_180_to_360(namelist[telecname]['lon1'])
         lon2 = lon_180_to_360(namelist[telecname]['lon2'])
 
@@ -141,11 +141,11 @@ def regional_mean_anomalies(field, namelist, telecname, months_window=3,
 
     # 1. -- Acquire coordinates --
     if field.lon.min() < 0:
-        logger.info('Data longitudes are -180-180, not converting')
+        logger.debug('Data longitudes are -180-180, not converting')
         lonW = namelist[telecname]['lonW']
         lonE = namelist[telecname]['lonE']
     else:
-        logger.info('Data longitudes are 0-360, converting teleconnection coords')
+        logger.debug('Data longitudes are 0-360, converting teleconnection coords')
         lonW = lon_180_to_360(namelist[telecname]['lonW'])
         lonE = lon_180_to_360(namelist[telecname]['lonE'])
 
