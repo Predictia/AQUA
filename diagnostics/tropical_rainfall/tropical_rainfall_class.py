@@ -1154,6 +1154,15 @@ class Tropical_Rainfall:
             color (str, optional):          The color of the plot.                  Defaults to 'tab:blue'.
             varname (str, optional):        The name of the variable.               Defaults to 'Precipitation'.
             loc (str, optional):            The location of the legend.             Defaults to 'upper right'.
+            add (matplotlib.figure.Figure, optional): The add previously created figure to plot.  Defaults to None.
+            fig (matplotlib.figure.Figure, optional): The add previously created figure to plot.     Defaults to None.
+            plot_title (str, optional):     The title of the plot.                  Defaults to None.
+            path_to_pdf (str, optional):    The path to the pdf file.               Defaults to None.
+            new_unit (str, optional):       The unit of the model variable.         Defaults to None.
+            name_of_file (str, optional):   The name of the file.                   Defaults to None.
+            seasons (bool, optional):       The flag to calculate the seasonal mean.  Defaults to True.
+            pdf_format (bool, optional):    The flag to save the plot in pdf format. Defaults to True.
+        Example:
 
         Returns:
             None.
@@ -1453,34 +1462,32 @@ class Tropical_Rainfall:
             return [fig,  ax]
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
-    def twin_data_and_observations(self, data,                          dummy_data = None,                    trop_lat = 10,                      
-                                    model_variable = 'tprate',
+    def twin_data_and_observations(self, data,                          dummy_data = None,                  trop_lat = None,
                                     s_time  = None,                     f_time   = None,                    s_year  = None,               
                                     f_year   = None,                    s_month = None,                     f_month  = None,
                                     model = 'era5',                     source = 'monthly',                 plev = 0,
                                     space_grid_factor = None,           time_freq = None,                   preprocess = True,
-                                    time_length = None,                 time_grid_factor = None):
+                                    time_length = None,                 time_grid_factor = None,            model_variable = 'tprate',):
         
         """ Function to regride the data and observations to the same grid. 
 
         Args:
-            data (xarray):          Data to be regrided.
-            dummy_data (xarray):    Dummy data to be regrided.
-            trop_lat (float):       Latitude of the tropical region.
-            model_variable (str):   Name of the variable to be regrided.
-            s_time (datetime):      Start time of the regrided data.
-            f_time (datetime):      End time of the regrided data.
-            s_year (int):           Start year of the regrided data.
-            f_year (int):           End year of the regrided data.
-            s_month (int):          Start month of the regrided data.
-            f_month (int):          End month of the regrided data.
-            model (str):            Model to be used.
-            source (str):           Source of the data.
-            plev (int):             Pressure level of the data.
-            space_grid_factor (float): Space grid factor.
-            time_freq (str):        Time frequency of the data.
-            preprocess (bool):      If True, the data is preprocessed.
-            time_length (int):      Time length of the data.
+            data (xarray):              Data to be regrided. 
+            dummy_data (xarray):        Dummy data to be regrided.                  Default to None.
+            trop_lat (float):           Latitude band of the tropical region.       Default to None. 
+            model_variable (str, int):  Name of the variable to be regrided.        Default to 'tprate'.
+            s_time (datetime):          Start time of the regrided data.            Default to None.
+            f_time (datetime):          End time of the regrided data.              Default to None.
+            s_year (int):               Start year of the regrided data.            Default to None.
+            f_year (int):               End year of the regrided data.              Default to None.
+            s_month (int):              Start month of the regrided data.           Default to None.
+            f_month (int):              End month of the regrided data.             Default to None.
+            model (str):                Model to be used.                           Default to 'era5'.
+            source (str):               Source of the data.                         Default to 'monthly'.
+            plev (int):                 Pressure level of the data.                 Default to 0.
+            space_grid_factor (float):  Space grid factor.                          Default to None.
+            time_freq (str):            Time frequency of the data.                 Default to None.
+            preprocess (bool):          If True, the data is preprocessed.          Default to True.
 
         Returns:
         """
@@ -1642,9 +1649,11 @@ class Tropical_Rainfall:
             new_unit (str, optional):       New unit of the data.                       The default is None.
             contour (bool, optional):       If True, contour is plotted.                The default is True.
             path_to_pdf (str, optional):    Path to the pdf file.                       The default is None.
+            name_of_file(str, optional):    Name of the file.                           The default is None.
+            pdf_format(bool, optional):     If True, the figure is saved in PDF format. The default is True.
         
         Returns:
-            The pyplot figure in PDF format 
+            The pyplot figure in the PDF format 
         """
 
         
@@ -1681,8 +1690,10 @@ class Tropical_Rainfall:
             contour (bool, optional):       If True, contours are plotted.          Defaults to True.
             path_to_pdf (str, optional):    Path to the pdf file.                   Defaults to None.
             name_of_file (str, optional):   Name of the pdf file.                   Defaults to None.
+            pdf_format (bool, optional):    If True, the figure is saved in PDF format. Defaults to True.
+        
         Returns:
-            The pyplot figure
+            The pyplot figure in the PDF format
         """
 
         self.class_attributes_update(trop_lat = trop_lat)
