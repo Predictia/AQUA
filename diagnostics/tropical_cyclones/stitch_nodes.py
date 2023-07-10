@@ -10,7 +10,7 @@ from .tcs_utils import write_fullres_field
 class StitchNodes():
     """
     Class Mixin to take care of stitch nodes
-    """"
+    """
     
     def stitch_nodes_zoomin(self, startdate, enddate, n_days_freq, n_days_ext):
         """
