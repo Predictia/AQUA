@@ -143,9 +143,10 @@ calculates the mean value of precipitation for each season  `DJF`, `MAM`, `JJA`,
 Available demo notebooks
 ------------------------
 
-The notebook folder contains the following notebooks:
+The notebook folder contains the demonstration of:
 
 #. `Histogram Calculation <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical_rainfall/notebooks/histogram_calculation.ipynb>`_: 
+   
    The notebook demonstrates the major abilities of tropical rainfall diagnostic: 
     - initialization of an object of the diagnostic class, 
     - selection of the class attributes,  
