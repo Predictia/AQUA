@@ -13,8 +13,8 @@ AQUA provides a collection of built-in diagnostics to analyze climate model outp
    ssh_variability
    ecmean
    global_mean_timeseries
+   tropical_cyclones
    global_mean_timeseries
-   ecmean
 
 
 Creating Custom Diagnostics
