@@ -356,11 +356,13 @@ For example, the function
                                   legend='icon, ngc3028', new_unit = 'mm/day' )
 
 calculates the mean value of precipitation during 
+
  - December-January-February (`DJF`), 
  - March-April-May (`MAM`), 
  - June-July-August (`JJA`), 
  - September-October-November (`SON`), and 
 - for the total period of time. 
+
 Then the function  `mean_and_median_plot(coord='lon')` calculates the mean value of precipitation along the longitude. 
 
 
@@ -372,6 +374,7 @@ will produce the following plot:
 
 Bias between model and observations 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Tropical-rainfall diagnostic provides the graphical representation of the bias between the mean value of precipitation of the 
 climatological model and the mean value of observations. 
 
@@ -388,10 +391,6 @@ and providing the following figure:
 
 .. figure:: figures/trop_rainfall_icon_ngc3028_mswep_lra_r100_monthly_bias_seasons.png
     :width: 20cm
-
-
-
-
 
 Available demo notebooks
 ------------------------
