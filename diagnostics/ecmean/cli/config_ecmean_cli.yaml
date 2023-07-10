@@ -1,9 +1,9 @@
 dataset:
-  model_atm: IFS
-  model_oce: FESOM
-  exp: tco2559-ng5
+  model_atm: ICON
+  model_oce: ICON
+  exp: ngc3028
   year1: 2020
-  year2: 2020
+  year2: 2024
 
 compute:
   numproc: 1
