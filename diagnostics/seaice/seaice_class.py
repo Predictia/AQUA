@@ -13,47 +13,73 @@ sys.path.append("../")
 class SeaIceExtent:
     """Sea ice extent class"""
 
-    def __init__(self, option=None, configdir=None,
-                 loglevel="WARNING"):
-        """The SeaIceExtent constructor."""
+    def __init__(self, loglevel="WARNING", threshold = 0.15, regions = "../regions.yml"):
+        """
+        The SeaIceExtent constructor.
+
+        Args:
+            threshold: A float indicating the threshold for sea ice extent.
+            regions: A string indicating the path to the regions.yml file.
+            loglevel: A string indicating the log level.
+
+        Returns:
+            A SeaIceExtent object.
+        """
 
         # Configure logger
         self.loglevel = loglevel
         self.logger = log_configure(self.loglevel, 'seaice')
         self.mySetups = None
-        self.regionDict = load_yaml("../regions.yml")
+        self.regionDict = load_yaml(regions)
         self.myRegions = None
         self.nRegions = None
-        self.thresholdSeaIceExtent = 0.15
+        self.thresholdSeaIceExtent = threshold
 
     def configure(self,
                   mySetups=[["IFS", "tco1279-orca025-cycle3",
                              "2D_monthly_native"]],
                   myRegions=["Arctic", "Southern Ocean"]):
+        """
+        The configure method.
+        
+        Args:
+            mySetups: A list of 3-item lists indicating which setups need to be plotted. A setup = model, experiment, source
+            myRegions: A list of regions to analyse, as described in the regions.yml file
+        
+        Returns:
+            None
+        """
 
         self.nRegions = len(myRegions)
         self.myRegions = myRegions
         self.mySetups = mySetups
 
     def run(self, **kwargs):
-        """The run diagnostic method. Takes two inputs:
-            mySetups    A list of 3-item lists indicating which setups need
-            to be plotted. A setup = model, experiment, source
+        """
+        The run diagnostic method.
 
-            myRegions   A list of regions available in the regions.yml file
+        Args:
+            mySetups:    A list of 3-item lists indicating which setups need to be plotted. A setup = model, experiment, source
+            myRegions:   A list of regions to analyse, as described in the regions.yml file
 
             The method produces as output a figure with the seasonal cycles
             of sea ice extent in the regions for the setups"""
 
         self.configure(**kwargs)
-
         self.computeExtent()
-
         self.plotExtent()
-
         self.createNetCDF()
 
     def computeExtent(self):
+        """
+        Method which computes the seaice extent.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
 
         # Instantiate the various readers (one per setup) and retrieve the
         # corresponding data
@@ -132,7 +158,16 @@ class SeaIceExtent:
             self.myExtents.append(self.regionExtents)
 
     def plotExtent(self):
-        """Produce figure """
+        """
+        Method to produce figures plotting seaice extent.
+
+        Args:
+            None
+        
+        Returns:
+            None
+        """
+
         fig, ax = plt.subplots(self.nRegions, figsize=(13, 3 * self.nRegions))
 
         for jr, region in enumerate(self.myRegions):
@@ -162,7 +197,16 @@ class SeaIceExtent:
             fig.savefig(outputDir + "figSIE." + fmt, dpi=300)
 
     def createNetCDF(self):
-        """create output files"""
+        """
+        Method to create NetCDF files.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+
         # NetCDF creation (one per setup)
         for js, setup in enumerate(self.mySetups):
             dataset = xr.Dataset()

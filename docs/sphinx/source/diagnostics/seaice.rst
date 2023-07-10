@@ -68,3 +68,13 @@ Available demo notebooks
 Notebooks are stored in diagnostics/seaice/notebooks
 
 * `seaice.ipynb <https://github.com/oloapinivad/AQUA/blob/develop_seaice/diagnostics/seaice/notebooks/seaice.ipynb>`_
+
+
+Detailed API
+------------
+This section provides a detailed reference for the Application Programming Interface (API) of the "seaice" diagnostic, produced from the diagnostic function docstrings.
+
+.. automodule:: seaice
+    :members:
+    :undoc-members:
+    :show-inheritance:
