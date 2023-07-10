@@ -126,5 +126,7 @@ def wgt_area_mean(indat, latN: float, latS: float,
     # 3. -- Weighted area mean --
     wgt = np.cos(np.deg2rad(lat))
     odat = indat.weighted(wgt).mean(("lon", "lat"), skipna=True)
+    # HACK added with ICON, to avoid NaNs in the output
+    odat.dropna(dim='time', how='all')
 
     return odat
