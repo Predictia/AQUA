@@ -11,9 +11,11 @@ AQUA provides a collection of built-in diagnostics to analyze climate model outp
 
    dummy
    teleconnections
-   ssh_variability
    ecmean
    global_mean_timeseries
+   radiation
+   ssh_variability
+   tropical_cyclones
 
 
 Creating Custom Diagnostics
