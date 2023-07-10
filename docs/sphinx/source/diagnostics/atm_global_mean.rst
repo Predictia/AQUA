@@ -38,7 +38,6 @@ Import the necessary functions from the `AQUA` framework and import the AGM_diag
   from aqua import Reader, catalogue, inspect_catalogue
   from atm_global_mean import AGM_diag
   
-  
 
 Functions used
 --------------
@@ -57,13 +56,14 @@ Data will be compared to ERA5 data
 
 Example plots
 -------------
+
 .. figure:: figures/atm_global_mean.png
-   :width: 20 cm
+   :width: 20cm
    :align: center
-    
-    Example map to visualize the bias of the 2t-variable IFS 4.4 km run with respect to the ERA5 climatology. 
-    
-    
+
+   Example map to visualize the bias of the 2t-variable IFS 4.4 km run with respect to the ERA5 climatology.
+
+
 Available demo noteboks
 ------------------------
     
