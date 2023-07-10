@@ -33,11 +33,6 @@ class TCs(DetectNodes, StitchNodes):
         stream_unit (str): The unit of stream_step in streaming mode. Default is 'days'.
         stream_startdate (str): The start date for processing the TCs diagnostic in streaming mode.
         loglevel (str): The logging level for the TCs diagnostic. Default is 'INFO'.
-
-    Methods:
-        loop_streaming (init, tdict): Wrapper for data retrieve, DetectNodes and StitchNodes;
-        catalog_init(self): "catalog_init": initializes the Reader object for retrieving the atmospheric data needed (i.e. the input and output vars).
-        data_retrieve(self, reset_stream=False): retrieves atmospheric data from the Reader objects and assigns them to the data2d, data3d, and fullres attributes of the Detector object. It updates the stream_startdate and stream_enddate attributes if streaming is True.
     """
 
     def __init__(self, tdict = None, 
