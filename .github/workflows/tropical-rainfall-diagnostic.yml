@@ -50,8 +50,8 @@ jobs:
 # Run diagnostic tests
       - name: Download and setup dummy-diagnostic tests
         run: |
-          ./tests/tropical-rainfall-diagnostic/download_data_for_tests.sh
+          ./tests/tropical-rainfall/download_data_for_tests.sh
 
-      - name: Run tropical-rainfall-diagnostic tests
+      - name: Run tropical-rainfall tests
         run: |
           pytest -v -m tropical_rainfall
