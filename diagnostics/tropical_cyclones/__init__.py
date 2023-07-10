@@ -5,10 +5,12 @@
 
 
 from .tropical_cyclones import TCs
+from .detect_nodes import DetectNodes
+from .stitch_nodes import StitchNodes
 from .plotting_TCs import multi_plot, plot_trajectories
 
 # Optional but recommended
 __version__ = '0.0.1'
 
 # This specifies which methods are exported publicly, used by "from dummy import *"
-__all__ = ["TCs", "multi_plot", "plot_trajectories"]
+__all__ = ["TCs", "DetectNodes", "StitchNodes", "multi_plot", "plot_trajectories"]
