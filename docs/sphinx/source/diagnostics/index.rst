@@ -12,6 +12,7 @@ AQUA provides a collection of built-in diagnostics to analyze climate model outp
    dummy
    ssh_variability
    global_mean_timeseries
+   radiation
 
 
 Creating Custom Diagnostics
