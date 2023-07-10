@@ -9,12 +9,12 @@ AQUA provides a collection of built-in diagnostics to analyze climate model outp
 .. toctree::
    :maxdepth: 1
 
-   dummy
-   ssh_variability
    ecmean
    global_mean_timeseries
+   radiation
+   ssh_variability
+   dummy
    tropical_cyclones
-   global_mean_timeseries
 
 
 Creating Custom Diagnostics
