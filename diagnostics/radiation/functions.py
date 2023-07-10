@@ -312,7 +312,7 @@ def barplot_model_data(datasets, model_names, year=None):
     Default mean for CERES data is the whole time range.
 
     Args:
-        datasets:      a list of xarrayDataSets that should be plotted. Chose the global means (TOA_"model"_gm)
+        datasets:      a list of xarrayDataSets that should be plotted. Chose the global means (TOA_$model_gm)
         model_names:   your desired naming for the plotting
 
     Returns:
@@ -320,7 +320,7 @@ def barplot_model_data(datasets, model_names, year=None):
 
     Example:
         datasets = [TOA_ceres_clim_gm, TOA_icon_gm, TOA_ifs_4km_gm, TOA_ifs_9km_gm]
-        model_names = ['ceres', 'icon', 'ifs 4.4 km', 'ifs 9 km']
+        model_names = ['ceres', 'ICON', 'IFS 4.4 km', 'IFS 9 km']
         barplot_model_data(datasets, model_names, year = 2022)
     """
 
@@ -514,9 +514,8 @@ def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_cli
         Monthly bias plots of the chosen model, variable and year
 
     Example:
-        radiation_diag.plot_maps(TOA_model= TOA_ifs_4km_r360x180, TOA_ceres_diff_samples = TOA_ceres_diff_samples, TOA_ceres_clim = TOA_ceres_clim, var='tsr', model_label='Cycle 3 4.4 km IFS Fesom', year='2023')
-        Use the TOA_"model"_r360x180 DataSet to ensure that the gridding is right
-
+        radiation_diag.plot_maps(TOA_model=TOA_ifs_4km_r360x180, TOA_ceres_diff_samples=TOA_ceres_diff_samples, TOA_ceres_clim=TOA_ceres_clim, var='tsr', model_label='Cycle 3 4.4 km IFS Fesom', year='2023')
+        Use the TOA_$model_r360x180 DataSet to ensure that the gridding is right
     """
 
     # quantiles are a bit more conservative than the range, but interpolation from few values might not be robust
