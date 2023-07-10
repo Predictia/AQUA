@@ -14,6 +14,7 @@ AQUA provides a collection of built-in diagnostics to analyze climate model outp
    radiation
    ssh_variability
    dummy
+   tropical_cyclones
 
 
 Creating Custom Diagnostics
