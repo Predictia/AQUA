@@ -41,21 +41,21 @@ The most crucial attributes of the class are:
   The default value of the attribute is equal to 10. 
   The user can easily modify the value tropical latitude band. The first way to do that is to set a new default value during the initialization of the class. 
  
-    .. code-block:: python
+  .. code-block:: python
 
       from tropical_rainfall import Tropical_Rainfall
       diag = Tropical_Rainfall(trop_lat=20)
 
   Another way is to modify the tropical latitude after the initialization of the class: 
   
-    .. code-block:: python
+  .. code-block:: python
 
       diag.trop_lat=15
 
   The user can modify the latitude band by parsing the argument `trop_lat` to the functions of the class. 
   In this instance, a function uses a new value for 'trop_lat' and modifies the class's default value. For example:
   
-    .. code-block:: python
+  .. code-block:: python
 
       diag.histogram(ifs, trop_lat=90)
       diag.trop_lat
@@ -99,35 +99,35 @@ The class has the following time-related attributes, which help define the datas
   The user can specify `s_time` and `f_time` as integers. If the user needs to calculate 
   the histogram for the first 100 time steps, he can initialize the diagnostic as follows: 
   
-    .. code-block:: python
+  .. code-block:: python
 
       diag = Tropical_Rainfall(bins=bins, s_time=0, f_time=100)
       diag.histogram(mswep)
 
   The user can specify `s_time` and `f_time` as strings with any separators between year/month/day/hour/minute:
   
-    .. code-block:: python
+  .. code-block:: python
 
       diag.s_time = '2020:01'
       diag.f_time ='2020/03/20/12'
 
   There is the option to specify the year range:
 
-    .. code-block:: python
+  .. code-block:: python
 
       diag.s_year = 2020
       diag.f_year = 2025
 
   or month range:
 
-    .. code-block:: python
+  .. code-block:: python
 
       diag.s_month = 3
       diag.f_month = 6
 
   or both the year and month range at the same time:
 
-    .. code-block:: python
+  .. code-block:: python
 
       diag.s_year = 2012
       diag.s_month = 9
@@ -163,9 +163,9 @@ The most straightforward illustration of a histogram calculation
 
 * with weights
   
-    .. code-block:: python
+  .. code-block:: python
 
-        diag.histogram(icon, weights=reader.grid_area)
+      diag.histogram(icon, weights=reader.grid_area)
 
   Compared to standard methods, such computations 
   are `high-speed` because they are based on `dask_histogram` package (see `env-tropical-rainfall.yml` file).
