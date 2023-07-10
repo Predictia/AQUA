@@ -30,12 +30,15 @@ def minmax_maps(maps: list):
     Find the minimum and maximum values of the maps values
     for a list of maps.
 
+    After finding the minimum and maximum values,
+    values are made simmetric around 0.
+
     Args:
         regs (list): List of maps.
 
     Returns:
-        vmin (float): Minimum value of the maps.
-        vmax (float): Maximum value of the maps.
+        vmin (float): Minimum value of the colorbar.
+        vmax (float): Maximum value of the colorbar.
     """
 
     minmax = (min([map.min().values for map in maps]),
@@ -43,5 +46,10 @@ def minmax_maps(maps: list):
 
     vmin = minmax[0]
     vmax = minmax[1]
+
+    # Make values simmetric around 0
+    absmax = max(abs(vmin), abs(vmax))
+    vmin = -absmax
+    vmax = absmax
 
     return vmin, vmax
