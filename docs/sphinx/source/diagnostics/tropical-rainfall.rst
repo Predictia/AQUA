@@ -29,6 +29,10 @@ The tropical-rainfall diagnostic follows a class structure and consists of the f
 * `README.md` : a readme file which contains some tecnical information on how to install the tropical-rainfall diagnostic and its environment. 
 
 
+Input variables
+---------------
+* `tprate` (total precipitation rate, GRIB paramid 260048)
+
 Output
 ------
 All output of the diagnostic is in the format of NetCDF or PDF. The paths to the repositories, where the diagnostic store the output, are 
@@ -36,146 +40,19 @@ All output of the diagnostic is in the format of NetCDF or PDF. The paths to the
 * Path to NetCDF: `/work/bb1153/b382267/tropical_rainfall_cicle3/NetCDF/`
 * Path to PDF:    `/work/bb1153/b382267/tropical_rainfall_cicle3/PDF/`
 
-The main attributes of `Tropical_Rainfall` Class
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-
-The most crucial attributes of the class are:
-
-* `trop_lat (int or float)`:            
-
-  the latitude of the tropical zone.  
-  The default value of the attribute is equal to 10. 
-  The user can easily modify the value tropical latitude band. The first way to do that is to set a new default value during the initialization of the class. 
- 
-  .. code-block:: python
-
-      from tropical_rainfall import Tropical_Rainfall
-      diag = Tropical_Rainfall(trop_lat=20)
-
-  Another way is to modify the tropical latitude after the initialization of the class: 
-  
-  .. code-block:: python
-
-      diag.trop_lat=15
-
-  The user can modify the latitude band by parsing the argument `trop_lat` to the functions of the class. 
-  In this instance, a function uses a new value for 'trop_lat' and modifies the class's default value. For example:
-  
-  .. code-block:: python
-
-      diag.histogram(ifs, trop_lat=90)
-      diag.trop_lat
-  
-  While the user has specified 'trop_lat=90', the diagnostic will calculate global precipitation instead of tropical. 
-
-  **Note:** All class attributes are editable in the same way as the 'trop_lat' attribute.
-
-* `num_of_bins (int)`:            
-  the number of bins,
-
-* `first_edge (int, float)`:    
-  the first edge of the bin,
-
-* `width_of_bin (int, float)`:  
-  the width of the bin. 
-  
-  If the user initializes the `num_of_bins`, `first_edge`, and  `width_of_bin`,  
-  the diagnostic will calculate the 
-  histograms with **continuous uniform binning**, i.e., all bins in the histogram will have the same width.
-
-* `bins (np.ndarray, list)`:            
-  the bins.  If the user wants to perform the calculation for **non-uniform binning** (for example, log-spaced), 
-  use the `bins` attribute of the diagnostic instead of `num_of_bins`, `first_edge`, and `width_of_bin`.
-
-
-The class has the following time-related attributes, which help define the dataset's time band: 
-
-* `s_time (int, str)`:          the start time of the time interval, 
-
-* `f_time (int, str)`:          the end time of the time interval,
-
-* `s_year (int)`:               the start year of the time interval, 
-
-* `f_year (int)`:               the end year of the time interval,
-
-* `s_month (int)`:              the start month of the time interval, 
-
-* `f_month (int)`:              the end month of the time interval. 
-
-  The user can specify `s_time` and `f_time` as integers. If the user needs to calculate 
-  the histogram for the first 100 time steps, he can initialize the diagnostic as follows: 
-  
-  .. code-block:: python
-
-      diag = Tropical_Rainfall(bins=bins, s_time=0, f_time=100)
-      diag.histogram(mswep)
-
-  The user can specify `s_time` and `f_time` as strings with any separators between year/month/day/hour/minute:
-  
-  .. code-block:: python
-
-      diag.s_time = '2020:01'
-      diag.f_time ='2020/03/20/12'
-
-  There is the option to specify the year range:
-
-  .. code-block:: python
-
-      diag.s_year = 2020
-      diag.f_year = 2025
-
-  or month range:
-
-  .. code-block:: python
-
-      diag.s_month = 3
-      diag.f_month = 6
-
-  or both the year and month range at the same time:
-
-  .. code-block:: python
-
-      diag.s_year = 2012
-      diag.s_month = 9
-      diag.f_month = 11
-
-
-All class attributes are optional, but the time-related attributes are of lesser diagnostic relevance.
-
-
-**Reminder**: Although all attributes are optional, the user must define or `bins` attribute of the diagnostic 
-or `num_of_bins`, `first_edge`, and `width_of_bin` for histogram calculation.
+Examples
+--------
 
 The histogram calculation
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The most straightforward illustration of a histogram calculation
+The most straightforward illustration of a histogram calculation with continuous uniform binning:
 
-* with continuous uniform binning:
-
-  .. code-block:: python
+.. code-block:: python
 
       diag = Tropical_Rainfall(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-5))
       diag.histogram(ifs)
-
-* with the log-spaced binning:
-
-  .. code-block:: python
-
-      diag = Tropical_Rainfall()
-      bins = numpy.logspace(-9, -6, 15)
-      diag.histogram(ifs)
-
-
-* with weights
-  
-  .. code-block:: python
-
-      diag.histogram(icon, weights=reader.grid_area)
-
-  Compared to standard methods, such computations 
-  are `high-speed` because they are based on `dask_histogram` package (see `env-tropical-rainfall.yml` file).
 
   
 The output of the histogram function is xarray.Dataset, which has two coordinates 
@@ -206,30 +83,6 @@ Local attributes specify the time and space grid for which the diagnostic perfor
 * `lon_band`:     the maximum and minimum values of the longitude and the frequency of the longitude grid.
 
 Global attribute `history` contains the information about when the histogram was calculated and values of `time_band`, `lat_band`, and `lon_band`.
-
-
-The lazy mode 
-"""""""""""""
-
-
-The user can calculate the histogram of global or tropical precipitation in the so-called lazy (or delayed) mode. 
-To do this, the user needs to set the **lazy** flag to True.
-
-.. code-block:: python
-
-    hist_icon_lazy=diag.histogram(icon, lazy=True)
-
-If the user is ready to compute the histogram, 
-he can apply the function `histogram_to_xarray` to add frequency and pdf variables to the dataset.
-The function `data_with_global_atributes` argument is needed to populate Dataset with global attributes: 
-
-.. code-block:: python
-
-  diag.histogram_to_xarray(hist_counts=hist_icon_lazy, data_with_global_atributes=icon)
-
-
-Output 
-^^^^^^
 
 The diagnostic already provides unique names for the files which contain the histogram.  
 The file's name includes the first and last time steps, for which the diagnostic does the calculations, in the following format: **year-month-day-hour**. 
@@ -284,48 +137,6 @@ The simplest way to plot the histogram is:
 .. code-block:: python
   
   diag.hist_figure(hist_icon) 
-
-The function **hist_figure** has an extensive set of arguments.
-
-#. The first and major group of arguments relates to the histogram type: 
-
-   * `pdf`-histogram: **pdf=True**, also it is the default value, 
-
-   * `frequency`-histogram: **frequency=True, pdf=False**,
-
-   * `counts`-histogram: **frequency=False, pdf=False**.
-
-#. The second group of arguments related to the plot style:
-
-   * **smooth** (bool, True by default): if True, smooth 2D line
-
-   * **step** (bool, False by default): if True, step line 
-
-   * **color_map** (bool/str, False/'viridis' by default): if not False, color map plot
-
-#. The third set of arguments involves the figure settings:
-
-   * **ls** (str, '-'): The line style for the plot. 
-
-   * **ylogscale** (bool, True): The logarithmic scale for the y-axis. 
-
-   * **xlogscale** (bool, False): The logarithmic scale for the x-axis. 
-
-   * **color** (str, 'tab:blue'): The color of the plot. 
- 
-   * **figsize** (float, 1): The size of the figure. 
-
-   * **legend** (str, '_Hidden'): The legend label for the plot. 
-
-   * **varname** (str, 'Precipitation'): The variable's name for the x-axis label. 
-
-   * **plot_title** (str, None): The plot's title.
- 
-   * **loc** (str, 'upper right'): The location of the legend. 
-
-   * **add/fig** (tuple, None): Tuple of (fig, ax) to add the plot to an existing figure.  The figure object to plot on.
-
-   * **path_to_figure** (str, None): The path to save the figure. If provided, saves the figure at the specified path.
 
 Below is an additional example of a histogram plot.
 

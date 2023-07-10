@@ -82,10 +82,11 @@ class Tropical_Rainfall:
         self.first_edge     = first_edge
         self.width_of_bin   = width_of_bin
         self.bins           = bins
+
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def class_attributes_update(self,       trop_lat = None,    s_time = None,       f_time = None,
-                          s_year = None,    f_year = None,      s_month = None,      f_month = None,
-                        num_of_bins = None, first_edge = None,  width_of_bin = None, bins = 0):
+    def class_attributes_update(self,               trop_lat = None,        s_time = None,          f_time = None,
+                                s_year = None,      f_year = None,          s_month = None,         f_month = None,
+                                num_of_bins = None, first_edge = None,      width_of_bin = None,    bins = 0):
         """ Function to update the class attributes.
         
         Args:
@@ -365,8 +366,8 @@ class Tropical_Rainfall:
 
   
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
-    def preprocessing(self, data,
-                        preprocess = True,      model_variable = "tprate",      trop_lat = None,
+    def preprocessing(self, data,               trop_lat = None,
+                        preprocess = True,      model_variable = "tprate",      
                         s_time  = None,         f_time  = None,
                         s_year  = None,         f_year  = None,
                         s_month = None,         f_month = None,
@@ -392,14 +393,14 @@ class Tropical_Rainfall:
         """        
         
         self.class_attributes_update(trop_lat = trop_lat,
-                                     s_time = s_time,       f_time = f_time,
-                                     s_year = s_year,       f_year = f_year,        s_month = s_month,      f_month = f_month)
+                                     s_time = s_time,       f_time = f_time,        s_month = s_month,
+                                     s_year = s_year,       f_year = f_year,        f_month = f_month)
         if preprocess == True:
             if 'time' in data.coords:
                 data_per_time_band  = self.time_band(data,
-                                                    s_time  = self.s_time,       f_time  = self.f_time,
-                                                    s_year  = self.s_year,       f_year  = self.f_year,
-                                                    s_month = self.s_month,      f_month = self.f_month)
+                                                    s_time  = self.s_time,          f_time  = self.f_time,
+                                                    s_year  = self.s_year,          f_year  = self.f_year,
+                                                    s_month = self.s_month,         f_month = self.f_month)
             else:
                 data_per_time_band  = data
             
@@ -531,12 +532,12 @@ class Tropical_Rainfall:
             return counts_per_bin
         
     """ """ """ """ """ """ """ """ """ """
-    def histogram(self,                 data,                   data_with_global_atributes = None,
-                  weights = None,       preprocess = True,      trop_lat = 10,              model_variable = 'tprate',
-                  s_time = None,        f_time = None,          s_year = None,              
-                  f_year = None,        s_month = None,         f_month = None,
-                  num_of_bins = None,   first_edge = None,      width_of_bin  = None,       bins = 0,
-                  lazy = False,         create_xarray = True,   path_to_histogram = None,   name_of_file=None):
+    def histogram(self,                     data,                   data_with_global_atributes = None,
+                  weights = None,           preprocess = True,      trop_lat = 10,              model_variable = 'tprate',
+                  s_time = None,            f_time = None,          s_year = None,              
+                  f_year = None,            s_month = None,         f_month = None,
+                  num_of_bins = None,       first_edge = None,      width_of_bin  = None,       bins = 0,
+                  path_to_histogram = None,   name_of_file=None):
         """ Function to calculate a histogram of the high-resolution Dataset.
 
         Args:
@@ -544,7 +545,6 @@ class Tropical_Rainfall:
             preprocess (bool, optional):    If True, preprocesses the Dataset.              Defaults to True.
             trop_lat (float, optional):     The maximum absolute value of tropical latitude in the Dataset. Defaults to 10.
             model_variable (str, optional): The variable of interest in the Dataset.        Defaults to 'tprate'.
-            weights (array-like, optional): The weights of the data.                        Defaults to None.
             data_with_global_attributes (xarray.Dataset, optional): The Dataset with global attributes. Defaults to None.
             s_time (str/int, optional):     The starting time value/index in the Dataset.   Defaults to None.
             f_time (str/int, optional):     The final time value/index in the Dataset.      Defaults to None.
@@ -556,7 +556,6 @@ class Tropical_Rainfall:
             first_edge (float, optional):   The starting edge value for the bins.           Defaults to None.
             width_of_bin (float, optional): The width of each bin.                          Defaults to None.
             bins (int, optional):           The number of bins for the histogram (alternative argument to 'num_of_bins'). Defaults to 0.
-            lazy (bool, optional):          If True, delays computation until necessary.    Defaults to False.
             create_xarray (bool, optional): If True, creates an xarray dataset from the histogram counts. Defaults to True.
             path_to_histogram (str, optional):   The path to save the xarray dataset.       Defaults to None. 
             
@@ -642,7 +641,7 @@ class Tropical_Rainfall:
         return path_to_netcdf
     
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def grid_attributes(self, data = None, tprate_dataset = None, variable = None):
+    def grid_attributes(self, data = None,      tprate_dataset = None,      variable = None):
         """ Function to add the attributes with information about the space and time grid to the Dataset.
 
         Args:
@@ -1027,6 +1026,8 @@ class Tropical_Rainfall:
             f_year (str, optional):             The ending year of the Dataset.         Defaults to None.
             s_month (str, optional):            The starting month of the Dataset.      Defaults to None.
             f_month (str, optional):            The ending month of the Dataset.        Defaults to None.
+            glob (bool, optional):              If True, the median value is calculated for all lat and lon.  Defaults to False.
+            preprocess (bool, optional):        If True, the Dataset is preprocessed.   Defaults to True.
 
         Returns:
             xarray:         The mean value of variable.
@@ -1080,9 +1081,11 @@ class Tropical_Rainfall:
             f_year (str, optional):             The ending year of the Dataset.         Defaults to None.
             s_month (str, optional):            The starting month of the Dataset.      Defaults to None.
             f_month (str, optional):            The ending month of the Dataset.        Defaults to None.
+            glob (bool, optional):              If True, the median value is calculated for all lat and lon.  Defaults to False.
+            preprocess (bool, optional):        If True, the Dataset is preprocessed.   Defaults to True.
 
         Returns:
-            xarray: The median value of variable.
+            xarray:         The median value of variable.
         """      
         if preprocess == True:
             data = self.preprocessing(data,                                  preprocess = preprocess,
@@ -1140,7 +1143,21 @@ class Tropical_Rainfall:
             get_median (bool, optional):    The flag to calculate the median of the variable.  Defaults to False.
             s_time (str, optional):         The starting time of the Dataset.       Defaults to None.
             f_time (str, optional):         The ending time of the Dataset.         Defaults to None.
-            s_year (str, optional):         The starting year of the Dataset.       Defaults to None."""
+            s_year (str, optional):         The starting year of the Dataset.       Defaults to None.
+            f_year (str, optional):         The ending year of the Dataset.         Defaults to None.
+            s_month (str, optional):        The starting month of the Dataset.      Defaults to None.
+            f_month (str, optional):        The ending month of the Dataset.        Defaults to None.
+            legend (str, optional):         The legend of the plot.                 Defaults to '_Hidden'.
+            figsize (int, optional):        The size of the plot.                   Defaults to 1.
+            ls (str, optional):             The line style of the plot.             Defaults to '-'.
+            maxticknum (int, optional):     The maximum number of ticks on the x-axis.  Defaults to 12.
+            color (str, optional):          The color of the plot.                  Defaults to 'tab:blue'.
+            varname (str, optional):        The name of the variable.               Defaults to 'Precipitation'.
+            loc (str, optional):            The location of the legend.             Defaults to 'upper right'.
+
+        Returns:
+            None.
+        """
         
         self.class_attributes_update(trop_lat = trop_lat, 
                                      s_time   = s_time,         f_time  = f_time,
@@ -1444,7 +1461,29 @@ class Tropical_Rainfall:
                                     space_grid_factor = None,           time_freq = None,                   preprocess = True,
                                     time_length = None,                 time_grid_factor = None):
         
-        """ Function to regride the data and observations to the same grid. """
+        """ Function to regride the data and observations to the same grid. 
+
+        Args:
+            data (xarray):          Data to be regrided.
+            dummy_data (xarray):    Dummy data to be regrided.
+            trop_lat (float):       Latitude of the tropical region.
+            model_variable (str):   Name of the variable to be regrided.
+            s_time (datetime):      Start time of the regrided data.
+            f_time (datetime):      End time of the regrided data.
+            s_year (int):           Start year of the regrided data.
+            f_year (int):           End year of the regrided data.
+            s_month (int):          Start month of the regrided data.
+            f_month (int):          End month of the regrided data.
+            model (str):            Model to be used.
+            source (str):           Source of the data.
+            plev (int):             Pressure level of the data.
+            space_grid_factor (float): Space grid factor.
+            time_freq (str):        Time frequency of the data.
+            preprocess (bool):      If True, the data is preprocessed.
+            time_length (int):      Time length of the data.
+
+        Returns:
+        """
 
         self.class_attributes_update(trop_lat = trop_lat,
                                     s_time   = s_time,                  f_time  = f_time,
@@ -1503,6 +1542,21 @@ class Tropical_Rainfall:
     def seasonal_or_monthly_mean(self,  data,                               preprocess=True,                    seasons = True,     
                                         model_variable = 'tprate',          trop_lat       = None,              new_unit = None, 
                                         coord = None):
+        """ Function to calculate the seasonal or monthly mean of the data. 
+        
+        Args:
+            data (xarray.DataArray):        Data to be calculated.
+            preprocess (bool, optional):    If True, the data will be preprocessed.                 The default is True.
+            seasons (bool, optional):       If True, the data will be calculated for the seasons.   The default is True.
+            model_variable (str, optional): Name of the model variable.                             The default is 'tprate'.
+            trop_lat (float, optional):     Latitude of the tropical region.                        The default is None.
+            new_unit (str, optional):       New unit of the data.                                   The default is None.
+            coord (str, optional):          Name of the coordinate.                                 The default is None.
+        
+        Returns:
+            xarray.DataArray:             Seasonal or monthly mean of the data.
+        
+        """
         
         self.class_attributes_update(trop_lat = trop_lat)
         if seasons:
@@ -1575,6 +1629,24 @@ class Tropical_Rainfall:
                                 vmin = None,                        vmax = None,                        contour  = True,                           
                                 path_to_pdf = None,                 weights = None,                     level_95=True,
                                 name_of_file = None,                pdf_format=True):
+        """ Function to plot the bias of model_variable between two datasets.
+        
+        Args:
+            data (xarray): First dataset to be plotted
+            dataset_2 (xarray, optional):   Second dataset to be plotted
+            preprocess (bool, optional):    If True, data is preprocessed.              Defaults to True.
+            seasons (bool, optional):       If True, data is plotted in seasons. If False, data is plotted in months. Defaults to True.
+            model_variable (str, optional): Name of the model variable.                 Defaults to 'tprate'.
+            figsize (float, optional):      Size of the figure.                         Defaults to 1.
+            trop_lat (float, optional):     Latitude band of the tropical region.       The default is None.
+            new_unit (str, optional):       New unit of the data.                       The default is None.
+            contour (bool, optional):       If True, contour is plotted.                The default is True.
+            path_to_pdf (str, optional):    Path to the pdf file.                       The default is None.
+        
+        Returns:
+            The pyplot figure in PDF format 
+        """
+
         
         self.plot_seasons_or_months(  data,                         preprocess=preprocess,              seasons = seasons,     
                                 dataset_2 = dataset_2,              model_variable = model_variable,    figsize  = figsize,              
@@ -1592,10 +1664,27 @@ class Tropical_Rainfall:
                                 path_to_pdf = None,                 weights = None,                     level_95=True, 
                                 value = 0.95,                       rel_error = 0.1,                    name_of_file = None,
                                 pdf_format=True):
-        
-        """ Function to plot the mean or median value of variable in Dataset.
+        """ Function to plot seasonal data.
 
-        Args:"""
+        Args:
+            data (xarray): First dataset to be plotted
+            dataset_2 (xarray, optional):   Second dataset to be plotted
+            preprocess (bool, optional):    If True, data is preprocessed.          Defaults to True.
+            seasons (bool, optional):       If True, data is plotted in seasons. If False, data is plotted in months. Defaults to True.
+            model_variable (str, optional): Name of the model variable.             Defaults to 'tprate'.
+            figsize (float, optional):      Size of the figure.                     Defaults to 1.
+            trop_lat (float, optional):     Latitude of the tropical region.        Defaults to None.
+            plot_title (str, optional):     Title of the plot.                      Defaults to None.
+            new_unit (str, optional):       Unit of the data.                       Defaults to None.
+            vmin (float, optional):         Minimum value of the colorbar.          Defaults to None.
+            vmax (float, optional):         Maximum value of the colorbar.          Defaults to None.
+            contour (bool, optional):       If True, contours are plotted.          Defaults to True.
+            path_to_pdf (str, optional):    Path to the pdf file.                   Defaults to None.
+            name_of_file (str, optional):   Name of the pdf file.                   Defaults to None.
+        Returns:
+            The pyplot figure
+        """
+
         self.class_attributes_update(trop_lat = trop_lat)
         
         
@@ -1609,24 +1698,18 @@ class Tropical_Rainfall:
             ax4 = fig.add_subplot(gs[1, 1], projection=ccrs.PlateCarree())
             ax5 = fig.add_subplot(gs[2, :], projection=ccrs.PlateCarree())
             axs = [ax1, ax2, ax3, ax4, ax5]
-            all_season  = self.seasonal_or_monthly_mean(data,                preprocess = preprocess,        seasons  = seasons,     
-                                        model_variable = model_variable,    trop_lat = self.trop_lat,            new_unit = new_unit )
+            all_season  = self.seasonal_or_monthly_mean(data,               preprocess = preprocess,        seasons  = seasons,     
+                                        model_variable = model_variable,    trop_lat = self.trop_lat,       new_unit = new_unit )
             
             if vmin is None and vmax is None:
-                if level_95 is True and dataset_2 is None:
-                    bin_value,  units, threshold = self.get_95percent_level(data = data, original_hist = None, value = value, rel_error = rel_error, 
-                                                                            model_variable=model_variable, new_unit = new_unit, weights = weights,  
-                                                                            trop_lat = self.trop_lat) 
-                    vmin = bin_value
-                    vmax = 20*bin_value
-                else:
-                    vmax        = float(all_season[0].max().values)/10
-                    vmin        = 0
-            clevs           = np.arange(vmin, vmax, abs(vmax - vmin)/10) 
+                vmax        = float(all_season[0].max().values)/10
+                vmin        = 0
+            clevs               = np.arange(vmin, vmax, abs(vmax - vmin)/10) 
 
             if dataset_2 is not None:
-                all_season_2 = self.seasonal_or_monthly_mean(dataset_2,                preprocess = preprocess,        seasons  = seasons,     
-                                        model_variable = model_variable,    trop_lat = self.trop_lat,            new_unit = new_unit )
+                all_season_2 = self.seasonal_or_monthly_mean(dataset_2,                     preprocess = preprocess,        
+                                                             seasons  = seasons,            model_variable = model_variable,    
+                                                             trop_lat = self.trop_lat,      new_unit = new_unit )
                 for i in range(0, len(all_season)):
                     all_season[i].values = all_season[i].values - all_season_2[i].values
 
@@ -1637,7 +1720,6 @@ class Tropical_Rainfall:
             for i in range(0, len(all_season)):
                 one_season = all_season[i]
                 
-                #if vmin                 != None:
                 one_season          = one_season.where(one_season > vmin)
                 one_season, lons    = add_cyclic_point(one_season, coord=data['lon'])
                 
@@ -1668,35 +1750,28 @@ class Tropical_Rainfall:
                                         model_variable = model_variable,     trop_lat = trop_lat,            new_unit = new_unit )
 
             if vmin is None and vmax is None:
-                if level_95 is True and dataset_2 is None:
-                    bin_value,  units, threshold = self.get_95percent_level(data = data, original_hist = None, 
-                                                                            value = value, rel_error = rel_error, model_variable=model_variable, 
-                                                                            new_unit = new_unit, weights = weights,  trop_lat = self.trop_lat) 
-                    vmin = bin_value
-                    vmax = 20*bin_value
-                else:
-                    vmax        = float(all_months[6].max().values)
-                    vmin        = 0
+                vmax        = float(all_months[6].max().values)
+                vmin        = 0
+                    
             clevs           = np.arange(vmin, vmax, (vmax - vmin)/10) 
 
             if dataset_2 is not None:
-                all_months_2 = self.seasonal_or_monthly_mean(dataset_2,                preprocess = preprocess,        seasons  = seasons,     
-                                        model_variable = model_variable,    trop_lat = trop_lat,            new_unit = new_unit )
+                all_months_2 = self.seasonal_or_monthly_mean(dataset_2,     preprocess = preprocess,         seasons  = seasons,     
+                                        model_variable = model_variable,     trop_lat = trop_lat,            new_unit = new_unit )
                 for i in range(0, len(all_months)):
                     all_months[i].values = all_months[i].values - all_months_2[i].values
 
             for i in range(0, len(all_months)):
-                #if vmin                 != None:
                 all_months[i]           = all_months[i].where(all_months[i] > vmin)
                 all_months[i], lons     = add_cyclic_point(all_months[i], coord=data['lon'])
 
-            titles =['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 
+            titles  =['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 
                      'October', 'November', 'December']
-            axs=axes.flatten()
+            axs     = axes.flatten()
             
             for i in range(0, len(all_months)):
-                im1 =axs[i].contourf(lons, data['lat'], all_months[i], clevs,
-                          transform = ccrs.PlateCarree(), #vmin = vmin, vmax = vmax, 
+                im1 = axs[i].contourf(lons, data['lat'], all_months[i], clevs,
+                          transform = ccrs.PlateCarree(), 
                           cmap='coolwarm', extend='both')
 
                 axs[i].set_title(titles[i], fontsize = 17)
@@ -1713,6 +1788,7 @@ class Tropical_Rainfall:
                 lat_formatter = cticker.LatitudeFormatter()
                 axs[i].yaxis.set_major_formatter(lat_formatter)
                 axs[i].grid(True)
+
         if new_unit is None:
             try:
                 unit        = data[model_variable].units

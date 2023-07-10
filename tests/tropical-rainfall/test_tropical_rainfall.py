@@ -173,7 +173,7 @@ def test_lazy_mode_calculation(reader):
     """
     data                    = reader
     diag                    = Tropical_Rainfall(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-6)/20)
-    hist_lazy               = diag.histogram(data, lazy = True)
+    hist_lazy               = diag.histogram_lowres(data, lazy = True)
     assert 'frequency'      not in hist_lazy.attrs
     assert 'pdf'            not in hist_lazy.variables
 
@@ -255,19 +255,6 @@ def test_histogram_merge(histogram_output):
     counts_merged           = sum(hist_merged.counts.values)
     assert counts_merged    == (counts_1 + counts_2)
 
-#@pytest.mark.tropical_rainfall
-#def test_mean_figure_load_to_memory(reader):
-#    """ Testing the saving of the figure of mean value
-#    """
-#    create_folder(folder    = str(path_to_diagnostic) + "/test_output/plots/", loglevel = 'WARNING')
-#    path_to_pdf             = str(path_to_diagnostic) + "/test_output/plots/"
-#    diag                    = Tropical_Rainfall()
-#    data                    = reader
-#    diag.mean_and_median_plot(data, model_variable='2t', coord='lon', legend='test',
-#                              path_to_pdf = str(path_to_pdf) + 'test_mean_fig_saving.png')
-#    files                   = [f for f in listdir(path_to_pdf) if isfile(join(path_to_pdf, f))]
-#    assert 'test_mean_fig_saving.png' in files
-
 @pytest.mark.tropical_rainfall
 def test_units_converter(reader):
     """ Testing convertation of units"""
@@ -305,5 +292,3 @@ def test_units_converter(reader):
 
         assert abs(mean_value_mperday/mean_value_mperyear -  0.00273973) < 1e-3
         assert data.units       == 'm year**-1'
-    #else:
-    #    assert False,       "The function converts units of precipitation, but provided dataarray doesn't contain the precipitation"
