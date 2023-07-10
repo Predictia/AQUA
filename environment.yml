@@ -40,8 +40,6 @@ dependencies:
 # these are pip-based since it provides more recent versions or packages unavailable on conda-forge
   - pip
   - pip:
-    - fast_histogram
-    - dask_histogram
     - sparse
     - dask_jobqueue
     - docker
