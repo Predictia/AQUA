@@ -15,7 +15,7 @@ The SSH diagnostic follows a class structure and consists of the files:
 * `notebooks/ssh_example_4outputs.ipynb`: an ipython notebook which uses the ssh_class and its methods;
 * `README.md` : a readme file which contains technical information on how to install the SSH diagnostic and its environment. 
 
-input variables
+Input variables
 ---------------
 
 * `ssh` (Sea Surface Height from different models)
