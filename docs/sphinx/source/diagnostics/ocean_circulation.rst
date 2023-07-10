@@ -64,17 +64,18 @@ Example Plot(s)
 .. figure:: figures/ocean_circulation1.png
     :width: 20cm
 
-    This is stratification plot. 
+    This is an example of one of the climatological stratification profiles. 
 
 .. figure:: figures/ocean_circulation2.png
     :width: 20cm
 
-    This mixed layer depth plot
+    This is an example of one of the mixed layer depth climatologies. 
+
 
 Available demo notebooks
 ------------------------
 
-Notebooks are stored in diagnostics/ocean_circulation-diagnostic/notebooks
+A notebook with examples on how to call the diagnostic functions can be found in diagnostics/ocean_circulation-diagnostic/notebooks
 
 * `ocean_circulation.ipynb <https://github.com/oloapinivad/AQUA/blob/devel/ocean_circulation/diagnostics/ocean_circulation/notebooks/ocean_circulation.ipynb>`_
         
