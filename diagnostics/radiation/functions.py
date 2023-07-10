@@ -191,13 +191,6 @@ def process_ceres_sfc_data(exp, source, TOA_icon_gm):
 def gregory_plot(data_era5, model_list, reader_dict):
     """
     Create Gregory Plot with various models and ERA5 (plotted by default)
-    Example: model_list = ['icon', 'ifs_9km', 'ifs_4km']
-                reader_dict = {
-                            "icon" : reader_icon,
-                            "ifs_9km" : reader_ifs_9km,
-                            "ifs_4km" : reader_ifs_4km
-                            }
-            radiation_diag.gregory_plot(data_era5, model_list, reader_dict)
 
     Args:
         model_list:                      a list of model that should be plotted.
@@ -206,6 +199,15 @@ def gregory_plot(data_era5, model_list, reader_dict):
 
     Returns:
         A Gregory Plot
+
+    Example:
+        model_list = ['icon', 'ifs_9km', 'ifs_4km']
+        reader_dict = {
+                       "icon" : reader_icon,
+                       "ifs_9km" : reader_ifs_9km,
+                       "ifs_4km" : reader_ifs_4km
+                      }
+            radiation_diag.gregory_plot(data_era5, model_list, reader_dict)
     """
 
     reader_era5 = Reader(model="ERA5", exp="era5", source="monthly")
@@ -300,18 +302,18 @@ def barplot_model_data(datasets, model_names, year=None):
     """
     Create Bar Plot with various models and CERES. Variables ttr and tsr are plotted to show imbalances.
     Default mean for CERES data is the whole time range.
-    Example:
-            datasets = [TOA_ceres_clim_gm, TOA_icon_gm, TOA_ifs_4km_gm, TOA_ifs_9km_gm]
-            model_names = ['ceres', 'icon', 'ifs 4.4 km', 'ifs 9 km']
-
-            radiation_diag.barplot_model_data(datasets, model_names, year = 2022)
 
     Args:
-        datasets:                      a list of xarrayDataSets that should be plotted. Chose the global means (TOA_"model"_gm)
-        model_names:                  your desired naming for the plotting
+        datasets:      a list of xarrayDataSets that should be plotted. Chose the global means (TOA_"model"_gm)
+        model_names:   your desired naming for the plotting
 
     Returns:
         A bar plot
+
+    Example:
+        datasets = [TOA_ceres_clim_gm, TOA_icon_gm, TOA_ifs_4km_gm, TOA_ifs_9km_gm]
+        model_names = ['ceres', 'icon', 'ifs 4.4 km', 'ifs 9 km']
+        radiation_diag.barplot_model_data(datasets, model_names, year = 2022)
     """
 
     colors = ['red', 'blue']  # Longwave (lw) in red, Shortwave (sw) in blue
@@ -491,9 +493,7 @@ def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_cli
     """
     The function plots maps of TOA bias for the specified variable and model using a Robinson projection.
     The TOA bias is calculated as the difference between the TOA model data and the TOA CERES climatology. Default year is 2020
-        Example:
-            radiation_diag.plot_maps(TOA_model= TOA_ifs_4km_r360x180, TOA_ceres_diff_samples = TOA_ceres_diff_samples, TOA_ceres_clim = TOA_ceres_clim, var='tsr', model_label='Cycle 3 4.4 km IFS Fesom', year='2023')
-            Use the TOA_"model"_r360x180 DataSet to ensure that the gridding is right
+    
     Args:
         TOA_model (xarray.DataArray):                The TOA model data.
         var (str):                                   The variable to plot ('tnr', 'tsr', or 'ttr').
@@ -503,7 +503,12 @@ def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_cli
         year (str, optional):                        The year to plot. Defaults to '2020'.
 
     Returns:
-    Monthly bias plots of the chosen model, variable and year
+        Monthly bias plots of the chosen model, variable and year
+
+    Example:
+        radiation_diag.plot_maps(TOA_model= TOA_ifs_4km_r360x180, TOA_ceres_diff_samples = TOA_ceres_diff_samples, TOA_ceres_clim = TOA_ceres_clim, var='tsr', model_label='Cycle 3 4.4 km IFS Fesom', year='2023')
+        Use the TOA_"model"_r360x180 DataSet to ensure that the gridding is right
+
     """
 
     # quantiles are a bit more conservative than the range, but interpolation from few values might not be robust
