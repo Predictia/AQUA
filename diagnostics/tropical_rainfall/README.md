@@ -49,7 +49,12 @@ conda env create -f diagnostics/tropical_rainfall/env-tropical-rainfall.yml
 ### Installation on Lumi
 
 
+The easiest way to install the diagnostic is by using the pip installation method and adding the following packages
+- fast_histogram
+- boost_histogram
+- dask_histogram
 
+to the list of pip packages in the aqua installation script, which is located in the folder `/config/machines/lumi/installation/`.
 
 ## Data requirements  
 
