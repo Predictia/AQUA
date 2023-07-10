@@ -18,19 +18,20 @@ Structure
 Input variables example
 ------------------------
 
-* `2t`     (2 metre temperature, GRIB pramid 167)
-* `mnttrf`     (Outgoing longwave radiation at TOA)
-* `mntsrf`     (Outgoing shortwave radiation at TOA)
+* `2t`     (2 metre temperature, GRIB paramid 167)
+* `mtntrf`     (Outgoing longwave radiation at TOA)
+* `mtnsrf`     (Net shortwave radiation at TOA)
 
 Output
 ------
 
 The diagnostic produces two plots:
-
 * `timeseries.png`  A comparison of ICON and IFS global mean temperature
 * `gregory.png`     A Gregory-like plot to analyse model drift in ICON
-* `icon_2t_mean.nc` A Gregory-like plot to analyse model drift in ICON
-* `ifs_2t_mean.nc`  A Gregory-like plot to analyse model drift in ICON
+
+and two data files:
+* `icon_2t_mean.nc` Data for Gregory-like plot to analyse model drift in ICON
+* `ifs_2t_mean.nc`  Data for Gregory-like plot to analyse model drift in ICON
 
 Observations
 ------------
@@ -58,7 +59,7 @@ Detailed API
 This section provides a detailed reference for the Application Programming Interface (API) of the "global_mean_timeseries" diagnostic,
 produced from the diagnostic function docstrings.
 
-.. automodule:: global_mean_timeseries
+.. automodule:: global_time_series
     :members:
     :undoc-members:
     :show-inheritance:
