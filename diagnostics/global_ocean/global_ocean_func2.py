@@ -100,6 +100,45 @@ def weighted_area_mean(data, region=None, latS: float=None, latN: float=None, lo
     return wgted_mean
 
 
+def weighted_zonal_mean(data, region=None, latS: float=None, latN: float=None, lonW: float=None, lonE: float=None):
+    """
+    Compute the weighted zonal mean of data within the specified latitude and longitude bounds.
+
+    Parameters:
+        data (xarray.Dataset): Input data.
+        
+        region (str, optional): Predefined region name. If provided, latitude and longitude bounds will be fetched from predefined regions.
+        
+        latS (float, optional): Southern latitude bound. Required if region is not provided or None.
+        
+        latN (float, optional): Northern latitude bound. Required if region is not provided or None.
+        
+        lonW (float, optional): Western longitude bound. Required if region is not provided or None.
+        
+        lonE (float, optional): Eastern longitude bound. Required if region is not provided or None.
+
+    Returns:
+        xarray.Dataset: Weighted zonal mean of the input data.
+    """
+    if region is None:
+        if latN is None or latS is None or lonW is None or lonE is None:
+            raise ValueError("When region is None, latN, latS, lonW, lonE values need to be specified.")
+        
+        if lonW < 0 or lonE < 0:
+            data = convert_longitudes(data)
+    else:
+        # Obtain latitude and longitude boundaries for the predefined region
+        latS, latN, lonW, lonE = predefined_regions(region)
+    logger.info(f" data slicing for this region, latitude {latS} to {latN}, longitude {lonW} to {lonE}")
+    # Perform data slicing based on the specified or predefined latitude and longitude boundaries
+    data = data.sel(lat=slice(latS, latN), lon=slice(lonW, lonE))
+    # Calculate weighted data based on cosine of latitude
+    weighted_data = data.weighted(np.cos(np.deg2rad(data.lat)))
+    # Calculate weighted mean along latitude and longitude axes
+    wgted_mean = weighted_data.mean(("lon"))
+    
+    return wgted_mean
+
 
 def mean_value_plot(data, region, customise_level=False, levels=None, outputfig="./figs"):
     # Calculate weighted area mean
@@ -460,6 +499,72 @@ def ocpt_so_hov_plot(data, region, type, outputfig="./figs"):
 
     # Add contour lines with black color and set the line width
     tgt.plot.contour(colors="black", levels=12, linewidths=0.5, ax=ax1)
+
+    # Set the title, y-axis label, and x-axis label for the temperature plot
+    ax1.set_title("Temperature", fontsize=14)
+    ax1.set_ylim((5500, 0))
+    ax1.set_ylabel("Depth (in m)", fontsize=12)
+    ax1.set_xlabel("Time (in years)", fontsize=12)
+
+    # Extract salinity data and plot the contour filled plot
+    sgt = data.so.transpose()
+    sgt.plot.contourf(levels=12, ax=ax2)
+
+    # Add contour lines with black color and set the line width
+    sgt.plot.contour(colors="black", levels=12, linewidths=0.5, ax=ax2)
+
+    # Set the title, y-axis label, and x-axis label for the salinity plot
+    ax2.set_title("Salinity", fontsize=14)
+    ax2.set_ylim((5500, 0))
+    ax2.set_ylabel("Depth (in m)", fontsize=12)
+    ax2.set_xlabel("Time (in years)", fontsize=12)
+
+    filename = f"{outputfig}/Hovmoller_TS_{type.replace(' ', '_')}_{region.replace(' ', '_').lower()}.png"
+    plt.savefig(filename)
+    logger.info(f"{filename} saved")
+    # Return the plot
+    return
+
+def ocpt_so_hov_plot_log(data, region, type, outputfig="./figs"):
+    """
+    Create a Hovmoller plot of temperature and salinity full values in logaritmic scale.
+
+    Args:
+        data (DataArray): Input data containing temperature (ocpt) and salinity (so).
+        region (str): Region that is represented in the plot.
+        type (str): Type of timeseries between FullValue, Anomaly, StdAnomaly
+
+
+    Returns:
+        None
+    """
+    # Reads the type of timeseries to plot
+
+    if type is None:
+        raise ValueError("Please specify whether it is a 'FullValue', 'Anomaly' or 'StdAnomaly' timeseries")
+    elif type == 'FullValue':
+        ttype="Full Values"
+    elif type == 'Anomaly':
+        ttype="Anomalies"
+    elif type == 'StdAnomaly':
+        data.ocpt.attrs['units'] = 'Standardised Units'
+        data.so.attrs['units'] = 'Standardised Units'
+        ttype="Standardised Anomalies"
+
+    # Create subplots for temperature and salinity plots
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
+    fig.suptitle(f"{type} {region} T,S evolution", fontsize=16)
+    lev_log_scale= np.log(data.lev)
+    # Extract temperature data and plot the contour filled plot
+    tgt = data.ocpt.transpose()
+    cs1=tgt.plot.contourf(levels=np.logspace(np.min(data.ocpt),np.max(data.ocpt)), ax=ax1,extend='both')
+    cbar_ax = fig.add_axes([0.15, 0.1, 0.3, 0.05])
+    cbar = fig.colorbar(cs1, cax=cbar_ax, orientation='horizontal')
+    cbar.set_ticks((np.logspace(np.min(data.ocpt),np.max(data.ocpt))).tolist())  # Set the tick positions
+    
+    
+    # Add contour lines with black color and set the line width
+    tgt.plot.contour(colors="black",levels=np.logspace(np.min(data.ocpt),np.max(data.ocpt)), linewidths=0.5, ax=ax1,extend='both')
 
     # Set the title, y-axis label, and x-axis label for the temperature plot
     ax1.set_title("Temperature", fontsize=14)
@@ -1113,61 +1218,85 @@ def multilevel_t_s_trend_plot(data1, data2, region, customise_level=False, level
             data2_level = data2.isel(lev=0)
 
 
-    
 
     nlev=len(levels)
     
-    # Create subplots
-    #fig, (ax1, ax2) = plt.subplots(nrows=nlev, ncols=2)
+    # To fix the dimensions so that all subpanels are well visible
+    dim1=14
+    dim2=5*nlev
 
-    fig, axs = plt.subplots(nrows=nlev, ncols=2)
+    fig, axs = plt.subplots(nrows=nlev, ncols=2, figsize=(dim1, dim2))
 
-    #cutoff_lev=dens_diff.lev.where(dens_diff==dens_diff.min(["lev"])).max(["lev"])
-
-    # Set the title
-    fig.suptitle(f'Long-term {region} trends', fontsize=14)
     name1=data1.name
     name2=data2.name
 
     ilev=0
-    #data1.where(data1.lev==int(10)).min(["lev"]).plot()
+
     for levi in levels:
-        data1.interp(lev=levi).plot.contourf(levels=12, ax=axs[ilev,0])
-        axs[ilev,0].set_title(f"{name1} @ {levi}", fontsize=10)
-        axs[ilev,0].set_ylabel("Latitude (in deg North)", fontsize=8)
-        axs[ilev,0].set_xlabel("Longitude (in de East)", fontsize=8)
-        data2.interp(lev=levi).plot.contourf(levels=12, ax=axs[ilev,1])
-        axs[ilev,1].set_title(f"{name2} @ {levi}", fontsize=10)
-        axs[ilev,1].set_ylabel("Latitude (in deg North)", fontsize=8)
-        axs[ilev,1].set_xlabel("Longitude (in de East)", fontsize=8)
+        data1.interp(lev=levi).plot.contourf(levels=18, ax=axs[ilev,0])
+        axs[ilev,0].set_title(f"{name1} @ {levi}", fontsize=12)
+        axs[ilev,0].set_ylabel("Latitude (in deg North)", fontsize=9)
+        axs[ilev,0].set_xlabel("Longitude (in de East)", fontsize=9)
+        axs[ilev,0].set_facecolor('grey')
+        data2.interp(lev=levi).plot.contourf(levels=18, ax=axs[ilev,1])
+        axs[ilev,1].set_title(f"{name2} @ {levi}", fontsize=12)
+        axs[ilev,1].set_ylabel("Latitude (in deg North)", fontsize=9)
+        axs[ilev,1].set_xlabel("Longitude (in de East)", fontsize=9)
+        axs[ilev,1].set_facecolor('grey')
+
         ilev=ilev+1
 
-    # Add contour lines with black color and set the line width
-    #tgt.plot.contour(colors="black", levels=12, linewidths=0.5, ax=ax1)
+    filename = f"{outputfig}/multilevel_{region.replace(' ', '_').lower()}_ocpt_so_trends.png"
 
-    # Set the title, y-axis label, and x-axis label for the temperature plot
-    #ax1.set_title("Temperature", fontsize=14)
-    #ax1.set_ylim((5500, 0))
-    #ax1.set_ylabel("Depth (in m)", fontsize=12)
-    #ax1.set_xlabel("Time (in years)", fontsize=12)
-
-    # Set properties for the temperature subplot
-   ## ax1.set_title("Temperature", fontsize=14)
-    ##ax1.set_ylabel("Standardized Units (at the respective level)", fontsize=12)
-    ##ax1.set_xlabel("Time (in years)", fontsize=12)
-    ##ax1.legend(loc="best")
-
-    # Set properties for the salinity subplot
-    ##ax2.set_title("Salinity", fontsize=14)
-    ##ax2.set_ylabel("Standardized Units (at the respective level)", fontsize=12)
-    ##ax2.set_xlabel("Time (in years)", fontsize=12)
-    ##ax2.legend(loc="best")
-    ##filename = f"{outputfig}/TS_{region.replace(' ', '_').lower()}_mean.png"
-
-    ##plt.savefig(filename)
-    ##logger.info(f"{filename} saved")
+    plt.savefig(filename)
+    logger.info(f"{filename} saved")
     # Adjust the layout and display the plot
-    ##plt.show()
+    plt.show()
 
-    # Return the last value of data_level
+    return
+
+def lat_lev_t_s_trend_plot(data1, data2, region, outputfig="./figs"):
+    """
+    Plots spatial trends at different vertical levels for two variables
+
+    Parameters
+    ----------
+    data1 : y_array of dataset1 containing a single 3D field with trends as a function of depth, lat and lon
+ 
+    data2 : y_array of dataset2 containing a single 3D field with trends as a function of depth, lat and lon
+
+    region (str): Region name
+    
+    """
+
+    fig, (axs) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
+
+    name1=data1.name
+    name2=data2.name
+
+    
+
+    data1.plot.contourf(levels=20, ax=axs[0])
+    axs[0].set_ylim((5500, 0))
+
+    axs[0].set_title(f"Zonally-averaged {region} {name1}", fontsize=12)
+    axs[0].set_ylabel("Depth (in m)", fontsize=9)
+    axs[0].set_xlabel("Latitude (in deg North)", fontsize=9)
+    axs[0].set_facecolor('grey')
+
+    data2.plot.contourf(levels=20, ax=axs[1])
+    axs[1].set_ylim((5500, 0))
+    axs[1].set_title(f"Zonally-averaged {region} {name2} ", fontsize=12)
+    axs[1].set_ylabel("Depth (in m)", fontsize=9)
+    axs[1].set_xlabel("Latitude (in deg North)", fontsize=9)
+    axs[1].set_facecolor('grey')
+
+
+    filename = f"{outputfig}/ZonAvg_{region.replace(' ', '_').lower()}_ocpt_so_trends.png"
+
+    plt.savefig(filename)
+    logger.info(f"{filename} saved")
+    # Adjust the layout and display the plot
+    plt.show()
+
     return
