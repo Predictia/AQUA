@@ -15,6 +15,8 @@ The current version of tropical rainfall diagnostic successfully achieves the mi
 * calculation of the bias between the climatological model and observations.
 
 The diagnostic also provides us with simple in-the-use plotting functions to create a graphical representation of obtained results. 
+
+
 Structure
 ---------
 
