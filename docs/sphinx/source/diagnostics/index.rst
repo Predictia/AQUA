@@ -15,6 +15,7 @@ AQUA provides a collection of built-in diagnostics to analyze climate model outp
    global_mean_timeseries
    radiation
    ssh_variability
+   atmglobalmean
    tropical_cyclones
 
 
