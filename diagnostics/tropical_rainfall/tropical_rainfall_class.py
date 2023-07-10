@@ -920,12 +920,12 @@ class Tropical_Rainfall:
             """
         if fig is not None:
                 fig, ax  = fig
-                if color == 'tab:blue': color   = 'tab:orange'
+                #if color == 'tab:blue': color   = 'tab:orange'
         elif add is None and fig is None:
             fig, ax = plt.subplots( figsize=(8*figsize, 5*figsize) )
         elif add is not None:
             fig, ax  = add 
-            if color == 'tab:blue': color   = 'tab:orange'
+            #if color == 'tab:blue': color   = 'tab:orange'
 
         if not pdf and not frequency:
             if 'Dataset' in str(type(data)):
