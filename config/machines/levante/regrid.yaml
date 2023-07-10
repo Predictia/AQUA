@@ -62,7 +62,7 @@ source_grids:
       2D_1h_native:
         path: /work/bm1235/ifs-grids/tco_grids/tco2559_grid.nc
         space_coord: ["value"]
-      3D_1h6h_native:
+      3D_1h_native:
         path: /work/bm1235/ifs-grids/tco_grids/tco2559_grid.nc
         space_coord: ["value"]
       2D_monthly_native:
@@ -91,7 +91,7 @@ source_grids:
       2D_1h_native:
         path: /work/bm1235/ifs-grids/tco_grids/tco1279_grid.nc
         space_coord: ["value"]
-      3D_1h6h_native:
+      3D_1h_native:
         path: /work/bm1235/ifs-grids/tco_grids/tco1279_grid.nc
         space_coord: ["value"]
       2D_monthly_native:
@@ -325,12 +325,6 @@ source_grids:
         extra: 
           - -setgrid,/work/bb1153/b382075/nextgems/grids/NG5_griddes_elems_IFS.nc 
     
-
-
-
-      
-      
-
       # 2D_1h_native:
       #   path: /work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc
       #   space_coord: ["nod2"]
