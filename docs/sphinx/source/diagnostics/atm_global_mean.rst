@@ -1,20 +1,18 @@
 Atmospheric Global Mean Biases Diagnostic
-=====================================
-
-The tool provides a flexible approach to analyze and visualize 2D biases for multiple atmospheric fields. It primarily focuses on comparing the fields with ERA5 data in different seasons to identify areas of significant biases. The tool supports the analysis of variables such as surface temperature, winds, temperature, and moisture along different pressure levels. The data this diagnostic uses is the nextGEMS cycle 3 data. For accessing the data the Low Resolution Archive (LRA) is used.
+==========================================
 
 Description
 -----------
 
-The file atm_global_mean.py contains the functions analyze the data and plot biases of the models
+The tool provides a flexible approach to analyze and visualize 2D biases for multiple atmospheric fields. It primarily focuses on comparing the fields with ERA5 data in different seasons to identify areas of significant biases. The tool supports the analysis of variables such as surface temperature, winds, temperature, and moisture along different pressure levels. The data this diagnostic uses is the nextGEMS cycle 3 data. For accessing the data the Low Resolution Archive (LRA) is used. The file atm_global_mean.py contains the functions analyze the data and plot biases of the models
 
 Structure
 ---------
 The diagnostic follows a class structure and consists of the file:
 * atm_global_mean.py: a python file, where the class and the methods are included
 
-Input variables example
------------------
+Input variables 
+----------------
 Variables that can be analyzed within this tool are the following:
 
 * 2m temperature (2t)
@@ -77,10 +75,10 @@ Available demo noteboks
 Detailed API
 ------------
 
-This section provides a detailed reference for the Application Programming Interface (API) of the "dummy" diagnostic,
+This section provides a detailed reference for the Application Programming Interface (API) of the "atm_global_mean" diagnostic,
 produced from the diagnostic function docstrings.
 
-.. automodule:: atm_global_mean
+.. automodule:: atmglobalmean
     :members:
     :undoc-members:
     :show-inheritance:
