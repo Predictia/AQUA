@@ -1,6 +1,10 @@
 Radiation Budget Diagnostic
 =============================
 
+
+This package provides a diagnostic for assessing the model radiative budget imbalances at the top of atmosphere (TOA) (surface to be added). It aims to detect potential biases in the models. The diagnostic includes various plots, such as Gregory plots, to provide insights into lingering model drifts or general biases in the radiation budget. The data this diagnostic uses are nextGEMS cycle 2 and nextGEMS cycle 3 data. Additionally data for comparison is needed: Satellite data from the CERES Energy Balanced and Filled (CERES-EBAF catalogue) and reanalysis (ERA5) is used.
+
+
 Description
 -----------
 
@@ -101,7 +105,7 @@ Example plots
    
    
 Available demo notebooks
------------------------
+------------------------
 
 Have a look at the 'functions_demo.ipynb' notebook to see some of the outputs of this diagnostic, which is stored in the diagnostic/radiation/notebooks folder:
 * Github repository to evaluate NextGEMS Cycle 3 data: https://github.com/oloapinivad/AQUA/blob/devel/radiation/diagnostics/radiation/notebooks
