@@ -338,17 +338,17 @@ def hovmoller_plot(data, region, type , latS: float=None, latN: float=None, lonW
 
     lev_log_scale= np.log(data.lev)
     cs1=axs[0].contourf(data.time,lev_log_scale, data.ocpt.transpose(),
-                        levels=np.linspace(np.min(data.ocpt),np.max(data.ocpt),16),cmap='viridis',extend='both')
-    cbar_ax = fig.add_axes([0.15, 0.1, 0.3, 0.05])
+                        levels=np.linspace(np.min(data.ocpt),np.max(data.ocpt),10),cmap='viridis',extend='both')
+    cbar_ax = fig.add_axes([0.15, 0.1, 0.35, 0.05])
     cbar = fig.colorbar(cs1, cax=cbar_ax, orientation='horizontal')
-    cbar.set_ticks((np.linspace(np.min(data.ocpt),np.max(data.ocpt),15)).tolist())  # Set the tick positions
+    cbar.set_ticks((np.linspace(np.min(data.ocpt),np.max(data.ocpt),10)).tolist())  # Set the tick positions
     
     
     cs2=axs[1].contourf(data.time,lev_log_scale, data.so.transpose() ,
-                        levels=np.linspace(np.min(data.so),np.max(data.so),16),cmap='viridis',extend='both')
+                        levels=np.linspace(np.min(data.so),np.max(data.so),14),cmap='viridis',extend='both')
     cbar_ax = fig.add_axes([0.55, 0.1, 0.3, 0.05])
     cbar = fig.colorbar(cs2, cax=cbar_ax, orientation='horizontal')
-    cbar.set_ticks((np.linspace(np.min(data.so),np.max(data.so),16)).tolist())  # Set the tick positions
+    cbar.set_ticks((np.linspace(np.min(data.so),np.max(data.so),14)).tolist())  # Set the tick positions
     # cbar.set_ticklabels(['Low', 'Medium', 'High']) 
     
     if output == True:
