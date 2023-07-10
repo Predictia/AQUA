@@ -4,8 +4,11 @@ Ocean Circulation
 Description
 -----------
 
-This package is provides the diagnostics related to Ocean Circulation.
-As of now there are Stratification and Mixed layer depth (MLD) diagnostics available.
+This package provides a set of diagnostics associated with the Ocean Circulation which in the current release include 
+climatological stratification profiles in regions of deep water formation and climatologies for the mixed layer depth.
+
+All these diagnostics are produced in a consistent way both for a selected model simulation and EN4 observations 
+
 
 Structure
 -----------
@@ -22,63 +25,37 @@ Input variables example
 ------------------------
 
 * `ocpt` (Ocean potential temperature, GRIB paramid 150129)
-* `so`     (Sea water practical salinity, GRIB pramid 151130)
+* `so`   (Sea water practical salinity, GRIB paramid 151130)
 
 Output 
 ------
 
-List here types of files/datasets produced by the diagnostic
+Climatologies of the Mixed Layer Depth for both the model and observations in NetCDF format
+
+Climatologies of ocpt, so and sigma0 (potential density referenced at the surface) spatially averaged for any region of interest
+
 
 Methods used
 ------------
 
-Examples from the ocean_circulationDiagnostic class contained in the ocean_circulation_class.py file:
+The mixed layer depth is computed by the function `compute_mld_cont` from sigma0 monthly fields following the criteria from de Boyer Montegut et al (2004)
 
-* "ocean_circulationDiagnostic": the ocean_circulation diagnostic class;
-* "retrieve": method to retrieve the data from the Reader class;
-* 
+Density fields are computed from absolute salinity and conservative temperature fields using the TEOS-10 equations. Absolute salinity and conservative temperature are also computed from practical salinity and potential temperature fields with TEOS-10 equations.
 
-...
 
-Functions Used
---------------
-
-The `ocean_circulation` diagnostic package includes the following functions:
-
-### `fn.plot_stratification(data, region=False, time="JJA", latS, latN, lonW, lonE, output=True, output_dir="./output")`
-
-This function plots the stratification, including the vertical temperature, salinity, and density data.
-
-**Parameters:**
-- `data`: Spatial-temporal model data required for plotting.
-- `region` (optional): Predefined regions for the plot.
-- `time` (optional): Climatology time for the plot.
-- `latS`, `latN`, `lonW`, `lonE`: Latitude and longitude ranges for the plot.
-- `output` (optional): Boolean value to specify if the plot should be saved as an output file.
-- `output_dir` (optional): Output directory for saving the plot.
-
-### `fn.plot_spatial_mld(dmod, region="gulf_of_mexico", time="JJA", output=True, output_dir="./output")`
-
-This function plots the spatial Mixed Layer Depth (MLD), including the MLD, salinity, and density data.
-
-**Parameters:**
-- `dmod`: Spatial-temporal model data required for plotting.
-- `region` (optional): Predefined regions for the plot.
-- `time` (optional): Climatology time for the plot.
-- `output` (optional): Boolean value to specify if the plot should be saved as an output file.
-- `output_dir` (optional): Output directory for saving the plot.
-
-These functions are used in the `ocean_circulation` diagnostic package to visualize and analyze ocean circulation data.
 
 Observations
 ------------
 
-EN4 Observation datasets user in this diagnostics.
+EN4.2.2.g10 ocpt and so observations for the period 1950-2022
 
 References
 ----------
+de Boyer Montégut, C., Madec, G., Fischer, A. S., Lazar, A., and Iudicone, D. (2004): Mixed layer depth over the global ocean: An examination of profile data and a profile-based climatology. J. Geophys. Res., 109, C12003, doi:10.1029/2004JC002378
 
-.. * E. Empty, D. ocean_circulation et al. (2023) The art of saying nothing. Emptyness, 1: 0-1. `DOI <http://doi.org/00.0000/e-00000-000.xxxx>`_
+Gouretski and Reseghetti (2010): On depth and temperature biases in bathythermograph data: development of a new correction scheme based on analysis of a global ocean database. Deep-Sea Research I, 57, 6. doi: http://dx.doi.org/10.1016/j.dsr.2010.03.011
+
+https://www.teos-10.org/
 
 
 Example Plot(s)
