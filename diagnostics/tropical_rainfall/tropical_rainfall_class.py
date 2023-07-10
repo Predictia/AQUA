@@ -766,7 +766,7 @@ class Tropical_Rainfall:
             return dataset_3
         
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def merge_list_of_histograms(self, path_to_histograms = None, multi = None, all = False):
+    def merge_list_of_histograms(self, path_to_histograms = None, multi = None, seasons = False, all = False):
         """ Function to merge list of histograms.
 
         Args:
@@ -781,21 +781,61 @@ class Tropical_Rainfall:
         histogram_list          = [f for f in listdir(path_to_histograms) if isfile(join(path_to_histograms, f))]
         histogram_list.sort()
 
-        if all:
+        if seasons: 
             histograms_to_load  = [str(path_to_histograms) + str(histogram_list[i]) for i in range(0, len(histogram_list))]
-        elif multi is not None:
-            histograms_to_load  = [str(path_to_histograms) + str(histogram_list[i]) for i in range(0, multi)]
+        
+            DJF = []
+            MAM = []
+            JJA = []
+            SON = []
 
-        if len(histograms_to_load) > 0:
-            for i in range(0, len(histograms_to_load)):
-                if i == 0:
-                    dataset     = self.open_dataset(path_to_netcdf = histograms_to_load[i])
-                else:
-                    dataset     = self.merge_two_datasets(tprate_dataset_1 = dataset,
-                                                      tprate_dataset_2 = self.open_dataset(path_to_netcdf = histograms_to_load[i]))
-            return dataset
+
+            for i in range(0, len(histogram_list)):        
+                name_of_file    = histogram_list[i]
+                re.split(r"[^0-9\s]", name_of_file)  
+                splitted_name   = list(filter(None, re.split(r"[^0-9\s]", name_of_file)))
+                syear, fyear    = int(splitted_name[-8]), int(splitted_name[-4])
+                smonth, fmonth  = int(splitted_name[-7]), int(splitted_name[-3])
+                sday, fday      = int(splitted_name[-6]), int(splitted_name[-2])
+                shour, fhour    = int(splitted_name[-5]), int(splitted_name[-1])
+
+                if syear==fyear:
+                    if fmonth - smonth==1:
+                        if smonth in [12,1,2]:
+                            DJF.append(histograms_to_load[i])
+                        elif smonth in [3,4,5]:
+                            MAM.append(histograms_to_load[i])
+                        elif smonth in [6,7,8]:
+                            JJA.append(histograms_to_load[i])
+                        elif smonth in [9,10,11]:
+                            SON.append(histograms_to_load[i])
+            four_seasons = []       
+            for hist_seasonal in [DJF, MAM, JJA, SON]:
+                
+                if len(hist_seasonal) > 0:
+                    for i in range(0, len(hist_seasonal)):
+                        if i == 0:
+                            dataset     = self.open_dataset(path_to_netcdf = hist_seasonal[i])
+                        else:
+                            dataset     = self.merge_two_datasets(tprate_dataset_1 = dataset,
+                                                            tprate_dataset_2 = self.open_dataset(path_to_netcdf = hist_seasonal[i]))
+                    four_seasons.append(dataset)
+            return four_seasons
         else:
-            raise Exception('The specified repository is empty.')
+            if all:
+                histograms_to_load  = [str(path_to_histograms) + str(histogram_list[i]) for i in range(0, len(histogram_list))]
+            elif multi is not None:
+                histograms_to_load  = [str(path_to_histograms) + str(histogram_list[i]) for i in range(0, multi)]
+            if len(histograms_to_load) > 0:
+                for i in range(0, len(histograms_to_load)):
+                    if i == 0:
+                        dataset     = self.open_dataset(path_to_netcdf = histograms_to_load[i])
+                    else:
+                        dataset     = self.merge_two_datasets(tprate_dataset_1 = dataset,
+                                                        tprate_dataset_2 = self.open_dataset(path_to_netcdf = histograms_to_load[i]))
+                return dataset
+            else:
+                raise Exception('The specified repository is empty.')
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
     def convert_counts_to_frequency(self, data):
