@@ -1,15 +1,20 @@
 Tropical rainfall diagnostic
 ============================
 
+The precipitation variability is an excellent indicator of the accuracy of climatological simulations.
 The goal of tropical rainfall diagnostic is to provide fast and straightforward precipitation analysis in tropical or global areas. 
 
 
 Description
 -----------
 
-The current version of tropical rainfall diagnostic successfully achieves the minimal requirements: it can calculate the histograms 
-in the form of xarrays.Dataset, which contains the counts, frequencies, and probability distribution functions (pdf) for specified bins.
+The current version of tropical rainfall diagnostic successfully achieves the minimal requirements: 
 
+* calculation of histograms for selected tropical area band,
+* calculation of the seasonal mean of precipitation along the latitude or longitude coordinate, and
+* calculation of the bias between the climatological model and observations.
+
+The diagnostic also provides us with simple in-the-use plotting functions to create a graphical representation of obtained results. 
 Structure
 ---------
 

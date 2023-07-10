@@ -1,6 +1,6 @@
 # Diagnostic of tropical rainfalls
 
-The tropical-rainfall diagnostic analyzes rainfall variability in the tropical zone and compares the climatological models' predictions with observations.  The mean precipitation variability is an excellent indicator of the accuracy of climatological simulations.
+The tropical-rainfall diagnostic analyzes rainfall variability in the tropical zone and compares the climatological models' predictions with observations.  
 
 
 
