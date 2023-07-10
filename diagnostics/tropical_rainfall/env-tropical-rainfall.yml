@@ -41,6 +41,7 @@ dependencies:
   - pip
   - pip:
     - fast_histogram
+    - boost_histogram
     - dask_histogram
     - sparse
     - dask_jobqueue
