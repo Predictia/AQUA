@@ -256,6 +256,14 @@ class Teleconnection():
                                                  months_window=self.months_window,
                                                  loglevel=self.loglevel, **kwargs)
 
+        # HACK: ICON has a depth_full dimension that is not used
+        #       but it is not removed by the index evaluation
+        if self.model == 'ICON':
+            try:
+                self.index = self.index.isel(depth_full=0)
+            except ValueError:
+                self.index = self.index
+
         self.logger.debug(self.telecname + ' index calculated')
         if self.index is None:
             raise ValueError('Index not calculated')
@@ -288,8 +296,22 @@ class Teleconnection():
         if var is None:
             self.regression = reg_evaluation(indx=self.index, data=data,
                                              dim=dim)
+            # HACK: ICON has a depth_full dimension that is not used
+            #       but it is not removed by the regression evaluation
+            if self.model == 'ICON':
+                try:
+                    self.regression = self.regression.isel(depth_full=0)
+                except ValueError:
+                    self.regression = self.regression
         else:
             reg = reg_evaluation(indx=self.index, data=data, dim=dim)
+            # HACK: ICON has a depth_full dimension that is not used
+            #       but it is not removed by the regression evaluation
+            if self.model == 'ICON':
+                try:
+                    reg = reg.isel(depth_full=0)
+                except ValueError:
+                    reg = reg
 
         if self.savefile and var is None:
             file = self.outputdir + '/' + self.filename + '_regression.nc'
