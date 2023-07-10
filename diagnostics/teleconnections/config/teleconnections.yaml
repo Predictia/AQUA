@@ -26,3 +26,12 @@ ENSO:
   lonW: -170
   latS: -5
   lonE: -120
+
+# Fake teleconnection for CI/CD tests
+ENSO_test:
+  telec_type: 'region'
+  field: skt
+  latN:  5
+  lonW: -170
+  latS: -5
+  lonE: -120

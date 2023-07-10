@@ -1,9 +1,9 @@
-import os
 import pytest
 
-if os.getenv('PYTEST_CURRENT_TEST') and 'teleconnections' in os.getenv('PYTEST_CURRENT_TEST'):
-    from teleconnections.cdo_testing import cdo_station_based_comparison, cdo_regional_mean_comparison
-    from teleconnections.tools import load_namelist, lon_180_to_360
+# if os.getenv('PYTEST_CURRENT_TEST') and 'teleconnections' in os.getenv('PYTEST_CURRENT_TEST'):
+#     from teleconnections.cdo_testing import cdo_station_based_comparison
+#     from teleconnections.cdo_testing import cdo_regional_mean_comparison
+#     from teleconnections.tools import load_namelist, lon_180_to_360
 
 
 # pytest approximation, to bear with different machines
@@ -11,8 +11,7 @@ approx_rel = 1e-4
 loglevel = 'DEBUG'
 
 
-@pytest.mark.parametrize("module_name", ['cdo_testing', 'index', 'plots',
-                                         'tools'])
+@pytest.mark.parametrize("module_name", ['teleconnections'])
 @pytest.mark.teleconnections
 def test_import(module_name):
     """
@@ -28,6 +27,8 @@ def test_lon_conversion():
     """
     Test that the lon conversion works
     """
+    from teleconnections.tools import lon_180_to_360
+
     assert lon_180_to_360(-25) == pytest.approx(335, rel=approx_rel)
     assert lon_180_to_360(-75) == pytest.approx(285, rel=approx_rel)
     assert lon_180_to_360(25) == pytest.approx(25, rel=approx_rel)
@@ -39,6 +40,8 @@ def test_namelist():
     """
     Test that the namelist can be loaded
     """
+    from teleconnections.tools import load_namelist
+
     configdir = "./diagnostics/teleconnections/config"
     diagname = 'teleconnections'
     namelist = load_namelist(diagname, configdir=configdir)
@@ -51,6 +54,9 @@ def test_station_based(months_window, loglevel=loglevel):
     """
     Test that the station_based method works
     """
+    from teleconnections.tools import load_namelist
+    from teleconnections.cdo_testing import cdo_station_based_comparison
+
     filepath = "./nao_test.nc"
     configdir = "./diagnostics/teleconnections/config"
     diagname = 'teleconnections'
@@ -74,10 +80,13 @@ def test_regional_mean(months_window):
     """
     Test that the regional_mean method works
     """
+    from teleconnections.tools import load_namelist
+    from teleconnections.cdo_testing import cdo_regional_mean_comparison
+
     filepath = "./enso_test.nc"
     configdir = "./diagnostics/teleconnections/config"
     diagname = 'teleconnections'
-    telecname = 'ENSO'
+    telecname = 'ENSO_test'
     rtol = approx_rel
     atol = approx_rel
 
