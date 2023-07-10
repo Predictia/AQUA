@@ -420,12 +420,12 @@ class Tropical_Rainfall:
             return data
     
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def histogram(self, data,           data_with_global_atributes = None,
+    def histogram_lowres(self,          data,                   data_with_global_atributes = None,
                   weights = None,       preprocess = True,      trop_lat = 10,              model_variable = 'tprate',
                   s_time = None,        f_time = None,          s_year = None,              f_year = None,      s_month = None,     f_month = None,
                   num_of_bins = None,   first_edge = None,      width_of_bin  = None,       bins = 0,
                   lazy = False,         create_xarray = True,   path_to_histogram = None,   name_of_file=None):
-        """ Function to calculate a histogram of the Dataset.
+        """ Function to calculate a histogram of the low-resolution Dataset.
 
         Args:
             data (xarray.Dataset):          The input Dataset.
@@ -531,45 +531,51 @@ class Tropical_Rainfall:
             return counts_per_bin
         
     """ """ """ """ """ """ """ """ """ """
-    def hist1d_fast(self, data, preprocess = True,   trop_lat = 10, model_variable = 'tprate',  
-                    s_time = None, f_time = None, s_year = None, f_year = None, s_month = None, f_month = None, 
-                    num_of_bins = None, first_edge = None,  width_of_bin  = None,   bins = 0,
-                    data_with_global_atributes = None,
-                    path_to_histogram = None,   name_of_file=None):
-        """Calculating the histogram with the use of fast_histogram.histogram1d (***fast_histogram*** package)
+    def histogram(self,                 data,                   data_with_global_atributes = None,
+                  weights = None,       preprocess = True,      trop_lat = 10,              model_variable = 'tprate',
+                  s_time = None,        f_time = None,          s_year = None,              
+                  f_year = None,        s_month = None,         f_month = None,
+                  num_of_bins = None,   first_edge = None,      width_of_bin  = None,       bins = 0,
+                  lazy = False,         create_xarray = True,   path_to_histogram = None,   name_of_file=None):
+        """ Function to calculate a histogram of the high-resolution Dataset.
 
         Args:
-            data (xarray):                  The Dataset.
-            preprocess (bool, optional):    If sort is True, the functiom preprocess Dataset. Defaults to True.
-            model_variable (str, optional):     The variable of the Dataset. Defaults to 'tprate'.
-            trop_lat (float, optional):     The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
-            s_time (str/int, optional):     The starting time value/index in Dataset. Defaults to None.
-            f_time (str/int, optional):     The final time value/index in Dataset. Defaults to None.
-            s_year (int, optional):         The starting year in Dataset. Defaults to None.
-            f_year (int, optional):         The final year in Dataset. Defaults to None.
-            s_month (int, optional):        The starting month in Dataset. Defaults to None.
-            f_month (int, optional):        The final month in Dataset. Defaults to None.
-            sort (bool, optional):          If sort is True, the DataArray is sorted. Defaults to False.
-            dask_array (bool, optional):    If sort is True, the function return daskarray. Defaults to False.
+            data (xarray.Dataset):          The input Dataset.
+            preprocess (bool, optional):    If True, preprocesses the Dataset.              Defaults to True.
+            trop_lat (float, optional):     The maximum absolute value of tropical latitude in the Dataset. Defaults to 10.
+            model_variable (str, optional): The variable of interest in the Dataset.        Defaults to 'tprate'.
+            weights (array-like, optional): The weights of the data.                        Defaults to None.
+            data_with_global_attributes (xarray.Dataset, optional): The Dataset with global attributes. Defaults to None.
+            s_time (str/int, optional):     The starting time value/index in the Dataset.   Defaults to None.
+            f_time (str/int, optional):     The final time value/index in the Dataset.      Defaults to None.
+            s_year (int, optional):         The starting year in the Dataset.               Defaults to None.
+            f_year (int, optional):         The final year in the Dataset.                  Defaults to None.
+            s_month (int, optional):        The starting month in the Dataset.              Defaults to None.
+            f_month (int, optional):        The final month in the Dataset.                 Defaults to None.
+            num_of_bins (int, optional):    The number of bins for the histogram.           Defaults to None.
+            first_edge (float, optional):   The starting edge value for the bins.           Defaults to None.
+            width_of_bin (float, optional): The width of each bin.                          Defaults to None.
+            bins (int, optional):           The number of bins for the histogram (alternative argument to 'num_of_bins'). Defaults to 0.
+            lazy (bool, optional):          If True, delays computation until necessary.    Defaults to False.
+            create_xarray (bool, optional): If True, creates an xarray dataset from the histogram counts. Defaults to True.
+            path_to_histogram (str, optional):   The path to save the xarray dataset.       Defaults to None. 
             
-            num_of_bins (int, optional):    The number of bins in the histogram. Defaults to None.
-            first_edge (float, optional):   The first edge of the histogram. Defaults to None.
-            width_of_bin (float, optional): The width of the bins in the histogram. Defaults to None.
-            bins (array, optional):         The array of bins in the histogram. Defaults to 0.
-
         Returns:
-            xarray: The frequency histogram of the specified variable in the Dataset
-        """        
-        self.class_attributes_update(s_time = s_time, f_time = f_time, trop_lat = trop_lat, 
-                               s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, 
-                               first_edge = first_edge, num_of_bins = num_of_bins, width_of_bin = width_of_bin, bins = bins)
-
+            xarray.Dataset or numpy.ndarray: The histogram of the Dataset.
+        """
+        self.class_attributes_update(trop_lat = trop_lat,
+                                     s_time  = s_time,           f_time  = f_time,
+                                     s_year  = s_year,           f_year  = f_year,
+                                     s_month = s_month,          f_month = f_month, 
+                                     first_edge = first_edge,    num_of_bins = num_of_bins,      width_of_bin = width_of_bin)
         data_original=data
         if preprocess == True:
-            data = self.preprocessing(data, preprocess=preprocess,  model_variable=model_variable, trop_lat=trop_lat, 
-                                      s_time = self.s_time, f_time = self.f_time,
-                                      s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  
-                                      sort = False, dask_array = False)
+            data = self.preprocessing(data, preprocess = preprocess,
+                                      model_variable   = model_variable,     trop_lat= self.trop_lat,
+                                      s_time  = self.s_time,                 f_time  = self.f_time,
+                                      s_year  = self.s_year,                 f_year  = self.f_year,           
+                                      s_month = self.s_month,                f_month = self.f_month,
+                                      sort = False,                          dask_array = False)
         data_with_final_grid=data
         if isinstance(self.bins, int):
             bins            = [self.first_edge  + i*self.width_of_bin for i in range(0, self.num_of_bins+1)]
@@ -596,7 +602,7 @@ class Tropical_Rainfall:
 
         tprate_dataset      = counts_per_bin.to_dataset(name="counts")
         tprate_dataset.attrs= data_with_global_atributes.attrs
-        tprate_dataset      = self.add_frequency_and_pdf(tprate_dataset = tprate_dataset) #, path_to_histogram = path_to_histogram)
+        tprate_dataset      = self.add_frequency_and_pdf(tprate_dataset = tprate_dataset) 
         
         
         for variable in (None, 'counts', 'frequency', 'pdf'):
@@ -949,8 +955,6 @@ class Tropical_Rainfall:
             if path_to_pdf is not None and name_of_file is not None:
                 path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_histogram.pdf'
 
-            # set the spacing between subplots
-            #plt.tight_layout()
             if path_to_pdf is not None and isinstance(path_to_pdf, str):
                 create_folder(folder    = extract_directory_path(path_to_pdf), loglevel = 'WARNING')
                 plt.savefig(path_to_pdf,  format="pdf",  bbox_inches="tight")
@@ -958,8 +962,6 @@ class Tropical_Rainfall:
             if path_to_pdf is not None and name_of_file is not None:
                 path_to_pdf      = path_to_pdf + 'trop_rainfall_' + name_of_file + '_histogram.png'
 
-            # set the spacing between subplots
-            #plt.tight_layout()
             if path_to_pdf is not None and isinstance(path_to_pdf, str):
                 create_folder(folder    = extract_directory_path(path_to_pdf), loglevel = 'WARNING')
                 plt.savefig(path_to_pdf,  bbox_inches="tight")

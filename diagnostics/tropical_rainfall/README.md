@@ -29,28 +29,27 @@ Below you can find a quick start to the tropical_rainfall diagnostic.
 
 ## Installation Instructions
 
-Clearly explain how to install and set up your project. Include any dependencies, system requirements, or environment configurations that users should be aware of.
-
 ### Installation on Levante
 
 
-`env-tropical-rainfall.yml` file contains the minimal requirement for tropical diagnostic: 
- - dask_histogram. 
+`env-tropical-rainfall.yml` file contains the minimal requirement for tropical diagnostic. 
 
 
-We need to install all requirements for tropical diagnostic with `pip` only. Since such dependencies are not presented in the environment of the main aqua module, we can merge the `env-tropical-rainfall.yml` and standard aqua `environment.yml` files without negative consequences, i.e.without potential conflict in the requirements:
+You can create the environment with the use of conda
 
 ```
-diagnostic_dir=$(pwd)
-
-conda install  conda-merge 
-
-cd ../..
-
-conda-merge environment.yml  $diagnostic_dir/env-tropical-rainfall.yml > $diagnostic_dir/merged.yml
-
-conda env create -f $diagnostic_dir/merged.yml
+conda env create -f diagnostics/tropical_rainfall/env-tropical-rainfall.yml
 ```
+
+or with mamba
+```
+conda env create -f diagnostics/tropical_rainfall/env-tropical-rainfall.yml
+```
+
+### Installation on Lumi
+
+
+
 
 ## Data requirements  
 
@@ -62,8 +61,10 @@ Data must include the precipitation rate variable (**tprate**) in a latitude and
 
 All output of the diagnostic is in the format of NetCDF or PDF. The paths to the repositories, where the diagnostic store the output, are 
 
-path_to_netcdf: /work/bb1153/b382267/tropical_rainfall_cicle3/NetCDF/
-path_to_pdf:    /work/bb1153/b382267/tropical_rainfall_cicle3/PDF/
+path_to_netcdf: `/work/bb1153/b382267/tropical_rainfall_cicle3/NetCDF/*`
+
+
+path_to_pdf:    `/work/bb1153/b382267/tropical_rainfall_cicle3/PDF/*`
 
 ## Examples
 
