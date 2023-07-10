@@ -28,8 +28,12 @@ def process_ceres_data(exp, source, TOA_icon_gm):
         TOA_icon_gm:                    this is necessary to setting time axis to the same time axis as model output (modify if needed)
 
     Returns:
-        TOA_ceres_clim_gm, TOA_ceres_ebaf_gm, TOA_ceres_diff_samples_gm, reader_ceres_toa, TOA_ceres_clim, TOA_ceres_diff_samples:
-        returns the necessary ceres data for further evaluation
+        TOA_ceres_clim_gm:
+        TOA_ceres_ebaf_gm: 
+        TOA_ceres_diff_samples_gm:
+        reader_ceres_toa,
+        TOA_ceres_clim,
+        TOA_ceres_diff_samples: # returns the necessary ceres data for further evaluation
     """
 
     # reader_ceres_toa
@@ -194,20 +198,21 @@ def gregory_plot(data_era5, model_list, reader_dict):
 
     Args:
         model_list:                      a list of model that should be plotted.
-
         data_era5:                      your xarrayDataSet provided from process_era5_data(exp, source)
 
     Returns:
         A Gregory Plot
 
     Example:
-        model_list = ['icon', 'ifs_9km', 'ifs_4km']
-        reader_dict = {
-                       "icon" : reader_icon,
-                       "ifs_9km" : reader_ifs_9km,
-                       "ifs_4km" : reader_ifs_4km
-                      }
-            radiation_diag.gregory_plot(data_era5, model_list, reader_dict)
+    .. highlight:: python
+    .. code-block:: python
+    model_list = ['icon', 'ifs_9km', 'ifs_4km']
+    reader_dict = {
+    "icon" : reader_icon,
+    "ifs_9km" : reader_ifs_9km,
+    "ifs_4km" : reader_ifs_4km
+    }
+    radiation_diag.gregory_plot(data_era5, model_list, reader_dict)
     """
 
     reader_era5 = Reader(model="ERA5", exp="era5", source="monthly")
@@ -313,7 +318,7 @@ def barplot_model_data(datasets, model_names, year=None):
     Example:
         datasets = [TOA_ceres_clim_gm, TOA_icon_gm, TOA_ifs_4km_gm, TOA_ifs_9km_gm]
         model_names = ['ceres', 'icon', 'ifs 4.4 km', 'ifs 9 km']
-        radiation_diag.barplot_model_data(datasets, model_names, year = 2022)
+        barplot_model_data(datasets, model_names, year = 2022)
     """
 
     colors = ['red', 'blue']  # Longwave (lw) in red, Shortwave (sw) in blue
@@ -493,7 +498,7 @@ def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_cli
     """
     The function plots maps of TOA bias for the specified variable and model using a Robinson projection.
     The TOA bias is calculated as the difference between the TOA model data and the TOA CERES climatology. Default year is 2020
-    
+
     Args:
         TOA_model (xarray.DataArray):                The TOA model data.
         var (str):                                   The variable to plot ('tnr', 'tsr', or 'ttr').
