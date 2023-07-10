@@ -651,7 +651,7 @@ def data_time_selection(data, time):
     elif time in ["dec", "december", "12", 12]:
         data = data.where(data.time.dt.month == 12, drop=True)
     elif time in ["yearly", "year", "y"]:
-        data = data.groupby('time.year').mean(dim='time')
+        data = data
     elif time in ["jja", "jun_jul_aug", "jun-jul-aug", "june-july-august", "june_july_august"]:
         data = data.where((data['time.month'] >= 6) & (data['time.month'] <= 8), drop=True)
     elif time in ["fma", "feb_mar_apr", "feb-mar-apr", "february-march-april", "february_march_april"]:
@@ -744,7 +744,7 @@ def plot_stratification(mod_data, region=None, time = None, latS: float=None, la
             legend_list.append(legend_info)
             if output == True: data_3.to_netcdf(f'{data_dir}/{filename}_{legend_info.replace(" ","_")}.nc')
         
-    fig.suptitle(f"Climatological {time.upper()} T, S, rho0 stratification in {region}", fontsize=20)
+    fig.suptitle(f"Climatological {time.upper()} T, S and rho0 stratification in {region}", fontsize=20)
     axs[0].set_title("Temperature Profile", fontsize=16)
     axs[0].set_ylabel("Depth (m)", fontsize=15)
     axs[0].set_xlabel("Temperature (°C)", fontsize=12)
