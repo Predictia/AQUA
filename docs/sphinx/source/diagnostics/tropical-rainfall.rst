@@ -11,7 +11,7 @@ The current version of tropical rainfall diagnostic successfully achieves the mi
 in the form of xarrays.Dataset, which contains the counts, frequencies, and probability distribution functions (pdf) for specified bins.
 
 Structure
------------
+---------
 
 The tropical-rainfall diagnostic follows a class structure and consists of the files:
 
@@ -21,6 +21,13 @@ The tropical-rainfall diagnostic follows a class structure and consists of the f
 * `notebooks/*.ipynb`: an ipython notebook which uses the dymmy class and its methods;
 * `README.md` : a readme file which contains some tecnical information on how to install the tropical-rainfall diagnostic and its environment. 
 
+
+Output
+------
+All output of the diagnostic is in the format of NetCDF or PDF. The paths to the repositories, where the diagnostic store the output, are 
+
+* Path to NetCDF: `/work/bb1153/b382267/tropical_rainfall_cicle3/NetCDF/`
+* Path to PDF:    `/work/bb1153/b382267/tropical_rainfall_cicle3/PDF/`
 
 The main attributes of `Tropical_Rainfall` Class
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -224,8 +231,8 @@ For example, for one day of the icon data (**freq=30m**)
 
 .. code-block:: python
 
-  path_to_save='/work/bb1153/b382267/AQUA/histograms/'
-  diag.save_histogram(dataset=hist_icon, path_to_save=path_to_save, name_of_file='icon')
+  path_to_netcdf="/work/bb1153/b382267/tropical_rainfall_cicle3/NetCDF/histograms/"
+  diag.dataset_to_netcdf(dataset=hist_icon, path_to_netcdf=path_to_netcdf, name_of_file='icon')
 
 the name of the histogram is **trop_rainfall_icon_ngc3028_lra_r100_monthly_2020-01-21T00_2025-07-01T00_histogram.nc**
 
@@ -240,7 +247,7 @@ If you want to merge all histograms if the specified repository, set the followi
 
 .. code-block:: python
 
-  path_to_histograms='/path/to/folder/with/histograms/'
+  path_to_histograms=="/work/bb1153/b382267/tropical_rainfall_cicle3/NetCDF/histograms/"
 
   merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, all=True)
   merged_histograms
@@ -253,7 +260,7 @@ The function will sort the files in the repository and take the first **multi** 
 
 .. code-block:: python
 
-  path_to_histograms='/path/to/folder/with/histograms/'
+  path_to_histograms=="/work/bb1153/b382267/tropical_rainfall_cicle3/NetCDF/histograms/"
 
   merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, multi=10)
   merged_histograms
@@ -317,7 +324,7 @@ Below is an additional example of a histogram plot.
 
 .. code-block:: python
 
-  diag.hist_figure(histogram, smooth = False, color_map = 'gist_heat', figsize=0.7, 
+  diag.histogram_plot(histogram, smooth = False, color_map = 'gist_heat', figsize=0.7, 
                xlogscale = True, ylogscale=True,  plot_title = "ICON, trop precipitation rate")
 
 
@@ -331,71 +338,47 @@ You can find an example of the histogram obtained with the tropical-rainfall dia
 Mean and Median Values 
 ^^^^^^^^^^^^^^^^^^^^^^
 
-#. Mean values
-   The **mean_along_coordinate** function calculates the mean value of a model variable (by default of precipitation) 
-   along any coordinate or global mean. The function has an argument **coordinate**, which can be 
+The diagnostic can provide us with a graphical comparison of the mean value along different coordinates. 
 
-   * **time** (by default)
-
-   * **lat** or **latitude**
-
-   * **lon** or **longitude**
-
-   For eample,
-   
-   .. code-block:: python
-
-     diag.mean_along_coordinate(ifs, coord='lat')
-
-   The function calculates the global mean value if the user sets the **glob = True**:
-   
-   .. code-block:: python
-
-     diag.mean_along_coordinate(ifs, glob=True)
-
-#. Median values
-
-   The **median_along_coordinate** function calculates the median value of a model variable (by default of precipitation)
-   along any coordinate or global median.
-   The function has an argument **coordinate**, which can be 
-
-   * **time** (by default)
-
-   * **lat** or **latitude**
-
-   * **lon** or **longitude**
-
-   For eample,
-   
-   .. code-block:: python
-
-     diag.median_along_coordinate(ifs, coord='lat')
-
-   The function calculates the global median value if the user sets the **glob = True**:
-  
-   .. code-block:: python
-
-     diag.median_along_coordinate(icon, glob=True)
-
-
-
-The diagnostic provides a simple plotting function for mean and median values of precipitation.
-For example, the function
+For example, the function 
 
 .. code-block:: python
 
-  add = diag.mean_and_median_plot(icon,          coord='lat', legend='mean',   figsize=0.8)
-  add = diag.mean_and_median_plot(icon, fig=add, coord='lat', legend='median', get_median=True)
-  diag.mean_and_median_plot(icon,       fig=add, coord='lat', legend='global', get_median=True, glob=True, color='k',
-                          loc='upper left')
+  diag.trop_lat = 90
+  diag.mean_and_median_plot(icon_ngc3028, coord='lon',  
+                                  legend='icon, ngc3028', new_unit = 'mm/day' )
 
-produces the following plot
+calculates the mean value of precipitation during 
+ - December-January-February (`DJF`), 
+ - March-April-May (`MAM`), 
+ - June-July-August (`JJA`), 
+ - September-October-November (`SON`), and 
+- for the total period of time. 
+Then the function  `mean_and_median_plot(coord='lon')` calculates the mean value of precipitation along the longitude. 
+
+
+For example, for low-resolution `icon, ngc3028`, `ifs, tco2559-ng5`, `ifs, tco1279-orca025`, and `mswep` data the function 
+will produce the following plot: 
 
 .. figure:: figures/trop_rainfall_icon_ngc3028_ifs_tco2559_ng5_ifs_tco1279_orca025_mswep_lra_r100_monthly_comparison_along_lat_mean.png
     :width: 20cm
 
 Bias between model and observations 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Tropical-rainfall diagnostic provides the graphical representation of the bias between the mean value of precipitation of the 
+climatological model and the mean value of observations. 
+
+The function 
+
+.. code-block:: python
+
+  diag.plot_bias(icon_ngc3028, dataset_2 = mswep_mon, seasons=True, new_unit='mm/day',  trop_lat=90,  vmin=-10, vmax=10,
+                    plot_title='The bias between icon, ngc3028 ans mswep, monthly, 1 degree res (100km)',
+                    path_to_pdf=path_to_pdf, name_of_file='icon_ngc3028_mswep_lra_r100_monthly_bias')
+
+calculates the mean value of precipitation for each season  `DJF`, `MAM`, `JJA`, `SON` and  for the total period of time
+and providing the following figure:
+
 .. figure:: figures/trop_rainfall_icon_ngc3028_mswep_lra_r100_monthly_bias_seasons.png
     :width: 20cm
 

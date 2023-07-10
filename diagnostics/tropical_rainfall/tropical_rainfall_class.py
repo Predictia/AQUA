@@ -12,10 +12,13 @@ import matplotlib.colors as colors
 import matplotlib.cbook as cbook
 from matplotlib import cm
 from   matplotlib.colors import LogNorm
-
+import boost_histogram as bh #pip
 
 import dask.array as da
 import dask_histogram as dh # pip
+import dask_histogram.boost as dhb
+import dask
+import fast_histogram 
 
 from aqua.util import create_folder
 
@@ -485,8 +488,7 @@ class Tropical_Rainfall:
             weights_dask    = da.from_array(weights)
     
 
-        data_dask           = da.from_array(data.stack(total=['time', coord_lat, coord_lon]))
-        
+        data_dask           = da.from_array( data.stack(total=['time', coord_lat, coord_lon]))
         if weights is not None:
             counts, edges   = dh.histogram(data_dask, bins = bins,   weights = weights_dask,    storage = dh.storage.Weight())
         else:
@@ -528,7 +530,84 @@ class Tropical_Rainfall:
                 self.dataset_to_netcdf(tprate_dataset, path_to_netcdf = path_to_histogram, name_of_file = name_of_file)
             return counts_per_bin
         
+    """ """ """ """ """ """ """ """ """ """
+    def hist1d_fast(self, data, preprocess = True,   trop_lat = 10, model_variable = 'tprate',  
+                    s_time = None, f_time = None, s_year = None, f_year = None, s_month = None, f_month = None, 
+                    num_of_bins = None, first_edge = None,  width_of_bin  = None,   bins = 0,
+                    data_with_global_atributes = None,
+                    path_to_histogram = None,   name_of_file=None):
+        """Calculating the histogram with the use of fast_histogram.histogram1d (***fast_histogram*** package)
+
+        Args:
+            data (xarray):                  The Dataset.
+            preprocess (bool, optional):    If sort is True, the functiom preprocess Dataset. Defaults to True.
+            model_variable (str, optional):     The variable of the Dataset. Defaults to 'tprate'.
+            trop_lat (float, optional):     The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
+            s_time (str/int, optional):     The starting time value/index in Dataset. Defaults to None.
+            f_time (str/int, optional):     The final time value/index in Dataset. Defaults to None.
+            s_year (int, optional):         The starting year in Dataset. Defaults to None.
+            f_year (int, optional):         The final year in Dataset. Defaults to None.
+            s_month (int, optional):        The starting month in Dataset. Defaults to None.
+            f_month (int, optional):        The final month in Dataset. Defaults to None.
+            sort (bool, optional):          If sort is True, the DataArray is sorted. Defaults to False.
+            dask_array (bool, optional):    If sort is True, the function return daskarray. Defaults to False.
+            
+            num_of_bins (int, optional):    The number of bins in the histogram. Defaults to None.
+            first_edge (float, optional):   The first edge of the histogram. Defaults to None.
+            width_of_bin (float, optional): The width of the bins in the histogram. Defaults to None.
+            bins (array, optional):         The array of bins in the histogram. Defaults to 0.
+
+        Returns:
+            xarray: The frequency histogram of the specified variable in the Dataset
+        """        
+        self.class_attributes_update(s_time = s_time, f_time = f_time, trop_lat = trop_lat, 
+                               s_year = s_year, f_year = f_year, s_month = s_month, f_month = f_month, 
+                               first_edge = first_edge, num_of_bins = num_of_bins, width_of_bin = width_of_bin, bins = bins)
+
+        data_original=data
+        if preprocess == True:
+            data = self.preprocessing(data, preprocess=preprocess,  model_variable=model_variable, trop_lat=trop_lat, 
+                                      s_time = self.s_time, f_time = self.f_time,
+                                      s_year=s_year, f_year=f_year, s_month=s_month, f_month=f_month,  
+                                      sort = False, dask_array = False)
+        data_with_final_grid=data
+        if isinstance(self.bins, int):
+            bins            = [self.first_edge  + i*self.width_of_bin for i in range(0, self.num_of_bins+1)]
+            width_table     = [self.width_of_bin for j in range(0, self.num_of_bins)]
+            center_of_bin   = [bins[i] + 0.5*width_table[i] for i in range(0, len(bins)-1)]
+        else:
+            bins            = self.bins
+            width_table     = [self.bins[i+1]-self.bins[i] for i in range(0, len(self.bins)-1)]
+            center_of_bin   = [self.bins[i] + 0.5*width_table[i] for i in range(0, len(self.bins)-1)] 
         
+        hist_fast   = fast_histogram.histogram1d(data, 
+                                                   range=[self.first_edge, self.first_edge + (self.num_of_bins)*self.width_of_bin], 
+                                                   bins = self.num_of_bins)
+        
+        counts_per_bin =  xr.DataArray(hist_fast, coords=[center_of_bin], dims=["center_of_bin"])
+        counts_per_bin = counts_per_bin.assign_coords(width=("center_of_bin", width_table))
+        counts_per_bin.attrs = data.attrs
+
+        counts_per_bin.center_of_bin.attrs['units'] = data.units
+        counts_per_bin.center_of_bin.attrs['history'] = 'Units are added to the bins to coordinate'
+        
+        if data_with_global_atributes is None:
+            data_with_global_atributes = data_original
+
+        tprate_dataset      = counts_per_bin.to_dataset(name="counts")
+        tprate_dataset.attrs= data_with_global_atributes.attrs
+        tprate_dataset      = self.add_frequency_and_pdf(tprate_dataset = tprate_dataset) #, path_to_histogram = path_to_histogram)
+        
+        
+        for variable in (None, 'counts', 'frequency', 'pdf'):
+            tprate_dataset  = self.grid_attributes(data = data_with_final_grid, tprate_dataset = tprate_dataset, variable = variable)
+
+        if path_to_histogram is not None and name_of_file is not None:
+            self.dataset_to_netcdf(tprate_dataset, path_to_netcdf = path_to_histogram, name_of_file = name_of_file)
+    
+        return  tprate_dataset 
+    
+    
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
     def dataset_to_netcdf(self, dataset = None, path_to_netcdf = None, name_of_file = None):
         """ Function to save the histogram.

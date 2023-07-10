@@ -8,7 +8,7 @@ The tropical-rainfall diagnostic analyzes rainfall variability in the tropical z
 
 The module comprises Python-implemented source files, an environment file, tests, demonstration files, and a command line interface. You can find a detailed description of the module in the aqua documentation. 
 
-Below you can find a quick start to the tropical_rainfall module. 
+Below you can find a quick start to the tropical_rainfall diagnostic.
 
 ## Table of Contents
 
@@ -19,6 +19,8 @@ Below you can find a quick start to the tropical_rainfall module.
   - [Installation on Lumi](#installation-on-lumi)
 
 * [Data requirements](#data-requirements)
+
+* [Output](#output)
 
 * [Examples](#examples)
 
@@ -50,16 +52,18 @@ conda-merge environment.yml  $diagnostic_dir/env-tropical-rainfall.yml > $diagno
 conda env create -f $diagnostic_dir/merged.yml
 ```
 
-
-### Installation on Lumi 
-
-
-
-
 ## Data requirements  
 
 The following are the requirements for input climatological data:
 Data must include the precipitation rate variable (**tprate**) in a latitude and longitude grid. 
+
+
+## Output 
+
+All output of the diagnostic is in the format of NetCDF or PDF. The paths to the repositories, where the diagnostic store the output, are 
+
+path_to_netcdf: /work/bb1153/b382267/tropical_rainfall_cicle3/NetCDF/
+path_to_pdf:    /work/bb1153/b382267/tropical_rainfall_cicle3/PDF/
 
 ## Examples
 
