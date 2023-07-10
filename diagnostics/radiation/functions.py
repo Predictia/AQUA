@@ -9,7 +9,6 @@ import matplotlib.dates as mdates
 import calendar 
 from cdo import *
 import dask
-import seaborn as sns
 import cartopy.crs as ccrs
 from matplotlib.legend_handler import HandlerTuple
 from aqua import Reader, catalogue, inspect_catalogue
