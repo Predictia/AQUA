@@ -61,34 +61,13 @@ The output of the histogram function is xarray.Dataset, which has two coordinate
 
 * `width`:           width of each bin
 
-
-We used two coordinated instead of one to allow the user usage of not uniformal binning if needed. 
-
-
-The xarray.Dataset  contains three variables:
-
-* `counts`:       the number of observations that fall into each bin
-
-* `frequency`:    the number of cases in each bin, normalized by the total number of counts. The sum of the frequencies equals 1.
-
-* `pdf`:          the number of cases in each bin, normalized by the total number of counts and width of each bin. 
-
+The xarray.Dataset  contains three variables: `counts`, `frequency` (the number of cases in each bin, normalized by the total number of counts), 
+and `pdf` (the number of cases in each bin, normalized by the total number of counts and width of each bin). 
 The obtained xarray.Dataset contains both local and global attributes. 
-Local attributes specify the time and space grid for which the diagnostic performed calculations: `time_band`, `lat_band`, and  `lon_band`.  
+Global attribute `history` and local attributes  contains the information about time and space grid for which the diagnostic performed calculations: `time_band`, `lat_band`, and  `lon_band`.  
 
-Global attribute `history` contains the information about when the histogram was calculated and values of `time_band`, `lat_band`, and `lon_band`.
-
-The diagnostic already provides unique names for the files which contain the histogram.  
-The file's name includes the first and last time steps, for which the diagnostic does the calculations, in the following format: **year-month-day-hour**. 
-The name of the file, which the user specified, would be added at the beginning of the file name. 
-For example, for one day of the icon data (**freq=30m**) 
-
-.. code-block:: python
-
-  path_to_netcdf="/work/bb1153/b382267/tropical_rainfall_cicle3/NetCDF/histograms/"
-  diag.dataset_to_netcdf(dataset=hist_icon, path_to_netcdf=path_to_netcdf, name_of_file='icon')
-
-the name of the histogram is **trop_rainfall_icon_ngc3028_lra_r100_monthly_2020-01-21T00_2025-07-01T00_histogram.nc**
+The diagnostic provides unique names for the NetCDF files which contain the histogram.  
+Namely, the file's name includes the first and last time steps, for which the diagnostic does the calculations
 
 List of histograms 
 ^^^^^^^^^^^^^^^^^^
@@ -96,8 +75,7 @@ List of histograms
 The diagnostic can combine any number of histograms into a single histogram, recalculating 
 the frequencies and pdf values and modifying the attributes automatically.
 
-
-If you want to merge all histograms if the specified repository, set the following flag: **all=True**.
+For example, if you want to merge all histograms if the specified repository, set the following flag: **all=True**.
 
 .. code-block:: python
 
@@ -114,7 +92,6 @@ The histogram plots
 
 The diagnostic contains the simple in-the-use function to create the histogram plot. 
 The user can create plots of the obtained data in  different styles and scales. 
-
 The example of a histogram plot is:
 
 .. code-block:: python
@@ -132,7 +109,6 @@ Seasonal Mean Values
 ^^^^^^^^^^^^^^^^^^^^
 
 The diagnostic can provide us with a graphical comparison of the mean value along different coordinates. 
-
 For example, the function 
 
 .. code-block:: python
@@ -154,7 +130,6 @@ Bias between model and observations
 
 Tropical-rainfall diagnostic provides the graphical representation of the bias between the mean value of precipitation of the 
 climatological model and the mean value of observations. 
-
 The function 
 
 .. code-block:: python
@@ -171,7 +146,6 @@ Available demo notebooks
 The notebook folder contains the following notebooks:
 
 #. `Histogram Calculation <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical_rainfall/notebooks/histogram_calculation.ipynb>`_: 
-
    The notebook demonstrates the major abilities of tropical rainfall diagnostic: 
     - initialization of an object of the diagnostic class, 
     - selection of the class attributes,  
