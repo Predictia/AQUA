@@ -74,13 +74,7 @@ The xarray.Dataset  contains three variables:
 * `pdf`:          the number of cases in each bin, normalized by the total number of counts and width of each bin. 
 
 The obtained xarray.Dataset contains both local and global attributes. 
-Local attributes specify the time and space grid for which the diagnostic performed calculations:
-
-* `time_band`:    the value of time of the first and last element in the dataset and the frequency of the time grid,
-
-* `lat_band`:     the maximum and minimum values of the tropical latitude band and the frequency of the latitude grid,
-
-* `lon_band`:     the maximum and minimum values of the longitude and the frequency of the longitude grid.
+Local attributes specify the time and space grid for which the diagnostic performed calculations: `time_band`, `lat_band`, and  `lon_band`.  
 
 Global attribute `history` contains the information about when the histogram was calculated and values of `time_band`, `lat_band`, and `lon_band`.
 
@@ -110,20 +104,9 @@ If you want to merge all histograms if the specified repository, set the followi
   path_to_histograms=="/work/bb1153/b382267/tropical_rainfall_cicle3/NetCDF/histograms/"
 
   merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, all=True)
-  merged_histograms
 
 **Reminder**: Store the obtained histograms for distinct models in separate repositories to avoid possible errors. 
 
-
-If you want to merge only a specific number of histograms, set the function **multi**-argument. 
-The function will sort the files in the repository and take the first **multi** number of histograms in the repository.
-
-.. code-block:: python
-
-  path_to_histograms=="/work/bb1153/b382267/tropical_rainfall_cicle3/NetCDF/histograms/"
-
-  merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, multi=10)
-  merged_histograms
 
 
 The histogram plots 
@@ -132,29 +115,21 @@ The histogram plots
 The diagnostic contains the simple in-the-use function to create the histogram plot. 
 The user can create plots of the obtained data in  different styles and scales. 
 
-The simplest way to plot the histogram is:
-
-.. code-block:: python
-  
-  diag.hist_figure(hist_icon) 
-
-Below is an additional example of a histogram plot.
+The example of a histogram plot is:
 
 .. code-block:: python
 
   diag.histogram_plot(histogram, smooth = False, color_map = 'gist_heat', figsize=0.7, 
-               xlogscale = True, ylogscale=True,  plot_title = "ICON, trop precipitation rate")
+               xlogscale = True, ylogscale=True)
 
 
 You can find an example of the histogram obtained with the tropical-rainfall diagnostic below. 
 
 .. figure:: figures/trop_rainfall_icon_ngc3028_ifs_tco2559_ng5_ifs_tco1279_orca025_mswep_lra_r100_monthly_comparison_histogram.png
-    :width: 20cm
+    :width: 12cm
 
-    The pdf of tropical precipitation of the ICON data. 
-
-Mean and Median Values 
-^^^^^^^^^^^^^^^^^^^^^^
+Seasonal Mean Values
+^^^^^^^^^^^^^^^^^^^^
 
 The diagnostic can provide us with a graphical comparison of the mean value along different coordinates. 
 
@@ -166,22 +141,13 @@ For example, the function
   diag.mean_and_median_plot(icon_ngc3028, coord='lon',  
                                   legend='icon, ngc3028', new_unit = 'mm/day' )
 
-calculates the mean value of precipitation during 
+calculates the mean value of precipitation along the longitude during 
 
- - December-January-February (`DJF`), 
- - March-April-May (`MAM`), 
- - June-July-August (`JJA`), 
- - September-October-November (`SON`), and 
+- December-January-February (`DJF`), 
+- March-April-May (`MAM`), 
+- June-July-August (`JJA`), 
+- September-October-November (`SON`), and 
 - for the total period of time. 
-
-Then the function  `mean_and_median_plot(coord='lon')` calculates the mean value of precipitation along the longitude. 
-
-
-For example, for low-resolution `icon, ngc3028`, `ifs, tco2559-ng5`, `ifs, tco1279-orca025`, and `mswep` data the function 
-will produce the following plot: 
-
-.. figure:: figures/trop_rainfall_icon_ngc3028_ifs_tco2559_ng5_ifs_tco1279_orca025_mswep_lra_r100_monthly_comparison_along_lat_mean.png
-    :width: 20cm
 
 Bias between model and observations 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -197,11 +163,7 @@ The function
                     plot_title='The bias between icon, ngc3028 ans mswep, monthly, 1 degree res (100km)',
                     path_to_pdf=path_to_pdf, name_of_file='icon_ngc3028_mswep_lra_r100_monthly_bias')
 
-calculates the mean value of precipitation for each season  `DJF`, `MAM`, `JJA`, `SON` and  for the total period of time
-and providing the following figure:
-
-.. figure:: figures/trop_rainfall_icon_ngc3028_mswep_lra_r100_monthly_bias_seasons.png
-    :width: 20cm
+calculates the mean value of precipitation for each season  `DJF`, `MAM`, `JJA`, `SON` and  for the total period of time.
 
 Available demo notebooks
 ------------------------
