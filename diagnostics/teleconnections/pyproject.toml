@@ -25,8 +25,7 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython"
 ]
 dependencies = [
-    "xarray",
-    "sacpy"
+    "xarray"
 ]
 
 [tool.setuptools.package-data]

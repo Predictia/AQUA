@@ -16,7 +16,7 @@ import os
 
 from aqua.logger import log_configure
 from aqua.reader import Reader
-from teleconnections.index import station_based_index, regional_mean_index
+from teleconnections.index import station_based_index, regional_mean_anomalies
 from teleconnections.plots import index_plot
 from teleconnections.statistics import reg_evaluation, cor_evaluation
 from teleconnections.tools import load_namelist
@@ -27,7 +27,7 @@ class Teleconnection():
 
     def __init__(self, model: str, exp: str, source: str,
                  telecname: str, configdir=None,
-                 regrid='r100', freq='monthly',
+                 regrid=None, freq=None,
                  zoom=None,
                  savefig=False, outputfig=None,
                  savefile=False, outputdir=None,
@@ -42,8 +42,8 @@ class Teleconnection():
             telecname (str):                Teleconnection name.
                                             See documentation for available teleconnections.
             configdir (str, optional):      Path to diagnostics configuration folder.
-            regrid (str, optional):         Regridding resolution. Defaults to 'r100'.
-            freq (str, optional):           Frequency of the data. Defaults to 'monthly'.
+            regrid (str, optional):         Regridding resolution. Defaults to None.
+            freq (str, optional):           Frequency of the data. Defaults to None.
             zoom (str, optional):           Zoom for ICON data. Defaults to None.
             savefig (bool, optional):       Save figures if True. Defaults to False.
             outputfig (str, optional):      Output directory for figures.
@@ -74,9 +74,13 @@ class Teleconnection():
         self.regrid = regrid
         if self.regrid is None:
             self.logger.warning('No regridding will be performed')
+            self.logger.info('Be sure that the data is already regridded')
         self.logger.debug('Regridding resolution: {}'.format(self.regrid))
 
         self.freq = freq
+        if self.freq is None:
+            self.logger.warning('No time aggregation will be performed')
+            self.logger.info('Be sure that the data is already monthly aggregated')
         self.logger.debug('Frequency: {}'.format(self.freq))
 
         self.zoom = zoom
@@ -151,7 +155,16 @@ class Teleconnection():
         self.logger.info('Reader initialized')
 
     def run(self):
-        """Run teleconnection analysis."""
+        """Run teleconnection analysis.
+
+        The analysis consists of:
+        - Retrieving the data
+        - Evaluating the teleconnection index
+        - Evaluating the regression
+        - Evaluating the correlation
+
+        This methods can be also run separately.
+        """
 
         self.logger.debug('Running teleconnection analysis for data: {}/{}/{}'
                           .format(self.model, self.exp, self.source))
@@ -163,29 +176,55 @@ class Teleconnection():
 
         self.logger.info('Teleconnection analysis completed')
 
-    def retrieve(self, **kwargs):
+    def retrieve(self, var=None, **kwargs):
         """Retrieve teleconnection data.
 
         Args:
+            var (str, optional): Variable to be retrieved.
+                                 If None, the variable specified in the namelist
             **kwargs: Keyword arguments to be passed to the reader.
+
+        Returns:
+            xarray.DataArray: Data retrieved if a variable is specified.
         """
+        if var is None:
+            try:
+                self.data = self.reader.retrieve(var=self.var, **kwargs)
+            except ValueError:
+                self.logger.warning('Variable {} not found'.format(self.var))
+                self.logger.warning('Trying to retrieve without fixing and **kwargs')
+                self.data = self.reader.retrieve(var=self.var, fix=False)
+            self.logger.info('Data retrieved')
 
-        try:
-            self.data = self.reader.retrieve(var=self.var, **kwargs)
-        except ValueError:
-            self.logger.warning('Variable {} not found'.format(self.var))
-            self.logger.warning('Trying to retrieve without fixing and **kwargs')
-            self.data = self.reader.retrieve(var=self.var, fix=False)
-        self.logger.info('Data retrieved')
+            if self.regrid:
+                self.data = self.reader.regrid(self.data)
+                self.logger.info('Data regridded')
 
-        if self.regrid:
-            self.data = self.reader.regrid(self.data)
-            self.logger.info('Data regridded')
+            if self.freq:
+                if self.freq == 'monthly':
+                    self.data = self.reader.timmean(self.data)
+                    self.logger.info('Time aggregated to {}'.format(self.freq))
 
-        if self.freq:
-            if self.freq == 'monthly':
-                self.data = self.reader.timmean(self.data)
-                self.logger.info('Time aggregated to {}'.format(self.freq))
+            return
+        else:
+            try:
+                data = self.reader.retrieve(var=var, **kwargs)
+            except ValueError:
+                self.logger.warning('Variable {} not found'.format(var))
+                self.logger.warning('Trying to retrieve without fixing and **kwargs')
+                data = self.reader.retrieve(var=var, fix=False)
+            self.logger.info('Data retrieved')
+
+            if self.regrid:
+                data = self.reader.regrid(data)
+                self.logger.info('Data regridded')
+
+            if self.freq:
+                if self.freq == 'monthly':
+                    data = self.reader.timmean(data)
+                    self.logger.info('Time aggregated to {}'.format(self.freq))
+
+            return data
 
     def evaluate_index(self, **kwargs):
         """Calculate teleconnection index.
@@ -194,60 +233,157 @@ class Teleconnection():
             **kwargs: Keyword arguments to be passed to the index function.
         """
 
+        if self.index is not None:
+            self.logger.warning('Index already calculated, skipping')
+            return
+
         if self.data is None:
             self.logger.warning('No retrieve has been performed, trying to retrieve')
             self.retrieve()
 
         if self.telec_type == 'station':
+            self.logger.debug('Calculating {} index'.format(self.telecname))
             self.index = station_based_index(field=self.data[self.var],
                                              namelist=self.namelist,
                                              telecname=self.telecname,
                                              months_window=self.months_window,
                                              loglevel=self.loglevel, **kwargs)
-        elif self.telec_type == 'regional':
-            self.index = regional_mean_index(field=self.data[self.var],
-                                             namelist=self.namelist,
-                                             telecname=self.telecname,
-                                             months_window=self.months_window,
-                                             loglevel=self.loglevel, **kwargs)
+        elif self.telec_type == 'region':
+            self.logger.debug('Calculating {} index'.format(self.telecname))
+            self.index = regional_mean_anomalies(field=self.data[self.var],
+                                                 namelist=self.namelist,
+                                                 telecname=self.telecname,
+                                                 months_window=self.months_window,
+                                                 loglevel=self.loglevel, **kwargs)
+
+        # HACK: ICON has a depth_full dimension that is not used
+        #       but it is not removed by the index evaluation
+        if self.model == 'ICON':
+            try:
+                self.index = self.index.isel(depth_full=0)
+            except ValueError:
+                self.index = self.index
+
+        self.logger.debug(self.telecname + ' index calculated')
+        if self.index is None:
+            raise ValueError('Index not calculated')
 
         if self.savefile:
             file = self.outputdir + '/' + self.filename + '_index.nc'
             self.index.to_netcdf(file)
             self.logger.info('Index saved to {}'.format(file))
 
-    def evaluate_regression(self):
-        """Calculate teleconnection regression."""
+    def evaluate_regression(self, data=None, var=None, dim='time'):
+        """Evaluate teleconnection regression
 
-        data = self._adapt_data()
+        Args:
+            data (xarray.DataArray, optional): Data to be used for regression.
+                                               If None, the data used for the index is used.
+            var (str, optional): Variable to be used for regression.
+                                  If None, the variable used for the index is used.
+            dim (str, optional): Dimension to be used for regression.
+                                  Default is 'time'.
 
-        self.regression = reg_evaluation(self.index, data,
-                                         loglevel=self.loglevel)
+        Returns:
+            xarray.DataArray: Regression map if var is not None.
+        """
+        if self.regression is not None and var is None:
+            self.logger.warning('Regression already calculated, skipping')
+            return
 
-        if self.savefile:
-            file = self.outputdir + '/' + self.filename + '_reg.nc'
+        data, dim = self._prepare_corr_reg(var=var, data=data, dim=dim)
+
+        if var is None:
+            self.regression = reg_evaluation(indx=self.index, data=data,
+                                             dim=dim)
+            # HACK: ICON has a depth_full dimension that is not used
+            #       but it is not removed by the regression evaluation
+            if self.model == 'ICON':
+                try:
+                    self.regression = self.regression.isel(depth_full=0)
+                except ValueError:
+                    self.regression = self.regression
+        else:
+            reg = reg_evaluation(indx=self.index, data=data, dim=dim)
+            # HACK: ICON has a depth_full dimension that is not used
+            #       but it is not removed by the regression evaluation
+            if self.model == 'ICON':
+                try:
+                    reg = reg.isel(depth_full=0)
+                except ValueError:
+                    reg = reg
+
+        if self.savefile and var is None:
+            file = self.outputdir + '/' + self.filename + '_regression.nc'
             self.regression.to_netcdf(file)
             self.logger.info('Regression saved to {}'.format(file))
+        elif self.savefile and var is not None:
+            file = self.outputdir + '/' + self.filename + '_regression_{}.nc'.format(var)
+            reg.to_netcdf(file)
+            self.logger.info('Regression saved to {}'.format(file))
 
-    def evaluate_correlation(self):
-        """Calculate teleconnection correlation."""
+        if var is None:
+            return
+        else:
+            return reg
 
-        data = self._adapt_data()
+    def evaluate_correlation(self, data=None, var=None, dim='time'):
+        """Evaluate teleconnection correlation
 
-        self.correlation = cor_evaluation(self.index, data,
-                                          loglevel=self.loglevel)
+        Args:
+            data (xarray.DataArray, optional): Data to be used for correlation.
+                                               If None, the data used for the index is used.
+            var (str, optional): Variable to be used for correlation.
+                                  If None, the variable used for the index is used.
+            dim (str, optional): Dimension to be used for correlation.
+                                  Default is 'time'.
 
-        if self.savefile:
-            file = self.outputdir + '/' + self.filename + '_corr.nc'
+        Returns:
+            xarray.DataArray: Correlation map if var is not None.
+        """
+        if self.correlation is not None and var is None:
+            self.logger.warning('Correlation already calculated, skipping')
+            return
+
+        data, dim = self._prepare_corr_reg(var=var, data=data, dim=dim)
+
+        if var is None:
+            self.correlation = cor_evaluation(indx=self.index, data=data,
+                                              dim=dim)
+        else:
+            cor = cor_evaluation(indx=self.index, data=data, dim=dim)
+
+        if self.savefile and var is None:
+            file = self.outputdir + '/' + self.filename + '_correlation.nc'
             self.correlation.to_netcdf(file)
             self.logger.info('Correlation saved to {}'.format(file))
+        elif self.savefile and var is not None:
+            file = self.outputdir + '/' + self.filename + '_correlation_{}.nc'.format(var)
+            cor.to_netcdf(file)
+            self.logger.info('Correlation saved to {}'.format(file))
+
+        if var is None:
+            return
+        else:
+            return cor
 
     def plot_index(self, step=False, **kwargs):
-        """Plot teleconnection index."""
+        """Plot teleconnection index.
+
+        Args:
+            step (bool, optional): If True, plot the index with a step function (experimental)
+            **kwargs: Keyword arguments to be passed to the index_plot function.
+        """
 
         if self.index is None:
             self.logger.warning('No index has been calculated, trying to calculate')
             self.evaluate_index()
+
+        title = kwargs.get('title', None)
+        if title is None:
+            title = 'Index' + ' ' + self.telecname + ' ' + self.model + ' ' + self.exp
+
+        ylabel = self.telecname + ' index'
 
         if self.savefig:
             # Set the filename
@@ -256,11 +392,12 @@ class Teleconnection():
                                                                 filename))
             index_plot(indx=self.index, save=self.savefig,
                        outputdir=self.outputfig, filename=filename,
-                       loglevel=self.loglevel, step=step, **kwargs)
+                       loglevel=self.loglevel, step=step, title=title,
+                       ylabel=ylabel, **kwargs)
         else:
             index_plot(indx=self.index, save=self.savefig,
-                       loglevel=self.loglevel, step=step,
-                       **kwargs)
+                       loglevel=self.loglevel, step=step, title=title,
+                       ylabel=ylabel, **kwargs)
 
     def _load_figs_options(self, savefig=False, outputfig=None):
         """Load the figure options.
@@ -299,8 +436,8 @@ class Teleconnection():
                             Default is None.
         """
         if filename is None:
-            self.logger.info('No filename specified, using the teleconnection name')
-            filename = self.model + '_' + self.exp + '_' + self.source + '_' + self.telecname
+            self.logger.info('No filename specified, using the default name')
+            filename = 'teleconnections_' + self.model + '_' + self.exp + '_' + self.source + '_' + self.telecname
         self.filename = filename
         self.logger.debug('Output filename: {}'.format(self.filename))
 
@@ -337,22 +474,57 @@ class Teleconnection():
             self.outputdir = folder
             self.logger.debug('Data output folder: {}'.format(self.outputdir))
 
-    def _adapt_data(self):
-        """Adapt the data so that the time dimension is the same as the index.
+    def _prepare_corr_reg(self, data=None, var=None,
+                          dim='time'):
+        """Prepare data for the correlation or regression evaluation.
+
+        Args:
+            data (xarray.DataArray, optional): Data to be used for the regression.
+                                               If None, the teleconnection data is used.
+            var (str, optional): Variable to be used for the regression.
+                                 If None, the teleconnection variable is used.
+            dim (str, optional): Dimension to be used for the regression.
+                                 Default is 'time'.
 
         Returns:
-            xarray.DataArray: the data with the same time dimension as the index.
+            data (xarray.DataArray): Data to be used for the regression or correlation.
+            dim (str): Dimension to be used for the regression or correlation.
         """
-
         if self.index is None:
             self.logger.warning('No index has been calculated, trying to calculate')
             self.evaluate_index()
 
-        # Select the variable
-        data = self.data[self.var]
+        if var is None:  # Use the teleconnection variable
+            self.logger.debug('No variable specified, using teleconnection variable')
+            var = self.var
+            self.logger.debug('Variable: {}'.format(var))
 
-        # Select the months that are in the index
-        drop_count = self.months_window // 2
-        data = data.isel(time=slice(drop_count, -drop_count))
+        if data is None and var == self.var:  # Use the teleconnection data
+            self.logger.debug('No data specified, using teleconnection data')
+            if self.data is None:
+                self.logger.warning('No data has been loaded, trying to retrieve it')
+                self.retrieve()  # this will load the data in self.data
+            data = self.data
+            data = data[var]
 
-        return data
+            return data, dim
+
+        if var != self.var:
+            self.logger.debug('Variable {} is different from teleconnection variable {}'.format(var, self.var))
+            self.logger.warning("The result won't be saved as teleconnection attribute")
+
+            if data is not None:
+                try:
+                    data = data[var]
+                except KeyError:
+                    return data, dim
+
+                return data, dim
+            else:  # data is None
+                self.logger.debug('No data specified, trying to retrieve it')
+                data = self.retrieve(var=var)
+                data = data[var]
+
+                return data, dim
+
+        return data, dim

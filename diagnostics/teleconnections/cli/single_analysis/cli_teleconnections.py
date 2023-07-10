@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 '''
-AQUA teleconnections command line interface. Reads configuration file and
-performs teleconnections diagnostic.
+AQUA teleconnections command line interface for a single dataset.
+Reads configuration file and performs teleconnections diagnostic.
 '''
 import sys
 import argparse
 
 from aqua.util import load_yaml, get_arg
+from teleconnections.plots import single_map_plot
 from teleconnections.tc_class import Teleconnection
+from teleconnections.tools import get_dataset_config
 
 
 def parse_arguments(args):
@@ -19,7 +21,8 @@ def parse_arguments(args):
     parser = argparse.ArgumentParser(description='Teleconnections CLI')
     parser.add_argument('-c', '--config', type=str,
                         help='yaml configuration file')
-    parser.add_argument('-d', '--definitive', type=bool,
+    parser.add_argument('-d', '--definitive', action='store_true',
+                        required=False,
                         help='if True, files are saved, default is False')
     parser.add_argument('-l', '--loglevel', type=str,
                         help='log level [default: WARNING]')
@@ -38,62 +41,40 @@ if __name__ == '__main__':
     config = load_yaml(file)
 
     loglevel = get_arg(args, 'loglevel', 'WARNING')
-
     telecname = config['telecname']
-    model = config['model']
-    exp = config['exp']
-    source = config['source']
-
-    try:
-        regrid = config['regrid']
-    except KeyError:
-        regrid = None
-
-    try:  # zoom is needed if ICON
-        zoom = config['zoom']
-    except KeyError:
-        zoom = None
-
-    try:  # freq is needed if data are not natively monthly
-        freq = config['freq']
-    except KeyError:
-        freq = None
 
     savefig = get_arg(args, 'definitive', False)
     savefile = get_arg(args, 'definitive', False)
 
     try:
-        outputfig = config['outputfig']
+        configdir = config['configdir']
     except KeyError:
-        outputfig = None
+        configdir = None
 
-    try:
-        outputdir = config['outputdir']
-    except KeyError:
-        outputdir = None
+    # Get dataset configuration parameters
+    # Search for entries under 'sources' key
+    config_dict = get_dataset_config(sources=config,
+                                     dataset_source='source')
 
-    try:
-        filename = config['filename']
-    except KeyError:
-        filename = None
-
-    try:
-        months_window = config['months_window']
-    except KeyError:
-        months_window = 3 # default
-
-    teleconnection = Teleconnection(model=model, exp=exp, source=source,
-                                    telecname=telecname, regrid=regrid,
-                                    zoom=zoom, freq=freq,
-                                    months_window=months_window,
+    teleconnection = Teleconnection(telecname=telecname, configdir=configdir,
+                                    **config_dict,  # from cli config file
                                     savefig=savefig, savefile=savefile,
-                                    outputfig=outputfig, outputdir=outputdir,
-                                    filename=filename, loglevel=loglevel)
+                                    loglevel=loglevel)
 
     teleconnection.retrieve()
     teleconnection.evaluate_index()
     teleconnection.evaluate_correlation()
     teleconnection.evaluate_regression()
-    teleconnection.plot_index()
+
+    if savefig:
+        teleconnection.plot_index()
+        single_map_plot(map=teleconnection.regression, loglevel=loglevel,
+                        outputdir=teleconnection.outputfig,
+                        filename=teleconnection.filename + '_regression.pdf',
+                        save=True, cbar_label=teleconnection.var)
+        single_map_plot(map=teleconnection.correlation, loglevel=loglevel,
+                        outputdir=teleconnection.outputfig,
+                        filename=teleconnection.filename + '_correlation.pdf',
+                        save=True, cbar_label='Pearson correlation')
 
     print('Teleconnections diagnostic test run completed.')
