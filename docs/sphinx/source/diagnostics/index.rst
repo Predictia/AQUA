@@ -10,8 +10,13 @@ AQUA provides a collection of built-in diagnostics to analyze climate model outp
    :maxdepth: 1
 
    dummy
+   teleconnections
+   ecmean
+   global_mean_timeseries
+   radiation
    ssh_variability
    atmglobalmean
+   tropical_cyclones
 
 
 Creating Custom Diagnostics
