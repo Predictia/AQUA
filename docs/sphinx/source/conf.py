@@ -36,4 +36,3 @@ html_theme_options = {
 import sys
 import os
 sys.path.insert(0, os.path.relpath('../../diagnostics'))
-sys.path.insert(0, os.path.relpath('../../diagnostics/teleconnections'))
