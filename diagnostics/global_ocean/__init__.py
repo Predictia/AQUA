@@ -2,11 +2,11 @@
 """Global Ocean module""" 
 
 
-from .global_ocean_class_basin_T_S_means import Global_OceanDiagnostic
-from .global_ocean_func import *
+from .global_ocean import *
 
 # Optional but recommended
 __version__ = '0.0.1'
 
 # This specifies which methods are exported publicly, used by "from dummy import *"
-__all__ = ["global_ocean_class_basin_T_S_means", "global_ocean_func"]
+__all__ = ["hovmoller_plot", "time_series", "multilevel_t_s_trend_plot", "zonal_mean_trend_plot"]
+

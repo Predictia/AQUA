@@ -1,3 +1,7 @@
+"""
+Global Ocean module
+"""
+
 import datetime, os
 import xarray as xr
 import numpy as np
