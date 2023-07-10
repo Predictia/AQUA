@@ -102,8 +102,7 @@ References
 
 * tempest-extremes GitHub: https://github.com/ClimateGlobalChange/tempestextremes
 * CyMeP GitHub: https://github.com/ClimateGlobalChange/tempestextremes
-* Ullrich, P.A., C.M. Zarzycki, E.E. McClenny, M.C. Pinheiro, A.M. Stansfield and K.A. Reed (2021) "TempestExtremes v2.1: A community framework for feature detection, tracking and analysis in large datasets" Geosci. Model. Dev. 14, pp. 5023–5048, 
-`DOI <10.5194/gmd-14-5023-2021>`. 
+* Ullrich, P.A., C.M. Zarzycki, E.E. McClenny, M.C. Pinheiro, A.M. Stansfield and K.A. Reed (2021) "TempestExtremes v2.1: A community framework for feature detection, tracking and analysis in large datasets" Geosci. Model. Dev. 14, pp. 5023–5048, `DOI <10.5194/gmd-14-5023-2021>`. 
 * Zarzycki, C. M., P. A. Ullrich, and K. A. Reed, 2021: Metrics for Evaluating Tropical Cyclones in Climate Data. J. Appl. Meteor. Climatol., 60, 643–660, `DOI <https://doi.org/10.1175/JAMC-D-20-0149.1>`.
 
 
@@ -119,6 +118,7 @@ Example Plot(s)
     :width: 10cm
     
     Example of TCs trajectories computed in the IFS simulation tco1279-orca025-cycle3.
+
 
 Available demo notebooks
 ------------------------
