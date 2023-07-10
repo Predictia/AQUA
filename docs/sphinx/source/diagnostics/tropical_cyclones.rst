@@ -39,12 +39,15 @@ Input variables
 Output 
 ------
 
-Here is a list of files produced by the tropical cyclones diagnostic:
+Here is a list of files produced by the tropical cyclones diagnostic. The following files are saved in the "/tmpdir/model_name/exp_name" directory:
 
 * tempest_output_yyyymmddThh.txt:            text files produced by Tempest DetectNodes with TCs centres coordinates and maximum wind at each time step; 
 * tempest_track_yyyymmddThh-yyyymmddThh.txt: text files produced by Tempest StitchNodes with TCs centres coordinates and maximum wind; for each TC trajectory (i.e. after tracking is applied); 
-* TC_var_yyyymmddThh.nc:                     netcdf files with selected variables in the vicinity of each TC centre detected at each time step;
-* tempest_track_yyyymmddThh-yyyymmddThh.nc:  netcdf files with selected variables in the vicinity of each TC centre following TCs trajectories (includes time dimension, yyyymmddThh-yyyymmddThh states the start-end period considered).
+
+The following files are saved in "/fullres/model_name/exp_name" directory:
+
+* TC_fullres_yyyymmddThh.nc:                 netcdf files with selected variables (at original model resolution) in the vicinity of each TC centre detected at each time step;
+* tempest_tracks_yyyymmddThh-yyyymmddThh.nc: netcdf files with selected variables (at original model resolution) in the vicinity of each TC centre following TCs trajectories (includes time dimension, yyyymmddThh-yyyymmddThh states the start-end period considered).
 
 Example of outpud variables saved in the vicinity of TCs centres are:
 
