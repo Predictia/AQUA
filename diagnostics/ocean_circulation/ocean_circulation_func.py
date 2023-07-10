@@ -3,6 +3,7 @@ import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
+import math
 import warnings, logging
 from aqua.util import load_yaml
 from aqua import Reader,catalogue, inspect_catalogue
@@ -18,7 +19,11 @@ def predefined_regions(region):
     if region in ["indian_ocean", "indian ocean"]:
         latN, latS, lonW, lonE = 30.0, -30.0, 30 ,110.0
     elif region in ["labrador_sea", "labrador sea"]:
-        latN, latS, lonW, lonE = 65.0, 50.0, 300.0, 325.0
+        latN, latS, lonW, lonE = 65.0, 52.0, 300.0, 316.0
+    elif region in ["labrador_gin_seas", "labrador+gin seas"]:
+        latN, latS, lonW, lonE = 80.0, 50.0, -70.0, 20.0
+    elif region in ["irminger_sea", "irminger sea"]:
+        latN, latS, lonW, lonE = 60.0, 70.0, 316.0, 330.0
     elif region in ["global_ocean", "global ocean"]:
         latN, latS, lonW, lonE = 90.0, -90.0, 0.0, 360.0
     elif region in ["atlantic_ocean", "atlantic ocean"]:
@@ -28,7 +33,9 @@ def predefined_regions(region):
     elif region in ["arctic_ocean", "arctic ocean"]:
         latN, latS, lonW, lonE = 90.0, 65.0, 0.0, 360.0
     elif region in ["southern_ocean", "southern ocean"]:
-        latN, latS, lonW, lonE = -55.0, -80.0, -180.0, 180.0
+        latN, latS, lonW, lonE = -50.0, -80.0, 0.0, 360.0
+    elif region in ["weddell_sea", "weddell sea"]:
+        latN, latS, lonW, lonE = -65.0, -80.0, 290.0, 350.0
     elif region in ["bering_sea", "bering sea"]:
         latN, latS, lonW, lonE = 66.0, 53.0, 168.0, -178.0
     elif region in ["gulf_of_mexico", "gulf of mexico"]:
@@ -61,8 +68,6 @@ def predefined_regions(region):
         latN, latS, lonW, lonE = 60.0, 48.0, -145.0, -136.0
     elif region in ["east_china_sea", "east china sea"]:
         latN, latS, lonW, lonE = 35.0, 30.0, 120.0, 128.0
-    elif region in ["labrador_sea", "labrador sea"]:
-        latN, latS, lonW, lonE = 62.0, 50.0, -63.0, -35.0
     elif region in ["sea_of_okhotsk", "sea of okhotsk"]:
         latN, latS, lonW, lonE = 60.0, 45.0, 142.0, 163.0
     elif region in ["philippine_sea", "philippine sea"]:
@@ -647,7 +652,7 @@ def data_time_selection(data, time):
         data = data.where(data.time.dt.month == 12, drop=True)
     elif time in ["yearly", "year", "y"]:
         data = data.groupby('time.year').mean(dim='time')
-    if time in ["jja", "jun_jul_aug", "jun-jul-aug", "june-july-august", "june_july_august"]:
+    elif time in ["jja", "jun_jul_aug", "jun-jul-aug", "june-july-august", "june_july_august"]:
         data = data.where((data['time.month'] >= 6) & (data['time.month'] <= 8), drop=True)
     elif time in ["fma", "feb_mar_apr", "feb-mar-apr", "february-march-april", "february_march_april"]:
         data = data.where((data['time.month'] >= 2) & (data['time.month'] <= 4), drop=True)
@@ -657,7 +662,7 @@ def data_time_selection(data, time):
         data = data.where((data['time.month'] >= 9) & (data['time.month'] <= 11), drop=True)
     else:
         raise ValueError("""Invalid month input. Please provide a valid name. Among this:
-                         Yearly, 3M, Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec """)
+                         yearly, djf, fma, jan, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec """)
     logger.info(f"data selected for {time} climatology")
     return data
 
@@ -739,17 +744,17 @@ def plot_stratification(mod_data, region=None, time = None, latS: float=None, la
             legend_list.append(legend_info)
             if output == True: data_3.to_netcdf(f'{data_dir}/{filename}_{legend_info.replace(" ","_")}.nc')
         
-    fig.suptitle(f"Mean state {time.upper()} T, S, rho0 stratification in {region}", fontsize=20, weight='bold')
-    axs[0].set_title("Temperature Profile", fontsize=14, weight='bold')
+    fig.suptitle(f"Climatological {time.upper()} T, S, rho0 stratification in {region}", fontsize=20)
+    axs[0].set_title("Temperature Profile", fontsize=16)
     axs[0].set_ylabel("Depth (m)", fontsize=15)
     axs[0].set_xlabel("Temperature (°C)", fontsize=12)
 
-    axs[1].set_title("Salinity Profile", fontsize=14, weight='bold')
+    axs[1].set_title("Salinity Profile", fontsize=16)
     axs[1].set_xlabel("Salinity (psu)", fontsize=12)
     # axs[1].set_ylabel("", fontsize=0)
     axs[1].set_yticklabels([]) 
 
-    axs[2].set_title("Rho (ref 0) Profile", fontsize=14, weight='bold')
+    axs[2].set_title("Rho (ref 0) Profile", fontsize=16)
     axs[2].set_xlabel("Density Anomaly (kg/m³)", fontsize=12)
     # axs[2].set_ylabel("", fontsize=0)
     axs[2].set_yticklabels([]) 
@@ -815,7 +820,7 @@ def compute_mld_cont(rho):
     
     return mld    
 
-def data_for_plot_spatial_mld(data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
+def data_for_plot_spatial_mld_clim(data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
                             lonE: float=None):
     data = area_selection(data, region, latS, latN, lonE, lonW)
     data = convert_variables(data)
@@ -829,8 +834,8 @@ def data_for_plot_spatial_mld(data, region=None, time = None, latS: float=None, 
 
         
 
-def plot_spatial_mld(mod_data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
-                            lonE: float=None, output= False, output_dir= "output"):
+def plot_spatial_mld_clim(mod_data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
+                            lonE: float=None, overlap= False, output= False, output_dir= "output"):
     """
     Plots the climatology of mixed layer depth in the NH as computed with de Boyer Montegut (2004)'s criteria in 
     an observational dataset and a model dataset, allowing the user to select the month the climatology is computed
@@ -844,18 +849,34 @@ def plot_spatial_mld(mod_data, region=None, time = None, latS: float=None, latN:
         Observational dataset containing 2D fields of density (rho)
     month : integer
         Number of the month on which to compute the climatologies
+    overlap : boolean
+        To indicate if OBS and Model are cropped to overlap time period
+
 
     Returns
     -------
     None
 
     """
+    obs_data=load_obs_data(model='EN4',exp='en4',source='monthly')
     
-    mod_clim=data_for_plot_spatial_mld(mod_data, region, time, latS, latN, lonE, lonW).mean("time") # To select the month and compute its climatology
-    obs_data = load_obs_data(model='EN4',exp='en4',source='monthly')
-    obs_clim=data_for_plot_spatial_mld(obs_data, region, time, latS, latN, lonE, lonW).mean("time") # To select the month and compute its climatology
-    obs_data= crop_obs_overlap_time(mod_data, obs_data)
+    if overlap == True:
+        obs_data=crop_obs_overlap_time(mod_data, obs_data)
+        mod_data=crop_obs_overlap_time(obs_data, mod_data)
 
+
+    mod_clim=data_for_plot_spatial_mld_clim(mod_data, region, time, latS, latN, lonE, lonW).mean("time") # To select the month and compute its climatology
+    obs_clim=data_for_plot_spatial_mld_clim(obs_data, region, time, latS, latN, lonE, lonW).mean("time") # To select the month and compute its climatology
+    #obs_data=crop_obs_overlap_time(mod_data, obs_data)
+
+ 
+   
+    myr1=mod_data.time.dt.year[0].values # We identify the first year used in the climatology
+    myr2=mod_data.time.dt.year[-1].values # We identify the last year used in the climatology
+
+    oyr1=obs_data.time.dt.year[0].values # We identify the first year used in the climatology
+    oyr2=obs_data.time.dt.year[-1].values # We identify the last year used in the climatology
+    
     mod_clim = mod_clim["rho"]
     obs_clim = obs_clim["rho"]
     
@@ -863,48 +884,72 @@ def plot_spatial_mld(mod_data, region=None, time = None, latS: float=None, latN:
         output_path, fig_dir, data_dir, filename = dir_creation(mod_data, region, time, latS, latN, lonE, lonW, output_dir, plot_name= "spatial_MLD")
     
     logger.info("Spatial MLD plot is in process")
-    fig, axs = plt.subplots(nrows=1, ncols=2, subplot_kw={'projection': ccrs.PlateCarree()}, figsize=(22, 8),)
 
+
+    #fig, axs = plt.subplots(nrows=1, ncols=2, subplot_kw={'projection': ccrs.PlateCarree()}, figsize=(22, 8),)
+    #fig, axs = plt.subplots(nrows=1, ncols=2, subplot_kw={'projection': ccrs.PlateCarree()}, figsize=(math.ceil(xdim),math.ceil(ydim)))
+    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(20,6.5))
     
-    fig.suptitle(f'Mean state of {time.upper()} mixed layer depth in {region.replace("_"," ").upper()}', fontsize=27, weight='bold')
+    fig.suptitle(f'Climatology of {time.upper()} mixed layer depth in {region.replace("_"," ").upper()}', fontsize=20)
+    fig.set_figwidth(18)
+
+    clev1=0.0
+    clev2=max(np.max(mod_clim),np.max(obs_clim)) # We round up to next hundreth 
+    #print(clev2)
+    clev2=round(int(clev2),-2)
+    nclev=int(clev2/50)+1
+    clev2=float(clev2)
     
-    cs1=axs[0].contourf(mod_clim.lon,mod_clim.lat,mod_clim, projection=ccrs.PlateCarree(),
-                        levels=np.linspace(np.min(mod_clim),np.max(mod_clim),27),cmap='seismic',extend='both')
     
-    cs1=axs[1].contourf(obs_clim.lon,obs_clim.lat,obs_clim, projection=ccrs.PlateCarree(),
-                        levels=np.linspace(np.min(mod_clim),np.max(mod_clim),27),cmap='seismic',extend='both')
+   
+
+    cs1=axs[0].contourf(mod_clim.lon,mod_clim.lat,mod_clim,
+                        levels=np.linspace(clev1,clev2,nclev),cmap='jet')
+    fig.colorbar(cs1,location="bottom")
+    
+    cs1=axs[1].contourf(obs_clim.lon,obs_clim.lat,obs_clim,
+                        levels=np.linspace(clev1,clev2,nclev),cmap='jet')
+
+    fig.colorbar(cs1,location="bottom")
     
     if output == True:
         mod_clim.to_netcdf(f'{data_dir}/{filename}_Rho.nc')
         obs_clim.to_netcdf(f'{data_dir}/{filename}_Rho.nc')
     
-    axs[0].set_title("Model climatology", fontsize=18, weight='bold')
+    axs[0].set_title(f"Model climatology {myr1}-{myr2}", fontsize=18)
     axs[0].set_ylabel("Latitude", fontsize=14)
     axs[0].set_xlabel("Longitude", fontsize=14)
+    axs[0].set_facecolor('grey')
 
-    axs[1].set_title("OBS climatology", fontsize=18, weight='bold')
+
+    axs[1].set_title(f"EN4 OBS climatology {oyr1}-{oyr2}", fontsize=18)
     # axs[1].set_ylabel("Latitude", fontsize=12)
     axs[1].set_xlabel("Longitude", fontsize=14)
     axs[1].set_yticklabels([]) 
+    axs[1].set_facecolor('grey')
 
+
+    #fig.colorbar(cs1,location="bottom")
+  
+
+    #cbar_ax = fig.add_axes([0.2, 0.15, 0.7, 0.2])  # Adjust the position and size as needed
+    #fig.colorbar(cs1, cax=cbar_ax)
     
-    cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])  # Adjust the position and size as needed
-    fig.colorbar(cs1, cax=cbar_ax)
+
+    #gl = axs[0].gridlines(draw_labels=True,linewidth=0,)
+    #gl.top_labels = False
+    #gl.bottom_labels = True
+    #gl.right_labels = False
     
-    gl = axs[0].gridlines(crs=ccrs.PlateCarree(), draw_labels=True,linewidth=0,)
-    gl.top_labels = False
-    gl.bottom_labels = True
-    gl.right_labels = False
-    
-    gl = axs[1].gridlines(crs=ccrs.PlateCarree(), draw_labels=True,linewidth=0,)
-    gl.top_labels = False
-    gl.bottom_labels = True
-    gl.right_labels = False
-    gl.left_labels = False
+    #gl = axs[1].gridlines(draw_labels=True,linewidth=0,)
+    #gl.top_labels = False
+    #gl.bottom_labels = True
+    #gl.right_labels = False
+    #gl.left_labels = False
 
     plt.subplots_adjust(top=0.85, wspace=0.1)
-    axs[0].coastlines()
-    axs[1].coastlines()
+    #axs[0].coastlines()
+    #axs[1].coastlines()
     
     if output == True:
         plt.savefig(f"{fig_dir}/{filename}.png")
