@@ -79,7 +79,7 @@ For example, if you want to merge all histograms if the specified repository, se
 
 .. code-block:: python
 
-  path_to_histograms=="/work/bb1153/b382267/tropical_rainfall_cicle3/NetCDF/histograms/"
+  path_to_histograms="/work/bb1153/b382267/tropical_rainfall_cicle3/NetCDF/histograms/"
 
   merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, all=True)
 
