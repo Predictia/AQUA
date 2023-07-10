@@ -14,11 +14,11 @@ Structure
 
 The tropical cyclones diagnostic follows a class structure and consists of the files:
 
-* `notebooks/tropical_cyclones.ipynb`: a python notebook which provides an example use of the TCs diagnostic, including the TCs class initialisation,
-                                 a wrapper function which calls the DetectNodes and StitchNodes functions from tempest-extremes (which now are implemented
-                                 as methods of the TCs class) and saves the data in the vicinity of the detected TCs at each time step and for the TCs tracks
-                                 in a considered time interval. Finally some plotting functions are included to plot some selected variables at a few time steps
-                                 and the TCs tracks in a particular period;
+* `notebooks/tropical_cyclones.ipynb`: a python notebook which provides an example use of the TCs diagnostic, including the TCs class initialisation, 
+                                       a wrapper function which calls the DetectNodes and StitchNodes functions from tempest-extremes (which now are implemented
+                                       as methods of the TCs class) and saves the data in the vicinity of the detected TCs at each time step and for the TCs tracks
+                                       in a considered time interval. Finally some plotting functions are included to plot some selected variables at a few time steps
+                                       and the TCs tracks in a particular period;
 * `tropical_cyclones.py`: a python file in which the TCs class constructor and the other class methods are included; it contains the wrapper function
                           which retrieves data from the reader and prepares them for DetectNodes and StitchNodes, it runs DetectNodes and StitchNodes
                           and finally saves the variables in the vicinity of TCs tracks in a netcdf file;
@@ -40,8 +40,8 @@ Input variables
 
 * `msl`     (Mean sea level pressure, GRIB paramid 151)
 * `z`       (Geopotential height, GRIB paramid 129 at 300 and 500 hPa and at the surface (orography))
-* `10u`     (2m zonal wind, GRIB pramid 165)
-* `10v`     (2m meridional wind, GRIB pramid 166)
+* `10u`     (2m zonal wind, GRIB paramid 165)
+* `10v`     (2m meridional wind, GRIB paramid 166)
 
 Output 
 ------
@@ -58,10 +58,10 @@ Here is a list of files produced by the tropical cyclones diagnostic:
 Example of outpud variables saved in the vicinity of TCs centres are:
 
 * `msl`     (Mean sea level pressure, GRIB paramid 151)
-* `10u`     (10m zonal wind, GRIB pramid 165)
-* `10v`     (10m meridional wind, GRIB pramid 166)
-* `pr`      (Total precipitation, GRIB pramid 228)
-* `10fg`    (10m wind gust since the last postprocessing, GRIB pramid 49)
+* `10u`     (10m zonal wind, GRIB paramid 165)
+* `10v`     (10m meridional wind, GRIB paramid 166)
+* `pr`      (Total precipitation, GRIB paramid 228)
+* `10fg`    (10m wind gust since the last postprocessing, GRIB paramid 49)
 
 Figures include output variables in the vicinity of TCs centres at various time steps (useful to compare wind intensity, precipitation distribution
 and intensity between original resolution and a coarser resolution or with observations) and a figure with all the TCs tracks in the period considered.
@@ -121,12 +121,12 @@ Example Plot(s)
 .. figure:: figures/tropical_cyclones1.png
     :width: 10cm
 
-    Pressure in the vicinity of a tropical cyclone from IFS.
+    Pressure in the vicinity of a tropical cyclone (from the IFStco1279-orca025-cycle3 simulation).
 
 .. figure:: figures/tropical_cyclones2.png
     :width: 10cm
     
-    Example of TCs tracks in a 10 day period from an IFS simulation.
+    Example of TCs trajectories computed in the IFS simulation tco1279-orca025-cycle3.
 
 Available demo notebooks
 ------------------------
