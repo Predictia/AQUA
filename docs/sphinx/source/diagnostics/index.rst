@@ -12,12 +12,13 @@ AQUA provides a collection of built-in diagnostics to analyze climate model outp
    atm_global_mean
    ecmean
    global_mean_timeseries
+   ocean_circulation
    radiation
    seaice
    ssh_variability
    teleconnections
    tropical_cyclones
-
+   tropical-rainfall-diagnostic
 
 Creating Custom Diagnostics
 ---------------------------
