@@ -2,7 +2,7 @@
 
 ## Description
 
-The sea ice diagnostic compute the sea ice extent (SIE).
+The sea ice diagnostic computes the sea ice extent (SIE).
 The SIE is defined as the areal integral of all ocean grid cells that contain at least 15% of sea ice concentration (SIC).
 
 ## Table of Contents
