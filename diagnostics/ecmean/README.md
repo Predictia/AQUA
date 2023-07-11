@@ -1,5 +1,8 @@
 # ECmean4 Performance Indices
 
+Main authors: 
+- Paolo Davini (CNR-ISAC, p.davini@isac.cnr.it)
+
 ## Description
 
 This incorporates within AQUA the feature of the open-source package ECmean4. 

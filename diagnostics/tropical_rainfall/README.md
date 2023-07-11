@@ -1,8 +1,11 @@
 # Diagnostic of tropical rainfalls
 
-The tropical-rainfall diagnostic analyzes rainfall variability in the tropical zone and compares the climatological models' predictions with observations.  
+Main authors: 
+- Natalia Nazarova (POLITO, natalia.nazarova@polito.it)
 
 ## Description
+
+The tropical-rainfall diagnostic analyzes rainfall variability in the tropical zone and compares the climatological models' predictions with observations.  
 
 The module comprises Python-implemented source files, an environment file, tests, demonstration files, and a command line interface. You can find a detailed description of the module in the aqua documentation. 
 
