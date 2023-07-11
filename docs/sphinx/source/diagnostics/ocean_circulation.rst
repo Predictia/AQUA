@@ -15,9 +15,8 @@ Structure
 
 The ocean_circulation diagnostic follows a class structure and consists of the files:
 
-* `ocean_circulation_class.py`: a python file in which the ocean_circulationDiagnostic class constructor and the other class methods are included;
-* `ocean_circulation_func.py`: a python file which contains functions that are called and used in the ocean_circulation class;
-* `env-ocean_circulation.yml`: a yaml file with the required dependencies for the ocean_circulation diagnostic;
+* `ocean_circulation.py`: a python file which contains functions that are called and used in the ocean_circulation class;
+* `config.yml`: a yaml file with the required dependencies for the ocean_circulation diagnostic;
 * `notebooks/ocean_circulation.ipynb`: an ipython notebook which uses the dymmy class and its methods;
 * `README.md` : a readme file which contains some tecnical information on how to install the ocean_circulation diagnostic and its environment. 
 
@@ -33,6 +32,22 @@ Output
 Climatologies of the Mixed Layer Depth for both the model and observations in NetCDF format
 
 Climatologies of ocpt, so and sigma0 (potential density referenced at the surface) spatially averaged for any region of interest
+
+Functions used 
+---------------
+Stratification plot: This function requires data, a region, and the time of the climatology. And it produces a stratification plot of Temperature, salinity and Density, including the overlapped data with the observation. The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
+
+.. code-block:: python
+
+    plot_stratification(data, region= "Labrador Sea", time = "February",latS, latN, lonE, lonW, output= True, output_dir="./output")
+
+Mixed Layer Depth Plot: This function requires data, a region, and the time of the climatology. And it produces a time series plot of Temperature and salinity. Users ahve the option of choosing whether they want to use the whole obs data or overlapped obs data with the model. The region name supports all the major oceans and seas; in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
+
+.. code-block:: python
+
+    plot_spatial_mld_clim(data, region= "labrador_gin_seas", time = "MAR", overlap= True,output= True, output_dir="./output")
+
+
 
 
 Methods used
