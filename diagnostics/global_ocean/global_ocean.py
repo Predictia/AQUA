@@ -548,7 +548,7 @@ def time_series(data, region=None, type = None, customise_level=False, levels=No
         # Plot the salinity time series
         data_level.so.plot.line(ax=axs[1],label=f"{round(int(data_level.lev.data), -2)}")
     if output == True:
-        output_path, fig_dir, data_dir, filename = dir_creation(data, region, type, latS, latN, lonE, lonW, output_dir, plot_name= "stratification")
+        output_path, fig_dir, data_dir, filename = dir_creation(data, region, type, latS, latN, lonE, lonW, output_dir, plot_name= "time_series")
         data.to_netcdf(f'{data_dir}/{filename}.nc')
     
     axs[0].set_title("Temperature", fontsize=15, weight='bold')
