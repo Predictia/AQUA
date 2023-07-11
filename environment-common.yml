@@ -3,7 +3,7 @@
 # or if you really want to use conda
 # conda env create -f environment-common.yml
 
-name: common_environment
+name: aqua_common
 channels:
   - conda-forge
   - numba
