@@ -79,6 +79,6 @@ Example Plot(s)
 Available demo notebooks
 ------------------------
 
-Notebooks are stored in `diagnostics/ecmean/notebook`` (link to be corrected)
+Notebooks are stored in `diagnostics/ecmean/notebook``
 
-* `ecmean-test.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/dummy/notebooks/dummy_class_readerwrapper.ipynb>`_
+* `ecmean-test.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/ecmean/notebook/ecmean-test.ipynb>`_
