@@ -99,10 +99,10 @@ Available demo notebooks
 
 Notebooks are stored in `diagnostics/radiation/notebooks`:
 
-* `time_series.ipynb https://github.com/oloapinivad/AQUA/blob/main/diagnostics/radiation/notebooks/time_series.ipynb`_
-* `gregory.ipynb https://github.com/oloapinivad/AQUA/blob/main/diagnostics/radiation/notebooks/gregory.ipynb`_
-* `bar_plot.ipynb https://github.com/oloapinivad/AQUA/blob/main/diagnostics/radiation/notebooks/bar_plot.ipynb`_
-* `bias_maps.ipynb https://github.com/oloapinivad/AQUA/blob/main/diagnostics/radiation/notebooks/bias_maps.ipynb`_    
+* `time_series.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/radiation/notebooks/time_series.ipynb>`_
+* `gregory.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/radiation/notebooks/gregory.ipynb>`_
+* `bar_plot.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/radiation/notebooks/bar_plot.ipynb>`_
+* `bias_maps.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/radiation/notebooks/bias_maps.ipynb>`_    
    
 Detailed API
 ------------
