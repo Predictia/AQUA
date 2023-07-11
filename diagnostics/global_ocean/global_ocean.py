@@ -1035,16 +1035,16 @@ def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=N
         axs[levs,1].set_facecolor('grey')
         # axs[levs, 1].set_aspect('equal', adjustable='box')
  
+    
+    plt.suptitle(f'Trends at Different Depth in {region.replace("_"," ").upper()}', fontsize=27, weight='bold')
+    axs[0,0].set_title("Temperature", fontsize=18, weight='bold')
+    axs[0,1].set_title("Salinity", fontsize=18, weight='bold')
     if output == True:
         output_path, fig_dir, data_dir, filename = dir_creation(data, region, "_", latS, latN, lonE, lonW, output_dir, plot_name= "multilevel_t_s_trend")
 
         data.interp(lev=levels[levs]).to_netcdf(f'{data_dir}/{filename}.nc')
         plt.savefig(f"{fig_dir}/{filename}.png")
         logger.info(f"Figure and data used for this plot are saved here: {output_path}")
-    
-    plt.suptitle(f'Trends at Different Depth in {region.replace("_"," ").upper()}', fontsize=27, weight='bold')
-    axs[0,0].set_title("Temperature", fontsize=18, weight='bold')
-    axs[0,1].set_title("Salinity", fontsize=18, weight='bold')
     
     plt.show()
 
