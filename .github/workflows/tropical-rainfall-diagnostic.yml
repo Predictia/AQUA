@@ -51,4 +51,4 @@ jobs:
 
       - name: Run tropical-rainfall tests
         run: |
-          pytest -v -m tropical_rainfallls
+          pytest -v -m tropical_rainfall

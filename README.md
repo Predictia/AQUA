@@ -20,6 +20,12 @@ mamba env create -f environment.yml
 conda activate aqua
 ```
 
+Some diagnostics of aqua require extra conda or pip dependencies and have their environment files (for example, `teleconnections/env-teleconnections.yml` or `diagnostics/tropical_rainfall/env-tropical-rainfall.yml`).
+For simplicity, we provide the user with an additional environment file, `environment-common.yml `, which contains all standard dependencies of aqua and extra dependencies for each diagnostic:
+``` 
+mamba env create -f environment-common.yml 
+``` 
+
 ## Examples
 
 Please look at the `notebook` folder to explore AQUA functionalities
