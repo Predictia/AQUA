@@ -67,9 +67,9 @@ Example plots
 Available demo noteboks
 ------------------------
     
-* agm_ng3_seasons.ipynb: Notebook to demonstrate the seasonal_bias method with example plots: https://github.com/oloapinivad/AQUA/blob/devel/atm_global_mean/diagnostics/atmglobalmean/notebooks/agm_ng3_seasons.ipynb
-* agm_ng3_plev.ipynb: Notebook to demonstrate the compare_datasets_plev method with example plots: https://github.com/oloapinivad/AQUA/blob/devel/atm_global_mean/diagnostics/atmglobalmean/notebooks/agm_ng3_plev_test.ipynb
-* agm_ng3_mean_plots.ipynb: Notebook to demonstrate the plot_map_with_stats method with example plots: https://github.com/oloapinivad/AQUA/blob/devel/atm_global_mean/diagnostics/atmglobalmean/notebooks/agm_ng3_mean_plots.ipynb
+* `agm_ng3_seasons.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/atmglobalmean/notebooks/agm_ng3_seasons.ipynb>`_: Notebook to demonstrate the seasonal_bias method with example plots
+* `agm_ng3_plev_test.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/atmglobalmean/notebooks/agm_ng3_plev_test.ipynb>`_: Notebook to demonstrate the compare_datasets_plev method with example plots
+* `agm_ng3_mean_plots.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/atmglobalmean/notebooks/agm_ng3_mean_plots.ipynb>`_: Notebook to demonstrate the plot_map_with_stats method with example plots
 
     
 Detailed API
