@@ -9,7 +9,7 @@ Unreleased is the current development version.
 
 ## [v0.2-alpha]
 
-This is the `AQUA` version that will be part of the Deliverable D340.7.1.2. This is mostly done by the inclusion of eleven diagnostics within the AQUA framework
+This is the `AQUA` version that will be part of the Deliverable D340.7.1.2. This is mostly done by the inclusion of twelve diagnostics within the AQUA framework
 
 - Added teleconnections diagnostic (#308, #309, #318, #333, #352)
 - Added tropical cyclones diagnostic (#310, #345)
@@ -21,9 +21,10 @@ This is the `AQUA` version that will be part of the Deliverable D340.7.1.2. This
 - Added SSH variability diagnostic (#367, #369)
 - Added tropical rainfall diagnostic (#314)
 - Added Ocean circulation diagnostic (#295)
-- Added global ocean diagnositc (#164)
+- Added global ocean diagnosc (#164)
+- Added global mean timeseries (#268)
 - Multiple fixes in the Reader (#316, #324, #334)
-- Avoid time duplicated in the Reader (#357)
+- Avoid time duplicated in the Readerti (#357)
 - Enabling autodoc for diagnostics (#330)
 - Data access improvement on Levante, including new datasets (#332, #355, #321)
 - Added a common environment file (#363)
@@ -45,5 +46,5 @@ This is the AQUA pre-release to be sent to internal reviewers.
 Documentations is completed and notebooks are working.
 
 [unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.2-alpha...HEAD
-[v0.2-alfa]: https://github.com/oloapinivad/AQUA/compare/v0.1-beta...v0.2-alpha
+[v0.2-alpha]: https://github.com/oloapinivad/AQUA/compare/v0.1-beta...v0.2-alpha
 [v0.1-beta]: https://github.com/oloapinivad/AQUA/compare/v0.1-alpha...v0.1-beta
