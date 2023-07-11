@@ -79,16 +79,26 @@ Example Plot(s)
 ---------------
 
 .. figure:: figures/global_ocean1.png
-    :width: 15cm
+    :width: 18cm
+
+This is an example of one of the hovmoller T,S figures
+
 
 .. figure:: figures/global_ocean2.png
-    :width: 15cm
+    :width: 18cm
+
+This is an example of the multipanel plots of the spatially averaged T,S timeseries at different levels
 
 .. figure:: figures/global_ocean3.png
-    :width: 15cm
+    :width: 18cm
+
+This is an example of the multi-panel plots of lon-lat maps of temporal trends in T,S at different levels
 
 .. figure:: figures/global_ocean4.png
-    :width: 15cm
+    :width: 18cm
+
+This is an example of the plots of lat-depth maps of temporal trends in T,S
+
 
 Available demo notebooks
 ------------------------
