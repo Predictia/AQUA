@@ -5,11 +5,13 @@ Sea ice extent
 Description
 -----------
 
-The sea ice extent (SIE) is defined as the areal integral of all ocean grid cells that contain at least 15% of sea ice concentration (SIC). This threshold-based definition has its drawbacks (it is subjective, it is not as physical as sea ice area, it is not linear under time averaging) but has the advantage to be practical, as it corresponds to the surface enclosed by the sea ice edge.
+The sea ice extent (SIE) is defined as the areal integral of all ocean grid cells that contain at least 15% of sea ice concentration (SIC).
+This threshold-based definition has its drawbacks (it is subjective, it is not as physical as sea ice area, it is not linear under time averaging) but has the advantage to be practical, as it corresponds to the surface enclosed by the sea ice edge.
 
 Further details on the definition can be gound on the National Snow and Ice Data Center (NSIDC) `website <https://nsidc.org/learn/ask-scientist/what-difference-between-sea-ice-area-and-extent#:~:text=Sea%20ice%20area%20is%20the,15%20percent%20sea%20ice%20cover>`_.
 
-As an index resulting from a spatial integral, the same SIE can be obtained from different SIC distributions. Therefore, for model evaluation, it is generally recommended to compute SIE over specific regions to exclude the possibility of error compensations.
+As an index resulting from a spatial integral, the same SIE can be obtained from different SIC distributions.
+Therefore, for model evaluation, it is generally recommended to compute SIE over specific regions to exclude the possibility of error compensations.
 
 Structure
 -----------
