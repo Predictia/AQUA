@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def predefined_regions(region):
-        """
+    """
     Get the predefined latitude and longitude boundaries for a given region.
 
     Args:
