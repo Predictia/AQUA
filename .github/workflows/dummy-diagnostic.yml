@@ -27,7 +27,7 @@ jobs:
       - name: Setup Micromamba with diagnostic environment
         uses: mamba-org/setup-micromamba@v1
         with:
-          environment-file: environment_common.yml
+          environment-file: environment-common.yml
           environment-name: dummy
           cache-downloads: true
           cache-environment: true
