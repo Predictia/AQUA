@@ -44,6 +44,7 @@ dependencies:
 # these are pip-based since it provides more recent versions or packages unavailable on conda-forge
   - pip
   - pip:
+    - -e ./diagnostics/teleconnections/[all] 
     - sparse
     - dask_jobqueue
     - docker
@@ -59,3 +60,4 @@ dependencies:
     - git+https://oauth2:NrMi_dshtmNeaWy9F3sz@earth.bsc.es/gitlab/digital-twins/de_340/gsv_interface.git
     # pip install -e of AQUA itself
     - -e .
+    
