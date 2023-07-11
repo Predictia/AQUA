@@ -1,7 +1,7 @@
 # Global Ocean diagnostic
 
 Main authors: 
-- Supryo Gosh (BSC, supryo.gosh@bsc.es)
+- Supriyo Ghosh (BSC, supriyo.ghosh@bsc.es)
 - Pablo Ortega (BSC, pablo.ortega@bsc.es)
 
 # Description
