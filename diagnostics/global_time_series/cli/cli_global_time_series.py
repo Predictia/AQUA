@@ -3,11 +3,8 @@
 """
 import argparse
 import sys
-
 import matplotlib.pyplot as plt
-
 from aqua.util import load_yaml
-
 sys.path.insert(0, "../../")
 from global_time_series import plot_timeseries, plot_gregory
 
