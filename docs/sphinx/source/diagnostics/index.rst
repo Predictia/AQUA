@@ -12,6 +12,7 @@ AQUA provides a collection of built-in diagnostics to analyze climate model outp
    atm_global_mean
    ecmean
    global_mean_timeseries
+   global_ocean
    ocean_circulation
    radiation
    seaice
