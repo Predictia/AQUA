@@ -64,7 +64,7 @@ Folder where to store the output can be specified by the user.
 ## Examples
 
 The **notebook/** folder contains the following notebooks:
- - **histogram_calculation.ipynb**: 
+ - **([histogram_calculation.ipynb](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/histogram_calculation.ipynb))**:
 
     The notebook demonstrates the major abilities of tropical rainfall diagnostic: 
     - initialization of an object of the diagnostic class, 
@@ -72,7 +72,7 @@ The **notebook/** folder contains the following notebooks:
     - calculation of the histograms in the form of xarray, 
     - saving the histograms in the storage,
     - and loading the histograms from storage.
- - **histogram_plotting.ipynb**:
+ - **([histogram_plotting.ipynb](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/histogram_plotting.ipynb))**:
 
     The notebook demonstrates the abilities of the histogram plotting functions:
     - selection of the plot style: step line style, 2D smooth line style, and different color maps,

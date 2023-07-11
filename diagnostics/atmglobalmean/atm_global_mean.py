@@ -1,19 +1,14 @@
 """A module for atmospheric global biases analysis and visualization."""
 
-import sys
 import os
 import xarray as xr
 import numpy as np
 import matplotlib.pylab as plt
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-from cartopy.util import add_cyclic_point
-import calendar
-import math
-import datetime as dt
 import matplotlib.gridspec as gridspec
 from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
-from aqua import Reader, catalogue, inspect_catalogue
+from aqua import Reader
 
 outputfig = "./output/figs"
 if not os.path.exists(outputfig):

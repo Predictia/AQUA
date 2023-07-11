@@ -6,9 +6,9 @@ The folder contains jupyter-notebooks and python scripts in order to evaluate te
 The script are based on the `AQUA` framework.
 
 At the moment the following teleconnections are available:
+- [NAO](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/teleconnections/notebooks/NAO.ipynb)
+- [ENSO](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/teleconnections/notebooks/ENSO.ipynb)
 
-- NAO
-- ENSO
 
 See the documentation for more details on the teleconnections.
 
