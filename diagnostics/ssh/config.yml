@@ -3,21 +3,21 @@ models:
   - name: ICON
     experiment: ngc3028
     source: P1D
-    regrid: r100
+    regrid: r025
     variable: zos
     zoom: 7
     timespan: ['2020-01-20', '2025-07-22']
-  - name: ICON
-    experiment: ngc3026
-    source: P1D
-    regrid: r100 #r005 is computationally demanding and takes over 2 hours.
-    variable: zos
-    zoom: 7
-    timespan: ['2020-01-20', '2021-01-24']
+  # - name: ICON
+  #   experiment: ngc3026
+  #   source: P1D
+  #   regrid: r100 #r005 is computationally demanding and takes over 2 hours.
+  #   variable: zos
+  #   zoom: 7
+  #   timespan: ['2020-01-20', '2021-01-24']
   - name: FESOM
     experiment: tco2559-ng5-cycle3
     source: 2D_daily_native
-    regrid: r100
+    regrid: r025
     variable: zos
     zoom:
     timespan: ['2020-01-20', '2024-12-31']
@@ -47,8 +47,8 @@ subplot_options:
     cmap: viridis
   } 
 
-# Please specific the path to the directory where the outputs should be saved. If output directory/ folder does not exist, please make one.
-output_directory: /work/ab0995/a270223/AQUA/diagnostics/ssh/output
+# Please specify the path to the directory where the outputs should be saved. If output directory/ folder does not exist, another directory called output will be created in your current working directory.
+# output_directory: /work/ab0995/a270223/AQUA/diagnostics/ssh/output
 
 # This is the current dask configuration which works for the inputs above. It could be adjusted based on the system this application is run.
 dask_cluster:
