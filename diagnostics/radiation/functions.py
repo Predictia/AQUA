@@ -489,7 +489,7 @@ def plot_bias(data, iax, title, plotlevels, lower, upper, index):
                      add_colorbar=False,
                     )
     stipple_data = data.where(np.logical_and(data > lower.isel(month=index), data < upper.isel(month=index))) / data.where(np.logical_and(data > lower.isel(month=index), data < upper.isel(month=index)))
-    plot2 = stipple_data.plot.contourf(ax=iax, levels=[-10, 0, 10], hatches=["", "...."], add_colorbar=False, alpha=0, transform=ccrs.PlateCarree())
+    #plot2 = stipple_data.plot.contourf(ax=iax, levels=[-10, 0, 10], hatches=["", "...."], add_colorbar=False, alpha=0, transform=ccrs.PlateCarree())
 
     iax.set_title(title, fontsize=small_fonts)
     # iax.set_title(data.label+' ('+str(len(data.ensemble))+')',fontsize=small_fonts)
@@ -571,7 +571,7 @@ def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_cli
 
     plt.suptitle(label+' TOA bias IFS ' + model_label + ' ' + year + '\nrel. to CERES climatology (2001-2021)', fontsize=small_fonts*2)
     # plt.tight_layout()
-    filename = f"{outputfig}+{label}+'_TOA_bias_maps_'+{year}+'_'+{model_label}+'.pdf"
+    filename = f"{outputfig}{label}_TOA_bias_maps_{year}_{model_label}.pdf"
     plt.savefig(filename, dpi=300, format='pdf')
     plt.show()
     print(f"Plot has been saved to {outputfig}.")
