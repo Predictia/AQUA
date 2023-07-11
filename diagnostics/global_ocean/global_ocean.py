@@ -261,19 +261,21 @@ def zonal_mean_trend_plot(data, region=None, latS: float=None, latN: float=None,
     data.ocpt.plot.contourf(levels=20, ax=axs[0])
     axs[0].set_ylim((5500, 0))
 
-    fig.suptitle(f"Zonally-averaged Trend {region}", fontsize=22, weight='bold')
+    fig.suptitle(f"Zonally-averaged long-term trends in the {region}", fontsize=20)
+
+    plt.subplots_adjust(top=0.85)
 
     
-    axs[0].set_title(f"Temperature", fontsize=14, weight='bold')
+    axs[0].set_title(f"Temperature", fontsize=14)
     axs[0].set_ylabel("Depth (in m)", fontsize=9)
     axs[0].set_xlabel("Latitude (in deg North)", fontsize=9)
     axs[0].set_facecolor('grey')
 
     data.so.plot.contourf(levels=20, ax=axs[1])
     axs[1].set_ylim((5500, 0))
-    axs[1].set_title(f"Salinity", fontsize=14, weight='bold')
-    axs[1].set_ylabel("Depth (in m)", fontsize=9)
-    axs[1].set_xlabel("Latitude (in deg North)", fontsize=9)
+    axs[1].set_title(f"Salinity", fontsize=14)
+    axs[1].set_ylabel("Depth (in m)", fontsize=12)
+    axs[1].set_xlabel("Latitude (in deg North)", fontsize=12)
     axs[1].set_facecolor('grey')
 
     if output == True:
@@ -399,25 +401,36 @@ def data_process_by_type(data,  type=None):
     type = type.lower()
     process_data = xr.Dataset()
 
-    if type in ['anomaly', "anomally", "anomalies", "anomallies"]:
-        cmap = "coolwarm"
+    if type in ['anomaly tmean', "anomaly vs tmean","anomaly_tmean", "anomaly_vs_tmean"]:
+        cmap = "PuOr"
+        for var in list(data.data_vars.keys()):
+            process_data[var] = data[var] - data[var].mean(dim='time')
+    elif type in ['anomaly t0', "anomaly vs t0", "anomaly_t0", "anomaly_vs_t0"]:
+        cmap = "PuOr"
         for var in list(data.data_vars.keys()):
             process_data[var] = data[var] - data[var].isel(time=0)
-
-    elif type in ['stdanomaly',"standard anomaly", "std anomaly", "std anomalies"]:
-        cmap = "coolwarm"
+    elif type in ['stdanomaly_t0',"std_anomaly_vs_t0", "std anomaly t0", "stdanomaly t0"]:
+        cmap = "PuOr"
         for var in list(data.data_vars.keys()):
             var_data = data[var] - data[var].isel(time=0)
             var_data.attrs['units'] = 'Standardised Units'
             # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
             process_data[var] = var_data / var_data.std(dim="time")
+    elif type in ['stdanomaly_tmean',"std_anomaly_vs_tmean", "std anomaly tmean", "stdanomaly tmean"]:
+        cmap = "PuOr"
+        for var in list(data.data_vars.keys()):
+            var_data = data[var] - data[var].mean(dim='time')
+            var_data.attrs['units'] = 'Standardised Units'
+            # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
+            process_data[var] = var_data / var_data.std(dim="time")
+            
     else:
-        cmap='viridis'
+        cmap='jet'
         process_data = data
     logger.info(f"Data processed for {type}")
     return process_data, cmap
 
-def hovmoller_plot(data, region, type= None , latS: float=None, latN: float=None, lonW: float=None,
+def hovmoller_lev_time_plot(data, region, type= None , latS: float=None, latN: float=None, lonW: float=None,
                             lonE: float=None, output= False, output_dir= "output"):
     """
     Create a Hovmoller plot of temperature and salinity full values.
@@ -443,25 +456,57 @@ def hovmoller_plot(data, region, type= None , latS: float=None, latN: float=None
     logger.info(f"Hovmoller plotting in process")
     # Create subplots for temperature and salinity plots
     fig, (axs) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
-    fig.suptitle(f"{type} {region} T,S evolution", fontsize=22, weight='bold')
+    fig.suptitle(f"{type} {region} T,S evolution", fontsize=22)
 
     if output == True:
         output_path, fig_dir, data_dir, filename = dir_creation(data, region, type, latS, latN, lonE, lonW, output_dir, plot_name= "hovmoller_plot")
     
-    
-    lev_log_scale= np.log(data.lev)
+    import matplotlib.colors as mcolors
+    norm = mcolors.TwoSlopeNorm(vcenter=0)
+
+    #plt.pcolor(X, Y, Z, vmin=vmin, vmax=vmax, norm=norm) 
+
+    # To center the colorscale around zero when we plot temperature anomalies
+    ocptmin=round(np.min(data.ocpt.values),2)
+    ocptmax=round(np.max(data.ocpt.values),2)
+
+    if ocptmin < 0:
+        if abs(ocptmin) < ocptmax:
+            ocptmin=ocptmax*-1
+        else:
+            ocptmax=ocptmin*-1
+        
+        ocptlevs = np.linspace(ocptmin, ocptmax,21)
+
+    else:
+        ocptlevs = 20
+
+    # And we do the same for salinity
+    somin=round(np.min(data.so.values),3)
+    somax=round(np.max(data.so.values),3)
+
+    if somin < 0:
+        if abs(somin) < somax:
+            somin=somax*-1
+        else:
+            somax=somin*-1
+        
+        solevs = np.linspace(somin, somax,21)
+
+    else:
+        solevs = 20
+
+
     cs1=axs[0].contourf(data.time,data.lev, data.ocpt.transpose(),
-                        levels=np.linspace(np.min(data.ocpt),np.max(data.ocpt),10),cmap= cmap, extend='both')
-    cbar_ax = fig.add_axes([0.15, 0.1, 0.35, 0.05])
+                        levels=ocptlevs,cmap= cmap,extend='both')
+    cbar_ax = fig.add_axes([0.13, 0.1, 0.35, 0.05])
     cbar = fig.colorbar(cs1, cax=cbar_ax, orientation='horizontal')
-    cbar.set_ticks((np.linspace(np.min(data.ocpt),np.max(data.ocpt),5)).tolist())  # Set the tick positions
     
     
     cs2=axs[1].contourf(data.time,data.lev, data.so.transpose() ,
-                        levels=np.linspace(np.min(data.so),np.max(data.so),14),cmap= cmap,extend='both')
-    cbar_ax = fig.add_axes([0.55, 0.1, 0.3, 0.05])
+                        levels=solevs,cmap= cmap,extend='both')
+    cbar_ax = fig.add_axes([0.54, 0.1, 0.35, 0.05])
     cbar = fig.colorbar(cs2, cax=cbar_ax, orientation='horizontal')
-    cbar.set_ticks((np.linspace(np.min(data.so),np.max(data.so),3)).tolist())  # Set the tick positions
 
     
     if output == True:
@@ -470,23 +515,18 @@ def hovmoller_plot(data, region, type= None , latS: float=None, latN: float=None
     
     axs[0].invert_yaxis()
     axs[1].invert_yaxis()
-    # yticks_values_inlog = np.linspace(np.log(5), np.log(5000), 5)
-    # yticks_values_real = np.linspace(5, 5000, 5)
+  
     axs[0].set_ylim((5500, 0))
-    # axs[0].set_yticks(yticks_values_inlog)
-    # axs[0].set_yticklabels(yticks_values_real.tolist())
 
-    axs[0].set_title("Temperature", fontsize=15, weight='bold')
-    # axs[0].set_ylim((5500, 0))
-    axs[0].set_ylabel("Depth (in m) (Log scale)", fontsize=12)
+
+    axs[0].set_title("Temperature", fontsize=15)
+    axs[0].set_ylabel("Depth (in m)", fontsize=12)
     axs[0].set_xlabel("Time (in years)", fontsize=12)
     
-    axs[1].set_title("Salinity", fontsize=15, weight='bold')
-    # axs[1].set_ylim((5500, 0))
+    axs[1].set_title("Salinity", fontsize=15)
     axs[1].set_xlabel("Time (in years)", fontsize=12)
     axs[1].set_yticklabels([])
     
-    # cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])  # Adjust the position and size as needed
     
     plt.subplots_adjust(bottom=0.3, top=0.85, wspace=0.1)
 
@@ -496,7 +536,8 @@ def hovmoller_plot(data, region, type= None , latS: float=None, latN: float=None
 
     return
 
-def time_series(data, region=None, type = None, customise_level=False, levels=None, latS: float=None, latN: float=None, lonW: float=None,
+
+def time_series_multilevs(data, region=None, type = None, customise_level=False, levels=None, latS: float=None, latN: float=None, lonW: float=None,
                             lonE: float=None,  output= True, output_dir = "output"):
     """
     Create time series plots of global temperature and salinity at selected levels.
@@ -523,9 +564,9 @@ def time_series(data, region=None, type = None, customise_level=False, levels=No
     logger.info(f"Time series plot is in process")
     
     # Create subplots for temperature and salinity time series plots
-    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
+    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(16, 5))
 
-    fig.suptitle(f"{region} T,S {type}", fontsize=20, weight='bold')
+    fig.suptitle(f"Spatially Averaged {region} T,S {type}", fontsize=20)
 
     # Define the levels at which to plot the time series
     if customise_level:
@@ -551,15 +592,17 @@ def time_series(data, region=None, type = None, customise_level=False, levels=No
         output_path, fig_dir, data_dir, filename = dir_creation(data, region, type, latS, latN, lonE, lonW, output_dir, plot_name= "time_series")
         data.to_netcdf(f'{data_dir}/{filename}.nc')
     
-    axs[0].set_title("Temperature", fontsize=15, weight='bold')
-    axs[0].set_ylabel("Standardised Units (at the respective level)", fontsize=12)
+    tunits=data_level.ocpt.attrs['units']
+    sunits=data_level.so.attrs['units']
+    axs[0].set_title("Temperature", fontsize=15)
+    axs[0].set_ylabel(f"Potential Temperature (in {tunits})", fontsize=12)
     axs[0].set_xlabel("Time", fontsize=12)
-    axs[1].set_title("Salinity", fontsize=15, weight='bold')
-    axs[1].set_ylabel(" ", fontsize=12)
+    axs[1].set_title("Salinity", fontsize=15)
+    axs[1].set_ylabel(f"Salinity (in {sunits})", fontsize=12)
     axs[1].set_xlabel("Time (in years)", fontsize=12)
     axs[1].legend(loc='right')
     # axs[1].set_yticklabels([])
-    plt.subplots_adjust(bottom=0.3, top=0.85, wspace=0.1)
+    plt.subplots_adjust(bottom=0.3, top=0.85, wspace=0.2)
 
     if output == True:
         plt.savefig(f"{fig_dir}/{filename}.png")
@@ -1005,13 +1048,13 @@ def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=N
         levels = [10, 100, 500, 1000, 3000, 5000]
 
     # To fix the dimensions so that all subpanels are well visible
-    dim1=17
+    dim1=16
     dim2=5*len(levels)
 
     
     fig, axs = plt.subplots(nrows=len(levels), ncols=2, figsize=(dim1, dim2))
 
-    fig.subplots_adjust(hspace=0.5)
+    fig.subplots_adjust(hspace=0.18,wspace=0.15,top=0.95)
     for levs in range(len(levels)):
         
         
@@ -1026,8 +1069,8 @@ def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=N
         axs[levs, 1].set_yticklabels([])
         
         if levs == (len(levels)-1):
-            axs[levs,0].set_xlabel("Longitude (in de East)", fontsize=9)
-            axs[levs,0].set_ylabel("Latitude (in deg North)", fontsize=9)
+            axs[levs,0].set_xlabel("Longitude (in de East)", fontsize=12)
+            axs[levs,0].set_ylabel("Latitude (in deg North)", fontsize=12)
             
         if levs != (len(levels)-1):
             axs[levs, 0].set_xticklabels([])
@@ -1036,9 +1079,9 @@ def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=N
         # axs[levs, 1].set_aspect('equal', adjustable='box')
  
     
-    plt.suptitle(f'Trends at Different Depth in {region.replace("_"," ").upper()}', fontsize=27, weight='bold')
-    axs[0,0].set_title("Temperature", fontsize=18, weight='bold')
-    axs[0,1].set_title("Salinity", fontsize=18, weight='bold')
+    plt.suptitle(f'Linear Trends of T,S at different depths in the {region.replace("_"," ").capitalize()}', fontsize=24)
+    axs[0,0].set_title("Temperature", fontsize=18)
+    axs[0,1].set_title("Salinity", fontsize=18)
     if output == True:
         output_path, fig_dir, data_dir, filename = dir_creation(data, region, "_", latS, latN, lonE, lonW, output_dir, plot_name= "multilevel_t_s_trend")
 
@@ -1320,17 +1363,17 @@ def plot_stratification(mod_data, region=None, time = None, latS: float=None, la
             legend_list.append(legend_info)
             if output == True: data_3.to_netcdf(f'{data_dir}/{filename}_{legend_info.replace(" ","_")}.nc')
         
-    fig.suptitle(f"Mean state {time.upper()} T, S, rho0 stratification in {region}", fontsize=20, weight='bold')
-    axs[0].set_title("Temperature Profile", fontsize=14, weight='bold')
+    fig.suptitle(f"Mean state {time.upper()} T, S, rho0 stratification in {region}", fontsize=20)
+    axs[0].set_title("Temperature Profile", fontsize=14)
     axs[0].set_ylabel("Depth (m)", fontsize=15)
     axs[0].set_xlabel("Temperature (°C)", fontsize=12)
 
-    axs[1].set_title("Salinity Profile", fontsize=14, weight='bold')
+    axs[1].set_title("Salinity Profile", fontsize=14)
     axs[1].set_xlabel("Salinity (psu)", fontsize=12)
     # axs[1].set_ylabel("", fontsize=0)
     axs[1].set_yticklabels([]) 
 
-    axs[2].set_title("Rho (ref 0) Profile", fontsize=14, weight='bold')
+    axs[2].set_title("Rho (ref 0) Profile", fontsize=14)
     axs[2].set_xlabel("Density Anomaly (kg/m³)", fontsize=12)
     # axs[2].set_ylabel("", fontsize=0)
     axs[2].set_yticklabels([]) 
@@ -1443,7 +1486,7 @@ def plot_spatial_mld(mod_data, region=None, time = None, latS: float=None, latN:
     fig, axs = plt.subplots(nrows=1, ncols=2, subplot_kw={'projection': ccrs.PlateCarree()}, figsize=(22, 8),)
 
     
-    fig.suptitle(f'Mean state of {time.upper()} mixed layer depth in {region.replace("_"," ").upper()}', fontsize=27, weight='bold')
+    fig.suptitle(f'Mean state of {time.upper()} mixed layer depth in {region.replace("_"," ").upper()}', fontsize=27)
     
     cs1=axs[0].contourf(mod_clim.lon,mod_clim.lat,mod_clim, projection=ccrs.PlateCarree(),
                         levels=np.linspace(np.min(mod_clim),np.max(mod_clim),27),cmap='seismic',extend='both')
@@ -1455,11 +1498,11 @@ def plot_spatial_mld(mod_data, region=None, time = None, latS: float=None, latN:
         mod_clim.to_netcdf(f'{data_dir}/{filename}_Rho.nc')
         obs_clim.to_netcdf(f'{data_dir}/{filename}_Rho.nc')
     
-    axs[0].set_title("Model climatology", fontsize=18, weight='bold')
+    axs[0].set_title("Model climatology", fontsize=18)
     axs[0].set_ylabel("Latitude", fontsize=14)
     axs[0].set_xlabel("Longitude", fontsize=14)
 
-    axs[1].set_title("OBS climatology", fontsize=18, weight='bold')
+    axs[1].set_title("OBS climatology", fontsize=18)
     # axs[1].set_ylabel("Latitude", fontsize=12)
     axs[1].set_xlabel("Longitude", fontsize=14)
     axs[1].set_yticklabels([]) 

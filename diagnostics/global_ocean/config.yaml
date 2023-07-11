@@ -2,7 +2,7 @@ model: 'FESOM'
 exp: 'tco2559-ng5-cycle3'
 source: "lra-r100-monthly"
 
-hovmoller_plot:
+hovmoller_lev_time_plot:
   region: "Global Ocean"
   latS:
   latN:
@@ -12,7 +12,7 @@ hovmoller_plot:
   output: True
   output_dir: './output'
 
-time_series:
+time_series_multilevs:
   region: "Global Ocean"
   latS:
   latN:
