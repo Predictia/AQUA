@@ -181,13 +181,13 @@ class SeaIceExtent:
 
             ax[jr].set_title("Sea ice extent: region " + region)
 
-            ax[jr].legend()
+            ax[jr].legend(fontsize = 8, ncols = 6, loc  = "best")
             ax[jr].set_ylabel(extent.units)
             ax[jr].grid()
 
         fig.tight_layout()
         for fmt in ["png", "pdf"]:
-            outputDir = "./figures/" + str(fmt) + "/"
+            outputDir = "./PDF/" + str(fmt) + "/"
 
             create_folder(outputDir, loglevel=self.loglevel)
 
