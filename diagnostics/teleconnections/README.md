@@ -90,8 +90,9 @@ Additionally, NCAR data with monthly values of NAO and ENSO indices are availabl
 
 All notebooks are in the `notebooks` folder.
 
-- `NAO/ENSO` contain the respective teleconnections analysis performed on ERA5 data.
-- `NAO_cycle3/ENSO_cycle3` contains the plot routines to compare the teleconnections between ERA5 and the nextGEMS simulations.
+- [NAO](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/teleconnections/notebooks/NAO.ipynb)/[ENSO](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/teleconnections/notebooks/ENSO.ipynb) contain the respective teleconnections analysis performed on ERA5 data.
+- [NAO_cycle3/ENSO_cycle3](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/teleconnections/notebooks/NAO_cycle3.ipynb) contains the plot routines to compare the teleconnections between ERA5 and the nextGEMS simulations.
+
 
 ## Contributing
 
