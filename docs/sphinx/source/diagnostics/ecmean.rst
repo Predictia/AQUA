@@ -1,5 +1,5 @@
-ECmean4 Performance Indices
-===========================
+Performance Indices
+===================
 
 `ECmean4 <https://pypi.org/project/ECmean4>`_ is an open source package which has been integrated within AQUA, aiming at computing the Reichler and Kim Performance Indices (PIs).
 Those numbers provides an estimates of the DE_340 models climatological *skill* of some selected atmospheric and oceanic fields.
