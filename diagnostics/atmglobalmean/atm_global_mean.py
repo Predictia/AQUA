@@ -45,7 +45,7 @@ def seasonal_bias(dataset1, dataset2, var_name, year, plev, statistic, model_lab
         ValueError: If an invalid statistic is provided.
 
     Returns:
-        Four subplots with seasonal biases.
+        None
     '''
     
     var1 = dataset1[var_name]
