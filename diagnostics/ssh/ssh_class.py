@@ -63,7 +63,13 @@ class sshVariability():
             model_name (str): Name of the model.
             std_dev_data (xarray.DataArray): Computed standard deviation data.
         """
-        output_file = os.path.join(output_directory, f"{model_name}_std.nc")
+        # Create the file type folder within the output directory
+        file_type_folder = os.path.join(output_directory, "NetCDF")
+        os.makedirs(file_type_folder, exist_ok=True)
+    
+        # Set the output file path
+        output_file = os.path.join(file_type_folder, f"{model_name}_std.nc")
+        # output_file = os.path.join(output_directory, f"{model_name}_std.nc")
         std_dev_data.to_netcdf(output_file)
 
     @staticmethod
@@ -147,9 +153,12 @@ class sshVariability():
             filename (str): The name of the output file.
             fig (plt.Figure): The figure object containing the subplots.
         """
-
+        # Create the file type folder within the output directory
+        file_type_folder = os.path.join(output_directory, "PDF")
+        os.makedirs(file_type_folder, exist_ok=True)
+    
         # Set the output file path
-        output_file = os.path.join(output_directory, filename)
+        output_file = os.path.join(file_type_folder, filename)
 
         # Save the figure as a PDF file. fig.savefig() or plt.savefig() should accomplish the same task of saving the figure to a file. (DPI = dots per inch)
         fig.savefig(output_file, dpi=500, format='pdf')
