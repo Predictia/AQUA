@@ -50,6 +50,7 @@ The returned data contain:
 *  `TOA_ifs_4km`: returned xarray-dataset, that contains the necessary variables for analysis.
 
 Other available functions:
+
 *  `process_ceres_data`: extracts CERES data for further analysis and creates global means;
 *  `process_model_data`: extracts model output data for further analysis and creates global means;
 *  `process_era5_data`: extracts ERA5 data for further analysis;
