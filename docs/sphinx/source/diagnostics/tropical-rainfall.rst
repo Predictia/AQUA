@@ -35,11 +35,7 @@ Input variables
 
 Output
 ------
-All output of the diagnostic is in the format of NetCDF or PDF. The paths to the repositories, where the diagnostic store the output, are 
-
-* Path to NetCDF: `/work/bb1153/b382267/tropical_rainfall_cicle3/NetCDF/`
-* Path to PDF:    `/work/bb1153/b382267/tropical_rainfall_cicle3/PDF/`
-
+All output of the diagnostic is in the format of NetCDF to be further analysed, or in PDF for rapid visualization. 
 
 Examples
 --------
@@ -84,7 +80,6 @@ For example, if you want to merge all histograms if the specified repository, se
   merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, all=True)
 
 **Reminder**: Store the obtained histograms for distinct models in separate repositories to avoid possible errors. 
-
 
 
 The histogram plots 
