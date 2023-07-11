@@ -62,6 +62,7 @@ def plot_timeseries(
         data = reader.timmean(data=data, freq=resample)
 
     data.plot(**plot_kw, ax=ax)
+    ax.set_title(f'Globally averaged {variable}')
 
     if outfile is not None:
         data.to_netcdf(outfile)
@@ -99,3 +100,4 @@ def plot_gregory(model, exp, reader_kw={}, plot_kw={}, ax=None, **kwargs):
     ax.plot(ts[-1], toa[-1], marker="<", color="tab:red")
     ax.set_xlabel("2m temperature / C")
     ax.set_ylabel(r"Net radiation TOA / $\rm Wm^{-2}$")
+    ax.set_title('Gregory plot')

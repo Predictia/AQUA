@@ -25,7 +25,7 @@ The tropical cyclones diagnostic follows a class structure and consists of the f
 * `tropical_cyclones_slurm.py`: a python file with the tropical cyclones diagnostic as in the notebook, but to be executed as script;
 * `run_TCs_slurm.sh`: bash script to run tropical_cyclones_slurm.py with sbatch;
 * `env-TCs.yml`: a yaml file with the required dependencies to creat the environment for the TCs diagnostic;
-* `config/config.yml`: a yaml file in which all parameters are configured (including variables to save) and paths are specified. Version for Levante;
+* `config/config_tcs.yml`: a yaml file in which all parameters are configured (including variables to save) and paths are specified. Version for Levante;
 * `README.md` : a readme file which contains some tecnical information on how to install the tropical cyclones diagnostic and its environment. 
 
 Input variables
@@ -39,12 +39,12 @@ Input variables
 Output 
 ------
 
-Here is a list of files produced by the tropical cyclones diagnostic. The following files are saved in the "/tmpdir/model_name/exp_name" directory:
+Here is a list of files produced by the tropical cyclones diagnostic. The following files are saved in a "$tmpdir/model_name/exp_name" directory (configured in the configuration yml):
 
 * tempest_output_yyyymmddThh.txt:            text files produced by Tempest DetectNodes with TCs centres coordinates and maximum wind at each time step; 
 * tempest_track_yyyymmddThh-yyyymmddThh.txt: text files produced by Tempest StitchNodes with TCs centres coordinates and maximum wind; for each TC trajectory (i.e. after tracking is applied); 
 
-The following files are saved in "/fullres/model_name/exp_name" directory:
+The following files are saved in "$fullres/model_name/exp_name" directory:
 
 * TC_fullres_yyyymmddThh.nc:                 netcdf files with selected variables (at original model resolution) in the vicinity of each TC centre detected at each time step;
 * tempest_tracks_yyyymmddThh-yyyymmddThh.nc: netcdf files with selected variables (at original model resolution) in the vicinity of each TC centre following TCs trajectories (includes time dimension, yyyymmddThh-yyyymmddThh states the start-end period considered).
