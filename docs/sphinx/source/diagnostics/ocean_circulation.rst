@@ -93,7 +93,7 @@ Available demo notebooks
 
 A notebook with examples on how to call the diagnostic functions can be found in diagnostics/ocean_circulation-diagnostic/notebooks
 
-* `ocean_circulation.ipynb <https://github.com/oloapinivad/AQUA/blob/devel/ocean_circulation/diagnostics/ocean_circulation/notebooks/ocean_circulation.ipynb>`_
+* `ocean_circulation.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/ocean_circulation/notebooks/ocean_circulation.ipynb>`_
         
 Detailed API
 ------------
