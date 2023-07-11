@@ -223,35 +223,34 @@ def zonal_mean_trend_plot(data, region=None, latS: float=None, latN: float=None,
     """
     Plots spatial trends at different vertical levels for two variables.
 
-    Parameters
-    ----------
-    data : xarray.Dataset
-        Input dataset containing a single 3D field with trends as a function of depth, latitude, and longitude.
-        
-    region : str, optional
-        Region name.
-        
-    latS : float, optional
-        Southern latitude bound for the region.
-        
-    latN : float, optional
-        Northern latitude bound for the region.
-        
-    lonW : float, optional
-        Western longitude bound for the region.
-        
-    lonE : float, optional
-        Eastern longitude bound for the region.
-        
-    output : bool, optional
-        Flag indicating whether to save the output figure and data. Defaults to True.
-        
-    output_dir : str, optional
-        Output directory path. Defaults to "output".
+    Args:
+    
+        data (xarray.Dataset):
+            Input dataset containing a single 3D field with trends as a function of depth, latitude, and longitude.
+            
+        region (str, optional):
+            Region name.
+            
+        latS (float, optional):
+            Southern latitude bound for the region.
+            
+        latN (float, optional):
+            Northern latitude bound for the region.
+            
+        lonW (float, optional):
+            Western longitude bound for the region.
+            
+        lonE (float, optional):
+            Eastern longitude bound for the region.
+            
+        output (bool, optional):
+            Flag indicating whether to save the output figure and data. Defaults to True.
+            
+        output_dir (str, optional):
+            Output directory path. Defaults to "output".
 
-    Returns
-    -------
-    None
+    Returns:
+        None
     """
     data = TS_3dtrend(data)
     data = weighted_zonal_mean(data, region, latS, latN, lonW, lonE)
