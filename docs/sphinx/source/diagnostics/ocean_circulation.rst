@@ -35,6 +35,7 @@ Climatologies of ocpt, so and sigma0 (potential density referenced at the surfac
 
 Functions used 
 --------------
+
 Stratification plot: This function requires data, a region, and the time of the climatology. And it produces a stratification plot of Temperature, salinity and Density, including the overlapped data with the observation. The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
 
 .. code-block:: python

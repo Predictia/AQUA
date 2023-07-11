@@ -832,7 +832,7 @@ def plot_stratification(mod_data, region=None, time = None, latS: float=None, la
     """
     Create a stratification plot showing the mean state temperature, salinity, and density profiles.
 
-    Parameters:
+    Args:
         mod_data (xarray.Dataset): Model data.
         region (str): Region name.
         time (str): Time selection for data (e.g., 'yearly', '3M', 'Jan', 'Feb', etc.).
@@ -846,6 +846,7 @@ def plot_stratification(mod_data, region=None, time = None, latS: float=None, la
     Returns:
         None
     """
+
     obs_data= load_obs_data().interp(lev=mod_data.lev)
     obs_data= crop_obs_overlap_time(mod_data, obs_data)
     
@@ -923,12 +924,11 @@ def compute_mld_cont(rho):
     has higher densities than the lower one. This function is therefore not recommended until this
     issue is addressed and corrected
 
-    Parameters
-    ----------
-    rho : xarray.DataArray for sigma0, dims must be time, space, depth (must be in metres)
-    Returns
-    -------
-    mld: xarray.DataArray, dims of time, space
+    Args:
+        rho :  xarray.DataArray for sigma0, dims must be time, space, depth (must be in metres)
+    
+    Returns:
+        mld: xarray.DataArray, dims of time, space
     
       
     """
@@ -980,21 +980,14 @@ def plot_spatial_mld_clim(mod_data, region=None, time = None, latS: float=None, 
     an observational dataset and a model dataset, allowing the user to select the month the climatology is computed
     (the recommended one is march (month=3) that is when the NH MLD peaks)
 
-    Parameters
-    ----------
-    datamod : xarray.Dataset
-        Model Dataset containing 2D fields of density (rho).
-    dataobs : xarray.Dataset
-        Observational dataset containing 2D fields of density (rho)
-    month : integer
-        Number of the month on which to compute the climatologies
-    overlap : boolean
-        To indicate if OBS and Model are cropped to overlap time period
+    Args:
+        datamod (xarray.Dataset): Model Dataset containing 2D fields of density (rho).
+        dataobs (xarray.Dataset): Observational dataset containing 2D fields of density (rho)
+        month (integer): Number of the month on which to compute the climatologies
+        overlap (boolean):  To indicate if OBS and Model are cropped to overlap time period
 
-
-    Returns
-    -------
-    None
+    Returns:
+        None
 
     """
     obs_data=load_obs_data(model='EN4',exp='en4',source='monthly')
