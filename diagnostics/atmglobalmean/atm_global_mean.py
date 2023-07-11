@@ -61,13 +61,9 @@ class AGM_diag:
         Plot the seasonal bias maps between two datasets for a specific variable and year.
 
         Args:
-            dataset1 (xarray.Dataset): The first dataset. Choose here between:
-                                                        data_tco2559 (IFS 4.4 km)
-                                                        data_tco1279 (IFS 9 km)
-                                                        data_icon (ICON 5 km)
-                                                        data_era5 (ERA5 reanalysis)
+            dataset1 (xarray.Dataset): The first dataset.
             dataset2 (xarray.Dataset): The second dataset. Note: If this dataset is data_era5 (ERA5 data) it provides a bias calculation with
-                                        respect to the ERA5 climatology from 2000 to 2020. You can choose like for dataset1
+                                        respect to the ERA5 climatology from 2000 to 2020.
             var_name (str): The name of the variable to compare (Examples: 2t, tprate, mtntrf, mtnsrf,...)
             year (int): The year for which to calculate the bias.
             plev (float or None): The desired pressure level in Pa. If None, the variable is assumed to be at surface level.
@@ -88,14 +84,14 @@ class AGM_diag:
         data_era5 = reader_era5.retrieve(fix=True)
         data_era5 = data_era5.sel(time=slice('2000-01-01', '2020-12-31'))
         
-        reader_tco2559 = Reader(model = 'IFS', exp = 'tco2559-ng5-cycle3', source = 'lra-r100-monthly')
-        data_tco2559 = reader_tco2559.retrieve(fix = False)
+#         reader_tco2559 = Reader(model = 'IFS', exp = 'tco2559-ng5-cycle3', source = 'lra-r100-monthly')
+#         data_tco2559 = reader_tco2559.retrieve(fix = False)
 
-        reader_tco1279 = Reader(model="IFS", exp="tco1279-orca025-cycle3",source =  'lra-r100-monthly')
-        data_tco1279 = reader_tco1279.retrieve(fix = False)
+#         reader_tco1279 = Reader(model="IFS", exp="tco1279-orca025-cycle3",source =  'lra-r100-monthly')
+#         data_tco1279 = reader_tco1279.retrieve(fix = False)
 
-        reader_icon = Reader(model = "ICON", exp = "ngc3028", source = 'lra-r100-monthly')
-        data_icon = reader_icon.retrieve(fix = False)
+#         reader_icon = Reader(model = "ICON", exp = "ngc3028", source = 'lra-r100-monthly')
+#         data_icon = reader_icon.retrieve(fix = False)
        
         var1_year = var1.sel(time=var1.time.dt.year == year)
         var2_year = var2.sel(time=var2.time.dt.year == year)
@@ -181,7 +177,7 @@ class AGM_diag:
 
         # Set the overall figure title
         # Set the overall title        
-        if dataset2 == 'data_era5':
+        if dataset2 == data_era5:
             if plev is not None:
                 overall_title = f'Bias of {var_name} ({dataset2[var_name].long_name}) [{var2.units}] ({statistic}) at {plev} Pa\n Experiment {model_label1} {year} with respect to ERA5 climatology (2000-2020)'
             else:
@@ -224,18 +220,17 @@ class AGM_diag:
     @staticmethod
     def compare_datasets_plev(dataset1, var_name, time_range, model_label):
         """
-        Compare two datasets and plot the zonal bias for a selected model time range with respect to the ERA5 climatology from 2000-2020.
+        Compare a dataset and plot the zonal bias for a selected model time range with respect to the ERA5 climatology from 2000-2020.
 
         Args:
             dataset1 (xarray.Dataset): The first dataset.
-            dataset2 (xarray.Dataset): The second dataset.
             var_name (str): The variable name to compare (examples: q, u, v, t)
             time_range (slice or str): The time range to select from the datasets. Should be a valid slice or a string in 'YYYY-MM-DD' format.
             data_era5 (xarray.Dataset or None): The ERA5 dataset for calculating the climatology. Set to None if not chosen.
             plot_latitude (bool): True to plot latitude on the x-axis, False to plot longitude.
 
         Returns:
-            None
+            A zonal bias plot.
         """
         # Calculate the bias between dataset1 and dataset2
         reader_era5 = Reader(model="ERA5", exp="era5", source="monthly")
