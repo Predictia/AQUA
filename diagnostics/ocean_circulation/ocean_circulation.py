@@ -15,81 +15,115 @@ logger = logging.getLogger(__name__)
 
 
 def predefined_regions(region):
-    region = region.lower()
-    if region in ["indian_ocean", "indian ocean"]:
+        """
+    Get the predefined latitude and longitude boundaries for a given region.
+
+    Args:
+        region (str): Name of the region.
+
+    Returns:
+        float, float, float, float: Latitude and longitude boundaries (latS, latN, lonW, lonE) for the region.
+
+    Raises:
+        ValueError: If an invalid region is provided.
+
+    Available predefined regions:
+    - 'Indian Ocean'
+    - 'Labrador Sea'
+    - 'Global Ocean'
+    - 'Atlantic Ocean'
+    - 'Pacific Ocean'
+    - 'Arctic Ocean'
+    - 'Southern Ocean'
+    """
+    region = region.lower().replace(" ","").replace("_","")
+    if region in ["indianocean", "indian ocean"]:
         latN, latS, lonW, lonE = 30.0, -30.0, 30 ,110.0
-    elif region in ["labrador_sea", "labrador sea"]:
+    elif region in ["labradorsea", "labrador sea"]:
         latN, latS, lonW, lonE = 65.0, 52.0, 300.0, 316.0
-    elif region in ["labrador_gin_seas", "labrador+gin seas"]:
+    elif region in ["labradorginseas", "labrador+gin seas"]:
         latN, latS, lonW, lonE = 80.0, 50.0, -70.0, 20.0
-    elif region in ["irminger_sea", "irminger sea"]:
+    elif region in ["irmingersea", "irminger sea"]:
         latN, latS, lonW, lonE = 60.0, 70.0, 316.0, 330.0
     elif region in ["global_ocean", "global ocean"]:
         latN, latS, lonW, lonE = 90.0, -90.0, 0.0, 360.0
-    elif region in ["atlantic_ocean", "atlantic ocean"]:
+    elif region in ["atlanticocean", "atlantic ocean"]:
         latN, latS, lonW, lonE = 65.0, -35.0, -80.0, 30.0
-    elif region in ["pacific_ocean", "pacific ocean"]:
+    elif region in ["pacificocean", "pacific ocean"]:
         latN, latS, lonW, lonE = 65.0, -55.0, 120.0, 290.0
-    elif region in ["arctic_ocean", "arctic ocean"]:
+    elif region in ["arcticocean", "arctic ocean"]:
         latN, latS, lonW, lonE = 90.0, 65.0, 0.0, 360.0
-    elif region in ["southern_ocean", "southern ocean"]:
+    elif region in ["southernocean", "southern ocean"]:
         latN, latS, lonW, lonE = -50.0, -80.0, 0.0, 360.0
     elif region in ["weddell_sea", "weddell sea"]:
         latN, latS, lonW, lonE = -65.0, -80.0, 290.0, 350.0
-    elif region in ["bering_sea", "bering sea"]:
+    elif region in ["beringsea", "bering sea"]:
         latN, latS, lonW, lonE = 66.0, 53.0, 168.0, -178.0
-    elif region in ["gulf_of_mexico", "gulf of mexico"]:
+    elif region in ["gulfofmexico", "gulf of mexico"]:
         latN, latS, lonW, lonE = 30.0, 18.0, -97.0, -81.0
-    elif region in ["hudson_bay", "hudson bay"]:
+    elif region in ["hudsonbay", "hudson bay"]:
         latN, latS, lonW, lonE = 63.0, 51.0, -95.0, -75.0
-    elif region in ["red_sea", "red sea"]:
+    elif region in ["redsea", "red sea"]:
         latN, latS, lonW, lonE = 30.0, 12.0, 32.0, 44.0
-    elif region in ["persian_gulf", "persian gulf"]:
+    elif region in ["persiangulf", "persian gulf"]:
         latN, latS, lonW, lonE = 30.0, 24.0, 48.0, 56.0
-    elif region in ["adriatic_sea", "adriatic sea"]:
+    elif region in ["adriaticsea", "adriatic sea"]:
         latN, latS, lonW, lonE = 45.0, 40.0, 13.0, 19.0
-    elif region in ["caribbean_sea", "caribbean sea"]:
+    elif region in ["caribbeansea", "caribbean sea"]:
         latN, latS, lonW, lonE = 23.0, 9.0, -85.0, -60.0
-    elif region in ["sea_of_japan", "sea of japan"]:
+    elif region in ["seaofjapan", "sea of japan"]:
         latN, latS, lonW, lonE = 43.0, 34.0, 129.0, 132.0
-    elif region in ["mediterranean_sea", "mediterranean sea"]:
+    elif region in ["mediterraneansea", "mediterranean sea"]:
         latN, latS, lonW, lonE = 46.0, 30.0, -6.0, 36.0
-    elif region in ["black_sea", "black sea"]:
+    elif region in ["blacksea", "black sea"]:
         latN, latS, lonW, lonE = 45.0, 41.0, 27.0, 41.0
-    elif region in ["south_china_sea", "south china sea"]:
+    elif region in ["southchina_sea", "south china sea"]:
         latN, latS, lonW, lonE = 21.0, 3.0, 99.0, 121.0
-    elif region in ["arabian_sea", "arabian sea"]:
+    elif region in ["arabiansea", "arabian sea"]:
         latN, latS, lonW, lonE = 25.0, 12.0, 50.0, 70.0
-    elif region in ["coral_sea", "coral sea"]:
+    elif region in ["coralsea", "coral sea"]:
         latN, latS, lonW, lonE = -10.0, -24.0, 147.0, 157.0
-    elif region in ["timor_sea", "timor sea"]:
+    elif region in ["timorsea", "timor sea"]:
         latN, latS, lonW, lonE = -10.0, -13.0, 123.0, 129.0
-    elif region in ["gulf_of_alaska", "gulf of alaska"]:
+    elif region in ["gulfofalaska", "gulf of alaska"]:
         latN, latS, lonW, lonE = 60.0, 48.0, -145.0, -136.0
-    elif region in ["east_china_sea", "east china sea"]:
+    elif region in ["eastchinasea", "east china sea"]:
         latN, latS, lonW, lonE = 35.0, 30.0, 120.0, 128.0
-    elif region in ["sea_of_okhotsk", "sea of okhotsk"]:
+    elif region in ["seaofokhotsk", "sea of okhotsk"]:
         latN, latS, lonW, lonE = 60.0, 45.0, 142.0, 163.0
-    elif region in ["philippine_sea", "philippine sea"]:
+    elif region in ["philippinesea", "philippine sea"]:
         latN, latS, lonW, lonE = 25.0, 5.0, 117.0, 135.0
-    elif region in ["ross_sea", "ross sea"]:
+    elif region in ["rosssea", "ross sea"]:
         latN, latS, lonW, lonE = -60.0, -78.0, 160.0, -150.0
-    elif region in ["sargasso_sea", "sargasso sea"]:
+    elif region in ["sargassosea", "sargasso sea"]:
         latN, latS, lonW, lonE = 35.0, 20.0, -70.0, -50.0
-    elif region in ["andaman_sea", "andaman sea"]:
+    elif region in ["andamansea", "andaman sea"]:
         latN, latS, lonW, lonE = 20.0, 6.0, 93.0, 98.0
-    elif region in ["weddell_sea", "weddell sea"]:
+    elif region in ["weddellsea", "weddell sea"]:
         latN, latS, lonW, lonE = -60.0, -78.0, -45.0, 20.0
-    elif region in ["java_sea", "java sea"]:
+    elif region in ["javasea", "java sea"]:
         latN, latS, lonW, lonE = -6.0, -8.0, 105.0, 117.0
-    elif region in ["beaufort_sea", "beaufort sea"]:
+    elif region in ["beaufortsea", "beaufort sea"]:
         latN, latS, lonW, lonE = 79.0, 68.0, -140.0, -148.0
     else:
         raise ValueError("Invalid region. Available options: 'Indian Ocean', 'Labrador Sea', 'Global Ocean', 'Atlantic Ocean', 'Pacific Ocean', 'Arctic Ocean', 'Southern Ocean'")
     return latS, latN, lonW, lonE
 
 def convert_longitudes(data):
+    """
+    Convert longitudes in a given dataset to the range of -180 to 180 degrees.
+
+    Args:
+        data (DataArray): Input dataset with longitude coordinates.
+
+    Returns:
+        DataArray: Dataset with converted longitudes.
+
+    """
+    # Adjust longitudes to the range of -180 to 180 degrees
     data = data.assign_coords(lon=(((data["lon"] + 180) % 360) - 180))
+
+    # Roll the dataset to reposition the prime meridian at the center
     data = data.roll(lon=int(len(data['lon']) / 2), roll_coords=True)
     
     return data
@@ -129,9 +163,52 @@ def area_selection(data, region=None, latS: float=None, latN: float=None, lonW: 
     data = data.sel(lat=slice(latS, latN), lon=slice(lonW, lonE))
     
     return data
+def weighted_zonal_mean(data, region=None, latS: float=None, latN: float=None, lonW: float=None, lonE: float=None):
+    """
+    Compute the weighted zonal mean of data within the specified latitude and longitude bounds.
+
+    Parameters:
+        data (xarray.Dataset): Input data.
+        
+        region (str, optional): Predefined region name. If provided, latitude and longitude bounds will be fetched from predefined regions.
+        
+        latS (float, optional): Southern latitude bound. Required if region is not provided or None.
+        
+        latN (float, optional): Northern latitude bound. Required if region is not provided or None.
+        
+        lonW (float, optional): Western longitude bound. Required if region is not provided or None.
+        
+        lonE (float, optional): Eastern longitude bound. Required if region is not provided or None.
+
+    Returns:
+        xarray.Dataset: Weighted zonal mean of the input data.
+    """
+    data = area_selection(data, region, latS =None, latN =None, lonW =None, lonE =None )
+
+    wgted_mean = data.mean(("lon"))
+    
+    return wgted_mean
 
 def weighted_area_mean(data, region=None, latS: float=None, latN: float=None, lonW: float=None, lonE: float=None):
-    
+    """
+    Compute the weighted area mean of data within the specified latitude and longitude bounds.
+
+    Parameters:
+        data (xarray.Dataset): Input data.
+        
+        region (str, optional): Predefined region name. If provided, latitude and longitude bounds will be fetched from predefined regions.
+        
+        latS (float, optional): Southern latitude bound. Required if region is not provided or None.
+        
+        latN (float, optional): Northern latitude bound. Required if region is not provided or None.
+        
+        lonW (float, optional): Western longitude bound. Required if region is not provided or None.
+        
+        lonE (float, optional): Eastern longitude bound. Required if region is not provided or None.
+
+    Returns:
+        xarray.Dataset: Weighted area mean of the input data.
+    """
     data = area_selection(data, region, latS =None, latN =None, lonW =None, lonE =None )
     weighted_data = data.weighted(np.cos(np.deg2rad(data.lat)))
     wgted_mean = weighted_data.mean(("lat", "lon"))
@@ -256,71 +333,37 @@ def std_anom_wrt_time_mean(data, use_predefined_region: bool, region: str = None
 
 
 
-def ocpt_so_anom_plot(data, region, outputfig="figs"):
+
+def time_series(data, region=None, type = None, customise_level=False, levels=None, latS: float=None, latN: float=None, lonW: float=None,
+                            lonE: float=None,  output= True, output_dir = "output"):
     """
-    Create a Hovmoller plot of temperature and salinity anomalies.
+    Create time series plots of global temperature and salinity at selected levels.
 
-    Args:
-        data (DataArray): Input data containing temperature (ocpt) and salinity (so).
-        title (str): Title of the plot.
-
-    Returns:
-        None
-    """
-    # Create subplots for temperature and salinity plots
-    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
-    fig.suptitle(f"Standardised {region} T,S Anomalies (wrt first value)", fontsize=16)
-
-    # Extract temperature data and plot the contour filled plot
-    tgt = data.ocpt.transpose()
-    tgt.plot.contourf(levels=12, ax=ax1)
-
-    # Add contour lines with black color and set the line width
-    tgt.plot.contour(colors="black", levels=12, linewidths=0.5, ax=ax1)
-
-    # Set the title, y-axis label, and x-axis label for the temperature plot
-    ax1.set_title("Temperature", fontsize=14)
-    ax1.set_ylim((5500, 0))
-    ax1.set_ylabel("Depth (in m)", fontsize=12)
-    ax1.set_xlabel("Time (in years)", fontsize=12)
-
-    # Extract salinity data and plot the contour filled plot
-    sgt = data.so.transpose()
-    sgt.plot.contourf(levels=12, ax=ax2)
-
-    # Add contour lines with black color and set the line width
-    sgt.plot.contour(colors="black", levels=12, linewidths=0.5, ax=ax2)
-
-    # Set the title, y-axis label, and x-axis label for the salinity plot
-    ax2.set_title("Salinity", fontsize=14)
-    ax2.set_ylim((5500, 0))
-    ax2.set_ylabel("Depth (in m)", fontsize=12)
-    ax2.set_xlabel("Time (in years)", fontsize=12)
-    filename = f"{outputfig}/TS_anomalies_{region.replace(' ', '_').lower()}.png"
-    plt.savefig(filename)
-    logger.info(f"{filename} saved")
-    # Return the plot
-    return
-
-
-
-def time_series(data, region, customise_level=False, levels=None, outputfig="figs"):
-    """
-    Create time series plots of global temperature and salinity standardised anomalies at selected levels.
-
-    Args:
+    Parameters:
         data (DataArray): Input data containing temperature (ocpt) and salinity (so).
         region (str): Region name.
+        type (str): Type of time series, e.g., FullValue, Anomaly, StdAnomaly.
         customise_level (bool): Whether to use custom levels or predefined levels.
         levels (list): List of levels to plot. Ignored if customise_level is False.
+        latS (float, optional): Southern latitude bound.
+        latN (float, optional): Northern latitude bound.
+        lonW (float, optional): Western longitude bound.
+        lonE (float, optional): Eastern longitude bound.
+        output (bool): Whether to save the plot and data.
+        output_dir (str): Directory to save the plot and data.
 
     Returns:
         None
     """
+    data  = weighted_area_mean(data, region, latS, latN, lonW, lonE)
+    data, cmap = data_process_by_type(data, type)
+    
+    logger.info(f"Time series plot is in process")
+    
     # Create subplots for temperature and salinity time series plots
-    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
+    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
 
-    fig.suptitle(f"Standardised {region} T,S Anomalies (wrt first value)", fontsize=16)
+    fig.suptitle(f"{region} T,S {type}", fontsize=20, weight='bold')
 
     # Define the levels at which to plot the time series
     if customise_level:
@@ -338,29 +381,28 @@ def time_series(data, region, customise_level=False, levels=None, outputfig="fig
             # Select the data at the surface level (0)
             data_level = data.isel(lev=0)
         # Plot the temperature time series
-        data_level.ocpt.plot.line(ax=ax1,label=f"{round(int(data_level.lev.data), -2)}")
+        data_level.ocpt.plot.line(ax=axs[0],label=f"{round(int(data_level.lev.data), -2)}")
 
         # Plot the salinity time series
-        data_level.so.plot.line(ax=ax2,label=f"{round(int(data_level.lev.data), -2)}")
+        data_level.so.plot.line(ax=axs[1],label=f"{round(int(data_level.lev.data), -2)}")
+    if output == True:
+        output_path, fig_dir, data_dir, filename = dir_creation(data, region, type, latS, latN, lonE, lonW, output_dir, plot_name= "time_series")
+        data.to_netcdf(f'{data_dir}/{filename}.nc')
+    
+    axs[0].set_title("Temperature", fontsize=15, weight='bold')
+    axs[0].set_ylabel("Standardised Units (at the respective level)", fontsize=12)
+    axs[0].set_xlabel("Time", fontsize=12)
+    axs[1].set_title("Salinity", fontsize=15, weight='bold')
+    axs[1].set_ylabel(" ", fontsize=12)
+    axs[1].set_xlabel("Time (in years)", fontsize=12)
+    axs[1].legend(loc='right')
+    # axs[1].set_yticklabels([])
+    plt.subplots_adjust(bottom=0.3, top=0.85, wspace=0.1)
 
-    # Set the title, y-axis label, and x-axis label for the temperature plot
-    ax1.set_title("Temperature", fontsize=14)
-    ax1.set_ylabel("Standardised Units (at the respective level)", fontsize=12)
-    ax1.set_xlabel("Time (in years)", fontsize=12)
-    ax1.legend(loc='best')
-
-    # Set the title, y-axis label, and x-axis label for the salinity plot
-    ax2.set_title("Salinity", fontsize=14)
-    ax2.set_ylabel("Standardised Units (at the respective level)", fontsize=12)
-    ax2.set_xlabel("Time (in years)", fontsize=12)
-    ax2.legend(loc='best')
-    filename = f"{outputfig}/TS_time_series_anomalies_{region.replace(' ', '_').lower()}.png"
-
-    plt.savefig(filename)
-    logger.info(f"{filename} saved")
+    if output == True:
+        plt.savefig(f"{fig_dir}/{filename}.png")
+        logger.info(f" Figure and data used in the plot, saved here : {output_path}")
     plt.show()
-
-    # Return the plot
     return
 
 
@@ -578,7 +620,16 @@ def convert_variables(data):
     return converted_data
 
    
-def split_time_equally(data):
+def split_time_equally(data):    
+    """
+    Splits the input data into two halves based on time dimension, or returns the original data if it has only one time step.
+
+    Parameters:
+        data (xarray.Dataset): Input data.
+
+    Returns:
+        list: A list containing the original data and the two halves of the data.
+    """
     date_len = len(data.time)
     data_1 = None
     data_2 = None
@@ -598,6 +649,17 @@ def split_time_equally(data):
 
 
 def load_obs_data(model='EN4',exp='en4',source='monthly'):
+    """
+    Load observational data for ocean temperature and salinity.
+
+    Parameters:
+        model (str): Model name.
+        exp (str): Experiment name.
+        source (str): Data source.
+
+    Returns:
+        xarray.Dataset: Observational data containing ocean temperature and salinity.
+    """
     reader = Reader(model,exp,source)
     den4=reader.retrieve()
     den4=den4.rename({"depth":"lev"}) # We standardise the name for the vertical dimension
@@ -606,6 +668,16 @@ def load_obs_data(model='EN4',exp='en4',source='monthly'):
     return den4
     
 def crop_obs_overlap_time(mod_data, obs_data):
+    """
+    Crop the observational data to the overlapping time period with the model data.
+
+    Parameters:
+        mod_data (xarray.Dataset): Model data.
+        obs_data (xarray.Dataset): Observational data.
+
+    Returns:
+        xarray.Dataset: Observational data cropped to the overlapping time period with the model data.
+    """
     mod_data_time= mod_data.time  
     obs_data_time=obs_data.time
     common_time = xr.DataArray(np.intersect1d(mod_data_time, obs_data_time), dims='time')
@@ -616,6 +688,21 @@ def crop_obs_overlap_time(mod_data, obs_data):
 
 def prepare_data_for_stratification_plot(data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
                             lonE: float=None):
+    """
+    Prepare data for plotting stratification profiles.
+
+    Parameters:
+        data (xarray.Dataset): Input data containing temperature (ocpt) and salinity (so).
+        region (str, optional): Region name.
+        time (str or list, optional): Time period to select. Can be a single date or a list of start and end dates.
+        latS (float, optional): Southern latitude bound. Required if region is not provided or None.
+        latN (float, optional): Northern latitude bound. Required if region is not provided or None.
+        lonW (float, optional): Western longitude bound. Required if region is not provided or None.
+        lonE (float, optional): Eastern longitude bound. Required if region is not provided or None.
+
+    Returns:
+        xarray.Dataset: Prepared data for plotting stratification profiles.
+    """
     data = weighted_area_mean(data, region, latS, latN, lonE, lonW)
     data = convert_variables(data)
     data_rho = data["rho"] -1000
@@ -624,7 +711,16 @@ def prepare_data_for_stratification_plot(data, region=None, time = None, latS: f
     return data
 
 def data_time_selection(data, time):
-    
+    """
+    Selects the data based on the specified time period.
+
+    Parameters:
+        data (xarray.Dataset): Input data.
+        time (str): Time period selection.
+
+    Returns:
+        xarray.Dataset: Data for the selected time period.
+    """    
     time = time.lower()
     if time in ["jan", "january", "1", 1]:
         data = data.where(data.time.dt.month == 1, drop=True)
@@ -662,12 +758,23 @@ def data_time_selection(data, time):
         data = data.where((data['time.month'] >= 9) & (data['time.month'] <= 11), drop=True)
     else:
         raise ValueError("""Invalid month input. Please provide a valid name. Among this:
-                         yearly, djf, fma, jan, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec """)
+                         Yearly, 3M, Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec, JJA, FMA, DJF, SON """)
     logger.info(f"data selected for {time} climatology")
     return data
 
 
 def compare_arrays(mod_data, obs_data):
+    """
+    Compares the time scale of model data and observed data and selects the overlapping time periods.
+
+    Parameters:
+        mod_data (xarray.Dataset): Model data.
+        obs_data (xarray.Dataset): Observed data.
+
+    Returns:
+        list: List of model data arrays with overlapping time periods.
+        obs_data_selected (xarray.Dataset): Observed data for the overlapping time periods.
+    """
     if (obs_data.time == mod_data.time).all() and (len(mod_data.time) == len(obs_data.time)):
         mod_data_list = [mod_data]
         obs_data_selected = obs_data
@@ -684,16 +791,35 @@ def compare_arrays(mod_data, obs_data):
     
     return mod_data_list, obs_data_selected
 
-def dir_creation(data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
-                            lonE: float=None, output_dir = True , plot_name = None):
+def dir_creation(data, region=None, sp_value = None, latS: float=None, latN: float=None, lonW: float=None,
+                            lonE: float=None, output_dir= None , plot_name = None):
+    """
+    Creates the directory structure for saving the output data and figures.
+
+    Parameters:
+        data (xarray.Dataset): Data used for the plot.
+        region (str): Region name.
+        sp_value (str): Value specific to the plot.
+        latS (float): Southern latitude bound.
+        latN (float): Northern latitude bound.
+        lonW (float): Western longitude bound.
+        lonE (float): Eastern longitude bound.
+        output_dir (str): Directory path for saving the output.
+        plot_name (str): Name of the plot.
+
+    Returns:
+        tuple: Output path, figure directory path, data directory path, and filename.
+    """
+    if output_dir == None:
+        raise("Please provide the outut_dir when output = True")
     if region in [None, "custom", "Custom"]:
         region = "custom"
-        filename = f"{plot_name}_{time}_{region.replace(' ', '_').lower()}_lat_{latS}_{latN}_lon_{lonW}_{lonE}_mean"
+        filename = f"{plot_name}_{sp_value}_{region.replace(' ', '_').lower()}_lat_{latS}_{latN}_lon_{lonW}_{lonE}_mean"
     else: 
-        filename = f"{plot_name}_{time}_{region.replace(' ', '_').lower()}_mean"
+        filename = f"{plot_name}_{sp_value}_{region.replace(' ', '_').lower()}_mean"
     
     current_time = f'{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
-    output_path = f"{output_dir}/{current_time}_{filename}"
+    output_path = f"{output_dir}/{filename}_{current_time}"
     fig_dir = f"{output_path}/figs"
     data_dir = f"{output_path}/data"
     os.makedirs(fig_dir)
@@ -703,6 +829,23 @@ def dir_creation(data, region=None, time = None, latS: float=None, latN: float=N
 
 def plot_stratification(mod_data, region=None, time = None, latS: float=None, latN: float=None, lonW: float=None,
                             lonE: float=None,  output= True, output_dir = "output"):
+    """
+    Create a stratification plot showing the mean state temperature, salinity, and density profiles.
+
+    Parameters:
+        mod_data (xarray.Dataset): Model data.
+        region (str): Region name.
+        time (str): Time selection for data (e.g., 'yearly', '3M', 'Jan', 'Feb', etc.).
+        latS (float): Southern latitude bound.
+        latN (float): Northern latitude bound.
+        lonW (float): Western longitude bound.
+        lonE (float): Eastern longitude bound.
+        output (bool): Flag indicating whether to save the output.
+        output_dir (str): Directory path for saving the output.
+
+    Returns:
+        None
+    """
     obs_data= load_obs_data().interp(lev=mod_data.lev)
     obs_data= crop_obs_overlap_time(mod_data, obs_data)
     
@@ -808,7 +951,6 @@ def compute_mld_cont(rho):
     
     depth=rho.lev.where(rho > -9999).max(["lev"]) # Here we identify the last level of the ocean
    
-    ##print(slevs.values)      ll
     ddif=cutoff_lev2-cutoff_lev1
     # The MLD is established by linearly interpolating to the level on which the difference wrt to the reference is zero
     rdif1=dens_diff.where(dens_diff.lev==cutoff_lev1).max(["lev"])  #rho diff in first lev
@@ -824,10 +966,7 @@ def data_for_plot_spatial_mld_clim(data, region=None, time = None, latS: float=N
                             lonE: float=None):
     data = area_selection(data, region, latS, latN, lonE, lonW)
     data = convert_variables(data)
-    # print(data)
     data = compute_mld_cont(data)
-    # print(data)
-    # print(time)
     data = data_time_selection(data, time)
     
     return data
@@ -884,10 +1023,6 @@ def plot_spatial_mld_clim(mod_data, region=None, time = None, latS: float=None, 
         output_path, fig_dir, data_dir, filename = dir_creation(mod_data, region, time, latS, latN, lonE, lonW, output_dir, plot_name= "spatial_MLD")
     
     logger.info("Spatial MLD plot is in process")
-
-
-    #fig, axs = plt.subplots(nrows=1, ncols=2, subplot_kw={'projection': ccrs.PlateCarree()}, figsize=(22, 8),)
-    #fig, axs = plt.subplots(nrows=1, ncols=2, subplot_kw={'projection': ccrs.PlateCarree()}, figsize=(math.ceil(xdim),math.ceil(ydim)))
     fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(20,6.5))
     
     fig.suptitle(f'Climatology of {time.upper()} mixed layer depth in {region.replace("_"," ").upper()}', fontsize=20)
@@ -900,9 +1035,6 @@ def plot_spatial_mld_clim(mod_data, region=None, time = None, latS: float=None, 
     nclev=int(clev2/50)+1
     clev2=float(clev2)
     
-    
-   
-
     cs1=axs[0].contourf(mod_clim.lon,mod_clim.lat,mod_clim,
                         levels=np.linspace(clev1,clev2,nclev),cmap='jet')
     fig.colorbar(cs1,location="bottom")
