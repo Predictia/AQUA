@@ -1,18 +1,16 @@
-import datetime, os
+import datetime
+import os
 import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
-import cartopy.crs as ccrs
-import math
-import warnings, logging
-from aqua.util import load_yaml
-from aqua import Reader,catalogue, inspect_catalogue
+import warnings
+import logging
+from aqua import Reader
 
 warnings.filterwarnings("ignore")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-
 
 def predefined_regions(region):
     """
