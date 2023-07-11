@@ -47,7 +47,7 @@ jobs:
       - name: Setup Micromamba
         uses: mamba-org/setup-micromamba@v1
         with:
-          environment-file: environment.yml
+          environment-file: common_environment.yml 
           environment-name: aqua
           cache-downloads: true
           cache-environment: true

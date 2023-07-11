@@ -1,5 +1,5 @@
 name: tropical rainfall diagnostic test
-
+# comment line is added to test all workflows with a common environment
 on:
   pull_request:
     paths:
@@ -28,7 +28,7 @@ jobs:
       - name: Setup Micromamba with diagnostic environment
         uses: mamba-org/setup-micromamba@v1
         with:
-          environment-file: diagnostics/tropical_rainfall/env-tropical-rainfall.yml
+          environment-file: common_environment.yml 
           cache-downloads: true
           cache-environment: true
           condarc: |
