@@ -9,8 +9,8 @@ Description
 The diagnostic is based on the computation of the regression or correlation between the time series of the teleconnection index and the time series of the variable used to compute the teleconnection index.
 Teleconnections available:
 
-- NAO: notebook available `diagnostics/teleconnections/notebooks/NAO.ipynb`
-- ENSO: notebook available `diagnostics/teleconnections/notebooks/ENSO_nino3.4.ipynb`
+- `NAO: notebook available <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/teleconnections/notebooks/NAO.ipynb>`_
+- `ENSO: notebook available <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/teleconnections/notebooks/ENSO.ipynb>`_
 
 More diagnostics or functionalities will be added in the future.
 

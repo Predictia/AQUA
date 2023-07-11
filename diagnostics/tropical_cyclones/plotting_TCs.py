@@ -6,9 +6,21 @@ import matplotlib.ticker as mticker
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 import cartopy.feature as cfeature
 
-from tempest_utils import getTrajectories
+from .tempest_utils import getTrajectories
+
 
 def multi_plot(tracks_nc_file, title=None, units=None):
+    """
+    Create a plot of multiple cyclone zoom-ins.
+
+    Args:
+        tracks_nc_file (xarray.Dataset): Dataset containing the selected variable.
+        title (str, optional): Title of the figure.
+        units (str, optional): Units of the selected variable.
+
+    Returns:
+        None
+    """
 
     delta=10 # further extension of the are domain for plotting
 
@@ -45,6 +57,17 @@ def multi_plot(tracks_nc_file, title=None, units=None):
     plt.show()
     
 def plot_trajectories(trajfile, plotdir):
+    """
+    Plot the trajectories of the selected cyclone.
+
+    Args:
+        trajfile (str): Path to the trajectory file.
+        plotdir (str): Path to the directory where the plot will be saved.
+
+    Returns:
+        None
+    """
+
     # tempest settings
     nVars=10
     headerStr='start'
@@ -67,7 +90,6 @@ def plot_trajectories(trajfile, plotdir):
 
     # Set title and subtitle
     plt.title(f"TCs tracks")
-
 
     # Set land feature and change color to 'lightgrey'
     # See link for extensive list of colors:

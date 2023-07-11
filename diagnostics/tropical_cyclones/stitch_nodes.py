@@ -5,33 +5,28 @@ import pandas as pd
 from glob import glob
 from time import time
 from datetime import datetime
-from tcs_utils import write_fullres_field
+from .tcs_utils import write_fullres_field
 
 class StitchNodes():
     """
     Class Mixin to take care of stitch nodes
-
-    Methods:
-    stitch_nodes_zoomin(self, startdate, enddate, n_days_freq, n_days_ext): Method for producing tracks of selected variables stored in netcdf files.
-    run_stitch_nodes(self, maxgap = '24h', mintime = '54h'): basic function to call from command line tempest extremes StitchNodes.
-    time_window(self, initial_date): creates a time window around the initial date by extending the dates index.
-    store_stitch_nodes(self, block, dates_freq, write_fullres=True): store stitched tracks for each variable around the Nodes in NetCDF files.
     """
     
     def stitch_nodes_zoomin(self, startdate, enddate, n_days_freq, n_days_ext):
         """
+        Method for producing tracks of selected variables stored in netcdf files.
         Wrapper for run_stitch_nodes and store_stitch_nodes for selected time period.
 
         Args:
-        - self: Reference to the current instance of the class.
-        - startdate: Start date of the chosen period.
-        - enddate: End date of the chosen period.
-        - n_days_freq: Number of days for the frequency of time windows.
-        - n_days_ext: Number of days for the extension of time windows.
+            startdate: Start date of the chosen period.
+            enddate: End date of the chosen period.
+            n_days_freq: Number of days for the frequency of time windows.
+            n_days_ext: Number of days for the extension of time windows.
 
         Returns:
             None
         """
+
         self.set_time_window(n_days_freq=n_days_freq, n_days_ext=n_days_ext)
 
         # periods specifies you want 1 block from startdate to enddate
@@ -51,12 +46,11 @@ class StitchNodes():
         Set the time window parameters for frequency and extension.
 
         Parameters:
-        - self: Reference to the current instance of the class.
-        - n_days_freq (optional): Number of days for the frequency of time windows. Default is 30.
-        - n_days_ext (optional): Number of days for the extension of time windows. Default is 10.
+            n_days_freq (optional): Number of days for the frequency of time windows.
+            n_days_ext (optional): Number of days for the extension of time windows.
 
         Returns:
-        None
+            None
         """
 
         self.n_days_freq = n_days_freq
@@ -115,14 +109,12 @@ class StitchNodes():
 
 
     def run_stitch_nodes(self, maxgap = '24h', mintime = '54h'):
-
         """"
-        Basic function to call from command line tempest extremes StitchNodes
-
+        Basic function to call from command line tempest extremes StitchNodes.
+        
         Args:
-            self: The current object instance.
-            maxgap (str): The maximum time gap allowed between consecutive nodes (default: '24h').
-            mintime (str): The minimum track duration required for a node to be included (default: '54h').
+            maxgap (str): The maximum time gap allowed between consecutive nodes.
+            mintime (str): The minimum track duration required for a node to be included.
 
         Returns:
             None
@@ -146,15 +138,14 @@ class StitchNodes():
         self.logger.warning(f'Tracked into {self.track_file}!')
     
     def reorder_tracks(self):
-
         """
-        Open the total track files, reorder tracks in time then creates a dict with time and lons lats pair of every track
+        Open the total track files, reorder tracks in time then creates a dict with time and lons lats pair of every track.
 
         Args:
             track_file: input track file from tempest StitchNodes
         
         Returns:
-            reordered_tracks: python dictionary with date lon lat of TCs centres after StitchNodes has been run
+            Python dictionary with date lon lat of TCs centres after StitchNodes has been run
         """
 
         with open(self.track_file) as file:
@@ -182,17 +173,15 @@ class StitchNodes():
         Store stitched tracks for each variable around the Nodes in NetCDF files.
 
         Args:
-        - self: Reference to the current instance of the class.
-        - block: Block representing a specific time period.
-        - dates_freq: Frequencies of dates used for storing the tracks.
-        - write_fullres (optional): Boolean flag indicating whether to write full-resolution fields. Default is True.
+            block: Block representing a specific time period.
+            dates_freq: Frequencies of dates used for storing the tracks.
+            write_fullres (optional): Boolean flag indicating whether to write full-resolution fields. Default is True.
 
         Returns:
-                None
+            None
         """
 
         if write_fullres:
-
             datalist =[]
             for idx in self.reordered_tracks.keys():
                 #print(datetime.strptime(idx, '%Y%m%d%H').strftime('%Y%m%d'))

@@ -6,43 +6,18 @@ import pandas as pd
 import xarray as xr
 from aqua import Reader
 from aqua.logger import log_configure
-from detect_nodes import DetectNodes
-from stitch_nodes import StitchNodes
-from tcs_utils import lonlatbox
-from aqua_dask import AquaDask
+from .detect_nodes import DetectNodes
+from .stitch_nodes import StitchNodes
+from .tcs_utils import lonlatbox
+from .aqua_dask import AquaDask
 
 
 class TCs(DetectNodes, StitchNodes):
-
     """
-    This class contains all methods related to the TCs (Tropical Cyclones) diagnostic based on tempest-estremes tracking. It provides two main functions - "detect_nodes_zoomin" and "stitch_nodes_zoomin" - for detecting the nodes of TCs and producing tracks of selected variables stored in netcdf files, respectively.
-
-    Attributes:
-
-    tdict (dict): A dictionary containing various configurations for the TCs diagnostic. If tdict is provided, the configurations will be loaded from it, otherwise the configurations will be set based on the input arguments.
-    paths (dict): A dictionary containing file paths for input and output files.
-    model (str): The name of the weather model to be used for the TCs diagnostic. Default is "IFS".
-    exp (str): The name of the weather model experiment to be used for the TCs diagnostic. Default is "tco2559-ng5".
-    boxdim (int): The size of the box centred over the TCs centres in the detect_nodes_zoomin method. Default is 10.
-    lowgrid (str): The low-resolution grid used for detecting the nodes of TCs. Default is 'r100'.
-    highgrid (str): The high-resolution grid used for detecting the nodes of TCs. Default is 'r010'.
-    var2store (list): The list of variables to be stored in netcdf files. Default is None.
-    streaming (bool): A flag indicating whether the TCs diagnostic is performed in streaming mode. Default is False.
-    frequency (str): The time frequency for processing the TCs diagnostic. Default is '6h'.
-    startdate (str): The start date for processing the TCs diagnostic.
-    enddate (str): The end date for processing the TCs diagnostic.
-    stream_step (int): The number of stream units to move forward in each step in streaming mode. Default is 1.
-    stream_unit (str): The unit of stream_step in streaming mode. Default is 'days'.
-    stream_startdate (str): The start date for processing the TCs diagnostic in streaming mode.
-    loglevel (str): The logging level for the TCs diagnostic. Default is 'INFO'.
-
-    Methods:
-
-    init(self, tdict=None, paths=None, model="IFS", exp="tco2559-ng5", boxdim=10, lowgrid='r100', highgrid='r010', var2store=None, streaming=False, frequency='6h', startdate=None, enddate=None, stream_step=1, stream_unit='days', stream_startdate=None, loglevel='INFO'): Constructor method that initializes the class attributes based on the input arguments or tdict dictionary.
-    loop_streaming (init, tdict): Wrapper for data retrieve, DetectNodes and StitchNodes;
-    catalog_init(self): "catalog_init": initializes the Reader object for retrieving the atmospheric data needed (i.e. the input and output vars).
-    data_retrieve(self, reset_stream=False): retrieves atmospheric data from the Reader objects and assigns them to the data2d, data3d, and fullres attributes of the Detector object. It updates the stream_startdate and stream_enddate attributes if streaming is True.
-
+    This class contains all methods related to the TCs (Tropical Cyclones)
+    diagnostic based on tempest-estremes tracking. It provides two main functions - 
+    "detect_nodes_zoomin" and "stitch_nodes_zoomin" - for detecting the nodes of TCs and
+    producing tracks of selected variables stored in netcdf files, respectively.
     """
 
     def __init__(self, tdict = None, 
@@ -53,15 +28,37 @@ class TCs(DetectNodes, StitchNodes):
                  stream_step=1, stream_unit='days', stream_startdate=None,
                  loglevel = 'INFO',
                  nproc=1):
-        
-    
+        """
+        Constructor method that initializes the class attributes based on the 
+        input arguments or tdict dictionary.
+           
+        Args:
+            tdict (dict): A dictionary containing various configurations for the TCs diagnostic. If tdict is provided, the configurations will be loaded from it, otherwise the configurations will be set based on the input arguments.
+            paths (dict): A dictionary containing file paths for input and output files.
+            model (str): The name of the weather model to be used for the TCs diagnostic. Default is "IFS".
+            exp (str): The name of the weather model experiment to be used for the TCs diagnostic. Default is "tco2559-ng5".
+            boxdim (int): The size of the box centred over the TCs centres in the detect_nodes_zoomin method. Default is 10.
+            lowgrid (str): The low-resolution grid used for detecting the nodes of TCs. Default is 'r100'.
+            highgrid (str): The high-resolution grid used for detecting the nodes of TCs. Default is 'r010'.
+            var2store (list): The list of variables to be stored in netcdf files. Default is None.
+            streaming (bool): A flag indicating whether the TCs diagnostic is performed in streaming mode. Default is False.
+            frequency (str): The time frequency for processing the TCs diagnostic. Default is '6h'.
+            startdate (str): The start date for processing the TCs diagnostic.
+            enddate (str): The end date for processing the TCs diagnostic.
+            stream_step (int): The number of stream units to move forward in each step in streaming mode. Default is 1.
+            stream_unit (str): The unit of stream_step in streaming mode. Default is 'days'.
+            stream_startdate (str): The start date for processing the TCs diagnostic in streaming mode.
+            loglevel (str): The logging level for the TCs diagnostic. Default is 'INFO'.
+
+        Returns:
+            A TCs object
+        """
+
         self.logger = log_configure(loglevel, 'TCs')
         self.loglevel = loglevel
 
-
         self.nproc = nproc
         self.aquadask = AquaDask(nproc=nproc)
-
 
         if tdict is not None:
             self.paths = tdict['paths']
@@ -76,10 +73,7 @@ class TCs(DetectNodes, StitchNodes):
             self.frequency = tdict['time']['frequency']
             self.startdate = tdict['time']['startdate']
             self.enddate = tdict['time']['enddate']
-
-
         else:
-
             if paths is None:
                 raise Exception('Without paths defined you cannot go anywhere!')
             else:
@@ -111,8 +105,7 @@ class TCs(DetectNodes, StitchNodes):
 
         self.catalog_init()
 
-    def loop_streaming(self, tdict):
-        
+    def loop_streaming(self, tdict):   
         """
         Wrapper for data retrieve, DetectNodes and StitchNodes.
         Simulates streaming data processing by retrieving data in chunks 
@@ -125,7 +118,6 @@ class TCs(DetectNodes, StitchNodes):
         Returns:
             None
         """
-
 
         # retrieve the data and call detect nodes on the first chunk of data
         self.data_retrieve()
@@ -237,7 +229,6 @@ class TCs(DetectNodes, StitchNodes):
    
     
     def store_fullres_field(self, xfield, nodes): 
-
         """
         Create xarray object that keep only the values of a field around the TC nodes
         
@@ -265,8 +256,3 @@ class TCs(DetectNodes, StitchNodes):
         #    outfield = xr.concat([mfield, outfield], dim = 'time')
     
         return outfield
-    
-
-
-
- 
