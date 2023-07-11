@@ -1,5 +1,8 @@
 # Teleconnections diagnostic
 
+Main authors: 
+- Matteo Nurisso (m.nurisso@isac.cnr.it)
+
 ## Description
 
 The folder contains jupyter-notebooks and python scripts in order to evaluate teleconnections in the DE_340 AQUA model evaluation framework.

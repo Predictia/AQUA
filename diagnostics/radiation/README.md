@@ -1,5 +1,8 @@
 # Radiation Budget Diagnostic
 
+Main authors: 
+- Susan Sayed (DWD, susan.sayed@dwd.de)
+
 ## Description
 
 This diagnostic computes and plots biases of radiation variables and uses the nextGEMS Cycle 3 data as input.

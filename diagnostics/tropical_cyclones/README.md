@@ -1,5 +1,8 @@
 # Tropical Cyclones diagnostic for tracking and zoom in
 
+Main authors: 
+- Paolo Ghinassi (CNR-ISAC, p.ghinassi@isac.cnr.it)
+
 ## Description
 
 A diagnostic to identify tropical cyclones (TCs) centres (mean sea level pressure minima) and compute their trajectories based 

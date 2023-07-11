@@ -1,7 +1,12 @@
 # Global Ocean diagnostic
 
-The `README.md` file contains recommendations for the structure  for the Global ocean diagnostics
- 
+Main authors: 
+- Supryo Gosh (BSC, supryo.gosh@bsc.es)
+- Pablo Ortega (BSC, pablo.ortega@bsc.es)
+
+# Description
+
+Thi package provides a set of diagnostics to track evolution and trends of temperature and salinity in the global and other regional oceans, using a battery of hovmöller figures, time series plots and maps of regional temporal trends at different depths of the ocean.
 
 ## Table of Contents
 
