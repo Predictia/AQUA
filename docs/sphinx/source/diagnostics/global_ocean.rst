@@ -4,7 +4,7 @@ Global Ocean
 Description
 -----------
 
-This package provides a set of diagnostics associated with the Global Ocean which in the current release include Hovmoller figures, time series analysis, and trends at different depths of the ocean.
+This package provides a set of diagnostics to track evolution and trends of temperature and salinity in the global and other regional oceans, using a battery of hovmoller figures, time series plots and maps of regional temporal trends at different depths of the ocean.
 
 All these diagnostics are produced in a consistent way, for a selected model simulation.
 
@@ -20,50 +20,59 @@ The global_ocean diagnostic follows a class structure and consists of the files:
 Input variables example
 ------------------------
 
-* `thetao` (total precipitation rate, GRIB paramid 150129)
-* `so`     (2 metre temperature, GRIB pramid 151130)
+* ocpt (Ocean potential temperature, GRIB paramid 150129)
+* so     (Sea water practical salinity, GRIB paramid 151130)
+
+
 
 Output 
 ------
 
-This diagnostics exports all the data, which has been used to create the diagnostic figures.
-
+This diagnostic exports all the data has has been used to create the different figures.
   
-
-
 
 Functions used 
 ---------------
-Hovmoller_plot: This function requires data, a region, and the type of data processing. And it produces a Hovmoller plot of Temperature and salinity, including the processed data type. The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
+hovmoller_lev_time_plot: This function requires data, a region, and the type of data processing. And it produces a Hovmoller plot of regionally averaged temperature and salinity with the selected preprocessing of the data (e.g. whether anomalies are computed and how, and whether they are normalised or not). The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes as desired.
 
 .. code-block:: python
 
-    hovmoller_plot(data, region= "Global Ocean",type = 'FullValue', latS, latN, lonE, lonW, output= True, output_dir= "output")
+    hovmoller_lev_time_plot(data, region= "Global Ocean",type = 'FullValue', latS, latN, lonE, lonW, output= True, output_dir= "output")
 
-time_series: This function requires data, a region, and the type of data processing. And it produces a time series plot of Temperature and salinity, including the processed data type. The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
+time_series_multilevs: This function requires data, a region,  the type of data processing and optional depth levels. And it produces time series plots of regionally averaged temperature and salinity with the selected preprocessing of the data for a predefined or customised list of vertical levels. The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
 
 .. code-block:: python
 
-    time_series(data,'Global Ocean', type="Anomaly",customise_level=False, levels=list,output = True,  output_dir="output")
+    time_series_multilevs(data,'Global Ocean', type="Anomaly",customise_level=False, levels=list,output = True,  output_dir="output")
 
-multilevel_t_s_trend_plot: This function requires data, a region and optional depth level. And it produces a spatial trend plot of Temperature and salinity, The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
+multilevel_t_s_trend_plot: This function requires data, a region and optional depth levels. It produces lon-lat maps of linear temporal trends of temperature and salinity over the selected region for a predefined or customised list of vertical levels. The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
 
 .. code-block:: python
 
     multilevel_t_s_trend_plot(data,'Atlantics Ocean', customise_level=False, levels=None,
                             output= True, output_dir = "output")
 
-zonal_mean_trend_plot: This function requires data, a region. And it produces a zonal mean trend plot of Temperature and salinity. The region name supports all the major oceans and seas; in case users require a custom region, they can fill in the values of latitude and longitude in the boxes.
+zonal_mean_trend_plot: This function requires data, a region. It produces plots of zonally averaged linear temporal trends plot of temperature and salinity as a function of depth and latitud. The zonal average is produced over the selected region, whose name supports all the major oceans and seas; in case users require a custom region, they can fill in the values of latitude and longitude in the boxes.
 
 .. code-block:: python
 
    zonal_mean_trend_plot(data, region= "Indian Ocean ", output= True, output_dir="output")
 
+Methods used 
+---------------
+All regional averages has been produced with area weights
 
+Temporal trends are computed as linear trends and estimated over the whole temporal span of the dataset
+
+Observations  
+---------------
+This set of diagnostics has been developed to monitor potential drifts and initialization shock in the models. Observations do not provide any added value for the identification of the drift and were not considered
 
 References
 ----------
 
+A code to compute very efficiently the linear trends has been adapted from this website:
+https://stackoverflow.com/questions/52108417/how-to-apply-linear-regression-to-every-pixel-in-a-large-multi-dimensional-array
 
 
 Example Plot(s)
