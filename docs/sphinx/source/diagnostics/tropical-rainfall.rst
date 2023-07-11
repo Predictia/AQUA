@@ -145,7 +145,7 @@ Available demo notebooks
 
 The notebook folder contains the demonstration of:
 
-#. `Histogram Calculation <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical_rainfall/notebooks/histogram_calculation.ipynb>`_: 
+#. `Histogram Calculation <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/histogram_calculation.ipynb>`_: 
    
    The notebook demonstrates the major abilities of tropical rainfall diagnostic: 
     - initialization of an object of the diagnostic class, 
@@ -154,7 +154,7 @@ The notebook folder contains the demonstration of:
     - saving the histograms in the storage,
     - and loading the histograms from storage.
 
-#. `Histogram Plotting <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical_rainfall/notebooks/histogram_plotting.ipynb>`_:
+#. `Histogram Plotting <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/histogram_plotting.ipynb>`_:
 
    The notebook demonstrates the abilities of the histogram plotting functions:
     - selection of the plot style: step line style, 2D smooth line style, and different color maps,
@@ -162,13 +162,13 @@ The notebook folder contains the demonstration of:
     - saving plot into storage, 
     - plotting the counts, frequencies, and Probability density function (pdf) from the obtained histograms.
 
-#. `Diagnostic During Streaming <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical_rainfall/notebooks/diagnostic_vs_streaming.ipynb>`_:
+#. `Diagnostic During Streaming <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/diagnostic_vs_streaming.ipynb>`_:
 
    The notebook demonstrates the usage of diagnostic during the streaming mode:
     - saving the obtained histogram with the histogram into storage per each chunk of any data during the stream, 
     - loading all or multiple histograms from storage and merging them into a single histogram. 
 
-#. `Comparison of Low-Resolution Cicle3 Models <https://github.com/oloapinivad/AQUA/blob/devel/trop_rainfall_core/diagnostics/tropical_rainfall/notebooks/comparison_of_lowres_models.ipynb>`_:
+#. `Comparison of Low-Resolution Cicle3 Models <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/comparison_of_lowres_models.ipynb>`_:
 
    The notebook demonstrates:
     - histogram comparison for different climate models,
