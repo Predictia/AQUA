@@ -6,10 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased is the current development version.
-It is stored in the `dev` branch.
-
-When becoming stable, it will be merged into the `main` branch and developers of different diagnostics
-will be able to check here what has changed.
 
 ## [v0.2-alpha]
 
@@ -48,42 +44,6 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/oloapinivad/AQUA/compare/HEAD...dev
+[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.2-alpha...HEAD
+[v0.2-alfa]: https://github.com/oloapinivad/AQUA/compare/v0.1-beta...v0.2-alpha
 [v0.1-beta]: https://github.com/oloapinivad/AQUA/compare/v0.1-alpha...v0.1-beta
-
-## Template
-
-This is a template for the changelog.
-Introduce the categories that you need and remove the ones that you don't need in the changelog.
-
-### Added
-
-- Added a new feature
-
-### Changed
-
-- Changed a feature
-
-### Removed
-
-- Removed a feature
-
-### Fixed
-
-- Fixed a bug
-
-### Security
-
-- Fixed a security issue
-
-### Deprecated
-
-- Deprecated a feature
-
-### Breaking
-
-- Breaking changes
-
-### Other
-
-- Other changes
