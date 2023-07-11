@@ -1,5 +1,5 @@
 Ocean Circulation
-================
+=================
 
 Description
 -----------
@@ -11,7 +11,7 @@ All these diagnostics are produced in a consistent way both for a selected model
 
 
 Structure
------------
+---------
 
 The ocean_circulation diagnostic follows a class structure and consists of the files:
 
@@ -34,7 +34,7 @@ Climatologies of the Mixed Layer Depth for both the model and observations in Ne
 Climatologies of ocpt, so and sigma0 (potential density referenced at the surface) spatially averaged for any region of interest
 
 Functions used 
----------------
+--------------
 Stratification plot: This function requires data, a region, and the time of the climatology. And it produces a stratification plot of Temperature, salinity and Density, including the overlapped data with the observation. The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
 
 .. code-block:: python
