@@ -14,25 +14,10 @@ from .aqua_dask import AquaDask
 
 class TCs(DetectNodes, StitchNodes):
     """
-    This class contains all methods related to the TCs (Tropical Cyclones) diagnostic based on tempest-estremes tracking. It provides two main functions - "detect_nodes_zoomin" and "stitch_nodes_zoomin" - for detecting the nodes of TCs and producing tracks of selected variables stored in netcdf files, respectively.
-
-    Attributes:
-        tdict (dict): A dictionary containing various configurations for the TCs diagnostic. If tdict is provided, the configurations will be loaded from it, otherwise the configurations will be set based on the input arguments.
-        paths (dict): A dictionary containing file paths for input and output files.
-        model (str): The name of the weather model to be used for the TCs diagnostic. Default is "IFS".
-        exp (str): The name of the weather model experiment to be used for the TCs diagnostic. Default is "tco2559-ng5".
-        boxdim (int): The size of the box centred over the TCs centres in the detect_nodes_zoomin method. Default is 10.
-        lowgrid (str): The low-resolution grid used for detecting the nodes of TCs. Default is 'r100'.
-        highgrid (str): The high-resolution grid used for detecting the nodes of TCs. Default is 'r010'.
-        var2store (list): The list of variables to be stored in netcdf files. Default is None.
-        streaming (bool): A flag indicating whether the TCs diagnostic is performed in streaming mode. Default is False.
-        frequency (str): The time frequency for processing the TCs diagnostic. Default is '6h'.
-        startdate (str): The start date for processing the TCs diagnostic.
-        enddate (str): The end date for processing the TCs diagnostic.
-        stream_step (int): The number of stream units to move forward in each step in streaming mode. Default is 1.
-        stream_unit (str): The unit of stream_step in streaming mode. Default is 'days'.
-        stream_startdate (str): The start date for processing the TCs diagnostic in streaming mode.
-        loglevel (str): The logging level for the TCs diagnostic. Default is 'INFO'.
+    This class contains all methods related to the TCs (Tropical Cyclones)
+    diagnostic based on tempest-estremes tracking. It provides two main functions - 
+    "detect_nodes_zoomin" and "stitch_nodes_zoomin" - for detecting the nodes of TCs and
+    producing tracks of selected variables stored in netcdf files, respectively.
     """
 
     def __init__(self, tdict = None, 
@@ -43,7 +28,31 @@ class TCs(DetectNodes, StitchNodes):
                  stream_step=1, stream_unit='days', stream_startdate=None,
                  loglevel = 'INFO',
                  nproc=1):
-        """Constructor method that initializes the class attributes based on the input arguments or tdict dictionary."""
+        """
+        Constructor method that initializes the class attributes based on the 
+        input arguments or tdict dictionary.
+           
+        Args:
+            tdict (dict): A dictionary containing various configurations for the TCs diagnostic. If tdict is provided, the configurations will be loaded from it, otherwise the configurations will be set based on the input arguments.
+            paths (dict): A dictionary containing file paths for input and output files.
+            model (str): The name of the weather model to be used for the TCs diagnostic. Default is "IFS".
+            exp (str): The name of the weather model experiment to be used for the TCs diagnostic. Default is "tco2559-ng5".
+            boxdim (int): The size of the box centred over the TCs centres in the detect_nodes_zoomin method. Default is 10.
+            lowgrid (str): The low-resolution grid used for detecting the nodes of TCs. Default is 'r100'.
+            highgrid (str): The high-resolution grid used for detecting the nodes of TCs. Default is 'r010'.
+            var2store (list): The list of variables to be stored in netcdf files. Default is None.
+            streaming (bool): A flag indicating whether the TCs diagnostic is performed in streaming mode. Default is False.
+            frequency (str): The time frequency for processing the TCs diagnostic. Default is '6h'.
+            startdate (str): The start date for processing the TCs diagnostic.
+            enddate (str): The end date for processing the TCs diagnostic.
+            stream_step (int): The number of stream units to move forward in each step in streaming mode. Default is 1.
+            stream_unit (str): The unit of stream_step in streaming mode. Default is 'days'.
+            stream_startdate (str): The start date for processing the TCs diagnostic in streaming mode.
+            loglevel (str): The logging level for the TCs diagnostic. Default is 'INFO'.
+
+        Returns:
+            A TCs object
+        """
 
         self.logger = log_configure(loglevel, 'TCs')
         self.loglevel = loglevel
