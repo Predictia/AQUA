@@ -110,6 +110,7 @@ class sshVariability():
         # Check if the output_directory key exists in the config dictionary
         if 'output_directory' in config:
             output_directory = config['output_directory']
+            os.makedirs(output_directory, exist_ok=True)
         else:
             logger.warning("Output directory not found in config file. Outputs will be saved in a directory named 'output' in your current working directory.")
             # Create a directory named 'output' in the current working directory
