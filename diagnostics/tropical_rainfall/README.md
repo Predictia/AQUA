@@ -2,8 +2,6 @@
 
 The tropical-rainfall diagnostic analyzes rainfall variability in the tropical zone and compares the climatological models' predictions with observations.  
 
-
-
 ## Description
 
 The module comprises Python-implemented source files, an environment file, tests, demonstration files, and a command line interface. You can find a detailed description of the module in the aqua documentation. 
@@ -12,20 +10,16 @@ Below you can find a quick start to the tropical_rainfall diagnostic.
 
 ## Table of Contents
 
-* [Installation Instructions](#installation-instructions)
-
-  - [Installation on Levante](#installation-on-levante)
-
-  - [Installation on Lumi](#installation-on-lumi)
-
-* [Data requirements](#data-requirements)
-
-* [Output](#output)
-
-* [Examples](#examples)
-
-
-* [Contributing](#contributing)
+- [Diagnostic of tropical rainfalls](#diagnostic-of-tropical-rainfalls)
+  - [Description](#description)
+  - [Table of Contents](#table-of-contents)
+  - [Installation Instructions](#installation-instructions)
+    - [Installation on Levante](#installation-on-levante)
+    - [Installation on Lumi](#installation-on-lumi)
+  - [Data requirements](#data-requirements)
+  - [Output](#output)
+  - [Examples](#examples)
+  - [Contributing](#contributing)
 
 ## Installation Instructions
 
@@ -64,12 +58,8 @@ Data must include the precipitation rate variable (**tprate**) in a latitude and
 
 ## Output 
 
-All output of the diagnostic is in the format of NetCDF or PDF. The paths to the repositories, where the diagnostic store the output, are 
-
-path_to_netcdf: `/work/bb1153/b382267/tropical_rainfall_cicle3/NetCDF/*`
-
-
-path_to_pdf:    `/work/bb1153/b382267/tropical_rainfall_cicle3/PDF/*`
+All output of the diagnostic is in the format of NetCDF or PDF.
+Folder where to store the output can be specified by the user.
 
 ## Examples
 
@@ -106,7 +96,4 @@ The **notebook/** folder contains the following notebooks:
 
 ## Contributing
 
-The tropical_rainfall module is in a developing stage and will be significantly improved in the near future. If you have any suggestions, comments, or problems with its usage, please get in touch with the AQUA team. 
-
-
-
+The tropical_rainfall module is in a developing stage and will be significantly improved in the near future. If you have any suggestions, comments, or problems with its usage, please get in touch with the AQUA team or Natalia Nazarova (natalia.nazarova@polito.it).
