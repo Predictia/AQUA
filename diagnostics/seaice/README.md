@@ -32,9 +32,9 @@ The diagnostic requires the following data:
 The `notebooks` folder contains notebooks with examples of how to use the diagnostic and its main functions.
 Please note that notebooks may load data from the DKRZ cluster, so they may not work outside of levante.
 
-- [Example of how to use the diagnostic](notebooks/seaice_example.ipynb)
+- [Example of how to use the diagnostic](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/seaice/notebooks/seaice.ipynb)
 
 ## Contributing
 
 Contributions are welcome, please open an issue or a pull request. 
-If you have any doubt or suggestion, please contact the AQUA team or Francois Massonnet (
+If you have any doubt or suggestion, please contact the AQUA team or François Massonnet (francois.massonnet@uclouvain.be)
