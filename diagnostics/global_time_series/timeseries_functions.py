@@ -1,18 +1,17 @@
 """Functions for global time series diagnostics.
 """
 import matplotlib.pyplot as plt
-
 from aqua import Reader
-
+from aqua.logger import log_configure
 
 __all__ = [
     "plot_timeseries",
     "plot_gregory",
 ]
 
-
-def get_reference_data(varname, sel=None, resample=None):
+def get_reference_data(varname, sel=None, resample=None, loglevel='WARNING'):
     """Get ERA5 reference data for a given variable."""
+    logger = log_configure(loglevel, 'plot_timeseries')
     reader = Reader(model="ERA5", exp="era5", source="monthly")
     data = reader.retrieve().sel(sel)
 
@@ -22,7 +21,8 @@ def get_reference_data(varname, sel=None, resample=None):
     try:
         return reader.fldmean(data[varname])
     except KeyError:
-        raise KeyError(f"Could not retrieve {varname} from ERA5.")
+        logger.error(f"Could not retrieve {varname} from ERA5. No plot will be drawn.")
+        return None
 
 
 def plot_timeseries(
@@ -35,6 +35,7 @@ def plot_timeseries(
     plot_kw={},
     ax=None,
     outfile=None,
+    loglevel='WARNING',
     **kwargs,
 ):
     """Plot a time series of the global mean value of a given variable.
@@ -50,11 +51,17 @@ def plot_timeseries(
         ax (matplotlib.Axes): (Optional) axes to plot in.
         outfile (str): (Optional) output file to store data.
     """
+
+    logger = log_configure(loglevel, 'plot_timeseries')
     if ax is None:
         ax = plt.gca()
 
     reader = Reader(model, exp, **reader_kw)
-    data = reader.retrieve()
+    try:
+        data = reader.retrieve(var=variable)
+    except KeyError:
+        logger.error(f"Could not retrieve {variable} for {model}-{exp}")
+        raise KeyError(f'{variable} not found. Pick another variable.')
 
     data = reader.fldmean(data[variable])
 
@@ -68,11 +75,13 @@ def plot_timeseries(
         data.to_netcdf(outfile)
 
     if plot_era5:
-        get_reference_data(
+        eradata = get_reference_data(
             variable,
             sel={"time": slice(data.time.min(), data.time.max())},
-            resample=resample,
-        ).plot(color="grey", label="ERA5", ax=ax)
+            resample=resample, loglevel=loglevel
+        )
+        if eradata is not None:
+            eradata.plot(color="grey", label="ERA5", ax=ax)
     ax.legend()
 
 
