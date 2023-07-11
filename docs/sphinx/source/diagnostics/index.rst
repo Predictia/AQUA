@@ -13,6 +13,7 @@ AQUA provides a collection of built-in diagnostics to analyze climate model outp
    teleconnections
    ecmean
    global_mean_timeseries
+   ocean_circulation
    seaice
    radiation
    ssh_variability
