@@ -48,7 +48,7 @@ subplot_options:
   } 
 
 # Please specify the path to the directory where the outputs should be saved. If output directory/ folder does not exist, another directory called output will be created in your current working directory.
-# output_directory: /work/ab0995/a270223/AQUA/diagnostics/ssh/output
+output_directory: /work/ab0995/a270223/AQUA/diagnostics/ssh/output
 
 # This is the current dask configuration which works for the inputs above. It could be adjusted based on the system this application is run.
 dask_cluster:
