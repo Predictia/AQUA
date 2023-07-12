@@ -1,9 +1,11 @@
 # Radiation Budget Diagnostic
 
+Main authors: 
+- Susan Sayed (DWD, susan.sayed@dwd.de)
+
 ## Description
 
 This diagnostic computes and plots biases of radiation variables and uses the nextGEMS Cycle 3 data as input.
-
 
 ## Installation Instructions
 
@@ -20,8 +22,7 @@ extended to inclued ERA5 reanalysis data and CERES EBAF as reference.
 
 The **notebook/** folder contains the following notebooks:
 
-- time_series.ipynb: a notebook that show how the output of the plot_model_comparison_timeseries: URL
-- The gregory.ipynb notebook demonstrates how to produce gregory plots of desired models: URL
-- bar_plot.ipynb: a simple demonstration on how to create bar plots 
-- bias_maps.ipynb: Creation of bias maps to localise signifikant biases in comparison to CERES data. This is possible for the variables ttr, tsr and tnr and for a desired model year. The notebook produces monthly maps.
-   
+- **time_series.ipynb**: a notebook that shows how the output of the `plot_model_comparison_timeseries` function;
+- **gregory.ipynb**: a notebook that demonstrates how to produce gregory plots of desired models;
+- **bar_plot.ipynb**: a notebook that demonstrates how to create bar plots;
+- **bias_maps.ipynb**: a notebook that creates bias maps to localise significant biases in comparison to CERES data. 

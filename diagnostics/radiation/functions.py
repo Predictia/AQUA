@@ -207,8 +207,9 @@ def gregory_plot(data_era5, model_list, reader_dict):
         A Gregory Plot
 
     Example:
-    .. highlight:: python
+
     .. code-block:: python
+
     model_list = ['icon', 'ifs_9km', 'ifs_4km']
     reader_dict = {
     "icon" : reader_icon,
@@ -216,6 +217,7 @@ def gregory_plot(data_era5, model_list, reader_dict):
     "ifs_4km" : reader_ifs_4km
     }
     gregory_plot(data_era5, model_list, reader_dict)
+
     """
 
     reader_era5 = Reader(model="ERA5", exp="era5", source="monthly")
@@ -322,15 +324,18 @@ def barplot_model_data(datasets, model_names, year=None):
     Default mean for CERES data is the whole time range.
 
     Args:
-        datasets:      a list of xarrayDataSets that should be plotted. Chose the global means (TOA_"model"_gm)
+        datasets:      a list of xarrayDataSets that should be plotted. Chose the global means (TOA_$model_gm)
         model_names:   your desired naming for the plotting
 
     Returns:
         A bar plot
 
     Example:
+
+    .. code-block:: python
+
         datasets = [TOA_ceres_clim_gm, TOA_icon_gm, TOA_ifs_4km_gm, TOA_ifs_9km_gm]
-        model_names = ['ceres', 'icon', 'ifs 4.4 km', 'ifs 9 km']
+        model_names = ['ceres', 'ICON', 'IFS 4.4 km', 'IFS 9 km']
         barplot_model_data(datasets, model_names, year = 2022)
     """
 
@@ -506,7 +511,7 @@ def plot_bias(data, iax, title, plotlevels, lower, upper, index):
                      add_colorbar=False,
                     )
     stipple_data = data.where(np.logical_and(data > lower.isel(month=index), data < upper.isel(month=index))) / data.where(np.logical_and(data > lower.isel(month=index), data < upper.isel(month=index)))
-    plot2 = stipple_data.plot.contourf(ax=iax, levels=[-10, 0, 10], hatches=["", "...."], add_colorbar=False, alpha=0, transform=ccrs.PlateCarree())
+    #plot2 = stipple_data.plot.contourf(ax=iax, levels=[-10, 0, 10], hatches=["", "...."], add_colorbar=False, alpha=0, transform=ccrs.PlateCarree())
 
     iax.set_title(title, fontsize=small_fonts)
     # iax.set_title(data.label+' ('+str(len(data.ensemble))+')',fontsize=small_fonts)
@@ -531,9 +536,11 @@ def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_cli
         Monthly bias plots of the chosen model, variable and year
 
     Example:
+
         plot_maps(TOA_model= TOA_ifs_4km_r360x180, TOA_ceres_diff_samples = TOA_ceres_diff_samples, TOA_ceres_clim = TOA_ceres_clim, var='tsr', model_label='Cycle 3 4.4 km IFS Fesom', year='2023')
         Use the TOA_"model"_r360x180 DataSet to ensure that the gridding is right
-
+        
+    Use the TOA_$model_r360x180 DataSet to ensure that the gridding is right
     """
 
     # quantiles are a bit more conservative than the range, but interpolation from few values might not be robust

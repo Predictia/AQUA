@@ -223,35 +223,34 @@ def zonal_mean_trend_plot(data, region=None, latS: float=None, latN: float=None,
     """
     Plots spatial trends at different vertical levels for two variables.
 
-    Parameters
-    ----------
-    data : xarray.Dataset
-        Input dataset containing a single 3D field with trends as a function of depth, latitude, and longitude.
-        
-    region : str, optional
-        Region name.
-        
-    latS : float, optional
-        Southern latitude bound for the region.
-        
-    latN : float, optional
-        Northern latitude bound for the region.
-        
-    lonW : float, optional
-        Western longitude bound for the region.
-        
-    lonE : float, optional
-        Eastern longitude bound for the region.
-        
-    output : bool, optional
-        Flag indicating whether to save the output figure and data. Defaults to True.
-        
-    output_dir : str, optional
-        Output directory path. Defaults to "output".
+    Args:
+    
+        data (xarray.Dataset):
+            Input dataset containing a single 3D field with trends as a function of depth, latitude, and longitude.
+            
+        region (str, optional):
+            Region name.
+            
+        latS (float, optional):
+            Southern latitude bound for the region.
+            
+        latN (float, optional):
+            Northern latitude bound for the region.
+            
+        lonW (float, optional):
+            Western longitude bound for the region.
+            
+        lonE (float, optional):
+            Eastern longitude bound for the region.
+            
+        output (bool, optional):
+            Flag indicating whether to save the output figure and data. Defaults to True.
+            
+        output_dir (str, optional):
+            Output directory path. Defaults to "output".
 
-    Returns
-    -------
-    None
+    Returns:
+        None
     """
     data = TS_3dtrend(data)
     data = weighted_zonal_mean(data, region, latS, latN, lonW, lonE)
@@ -413,14 +412,14 @@ def data_process_by_type(data,  type=None):
         cmap = "PuOr"
         for var in list(data.data_vars.keys()):
             var_data = data[var] - data[var].isel(time=0)
-            var_data.attrs['units'] = 'Standardised Units'
+            var_data.attrs['units'] = 'Stand. Units'
             # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
             process_data[var] = var_data / var_data.std(dim="time")
     elif type in ['stdanomaly_tmean',"std_anomaly_vs_tmean", "std anomaly tmean", "stdanomaly tmean"]:
         cmap = "PuOr"
         for var in list(data.data_vars.keys()):
             var_data = data[var] - data[var].mean(dim='time')
-            var_data.attrs['units'] = 'Standardised Units'
+            var_data.attrs['units'] = 'Stand. Units'
             # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
             process_data[var] = var_data / var_data.std(dim="time")
             

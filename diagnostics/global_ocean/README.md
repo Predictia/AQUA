@@ -1,40 +1,46 @@
 # Global Ocean diagnostic
 
-The `README.md` file contains recommendations for the structure  for the Global ocean diagnostics
- 
+Main authors: 
+- Supriyo Ghosh (BSC, supryo.gosh@bsc.es)
+- Pablo Ortega (BSC, pablo.ortega@bsc.es)
+
+# Description
+
+The Global Ocean diagnostic allows tracking the evolution and trends of temperature and salinity in the global and other regional oceans, using a battery of hovmöller figures, time series plots, and maps of regional and temporal trends at different ocean depths.
 
 ## Table of Contents
 
-* [Installation Instructions](#installation-instructions)
+- [Diagnostic of global ocean](#diagnostic-of-tropical-rainfalls)
+  - [Description](#description)
+  - [Table of Contents](#table-of-contents)
+  - [Installation Instructions](#installation-instructions)
+  - [Data requirements](#data-requirements)
+  - [Examples](#examples)
+  - [Contributing](#contributing)
 
-* [Diagnostic structure](#diagnostic-structure)
-
-
-* [Examples](#examples)
 
 ## Installation Instructions
 
-There is no separate installation required for this package.
+The diagnostic uses a standard aqua environment and requires no extra dependencies. 
 
 
-## Diagnostic structure 
+To install of the diagnostic on Levante or Lumi, please follow the installation instructions in the main [README.md](https://github.com/oloapinivad/AQUA/blob/main/README.md) file of aqua.
 
-- **diagnostics/**: The root directory of the diagnostic.
+## Data requirements  
 
-  - **global_diagnostics/**: contains the code of the diagnostic
-
-    - **notebooks/**: contains notebooks with examples of how to use the diagnostic
-
-
-
-- **docs/sphinx/sorce/diagnostics/global_diagnostics.rts**: contains the documentation for the diagnostic. 
-
-
+The diagnostic requres a model data of 3D ocean potential temperature and practical salinity.
 
 ## Examples
 
-The **notebook/** folder contain the notebooks with clear demonstration capabilities and applications of this diagnostic.
+The **notebook/** folder contains the notebook **[global_ocean.ipynb](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/global_ocean/notebooks/global_ocean.ipynb)**, which demonstrates:
+- the import of `global_ocean`module and configuration setup, 
+- the major functions of the `global_ocean` module, which produce hovmollers in-depth and time, time-series of yearly potential ocean temperature and practical salinity, 
+- the data requierements, 
+- demonstrating the usage of primary functions, and 
+- the main scientific output obtained by global ocean diagnostic.
 
+## Contributing
 
+The global_ocean module is currently undergoing development and will soon be substantially enhanced. Please get in touch with the AQUA team, specifically Supriyo Ghosh (supryo.gosh@bsc.es) or Pablo Ortega (pablo.ortega@bsc.es), if you have any suggestions, remarks, or issues regarding its use.
 
 

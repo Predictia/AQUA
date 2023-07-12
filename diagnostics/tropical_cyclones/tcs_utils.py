@@ -9,12 +9,12 @@ def clean_files(filelist):
     Removes the specified files from the filesystem.
 
     Args:
-    - filelist (str or list): A single filename or a list of filenames to be removed.
+        filelist (str or list): A single filename or a list of filenames to be removed.
 
     Returns:
         None
-
     """
+
     if isinstance(filelist, str):
         filelist = [filelist]
 
@@ -24,27 +24,28 @@ def clean_files(filelist):
 
 def lonlatbox(lon, lat, delta) : 
     """
-    Define the list for the box to retain high res data in the vicinity of the TC centres
+    Define the list for the box to retain high res data in the vicinity of the TC centres.
 
     Args:
         lon: longitude of the TC centre
         lat: latitude of the TC centre
         delta: length in degrees of the lat lon box
 
-    Returns: 
-       box: list with the box coordinates
+    Returns:
+        box: list with the box coordinates
     """
+
     return [float(lon) - delta, float(lon) +delta, float(lat) -delta, float(lat) + delta]
 
 def write_fullres_field(gfield, filestore, dask): 
-
     """
-    Writes the high resolution file (netcdf) format with values only within the TCs centres box
-    
+    Writes the high resolution file (netcdf) format with values only within the TCs centres box.
+
     Args:
         gfield: field to write
         filestore: file to save
         dask: if dask is active or not
+
     Returns:
         None
     """
@@ -70,7 +71,7 @@ def write_fullres_field(gfield, filestore, dask):
         save_file = gfield.to_netcdf(filestore, 
                                     encoding=final_encoding, 
                                     compute=False)
-        
+  
         if dask:
             w_job = save_file.persist()
             progress(w_job)
@@ -78,6 +79,4 @@ def write_fullres_field(gfield, filestore, dask):
         else:
             with ProgressBar():
                 save_file.compute()
-    
-
-        #gfield.close()
+        # gfield.close()

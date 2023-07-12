@@ -1,5 +1,8 @@
 # Atmospheric global mean time series
 
+Main authors:
+- Lukas Kluft (MPI, lukas.kluft@mpimet.mpg.de)
+
 ## Description
 
 This diagnostic computes and plots various (atmospheric) global mean time series.
