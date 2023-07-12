@@ -26,7 +26,7 @@ def seasonal_bias(dataset1, dataset2, var_name, year, plev, statistic, model_lab
 
         dataset1 (xarray.Dataset): The first dataset
         dataset2 (xarray.Dataset): The second dataset. Note: If this dataset is data_era5 (ERA5 data) it provides a bias calculation with
-                                    respect to the ERA5 climatology from 2000 to 2020. You can choose like for dataset1
+                                    respect to the ERA5 climatology from 2000 to 2020. You can choose like for dataset1 OR data_era5
         var_name (str): The name of the variable to compare (Examples: 2t, tprate, mtntrf, mtnsrf,...)
         year (int): The year for which to calculate the bias.
         plev (float or None): The desired pressure level in Pa. If None, the variable is assumed to be at surface level.
@@ -37,7 +37,7 @@ def seasonal_bias(dataset1, dataset2, var_name, year, plev, statistic, model_lab
         ValueError: If an invalid statistic is provided.
 
     Returns:
-        None
+        A seasonal bias plot.
     '''
     
     var1 = dataset1[var_name]
@@ -194,7 +194,7 @@ def compare_datasets_plev(dataset1, var_name, time_range, model_label):
         plot_latitude (bool): True to plot latitude on the x-axis, False to plot longitude.
 
     Returns:
-        None
+        A zonal bias plot.
     """
     # Calculate the bias between dataset1 and dataset2
     reader_era5 = Reader(model="ERA5", exp="era5", source="monthly")
