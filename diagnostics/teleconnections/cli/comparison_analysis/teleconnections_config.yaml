@@ -1,7 +1,7 @@
 telecname: 'NAO' # NAO or ENSO
 
-common_outputdir: &common_outputdir '/home/b/b382289/aqua_telec_output/data'
-common_outputfig: &common_outputfig '/home/b/b382289/aqua_telec_output/figs'
+common_outputdir: &common_outputdir '/home/b/b382289/aqua_telec_output/NetCDF'
+common_outputfig: &common_outputfig '/home/b/b382289/aqua_telec_output/PDF'
 configdir: '/home/b/b382289/AQUA/diagnostics/teleconnections/config'
 
 # Create a new block for each dataset to compare

@@ -18,7 +18,7 @@ def getTrajectories(filename,nVars,headerDelimStr,isUnstruc):
       numtraj: Total number of trajectories.
       maxNumPts: Maximum length of any trajectory.
       prodata: Numpy array containing the trajectory data.
-    """
+  """
     
   print("Getting trajectories from TempestExtremes file...")
   print("Running getTrajectories on '%s' with unstruc set to '%s'" % (filename, isUnstruc))

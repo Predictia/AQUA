@@ -23,6 +23,7 @@ def seasonal_bias(dataset1, dataset2, var_name, year, plev, statistic, model_lab
     Plot the seasonal bias maps between two datasets for a specific variable and year.
 
     Args:
+
         dataset1 (xarray.Dataset): The first dataset
         dataset2 (xarray.Dataset): The second dataset. Note: If this dataset is data_era5 (ERA5 data) it provides a bias calculation with
                                     respect to the ERA5 climatology from 2000 to 2020. You can choose like for dataset1
@@ -46,6 +47,7 @@ def seasonal_bias(dataset1, dataset2, var_name, year, plev, statistic, model_lab
     data_era5 = reader_era5.retrieve(fix=True)
     data_era5 = data_era5.sel(time=slice('2000-01-01', '2020-12-31'))
     
+
 #     reader_tco2559 = Reader(model = 'IFS', exp = 'tco2559-ng5-cycle3', source = 'lra-r100-monthly')
 #     data_tco2559 = reader_tco2559.retrieve(fix = False)
 
@@ -54,6 +56,7 @@ def seasonal_bias(dataset1, dataset2, var_name, year, plev, statistic, model_lab
 
 #     reader_icon = Reader(model = "ICON", exp = "ngc3028", source = 'lra-r100-monthly')
 #     data_icon = reader_icon.retrieve(fix = False)
+
     
     var1_year = var1.sel(time=var1.time.dt.year == year)
     var2_year = var2.sel(time=var2.time.dt.year == year)
@@ -139,7 +142,9 @@ def seasonal_bias(dataset1, dataset2, var_name, year, plev, statistic, model_lab
 
     # Set the overall figure title
     # Set the overall title        
+
     if dataset2 == data_era5:
+
         if plev is not None:
             overall_title = f'Bias of {var_name} ({dataset2[var_name].long_name}) [{var2.units}] ({statistic}) at {plev} Pa\n Experiment {model_label1} {year} with respect to ERA5 climatology (2000-2020)'
         else:
@@ -285,4 +290,6 @@ def plot_map_with_stats(dataset, var_name, time_range, model_label):
     stat_text = f'Mean: {var_mean:.2f} {dataset[var_name].units}    Std: {var_std:.2f}    Min: {var_min:.2f}    Max: {var_max:.2f}'
     ax.text(0.5, -0.3, stat_text, transform=ax.transAxes, ha='center')
 
+
     plt.show()
+

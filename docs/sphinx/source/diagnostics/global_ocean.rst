@@ -4,7 +4,7 @@ Global Ocean
 Description
 -----------
 
-This package provides a set of diagnostics to track evolution and trends of temperature and salinity in the global and other regional oceans, using a battery of hovmoller figures, time series plots and maps of regional temporal trends at different depths of the ocean.
+This package provides a set of diagnostics to track evolution and trends of temperature and salinity in the global and other regional oceans, using a battery of hovmöller figures, time series plots and maps of regional temporal trends at different depths of the ocean.
 
 All these diagnostics are produced in a consistent way, for a selected model simulation.
 
@@ -28,7 +28,7 @@ Input variables example
 Output 
 ------
 
-This diagnostic exports all the data has has been used to create the different figures.
+This diagnostic exports all the data that have been used to create the different figures.
   
 
 Functions used 
@@ -60,13 +60,14 @@ zonal_mean_trend_plot: This function requires data, a region. It produces plots 
 
 Methods used 
 ---------------
-All regional averages has been produced with area weights
+All regional averages has been produced with area weights.
 
-Temporal trends are computed as linear trends and estimated over the whole temporal span of the dataset
+Temporal trends are computed as linear trends and estimated over the whole temporal span of the dataset.
 
 Observations  
 ---------------
-This set of diagnostics has been developed to monitor potential drifts and initialization shock in the models. Observations do not provide any added value for the identification of the drift and were not considered
+This set of diagnostics has been developed to monitor potential drifts and initialization shock in the models.
+Observations do not provide any added value for the identification of the drift and were not considered.
 
 References
 ----------
@@ -81,7 +82,7 @@ Example Plot(s)
 .. figure:: figures/global_ocean1.png
     :width: 18cm
 
-This is an example of one of the hovmoller T,S figures
+This is an example of one of the hovmöller T,S figures
 
 
 .. figure:: figures/global_ocean2.png
@@ -105,7 +106,7 @@ Available demo notebooks
 
 Notebooks are stored in diagnostics/global_oceandiagnostic/notebooks
 
-* `global_ocean.ipynb <https://github.com/oloapinivad/AQUA/blob/devel/ocean/diagnostics/global_ocean/notebooks/global_ocean.ipynb>`_
+* `global_ocean.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/global_ocean/notebooks/global_ocean.ipynb>`_
         
 Detailed API
 ------------

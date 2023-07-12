@@ -1,4 +1,4 @@
-from .functions import plot_timeseries, plot_gregory
+from .timeseries_functions import plot_timeseries, plot_gregory
 
 __version__ = "0.0.1"
 
