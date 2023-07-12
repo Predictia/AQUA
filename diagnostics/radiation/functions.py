@@ -83,7 +83,7 @@ def process_ceres_data(exp, source, TOA_icon_gm):
     TOA_ceres_diff_samples_gm = reader_ceres_toa.fldmean(TOA_ceres_diff_samples)  # cdo.fldmean(input=TOA_ceres_diff_samples, returnXDataset=True).squeeze()
     TOA_ceres_clim['lon'] = TOA_ceres_clim['lon'] - 0.5
     TOA_ceres_diff_samples['lon'] = TOA_ceres_diff_samples['lon'] - 0.5
-
+    
     return TOA_ceres_clim_gm, TOA_ceres_ebaf_gm, TOA_ceres_diff_samples_gm, reader_ceres_toa, TOA_ceres_clim, TOA_ceres_diff_samples
 
 def process_model_data(model, exp, source):
@@ -112,7 +112,7 @@ def process_model_data(model, exp, source):
     # Compute global mean using cdo.fldmean
     TOA_model_gm = reader_model.fldmean(TOA_model)  # cdo.fldmean(input=TOA_model, returnXDataset=True)
     TOA_model_r360x180 = cdo.remapcon('r360x180', input=TOA_model, returnXDataset=True)
-
+   
     return TOA_model_gm, reader_model, data_model, TOA_model, TOA_model_r360x180
 
 
@@ -215,7 +215,7 @@ def gregory_plot(data_era5, model_list, reader_dict):
     "ifs_9km" : reader_ifs_9km,
     "ifs_4km" : reader_ifs_4km
     }
-    radiation_diag.gregory_plot(data_era5, model_list, reader_dict)
+    gregory_plot(data_era5, model_list, reader_dict)
     """
 
     reader_era5 = Reader(model="ERA5", exp="era5", source="monthly")
@@ -298,8 +298,6 @@ def gregory_plot(data_era5, model_list, reader_dict):
             transform=ax.transAxes, fontsize=8, verticalalignment='top', horizontalalignment='center')
     ax.tick_params(axis="both", which="major", labelsize=10)
     ax.grid(True, linestyle="--", linewidth=0.5)
-    filename = f"{outputfig}/Gregory_Plot.pdf"
-    plt.savefig(filename, dpi=300, format='pdf')
     plt.show()
     
     # Save the data for each model to separate netCDF files
@@ -309,7 +307,9 @@ def gregory_plot(data_era5, model_list, reader_dict):
         model_data = model_reader.retrieve(fix=True)
 
         model_data_resampled = model_data.resample(time="M").mean()
-        model_data_resampled.to_netcdf(f"{outputdir}Gregory.nc")
+        model_data_resampled.to_netcdf(f"{outputdir}/Gregory_Plot_{model_name}.nc")
+        filename = f"{outputfig}/Gregory_Plot_{model_name}.pdf"
+        plt.savefig(filename, dpi=300, format='pdf')
 
     print(f"Data has been saved to {outputdir}.")
     print(f"Plot has been saved to {outputfig}.")
@@ -378,7 +378,7 @@ def plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_
     Example:
             models = [TOA_icon_gm.squeeze(), TOA_ifs_4km_gm.squeeze(), TOA_ifs_9km_gm.squeeze()]
             linelabels = ['ICON 5 km', 'IFS 4.4 km', 'IFS 9 km']
-            radiation_diag.plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_gm, TOA_ceres_clim_gm)
+            plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_gm, TOA_ceres_clim_gm)
 
     Args:
         models:                      a list of xarrayDataSets of the respective models. You can use squeeze() to remove single-dimensional entries from an array
@@ -522,7 +522,7 @@ def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_cli
     Args:
         TOA_model (xarray.DataArray):                The TOA model data.
         var (str):                                   The variable to plot ('tnr', 'tsr', or 'ttr').
-        model_label (str):                           Desired label for the model (also used as filename to save figure)
+        model_label (str):                           Desired label for the model (also used as filename to save figure, better avoid using characters like ' ',...)
         TOA_ceres_diff_samples (xarray.DataArray):   The TOA CERES difference samples data.
         TOA_ceres_clim (xarray.DataArray):           The TOA CERES climatology data.
         year (str, optional):                        The year to plot. Defaults to '2020'.
@@ -531,7 +531,7 @@ def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_cli
         Monthly bias plots of the chosen model, variable and year
 
     Example:
-        radiation_diag.plot_maps(TOA_model= TOA_ifs_4km_r360x180, TOA_ceres_diff_samples = TOA_ceres_diff_samples, TOA_ceres_clim = TOA_ceres_clim, var='tsr', model_label='Cycle 3 4.4 km IFS Fesom', year='2023')
+        plot_maps(TOA_model= TOA_ifs_4km_r360x180, TOA_ceres_diff_samples = TOA_ceres_diff_samples, TOA_ceres_clim = TOA_ceres_clim, var='tsr', model_label='Cycle 3 4.4 km IFS Fesom', year='2023')
         Use the TOA_"model"_r360x180 DataSet to ensure that the gridding is right
 
     """
@@ -560,10 +560,10 @@ def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_cli
     lower = range_min[var].rename({'time': 'month'})
     upper = range_max[var].rename({'time': 'month'})
 
-    fig, ax = plt.subplots(3, 4, figsize=(24, 10), subplot_kw={'projection': ccrs.Robinson(central_longitude=180, globe=None)})
+    fig, ax = plt.subplots(4, 3, figsize=(22, 10), subplot_kw={'projection': ccrs.Robinson(central_longitude=180, globe=None)})
     plotlevels = np.arange(-50, 51, 10)
     global small_fonts
-    small_fonts = 8
+    small_fonts = 12
     # plt.figure(figsize=(8,4))
     # axes = plt.axes(projection=ccrs.PlateCarree())
     axes = ax.flatten()
@@ -587,7 +587,7 @@ def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_cli
     cbar.ax.tick_params(labelsize=small_fonts)
     cbar.set_label('$W m^{-2}$', labelpad=-32, y=-.08, rotation=0)
 
-    plt.suptitle(label+' TOA bias IFS ' + model_label + ' ' + year + '\nrel. to CERES climatology (2001-2021)', fontsize=small_fonts*2)
+    plt.suptitle(label+' TOA bias ' + model_label + ' ' + year + '\nrel. to CERES climatology (2001-2021)', fontsize=small_fonts*2)
     # plt.tight_layout()
     filename = f"{outputfig}{label}_TOA_bias_maps_{year}_{model_label}.pdf"
     plt.savefig(filename, dpi=300, format='pdf')
