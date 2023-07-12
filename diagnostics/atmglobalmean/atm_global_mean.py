@@ -83,15 +83,6 @@ class AGM_diag:
         reader_era5 = Reader(model="ERA5", exp="era5", source="monthly")
         data_era5 = reader_era5.retrieve(fix=True)
         data_era5 = data_era5.sel(time=slice('2000-01-01', '2020-12-31'))
-        
-#         reader_tco2559 = Reader(model = 'IFS', exp = 'tco2559-ng5-cycle3', source = 'lra-r100-monthly')
-#         data_tco2559 = reader_tco2559.retrieve(fix = False)
-
-#         reader_tco1279 = Reader(model="IFS", exp="tco1279-orca025-cycle3",source =  'lra-r100-monthly')
-#         data_tco1279 = reader_tco1279.retrieve(fix = False)
-
-#         reader_icon = Reader(model = "ICON", exp = "ngc3028", source = 'lra-r100-monthly')
-#         data_icon = reader_icon.retrieve(fix = False)
        
         var1_year = var1.sel(time=var1.time.dt.year == year)
         var2_year = var2.sel(time=var2.time.dt.year == year)
