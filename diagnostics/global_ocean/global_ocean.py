@@ -412,14 +412,14 @@ def data_process_by_type(data,  type=None):
         cmap = "PuOr"
         for var in list(data.data_vars.keys()):
             var_data = data[var] - data[var].isel(time=0)
-            var_data.attrs['units'] = 'Standardised Units'
+            var_data.attrs['units'] = 'Stand. Units'
             # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
             process_data[var] = var_data / var_data.std(dim="time")
     elif type in ['stdanomaly_tmean',"std_anomaly_vs_tmean", "std anomaly tmean", "stdanomaly tmean"]:
         cmap = "PuOr"
         for var in list(data.data_vars.keys()):
             var_data = data[var] - data[var].mean(dim='time')
-            var_data.attrs['units'] = 'Standardised Units'
+            var_data.attrs['units'] = 'Stand. Units'
             # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
             process_data[var] = var_data / var_data.std(dim="time")
             
