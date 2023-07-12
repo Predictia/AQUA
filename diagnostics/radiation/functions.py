@@ -9,10 +9,10 @@ import cartopy.crs as ccrs
 from matplotlib.legend_handler import HandlerTuple
 from aqua import Reader
 
-outputfig = "./output/figs"
+outputfig = "./output/figs/"
 if not os.path.exists(outputfig):
     os.makedirs(outputfig)
-outputdir = "./output/data"
+outputdir = "./output/data/"
 if not os.path.exists(outputdir):
     os.makedirs(outputdir)
 cdo = Cdo(tempdir='./tmp/cdo-py')
@@ -301,7 +301,17 @@ def gregory_plot(data_era5, model_list, reader_dict):
     filename = f"{outputfig}/Gregory_Plot.pdf"
     plt.savefig(filename, dpi=300, format='pdf')
     plt.show()
+    
+    # Save the data for each model to separate netCDF files
+    for model in model_list:
+        model_name = model.lower()
+        model_reader = reader_dict[model_name]
+        model_data = model_reader.retrieve(fix=True)
 
+        model_data_resampled = model_data.resample(time="M").mean()
+        model_data_resampled.to_netcdf(f"{outputdir}Gregory.nc")
+
+    print(f"Data has been saved to {outputdir}.")
     print(f"Plot has been saved to {outputfig}.")
     # print(f"Data has been saved to {outputdir}.")
 
@@ -460,6 +470,13 @@ def plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_
     plt.savefig(filename, dpi=300, format='pdf')
     plt.tight_layout()
     plt.show()
+    
+    # Save the data for each model to separate netCDF files
+    for i, model in enumerate(models):
+        model_name = linelabels[i].replace(' ', '_').lower()
+        model.to_netcdf(f"{outputdir}Timeseries.nc")
+
+    print(f"Data has been saved to {outputdir}.")
     print(f"Plot has been saved to {outputfig}.")
 
 
@@ -572,9 +589,16 @@ def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_cli
 
     plt.suptitle(label+' TOA bias IFS ' + model_label + ' ' + year + '\nrel. to CERES climatology (2001-2021)', fontsize=small_fonts*2)
     # plt.tight_layout()
-    filename = f"{outputfig}+{label}+'_TOA_bias_maps_'+{year}+'_'+{model_label}+'.pdf"
+    filename = f"{outputfig}{label}_TOA_bias_maps_{year}_{model_label}.pdf"
     plt.savefig(filename, dpi=300, format='pdf')
     plt.show()
+    
+    # Save the data to a netCDF file
+    data = TOA_model[var].sel(time=year) - TOA_ceres_clim[var].isel(time=0)
+    filename = f"{outputdir}{var}_TOA_bias_maps_{year}_{model_label}.nc"
+    data.to_netcdf(filename)
+
+    print(f"Data has been saved to {outputdir}.")
     print(f"Plot has been saved to {outputfig}.")
 
 
