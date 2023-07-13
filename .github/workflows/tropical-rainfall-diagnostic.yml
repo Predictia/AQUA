@@ -2,6 +2,7 @@ name: tropical rainfall diagnostic test
 # comment line is added to test all workflows with a common environment
 on:
   pull_request:
+    branches: [ main, dev ]
     paths:
       - 'diagnostics/tropical_rainfall/**'
       - 'tests/tropical-rainfall/**'

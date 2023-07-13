@@ -4,6 +4,7 @@ on:
   # Not triggering the dummy diagnostic test on pull requests
   # in order to waste less resources
   # pull_request:
+  #  branches: [ main, dev ]
   #  paths:
   #    - 'diagnostics/dummy/**'
   #    - 'tests/dummy/**'

@@ -2,6 +2,7 @@ name: teleconnections test
 
 on:
   pull_request:
+    branches: [ main, dev ]
     paths:
       - 'diagnostics/teleconnections/**'
       - 'tests/teleconnections/**'
