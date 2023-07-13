@@ -5,6 +5,8 @@ on:
     branches: [ main, dev ]
   pull_request:
     branches: [ main, dev ]
+    types:
+      - labeled
   workflow_dispatch:
   schedule:
     - cron: "0 3 * * 1" #run every Monday night at 3AM UTC
