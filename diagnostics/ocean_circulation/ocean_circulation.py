@@ -1187,6 +1187,8 @@ def data_time_selection(data, time):
         data = data.where(data.time.dt.month == 12, drop=True)
     elif time in ["yearly", "year", "y"]:
         data = data.groupby('time.year').mean(dim='time')
+        if "year" in list(data.dims):
+            data = data.rename({"year":"time"})
     elif time in ["jja", "jun_jul_aug", "jun-jul-aug", "june-july-august", "june_july_august"]:
         data = data.where((data['time.month'] >= 6) & (
             data['time.month'] <= 8), drop=True)
@@ -1422,11 +1424,27 @@ def compute_mld_cont(rho):
 
 def data_for_plot_spatial_mld_clim(data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None,
                                    lonE: float = None):
+    """
+    Extracts and prepares data for plotting spatial mean mixed layer depth (MLD) climatology.
+
+    Parameters:
+    - data (pandas.DataFrame): Input data containing relevant variables.
+    - region (str or None): Optional region to subset the data (e.g., 'North Atlantic').
+    - time (str or None): Optional time period to select from the data (e.g., '2010-2020').
+    - latS (float or None): Southernmost latitude of the region (default: None).
+    - latN (float or None): Northernmost latitude of the region (default: None).
+    - lonW (float or None): Westernmost longitude of the region (default: None).
+    - lonE (float or None): Easternmost longitude of the region (default: None).
+
+    - Returns:
+        xarray.Dataset: Processed data suitable for plotting spatial MLD climatology.
+
+    """
+    
     data = area_selection(data, region, latS, latN, lonE, lonW)
     data = convert_variables(data)
     data = compute_mld_cont(data)
     data = data_time_selection(data, time)
-
     return data
 
 
