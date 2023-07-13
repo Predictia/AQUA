@@ -54,10 +54,10 @@ def multi_plot(tracks_nc_file, title=None, units=None):
                 title + " " + f'{str(tracks_nc_file.time[i].values)[:13]}')
     # Add a colorbar
     if units is None and 'units' in tracks_nc_file.attrs:
-        plt.colorbar(ax.collections[0], ax=axs, shrink=0.4, pad=0.1,
+        plt.colorbar(ax.collections[0], shrink=0.4, pad=0.1,
                      location='bottom', label=tracks_nc_file.attrs['units'])
     elif units:
-        plt.colorbar(ax.collections[0], ax=axs, shrink=0.4,
+        plt.colorbar(ax.collections[0], shrink=0.4,
                      pad=0.1, location='bottom', label=units)
 
     plt.show()
