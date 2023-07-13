@@ -51,7 +51,7 @@ def predefined_regions(region):
         latN, latS, lonW, lonE = 80.0, 50.0, -70.0, 20.0
     elif region in ["irmingersea", "irminger sea"]:
         latN, latS, lonW, lonE = 60.0, 70.0, 316.0, 330.0
-    elif region in ["global_ocean", "global ocean"]:
+    elif region in ["globalocean", "global ocean"]:
         latN, latS, lonW, lonE = 90.0, -90.0, 0.0, 360.0
     elif region in ["atlanticocean", "atlantic ocean"]:
         latN, latS, lonW, lonE = 65.0, -35.0, -80.0, 30.0
