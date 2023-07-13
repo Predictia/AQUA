@@ -294,7 +294,7 @@ def zonal_mean_trend_plot(data, region=None, latS: float = None, latN: float = N
 
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-             region, "_", latS, latN, lonE, lonW, output_dir, plot_name="zonal_mean_trend")
+             region, "_", latS, latN, lonW, lonE, output_dir, plot_name="zonal_mean_trend")
 
         data.to_netcdf(f'{data_dir}/{filename}.nc')
         plt.savefig(f"{fig_dir}/{filename}.png")
@@ -1290,9 +1290,9 @@ def plot_stratification(mod_data, region=None, time=None, latS: float = None, la
     obs_data = crop_obs_overlap_time(mod_data, obs_data)
 
     obs_data = prepare_data_for_stratification_plot(
-        obs_data, region, time, latS, latN, lonE, lonW)
+        obs_data, region, time, latS, latN, lonW, lonE)
     mod_data = prepare_data_for_stratification_plot(
-        mod_data, region, time, latS, latN, lonE, lonW)
+        mod_data, region, time, latS, latN, lonW, lonE)
     mod_data_list, obs_data = compare_arrays(mod_data, obs_data)
 
     mod_data_list = list(
@@ -1303,7 +1303,7 @@ def plot_stratification(mod_data, region=None, time=None, latS: float = None, la
 
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-             region, time, latS, latN, lonE, lonW, output_dir, plot_name="stratification")
+             region, time, latS, latN, lonW, lonE, output_dir, plot_name="stratification")
 
     legend_list = []
     for i, var in zip(range(len(axs)), ["ocpt", "so", "rho"]):
@@ -1435,7 +1435,7 @@ def data_for_plot_spatial_mld_clim(data, region=None, time=None, latS: float = N
 
     """
     
-    data = area_selection(data, region, latS, latN, lonE, lonW)
+    data = area_selection(data, region, latS, latN, lonW, lonE)
     data = convert_variables(data)
     data = compute_mld_cont(data)
     data = data_time_selection(data, time)
@@ -1467,9 +1467,9 @@ def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, 
         obs_data = crop_obs_overlap_time(mod_data, obs_data)
         mod_data = crop_obs_overlap_time(obs_data, mod_data)
 
-    mod_clim = data_for_plot_spatial_mld_clim(mod_data, region, time, latS, latN, lonE, lonW).mean(
+    mod_clim = data_for_plot_spatial_mld_clim(mod_data, region, time, latS, latN, lonW, lonE).mean(
         "time")  # To select the month and compute its climatology
-    obs_clim = data_for_plot_spatial_mld_clim(obs_data, region, time, latS, latN, lonE, lonW).mean(
+    obs_clim = data_for_plot_spatial_mld_clim(obs_data, region, time, latS, latN, lonW, lonE).mean(
         "time")  # To select the month and compute its climatology
     # obs_data=crop_obs_overlap_time(mod_data, obs_data)
 
@@ -1488,7 +1488,7 @@ def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, 
 
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-             region, time, latS, latN, lonE, lonW, output_dir, plot_name="spatial_MLD")
+             region, time, latS, latN, lonW, lonE, output_dir, plot_name="spatial_MLD")
 
     logger.info("Spatial MLD plot is in process")
     fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(20, 6.5))
