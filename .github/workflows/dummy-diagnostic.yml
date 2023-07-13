@@ -8,15 +8,13 @@ on:
   #  paths:
   #    - 'diagnostics/dummy/**'
   #    - 'tests/dummy/**'
-  #  types:
-  #    - labeled
   workflow_dispatch:
   #schedule:
   #  - cron: "0 3 * * 1" # Run every Monday night at 3AM UTC
 
 jobs:
   dummy-diagnostic_test:
-    if: ${{ github.event.label.name == 'Ready to merge' }}
+    if: contains(github.event.pull_request.labels.*.name, 'Ready to merge')
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
