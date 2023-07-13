@@ -21,6 +21,7 @@ import dask
 import fast_histogram 
 
 from aqua.util import create_folder
+from aqua.logger import log_configure
 
 import cartopy.crs as ccrs
 import cartopy.mpl.ticker as cticker
@@ -45,7 +46,7 @@ class Tropical_Rainfall:
 
 
     def __init__(self,
-            trop_lat = 10,
+            trop_lat    = 10,
             s_time      = None,
             f_time      = None,
             s_year      = None,
@@ -55,7 +56,8 @@ class Tropical_Rainfall:
             num_of_bins = None,
             first_edge  = None,
             width_of_bin= None,
-            bins        = 0):
+            bins        = 0,
+            loglevel: str = 'WARNING'):
         """ The constructor of the class.
 
         Args:
@@ -82,7 +84,8 @@ class Tropical_Rainfall:
         self.first_edge     = first_edge
         self.width_of_bin   = width_of_bin
         self.bins           = bins
-
+        self.loglevel       = loglevel
+        self.logger         = log_configure(self.loglevel, 'Trop. Rainfall')
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
     def class_attributes_update(self,               trop_lat = None,        s_time = None,          f_time = None,
                                 s_year = None,      f_year = None,          s_month = None,         f_month = None,
@@ -502,10 +505,12 @@ class Tropical_Rainfall:
         if not lazy:
             counts          = counts.compute()
             edges           = edges.compute()
-            print(data_size(data), 'data size after preprocessing')
-            print(int(sum(counts)),'sum of counts')
+            self.logger.info('Histogram of the data is created')
+            self.logger.debug('Size of data after preprocessing/Sum of Counts: {}/{}'
+                            .format(data_size(data), int(sum(counts))))
             if int(sum(counts))!=size_of_the_data and beyond_edges:
-                raise Exception("Amount of counts in the histogram is not equal to the size of the data. Check the data and the bins.")
+                self.logger.warning('Amount of counts in the histogram is not equal to the size of the data')
+                self.logger.info('Check the data and the bins')
         width_table         = [edges[i+1]-edges[i] for i in range(0, len(edges)-1)]
         center_of_bin       = [edges[i] + 0.5*width_table[i] for i in range(0, len(edges)-1)]
         counts_per_bin      =  xr.DataArray(counts, coords=[center_of_bin], dims=["center_of_bin"])
@@ -526,15 +531,19 @@ class Tropical_Rainfall:
             mean_from_hist, mean_original, mean_modified = self.mean_from_histogram(hist=tprate_dataset, data = data_original, old_unit=data.units, new_unit = new_unit, 
                             model_variable = model_variable, trop_lat = self.trop_lat, beyond_edges=beyond_edges)
             relative_discrepancy = abs(mean_modified - mean_from_hist)*100/mean_modified
-            if relative_discrepancy > threshold:
-                raise Exception("The difference between the mean of the data and the mean of the histogram is greater than the threshold. Increase the number of bins and decrease the width of the bins.")
+            self.logger.debug('The difference between the mean of the data and the mean of the histogram: {}%'
+                          .format(round(relative_discrepancy, 4)))
+            if new_unit is None:
+                unit = data.units
             else:
-                print('The difference between the mean of the data and the mean of the histogram is {}%'.format(round(relative_discrepancy, 4)))
-                if new_unit is None:
-                    unit = data.units
-                else:
-                    unit = new_unit
-                print('The mean of the data is {} and the mean of the histogram is {}{}.'.format(mean_original, mean_from_hist, unit))
+                unit = new_unit
+            self.logger.debug('The mean of the data: {}{}'
+                          .format(mean_original, unit))
+            self.logger.debug('The mean of the histogram: {}{}'
+                          .format(mean_from_hist, unit))
+            if relative_discrepancy > threshold:
+                self.logger.warning('The difference between the mean of the data and the mean of the histogram is greater than the threshold. \n \
+                                Increase the number of bins and decrease the width of the bins.')
             for variable in (None, 'counts', 'frequency', 'pdf'):
                 tprate_dataset  = self.grid_attributes(data = data_with_final_grid, tprate_dataset = tprate_dataset, variable = variable)
 
@@ -612,10 +621,12 @@ class Tropical_Rainfall:
         hist_fast   = fast_histogram.histogram1d(data, 
                                                    range=[self.first_edge, self.first_edge + (self.num_of_bins)*self.width_of_bin], 
                                                    bins = self.num_of_bins)
-        print(data_size(data),      'data size after preprocessing')
-        print(int(sum(hist_fast)),  'sum of counts')
+        self.logger.info('Histogram of the data is created')
+        self.logger.debug('Size of data after preprocessing/Sum of Counts: {}/{}'
+                          .format(data_size(data), int(sum(hist_fast))))
         if int(sum(hist_fast))!=size_of_the_data and beyond_edges:
-            raise Exception("Amount of counts in the histogram is not equal to the size of the data. Check the data and the bins.")
+            self.logger.warning('Amount of counts in the histogram is not equal to the size of the data')
+            self.logger.info('Check the data and the bins')
         counts_per_bin =  xr.DataArray(hist_fast, coords=[center_of_bin], dims=["center_of_bin"])
         counts_per_bin = counts_per_bin.assign_coords(width=("center_of_bin", width_table))
         counts_per_bin.attrs = data.attrs
@@ -633,15 +644,19 @@ class Tropical_Rainfall:
         mean_from_hist, mean_original, mean_modified = self.mean_from_histogram(hist=tprate_dataset, data = data_original, old_unit=data.units, new_unit = new_unit, 
                             model_variable = model_variable, trop_lat = self.trop_lat, beyond_edges=beyond_edges)
         relative_discrepancy = abs(mean_modified - mean_from_hist)*100/mean_modified
-        if relative_discrepancy > threshold:
-            raise Exception("The difference between the mean of the data and the mean of the histogram is greater than the threshold. Increase the number of bins and decrease the width of the bins.")
+        self.logger.debug('The difference between the mean of the data and the mean of the histogram: {}%'
+                          .format(round(relative_discrepancy, 4)))
+        if new_unit is None:
+            unit = data.units
         else:
-            print('The difference between the mean of the data and the mean of the histogram is {}%'.format(round(relative_discrepancy, 4)))
-            if new_unit is None:
-                unit = data.units
-            else:
-                unit = new_unit
-            print('The mean of the data is {} and the mean of the histogram is {}{}.'.format(mean_original, mean_from_hist, unit))
+            unit = new_unit
+        self.logger.debug('The mean of the data: {}{}'
+                          .format(mean_original, unit))
+        self.logger.debug('The mean of the histogram: {}{}'
+                          .format(mean_from_hist, unit))
+        if relative_discrepancy > threshold:
+            self.logger.warning('The difference between the mean of the data and the mean of the histogram is greater than the threshold. \n \
+                                Increase the number of bins and decrease the width of the bins.')
         for variable in (None, 'counts', 'frequency', 'pdf'):
             tprate_dataset  = self.grid_attributes(data = data_with_final_grid, tprate_dataset = tprate_dataset, variable = variable)
 
@@ -1380,7 +1395,7 @@ class Tropical_Rainfall:
                     ax_span.set_xticks([])
                     ax_span.set_yticks([])
 
-                    axs[i].coastlines(alpha=0.5)
+                    axs[i].coastlines(alpha=0.5, color='grey')
                     axs[i].set_xticks(np.arange(-180,181,60), crs=ccrs.PlateCarree())
                     lon_formatter = cticker.LongitudeFormatter()
                     axs[i].xaxis.set_major_formatter(lon_formatter)
