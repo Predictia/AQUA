@@ -10,6 +10,7 @@ import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+from scipy.stats import t as statt
 import cartopy.crs as ccrs
 from aqua import Reader
 
@@ -811,8 +812,7 @@ def linregress_3D(y_array):
     # Compute tstats, stderr, and p_val between time series of x_array and y_array over each (lon,lat) grid box.
     tstats = cor*np.sqrt(n-2)/np.sqrt(1-cor**2)
     # stderr = slope/tstats
-    from scipy.stats import t
-    p_val = t.sf(tstats, n-2)*2
+    p_val = statt.sf(tstats, n-2)*2
     # Compute r_square and rmse between time series of x_array and y_array over each (lon,lat) grid box.
     # r_square also equals to cor**2 in 1-variable lineare regression analysis, which can be used for checking.
     r_square = np.nansum((slope*x_array+intercept-y_mean)
@@ -883,8 +883,6 @@ def lintrend_2D(y_array):
     y_std = np.nanstd(y_array, axis=0)
     # Compute co-variance between time series of x_array and y_array over each (lon,lat) grid box.
     cov = np.nansum((x_array-x_mean)*(y_array-y_mean), axis=0)/n
-    # Compute correlation coefficients between time series of x_array and y_array over each (lon,lat) grid box.
-    cor = cov/(x_std*y_std)
     # Compute slope between time series of x_array and y_array over each (lon,lat) grid box.
     trend = cov/(x_std**2)
 
@@ -935,8 +933,6 @@ def lintrend_3D(y_array):
     y_std = np.nanstd(y_array, axis=0)
     # Compute co-variance between time series of x_array and y_array over each (lon,lat) grid box.
     cov = np.nansum((x_array-x_mean)*(y_array-y_mean), axis=0)/n
-    # Compute correlation coefficients between time series of x_array and y_array over each (lon,lat) grid box.
-    cor = cov/(x_std*y_std)
     # Compute slope between time series of x_array and y_array over each (lon,lat) grid box.
     trend = cov/(x_std**2)
 
@@ -1068,9 +1064,7 @@ def split_time_equally(data):
     data_2 = None
     if date_len == 0:
         raise ValueError("Time lenth is 0 in the data")
-    elif date_len == 1:
-        data = data
-    else:
+    elif date_len > 1:
         data = None
         if date_len % 2 == 0:
             data_1 = data.isel(time=slice(0, int(date_len/2)))
