@@ -157,25 +157,37 @@ def seasonal_bias(dataset1, dataset2, var_name, plev, statistic, model_label1, m
 #---------------------------------------------------------------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------------------------------------------------------
 
-def compare_datasets_plev(dataset1, var_name, time_range, model_label):
+import datetime
+
+def compare_datasets_plev(dataset1, dataset2, var_name, start_date1, end_date1, start_date2, end_date2, model_label1, model_label2):
     """
-    Compare a dataset and plot the zonal bias for a selected model time range with respect to the ERA5 climatology from 2000-2020.
+    Compare two datasets and plot the zonal bias for a selected model time range with respect to the second dataset.
 
     Args:
         dataset1 (xarray.Dataset): The first dataset.
+        dataset2 (xarray.Dataset): The second dataset.
         var_name (str): The variable name to compare (examples: q, u, v, t)
-        time_range (slice or str): The time range to select from the datasets. Should be a valid slice or a string in 'YYYY-MM-DD' format.
-        data_era5 (xarray.Dataset or None): The ERA5 dataset for calculating the climatology. Set to None if not chosen.
-        plot_latitude (bool): True to plot latitude on the x-axis, False to plot longitude.
+        start_date1 (str): The start date of the time range for dataset1 in 'YYYY-MM-DD' format.
+        end_date1 (str): The end date of the time range for dataset1 in 'YYYY-MM-DD' format.
+        start_date2 (str): The start date of the time range for dataset2 in 'YYYY-MM-DD' format.
+        end_date2 (str): The end date of the time range for dataset2 in 'YYYY-MM-DD' format.
+        model_label (str): The label for the model.
 
     Returns:
         A zonal bias plot.
     """
+    # Convert start and end dates to datetime objects
+    start1 = datetime.datetime.strptime(start_date1, "%Y-%m-%d")
+    end1 = datetime.datetime.strptime(end_date1, "%Y-%m-%d")
+    start2 = datetime.datetime.strptime(start_date2, "%Y-%m-%d")
+    end2 = datetime.datetime.strptime(end_date2, "%Y-%m-%d")
+
+    # Select the data for the given time ranges
+    dataset1 = dataset1.sel(time=slice(start1, end1))
+    dataset2 = dataset2.sel(time=slice(start2, end2))
+
     # Calculate the bias between dataset1 and dataset2
-    reader_era5 = Reader(model="ERA5", exp="era5", source="monthly")
-    data_era5 = reader_era5.retrieve(fix=True)
-    data_era5 = data_era5.sel(time=slice('2000-01-01', '2020-12-31'))
-    bias = dataset1[var_name].sel(time=time_range) - data_era5[var_name].mean(dim='time')
+    bias = dataset1[var_name] - dataset2[var_name].mean(dim='time')
 
     # Get the pressure levels and coordinate values
     plev = bias['plev'].values
@@ -191,7 +203,7 @@ def compare_datasets_plev(dataset1, var_name, time_range, model_label):
     # Create the plot
     fig, ax = plt.subplots(figsize=(10, 8))
     cax = ax.contourf(coord_values_2d, plev_2d, z_values, cmap='RdBu_r')
-    ax.set_title(f'Bias of {var_name} ({data_era5[var_name].long_name})\n Experiment {model_label} with respect to ERA5 Climatology (2000-2020).\n Selected model time range: {time_range}.')
+    ax.set_title(f'Bias of {var_name} Experiment {model_label1} with respect to {model_label2} \n Selected model time range: {start_date1} to {end_date1}. Reference time range: {start_date2} to {end_date2}')
     ax.set_yscale('log')
     ax.set_ylabel('Pressure Level (Pa)')
     ax.set_xlabel('Latitude')
@@ -200,19 +212,19 @@ def compare_datasets_plev(dataset1, var_name, time_range, model_label):
 
     # Add colorbar
     cbar = fig.colorbar(cax)
-    cbar.set_label(f'{var_name} ({data_era5[var_name].units})')
+    cbar.set_label(f'{var_name} [{dataset1[var_name].units}]')
 
     plt.show()
     # Save the pdf file
-    filename = f"{outputfig}/Vertical_biases_{model_label}_{var_name}.pdf"
-    plt.savefig(filename, dpi = 300, format = 'pdf')
+    filename = f"{outputfig}/Vertical_biases_{model_label1}_{model_label2}_{var_name}_{start_date1}_{end_date1}_{start_date2}_{end_date2}.pdf"
+    plt.savefig(filename, dpi=300, format='pdf')
 
     # Save the data into a NetCDF file
-    filename = f"{outputdir}/Vertical_bias_{model_label}_{var_name}.nc"
+    filename = f"{outputdir}/Vertical_bias_{model_label1}_{model_label2}_{var_name}_{start_date1}_{end_date1}_{start_date2}_{end_date2}.nc"
     mean_bias.to_netcdf(filename)
     print(f"The vertical bias plots have been saved to {outputfig}.")
     print(f"The vertical bias data has been saved to {outputdir}.")
-    
+
     
 #---------------------------------------------------------------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------------------------------------------------------
