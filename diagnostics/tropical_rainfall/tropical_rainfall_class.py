@@ -430,7 +430,7 @@ class Tropical_Rainfall:
                   f_year = None,        s_month = None,         f_month = None,             new_unit = None,
                   num_of_bins = None,   first_edge = None,      width_of_bin  = None,       bins = 0,
                   lazy = False,         create_xarray = True,   path_to_histogram = None,   name_of_file=None, 
-                  beyond_edges=True,    threshold = 2):
+                  positive=True,        threshold = 2):
         """ Function to calculate a histogram of the low-resolution Dataset.
 
         Args:
@@ -493,9 +493,9 @@ class Tropical_Rainfall:
             weights         = weights.stack(total=['time', coord_lat, coord_lon])
             weights_dask    = da.from_array(weights)
     
-        if beyond_edges:
-            data = np.maximum(data, self.first_edge)
-            data = np.minimum(data, self.first_edge + (self.num_of_bins)*self.width_of_bin-10**(-8))
+        
+        if positive:
+            data = np.maximum(data, 0.)
 
         data_dask           = da.from_array( data.stack(total=['time', coord_lat, coord_lon]))
         if weights is not None:
@@ -508,7 +508,7 @@ class Tropical_Rainfall:
             self.logger.info('Histogram of the data is created')
             self.logger.debug('Size of data after preprocessing/Sum of Counts: {}/{}'
                             .format(data_size(data), int(sum(counts))))
-            if int(sum(counts))!=size_of_the_data and beyond_edges:
+            if int(sum(counts))!=size_of_the_data:
                 self.logger.warning('Amount of counts in the histogram is not equal to the size of the data')
                 self.logger.info('Check the data and the bins')
         width_table         = [edges[i+1]-edges[i] for i in range(0, len(edges)-1)]
@@ -529,7 +529,7 @@ class Tropical_Rainfall:
             tprate_dataset      = self.add_frequency_and_pdf(tprate_dataset = tprate_dataset) #, path_to_histogram = path_to_histogram)
             
             mean_from_hist, mean_original, mean_modified = self.mean_from_histogram(hist=tprate_dataset, data = data_original, old_unit=data.units, new_unit = new_unit, 
-                            model_variable = model_variable, trop_lat = self.trop_lat, beyond_edges=beyond_edges)
+                            model_variable = model_variable, trop_lat = self.trop_lat, positive=positive)
             relative_discrepancy = abs(mean_modified - mean_from_hist)*100/mean_modified
             self.logger.debug('The difference between the mean of the data and the mean of the histogram: {}%'
                           .format(round(relative_discrepancy, 4)))
@@ -566,7 +566,7 @@ class Tropical_Rainfall:
                   f_year = None,            s_month = None,         f_month = None,
                   num_of_bins = None,       first_edge = None,      width_of_bin  = None,       bins = 0,
                   new_unit = None,          threshold = 2,
-                  path_to_histogram = None, name_of_file=None,      beyond_edges=True):
+                  path_to_histogram = None, name_of_file=None,      positive=True):
         """ Function to calculate a histogram of the high-resolution Dataset.
 
         Args:
@@ -615,24 +615,26 @@ class Tropical_Rainfall:
             bins            = self.bins
             width_table     = [self.bins[i+1]-self.bins[i] for i in range(0, len(self.bins)-1)]
             center_of_bin   = [self.bins[i] + 0.5*width_table[i] for i in range(0, len(self.bins)-1)] 
-        if beyond_edges:
-            data = np.maximum(data, self.first_edge)
-            data = np.minimum(data, self.first_edge + (self.num_of_bins)*self.width_of_bin -10**(-8))
+        if positive:
+            data = np.maximum(data, 0.)
+            #data = np.minimum(data, self.first_edge + (self.num_of_bins)*self.width_of_bin -10**(-8))
         hist_fast   = fast_histogram.histogram1d(data, 
                                                    range=[self.first_edge, self.first_edge + (self.num_of_bins)*self.width_of_bin], 
                                                    bins = self.num_of_bins)
         self.logger.info('Histogram of the data is created')
         self.logger.debug('Size of data after preprocessing/Sum of Counts: {}/{}'
                           .format(data_size(data), int(sum(hist_fast))))
-        if int(sum(hist_fast))!=size_of_the_data and beyond_edges:
+        if int(sum(hist_fast))!=size_of_the_data:
             self.logger.warning('Amount of counts in the histogram is not equal to the size of the data')
-            self.logger.info('Check the data and the bins')
+            self.logger.warning('Check the data and the bins')
         counts_per_bin =  xr.DataArray(hist_fast, coords=[center_of_bin], dims=["center_of_bin"])
         counts_per_bin = counts_per_bin.assign_coords(width=("center_of_bin", width_table))
         counts_per_bin.attrs = data.attrs
 
         counts_per_bin.center_of_bin.attrs['units'] = data.units
         counts_per_bin.center_of_bin.attrs['history'] = 'Units are added to the bins to coordinate'
+        counts_per_bin.attrs['size_of_the_data'] = size_of_the_data
+        
         
         if data_with_global_atributes is None:
             data_with_global_atributes = data_original
@@ -642,8 +644,8 @@ class Tropical_Rainfall:
         tprate_dataset      = self.add_frequency_and_pdf(tprate_dataset = tprate_dataset) 
 
         mean_from_hist, mean_original, mean_modified = self.mean_from_histogram(hist=tprate_dataset, data = data_original, old_unit=data.units, new_unit = new_unit, 
-                            model_variable = model_variable, trop_lat = self.trop_lat, beyond_edges=beyond_edges)
-        relative_discrepancy = abs(mean_modified - mean_from_hist)*100/mean_modified
+                            model_variable = model_variable, trop_lat = self.trop_lat, positive=positive)
+        relative_discrepancy = (mean_original - mean_from_hist)*100/mean_original
         self.logger.debug('The difference between the mean of the data and the mean of the histogram: {}%'
                           .format(round(relative_discrepancy, 4)))
         if new_unit is None:
@@ -659,7 +661,16 @@ class Tropical_Rainfall:
                                 Increase the number of bins and decrease the width of the bins.')
         for variable in (None, 'counts', 'frequency', 'pdf'):
             tprate_dataset  = self.grid_attributes(data = data_with_final_grid, tprate_dataset = tprate_dataset, variable = variable)
-
+            if variable is None:
+                tprate_dataset.attrs['units'] = tprate_dataset.counts.units
+                tprate_dataset.attrs['mean_of_original_data'] = float(mean_original)
+                tprate_dataset.attrs['mean_of_histogram'] = float(mean_from_hist)
+                tprate_dataset.attrs['relative_discrepancy'] = float(relative_discrepancy)
+                
+            else:
+                tprate_dataset[variable].attrs['mean_of_original_data'] = float(mean_original)
+                tprate_dataset[variable].attrs['mean_of_histogram'] = float(mean_from_hist)
+                tprate_dataset[variable].attrs['relative_discrepancy'] = float(relative_discrepancy)
         if path_to_histogram is not None and name_of_file is not None:
             self.dataset_to_netcdf(tprate_dataset, path_to_netcdf = path_to_histogram, name_of_file = name_of_file)
     
@@ -744,7 +755,7 @@ class Tropical_Rainfall:
         return tprate_dataset
     
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
-    def add_frequency_and_pdf(self,  tprate_dataset = None, path_to_histogram = None, name_of_file = None):
+    def add_frequency_and_pdf(self,  tprate_dataset = None,  path_to_histogram = None, name_of_file = None):
         """ Function to convert the histogram to xarray.Dataset.
 
         Args:
@@ -899,9 +910,9 @@ class Tropical_Rainfall:
         Returns:
             xarray: The frequency.
         """
-        sum_of_counts           = sum(data[:])
+        #sum_of_counts           = sum(data[:])
         #sum_of_counts           = data_size
-        frequency               = data[0:]/sum_of_counts
+        frequency               = data[0:]/data.size_of_the_data
         frequency_per_bin       = xr.DataArray(frequency, coords=[data.center_of_bin],    dims=["center_of_bin"])
         frequency_per_bin       = frequency_per_bin.assign_coords(width=("center_of_bin", data.width.values))
         frequency_per_bin.attrs = data.attrs
@@ -922,9 +933,10 @@ class Tropical_Rainfall:
         Returns:
             xarray: The pdf.
         """
-        sum_of_counts       = sum(data[:])
+        #sum_of_counts       = sum(data[:])
         #sum_of_counts           = data_size
-        pdf                     = data[0:]/(sum_of_counts*data.width[0:])
+        
+        pdf                     = data[0:]/(data.size_of_the_data*data.width[0:])
         pdf_per_bin             = xr.DataArray(pdf, coords=[data.center_of_bin],    dims=["center_of_bin"])
         pdf_per_bin             = pdf_per_bin.assign_coords(width=("center_of_bin", data.width.values))
         pdf_per_bin.attrs       = data.attrs
@@ -936,18 +948,18 @@ class Tropical_Rainfall:
             raise Exception("Test failed.")
         
     def mean_from_histogram(self, hist, data = None, old_unit='kg m**-2 s**-1', new_unit = None, 
-                            model_variable = 'tprate', trop_lat = None, beyond_edges=True):
+                            model_variable = 'tprate', trop_lat = None, positive=True):
         self.class_attributes_update(trop_lat = trop_lat)
         
         if data is not None:
             try:
                 data       = data[model_variable]
             except KeyError:
-                data       = data
+                pass
             mean_of_original_data = data.sel(lat=slice(-self.trop_lat, self.trop_lat)).mean().values
-            if beyond_edges:
-                _data = np.maximum(data, self.first_edge)
-                _data = np.minimum(data, self.first_edge + (self.num_of_bins)*self.width_of_bin -10**(-8))
+            if positive:
+                _data = np.maximum(data, 0.)
+                #_data = np.minimum(data, self.first_edge + (self.num_of_bins)*self.width_of_bin -10**(-8))
                 mean_of_modified_data = _data.sel(lat=slice(-self.trop_lat, self.trop_lat)).mean().values
         else:
             mean_of_original_data, mean_of_modified_data = None, None
@@ -973,7 +985,7 @@ class Tropical_Rainfall:
                        color = 'tab:blue',  figsize = 1,            legend = '_Hidden', \
                        plot_title = None,   loc = 'upper right',    varname = 'Precipitation',  \
                        add = None,          fig = None,             path_to_pdf = None, 
-                       name_of_file = None, pdf_format=True):
+                       name_of_file = None, pdf_format=True,        xmax = None):
         """ Function to generate a histogram figure based on the provided data.
 
         Args:
@@ -1028,7 +1040,9 @@ class Tropical_Rainfall:
             converter       = self.precipitation_rate_units_converter(1, old_unit = data.center_of_bin.units, new_unit=new_unit)
             x = converter * x
             data = data/converter
-        
+        legend = legend + ': mean {}{}, error {}%'.format(round(data.mean_of_original_data, 2),  data.units, round(data.relative_discrepancy, 2))
+
+        data = data.where(data>0)
         if smooth:
             plt.plot(x, data,
                 linewidth=3.0, ls = ls, color = color, label = legend)
@@ -1072,7 +1086,10 @@ class Tropical_Rainfall:
 
 
         if legend!='_Hidden':
-            plt.legend(loc=loc,     fontsize=12)
+            plt.legend(loc=loc,     fontsize=10)
+        
+        if xmax is not None:
+            plt.xlim([0, xmax])
 
         if pdf_format:
             if path_to_pdf is not None and name_of_file is not None:
