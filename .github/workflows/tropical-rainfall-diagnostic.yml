@@ -6,6 +6,8 @@ on:
     paths:
       - 'diagnostics/tropical_rainfall/**'
       - 'tests/tropical-rainfall/**'
+    types:
+      - labeled
   workflow_dispatch:
   schedule:
     - cron: "0 3 * * 1" # Run every Monday night at 3AM UTC
@@ -15,7 +17,7 @@ permissions:
 
 jobs:
   tropical-rainfall-diagnostic_test:
-    if: contains(github.event.pull_request.labels.*.name, 'Ready to merge')
+    if: contains(github.event.pull_request.labels.*.name, 'Ready to merge') || contains(github.event.label.name, 'Ready to merge')
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
