@@ -10,6 +10,8 @@ import matplotlib.gridspec as gridspec
 from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 from aqua import Reader
 import pandas as pd
+import datetime
+
 outputfig = "./output/figs"
 if not os.path.exists(outputfig):
     os.makedirs(outputfig)
@@ -24,7 +26,7 @@ def seasonal_bias(dataset1, dataset2, var_name, plev, statistic, model_label1, m
 
     Args:
         dataset1 (xarray.Dataset): The first dataset.
-        dataset2 (xarray.Dataset): The second dataset, that will be compared to the first dataset.
+        dataset2 (xarray.Dataset): The second dataset, that will be compared to the first dataset (reference dataset).
         var_name (str): The name of the variable to compare (e.g., '2t', 'tprate', 'mtntrf', 'mtnsrf', ...).
         plev (float or None): The desired pressure level in Pa. If None, the variable is assumed to be at surface level.
         statistic (str): The desired statistic to calculate for each season. Valid options are: 'mean', 'max', 'min', 'diff', and 'std'.
@@ -45,36 +47,37 @@ def seasonal_bias(dataset1, dataset2, var_name, plev, statistic, model_label1, m
     var1 = dataset1[var_name]
     var2 = dataset2[var_name]
 
-    var1_year = var1.sel(time=slice(start_date1, end_date1))
-    var2_year = var2.sel(time=slice(start_date2, end_date2))
+    var1_climatology = var1.sel(time=slice(start_date1, end_date1)).groupby('time.month').mean(dim='time')
+    var2_climatology = var2.sel(time=slice(start_date2, end_date2)).groupby('time.month').mean(dim='time')
 
     # Select the desired pressure level if provided
     if plev is not None:
-        var1_year = var1_year.sel(plev=plev)
-        var2_year = var2_year.sel(plev=plev)
+        var1_climatology = var1_climatology.sel(plev=plev)
+        var2_climatology = var2_climatology.sel(plev=plev)
 
     # Calculate the desired statistic for each season
     season_ranges = {'DJF': [12, 1, 2], 'MAM': [3, 4, 5], 'JJA': [6, 7, 8], 'SON': [9, 10, 11]}
     results = []
     for season, months in season_ranges.items():
-        var2_season = var2_year.sel(time=var2_year.time.dt.month.isin(months))
+        var1_season = var1_climatology.sel(month=months)
+        var2_season = var2_climatology.sel(month=months)
 
         if statistic == 'mean':
-            result_season = var1_year.sel(time=var1_year.time.dt.month.isin(months)).mean(dim='time') - var2_season.mean(dim='time')
+            result_season = var1_season.mean(dim='month') - var2_season.mean(dim='month')
         elif statistic == 'max':
-            result_season = var1_year.sel(time=var1_year.time.dt.month.isin(months)).max(dim='time') - var2_season.max(dim='time')
+            result_season = var1_season.max(dim='month') - var2_season.max(dim='month')
         elif statistic == 'min':
-            result_season = var1_year.sel(time=var1_year.time.dt.month.isin(months)).min(dim='time') - var2_season.min(dim='time')
+            result_season = var1_season.min(dim='month') - var2_season.min(dim='month')
         elif statistic == 'diff':
-            result_season = var1_year.sel(time=var1_year.time.dt.month.isin(months)) - var2_season
+            result_season = var1_season - var2_season
         elif statistic == 'std':
-            result_season = var1_year.sel(time=var1_year.time.dt.month.isin(months)).std(dim='time') - var2_season.std(dim='time')
+            result_season = var1_season.std(dim='month') - var2_season.std(dim='month')
         else:
             raise ValueError("Invalid statistic. Please choose one of 'mean', 'std', 'max', 'min', or 'diff'.")
 
         results.append(result_season)
 
-    # Create a cartopy projection
+     # Create a cartopy projection
     projection = ccrs.PlateCarree()
 
     # Calculate the number of rows and columns for the subplot grid
@@ -136,6 +139,7 @@ def seasonal_bias(dataset1, dataset2, var_name, plev, statistic, model_label1, m
     plt.savefig(filename, dpi=300, format='pdf')
     plt.show()
 
+
     # Write the data into a NetCDF file
     data_directory = outputdir
     data_filename = f"Seasonal_Bias_Data_{model_label1}_{var_name}_{statistic}_{start_date1}_{end_date1}_{start_date2}_{end_date2}.nc"
@@ -156,8 +160,6 @@ def seasonal_bias(dataset1, dataset2, var_name, plev, statistic, model_label1, m
 
 #---------------------------------------------------------------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------------------------------------------------------
-
-import datetime
 
 def compare_datasets_plev(dataset1, dataset2, var_name, start_date1, end_date1, start_date2, end_date2, model_label1, model_label2):
     """
