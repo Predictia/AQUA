@@ -13,4 +13,5 @@ from .plotting_TCs import multi_plot, plot_trajectories
 __version__ = '0.0.1'
 
 # This specifies which methods are exported publicly, used by "from dummy import *"
-__all__ = ["TCs", "DetectNodes", "StitchNodes", "multi_plot", "plot_trajectories"]
+__all__ = ["TCs", "DetectNodes", "StitchNodes",
+           "multi_plot", "plot_trajectories"]
