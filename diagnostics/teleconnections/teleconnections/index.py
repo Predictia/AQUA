@@ -152,7 +152,7 @@ def regional_mean_anomalies(field, namelist, telecname, months_window=3,
     latN = namelist[telecname]['latN']
     latS = namelist[telecname]['latS']
 
-    logger.info('Region: lon = %s-%s, lat = %s-%s', lonW, lonE, latS, latN)
+    logger.debug('Region: lon = %s; %s, lat = %s; %s', lonW, lonE, latS, latN)
 
     # 2. -- Evaluate mean value of the field and then the rolling mean --
     field_mean = wgt_area_mean(field, latN, latS, lonW, lonE)
