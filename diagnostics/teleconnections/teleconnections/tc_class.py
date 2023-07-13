@@ -205,6 +205,14 @@ class Teleconnection():
                     self.data = self.reader.timmean(self.data)
                     self.logger.info('Time aggregated to {}'.format(self.freq))
 
+            #  HACK for FESOM data:
+            #  data have double times and the odd ones are NaNs (see issue #375)
+            if self.model == 'FESOM':
+                try:
+                    self.logger.warning('Trying to fix FESOM data, see issue #375')
+                    self.data = self.data.isel(time=slice(0, None, 2))
+                except ValueError:
+                    return
             return
         else:
             try:
