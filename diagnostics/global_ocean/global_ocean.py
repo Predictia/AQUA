@@ -4,12 +4,13 @@ Global Ocean module
 
 import datetime
 import os
+import warnings
+import logging
 import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import cartopy.crs as ccrs
-import warnings
-import logging
 from aqua import Reader
 
 warnings.filterwarnings("ignore")
@@ -295,7 +296,7 @@ def zonal_mean_trend_plot(data, region=None, latS: float = None, latN: float = N
         data.to_netcdf(f'{data_dir}/{filename}.nc')
         plt.savefig(f"{fig_dir}/{filename}.png")
         logger.info(
-            f"Figure and data used for this plot are saved here: {output_path}")
+            "Figure and data used for this plot are saved here: %s", output_path)
 
     plt.show()
 
@@ -442,7 +443,7 @@ def data_process_by_type(data,  type=None):
     else:
         cmap = 'jet'
         process_data = data
-    logger.info(f"Data processed for {type}")
+    logger.info("Data processed for %s", type)
     return process_data, cmap
 
 
@@ -478,7 +479,6 @@ def hovmoller_lev_time_plot(data, region, type=None, latS: float = None, latN: f
         output_path, fig_dir, data_dir, filename = dir_creation(
             data, region, type, latS, latN, lonE, lonW, output_dir, plot_name="hovmoller_plot")
 
-    import matplotlib.colors as mcolors
     _ = mcolors.TwoSlopeNorm(vcenter=0)
 
     # plt.pcolor(X, Y, Z, vmin=vmin, vmax=vmax, norm=norm)
@@ -545,7 +545,7 @@ def hovmoller_lev_time_plot(data, region, type=None, latS: float = None, latN: f
     if output:
         plt.savefig(f"{fig_dir}/{filename}.png")
         logger.info(
-            f"Figure and data used for this plot are saved here: {output_path}")
+            "Figure and data used for this plot are saved here: %s", output_path)
 
     return
 
@@ -624,7 +624,7 @@ def time_series_multilevs(data, region=None, type=None, customise_level=False, l
     if output:
         plt.savefig(f"{fig_dir}/{filename}.png")
         logger.info(
-            f" Figure and data used in the plot, saved here : {output_path}")
+            " Figure and data used in the plot, saved here : %s", output_path)
     plt.show()
     return
 
@@ -911,7 +911,7 @@ def array2xarray(array, y_array):
     ----------
     array : input array Dataset
 
-    y_array:  xarray Dataset with target coordinate information 
+    y_array:  xarray Dataset with target coordinate information
 
     Returns
     -------
@@ -1121,7 +1121,7 @@ def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=N
         data.interp(lev=levels[levs]).to_netcdf(f'{data_dir}/{filename}.nc')
         plt.savefig(f"{fig_dir}/{filename}.png")
         logger.info(
-            f"Figure and data used for this plot are saved here: {output_path}")
+            "Figure and data used for this plot are saved here: %s", output_path)
 
     plt.show()
 
@@ -1173,7 +1173,7 @@ def load_obs_data(model='EN4', exp='en4', source='monthly'):
     # We standardise the name for the vertical dimension
     den4 = den4.rename({"depth": "lev"})
     den4 = den4[["ocpt", "so"]].resample(time="M").mean()
-    logger.info(f"loaded {model} data")
+    logger.info("loaded %s data", model)
     return den4
 
 
@@ -1277,7 +1277,7 @@ def data_time_selection(data, time):
     else:
         raise ValueError("""Invalid month input. Please provide a valid name. Among this:
                          Yearly, 3M, Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec """)
-    logger.info(f"data selected for {time} climatology")
+    logger.info("data selected for %s climatology", time)
     return data
 
 
@@ -1434,7 +1434,7 @@ def plot_stratification(mod_data, region=None, time=None, latS: float = None, la
     if output:
         plt.savefig(f"{fig_dir}/{filename}.png")
         logger.info(
-            f" Figure and data used in the plot, saved here : {output_path}")
+            " Figure and data used in the plot, saved here : %s", output_path)
     plt.show()
     return
 
@@ -1445,7 +1445,7 @@ def compute_mld_cont(rho):
     values is achieved by performing an interpolation between the first level that exceeds the
     threshold and the one immediately after to linearly estimate where the 0.03 value would be reached
 
-    Warning!!: It does not provide reasonable estimates in some instances in which the upper level 
+    Warning!!: It does not provide reasonable estimates in some instances in which the upper level
     has higher densities than the lower one. This function is therefore not recommended until this
     issue is addressed and corrected
 
@@ -1508,7 +1508,7 @@ def data_for_plot_spatial_mld(data, region=None, time=None, latS: float = None, 
 def plot_spatial_mld(mod_data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None,
                      lonE: float = None, output=False, output_dir="output"):
     """
-    Plots the climatology of mixed layer depth in the NH as computed with de Boyer Montegut (2004)'s criteria in 
+    Plots the climatology of mixed layer depth in the NH as computed with de Boyer Montegut (2004)'s criteria in
     an observational dataset and a model dataset, allowing the user to select the month the climatology is computed
     (the recommended one is march (month=3) that is when the NH MLD peaks)
 
@@ -1591,7 +1591,7 @@ def plot_spatial_mld(mod_data, region=None, time=None, latS: float = None, latN:
     if output:
         plt.savefig(f"{fig_dir}/{filename}.png")
         logger.info(
-            f"Figure and data used for this plot are saved here: {output_path}")
+            "Figure and data used for this plot are saved here: %s", output_path)
 
     plt.show()
     return
