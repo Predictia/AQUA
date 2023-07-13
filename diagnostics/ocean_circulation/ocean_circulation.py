@@ -1,3 +1,7 @@
+"""
+Ocean Circulation module
+"""
+
 import datetime
 import os
 import warnings
@@ -5,6 +9,8 @@ import logging
 import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+import cartopy.crs as ccrs
 from aqua import Reader
 
 warnings.filterwarnings("ignore")
@@ -150,6 +156,9 @@ def area_selection(data, region=None, latS: float = None, latN: float = None, lo
 
     Returns:
         xarray.Dataset: Weighted area mean of the input data.
+
+    Raises:
+        ValueError: If region is None but the latitude and longitude bounds are not specified.
     """
     if region is None:
         if latN is None or latS is None or lonW is None or lonE is None:
@@ -189,8 +198,8 @@ def weighted_zonal_mean(data, region=None, latS: float = None, latN: float = Non
     Returns:
         xarray.Dataset: Weighted zonal mean of the input data.
     """
-    data = area_selection(data, region, latS=None,
-                          latN=None, lonW=None, lonE=None)
+    data = area_selection(data, region, latS,
+                          latN, lonW, lonE)
 
     wgted_mean = data.mean(("lon"))
 
@@ -217,137 +226,259 @@ def weighted_area_mean(data, region=None, latS: float = None, latN: float = None
     Returns:
         xarray.Dataset: Weighted area mean of the input data.
     """
-    data = area_selection(data, region, latS=None,
-                          latN=None, lonW=None, lonE=None)
+    data = area_selection(data, region, latS,
+                          latN, lonW, lonE)
     weighted_data = data.weighted(np.cos(np.deg2rad(data.lat)))
     wgted_mean = weighted_data.mean(("lat", "lon"))
     return wgted_mean
 
+def zonal_mean_trend_plot(data, region=None, latS: float = None, latN: float = None, lonW: float = None,
+                          lonE: float = None,  output=True, output_dir="output"):
+    """
+    Plots spatial trends at different vertical levels for two variables.
 
-def mean_value_plot(data, region, customise_level=False, levels=None, outputfig="figs"):
-    # Calculate weighted area mean
-    data = weighted_area_mean(data, True, region)
+    Args:
 
-    # Create subplots
-    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
+        data (xarray.Dataset):
+            Input dataset containing a single 3D field with trends as a function of depth, latitude, and longitude.
 
-    # Set the title
-    fig.suptitle(region, fontsize=16)
+        region (str, optional):
+            Region name.
 
-    # Define the levels for plotting
-    if customise_level:
-        if levels is None:
-            raise ValueError(
-                "Custom levels are selected, but levels are not provided.")
-    else:
-        levels = [0, 100, 500, 1000, 2000, 3000, 4000, 5000]
+        latS (float, optional):
+            Southern latitude bound for the region.
 
-    # Plot data for each level
-    for level in levels:
-        if level != 0:
-            data_level = data.sel(lev=slice(None, level)).isel(lev=-1)
-        else:
-            data_level = data.isel(lev=0)
+        latN (float, optional):
+            Northern latitude bound for the region.
 
-        # Plot temperature
-        data_level.ocpt.plot.line(
-            ax=ax1, label=f"{round(int(data_level.lev.data), -2)}")
+        lonW (float, optional):
+            Western longitude bound for the region.
 
-        # Plot salinity
-        data_level.so.plot.line(
-            ax=ax2, label=f"{round(int(data_level.lev.data), -2)}")
+        lonE (float, optional):
+            Eastern longitude bound for the region.
 
-    # Set properties for the temperature subplot
-    ax1.set_title("Temperature", fontsize=14)
-    ax1.set_ylabel("Standardized Units (at the respective level)", fontsize=12)
-    ax1.set_xlabel("Time (in years)", fontsize=12)
-    ax1.legend(loc="best")
+        output (bool, optional):
+            Flag indicating whether to save the output figure and data. Defaults to True.
 
-    # Set properties for the salinity subplot
-    ax2.set_title("Salinity", fontsize=14)
-    ax2.set_ylabel("Standardized Units (at the respective level)", fontsize=12)
-    ax2.set_xlabel("Time (in years)", fontsize=12)
-    ax2.legend(loc="best")
-    filename = f"{outputfig}/TS_{region.replace(' ', '_').lower()}_mean.png"
+        output_dir (str, optional):
+            Output directory path. Defaults to "output".
 
-    plt.savefig(filename)
-    logger.info("%s saved", filename)
-    # Adjust the layout and display the plot
+    Returns:
+        None
+    """
+    data = TS_3dtrend(data)
+    data = weighted_zonal_mean(data, region, latS, latN, lonW, lonE)
+
+    fig, (axs) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
+
+    data.ocpt.plot.contourf(levels=20, ax=axs[0])
+    axs[0].set_ylim((5500, 0))
+
+    fig.suptitle(
+        f"Zonally-averaged long-term trends in the {region}", fontsize=20)
+
+    plt.subplots_adjust(top=0.85)
+
+    axs[0].set_title("Temperature", fontsize=14)
+    axs[0].set_ylabel("Depth (in m)", fontsize=9)
+    axs[0].set_xlabel("Latitude (in deg North)", fontsize=9)
+    axs[0].set_facecolor('grey')
+
+    data.so.plot.contourf(levels=20, ax=axs[1])
+    axs[1].set_ylim((5500, 0))
+    axs[1].set_title("Salinity", fontsize=14)
+    axs[1].set_ylabel("Depth (in m)", fontsize=12)
+    axs[1].set_xlabel("Latitude (in deg North)", fontsize=12)
+    axs[1].set_facecolor('grey')
+
+    if output:
+        output_path, fig_dir, data_dir, filename = dir_creation(
+             region, "_", latS, latN, lonE, lonW, output_dir, plot_name="zonal_mean_trend")
+
+        data.to_netcdf(f'{data_dir}/{filename}.nc')
+        plt.savefig(f"{fig_dir}/{filename}.png")
+        logger.info(
+            "Figure and data used for this plot are saved here: %s", output_path)
+
     plt.show()
 
-    # Return the last value of data_level
     return
 
 
-def std_anom_wrt_initial(data, use_predefined_region: bool, region: str = None, latN: float = None, latS: float = None, lonW: float = None, lonE: float = None):
-    """
-    Calculate the standard anomaly of input data relative to the initial time step.
 
-    Args:
-        data (DataArray): Input data to be processed.
-        use_predefined_region (bool): Whether to use a predefined region or a custom region.
-        region (str, optional): Predefined region to use when use_predefined_region is True.
-                                Ignored when use_predefined_region is False.
-        latN (float, optional): Northern latitude bound. Required if use_predefined_region is False or region is not provided.
-        latS (float, optional): Southern latitude bound. Required if use_predefined_region is False or region is not provided.
-        lonW (float, optional): Western longitude bound. Required if use_predefined_region is False or region is not provided.
-        lonE (float, optional): Eastern longitude bound. Required if use_predefined_region is False or region is not provided.
+def reg_mean(data, region=None, latS=None, latN=None, lonW=None, lonE=None):
+    """
+    Computes the weighted box mean for some predefined or customized region
+
+    Parameters:
+        data (xarray.Dataset): Input data.
+
+        region (str, optional): Predefined region name. If provided, latitude and longitude bounds will be fetched from predefined regions.
+
+        latS (float, optional): Southern latitude bound. Required if region is not provided or None.
+
+        latN (float, optional): Northern latitude bound. Required if region is not provided or None.
+
+        lonW (float, optional): Western longitude bound. Required if region is not provided or None.
+
+        lonE (float, optional): Eastern longitude bound. Required if region is not provided or None.
 
     Returns:
-        DataArray: Standard anomaly of the input data.
+        xarray.Dataset: Standardised anomaly with respect to the initial time step of the input data.
     """
-    # Create an empty dataset to store the results
-    std_anomaly = xr.Dataset()
+    data = weighted_area_mean(data, region, latS, latN, lonW, lonE)
 
-    # Compute the weighted area mean over the specified latitude and longitude range
-    wgted_mean = weighted_area_mean(
-        data, use_predefined_region, region, latN, latS, lonW, lonE)
-
-    # Calculate the anomaly from the initial time step for each variable
-    for var in list(data.data_vars.keys()):
-        anomaly_from_initial = wgted_mean[var] - wgted_mean[var].isel(time=0)
-
-        # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
-        std_anomaly[var] = anomaly_from_initial / \
-            anomaly_from_initial.std(dim="time")
-
-    return std_anomaly
+    return data
 
 
-def std_anom_wrt_time_mean(data, use_predefined_region: bool, region: str = None, latN: float = None, latS: float = None, lonW: float = None, lonE: float = None):
+
+def data_process_by_type(data,  type=None):
     """
-    Calculate the standard anomaly of input data relative to the time mean.
+    Selects the type of timeseries and colormap based on the given parameters.
 
     Args:
-        data (DataArray): Input data to be processed.
-        latN (float): North latitude.
-        latS (float): South latitude.
-        lonW (float): West longitude.
-        lonE (float): East longitude.
+        data (DataArray): Input data containing temperature (ocpt) and salinity (so).
+    Returns:
+        process_data (Dataset): Processed data based on the selected timeseries type.
+        cmap (str): Colormap to be used for the plot.
+    """
+    type = type.lower()
+    process_data = xr.Dataset()
+
+    if type in ['anomaly tmean', "anomaly vs tmean", "anomaly_tmean", "anomaly_vs_tmean"]:
+        cmap = "PuOr"
+        for var in list(data.data_vars.keys()):
+            process_data[var] = data[var] - data[var].mean(dim='time')
+    elif type in ['anomaly t0', "anomaly vs t0", "anomaly_t0", "anomaly_vs_t0"]:
+        cmap = "PuOr"
+        for var in list(data.data_vars.keys()):
+            process_data[var] = data[var] - data[var].isel(time=0)
+    elif type in ['stdanomaly_t0', "std_anomaly_vs_t0", "std anomaly t0", "stdanomaly t0"]:
+        cmap = "PuOr"
+        for var in list(data.data_vars.keys()):
+            var_data = data[var] - data[var].isel(time=0)
+            var_data.attrs['units'] = 'Stand. Units'
+            # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
+            process_data[var] = var_data / var_data.std(dim="time")
+    elif type in ['stdanomaly_tmean', "std_anomaly_vs_tmean", "std anomaly tmean", "stdanomaly tmean"]:
+        cmap = "PuOr"
+        for var in list(data.data_vars.keys()):
+            var_data = data[var] - data[var].mean(dim='time')
+            var_data.attrs['units'] = 'Stand. Units'
+            # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
+            process_data[var] = var_data / var_data.std(dim="time")
+
+    else:
+        cmap = 'jet'
+        process_data = data
+    logger.info("Data processed for %s", type)
+    return process_data, cmap
+
+
+def hovmoller_lev_time_plot(data, region, type=None, latS: float = None, latN: float = None, lonW: float = None,
+                            lonE: float = None, output=False, output_dir="output"):
+    """
+    Create a Hovmoller plot of temperature and salinity full values.
+
+    Args:
+        data (DataArray): Input data containing temperature (ocpt) and salinity (so).
+        region (str): Region represented in the plot.
+        type (str): Type of timeseries to display, choose from FullValue, Anomaly, StdAnomaly.
+        latS (float, optional): Southern latitude boundary of the region. Default is None.
+        latN (float, optional): Northern latitude boundary of the region. Default is None.
+        lonW (float, optional): Western longitude boundary of the region. Default is None.
+        lonE (float, optional): Eastern longitude boundary of the region. Default is None.
+        output (bool, optional): Indicates whether to save the plot and data. Default is False.
+        output_dir (str, optional): Directory to save the output files. Default is "output".
 
     Returns:
-        DataArray: Standard anomaly of the input data.
+        None
     """
-    # Create an empty dataset to store the results
-    std_anomaly = xr.Dataset()
+    data = weighted_area_mean(data, region, latS, latN, lonW, lonE)
+    # Reads the type of timeseries to plot
+    data, cmap = data_process_by_type(data, type)
 
-    # Compute the weighted area mean over the specified latitude and longitude range
-    wgted_mean = weighted_area_mean(
-        data, use_predefined_region, region, latN, latS, lonW, lonE)
+    logger.info("Hovmoller plotting in process")
+    # Create subplots for temperature and salinity plots
+    fig, (axs) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
+    fig.suptitle(f"{type} {region} T,S evolution", fontsize=22)
 
-    # Calculate the anomaly from the time mean for each variable
-    for var in list(data.data_vars.keys()):
-        anomaly_from_time_mean = wgted_mean[var] - wgted_mean[var].mean("time")
+    if output:
+        output_path, fig_dir, data_dir, filename = dir_creation(
+             region, type, latS, latN, lonE, lonW, output_dir, plot_name="hovmoller_plot")
 
-        # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
-        std_anomaly[var] = anomaly_from_time_mean / \
-            anomaly_from_time_mean.std("time")
+    _ = mcolors.TwoSlopeNorm(vcenter=0)
 
-    return std_anomaly
+    # plt.pcolor(X, Y, Z, vmin=vmin, vmax=vmax, norm=norm)
 
+    # To center the colorscale around zero when we plot temperature anomalies
+    ocptmin = round(np.min(data.ocpt.values), 2)
+    ocptmax = round(np.max(data.ocpt.values), 2)
 
-def time_series(data, region=None, type=None, customise_level=False, levels=None, latS: float = None, latN: float = None, lonW: float = None,
-                lonE: float = None,  output=True, output_dir="output"):
+    if ocptmin < 0:
+        if abs(ocptmin) < ocptmax:
+            ocptmin = ocptmax*-1
+        else:
+            ocptmax = ocptmin*-1
+
+        ocptlevs = np.linspace(ocptmin, ocptmax, 21)
+
+    else:
+        ocptlevs = 20
+
+    # And we do the same for salinity
+    somin = round(np.min(data.so.values), 3)
+    somax = round(np.max(data.so.values), 3)
+
+    if somin < 0:
+        if abs(somin) < somax:
+            somin = somax*-1
+        else:
+            somax = somin*-1
+
+        solevs = np.linspace(somin, somax, 21)
+
+    else:
+        solevs = 20
+
+    cs1 = axs[0].contourf(data.time, data.lev, data.ocpt.transpose(),
+                          levels=ocptlevs, cmap=cmap, extend='both')
+    cbar_ax = fig.add_axes([0.13, 0.1, 0.35, 0.05])
+    fig.colorbar(cs1, cax=cbar_ax, orientation='horizontal')
+
+    cs2 = axs[1].contourf(data.time, data.lev, data.so.transpose(),
+                          levels=solevs, cmap=cmap, extend='both')
+    cbar_ax = fig.add_axes([0.54, 0.1, 0.35, 0.05])
+    fig.colorbar(cs2, cax=cbar_ax, orientation='horizontal')
+
+    if output:
+        data.to_netcdf(f'{data_dir}/{filename}.nc')
+        # obs_clim.to_netcdf(f'{data_dir}/{filename}_Rho.nc')
+
+    axs[0].invert_yaxis()
+    axs[1].invert_yaxis()
+
+    axs[0].set_ylim((5500, 0))
+
+    axs[0].set_title("Temperature", fontsize=15)
+    axs[0].set_ylabel("Depth (in m)", fontsize=12)
+    axs[0].set_xlabel("Time (in years)", fontsize=12)
+
+    axs[1].set_title("Salinity", fontsize=15)
+    axs[1].set_xlabel("Time (in years)", fontsize=12)
+    axs[1].set_yticklabels([])
+
+    plt.subplots_adjust(bottom=0.3, top=0.85, wspace=0.1)
+
+    if output:
+        plt.savefig(f"{fig_dir}/{filename}.png")
+        logger.info(
+            "Figure and data used for this plot are saved here: %s", output_path)
+
+    return
+
+def time_series_multilevs(data, region=None, type=None, customise_level=False, levels=None, latS: float = None, latN: float = None, lonW: float = None,
+                          lonE: float = None,  output=True, output_dir="output"):
     """
     Create time series plots of global temperature and salinity at selected levels.
 
@@ -368,14 +499,14 @@ def time_series(data, region=None, type=None, customise_level=False, levels=None
         None
     """
     data = weighted_area_mean(data, region, latS, latN, lonW, lonE)
-    data, _ = data_process_by_type(data, type)
+    data, cmap = data_process_by_type(data, type)
 
     logger.info("Time series plot is in process")
 
     # Create subplots for temperature and salinity time series plots
-    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
+    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(16, 5))
 
-    fig.suptitle(f"{region} T,S {type}", fontsize=20, weight='bold')
+    fig.suptitle(f"Spatially Averaged {region} T,S {type}", fontsize=20)
 
     # Define the levels at which to plot the time series
     if customise_level:
@@ -402,24 +533,25 @@ def time_series(data, region=None, type=None, customise_level=False, levels=None
             ax=axs[1], label=f"{round(int(data_level.lev.data), -2)}")
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-            data, region, type, latS, latN, lonE, lonW, output_dir, plot_name="time_series")
+             region, type, latS, latN, lonE, lonW, output_dir, plot_name="time_series")
         data.to_netcdf(f'{data_dir}/{filename}.nc')
 
-    axs[0].set_title("Temperature", fontsize=15, weight='bold')
-    axs[0].set_ylabel(
-        "Standardised Units (at the respective level)", fontsize=12)
+    tunits = data_level.ocpt.attrs['units']
+    sunits = data_level.so.attrs['units']
+    axs[0].set_title("Temperature", fontsize=15)
+    axs[0].set_ylabel(f"Potential Temperature (in {tunits})", fontsize=12)
     axs[0].set_xlabel("Time", fontsize=12)
-    axs[1].set_title("Salinity", fontsize=15, weight='bold')
-    axs[1].set_ylabel(" ", fontsize=12)
+    axs[1].set_title("Salinity", fontsize=15)
+    axs[1].set_ylabel(f"Salinity (in {sunits})", fontsize=12)
     axs[1].set_xlabel("Time (in years)", fontsize=12)
     axs[1].legend(loc='right')
     # axs[1].set_yticklabels([])
-    plt.subplots_adjust(bottom=0.3, top=0.85, wspace=0.1)
+    plt.subplots_adjust(bottom=0.3, top=0.85, wspace=0.2)
 
     if output:
         plt.savefig(f"{fig_dir}/{filename}.png")
         logger.info(
-            "Figure and data used in the plot, saved here : %s", output_path)
+            " Figure and data used in the plot, saved here : %s", output_path)
     plt.show()
     return
 
@@ -638,6 +770,288 @@ def convert_variables(data):
 
     return converted_data
 
+def linregress_3D(y_array):
+    """
+    Computes the linear regression against the temporal dimension of a 3D array formatted in time, latitude, and longitude.
+
+    The function is a very efficient way to compute trends in 3D arrays.
+
+    Parameters:
+        y_array (np.ndarray): 3D array with time, latitude, and longitude as dimensions.
+
+    Returns:
+        n (np.ndarray): Number of non-nan values over each (latitude, longitude) grid box.
+        slope (np.ndarray): Slope of the linear regression line over each (latitude, longitude) grid box.
+        intercept (np.ndarray): Intercept of the linear regression line over each (latitude, longitude) grid box.
+        p_val (np.ndarray): p-value of the linear regression over each (latitude, longitude) grid box.
+        r_square (np.ndarray): R-squared value of the linear regression over each (latitude, longitude) grid box.
+        rmse (np.ndarray): Root mean squared error (RMSE) of the linear regression over each (latitude, longitude) grid box.
+    """
+
+    x_array = np.empty(y_array.shape)
+    for i in range(y_array.shape[0]):
+        # This would be fine if time series is not too long. Or we can use i+yr (e.g. 2019).
+        x_array[i, :, :] = i+1
+    x_array[np.isnan(y_array)] = np.nan
+    # Compute the number of non-nan over each (lon,lat) grid box.
+    n = np.sum(~np.isnan(x_array), axis=0)
+    # Compute mean and standard deviation of time series of x_array and y_array over each (lon,lat) grid box.
+    x_mean = np.nanmean(x_array, axis=0)
+    y_mean = np.nanmean(y_array, axis=0)
+    x_std = np.nanstd(x_array, axis=0)
+    y_std = np.nanstd(y_array, axis=0)
+    # Compute co-variance between time series of x_array and y_array over each (lon,lat) grid box.
+    cov = np.nansum((x_array-x_mean)*(y_array-y_mean), axis=0)/n
+    # Compute correlation coefficients between time series of x_array and y_array over each (lon,lat) grid box.
+    cor = cov/(x_std*y_std)
+    # Compute slope between time series of x_array and y_array over each (lon,lat) grid box.
+    slope = cov/(x_std**2)
+    # Compute intercept between time series of x_array and y_array over each (lon,lat) grid box.
+    intercept = y_mean-x_mean*slope
+    # Compute tstats, stderr, and p_val between time series of x_array and y_array over each (lon,lat) grid box.
+    tstats = cor*np.sqrt(n-2)/np.sqrt(1-cor**2)
+    # stderr = slope/tstats
+    from scipy.stats import t
+    p_val = t.sf(tstats, n-2)*2
+    # Compute r_square and rmse between time series of x_array and y_array over each (lon,lat) grid box.
+    # r_square also equals to cor**2 in 1-variable lineare regression analysis, which can be used for checking.
+    r_square = np.nansum((slope*x_array+intercept-y_mean)
+                         ** 2, axis=0)/np.nansum((y_array-y_mean)**2, axis=0)
+    rmse = np.sqrt(np.nansum((y_array-slope*x_array-intercept)**2, axis=0)/n)
+    # Do further filteration if needed (e.g. We stipulate at least 3 data records are needed to do regression analysis) and return values
+    n = n*1.0  # convert n from integer to float to enable later use of np.nan
+    n[n < 3] = np.nan
+    slope[np.isnan(n)] = np.nan
+    intercept[np.isnan(n)] = np.nan
+    p_val[np.isnan(n)] = np.nan
+    r_square[np.isnan(n)] = np.nan
+    rmse[np.isnan(n)] = np.nan
+    return n, slope, intercept, p_val, r_square, rmse
+
+
+def array2xarray(array, y_array):
+    """
+    Provides the longitudinal and latitudinal information of a given xarray to a simple array (to be used after linregress_3D)
+
+    Parameters
+    ----------
+    array : input array Dataset
+
+    y_array:  xarray Dataset with target coordinate information
+
+    Returns
+    -------
+    xarray
+
+    """
+    xarray = xr.DataArray(array, coords={"lat": y_array.lat, "lon": y_array.lon}, name=str(
+        y_array.name), dims=["lat", "lon"])
+
+    return xarray
+
+
+def lintrend_2D(y_array):
+    """
+    Simplified version of linregress_3D that computes the trends in a 3D array formated in time, latitude and longitude coordinates
+
+    It outputs the trends in xarray format
+
+    Parameters
+    ----------
+    data : y_array.Dataset
+
+    Dataset containing a single 3D field with time, latitude and longitude as coordinates
+
+
+    Returns
+    -------
+    n,slope,intercept,p_val,r_square,rmse
+
+    """
+
+    x_array = np.empty(y_array.shape)
+    for i in range(y_array.shape[0]):
+        # This would be fine if time series is not too long. Or we can use i+yr (e.g. 2019).
+        x_array[i, :, :] = i+1
+    x_array[np.isnan(y_array)] = np.nan
+    # Compute the number of non-nan over each (lon,lat) grid box.
+    n = np.sum(~np.isnan(x_array), axis=0)
+    # Compute mean and standard deviation of time series of x_array and y_array over each (lon,lat) grid box.
+    x_mean = np.nanmean(x_array, axis=0)
+    y_mean = np.nanmean(y_array, axis=0)
+    x_std = np.nanstd(x_array, axis=0)
+    y_std = np.nanstd(y_array, axis=0)
+    # Compute co-variance between time series of x_array and y_array over each (lon,lat) grid box.
+    cov = np.nansum((x_array-x_mean)*(y_array-y_mean), axis=0)/n
+    # Compute correlation coefficients between time series of x_array and y_array over each (lon,lat) grid box.
+    cor = cov/(x_std*y_std)
+    # Compute slope between time series of x_array and y_array over each (lon,lat) grid box.
+    trend = cov/(x_std**2)
+
+    # Do further filteration if needed (e.g. We stipulate at least 3 data records are needed to do regression analysis) and return values
+    n = n*1.0  # convert n from integer to float to enable later use of np.nan
+    n[n < 3] = np.nan
+    trend[np.isnan(n)] = np.nan
+
+    # trend=xr.DataArray(trend,coords={"lat": y_array.lat,"lon": y_array.lon},name=str(y_array.name),dims=["lat","lon"])
+    trend = xr.DataArray(trend, coords={
+                         "lat": y_array.lat, "lon": y_array.lon}, name=f"{y_array.name} trends", dims=["lat", "lon"])
+    trend.attrs['units'] = f"{y_array.units}/year"
+
+    # data.ocpt.attrs['units'] = 'Standardised Units'
+    return trend
+
+
+def lintrend_3D(y_array):
+    """
+    Simplified version of linregress_3D that computes the trends in a 4D array formated in time, depth, latitude and longitude coordinates
+
+    It outputs the trends in xarray format
+
+    Parameters
+    ----------
+    data : y_array.Dataset
+
+    Dataset containing a single 4D field with time, depth, latitude and longitude as coordinates
+
+
+    Returns
+    -------
+    n,slope,intercept,p_val,r_square,rmse
+
+    """
+
+    x_array = np.empty(y_array.shape)
+    for i in range(y_array.shape[0]):
+        # This would be fine if time series is not too long. Or we can use i+yr (e.g. 2019).
+        x_array[i, :, :, :] = i+1
+    x_array[np.isnan(y_array)] = np.nan
+    # Compute the number of non-nan over each (lon,lat) grid box.
+    n = np.sum(~np.isnan(x_array), axis=0)
+    # Compute mean and standard deviation of time series of x_array and y_array over each (lon,lat) grid box.
+    x_mean = np.nanmean(x_array, axis=0)
+    y_mean = np.nanmean(y_array, axis=0)
+    x_std = np.nanstd(x_array, axis=0)
+    y_std = np.nanstd(y_array, axis=0)
+    # Compute co-variance between time series of x_array and y_array over each (lon,lat) grid box.
+    cov = np.nansum((x_array-x_mean)*(y_array-y_mean), axis=0)/n
+    # Compute correlation coefficients between time series of x_array and y_array over each (lon,lat) grid box.
+    cor = cov/(x_std*y_std)
+    # Compute slope between time series of x_array and y_array over each (lon,lat) grid box.
+    trend = cov/(x_std**2)
+
+    # Do further filteration if needed (e.g. We stipulate at least 3 data records are needed to do regression analysis) and return values
+    n = n*1.0  # convert n from integer to float to enable later use of np.nan
+    n[n < 3] = np.nan
+    trend[np.isnan(n)] = np.nan
+
+    # trend=xr.DataArray(trend,coords={"lat": y_array.lat,"lon": y_array.lon},name=str(y_array.name),dims=["lat","lon"])
+    trend = xr.DataArray(trend, coords={"lev": y_array.lev, "lat": y_array.lat,
+                         "lon": y_array.lon}, name=f"{y_array.name} trends", dims=["lev", "lat", "lon"])
+    trend.attrs['units'] = f"{y_array.units}/year"
+
+    # data.ocpt.attrs['units'] = 'Standardised Units'
+    return trend
+
+
+def TS_3dtrend(data):
+    """
+    Computes the trend values for temperature and salinity variables in a 3D dataset.
+
+    Parameters:
+        data (xarray.Dataset): Input dataset containing temperature (ocpt) and salinity (so) variables.
+
+    Returns:
+        xarray.Dataset: Dataset with trend values for temperature and salinity variables.
+    """
+    TS_3dtrend_data = xr.Dataset()
+
+    so = lintrend_3D(data.so)
+    ocpt = lintrend_3D(data.ocpt)
+
+    TS_3dtrend_data = TS_3dtrend_data.merge({"ocpt": ocpt, "so": so})
+
+    logger.info("Trend value calculated")
+    return TS_3dtrend_data
+
+
+def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=None, latS: float = None, latN: float = None, lonW: float = None,
+                              lonE: float = None,  output=True, output_dir="output"):
+    """
+    Generates a plot showing trends at different depths for temperature and salinity variables.
+
+    Parameters:
+        data (xarray.Dataset): Input data containing temperature (ocpt) and salinity (so) variables.
+        region (str): Region name.
+        customise_level (bool): Whether to use custom levels or predefined levels.
+        levels (list): List of levels to plot. Ignored if customise_level is False.
+        latS (float): Southern latitude bound.
+        latN (float): Northern latitude bound.
+        lonW (float): Western longitude bound.
+        lonE (float): Eastern longitude bound.
+        output (bool): Whether to save the plot and data.
+        output_dir (str): Output directory to save the plot and data.
+
+    Returns:
+        None
+    """
+    data = area_selection(data, region, latS, latN, lonE, lonW)
+    data = TS_3dtrend(data)
+
+    # Define the levels for plotting
+    if customise_level:
+        if levels is None:
+            raise ValueError(
+                "Custom levels are selected, but levels are not provided.")
+    else:
+        levels = [10, 100, 500, 1000, 3000, 5000]
+
+    # To fix the dimensions so that all subpanels are well visible
+    dim1 = 16
+    dim2 = 5*len(levels)
+
+    fig, axs = plt.subplots(nrows=len(levels), ncols=2, figsize=(dim1, dim2))
+
+    fig.subplots_adjust(hspace=0.18, wspace=0.15, top=0.95)
+    for levs in range(len(levels)):
+
+        data["ocpt"].interp(lev=levels[levs]).plot.contourf(
+            ax=axs[levs, 0], levels=18)
+        data["so"].interp(lev=levels[levs]).plot.contourf(
+            ax=axs[levs, 1], levels=18)
+
+        axs[levs, 0].set_ylabel("Latitude (in deg North)", fontsize=9)
+        axs[levs, 0].set_facecolor('grey')
+        # axs[levs, 0].set_aspect('equal', adjustable='box')
+
+        axs[levs, 1].set_yticklabels([])
+
+        if levs == (len(levels)-1):
+            axs[levs, 0].set_xlabel("Longitude (in de East)", fontsize=12)
+            axs[levs, 0].set_ylabel("Latitude (in deg North)", fontsize=12)
+
+        if levs != (len(levels)-1):
+            axs[levs, 0].set_xticklabels([])
+            axs[levs, 1].set_xticklabels([])
+        axs[levs, 1].set_facecolor('grey')
+        # axs[levs, 1].set_aspect('equal', adjustable='box')
+
+    plt.suptitle(
+        f'Linear Trends of T,S at different depths in the {region.replace("_"," ").capitalize()}', fontsize=24)
+    axs[0, 0].set_title("Temperature", fontsize=18)
+    axs[0, 1].set_title("Salinity", fontsize=18)
+    if output:
+        output_path, fig_dir, data_dir, filename = dir_creation(
+             region, "_", latS, latN, lonE, lonW, output_dir, plot_name="multilevel_t_s_trend")
+
+        data.interp(lev=levels[levs]).to_netcdf(f'{data_dir}/{filename}.nc')
+        plt.savefig(f"{fig_dir}/{filename}.png")
+        logger.info(
+            "Figure and data used for this plot are saved here: %s", output_path)
+
+    plt.show()
+
+    return
 
 def split_time_equally(data):
     """
@@ -653,7 +1067,7 @@ def split_time_equally(data):
     data_1 = None
     data_2 = None
     if date_len == 0:
-        raise Exception("Time lenth is 0 in the data")
+        raise ValueError("Time lenth is 0 in the data")
     elif date_len == 1:
         data = data
     else:
@@ -772,7 +1186,7 @@ def data_time_selection(data, time):
     elif time in ["dec", "december", "12", 12]:
         data = data.where(data.time.dt.month == 12, drop=True)
     elif time in ["yearly", "year", "y"]:
-        data = data
+        data = data.groupby('time.year').mean(dim='time')
     elif time in ["jja", "jun_jul_aug", "jun-jul-aug", "june-july-august", "june_july_august"]:
         data = data.where((data['time.month'] >= 6) & (
             data['time.month'] <= 8), drop=True)
@@ -821,7 +1235,7 @@ def compare_arrays(mod_data, obs_data):
     return mod_data_list, obs_data_selected
 
 
-def dir_creation(data, region=None, sp_value=None, latS: float = None, latN: float = None, lonW: float = None,
+def dir_creation(region=None, sp_value=None, latS: float = None, latN: float = None, lonW: float = None,
                  lonE: float = None, output_dir=None, plot_name=None):
     """
     Creates the directory structure for saving the output data and figures.
@@ -841,7 +1255,7 @@ def dir_creation(data, region=None, sp_value=None, latS: float = None, latN: flo
         tuple: Output path, figure directory path, data directory path, and filename.
     """
     if output_dir is None:
-        raise Exception("Please provide the output_dir when output = True")
+        raise ValueError("Please provide the outut_dir when output = True")
     if region in [None, "custom", "Custom"]:
         region = "custom"
         filename = f"{plot_name}_{sp_value}_{region.replace(' ', '_').lower()}_lat_{latS}_{latN}_lon_{lonW}_{lonE}_mean"
@@ -862,7 +1276,7 @@ def plot_stratification(mod_data, region=None, time=None, latS: float = None, la
     """
     Create a stratification plot showing the mean state temperature, salinity, and density profiles.
 
-    Args:
+    Parameters:
         mod_data (xarray.Dataset): Model data.
         region (str): Region name.
         time (str): Time selection for data (e.g., 'yearly', '3M', 'Jan', 'Feb', etc.).
@@ -876,7 +1290,6 @@ def plot_stratification(mod_data, region=None, time=None, latS: float = None, la
     Returns:
         None
     """
-
     obs_data = load_obs_data().interp(lev=mod_data.lev)
     obs_data = crop_obs_overlap_time(mod_data, obs_data)
 
@@ -894,7 +1307,7 @@ def plot_stratification(mod_data, region=None, time=None, latS: float = None, la
 
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-            mod_data, region, time, latS, latN, lonE, lonW, output_dir, plot_name="stratification")
+             region, time, latS, latN, lonE, lonW, output_dir, plot_name="stratification")
 
     legend_list = []
     for i, var in zip(range(len(axs)), ["ocpt", "so", "rho"]):
@@ -961,11 +1374,12 @@ def compute_mld_cont(rho):
     has higher densities than the lower one. This function is therefore not recommended until this
     issue is addressed and corrected
 
-    Args:
-        rho :  xarray.DataArray for sigma0, dims must be time, space, depth (must be in metres)
-
-    Returns:
-        mld: xarray.DataArray, dims of time, space
+    Parameters
+    ----------
+    rho : xarray.DataArray for sigma0, dims must be time, space, depth (must be in metres)
+    Returns
+    -------
+    mld: xarray.DataArray, dims of time, space
 
 
     """
@@ -1023,14 +1437,16 @@ def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, 
     an observational dataset and a model dataset, allowing the user to select the month the climatology is computed
     (the recommended one is march (month=3) that is when the NH MLD peaks)
 
-    Args:
+    Parameters
+    ----------
         datamod (xarray.Dataset): Model Dataset containing 2D fields of density (rho).
         dataobs (xarray.Dataset): Observational dataset containing 2D fields of density (rho)
         month (integer): Number of the month on which to compute the climatologies
         overlap (boolean):  To indicate if OBS and Model are cropped to overlap time period
 
-    Returns:
-        None
+    Returns
+    -------
+    None
 
     """
     obs_data = load_obs_data(model='EN4', exp='en4', source='monthly')
@@ -1060,7 +1476,7 @@ def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, 
 
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-            mod_data, region, time, latS, latN, lonE, lonW, output_dir, plot_name="spatial_MLD")
+             region, time, latS, latN, lonE, lonW, output_dir, plot_name="spatial_MLD")
 
     logger.info("Spatial MLD plot is in process")
     fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(20, 6.5))

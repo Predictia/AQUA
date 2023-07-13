@@ -46,8 +46,12 @@ def predefined_regions(region):
     if region in ["indianocean", "indian ocean"]:
         latN, latS, lonW, lonE = 30.0, -30.0, 30, 110.0
     elif region in ["labradorsea", "labrador sea"]:
-        latN, latS, lonW, lonE = 65.0, 50.0, 300.0, 325.0
-    elif region in ["globalocean", "global ocean"]:
+        latN, latS, lonW, lonE = 65.0, 52.0, 300.0, 316.0
+    elif region in ["labradorginseas", "labrador+gin seas"]:
+        latN, latS, lonW, lonE = 80.0, 50.0, -70.0, 20.0
+    elif region in ["irmingersea", "irminger sea"]:
+        latN, latS, lonW, lonE = 60.0, 70.0, 316.0, 330.0
+    elif region in ["global_ocean", "global ocean"]:
         latN, latS, lonW, lonE = 90.0, -90.0, 0.0, 360.0
     elif region in ["atlanticocean", "atlantic ocean"]:
         latN, latS, lonW, lonE = 65.0, -35.0, -80.0, 30.0
@@ -56,7 +60,9 @@ def predefined_regions(region):
     elif region in ["arcticocean", "arctic ocean"]:
         latN, latS, lonW, lonE = 90.0, 65.0, 0.0, 360.0
     elif region in ["southernocean", "southern ocean"]:
-        latN, latS, lonW, lonE = -55.0, -80.0, -180.0, 180.0
+        latN, latS, lonW, lonE = -50.0, -80.0, 0.0, 360.0
+    elif region in ["weddell_sea", "weddell sea"]:
+        latN, latS, lonW, lonE = -65.0, -80.0, 290.0, 350.0
     elif region in ["beringsea", "bering sea"]:
         latN, latS, lonW, lonE = 66.0, 53.0, 168.0, -178.0
     elif region in ["gulfofmexico", "gulf of mexico"]:
@@ -89,8 +95,6 @@ def predefined_regions(region):
         latN, latS, lonW, lonE = 60.0, 48.0, -145.0, -136.0
     elif region in ["eastchinasea", "east china sea"]:
         latN, latS, lonW, lonE = 35.0, 30.0, 120.0, 128.0
-    elif region in ["labradorsea", "labrador sea"]:
-        latN, latS, lonW, lonE = 62.0, 50.0, -63.0, -35.0
     elif region in ["seaofokhotsk", "sea of okhotsk"]:
         latN, latS, lonW, lonE = 60.0, 45.0, 142.0, 163.0
     elif region in ["philippinesea", "philippine sea"]:
@@ -167,8 +171,7 @@ def area_selection(data, region=None, latS: float = None, latN: float = None, lo
     if lonW < 0 or lonE < 0:
         data = convert_longitudes(data)
     logger.info(
-        "Selected for this region (latitude %s to %s, longitude %s to %s)",
-        latS, latN, lonW, lonE)
+        "Selected for this region (latitude %s to %s, longitude %s to %s)", latS, latN, lonW, lonE)
     # Perform data slicing based on the specified or predefined latitude and longitude boundaries
     data = data.sel(lat=slice(latS, latN), lon=slice(lonW, lonE))
 
@@ -195,8 +198,8 @@ def weighted_zonal_mean(data, region=None, latS: float = None, latN: float = Non
     Returns:
         xarray.Dataset: Weighted zonal mean of the input data.
     """
-    data = area_selection(data, region, latS=None,
-                          latN=None, lonW=None, lonE=None)
+    data = area_selection(data, region, latS,
+                          latN, lonW, lonE)
 
     wgted_mean = data.mean(("lon"))
 
@@ -223,12 +226,11 @@ def weighted_area_mean(data, region=None, latS: float = None, latN: float = None
     Returns:
         xarray.Dataset: Weighted area mean of the input data.
     """
-    data = area_selection(data, region, latS=None,
-                          latN=None, lonW=None, lonE=None)
+    data = area_selection(data, region, latS,
+                          latN, lonW, lonE)
     weighted_data = data.weighted(np.cos(np.deg2rad(data.lat)))
     wgted_mean = weighted_data.mean(("lat", "lon"))
     return wgted_mean
-
 
 def zonal_mean_trend_plot(data, region=None, latS: float = None, latN: float = None, lonW: float = None,
                           lonE: float = None,  output=True, output_dir="output"):
@@ -291,7 +293,7 @@ def zonal_mean_trend_plot(data, region=None, latS: float = None, latN: float = N
 
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-            data, region, "_", latS, latN, lonE, lonW, output_dir, plot_name="zonal_mean_trend")
+             region, "_", latS, latN, lonE, lonW, output_dir, plot_name="zonal_mean_trend")
 
         data.to_netcdf(f'{data_dir}/{filename}.nc')
         plt.savefig(f"{fig_dir}/{filename}.png")
@@ -302,43 +304,6 @@ def zonal_mean_trend_plot(data, region=None, latS: float = None, latN: float = N
 
     return
 
-
-def std_anom_wrt_initial(data, region=None, latS=None, latN=None, lonW=None, lonE=None):
-    """
-    Compute the standard anomaly with respect to the initial time step of data within the specified latitude and longitude bounds.
-    Normalization is done with respect to the standard deviation of the respective vertical level.
-
-    Parameters:
-        data (xarray.Dataset): Input data.
-
-        region (str, optional): Predefined region name. If provided, latitude and longitude bounds will be fetched from predefined regions.
-
-        latS (float, optional): Southern latitude bound. Required if region is not provided or None.
-
-        latN (float, optional): Northern latitude bound. Required if region is not provided or None.
-
-        lonW (float, optional): Western longitude bound. Required if region is not provided or None.
-
-        lonE (float, optional): Eastern longitude bound. Required if region is not provided or None.
-
-    Returns:
-        xarray.Dataset: Standardized anomaly with respect to the initial time step of the input data.
-    """
-
-    std_anomaly = xr.Dataset()
-
-    # Compute the weighted area mean over the specified latitude and longitude range
-    wgted_mean = weighted_area_mean(data, region, latS, latN, lonW, lonE)
-
-    # Calculate the anomaly from the initial time step for each variable
-    for var in list(data.data_vars.keys()):
-        anomaly_from_initial = wgted_mean[var] - wgted_mean[var].isel(time=0)
-
-        # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
-        std_anomaly[var] = anomaly_from_initial / \
-            anomaly_from_initial.std(dim="time")
-
-    return std_anomaly
 
 
 def reg_mean(data, region=None, latS=None, latN=None, lonW=None, lonE=None):
@@ -365,43 +330,6 @@ def reg_mean(data, region=None, latS=None, latN=None, lonW=None, lonE=None):
 
     return data
 
-
-def std_anom_wrt_time_mean(data, region=None, latS=None, latN=None, lonW=None, lonE=None):
-    """
-    Compute the standardised anomaly with respect to the time mean of data within the specified latitude and longitude bounds.
-    Normalization is done with respect to the standard deviation of the respective vertical level
-
-    Parameters:
-        data (xarray.Dataset): Input data.
-
-        region (str, optional): Predefined region name. If provided, latitude and longitude bounds will be fetched from predefined regions.
-
-        latS (float, optional): Southern latitude bound. Required if region is not provided or None.
-
-        latN (float, optional): Northern latitude bound. Required if region is not provided or None.
-
-        lonW (float, optional): Western longitude bound. Required if region is not provided or None.
-
-        lonE (float, optional): Eastern longitude bound. Required if region is not provided or None.
-
-    Returns:
-        xarray.Dataset: Standardised anomaly with respect to the time mean of the input data.
-    """
-    # Create an empty dataset to store the results
-    std_anomaly = xr.Dataset()
-
-    # Compute the weighted area mean over the specified latitude and longitude range
-    wgted_mean = weighted_area_mean(data, region, latS, latN, lonW, lonE)
-
-    # Calculate the anomaly from the time mean for each variable
-    for var in list(data.data_vars.keys()):
-        anomaly_from_time_mean = wgted_mean[var] - wgted_mean[var].mean("time")
-
-        # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
-        std_anomaly[var] = anomaly_from_time_mean / \
-            anomaly_from_time_mean.std("time")
-
-    return std_anomaly
 
 
 def data_process_by_type(data,  type=None):
@@ -477,7 +405,7 @@ def hovmoller_lev_time_plot(data, region, type=None, latS: float = None, latN: f
 
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-            data, region, type, latS, latN, lonE, lonW, output_dir, plot_name="hovmoller_plot")
+             region, type, latS, latN, lonE, lonW, output_dir, plot_name="hovmoller_plot")
 
     _ = mcolors.TwoSlopeNorm(vcenter=0)
 
@@ -549,7 +477,6 @@ def hovmoller_lev_time_plot(data, region, type=None, latS: float = None, latN: f
 
     return
 
-
 def time_series_multilevs(data, region=None, type=None, customise_level=False, levels=None, latS: float = None, latN: float = None, lonW: float = None,
                           lonE: float = None,  output=True, output_dir="output"):
     """
@@ -606,7 +533,7 @@ def time_series_multilevs(data, region=None, type=None, customise_level=False, l
             ax=axs[1], label=f"{round(int(data_level.lev.data), -2)}")
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-            data, region, type, latS, latN, lonE, lonW, output_dir, plot_name="time_series")
+             region, type, latS, latN, lonE, lonW, output_dir, plot_name="time_series")
         data.to_netcdf(f'{data_dir}/{filename}.nc')
 
     tunits = data_level.ocpt.attrs['units']
@@ -842,7 +769,6 @@ def convert_variables(data):
         {"ocpt": ocpt, "so": absso, "rho": rho})
 
     return converted_data
-
 
 def linregress_3D(y_array):
     """
@@ -1116,7 +1042,7 @@ def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=N
     axs[0, 1].set_title("Salinity", fontsize=18)
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-            data, region, "_", latS, latN, lonE, lonW, output_dir, plot_name="multilevel_t_s_trend")
+             region, "_", latS, latN, lonE, lonW, output_dir, plot_name="multilevel_t_s_trend")
 
         data.interp(lev=levels[levs]).to_netcdf(f'{data_dir}/{filename}.nc')
         plt.savefig(f"{fig_dir}/{filename}.png")
@@ -1126,7 +1052,6 @@ def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=N
     plt.show()
 
     return
-
 
 def split_time_equally(data):
     """
@@ -1142,7 +1067,7 @@ def split_time_equally(data):
     data_1 = None
     data_2 = None
     if date_len == 0:
-        raise Exception("Time lenth is 0 in the data")
+        raise ValueError("Time lenth is 0 in the data")
     elif date_len == 1:
         data = data
     else:
@@ -1262,7 +1187,7 @@ def data_time_selection(data, time):
         data = data.where(data.time.dt.month == 12, drop=True)
     elif time in ["yearly", "year", "y"]:
         data = data.groupby('time.year').mean(dim='time')
-    if time in ["jja", "jun_jul_aug", "jun-jul-aug", "june-july-august", "june_july_august"]:
+    elif time in ["jja", "jun_jul_aug", "jun-jul-aug", "june-july-august", "june_july_august"]:
         data = data.where((data['time.month'] >= 6) & (
             data['time.month'] <= 8), drop=True)
     elif time in ["fma", "feb_mar_apr", "feb-mar-apr", "february-march-april", "february_march_april"]:
@@ -1276,7 +1201,7 @@ def data_time_selection(data, time):
             data['time.month'] <= 11), drop=True)
     else:
         raise ValueError("""Invalid month input. Please provide a valid name. Among this:
-                         Yearly, 3M, Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec """)
+                         Yearly, 3M, Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec, JJA, FMA, DJF, SON """)
     logger.info("data selected for %s climatology", time)
     return data
 
@@ -1310,7 +1235,7 @@ def compare_arrays(mod_data, obs_data):
     return mod_data_list, obs_data_selected
 
 
-def dir_creation(data, region=None, sp_value=None, latS: float = None, latN: float = None, lonW: float = None,
+def dir_creation(region=None, sp_value=None, latS: float = None, latN: float = None, lonW: float = None,
                  lonE: float = None, output_dir=None, plot_name=None):
     """
     Creates the directory structure for saving the output data and figures.
@@ -1330,7 +1255,7 @@ def dir_creation(data, region=None, sp_value=None, latS: float = None, latN: flo
         tuple: Output path, figure directory path, data directory path, and filename.
     """
     if output_dir is None:
-        raise Exception("Please provide the outut_dir when output = True")
+        raise ValueError("Please provide the outut_dir when output = True")
     if region in [None, "custom", "Custom"]:
         region = "custom"
         filename = f"{plot_name}_{sp_value}_{region.replace(' ', '_').lower()}_lat_{latS}_{latN}_lon_{lonW}_{lonE}_mean"
@@ -1382,7 +1307,7 @@ def plot_stratification(mod_data, region=None, time=None, latS: float = None, la
 
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-            mod_data, region, time, latS, latN, lonE, lonW, output_dir, plot_name="stratification")
+             region, time, latS, latN, lonE, lonW, output_dir, plot_name="stratification")
 
     legend_list = []
     for i, var in zip(range(len(axs)), ["ocpt", "so", "rho"]):
@@ -1414,17 +1339,17 @@ def plot_stratification(mod_data, region=None, time=None, latS: float = None, la
                     f'{data_dir}/{filename}_{legend_info.replace(" ","_")}.nc')
 
     fig.suptitle(
-        f"Mean state {time.upper()} T, S, rho0 stratification in {region}", fontsize=20)
-    axs[0].set_title("Temperature Profile", fontsize=14)
+        f"Climatological {time.upper()} T, S and rho0 stratification in {region}", fontsize=20)
+    axs[0].set_title("Temperature Profile", fontsize=16)
     axs[0].set_ylabel("Depth (m)", fontsize=15)
     axs[0].set_xlabel("Temperature (°C)", fontsize=12)
 
-    axs[1].set_title("Salinity Profile", fontsize=14)
+    axs[1].set_title("Salinity Profile", fontsize=16)
     axs[1].set_xlabel("Salinity (psu)", fontsize=12)
     # axs[1].set_ylabel("", fontsize=0)
     axs[1].set_yticklabels([])
 
-    axs[2].set_title("Rho (ref 0) Profile", fontsize=14)
+    axs[2].set_title("Rho (ref 0) Profile", fontsize=16)
     axs[2].set_xlabel("Density Anomaly (kg/m³)", fontsize=12)
     # axs[2].set_ylabel("", fontsize=0)
     axs[2].set_yticklabels([])
@@ -1495,8 +1420,8 @@ def compute_mld_cont(rho):
     return mld
 
 
-def data_for_plot_spatial_mld(data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None,
-                              lonE: float = None):
+def data_for_plot_spatial_mld_clim(data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None,
+                                   lonE: float = None):
     data = area_selection(data, region, latS, latN, lonE, lonW)
     data = convert_variables(data)
     data = compute_mld_cont(data)
@@ -1505,8 +1430,8 @@ def data_for_plot_spatial_mld(data, region=None, time=None, latS: float = None, 
     return data
 
 
-def plot_spatial_mld(mod_data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None,
-                     lonE: float = None, output=False, output_dir="output"):
+def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None,
+                          lonE: float = None, overlap=False, output=False, output_dir="output"):
     """
     Plots the climatology of mixed layer depth in the NH as computed with de Boyer Montegut (2004)'s criteria in
     an observational dataset and a model dataset, allowing the user to select the month the climatology is computed
@@ -1514,79 +1439,103 @@ def plot_spatial_mld(mod_data, region=None, time=None, latS: float = None, latN:
 
     Parameters
     ----------
-    datamod : xarray.Dataset
-        Model Dataset containing 2D fields of density (rho).
-    dataobs : xarray.Dataset
-        Observational dataset containing 2D fields of density (rho)
-    month : integer
-        Number of the month on which to compute the climatologies
+        datamod (xarray.Dataset): Model Dataset containing 2D fields of density (rho).
+        dataobs (xarray.Dataset): Observational dataset containing 2D fields of density (rho)
+        month (integer): Number of the month on which to compute the climatologies
+        overlap (boolean):  To indicate if OBS and Model are cropped to overlap time period
 
     Returns
     -------
     None
 
     """
-
-    mod_clim = data_for_plot_spatial_mld(mod_data, region, time, latS, latN, lonE, lonW).mean(
-        "time")  # To select the month and compute its climatology
     obs_data = load_obs_data(model='EN4', exp='en4', source='monthly')
-    obs_clim = data_for_plot_spatial_mld(obs_data, region, time, latS, latN, lonE, lonW).mean(
+
+    if overlap:
+        obs_data = crop_obs_overlap_time(mod_data, obs_data)
+        mod_data = crop_obs_overlap_time(obs_data, mod_data)
+
+    mod_clim = data_for_plot_spatial_mld_clim(mod_data, region, time, latS, latN, lonE, lonW).mean(
         "time")  # To select the month and compute its climatology
-    obs_data = crop_obs_overlap_time(mod_data, obs_data)
+    obs_clim = data_for_plot_spatial_mld_clim(obs_data, region, time, latS, latN, lonE, lonW).mean(
+        "time")  # To select the month and compute its climatology
+    # obs_data=crop_obs_overlap_time(mod_data, obs_data)
+
+    # We identify the first year used in the climatology
+    myr1 = mod_data.time.dt.year[0].values
+    # We identify the last year used in the climatology
+    myr2 = mod_data.time.dt.year[-1].values
+
+    # We identify the first year used in the climatology
+    oyr1 = obs_data.time.dt.year[0].values
+    # We identify the last year used in the climatology
+    oyr2 = obs_data.time.dt.year[-1].values
 
     mod_clim = mod_clim["rho"]
     obs_clim = obs_clim["rho"]
 
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-            mod_data, region, time, latS, latN, lonE, lonW, output_dir, plot_name="spatial_MLD")
+             region, time, latS, latN, lonE, lonW, output_dir, plot_name="spatial_MLD")
 
     logger.info("Spatial MLD plot is in process")
-    fig, axs = plt.subplots(nrows=1, ncols=2, subplot_kw={
-                            'projection': ccrs.PlateCarree()}, figsize=(22, 8),)
+    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(20, 6.5))
 
     fig.suptitle(
-        f'Mean state of {time.upper()} mixed layer depth in {region.replace("_"," ").upper()}', fontsize=27)
+        f'Climatology of {time.upper()} mixed layer depth in {region.replace("_"," ").upper()}', fontsize=20)
+    fig.set_figwidth(18)
 
-    cs1 = axs[0].contourf(mod_clim.lon, mod_clim.lat, mod_clim, projection=ccrs.PlateCarree(),
-                          levels=np.linspace(np.min(mod_clim), np.max(mod_clim), 27), cmap='seismic', extend='both')
+    clev1 = 0.0
+    # We round up to next hundreth
+    clev2 = max(np.max(mod_clim), np.max(obs_clim))
+    # print(clev2)
+    clev2 = round(int(clev2), -2)
+    nclev = int(clev2/50)+1
+    clev2 = float(clev2)
 
-    cs1 = axs[1].contourf(obs_clim.lon, obs_clim.lat, obs_clim, projection=ccrs.PlateCarree(),
-                          levels=np.linspace(np.min(mod_clim), np.max(mod_clim), 27), cmap='seismic', extend='both')
+    cs1 = axs[0].contourf(mod_clim.lon, mod_clim.lat, mod_clim,
+                          levels=np.linspace(clev1, clev2, nclev), cmap='jet')
+    fig.colorbar(cs1, location="bottom")
+
+    cs1 = axs[1].contourf(obs_clim.lon, obs_clim.lat, obs_clim,
+                          levels=np.linspace(clev1, clev2, nclev), cmap='jet')
+
+    fig.colorbar(cs1, location="bottom")
 
     if output:
         mod_clim.to_netcdf(f'{data_dir}/{filename}_Rho.nc')
         obs_clim.to_netcdf(f'{data_dir}/{filename}_Rho.nc')
 
-    axs[0].set_title("Model climatology", fontsize=18)
+    axs[0].set_title(f"Model climatology {myr1}-{myr2}", fontsize=18)
     axs[0].set_ylabel("Latitude", fontsize=14)
     axs[0].set_xlabel("Longitude", fontsize=14)
+    axs[0].set_facecolor('grey')
 
-    axs[1].set_title("OBS climatology", fontsize=18)
+    axs[1].set_title(f"EN4 OBS climatology {oyr1}-{oyr2}", fontsize=18)
     # axs[1].set_ylabel("Latitude", fontsize=12)
     axs[1].set_xlabel("Longitude", fontsize=14)
     axs[1].set_yticklabels([])
+    axs[1].set_facecolor('grey')
 
-    # Adjust the position and size as needed
-    cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])
-    fig.colorbar(cs1, cax=cbar_ax)
+    # fig.colorbar(cs1,location="bottom")
 
-    gl = axs[0].gridlines(crs=ccrs.PlateCarree(),
-                          draw_labels=True, linewidth=0,)
-    gl.top_labels = False
-    gl.bottom_labels = True
-    gl.right_labels = False
+    # cbar_ax = fig.add_axes([0.2, 0.15, 0.7, 0.2])  # Adjust the position and size as needed
+    # fig.colorbar(cs1, cax=cbar_ax)
 
-    gl = axs[1].gridlines(crs=ccrs.PlateCarree(),
-                          draw_labels=True, linewidth=0,)
-    gl.top_labels = False
-    gl.bottom_labels = True
-    gl.right_labels = False
-    gl.left_labels = False
+    # gl = axs[0].gridlines(draw_labels=True,linewidth=0,)
+    # gl.top_labels = False
+    # gl.bottom_labels = True
+    # gl.right_labels = False
+
+    # gl = axs[1].gridlines(draw_labels=True,linewidth=0,)
+    # gl.top_labels = False
+    # gl.bottom_labels = True
+    # gl.right_labels = False
+    # gl.left_labels = False
 
     plt.subplots_adjust(top=0.85, wspace=0.1)
-    axs[0].coastlines()
-    axs[1].coastlines()
+    # axs[0].coastlines()
+    # axs[1].coastlines()
 
     if output:
         plt.savefig(f"{fig_dir}/{filename}.png")
