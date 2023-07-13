@@ -2,12 +2,11 @@ name: teleconnections test
 
 on:
   pull_request:
-    branches:
-      - main
-      - dev
     paths:
       - 'diagnostics/teleconnections/**'
       - 'tests/teleconnections/**'
+    types:
+      - labeled
   workflow_dispatch:
   schedule:
     - cron: "0 3 * * 1" # Run every Monday night at 3AM UTC
@@ -17,6 +16,7 @@ permissions:
 
 jobs:
   teleconnections_test:
+    if: ${{ github.event.label.name == 'Ready to merge' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
