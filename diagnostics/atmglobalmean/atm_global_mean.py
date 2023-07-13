@@ -123,9 +123,9 @@ def seasonal_bias(dataset1, dataset2, var_name, plev, statistic, model_label1, m
 
     # Set the overall figure title
     if plev is not None:
-        overall_title = f'Bias of {var_name} ({model_label1}) [{var2.units}] ({statistic}) from ({start_date1}-{end_date1}) at {plev} Pa\n Experiment {model_label1} with respect to  {model_label2} climatology ({start_date2}-{end_date2})'
+        overall_title = f'Bias of {var_name} [{var2.units}] ({statistic}) from ({start_date1} to {end_date1}) at {plev} Pa\n Experiment {model_label1} with respect to  {model_label2} climatology ({start_date2} to {end_date2})'
     else:
-        overall_title = f'Bias of {var_name} ({model_label1}) [{var2.units}] ({statistic}) from ({start_date1}-{end_date1})\n Experiment {model_label1} with respect to {model_label2} climatology ({start_date2}-{end_date2})'
+        overall_title = f'Bias of {var_name} [{var2.units}] ({statistic}) from ({start_date1} to {end_date1})\n Experiment {model_label1} with respect to {model_label2} climatology ({start_date2} to {end_date2})'
 
     # Set the title above the subplots
     fig.suptitle(overall_title, fontsize=14, fontweight='bold')
