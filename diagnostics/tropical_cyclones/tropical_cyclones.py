@@ -75,12 +75,11 @@ class TCs(DetectNodes, StitchNodes):
             self.enddate = tdict['time']['enddate']
         else:
             if paths is None:
-                raise Exception(
-                    'Without paths defined you cannot go anywhere!')
+                raise ValueError('Without paths defined you cannot go anywhere!')
             else:
                 self.paths = paths
             if startdate is None or enddate is None:
-                raise Exception('Define startdate and/or enddate')
+                raise ValueError('Define startdate and/or enddate')
             self.model = model
             self.exp = exp
             self.boxdim = boxdim
@@ -208,7 +207,7 @@ class TCs(DetectNodes, StitchNodes):
                                          streaming=self.streaming, stream_step=self.stream_step, loglevel=self.loglevel,
                                          stream_unit=self.stream_units, stream_startdate=self.stream_startdate)
         else:
-            raise Exception(f'Model {self.model} not supported')
+            raise ValueError(f'Model {self.model} not supported')
 
     def data_retrieve(self, reset_stream=False):
         """
