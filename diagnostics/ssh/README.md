@@ -1,4 +1,10 @@
 # Sea Surface Height (SSH) Variability Diagnostics Application
+
+Main authors:
+- Tanvi Sharma (AWI, tanvi.sharma@awi.de)
+
+## Description
+
 This application calculates the sea surface height standard deviation for multiple models (e.g. FESOM, ICON, NEMO) and compares them against the AVISO model. It also provides visualization of the SSH variability for the models.
 
 ## Requirements (majority of them are covered under environment set up for AQUA)

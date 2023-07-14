@@ -50,6 +50,7 @@ The returned data contain:
 *  `TOA_ifs_4km`: returned xarray-dataset, that contains the necessary variables for analysis.
 
 Other available functions:
+
 *  `process_ceres_data`: extracts CERES data for further analysis and creates global means;
 *  `process_model_data`: extracts model output data for further analysis and creates global means;
 *  `process_era5_data`: extracts ERA5 data for further analysis;
@@ -98,11 +99,10 @@ Available demo notebooks
 
 Notebooks are stored in `diagnostics/radiation/notebooks`:
 
-* `time_series.ipynb`: https://github.com/oloapinivad/AQUA/blob/main/diagnostics/radiation/notebooks/time_series.ipynb
-* `gregory.ipynb`: https://github.com/oloapinivad/AQUA/blob/main/diagnostics/radiation/notebooks/gregory.ipynb
-* `bar_plot.ipynb`: https://github.com/oloapinivad/AQUA/blob/main/diagnostics/radiation/notebooks/bar_plot.ipynb
-* `bias_maps.ipynb`: https://github.com/oloapinivad/AQUA/blob/main/diagnostics/radiation/notebooks/bias_maps.ipynb
-   
+* `time_series.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/radiation/notebooks/time_series.ipynb>`_
+* `gregory.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/radiation/notebooks/gregory.ipynb>`_
+* `bar_plot.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/radiation/notebooks/bar_plot.ipynb>`_
+* `bias_maps.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/radiation/notebooks/bias_maps.ipynb>`_    
    
 Detailed API
 ------------

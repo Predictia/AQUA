@@ -1,8 +1,11 @@
 # Diagnostic of tropical rainfalls
 
-The tropical-rainfall diagnostic analyzes rainfall variability in the tropical zone and compares the climatological models' predictions with observations.  
+Main authors: 
+- Natalia Nazarova (POLITO, natalia.nazarova@polito.it)
 
 ## Description
+
+The tropical-rainfall diagnostic analyzes rainfall variability in the tropical zone and compares the climatological models' predictions with observations.  
 
 The module comprises Python-implemented source files, an environment file, tests, demonstration files, and a command line interface. You can find a detailed description of the module in the aqua documentation. 
 
@@ -79,13 +82,13 @@ The **notebook/** folder contains the following notebooks:
     - selection of the plot size, axes scales, 
     - saving plot into storage, 
     - plotting the counts, frequencies, and Probability density function (pdf) from the obtained histograms.
- - **diagnostic_vs_streaming.ipynb**:
+ - **([diagnostic_vs_streaming.ipynb](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/diagnostic_vs_streaming.ipynb))**:
 
     The notebook demonstrates the usage of diagnostic during the streaming mode:
     - saving the obtained histogram with the histogram into storage per each chunk of any data during the stream, 
     - loading all or multiple histograms from storage and merging them into a single histogram. 
 
- - **comparison_of_lowres_models.ipynb**:
+ - **([comparison_of_lowres_models.ipynb](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/comparison_of_lowres_models.ipynb))**:
 
     The notebook demonstrates:
     - histogram comparison for different climate models,

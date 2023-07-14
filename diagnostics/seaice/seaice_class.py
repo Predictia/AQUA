@@ -1,10 +1,10 @@
+"""Sea ice diagnostics"""
+
 import matplotlib.pyplot as plt
 import xarray as xr
 from aqua import Reader
 from aqua.util import load_yaml, create_folder
 from aqua.logger import log_configure
-
-"""Sea ice diagnostics"""
 
 
 class SeaIceExtent:
@@ -85,7 +85,7 @@ class SeaIceExtent:
         # Instantiate the various readers (one per setup) and retrieve the
         # corresponding data
         self.myExtents = list()
-        for js, setup in enumerate(self.mySetups):
+        for _, setup in enumerate(self.mySetups):
             model, exp, source = setup[0], setup[1], setup[2]
 
             # Instantiate reader
@@ -114,7 +114,7 @@ class SeaIceExtent:
             # Iterate over regions
             for jr, region in enumerate(self.myRegions):
 
-                self.logger.info("\tProducing diagnostic for region " + region)
+                self.logger.info("\tProducing diagnostic for region %s", region)
                 # Create regional mask
                 latS, latN, lonW, lonE = (
                     self.regionDict[region]["latS"],
@@ -181,7 +181,7 @@ class SeaIceExtent:
 
             ax[jr].set_title("Sea ice extent: region " + region)
 
-            ax[jr].legend(fontsize = 8, ncols = 6, loc  = "best")
+            ax[jr].legend(fontsize=8, ncols=6, loc="best")
             ax[jr].set_ylabel(extent.units)
             ax[jr].grid()
 

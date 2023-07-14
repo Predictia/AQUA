@@ -1,47 +1,43 @@
 # Ocean Circulation diagnostic
 
+Main authors: 
+- Supriyo Ghosh (BSC, supryo.gosh@bsc.es)
+- Pablo Ortega (BSC, pablo.ortega@bsc.es)
 
 ## Description
 
-Concise overview that explains the purpose, key features, and benefits of your diagnostics.
+The current release of Ocean Circulation diagnostic includes climatological stratification profiles in regions of deep water formation and climatologies for the mixed layer depth.
 
 ## Table of Contents
 
-* [Installation Instructions](#installation-instructions)
-
-  - [Installation on Levante](#installation-on-levante)
-
-  - [Installation on Lumi](#installation-on-lumi)
-
-* [Data requirements](#data-requirements)
-
-* [Examples](#examples)
-
-* [Contributing](#contributing)
+- [Diagnostic of ocean circulation](#diagnostic-of-tropical-rainfalls)
+  - [Description](#description)
+  - [Table of Contents](#table-of-contents)
+  - [Installation Instructions](#installation-instructions)
+  - [Data requirements](#data-requirements)
+  - [Examples](#examples)
+  - [Contributing](#contributing)
 
 ## Installation Instructions
 
-Clearly explain how to install and set up your project. Include any dependencies, system requirements, or environment configurations that users should be aware of.
-
-### Installation on Levante
+The diagnostic uses a standard aqua environment and requires no extra dependencies. 
 
 
-### Installation on Lumi 
-
+To install of the diagnostic on Levante or Lumi, please follow the installation instructions in the main [README.md](https://github.com/oloapinivad/AQUA/blob/main/README.md) file of aqua.
 
 ## Data requirements  
 
-Please specify if your diagnostic can only be performed on data with particular requirements. If your diagnostics have no Data requirements, you should also document that.
+The diagnostic requres a model data of 3D ocean potential temperature and practical salinity.
 
 ## Examples
-
-The **notebook/** folder contains the following notebooks:
-
-- **ocean_circulation.ipynb**: 
-  Provide a brief description for each notebook (2-3 sentences).
-- 
+The **notebook/** folder contains the notebook 
+ **[ocean_circulation.ipynb](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/ocean_circulation/notebooks/ocean_circulation.ipynb)**, that  demonstrates:
+- the import of `ocean_circulation`module and configuration setup, 
+- the primary diagnostic functions of `ocean_circulation` module, which compute and plot the mixed layer depth and climatological stratification profiles,
+- the input data requierements, 
+- the application of primary functions, and 
+- the main sientific output, obtained by ocean circulation diagnostic.
 
 ## Contributing
 
-Include your contact information or any official channels (such as email, GitHub profile) through which users can reach out to you for support, questions, or feedback.
-
+The  ocean_circulation module is in a developing stage and will be significantly improved in the near future. If you have any suggestions, comments, or problems with its usage, please get in touch with the AQUA team, particulaty with Supriyo Ghosh (supryo.gosh@bsc.es) or Pablo Ortega (pablo.ortega@bsc.es).

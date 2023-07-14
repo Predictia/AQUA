@@ -1,5 +1,8 @@
 # Sea ice diagnostics
 
+Main authors: 
+- François Massonnet (UCLouvain, francois.massonnet@uclouvain.be)
+
 ## Description
 
 The sea ice diagnostic computes the sea ice extent (SIE).

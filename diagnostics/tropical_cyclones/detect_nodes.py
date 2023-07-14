@@ -5,6 +5,7 @@ import xarray as xr
 import pandas as pd
 from .tcs_utils import clean_files, write_fullres_field
 
+
 class DetectNodes():
     """
     Class Mixin to take care of detect nodes.
@@ -22,14 +23,14 @@ class DetectNodes():
             None
         """
         if self.streaming:
-            timerange = pd.date_range(start=self.stream_startdate, 
-                                      end=self.stream_enddate, 
+            timerange = pd.date_range(start=self.stream_startdate,
+                                      end=self.stream_enddate,
                                       freq=self.frequency)
         else:
-            timerange = pd.date_range(start=self.startdate, 
-                                      end=self.enddate, 
+            timerange = pd.date_range(start=self.startdate,
+                                      end=self.enddate,
                                       freq=self.frequency)
-            
+
         self.aquadask.set_dask()
         for tstep in timerange.strftime('%Y%m%dT%H'):
             tic = time()
@@ -40,9 +41,9 @@ class DetectNodes():
             self.read_lonlat_nodes()
             self.store_detect_nodes(tstep)
             toc = time()
-            self.logger.info('DetectNodes done in {:.4f} seconds'.format(toc - tic))
+            self.logger.info(
+                'DetectNodes done in {:.4f} seconds'.format(toc - tic))
         self.aquadask.close_dask()
-
 
     def readwrite_from_intake(self, timestep):
         """
@@ -66,7 +67,8 @@ class DetectNodes():
 
             # this assumes that only required 2D data has been retrieved
             lowres2d = self.reader2d.regrid(self.data2d.sel(time=timestep))
-            lowres3d = self.reader3d.regrid(self.data3d.sel(time=timestep, plev=[30000,50000]))
+            lowres3d = self.reader3d.regrid(
+                self.data3d.sel(time=timestep, plev=[30000, 50000]))
             outfield = xr.merge([lowres2d, lowres3d])
             if '10u' in outfield.data_vars:
                 outfield = outfield.rename({'10u': 'u10m'})
@@ -80,16 +82,16 @@ class DetectNodes():
         if os.path.exists(fileout):
             os.remove(fileout)
 
-        #then write netcdf file for tempest
+        # then write netcdf file for tempest
         self.logger.info('Writing low res to disk..')
         outfield.to_netcdf(fileout)
         outfield.close()
 
         self.tempest_dictionary = {
-            'lon': 'lon', 'lat': 'lat', 
+            'lon': 'lon', 'lat': 'lat',
             'psl': 'msl', 'zg': 'z',
             'uas': 'u10m', 'vas': 'v10m'}
-        self.tempest_filein=fileout
+        self.tempest_filein = fileout
 
     def read_lonlat_nodes(self):
         """
@@ -98,20 +100,21 @@ class DetectNodes():
         Args:
             tempest_fileout: output file from tempest DetectNodes
 
-        Returns: 
+        Returns:
             Dictionary with 'date', 'lon' and 'lat' of the TCs centers
         """
 
         with open(self.tempest_fileout) as f:
             lines = f.readlines()
         first = lines[0].split('\t')
-        date = first[0] + first[1].zfill(2) + first[2].zfill(2) + first[4].rstrip().zfill(2)
+        date = first[0] + first[1].zfill(2) + \
+            first[2].zfill(2) + first[4].rstrip().zfill(2)
         lon_lat = [line.split('\t')[3:] for line in lines[1:]]
-        self.tempest_nodes = {'date': date, 
+        self.tempest_nodes = {'date': date,
                               'lon': [val[0] for val in lon_lat],
                               'lat': [val[1] for val in lon_lat]}
 
-    def run_detect_nodes(self, timestep): 
+    def run_detect_nodes(self, timestep):
         """"
         Basic function to call from command line tempest extremes DetectNodes.
         Runs the tempest extremes DetectNodes command on the regridded atmospheric data specified by the tempest_dictionary and tempest_filein attributes,
@@ -130,15 +133,16 @@ class DetectNodes():
 
         tempest_filein = self.tempest_filein
         tempest_dictionary = self.tempest_dictionary
-        tempest_fileout = os.path.join(self.paths['tmpdir'], 'tempest_output_' + timestep + '.txt')
+        tempest_fileout = os.path.join(
+            self.paths['tmpdir'], 'tempest_output_' + timestep + '.txt')
         self.tempest_fileout = tempest_fileout
 
-        detect_string= f'DetectNodes --in_data {tempest_filein} --timefilter 6hr --out {tempest_fileout} --searchbymin {tempest_dictionary["psl"]} ' \
-        f'--closedcontourcmd {tempest_dictionary["psl"]},200.0,5.5,0;_DIFF({tempest_dictionary["zg"]}(30000Pa),{tempest_dictionary["zg"]}(50000Pa)),-58.8,6.5,1.0 --mergedist 6.0 ' \
-        f'--outputcmd {tempest_dictionary["psl"]},min,0;_VECMAG({tempest_dictionary["uas"]},{tempest_dictionary["vas"]}),max,2 --latname {tempest_dictionary["lat"]} --lonname {tempest_dictionary["lon"]}'
+        detect_string = f'DetectNodes --in_data {tempest_filein} --timefilter 6hr --out {tempest_fileout} --searchbymin {tempest_dictionary["psl"]} ' \
+            f'--closedcontourcmd {tempest_dictionary["psl"]},200.0,5.5,0;_DIFF({tempest_dictionary["zg"]}(30000Pa),{tempest_dictionary["zg"]}(50000Pa)),-58.8,6.5,1.0 --mergedist 6.0 ' \
+            f'--outputcmd {tempest_dictionary["psl"]},min,0;_VECMAG({tempest_dictionary["uas"]},{tempest_dictionary["vas"]}),max,2 --latname {tempest_dictionary["lat"]} --lonname {tempest_dictionary["lon"]}'
 
-        subprocess.run(detect_string.split(), stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-
+        subprocess.run(detect_string.split(),
+                       stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
     def store_detect_nodes(self, timestep, write_fullres=True):
         """
@@ -152,16 +156,18 @@ class DetectNodes():
             None
         """
 
-        self.logger.info(f'Running store_detect_nodes() for timestep {timestep}')
-        
+        self.logger.info(
+            f'Running store_detect_nodes() for timestep {timestep}')
+
         # in case you want to write netcdf file with ullres field after Detect Nodes
         if write_fullres:
-          # loop on variables to write to disk only the subset of high res files
+            # loop on variables to write to disk only the subset of high res files
             subselect = self.fullres.sel(time=timestep)
             data = self.reader_fullres.regrid(subselect)
             self.logger.info(f'store_fullres_field for timestep {timestep}')
             xfield = self.store_fullres_field(data, self.tempest_nodes)
-            store_file = os.path.join(self.paths['fulldir'], f'TC_fullres_{timestep}.nc')
+            store_file = os.path.join(
+                self.paths['fulldir'], f'TC_fullres_{timestep}.nc')
             write_fullres_field(xfield, store_file, self.aquadask.dask)
 
             # for var in self.var2store:
@@ -172,4 +178,3 @@ class DetectNodes():
             #     self.logger.info(f'store_fullres_field for timestep {timestep}')
             #     store_file = os.path.join(self.paths['fulldir'], f'TC_{var}_{timestep}.nc')
             #     write_fullres_field(xfield, store_file)
-
