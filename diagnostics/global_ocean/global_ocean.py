@@ -11,7 +11,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from scipy.stats import t as statt
-import cartopy.crs as ccrs
 from aqua import Reader
 
 warnings.filterwarnings("ignore")
@@ -233,6 +232,7 @@ def weighted_area_mean(data, region=None, latS: float = None, latN: float = None
     wgted_mean = weighted_data.mean(("lat", "lon"))
     return wgted_mean
 
+
 def zonal_mean_trend_plot(data, region=None, latS: float = None, latN: float = None, lonW: float = None,
                           lonE: float = None,  output=True, output_dir="output"):
     """
@@ -306,7 +306,6 @@ def zonal_mean_trend_plot(data, region=None, latS: float = None, latN: float = N
     return
 
 
-
 def reg_mean(data, region=None, latS=None, latN=None, lonW=None, lonE=None):
     """
     Computes the weighted box mean for some predefined or customized region
@@ -330,7 +329,6 @@ def reg_mean(data, region=None, latS=None, latN=None, lonW=None, lonE=None):
     data = weighted_area_mean(data, region, latS, latN, lonW, lonE)
 
     return data
-
 
 
 def data_process_by_type(data,  type=None):
@@ -478,6 +476,7 @@ def hovmoller_lev_time_plot(data, region, type=None, latS: float = None, latN: f
 
     return
 
+
 def time_series_multilevs(data, region=None, type=None, customise_level=False, levels=None, latS: float = None, latN: float = None, lonW: float = None,
                           lonE: float = None,  output=True, output_dir="output"):
     """
@@ -500,7 +499,7 @@ def time_series_multilevs(data, region=None, type=None, customise_level=False, l
         None
     """
     data = weighted_area_mean(data, region, latS, latN, lonW, lonE)
-    data, cmap = data_process_by_type(data, type)
+    data, _ = data_process_by_type(data, type)
 
     logger.info("Time series plot is in process")
 
@@ -771,6 +770,7 @@ def convert_variables(data):
 
     return converted_data
 
+
 def linregress_3D(y_array):
     """
     Computes the linear regression against the temporal dimension of a 3D array formatted in time, latitude, and longitude.
@@ -880,7 +880,7 @@ def lintrend_2D(y_array):
     x_mean = np.nanmean(x_array, axis=0)
     y_mean = np.nanmean(y_array, axis=0)
     x_std = np.nanstd(x_array, axis=0)
-    y_std = np.nanstd(y_array, axis=0)
+    # y_std = np.nanstd(y_array, axis=0)
     # Compute co-variance between time series of x_array and y_array over each (lon,lat) grid box.
     cov = np.nansum((x_array-x_mean)*(y_array-y_mean), axis=0)/n
     # Compute slope between time series of x_array and y_array over each (lon,lat) grid box.
@@ -930,7 +930,7 @@ def lintrend_3D(y_array):
     x_mean = np.nanmean(x_array, axis=0)
     y_mean = np.nanmean(y_array, axis=0)
     x_std = np.nanstd(x_array, axis=0)
-    y_std = np.nanstd(y_array, axis=0)
+    # y_std = np.nanstd(y_array, axis=0)
     # Compute co-variance between time series of x_array and y_array over each (lon,lat) grid box.
     cov = np.nansum((x_array-x_mean)*(y_array-y_mean), axis=0)/n
     # Compute slope between time series of x_array and y_array over each (lon,lat) grid box.
@@ -1048,6 +1048,7 @@ def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=N
     plt.show()
 
     return
+
 
 def split_time_equally(data):
     """
@@ -1182,7 +1183,7 @@ def data_time_selection(data, time):
     elif time in ["yearly", "year", "y"]:
         data = data.groupby('time.year').mean(dim='time')
         if "year" in list(data.dims):
-            data = data.rename({"year":"time"})
+            data = data.rename({"year": "time"})
     elif time in ["jja", "jun_jul_aug", "jun-jul-aug", "june-july-august", "june_july_august"]:
         data = data.where((data['time.month'] >= 6) & (
             data['time.month'] <= 8), drop=True)
@@ -1434,7 +1435,7 @@ def data_for_plot_spatial_mld_clim(data, region=None, time=None, latS: float = N
         xarray.Dataset: Processed data suitable for plotting spatial MLD climatology.
 
     """
-    
+
     data = area_selection(data, region, latS, latN, lonE, lonW)
     data = convert_variables(data)
     data = compute_mld_cont(data)
