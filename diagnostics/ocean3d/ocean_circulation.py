@@ -264,8 +264,7 @@ def prepare_data_for_stratification_plot(data, region=None, time=None, latS: flo
     return data
 
 
-def plot_stratification(mod_data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None,
-                        lonE: float = None,  output=True, output_dir= None):
+def plot_stratification(mod_data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None,lonE: float = None,  output=True, output_dir= None):
     """
     Create a stratification plot showing the mean state temperature, salinity, and density profiles.
 
@@ -300,7 +299,7 @@ def plot_stratification(mod_data, region=None, time=None, latS: float = None, la
 
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-             region, time, latS, latN, lonW, lonE, output_dir, plot_name="stratification")
+             region, latS, latN, lonW, lonE, output_dir, plot_name="stratification")
 
     legend_list = []
     for i, var in zip(range(len(axs)), ["ocpt", "so", "rho"]):
@@ -350,7 +349,7 @@ def plot_stratification(mod_data, region=None, time=None, latS: float = None, la
     axs[0].legend(legend_list, loc='best')
 
     if output:
-        plt.savefig(f"{fig_dir}/{filename}.png")
+        plt.savefig(f"{fig_dir}/{filename}.pdf")
         logger.info(
             " Figure and data used in the plot, saved here : %s", output_path)
     plt.show()
@@ -413,8 +412,7 @@ def compute_mld_cont(rho):
     return mld
 
 
-def data_for_plot_spatial_mld_clim(data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None,
-                                   lonE: float = None):
+def data_for_plot_spatial_mld_clim(data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None,lonE: float = None):
     """
     Extracts and prepares data for plotting spatial mean mixed layer depth (MLD) climatology.
 
@@ -485,7 +483,7 @@ def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, 
 
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-             region, time, latS, latN, lonW, lonE, output_dir, plot_name="spatial_MLD")
+             region, latS, latN, lonW, lonE, output_dir, plot_name="spatial_MLD")
 
     logger.info("Spatial MLD plot is in process")
     fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(20, 6.5))
@@ -528,7 +526,7 @@ def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, 
 
     plt.subplots_adjust(top=0.85, wspace=0.1)
     if output:
-        plt.savefig(f"{fig_dir}/{filename}.png")
+        plt.savefig(f"{fig_dir}/{filename}.pdf")
         logger.info(
             "Figure and data used for this plot are saved here: %s", output_path)
 

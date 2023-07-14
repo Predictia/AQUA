@@ -1,4 +1,4 @@
-ocean3docean3d# Ocean3D diagnostic
+# Ocean3D diagnostic
 
 Main authors: 
 - Supriyo Ghosh (BSC, supryo.gosh@bsc.es)
@@ -6,7 +6,7 @@ Main authors:
 
 ## Description
 
-The current release of Ocean3D diagnostics includes two submodules with dedicated functions and notebooks, one to characterise and monitor model drifts and another to evaluate the realism of the model in simulating key precursors of the ocean circulation
+The current release of Ocean3D diagnostics includes two submodules with dedicated functions and notebooks: `ocean_drifts`  to characterise and monitor model drifts and `ocean_circulation` to evaluate the realism of the model in simulating key precursors of the ocean circulation
 
 ## Table of Contents
 

@@ -383,7 +383,7 @@ def compare_arrays(mod_data, obs_data):
 
     return mod_data_list, obs_data_selected
 
-def dir_creation(region=None, sp_value=None, latS: float = None, latN: float = None, lonW: float = None,
+def dir_creation(region=None,  latS: float = None, latN: float = None, lonW: float = None,
                  lonE: float = None, output_dir=None, plot_name=None):
     """
     Creates the directory structure for saving the output data and figures.
@@ -391,7 +391,6 @@ def dir_creation(region=None, sp_value=None, latS: float = None, latN: float = N
     Parameters:
         data (xarray.Dataset): Data used for the plot.
         region (str): Region name.
-        sp_value (str): Value specific to the plot.
         latS (float): Southern latitude bound.
         latN (float): Northern latitude bound.
         lonW (float): Western longitude bound.
@@ -402,19 +401,21 @@ def dir_creation(region=None, sp_value=None, latS: float = None, latN: float = N
     Returns:
         tuple: Output path, figure directory path, data directory path, and filename.
     """
+    current_time = f'{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
+
     if output_dir is None:
         raise ValueError("Please provide the outut_dir when output = True")
     if region in [None, "custom", "Custom"]:
         region = "custom"
-        filename = f"{plot_name}_{sp_value}_{region.replace(' ', '_').lower()}_lat_{latS}_{latN}_lon_{lonW}_{lonE}_mean"
+        filename = f"{plot_name}_{region.replace(' ', '_').lower()}_lat_{latS}_{latN}_lon_{lonW}_{lonE}_mean_{current_time}"
     else:
-        filename = f"{plot_name}_{sp_value}_{region.replace(' ', '_').lower()}_mean"
+        filename = f"{plot_name}_{region.replace(' ', '_').lower()}_mean_{current_time}"
 
-    current_time = f'{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
-    output_path = f"{output_dir}/{filename}_{current_time}"
-    fig_dir = f"{output_path}/figs"
-    data_dir = f"{output_path}/data"
-    os.makedirs(fig_dir)
-    os.makedirs(data_dir)
-    return output_path, fig_dir, data_dir, filename
+    
+    #output_path = f"{output_dir}/"
+    fig_dir = f"{output_dir}/PDF"
+    data_dir = f"{output_dir}/NetCDF"
+    os.makedirs(fig_dir, exist_ok = True)
+    os.makedirs(data_dir,exist_ok = True)
+    return output_dir, fig_dir, data_dir, filename
 
