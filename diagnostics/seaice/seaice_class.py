@@ -190,8 +190,8 @@ class SeaIceExtent:
             outputDir = "./PDF/" + str(fmt) + "/"
 
             create_folder(outputDir, loglevel=self.loglevel)
-
-            fig.savefig(outputDir + "figSIE." + fmt, dpi=300)
+            figName = "SeaIceExtent_" + "all_models" + "." + fmt
+            fig.savefig(outputDir + "/" + figName, dpi=300)
 
     def createNetCDF(self):
         """
