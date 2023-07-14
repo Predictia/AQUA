@@ -276,7 +276,7 @@ class sshVariability():
         logger.info("Saving plots as a PDF output file")
         # self.save_subplots_as_jpeg(config, "subplots_output.jpeg", fig)
         self.save_subplots_as_pdf(self.create_output_directory(
-            config), "subplots_output.pdf", fig)
+            config), "ssh_all_models_ssh-variablity.pdf", fig)
 
         # Close the Dask client and cluster
         client.close()
