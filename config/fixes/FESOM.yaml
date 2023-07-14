@@ -33,7 +33,7 @@ models:
                         source: temp 
                         src_units: degC
                         grib: true
-                        units: degC # Override units from grib tables
+                        units: degC 
                     uo:
                         source: u
                         grib: true
@@ -44,8 +44,10 @@ models:
                         source: w
                         grib: true
                     so:
+                        src_units: psu
                         source: salt
                         grib: true
+                        units: psu
                     sivn:
                         source: vice
                         grib: true
@@ -70,4 +72,12 @@ models:
                         src_units: degC
                         grib: true
                         units: degC # Override units from grib tables
+
+            lra-r100-monthly:
+                data_model: False
+                vars:
+                    sst: 
+                        derived: sst
+                        grib: true
+                        units: K
     

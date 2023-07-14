@@ -62,7 +62,7 @@ source_grids:
       2D_1h_native:
         path: /work/bm1235/ifs-grids/tco_grids/tco2559_grid.nc
         space_coord: ["value"]
-      3D_1h6h_native:
+      3D_1h_native:
         path: /work/bm1235/ifs-grids/tco_grids/tco2559_grid.nc
         space_coord: ["value"]
       2D_monthly_native:
@@ -91,7 +91,7 @@ source_grids:
       2D_1h_native:
         path: /work/bm1235/ifs-grids/tco_grids/tco1279_grid.nc
         space_coord: ["value"]
-      3D_1h6h_native:
+      3D_1h_native:
         path: /work/bm1235/ifs-grids/tco_grids/tco1279_grid.nc
         space_coord: ["value"]
       2D_monthly_native:
@@ -243,9 +243,6 @@ source_grids:
         vert_coord: ["nz1"]
         extra: 
           - -setgrid,/work/bb1153/b382075/nextgems/grids/NG5_griddes_elem_IFS.nc 
-      # it is a duplicate
-      #default:  # default covers all simple cases where this can be computed automatically (eg LRA)
-      #  space_coord: ["lon", "lat"]
         
     tco2559-ng5:
       interpolated_global2d:
@@ -328,12 +325,6 @@ source_grids:
         extra: 
           - -setgrid,/work/bb1153/b382075/nextgems/grids/NG5_griddes_elems_IFS.nc 
     
-
-
-
-      
-      
-
       # 2D_1h_native:
       #   path: /work/bm1235/a270046/meshes/NG5_griddes_nodes_IFS.nc
       #   space_coord: ["nod2"]
@@ -430,7 +421,7 @@ source_grids:
   WOA18:
     woa18_2005_2017:
       default:
-        path: /pool/data/AWICM/FESOM2/INITIAL/WOA18/WOA18_2005_2017/woa18_A5B7_t00_04.nc
+        # path: /pool/data/AWICM/FESOM2/INITIAL/WOA18/WOA18_2005_2017/woa18_A5B7_t00_04.nc
         vert_coord: depth
         space_coord: ["lon", "lat"]
 
@@ -460,6 +451,13 @@ source_grids:
         space_coord:
         - lon
         - lat
+  EN4:
+    en4:
+      default:
+        path:
+          lev: /work/bb1153/b382076/AQUA-archive/grids/EN4/en4-grid.nc
+        space_coord: ["lon", "lat"]
+        vert_coord: ["lev"]
   ERA5:
     era5-dkrz:
       default:
@@ -467,12 +465,18 @@ source_grids:
         space_coord: ["values"]  
     era5:
       default:
-        path: /work/bb1153/b382076/ERA5/grids/r025_grid.nc
+        path: 
+          2d: /work/bb1153/b382075/nextgems/grids/r025_grid.nc
+          2dm: /work/bb1153/b382075/nextgems/grids/r025_grid_masked.nc
+        masked_vars:
+          - sst
+          - SSTK
         space_coord: ["lon", "lat"]
+        vert_coord: ["2d", "2dm"]  # If the case is more complex than simply "2d" we need to specify this  
 
   OSI-SAF:
     osi-450:
-      nh:
+      nh-monthly:
         space_coord:
         - xc
         - yc
@@ -480,7 +484,23 @@ source_grids:
         cellarea_var: areacello
         mask: /work/bb1153/b382075/nextgems/grids/grid_nh.nc
         mask_var: sftof
-      sh:
+      nh-daily:
+        space_coord:
+        - xc
+        - yc
+        cellareas: /work/bb1153/b382075/nextgems/grids/grid_nh.nc
+        cellarea_var: areacello
+        mask: /work/bb1153/b382075/nextgems/grids/grid_nh.nc
+        mask_var: sftof
+      sh-daily:
+        space_coord:
+        - xc
+        - yc
+        cellareas: /work/bb1153/b382075/nextgems/grids/grid_sh.nc
+        cellarea_var: areacello
+        mask: /work/bb1153/b382075/nextgems/grids/grid_nh.nc
+        mask_var: sftof
+      sh-monthly:
         space_coord:
         - xc
         - yc
