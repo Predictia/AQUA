@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10"]
+        python-version: ["3.11"]
     defaults:
       run:
         # NOTE: We must take care with the shell value here. We have steps
@@ -47,13 +47,12 @@ jobs:
       - name: Setup Micromamba
         uses: mamba-org/setup-micromamba@v1
         with:
-          environment-file: environment.yml
+          environment-file: environment-common.yml 
           environment-name: aqua
           cache-downloads: true
           cache-environment: true
           condarc: |
             channels:
-              - numba
               - conda-forge
           create-args: >-
               python=${{ matrix.python-version }}

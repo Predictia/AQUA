@@ -1,0 +1,43 @@
+model: 'FESOM' 
+exp: 'tco2559-ng5-cycle3'
+source: "lra-r100-monthly"
+
+hovmoller_lev_time_plot:
+  region: "Global Ocean"
+  latS:
+  latN:
+  lonE:
+  lonW:
+  type: "FUllvalue"
+  output: True
+  output_dir: './output'
+
+time_series_multilevs:
+  region: "Global Ocean"
+  latS:
+  latN:
+  lonE:
+  lonW:
+  type: "anomally"
+  customise_level:
+  levels :
+  output: True
+  output_dir: './output'
+
+multilevel_trend:
+  region: "Global Ocean"
+  latS:
+  latN:
+  lonE:
+  lonW:
+  output: True
+  output_dir: './output'
+
+zonal_mean_trend:
+  region: "Indian Ocean "
+  latS:
+  latN:
+  lonE:
+  lonW:
+  output: True
+  output_dir: "output"

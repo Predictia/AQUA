@@ -16,8 +16,7 @@ import smmregrid as rg
 
 from aqua.util import load_yaml, load_multi_yaml
 from aqua.util import get_reader_filenames, get_config_dir, get_machine
-from aqua.util import log_history, log_history_iter
-from aqua.logger import log_configure
+from aqua.logger import log_configure, log_history, log_history_iter
 import aqua.gsv
 
 from .streaming import Streaming
@@ -307,7 +306,7 @@ class Reader(FixerMixin, RegridMixin):
         else:
             data = self.reader_intake(esmcat, var, loadvar)  # Returns a generator object
 
-        log_history_iter(data, "retrieved by AQUA retriever")
+        data = log_history_iter(data, "retrieved by AQUA retriever")
 
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
 
@@ -364,6 +363,11 @@ class Reader(FixerMixin, RegridMixin):
         if self.vert_coord == ["2d"]:
             datadic = {"2d": data}
         else:
+            self.logger.debug("Grouping variables that share the same dimension")
+            self.logger.debug("Vert coord: %s", self.vert_coord)
+            self.logger.debug("masked_att: %s", self.masked_att)
+            self.logger.debug("masked_vars: %s", self.masked_vars)
+
             datadic = group_shared_dims(data, self.vert_coord, others="2d",
                                         masked="2dm", masked_att=self.masked_att,
                                         masked_vars=self.masked_vars)
@@ -478,9 +482,12 @@ class Reader(FixerMixin, RegridMixin):
                 if not self.grid_area[coord].equals(data.coords[coord]):
                     # if they are fine when sorted, there is a sorting mismatch
                     if self.grid_area[coord].sortby(coord).equals(data.coords[coord].sortby(coord)):
-                        raise ValueError(f'{coord} is sorted in different way between area files and your dataset.') from err
+                        self.logger.warning('%s is sorted in different way between area files and your dataset. Flipping it!', coord)
+                        self.grid_area = self.grid_area.reindex({coord: list(reversed(self.grid_area[coord]))})
+                        # raise ValueError(f'{coord} is sorted in different way between area files and your dataset.') from err
                     # something else
-                    raise ValueError(f'{coord} has a mismatch in coordinate values!') from err
+                    else:
+                        raise ValueError(f'{coord} has a mismatch in coordinate values!') from err
 
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
 
@@ -598,7 +605,7 @@ class Reader(FixerMixin, RegridMixin):
             query[query_var] = var.split() if isinstance(var, str) else var
         subcat = esmcat.search(**query)
         data = subcat.to_dataset_dict(cdf_kwargs=cdf_kwargs,
-                                      zarr_kwargs=dict(consolidated=True),
+                                      # zarr_kwargs=dict(consolidated=True),
                                       # decode_times=True,
                                       # use_cftime=True)
                                       progressbar=False
@@ -613,8 +620,20 @@ class Reader(FixerMixin, RegridMixin):
             enddate = startdate
         return esmcat(startdate=startdate, enddate=enddate, var=var).read_chunked()
 
-    def reader_intake(self, esmcat, var, loadvar):
-        """Read regular intake entry. Returns dataset."""
+    def reader_intake(self, esmcat, var, loadvar, keep="first"):
+        """
+        Read regular intake entry. Returns dataset.
+
+        Args:
+            esmcat (intake.catalog.Catalog): your catalog
+            var (str): Variable to load
+            loadvar (list of str): List of variables to load
+            keep (str, optional): which duplicate entry to keep ("first" (default), "last" or None)
+
+        Returns:
+            Dataset
+        """
+
         if loadvar:
             data = esmcat.to_dask()
             if all(element in data.data_vars for element in loadvar):
@@ -628,4 +647,11 @@ class Reader(FixerMixin, RegridMixin):
                     raise KeyError("You are asking for variables which we cannot find in the catalog!")
         else:
             data = esmcat.to_dask()
+
+        # check for duplicates
+        len0 = len(data.time)
+        data = data.drop_duplicates(dim='time', keep=keep)
+        if len(data.time) != len0:
+            self.logger.warning("Duplicate entries found along the time axis, keeping the %s one.", keep)
+
         return data

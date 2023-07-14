@@ -96,9 +96,11 @@ source_grids:
       default: 
         space_coord: ["lon", "lat"]
       2D_1h_native:
-        grid: tco2559_cycle3
-      3D_1h6h_native:
-        grid: tco2559_cycle3
+        path: /work/bm1235/ifs-grids/tco_grids/tco2559_grid.nc
+        space_coord: ["value"]
+      3D_1h_native:
+        path: /work/bm1235/ifs-grids/tco_grids/tco2559_grid.nc
+        space_coord: ["value"]
       2D_monthly_native:
         grid: tco2559_cycle3
       3D_monthly_native:
@@ -114,9 +116,11 @@ source_grids:
       default: 
         space_coord: ["lon", "lat"]
       2D_1h_native:
-        grid: tco1279_cycle3
-      3D_1h6h_native:
-        grid: tco1279_cycle3
+        path: /work/bm1235/ifs-grids/tco_grids/tco1279_grid.nc
+        space_coord: ["value"]
+      3D_1h_native:
+        path: /work/bm1235/ifs-grids/tco_grids/tco1279_grid.nc
+        space_coord: ["value"]
       2D_monthly_native:
         grid: tco1279_cycle3
       3D_monthly_native:
