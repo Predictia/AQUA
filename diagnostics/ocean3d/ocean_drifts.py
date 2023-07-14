@@ -114,71 +114,95 @@ def reg_mean(data, region=None, latS=None, latN=None, lonW=None, lonE=None):
 
 
 
-def data_process_by_type(data,  type=None):
+def data_process_by_type(data, anomaly: bool = False, std_anomaly: bool =False, type: str = None):
     """
     Selects the type of timeseries and colormap based on the given parameters.
 
     Args:
         data (DataArray): Input data containing temperature (ocpt) and salinity (so).
+        anomaly (bool, optional): Specifies whether to process anomaly values. Defaults to False.
+        std_anomaly (bool, optional): Specifies whether to process standardized anomaly values. Defaults to False.
+        type (str, optional): Type of time series to be processed. Valid options: "FullValue", "Anomaly", "StdAnomaly". Defaults to None.
+
     Returns:
         process_data (Dataset): Processed data based on the selected timeseries type.
         cmap (str): Colormap to be used for the plot.
-    """
-    type = type.lower()
+    """ 
+    type = type.lower().replace(" ","").replace("_","")
     process_data = xr.Dataset()
 
-    if type in ['anomaly tmean', "anomaly vs tmean", "anomaly_tmean", "anomaly_vs_tmean"]:
-        cmap = "PuOr"
-        for var in list(data.data_vars.keys()):
-            process_data[var] = data[var] - data[var].mean(dim='time')
-    elif type in ['anomaly t0', "anomaly vs t0", "anomaly_t0", "anomaly_vs_t0"]:
-        cmap = "PuOr"
-        for var in list(data.data_vars.keys()):
-            process_data[var] = data[var] - data[var].isel(time=0)
-    elif type in ['stdanomaly_t0', "std_anomaly_vs_t0", "std anomaly t0", "stdanomaly t0"]:
-        cmap = "PuOr"
-        for var in list(data.data_vars.keys()):
-            var_data = data[var] - data[var].isel(time=0)
-            var_data.attrs['units'] = 'Stand. Units'
-            # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
-            process_data[var] = var_data / var_data.std(dim="time")
-    elif type in ['stdanomaly_tmean', "std_anomaly_vs_tmean", "std anomaly tmean", "stdanomaly tmean"]:
-        cmap = "PuOr"
-        for var in list(data.data_vars.keys()):
-            var_data = data[var] - data[var].mean(dim='time')
-            var_data.attrs['units'] = 'Stand. Units'
-            # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
-            process_data[var] = var_data / var_data.std(dim="time")
-
+    if anomaly == True:
+        if std_anomaly != True:
+            if type in ['tmean', "meantime","timemean"]:
+                cmap = "PuOr"
+                for var in list(data.data_vars.keys()):
+                    process_data[var] = data[var] - data[var].mean(dim='time')
+                type = f"Anomaly_tmean"
+            elif type in ['t0', "intialtime", "firsttime"]:
+                cmap = "PuOr"
+                for var in list(data.data_vars.keys()):
+                    process_data[var] = data[var] - data[var].isel(time=0)
+                type = f"Anomaly_initial_time"
+            else:
+                raise ValueError("Select proper value of type: t0 or tmean, when anomaly = True ")
+            logger.info(f"Data processed for Anomaly with respect to {type}")
+        if std_anomaly == True:
+            if type in ['t0', "intialtime", "firsttime"]:
+                cmap = "PuOr"
+                for var in list(data.data_vars.keys()):
+                    var_data = data[var] - data[var].isel(time=0)
+                    var_data.attrs['units'] = 'Stand. Units'
+                    # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
+                    process_data[var] = var_data / var_data.std(dim="time")
+                type = f"Std anomaly_initial_time"
+            elif type in ['tmean', "meantime","timemean"]:
+                cmap = "PuOr"
+                for var in list(data.data_vars.keys()):
+                    var_data = data[var] - data[var].mean(dim='time')
+                    var_data.attrs['units'] = 'Stand. Units'
+                    # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
+                    process_data[var] = var_data / var_data.std(dim="time")
+                type = f"Std Anomaly_tmean"
+            else:
+                raise ValueError("Select proper value of type: t0 or tmean, when anomaly = True ")
+            logger.info(f"Data processed for Standardised Anomaly with respect to {type}")
+            
     else:
-        cmap = 'jet'
+        cmap='jet'
+        logger.info("Data processed for Full values as anomaly = False")
+        type = f"Full_values"
+
         process_data = data
-    logger.info("Data processed for %s", type)
-    return process_data, cmap
+    # logger.info(f"Data processed for {type}")
+    return process_data, type, cmap
 
 
-def hovmoller_lev_time_plot(data, region, type=None, latS: float = None, latN: float = None, lonW: float = None,
-                            lonE: float = None, output=False, output_dir= None):
+def hovmoller_lev_time_plot(data, region,
+                            anomaly: bool = False,std_anomaly: bool =False,
+                            type= None , latS: float=None, latN: float=None, lonW: float=None,
+                            lonE: float=None, output= False, output_dir= None):
     """
     Create a Hovmoller plot of temperature and salinity full values.
 
-    Args:
+    Parameters:
         data (DataArray): Input data containing temperature (ocpt) and salinity (so).
         region (str): Region represented in the plot.
-        type (str): Type of timeseries to display, choose from FullValue, Anomaly, StdAnomaly.
-        latS (float, optional): Southern latitude boundary of the region. Default is None.
-        latN (float, optional): Northern latitude boundary of the region. Default is None.
-        lonW (float, optional): Western longitude boundary of the region. Default is None.
-        lonE (float, optional): Eastern longitude boundary of the region. Default is None.
-        output (bool, optional): Indicates whether to save the plot and data. Default is False.
-        output_dir (str, optional): Directory to save the output files. Default is "output".
+        anomaly (bool): Whether to plot anomaly values. Default is False.
+        std_anomaly (bool): Whether to plot standardized anomaly values. Default is False.
+        type (str): Type of timeseries to display, choose from FullValue, Anomaly, StdAnomaly. (Optional)
+        latS (float): Southern latitude boundary of the region. Default is None. (Optional)
+        latN (float): Northern latitude boundary of the region. Default is None. (Optional)
+        lonW (float): Western longitude boundary of the region. Default is None. (Optional)
+        lonE (float): Eastern longitude boundary of the region. Default is None. (Optional)
+        output (bool): Indicates whether to save the plot and data. Default is False. (Optional)
+        output_dir (str): Directory to save the output files. Default is None. (Optional)
 
     Returns:
         None
     """
     data = weighted_area_mean(data, region, latS, latN, lonW, lonE)
     # Reads the type of timeseries to plot
-    data, cmap = data_process_by_type(data, type)
+    data, type, cmap = data_process_by_type(data, anomaly, std_anomaly, type)
 
     logger.info("Hovmoller plotting in process")
     # Create subplots for temperature and salinity plots
@@ -259,29 +283,33 @@ def hovmoller_lev_time_plot(data, region, type=None, latS: float = None, latN: f
 
     return
 
-def time_series_multilevs(data, region=None, type=None, customise_level=False, levels=None, latS: float = None, latN: float = None, lonW: float = None,
-                          lonE: float = None,  output=True, output_dir= None):
+def time_series_multilevs(data, region=None,
+                        anomaly: bool = False,std_anomaly: bool =False,
+                          type = None, customise_level=False, levels=None, latS: float=None, latN: float=None, lonW: float=None,
+                            lonE: float=None,  output= True, output_dir = None):
     """
     Create time series plots of global temperature and salinity at selected levels.
 
     Parameters:
         data (DataArray): Input data containing temperature (ocpt) and salinity (so).
-        region (str): Region name.
-        type (str): Type of time series, e.g., FullValue, Anomaly, StdAnomaly.
+        region (str): Region name. (Optional)
+        anomaly (bool): Whether to plot anomaly values. Default is False.
+        std_anomaly (bool): Whether to plot standardized anomaly values. Default is False.
+        type (str): Type of time series, e.g., FullValue, Anomaly, StdAnomaly. (Optional)
         customise_level (bool): Whether to use custom levels or predefined levels.
         levels (list): List of levels to plot. Ignored if customise_level is False.
-        latS (float, optional): Southern latitude bound.
-        latN (float, optional): Northern latitude bound.
-        lonW (float, optional): Western longitude bound.
-        lonE (float, optional): Eastern longitude bound.
-        output (bool): Whether to save the plot and data.
-        output_dir (str): Directory to save the plot and data.
+        latS (float): Southern latitude bound. (Optional)
+        latN (float): Northern latitude bound. (Optional)
+        lonW (float): Western longitude bound. (Optional)
+        lonE (float): Eastern longitude bound. (Optional)
+        output (bool): Whether to save the plot and data. Default is True.
+        output_dir (str): Directory to save the plot and data. (Optional)
 
     Returns:
         None
     """
     data = weighted_area_mean(data, region, latS, latN, lonW, lonE)
-    data, cmap = data_process_by_type(data, type)
+    data, type, cmap = data_process_by_type(data, anomaly, std_anomaly, type)
 
     logger.info("Time series plot is in process")
 
@@ -523,15 +551,15 @@ def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=N
 
     Parameters:
         data (xarray.Dataset): Input data containing temperature (ocpt) and salinity (so) variables.
-        region (str): Region name.
+        region (str): Region name. (Optional)
         customise_level (bool): Whether to use custom levels or predefined levels.
         levels (list): List of levels to plot. Ignored if customise_level is False.
-        latS (float): Southern latitude bound.
-        latN (float): Northern latitude bound.
-        lonW (float): Western longitude bound.
-        lonE (float): Eastern longitude bound.
-        output (bool): Whether to save the plot and data.
-        output_dir (str): Output directory to save the plot and data.
+        latS (float): Southern latitude bound. (Optional)
+        latN (float): Northern latitude bound. (Optional)
+        lonW (float): Western longitude bound. (Optional)
+        lonE (float): Eastern longitude bound. (Optional)
+        output (bool): Whether to save the plot and data. Default is True.
+        output_dir (str): Output directory to save the plot and data. (Optional)
 
     Returns:
         None
