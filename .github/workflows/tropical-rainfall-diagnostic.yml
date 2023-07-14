@@ -2,6 +2,7 @@ name: tropical rainfall diagnostic test
 # comment line is added to test all workflows with a common environment
 on:
   pull_request:
+    branches: [ main, dev ]
     paths:
       - 'diagnostics/tropical_rainfall/**'
       - 'tests/tropical-rainfall/**'
@@ -14,6 +15,7 @@ permissions:
 
 jobs:
   tropical-rainfall-diagnostic_test:
+    if: contains(github.event.pull_request.labels.*.name, 'Ready to merge')
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
