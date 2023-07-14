@@ -11,7 +11,7 @@ from .tools import load_namelist, lon_180_to_360, lon_360_to_180
 from .tools import area_selection, wgt_area_mean
 from .tools import get_dataset_config
 
-__version__ = '0.0.8'
+__version__ = '0.0.9'
 
 __all__ = ['station_based_cdo', 'regional_mean_cdo', 'regional_anomalies_cdo',
            'station_based_index', 'regional_mean_index',
