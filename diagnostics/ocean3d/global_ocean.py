@@ -187,7 +187,7 @@ def hovmoller_lev_time_plot(data, region, type=None, latS: float = None, latN: f
 
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-             region, type, latS, latN, lonE, lonW, output_dir, plot_name="hovmoller_plot")
+             region, type, latS, latN, lonW, lonE, output_dir, plot_name="hovmoller_plot")
 
     _ = mcolors.TwoSlopeNorm(vcenter=0)
 
@@ -315,7 +315,7 @@ def time_series_multilevs(data, region=None, type=None, customise_level=False, l
             ax=axs[1], label=f"{round(int(data_level.lev.data), -2)}")
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-             region, type, latS, latN, lonE, lonW, output_dir, plot_name="time_series")
+             region, type, latS, latN, lonW, lonE, output_dir, plot_name="time_series")
         data.to_netcdf(f'{data_dir}/{filename}.nc')
 
     tunits = data_level.ocpt.attrs['units']
@@ -536,7 +536,7 @@ def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=N
     Returns:
         None
     """
-    data = area_selection(data, region, latS, latN, lonE, lonW)
+    data = area_selection(data, region, latS, latN, lonW, lonE)
     data = TS_3dtrend(data)
 
     # Define the levels for plotting
@@ -583,7 +583,7 @@ def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=N
     axs[0, 1].set_title("Salinity", fontsize=18)
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-             region, "_", latS, latN, lonE, lonW, output_dir, plot_name="multilevel_t_s_trend")
+             region, "_", latS, latN, lonW, lonE, output_dir, plot_name="multilevel_t_s_trend")
 
         data.interp(lev=levels[levs]).to_netcdf(f'{data_dir}/{filename}.nc')
         plt.savefig(f"{fig_dir}/{filename}.png")

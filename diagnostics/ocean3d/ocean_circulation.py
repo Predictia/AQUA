@@ -256,7 +256,7 @@ def prepare_data_for_stratification_plot(data, region=None, time=None, latS: flo
     Returns:
         xarray.Dataset: Prepared data for plotting stratification profiles.
     """
-    data = weighted_area_mean(data, region, latS, latN, lonE, lonW)
+    data = weighted_area_mean(data, region, latS, latN, lonW, lonE)
     data = convert_variables(data)
     data_rho = data["rho"] - 1000
     data["rho"] = data_rho
