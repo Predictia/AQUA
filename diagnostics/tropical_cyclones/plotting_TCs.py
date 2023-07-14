@@ -20,10 +20,10 @@ def multi_plot(tracks_nc_file, tdict, title=None, units=None, save=False):
     # add main title and save figure accordingly
     if title==None:
         fig.suptitle(tracks_nc_file.name + f" - {tdict['dataset']['model']} - {tdict['dataset']['exp']}")
-        save_title = tracks_nc_file.name + f" - {tdict['dataset']['model']} - {tdict['dataset']['exp']}"
+        save_title = tracks_nc_file.name + f"_{tdict['dataset']['model']}_{tdict['dataset']['exp']}"
     elif title:
         fig.suptitle(title + f" - {tdict['dataset']['model']} - {tdict['dataset']['exp']}")
-        save_title = title + f" - {tdict['dataset']['model']} - {tdict['dataset']['exp']}"
+        save_title = title + f"_{tdict['dataset']['model']}_{tdict['dataset']['exp']}"
 
     # Loop over subplots and plot different time slices in each one
     for i, ax in enumerate(axs):
@@ -108,5 +108,5 @@ def plot_trajectories(trajfile, tdict):
                     alpha=0.8,
                     transform=ccrs.PlateCarree()) ## Important
     os.makedirs(tdict['paths']['plotdir'], exist_ok=True)
-    plt.savefig(tdict['paths']['plotdir'] + f"tracks - {tdict['dataset']['model']} - {tdict['dataset']['exp']}.pdf", bbox_inches='tight', dpi=350)
+    plt.savefig(tdict['paths']['plotdir'] + f"tracks_{tdict['dataset']['model']}_{tdict['dataset']['exp']}.pdf", bbox_inches='tight', dpi=350)
     plt.show()
