@@ -41,3 +41,10 @@ MJO:
   latS: -10
   lonW: 30
   lonE: 200
+
+MJO2:
+  field: mtntrf
+  latN: 15
+  latS: -15
+  lonW: 0
+  lonE: 360
