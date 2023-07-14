@@ -11,7 +11,7 @@ class SeaIceExtent:
     """Sea ice extent class"""
 
     def __init__(self, loglevel: str = 'ERROR', threshold=0.15,
-                 regions="../regions.yml", outputDir = "./NetCDF"):
+                 regions="../regions.yml", outputdir = "./NetCDF"):
         """
         The SeaIceExtent constructor.
 
@@ -22,6 +22,9 @@ class SeaIceExtent:
                                Default: 0.15
             regions (str): The path to the regions.yml file
                            Default: ../regions.yml
+            outputdir (str): The path to the folder where outputs (NetCDF)
+                             will be stored
+                           Default: ./NetCDF
 
         Returns:
             A SeaIceExtent object.
@@ -35,7 +38,7 @@ class SeaIceExtent:
         self.myRegions = None
         self.nRegions = None
         self.thresholdSeaIceExtent = threshold
-        self.outputDir = outputDir
+        self.outputdir = outputdir
 
     def configure(self,
                   mySetups=[["IFS", "tco1279-orca025-cycle3",
@@ -188,11 +191,11 @@ class SeaIceExtent:
 
         fig.tight_layout()
         for fmt in ["png", "pdf"]:
-            outputDir = "./PDF/" + str(fmt) + "/"
+            outputdir = "./PDF/" + str(fmt) + "/"
 
-            create_folder(outputDir, loglevel=self.loglevel)
+            create_folder(outputdir, loglevel=self.loglevel)
             figName = "SeaIceExtent_" + "all_models" + "." + fmt
-            fig.savefig(outputDir + "/" + figName, dpi=300)
+            fig.savefig(outputdir + "/" + figName, dpi=300)
 
     def createNetCDF(self):
         """
@@ -214,8 +217,8 @@ class SeaIceExtent:
                     varName = f"{setup[0]}_{setup[1]}_{setup[2]}_{region.replace(' ', '')}"
                     dataset[varName] = self.myExtents[js][jr]
 
-                    outputDir = self.outputDir
-                    create_folder(outputDir, loglevel=self.loglevel)
+                    outputdir = self.outputdir
+                    create_folder(outputdir, loglevel=self.loglevel)
 
-                    dataset.to_netcdf(outputDir + "/" + "seaIceExtent_" +
+                    dataset.to_netcdf(outputdir + "/" + "seaIceExtent_" +
                                       "_".join([s for s in setup]) + ".nc")
