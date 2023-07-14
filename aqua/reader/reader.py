@@ -422,8 +422,9 @@ class Reader(FixerMixin, RegridMixin):
             out = data.resample(time=resample_freq).mean()
             # for now, we set initial time of the averaging period following ECMWF standard
             # HACK: we ignore hours/sec to uniform the output structure
-            proper_time = data.time.resample(time=resample_freq).min()
-            out['time'] = np.array(proper_time.values, dtype='datetime64[h]')
+            #proper_time = data.time.resample(time=resample_freq).min()
+            #out['time'] = np.array(proper_time.values, dtype='datetime64[h]')
+            out['time'] = data.time.resample(time=resample_freq).min().dt.floor('D')
         except ValueError:
             sys.exit('Cant find a frequency to resample, aborting!')
 

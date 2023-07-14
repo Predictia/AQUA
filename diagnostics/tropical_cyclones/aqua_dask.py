@@ -2,6 +2,7 @@ import dask
 from dask.distributed import Client, LocalCluster
 from aqua.logger import log_configure
 
+
 class AquaDask():
 
     @property
@@ -21,9 +22,10 @@ class AquaDask():
         Set up dask cluster
         """
         if self.dask:  # self.nproc > 1
-            self.logger.info('Setting up dask cluster with %s workers', self.nproc)
-            #dask.config.set({'temporary_directory': self.tmpdir})
-            #self.logger.info('Temporary directory: %s', self.tmpdir)
+            self.logger.info(
+                'Setting up dask cluster with %s workers', self.nproc)
+            # dask.config.set({'temporary_directory': self.tmpdir})
+            # self.logger.info('Temporary directory: %s', self.tmpdir)
             self.cluster = LocalCluster(n_workers=self.nproc,
                                         threads_per_worker=1)
             self.client = Client(self.cluster)
