@@ -1040,7 +1040,7 @@ class Tropical_Rainfall:
             converter       = self.precipitation_rate_units_converter(1, old_unit = data.center_of_bin.units, new_unit=new_unit)
             x = converter * x
             data = data/converter
-        legend = legend + ': mean {}{}, error {}%'.format(round(data.mean_of_original_data, 2),  data.units, round(data.relative_discrepancy, 2))
+        #legend = legend + ': mean {}{}, error {}%'.format(round(data.mean_of_original_data, 2),  data.units, round(data.relative_discrepancy, 2))
 
         data = data.where(data>0)
         if smooth:
@@ -1374,7 +1374,7 @@ class Tropical_Rainfall:
                     ax3 = fig.add_subplot(gs[1, 0])
                     ax4 = fig.add_subplot(gs[1, 1])
                     ax5 = fig.add_subplot(gs[2, :])
-                    ax_twin_5 = ax4.twinx()
+                    ax_twin_5 = None
                 axs = [ax1, ax2, ax3, ax4, ax5, ax_twin_5]
             elif add is not None:
                 fig = add 
@@ -1384,7 +1384,7 @@ class Tropical_Rainfall:
                                                         model_variable = model_variable,     trop_lat = self.trop_lat,              new_unit = new_unit, 
                                                         coord = coord)
             
-            titles      = ["DJF", "MAM", "JJA", "SON", "GLOBAL"]
+            titles      = ["DJF", "MAM", "JJA", "SON", "Yearly"]
 
             
             for i in range(0, len(data_average)):
@@ -1826,7 +1826,7 @@ class Tropical_Rainfall:
                     all_season[i].values = all_season[i].values - all_season_2[i].values
 
                 data_new = data - dataset_2
-            titles      = ["DJF", "MAM", "JJA", "SON", "GLOBAL"]
+            titles      = ["DJF", "MAM", "JJA", "SON", "Yearly"]
 
             
             for i in range(0, len(all_season)):
@@ -1909,7 +1909,7 @@ class Tropical_Rainfall:
         else:
             unit = new_unit
         # Draw the colorbar
-        cbar = fig.colorbar(im1, ax=ax5, location='bottom' ) 
+        cbar = fig.colorbar(im1, ticks=[-7,-5,-3,-1,1,3,5,7], ax=ax5, location='bottom' ) 
         cbar.set_label(model_variable+", ["+str(unit)+"]", fontsize = 14)
 
         if plot_title is not None:
