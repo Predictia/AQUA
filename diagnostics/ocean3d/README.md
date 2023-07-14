@@ -1,4 +1,4 @@
-# Ocean3D diagnostic
+ocean3docean3d# Ocean3D diagnostic
 
 Main authors: 
 - Supriyo Ghosh (BSC, supryo.gosh@bsc.es)
@@ -32,14 +32,14 @@ The diagnostic requres a model data of 3D ocean potential temperature and practi
 ## Examples
 The **notebook/** folder contains the notebook 
 
-**[global_ocean.ipynb](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/global_ocean/notebooks/global_ocean.ipynb)**, which demonstrates:
+**[global_ocean.ipynb](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/ocean3d/notebooks/global_ocean.ipynb)**, which demonstrates:
 - the import of `global_ocean`module and configuration setup, 
 - the major functions of the `global_ocean` module, which produce hovmollers in-depth and time, time-series of yearly potential ocean temperature and practical salinity, 
 - the data requierements, 
 - demonstrating the usage of primary functions, and 
 - the main scientific output obtained by global ocean diagnostic.
 
- **[ocean_circulation.ipynb](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/ocean_circulation/notebooks/ocean_circulation.ipynb)**, that  demonstrates:
+ **[ocean_circulation.ipynb](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/ocean3d/notebooks/ocean_circulation.ipynb)**, that  demonstrates:
 - the import of `ocean_circulation`module and configuration setup, 
 - the primary diagnostic functions of `ocean_circulation` module, which compute and plot the mixed layer depth and climatological stratification profiles,
 - the input data requierements, 
