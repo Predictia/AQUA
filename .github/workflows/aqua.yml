@@ -5,8 +5,6 @@ on:
     branches: [ main, dev ]
   pull_request:
     branches: [ main, dev ]
-    types:
-      - labeled
   workflow_dispatch:
   schedule:
     - cron: "0 3 * * 1" #run every Monday night at 3AM UTC
@@ -16,7 +14,7 @@ permissions:
 
 jobs:
   aqua_test:
-    if: contains(github.event.pull_request.labels.*.name, 'Ready to merge') || contains(github.event.label.name, 'Ready to merge')
+    if: contains(github.event.pull_request.labels.*.name, 'Ready to merge')
     env:
       # You can disable coverage by changing this to false. You can
       # also add other Python versions to the matrix, pinning the
