@@ -138,12 +138,12 @@ def data_process_by_type(data, anomaly: bool = False, standardise: bool =False, 
                 cmap = "PuOr"
                 for var in list(data.data_vars.keys()):
                     process_data[var] = data[var] - data[var].mean(dim='time')
-                type = f"Anomalies wrt temporal mean"
+                type = f"temporal mean"
             elif anomaly_ref in ['t0', "intialtime", "firsttime"]:
                 cmap = "PuOr"
                 for var in list(data.data_vars.keys()):
                     process_data[var] = data[var] - data[var].isel(time=0)
-                type = f"Anomalies wrt initial time"
+                type = f"initial time"
             else:
                 raise ValueError("Select proper value of anomaly_ref: t0 or tmean, when anomaly = True ")
             logger.info(f"Data processed for Anomaly with respect to {type}")
@@ -155,7 +155,7 @@ def data_process_by_type(data, anomaly: bool = False, standardise: bool =False, 
                     var_data.attrs['units'] = 'Stand. Units'
                     # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
                     process_data[var] = var_data / var_data.std(dim="time")
-                type = f"Std anomalies wrt initial time"
+                type = f"initial time"
             elif anomaly_ref in ['tmean', "meantime","timemean"]:
                 cmap = "PuOr"
                 for var in list(data.data_vars.keys()):
@@ -163,7 +163,7 @@ def data_process_by_type(data, anomaly: bool = False, standardise: bool =False, 
                     var_data.attrs['units'] = 'Stand. Units'
                     # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
                     process_data[var] = var_data / var_data.std(dim="time")
-                type = f"Std Anomalies wrt temporal mmean"
+                type = f"temporal mmean"
             else:
                 raise ValueError("Select proper value of type: t0 or tmean, when anomaly = True ")
             logger.info(f"Data processed for Standardised Anomaly with respect to {type}")

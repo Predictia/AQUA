@@ -407,9 +407,9 @@ def dir_creation(region=None,  latS: float = None, latN: float = None, lonW: flo
         raise ValueError("Please provide the outut_dir when output = True")
     if region in [None, "custom", "Custom"]:
         region = "custom"
-        filename = f"{plot_name}_{region.replace(' ', '_').lower()}_lat_{latS}_{latN}_lon_{lonW}_{lonE}_mean_{current_time}"
+        filename = f"{plot_name}_{region.replace(' ', '_').lower()}_lat_{latS}_{latN}_lon_{lonW}_{lonE}"
     else:
-        filename = f"{plot_name}_{region.replace(' ', '_').lower()}_mean_{current_time}"
+        filename = f"{plot_name}_{region.replace(' ', '_').lower()}"
 
     
     #output_path = f"{output_dir}/"
