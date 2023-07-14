@@ -40,7 +40,13 @@ source_grids:
 
     tco2559-ng5:
       ICMGG_atm2d:
-        path: /work/bm1344/AWI/nextGEMS_Cycle2_IFS/tcogrids/4km/tcogrids/tco2559_grid.nc
+        path: 
+          2d: /work/bb1153/b382076/AQUA-archive/grids/IFS/tco2559_grid.nc
+          2dm: /work/bb1153/b382076/AQUA-archive/grids/IFS/tco2559_grid_masked.nc
+        masked_vars:
+          - ci
+          - sst
+        vert_coord: ["2d", "2dm"]
         space_coord: ["value"]
       ICMU_atm2d:
         path: /work/bm1344/AWI/nextGEMS_Cycle2_IFS/tcogrids/4km/tcogrids/tco2559_grid.nc
@@ -60,15 +66,15 @@ source_grids:
       default: 
         space_coord: ["lon", "lat"]
       2D_1h_native:
-        path: /work/bm1235/ifs-grids/tco_grids/tco2559_grid.nc
+        path: 
+          2d: /work/bb1153/b382076/AQUA-archive/grids/IFS/tco2559_grid.nc
+          2dm: /work/bb1153/b382076/AQUA-archive/grids/IFS/tco2559_grid_masked.nc
+        masked_vars:
+          - ci
+          - sst
+        vert_coord: ["2d", "2dm"]
         space_coord: ["value"]
       3D_1h_native:
-        path: /work/bm1235/ifs-grids/tco_grids/tco2559_grid.nc
-        space_coord: ["value"]
-      2D_monthly_native:
-        path: /work/bm1235/ifs-grids/tco_grids/tco2559_grid.nc
-        space_coord: ["value"]
-      3D_monthly_native:
         path: /work/bm1235/ifs-grids/tco_grids/tco2559_grid.nc
         space_coord: ["value"]
       WAM_1h_native:
