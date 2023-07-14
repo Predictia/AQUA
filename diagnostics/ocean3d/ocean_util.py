@@ -271,7 +271,7 @@ def load_obs_data(model='EN4', exp='en4', source='monthly'):
     den4 = reader.retrieve()
     # We standardise the name for the vertical dimension
     den4 = den4.rename({"depth": "lev"})
-    den4 = den4[["ocpt", "so"]].resample(time="M").mean()
+    den4 = den4[["ocpt", "so"]].resample(time="MS").mean()
     logger.info("loaded %s data", model)
     return den4
 
