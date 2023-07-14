@@ -114,33 +114,33 @@ https://stackoverflow.com/questions/52108417/how-to-apply-linear-regression-to-e
 Example Plot(s)
 ---------------
 
-.. figure:: ../figures/ocean3d1.pdf
+.. figure:: ../figures/ocean3d1.png
     :width: 18cm
 
 This is an example of one of the hovmöller T,S figures
 
 
-.. figure:: ../figures/ocean3d2.pdf
+.. figure:: ../figures/ocean3d2.png
     :width: 18cm
 
 This is an example of the multipanel plots of the spatially averaged T,S timeseries at different levels
 
-.. figure:: ../figures/ocean3d3.pdf
+.. figure:: ../figures/ocean3d3.png
     :width: 18cm
 
 This is an example of the multi-panel plots of lon-lat maps of temporal trends in T,S at different levels
 
-.. figure:: ../figures/ocean3d4.pdf
+.. figure:: ../figures/ocean3d4.png
     :width: 18cm
 
 This is an example of the plots of lat-depth maps of temporal trends in T,S
 
-.. figure:: ../figures/ocean3d5.pdf
+.. figure:: ../figures/ocean3d5.png
     :width: 20cm
 
     This is an example of one of the climatological stratification profiles. 
 
-.. figure:: ../figures/ocean3d6.pdf
+.. figure:: ../figures/ocean3d6.png
     :width: 20cm
 
     This is an example of one of the mixed layer depth climatologies. 
