@@ -94,6 +94,11 @@ source_grids:
       3D_1h_native:
         path: /work/bm1235/ifs-grids/tco_grids/tco1279_grid.nc
         space_coord: ["value"]
+      2D_1h_0.25deg:
+        space_coord: ["value"]
+        extra: -setgrid,/work/bb1153/b382075/nextgems/grids/grid_lonlat_025.txt
+        cellareas: /work/bb1153/b382075/nextgems/grids/cellarea_unstructured_025.nc
+        cellarea_var: cell_area
       2D_monthly_native:
         path: /work/bm1235/ifs-grids/tco_grids/tco1279_grid.nc
         space_coord: ["value"]
