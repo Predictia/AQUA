@@ -10,8 +10,8 @@ from aqua.logger import log_configure
 class SeaIceExtent:
     """Sea ice extent class"""
 
-    def __init__(self, loglevel: str = 'WARNING', threshold=0.15,
-                 regions="../regions.yml"):
+    def __init__(self, loglevel: str = 'ERROR', threshold=0.15,
+                 regions="../regions.yml", outputDir = "./NetCDF"):
         """
         The SeaIceExtent constructor.
 
@@ -35,6 +35,7 @@ class SeaIceExtent:
         self.myRegions = None
         self.nRegions = None
         self.thresholdSeaIceExtent = threshold
+        self.outputDir = outputDir
 
     def configure(self,
                   mySetups=[["IFS", "tco1279-orca025-cycle3",
@@ -213,7 +214,7 @@ class SeaIceExtent:
                     varName = f"{setup[0]}_{setup[1]}_{setup[2]}_{region.replace(' ', '')}"
                     dataset[varName] = self.myExtents[js][jr]
 
-                    outputDir = "./NetCDF/"
+                    outputDir = self.outputDir
                     create_folder(outputDir, loglevel=self.loglevel)
 
                     dataset.to_netcdf(outputDir + "/" + "seaIceExtent_" +
