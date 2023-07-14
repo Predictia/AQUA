@@ -6,7 +6,7 @@ Main authors:
 
 ## Description
 
-The current release of Ocean3D diagnostic includes climatological stratification profiles in regions of deep water formation and climatologies for the mixed layer depth.
+The current release of Ocean3D diagnostics includes two submodules with dedicated functions and notebooks, one to characterise and monitor model drifts and another to evaluate the realism of the model in simulating key precursors of the ocean circulation
 
 ## Table of Contents
 
@@ -32,19 +32,18 @@ The diagnostic requres a model data of 3D ocean potential temperature and practi
 ## Examples
 The **notebook/** folder contains the notebook 
 
-**[global_ocean.ipynb](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/ocean3d/notebooks/global_ocean.ipynb)**, which demonstrates:
-- the import of `global_ocean`module and configuration setup, 
-- the major functions of the `global_ocean` module, which produce hovmollers in-depth and time, time-series of yearly potential ocean temperature and practical salinity, 
-- the data requierements, 
-- demonstrating the usage of primary functions, and 
-- the main scientific output obtained by global ocean diagnostic.
+**[ocean_drifts.ipynb](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/ocean3d/notebooks/ocean_drifts.ipynb)**, which explains:
+- how to import the `ocean_drifts`module and load it in its standard configuration, 
+- how to use the main diagnostic functions of the `ocean_drifts` module, which produce hovmollers in-depth and time, time-series of yearly potential ocean temperature and practical salinity at different depths, maps of temporal trends in latitude-longitude and latitude-depth space.
+- the input data requierements, 
+- how to interpret and where to store the main scientific outputs obtained with the different functions.
 
- **[ocean_circulation.ipynb](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/ocean3d/notebooks/ocean_circulation.ipynb)**, that  demonstrates:
-- the import of `ocean_circulation`module and configuration setup, 
-- the primary diagnostic functions of `ocean_circulation` module, which compute and plot the mixed layer depth and climatological stratification profiles,
+ **[ocean_circulation.ipynb](https://github.com/oloapinivad/AQUA/blob/main/diagnostics/ocean3d/notebooks/ocean_circulation.ipynb)**, which explains:
+- how the import of `ocean_circulation`module and load it in its standard configuration, 
+- how touse the main diagnostic functions of the `ocean_circulation` module, which compute and plot the climatologies of the mixed layer depth and density stratification profiles in different regions of the world,
 - the input data requierements, 
 - the application of primary functions, and 
-- the main sientific output, obtained by ocean circulation diagnostic.
+- how to interpret and where to store the main scientific outputs obtained with the different functions.
 
 ## Contributing
 
