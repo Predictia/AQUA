@@ -6,9 +6,8 @@ import matplotlib.ticker as mticker
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 import cartopy.feature as cfeature
 
-from tempest_utils import getTrajectories
+from tropical_cyclones import getTrajectories
 
-import os
 
 def multi_plot(tracks_nc_file, tdict, title=None, units=None, save=False):
 
