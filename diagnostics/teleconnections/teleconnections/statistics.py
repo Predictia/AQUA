@@ -1,7 +1,6 @@
 """Module for computing regression maps."""
 import xarray as xr
 
-from aqua.logger import log_configure
 from teleconnections.tools import _check_dim
 
 
