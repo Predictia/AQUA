@@ -3,6 +3,7 @@ from .cdo_testing import station_based_cdo, regional_mean_cdo
 from .cdo_testing import regional_anomalies_cdo
 from .index import station_based_index, regional_mean_index
 from .index import regional_mean_anomalies
+from .mjo import mjo_hovmoller
 from .plots import minmax_maps, plot_box, index_plot, maps_plot
 from .plots import single_map_plot, hovmoller_plot
 from .statistics import reg_evaluation, cor_evaluation
@@ -15,6 +16,7 @@ __version__ = '0.0.8'
 
 __all__ = ['station_based_cdo', 'regional_mean_cdo', 'regional_anomalies_cdo',
            'station_based_index', 'regional_mean_index',
+           'mjo_hovmoller',
            'regional_mean_anomalies',
            'minmax_maps', 'plot_box', 'index_plot', 'maps_plot',
            'single_map_plot', 'hovmoller_plot',
