@@ -39,47 +39,64 @@ This module exports all the data and diagnostics  used to create the different f
 
 Functions used 
 ---------------
-* hovmoller_lev_time_plot: This function requires data, a region, and the type of data processing. And it produces a Hovmoller plot of regionally averaged temperature and salinity with the selected preprocessing of the data (e.g. whether anomalies are computed and how, and whether they are normalised or not). The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes as desired.
 
-.. code-block:: python
+* .. code-block:: python
 
-    hovmoller_lev_time_plot(data, region, anomaly: bool = False,standardise: bool =False, anomaly_ref= None , latS: float=None, latN: float=None, lonW: float=None,lonE: float=None, output= False, output_dir= None)
+    hovmoller_lev_time_plot(data, region, anomaly: bool = False,standardise: bool =False, anomaly_ref= None ,
+                            latS: float=None, latN: float=None, lonW: float=None,lonE: float=None,
+                            output= False, output_dir= None)
 
-* time_series_multilevs: This function requires data, a region,  the type of data processing and optional depth levels. And it produces time series plots of regionally averaged temperature and salinity with the selected preprocessing of the data for a predefined or customised list of vertical levels. The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
-
-.. code-block:: python
-
-    time_series_multilevs(data, region=None, anomaly: bool = False, standardise: bool =False, anomaly_ref = None, customise_level=False, levels=None, latS: float=None, latN: float=None, lonW: float=None,lonE: float=None,  output= True, output_dir = None)
-
-* multilevel_t_s_trend_plot: This function requires data, a region and optional depth levels. It produces lon-lat maps of linear temporal trends of temperature and salinity over the selected region for a predefined or customised list of vertical levels. The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
-
-.. code-block:: python
-
-    def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=None, latS: float = None, latN: float = None, lonW: float = None,lonE: float = None,  output=True, output_dir= None):
+hovmoller_lev_time_plot: This function requires data, a region, and the type of data processing. And it produces a Hovmoller plot of regionally averaged temperature and salinity with the selected preprocessing of the data (e.g., whether anomalies are computed and how, and whether they are normalized or not). The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes as desired.
 
 
-* zonal_mean_trend_plot: This function requires data, a region. It produces plots of zonally averaged linear temporal trends plot of temperature and salinity as a function of depth and latitud. The zonal average is produced over the selected region, whose name supports all the major oceans and seas; in case users require a custom region, they can fill in the values of latitude and longitude in the boxes.
 
-.. code-block:: python
+* .. code-block:: python
 
-   zonal_mean_trend_plot(data, region=None, latS: float = None, latN: float = None, lonW: float = None,lonE: float = None,  output=True, output_dir= None)
+    time_series_multilevs(data, region=None, anomaly: bool = False, standardise: bool =False, anomaly_ref = None,
+                          customise_level=False, levels=None,
+                          latS: float=None, latN: float=None, lonW: float=None,lonE: float=None,
+                          output= True, output_dir = None)
 
-* Stratification plot: This function requires data, a region, and the time of the climatology. And it produces a stratification plot of Temperature, salinity and Density, including the overlapped data with the observation. The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
+time_series_multilevs: This function requires data, a region, the type of data processing, and optional depth levels. And it produces time series plots of regionally averaged temperature and salinity with the selected preprocessing of the data for a predefined or customized list of vertical levels. The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
 
-.. code-block:: python
 
-    plot_stratification(mod_data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None,lonE: float = None,  output=True, output_dir= None)
+* .. code-block:: python
 
-* Mixed Layer Depth Plot: This function requires data, a region, and the time of the climatology. And it produces a time series plot of Temperature and salinity. Users have the option of choosing whether they want to use the whole obs data or overlapped obs data with the model. The region name supports all the major oceans and seas; in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
+    multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=None,
+                              latS: float = None, latN: float = None, lonW: float = None,lonE: float = None,
+                              output=True, output_dir= None)
 
-.. code-block:: python
+multilevel_t_s_trend_plot: This function requires data, a region, and optional depth levels. It produces lon-lat maps of linear temporal trends of temperature and salinity over the selected region for a predefined or customized list of vertical levels. The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
 
-    def data_for_plot_spatial_mld_clim(data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None,lonE: float = None):
+
+* .. code-block:: python
+
+   zonal_mean_trend_plot(data, region=None,
+                        latS: float = None, latN: float = None, lonW: float = None,lonE: float = None,
+                        output=True, output_dir= None)
+
+zonal_mean_trend_plot: This function requires data for a region. It produces plots of zonally averaged linear temporal trends plot of temperature and salinity as a function of depth and latitude. The zonal average is produced over the selected region, whose name supports all the major oceans and seas; in case users require a custom region, they can fill in the values of latitude and longitude in the boxes.
+
+
+* .. code-block:: python
+
+    plot_stratification(mod_data, region=None, time=None,
+                        latS: float = None, latN: float = None, lonW: float = None,lonE: float = None,
+                        output=True, output_dir= None)
+Stratification plot: This function requires data, a region, and the time of the climatology. And it produces a stratification plot of Temperature, salinity and Density, including the overlapped data with the observation. The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
+
+
+* .. code-block:: python
+
+    plot_spatial_mld_clim(mod_data, region=None, time=None,
+                          latS: float = None, latN: float = None, lonW: float = None, lonE: float = None,
+                          overlap=False, output=False, output_dir= None)
+Mixed Layer Depth Plot: This function requires data, a region, and the time of the climatology. And it produces a time series plot of Temperature and salinity. Users have the option of choosing whether they want to use the whole obs data or overlapped obs data with the model. The region name supports all the major oceans and seas; in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
 
 
 Methods used 
 ---------------
-All regional averages has been produced with area weights.
+All regional averages have been produced with area weights.
 
 Temporal trends are computed as linear trends and estimated over the whole temporal span of the dataset.
 
@@ -114,37 +131,37 @@ https://stackoverflow.com/questions/52108417/how-to-apply-linear-regression-to-e
 Example Plot(s)
 ---------------
 
-* This is an example of one of the hovmöller T,S figures
+* This is an example of one of the hovmöller T, S figures
 
 .. figure:: figures/ocean3d1.png
     :width: 18cm
 
 
-* This is an example of the multipanel plots of the spatially averaged T,S timeseries at different levels
+* This is an example of the multipanel plots of the spatially averaged T, S timeseries at different levels
 
 .. figure:: figures/ocean3d2.png
     :width: 18cm
 
 
-* This is an example of the multi-panel plots of lon-lat maps of temporal trends in T,S at different levels
+* This is an example of the multi-panel plots of lat-lon  maps of temporal trends in T, S at different levels
 
 .. figure:: figures/ocean3d3.png
     :width: 18cm
 
 
-* This is an example of the plots of lat-depth maps of temporal trends in T,S
+* This is an example of the plots of lat-depth maps of temporal trends in T, S
 
 .. figure:: figures/ocean3d4.png
     :width: 18cm
 
 
-* This is an example of one of the climatological stratification profiles. 
+* This is an example of one of the climatological stratification profiles.
 
 .. figure:: figures/ocean3d5.png
     :width: 20cm
 
 
-* This is an example of one of the mixed-layer depth climatologies. 
+* This is an example of one of the mixed-layer depth climatologies.
 
 .. figure:: figures/ocean3d6.png
     :width: 20cm
@@ -155,7 +172,7 @@ Available demo notebooks
 
 Notebooks are stored in diagnostics/ocean3d/notebooks
 
-* `global_ocean.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/ocean3d/notebooks/global_ocean.ipynb>`_
+* `global_ocean.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/ocean3d/notebooks/ocean_drifts.ipynb>`_
 
     
 * `ocean_circulation.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/ocean3d/notebooks/ocean_circulation.ipynb>`_
