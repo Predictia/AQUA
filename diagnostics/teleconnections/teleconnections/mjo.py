@@ -7,13 +7,16 @@ from aqua.logger import log_configure
 from teleconnections.tools import load_namelist, area_selection
 
 
-def mjo_hovmoller(data=None, **kwargs) -> xr.DataArray:
+def mjo_hovmoller(data=None, var=None, **kwargs) -> xr.DataArray:
     """
     Prepare the data for a MJO Hovmoller plot.
 
     Args:
         data: Data to be prepared for the MJO Hovmoller plot.
               May be a xarray.DataArray or a xarray.Dataset.
+        var (str, opt): Name of the variable to be used in the Hovmoller plot.
+                        It is only required if data is a dataset.
+                        If not provided, it will be extracted from the namelist
         **kwargs: Keyword arguments to be passed to the function.
 
     KwArgs:
@@ -43,9 +46,11 @@ def mjo_hovmoller(data=None, **kwargs) -> xr.DataArray:
             namelist = load_namelist()
 
     # Subselect field if data is a dataset
+    if var is None:
+        var = namelist[telecname]['field']
     if isinstance(data, xr.Dataset):
-        logger.info("Subselecting var " + namelist[telecname]['field'])
-        data = data[namelist[telecname]['field']]
+        logger.info("Subselecting var " + var)
+        data = data[var]
 
     # Acquiring MJO box
     lat = [namelist[telecname]['latS'], namelist[telecname]['latN']]
