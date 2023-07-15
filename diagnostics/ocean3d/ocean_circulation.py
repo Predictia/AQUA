@@ -500,11 +500,11 @@ def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, 
     clev2 = float(clev2)
 
     cs1 = axs[0].contourf(mod_clim.lon, mod_clim.lat, mod_clim,
-                          levels=np.linspace(clev1, clev2, nclev), cmap='jet')
+                          levels=np.linspace(clev1, clev2, 51), cmap='jet')
     fig.colorbar(cs1, location="bottom")
 
     cs1 = axs[1].contourf(obs_clim.lon, obs_clim.lat, obs_clim,
-                          levels=np.linspace(clev1, clev2, nclev), cmap='jet')
+                          levels=np.linspace(clev1, clev2, 51), cmap='jet')
 
     fig.colorbar(cs1, location="bottom")
 
