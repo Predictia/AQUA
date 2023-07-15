@@ -136,16 +136,16 @@ def data_process_by_type(data, anomaly: bool = False, standardise: bool = False,
                 cmap = "PuOr"
                 for var in list(data.data_vars.keys()):
                     process_data[var] = data[var] - data[var].mean(dim='time')
-                type = "temporal mean"
+                type = "anomaly wrt temporal mean"
             elif anomaly_ref in ['t0', "intialtime", "firsttime"]:
                 cmap = "PuOr"
                 for var in list(data.data_vars.keys()):
                     process_data[var] = data[var] - data[var].isel(time=0)
-                type = "initial time"
+                type = "anomaly wrt initial time"
             else:
                 raise ValueError(
                     "Select proper value of anomaly_ref: t0 or tmean, when anomaly = True ")
-            logger.info(f"Data processed for Anomaly with respect to {type}")
+            logger.info(f"Data processed for {type}")
         if standardise:
             if anomaly_ref in ['t0', "intialtime", "firsttime"]:
                 cmap = "PuOr"
@@ -154,7 +154,7 @@ def data_process_by_type(data, anomaly: bool = False, standardise: bool = False,
                     var_data.attrs['units'] = 'Stand. Units'
                     # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
                     process_data[var] = var_data / var_data.std(dim="time")
-                type = "initial time"
+                type = "Std. anomaly wrt initial time"
             elif anomaly_ref in ['tmean', "meantime", "timemean"]:
                 cmap = "PuOr"
                 for var in list(data.data_vars.keys()):
@@ -162,17 +162,17 @@ def data_process_by_type(data, anomaly: bool = False, standardise: bool = False,
                     var_data.attrs['units'] = 'Stand. Units'
                     # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
                     process_data[var] = var_data / var_data.std(dim="time")
-                type = "temporal mmean"
+                type = "Std. anomaly wrt temporal mmean"
             else:
                 raise ValueError(
                     "Select proper value of type: t0 or tmean, when anomaly = True ")
             logger.info(
-                f"Data processed for Standardised Anomaly with respect to {type}")
+                f"Data processed for {type}")
 
     else:
         cmap = 'jet'
         logger.info("Data processed for Full values as anomaly = False")
-        type = " "
+        type = "Full values"
 
         process_data = data
     # logger.info(f"Data processed for {type}")
@@ -211,7 +211,7 @@ def hovmoller_lev_time_plot(data, region, anomaly: bool = False, standardise: bo
 
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-            region, latS, latN, lonW, lonE, output_dir, plot_name="hovmoller_plot")
+            region, latS, latN, lonW, lonE, output_dir, plot_name=f'hovmoller_plot_{type.replace(" ","_")}')
 
     _ = mcolors.TwoSlopeNorm(vcenter=0)
 
@@ -342,7 +342,7 @@ def time_series_multilevs(data, region=None, anomaly: bool = False, standardise:
             ax=axs[1], label=f"{round(int(data_level.lev.data), -2)}")
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-            region, latS, latN, lonW, lonE, output_dir, plot_name="time_series")
+            region, latS, latN, lonW, lonE, output_dir, plot_name=f'time_series_{type.replace(" ","_").replace(".","")}')
         data.to_netcdf(f'{data_dir}/{filename}.nc')
 
     tunits = data_level.ocpt.attrs['units']
