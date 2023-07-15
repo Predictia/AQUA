@@ -88,9 +88,11 @@ class Teleconnection():
             self.logger.debug('Zoom: {}'.format(self.zoom))
 
         # Teleconnection variables
-        avail_telec = ['NAO', 'ENSO']
+        avail_telec = ['NAO', 'ENSO', 'MJO']
         if telecname in avail_telec:
             self.telecname = telecname
+            if self.telecname == 'MJO':
+                raise NotImplementedError('MJO teleconnection not implemented yet')
         else:
             raise ValueError('telecname must be one of {}'.format(avail_telec))
 
