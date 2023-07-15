@@ -494,8 +494,8 @@ source_grids:
     era5:
       default:
         path: 
-        2d: /work/bb1153/b382075/nextgems/grids/r025_grid.nc
-        2dm: /work/bb1153/b382075/nextgems/grids/r025_grid_masked.nc
+          2d: /work/bb1153/b382075/nextgems/grids/r025_grid.nc
+          2dm: /work/bb1153/b382075/nextgems/grids/r025_grid_masked.nc
         masked_vars:
           - sst
           - SSTK
