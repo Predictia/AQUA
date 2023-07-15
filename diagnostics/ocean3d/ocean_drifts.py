@@ -7,11 +7,11 @@ import matplotlib.colors as mcolors
 import xarray as xr
 import numpy as np
 from scipy.stats import t as statt
-from ocean_util import weighted_area_mean
-from ocean_util import area_selection
-from ocean_util import weighted_zonal_mean
-from ocean_util import logger
-from ocean_util import dir_creation
+from .ocean_util import weighted_area_mean
+from .ocean_util import area_selection
+from .ocean_util import weighted_zonal_mean
+from .ocean_util import logger
+from .ocean_util import dir_creation
 
 
 def zonal_mean_trend_plot(data, region=None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None,  output=True, output_dir=None):

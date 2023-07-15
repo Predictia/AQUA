@@ -2,7 +2,7 @@
 
 from .ocean_util import *
 from .ocean_circulation import *
-from .global_ocean import *
+from .ocean_drifts import *
 
 # Optional but recommended
 __version__ = '0.0.1'
