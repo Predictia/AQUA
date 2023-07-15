@@ -40,58 +40,246 @@ This module exports all the data and diagnostics  used to create the different f
 Functions used 
 ---------------
 
-* .. code-block:: python
+hovmoller_lev_time_plot
+^^^^^^^^^^^^^^^^^^^^^
 
-    hovmoller_lev_time_plot(data, region, anomaly: bool = False,standardise: bool =False, anomaly_ref= None ,
-                            latS: float=None, latN: float=None, lonW: float=None,lonE: float=None,
-                            output= False, output_dir= None)
+.. code-block:: python
 
-hovmoller_lev_time_plot: This function requires data, a region, and the type of data processing. And it produces a Hovmoller plot of regionally averaged temperature and salinity with the selected preprocessing of the data (e.g., whether anomalies are computed and how, and whether they are normalized or not). The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes as desired.
+    hovmoller_lev_time_plot(data, region, anomaly: bool = False, standardise: bool = False, anomaly_ref=None,
+                            latS: float = None, latN: float = None, lonW: float = None, lonE: float = None,
+                            output: bool = False, output_dir: str = None)
 
+This function generates a Hovmoller plot of regionally averaged temperature and salinity data with customizable data processing and plot configuration.
 
+Parameters:
+    - data (DataArray): Input data containing temperature and salinity values.
+    - region (str): Name of the region for plotting. Supports all major oceans and seas. Custom regions can be defined using latitude and longitude values.
+    - anomaly (bool): Whether to compute anomalies. Default is False.
+    - standardise (bool): Whether to standardize anomalies. Default is False.
+    - anomaly_ref (Optional): Reference time to compute anomalies. Required if `anomaly` is True.
+    - latS (float): Southern latitude boundary for custom region. Default is None.
+    - latN (float): Northern latitude boundary for custom region. Default is None.
+    - lonW (float): Western longitude boundary for custom region. Default is None.
+    - lonE (float): Eastern longitude boundary for custom region. Default is None.
+    - output (bool): Whether to save the plot and data. Default is False.
+    - output_dir (str): Directory to save the output files. Default is None.
 
-* .. code-block:: python
+Returns:
+    None
 
-    time_series_multilevs(data, region=None, anomaly: bool = False, standardise: bool =False, anomaly_ref = None,
-                          customise_level=False, levels=None,
-                          latS: float=None, latN: float=None, lonW: float=None,lonE: float=None,
-                          output= True, output_dir = None)
+Notes:
+    - The function generates a Hovmoller plot, which is a 2D representation of regionally averaged temperature and salinity values.
+    - The plot configuration and data processing can be customized using the function parameters.
+    - Supported region names include all major oceans and seas. Users can also define custom regions using latitude and longitude values.
 
-time_series_multilevs: This function requires data, a region, the type of data processing, and optional depth levels. And it produces time series plots of regionally averaged temperature and salinity with the selected preprocessing of the data for a predefined or customized list of vertical levels. The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
+Examples:
+    >>> hovmoller_lev_time_plot(data, region="Pacific Ocean", anomaly=True, standardise=True, anomaly_ref= "t0")
+    This example generates a Hovmoller plot for the Pacific Ocean region, computing anomalies and standardizing the data using a reference initial time.
 
-
-* .. code-block:: python
-
-    multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=None,
-                              latS: float = None, latN: float = None, lonW: float = None,lonE: float = None,
-                              output=True, output_dir= None)
-
-multilevel_t_s_trend_plot: This function requires data, a region, and optional depth levels. It produces lon-lat maps of linear temporal trends of temperature and salinity over the selected region for a predefined or customized list of vertical levels. The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
-
-
-* .. code-block:: python
-
-   zonal_mean_trend_plot(data, region=None,
-                        latS: float = None, latN: float = None, lonW: float = None,lonE: float = None,
-                        output=True, output_dir= None)
-
-zonal_mean_trend_plot: This function requires data for a region. It produces plots of zonally averaged linear temporal trends plot of temperature and salinity as a function of depth and latitude. The zonal average is produced over the selected region, whose name supports all the major oceans and seas; in case users require a custom region, they can fill in the values of latitude and longitude in the boxes.
-
-
-* .. code-block:: python
-
-    plot_stratification(mod_data, region=None, time=None,
-                        latS: float = None, latN: float = None, lonW: float = None,lonE: float = None,
-                        output=True, output_dir= None)
-Stratification plot: This function requires data, a region, and the time of the climatology. And it produces a stratification plot of Temperature, salinity and Density, including the overlapped data with the observation. The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
+    >>> hovmoller_lev_time_plot(data, region="Custom Region", anomaly=True, anomaly_ref= "tmean", latS=-30, latN=30, lonW=-180, lonE=180)
+    This example generates a Hovmoller plot for a custom region defined by the latitude (-30 to 30) and longitude (-180 to 180) boundaries, computing anomalies using a reference time mean.
 
 
-* .. code-block:: python
 
-    plot_spatial_mld_clim(mod_data, region=None, time=None,
+time_series_multilevs
+^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+    time_series_multilevs(data, region=None, anomaly: bool = False, standardise: bool = False, anomaly_ref=None,
+                          customise_level=False, levels: list =None,
                           latS: float = None, latN: float = None, lonW: float = None, lonE: float = None,
-                          overlap=False, output=False, output_dir= None)
-Mixed Layer Depth Plot: This function requires data, a region, and the time of the climatology. And it produces a time series plot of Temperature and salinity. Users have the option of choosing whether they want to use the whole obs data or overlapped obs data with the model. The region name supports all the major oceans and seas; in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
+                          output: bool = True, output_dir: str = None)
+
+This function generates time series plots of regionally averaged temperature and salinity data with customizable data processing and plot configuration for predefined or customized list of vertical levels.
+
+Parameters:
+    - data (DataArray): Input data containing temperature and salinity values.
+    - region (str): Name of the region for plotting. Supports major oceans and seas. Custom regions can be defined using latitude and longitude values. Default is None.
+    - anomaly (bool): Whether to compute anomalies. Default is False.
+    - standardise (bool): Whether to standardize anomalies. Default is False.
+    - anomaly_ref (Optional): Reference time to compute anomalies. Required if `anomaly` is True.
+    - customise_level (bool): Whether to use a custom list of vertical levels. Default is False.
+    - levels (list): List of vertical levels to plot. Ignored if `customise_level` is False.
+    - latS (float): Southern latitude boundary for custom region. Required if `region` is None.
+    - latN (float): Northern latitude boundary for custom region. Required if `region` is None.
+    - lonW (float): Western longitude boundary for custom region. Required if `region` is None.
+    - lonE (float): Eastern longitude boundary for custom region. Required if `region` is None.
+    - output (bool): Whether to save the plot and data. Default is True.
+    - output_dir (str): Directory to save the output files. Default is None.
+
+Returns:
+    None
+
+Notes:
+    - The function generates time series plots of regionally averaged temperature and salinity values.
+    - The plot configuration and data processing can be customized using the function parameters.
+    - Supported region names include major oceans and seas. Custom regions can be defined by specifying latitude and longitude boundaries.
+    - If the `region` parameter is set to None, the `latS`, `latN`, `lonW`, and `lonE` parameters are required to define a custom region.
+
+Examples:
+    >>> time_series_multilevs(data, region="Pacific Ocean", anomaly=True, standardise=True, anomaly_ref= "t0")
+    This example generates time series plots for the Pacific Ocean region, computing standardized anomalies using a reference to the initial time.
+
+    >>> time_series_multilevs(data, region=None, customise_level=True, levels=[0, 200, 1000])
+    This example generates time series plots for a custom region using a custom list of vertical levels, including 0m, 200m, and 1000m.
+
+
+
+multilevel_t_s_trend_plot
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+    multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels: list =None,
+                              latS: float = None, latN: float = None, lonW: float = None,lonE: float = None,
+                              output: bool = True, output_dir: str = None)
+
+This function generates lon-lat maps of linear temporal trends of temperature and salinity data over a selected region with customizable depth levels.
+
+Parameters:
+    - data (DataArray): Input data containing temperature and salinity values.
+    - region (str): Name of the region for plotting. Supports all major oceans and seas. Custom regions can be defined using latitude and longitude values. Default is None.
+    - customise_level (bool): Whether to use a custom list of vertical levels. Default is False.
+    - levels (list): List of vertical levels to plot. Ignored if `customise_level` is False.
+    - latS (float): Southern latitude boundary for custom region. Required if `region` is None. Default is None.
+    - latN (float): Northern latitude boundary for custom region. Required if `region` is None. Default is None.
+    - lonW (float): Western longitude boundary for custom region. Required if `region` is None. Default is None.
+    - lonE (float): Eastern longitude boundary for custom region. Required if `region` is None. Default is None.
+    - output (bool): Whether to save the plot and data. Default is True.
+    - output_dir (str): Directory to save the output files. Default is None.
+
+Returns:
+    None
+
+Notes:
+    - The function generates lon-lat maps of linear temporal trends of temperature and salinity data.
+    - The plot configuration and depth levels can be customized using the function parameters.
+    - Supported region names include all major oceans and seas. Users can also define custom regions using latitude and longitude values.
+    - If the `region` parameter is set to None, the `latS`, `latN`, `lonW`, and `lonE` parameters are required to define a custom region.
+
+Examples:
+    >>> multilevel_t_s_trend_plot(data, region="Pacific Ocean", customise_level=True, levels=[0, 200, 1000])
+    This example generates lon-lat maps of linear temporal trends of temperature and salinity for the Pacific Ocean region at specified depth levels of 0m, 200m, and 1000m.
+
+    >>> multilevel_t_s_trend_plot(data, region=None, latS=-30, latN=30, lonW=-180, lonE=180)
+    This example generates lon-lat maps of linear temporal trends of temperature and salinity for a custom region defined by the latitude (-30 to 30) and longitude (-180 to 180) boundaries.
+
+
+zonal_mean_trend_plot
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+    zonal_mean_trend_plot(data, region=None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None,
+                          output: bool = True, output_dir: str = None)
+
+This function generates plots of zonally averaged linear temporal trends of temperature and salinity data as a function of depth and latitude over a selected region.
+
+Parameters:
+    - data (DataArray): Input data containing temperature and salinity values.
+    - region (str): Name of the region for plotting. Supports all major oceans and seas. Custom regions can be defined using latitude and longitude values. Default is None.
+    - latS (float): Southern latitude boundary for custom region. Required if `region` is None. Default is None.
+    - latN (float): Northern latitude boundary for custom region. Required if `region` is None. Default is None.
+    - lonW (float): Western longitude boundary for custom region. Required if `region` is None. Default is None.
+    - lonE (float): Eastern longitude boundary for custom region. Required if `region` is None. Default is None.
+    - output (bool): Whether to save the plot and data. Default is True.
+    - output_dir (str): Directory to save the output files. Default is None.
+
+Returns:
+    None
+
+Notes:
+    - The function generates plots of zonally averaged linear temporal trends of temperature and salinity data.
+    - The zonal average is calculated over the selected region, which supports all major oceans and seas. Custom regions can be defined using latitude and longitude values.
+    - The plot shows the variation of temperature and salinity trends with depth and latitude.
+
+Examples:
+    >>> zonal_mean_trend_plot(data, region="Pacific Ocean", latS=-30, latN=30)
+    This example generates plots of zonally averaged linear temporal trends of temperature and salinity for the Pacific Ocean region, limited to latitudes between -30 and 30 degrees.
+
+    >>> zonal_mean_trend_plot(data, region=None, latS=-60, latN=60, lonW=-180, lonE=180)
+    This example generates plots of zonally averaged linear temporal trends of temperature and salinity for a custom region defined by the latitude (-60 to 60) and longitude (-180 to 180) boundaries.
+
+
+
+plot_stratification
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+    plot_stratification(mod_data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None,
+                        output: bool = True, output_dir: str = None)
+
+This function generates a stratification plot of temperature, salinity, and density data, including overlapped data with observations, over a selected region and time period.
+
+Parameters:
+    - mod_data (DataArray): Model data containing temperature, salinity, and density values.
+    - region (str): Name of the region for plotting. Supports all major oceans and seas. Custom regions can be defined using latitude and longitude values. Default is None.
+    - time (datetime): Time of the climatology for plotting. Default is None.
+    - latS (float): Southern latitude boundary for custom region. Required if `region` is None. Default is None.
+    - latN (float): Northern latitude boundary for custom region. Required if `region` is None. Default is None.
+    - lonW (float): Western longitude boundary for custom region. Required if `region` is None. Default is None.
+    - lonE (float): Eastern longitude boundary for custom region. Required if `region` is None. Default is None.
+    - output (bool): Whether to save the plot and data. Default is True.
+    - output_dir (str): Directory to save the output files. Default is None.
+
+Returns:
+    None
+
+Notes:
+    - The function generates a stratification plot showing the vertical profiles of temperature, salinity, and density data.
+    - The plot includes overlapped data with observations for comparison.
+    - Supported region names include all major oceans and seas. Users can also define custom regions using latitude and longitude values.
+    - The time parameter specifies the climatology time for plotting.
+
+Examples:
+    >>> plot_stratification(mod_data, region="Pacific Ocean", time= "Feb", latS=-30, latN=30)
+    This example generates a stratification plot of temperature, salinity, and density data for the Pacific Ocean region for the climatology time of February, limited to latitudes between -30 and 30 degrees.
+
+    >>> plot_stratification(mod_data, region=None, time= "JJA", latS=-60, latN=60, lonW=-180, lonE=180)
+    This example generates a stratification plot of temperature, salinity, and density data for a custom region defined by the latitude (-60 to 60) and longitude (-180 to 180) boundaries for the climatology time of January, July, and August.
+
+
+
+plot_spatial_mld_clim
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+    plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None,
+                          overlap: bool = False, output: bool = False, output_dir: str = None)
+
+This function generates a time series plot of temperature and salinity data, specifically focusing on the Mixed Layer Depth (MLD), for a selected region and time period. Users can choose to use the whole observation data or overlapped observation data with the model.
+
+Parameters:
+    - mod_data (DataArray): Model data containing temperature and salinity values.
+    - region (str): Name of the region for plotting. Supports all major oceans and seas. Custom regions can be defined using latitude and longitude values. Default is None.
+    - time (datetime): Time of the climatology for plotting. Default is None.
+    - latS (float): Southern latitude boundary for custom region. Default is None.
+    - latN (float): Northern latitude boundary for custom region. Default is None.
+    - lonW (float): Western longitude boundary for custom region. Default is None.
+    - lonE (float): Eastern longitude boundary for custom region. Default is None.
+    - overlap (bool): Whether to use overlapped observation data with the model. Default is False.
+    - output (bool): Whether to save the plot and data. Default is False.
+    - output_dir (str): Directory to save the output files. Default is None.
+
+Returns:
+    None
+
+Notes:
+    - The function generates a time series plot of temperature and salinity data, specifically focusing on the Mixed Layer Depth (MLD).
+    - Users can choose whether to use the whole observation data or overlapped observation data with the model.
+    - Supported region names include all major oceans and seas. Users can also define custom regions using latitude and longitude values.
+    - The time parameter specifies the climatology time for plotting.
+
+Examples:
+    >>> plot_spatial_mld_clim(mod_data, region="Pacific Ocean", time= "Feb", overlap=True, latS=-30, latN=30)
+    This example generates a time series plot of temperature and salinity data, focusing on the Mixed Layer Depth (MLD), for the Pacific Ocean region for the climatology time of February, using overlapped observation data with the model, and limited to latitudes between -30 and 30 degrees.
+
+    >>> plot_spatial_mld_clim(mod_data, region=None, time= "JJA", overlap=False, latS=-60, latN=60, lonW=-180, lonE=180)
+    This example generates a time series plot of temperature and salinity data, focusing on the Mixed Layer Depth (MLD), for a custom region defined by the latitude (-60 to 60) and longitude (-180 to 180) boundaries for the climatology time of January, July, and August., using the whole observation data.
+
 
 
 Methods used 
