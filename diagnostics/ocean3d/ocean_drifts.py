@@ -14,7 +14,7 @@ from ocean_util import logger
 from ocean_util import dir_creation
 
 
-def zonal_mean_trend_plot(data, region=None, latS: float = None, latN: float = None, lonW: float = None,lonE: float = None,  output=True, output_dir= None):
+def zonal_mean_trend_plot(data, region=None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None,  output=True, output_dir=None):
     """
     Plots spatial trends at different vertical levels for two variables.
 
@@ -74,7 +74,7 @@ def zonal_mean_trend_plot(data, region=None, latS: float = None, latN: float = N
 
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-             region, latS, latN, lonW, lonE, output_dir, plot_name="zonal_mean_trend")
+            region, latS, latN, lonW, lonE, output_dir, plot_name="zonal_mean_trend")
 
         data.to_netcdf(f'{data_dir}/{filename}.nc')
         plt.savefig(f"{fig_dir}/{filename}.pdf")
@@ -84,7 +84,6 @@ def zonal_mean_trend_plot(data, region=None, latS: float = None, latN: float = N
     plt.show()
 
     return
-
 
 
 def reg_mean(data, region=None, latS=None, latN=None, lonW=None, lonE=None):
@@ -112,8 +111,7 @@ def reg_mean(data, region=None, latS=None, latN=None, lonW=None, lonE=None):
     return data
 
 
-
-def data_process_by_type(data, anomaly: bool = False, standardise: bool =False, anomaly_ref: str = None):
+def data_process_by_type(data, anomaly: bool = False, standardise: bool = False, anomaly_ref: str = None):
     """
     Selects the type of timeseries and colormap based on the given parameters.
 
@@ -127,27 +125,28 @@ def data_process_by_type(data, anomaly: bool = False, standardise: bool =False, 
         process_data (Dataset): Processed data based on the selected preprocessing approach.
         type (str): Type of preprocessing approach applied
         cmap (str): Colormap to be used for the plot.
-    """ 
-    
+    """
+
     process_data = xr.Dataset()
 
-    if anomaly == True:
-        anomaly_ref = anomaly_ref.lower().replace(" ","").replace("_","")
-        if standardise != True:
-            if anomaly_ref in ['tmean', "meantime","timemean"]:
+    if anomaly:
+        anomaly_ref = anomaly_ref.lower().replace(" ", "").replace("_", "")
+        if not standardise:
+            if anomaly_ref in ['tmean', "meantime", "timemean"]:
                 cmap = "PuOr"
                 for var in list(data.data_vars.keys()):
                     process_data[var] = data[var] - data[var].mean(dim='time')
-                type = f"temporal mean"
+                type = "temporal mean"
             elif anomaly_ref in ['t0', "intialtime", "firsttime"]:
                 cmap = "PuOr"
                 for var in list(data.data_vars.keys()):
                     process_data[var] = data[var] - data[var].isel(time=0)
-                type = f"initial time"
+                type = "initial time"
             else:
-                raise ValueError("Select proper value of anomaly_ref: t0 or tmean, when anomaly = True ")
+                raise ValueError(
+                    "Select proper value of anomaly_ref: t0 or tmean, when anomaly = True ")
             logger.info(f"Data processed for Anomaly with respect to {type}")
-        if standardise == True:
+        if standardise:
             if anomaly_ref in ['t0', "intialtime", "firsttime"]:
                 cmap = "PuOr"
                 for var in list(data.data_vars.keys()):
@@ -155,30 +154,32 @@ def data_process_by_type(data, anomaly: bool = False, standardise: bool =False, 
                     var_data.attrs['units'] = 'Stand. Units'
                     # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
                     process_data[var] = var_data / var_data.std(dim="time")
-                type = f"initial time"
-            elif anomaly_ref in ['tmean', "meantime","timemean"]:
+                type = "initial time"
+            elif anomaly_ref in ['tmean', "meantime", "timemean"]:
                 cmap = "PuOr"
                 for var in list(data.data_vars.keys()):
                     var_data = data[var] - data[var].mean(dim='time')
                     var_data.attrs['units'] = 'Stand. Units'
                     # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
                     process_data[var] = var_data / var_data.std(dim="time")
-                type = f"temporal mmean"
+                type = "temporal mmean"
             else:
-                raise ValueError("Select proper value of type: t0 or tmean, when anomaly = True ")
-            logger.info(f"Data processed for Standardised Anomaly with respect to {type}")
-            
+                raise ValueError(
+                    "Select proper value of type: t0 or tmean, when anomaly = True ")
+            logger.info(
+                f"Data processed for Standardised Anomaly with respect to {type}")
+
     else:
-        cmap='jet'
+        cmap = 'jet'
         logger.info("Data processed for Full values as anomaly = False")
-        type = f" "
+        type = " "
 
         process_data = data
     # logger.info(f"Data processed for {type}")
     return process_data, type, cmap
 
 
-def hovmoller_lev_time_plot(data, region, anomaly: bool = False,standardise: bool =False, anomaly_ref= None , latS: float=None, latN: float=None, lonW: float=None,lonE: float=None, output= False, output_dir= None):
+def hovmoller_lev_time_plot(data, region, anomaly: bool = False, standardise: bool = False, anomaly_ref=None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None, output=False, output_dir=None):
     """
     Create a Hovmoller plot of temperature and salinity full values.
 
@@ -187,7 +188,7 @@ def hovmoller_lev_time_plot(data, region, anomaly: bool = False,standardise: boo
         region (str): Region represented in the plot.
         anomaly (bool): To decide whether to compute anomalies. Default is False.
         standardise (bool): To decide whether to standardise the anomalies. Default is False.
-        anomaly_ref (str): Reference for computing the anomaly (t0=first time step, tmean=whole temporal period; only valid if anomaly is True) 
+        anomaly_ref (str): Reference for computing the anomaly (t0=first time step, tmean=whole temporal period; only valid if anomaly is True)
         latS (float): Southern latitude boundary of the region. Default is None. (Optional)
         latN (float): Northern latitude boundary of the region. Default is None. (Optional)
         lonW (float): Western longitude boundary of the region. Default is None. (Optional)
@@ -200,7 +201,8 @@ def hovmoller_lev_time_plot(data, region, anomaly: bool = False,standardise: boo
     """
     data = weighted_area_mean(data, region, latS, latN, lonW, lonE)
     # Reads the type of timeseries to plot
-    data, type, cmap = data_process_by_type(data, anomaly, standardise, anomaly_ref)
+    data, type, cmap = data_process_by_type(
+        data, anomaly, standardise, anomaly_ref)
 
     logger.info("Hovmoller plotting in process")
     # Create subplots for temperature and salinity plots
@@ -209,7 +211,7 @@ def hovmoller_lev_time_plot(data, region, anomaly: bool = False,standardise: boo
 
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-             region, latS, latN, lonW, lonE, output_dir, plot_name="hovmoller_plot")
+            region, latS, latN, lonW, lonE, output_dir, plot_name="hovmoller_plot")
 
     _ = mcolors.TwoSlopeNorm(vcenter=0)
 
@@ -281,7 +283,8 @@ def hovmoller_lev_time_plot(data, region, anomaly: bool = False,standardise: boo
 
     return
 
-def time_series_multilevs(data, region=None, anomaly: bool = False, standardise: bool =False, anomaly_ref = None, customise_level=False, levels=None, latS: float=None, latN: float=None, lonW: float=None,lonE: float=None,  output= True, output_dir = None):
+
+def time_series_multilevs(data, region=None, anomaly: bool = False, standardise: bool = False, anomaly_ref=None, customise_level=False, levels=None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None,  output=True, output_dir=None):
     """
     Create time series plots of global temperature and salinity at selected levels.
 
@@ -304,7 +307,8 @@ def time_series_multilevs(data, region=None, anomaly: bool = False, standardise:
         None
     """
     data = weighted_area_mean(data, region, latS, latN, lonW, lonE)
-    data, type, cmap = data_process_by_type(data, anomaly, standardise, anomaly_ref)
+    data, type, cmap = data_process_by_type(
+        data, anomaly, standardise, anomaly_ref)
 
     logger.info("Time series plot is in process")
 
@@ -338,7 +342,7 @@ def time_series_multilevs(data, region=None, anomaly: bool = False, standardise:
             ax=axs[1], label=f"{round(int(data_level.lev.data), -2)}")
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-             region, latS, latN, lonW, lonE, output_dir, plot_name="time_series")
+            region, latS, latN, lonW, lonE, output_dir, plot_name="time_series")
         data.to_netcdf(f'{data_dir}/{filename}.nc')
 
     tunits = data_level.ocpt.attrs['units']
@@ -418,6 +422,7 @@ def linregress_3D(y_array):
     rmse[np.isnan(n)] = np.nan
     return n, slope, intercept, p_val, r_square, rmse
 
+
 def lintrend_2D(y_array):
     """
     Simplified version of linregress_3D that computes the trends in a 3D array formated in time, latitude and longitude coordinates
@@ -448,7 +453,7 @@ def lintrend_2D(y_array):
     x_mean = np.nanmean(x_array, axis=0)
     y_mean = np.nanmean(y_array, axis=0)
     x_std = np.nanstd(x_array, axis=0)
-    y_std = np.nanstd(y_array, axis=0)
+    # y_std = np.nanstd(y_array, axis=0)
     # Compute co-variance between time series of x_array and y_array over each (lon,lat) grid box.
     cov = np.nansum((x_array-x_mean)*(y_array-y_mean), axis=0)/n
     # Compute slope between time series of x_array and y_array over each (lon,lat) grid box.
@@ -498,7 +503,7 @@ def lintrend_3D(y_array):
     x_mean = np.nanmean(x_array, axis=0)
     y_mean = np.nanmean(y_array, axis=0)
     x_std = np.nanstd(x_array, axis=0)
-    y_std = np.nanstd(y_array, axis=0)
+    # y_std = np.nanstd(y_array, axis=0)
     # Compute co-variance between time series of x_array and y_array over each (lon,lat) grid box.
     cov = np.nansum((x_array-x_mean)*(y_array-y_mean), axis=0)/n
     # Compute slope between time series of x_array and y_array over each (lon,lat) grid box.
@@ -539,7 +544,7 @@ def TS_3dtrend(data):
     return TS_3dtrend_data
 
 
-def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=None, latS: float = None, latN: float = None, lonW: float = None,lonE: float = None,  output=True, output_dir= None):
+def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None,  output=True, output_dir=None):
     """
     Generates a plot showing trends at different depths for temperature and salinity variables.
 
@@ -605,7 +610,7 @@ def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=N
     axs[0, 1].set_title("Salinity", fontsize=18)
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
-             region, latS, latN, lonW, lonE, output_dir, plot_name="multilevel_t_s_trend")
+            region, latS, latN, lonW, lonE, output_dir, plot_name="multilevel_t_s_trend")
 
         data.interp(lev=levels[levs]).to_netcdf(f'{data_dir}/{filename}.nc')
         plt.savefig(f"{fig_dir}/{filename}.pdf")
@@ -615,4 +620,3 @@ def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=N
     plt.show()
 
     return
-

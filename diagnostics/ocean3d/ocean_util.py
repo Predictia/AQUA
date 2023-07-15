@@ -2,7 +2,6 @@
 Common Ocean modules
 """
 
-import datetime
 import os
 import warnings
 import logging
@@ -255,6 +254,7 @@ def split_time_equally(data):
             data_2 = data.isel(time=slice(int((date_len-1)/2), date_len))
     return [data, data_1, data_2]
 
+
 def load_obs_data(model='EN4', exp='en4', source='monthly'):
     """
     Load observational data for ocean temperature and salinity.
@@ -274,6 +274,7 @@ def load_obs_data(model='EN4', exp='en4', source='monthly'):
     den4 = den4[["ocpt", "so"]].resample(time="MS").mean()
     logger.info("loaded %s data", model)
     return den4
+
 
 def crop_obs_overlap_time(mod_data, obs_data):
     """
@@ -295,6 +296,7 @@ def crop_obs_overlap_time(mod_data, obs_data):
         logger.info(
             "selected the overlaped time of the obs data compare to the model")
     return obs_data
+
 
 def data_time_selection(data, time):
     """
@@ -335,7 +337,7 @@ def data_time_selection(data, time):
     elif time in ["yearly", "year", "y"]:
         data = data.groupby('time.year').mean(dim='time')
         if "year" in list(data.dims):
-            data = data.rename({"year":"time"})
+            data = data.rename({"year": "time"})
     elif time in ["jja", "jun_jul_aug", "jun-jul-aug", "june-july-august", "june_july_august"]:
         data = data.where((data['time.month'] >= 6) & (
             data['time.month'] <= 8), drop=True)
@@ -383,6 +385,7 @@ def compare_arrays(mod_data, obs_data):
 
     return mod_data_list, obs_data_selected
 
+
 def dir_creation(region=None,  latS: float = None, latN: float = None, lonW: float = None,
                  lonE: float = None, output_dir=None, plot_name=None):
     """
@@ -401,7 +404,7 @@ def dir_creation(region=None,  latS: float = None, latN: float = None, lonW: flo
     Returns:
         tuple: Output path, figure directory path, data directory path, and filename.
     """
-    current_time = f'{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
+    # current_time = f'{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
 
     if output_dir is None:
         raise ValueError("Please provide the outut_dir when output = True")
@@ -411,11 +414,9 @@ def dir_creation(region=None,  latS: float = None, latN: float = None, lonW: flo
     else:
         filename = f"{plot_name}_{region.replace(' ', '_').lower()}"
 
-    
-    #output_path = f"{output_dir}/"
+    # output_path = f"{output_dir}/"
     fig_dir = f"{output_dir}/PDF"
     data_dir = f"{output_dir}/NetCDF"
-    os.makedirs(fig_dir, exist_ok = True)
-    os.makedirs(data_dir,exist_ok = True)
+    os.makedirs(fig_dir, exist_ok=True)
+    os.makedirs(data_dir, exist_ok=True)
     return output_dir, fig_dir, data_dir, filename
-

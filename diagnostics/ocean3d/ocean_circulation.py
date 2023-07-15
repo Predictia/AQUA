@@ -23,7 +23,6 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 
-
 def convert_so(so):
     """
     Convert practical salinity to absolute.
@@ -264,7 +263,7 @@ def prepare_data_for_stratification_plot(data, region=None, time=None, latS: flo
     return data
 
 
-def plot_stratification(mod_data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None,lonE: float = None,  output=True, output_dir= None):
+def plot_stratification(mod_data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None,  output=True, output_dir=None):
     """
     Create a stratification plot showing the mean state temperature, salinity, and density profiles.
 
@@ -412,7 +411,7 @@ def compute_mld_cont(rho):
     return mld
 
 
-def data_for_plot_spatial_mld_clim(data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None,lonE: float = None):
+def data_for_plot_spatial_mld_clim(data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None):
     """
     Extracts and prepares data for plotting spatial mean mixed layer depth (MLD) climatology.
 
@@ -429,7 +428,7 @@ def data_for_plot_spatial_mld_clim(data, region=None, time=None, latS: float = N
         xarray.Dataset: Processed data suitable for plotting spatial MLD climatology.
 
     """
-    
+
     data = area_selection(data, region, latS, latN, lonW, lonE)
     data = convert_variables(data)
     data = compute_mld_cont(data)
@@ -438,7 +437,7 @@ def data_for_plot_spatial_mld_clim(data, region=None, time=None, latS: float = N
 
 
 def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None,
-                          lonE: float = None, overlap=False, output=False, output_dir= None):
+                          lonE: float = None, overlap=False, output=False, output_dir=None):
     """
     Plots the climatology of mixed layer depth in the NH as computed with de Boyer Montegut (2004)'s criteria in
     an observational dataset and a model dataset, allowing the user to select the month the climatology is computed
