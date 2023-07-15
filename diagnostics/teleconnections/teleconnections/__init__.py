@@ -5,21 +5,21 @@ from .index import station_based_index, regional_mean_index
 from .index import regional_mean_anomalies
 from .mjo import mjo_hovmoller
 from .plots import minmax_maps, plot_box, index_plot, maps_plot
-from .plots import single_map_plot, hovmoller_plot
+from .plots import single_map_plot, hovmoller_plot, maps_diffs_plot
 from .statistics import reg_evaluation, cor_evaluation
 from .tc_class import Teleconnection
 from .tools import load_namelist, lon_180_to_360, lon_360_to_180
 from .tools import area_selection, wgt_area_mean
 from .tools import get_dataset_config
 
-__version__ = '0.0.8'
+__version__ = '0.0.9'
 
 __all__ = ['station_based_cdo', 'regional_mean_cdo', 'regional_anomalies_cdo',
            'station_based_index', 'regional_mean_index',
            'mjo_hovmoller',
            'regional_mean_anomalies',
            'minmax_maps', 'plot_box', 'index_plot', 'maps_plot',
-           'single_map_plot', 'hovmoller_plot',
+           'single_map_plot', 'hovmoller_plot', 'maps_diffs_plot',
            'reg_evaluation', 'cor_evaluation',
            'Teleconnection', 'load_namelist', 'lon_180_to_360',
            'lon_360_to_180', 'area_selection',
@@ -27,6 +27,7 @@ __all__ = ['station_based_cdo', 'regional_mean_cdo', 'regional_anomalies_cdo',
 
 # Change log
 # 0.1.0: Hovmoller plot added
+# 0.0.9: mapa_diff_plot and add_cyclic_lon added to plots module
 # 0.0.8: regression and correlation refactored
 #        Added the possibility to evaluate them with a different variable
 #        from the variable used to evaluate the index
