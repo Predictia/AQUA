@@ -6,6 +6,8 @@ cli/*.err
 cli/*.out
 docs/sphinx/build/*
 *.nc
+*.png
+*.pdf
 AQUA_tests/
 AQUA_tests.tar.gz
 **/*.bak
