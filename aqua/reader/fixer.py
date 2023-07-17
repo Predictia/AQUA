@@ -4,12 +4,13 @@ import os
 import re
 import json
 import warnings
+import types
 import xarray as xr
 import cf2cdm
 from metpy.units import units
 
 from aqua.util import eval_formula, get_eccodes_attr
-from aqua.util import log_history
+from aqua.logger import log_history
 
 
 class FixerMixin():
@@ -52,7 +53,19 @@ class FixerMixin():
                 return None
         return fixes
 
-    def fixer(self, data, apply_unit_fix=False):
+    def fixer(self, data, **kwargs):
+        """Call the fixer function returnin container or iterator"""
+        if isinstance(data, types.GeneratorType):
+            return self._fixergen(data, **kwargs)
+        else:
+            return self._fixer(data, **kwargs)
+
+    def _fixergen(self, data, **kwargs):
+        """Iterator version of the fixer"""
+        for ds in data:
+            yield self._fixer(ds, **kwargs)
+
+    def _fixer(self, data, apply_unit_fix=False):
         """
         Perform fixes (var name, units, coord name adjustments) of the input dataset.
 
@@ -93,11 +106,16 @@ class FixerMixin():
                 # This is a grib variable, use eccodes to find attributes
                 if grib:
                     # Get relevant eccodes attribues
-                    attributes.update(get_eccodes_attr(var))
-                    sn = attributes.get("shortName", None)
-                    if (sn != '~') and (var != sn):
-                        varname = sn
-                        self.logger.info("Grib attributes for %s: %s", varname, attributes)
+                    try:
+                        attributes.update(get_eccodes_attr(var))
+                        sn = attributes.get("shortName", None)
+                        if (sn != '~') and (var != sn):
+                            varname = sn
+                            self.logger.info("Grib attributes for %s: %s", varname, attributes)
+                    except TypeError:
+                        self.logger.warning("Cannot get eccodes attributes for %s", var)
+                        self.logger.warning("Information may be missing in the output file")
+                        self.logger.warning("Please check your version of eccodes")
 
                 varlist[var] = varname
 
@@ -202,9 +220,17 @@ class FixerMixin():
         """
 
         if self.fixes is None:
+            self.logger.debug("No fixes available")
             return var
 
         variables = self.fixes.get("vars", None)
+        if variables:
+            self.logger.debug("Variables in the fixes: %s", variables)
+        else:
+            self.logger.warning("No variables in the fixes for source %s",
+                                self.source)
+            self.logger.warning("Returning the original variable")
+            return var
 
         # double check we have a list
         if isinstance(var, str):
@@ -359,7 +385,7 @@ class FixerMixin():
             data (xr.DataArray):  input DataArray
         """
         target_units = data.attrs.get("target_units", None)
-        real_units =  data.attrs.get("units", None)
+        real_units = data.attrs.get("units", None)
         if target_units and real_units != target_units:
             d = {"src_units": data.attrs["units"], "units_fixed": 1}
             data.attrs.update(d)
@@ -379,7 +405,10 @@ def normalize_units(src):
     if src == '1':
         return 'dimensionless'
     else:
-        return str(src).replace("of", "").replace("water", "").replace("equivalent", "")
+        src = str(src)
+        src = src.replace("of", "").replace("water", "").replace("equivalent", "")
+        src = src.replace("deg C", "degC")
+        return src
 
 
 def units_extra_definition():

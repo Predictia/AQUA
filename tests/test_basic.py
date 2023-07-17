@@ -12,6 +12,7 @@ def reader_instance():
                   regrid="r200", fix=False)
 
 
+
 # aqua class for tests
 @pytest.mark.aqua
 class TestAqua:
@@ -84,7 +85,7 @@ class TestAqua:
         """
         Test if the Reader class works with different combinations of arguments
         """
-        model, exp, source, regrid, variable = reader_arguments
+        model, exp, source, regrid, _ = reader_arguments
         reader = Reader(model=model, exp=exp, source=source, regrid=regrid,
                         fix=False)
         data = reader.retrieve()

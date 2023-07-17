@@ -3,8 +3,10 @@
 import os
 import re
 
+import types
 import intake
 import intake_esm
+
 import xarray as xr
 
 # from metpy.units import units, DimensionalityError
@@ -13,18 +15,27 @@ import smmregrid as rg
 
 from aqua.util import load_yaml, load_multi_yaml
 from aqua.util import get_reader_filenames, get_config_dir, get_machine
-from aqua.util import log_history
-from aqua.logger import log_configure
+from aqua.logger import log_configure, log_history, log_history_iter
+import aqua.gsv
 
 from .streaming import Streaming
 from .fixer import FixerMixin
 from .regrid import RegridMixin
 from .reader_utils import check_catalog_source, group_shared_dims, set_attrs
 
+
 # default spatial dimensions and vertical coordinates
 default_space_dims = ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude',
                       'latitude', 'cell', 'cells', 'ncells', 'values',
                       'value', 'nod2', 'pix', 'elem']
+
+
+# set default options for xarray
+xr.set_options(keep_attrs=True)
+
+
+# set default options for xarray
+xr.set_options(keep_attrs=True)
 
 
 class Reader(FixerMixin, RegridMixin):
@@ -40,60 +51,23 @@ class Reader(FixerMixin, RegridMixin):
         `config/config.yaml` to identify the required data.
 
         Args:
-            model (str):                        Model ID. Defaults to None.
-            exp (str):                          Experiment ID.
-                                                Defaults to None.
-            source (str, optional):             Source ID. Defaults to None.
-            freq (str, optional):               Frequency for timmean.
-                                                Defaults to None.
-            fix (bool, optional):               Apply fixes to the data.
-                                                Defaults to True.
-            regrid (str, optional):             Perform regridding to grid
-                                                `regrid`, as defined in
-                                                `config/regrid.yaml`.
-                                                Defaults to None.
-            method (str, optional):             Regridding method.
-                                                Defaults to "ycon".
-            zoom (int):                         healpix zoom level.
-                                                Defaults to None.
-            configdir (str, optional):          Folder where the
-                                                config/catalog files are
-                                                located. Defaults to None.
-            level (int, optional):              Level to extract if input data
-                                                are 3D (starting from 0).
-                                                Defaults to None.
-            areas (bool, optional):             Compute pixel areas if needed.
-                                                Defaults to True.
-            var (str or list, optional):        Variable(s) to extract;
-                                                "vars" is a synonym.
-                                                Defaults to None.
-            datamodel (str, optional):          Destination data model for
-                                                coordinates, overrides the one
-                                                in fixes.yaml.
-                                                Defaults to None.
-            streaming (bool, optional):         If True retrieve data in a
-                                                streaming mode.
-                                                Defaults to False.
-            stream_step (int, optional):        The number of time steps to
-                                                stream the data by.
-                                                Defaults to 1.
-            stream_unit (str, optional):        The unit of time to stream the
-                                                data by (e.g. 'hours', 'days',
-                                                'months', 'years').
-                                                Defaults to 'steps'.
-            stream_startdate (str, optional):   The starting date for
-                                                streaming the data (e.g. '2020-02-25').
-                                                Defaults to None.
-            rebuild (bool, optional):           Force rebuilding of area and
-                                                weight files.
-                                                Defaults to False.
-            loglevel (str, optional):           Level of logging according to
-                                                logging module.
-                                                Defaults to log_level_default
-                                                of loglevel().
-            nproc (int,optional):               Number of processes to use for
-                                                weights generation.
-                                                Defaults to 4.
+            model (str, optional): Model ID. Defaults to "ICON".
+            exp (str, optional): Experiment ID. Defaults to "tco2559-ng5".
+            source (str, optional): Source ID. Defaults to None.
+            regrid (str, optional): Perform regridding to grid `regrid`, as defined in `config/regrid.yaml`. Defaults to None.
+            method (str, optional): Regridding method. Defaults to "ycon".
+            zoom (int):             healpix zoom level. (Default: None)
+            configdir (str, optional): Folder where the config/catalog files are located. Defaults to None.
+            areas (bool, optional): Compute pixel areas if needed. Defaults to True.
+            var (str or list, optional): Variable(s) to extract; "vars" is a synonym. Defaults to None.
+            datamodel (str, optional): Destination data model for coordinates, overrides the one in fixes.yaml. Defaults to None.
+            streaming (bool, optional): If to retrieve data in a streaming mode. Defaults to False.
+            stream_step (int, optional): The number of time steps to stream the data by. Defaults to 1.
+            stream_unit (str, optional): The unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years'). Defaults to 'steps'.
+            stream_startdate (str, optional): The starting date for streaming the data (e.g. '2020-02-25'). Defaults to None.
+            rebuild (bool, optional): Force rebuilding of area and weight files. Defaults to False.
+            loglevel (str, optional): Level of logging according to logging module. Defaults to log_level_default of loglevel().
+            nproc (int,optional): Number of processes to use for weights generation. Defaults to 16.
 
         Returns:
             Reader: A `Reader` class object.
@@ -169,6 +143,7 @@ class Reader(FixerMixin, RegridMixin):
                 self.vert_coord = [self.vert_coord]
 
             self.masked_att = source_grid.get("masked", None)  # Optional selection of masked variables
+            self.masked_vars = source_grid.get("masked_vars", None)  # Optional selection of masked variables
 
             # Expose grid information for the source as a dictionary of
             # open xarrays
@@ -303,7 +278,8 @@ class Reader(FixerMixin, RegridMixin):
     def retrieve(self, regrid=False, timmean=False,
                  apply_unit_fix=True, var=None, vars=None,
                  streaming=False, stream_step=None, stream_unit=None,
-                 stream_startdate=None, streaming_generator=False):
+                 stream_startdate=None, streaming_generator=False,
+                 startdate=None, enddate=None):
         """
         Perform a data retrieve.
 
@@ -346,26 +322,26 @@ class Reader(FixerMixin, RegridMixin):
         if vars:
             var = vars
 
-        # Extract data from cat.
-        # If this is an ESM-intake catalogue use first dictionary value,
-        # else extract directly a dask dataset
-        if isinstance(esmcat, intake_esm.core.esm_datastore):
-            cdf_kwargs = esmcat.metadata.get('cdf_kwargs', {"chunks": {"time": 1}})
-            query = esmcat.metadata['query']
-            if var:
-                query_var = esmcat.metadata.get('query_var', 'short_name')
-                # Convert to list if not already
-                query[query_var] = var.split() if isinstance(var, str) else var
-            subcat = esmcat.search(**query)
-            data = subcat.to_dataset_dict(cdf_kwargs=cdf_kwargs,
-                                          zarr_kwargs=dict(consolidated=True),
-                                          # decode_times=True,
-                                          # use_cftime=True)
-                                          progressbar=False
-                                          )
-            data = list(data.values())[0]
+        # get loadvar
+        if var:
+            if isinstance(var, str):
+                var = var.split()
+            self.logger.info("Retrieving variables: %s", var)
+
+            loadvar = self.get_fixer_varname(var) if fix else var
         else:
-            data = esmcat.to_dask()
+            loadvar = None
+
+        fiter = False
+        # If this is an ESM-intake catalogue use first dictionary value,
+        if isinstance(esmcat, intake_esm.core.esm_datastore):
+            data = self.reader_esm(esmcat, loadvar)
+        # If this is an fdb entry
+        elif isinstance(esmcat, aqua.gsv.intake_gsv.GSVSource):
+            data = self.reader_fdb(esmcat, loadvar, startdate, enddate)
+            fiter = True  # this returs an iterator
+        else:
+            data = self.reader_intake(esmcat, var, loadvar)  # Returns a generator object
 
             if var:
                 # conversion to list guarantee that Dataset is produced
@@ -373,7 +349,7 @@ class Reader(FixerMixin, RegridMixin):
                     var = var.split()
 
                 # get loadvar
-                loadvar = self.get_fixer_varname(var) if self.fix else var
+                loadvar = self.get_fixer_varname(var) if fix else var
 
                 if all(element in data.data_vars for element in loadvar):
                     data = data[loadvar]
@@ -385,36 +361,50 @@ class Reader(FixerMixin, RegridMixin):
                     except:
                         raise KeyError("You are asking for variables which we cannot find in the catalog!")
 
-        log_history(data, "retrieved by AQUA retriever")
+        data = log_history_iter(data, "retrieved by AQUA retriever")
 
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
-        if self.freq and timmean:
-            data = self.timmean(data)
+
+        # These do not work in the iterator case
+        if not fiter:
+            if self.freq and timmean:
+                data = self.timmean(data)
+
         if self.targetgrid and regrid:
             data = self.regrid(data)
             self.grid_area = self.dst_grid_area
-        # Do not change easily this order.
-        # The fixer assumes to be after regridding!
-        if self.fix:
+        if self.fix:   # Do not change easily this order. The fixer assumes to be after regridding
             data = self.fixer(data, apply_unit_fix=apply_unit_fix)
-        if streaming or self.streaming or streaming_generator:
-            if streaming_generator:
-                data = self.streamer.stream_generator(data,
-                                                      stream_step=stream_step,
-                                                      stream_unit=stream_unit,
-                                                      stream_startdate=stream_startdate)
-            else:
-                data = self.streamer.stream(data, stream_step=stream_step,
-                                            stream_unit=stream_unit,
-                                            stream_startdate=stream_startdate)
+        if not fiter:
+            # This is not needed if we already have an iterator
+            if streaming or self.streaming or streaming_generator:
+                if streaming_generator:
+                    data = self.streamer.stream_generator(data, stream_step=stream_step,
+                                                          stream_unit=stream_unit,
+                                                          stream_startdate=stream_startdate)
+                else:
+                    data = self.streamer.stream(data, stream_step=stream_step,
+                                                stream_unit=stream_unit,
+                                                stream_startdate=stream_startdate)
 
         # safe check that we provide only what exactly asked by var
-        if var:
-            data = data[var]
+        # if var:
+        #    data = data[var]
 
         return data
 
     def regrid(self, data):
+        """Call the regridder function returning container or iterator"""
+        if isinstance(data, types.GeneratorType):
+            return self._regridgen(data)
+        else:
+            return self._regrid(data)
+
+    def _regridgen(self, data):
+        for ds in data:
+            yield self._regrid(ds)
+
+    def _regrid(self, data):
         """
         Perform regridding of the input dataset.
 
@@ -427,9 +417,14 @@ class Reader(FixerMixin, RegridMixin):
         if self.vert_coord == ["2d"]:
             datadic = {"2d": data}
         else:
+            self.logger.debug("Grouping variables that share the same dimension")
+            self.logger.debug("Vert coord: %s", self.vert_coord)
+            self.logger.debug("masked_att: %s", self.masked_att)
+            self.logger.debug("masked_vars: %s", self.masked_vars)
+
             datadic = group_shared_dims(data, self.vert_coord, others="2d",
-                                        masked="2dm",
-                                        masked_att=self.masked_att)
+                                        masked="2dm", masked_att=self.masked_att,
+                                        masked_vars=self.masked_vars)
 
         # Iterate over list of groups of variables, regridding them separately
         out = []
@@ -485,8 +480,9 @@ class Reader(FixerMixin, RegridMixin):
             # for now, we set initial time of the averaging period following
             # ECMWF standard
             # HACK: we ignore hours/sec to uniform the output structure
-            proper_time = data.time.resample(time=resample_freq).min()
-            out['time'] = np.array(proper_time.values, dtype='datetime64[h]')
+            #proper_time = data.time.resample(time=resample_freq).min()
+            #out['time'] = np.array(proper_time.values, dtype='datetime64[h]')
+            out['time'] = data.time.resample(time=resample_freq).min().dt.floor('D')
         except ValueError:
             raise ValueError('Cant find a frequency to resample, aborting!')
 
@@ -547,9 +543,12 @@ class Reader(FixerMixin, RegridMixin):
                 if not self.grid_area[coord].equals(data.coords[coord]):
                     # if they are fine when sorted, there is a sorting mismatch
                     if self.grid_area[coord].sortby(coord).equals(data.coords[coord].sortby(coord)):
-                        raise ValueError(f'{coord} is sorted in different way between area files and your dataset.') from err
+                        self.logger.warning('%s is sorted in different way between area files and your dataset. Flipping it!', coord)
+                        self.grid_area = self.grid_area.reindex({coord: list(reversed(self.grid_area[coord]))})
+                        # raise ValueError(f'{coord} is sorted in different way between area files and your dataset.') from err
                     # something else
-                    raise ValueError(f'{coord} has a mismatch in coordinate values!') from err
+                    else:
+                        raise ValueError(f'{coord} has a mismatch in coordinate values!') from err
 
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
 
@@ -606,13 +605,11 @@ class Reader(FixerMixin, RegridMixin):
         coordinate will be interpolated.
 
         Args:
-            data (DataArray, Dataset):      data to be interpolated
-            levels (float, or list):        The level you want to interpolate,
-                                            or a list of levels. Default is None
-                                            the vertical coordinate
-            units (str, optional, ):        The units of your vertical axis. Default 'Pa'
-            vert_coord (str, optional):     The name of the vertical coordinate. Default 'plev'
-            method (str, optional):         The type of interpolation method supported by interp()
+            data (DataArray, Dataset): your dataset
+            levels (float, or list): The level you want to interpolate the vertical coordinate
+            units (str, optional, ): The units of your vertical axis. Default 'Pa'
+            vert_coord (str, optional): The name of the vertical coordinate. Default 'plev'
+            method (str, optional): The type of interpolation method supported by interp()
 
         Return
             A DataArray or a Dataset with the new interpolated vertical dimension
@@ -645,10 +642,9 @@ class Reader(FixerMixin, RegridMixin):
         else:
             raise ValueError('This is not an xarray object!')
 
-
         return final
 
-    def _vertinterp(self, data, levels=None, units = 'Pa', vert_coord='plev', method='linear'):
+    def _vertinterp(self, data, levels=None, units='Pa', vert_coord='plev', method='linear'):
 
         # verify units are good
         if data[vert_coord].units != units:
@@ -661,108 +657,63 @@ class Reader(FixerMixin, RegridMixin):
 
         return final
 
+    def reader_esm(self, esmcat, var):
+        """Reads intake-esm entry. Returns a dataset."""
+        cdf_kwargs = esmcat.metadata.get('cdf_kwargs', {"chunks": {"time": 1}})
+        query = esmcat.metadata['query']
+        if var:
+            query_var = esmcat.metadata.get('query_var', 'short_name')
+            # Convert to list if not already
+            query[query_var] = var.split() if isinstance(var, str) else var
+        subcat = esmcat.search(**query)
+        data = subcat.to_dataset_dict(cdf_kwargs=cdf_kwargs,
+                                      # zarr_kwargs=dict(consolidated=True),
+                                      # decode_times=True,
+                                      # use_cftime=True)
+                                      progressbar=False
+                                      )
+        return list(data.values())[0]
 
+    def reader_fdb(self, esmcat, var, startdate, enddate):
+        """Read fdb data. Returns an iterator."""
+        # These are all needed in theory
 
+        if not enddate:
+            enddate = startdate
+        return esmcat(startdate=startdate, enddate=enddate, var=var).read_chunked()
 
-    # TODO: this is not used anymore, check if it can be deleted
+    def reader_intake(self, esmcat, var, loadvar, keep="first"):
+        """
+        Read regular intake entry. Returns dataset.
 
-    # def _check_if_accumulated_auto(self, data):
-    #     """To check if a DataArray is accumulated.
-    #     Arbitrary check on the first 20 timesteps"""
+        Args:
+            esmcat (intake.catalog.Catalog): your catalog
+            var (str): Variable to load
+            loadvar (list of str): List of variables to load
+            keep (str, optional): which duplicate entry to keep ("first" (default), "last" or None)
 
-    #     # randomly pick a few timesteps from a gridpoint
-    #     ndims = [dim for dim in data.dims if data[dim].size > 1][1:]
-    #     pindex = {dim: 0 for dim in ndims}
+        Returns:
+            Dataset
+        """
 
-    #     # extract the first 20 timesteps and do the derivative
-    #     check = data.isel(pindex).isel(time=slice(None, 20)).diff(dim='time').values
+        if loadvar:
+            data = esmcat.to_dask()
+            if all(element in data.data_vars for element in loadvar):
+                data = data[loadvar]
+            else:
+                try:
+                    data = data[var]
+                    self.logger.warning("You are asking for var %s which is already fixed from %s.", var, loadvar)
+                    self.logger.warning("It would be safer to run with fix=False")
+                except:
+                    raise KeyError("You are asking for variables which we cannot find in the catalog!")
+        else:
+            data = esmcat.to_dask()
 
-    #     # check all derivative are positive or all negative
-    #     condition = (check >= 0).all() or (check <= 0).all()
+        # check for duplicates
+        len0 = len(data.time)
+        data = data.drop_duplicates(dim='time', keep=keep)
+        if len(data.time) != len0:
+            self.logger.warning("Duplicate entries found along the time axis, keeping the %s one.", keep)
 
-    #     return condition
-
-    # def _check_if_accumulated(self, data):
-    #     """To check if a DataArray is accumulated.
-    #     On a list of variables defined by the GRIB names
-
-    #     Args:
-    #         data (xr.DataArray): field to be processed
-
-    #     Returns:
-    #         bool: True if decumulation is necessary, False if no
-    #     """
-
-    #     decumvars = ['tp', 'e', 'slhf', 'sshf',
-    #                  'tsr', 'ttr', 'ssr', 'str',
-    #                  'tsrc', 'ttrc', 'ssrc', 'strc',
-    #                  'tisr', 'tprate', 'mer', 'tp', 'cp', 'lsp']
-
-    #     if data.name in decumvars:
-    #         return True
-    #     else:
-    #         return False
-
-    # def decumulate(self, data, cumulation_time=None, check=True):
-    #     """
-    #     Test function to remove cumulative effect on IFS fluxes.
-    #     Cumulation times are estimated from the intervals of the data, but
-    #     can be specified manually
-
-    #     Args:
-    #         data (xr.DataArray):     field to be processed
-    #         cumulation_time (float): optional, specific cumulation time
-    #         check (bool):            if to check if the variable needs to be decumulated
-
-    #     Returns:
-    #         A xarray.DataArray where the cumulation time has been removed
-    #     """
-    #     if check:
-    #         if not self._check_if_accumulated(data):
-    #             return data
-
-    #     # which frequency are the data?
-    #     if not cumulation_time:
-    #         cumulation_time = (data.time[1]-data.time[0]).values/np.timedelta64(1, 's')
-
-    #     # get the derivatives
-    #     deltas = data.diff(dim='time') / cumulation_time
-
-    #     # add a first timestep empty to align the original and derived fields
-    #     zeros = xr.zeros_like(data.isel(time=0))
-    #     deltas = xr.concat([zeros, deltas], dim='time').transpose('time', ...)
-
-    #     # universal mask based on the change of month (shifted by one timestep)
-    #     mask = ~(data['time.month'] != data['time.month'].shift(time=1))
-    #     mask = mask.shift(time=1, fill_value=False)
-
-    #     # check which records are kept
-    #     # print(data.time[~mask])
-
-    #     # kaboom: exploit where
-    #     clean = deltas.where(mask, data/cumulation_time)
-
-    #     # remove the first timestep (no sense in cumulated)
-    #     clean = clean.isel(time=slice(1, None))
-
-    #     # rollback the time axis by half the cumulation time
-    #     clean['time'] = clean.time - np.timedelta64(int(cumulation_time/2), 's')
-
-    #     # WARNING: HACK FOR EVAPORATION
-    #     # print(clean.units)
-    #     if clean.units == 'm of water equivalent':
-    #         clean.attrs['units'] = 'm'
-
-    #     # use metpy units to divide by seconds
-    #     new_units = (units(clean.units)/units('s'))
-
-    #     # usual case for radiative fluxes
-    #     try:
-    #         clean.attrs['units'] = str(new_units.to('W/m^2').units)
-    #     except DimensionalityError:
-    #         clean.attrs['units'] = str(new_units.units)
-
-    #     # add an attribute that can be later used to infer about decumulation
-    #     clean.attrs['decumulated'] = 1
-
-    #     return clean
+        return data

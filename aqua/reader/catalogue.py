@@ -22,6 +22,7 @@ def catalogue(verbose=True, configdir=None):
                                                     containing the data.
     """
 
+
     # get the config dir and the machine
     if not configdir:
         configdir = get_config_dir()
@@ -47,16 +48,11 @@ def inspect_catalogue(cat, model=None, exp=None):
     Basic function to simplify catalog inspection.
 
     Args:
-        cat (intake.catalog.local.LocalCatalog):  The catalog object containing
-                                                  the data.
-        model (str, optional):                    The model ID to filter
-                                                  the catalog.
-                                                  If None, all models are
-                                                  returned. Defaults to None.
-        exp (str, optional):                      The experiment ID to filter
-                                                  the catalog. If None, all
-                                                  experiments are returned.
-                                                  Defaults to None.
+        cat (intake.catalog.local.LocalCatalog): The catalog object containing the data.
+        model (str, optional): The model ID to filter the catalog.
+            If None, all models are returned. Defaults to None.
+        exp (str, optional): The experiment ID to filter the catalog.
+            If None, all experiments are returned. Defaults to None.
 
     Returns:
         list:   A list of available items in the catalog, depending on the

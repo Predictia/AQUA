@@ -2,9 +2,9 @@ name: AQUA tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, dev ]
   workflow_dispatch:
   schedule:
     - cron: "0 3 * * 1" #run every Monday night at 3AM UTC
@@ -14,6 +14,7 @@ permissions:
 
 jobs:
   aqua_test:
+    if: contains(github.event.pull_request.labels.*.name, 'Ready to merge')
     env:
       # You can disable coverage by changing this to false. You can
       # also add other Python versions to the matrix, pinning the
@@ -27,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10"]
+        python-version: ["3.11"]
     defaults:
       run:
         # NOTE: We must take care with the shell value here. We have steps
@@ -40,17 +41,19 @@ jobs:
         #       the noprofile and norc so we have pytest set by Conda in our PATH.
         shell: bash --login -eo pipefail {0}
     steps:
+#      - name: Install fdb5
+#        run: sudo apt-get install -y fdb5
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Setup Micromamba
         uses: mamba-org/setup-micromamba@v1
         with:
-          environment-file: environment.yml
+          environment-file: environment-common.yml 
+          environment-name: aqua
           cache-downloads: true
           cache-environment: true
           condarc: |
             channels:
-              - numba
               - conda-forge
           create-args: >-
               python=${{ matrix.python-version }}
