@@ -3,7 +3,8 @@ name: dummy diagnostic test
 on:
   # Not triggering the dummy diagnostic test on pull requests
   # in order to waste less resources
-  #pull_request:
+  # pull_request:
+  #  branches: [ main, dev ]
   #  paths:
   #    - 'diagnostics/dummy/**'
   #    - 'tests/dummy/**'
@@ -13,6 +14,7 @@ on:
 
 jobs:
   dummy-diagnostic_test:
+    if: contains(github.event.pull_request.labels.*.name, 'Ready to merge')
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -27,7 +29,8 @@ jobs:
       - name: Setup Micromamba with diagnostic environment
         uses: mamba-org/setup-micromamba@v1
         with:
-          environment-file: diagnostics/dummy-diagnostic/env-dummy.yaml
+          environment-file: environment-common.yml
+          environment-name: dummy
           cache-downloads: true
           cache-environment: true
           condarc: |
@@ -36,15 +39,6 @@ jobs:
               - conda-forge
           create-args: >-
               python=${{ matrix.python-version }}
-
-# Run framework tests in order to check that the diagnostic environment is
-# compatible with the framework
-      - name: Download and setup framework tests
-        run: |
-          ./download_data_for_tests.sh
-      - name: Run framework tests
-        run: |
-          python -m pytest ./tests/test_basic.py 
 
 # Run diagnostic tests
       - name: Download and setup dummy-diagnostic tests

@@ -422,8 +422,9 @@ class Reader(FixerMixin, RegridMixin):
             out = data.resample(time=resample_freq).mean()
             # for now, we set initial time of the averaging period following ECMWF standard
             # HACK: we ignore hours/sec to uniform the output structure
-            proper_time = data.time.resample(time=resample_freq).min()
-            out['time'] = np.array(proper_time.values, dtype='datetime64[h]')
+            #proper_time = data.time.resample(time=resample_freq).min()
+            #out['time'] = np.array(proper_time.values, dtype='datetime64[h]')
+            out['time'] = data.time.resample(time=resample_freq).min().dt.floor('D')
         except ValueError:
             sys.exit('Cant find a frequency to resample, aborting!')
 
@@ -621,8 +622,20 @@ class Reader(FixerMixin, RegridMixin):
             enddate = startdate
         return esmcat(startdate=startdate, enddate=enddate, var=var).read_chunked()
 
-    def reader_intake(self, esmcat, var, loadvar):
-        """Read regular intake entry. Returns dataset."""
+    def reader_intake(self, esmcat, var, loadvar, keep="first"):
+        """
+        Read regular intake entry. Returns dataset.
+
+        Args:
+            esmcat (intake.catalog.Catalog): your catalog
+            var (str): Variable to load
+            loadvar (list of str): List of variables to load
+            keep (str, optional): which duplicate entry to keep ("first" (default), "last" or None)
+
+        Returns:
+            Dataset
+        """
+
         if loadvar:
             data = esmcat.to_dask()
             if all(element in data.data_vars for element in loadvar):
@@ -636,4 +649,11 @@ class Reader(FixerMixin, RegridMixin):
                     raise KeyError("You are asking for variables which we cannot find in the catalog!")
         else:
             data = esmcat.to_dask()
+
+        # check for duplicates
+        len0 = len(data.time)
+        data = data.drop_duplicates(dim='time', keep=keep)
+        if len(data.time) != len0:
+            self.logger.warning("Duplicate entries found along the time axis, keeping the %s one.", keep)
+
         return data
