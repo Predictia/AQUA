@@ -3,23 +3,28 @@ import numpy as np
 from aqua import Reader, catalogue
 
 # pytest approximation, to bear with different machines
-approx_rel=1e-4
+approx_rel = 1e-4
 loglevel = "DEBUG"
 
 @pytest.fixture
 def reader_instance():
-    return Reader(model="FESOM", exp="test-pi", source="original_2d", regrid="r200", loglevel=loglevel)
+    return Reader(model="FESOM", exp="test-pi", source="original_2d",
+                  regrid="r200", loglevel=loglevel)
 
 # aqua class for tests
 @pytest.mark.aqua
 class TestAqua:
     """Basic tests for AQUA"""
 
-    def test_aqua_import(self):
+    @pytest.mark.parametrize("module_name", ["aqua"])
+    def test_aqua_import(self, module_name):
         """
         Test if the aqua module is imported correctly
         """
-        assert True
+        try:
+            __import__(module_name)
+        except ImportError:
+            assert False, "Module {} could not be imported".format(module_name)
 
     def test_aqua_catalogue(self):
         """
@@ -32,7 +37,8 @@ class TestAqua:
         """
         Test the initialization of the Reader class
         """
-        reader = Reader(model="FESOM", exp="test-pi", source="original_2d", configdir="config", loglevel=loglevel)
+        reader = Reader(model="FESOM", exp="test-pi", source="original_2d",
+                        configdir="config", loglevel=loglevel)
         assert reader.model == "FESOM"
         assert reader.exp == "test-pi"
         assert reader.source == "original_2d"
@@ -63,8 +69,10 @@ class TestAqua:
         data = reader_instance.retrieve(fix=False)
         global_mean = reader_instance.fldmean(data.sst[:2, :])
         assert global_mean.shape == (2,)
-        assert global_mean.values[0] == pytest.approx(17.99434183, rel=approx_rel)
-        assert global_mean.values[1] == pytest.approx(17.98060367, rel=approx_rel)
+        assert global_mean.values[0] == pytest.approx(17.99434183,
+                                                      rel=approx_rel)
+        assert global_mean.values[1] == pytest.approx(17.98060367,
+                                                      rel=approx_rel)
 
     @pytest.fixture(
         params=[
@@ -80,6 +88,7 @@ class TestAqua:
         Test if the Reader class works with different combinations of arguments
         """
         model, exp, source, regrid, variable = reader_arguments
-        reader = Reader(model=model, exp=exp, source=source, regrid=regrid, loglevel=loglevel)
+        reader = Reader(model=model, exp=exp, source=source, regrid=regrid,
+                        loglevel=loglevel)
         data = reader.retrieve(fix=False)
         assert len(data) > 0
