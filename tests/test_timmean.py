@@ -50,7 +50,7 @@ class TestTimmean():
     def test_timmean_yearly_reader(self):
         """Timmean test for yearly aggregation from Reader directly"""
         reader = Reader(model="IFS", exp="test-tco79", source='long',
-                        freq='yearly',fix=False)
+                        freq='yearly', fix=False)
         data = reader.retrieve(timmean=True)
         assert data['ttr'].shape == (1, 9, 18)
 
