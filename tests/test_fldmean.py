@@ -47,3 +47,12 @@ class TestFldmean():
         avg = reader.fldmean(data['t']).values
         assert avg.shape == (2,90)
         assert avg[1,1] == pytest.approx(214.4841)
+
+    def test_fldmean_regridded(self):
+        """Fldmean test for regridded data"""
+        reader = Reader(model='FESOM', exp='test-pi', source='original_2d',
+                        regrid='r250', loglevel=loglevel)
+        data = reader.retrieve()
+        avg = reader.fldmean(data['sst']).values
+        assert avg.shape == (2,)
+        assert avg[1] == pytest.approx(291.1306)
