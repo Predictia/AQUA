@@ -114,22 +114,27 @@ if __name__ == '__main__':
             # Index
             teleconnection.plot_index()
 
-            # Regression
-            filename = 'teleconnections_' + teleconnection.model + '_' + teleconnection.exp + '_' + teleconnection.source + '_'
-            filename = filename + telecname + '_regression.pdf'
-            title = telecname + ' regression map' + ' (' + teleconnection.model + ', ' + teleconnection.exp + ')'
-            single_map_plot(map=teleconnection.regression, loglevel=loglevel,
-                            save=True, outputdir=teleconnection.outputfig,
-                            filename=filename, title=title, cbar_label=cbar_label)
+            if telecname == 'NAO':
+                # Regression
+                filename = 'teleconnections_' + teleconnection.model + '_' + teleconnection.exp + '_' + teleconnection.source + '_'
+                filename = filename + telecname + '_regression.pdf'
+                title = telecname + ' regression map' + ' (' + teleconnection.model + ', ' + teleconnection.exp + ')'
+                single_map_plot(map=teleconnection.regression, loglevel=loglevel,
+                                save=True, outputdir=teleconnection.outputfig,
+                                filename=filename, title=title, cbar_label=cbar_label)
 
-            # Correlation
-            filename = 'teleconnections_' + teleconnection.model + '_' + teleconnection.exp + '_' + teleconnection.source + '_'
-            filename = filename + telecname + '_correlation.pdf'
-            title = telecname + ' correlation map' + ' (' + teleconnection.model + ', ' + teleconnection.exp + ')'
-            single_map_plot(map=teleconnection.correlation, loglevel=loglevel,
-                            save=True, outputdir=teleconnection.outputfig,
-                            filename=filename, title=title,
-                            cbar_label='Pearson correlation coefficient')
+                # Correlation
+                filename = 'teleconnections_' + teleconnection.model + '_' + teleconnection.exp + '_' + teleconnection.source + '_'
+                filename = filename + telecname + '_correlation.pdf'
+                title = telecname + ' correlation map' + ' (' + teleconnection.model + ', ' + teleconnection.exp + ')'
+                single_map_plot(map=teleconnection.correlation, loglevel=loglevel,
+                                save=True, outputdir=teleconnection.outputfig,
+                                filename=filename, title=title,
+                                cbar_label='Pearson correlation coefficient')
+            elif telecname == 'ENSO':
+                if loglevel == 'INFO' or loglevel == 'DEBUG':
+                    print('ENSO regression and correlation maps may produce some errors')
+                    print('Please produce the plots manually from the NetCDF files.')
 
         teleconnection_obs.plot_index()
 

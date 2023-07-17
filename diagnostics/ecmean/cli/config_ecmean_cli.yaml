@@ -1,9 +1,9 @@
 dataset:
   model_atm: ICON
   model_oce: ICON
-  exp: ngc3028
+  exp: ngc2009
   year1: 2020
-  year2: 2024
+  year2: 2020
 
 compute:
   numproc: 1
@@ -11,5 +11,5 @@ compute:
 setup:
   loglevel: 'INFO'
   interface_file: '../config/interface_AQUA.yml'
-  config_file: '../config/config.yml'
+  config_file: '../config/ecmean_config.yml'
   
