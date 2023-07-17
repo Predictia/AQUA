@@ -328,7 +328,7 @@ class Reader(FixerMixin, RegridMixin):
                 var = var.split()
             self.logger.info("Retrieving variables: %s", var)
 
-            loadvar = self.get_fixer_varname(var) if fix else var
+            loadvar = self.get_fixer_varname(var) if self.fix else var
         else:
             loadvar = None
 
@@ -349,7 +349,7 @@ class Reader(FixerMixin, RegridMixin):
                     var = var.split()
 
                 # get loadvar
-                loadvar = self.get_fixer_varname(var) if fix else var
+                loadvar = self.get_fixer_varname(var) if self.fix else var
 
                 if all(element in data.data_vars for element in loadvar):
                     data = data[loadvar]
