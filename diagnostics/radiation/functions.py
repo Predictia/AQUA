@@ -8,6 +8,7 @@ from cdo import Cdo
 import cartopy.crs as ccrs
 from matplotlib.legend_handler import HandlerTuple
 from aqua import Reader
+import matplotlib.gridspec as gridspec
 
 outputfig = "./output/figs/"
 if not os.path.exists(outputfig):
@@ -86,6 +87,8 @@ def process_ceres_data(exp, source, TOA_icon_gm):
     
     return TOA_ceres_clim_gm, TOA_ceres_ebaf_gm, TOA_ceres_diff_samples_gm, reader_ceres_toa, TOA_ceres_clim, TOA_ceres_diff_samples
 
+#-------------------------------------------------------------------------------------------------------------------------------------
+
 def process_model_data(model, exp, source):
     """
     Extract Model output data for further analyis + create global means
@@ -115,6 +118,7 @@ def process_model_data(model, exp, source):
    
     return TOA_model_gm, reader_model, data_model, TOA_model, TOA_model_r360x180
 
+#-------------------------------------------------------------------------------------------------------------------------------------
 
 def process_era5_data(exp, source):
     """
@@ -133,6 +137,7 @@ def process_era5_data(exp, source):
     data_era5 = reader_era5.retrieve(fix=True)
     return data_era5, reader_era5
 
+#-------------------------------------------------------------------------------------------------------------------------------------
 
 def process_ceres_sfc_data(exp, source, TOA_icon_gm):
     """
@@ -194,34 +199,25 @@ def process_ceres_sfc_data(exp, source, TOA_icon_gm):
 
     return ceres_clim_gm_sfc, ceres_ebaf_gm_sfc, ceres_diff_samples_gm_sfc, reader_ceres_sfc, ceres_clim_sfc, ceres_diff_samples_sfc
 
- 
-def gregory_plot(data_era5, model_list, reader_dict):
+#-------------------------------------------------------------------------------------------------------------------------------------
+
+def gregory_plot(obs_data, obs_reader, obs_time_range, model_label_obs, model_list, reader_dict):
     """
-    Create Gregory Plot with various models and ERA5 (plotted by default)
+    Create Gregory Plot with various models and an observational dataset (e.g., ERA5).
 
     Args:
-        model_list:                      a list of model that should be plotted.
-        data_era5:                      your xarrayDataSet provided from process_era5_data(exp, source)
+        obs_data (xarray.Dataset): Xarray Dataset containing the observational data.
+        obs_reader: corresponding reader object for the observational dataset
+        obs_time_range (tuple): A tuple containing the start and end dates of the time range for the observational data.
+                                Format: ('YYYY-MM-DD', 'YYYY-MM-DD')
+        model_list (list): A list of models that should be plotted.
+        reader_dict (dict): A dictionary mapping model names to corresponding reader objects.
+        model_label_obs (str): Desired label for the observational data.
 
     Returns:
-        A Gregory Plot
-
-    Example:
-
-    .. code-block:: python
-
-    model_list = ['icon', 'ifs_9km', 'ifs_4km']
-    reader_dict = {
-    "icon" : reader_icon,
-    "ifs_9km" : reader_ifs_9km,
-    "ifs_4km" : reader_ifs_4km
-    }
-    gregory_plot(data_era5, model_list, reader_dict)
+        A Gregory Plot.
 
     """
-
-    reader_era5 = Reader(model="ERA5", exp="era5", source="monthly")
-    data_era5 = reader_era5.retrieve(fix=True)
 
     # Create the plot and axes
     _, ax = plt.subplots()
@@ -232,27 +228,27 @@ def gregory_plot(data_era5, model_list, reader_dict):
     handles = []
     labels = []
 
-    # Plot the data for ERA5 (2000-2020)
-    era5_2t_2000_2020 = data_era5["2t"].sel(time=slice('2000-01-01', '2020-12-31'))
-    era5_2t_2000_2020_resampled = era5_2t_2000_2020.resample(time="M").mean()
-    era5_tsr_2000_2020 = data_era5["mtnsrf"].sel(time=slice('2000-01-01', '2020-12-31'))
-    era5_tsr_2000_2020_resampled = (era5_tsr_2000_2020.resample(time="M").mean())  # /86400
-    era5_ttr_2000_2020 = data_era5["mtntrf"].sel(time=slice('2000-01-01', '2020-12-31'))
-    era5_ttr_2000_2020_resampled = (era5_ttr_2000_2020.resample(time="M").mean())  # /86400
+    # Plot the data for observation
+    obs_2t = obs_data["2t"].sel(time=slice(*obs_time_range))
+    obs_tsr = obs_data["mtnsrf"].sel(time=slice(*obs_time_range))
+    obs_ttr = obs_data["mtntrf"].sel(time=slice(*obs_time_range))
+
+    obs_2t_resampled = obs_2t.resample(time="M").mean()
+    obs_tsr_resampled = obs_tsr.resample(time="M").mean()
+    obs_ttr_resampled = obs_ttr.resample(time="M").mean()
 
     # Plot the data
     line = ax.plot(
-        reader_era5.fldmean(era5_2t_2000_2020_resampled)-273.15,
-        reader_era5.fldmean(era5_tsr_2000_2020_resampled) + reader_era5.fldmean(era5_ttr_2000_2020_resampled),
+        obs_reader.fldmean(obs_2t_resampled) - 273.15,
+        obs_reader.fldmean(obs_tsr_resampled) + obs_reader.fldmean(obs_ttr_resampled),
         marker="o",
         color="mediumseagreen",
         linestyle="-",
         markersize=3,
-        label="ERA5 2000-2020",
+        label=model_label_obs,
     )
     handles.append(line[0])  # Append the line object itself
-    model_name_era5 = "ERA5 2000-2020"
-    labels.append(model_name_era5)
+    labels.append(model_label_obs)
 
     for i, model in enumerate(model_list):
         model_name = model.lower()
@@ -294,13 +290,13 @@ def gregory_plot(data_era5, model_list, reader_dict):
     ax.set_xlabel("2m temperature [$^{\circ} C$]", fontsize=12)
     ax.set_ylabel("Net radiation TOA [Wm$^{-2}$]", fontsize=12)
     ax.set_title("Gregory Plot", fontsize=14)
-    # ax.set_suptitle("Black stars indicate the first value of the dataseries\n Red X indicate the last value of the dataseries.", fontsize=10)
     ax.legend(handles, labels + ["Start", "End"], handler_map={tuple: HandlerTuple(ndivide=None)})
     ax.text(0.5, -0.15, "Black stars indicate the first value of the dataseries\nRed X indicate the last value of the dataseries.",
             transform=ax.transAxes, fontsize=8, verticalalignment='top', horizontalalignment='center')
     ax.tick_params(axis="both", which="major", labelsize=10)
     ax.grid(True, linestyle="--", linewidth=0.5)
-    plt.show()
+
+    
     
     # Save the data for each model to separate netCDF files
     for model in model_list:
@@ -312,11 +308,13 @@ def gregory_plot(data_era5, model_list, reader_dict):
         model_data_resampled.to_netcdf(f"{outputdir}/Gregory_Plot_{model_name}.nc")
         filename = f"{outputfig}/Gregory_Plot_{model_name}.pdf"
         plt.savefig(filename, dpi=300, format='pdf')
-
+        
+    plt.show()
     print(f"Data has been saved to {outputdir}.")
     print(f"Plot has been saved to {outputfig}.")
-    # print(f"Data has been saved to {outputdir}.")
 
+
+#-------------------------------------------------------------------------------------------------------------------------------------
 
 def barplot_model_data(datasets, model_names, year=None):
     """
@@ -326,6 +324,7 @@ def barplot_model_data(datasets, model_names, year=None):
     Args:
         datasets:      a list of xarrayDataSets that should be plotted. Chose the global means (TOA_$model_gm)
         model_names:   your desired naming for the plotting
+        year:          the year for which the plot is generated (optional)
 
     Returns:
         A bar plot
@@ -343,6 +342,8 @@ def barplot_model_data(datasets, model_names, year=None):
     variables = ['ttr', 'tsr']  # Fixed order: ttr (lw), tsr (sw)
     plt.figure(figsize=(12, 5))
 
+    global_means = {}
+
     for i, dataset in enumerate(datasets):
         model_name = model_names[i]
 
@@ -357,48 +358,56 @@ def barplot_model_data(datasets, model_names, year=None):
                 global_mean *= -1  # Apply the sign (-1) to ttr
 
             plt.bar(f"{model_name}_{variable}", global_mean, color=colors[j])
+            global_means[f"{model_name}_{variable}"] = global_mean
 
     plt.xlabel('Model')
     plt.ylabel('Global mean ($W/m^2$)')
     # Add legend with colored text
     legend_labels = ['ttr = net outgoing longwave (top thermal radiadion)', 'tsr = net incomming shortwave (total solar radiation)']
-    legend_colors = ['blue', 'red']
+    legend_colors = ['red', 'blue']
     legend_handles = [plt.Rectangle((0, 0), 1, 1, color=color) for color in legend_colors]
     plt.legend(legend_handles, legend_labels, loc='upper right', facecolor='white', framealpha=1)
     plt.ylim(236, 250)
     if year is not None:
         plt.title(f"Global Mean TOA radiation for different models ({year}) (all CERES years from 2001 to 2021)")
     else:
-        plt.title('Global Mean TOA radiation for different models (mean over all model times).pdf')
+        plt.title('Global Mean TOA radiation for different models (mean over all model times)')
     filename = f"{outputfig}/BarPlot.pdf"
     plt.savefig(filename, dpi=300, format='pdf')
     plt.show()
+
+    # Save the data to a NetCDF file
+    output_data = xr.Dataset(global_means)
+    filename = f"{outputdir}/BarPlot.nc"
+    output_data.to_netcdf(filename)
+
+    print(f"Data has been saved to {outputdir}.")
     print(f"Plot has been saved to {outputfig}.")
 
+#-------------------------------------------------------------------------------------------------------------------------------------
 
 def plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_gm, TOA_ceres_clim_gm):
+                        
     """
-    Create time series bias plot with various models and CERES including the individual CERES years to show variabilities.
-    Variables ttr, tsr and tnr are plotted to show imbalances. Default mean for CERES data is the whole time range.
+    Create time series bias plot with various models and CERES including the individual CERES years to show variabilities. 
+    Variables ttr, tsr and tnr are plotted to show imbalances. Default mean for CERES data is the whole time range. 
     Example:
             models = [TOA_icon_gm.squeeze(), TOA_ifs_4km_gm.squeeze(), TOA_ifs_9km_gm.squeeze()]
             linelabels = ['ICON 5 km', 'IFS 4.4 km', 'IFS 9 km']
-            plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_gm, TOA_ceres_clim_gm)
+            radiation_diag.plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_gm, TOA_ceres_clim_gm)
 
     Args:
         models:                      a list of xarrayDataSets of the respective models. You can use squeeze() to remove single-dimensional entries from an array
-                                        to ensure that the input arrays have the same dimensions and shape
-        line_labels:                 your desired naming for the plotting
-
-
+                                         to ensure that the input arrays have the same dimensions and shape
+        line_labels:                 your desired naming for the plotting (this will also be used in the filename)       
+            
+      
     Returns:
         A plot to show the model biases for the whole time range
     """
-
-    _, axes = plt.subplots(3, 1, figsize=(12, 8))
-    linecolors = ['red', 'green', 'blue']
-
-    # linelabels = ['ICON 5 km', 'IFS 4.4 km', 'IFS 9 km']
+        
+    fig, axes = plt.subplots(3, 1, figsize=(12, 8))
+    linecolors = plt.cm.get_cmap('tab10').colors
     shading_data = xr.concat(
         (
             TOA_ceres_diff_samples_gm,
@@ -410,26 +419,29 @@ def plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_
         dim='time'
     )
     long_time = np.append(shading_data['time'], shading_data['time'][::-1])
-
+    
+    #----------------------------- ttr-----------------------------
     for i, model in enumerate(models):
         ttr_diff = xr.concat(
             (
-                (model.ttr.sel(time='2020') - TOA_ceres_clim_gm.squeeze().ttr.values),
-                (model.ttr.sel(time='2021') - TOA_ceres_clim_gm.squeeze().ttr.values),
-                (model.ttr.sel(time='2022') - TOA_ceres_clim_gm.squeeze().ttr.values),
-                (model.ttr.sel(time='2023') - TOA_ceres_clim_gm.squeeze().ttr.values),
-                (model.ttr.sel(time='2024') - TOA_ceres_clim_gm.squeeze().ttr.values),
+                (model.ttr.sel(time='2020').squeeze() - TOA_ceres_clim_gm.squeeze().ttr.values),
+                (model.ttr.sel(time='2021').squeeze() - TOA_ceres_clim_gm.squeeze().ttr.values),
+                (model.ttr.sel(time='2022').squeeze() - TOA_ceres_clim_gm.squeeze().ttr.values),
+                (model.ttr.sel(time='2023').squeeze() - TOA_ceres_clim_gm.squeeze().ttr.values),
+                (model.ttr.sel(time='2024').squeeze() - TOA_ceres_clim_gm.squeeze().ttr.values),
             ),
             dim='time'
         )
         ttr_diff.plot(ax=axes[0], color=linecolors[i], label=linelabels[i], x='time')
 
     axes[0].fill(long_time, np.append(shading_data['ttr'].min(dim='ensemble'), shading_data['ttr'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
-    axes[0].set_title('long wave radiation (ttr)', fontsize=16)
+    axes[0].set_title('LW', fontsize=16)
     axes[0].set_xticklabels([])
     axes[0].set_xlabel('')
     axes[0].legend(loc="upper left", frameon=False, fontsize='medium', ncol=3)
-
+    
+    #----------------------------- tsr-----------------------------
+    
     for i, model in enumerate(models):
         tsr_diff = xr.concat(
             (
@@ -444,10 +456,12 @@ def plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_
         tsr_diff.plot(ax=axes[1], color=linecolors[i], label=linelabels[i], x='time')
 
     axes[1].fill(long_time, np.append(shading_data['tsr'].min(dim='ensemble'), shading_data['tsr'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
-    axes[1].set_title('short wave radiation (tsr)', fontsize=16)
+    axes[1].set_title('SW', fontsize=16)
     axes[1].set_xticklabels([])
     axes[1].set_xlabel('')
-
+    
+    #----------------------------- tnr-----------------------------
+    
     for i, model in enumerate(models):
         tnr_diff = xr.concat(
             (
@@ -462,7 +476,7 @@ def plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_
         tnr_diff.plot(ax=axes[2], color=linecolors[i], label=linelabels[i], x='time')
 
     axes[2].fill(long_time, np.append(shading_data['tnr'].min(dim='ensemble'), shading_data['tnr'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
-    axes[2].set_title('net radiation (imbalance)', fontsize=16)
+    axes[2].set_title('net', fontsize=16)
 
     for i in range(3):
         axes[i].set_ylabel('$W/m^2$')
@@ -471,19 +485,20 @@ def plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_
         axes[i].set_ylim([-6.5, 6.5])
 
     plt.suptitle('Global mean TOA radiation bias relative to CERES climatology - nextGEMS Cycle 3', fontsize=18)
-    filename = f"{outputfig}/TimeSeries.pdf"
+    filename = f"{outputfig}/TimeSeries_{linelabels}.pdf"
     plt.savefig(filename, dpi=300, format='pdf')
     plt.tight_layout()
     plt.show()
-    
+
     # Save the data for each model to separate netCDF files
     for i, model in enumerate(models):
         model_name = linelabels[i].replace(' ', '_').lower()
-        model.to_netcdf(f"{outputdir}Timeseries.nc")
+        model.to_netcdf(f"{outputdir}Timeseries_{linelabels}.nc")
 
     print(f"Data has been saved to {outputdir}.")
     print(f"Plot has been saved to {outputfig}.")
-
+    
+#-------------------------------------------------------------------------------------------------------------------------------------
 
 def plot_bias(data, iax, title, plotlevels, lower, upper, index):
     """
@@ -609,17 +624,62 @@ def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_cli
     print(f"Plot has been saved to {outputfig}.")
 
 
-# @staticmethod
-# def boxplot_model_data(datasets, model_names, year=None):
-#         """
-#         Create Plot with various models and CERES. Variables ttr and tsr are plotted to show imbalances.
-#         Default mean for CERES data is the whole time range.
+def plot_mean_bias(TOA_model, var, model_label, TOA_ceres_clim, start_year, end_year, ceres_start_year=None, ceres_end_year=None):
+    """
+    Plot the mean bias of the data over the specified time range.
 
-#         Args:
-#             datasets:       a list of xarrayDataSets that should be plotted. Choose the global means (TOA_"model"_gm)
-#             model_names:    your desired naming for the plotting
-#             year:           the specific year to plot (optional)
+    Args:
+        TOA_model (xarray.Dataset):       The model TOA radiation data.
+        var (str):                       The variable to plot (e.g., 'tsr', 'ttr', 'tnr').
+        model_label (str):               The label for the model.
+        TOA_ceres_clim (float):          The CERES TOA radiation climatology.
+        start_year (str):                The start year of the time range for the model data.
+        end_year (str):                  The end year of the time range for the model data.
+        ceres_start_year (str):          The start year of the time range for the CERES data (optional).
+        ceres_end_year (str):            The end year of the time range for the CERES data (optional).
 
-#         Returns:
-#             A box plot with median, quantiles, and whiskers
-#         """
+    Returns:
+        None. Displays the plot of the mean bias.
+
+    Example:
+        plot_mean_bias(TOA_model, 'tsr', 'Cycle3_9km_IFS', TOA_ceres_clim, '2020', '2024', ceres_start_year='2000', ceres_end_year='2010')
+    """
+    plotlevels = np.arange(-50, 51, 10)
+
+    # Subset the CERES climatology data based on the specified time range
+    if ceres_start_year and ceres_end_year:
+        TOA_ceres_clim = TOA_ceres_clim.sel(time=slice(ceres_start_year, ceres_end_year))
+
+    # Calculate the mean bias over the specified time range
+    mean_bias = (TOA_model[var].sel(time=slice(start_year, end_year)).mean(dim='time') - TOA_ceres_clim[var]).mean(dim='time')
+
+    # Create the plot
+    fig = plt.figure(figsize=(10, 6))
+    gs = gridspec.GridSpec(2, 1, height_ratios=[10, 1], hspace=0.1)
+    ax = plt.subplot(gs[0], projection=ccrs.PlateCarree())
+    contour_plot = mean_bias.plot.contourf(ax=ax, transform=ccrs.PlateCarree(), cmap='RdBu_r', levels=20)
+    ax.coastlines(color='black', linewidth=0.5)
+    ax.gridlines(linewidth=0.5)
+    ax.set_title(f'{var.upper()} Bias of the {model_label} climatology ({start_year} to {end_year})\n relative to the CERES climatology ({ceres_start_year} to {ceres_end_year})', fontsize=14)
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    ax.set_xticks(np.arange(-180, 181, 30), crs=ccrs.PlateCarree())
+    ax.set_yticks(np.arange(-90, 91, 30), crs=ccrs.PlateCarree())
+    ax.tick_params(axis='both', which='both', labelsize=10)
+    ax.xaxis.set_ticklabels(['-180°', '-150°', '-120°', '-90°', '-60°', '-30°', '0°', '30°', '60°', '90°', '120°', '150°', '180°'])
+    ax.yaxis.set_ticklabels(['-90°', '-60°', '-30°', '0°', '30°', '60°', '90°'])
+
+    #cbar_ax = plt.subplot(gs[1])
+    #cbar = plt.colorbar(contour_plot, cax=cbar_ax, orientation='horizontal')
+    #cbar.set_label('Bias (W/m²)')
+
+    filename = f"{outputfig}{var}_{model_label}_TOA_mean_biases_{start_year}_{end_year}_CERES_{ceres_start_year}_{ceres_end_year}.pdf"
+    plt.savefig(filename, dpi=300, format='pdf')
+    plt.show()
+    #Save the data to a netCDF file
+    filename = f"{outputdir}{var}_{model_label}_TOA_mean_biases_{start_year}_{end_year}_CERES_{ceres_start_year}_{ceres_end_year}.nc"
+    mean_bias.to_netcdf(filename)
+
+    print(f"Data has been saved to {outputdir}.")
+    print(f"Plot has been saved to {outputfig}.")
+
