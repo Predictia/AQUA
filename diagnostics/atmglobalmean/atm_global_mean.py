@@ -59,8 +59,12 @@ def seasonal_bias(dataset1, dataset2, var_name, plev, statistic, model_label1, m
     season_ranges = {'DJF': [12, 1, 2], 'MAM': [3, 4, 5], 'JJA': [6, 7, 8], 'SON': [9, 10, 11]}
     results = []
     for season, months in season_ranges.items():
-        var1_season = var1_climatology.sel(month=months)
-        var2_season = var2_climatology.sel(month=months)
+        if season == 'DJF':
+            var1_season = var1_climatology.sel(month=months[1:])
+            var2_season = var2_climatology.sel(month=months)
+        else:
+            var1_season = var1_climatology.sel(month=months)
+            var2_season = var2_climatology.sel(month=months)
 
         if statistic == 'mean':
             result_season = var1_season.mean(dim='month') - var2_season.mean(dim='month')
@@ -215,15 +219,17 @@ def compare_datasets_plev(dataset1, dataset2, var_name, start_date1, end_date1, 
     # Add colorbar
     cbar = fig.colorbar(cax)
     cbar.set_label(f'{var_name} [{dataset1[var_name].units}]')
-
-    plt.show()
-    # Save the pdf file
-    filename = f"{outputfig}/Vertical_biases_{model_label1}_{model_label2}_{var_name}_{start_date1}_{end_date1}_{start_date2}_{end_date2}.pdf"
-    plt.savefig(filename, dpi=300, format='pdf')
+ 
+    # Save the plot as a PDF file
+    filename = f"Vertical_biases_{model_label1}_{model_label2}_{var_name}_{start_date1}_{end_date1}_{start_date2}_{end_date2}.pdf"
+    output_path = os.path.join(outputfig, filename)
+    plt.savefig(output_path, dpi=300, format='pdf')
 
     # Save the data into a NetCDF file
     filename = f"{outputdir}/Vertical_bias_{model_label1}_{model_label2}_{var_name}_{start_date1}_{end_date1}_{start_date2}_{end_date2}.nc"
     mean_bias.to_netcdf(filename)
+    
+    plt.show()
     print(f"The vertical bias plots have been saved to {outputfig}.")
     print(f"The vertical bias data has been saved to {outputdir}.")
 
