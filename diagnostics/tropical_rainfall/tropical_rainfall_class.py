@@ -810,13 +810,14 @@ class Tropical_Rainfall:
         if isinstance(tprate_dataset_1, xr.Dataset) and isinstance(tprate_dataset_2, xr.Dataset):
             dataset_3       = tprate_dataset_1.copy(deep = True)
             dataset_3.attrs = {**tprate_dataset_1.attrs, **tprate_dataset_2.attrs}
-            
+            #dataset_3.counts.attrs['size_of_the_data'] = tprate_dataset_1.counts.size_of_the_data + tprate_dataset_2.counts.size_of_the_data
             for attribute in tprate_dataset_1.attrs:
                 if tprate_dataset_1.attrs[attribute]    != tprate_dataset_2.attrs[attribute]:
                     dataset_3.attrs[attribute]          = str(tprate_dataset_1.attrs[attribute])+';\n '+str(tprate_dataset_2.attrs[attribute])
 
 
             dataset_3.counts.values     = tprate_dataset_1.counts.values + tprate_dataset_2.counts.values
+            dataset_3.counts.attrs['size_of_the_data'] = tprate_dataset_1.counts.size_of_the_data + tprate_dataset_2.counts.size_of_the_data
             dataset_3.frequency.values  = self.convert_counts_to_frequency(dataset_3.counts)
             dataset_3.pdf.values        = self.convert_counts_to_pdf(dataset_3.counts)
 
@@ -825,7 +826,7 @@ class Tropical_Rainfall:
                     dataset_3[variable].attrs                       = {**tprate_dataset_1[variable].attrs, **tprate_dataset_2[variable].attrs}
                     if tprate_dataset_1[variable].attrs[attribute]  != tprate_dataset_2[variable].attrs[attribute]:
                         dataset_3[variable].attrs[attribute]        = str(tprate_dataset_1[variable].attrs[attribute])+';\n ' + str(tprate_dataset_2[variable].attrs[attribute])
-
+                dataset_3[variable].attrs['size_of_the_data'] = tprate_dataset_1[variable].size_of_the_data + tprate_dataset_2[variable].size_of_the_data
             return dataset_3
         
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
@@ -918,10 +919,12 @@ class Tropical_Rainfall:
         frequency_per_bin.attrs = data.attrs
         sum_of_frequency        = sum(frequency_per_bin[:])
         
+        
         if abs(sum_of_frequency -1) < 10**(-4):
             return frequency_per_bin
         else:
             raise Exception("Test failed.")
+        #return frequency_per_bin
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ 
     def convert_counts_to_pdf(self, data):
@@ -942,6 +945,7 @@ class Tropical_Rainfall:
         pdf_per_bin.attrs       = data.attrs
         sum_of_pdf              = sum(pdf_per_bin[:]*data.width[0:])
         
+        #return pdf_per_bin
         if abs(sum_of_pdf-1.)   < 10**(-4):
             return pdf_per_bin
         else:
@@ -1036,10 +1040,10 @@ class Tropical_Rainfall:
             data = self.convert_counts_to_frequency(data)
         
         x       =   data.center_of_bin.values
-        if new_unit is not None:
-            converter       = self.precipitation_rate_units_converter(1, old_unit = data.center_of_bin.units, new_unit=new_unit)
-            x = converter * x
-            data = data/converter
+        #if new_unit is not None:
+        #    converter       = self.precipitation_rate_units_converter(1, old_unit = data.center_of_bin.units, new_unit=new_unit)
+        #    x = converter * x
+        #    data = data/converter
         #legend = legend + ': mean {}{}, error {}%'.format(round(data.mean_of_original_data, 2),  data.units, round(data.relative_discrepancy, 2))
 
         data = data.where(data>0)
