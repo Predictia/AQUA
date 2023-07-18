@@ -95,57 +95,57 @@ class Tropical_Rainfall:
         if trop_lat is not None and isinstance(trop_lat, (int, float)):
             self.trop_lat = trop_lat
         elif trop_lat is not None and not isinstance(trop_lat, (int, float)):
-            raise Exception("trop_lat must to be integer or float")
+            raise TypeError("trop_lat must to be integer or float")
 
         if s_time is not None and isinstance(s_time, (int, str)):
             self.s_time = s_time
         elif s_time is not None and not isinstance(s_time, (int, str)):
-            raise Exception("s_time must to be integer or string")
+            raise TypeError("s_time must to be integer or string")
 
         if f_time is not None and isinstance(f_time, (int, str)):
             self.f_time = f_time
         elif f_time is not None and not isinstance(f_time, (int, str)):
-            raise Exception("f_time must to be integer or string")
+            raise TypeError("f_time must to be integer or string")
 
         if s_year is not None and isinstance(s_year, int):
             self.s_year = s_year
         elif s_year is not None and not isinstance(s_year, int):
-            raise Exception("s_year must to be integer")
+            raise TypeError("s_year must to be integer")
 
         if f_year is not None and isinstance(f_year, int):
             self.f_year = f_year
         elif f_year is not None and not isinstance(f_year, int):
-            raise Exception("f_year must to be integer")
+            raise TypeError("f_year must to be integer")
 
         if s_month is not None and isinstance(s_month, int):
             self.s_month = s_month
         elif s_month is not None and not isinstance(s_month, int):
-            raise Exception("s_month must to be integer")
+            raise TypeError("s_month must to be integer")
 
         if f_month is not None and isinstance(f_month, int):
             self.f_month = f_month
         elif f_month is not None and not isinstance(f_month, int):
-            raise Exception("f_month must to be integer")
+            raise TypeError("f_month must to be integer")
 
         if bins != 0 and isinstance(bins, np.ndarray):
             self.bins = bins
         elif bins != 0 and not isinstance(bins, (np.ndarray, list)):
-            raise Exception("bins must to be array")
+            raise TypeError("bins must to be array")
 
         if num_of_bins is not None and isinstance(num_of_bins, int):
             self.num_of_bins = num_of_bins
         elif num_of_bins is not None and not isinstance(num_of_bins, int):
-            raise Exception("num_of_bins must to be integer")
+            raise TypeError("num_of_bins must to be integer")
 
         if first_edge is not None and isinstance(first_edge, (int, float)):
             self.first_edge = first_edge
         elif first_edge is not None and not isinstance(first_edge, (int, float)):
-            raise Exception("first_edge must to be integer or float")
+            raise TypeError("first_edge must to be integer or float")
 
         if width_of_bin is not None and isinstance(width_of_bin, (int, float)):
             self.width_of_bin = width_of_bin
         elif width_of_bin is not None and not isinstance(width_of_bin, (int, float)):
-            raise Exception("width_of_bin must to be integer or float")
+            raise TypeError("width_of_bin must to be integer or float")
 
     def coordinate_names(self, data):
         """ Function to get the names of the coordinates."""
@@ -305,8 +305,8 @@ class Tropical_Rainfall:
                     f_time = _f[0] + '-' + _f[1] + '-' + \
                         _f[2] + '-' + _f[3] + '-' + _f[4]
                 else:
-                    raise Exception(
-                        "Sorry, unknown format of time. Try one more time")
+                    raise ValueError(
+                        "Unknown format of time. Try one more time")
             data = data.sel(time=slice(s_time, f_time))
         elif self.s_time is not None and self.f_time is None:
             if isinstance(s_year, str):
@@ -326,8 +326,8 @@ class Tropical_Rainfall:
                     time = _temp[0]+'-'+_temp[1]+'-'+_temp[2] + \
                         '-'+_temp[3]+'-'+_temp[4]+'-'+_temp[5]
                 else:
-                    raise Exception(
-                        "Sorry, unknown format of time. Try one more time")
+                    raise ValueError(
+                        "Unknown format of time. Try one more time")
                 data = data.sel(time=slice(time))
         return data
 
@@ -866,7 +866,7 @@ class Tropical_Rainfall:
                                                           tprate_dataset_2=self.open_dataset(path_to_netcdf=histograms_to_load[i]))
                 return dataset
             else:
-                raise Exception('The specified repository is empty.')
+                raise NameError('The specified repository is empty.')
 
     def convert_counts_to_frequency(self, data):
         """ Function to convert the counts to the frequency.
@@ -889,7 +889,7 @@ class Tropical_Rainfall:
         if abs(sum_of_frequency - 1) < 10**(-4):
             return frequency_per_bin
         else:
-            raise Exception("Test failed.")
+            raise AssertionError("Test failed.")
 
     def convert_counts_to_pdf(self, data):
         """ Function to convert the counts to the pdf.
@@ -912,7 +912,7 @@ class Tropical_Rainfall:
         if abs(sum_of_pdf-1.) < 10**(-4):
             return pdf_per_bin
         else:
-            raise Exception("Test failed.")
+            raise AssertionError("Test failed.")
 
     def histogram_plot(self, data,          new_unit=None,
                        weights=None,      frequency=False,      pdf=True,
@@ -1236,7 +1236,7 @@ class Tropical_Rainfall:
         coord_lat, coord_lon = self.coordinate_names(data)
 
         if data[coord].size <= 1:
-            raise Exception(
+            raise ValueError(
                 "The length of the coordinate should be more than 1.")
 
         # make a plot with different y-axis using second axis object
