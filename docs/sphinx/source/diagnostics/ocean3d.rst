@@ -40,58 +40,73 @@ This module exports all the data and diagnostics  used to create the different f
 Functions used 
 ---------------
 
-* .. code-block:: python
+.. code-block:: python
 
     hovmoller_lev_time_plot(data, region, anomaly: bool = False,standardise: bool =False, anomaly_ref= None ,
                             latS: float=None, latN: float=None, lonW: float=None,lonE: float=None,
                             output= False, output_dir= None)
 
-hovmoller_lev_time_plot: This function requires data, a region, and the type of data processing. And it produces a Hovmoller plot of regionally averaged temperature and salinity with the selected preprocessing of the data (e.g., whether anomalies are computed and how, and whether they are normalized or not). The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes as desired.
+hovmoller_lev_time_plot: This function requires data, a region, and the type of data processing. 
+It produces a Hovmöller plot of regionally averaged temperature and salinity with the selected preprocessing of the data (e.g., whether anomalies are computed and how, and whether they are normalized or not). 
+The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes as desired.
 
 
-
-* .. code-block:: python
+.. code-block:: python
 
     time_series_multilevs(data, region=None, anomaly: bool = False, standardise: bool =False, anomaly_ref = None,
                           customise_level=False, levels=None,
                           latS: float=None, latN: float=None, lonW: float=None,lonE: float=None,
                           output= True, output_dir = None)
 
-time_series_multilevs: This function requires data, a region, the type of data processing, and optional depth levels. And it produces time series plots of regionally averaged temperature and salinity with the selected preprocessing of the data for a predefined or customized list of vertical levels. The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
+time_series_multilevs: This function requires data, a region, the type of data processing, and optional depth levels. 
+And it produces time series plots of regionally averaged temperature and salinity with the selected preprocessing of the data for a predefined or customized list of vertical levels. 
+The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
 
 
-* .. code-block:: python
+.. code-block:: python
 
     multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=None,
                               latS: float = None, latN: float = None, lonW: float = None,lonE: float = None,
                               output=True, output_dir= None)
 
-multilevel_t_s_trend_plot: This function requires data, a region, and optional depth levels. It produces lon-lat maps of linear temporal trends of temperature and salinity over the selected region for a predefined or customized list of vertical levels. The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
+multilevel_t_s_trend_plot: This function requires data, a region, and optional depth levels. 
+It produces lon-lat maps of linear temporal trends of temperature and salinity over the selected region for a predefined or customized list of vertical levels. 
+The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
 
 
-* .. code-block:: python
+.. code-block:: python
 
    zonal_mean_trend_plot(data, region=None,
                         latS: float = None, latN: float = None, lonW: float = None,lonE: float = None,
                         output=True, output_dir= None)
 
-zonal_mean_trend_plot: This function requires data for a region. It produces plots of zonally averaged linear temporal trends plot of temperature and salinity as a function of depth and latitude. The zonal average is produced over the selected region, whose name supports all the major oceans and seas; in case users require a custom region, they can fill in the values of latitude and longitude in the boxes.
+Zonal Mean Trend Plot: This function requires data for a region. 
+It produces plots of zonally averaged linear temporal trends plot of temperature and salinity as a function of depth and latitude. 
+The zonal average is produced over the selected region, whose name supports all the major oceans and seas; in case users require a custom region, 
+they can fill in the values of latitude and longitude in the boxes.
 
 
-* .. code-block:: python
+.. code-block:: python
 
     plot_stratification(mod_data, region=None, time=None,
                         latS: float = None, latN: float = None, lonW: float = None,lonE: float = None,
                         output=True, output_dir= None)
-Stratification plot: This function requires data, a region, and the time of the climatology. And it produces a stratification plot of Temperature, salinity and Density, including the overlapped data with the observation. The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
+
+Stratification plot: This function requires data, a region, and the time of the climatology. 
+It produces a stratification plot of Temperature, salinity and Density, including the overlapped data with the observation. 
+The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
 
 
-* .. code-block:: python
+.. code-block:: python
 
     plot_spatial_mld_clim(mod_data, region=None, time=None,
                           latS: float = None, latN: float = None, lonW: float = None, lonE: float = None,
                           overlap=False, output=False, output_dir= None)
-Mixed Layer Depth Plot: This function requires data, a region, and the time of the climatology. And it produces a time series plot of Temperature and salinity. Users have the option of choosing whether they want to use the whole obs data or overlapped obs data with the model. The region name supports all the major oceans and seas; in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
+
+Mixed Layer Depth Plot: This function requires data, a region, and the time of the climatology. 
+It produces a time series plot of temperature and salinity.
+Users have the option of choosing whether they want to use the whole obs data or overlapped obs data with the model. 
+The region name supports all the major oceans and seas; in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
 
 
 Methods used 
