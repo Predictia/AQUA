@@ -57,8 +57,8 @@ def predefined_regions(region):
         latN, latS, lonW, lonE = 90.0, 65.0, 0.0, 360.0
     elif region in ["southernocean", "southern ocean"]:
         latN, latS, lonW, lonE = -50.0, -80.0, 0.0, 360.0
-    elif region in ["weddell_sea", "weddell sea"]:
-        latN, latS, lonW, lonE = -65.0, -80.0, 290.0, 350.0
+    elif region in ["weddellsea", "weddell sea"]:
+        latN, latS, lonW, lonE = -65.0, -80.0, 295.0, 350.0
     elif region in ["beringsea", "bering sea"]:
         latN, latS, lonW, lonE = 66.0, 53.0, 168.0, -178.0
     elif region in ["gulfofmexico", "gulf of mexico"]:
@@ -101,8 +101,6 @@ def predefined_regions(region):
         latN, latS, lonW, lonE = 35.0, 20.0, -70.0, -50.0
     elif region in ["andamansea", "andaman sea"]:
         latN, latS, lonW, lonE = 20.0, 6.0, 93.0, 98.0
-    elif region in ["weddellsea", "weddell sea"]:
-        latN, latS, lonW, lonE = -60.0, -78.0, -45.0, 20.0
     elif region in ["javasea", "java sea"]:
         latN, latS, lonW, lonE = -6.0, -8.0, 105.0, 117.0
     elif region in ["beaufortsea", "beaufort sea"]:

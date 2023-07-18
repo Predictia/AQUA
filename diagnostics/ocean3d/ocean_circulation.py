@@ -495,15 +495,15 @@ def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, 
     # We round up to next hundreth
     clev2 = max(np.max(mod_clim), np.max(obs_clim))
     # print(clev2)
-        if clev2<200:
-          inc=10
-          clev2=round(int(clev2), -1)
-        elif clev>1500:
-          inc=100
-          clev2=round(int(clev2),-2)
-        else
-          inc=50
-          clev=round(int(clev2), -2)
+    if clev2<200:
+        inc=10
+        clev2=round(int(clev2), -1)
+    elif clev2>1500:
+        inc=100
+        clev2=round(int(clev2),-2)
+    else:
+        inc=50
+        clev2=round(int(clev2), -2)
    
     nclev = int(clev2/inc)+1
     clev2 = float(clev2)
