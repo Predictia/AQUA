@@ -46,7 +46,7 @@ Functions used
                             latS: float=None, latN: float=None, lonW: float=None,lonE: float=None,
                             output= False, output_dir= None)
 
-hovmoller_lev_time_plot: This function requires data, a region, and the type of data processing. 
+*hovmoller_lev_time_plot*: This function requires data, a region, and the type of data processing. 
 It produces a Hovmöller plot of regionally averaged temperature and salinity with the selected preprocessing of the data (e.g., whether anomalies are computed and how, and whether they are normalized or not). 
 The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes as desired.
 
@@ -58,8 +58,8 @@ The region name supports all the major oceans and seas, in case users require a 
                           latS: float=None, latN: float=None, lonW: float=None,lonE: float=None,
                           output= True, output_dir = None)
 
-time_series_multilevs: This function requires data, a region, the type of data processing, and optional depth levels. 
-And it produces time series plots of regionally averaged temperature and salinity with the selected preprocessing of the data for a predefined or customized list of vertical levels. 
+*time_series_multilevs*: This function requires data, a region, the type of data processing, and optional depth levels. 
+It produces time series plots of regionally averaged temperature and salinity with the selected preprocessing of the data for a predefined or customized list of vertical levels. 
 The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
 
 
@@ -69,7 +69,7 @@ The region name supports all the major oceans and seas, in case users require a 
                               latS: float = None, latN: float = None, lonW: float = None,lonE: float = None,
                               output=True, output_dir= None)
 
-multilevel_t_s_trend_plot: This function requires data, a region, and optional depth levels. 
+*multilevel_t_s_trend_plot*: This function requires data, a region, and optional depth levels. 
 It produces lon-lat maps of linear temporal trends of temperature and salinity over the selected region for a predefined or customized list of vertical levels. 
 The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
 
@@ -80,7 +80,7 @@ The region name supports all the major oceans and seas, in case users require a 
                         latS: float = None, latN: float = None, lonW: float = None,lonE: float = None,
                         output=True, output_dir= None)
 
-Zonal Mean Trend Plot: This function requires data for a region. 
+*Zonal Mean Trend Plot*: This function requires data for a region. 
 It produces plots of zonally averaged linear temporal trends plot of temperature and salinity as a function of depth and latitude. 
 The zonal average is produced over the selected region, whose name supports all the major oceans and seas; in case users require a custom region, 
 they can fill in the values of latitude and longitude in the boxes.
@@ -92,7 +92,7 @@ they can fill in the values of latitude and longitude in the boxes.
                         latS: float = None, latN: float = None, lonW: float = None,lonE: float = None,
                         output=True, output_dir= None)
 
-Stratification plot: This function requires data, a region, and the time of the climatology. 
+*Stratification plot*: This function requires data, a region, and the time of the climatology. 
 It produces a stratification plot of Temperature, salinity and Density, including the overlapped data with the observation. 
 The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude, and longitude in the boxes.
 
@@ -176,7 +176,7 @@ Example Plot(s)
     :width: 20cm
 
 
-* This is an example of one of the mixed-layer depth climatologies.
+* This is an example of one of the mixed-layer depth climatologies. Unit is meter. 
 
 .. figure:: figures/ocean3d6.png
     :width: 20cm
