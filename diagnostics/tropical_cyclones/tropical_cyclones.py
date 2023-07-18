@@ -190,7 +190,7 @@ class TCs(DetectNodes, StitchNodes):
             self.logger.warning(
                 'Initialised streaming for %s %s starting on %s', self.stream_step, self.stream_units, self.stream_startdate)
         if self.model in 'IFS':
-            self.varlist2d = ['msl', '10u', '10v']
+            self.varlist2d = ['msl', '10u', '10v', 'z']
             self.reader2d = Reader(model=self.model, exp=self.exp, source=self.source2d,
                                    regrid=self.lowgrid, streaming=self.streaming,
                                    stream_step=self.stream_step,
