@@ -11,7 +11,8 @@ from aqua.logger import log_configure
 def index_plot(indx, save=False, outputdir='./', filename='index.png',
                step=False, loglevel='WARNING', **kwargs):
     """
-    Index plot together with a black line at indx=0
+    Index plot together with a black line at indx=0.
+    Values above 0 are filled in red, values below 0 are filled in blue.
 
     Args:
         indx (DataArray): Index DataArray
@@ -25,7 +26,12 @@ def index_plot(indx, save=False, outputdir='./', filename='index.png',
                                 default is False
         loglevel (str,opt):     log level for the logger,
                                 default is 'WARNING'
-        **kwargs:               additional arguments for set_layout
+        **kwargs:               additional arguments
+
+    Kwargs:
+        - figsize (tuple,opt):    figure size, default is (11, 8.5)
+        - title (str,opt):        title for the plot
+        - ylabel (str,opt):       ylabel for the plot
 
     Returns:
         fig (Figure):           Figure object
