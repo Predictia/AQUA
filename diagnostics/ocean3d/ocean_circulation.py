@@ -510,12 +510,12 @@ def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, 
 
     cs1 = axs[0].contourf(mod_clim.lon, mod_clim.lat, mod_clim,
                           levels=np.linspace(clev1, clev2, nclev), cmap='jet')
-    fig.colorbar(cs1, location="bottom")
+    fig.colorbar(cs1, location="bottom",label='Mixed layer depth (in m)')
 
     cs1 = axs[1].contourf(obs_clim.lon, obs_clim.lat, obs_clim,
                           levels=np.linspace(clev1, clev2, nclev), cmap='jet')
 
-    fig.colorbar(cs1, location="bottom")
+    fig.colorbar(cs1, location="bottom",label='Mixed layer depth (in m)')
 
     if output:
         mod_clim.to_netcdf(f'{data_dir}/{filename}_Rho.nc')
