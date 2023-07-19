@@ -57,13 +57,13 @@ If you are not working on Levante, remember to change the machine name in the `c
 
 .. note ::
    Since version v0.2, a `environment-common.yaml` is provided in the AQUA main directory in order to integrate all the requirements from the diagnostics. 
-   Installing with mamba/conda this environment instead of the AQUA default one allows for running all AQUA diagnostic without the need of chaning the enviornments.
+   Installing with mamba/conda this environment instead of the AQUA default one allows for running all AQUA diagnostic without the need of switching among the enviornments.
 
 Installation on Lumi
 --------------------
 
 If you are using LUMI, you cannot use pure conda environments due to the Lustre filesystem.
-A solution using containers must be implemented based on containers, as described on `Lumi user-guide <https://docs.lumi-supercomputer.eu/software/installing/container-wrapper/>_`.
+A solution using containers must be implemented based on containers, as described on `Lumi user-guide <https://docs.lumi-supercomputer.eu/software/installing/container-wrapper/>`_.
 The script `/config/machines/lumi/installation/lumi_install.sh` provides an installation of the correct environment.
 
 .. code-block:: bash
