@@ -6,27 +6,24 @@ import matplotlib.ticker as mticker
 from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 import cartopy.feature as cfeature
 
-from .tempest_utils import getTrajectories
+from tropical_cyclones import getTrajectories
 
 
-def multi_plot(tracks_nc_file, title=None, units=None):
-    """
-    Create a plot of multiple cyclone zoom-ins.
-
-    Args:
-        tracks_nc_file (xarray.Dataset): Dataset containing the selected variable.
-        title (str, optional): Title of the figure.
-        units (str, optional): Units of the selected variable.
-
-    Returns:
-        None
-    """
+def multi_plot(tracks_nc_file, tdict, title=None, units=None, save=False):
 
     delta=10 # further extension of the are domain for plotting
 
     # Create 10 subplots of a selected variable
     fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(16, 8), subplot_kw={'projection': ccrs.PlateCarree()})
     axs = axs.flatten()
+
+    # add main title and save figure accordingly
+    if title==None:
+        fig.suptitle(tracks_nc_file.name + f" - {tdict['dataset']['model']} - {tdict['dataset']['exp']}")
+        save_title = tracks_nc_file.name + f"_{tdict['dataset']['model']}_{tdict['dataset']['exp']}"
+    elif title:
+        fig.suptitle(title + f" - {tdict['dataset']['model']} - {tdict['dataset']['exp']}")
+        save_title = title + f"_{tdict['dataset']['model']}_{tdict['dataset']['exp']}"
 
     # Loop over subplots and plot different time slices in each one
     for i, ax in enumerate(axs):
@@ -44,30 +41,25 @@ def multi_plot(tracks_nc_file, title=None, units=None):
         tracks_nc_file.isel(time=i).plot.pcolormesh(ax=ax, transform=ccrs.PlateCarree(), add_colorbar=False)
         ax.set_extent([lon_min, lon_max, lat_min, lat_max], ccrs.PlateCarree())
         ax.coastlines()
-        if title==None:
-            ax.set_title(tracks_nc_file.name + " " + f'{str(tracks_nc_file.time[i].values)[:13]}')
-        elif title:
-            ax.set_title(title + " " + f'{str(tracks_nc_file.time[i].values)[:13]}')
-    # Add a colorbar
+        # add time step at each ax subplot
+        ax.set_title(f'{str(tracks_nc_file.time[i].values)[:13]}', fontsize=10)
+
+    # Add a main title and a colorbar
     if units==None and 'units' in tracks_nc_file.attrs:
         plt.colorbar(ax.collections[0], ax=axs, shrink=0.4, pad=0.1, location='bottom', label=tracks_nc_file.attrs['units'])
     elif units:
         plt.colorbar(ax.collections[0], ax=axs, shrink=0.4, pad=0.1, location='bottom', label=units)
     
+    os.makedirs(tdict['paths']['plotdir'], exist_ok=True)
+
+    if save:
+        save_path = os.path.join(tdict['paths']['plotdir'], save_title + ".pdf")
+        plt.savefig(save_path, dpi=350)
+
     plt.show()
+
     
-def plot_trajectories(trajfile, plotdir):
-    """
-    Plot the trajectories of the selected cyclone.
-
-    Args:
-        trajfile (str): Path to the trajectory file.
-        plotdir (str): Path to the directory where the plot will be saved.
-
-    Returns:
-        None
-    """
-
+def plot_trajectories(trajfile, tdict):
     # tempest settings
     nVars=10
     headerStr='start'
@@ -89,7 +81,8 @@ def plot_trajectories(trajfile, plotdir):
     ax.set_extent([-180, 180, -50, 50], crs=None)
 
     # Set title and subtitle
-    plt.title(f"TCs tracks")
+    plt.title(f"TCs tracks - {tdict['dataset']['model']} - {tdict['dataset']['exp']}")
+
 
     # Set land feature and change color to 'lightgrey'
     # See link for extensive list of colors:
@@ -109,11 +102,11 @@ def plot_trajectories(trajfile, plotdir):
     for i in range(nstorms):
         plt.scatter(x=xlon[i], y=xlat[i],
                     color="black",
-                    s=30,
+                    s=15,
                     linewidths=0.5,
                     marker=".",
                     alpha=0.8,
                     transform=ccrs.PlateCarree()) ## Important
-    os.makedirs(plotdir, exist_ok=True)
-    plt.savefig(plotdir + "tracks.png", bbox_inches='tight', dpi=350)
+    os.makedirs(tdict['paths']['plotdir'], exist_ok=True)
+    plt.savefig(tdict['paths']['plotdir'] + f"tracks_{tdict['dataset']['model']}_{tdict['dataset']['exp']}.pdf", bbox_inches='tight', dpi=350)
     plt.show()

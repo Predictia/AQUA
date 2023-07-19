@@ -1,6 +1,11 @@
 '''
 This module contains functions to evaluate teleconnection indices
 for different teleconnections.
+
+Functions:
+    station_based_index: evaluate station based index
+    regional_mean_index: evaluate regional mean index
+    regional_mean_anomalies: evaluate regional mean anomalies
 '''
 from aqua.logger import log_configure
 from teleconnections.tools import lon_180_to_360, wgt_area_mean
@@ -104,7 +109,7 @@ def regional_mean_index(field, namelist, telecname, months_window=3,
     latN = namelist[telecname]['latN']
     latS = namelist[telecname]['latS']
 
-    logger.info('Region: lon = %s-%s, lat = %s-%s', lonW, lonE, latS, latN)
+    logger.info('Region: lon = %s; %s, lat = %s; %s', lonW, lonE, latS, latN)
 
     # 2. -- Evaluate mean value of the field and then the rolling mean --
     field_mean = wgt_area_mean(field, latN, latS, lonW, lonE)
@@ -152,7 +157,7 @@ def regional_mean_anomalies(field, namelist, telecname, months_window=3,
     latN = namelist[telecname]['latN']
     latS = namelist[telecname]['latS']
 
-    logger.info('Region: lon = %s-%s, lat = %s-%s', lonW, lonE, latS, latN)
+    logger.debug('Region: lon = %s; %s, lat = %s; %s', lonW, lonE, latS, latN)
 
     # 2. -- Evaluate mean value of the field and then the rolling mean --
     field_mean = wgt_area_mean(field, latN, latS, lonW, lonE)
