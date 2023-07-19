@@ -49,12 +49,15 @@ Activate the newly created aqua environment:
 At this point, you should have successfully installed the AQUA package and its dependencies 
 in the newly created aqua environment.
 
-
 If you are not working on Levante, remember to change the machine name in the `config/config.yaml` file:
 
 .. code-block:: markdown
    
    machine: levante
+
+.. note ::
+   Since version v0.2, a `environment-common.yaml` is provided in the AQUA main directory in order to integrate all the requirements from the diagnostics. 
+   Installing with mamba/conda this environment instead of the AQUA default one allows for running all AQUA diagnostic without the need of chaning the enviornments.
 
 Installation on Lumi
 --------------------
