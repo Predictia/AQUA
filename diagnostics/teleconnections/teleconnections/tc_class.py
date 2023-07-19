@@ -33,8 +33,7 @@ class Teleconnection():
                  savefile=False, outputdir=None,
                  filename=None,
                  months_window: int = 3, loglevel: str = 'WARNING'):
-        """Initialize teleconnection object.
-
+        """
         Args:
             model (str):                    Model name.
             exp (str):                      Experiment name.
@@ -158,12 +157,16 @@ class Teleconnection():
         """Run teleconnection analysis.
 
         The analysis consists of:
+
         - Retrieving the data
+
         - Evaluating the teleconnection index
+
         - Evaluating the regression
+
         - Evaluating the correlation
 
-        This methods can be also run separately.
+        These methods can be also run separately.
         """
 
         self.logger.debug('Running teleconnection analysis for data: {}/{}/{}'
@@ -177,7 +180,11 @@ class Teleconnection():
         self.logger.info('Teleconnection analysis completed')
 
     def retrieve(self, var=None, **kwargs):
-        """Retrieve teleconnection data.
+        """Retrieve teleconnection data with the AQUA reader.
+        The data is saved as teleconnection attribute and can be accessed
+        with self.data.
+        If var is not None, the data is not saved as teleconnection attribute
+        and can be accessed with the returned value.
 
         Args:
             var (str, optional): Variable to be retrieved.
@@ -225,7 +232,9 @@ class Teleconnection():
             return data
 
     def evaluate_index(self, rebuild=False, **kwargs):
-        """Calculate teleconnection index.
+        """Evaluate teleconnection index.
+        The index is saved as teleconnection attribute and can be accessed
+        with self.index.
 
         Args:
             rebuild (bool, optional): If True, the index is recalculated.
@@ -275,7 +284,13 @@ class Teleconnection():
 
     def evaluate_regression(self, data=None, var=None, dim='time',
                             rebuild=False):
-        """Evaluate teleconnection regression
+        """Evaluate teleconnection regression.
+        If var is None, the regression is calculated between the teleconnection
+        index and the teleconnection variable. The regression is saved as
+        teleconnection attribute and can be accessed with self.regression.
+        If var is not None, the regression is calculated between the teleconnection
+        index and the specified variable. The regression is not saved as
+        teleconnection attribute and can be accessed with the returned value.
 
         Args:
             data (xarray.DataArray, optional): Data to be used for regression.
@@ -332,7 +347,13 @@ class Teleconnection():
 
     def evaluate_correlation(self, data=None, var=None, dim='time',
                              rebuild=False):
-        """Evaluate teleconnection correlation
+        """Evaluate teleconnection correlation.
+        If var is None, the correlation is calculated between the teleconnection
+        index and the teleconnection variable. The correlation is saved as
+        teleconnection attribute and can be accessed with self.correlation.
+        If var is not None, the correlation is calculated between the teleconnection
+        index and the specified variable. The correlation is not saved as
+        teleconnection attribute and can be accessed with the returned value.
 
         Args:
             data (xarray.DataArray, optional): Data to be used for correlation.
