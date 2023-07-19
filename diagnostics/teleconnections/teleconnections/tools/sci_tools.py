@@ -13,15 +13,20 @@ def area_selection(indat, lat=None, lon=None, box_brd=True):
         Extract a custom area from a DataArray.
 
         Args:
-            indat (DataArray):      input data to be selected
-            lat (list, opt):        latitude coordinates
-            lon (list, opt):        longitude coordinates
-            box_brd (bool,opt):     choose if coordinates are
-                                    comprised or not.
-                                    Default is True
+            indat (xarray.DataArray): input data to be selected
+            lat (list, opt):          latitude coordinates
+            lon (list, opt):          longitude coordinates
+            box_brd (bool,opt):       choose if coordinates are
+                                      comprised or not.
+                                      Default is True
 
         Returns:
-            odat (DataArray):       data on a custom surface
+            (xarray.DataArray):  data on a custom surface
+
+        Raises:
+            ValueError: if lat and lon are both None
+            ValueError: if lat or lon are not in ascending order
+            AttributeError: if lat or lon are not found in input data
     """
     # 1. -- Extract coordinates from indat --
     if lat is None and lon is None:
@@ -105,16 +110,16 @@ def wgt_area_mean(indat, latN: float, latS: float,
     Evaluate the weighted mean of a quantity on a custom surface.
 
     Args:
-        indat (DataArray):  input data to be averaged
-        latN (float):       North latitude
-        latS (float):       South latitude
-        lonW (float):       West longitude
-        lonE (float):       Est longitude
-        box_brd (bool,opt): choose if coordinates are comprised or not.
-                            Default is True
+        indat (xarray.DataArray): input data to be averaged
+        latN (float):             North latitude
+        latS (float):             South latitude
+        lonW (float):             West longitude
+        lonE (float):             Est longitude
+        box_brd (bool,opt):       choose if coordinates are comprised or not.
+                                  Default is True
 
     Returns:
-        odat (DataArray): average of input data on a custom surface
+        (xarray.DataArray): average of input data on a custom surface
     """
     # 1. -- Extract coordinates from indat --
     lat = indat.lat
