@@ -75,7 +75,7 @@ class DetectNodes():
                 lowres2d = lowres2d.rename({'10v': 'v10m'})
             # this is required to avoid conflict between z 3D and z 2D (orography)
             if 'z' in lowres2d.data_vars:
-                lowres2d = lowres2d.rename({'z': 'zs'})
+                lowres2d = lowres2d.rename({'z': 'orog'})
                 
             lowres3d = self.reader3d.regrid(
                 self.data3d.sel(time=timestep, plev=[30000, 50000]))
@@ -95,7 +95,7 @@ class DetectNodes():
 
         self.tempest_dictionary = {
             'lon': 'lon', 'lat': 'lat',
-            'psl': 'msl', 'zg': 'z', 'zs': 'zs',
+            'psl': 'msl', 'zg': 'z', 'orog': 'zs',
             'uas': 'u10m', 'vas': 'v10m'}
         self.tempest_filein = fileout
 
@@ -145,7 +145,7 @@ class DetectNodes():
 
         detect_string = f'DetectNodes --in_data {tempest_filein} --timefilter 6hr --out {tempest_fileout} --searchbymin {tempest_dictionary["psl"]} ' \
             f'--closedcontourcmd {tempest_dictionary["psl"]},200.0,5.5,0;_DIFF({tempest_dictionary["zg"]}(30000Pa),{tempest_dictionary["zg"]}(50000Pa)),-58.8,6.5,1.0 --mergedist 6.0 ' \
-            f'--outputcmd {tempest_dictionary["psl"]},min,0;_VECMAG({tempest_dictionary["uas"]},{tempest_dictionary["vas"]}),max,2;{tempest_dictionary["zs"]},min,0" --latname {tempest_dictionary["lat"]} --lonname {tempest_dictionary["lon"]}'
+            f'--outputcmd {tempest_dictionary["psl"]},min,0;_VECMAG({tempest_dictionary["uas"]},{tempest_dictionary["vas"]}),max,2;{tempest_dictionary["orog"]},min,0" --latname {tempest_dictionary["lat"]} --lonname {tempest_dictionary["lon"]}'
 
         subprocess.run(detect_string.split(),
                        stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
