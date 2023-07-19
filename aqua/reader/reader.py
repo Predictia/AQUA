@@ -489,7 +489,7 @@ class Reader(FixerMixin, RegridMixin):
                 # option1: shape different
                 if len(self.grid_area[coord]) != len(xcoord):
                     raise ValueError(f'{coord} has different shape between area files and your dataset.'
-                                     'If using the LRA, try setting the regrid=r100 option') from err
+                                    'If using the LRA, try setting the regrid=r100 option') from err
                 # shape are ok, but coords are different
                 if not self.grid_area[coord].equals(xcoord):
                     # if they are fine when sorted, there is a sorting mismatch
