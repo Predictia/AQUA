@@ -482,7 +482,7 @@ class Reader(FixerMixin, RegridMixin):
                 #HACK to solve minor issue in xarray
                 # check https://github.com/oloapinivad/AQUA/pull/397 for further info
                 if len(xcoord.coords)>1:
-                    self.logger.info('Issue found in %s, removing spurious coordinates', coord)
+                    self.logger.warning('Issue found in %s, removing spurious coordinates', coord)
                     drop_coords = [koord for koord in xcoord.coords if koord != coord]
                     xcoord = xcoord.drop_vars(drop_coords)
 
