@@ -36,6 +36,7 @@ It can be customized to add new teleconnections or to change the default paramet
 An environment file is available as `env-teleconnections.yaml` in the main diagnostic folder.
 A `pyproject.toml` file is also available to install the diagnostic as a package.
 Please refer to the README file in the main diagnostic folder for more details.
+Notice as well that a common environment for all the diagnostics is available in the main `AQUA` folder.
 
 Data with timeseries of teleconnection indices are available in the `data` folder as txt files.
 
@@ -44,7 +45,7 @@ They are organized in the following way:
 
 - `NAO.ipynb` contains an example of the usage of the diagnostic for the NAO index with ERA5 reanalysis.
 - `ENSO.ipynb` contains an example of the usage of the diagnostic for the ENSO index with ERA5 reanalysis.
-- A subfolder `image_generation` contains notebooks used to generate images for the nextGEMS cycle3 analysis.
+- `NAO_cycle3.ipynb` contains notebook used to generate images for the nextGEMS cycle3 analysis.
 
 A command line interface is available in the `cli` folder.
 Two scripts are available:
@@ -59,6 +60,7 @@ Input variables
 ---------------
 
 The diagnostic requires the following input variables:
+
 - `msl`: mean sea level pressure
 - `sst`: sea surface temperature
 
@@ -72,6 +74,7 @@ Output
 ------
 
 The diagnostic produces the following output:
+
 - `NAO`: North Atlantic Oscillation index, regression and correlation maps.
 - `ENSO`: El Niño Southern Oscillation index, regression and correlation maps.
 
@@ -88,7 +91,8 @@ Example plot
 Available demo notebooks
 ------------------------
 
-To be updated with links to the correct repository path.
+- `NAO: notebook available <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/teleconnections/notebooks/NAO.ipynb>`_
+- `ENSO: notebook available <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/teleconnections/notebooks/ENSO.ipynb>`_
 
 Detailed API
 ------------
