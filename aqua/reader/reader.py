@@ -477,14 +477,23 @@ class Reader(FixerMixin, RegridMixin):
         except ValueError as err:
             # check in the dimensions what is wrong
             for coord in self.grid_area.coords:
+
+                xcoord = data.coords[coord]
+                #HACK to solve minor issue in xarray
+                # check https://github.com/oloapinivad/AQUA/pull/397 for further info
+                if len(xcoord.coords)>1:
+                    self.logger.info('Issue found in %s, removing spurious coordinates', coord)
+                    drop_coords = [koord for koord in xcoord.coords if koord != coord]
+                    xcoord = xcoord.drop_vars(drop_coords)
+
                 # option1: shape different
-                if len(self.grid_area[coord]) != len(data.coords[coord]):
+                if len(self.grid_area[coord]) != len(xcoord):
                     raise ValueError(f'{coord} has different shape between area files and your dataset.'
                                      'If using the LRA, try setting the regrid=r100 option') from err
                 # shape are ok, but coords are different
-                if not self.grid_area[coord].equals(data.coords[coord]):
+                if not self.grid_area[coord].equals(xcoord):
                     # if they are fine when sorted, there is a sorting mismatch
-                    if self.grid_area[coord].sortby(coord).equals(data.coords[coord].sortby(coord)):
+                    if self.grid_area[coord].sortby(coord).equals(xcoord.sortby(coord)):
                         self.logger.warning('%s is sorted in different way between area files and your dataset. Flipping it!', coord)
                         self.grid_area = self.grid_area.reindex({coord: list(reversed(self.grid_area[coord]))})
                         #raise ValueError(f'{coord} is sorted in different way between area files and your dataset.') from err
