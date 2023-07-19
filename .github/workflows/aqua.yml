@@ -34,7 +34,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10"]
+        python-version: ["3.11"]
+    defaults:
+      run:
+        # NOTE: We must take care with the shell value here. We have steps
+        #       with mutiline YAML strings. These get converted into shell
+        #       scripts. If execute as ``bash -l fail_first_command.sh``
+        #       then it would fail the first command but run the second
+        #       command. The default value in GitHub is ``--noprofile --norc -eo pipefail``.
+        #       https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsshell
+        #       We removed the noprofile and norc so we have pytest set by Conda in our PATH.
+        shell: bash -eo pipefail {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -66,7 +76,6 @@ jobs:
           cache-environment: true
           condarc: |
             channels:
-              - numba
               - conda-forge
           create-args: >-
               python=${{ matrix.python-version }}
