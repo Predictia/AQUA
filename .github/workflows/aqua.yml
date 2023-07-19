@@ -79,7 +79,7 @@ jobs:
           
           # FDB for GSV
           rm -rf /app/
-          cp -r ./fdb/ /app/
+          cp -r ./AQUA_tests/fdb/ /app/
           mkdir -pv /app/localroot/
           cd /app/
           fdb-write sample_test_data.grib
