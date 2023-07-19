@@ -624,7 +624,7 @@ def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_cli
     print(f"Plot has been saved to {outputfig}.")
 
 
-def plot_mean_bias(TOA_model, var, model_label, TOA_ceres_clim, start_year, end_year, ceres_start_year=None, ceres_end_year=None):
+def plot_mean_bias(TOA_model, var, model_label, TOA_ceres_clim, start_year, end_year):
     """
     Plot the mean bias of the data over the specified time range.
 
@@ -646,13 +646,10 @@ def plot_mean_bias(TOA_model, var, model_label, TOA_ceres_clim, start_year, end_
     """
     plotlevels = np.arange(-50, 51, 10)
 
-    # Subset the CERES climatology data based on the specified time range
-    if ceres_start_year and ceres_end_year:
-        TOA_ceres_clim = TOA_ceres_clim.sel(time=slice(ceres_start_year, ceres_end_year))
-
     # Calculate the mean bias over the specified time range
     mean_bias = (TOA_model[var].sel(time=slice(start_year, end_year)).mean(dim='time') - TOA_ceres_clim[var]).mean(dim='time')
-
+    # Convert masked values to NaN
+    mean_bias = mean_bias.where(~mean_bias.isnull(), np.nan)
     # Create the plot
     fig = plt.figure(figsize=(10, 6))
     gs = gridspec.GridSpec(2, 1, height_ratios=[10, 1], hspace=0.1)
@@ -660,7 +657,7 @@ def plot_mean_bias(TOA_model, var, model_label, TOA_ceres_clim, start_year, end_
     contour_plot = mean_bias.plot.contourf(ax=ax, transform=ccrs.PlateCarree(), cmap='RdBu_r', levels=20)
     ax.coastlines(color='black', linewidth=0.5)
     ax.gridlines(linewidth=0.5)
-    ax.set_title(f'{var.upper()} Bias of the {model_label} climatology ({start_year} to {end_year})\n relative to the CERES climatology ({ceres_start_year} to {ceres_end_year})', fontsize=14)
+    ax.set_title(f'{var.upper()} Bias of the {model_label} climatology ({start_year} to {end_year})\n relative to the CERES climatology (2001-2021)', fontsize=14)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
     ax.set_xticks(np.arange(-180, 181, 30), crs=ccrs.PlateCarree())
@@ -673,11 +670,11 @@ def plot_mean_bias(TOA_model, var, model_label, TOA_ceres_clim, start_year, end_
     #cbar = plt.colorbar(contour_plot, cax=cbar_ax, orientation='horizontal')
     #cbar.set_label('Bias (W/m²)')
 
-    filename = f"{outputfig}{var}_{model_label}_TOA_mean_biases_{start_year}_{end_year}_CERES_{ceres_start_year}_{ceres_end_year}.pdf"
+    filename = f"{outputfig}{var}_{model_label}_TOA_mean_biases_{start_year}_{end_year}_CERES.pdf"
     plt.savefig(filename, dpi=300, format='pdf')
     plt.show()
     #Save the data to a netCDF file
-    filename = f"{outputdir}{var}_{model_label}_TOA_mean_biases_{start_year}_{end_year}_CERES_{ceres_start_year}_{ceres_end_year}.nc"
+    filename = f"{outputdir}{var}_{model_label}_TOA_mean_biases_{start_year}_{end_year}_CERES.nc"
     mean_bias.to_netcdf(filename)
 
     print(f"Data has been saved to {outputdir}.")
