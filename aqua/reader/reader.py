@@ -16,6 +16,7 @@ import smmregrid as rg
 
 from aqua.util import load_yaml, load_multi_yaml
 from aqua.util import get_reader_filenames, get_config_dir, get_machine
+from aqua.util import area_selection
 from aqua.logger import log_configure, log_history, log_history_iter
 import aqua.gsv
 
@@ -452,17 +453,19 @@ class Reader(FixerMixin, RegridMixin):
 
         return att.get("regridded", False)
 
-    def fldmean(self, data, **kwargs):
+    def fldmean(self, data, lon_limits=None, lat_limits=None, **kwargs):
         """
         Perform a weighted global average.
         If a subset of the data is provided, the average is performed only on the subset.
 
         Arguments:
             data (xr.DataArray or xarray.DataDataset):  the input data
+            lon_limits (list, optional):  the longitude limits of the subset
+            lat_limits (list, optional):  the latitude limits of the subset
 
         Kwargs:
-            - lon (tuple): longitude limits
-            - lat (tuple): latitude limits
+            - box_brd (bool,opt): choose if coordinates are comprised or not in area selection.
+                                  Default is True
 
         Returns:
             the value of the averaged field
@@ -476,37 +479,9 @@ class Reader(FixerMixin, RegridMixin):
             space_coord = self.src_space_coord
             grid_area = self.src_grid_area
 
-        lon_limits = kwargs.get('lon', None)
-        lat_limits = kwargs.get('lat', None)
-
-        if lon_limits or lat_limits:
-            self.logger.info("Computing fldmean on a subset of the data")
-
-        if lon_limits:
-            lon_min, lon_max = lon_limits
-            if lon_min > lon_max:
-                raise ValueError("Longitude limits are not consistent!")
-        else:
-            self.logger.info("No longitude limits provided, using the whole range")
-
-        if lat_limits:
-            lat_min, lat_max = lat_limits
-            if lat_min > lat_max:
-                raise ValueError("Latitude limits are not consistent!")
-        else:
-            self.logger.info("No latitude limits provided, using the whole range")
-
-        if lat_limits:
-            try:
-                data = data.where((data.lat >= lat_min) & (data.lat <= lat_max))
-            except ValueError:
-                raise ValueError("lat is not a coordinate of the data, try to regrid it first")
-
-        if lon_limits:
-            try:
-                data = data.where((data.lon >= lon_min) & (data.lon <= lon_max))
-            except ValueError:
-                raise ValueError("lon is not a coordinate of the data, try to regrid it first")
+        if lon_limits is not None or lat_limits is not None:
+            data = area_selection(data, lon=lon_limits, lat=lat_limits,
+                                  **kwargs)
 
         # check if coordinates are aligned
         try:
