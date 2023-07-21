@@ -82,7 +82,7 @@ class Tropical_Rainfall:
         self.loglevel = loglevel
         self.logger = log_configure(self.loglevel, 'Trop. Rainfall')
 
-    def class_attributes_update(self,               trop_lat=None,        s_time=None,          f_time=None,
+    def class_attributes_update(self,             trop_lat=None,        s_time=None,          f_time=None,
                                 s_year=None,      f_year=None,          s_month=None,         f_month=None,
                                 num_of_bins=None, first_edge=None,      width_of_bin=None,    bins=0):
         """ Function to update the class attributes.
@@ -185,13 +185,11 @@ class Tropical_Rainfall:
         Returns:
             xarray: The Dataset with converted units.
         """
-        if 'Dataset' in str(type(data)):
+        try:
             data = data[model_variable]
-        # else:
-        #     data = data
-
-        # isinstance(data, xarray.core.dataarray.DataArray):
-        if 'DataArray' in str(type(data)):
+        except (TypeError, KeyError):
+            pass 
+        if 'xarray' in str(type(data)):
             if data.units == new_unit:
                 return data
 
@@ -355,7 +353,6 @@ class Tropical_Rainfall:
         try:
             data = data[model_variable]
         except KeyError:
-            # data = data
             pass
 
         try:
@@ -366,17 +363,16 @@ class Tropical_Rainfall:
             data_1d = data_1d.sortby(data_1d)
         return data_1d
 
-    def preprocessing(self, data,               trop_lat=None,
-                      preprocess=True,      model_variable="tprate",
+    def preprocessing(self, data,          trop_lat=None,
+                      preprocess=True,     model_variable="tprate",
                       s_time=None,         f_time=None,
                       s_year=None,         f_year=None,
-                      s_month=None,         f_month=None,
-                      sort=False,           dask_array=False):
+                      s_month=None,        f_month=None,    dask_array=False):
         """ Function to preprocess the Dataset according to provided arguments and attributes of the class.
 
         Args:
             data (xarray):                  The Dataset.
-            preprocess (bool, optional):    If sort is True, the functiom preprocess Dataset.   Defaults to True.
+            preprocess (bool, optional):    If True, the functiom preprocess Dataset.   Defaults to True.
             model_variable (str, optional): The variable of the Dataset.                        Defaults to 'tprate'.
             trop_lat (float, optional):     The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
             s_time (str/int, optional):     The starting time value/index in Dataset.           Defaults to None.
@@ -385,8 +381,7 @@ class Tropical_Rainfall:
             f_year (int, optional):         The final year in Dataset.                          Defaults to None.
             s_month (int, optional):        The starting month in Dataset.                      Defaults to None.
             f_month (int, optional):        The final month in Dataset.                         Defaults to None.
-            sort (bool, optional):          If sort is True, the DataArray is sorted.           Defaults to False.
-            dask_array (bool, optional):    If sort is True, the function return daskarray.     Defaults to False.
+            dask_array (bool, optional):    If True, the function return daskarray.     Defaults to False.
 
         Returns:
             xarray: Preprocessed Dataset according to the arguments of the function
@@ -398,9 +393,9 @@ class Tropical_Rainfall:
         if preprocess:
             if 'time' in data.coords:
                 data_per_time_band = self.time_band(data,
-                                                    s_time=self.s_time,          f_time=self.f_time,
-                                                    s_year=self.s_year,          f_year=self.f_year,
-                                                    s_month=self.s_month,         f_month=self.f_month)
+                                                    s_time=self.s_time,        f_time=self.f_time,
+                                                    s_year=self.s_year,        f_year=self.f_year,
+                                                    s_month=self.s_month,      f_month=self.f_month)
             else:
                 data_per_time_band = data
 
@@ -421,12 +416,13 @@ class Tropical_Rainfall:
         else:
             return data
 
-    def histogram_lowres(self,              data,                   data_with_global_atributes=None,
-                         weights=None,       preprocess=True,      trop_lat=None,              model_variable='tprate',
-                         s_time=None,        f_time=None,          s_year=None,              f_year=None,      s_month=None,     f_month=None,
-                         num_of_bins=None,   first_edge=None,      width_of_bin=None,       bins=0,
-                         lazy=False,         create_xarray=True,   path_to_histogram=None,   name_of_file=None,
-                         positive=True,        threshold=2,         new_unit=None):
+    def histogram_lowres(self,               data,                data_with_global_atributes=None,
+                         weights=None,       preprocess=True,     trop_lat=None,           model_variable='tprate',
+                         s_time=None,        f_time=None,         s_year=None,             
+                         f_year=None,        s_month=None,        f_month=None,
+                         num_of_bins=None,   first_edge=None,     width_of_bin=None,       bins=0,
+                         lazy=False,         create_xarray=True,  path_to_histogram=None,  name_of_file=None,
+                         positive=True,      threshold=2,         new_unit=None):
         """ Function to calculate a histogram of the low-resolution Dataset.
 
         Args:
@@ -456,8 +452,9 @@ class Tropical_Rainfall:
         self.class_attributes_update(trop_lat=trop_lat,
                                      s_time=s_time,           f_time=f_time,
                                      s_year=s_year,           f_year=f_year,
-                                     s_month=s_month,          f_month=f_month,
-                                     first_edge=first_edge,    num_of_bins=num_of_bins,      width_of_bin=width_of_bin)
+                                     s_month=s_month,         f_month=f_month,
+                                     first_edge=first_edge,   num_of_bins=num_of_bins,      
+                                     width_of_bin=width_of_bin)
 
         coord_lat, coord_lon = self.coordinate_names(data)
 
@@ -478,10 +475,10 @@ class Tropical_Rainfall:
         if preprocess:
             data = self.preprocessing(data, preprocess=preprocess,
                                       model_variable=model_variable,     trop_lat=self.trop_lat,
-                                      s_time=self.s_time,                 f_time=self.f_time,
-                                      s_year=self.s_year,                 f_year=self.f_year,
-                                      s_month=self.s_month,                f_month=self.f_month,
-                                      sort=False,                          dask_array=False)
+                                      s_time=self.s_time,                f_time=self.f_time,
+                                      s_year=self.s_year,                f_year=self.f_year,
+                                      s_month=self.s_month,              f_month=self.f_month,   
+                                      dask_array=False)
         size_of_the_data = data_size(data)    
         data_with_final_grid = data
 
@@ -566,12 +563,12 @@ class Tropical_Rainfall:
                     tprate_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file)
             return counts_per_bin
 
-    def histogram(self,                   data,                 data_with_global_atributes=None,
-                  weights=None,           preprocess=True,      trop_lat=None,              model_variable='tprate',
-                  s_time=None,            f_time=None,          s_year=None,
-                  f_year=None,            s_month=None,         f_month=None,
-                  num_of_bins=None,       first_edge=None,      width_of_bin=None,       bins=0,
-                  path_to_histogram=None,   name_of_file=None,  positive=True, new_unit=None, threshold=2):
+    def histogram(self,                   data,               data_with_global_atributes=None,
+                  weights=None,           preprocess=True,    trop_lat=None,              model_variable='tprate',
+                  s_time=None,            f_time=None,        s_year=None,
+                  f_year=None,            s_month=None,       f_month=None,
+                  num_of_bins=None,       first_edge=None,    width_of_bin=None,       bins=0,
+                  path_to_histogram=None, name_of_file=None,  positive=True, new_unit=None, threshold=2):
         """ Function to calculate a histogram of the high-resolution Dataset.
 
         Args:
@@ -599,16 +596,17 @@ class Tropical_Rainfall:
         self.class_attributes_update(trop_lat=trop_lat,
                                      s_time=s_time,           f_time=f_time,
                                      s_year=s_year,           f_year=f_year,
-                                     s_month=s_month,          f_month=f_month,
-                                     first_edge=first_edge,    num_of_bins=num_of_bins,      width_of_bin=width_of_bin)
+                                     s_month=s_month,         f_month=f_month,
+                                     first_edge=first_edge,   num_of_bins=num_of_bins,      
+                                     width_of_bin=width_of_bin)
         data_original = data
         if preprocess:
             data = self.preprocessing(data, preprocess=preprocess,
                                       model_variable=model_variable,     trop_lat=self.trop_lat,
-                                      s_time=self.s_time,                 f_time=self.f_time,
-                                      s_year=self.s_year,                 f_year=self.f_year,
-                                      s_month=self.s_month,                f_month=self.f_month,
-                                      sort=False,                          dask_array=False)
+                                      s_time=self.s_time,                f_time=self.f_time,
+                                      s_year=self.s_year,                f_year=self.f_year,
+                                      s_month=self.s_month,              f_month=self.f_month,    
+                                      dask_array=False)
         size_of_the_data = data_size(data)
         data_with_final_grid = data
         if isinstance(self.bins, int):
@@ -697,7 +695,7 @@ class Tropical_Rainfall:
             create_folder(folder=str(path_to_netcdf), loglevel='WARNING')
             if name_of_file is None:
                 name_of_file = '_'
-            time_band = dataset.counts.attrs['time_band']
+            time_band = dataset.attrs['time_band']
             try:
                 name_of_file = name_of_file + '_' + re.split(":", re.split(", ", time_band)[0])[
                     0] + '_' + re.split(":", re.split(", ", time_band)[1])[0]
@@ -761,6 +759,9 @@ class Tropical_Rainfall:
             except KeyError:
                 pass
                 self.logger.debug("The obtained xarray.Dataset doesn't have global attributes. Consider adding global attributes manually to the dataset.")
+            tprate_dataset.attrs['time_band'] = time_band
+            tprate_dataset.attrs['lat_band'] = lat_band
+            tprate_dataset.attrs['lon_band'] = lon_band
         else:
             tprate_dataset[variable].attrs['time_band'] = time_band
             tprate_dataset[variable].attrs['lat_band'] = lat_band
@@ -790,7 +791,7 @@ class Tropical_Rainfall:
                 dataset=tprate_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file)
         return tprate_dataset
 
-    def open_dataset(self, path_to_netcdf=None, name_of_file=None):
+    def open_dataset(self, path_to_netcdf=None):
         """ Function to load a histogram dataset from a file using pickle.
 
         Args:
@@ -945,7 +946,6 @@ class Tropical_Rainfall:
             self.logger.debug('Sum of Frequency: {}'
                           .format(abs(sum_of_frequency)))
             raise AssertionError("Test failed.")
-        #return frequency_per_bin
 
     def convert_counts_to_pdf(self, data):
         """ Function to convert the counts to the pdf.
@@ -1053,12 +1053,10 @@ class Tropical_Rainfall:
         """
         if fig is not None:
             fig, ax = fig
-            # if color == 'tab:blue': color   = 'tab:orange'
         elif add is None and fig is None:
             fig, ax = plt.subplots(figsize=(8*figsize, 5*figsize))
         elif add is not None:
             fig, ax = add
-            # if color == 'tab:blue': color   = 'tab:orange'
 
         if not pdf and not frequency:
             if 'Dataset' in str(type(data)):
@@ -1146,11 +1144,11 @@ class Tropical_Rainfall:
                 plt.savefig(path_to_pdf,  bbox_inches="tight")
         return {fig, ax}
 
-    def mean_along_coordinate(self, data,           model_variable='tprate',      preprocess=True,
-                              trop_lat=None,      coord='time',               glob=False,
+    def mean_along_coordinate(self, data,       model_variable='tprate',      preprocess=True,
+                              trop_lat=None,    coord='time',                 glob=False,
                               s_time=None,      f_time=None,
                               s_year=None,      f_year=None,
-                              s_month=None,      f_month=None):
+                              s_month=None,     f_month=None):
         """ Function to calculate the mean value of variable in Dataset.
 
         Args:
@@ -1171,19 +1169,19 @@ class Tropical_Rainfall:
             xarray:         The mean value of variable.
         """
         if preprocess:
-            data = self.preprocessing(data,                                  preprocess=preprocess,
+            data = self.preprocessing(data,                              preprocess=preprocess,
                                       model_variable=model_variable,     trop_lat=self.trop_lat,
-                                      s_time=self.s_time,                 f_time=self.f_time,
-                                      s_year=self.s_year,                 f_year=self.f_year,
-                                      s_month=self.s_month,                f_month=self.f_month,
-                                      sort=False,                          dask_array=False)
+                                      s_time=self.s_time,                f_time=self.f_time,
+                                      s_year=self.s_year,                f_year=self.f_year,
+                                      s_month=self.s_month,              f_month=self.f_month,    
+                                      dask_array=False)
         coord_lat, coord_lon = self.coordinate_names(data)
         if coord in data.dims:
 
             self.class_attributes_update(trop_lat=trop_lat,
                                          s_time=s_time,          f_time=f_time,
                                          s_year=s_year,          f_year=f_year,
-                                         s_month=s_month,         f_month=f_month)
+                                         s_month=s_month,        f_month=f_month)
             if glob:
                 return data.mean()
             else:
@@ -1198,10 +1196,10 @@ class Tropical_Rainfall:
                 coord = i
             return data.median(coord)
 
-    def median_along_coordinate(self, data,                 trop_lat=None,        preprocess=True,
+    def median_along_coordinate(self, data,               trop_lat=None,     preprocess=True,
                                 model_variable='tprate',  coord='time',      glob=False,
-                                s_time=None,             f_time=None,
-                                s_year=None,             f_year=None,
+                                s_time=None,              f_time=None,
+                                s_year=None,              f_year=None,
                                 s_month=None,             f_month=None):
         """ Function to calculate the median value of variable in Dataset.
 
@@ -1223,19 +1221,19 @@ class Tropical_Rainfall:
             xarray:         The median value of variable.
         """
         if preprocess:
-            data = self.preprocessing(data,                                  preprocess=preprocess,
+            data = self.preprocessing(data,                              preprocess=preprocess,
                                       model_variable=model_variable,     trop_lat=self.trop_lat,
-                                      s_time=self.s_time,                 f_time=self.f_time,
-                                      s_year=self.s_year,                 f_year=self.f_year,
-                                      s_month=self.s_month,                f_month=self.f_month,
-                                      sort=False,                          dask_array=False)
+                                      s_time=self.s_time,                f_time=self.f_time,
+                                      s_year=self.s_year,                f_year=self.f_year,
+                                      s_month=self.s_month,              f_month=self.f_month,    
+                                      dask_array=False)
 
         coord_lat, coord_lon = self.coordinate_names(data)
         if coord in data.dims:
             self.class_attributes_update(trop_lat=trop_lat,
                                          s_time=s_time,         f_time=f_time,
                                          s_year=s_year,         f_year=f_year,
-                                         s_month=s_month,        f_month=f_month)
+                                         s_month=s_month,       f_month=f_month)
 
             if glob:
                 return data.median(coord_lat).median(coord_lon).mean('time')
@@ -1251,18 +1249,14 @@ class Tropical_Rainfall:
             for i in data.dims:
                 coord = i
             return data.median(coord)
-
-    def mean_and_median_plot(self, data,                        glob=False,                     preprocess=True,
-                             model_variable='tprate',         variability=False,            coord='lat',
-                             trop_lat=None,             get_mean=True,             get_median=False,
-                             s_time=None,             f_time=None,             s_year=None,
-                             f_year=None,             s_month=None,             f_month=None,
-                             legend='_Hidden',        figsize=1,                ls='-',
-                             maxticknum=12,               color='tab:blue',       varname='Precipitation',
-                             ylogscale=False,            xlogscale=False,            loc='upper right',
-                             add=None,             fig=None,             plot_title=None,
-                             path_to_pdf=None,                new_unit=None,             name_of_file=None,
-                             seasons=True,                    pdf_format=True):
+        
+    def average_into_netcdf(self, data,         glob=False,            preprocess=True,
+                             model_variable='tprate',   coord='lat',
+                             trop_lat=None,             get_mean=True,         get_median=False,
+                             s_time=None,               f_time=None,           s_year=None,
+                             f_year=None,               s_month=None,          f_month=None,
+                             new_unit=None,             name_of_file=None,
+                             seasons=True,              path_to_netcdf=None):
         """ Function to plot the mean or median value of variable in Dataset.
 
         Args:
@@ -1270,7 +1264,101 @@ class Tropical_Rainfall:
             model_variable (str, optional): The variable of the Dataset.            Defaults to 'tprate'.
             coord (str, optional):          The coordinate of the Dataset.          Defaults to 'time'.
             trop_lat (float, optional):     The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
-            variability (bool, optional):   The flag to calculate the variability of the variable.  Defaults to False.
+            get_mean (bool, optional):      The flag to calculate the mean of the variable.  Defaults to True.
+            get_median (bool, optional):    The flag to calculate the median of the variable.  Defaults to False.
+            s_time (str, optional):         The starting time of the Dataset.       Defaults to None.
+            f_time (str, optional):         The ending time of the Dataset.         Defaults to None.
+            s_year (str, optional):         The starting year of the Dataset.       Defaults to None.
+            f_year (str, optional):         The ending year of the Dataset.         Defaults to None.
+            s_month (str, optional):        The starting month of the Dataset.      Defaults to None.
+            f_month (str, optional):        The ending month of the Dataset.        Defaults to None.
+            varname (str, optional):        The name of the variable.               Defaults to 'Precipitation'.
+            new_unit (str, optional):       The unit of the model variable.         Defaults to None.
+            name_of_file (str, optional):   The name of the file.                   Defaults to None.
+            seasons (bool, optional):       The flag to calculate the seasonal mean.  Defaults to True.
+        Example:
+
+        Returns:
+            None.
+        """
+        self.class_attributes_update(trop_lat=trop_lat,
+                                     s_time=s_time,         f_time=f_time,
+                                     s_year=s_year,         f_year=f_year,
+                                     s_month=s_month,       f_month=f_month)
+
+        if preprocess:
+            data_with_final_grid = self.preprocessing(data,                              preprocess=preprocess,
+                                                      model_variable=model_variable,     trop_lat=self.trop_lat,
+                                                      s_time=self.s_time,                f_time=self.f_time,
+                                                      s_year=self.s_year,                f_year=self.f_year,
+                                                      s_month=self.s_month,              f_month=self.f_month,  
+                                                      dask_array=False)
+
+        if get_mean:
+            if seasons:
+                data_average = self.seasonal_or_monthly_mean(data,                        preprocess=preprocess,          
+                                                             seasons=seasons,             model_variable=model_variable,      
+                                                             trop_lat=trop_lat,           new_unit=new_unit,
+                                                             coord=coord)
+                
+                seasonal_average = data_average[0].to_dataset(name="DJF")
+                seasonal_average["MAM"] = data_average[1]
+                seasonal_average["JJA"] = data_average[2]
+                seasonal_average["SON"] = data_average[3]
+                seasonal_average["Yearly"] = data_average[4]
+                self.logger.debug("Seasonal mean calculated.")
+            else:
+                data_average = self.mean_along_coordinate(data,                           preprocess=preprocess,
+                                                          glob=glob,                      model_variable=model_variable,
+                                                          trop_lat=trop_lat,              coord=coord,
+                                                          s_time=self.s_time,             f_time=self.f_time,
+                                                          s_year=self.s_year,             f_year=self.f_year,
+                                                          s_month=self.s_month,           f_month=self.f_month)
+                self.logger.debug("Mean calculated.")
+        if get_median:
+            data_average = self.median_along_coordinate(data,                           preprocess=preprocess,
+                                                        glob=glob,                      model_variable=model_variable,
+                                                        trop_lat=trop_lat,              coord=coord,
+                                                        s_time=self.s_time,             f_time=self.f_time,
+                                                        s_year=self.s_year,             f_year=self.f_year,
+                                                        s_month=self.s_month,           f_month=self.f_month)
+            self.logger.debug("Median calculated.")
+        
+        if seasons:
+            seasonal_average.attrs = data_with_final_grid.attrs
+            seasonal_average = self.grid_attributes(data=data_with_final_grid, tprate_dataset=seasonal_average) 
+            for variable in ('DJF', 'MAM', 'JJA', 'SON', 'Yearly'):
+                seasonal_average[variable].attrs = data_with_final_grid.attrs
+                seasonal_average = self.grid_attributes(data=data_with_final_grid, tprate_dataset=seasonal_average, variable = variable) 
+            average_dataset = seasonal_average
+        else:
+            data_average.attrs = data_with_final_grid.attrs
+            data_average = self.grid_attributes(data=data_with_final_grid,      tprate_dataset=data_average) 
+            average_dataset = data_average
+
+        if path_to_netcdf is not None and name_of_file is not None:
+            self.dataset_to_netcdf(
+                average_dataset, path_to_netcdf=path_to_netcdf, name_of_file=name_of_file+'_'+str(coord))
+            self.logger.debug("Dataset or DataArray is saved into storage.")
+        else:
+            return average_dataset
+
+    def plot_of_average(self,           
+                             ymax=12,
+                             trop_lat=None,             get_mean=True,         get_median=False,
+                             legend='_Hidden',          figsize=1,             ls='-',
+                             maxticknum=12,             color='tab:blue',      varname='tprate',
+                             ylogscale=False,           xlogscale=False,       loc='upper right',
+                             add=None,                  fig=None,              plot_title=None,
+                             path_to_pdf=None,          new_unit='mm/day',     name_of_file=None,
+                             pdf_format=True,       path_to_netcdf=None):
+        """ Function to plot the mean or median value of variable in Dataset.
+
+        Args:
+            data (xarray):                  The Dataset
+            model_variable (str, optional): The variable of the Dataset.            Defaults to 'tprate'.
+            coord (str, optional):          The coordinate of the Dataset.          Defaults to 'time'.
+            trop_lat (float, optional):     The maximumal and minimal tropical latitude values in Dataset.  Defaults to None.
             get_mean (bool, optional):      The flag to calculate the mean of the variable.  Defaults to True.
             get_median (bool, optional):    The flag to calculate the median of the variable.  Defaults to False.
             s_time (str, optional):         The starting time of the Dataset.       Defaults to None.
@@ -1299,99 +1387,40 @@ class Tropical_Rainfall:
         Returns:
             None.
         """
+        self.class_attributes_update(trop_lat=trop_lat)
+        if path_to_netcdf is None:
+            raise Exception('The path needs to be provided')
+        else:
+            data = self.open_dataset(
+                                path_to_netcdf=path_to_netcdf)
 
-        self.class_attributes_update(trop_lat=trop_lat,
-                                     s_time=s_time,         f_time=f_time,
-                                     s_year=s_year,         f_year=f_year,
-                                     s_month=s_month,        f_month=f_month)
-
-        if preprocess:
-            data_with_final_grid = self.preprocessing(data,                                    preprocess=preprocess,
-                                                      model_variable=model_variable,     trop_lat=self.trop_lat,
-                                                      s_time=self.s_time,                 f_time=self.f_time,
-                                                      s_year=self.s_year,                 f_year=self.f_year,
-                                                      s_month=self.s_month,                f_month=self.f_month,
-                                                      sort=False,                          dask_array=False)
-
-        if get_mean:
-            if seasons:
-                data_average = self.seasonal_or_monthly_mean(data,                               preprocess=preprocess,                  seasons=seasons,
-                                                             model_variable=model_variable,         trop_lat=trop_lat,              new_unit=new_unit,
-                                                             coord=coord)
-            else:
-                data_average = self.mean_along_coordinate(data,                                     preprocess=preprocess,
-                                                          glob=glob,                      model_variable=model_variable,
-                                                          trop_lat=trop_lat,                  coord=coord,
-                                                          s_time=self.s_time,                  f_time=self.f_time,
-                                                          s_year=self.s_year,                  f_year=self.f_year,
-                                                          s_month=self.s_month,                 f_month=self.f_month)
-        if get_median:
-            data_average = self.median_along_coordinate(data,                                   preprocess=preprocess,
-                                                        glob=glob,                      model_variable=model_variable,
-                                                        trop_lat=trop_lat,                  coord=coord,
-                                                        s_time=self.s_time,                 f_time=self.f_time,
-                                                        s_year=self.s_year,                 f_year=self.f_year,
-                                                        s_month=self.s_month,                f_month=self.f_month)
-
-        if variability and get_mean:
-            data_variability_from_average = data_average.copy(deep=True)
-            data_variability_from_average.values = (
-                data_average.values - data_average.mean(coord).values)/data_average.values
         coord_lat, coord_lon = self.coordinate_names(data)
 
+        if coord_lat is not None:
+            coord = coord_lat
+            self.logger.debug("Latitude coordinate is used.")
+        elif coord_lon is not None:
+            coord = coord_lon
+            self.logger.debug("Longitude coordinate is used.")
+        else:
+            raise Exception('Unknown coordinate name')
+        
         if data[coord].size <= 1:
             raise ValueError(
                 "The length of the coordinate should be more than 1.")
 
         # make a plot with different y-axis using second axis object
-        if coord == 'time':
-            if 'm' in time_interpreter(data_with_final_grid):
-                labels = [str(data_with_final_grid['time.hour'][i].values) + ':'+str(data_with_final_grid['time.minute'][i].values)
-                          for i in range(0, data_with_final_grid.time.size)]
-                labels_int = [float(data_with_final_grid['time.hour'][i].values)
-                              for i in range(0, data_with_final_grid.time.size)]
-            elif 'H' in time_interpreter(data_with_final_grid):
-                labels = [convert_24hour_to_12hour_clock(data_with_final_grid, i)
-                          for i in range(0, data_with_final_grid.time.size)]
-                labels_int = [float(data_with_final_grid['time.hour'][i].values)
-                              for i in range(0, data_with_final_grid.time.size)]
-            elif time_interpreter(data_with_final_grid) == 'D':
-                labels = [str(data_with_final_grid['time.day'][i].values + convert_monthnumber_to_str(data_with_final_grid, i))
-                          for i in range(0, data_with_final_grid.time.size)]
-                labels_int = [float(data_with_final_grid['time.day'][i].values)
-                              for i in range(0, data_with_final_grid.time.size)]
-            elif time_interpreter(data_with_final_grid) == 'M':
-                labels = [convert_monthnumber_to_str(data_with_final_grid, i)
-                          for i in range(0, data_with_final_grid.time.size)]
-                labels_int = [float(data_with_final_grid['time.month'][i].values)
-                              for i in range(0, data_with_final_grid.time.size)]
-            else:
-                labels = [None for i in range(
-                    0, data_with_final_grid.time.size)]
-                labels_int = [None for i in range(
-                    0, data_with_final_grid.time.size)]
+        labels_int = data[coord].values
 
-        elif coord == coord_lat:
-            labels_int = data_with_final_grid[coord_lat]
-        elif coord == coord_lon:
-            labels_int = data_with_final_grid[coord_lon]
-
-        if new_unit is not None and seasons:
-            data_average = self.precipitation_rate_units_converter(
-                data_average[0], new_unit=new_unit)
-            units = new_unit
-        elif new_unit is not None:
-            data_average = self.precipitation_rate_units_converter(
-                data_average, new_unit=new_unit)
+        if new_unit is not None and 'xarray' in str(type(data)):
+            data = self.precipitation_rate_units_converter(
+                data, new_unit=new_unit)
             units = new_unit
         else:
-            try:
-                units = data[model_variable].attrs['units']
-            except KeyError:
-                units = data_average.units
-        if seasons:
+            units = data.units
+        if 'Dataset' in str(type(data)):
             y_lim_max = self.precipitation_rate_units_converter(
-                15, old_unit='mm/day', new_unit=new_unit)
+                ymax, old_unit='mm/day', new_unit=new_unit)
             if fig is not None:
 
                 ax1, ax2, ax3, ax4, ax5, ax_twin_5 = fig[1], fig[2], fig[3], fig[4], fig[5], fig[6]
@@ -1401,8 +1430,8 @@ class Tropical_Rainfall:
             elif add is None and fig is None:
                 fig = plt.figure(
                     figsize=(11*figsize, 10*figsize), layout='constrained')
-                gs = fig.add_gridspec(3, 2)
-                if coord == 'lat':
+                gs = fig.add_gridspec(3, 2, height_ratios=[1, 1, 2.5])
+                if coord == 'lon':
                     ax1 = fig.add_subplot(
                         gs[0, 0], projection=ccrs.PlateCarree())
                     ax2 = fig.add_subplot(
@@ -1426,21 +1455,17 @@ class Tropical_Rainfall:
                 fig = add
                 ax1, ax2, ax3, ax4, ax5, ax_twin_5 = add
                 axs = [ ax1, ax2, ax3, ax4, ax5]
-            data_average = self.seasonal_or_monthly_mean(data,                             preprocess=preprocess,               seasons=seasons,     
-                                                        model_variable=model_variable,     trop_lat=self.trop_lat,              new_unit=new_unit, 
-                                                        coord=coord)
-            
             titles      = ["DJF", "MAM", "JJA", "SON", "Yearly"]
-
-            for i in range(0, len(data_average)):
-                one_season = data_average[i]
+            i = -1
+            for one_season in [data.DJF, data.MAM, data.JJA, data.SON, data.Yearly]:
+                i += 1
 
                 axs[i].set_title(titles[i], fontsize=16)
                 # Latitude labels
-                if coord == 'lat':
+                if coord == 'lon':
                     axs[i].set_xlabel('Longitude',
                                       fontsize=12)
-                elif coord == 'lon':
+                elif coord == 'lat':
                     axs[i].set_xlabel('Latitude',
                                       fontsize=12)
 
@@ -1449,14 +1474,13 @@ class Tropical_Rainfall:
                 if xlogscale:
                     axs[i].set_xscale('log')
 
-                if coord == 'lat':
+                if coord == 'lon':
                     # twin object for two different y-axis on the sample plot
                     #      transform = ccrs.PlateCarree(), extend='both')
                     ax_span = axs[i].twinx()
                     ax_span.axhspan(-self.trop_lat, self.trop_lat,
                                     alpha=0.05, color='tab:red')
                     ax_span.set_ylim([-90, 90])
-                    # ax_span.set_xlim([-180,180])
                     ax_span.set_xticks([])
                     ax_span.set_yticks([])
                     axs[i].coastlines(alpha=0.5, color='grey')
@@ -1501,7 +1525,7 @@ class Tropical_Rainfall:
                                           fontsize=12)
 
                 axs[i].grid(True)
-            if coord == 'lat':
+            if coord == 'lon':
                 if legend != '_Hidden':
                     ax_twin_5.legend(loc=loc,    fontsize=12,    ncol=2)
                 if plot_title is not None:
@@ -1512,34 +1536,23 @@ class Tropical_Rainfall:
                 if plot_title is not None:
                     plt.suptitle(plot_title,                       fontsize=17)
 
-        else:
+        elif 'DataArray' in str(type(data)):
             if fig is not None:
                 fig, ax = fig
             elif add is None and fig is None:
                 fig, ax = plt.subplots(figsize=(8*figsize, 5*figsize))
             elif add is not None:
                 fig, ax = add
-            if data_average.size == 1:
-                if variability:
-                    plt.axhline(y=float(data_variability_from_average),
-                                color=color,  label=legend,  ls=ls)
-                else:
-                    plt.axhline(y=float(data_average.values),
+            if data.size == 1:
+                plt.axhline(y=float(data.values),
                                 color=color,  label=legend,  ls=ls)
             else:
-                if variability:
-                    plt.plot(labels_int,        data_variability_from_average,
-                             color=color,  label=legend,  ls=ls)
+                if coord == 'time':
+                    plt.scatter(labels_int, data,
+                                color=color,  label=legend,  ls=ls)
                 else:
-                    if coord == 'time':
-                        plt.scatter(labels_int, data_average,
-                                    color=color,  label=legend,  ls=ls)
-                    else:
-                        plt.plot(labels_int,    data_average,
-                                 color=color,  label=legend,  ls=ls)
-
-            if coord == 'time':
-                plt.gca().set_xticks(labels_int,  labels)
+                    plt.plot(labels_int,    data,
+                                color=color,  label=legend,  ls=ls)
 
             plt.gca().xaxis.set_major_locator(plt.MaxNLocator(maxticknum))
             plt.gca().tick_params(axis='both',   which='major',    pad=10)
@@ -1570,13 +1583,10 @@ class Tropical_Rainfall:
                            fontsize=12)
 
             if plot_title is None:
-                if variability:
-                    plt.title('Bias of ' + str(varname),
-                              fontsize=17,    pad=15)
-                elif not variability and get_mean:
+                if get_mean:
                     plt.title('Mean values of ' + str(varname),
                               fontsize=17,    pad=15)
-                elif not variability and get_median:
+                elif get_median:
                     plt.title('Median values of '+str(varname),
                               fontsize=17,    pad=15)
             else:
@@ -1624,17 +1634,17 @@ class Tropical_Rainfall:
                             facecolor="w",
                             edgecolor='w',
                             orientation='landscape')
-        if seasons:
+        if 'Dataset' in str(type(data)):
             return [fig,  ax1, ax2, ax3, ax4, ax5, ax_twin_5]
         else:
             return [fig,  ax]
 
-    def twin_data_and_observations(self, data,                          dummy_data=None,                  trop_lat=None,
-                                   s_time=None,                     f_time=None,                    s_year=None,
-                                   f_year=None,                    s_month=None,                     f_month=None,
-                                   model='era5',                     source='monthly',                 plev=0,
-                                   space_grid_factor=None,           time_freq=None,                   preprocess=True,
-                                   time_length=None,                 time_grid_factor=None,            model_variable='tprate',):
+    def twin_data_and_observations(self, data,                     dummy_data=None,                trop_lat=None,
+                                   s_time=None,                    f_time=None,                    s_year=None,
+                                   f_year=None,                    s_month=None,                   f_month=None,
+                                   model='era5',                   source='monthly',               plev=0,
+                                   space_grid_factor=None,         time_freq=None,                 preprocess=True,
+                                   time_length=None,               time_grid_factor=None,          model_variable='tprate',):
         """ Function to regride the data and observations to the same grid.
 
         Args:
@@ -1661,11 +1671,10 @@ class Tropical_Rainfall:
         self.class_attributes_update(trop_lat=trop_lat,
                                      s_time=s_time,                  f_time=f_time,
                                      s_year=s_year,                  f_year=f_year,
-                                     s_month=s_month,                 f_month=f_month)
+                                     s_month=s_month,                f_month=f_month)
         try:
             data = data[model_variable]
         except KeyError:
-            # data = data
             pass
         new_unit = data.units
         if dummy_data is None:
@@ -1690,25 +1699,23 @@ class Tropical_Rainfall:
                                                                  new_unit=new_unit)
 
         if preprocess:
-            data = self.preprocessing(data,                                       preprocess=preprocess,
-                                      model_variable=model_variable,            trop_lat=self.trop_lat,
-                                      s_time=self.s_time,                      f_time=self.f_time,
-                                      s_year=self.s_year,                      f_year=self.f_year,
-                                      s_month=self.s_month,                     f_month=self.f_month,
-                                      sort=False,                            dask_array=False)
-            dummy_data = self.preprocessing(dummy_data,                                 preprocess=preprocess,
-                                            model_variable=model_variable,            trop_lat=self.trop_lat,
-                                            s_time=self.s_time,                      f_time=self.f_time,
-                                            s_year=self.s_year,                      f_year=self.f_year,
-                                            s_month=self.s_month,                     f_month=self.f_month,
-                                            sort=False,                            dask_array=False)
+            data = self.preprocessing(data,                                  preprocess=preprocess,
+                                      model_variable=model_variable,         trop_lat=self.trop_lat,
+                                      s_time=self.s_time,                    f_time=self.f_time,
+                                      s_year=self.s_year,                    f_year=self.f_year,
+                                      s_month=self.s_month,                  f_month=self.f_month,       dask_array=False)
+            dummy_data = self.preprocessing(dummy_data,                             preprocess=preprocess,
+                                            model_variable=model_variable,          trop_lat=self.trop_lat,
+                                            s_time=self.s_time,                     f_time=self.f_time,
+                                            s_year=self.s_year,                     f_year=self.f_year,
+                                            s_month=self.s_month,                   f_month=self.f_month,    dask_array=False)
 
         data_regrided,  dummy_data_regrided = mirror_dummy_grid(data=data,                                dummy_data=dummy_data,
                                                                 space_grid_factor=space_grid_factor,      time_freq=time_freq,
                                                                 time_length=time_length,                  time_grid_factor=time_grid_factor)
         return data_regrided, dummy_data_regrided
 
-    def seasonal_or_monthly_mean(self,  data,                               preprocess=True,                    seasons=True,
+    def seasonal_or_monthly_mean(self,  data,                      preprocess=True,            seasons=True,
                                  model_variable='tprate',          trop_lat=None,              new_unit=None,
                                  coord=None):
         """ Function to calculate the seasonal or monthly mean of the data.
@@ -1789,12 +1796,11 @@ class Tropical_Rainfall:
                 all_months.append(mon_mean)
             return all_months
 
-    def plot_bias(self,         data,                               preprocess=True,                    seasons=True,
-                  dataset_2=None,                     model_variable='tprate',          figsize=1,
+    def plot_bias(self,         data,         preprocess=True,                  seasons=True,
+                  dataset_2=None,             model_variable='tprate',          figsize=1,
                   trop_lat=None,              plot_title=None,                  new_unit=None,
-                  vmin=None,                        vmax=None,                        contour=True,
-                  path_to_pdf=None,                 weights=None,                     level_95=True,
-                  name_of_file=None,                pdf_format=True):
+                  vmin=None,                  vmax=None,                        path_to_pdf=None,                           
+                  name_of_file=None,          pdf_format=True):
         """ Function to plot the bias of model_variable between two datasets.
 
         Args:
@@ -1815,20 +1821,17 @@ class Tropical_Rainfall:
             The pyplot figure in the PDF format
         """
 
-        self.plot_seasons_or_months(data,                         preprocess=preprocess,              seasons=seasons,
-                                    dataset_2=dataset_2,              model_variable=model_variable,    figsize=figsize,
-                                    trop_lat=trop_lat,                plot_title=plot_title,            new_unit=new_unit,
-                                    vmin=vmin,                        vmax=vmax,                        contour=contour,
-                                    path_to_pdf=path_to_pdf,          weights=weights,                  level_95=level_95,
-                                    name_of_file=name_of_file,          pdf_format=pdf_format)
+        self.plot_seasons_or_months(data,                         preprocess=preprocess,            seasons=seasons,
+                                    dataset_2=dataset_2,          model_variable=model_variable,    figsize=figsize,
+                                    trop_lat=trop_lat,            plot_title=plot_title,            new_unit=new_unit,
+                                    vmin=vmin,                    vmax=vmax,                        path_to_pdf=path_to_pdf,          
+                                    name_of_file=name_of_file,    pdf_format=pdf_format)
 
-    def plot_seasons_or_months(self,     data,                      preprocess=True,                    seasons=True,
-                               dataset_2=None,                     model_variable='tprate',          figsize=1,
+    def plot_seasons_or_months(self,     data,             preprocess=True,                  seasons=True,
+                               dataset_2=None,             model_variable='tprate',          figsize=1,
                                trop_lat=None,              plot_title=None,                  new_unit=None,
-                               vmin=None,                        vmax=None,                        contour=True,
-                               path_to_pdf=None,                 weights=None,                     level_95=True,
-                               value=0.95,                       rel_error=0.1,                    name_of_file=None,
-                               pdf_format=True):
+                               vmin=None,                  vmax=None,
+                               path_to_pdf=None,           name_of_file=None,                pdf_format=True):
         """ Function to plot seasonal data.
 
         Args:
