@@ -43,7 +43,12 @@ The `catalog` folder inside each `machine` folder contains intake catalogues for
 
 For a more detailed description of the content in the machine folder, see the section on :doc:`adding_data`.
 
-By default the AQUA `Reader` looks for its configuration files in a `config` folder in the current directory. 
-If not found, it looks also in its immediate parent directory (..), then in the parent directory above it (../..) and finally it also looks for a folder `.aqua/config` in the user's home. 
+By default the AQUA `Reader` looks for its configuration files in a `config` folder in a series of predefined directory, with the following order:
+
+- An environment variable defined as `$AQUA`
+- The current directory
+- A 3-level parent directory hierarchy (.., ../.., ../../..)
+- A `.aqua/config` folder
+
 This gives the user the freedom to run scripts and notebooks from different locations without worrying about the location of configuration files. 
 In any case it is also possible to pass explicitly a `configdir` keyword when you instantiate an AQUA `Reader` object.

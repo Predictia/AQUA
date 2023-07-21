@@ -10,8 +10,8 @@ for simpler and fast analysis which can be valuable for climate model assessment
 
 .. note ::
 
-    In the long term this will be handled by the Data Bridge and by the Multi I/O features
-    but on the short term AQUA  provides a series of tool to aggregate data
+    In the long term this will be handled by the Data Bridge and by the MultIO features
+    but on the short term AQUA provides a series of tool to aggregate data.
 
 Basic Concepts
 --------------
@@ -29,24 +29,24 @@ The only difference is that a specific source must be defined, following the syn
 .. code-block:: python
 
     from aqua import Reader
-    reader = Reader(model="FESOM", exp="tco2559-ng5", source="lra-r100-mon")
+    reader = Reader(model="FESOM", exp="tco2559-ng5", source="lra-r100-monthly")
     data = reader.retrieve()
 
 
 .. note ::
 
-    LRA built available on Levante and Lumi by AQUA team are all at `r100` (i.e. 1 deg resolution) and at `mon` or `day` frequency
+    LRA built available on Levante and Lumi by AQUA team are all at `r100` (i.e. 1 deg resolution) and at `monthly` or `daily` frequency
 
 Generation of the LRA
 ---------------------
 
 Given the character of the computation required, the standard approach is to use the LRA through a command line 
-interface (CLI) which is available in `cli/lra/cli_regridder.py`
+interface (CLI) which is available in `cli/lra/cli_lra_generator.py`
 
-The configuration of the CLI is done via a `lra_config.yaml` file, which include the target resolution, the target frequency,
+The configuration of the CLI is done via a YAML file that can be build from the `lra_config.tmpl` template, which include the target resolution, the target frequency,
 the temporary directory and the directory where you want to store the obtained LRA. A template for the file is included in the folder.
 
-Other options includes the logging level and the usage of the One Pass Algorithm (in beta mode)  to produce the temporal
+Other options includes the logging level and the usage of the One Pass Algorithm to produce the temporal
 aggregation.
 
 Most importantly, you have to edit the entries of the `catalog` dictionary, which follows the model-exp-source hierarchy.
@@ -99,7 +99,7 @@ A basic example usage can thus be:
 .. warning ::
 
     Keep in mind that this script is ideally submitted via batch to a HPC node, 
-    so that a template for SLURM is also available in the same directory. 
+    so that a template for SLURM is also available in the same directory (`lra-submitter.tmpl`). 
     Be aware that although the computation is split among different months, the memory consumption of loading very big data
     is a limiting factor, so that unless you have very fat node it is unlikely you can use more than 16 nodes
 
