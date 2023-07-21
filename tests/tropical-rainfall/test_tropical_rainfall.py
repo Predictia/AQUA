@@ -1,6 +1,4 @@
 """Test of tropical rainfall diagnostic"""
-
-from tropical_rainfall import Tropical_Rainfall
 import pytest
 import numpy as np
 import xarray
@@ -64,6 +62,7 @@ def test_module_import():
     except ModuleNotFoundError:
         assert False, "Diagnostic could not be imported"
 
+from tropical_rainfall import Tropical_Rainfall
 
 @pytest.fixture
 def data_size(reader):
