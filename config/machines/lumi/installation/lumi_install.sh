@@ -41,7 +41,7 @@ else
 fi
 
 # define installation path
-if diag; then
+if $diag; then
   export INSTALLATION_PATH="/users/${user}/mambaforge/aqua_common"
 else
   export INSTALLATION_PATH="/users/${user}/mambaforge/aqua"
@@ -67,7 +67,7 @@ install_aqua() {
   module load lumi-container-wrapper
   echo "Modules have been loaded."
 
-  if diag; then
+  if $diag; then
     # install AQUA framework and diagnostics
     conda-containerize new --mamba --prefix "${INSTALLATION_PATH}" "${AQUA}/config/machines/lumi/installation/environment_lumi_common.yml"
     conda-containerize update "${INSTALLATION_PATH}" --post-install "${AQUA}/config/machines/lumi/installation/pip_lumi_common.txt"
@@ -146,7 +146,7 @@ else
 fi
 
 # ask if you want to add this to the bash profile
-read -p "Would you like to source load_aqua.sh in your .bash_profile? " -n 1 -r
+read -p "Would you like to source load_aqua.sh in your .bash_profile? (y/n) " -n 1 -r
 echo 
 if [[ $REPLY =~ ^[Yy]$ ]]; then
   if ! grep -q 'source  ~/load_aqua.sh' ~/.bash_profile; then
