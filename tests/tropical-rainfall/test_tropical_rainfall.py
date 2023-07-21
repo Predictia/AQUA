@@ -27,7 +27,7 @@ def reader():
         data                    = Reader(model="IFS", exp="test-tco79", source="long")
         retrieved               = data.retrieve()
         try:
-            retrieved_array     = retrieved['tprate']
+            retrieved_array     = retrieved['tprate']*86400
         except KeyError:
             retrieved_array     = retrieved['2t']
         return retrieved_array.isel(time = slice(10,11))
@@ -37,7 +37,7 @@ def reader():
         data                    = Reader(model="ICON", exp="ngc2009", source="lra-r100-monthly")
         retrieved               = data.retrieve()
         try:
-            retrieved_array     = retrieved['tprate']
+            retrieved_array     = retrieved['tprate']*86400
         except KeyError:
             retrieved_array     = retrieved['2t']
         return retrieved_array.isel(time = slice(10,11))
@@ -47,7 +47,7 @@ def reader():
         data                    = Reader(model="ERA5", exp="fdb", source="default")
         retrieved               = data.retrieve()
         try:
-            retrieved_array     = retrieved['tprate']
+            retrieved_array     = retrieved['tprate']*86400
         except KeyError:
             retrieved_array     = retrieved['2t']
         return retrieved_array.isel(time = slice(10,11))
@@ -92,9 +92,10 @@ def histogram_output(reader):
     """
     data                    = reader
     if 'tprate' in data.shortName:
-        diag                = Tropical_Rainfall(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-6)/20)
+        diag                = Tropical_Rainfall(num_of_bins = 1000, first_edge = 0, width_of_bin = 1 - 1*10**(-6), loglevel='debug')
     elif '2t' in data.shortName:
-        diag                = Tropical_Rainfall(num_of_bins = 20, first_edge = 200, width_of_bin = (320-200)/20)
+        diag                = Tropical_Rainfall(num_of_bins = 1000, first_edge = 0, width_of_bin = 0.5, loglevel='debug')
+        #Tropical_Rainfall(num_of_bins = 20, first_edge = 200, width_of_bin = (320-200)/20, loglevel='debug')
     hist                    = diag.histogram(data, trop_lat=90)
     return hist
 
@@ -172,7 +173,7 @@ def test_lazy_mode_calculation(reader):
     """ Testing the lazy mode of the calculation
     """
     data                    = reader
-    diag                    = Tropical_Rainfall(num_of_bins = 20, first_edge = 0, width_of_bin = 1*10**(-6)/20)
+    diag                    = Tropical_Rainfall(num_of_bins = 1000, first_edge = 0, width_of_bin = 1 - 1*10**(-6))
     hist_lazy               = diag.histogram_lowres(data, lazy = True)
     assert 'frequency'      not in hist_lazy.attrs
     assert 'pdf'            not in hist_lazy.variables

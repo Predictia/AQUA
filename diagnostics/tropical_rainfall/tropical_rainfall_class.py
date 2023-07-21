@@ -944,7 +944,7 @@ class Tropical_Rainfall:
             return frequency_per_bin
         else:
             self.logger.debug('Sum of Frequency: {}'
-                          .format(abs(sum_of_frequency)))
+                          .format(abs(sum_of_frequency.values)))
             raise AssertionError("Test failed.")
 
     def convert_counts_to_pdf(self, data):
@@ -966,7 +966,7 @@ class Tropical_Rainfall:
             return pdf_per_bin
         else:
             self.logger.debug('Sum of PDF: {}'
-                          .format(abs(sum_of_pdf)))
+                          .format(abs(sum_of_pdf.values)))
             raise AssertionError("Test failed.")
         
     def mean_from_histogram(self, hist, data = None, old_unit='kg m**-2 s**-1', new_unit = None, 
