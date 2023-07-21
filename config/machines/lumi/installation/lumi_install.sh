@@ -1,9 +1,35 @@
 #!/bin/bash
 
+# Two installation options:
+# 1. Install AQUA framework only. Flag --only-aqua
+# 2. Install AQUA framework and diagnostics.
+#    This is the default option if no flag is provided.
+
+#####################################################################
+# Getting the installation type from flags
+# Check if the script is called with at least one argument (the flag)
+if [ $# -lt 1 ]; then
+  echo "No flag provided. Installing AQUA framework and diagnostics."
+  # set diag variable to true
+  diag=true
+else
+  # Check the value of the flag
+  flag="$1"
+  if [ "$flag" = "--only-aqua" ]; then
+    echo "Installing AQUA framework only."
+    # set diag variable to false
+    diag=false
+  else
+    echo "Invalid flag. Installing AQUA framework and diagnostics."
+    # set diag variable to true
+    diag=true
+  fi
+fi
+
 #####################################################################
 # Begin of user input
 machine=lumi 
-user=$USER # change this to your username
+user=$USER # change this to your username if automatic detection fails
 
 # define AQUA path
 if [[ -z "${AQUA}" ]]; then
@@ -15,9 +41,12 @@ else
 fi
 
 # define installation path
-export INSTALLATION_PATH="/users/${user}/mambaforge/aqua"
+if diag; then
+  export INSTALLATION_PATH="/users/${user}/mambaforge/aqua_common"
+else
+  export INSTALLATION_PATH="/users/${user}/mambaforge/aqua"
+fi
 echo "Installation path has been set to ${INSTALLATION_PATH}"
-
 # End of user input
 #####################################################################
 
@@ -38,10 +67,17 @@ install_aqua() {
   module load lumi-container-wrapper
   echo "Modules have been loaded."
 
-  conda-containerize new --mamba --prefix "${INSTALLATION_PATH}" "${AQUA}/config/machines/lumi/installation/environment_lumi.yml"
-  
-  conda-containerize update "${INSTALLATION_PATH}" --post-install "${AQUA}/config/machines/lumi/installation/pip_lumi.txt"
-  echo "AQUA has been installed."
+  if diag; then
+    # install AQUA framework and diagnostics
+    conda-containerize new --mamba --prefix "${INSTALLATION_PATH}" "${AQUA}/config/machines/lumi/installation/environment_lumi_common.yml"
+    conda-containerize update "${INSTALLATION_PATH}" --post-install "${AQUA}/config/machines/lumi/installation/pip_lumi_common.txt"
+    echo "AQUA framework and diagnostics have been installed."
+  else
+    # install AQUA framework only
+    conda-containerize new --mamba --prefix "${INSTALLATION_PATH}" "${AQUA}/config/machines/lumi/installation/environment_lumi.yml"
+    conda-containerize update "${INSTALLATION_PATH}" --post-install "${AQUA}/config/machines/lumi/installation/pip_lumi.txt"
+    echo "AQUA framework has been installed."
+  fi
 }
 
 # if INSTALLATION_PATH does not exist, create it
