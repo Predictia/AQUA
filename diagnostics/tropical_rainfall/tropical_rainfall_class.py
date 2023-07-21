@@ -16,10 +16,10 @@ import matplotlib.colors as colors
 # import boost_histogram as bh  # pip
 
 import dask.array as da
-import dask_histogram as dh # pip
+import dask_histogram as dh  # pip
 import dask_histogram.boost as dhb
 import dask
-import fast_histogram 
+import fast_histogram
 
 from aqua.util import create_folder
 from aqua.logger import log_configure
@@ -52,7 +52,7 @@ class Tropical_Rainfall:
                  first_edge=None,
                  width_of_bin=None,
                  bins=0,
-                 loglevel: str='WARNING'):
+                 loglevel: str = 'WARNING'):
         """ The constructor of the class.
 
         Args:
@@ -188,7 +188,7 @@ class Tropical_Rainfall:
         try:
             data = data[model_variable]
         except (TypeError, KeyError):
-            pass 
+            pass
         if 'xarray' in str(type(data)):
             if data.units == new_unit:
                 return data
@@ -418,7 +418,7 @@ class Tropical_Rainfall:
 
     def histogram_lowres(self,               data,                data_with_global_atributes=None,
                          weights=None,       preprocess=True,     trop_lat=None,           model_variable='tprate',
-                         s_time=None,        f_time=None,         s_year=None,             
+                         s_time=None,        f_time=None,         s_year=None,
                          f_year=None,        s_month=None,        f_month=None,
                          num_of_bins=None,   first_edge=None,     width_of_bin=None,       bins=0,
                          lazy=False,         create_xarray=True,  path_to_histogram=None,  name_of_file=None,
@@ -453,7 +453,7 @@ class Tropical_Rainfall:
                                      s_time=s_time,           f_time=f_time,
                                      s_year=s_year,           f_year=f_year,
                                      s_month=s_month,         f_month=f_month,
-                                     first_edge=first_edge,   num_of_bins=num_of_bins,      
+                                     first_edge=first_edge,   num_of_bins=num_of_bins,
                                      width_of_bin=width_of_bin)
 
         coord_lat, coord_lon = self.coordinate_names(data)
@@ -467,9 +467,10 @@ class Tropical_Rainfall:
                              for i in range(0, len(bins)-1)]
         else:
             bins = self.bins
-            width_table = [self.bins[i+1]-self.bins[i] for i in range(0, len(self.bins)-1)]
-            center_of_bin = [self.bins[i] + 0.5*width_table[i] for i in range(0, len(self.bins)-1)]
-
+            width_table = [self.bins[i+1]-self.bins[i]
+                           for i in range(0, len(self.bins)-1)]
+            center_of_bin = [self.bins[i] + 0.5*width_table[i]
+                             for i in range(0, len(self.bins)-1)]
 
         data_original = data
         if preprocess:
@@ -477,9 +478,9 @@ class Tropical_Rainfall:
                                       model_variable=model_variable,     trop_lat=self.trop_lat,
                                       s_time=self.s_time,                f_time=self.f_time,
                                       s_year=self.s_year,                f_year=self.f_year,
-                                      s_month=self.s_month,              f_month=self.f_month,   
+                                      s_month=self.s_month,              f_month=self.f_month,
                                       dask_array=False)
-        size_of_the_data = data_size(data)    
+        size_of_the_data = data_size(data)
         data_with_final_grid = data
 
         if weights is not None:
@@ -488,8 +489,7 @@ class Tropical_Rainfall:
             data, weights = xr.broadcast(data, weights)
             weights = weights.stack(total=['time', coord_lat, coord_lon])
             weights_dask = da.from_array(weights)
-    
-        
+
         if positive:
             data = np.maximum(data, 0.)
 
@@ -506,15 +506,19 @@ class Tropical_Rainfall:
             edges = edges.compute()
             self.logger.info('Histogram of the data is created')
             self.logger.debug('Size of data after preprocessing/Sum of Counts: {}/{}'
-                            .format(data_size(data), int(sum(counts))))
-            if int(sum(counts))!=size_of_the_data:
-                self.logger.warning('Amount of counts in the histogram is not equal to the size of the data')
+                              .format(data_size(data), int(sum(counts))))
+            if int(sum(counts)) != size_of_the_data:
+                self.logger.warning(
+                    'Amount of counts in the histogram is not equal to the size of the data')
                 self.logger.info('Check the data and the bins')
         width_table = [edges[i+1]-edges[i] for i in range(0, len(edges)-1)]
-        center_of_bin = [edges[i] + 0.5*width_table[i] for i in range(0, len(edges)-1)]
-        counts_per_bin = xr.DataArray(counts, coords=[center_of_bin], dims=["center_of_bin"])
-        
-        counts_per_bin = counts_per_bin.assign_coords(width=("center_of_bin", width_table))
+        center_of_bin = [edges[i] + 0.5*width_table[i]
+                         for i in range(0, len(edges)-1)]
+        counts_per_bin = xr.DataArray(
+            counts, coords=[center_of_bin], dims=["center_of_bin"])
+
+        counts_per_bin = counts_per_bin.assign_coords(
+            width=("center_of_bin", width_table))
         counts_per_bin.attrs = data.attrs
         counts_per_bin.center_of_bin.attrs['units'] = data.units
         counts_per_bin.center_of_bin.attrs['history'] = 'Units are added to the bins to coordinate'
@@ -525,21 +529,24 @@ class Tropical_Rainfall:
         if not lazy and create_xarray:
             tprate_dataset = counts_per_bin.to_dataset(name="counts")
             tprate_dataset.attrs = data_with_global_atributes.attrs
-            tprate_dataset = self.add_frequency_and_pdf(tprate_dataset = tprate_dataset) #, path_to_histogram = path_to_histogram)
-            
-            mean_from_hist, mean_original, mean_modified = self.mean_from_histogram(hist=tprate_dataset, data = data_original, old_unit=data.units, new_unit = new_unit, 
-                            model_variable = model_variable, trop_lat = self.trop_lat, positive=positive)
-            relative_discrepancy = abs(mean_modified - mean_from_hist)*100/mean_modified
+            # , path_to_histogram = path_to_histogram)
+            tprate_dataset = self.add_frequency_and_pdf(
+                tprate_dataset=tprate_dataset)
+
+            mean_from_hist, mean_original, mean_modified = self.mean_from_histogram(hist=tprate_dataset, data=data_original, old_unit=data.units, new_unit=new_unit,
+                                                                                    model_variable=model_variable, trop_lat=self.trop_lat, positive=positive)
+            relative_discrepancy = abs(
+                mean_modified - mean_from_hist)*100/mean_modified
             self.logger.debug('The difference between the mean of the data and the mean of the histogram: {}%'
-                          .format(round(relative_discrepancy, 4)))
+                              .format(round(relative_discrepancy, 4)))
             if new_unit is None:
                 unit = data.units
             else:
                 unit = new_unit
             self.logger.debug('The mean of the data: {}{}'
-                          .format(mean_original, unit))
+                              .format(mean_original, unit))
             self.logger.debug('The mean of the histogram: {}{}'
-                          .format(mean_from_hist, unit))
+                              .format(mean_from_hist, unit))
             if relative_discrepancy > threshold:
                 self.logger.warning('The difference between the mean of the data and the mean of the histogram is greater than the threshold. \n \
                                 Increase the number of bins and decrease the width of the bins.')
@@ -597,7 +604,7 @@ class Tropical_Rainfall:
                                      s_time=s_time,           f_time=f_time,
                                      s_year=s_year,           f_year=f_year,
                                      s_month=s_month,         f_month=f_month,
-                                     first_edge=first_edge,   num_of_bins=num_of_bins,      
+                                     first_edge=first_edge,   num_of_bins=num_of_bins,
                                      width_of_bin=width_of_bin)
         data_original = data
         if preprocess:
@@ -605,7 +612,7 @@ class Tropical_Rainfall:
                                       model_variable=model_variable,     trop_lat=self.trop_lat,
                                       s_time=self.s_time,                f_time=self.f_time,
                                       s_year=self.s_year,                f_year=self.f_year,
-                                      s_month=self.s_month,              f_month=self.f_month,    
+                                      s_month=self.s_month,              f_month=self.f_month,
                                       dask_array=False)
         size_of_the_data = data_size(data)
         data_with_final_grid = data
@@ -618,38 +625,45 @@ class Tropical_Rainfall:
                              for i in range(0, len(bins)-1)]
         else:
             bins = self.bins
-            width_table = [self.bins[i+1]-self.bins[i] for i in range(0, len(self.bins)-1)]
-            center_of_bin = [self.bins[i] + 0.5*width_table[i] for i in range(0, len(self.bins)-1)] 
+            width_table = [self.bins[i+1]-self.bins[i]
+                           for i in range(0, len(self.bins)-1)]
+            center_of_bin = [self.bins[i] + 0.5*width_table[i]
+                             for i in range(0, len(self.bins)-1)]
         if positive:
             data = np.maximum(data, 0.)
-        hist_fast = fast_histogram.histogram1d(data, 
-                                                   range=[self.first_edge, self.first_edge + (self.num_of_bins)*self.width_of_bin], 
-                                                   bins = self.num_of_bins)
+        hist_fast = fast_histogram.histogram1d(data,
+                                               range=[
+                                                   self.first_edge, self.first_edge + (self.num_of_bins)*self.width_of_bin],
+                                               bins=self.num_of_bins)
         self.logger.info('Histogram of the data is created')
         self.logger.debug('Size of data after preprocessing/Sum of Counts: {}/{}'
                           .format(data_size(data), int(sum(hist_fast))))
-        if int(sum(hist_fast))!=size_of_the_data:
-            self.logger.warning('Amount of counts in the histogram is not equal to the size of the data')
+        if int(sum(hist_fast)) != size_of_the_data:
+            self.logger.warning(
+                'Amount of counts in the histogram is not equal to the size of the data')
             self.logger.warning('Check the data and the bins')
-        counts_per_bin =  xr.DataArray(hist_fast, coords=[center_of_bin], dims=["center_of_bin"])
-        counts_per_bin = counts_per_bin.assign_coords(width=("center_of_bin", width_table))
+        counts_per_bin = xr.DataArray(
+            hist_fast, coords=[center_of_bin], dims=["center_of_bin"])
+        counts_per_bin = counts_per_bin.assign_coords(
+            width=("center_of_bin", width_table))
         counts_per_bin.attrs = data.attrs
 
         counts_per_bin.center_of_bin.attrs['units'] = data.units
         counts_per_bin.center_of_bin.attrs['history'] = 'Units are added to the bins to coordinate'
         counts_per_bin.attrs['size_of_the_data'] = size_of_the_data
-        
-        
+
         if data_with_global_atributes is None:
             data_with_global_atributes = data_original
 
         tprate_dataset = counts_per_bin.to_dataset(name="counts")
         tprate_dataset.attrs = data_with_global_atributes.attrs
-        tprate_dataset = self.add_frequency_and_pdf(tprate_dataset = tprate_dataset) 
+        tprate_dataset = self.add_frequency_and_pdf(
+            tprate_dataset=tprate_dataset)
 
-        mean_from_hist, mean_original, mean_modified = self.mean_from_histogram(hist=tprate_dataset, data = data_original, old_unit=data.units, new_unit = new_unit, 
-                            model_variable = model_variable, trop_lat = self.trop_lat, positive=positive)
-        relative_discrepancy = (mean_original - mean_from_hist)*100/mean_original
+        mean_from_hist, mean_original, mean_modified = self.mean_from_histogram(hist=tprate_dataset, data=data_original, old_unit=data.units, new_unit=new_unit,
+                                                                                model_variable=model_variable, trop_lat=self.trop_lat, positive=positive)
+        relative_discrepancy = (
+            mean_original - mean_from_hist)*100/mean_original
         self.logger.debug('The difference between the mean of the data and the mean of the histogram: {}%'
                           .format(round(relative_discrepancy, 4)))
         if new_unit is None:
@@ -664,17 +678,24 @@ class Tropical_Rainfall:
             self.logger.warning('The difference between the mean of the data and the mean of the histogram is greater than the threshold. \n \
                                 Increase the number of bins and decrease the width of the bins.')
         for variable in (None, 'counts', 'frequency', 'pdf'):
-            tprate_dataset  = self.grid_attributes(data = data_with_final_grid, tprate_dataset = tprate_dataset, variable = variable)
+            tprate_dataset = self.grid_attributes(
+                data=data_with_final_grid, tprate_dataset=tprate_dataset, variable=variable)
             if variable is None:
                 tprate_dataset.attrs['units'] = tprate_dataset.counts.units
-                tprate_dataset.attrs['mean_of_original_data'] = float(mean_original)
-                tprate_dataset.attrs['mean_of_histogram'] = float(mean_from_hist)
-                tprate_dataset.attrs['relative_discrepancy'] = float(relative_discrepancy)
-                
+                tprate_dataset.attrs['mean_of_original_data'] = float(
+                    mean_original)
+                tprate_dataset.attrs['mean_of_histogram'] = float(
+                    mean_from_hist)
+                tprate_dataset.attrs['relative_discrepancy'] = float(
+                    relative_discrepancy)
+
             else:
-                tprate_dataset[variable].attrs['mean_of_original_data'] = float(mean_original)
-                tprate_dataset[variable].attrs['mean_of_histogram'] = float(mean_from_hist)
-                tprate_dataset[variable].attrs['relative_discrepancy'] = float(relative_discrepancy)
+                tprate_dataset[variable].attrs['mean_of_original_data'] = float(
+                    mean_original)
+                tprate_dataset[variable].attrs['mean_of_histogram'] = float(
+                    mean_from_hist)
+                tprate_dataset[variable].attrs['relative_discrepancy'] = float(
+                    relative_discrepancy)
         if path_to_histogram is not None and name_of_file is not None:
             self.dataset_to_netcdf(
                 tprate_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file)
@@ -708,7 +729,8 @@ class Tropical_Rainfall:
             dataset.to_netcdf(path=path_to_netcdf)
             self.logger.info("Histogram is saved in the storage.")
         else:
-            self.logger.debug("The path to save the histogram needs to be provided.")
+            self.logger.debug(
+                "The path to save the histogram needs to be provided.")
         return path_to_netcdf
 
     def grid_attributes(self, data=None,      tprate_dataset=None,      variable=None):
@@ -758,7 +780,8 @@ class Tropical_Rainfall:
                 tprate_dataset.attrs['history'] = history_attr
             except KeyError:
                 pass
-                self.logger.debug("The obtained xarray.Dataset doesn't have global attributes. Consider adding global attributes manually to the dataset.")
+                self.logger.debug(
+                    "The obtained xarray.Dataset doesn't have global attributes. Consider adding global attributes manually to the dataset.")
             tprate_dataset.attrs['time_band'] = time_band
             tprate_dataset.attrs['lat_band'] = lat_band
             tprate_dataset.attrs['lon_band'] = lon_band
@@ -832,17 +855,23 @@ class Tropical_Rainfall:
                     dataset_3.attrs[attribute] = str(
                         tprate_dataset_1.attrs[attribute])+';\n '+str(tprate_dataset_2.attrs[attribute])
 
-            dataset_3.counts.values = tprate_dataset_1.counts.values + tprate_dataset_2.counts.values
-            dataset_3.counts.attrs['size_of_the_data'] = tprate_dataset_1.counts.size_of_the_data + tprate_dataset_2.counts.size_of_the_data
-            dataset_3.frequency.values = self.convert_counts_to_frequency(dataset_3.counts)
+            dataset_3.counts.values = tprate_dataset_1.counts.values + \
+                tprate_dataset_2.counts.values
+            dataset_3.counts.attrs['size_of_the_data'] = tprate_dataset_1.counts.size_of_the_data + \
+                tprate_dataset_2.counts.size_of_the_data
+            dataset_3.frequency.values = self.convert_counts_to_frequency(
+                dataset_3.counts)
             dataset_3.pdf.values = self.convert_counts_to_pdf(dataset_3.counts)
 
             for variable in ('counts', 'frequency', 'pdf'):
                 for attribute in tprate_dataset_1.counts.attrs:
-                    dataset_3[variable].attrs = {**tprate_dataset_1[variable].attrs, **tprate_dataset_2[variable].attrs}
+                    dataset_3[variable].attrs = {
+                        **tprate_dataset_1[variable].attrs, **tprate_dataset_2[variable].attrs}
                     if tprate_dataset_1[variable].attrs[attribute] != tprate_dataset_2[variable].attrs[attribute]:
-                        dataset_3[variable].attrs[attribute] = str(tprate_dataset_1[variable].attrs[attribute])+';\n ' + str(tprate_dataset_2[variable].attrs[attribute])
-                dataset_3[variable].attrs['size_of_the_data'] = tprate_dataset_1[variable].size_of_the_data + tprate_dataset_2[variable].size_of_the_data
+                        dataset_3[variable].attrs[attribute] = str(
+                            tprate_dataset_1[variable].attrs[attribute])+';\n ' + str(tprate_dataset_2[variable].attrs[attribute])
+                dataset_3[variable].attrs['size_of_the_data'] = tprate_dataset_1[variable].size_of_the_data + \
+                    tprate_dataset_2[variable].size_of_the_data
             return dataset_3
 
     def merge_list_of_histograms(self, path_to_histograms=None, multi=None, seasons=False, all=False):
@@ -934,17 +963,18 @@ class Tropical_Rainfall:
             xarray: The frequency.
         """
         frequency = data[0:]/data.size_of_the_data
-        frequency_per_bin = xr.DataArray(frequency, coords=[data.center_of_bin],    dims=["center_of_bin"])
-        frequency_per_bin = frequency_per_bin.assign_coords(width=("center_of_bin", data.width.values))
+        frequency_per_bin = xr.DataArray(
+            frequency, coords=[data.center_of_bin],    dims=["center_of_bin"])
+        frequency_per_bin = frequency_per_bin.assign_coords(
+            width=("center_of_bin", data.width.values))
         frequency_per_bin.attrs = data.attrs
         sum_of_frequency = sum(frequency_per_bin[:])
-        
-        
-        if abs(sum_of_frequency -1) < 10**(-4):
+
+        if abs(sum_of_frequency - 1) < 10**(-4):
             return frequency_per_bin
         else:
             self.logger.debug('Sum of Frequency: {}'
-                          .format(abs(sum_of_frequency.values)))
+                              .format(abs(sum_of_frequency.values)))
             raise AssertionError("Test failed.")
 
     def convert_counts_to_pdf(self, data):
@@ -955,22 +985,24 @@ class Tropical_Rainfall:
 
         Returns:
             xarray: The pdf.
-        """  
+        """
         pdf = data[0:]/(data.size_of_the_data*data.width[0:])
-        pdf_per_bin = xr.DataArray(pdf, coords=[data.center_of_bin],    dims=["center_of_bin"])
-        pdf_per_bin = pdf_per_bin.assign_coords(width=("center_of_bin", data.width.values))
+        pdf_per_bin = xr.DataArray(
+            pdf, coords=[data.center_of_bin],    dims=["center_of_bin"])
+        pdf_per_bin = pdf_per_bin.assign_coords(
+            width=("center_of_bin", data.width.values))
         pdf_per_bin.attrs = data.attrs
         sum_of_pdf = sum(pdf_per_bin[:]*data.width[0:])
-        
+
         if abs(sum_of_pdf-1.) < 10**(-4):
             return pdf_per_bin
         else:
             self.logger.debug('Sum of PDF: {}'
-                          .format(abs(sum_of_pdf.values)))
+                              .format(abs(sum_of_pdf.values)))
             raise AssertionError("Test failed.")
-        
-    def mean_from_histogram(self, hist, data = None, old_unit='kg m**-2 s**-1', new_unit = None, 
-                            model_variable = 'tprate', trop_lat = None, positive=True):
+
+    def mean_from_histogram(self, hist, data=None, old_unit='kg m**-2 s**-1', new_unit=None,
+                            model_variable='tprate', trop_lat=None, positive=True):
         """ Function to calculate the mean from the histogram.
 
         Args:
@@ -981,40 +1013,47 @@ class Tropical_Rainfall:
             model_variable (str): The model variable.
             trop_lat (float): The tropical latitude.
             positive (bool): The flag to indicate if the data should be positive.
-        
+
         Returns:
             float: The mean from the histogram.
             float: The mean from the original data.
             float: The mean from the modified data.
         """
-        self.class_attributes_update(trop_lat = trop_lat)
-        
+        self.class_attributes_update(trop_lat=trop_lat)
+
         if data is not None:
             try:
                 data = data[model_variable]
             except KeyError:
                 pass
-            mean_of_original_data = data.sel(lat=slice(-self.trop_lat, self.trop_lat)).mean().values
+            mean_of_original_data = data.sel(
+                lat=slice(-self.trop_lat, self.trop_lat)).mean().values
             if positive:
                 _data = np.maximum(data, 0.)
-                mean_of_modified_data = _data.sel(lat=slice(-self.trop_lat, self.trop_lat)).mean().values
+                mean_of_modified_data = _data.sel(
+                    lat=slice(-self.trop_lat, self.trop_lat)).mean().values
         else:
             mean_of_original_data, mean_of_modified_data = None, None
 
         mean_from_freq = (hist.frequency*hist.center_of_bin).sum().values
-        
+
         if new_unit is not None:
             try:
-                mean_from_freq = self.precipitation_rate_units_converter(mean_from_freq, old_unit=hist.counts.units, new_unit=new_unit)
+                mean_from_freq = self.precipitation_rate_units_converter(
+                    mean_from_freq, old_unit=hist.counts.units, new_unit=new_unit)
             except AttributeError:
-                mean_from_freq = self.precipitation_rate_units_converter(mean_from_freq, old_unit=old_unit, new_unit=new_unit)
+                mean_from_freq = self.precipitation_rate_units_converter(
+                    mean_from_freq, old_unit=old_unit, new_unit=new_unit)
             if data is not None:
-                mean_of_original_data = self.precipitation_rate_units_converter(mean_of_original_data, old_unit=data.units, new_unit=new_unit) 
-                mean_of_modified_data = self.precipitation_rate_units_converter(mean_of_modified_data, old_unit=data.units, new_unit=new_unit) 
+                mean_of_original_data = self.precipitation_rate_units_converter(
+                    mean_of_original_data, old_unit=data.units, new_unit=new_unit)
+                mean_of_modified_data = self.precipitation_rate_units_converter(
+                    mean_of_modified_data, old_unit=data.units, new_unit=new_unit)
 
         return mean_from_freq, mean_of_original_data, mean_of_modified_data
 
     """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """ """
+
     def histogram_plot(self, data,        new_unit=None,
                        weights=None,      frequency=False,      pdf=True,
                        smooth=True,       step=False,           color_map=False,
@@ -1022,7 +1061,7 @@ class Tropical_Rainfall:
                        color='tab:blue',  figsize=1,            legend='_Hidden',
                        plot_title=None,   loc='upper right',    varname='Precipitation',
                        add=None,          fig=None,             path_to_pdf=None,
-                       name_of_file=None, pdf_format=True,      xmax = None):
+                       name_of_file=None, pdf_format=True,      xmax=None):
         """ Function to generate a histogram figure based on the provided data.
 
         Args:
@@ -1071,12 +1110,12 @@ class Tropical_Rainfall:
             data = self.convert_counts_to_frequency(data)
 
         x = data.center_of_bin.values
-        #if new_unit is not None:
+        # if new_unit is not None:
         #    converter = self.precipitation_rate_units_converter(
         #        1, old_unit=data.center_of_bin.units, new_unit=new_unit)
         #    x = converter * x
         #    data = data/converter
-        data = data.where(data>0)
+        data = data.where(data > 0)
         if smooth:
             plt.plot(x, data,
                      linewidth=3.0, ls=ls, color=color, label=legend)
@@ -1120,9 +1159,9 @@ class Tropical_Rainfall:
 
         plt.title(plot_title,       fontsize=16)
 
-        if legend!='_Hidden':
+        if legend != '_Hidden':
             plt.legend(loc=loc,     fontsize=10)
-        
+
         if xmax is not None:
             plt.xlim([0, xmax])
 
@@ -1173,7 +1212,7 @@ class Tropical_Rainfall:
                                       model_variable=model_variable,     trop_lat=self.trop_lat,
                                       s_time=self.s_time,                f_time=self.f_time,
                                       s_year=self.s_year,                f_year=self.f_year,
-                                      s_month=self.s_month,              f_month=self.f_month,    
+                                      s_month=self.s_month,              f_month=self.f_month,
                                       dask_array=False)
         coord_lat, coord_lon = self.coordinate_names(data)
         if coord in data.dims:
@@ -1225,7 +1264,7 @@ class Tropical_Rainfall:
                                       model_variable=model_variable,     trop_lat=self.trop_lat,
                                       s_time=self.s_time,                f_time=self.f_time,
                                       s_year=self.s_year,                f_year=self.f_year,
-                                      s_month=self.s_month,              f_month=self.f_month,    
+                                      s_month=self.s_month,              f_month=self.f_month,
                                       dask_array=False)
 
         coord_lat, coord_lon = self.coordinate_names(data)
@@ -1249,14 +1288,14 @@ class Tropical_Rainfall:
             for i in data.dims:
                 coord = i
             return data.median(coord)
-        
+
     def average_into_netcdf(self, data,         glob=False,            preprocess=True,
-                             model_variable='tprate',   coord='lat',
-                             trop_lat=None,             get_mean=True,         get_median=False,
-                             s_time=None,               f_time=None,           s_year=None,
-                             f_year=None,               s_month=None,          f_month=None,
-                             new_unit=None,             name_of_file=None,
-                             seasons=True,              path_to_netcdf=None):
+                            model_variable='tprate',   coord='lat',
+                            trop_lat=None,             get_mean=True,         get_median=False,
+                            s_time=None,               f_time=None,           s_year=None,
+                            f_year=None,               s_month=None,          f_month=None,
+                            new_unit=None,             name_of_file=None,
+                            seasons=True,              path_to_netcdf=None):
         """ Function to plot the mean or median value of variable in Dataset.
 
         Args:
@@ -1291,16 +1330,16 @@ class Tropical_Rainfall:
                                                       model_variable=model_variable,     trop_lat=self.trop_lat,
                                                       s_time=self.s_time,                f_time=self.f_time,
                                                       s_year=self.s_year,                f_year=self.f_year,
-                                                      s_month=self.s_month,              f_month=self.f_month,  
+                                                      s_month=self.s_month,              f_month=self.f_month,
                                                       dask_array=False)
 
         if get_mean:
             if seasons:
-                data_average = self.seasonal_or_monthly_mean(data,                        preprocess=preprocess,          
-                                                             seasons=seasons,             model_variable=model_variable,      
+                data_average = self.seasonal_or_monthly_mean(data,                        preprocess=preprocess,
+                                                             seasons=seasons,             model_variable=model_variable,
                                                              trop_lat=trop_lat,           new_unit=new_unit,
                                                              coord=coord)
-                
+
                 seasonal_average = data_average[0].to_dataset(name="DJF")
                 seasonal_average["MAM"] = data_average[1]
                 seasonal_average["JJA"] = data_average[2]
@@ -1323,17 +1362,20 @@ class Tropical_Rainfall:
                                                         s_year=self.s_year,             f_year=self.f_year,
                                                         s_month=self.s_month,           f_month=self.f_month)
             self.logger.debug("Median calculated.")
-        
+
         if seasons:
             seasonal_average.attrs = data_with_final_grid.attrs
-            seasonal_average = self.grid_attributes(data=data_with_final_grid, tprate_dataset=seasonal_average) 
+            seasonal_average = self.grid_attributes(
+                data=data_with_final_grid, tprate_dataset=seasonal_average)
             for variable in ('DJF', 'MAM', 'JJA', 'SON', 'Yearly'):
                 seasonal_average[variable].attrs = data_with_final_grid.attrs
-                seasonal_average = self.grid_attributes(data=data_with_final_grid, tprate_dataset=seasonal_average, variable = variable) 
+                seasonal_average = self.grid_attributes(
+                    data=data_with_final_grid, tprate_dataset=seasonal_average, variable=variable)
             average_dataset = seasonal_average
         else:
             data_average.attrs = data_with_final_grid.attrs
-            data_average = self.grid_attributes(data=data_with_final_grid,      tprate_dataset=data_average) 
+            data_average = self.grid_attributes(
+                data=data_with_final_grid,      tprate_dataset=data_average)
             average_dataset = data_average
 
         if path_to_netcdf is not None and name_of_file is not None:
@@ -1343,15 +1385,15 @@ class Tropical_Rainfall:
         else:
             return average_dataset
 
-    def plot_of_average(self,           
-                             ymax=12,
-                             trop_lat=None,             get_mean=True,         get_median=False,
-                             legend='_Hidden',          figsize=1,             ls='-',
-                             maxticknum=12,             color='tab:blue',      varname='tprate',
-                             ylogscale=False,           xlogscale=False,       loc='upper right',
-                             add=None,                  fig=None,              plot_title=None,
-                             path_to_pdf=None,          new_unit='mm/day',     name_of_file=None,
-                             pdf_format=True,       path_to_netcdf=None):
+    def plot_of_average(self,
+                        ymax=12,
+                        trop_lat=None,             get_mean=True,         get_median=False,
+                        legend='_Hidden',          figsize=1,             ls='-',
+                        maxticknum=12,             color='tab:blue',      varname='tprate',
+                        ylogscale=False,           xlogscale=False,       loc='upper right',
+                        add=None,                  fig=None,              plot_title=None,
+                        path_to_pdf=None,          new_unit='mm/day',     name_of_file=None,
+                        pdf_format=True,       path_to_netcdf=None):
         """ Function to plot the mean or median value of variable in Dataset.
 
         Args:
@@ -1392,7 +1434,7 @@ class Tropical_Rainfall:
             raise Exception('The path needs to be provided')
         else:
             data = self.open_dataset(
-                                path_to_netcdf=path_to_netcdf)
+                path_to_netcdf=path_to_netcdf)
 
         coord_lat, coord_lon = self.coordinate_names(data)
 
@@ -1404,7 +1446,7 @@ class Tropical_Rainfall:
             self.logger.debug("Longitude coordinate is used.")
         else:
             raise Exception('Unknown coordinate name')
-        
+
         if data[coord].size <= 1:
             raise ValueError(
                 "The length of the coordinate should be more than 1.")
@@ -1454,8 +1496,8 @@ class Tropical_Rainfall:
             elif add is not None:
                 fig = add
                 ax1, ax2, ax3, ax4, ax5, ax_twin_5 = add
-                axs = [ ax1, ax2, ax3, ax4, ax5]
-            titles      = ["DJF", "MAM", "JJA", "SON", "Yearly"]
+                axs = [ax1, ax2, ax3, ax4, ax5]
+            titles = ["DJF", "MAM", "JJA", "SON", "Yearly"]
             i = -1
             for one_season in [data.DJF, data.MAM, data.JJA, data.SON, data.Yearly]:
                 i += 1
@@ -1484,7 +1526,8 @@ class Tropical_Rainfall:
                     ax_span.set_xticks([])
                     ax_span.set_yticks([])
                     axs[i].coastlines(alpha=0.5, color='grey')
-                    axs[i].set_xticks(np.arange(-180,181,60), crs=ccrs.PlateCarree())
+                    axs[i].set_xticks(np.arange(-180, 181, 60),
+                                      crs=ccrs.PlateCarree())
                     lon_formatter = cticker.LongitudeFormatter()
                     axs[i].xaxis.set_major_formatter(lon_formatter)
 
@@ -1545,14 +1588,14 @@ class Tropical_Rainfall:
                 fig, ax = add
             if data.size == 1:
                 plt.axhline(y=float(data.values),
-                                color=color,  label=legend,  ls=ls)
+                            color=color,  label=legend,  ls=ls)
             else:
                 if coord == 'time':
                     plt.scatter(labels_int, data,
                                 color=color,  label=legend,  ls=ls)
                 else:
                     plt.plot(labels_int,    data,
-                                color=color,  label=legend,  ls=ls)
+                             color=color,  label=legend,  ls=ls)
 
             plt.gca().xaxis.set_major_locator(plt.MaxNLocator(maxticknum))
             plt.gca().tick_params(axis='both',   which='major',    pad=10)
@@ -1799,7 +1842,7 @@ class Tropical_Rainfall:
     def plot_bias(self,         data,         preprocess=True,                  seasons=True,
                   dataset_2=None,             model_variable='tprate',          figsize=1,
                   trop_lat=None,              plot_title=None,                  new_unit=None,
-                  vmin=None,                  vmax=None,                        path_to_pdf=None,                           
+                  vmin=None,                  vmax=None,                        path_to_pdf=None,
                   name_of_file=None,          pdf_format=True):
         """ Function to plot the bias of model_variable between two datasets.
 
@@ -1824,7 +1867,7 @@ class Tropical_Rainfall:
         self.plot_seasons_or_months(data,                         preprocess=preprocess,            seasons=seasons,
                                     dataset_2=dataset_2,          model_variable=model_variable,    figsize=figsize,
                                     trop_lat=trop_lat,            plot_title=plot_title,            new_unit=new_unit,
-                                    vmin=vmin,                    vmax=vmax,                        path_to_pdf=path_to_pdf,          
+                                    vmin=vmin,                    vmax=vmax,                        path_to_pdf=path_to_pdf,
                                     name_of_file=name_of_file,    pdf_format=pdf_format)
 
     def plot_seasons_or_months(self,     data,             preprocess=True,                  seasons=True,
@@ -1972,8 +2015,9 @@ class Tropical_Rainfall:
         else:
             unit = new_unit
         # Draw the colorbar
-        cbar = fig.colorbar(im1, ticks=[-7,-5,-3,-1,1,3,5,7], ax=ax5, location='bottom' ) 
-        cbar.set_label(model_variable+", ["+str(unit)+"]", fontsize = 14)
+        cbar = fig.colorbar(
+            im1, ticks=[-7, -5, -3, -1, 1, 3, 5, 7], ax=ax5, location='bottom')
+        cbar.set_label(model_variable+", ["+str(unit)+"]", fontsize=14)
 
         if plot_title is not None:
             plt.suptitle(plot_title,                       fontsize=17)
