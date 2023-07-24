@@ -553,9 +553,8 @@ def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_cli
     Example:
 
         plot_maps(TOA_model= TOA_ifs_4km_r360x180, TOA_ceres_diff_samples = TOA_ceres_diff_samples, TOA_ceres_clim = TOA_ceres_clim, var='tsr', model_label='Cycle 3 4.4 km IFS Fesom', year='2023')
-        Use the TOA_"model"_r360x180 DataSet to ensure that the gridding is right
+        # Use the TOA_model_r360x180 DataSet to ensure that the gridding is right
         
-    Use the TOA_$model_r360x180 DataSet to ensure that the gridding is right
     """
 
     # quantiles are a bit more conservative than the range, but interpolation from few values might not be robust
