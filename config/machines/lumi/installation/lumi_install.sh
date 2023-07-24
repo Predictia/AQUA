@@ -47,7 +47,43 @@ else
   export INSTALLATION_PATH="/users/${user}/mambaforge/aqua"
 fi
 echo "Installation path has been set to ${INSTALLATION_PATH}"
+
 # End of user input
+#####################################################################
+
+# Remove the installation path from the $PATH. 
+# This is AI-based block which creates a new $PATH removing path including 'aqua'
+
+# Word to check and remove from $PATH
+word_to_remove="aqua"
+
+# Function to check if a path contains the specified word
+contains_word() {
+  [[ "$1" == *"$word_to_remove"* ]]
+}
+
+# Split the $PATH into individual components using ":" as the separator
+IFS=":" read -ra path_components <<< "$PATH"
+
+# Create a new array to store the modified path components
+new_path_components=()
+
+# Loop through each path component and check if it contains the specified word
+for component in "${path_components[@]}"; do
+  if ! contains_word "$component"; then
+    # If the component does not contain the word, add it to the new array
+    new_path_components+=("$component")
+  fi
+done
+
+# Join the new array back into a single string with ":" as the separator
+new_path=$(IFS=":"; echo "${new_path_components[*]}")
+
+# Update the $PATH variable with the new value
+export PATH="$new_path"
+
+echo "Paths containing '$word_to_remove' have been removed from \$PATH."
+
 #####################################################################
 
 # change machine name in config file
