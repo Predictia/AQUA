@@ -143,6 +143,7 @@ else
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
       rm -rf "${INSTALLATION_PATH}"
+      mkdir -p "${INSTALLATION_PATH}"
     else
       echo "Deletion cancelled."
       return 1
@@ -183,14 +184,18 @@ fi
 
 # ask if you want to add this to the bash profile
 read -p "Would you like to source load_aqua.sh in your .bash_profile? (y/n) " -n 1 -r
-echo 
+echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
   if ! grep -q 'source  ~/load_aqua.sh' ~/.bash_profile; then
     echo 'source  ~/load_aqua.sh' >> ~/.bash_profile
-  else 
+    echo 'load_aqua.sh added to your .bash_profile.'
+  else
     echo 'load_aqua.sh is already in your bash profile, not adding it again!'
   fi
-else
+elif [[ $REPLY =~ ^[Nn]$ ]]; then
   echo "source load_aqua.sh not added to .bash_profile"
+else
+  echo "Invalid response. Please enter 'y' or 'n'."
 fi
+
  
