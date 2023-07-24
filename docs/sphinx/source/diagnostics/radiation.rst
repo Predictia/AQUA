@@ -77,22 +77,22 @@ Example plots
 -------------
 
 .. figure:: figures/radiation/Gregory_Plot.png
-   :width: 200px
+   :width: 600px
    :align: center
 
-   Gregory Plot of different models and ERA5 data.
+   Figure1: Gregory Plot (temperature vs net radiation) of different models and ERA5 data.
    
 .. figure:: figures/radiation/TimeSeries.png
-   :width: 200px
+   :width: 600px
    :align: center
 
-   Time series of model biases with respect to CERES data.   
+   Figure2: Time series of model biases with respect to CERES data.   
 
 .. figure:: figures/radiation/BarPlot.png
-   :width: 200px
+   :width: 600px
    :align: center
 
-   Bar plot to show the radiation imbalances
+   Figure3: Bar plot to show the globally averaged incoming and outgoing TOA radiation.
    
    
 Available demo notebooks
