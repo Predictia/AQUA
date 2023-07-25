@@ -169,6 +169,7 @@ class FixerMixin():
                         unit = self.fixes_dictionary["defaults"]["units"]["shortname"][unit.replace('{', '').replace('}', '')]
                     self.logger.info("%s: %s --> %s", var, data[source].units, unit)
                     factor, offset = self.convert_units(data[source].units, unit, var)
+                    #self.logger.info('Factor: %s, offset: %s', factor, offset)
                     if (factor != 1.0) or (offset != 0):
                         data[source].attrs.update({"target_units": unit})
                         data[source].attrs.update({"factor": factor})
@@ -341,6 +342,7 @@ class FixerMixin():
             factor, offset (float): a factor and an offset to convert the input data (None if not needed).
         """
 
+        self.logger.info('Src unit: %s, Dst unit: %s', src, dst)
         src = self.normalize_units(src)
         dst = self.normalize_units(dst)
         factor = units(src).to_base_units() / units(dst).to_base_units()
@@ -411,11 +413,12 @@ class FixerMixin():
         if src == '1':
             return 'dimensionless'
         fix_units = self.fixes_dictionary['defaults']['units']['fix']
-        print(src)
         for key in fix_units:
             if key in src:
                 self.logger.warning('Replacing non-metpy unit %s with %s', key, fix_units[key])
-                return src.replace(key, fix_units[key])
+                src = src.replace(key, fix_units[key])
+
+        return src
 
             #src = src.replace("of", "").replace("water", "").replace("equivalent", "")
             #src = src.replace("deg C", "degC")
