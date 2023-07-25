@@ -166,7 +166,7 @@ class FixerMixin():
                 # adjust units
                 if unit:
                     if unit.count('{'):
-                        unit = self.fixes_dictionary["defaults"]["units"][unit.replace('{', '').replace('}', '')]
+                        unit = self.fixes_dictionary["defaults"]["units"]["shortname"][unit.replace('{', '').replace('}', '')]
                     self.logger.info("%s: %s --> %s", var, data[source].units, unit)
                     factor, offset = self.convert_units(data[source].units, unit, var)
                     if (factor != 1.0) or (offset != 0):
@@ -341,8 +341,8 @@ class FixerMixin():
             factor, offset (float): a factor and an offset to convert the input data (None if not needed).
         """
 
-        src = normalize_units(src)
-        dst = normalize_units(dst)
+        src = self.normalize_units(src)
+        dst = self.normalize_units(dst)
         factor = units(src).to_base_units() / units(dst).to_base_units()
 
         if factor.units == units('dimensionless'):
@@ -389,7 +389,7 @@ class FixerMixin():
         if target_units and real_units != target_units:
             d = {"src_units": data.attrs["units"], "units_fixed": 1}
             data.attrs.update(d)
-            data.attrs["units"] = normalize_units(target_units)
+            data.attrs["units"] = self.normalize_units(target_units)
             factor = data.attrs.get("factor", 1)
             offset = data.attrs.get("offset", 0)
             if factor != 1:
@@ -398,22 +398,28 @@ class FixerMixin():
                 data += offset
             log_history(data, "units changed by AQUA fixer")
             data.attrs.pop('target_units', None)
+        
+    def normalize_units(self, src):
+        """
+        Get rid of crazy grib units based on the default.yaml fix file
 
-
-def normalize_units(src):
-    """
-    Get rid of crazy grib units: this is a collection of HACK and need to be improved
-    We might want to introdue a dictionary of unit fixes read from dictionary
-    """
-    if src == '1':
-        return 'dimensionless'
-    else:
+        Arguments:
+            src (str): input unit to be fixed
+        """
         src = str(src)
-        src = src.replace("of", "").replace("water", "").replace("equivalent", "")
-        src = src.replace("deg C", "degC")
-        src = src.replace("mm 3h-1", "mm/(3h)") #MSWEP fix
-        return src
 
+        if src == '1':
+            return 'dimensionless'
+        fix_units = self.fixes_dictionary['defaults']['units']['fix']
+        print(src)
+        for key in fix_units:
+            if key in src:
+                self.logger.warning('Replacing non-metpy unit %s with %s', key, fix_units[key])
+                return src.replace(key, fix_units[key])
+
+            #src = src.replace("of", "").replace("water", "").replace("equivalent", "")
+            #src = src.replace("deg C", "degC")
+            #src = src.replace("mm 3h-1", "mm/(3h)") #MSWEP fix
 
 def units_extra_definition():
     """Add units to the pint registry"""

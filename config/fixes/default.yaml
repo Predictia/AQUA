@@ -6,9 +6,19 @@ defaults:
     dst_datamodel: cds
 
     units:
-        mass_flux:  kg m-2 s-1
-        radiation_flux: W m-2
-        temperature: K
+        # these are units to be used in fixes to simplify fixes
+        shortname:
+            mass_flux:  kg m-2 s-1
+            radiation_flux: W m-2
+            temperature: K
+        # in the case you have strange units not recognized by the metpy
+        # you add them here
+        fix:
+            'deg C': 'degC'
+            'mm 3h-1': 'mm/(3h)'
+            'm of water equivalent': 'm'
+            'm of water': 'm'
+
 
     
     
