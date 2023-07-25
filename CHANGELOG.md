@@ -7,6 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Environment simplified, dependencies are now mostly on the pyproject file (A simpler environment.yml #286)
+- Intake esm functionality added back (Fix intake-esm #287)
+- Intake esm tests (Test also intake-esm #335)
+- Yaml dependencies removed (Logger and yaml issues in util.py #334)
+- Log history working for iterators as well (Logger and yaml issues in util.py #334)
+- Util refactor (Utility refactor #405)
+- Fixer at reader level (Fixes at Reader level #244)
+
 ## [v0.2-beta]
 
 This is the `AQUA` version part of the Deliverable D340.7.1.2. 
