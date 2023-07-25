@@ -321,7 +321,8 @@ def new_time_coordinate(data, dummy_data, freq=None, time_length=None, factor=No
         if data.time == dummy_data.time:
             return data.time
         else:
-            raise ValueError('The two datasets have different time coordinates')
+            raise ValueError(
+                'The two datasets have different time coordinates')
 
 
 def new_space_coordinate(data, coord_name, new_length):
