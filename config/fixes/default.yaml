@@ -19,6 +19,7 @@ defaults:
             'm of water equivalent': 'm'
             'm of water': 'm'
             'C':  'degC'
+            '(0 - 1)': 'frac'
 
 
     
