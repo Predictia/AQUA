@@ -17,6 +17,7 @@ defaults:
             'deg C': 'degC'
             'mm 3h-1': 'mm/(3h)'
             'm of water equivalent': 'm'
+            'm of water s**-1': 'm s**-1'
             'm of water': 'm'
             'C':  'degC'
             '(0 - 1)': 'frac'
