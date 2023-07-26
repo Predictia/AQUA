@@ -416,7 +416,7 @@ class FixerMixin():
         
         fix_units = self.fixes_dictionary['defaults']['units']['fix']
         for key in fix_units:
-            if key in src:
+            if key == src:
                 self.logger.warning('Replacing non-metpy unit %s with %s', key, fix_units[key])
                 src = src.replace(key, fix_units[key])
 
