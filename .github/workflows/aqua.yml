@@ -14,6 +14,7 @@ permissions:
 
 jobs:
   aqua_test:
+    #if: contains(github.event.pull_request.labels.*.name, 'Ready to merge')
     env:
       # You can disable coverage by changing this to false. You can
       # also add other Python versions to the matrix, pinning the
@@ -47,7 +48,7 @@ jobs:
       - name: Setup Micromamba
         uses: mamba-org/setup-micromamba@v1
         with:
-          environment-file: environment.yml
+          environment-file: environment-common.yml 
           environment-name: aqua
           cache-downloads: true
           cache-environment: true

@@ -40,12 +40,13 @@ dependencies = [
     "metpy",
     "numpy",
     "pandas",
+    "pydantic<2.0.0",
     "pyYAML",
     "ruamel.yaml",
     "sparse",
     "xarray",
     "smmregrid",
-    "one_pass@git+https://oauth2:-nnxqtXxyrs3LrJubtH1@earth.bsc.es/gitlab/digital-twins/de_340/one_pass.git",
+    "one_pass@git+https://oauth2:-nnxqtXxyrs3LrJubtH1@earth.bsc.es/gitlab/digital-twins/de_340/one_pass.git@v0.3.3",
     "pyfdb@git+https://github.com/ecmwf/pyfdb.git@master",
     "gsv@git+https://oauth2:NrMi_dshtmNeaWy9F3sz@earth.bsc.es/gitlab/digital-twins/de_340/gsv_interface.git"
 ]
@@ -98,7 +99,8 @@ markers = [
     "aqua: mark test as AQUA framework",
     "slow: tests which are slow",
     "sbatch: tests which require sbatch",
-    "dummy: mark test for dummy diagnostic"
+    "dummy: mark test for dummy diagnostic",
+    "teleconnections: mark test for teleconnections diagnostic"
 ]
 
 # This appears to be the correct configuration, but for some reason
