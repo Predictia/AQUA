@@ -109,7 +109,7 @@ class FixerMixin():
         varlist = {}
         variables = fix.get("vars", None)
         # loop on fixes: this is done even if the underlying variables are not 
-        # in the required source. 
+        # in the required source.
         if variables:
             for var in variables:
                 tgt_units = None
@@ -124,7 +124,8 @@ class FixerMixin():
                     try:
                         attributes.update(get_eccodes_attr(var))
                         shortname = attributes.get("shortName", None)
-                        if shortname not in ['~', shortname]:
+                        self.logger.info("Grib variable %s, shortname is %s", varname, shortname)
+                        if varname not in ['~', shortname]:
                             self.logger.info("For grib variable %s find eccodes shortname %s, replacing it", var, shortname)
                             varname = shortname
                         self.logger.info("Grib attributes for %s: %s", varname, attributes)
