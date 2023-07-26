@@ -1,10 +1,9 @@
 """Utility functions for getting the configuration."""
 import os
-import sys
 from .yaml import load_yaml
 
 
-def get_config_dir(filename='config.yaml'):
+def get_config_dir(filename='config-aqua.yaml'):
     """
     Return the path to the configuration directory,
     searching in a list of pre-defined directories.
@@ -13,7 +12,7 @@ def get_config_dir(filename='config.yaml'):
 
     Args:
         filename (str): the name of the configuration file
-                        Default is 'config.yaml'
+                        Default is 'config-aqua.yaml'
 
     Returns:
         configdir (str): the dir of the catalog file and other config files
@@ -55,12 +54,12 @@ def get_machine(configdir):
         The name of the machine read from the configuration file
     """
 
-    config_file = os.path.join(configdir, "config.yaml")
+    config_file = os.path.join(configdir, "config-aqua.yaml")
     if os.path.exists(config_file):
-        base = load_yaml(os.path.join(configdir, "config.yaml"))
+        base = load_yaml(config_file)
         return base['machine']
     else:
-        sys.exit('Cannot find the basic configuration file!')
+        raise FileNotFoundError(f'Cannot find the basic configuration file {config_file}!')
 
 
 def get_reader_filenames(configdir, machine):
@@ -74,20 +73,20 @@ def get_reader_filenames(configdir, machine):
         Three strings for the path of the catalog, regrid and fixer files
     """
 
-    config_file = os.path.join(configdir, "config.yaml")
+    config_file = os.path.join(configdir, "config-aqua.yaml")
     if os.path.exists(config_file):
-        base = load_yaml(os.path.join(configdir, "config.yaml"))
+        base = load_yaml(os.path.join(configdir, "config-aqua.yaml"))
         catalog_file = base['reader']['catalog'].format(machine=machine,
                                                         configdir=configdir)
         if not os.path.exists(catalog_file):
-            sys.exit(f'Cannot find catalog file in {catalog_file}')
+            raise FileNotFoundError(f'Cannot find catalog file in {catalog_file}')
         regrid_file = base['reader']['regrid'].format(machine=machine,
                                                       configdir=configdir)
         if not os.path.exists(regrid_file):
-            sys.exit(f'Cannot find catalog file in {regrid_file}')
+            raise FileNotFoundError(f'Cannot find catalog file in {regrid_file}')
         fixer_folder = base['reader']['fixer'].format(machine=machine,
                                                       configdir=configdir)
         if not os.path.exists(fixer_folder):
-            sys.exit(f'Cannot find catalog file in {fixer_folder}')
+            raise FileNotFoundError(f'Cannot find catalog file in {fixer_folder}')
 
     return catalog_file, regrid_file, fixer_folder, config_file
