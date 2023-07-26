@@ -1,10 +1,15 @@
 # At the moment diagnostics have to create their own environment
 # with the required dependencies.
+# To install the diagnostic in a new conda environment run:
+# conda env create -f env-dummy.yml
+# To install the diagnostic in an existing conda environment run:
+# conda env update -f env-dummy.yml
+# To activate the environment run:
+# conda activate dummy-diagnostic
 
-name: dummy-diagnostic
+name: dummy
 channels:
   - conda-forge
-  - numba
 # please note that some of these dependencies are made explicit on purpose, but are not directly required by conda/mamba
 dependencies:
   - python>=3.9,<3.11
@@ -14,6 +19,6 @@ dependencies:
   - pip
   - pip:
     # pip install -e of AQUA itself
-    - -e ./../../[tests] # this is the path to the AQUA root folder
+    - -e ./../../[all] # this is the path to the AQUA root folder
     # these below are only required for the dummy diagnostic
     # - dummy-pip-package
