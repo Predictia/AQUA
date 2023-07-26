@@ -412,6 +412,7 @@ class FixerMixin():
 
         if src == '1':
             return 'dimensionless'
+        
         fix_units = self.fixes_dictionary['defaults']['units']['fix']
         for key in fix_units:
             if key in src:
@@ -419,10 +420,6 @@ class FixerMixin():
                 src = src.replace(key, fix_units[key])
 
         return src
-
-            #src = src.replace("of", "").replace("water", "").replace("equivalent", "")
-            #src = src.replace("deg C", "degC")
-            #src = src.replace("mm 3h-1", "mm/(3h)") #MSWEP fix
 
 def units_extra_definition():
     """Add units to the pint registry"""
