@@ -138,6 +138,7 @@ class FixerMixin():
                         log_history(data[source], "variable derived by AQUA fixer")
                     except KeyError:
                         # The variable could not be computed, let's skip it
+                        self.logger.error('"Derived variable %s cannot be computed!')
                         continue
 
                 # Get extra attributes if any

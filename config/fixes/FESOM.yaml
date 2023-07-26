@@ -16,9 +16,7 @@ models:
                         units: '%'
                     sst: 
                         derived: sst
-                        src_units: degC
                         grib: true
-                        units: K
                     sos:
                         derived: sss
                         grib: true
