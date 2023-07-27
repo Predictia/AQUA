@@ -5,12 +5,15 @@
 
 # To load AQUA-common environment
 singularity shell  \
- --env FDB5_CONFIG_FILE=/scratch/project_465000454/sughosh/config.yaml \
+ --cleanenv \
+ --env FDB5_CONFIG_FILE=/scratch/project_465000454/igonzalez/fdb-long/config.yaml \
  --env GSV_WEIGHTS_PATH=/scratch/project_465000454/igonzalez/gsv_weights/ \
  --env GRID_DEFINITION_PATH=/scratch/project_465000454/igonzalez/grid_definitions \
+ --env ESMFMKFILE=/opt/conda/lib/esmf.mk \
  --bind /pfs/lustrep3/scratch/project_465000454 \
  --bind /scratch/project_465000454 \
  /scratch/project_465000454/sughosh/containers/aqua0.1.sif
+
 
 #for different FDB config files export specific FDB5_CONFIG_FILE.
 
