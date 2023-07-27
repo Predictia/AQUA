@@ -76,7 +76,7 @@ if __name__ == '__main__':
 
                     # create the catalog entry
                     entry_name = opa_catalog_entry(datadir=opadir, model=model, source=source,
-                                                   exp=exp, frequency='monthly')
+                                                   exp=exp, frequency=frequency)
 
 
                     print(f'Netcdf files found in {opadir}: Launching LRA')
