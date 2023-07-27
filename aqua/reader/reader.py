@@ -448,7 +448,7 @@ class Reader(FixerMixin, RegridMixin):
         log_history(out, "regridded by AQUA regridder")
         return out
 
-    def timmean(self, data, freq=None):
+    def timmean(self, data, freq=None, time_bounds=False):
         """
         Perform daily and monthly averaging
 
@@ -456,6 +456,7 @@ class Reader(FixerMixin, RegridMixin):
             data (xr.Dataset):  the input xarray.Dataset
             freq (str):         the frequency of the averaging.
                                 Defaults to None
+            time_bound (bool):  option to create the time bounds
         Returns:
             A xarray.Dataset containing the time averaged data.
         """
@@ -477,20 +478,29 @@ class Reader(FixerMixin, RegridMixin):
             # resample
             self.logger.info('Resamplig to %s frequency...', str(resample_freq))
             out = data.resample(time=resample_freq).mean()
-            # for now, we set initial time of the averaging period following
-            # ECMWF standard
-            # HACK: we ignore hours/sec to uniform the output structure
-            #proper_time = data.time.resample(time=resample_freq).min()
-            #out['time'] = np.array(proper_time.values, dtype='datetime64[h]')
-            out['time'] = data.time.resample(time=resample_freq).min().dt.floor('D')
-        except ValueError:
-            raise ValueError('Cant find a frequency to resample, aborting!')
+        except ValueError as exc:
+            raise ValueError('Cant find a frequency to resample, aborting!') from exc
+        
+        # set time as the first timestamp of each month/day according to the sampling frequency
+        out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
 
-        # check for NaT
+        # check time is correct
         if np.any(np.isnat(out.time)):
             raise ValueError('Resampling cannot produce output for all frequency step, is your input data correct?')
 
         log_history(out, f"resampled to frequency {resample_freq} by AQUA timmean")
+
+        # add a variable to create time_bounds
+        if time_bounds:
+            resampled = data.time.resample(time=resample_freq)
+            time_bnds = xr.concat([resampled.min(),  resampled.max()], dim='bnds').transpose()
+            time_bnds['time'] = out.time
+            time_bnds.name = 'time_bnds'
+            out = xr.merge([out, time_bnds])
+            if np.any(np.isnat(out.time_bnds)):
+                raise ValueError('Resampling cannot produce output for all time_bnds step!')
+            log_history(out, "time_bnds added by by AQUA timmean")
+       
         return out
 
     def _check_if_regridded(self, data):
