@@ -12,14 +12,15 @@ defaults:
             radiation_flux: W m-2
             temperature: K
         # in the case you have strange units not recognized by the metpy
-        # you add them here
+        # you can add them here
         fix:
+            '1': 'dimensionless'
             'deg C': 'degC'
             'mm 3h-1': 'mm/(3h)'
             'm of water equivalent': 'm'
             'm of water s**-1': 'm s**-1'
             'm of water': 'm'
-            'C':  'degC'
+            'C': 'degC'
             '(0 - 1)': 'frac'
 
 

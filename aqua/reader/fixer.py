@@ -440,16 +440,14 @@ class FixerMixin():
             src (str): input unit to be fixed
         """
         src = str(src)
-
-        if src == '1':
-            return 'dimensionless'
-
-        fix_units = self.fixes_dictionary['defaults']['units']['fix']
+        fix_units = self.fixes_dictionary['defaults']['units']['fix']        
         for key in fix_units:
             if key == src:
+                # return fixed
                 self.logger.warning('Replacing non-metpy unit %s with %s', key, fix_units[key])
-                src = src.replace(key, fix_units[key])
+                return src.replace(key, fix_units[key])
 
+        # return not fixed
         return src
 
 def units_extra_definition():
