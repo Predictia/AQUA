@@ -3,90 +3,98 @@ import os
 from .yaml import load_yaml
 
 
-def get_config_dir(filename='config-aqua.yaml'):
+class ConfigPath():
+
     """
-    Return the path to the configuration directory,
-    searching in a list of pre-defined directories.
-
-    Generalized to work for config files with different names.
-
-    Args:
-        filename (str): the name of the configuration file
-                        Default is 'config-aqua.yaml'
-
-    Returns:
-        configdir (str): the dir of the catalog file and other config files
-
-    Raises:
-        FileNotFoundError: if no config file is found in the predefined folders
+    Class to set the configuration path and dir in a robust way
     """
 
-    configdirs = []
+    def __init__(self, configdir=None, filename='config-aqua.yaml'):
 
-    # if AQUA is defined
-    aquadir = os.environ.get('AQUA')
-    if aquadir:
-        configdirs.append(os.path.join(aquadir, 'config'))
+        self.filename = filename
+        if not configdir:
+            self.configdir = self.get_config_dir()
+        else:
+            self.configdir = configdir
+        self.config_file = os.path.join(self.configdir, self.filename)
+        self.machine = self.get_machine()
 
-    # set of predefined folders to browse
-    configdirs.extend(['./config', '../config', '../../config', '../../../config'])
+    def get_config_dir(self):
+        """
+        Return the path to the configuration directory,
+        searching in a list of pre-defined directories.
 
-    # if the home is defined
-    homedir = os.environ.get('HOME')
-    if homedir:
-        configdirs.append(os.path.join(homedir, '.aqua', 'config'))
+        Generalized to work for config files with different names.
 
-    # autosearch
-    for configdir in configdirs:
-        if os.path.exists(os.path.join(configdir, filename)):
-            return configdir
+        Returns:
+            configdir (str): the dir of the catalog file and other config files
 
-    raise FileNotFoundError(f"No config file {filename} found in {configdirs}")
+        Raises:
+            FileNotFoundError: if no config file is found in the predefined folders
+        """
+
+        configdirs = []
+
+        # if AQUA is defined
+        aquadir = os.environ.get('AQUA')
+        if aquadir:
+            configdirs.append(os.path.join(aquadir, 'config'))
+
+        # set of predefined folders to browse
+        configdirs.extend(['./config', '../config', '../../config', '../../../config'])
+
+        # if the home is defined
+        homedir = os.environ.get('HOME')
+        if homedir:
+            configdirs.append(os.path.join(homedir, '.aqua', 'config'))
+
+        # autosearch
+        for configdir in configdirs:
+            if os.path.exists(os.path.join(configdir, self.filename)):
+                return configdir
+
+        raise FileNotFoundError(f"No config file {self.filename} found in {configdirs}")
 
 
-def get_machine(configdir):
-    """
-    Extract the name of the machine from the configuration file
+    def get_machine(self):
+        """
+        Extract the name of the machine from the configuration file
 
-    Args:
-        configdir(str): the configuration file directory
-     Returns:
-        The name of the machine read from the configuration file
-    """
+        Returns:
+            The name of the machine read from the configuration file
+        """
 
-    config_file = os.path.join(configdir, "config-aqua.yaml")
-    if os.path.exists(config_file):
-        base = load_yaml(config_file)
-        return base['machine']
-    else:
-        raise FileNotFoundError(f'Cannot find the basic configuration file {config_file}!')
+        if os.path.exists(self.config_file):
+            base = load_yaml(self.config_file)
+            try:
+                return base['machine']
+            except KeyError:
+                raise KeyError(f'Cannot find machine information in {self.config_file}')
+        else:
+            raise FileNotFoundError(f'Cannot find the basic configuration file {self.config_file}!')
 
 
-def get_reader_filenames(configdir, machine):
-    """
-    Extract the filenames for the reader for catalog, regrid and fixer
+    def get_reader_filenames(self):
+        """
+        Extract the filenames for the reader for catalog, regrid and fixer
 
-    Args:
-        configdir(str): the configuration file directory
-        machine(str): the machine on which you are running
-     Returns:
-        Three strings for the path of the catalog, regrid and fixer files
-    """
+        Returns:
+            Four strings for the path of the catalog, regrid, fixer and config files
+        """
 
-    config_file = os.path.join(configdir, "config-aqua.yaml")
-    if os.path.exists(config_file):
-        base = load_yaml(os.path.join(configdir, "config-aqua.yaml"))
-        catalog_file = base['reader']['catalog'].format(machine=machine,
-                                                        configdir=configdir)
-        if not os.path.exists(catalog_file):
-            raise FileNotFoundError(f'Cannot find catalog file in {catalog_file}')
-        regrid_file = base['reader']['regrid'].format(machine=machine,
-                                                      configdir=configdir)
-        if not os.path.exists(regrid_file):
-            raise FileNotFoundError(f'Cannot find catalog file in {regrid_file}')
-        fixer_folder = base['reader']['fixer'].format(machine=machine,
-                                                      configdir=configdir)
-        if not os.path.exists(fixer_folder):
-            raise FileNotFoundError(f'Cannot find catalog file in {fixer_folder}')
+        if os.path.exists(self.config_file):
+            base = load_yaml(self.config_file)
+            catalog_file = base['reader']['catalog'].format(machine=self.machine,
+                                                            configdir=self.configdir)
+            if not os.path.exists(catalog_file):
+                raise FileNotFoundError(f'Cannot find catalog file in {catalog_file}')
+            regrid_file = base['reader']['regrid'].format(machine=self.machine,
+                                                            configdir=self.configdir)
+            if not os.path.exists(regrid_file):
+                raise FileNotFoundError(f'Cannot find catalog file in {regrid_file}')
+            fixer_folder = base['reader']['fixer'].format(machine=self.machine,
+                                                            configdir=self.configdir)
+            if not os.path.exists(fixer_folder):
+                raise FileNotFoundError(f'Cannot find catalog file in {fixer_folder}')
 
-    return catalog_file, regrid_file, fixer_folder, config_file
+        return catalog_file, regrid_file, fixer_folder, self.config_file
