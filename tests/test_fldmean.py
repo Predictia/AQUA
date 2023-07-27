@@ -28,6 +28,16 @@ class TestFldmean():
         #assert avg[1] == pytest.approx(17.9806)
         assert avg[1] == pytest.approx(291.1306)
 
+    def test_fldmean_fesom_selection(self):
+        """Fldmean test for FESOM"""
+        reader = Reader(model="FESOM", exp="test-pi", source='original_2d', regrid='r100')
+        data = reader.retrieve()
+        data = reader.regrid(data)
+        avg = reader.fldmean(data['sst'], lon_limits=[50,90], lat_limits=[10, 40]).values
+        assert avg.shape == (2,)
+        #assert avg[1] == pytest.approx(17.9806)
+        assert avg[1] == pytest.approx(300.1865)
+
 
     def test_fldmean_healpix(self):
         """Fldmean test for FESOM"""

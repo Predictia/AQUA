@@ -26,20 +26,31 @@ def area_selection(data=None, lat=None, lon=None, **kwargs):
     """
     if data is None:
         raise ValueError('data cannot be None')
+    
+    # adding safety check since this works only with lon/lat
+    if not "lon" in data.coords and not "lat" in data.coords:
+        raise KeyError('Cannot find lon and lat in the coordinates, cannot perform area selection')
 
     lon, lat = check_coordinates(lon=lon, lat=lat, **kwargs)
 
     box_brd = kwargs.get('box_brd', True)
+    # Selection based on box_brd
     if box_brd:
-        if lat:
-            data = data.where((data.lat >= lat[0]) & (data.lat <= lat[1]))
-        if lon:
-            data = data.where((data.lon >= lon[0]) & (data.lon <= lon[1]))
-    else:  # box_brd = False
-        if lat:
-            data = data.where((data.lat > lat[0]) & (data.lat < lat[1]))
-        if lon:
-            data = data.where((data.lon > lon[0]) & (data.lon < lon[1]))
+        lat_condition = (data.lat >= lat[0]) & (data.lat <= lat[1])
+        # across Greenwich
+        if lon[0]>lon[1]:
+            lon_condition = ((data.lon >= lon[0]) & (data.lon <= 360)) | ((data.lon >= 0) & (data.lon <= lon[1]))
+        else:
+            lon_condition = (data.lon >= lon[0]) & (data.lon <= lon[1])
+    else:
+        lat_condition = (data.lat > lat[0]) & (data.lat < lat[1])
+        # across Greenwich
+        if lon[0]>lon[1]:
+            lon_condition = ((data.lon > lon[0]) & (data.lon < 360)) | ((data.lon > 0) & (data.lon < lon[1]))
+        else:
+            lon_condition = (data.lon > lon[0]) & (data.lon < lon[1])
+
+    data = data.where(lat_condition & lon_condition)
 
     return data
 
@@ -91,10 +102,10 @@ def check_coordinates(lon=None, lat=None,
 
     if lon:
         lon_min, lon_max = lon
-        if lon_min > lon_max:
-            # Swap values
-            lon = [lon_max, lon_min]
-            lon_min, lon_max = lon
+        # if lon_min > lon_max:
+        #     # Swap values
+        #     lon = [lon_max, lon_min]
+        #     lon_min, lon_max = lon
 
         logger.debug('lon_min={}, lon_max={}'.format(lon_min, lon_max))
 
