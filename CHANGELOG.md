@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased is the current development version.
+- Add support for area selection with fldmean (Fldmean box selection #409)
 
 ## [v0.2-alpha]
 

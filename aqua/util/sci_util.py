@@ -6,6 +6,7 @@ def area_selection(data=None, lat=None, lon=None, **kwargs):
     """
         Extract a custom area from a DataArray.
         Sets other coordinates to NaN.
+        Works on coordinates from 0 to 360, but converts different requests
 
         Args:
             indat (xarray.DataSet):   input data to be selected
@@ -77,7 +78,7 @@ def check_coordinates(lon=None, lat=None,
         Returns:
             (list, list):  latitude and longitude coordinates
     """
-    loglevel = kwargs.get('loglevel', 'DEBUG')
+    loglevel = kwargs.get('loglevel')
     logger = log_configure(log_level=loglevel, log_name='Check coordinates')
 
     logger.debug('Input coordinates: lat={}, lon={}'.format(lat, lon))
