@@ -40,14 +40,22 @@ def area_selection(data=None, lat=None, lon=None, **kwargs):
         lat_condition = (data.lat >= lat[0]) & (data.lat <= lat[1])
         # across Greenwich
         if lon[0]>lon[1]:
-            lon_condition = ((data.lon >= lon[0]) & (data.lon <= 360)) | ((data.lon >= 0) & (data.lon <= lon[1]))
+            lon_condition = (
+                (data.lon >= lon[0]) & (data.lon <= 360)
+                ) | (
+                (data.lon >= 0) & (data.lon <= lon[1])
+                )
         else:
             lon_condition = (data.lon >= lon[0]) & (data.lon <= lon[1])
     else:
         lat_condition = (data.lat > lat[0]) & (data.lat < lat[1])
         # across Greenwich
         if lon[0]>lon[1]:
-            lon_condition = ((data.lon > lon[0]) & (data.lon < 360)) | ((data.lon > 0) & (data.lon < lon[1]))
+            lon_condition = (
+                (data.lon > lon[0]) & (data.lon < 360)
+                ) | (
+                (data.lon > 0) & (data.lon < lon[1])
+                )
         else:
             lon_condition = (data.lon > lon[0]) & (data.lon < lon[1])
 
@@ -78,11 +86,11 @@ def check_coordinates(lon=None, lat=None,
         Returns:
             (list, list):  latitude and longitude coordinates
     """
-    loglevel = kwargs.get('loglevel')
+    loglevel = kwargs.get('loglevel', 'warning')
     logger = log_configure(log_level=loglevel, log_name='Check coordinates')
 
-    logger.debug('Input coordinates: lat={}, lon={}'.format(lat, lon))
-    logger.debug('Default coordinates: {}'.format(default))
+    logger.debug('Input coordinates: lat=%s, lon=%s', lon, lat)
+    logger.debug('Default coordinates: %s', default)
 
     if lat is None and lon is None:
         raise ValueError('lat and lon cannot be both None')
@@ -95,9 +103,9 @@ def check_coordinates(lon=None, lat=None,
             lat_min, lat_max = lat
 
         if lat_min < default["lat_min"]:
-            raise ValueError('lat_min cannot be lower than {}'.format(default["lat_min"]))
+            raise ValueError(f'lat_min cannot be lower than {default["lat_min"]}')
         if lat_max > default["lat_max"]:
-            raise ValueError('lat_max cannot be higher than {}'.format(default["lat_max"]))
+            raise ValueError(f'lat_max cannot be higher than {default["lat_max"]}')
 
         lat = [lat_min, lat_max]
 
@@ -108,13 +116,13 @@ def check_coordinates(lon=None, lat=None,
         #     lon = [lon_max, lon_min]
         #     lon_min, lon_max = lon
 
-        logger.debug('lon_min={}, lon_max={}'.format(lon_min, lon_max))
+        logger.debug('lon_min=%s, lon_max=%s', lon_min, lon_max)
 
         if default["lon_min"] == 0 and default["lon_max"] == 360:
             logger.debug('Convert to [0,360] range')
             lon_min = _lon_180_to_360(lon_min)
             lon_max = _lon_180_to_360(lon_max)
-            logger.debug('lon_min={}, lon_max={}'.format(lon_min, lon_max))
+            logger.debug('lon_min=%s, lon_max=%s', lon_min, lon_max)
         elif default["lon_min"] == -180 and default["lon_max"] == 180:
             logger.debug('Convert to [-180,180] range')
             lon_min = _lon_360_to_180(lon_min)
@@ -123,13 +131,13 @@ def check_coordinates(lon=None, lat=None,
             raise ValueError('Invalid default coordinates system')
 
         if lon_min < default["lon_min"]:
-            raise ValueError('lon_min cannot be lower than {}'.format(default["lon_min"]))
+            raise ValueError(f'lon_min cannot be lower than {default["lon_min"]}')
         if lon_max > default["lon_max"]:
-            raise ValueError('lon_max cannot be higher than {}'.format(default["lon_max"]))
+            raise ValueError(f'lon_max cannot be higher than {default["lon_max"]}')
 
         lon = [lon_min, lon_max]
 
-    logger.debug('Output coordinates: lon={}, lat={}'.format(lon, lat))
+    logger.debug('Output coordinates: lat=%s, lon=%s', lon, lat)
 
     return lon, lat
 
