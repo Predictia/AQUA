@@ -1,4 +1,4 @@
-"""Utility functions for getting the configuration."""
+"""Utility functions for getting the configuration files"""
 import os
 from .yaml import load_yaml
 

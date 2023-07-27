@@ -34,10 +34,6 @@ default_space_dims = ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude',
 xr.set_options(keep_attrs=True)
 
 
-# set default options for xarray
-xr.set_options(keep_attrs=True)
-
-
 class Reader(FixerMixin, RegridMixin):
     """General reader for NextGEMS data."""
 
@@ -100,6 +96,7 @@ class Reader(FixerMixin, RegridMixin):
         self.stream = self.streamer.stream
         self.stream_generator = self.streamer.stream_generator
 
+        # define configuration file and paths
         Configurer = ConfigPath(configdir=configdir)
         self.configdir = Configurer.configdir
         self.machine = Configurer.machine
