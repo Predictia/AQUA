@@ -32,7 +32,7 @@ class RegridMixin():
         grid_area = self.cdo_generate_areas(source=dst_extra)
 
         # Make sure that grid areas contain exactly the same coordinates
-        data = self.retrieve(fix=False, regrid=True)
+        data = self.retrieve(regrid=True)
         if isinstance(data, types.GeneratorType):
             data = next(data)
 
@@ -75,7 +75,7 @@ class RegridMixin():
                                             extra=src_extra)
         # Make sure that the new DataArray uses the expected spatial dimensions
         grid_area = _rename_dims(grid_area, self.src_space_coord)
-        data = self.retrieve(fix=False, startdate=None)
+        data = self.retrieve(startdate=None)
         if isinstance(data, types.GeneratorType):
             data = next(data)
         grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.src_space_coord})
@@ -150,7 +150,7 @@ class RegridMixin():
             # let's reconstruct it from the file itself
 
             self.logger.info('Grid file is not defined, retrieving the source itself...')
-            data = self.retrieve(fix=False)
+            data = self.retrieve()
             if isinstance(data, types.GeneratorType):
                 data = next(data)
 

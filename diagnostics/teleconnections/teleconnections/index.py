@@ -1,6 +1,11 @@
 '''
 This module contains functions to evaluate teleconnection indices
 for different teleconnections.
+
+Functions:
+    station_based_index: evaluate station based index
+    regional_mean_index: evaluate regional mean index
+    regional_mean_anomalies: evaluate regional mean anomalies
 '''
 from aqua.logger import log_configure
 from teleconnections.tools import lon_180_to_360, wgt_area_mean
@@ -12,14 +17,14 @@ def station_based_index(field, namelist, telecname, months_window=3,
     Evaluate station based index for a teleconnection.
 
     Args:
-        field (DataArray):        field over which evaluate the index
+        field (xarray.DataArray): field over which evaluate the index
         namelist:                 teleconnection yaml infos
         telecname (str):          name of the teleconnection to be evaluated
         months_window (int, opt): months for rolling average, default is 3
         loglevel (str, opt):      log level, default is WARNING
 
     Returns:
-        indx (DataArray): standardized station based index
+        (xarray.DataArray): standardized station based index
     """
     # 0. -- Logging --
     logger = log_configure(loglevel, 'station based index')
@@ -78,14 +83,14 @@ def regional_mean_index(field, namelist, telecname, months_window=3,
     Evaluate regional field mean for a teleconnection.
 
     Args:
-        field (DataArray):        field over which evaluate the index
+        field (xarray.DataArray): field over which evaluate the index
         namelist:                 teleconnection yaml infos
         telecname (str):          name of the teleconnection to be evaluated
         months_window (int, opt): months for rolling average, default is 3
         loglevel (str, opt):      log level, default is WARNING
 
     Returns:
-        field mean (DataArray): field mean
+        (xarray.DataArray): regional field mean
     """
     # 0. -- Logging --
     logger = log_configure(loglevel, 'regional mean index')
@@ -104,7 +109,7 @@ def regional_mean_index(field, namelist, telecname, months_window=3,
     latN = namelist[telecname]['latN']
     latS = namelist[telecname]['latS']
 
-    logger.info('Region: lon = %s-%s, lat = %s-%s', lonW, lonE, latS, latN)
+    logger.info('Region: lon = %s; %s, lat = %s; %s', lonW, lonE, latS, latN)
 
     # 2. -- Evaluate mean value of the field and then the rolling mean --
     field_mean = wgt_area_mean(field, latN, latS, lonW, lonE)
@@ -126,14 +131,14 @@ def regional_mean_anomalies(field, namelist, telecname, months_window=3,
     Evaluate regional field mean anomalies for a teleconnection.
 
     Args:
-        field (DataArray):        field over which evaluate the index
+        field (xarray.DataArray): field over which evaluate the index
         namelist:                 teleconnection yaml infos
         telecname (str):          name of the teleconnection to be evaluated
         months_window (int, opt): months for rolling average, default is 3
         loglevel (str, opt):      log level, default is WARNING
 
     Returns:
-        field mean (DataArray): field mean
+        (xarray.DataArray): regional field mean anomalies
     """
     # 0. -- Logging --
     logger = log_configure(loglevel, 'regional mean anomalies')
@@ -152,7 +157,7 @@ def regional_mean_anomalies(field, namelist, telecname, months_window=3,
     latN = namelist[telecname]['latN']
     latS = namelist[telecname]['latS']
 
-    logger.info('Region: lon = %s-%s, lat = %s-%s', lonW, lonE, latS, latN)
+    logger.debug('Region: lon = %s; %s, lat = %s; %s', lonW, lonE, latS, latN)
 
     # 2. -- Evaluate mean value of the field and then the rolling mean --
     field_mean = wgt_area_mean(field, latN, latS, lonW, lonE)

@@ -33,8 +33,7 @@ class Teleconnection():
                  savefile=False, outputdir=None,
                  filename=None,
                  months_window: int = 3, loglevel: str = 'WARNING'):
-        """Initialize teleconnection object.
-
+        """
         Args:
             model (str):                    Model name.
             exp (str):                      Experiment name.
@@ -158,12 +157,16 @@ class Teleconnection():
         """Run teleconnection analysis.
 
         The analysis consists of:
+
         - Retrieving the data
+
         - Evaluating the teleconnection index
+
         - Evaluating the regression
+
         - Evaluating the correlation
 
-        This methods can be also run separately.
+        These methods can be also run separately.
         """
 
         self.logger.debug('Running teleconnection analysis for data: {}/{}/{}'
@@ -177,7 +180,11 @@ class Teleconnection():
         self.logger.info('Teleconnection analysis completed')
 
     def retrieve(self, var=None, **kwargs):
-        """Retrieve teleconnection data.
+        """Retrieve teleconnection data with the AQUA reader.
+        The data is saved as teleconnection attribute and can be accessed
+        with self.data.
+        If var is not None, the data is not saved as teleconnection attribute
+        and can be accessed with the returned value.
 
         Args:
             var (str, optional): Variable to be retrieved.
@@ -204,8 +211,6 @@ class Teleconnection():
                 if self.freq == 'monthly':
                     self.data = self.reader.timmean(self.data)
                     self.logger.info('Time aggregated to {}'.format(self.freq))
-
-            return
         else:
             try:
                 data = self.reader.retrieve(var=var, **kwargs)
@@ -226,14 +231,18 @@ class Teleconnection():
 
             return data
 
-    def evaluate_index(self, **kwargs):
-        """Calculate teleconnection index.
+    def evaluate_index(self, rebuild=False, **kwargs):
+        """Evaluate teleconnection index.
+        The index is saved as teleconnection attribute and can be accessed
+        with self.index.
 
         Args:
+            rebuild (bool, optional): If True, the index is recalculated.
+                                      Default is False.
             **kwargs: Keyword arguments to be passed to the index function.
         """
 
-        if self.index is not None:
+        if self.index is not None and not rebuild:
             self.logger.warning('Index already calculated, skipping')
             return
 
@@ -273,21 +282,30 @@ class Teleconnection():
             self.index.to_netcdf(file)
             self.logger.info('Index saved to {}'.format(file))
 
-    def evaluate_regression(self, data=None, var=None, dim='time'):
-        """Evaluate teleconnection regression
+    def evaluate_regression(self, data=None, var=None, dim='time',
+                            rebuild=False):
+        """Evaluate teleconnection regression.
+        If var is None, the regression is calculated between the teleconnection
+        index and the teleconnection variable. The regression is saved as
+        teleconnection attribute and can be accessed with self.regression.
+        If var is not None, the regression is calculated between the teleconnection
+        index and the specified variable. The regression is not saved as
+        teleconnection attribute and can be accessed with the returned value.
 
         Args:
             data (xarray.DataArray, optional): Data to be used for regression.
                                                If None, the data used for the index is used.
-            var (str, optional): Variable to be used for regression.
-                                  If None, the variable used for the index is used.
-            dim (str, optional): Dimension to be used for regression.
-                                  Default is 'time'.
+            var (str, optional):               Variable to be used for regression.
+                                               If None, the variable used for the index is used.
+            dim (str, optional):               Dimension to be used for regression.
+                                               Default is 'time'.
+            rebuild (bool, optional):          If True, the regression is recalculated.
+                                               Default is False.
 
         Returns:
             xarray.DataArray: Regression map if var is not None.
         """
-        if self.regression is not None and var is None:
+        if self.regression is not None and var is None and not rebuild:
             self.logger.warning('Regression already calculated, skipping')
             return
 
@@ -327,21 +345,30 @@ class Teleconnection():
         else:
             return reg
 
-    def evaluate_correlation(self, data=None, var=None, dim='time'):
-        """Evaluate teleconnection correlation
+    def evaluate_correlation(self, data=None, var=None, dim='time',
+                             rebuild=False):
+        """Evaluate teleconnection correlation.
+        If var is None, the correlation is calculated between the teleconnection
+        index and the teleconnection variable. The correlation is saved as
+        teleconnection attribute and can be accessed with self.correlation.
+        If var is not None, the correlation is calculated between the teleconnection
+        index and the specified variable. The correlation is not saved as
+        teleconnection attribute and can be accessed with the returned value.
 
         Args:
             data (xarray.DataArray, optional): Data to be used for correlation.
                                                If None, the data used for the index is used.
-            var (str, optional): Variable to be used for correlation.
-                                  If None, the variable used for the index is used.
-            dim (str, optional): Dimension to be used for correlation.
-                                  Default is 'time'.
+            var (str, optional):               Variable to be used for correlation.
+                                               If None, the variable used for the index is used.
+            dim (str, optional):               Dimension to be used for correlation.
+                                               Default is 'time'.
+            rebuild (bool, optional):          If True, the correlation is recalculated.
+                                               Default is False.
 
         Returns:
             xarray.DataArray: Correlation map if var is not None.
         """
-        if self.correlation is not None and var is None:
+        if self.correlation is not None and var is None and not rebuild:
             self.logger.warning('Correlation already calculated, skipping')
             return
 

@@ -10,21 +10,24 @@ from aqua.logger import log_configure
 class SeaIceExtent:
     """Sea ice extent class"""
 
-    def __init__(self, loglevel: str = 'WARNING', threshold=0.15,
-                 regions="../regions.yml"):
+    def __init__(self, loglevel: str = 'ERROR', threshold=0.15,
+                 regions="../regions.yml", outputdir = "./NetCDF"):
         """
         The SeaIceExtent constructor.
 
         Args:
-            loglevel (str): The log level
-                            Default: WARNING
-            threshold (float): The sea ice extent threshold
-                               Default: 0.15
-            regions (str): The path to the regions.yml file
-                           Default: ../regions.yml
+            loglevel (str):     The log level
+                                Default: WARNING
+            threshold (float):  The sea ice extent threshold
+                                Default: 0.15
+            regions (str):      The path to the regions.yml file
+                                Default: ../regions.yml
+            outputdir (str):    The path to the folder where outputs (NetCDF) will be stored
+                                Default: ./NetCDF
 
         Returns:
             A SeaIceExtent object.
+        
         """
 
         # Configure logger
@@ -35,6 +38,7 @@ class SeaIceExtent:
         self.myRegions = None
         self.nRegions = None
         self.thresholdSeaIceExtent = threshold
+        self.outputdir = outputdir
 
     def configure(self,
                   mySetups=[["IFS", "tco1279-orca025-cycle3",
@@ -50,6 +54,7 @@ class SeaIceExtent:
                       A setup = model, experiment, source
             myRegions: A list of regions to analyse.
                        See regions.yml file for the full list.
+        
         """
 
         self.nRegions = len(myRegions)
@@ -187,11 +192,11 @@ class SeaIceExtent:
 
         fig.tight_layout()
         for fmt in ["png", "pdf"]:
-            outputDir = "./PDF/" + str(fmt) + "/"
+            outputdir = "./PDF/" + str(fmt) + "/"
 
-            create_folder(outputDir, loglevel=self.loglevel)
-
-            fig.savefig(outputDir + "figSIE." + fmt, dpi=300)
+            create_folder(outputdir, loglevel=self.loglevel)
+            figName = "SeaIceExtent_" + "all_models" + "." + fmt
+            fig.savefig(outputdir + "/" + figName, dpi=300)
 
     def createNetCDF(self):
         """
@@ -213,8 +218,8 @@ class SeaIceExtent:
                     varName = f"{setup[0]}_{setup[1]}_{setup[2]}_{region.replace(' ', '')}"
                     dataset[varName] = self.myExtents[js][jr]
 
-                    outputDir = "./NetCDF/"
-                    create_folder(outputDir, loglevel=self.loglevel)
+                    outputdir = self.outputdir
+                    create_folder(outputdir, loglevel=self.loglevel)
 
-                    dataset.to_netcdf(outputDir + "/" + "seaIceExtent_" +
+                    dataset.to_netcdf(outputdir + "/" + "seaIceExtent_" +
                                       "_".join([s for s in setup]) + ".nc")
