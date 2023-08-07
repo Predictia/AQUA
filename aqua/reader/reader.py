@@ -123,8 +123,8 @@ class Reader(FixerMixin, RegridMixin):
         cfg_regrid = load_yaml(self.regrid_file)
         source_grid_id = check_catalog_source(cfg_regrid["source_grids"],
                                               self.model, self.exp, source, name='regrid')
-        source_grid = cfg_regrid['grids'][cfg_regrid['source_grids'][self.model][self.exp][source_grid_id]['grid']]
-        source_grid_name = cfg_regrid['source_grids'][self.model][self.exp][source_grid_id]['grid']
+        source_grid = cfg_regrid['grids'][cfg_regrid['source_grids'][self.model][self.exp][source_grid_id]]
+        source_grid_name = cfg_regrid['source_grids'][self.model][self.exp][source_grid_id]
 
         # Normalize vert_coord to list
         self.vert_coord = source_grid.get("vert_coord", "2d")  # If not specified we assume that this is only a 2D case
