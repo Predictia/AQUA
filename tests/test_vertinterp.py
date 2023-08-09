@@ -14,7 +14,9 @@ def test_vertinterp():
     select = data.isel(time=0)
 
     # dataarray access
-    interp = reader.vertinterp(select['ocpt'], levels=10, units='m', vert_coord='nz1')
+    interp = reader.vertinterp(select['ocpt'], levels=10, units='m',
+                               vert_coord='nz1')
+
     assert pytest.approx(interp[40:41].values[0]) == -1.09438590
 
     # dataset access

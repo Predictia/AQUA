@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   aqua_test:
-    if: contains(github.event.pull_request.labels.*.name, 'Ready to merge')
+    #if: contains(github.event.pull_request.labels.*.name, 'Ready to merge')
     env:
       # You can disable coverage by changing this to false. You can
       # also add other Python versions to the matrix, pinning the
@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10"]
+        python-version: ["3.11"]
     defaults:
       run:
         # NOTE: We must take care with the shell value here. We have steps
@@ -54,7 +54,6 @@ jobs:
           cache-environment: true
           condarc: |
             channels:
-              - numba
               - conda-forge
           create-args: >-
               python=${{ matrix.python-version }}

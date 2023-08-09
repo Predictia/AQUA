@@ -9,7 +9,7 @@ loglevel = "DEBUG"
 @pytest.fixture
 def reader_instance():
     return Reader(model="FESOM", exp="test-pi", source="original_2d",
-                  regrid="r200", loglevel=loglevel)
+                  regrid="r200", fix=False, loglevel=loglevel)
 
 # aqua class for tests
 @pytest.mark.aqua
@@ -38,7 +38,7 @@ class TestAqua:
         Test the initialization of the Reader class
         """
         reader = Reader(model="FESOM", exp="test-pi", source="original_2d",
-                        configdir="config", loglevel=loglevel)
+                        configdir="config", fix=False, loglevel=loglevel)
         assert reader.model == "FESOM"
         assert reader.exp == "test-pi"
         assert reader.source == "original_2d"
@@ -48,15 +48,16 @@ class TestAqua:
         """
         Test if the retrieve method returns data with the expected shape
         """
-        data = reader_instance.retrieve(fix=False)
+        data = reader_instance.retrieve()
         assert len(data) > 0
         assert data.a_ice.shape == (2, 3140)
 
     def test_regrid_data(self, reader_instance):
         """
-        Test if the regrid method returns data with the expected shape and values
+        Test if the regrid method returns data with the expected
+        shape and values
         """
-        data = reader_instance.retrieve(fix=False)
+        data = reader_instance.retrieve()
         sstr = reader_instance.regrid(data["sst"][0:2, :])
         assert sstr.shape == (2, 90, 180)
         assert np.nanmean(sstr[0, :, :].values) == pytest.approx(13.350324258783935, rel=approx_rel)
@@ -64,9 +65,10 @@ class TestAqua:
 
     def test_fldmean(self, reader_instance):
         """
-        Test if the fldmean method returns data with the expected shape and values
+        Test if the fldmean method returns data with the expected
+        shape and values
         """
-        data = reader_instance.retrieve(fix=False)
+        data = reader_instance.retrieve()
         global_mean = reader_instance.fldmean(data.sst[:2, :])
         assert global_mean.shape == (2,)
         assert global_mean.values[0] == pytest.approx(17.99434183,
@@ -87,8 +89,8 @@ class TestAqua:
         """
         Test if the Reader class works with different combinations of arguments
         """
-        model, exp, source, regrid, variable = reader_arguments
+        model, exp, source, regrid, _ = reader_arguments
         reader = Reader(model=model, exp=exp, source=source, regrid=regrid,
-                        loglevel=loglevel)
-        data = reader.retrieve(fix=False)
+                        fix=False, loglevel=loglevel)
+        data = reader.retrieve()
         assert len(data) > 0

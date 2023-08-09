@@ -5,11 +5,11 @@ Overview of AQUA
 ----------------
 
 AQUA (Climate DT Applications for Quality assessment, and Uncertainty quAntification)
- is a model evaluation framework designed for running diagnostics on high-resolution climate models,  
- also known as Digital Twins of Earth. The package provides a flexible and efficient framework to process 
- and analyze large volumes of climate data. 
- With its modular design, AQUA offers seamless integration of core functions and a wide range of diagnostic 
- tools that can be run in parallel.
+is a model evaluation framework designed for running diagnostics on high-resolution climate models,  
+also known as Digital Twins of Earth. The package provides a flexible and efficient framework to process 
+and analyze large volumes of climate data. 
+With its modular design, AQUA offers seamless integration of core functions and a wide range of diagnostic 
+tools that can be run in parallel.
 
 Purpose and Scope
 -----------------
