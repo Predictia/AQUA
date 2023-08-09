@@ -22,7 +22,7 @@ class TestLRA():
         model, exp, source, var, outdir = lra_arguments
         test = LRAgenerator(model=model, exp=exp, source=source, var=var,
                             outdir=outdir, resolution='r100',
-                            frequency='monthly', loglevel=loglevl)
+                            frequency='monthly', loglevel=loglevel)
         test.retrieve()
         test.generate_lra()
         assert os.path.isdir(os.path.join(os.getcwd(), outdir,
