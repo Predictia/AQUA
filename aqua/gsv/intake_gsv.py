@@ -1,6 +1,7 @@
 import sys
 import xarray as xr
 from intake.source import base
+from .timeutil import compute_date, compute_steps, check_dates
 
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
@@ -19,23 +20,43 @@ class GSVSource(base.DataSource):
     version = '0.0.1'
     partition_access = True
 
-    def __init__(self, request, timestyle="date", aggregation="D", timestep=3600, startdate=None, enddate=None, var='167', metadata=None, **kwargs):
+    def __init__(self, request, start_date, end_date, timestyle="date", aggregation="D", timestep=3600, startdate=None, enddate=None, var='167', metadata=None, **kwargs):
+
+        if not startdate:
+            startdate = start_date
+        if not enddate:
+            enddate = end_date
+        
+        check_dates(startdate, start_date, enddate, end_date)
+        print("dates ok")
+
         self.timestyle = timestyle
         self.aggregation = aggregation
         self.timestep = timestep
+        self.startdate = startdate
+        self.enddate = enddate
+        self.starttime = "0000"
+        self.endtime = "0000"
+        self._var = var
 
         self._request = request
         self._kwargs = kwargs
         
+        print("timestyle", timestyle, " aggregation", aggregation, "timestep", timestep)
         # if startdate and enddate:
         if timestyle == "step":
                 self._steps = make_step_range(request, startdate, enddate, timestep)
                 self._dates = None
                 ndates = len(self._steps)
         else:  # timestyle=="date"
-                self._dates = make_date_list(startdate, enddate, aggregation=aggregation)
-                self._steps = None
-                ndates = len(self._dates)
+                print("computing steps")
+                ndates = compute_steps(startdate, enddate, aggregation, starttime="0000", endtime="0000")
+                print("ndates", ndates)
+
+        #         self._dates = make_date_list(startdate, enddate, aggregation=aggregation)
+        #         self._steps = None
+        #         ndates = len(self._dates)
+
         #else:
         #    ndates = 1  # read only one
         #    self._dates = None
@@ -43,6 +64,7 @@ class GSVSource(base.DataSource):
         #self._var = var
 
         self._npartitions = ndates
+
         if gsv_available:
             self.gsv = GSVRetriever()
         else:
@@ -63,12 +85,18 @@ class GSVSource(base.DataSource):
         )
 
     def _get_partition(self, i):
-        if self._dates:
-            self._request["date"] = self._dates[i]
-        elif self._steps:
-            self._request["step"] = self._steps[i]
+        # if self._dates:
+        #     self._request["date"] = self._dates[i]
+        # elif self._steps:
+        #     self._request["step"] = self._steps[i]
+
+        if self.timestyle == "date":
+            dd, tt = compute_date(self.startdate, self.starttime, self.aggregation, i)
+            self._request["date"] = dd
+            self._request["time"] = tt
         if self._var:  # if no var provided keep the default in the catalogue
             self._request["param"] = self._var
+        print(self._request)
         dataset = self.gsv.request_data(self._request)
         return dataset
 
@@ -146,33 +174,4 @@ def make_date_list2(start, end, aggregation="M", numsteps=1):
 
     return date_list
 
-
-def compute_date(startdate, starttime, step, n):
-    # This maps step to timedelta units and format strings
-    step_units = {
-        '1H': ('hours', 1, '%H%M'),
-        '3H': ('hours', 3, '%H%M'),
-        '6H': ('hours', 6, '%H%M'),
-        'D': ('days', 1, '0000'),
-        'W': ('weeks', 1, '0000'),
-        'M': ('months', 1, '0000')
-        'Y': ('years', 1, '0000')
-    }
-
-    # Convert step string to timedelta unit and date format
-    step_unit, nsteps, time_format = step_units.get(step.upper())
-    if step_unit is None:
-        raise ValueError("Invalid step. It should be one of 'H', 'D', or 'M'.")
-
-    # Parse startdate into a datetime object
-    start_date_obj = datetime.strptime(startdate + ':' + starttime, '%Y%m%d:%H%M')
-
-    # Calculate the n-th following date
-    newdate = start_date_obj + relativedelta(**{step_unit: n * nsteps})
-
-    # Format the date and time
-    formatted_date = newdate.strftime('%Y%m%d')
-    formatted_time = newdate.strftime(time_format)
-
-    return formatted_date, formatted_time
 
