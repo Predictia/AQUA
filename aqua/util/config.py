@@ -9,7 +9,7 @@ class ConfigPath():
     Class to set the configuration path and dir in a robust way
     """
 
-    def __init__(self, configdir=None, filename='config-aqua.yaml'):
+    def __init__(self, configdir=None, filename='config-aqua.yaml', machine=None):
 
         self.filename = filename
         if not configdir:
@@ -17,7 +17,10 @@ class ConfigPath():
         else:
             self.configdir = configdir
         self.config_file = os.path.join(self.configdir, self.filename)
-        self.machine = self.get_machine()
+        if not machine:
+            self.machine = self.get_machine()
+        else:
+            self.machine = machine
 
     def get_config_dir(self):
         """
@@ -55,7 +58,6 @@ class ConfigPath():
 
         raise FileNotFoundError(f"No config file {self.filename} found in {configdirs}")
 
-
     def get_machine(self):
         """
         Extract the name of the machine from the configuration file
@@ -73,7 +75,6 @@ class ConfigPath():
         else:
             raise FileNotFoundError(f'Cannot find the basic configuration file {self.config_file}!')
 
-
     def get_reader_filenames(self):
         """
         Extract the filenames for the reader for catalog, regrid and fixer
@@ -89,11 +90,11 @@ class ConfigPath():
             if not os.path.exists(catalog_file):
                 raise FileNotFoundError(f'Cannot find catalog file in {catalog_file}')
             regrid_file = base['reader']['regrid'].format(machine=self.machine,
-                                                            configdir=self.configdir)
+                                                          configdir=self.configdir)
             if not os.path.exists(regrid_file):
                 raise FileNotFoundError(f'Cannot find catalog file in {regrid_file}')
             fixer_folder = base['reader']['fixer'].format(machine=self.machine,
-                                                            configdir=self.configdir)
+                                                          configdir=self.configdir)
             if not os.path.exists(fixer_folder):
                 raise FileNotFoundError(f'Cannot find catalog file in {fixer_folder}')
 
