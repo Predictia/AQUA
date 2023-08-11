@@ -13,7 +13,7 @@ from aqua.logger import log_configure
 from aqua.reader import Reader
 from aqua.util import create_folder, generate_random_string
 from aqua.util import dump_yaml, load_yaml
-from aqua.util import get_config_dir, get_machine, file_is_complete
+from aqua.util import ConfigPath, file_is_complete
 
 
 class LRAgenerator():
@@ -105,11 +105,9 @@ class LRAgenerator():
 
         self.zoom = zoom
 
-        if not configdir:
-            self.configdir = get_config_dir()
-        else:
-            self.configdir = configdir
-        self.machine = get_machine(self.configdir)
+        Configurer = ConfigPath(configdir=configdir)
+        self.configdir = Configurer.configdir
+        self.machine = Configurer.machine
 
         # Initialize variable(s)
         self.var = None

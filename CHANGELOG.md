@@ -15,6 +15,7 @@ Unreleased is the current development version.
 - Util refactor (Utility refactor #405)
 - Fixer at reader level (Fixes at Reader level #244)
 - AQUA new common environment installation tool for LUMI added (#413)
+- Refactor of the config file definition (Refactor of the configuration search #417)
 
 ## [v0.2-beta]
 

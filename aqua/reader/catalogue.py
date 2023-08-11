@@ -1,7 +1,7 @@
 """Simple catalogue utility"""
 
 import intake
-from aqua.util import get_config_dir, get_machine, get_reader_filenames
+from aqua.util import ConfigPath
 
 
 def catalogue(verbose=True, configdir=None):
@@ -24,12 +24,10 @@ def catalogue(verbose=True, configdir=None):
 
 
     # get the config dir and the machine
-    if not configdir:
-        configdir = get_config_dir()
-    machine = get_machine(configdir)
+    Configurer = ConfigPath(configdir=configdir)
 
     # get configuration from the machine
-    catalog_file, _, _, _ = get_reader_filenames(configdir, machine)
+    catalog_file, _, _, _ = Configurer.get_reader_filenames()
 
     cat = intake.open_catalog(catalog_file)
     if verbose:
