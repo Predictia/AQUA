@@ -101,8 +101,11 @@ markers = [
     "aqua: mark test as AQUA framework",
     "slow: tests which are slow",
     "sbatch: tests which require sbatch",
+    "gsv: mark test that requires ECMWF FDB libraries",
+    # beginning of diagnostic tests
     "dummy: mark test for dummy diagnostic",
-    "teleconnections: mark test for teleconnections diagnostic"
+    "teleconnections: mark test for teleconnections diagnostic",
+    "tropical_rainfall: mark test for tropical_rainfall diagnostic"
 ]
 
 # This appears to be the correct configuration, but for some reason
