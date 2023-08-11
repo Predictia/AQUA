@@ -26,7 +26,7 @@ singularity exec  \
     bash -c \
     
     ' 
-    #You can edit below code for your required script (Keep the the space)
+    #You can edit below code for your required script.
     
     pip install /scratch/project_465000454/softwares/gsv_interface
     export FDB5_CONFIG_FILE=/scratch/project_465000454/sughosh/config.yaml
