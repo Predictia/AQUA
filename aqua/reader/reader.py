@@ -14,7 +14,6 @@ import numpy as np
 import smmregrid as rg
 
 from aqua.util import load_yaml, load_multi_yaml
-from aqua.util import get_reader_filenames, get_config_dir, get_machine
 from aqua.util import ConfigPath, area_selection
 from aqua.logger import log_configure, log_history, log_history_iter
 import aqua.gsv
