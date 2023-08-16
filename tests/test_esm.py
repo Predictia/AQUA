@@ -7,7 +7,8 @@ approx_rel = 1e-4
 
 @pytest.fixture
 def reader_instance():
-    return Reader(model="IFS", exp="test-tco79", source="intake-esm-test", areas=False)
+    return Reader(model="IFS", exp="test-tco79", source="intake-esm-test",
+                  areas=False, fix=False)
 
 
 # aqua class for tests
@@ -19,7 +20,7 @@ class TestAqua:
         """
         Test if the retrieve method returns data with the expected shape
         """
-        data = reader_instance.retrieve(fix=False)
+        data = reader_instance.retrieve()
         assert len(data) > 0
         assert data['2t'].shape == (2, 28480)
 
@@ -27,7 +28,7 @@ class TestAqua:
         """
         Test if the retrieve method returns data with the expected average value
         """
-        data = reader_instance.retrieve(fix=False)
+        data = reader_instance.retrieve()
         assert data["2t"].mean().values == pytest.approx(286.48692342, rel=approx_rel)
 
     def test_retrieve_esm_var(self, reader_instance):
@@ -35,5 +36,5 @@ class TestAqua:
         Test if the retrieve method returns data with the expected average value
         if a variable is specified
         """
-        data = reader_instance.retrieve(var='2t', fix=False)
+        data = reader_instance.retrieve(var='2t')
         assert data["2t"].mean().values == pytest.approx(286.48692342, rel=approx_rel)
