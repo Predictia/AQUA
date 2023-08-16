@@ -47,7 +47,7 @@ def compute_date(startdate, starttime, step, n):
     return formatted_date, formatted_time
 
 
-def compute_steps(startdate, enddate, step, starttime="0000", endtime="0000"):
+def compute_date_steps(startdate, enddate, step, starttime="0000", endtime="0000"):
     """Compute number of steps between two dates"""
 
     step_unit, nsteps = step_units.get(step.upper())
@@ -68,6 +68,52 @@ def compute_steps(startdate, enddate, step, starttime="0000", endtime="0000"):
 
 def compute_mars_timerange(startdate, starttime, aggregation, timestep):
     # This computes time ranges in mars format
+
+    dform = startdate
+    tform = starttime
+
+    if aggregation != timestep:
+        # Convert step string to timedelta unit and date format
+        ag_unit, ag_nsteps = step_units.get(aggregation.upper())
+        ts_unit, ts_nsteps = step_units.get(timestep.upper())
+
+        ts = relativedelta(**{ts_unit: ts_nsteps})
+        agg = relativedelta(**{ag_unit: ag_nsteps})
+
+        tstart = datetime.strptime(str(startdate) + ':' + str(starttime), '%Y%m%d:%H%M')
+
+        if (((tstart + agg) - (tstart + ts) ).total_seconds()) < 0:
+            raise ValueError(f"Aggregation {aggregation} is shorter than timestep {timestep}!")
+
+        if ag_unit == "minutes" or ag_unit == "hours":
+            # Aggregation smaller than one day
+            tstart = datetime.strptime(str(startdate) + ':' + str(starttime), '%Y%m%d:%H%M') 
+            tend = tstart + agg - ts
+            tform = tstart.strftime('%H%M') + '/to/' + tend.strftime('%H%M') + '/by/' + f"{ts.hours:02d}{ts.minutes:02d}"
+        else:
+            if ts_unit == "minutes" or ts_unit == "hours":
+                # Timestep is shorter than one day
+                tend = datetime.strptime(str(startdate) + ':0000', '%Y%m%d:%H%M') + relativedelta(days=1) - ts
+                tform = '0000/to/' + tend.strftime('%H%M') + '/by/' + f"{ts.hours:02d}{ts.minutes:02d}"
+            else:
+                tform = starttime
+
+            if ((tstart + agg) - tstart).days > 1:  # more than one day
+                tstart0 = tstart
+                # If month or year reset to beginning of period
+                if aggregation == "M":
+                    tstart0 = datetime.strptime(tstart.strftime('%Y%m01:0000'), '%Y%m%d:%H%M')
+                elif aggregation == "Y":
+                    tstart0 = datetime.strptime(tstart.strftime('%Y0101:0000'), '%Y%m%d:%H%M')
+
+                tend = tstart0 + agg - relativedelta(days=1)
+                dform = tstart.strftime('%Y%m%d') + '/to/' + tend.strftime('%Y%m%d')
+
+    return dform, tform
+
+
+def compute_mars_steprange(startdate, starttime, aggregation, timestep):
+    # This computes number of ste
 
     dform = startdate
     tform = starttime

@@ -1,7 +1,7 @@
 import sys
 import xarray as xr
 from intake.source import base
-from .timeutil import compute_date, compute_steps, check_dates, compute_mars_timerange
+from .timeutil import compute_date_steps, compute_date, check_dates, compute_mars_timerange
 
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
@@ -30,8 +30,10 @@ class GSVSource(base.DataSource):
         check_dates(startdate, start_date, enddate, end_date)
 
         self.timestyle = timestyle
+
         if aggregation.upper() == "S":  # special case: 'aggegation at single step level
             aggregation = timestep
+
         self.aggregation = aggregation
         self.timestep = timestep
         self.startdate = startdate
@@ -42,27 +44,12 @@ class GSVSource(base.DataSource):
 
         self._request = request
         self._kwargs = kwargs
-        
-        # print("timestyle", timestyle, " aggregation", aggregation, "timestep", timestep)
-        # if startdate and enddate:
-        if timestyle == "step":
-                self._steps = make_step_range(request, startdate, enddate, timestep)
-                self._dates = None
-                ndates = len(self._steps)
-        else:  # timestyle=="date"
-                ndates = compute_steps(startdate, enddate, aggregation, starttime="0000", endtime="0000")
 
-        #         self._dates = make_date_list(startdate, enddate, aggregation=aggregation)
-        #         self._steps = None
-        #         ndates = len(self._dates)
+        self._npartitions = compute_date_steps(startdate, enddate, aggregation,
+                                               starttime=self.starttime, endtime=self.endtime)
 
-        #else:
-        #    ndates = 1  # read only one
-        #    self._dates = None
-        #    self._steps = None
-        #self._var = var
-
-        self._npartitions = ndates
+        # if self.timestyle == "step":
+            # compute how many steps in each aggregation
 
         if gsv_available:
             self.gsv = GSVRetriever()
@@ -84,16 +71,18 @@ class GSVSource(base.DataSource):
         )
 
     def _get_partition(self, i):
-        # if self._dates:
-        #     self._request["date"] = self._dates[i]
-        # elif self._steps:
-        #     self._request["step"] = self._steps[i]
 
         if self.timestyle == "date":
             dd, tt = compute_date(self.startdate, self.starttime, self.aggregation, i)
             dform, tform = compute_mars_timerange(dd, tt, self.aggregation, self.timestep)  # computes date and time range in mars style
             self._request["date"] = dform
             self._request["time"] = tform
+        else:
+            # style is 'step'
+            self._request["date"] = self.startdate
+            self._request["time"] = self.starttime
+            self._request["step"] = i * self.nagg
+
         if self._var:  # if no var provided keep the default in the catalogue
             self._request["param"] = self._var
         print(self._request)
