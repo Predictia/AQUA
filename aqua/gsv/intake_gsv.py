@@ -1,7 +1,7 @@
 import sys
 import xarray as xr
 from intake.source import base
-from .timeutil import compute_date_steps, compute_date, check_dates, compute_mars_timerange
+from .timeutil import compute_date_steps, compute_date, check_dates, compute_mars_timerange, compute_steprange
 
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
@@ -48,9 +48,6 @@ class GSVSource(base.DataSource):
         self._npartitions = compute_date_steps(startdate, enddate, aggregation,
                                                starttime=self.starttime, endtime=self.endtime)
 
-        # if self.timestyle == "step":
-            # compute how many steps in each aggregation
-
         if gsv_available:
             self.gsv = GSVRetriever()
         else:
@@ -73,7 +70,7 @@ class GSVSource(base.DataSource):
     def _get_partition(self, i):
 
         if self.timestyle == "date":
-            dd, tt = compute_date(self.startdate, self.starttime, self.aggregation, i)
+            dd, tt, _, _ = compute_date(self.startdate, self.starttime, self.aggregation, i)
             dform, tform = compute_mars_timerange(dd, tt, self.aggregation, self.timestep)  # computes date and time range in mars style
             self._request["date"] = dform
             self._request["time"] = tform
@@ -81,7 +78,14 @@ class GSVSource(base.DataSource):
             # style is 'step'
             self._request["date"] = self.startdate
             self._request["time"] = self.starttime
-            self._request["step"] = i * self.nagg
+            _, _, sdate0, ndate0 = compute_date(self.startdate, self.starttime, self.aggregation, i)
+            _, _, sdate1, ndate1 = compute_date(self.startdate, self.starttime, self.aggregation, i + 1)
+            s0 = compute_steprange(sdate0, ndate0, self.timestep)
+            s1 = compute_steprange(sdate1, ndate1, self.timestep) - 1
+            if s0 == s1:
+                self._request["step"] = f'{s0}'
+            else:
+                self._request["step"] = f'{s0}/to/{s1}'
 
         if self._var:  # if no var provided keep the default in the catalogue
             self._request["param"] = self._var
