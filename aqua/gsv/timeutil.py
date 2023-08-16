@@ -5,6 +5,10 @@ from dateutil.relativedelta import relativedelta
 
 
 step_units = {
+    '10M': ('minutes', 10),
+    '15M': ('minutes', 15),
+    '30M': ('minutes', 30),
+    'H': ('hours', 1),
     '1H': ('hours', 1),
     '3H': ('hours', 3),
     '6H': ('hours', 6),
@@ -16,6 +20,7 @@ step_units = {
     'Y': ('years', 1)
 }
 
+
 def compute_date(startdate, starttime, step, n):
     # This maps step to timedelta units and format strings
 
@@ -23,10 +28,17 @@ def compute_date(startdate, starttime, step, n):
     step_unit, nsteps = step_units.get(step.upper())
 
     # Parse startdate into a datetime object
-    start_date_obj = datetime.strptime(str(startdate) + ':' + str(starttime), '%Y%m%d:%H%M')
+    tstart = datetime.strptime(str(startdate) + ':' + str(starttime), '%Y%m%d:%H%M')
+
+    if n > 0:
+        # Reset to beginning of month if needed
+        if step == "M":
+            tstart = datetime.strptime(tstart.strftime('%Y%m01:0000'), '%Y%m%d:%H%M')
+        elif step == "Y":
+            tstart = datetime.strptime(tstart.strftime('%Y0101:0000'), '%Y%m%d:%H%M')
 
     # Calculate the n-th following date
-    newdate = start_date_obj + relativedelta(**{step_unit: n * nsteps})
+    newdate = tstart + relativedelta(**{step_unit: n * nsteps})
 
     # Format the date and time
     formatted_date = newdate.strftime('%Y%m%d')
@@ -54,23 +66,51 @@ def compute_steps(startdate, enddate, step, starttime="0000", endtime="0000"):
     return int(numsteps) + 1
 
 
-def compute_enddate(startdate, starttime, step):
-    # This maps step to timedelta units and format strings
+def compute_mars_timerange(startdate, starttime, aggregation, timestep):
+    # This computes time ranges in mars format
 
-    # Convert step string to timedelta unit and date format
-    step_unit, nsteps = step_units.get(step.upper())
+    dform = startdate
+    tform = starttime
 
-    # Parse startdate into a datetime object
-    start_date_obj = datetime.strptime(str(startdate) + ':' + str(starttime), '%Y%m%d:%H%M')
+    if aggregation != timestep:
+        # Convert step string to timedelta unit and date format
+        ag_unit, ag_nsteps = step_units.get(aggregation.upper())
+        ts_unit, ts_nsteps = step_units.get(timestep.upper())
 
-    # Calculate the n-th following date
-    newdate = start_date_obj + relativedelta(**{step_unit: n * nsteps})
+        ts = relativedelta(**{ts_unit: ts_nsteps})
+        agg = relativedelta(**{ag_unit: ag_nsteps})
 
-    # Format the date and time
-    formatted_date = newdate.strftime('%Y%m%d')
-    formatted_time = newdate.strftime('%H%M')
+        tstart = datetime.strptime(str(startdate) + ':' + str(starttime), '%Y%m%d:%H%M')
 
-    return formatted_date, formatted_time
+        if (((tstart + agg) - (tstart + ts) ).total_seconds()) < 0:
+            raise ValueError(f"Aggregation {aggregation} is shorter than timestep {timestep}!")
+
+        if ag_unit == "minutes" or ag_unit == "hours":
+            # Aggregation smaller than one day
+            tstart = datetime.strptime(str(startdate) + ':' + str(starttime), '%Y%m%d:%H%M') 
+            tend = tstart + agg - ts
+            tform = tstart.strftime('%H%M') + '/to/' + tend.strftime('%H%M') + '/by/' + f"{ts.hours:02d}{ts.minutes:02d}"
+        else:
+            if ts_unit == "minutes" or ts_unit == "hours":
+                # Timestep is shorter than one day
+                tend = datetime.strptime(str(startdate) + ':0000', '%Y%m%d:%H%M') + relativedelta(days=1) - ts
+                tform = '0000/to/' + tend.strftime('%H%M') + '/by/' + f"{ts.hours:02d}{ts.minutes:02d}"
+            else:
+                tform = starttime
+
+            if ((tstart + agg) - tstart).days > 1:  # more than one day
+                tstart0 = tstart
+                # If month or year reset to beginning of period
+                if aggregation == "M":
+                    tstart0 = datetime.strptime(tstart.strftime('%Y%m01:0000'), '%Y%m%d:%H%M')
+                elif aggregation == "Y":
+                    tstart0 = datetime.strptime(tstart.strftime('%Y0101:0000'), '%Y%m%d:%H%M')
+
+                tend = tstart0 + agg - relativedelta(days=1)
+                dform = tstart.strftime('%Y%m%d') + '/to/' + tend.strftime('%Y%m%d')
+
+    return dform, tform
+
 
 def check_dates(startdate, start_date, enddate, end_date):
     if datetime.strptime(str(startdate), '%Y%m%d') < datetime.strptime(str(start_date), '%Y%m%d'):

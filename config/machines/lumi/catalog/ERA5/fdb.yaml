@@ -6,12 +6,12 @@ sources:
                 date: 20200120
                 time: 0000
                 step: 0
-                param: "2t"
+                param: "tcc"
             start_date: 20200120
             end_date: 20250101
-            aggregation: '6H'
+            aggregation: 'D'
+            timestep: "H"
             timestyle: "date"
-            timestep: 3600
         description: 'Test FDB data'
         driver: gsv
         #metadata: {step: 'M'}

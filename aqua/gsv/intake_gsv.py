@@ -1,7 +1,7 @@
 import sys
 import xarray as xr
 from intake.source import base
-from .timeutil import compute_date, compute_steps, check_dates
+from .timeutil import compute_date, compute_steps, check_dates, compute_mars_timerange
 
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
@@ -20,7 +20,7 @@ class GSVSource(base.DataSource):
     version = '0.0.1'
     partition_access = True
 
-    def __init__(self, request, start_date, end_date, timestyle="date", aggregation="D", timestep=3600, startdate=None, enddate=None, var='167', metadata=None, **kwargs):
+    def __init__(self, request, start_date, end_date, timestyle="date", aggregation="D", timestep="H", startdate=None, enddate=None, var='167', metadata=None, **kwargs):
 
         if not startdate:
             startdate = start_date
@@ -28,9 +28,10 @@ class GSVSource(base.DataSource):
             enddate = end_date
         
         check_dates(startdate, start_date, enddate, end_date)
-        print("dates ok")
 
         self.timestyle = timestyle
+        if aggregation.upper() == "S":  # special case: 'aggegation at single step level
+            aggregation = timestep
         self.aggregation = aggregation
         self.timestep = timestep
         self.startdate = startdate
@@ -42,16 +43,14 @@ class GSVSource(base.DataSource):
         self._request = request
         self._kwargs = kwargs
         
-        print("timestyle", timestyle, " aggregation", aggregation, "timestep", timestep)
+        # print("timestyle", timestyle, " aggregation", aggregation, "timestep", timestep)
         # if startdate and enddate:
         if timestyle == "step":
                 self._steps = make_step_range(request, startdate, enddate, timestep)
                 self._dates = None
                 ndates = len(self._steps)
         else:  # timestyle=="date"
-                print("computing steps")
                 ndates = compute_steps(startdate, enddate, aggregation, starttime="0000", endtime="0000")
-                print("ndates", ndates)
 
         #         self._dates = make_date_list(startdate, enddate, aggregation=aggregation)
         #         self._steps = None
@@ -92,8 +91,9 @@ class GSVSource(base.DataSource):
 
         if self.timestyle == "date":
             dd, tt = compute_date(self.startdate, self.starttime, self.aggregation, i)
-            self._request["date"] = dd
-            self._request["time"] = tt
+            dform, tform = compute_mars_timerange(dd, tt, self.aggregation, self.timestep)  # computes date and time range in mars style
+            self._request["date"] = dform
+            self._request["time"] = tform
         if self._var:  # if no var provided keep the default in the catalogue
             self._request["param"] = self._var
         print(self._request)
