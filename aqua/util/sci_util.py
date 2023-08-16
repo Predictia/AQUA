@@ -2,7 +2,8 @@
 from aqua.logger import log_configure
 
 
-def area_selection(data=None, lat=None, lon=None, **kwargs):
+def area_selection(data=None, lat=None, lon=None, box_brd=True,
+                   **kwargs):
     """
         Extract a custom area from a DataArray.
         Sets other coordinates to NaN.
@@ -12,34 +13,37 @@ def area_selection(data=None, lat=None, lon=None, **kwargs):
             indat (xarray.DataSet):   input data to be selected
             lat (list, opt):          latitude coordinates
             lon (list, opt):          longitude coordinates
+            box_brd (bool,opt):       choose if coordinates are comprised or not.
+                                      Default is True
 
         Keyword Args:
-            - box_brd (bool,opt): choose if coordinates are comprised or not.
-                                  Default is True
-            - loglevel (str, opt): logging level
+            - loglevel (str, opt): logging level (default: 'warning')
 
         Returns:
             (xarray.DataSet):  data on a custom surface
 
         Raises:
             ValueError: if data is None
+            KeyError:   if 'lon' or 'lat' are not in the coordinates
             ValueError: if lat and lon are both None
     """
     if data is None:
         raise ValueError('data cannot be None')
-    
+
     # adding safety check since this works only with lon/lat
-    if not "lon" in data.coords and not "lat" in data.coords:
+    if "lon" not in data.coords or "lat" not in data.coords:
         raise KeyError('Cannot find lon and lat in the coordinates, cannot perform area selection')
+
+    if lat is None and lon is None:
+        raise ValueError('lat and lon cannot be both None')
 
     lon, lat = check_coordinates(lon=lon, lat=lat, **kwargs)
 
-    box_brd = kwargs.get('box_brd', True)
     # Selection based on box_brd
     if box_brd:
         lat_condition = (data.lat >= lat[0]) & (data.lat <= lat[1])
         # across Greenwich
-        if lon[0]>lon[1]:
+        if lon[0] > lon[1]:
             lon_condition = (
                 (data.lon >= lon[0]) & (data.lon <= 360)
                 ) | (
@@ -50,7 +54,7 @@ def area_selection(data=None, lat=None, lon=None, **kwargs):
     else:
         lat_condition = (data.lat > lat[0]) & (data.lat < lat[1])
         # across Greenwich
-        if lon[0]>lon[1]:
+        if lon[0] > lon[1]:
             lon_condition = (
                 (data.lon > lon[0]) & (data.lon < 360)
                 ) | (
@@ -69,7 +73,7 @@ def check_coordinates(lon=None, lat=None,
                                "lat_max": 90,
                                "lon_min": 0,
                                "lon_max": 360},
-                      **kwargs):
+                      loglevel='WARNING'):
     """
         Check if coordinates are valid.
         If not, try to convert them to a valid format.
@@ -79,14 +83,11 @@ def check_coordinates(lon=None, lat=None,
             lat (list, opt):          latitude coordinates
             lon (list, opt):          longitude coordinates
             default (dict, opt):      default coordinates system
-
-        Kwargs:
-            - loglevel (str, opt): logging level
+            loglevel (str, opt):      logging level. Default is 'WARNING'.
 
         Returns:
             (list, list):  latitude and longitude coordinates
     """
-    loglevel = kwargs.get('loglevel', 'warning')
     logger = log_configure(log_level=loglevel, log_name='Check coordinates')
 
     logger.debug('Input coordinates: lat=%s, lon=%s', lon, lat)
