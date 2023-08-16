@@ -41,7 +41,7 @@ class Reader(FixerMixin, RegridMixin):
                  regrid=None, method="ycon", zoom=None, configdir=None,
                  areas=True,  # pylint: disable=W0622
                  datamodel=None, streaming=False, stream_step=1, stream_unit='steps',
-                 stream_startdate=None, rebuild=False, loglevel=None, nproc=4):
+                 stream_startdate=None, rebuild=False, loglevel=None, nproc=4, aggregation=None):
         """
         Initializes the Reader class, which uses the catalog `config/config.yaml` to identify the required data.
 
@@ -63,6 +63,7 @@ class Reader(FixerMixin, RegridMixin):
             rebuild (bool, optional): Force rebuilding of area and weight files. Defaults to False.
             loglevel (str, optional): Level of logging according to logging module. Defaults to log_level_default of loglevel().
             nproc (int,optional): Number of processes to use for weights generation. Defaults to 16.
+            aggregation (str, optional): aggregation to be used for GSV access (one of S (step), 10M, 15M, 30M, 1H, H, 3H, 6H, D, W, M, Y). Defaults to None (using default from catalogue).
 
         Returns:
             Reader: A `Reader` class object.
@@ -78,6 +79,7 @@ class Reader(FixerMixin, RegridMixin):
         self.freq = freq
         self.vert_coord = None
         self.deltat = 1
+        self.aggregation = aggregation
         extra = []
 
         self.grid_area = None
@@ -619,7 +621,16 @@ class Reader(FixerMixin, RegridMixin):
 
         if not enddate:
             enddate = startdate
-        return esmcat(startdate=startdate, enddate=enddate, var=var).read_chunked()
+
+        fdb_path = esmcat.metadata.get('fdb_path', None)
+        if fdb_path:
+            os.environ["FDB5_CONFIG_FILE"] = fdb_path
+
+        if self.aggregation:
+            return esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation).read_chunked()
+        else:
+            return esmcat(startdate=startdate, enddate=enddate, var=var).read_chunked()
+            
 
     def reader_intake(self, esmcat, var, loadvar):
         """Read regular intake entry. Returns dataset."""

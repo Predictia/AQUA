@@ -9,9 +9,9 @@ sources:
                 param: "tcc"
             start_date: 20200120
             end_date: 20250101
-            aggregation: 'D'
+            aggregation: 'S'
             timestep: "H"
             timestyle: "date"
         description: 'Test FDB data'
         driver: gsv
-        #metadata: {step: 'M'}
+        metadata: {fdb_path: /data/users/jost/fdb/fdb-test/config.yaml}
