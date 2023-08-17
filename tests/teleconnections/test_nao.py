@@ -4,15 +4,6 @@ import pytest
 approx_rel = 1e-4
 loglevel = 'DEBUG'
 
-@pytest.mark.teleconnections
-def test_import2():
-    """
-    Test that the module can be imported
-    """
-    try:
-        from teleconnections.tc_class import Teleconnection
-    except ImportError:
-        assert False, "Module Teleconnections could not be imported"
 
 @pytest.mark.teleconnections
 def test_class_NAO():
