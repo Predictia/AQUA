@@ -3,7 +3,7 @@ import os
 import contextlib
 import xarray as xr
 from intake.source import base
-from .timeutil import compute_date_steps, compute_date, check_dates, compute_mars_timerange, compute_steprange
+from .timeutil import compute_date_steps, compute_date, check_dates, compute_mars_timerange, compute_steprange, dateobj
 
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
@@ -22,14 +22,14 @@ class GSVSource(base.DataSource):
     version = '0.0.1'
     partition_access = True
 
-    def __init__(self, request, start_date, end_date, timestyle="date", aggregation="D", timestep="H", startdate=None, enddate=None, var='167', metadata=None, verbose=False, **kwargs):
+    def __init__(self, request, data_start_date, data_end_date, timestyle="date", aggregation="D", timestep="H", startdate=None, enddate=None, var='167', metadata=None, verbose=False, **kwargs):
 
         if not startdate:
-            startdate = start_date
+            startdate = data_start_date
         if not enddate:
-            enddate = end_date
+            enddate = data_end_date
         
-        check_dates(startdate, start_date, enddate, end_date)
+        check_dates(startdate, data_start_date, enddate, data_end_date)
 
         self.timestyle = timestyle
 
@@ -38,6 +38,8 @@ class GSVSource(base.DataSource):
 
         self.aggregation = aggregation
         self.timestep = timestep
+        self.data_startdate = data_start_date
+        self.data_starttime = "0000"
         self.startdate = startdate
         self.enddate = enddate
         self.starttime = "0000"
@@ -73,18 +75,22 @@ class GSVSource(base.DataSource):
     def _get_partition(self, i):
 
         if self.timestyle == "date":
-            dd, tt, _, _ = compute_date(self.startdate, self.starttime, self.aggregation, i)
+            dd, tt, _ = compute_date(self.startdate, self.starttime, self.aggregation, i, self._npartitions)
             dform, tform = compute_mars_timerange(dd, tt, self.aggregation, self.timestep)  # computes date and time range in mars style
             self._request["date"] = dform
             self._request["time"] = tform
-        else:
-            # style is 'step'
-            self._request["date"] = self.startdate
-            self._request["time"] = self.starttime
-            _, _, sdate0, ndate0 = compute_date(self.startdate, self.starttime, self.aggregation, i)
-            _, _, sdate1, ndate1 = compute_date(self.startdate, self.starttime, self.aggregation, i + 1)
-            s0 = compute_steprange(sdate0, ndate0, self.timestep)
-            s1 = compute_steprange(sdate1, ndate1, self.timestep) - 1
+        else:  # style is 'step'
+            self._request["date"] = self.data_startdate
+            self._request["time"] = self.data_starttime
+
+            date0 = dateobj(self.data_startdate, self.data_starttime)
+
+            _, _, ndate0 = compute_date(self.startdate, self.starttime, self.aggregation, i, self._npartitions)
+            _, _, ndate1 = compute_date(self.startdate, self.starttime, self.aggregation, i + 1, self._npartitions)
+
+            s0 = compute_steprange(date0, ndate0, self.timestep)
+            s1 = compute_steprange(date0, ndate1, self.timestep) - 1
+
             if s0 == s1:
                 self._request["step"] = f'{s0}'
             else:
@@ -111,68 +117,4 @@ class GSVSource(base.DataSource):
 
     # def _load(self):
     #     self._dataset = self._get_partition(0)
-
-
-def make_date_list(start, end, aggregation="M"):
-
-    if aggregation == "M":
-        delta = relativedelta(months=numsteps)
-    elif aggregation == "D":
-        delta = relativedelta(days=numsteps)
-    elif aggregation == "H":
-        delta = relativedelta(hours=numsteps)
-    else:
-        raise ValueError(f"Aggregation '{aggregation}' not recognized")
-
-    start_date = datetime.strptime(start, '%Y%m%d')
-    end_date = datetime.strptime(end, '%Y%m%d')
-
-    date_list = []
-    current_date = start_date
-
-    while current_date <= end_date:
-        date_string = current_date.strftime('%Y%m%d')
-        date_list.append(date_string)
-        current_date += delta
-
-    return date_list
-
-
-def make_step_range(request, start, end, dt):
-    """Makes a list of steps between two dates"""
-
-    dt_base = datetime.strptime(f"{request['date']}:{request['time']}", "%Y%m%d:%H%M")
-    dt_start = datetime.strptime(f"{start}:0000", "%Y%m%d:%H%M")
-    dt_end = datetime.strptime(f"{end}:0000", "%Y%m%d:%H%M")
-
-    step0 = int((dt_start - dt_base).total_seconds() // dt ) 
-    step1 = int((dt_end - dt_base).total_seconds() // dt ) 
-
-    return list(range(step0, step1 + 1))
-
-
-def make_date_list2(start, end, aggregation="M", numsteps=1):
-
-    if step == "M":
-        delta = relativedelta(months=numsteps)
-    elif step == "D":
-        delta = relativedelta(days=numsteps)
-    elif step == "H":
-        delta = relativedelta(hours=numsteps)
-    else:
-        sys.exit("step not recognized")
-
-    start_date = datetime.strptime(start, '%Y%m%d')
-    end_date = datetime.strptime(end, '%Y%m%d')
-
-    date_list = []
-    current_date = start_date
-
-    while current_date <= end_date:
-        date_string = current_date.strftime('%Y%m%d')
-        date_list.append(date_string)
-        current_date += delta
-
-    return date_list
-
 

@@ -21,8 +21,14 @@ step_units = {
 }
 
 
-def compute_date(startdate, starttime, step, n):
-    # This maps step to timedelta units and format strings
+def dateobj(startdate, starttime):
+    # Converts to a date object
+
+    return datetime.strptime(str(startdate) + ':' + str(starttime), '%Y%m%d:%H%M')
+    
+
+def compute_date(startdate, starttime, step, n, npartitions):
+    # compute date at n-th aggregation step
 
     # Convert step string to timedelta unit and date format
     step_unit, nsteps = step_units.get(step.upper())
@@ -30,12 +36,11 @@ def compute_date(startdate, starttime, step, n):
     # Parse startdate into a datetime object
     tstart = datetime.strptime(str(startdate) + ':' + str(starttime), '%Y%m%d:%H%M')
 
-    if n > 0:
-        # Reset to beginning of month if needed
-        if step == "M":
-            tstart = datetime.strptime(tstart.strftime('%Y%m01:0000'), '%Y%m%d:%H%M')
-        elif step == "Y":
-            tstart = datetime.strptime(tstart.strftime('%Y0101:0000'), '%Y%m%d:%H%M')
+    # Reset to beginning of month if needed
+    if step == "M" and n > 0:
+        tstart = tstart.replace(day=1)
+    elif step == "Y" and n > 0:
+        tstart = tstart.replace(day=1).replace(month=1)
 
     # Calculate the n-th following date
     newdate = tstart + relativedelta(**{step_unit: n * nsteps})
@@ -44,7 +49,7 @@ def compute_date(startdate, starttime, step, n):
     formatted_date = newdate.strftime('%Y%m%d')
     formatted_time = newdate.strftime('%H%M')
 
-    return formatted_date, formatted_time, tstart, newdate
+    return formatted_date, formatted_time, newdate
 
 
 def compute_date_steps(startdate, enddate, step, starttime="0000", endtime="0000"):
