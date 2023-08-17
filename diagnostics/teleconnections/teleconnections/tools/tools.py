@@ -16,7 +16,7 @@ def load_namelist(diagname='teleconnections', configdir=None):
         configdir (str, opt):   path to config directory. Default is Nones
 
     Returns:
-        namelist (dict):        Diagnostic configuration
+        (dict):        Diagnostic configuration
     """
     if configdir is None:
         filename = f'{diagname}.yaml'

@@ -429,13 +429,17 @@ class FixerMixin():
 
 
 def normalize_units(src):
-    """Get rid of crazy grib units"""
+    """
+    Get rid of crazy grib units: this is a collection of HACK and need to be improved
+    We might want to introdue a dictionary of unit fixes read from dictionary
+    """
     if src == '1':
         return 'dimensionless'
     else:
         src = str(src)
         src = src.replace("of", "").replace("water", "").replace("equivalent", "")
         src = src.replace("deg C", "degC")
+        src = src.replace("mm 3h-1", "mm/(3h)") #MSWEP fix
         return src
 
 

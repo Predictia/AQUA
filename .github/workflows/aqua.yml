@@ -14,13 +14,19 @@ permissions:
 
 jobs:
   aqua_test:
-    if: contains(github.event.pull_request.labels.*.name, 'Ready to merge')
+    #if: contains(github.event.pull_request.labels.*.name, 'Ready to merge')
     env:
       # You can disable coverage by changing this to false. You can
       # also add other Python versions to the matrix, pinning the
       # coverage job to be executed only on certain versions.
       COVERAGE_ENABLED: ${{ matrix.python-version == '3.10' }}
+      DEBIAN_FRONTEND: noninteractive
+      GRID_DEFINITION_PATH: /tmp
     runs-on: ubuntu-latest
+    container:
+      # https://hub.docker.com/r/kinow/fdb
+      image: kinow/fdb:5.11.17-jammy
+      options: --user root
     permissions:
       contents: read
       issues: write
@@ -37,15 +43,31 @@ jobs:
         #       then it would fail the first command but run the second
         #       command. The default value in GitHub is ``--noprofile --norc -eo pipefail``.
         #       https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsshell
-        #       We added the ``--login`` here for environment variables, and removed
-        #       the noprofile and norc so we have pytest set by Conda in our PATH.
-        shell: bash --login -eo pipefail {0}
+        #       We removed the noprofile and norc so we have pytest set by Conda in our PATH.
+        shell: bash -eo pipefail {0}
     steps:
-#      - name: Install fdb5
-#        run: sudo apt-get install -y fdb5
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Setup Micromamba
+      # The FDB docker image does not have git and other dependencies
+      - name: Install GH Actions dependencies
+        run: |
+          # Ubuntu dependencies (Git, curl, ...)
+          apt-get update && \
+            apt-get install -y \
+              cargo \
+              curl \
+              git \
+              rustc
+      # Using GH Action https://github.com/marketplace/actions/cargo-install
+      # as it caches the binary installation (the official cargo is tailored for
+      # building Rust applications, this one is for installing tools with Cargo).
+      - name: Install htmlq
+        if: ${{ env.COVERAGE_ENABLED }}
+        uses: baptiste0928/cargo-install@v2
+        with:
+          crate: htmlq
+          cache-key: cargo-coverage
+      - name: Set up Micromamba
         uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: environment-common.yml 
@@ -57,26 +79,33 @@ jobs:
               - conda-forge
           create-args: >-
               python=${{ matrix.python-version }}
-      - name: Download and setup tests
+          init-shell: >-
+            bash
+          post-cleanup: 'all'
+      - name: Download and set up tests
         run: |
           ./download_data_for_tests.sh
-      # Using GH Action https://github.com/marketplace/actions/cargo-install
-      # as it caches the binary installation (the official cargo is tailored for
-      # building Rust applications, this one is for installing tools with Cargo).
-      - name: Install htmlq
-        if: ${{ env.COVERAGE_ENABLED }}
-        uses: baptiste0928/cargo-install@v2
-        with:
-          crate: htmlq
-          cache-key: cargo-coverage
-      - run: cargo install htmlq
-        if: ${{ env.COVERAGE_ENABLED }}
+          
+          # FDB for GSV
+          rm -rf /app/
+          cp -r ./AQUA_tests/fdb/ /app/
+          mkdir -pv /app/localroot/
+          cd /app/
+          fdb-write sample_test_data.grib
+          # The fdb-list command is a good smoke test.
+          fdb-list class=ea,expver=0001
+          # But the fdb-read using a request is more like what pyfdb does.
+          # When it fails, the test.grib file will have 0 (zero) messages.
+          fdb-read sample_test_data_fdb_request test.grib
+          grib_dump test.grib
       - name: Run tests
+        # https://github.com/mamba-org/setup-micromamba#about-login-shells
+        shell: micromamba-shell {0}
         # NOTE: We could gain a few seconds in the build, if needed,
         #       by running with coverage in only one matrix job run.
         run: |
           # Produce the HTML report. Defaults to writing in htmlcov/index.html.
-          pytest --cov=aqua --cov-report=html --cov-report=xml --cov-branch -m "aqua or slow"
+          pytest --cov=aqua --cov-report=html --cov-report=xml --cov-branch -m "aqua or slow or gsv"
           
           if [[ ${COVERAGE_ENABLED} ]]; then
             # Extract the top header of the pytest HTML report.

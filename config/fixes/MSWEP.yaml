@@ -2,7 +2,7 @@ models:
     MSWEP:
         default:
             default:
-                data_model: mswep  # Special data model so that lats are not flipped
+                data_model: cf
                 vars:
                     # Automatic conversion to destination grib units
                     tprate:

@@ -13,7 +13,7 @@ from aqua.logger import log_configure
 from aqua.reader import Reader
 from aqua.util import create_folder, generate_random_string
 from aqua.util import dump_yaml, load_yaml
-from aqua.util import get_config_dir, get_machine, file_is_complete
+from aqua.util import ConfigPath, file_is_complete
 
 
 class LRAgenerator():
@@ -105,11 +105,9 @@ class LRAgenerator():
 
         self.zoom = zoom
 
-        if not configdir:
-            self.configdir = get_config_dir()
-        else:
-            self.configdir = configdir
-        self.machine = get_machine(self.configdir)
+        Configurer = ConfigPath(configdir=configdir)
+        self.configdir = Configurer.configdir
+        self.machine = Configurer.machine
 
         # Initialize variable(s)
         self.var = None
@@ -147,7 +145,6 @@ class LRAgenerator():
 
         create_folder(self.outdir, loglevel=self.loglevel)
 
-
         # Initialize variables used by methods
         self.data = None
         self.cluster = None
@@ -172,7 +169,8 @@ class LRAgenerator():
         self.reader = Reader(model=self.model, exp=self.exp,
                              source=self.source, zoom=self.zoom,
                              regrid=self.resolution, freq=self.frequency,
-                             configdir=self.configdir, loglevel=self.loglevel)
+                             configdir=self.configdir, loglevel=self.loglevel,
+                             fix=self.fix)
 
 
         self.logger.info('Accessing catalog for %s-%s-%s...',
@@ -185,7 +183,7 @@ class LRAgenerator():
                              self.resolution)
 
         self.logger.warning('Retrieving data...')
-        self.data = self.reader.retrieve(var = self.var, fix=self.fix)
+        self.data = self.reader.retrieve(var = self.var)
         self.logger.debug(self.data)
 
     def generate_lra(self):
