@@ -1,4 +1,6 @@
 import sys
+import os
+import contextlib
 import xarray as xr
 from intake.source import base
 from .timeutil import compute_date_steps, compute_date, check_dates, compute_mars_timerange, compute_steprange
@@ -90,7 +92,8 @@ class GSVSource(base.DataSource):
         if self._var:  # if no var provided keep the default in the catalogue
             self._request["param"] = self._var
         print(self._request)
-        dataset = self.gsv.request_data(self._request)
+        with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
+            dataset = self.gsv.request_data(self._request)
         return dataset
 
     def read(self):
