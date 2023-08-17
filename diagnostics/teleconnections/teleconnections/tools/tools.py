@@ -2,6 +2,7 @@
 This module contains miscellaneous tools for the teleconnections diagnostic.
 - loading functions, to deal with yaml files
 '''
+import os
 import xarray as xr
 
 from aqua.util import load_yaml, ConfigPath
@@ -14,27 +15,25 @@ class TeleconnectionsConfig(ConfigPath):
     Inherited from ConfigPath, which is a class to handle the configuration
     of the AQUA framework.
     """
-    def __init__(self, configdir=None, machine=None, diagname='teleconnections'):
+    def __init__(self, configdir=None, diagname='teleconnections'):
         """
         Initialize the TeleconnectionsConfig class.
 
         Args:
             configdir (str, opt):   path to config directory. Default is None
-            machine (str, opt):     machine name. Default is None
             diagname (str, opt):    diagnostic name. Default is 'teleconnections'
         """
-        # Calling the parent __init__ method
-        super().__init__(configdir=configdir, filename='teleconnections.yaml',
-                         machine=machine)
+        self.filename = diagname + '.yaml'
 
-        self.diagname = diagname
+        if not configdir:
+            self.configdir = super().get_config_dir()
+        else:
+            self.configdir = configdir
+        self.config_file = os.path.join(self.configdir, self.filename)
 
     def load_namelist(self):
         """
         Load diagnostic yaml file.
-
-        Args:
-            diagname (str, opt):    diagnostic name. Default is 'teleconnections'
 
         Returns:
             (dict):        Diagnostic configuration
