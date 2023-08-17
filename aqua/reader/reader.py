@@ -41,7 +41,7 @@ class Reader(FixerMixin, RegridMixin):
                  regrid=None, method="ycon", zoom=None, configdir=None,
                  areas=True,  # pylint: disable=W0622
                  datamodel=None, streaming=False, stream_step=1, stream_unit='steps',
-                 stream_startdate=None, rebuild=False, loglevel=None, nproc=4, aggregation=None):
+                 stream_startdate=None, rebuild=False, loglevel=None, nproc=4, aggregation=None, verbose=False):
         """
         Initializes the Reader class, which uses the catalog `config/config.yaml` to identify the required data.
 
@@ -64,6 +64,7 @@ class Reader(FixerMixin, RegridMixin):
             loglevel (str, optional): Level of logging according to logging module. Defaults to log_level_default of loglevel().
             nproc (int,optional): Number of processes to use for weights generation. Defaults to 16.
             aggregation (str, optional): aggregation to be used for GSV access (one of S (step), 10M, 15M, 30M, 1H, H, 3H, 6H, D, W, M, Y). Defaults to None (using default from catalogue).
+            verbose (bool, optional):   if to print to screen additional info (used only for FDB access at the moment)
 
         Returns:
             Reader: A `Reader` class object.
@@ -80,6 +81,7 @@ class Reader(FixerMixin, RegridMixin):
         self.vert_coord = None
         self.deltat = 1
         self.aggregation = aggregation
+        self.verbose = verbose
         extra = []
 
         self.grid_area = None
@@ -627,9 +629,9 @@ class Reader(FixerMixin, RegridMixin):
             os.environ["FDB5_CONFIG_FILE"] = fdb_path
 
         if self.aggregation:
-            return esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation).read_chunked()
+            return esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation, verbose=self.verbose).read_chunked()
         else:
-            return esmcat(startdate=startdate, enddate=enddate, var=var).read_chunked()
+            return esmcat(startdate=startdate, enddate=enddate, var=var, verbose=self.verbose).read_chunked()
             
 
     def reader_intake(self, esmcat, var, loadvar):

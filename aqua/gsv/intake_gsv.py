@@ -22,7 +22,7 @@ class GSVSource(base.DataSource):
     version = '0.0.1'
     partition_access = True
 
-    def __init__(self, request, start_date, end_date, timestyle="date", aggregation="D", timestep="H", startdate=None, enddate=None, var='167', metadata=None, **kwargs):
+    def __init__(self, request, start_date, end_date, timestyle="date", aggregation="D", timestep="H", startdate=None, enddate=None, var='167', metadata=None, verbose=False, **kwargs):
 
         if not startdate:
             startdate = start_date
@@ -43,6 +43,7 @@ class GSVSource(base.DataSource):
         self.starttime = "0000"
         self.endtime = "0000"
         self._var = var
+        self.verbose = verbose
 
         self._request = request
         self._kwargs = kwargs
@@ -91,9 +92,13 @@ class GSVSource(base.DataSource):
 
         if self._var:  # if no var provided keep the default in the catalogue
             self._request["param"] = self._var
-        print(self._request)
-        with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
+
+        if self.verbose:
+            print("Request: ", self._request)
             dataset = self.gsv.request_data(self._request)
+        else:
+            with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
+                dataset = self.gsv.request_data(self._request)
         return dataset
 
     def read(self):
