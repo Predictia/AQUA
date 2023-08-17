@@ -25,7 +25,7 @@ class GSVSource(base.DataSource):
     partition_access = True
 
     def __init__(self, request, data_start_date, data_end_date, timestyle="date", aggregation="D", timestep="H", startdate=None, enddate=None, var='167', metadata=None, verbose=False, **kwargs):
-      """
+        """
         Initializes the GSVSource class. These are typically specified in the catalogue entry, but can also be specified upon accessing the catalogue.
 
         Args:
@@ -41,7 +41,8 @@ class GSVSource(base.DataSource):
             metadata (dict, optional): Metadata read from catalogue. Contains path to FDB.
             verbose (bool, optional): Whether to print additional info to screen. Used only for FDB access. Defaults to False.
             kwargs: other keyword arguments.
-    """
+        """
+        
         if not startdate:
             startdate = data_start_date
         if not enddate:
