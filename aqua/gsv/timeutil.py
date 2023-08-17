@@ -22,12 +22,34 @@ step_units = {
 
 
 def dateobj(startdate, starttime):
-    # Converts to a date object
+    """
+    Converts to a date object
+
+    Args:
+        startdate (str): Start date in format YYYYMMDD
+        starttime (str): Start time in format HHMM
+
+    Returns:
+        datetime: Date and time as a datetime object
+    """
 
     return datetime.strptime(str(startdate) + ':' + str(starttime), '%Y%m%d:%H%M')
     
 
 def compute_date(startdate, starttime, step, n, npartitions):
+    """
+    Computes date at n-th aggegation step
+
+    Args:
+        startdate (str): Start date in format YYYYMMDD
+        starttime (str): Start time in format HHMM
+        step (str): Aggregation step. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y
+        n (int): Step number
+        npartitions (int): Total number of partitions
+
+    Returns:
+        formatted_date, formatted_time, newdate
+    """
     # compute date at n-th aggregation step
 
     # Convert step string to timedelta unit and date format
@@ -53,7 +75,19 @@ def compute_date(startdate, starttime, step, n, npartitions):
 
 
 def compute_date_steps(startdate, enddate, step, starttime="0000", endtime="0000"):
-    """Compute number of steps between two dates"""
+    """
+    Compute number of steps between two dates
+
+    Args:
+        startdate (str): Start date in format YYYYMMDD
+        starttime (str): Start time in format HHMM
+        step (str): Aggregation step. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y
+        starttime (str, optional): Start time in format HHMM. Defaults to "0000".
+        endtime (str, optional): End time in format HHMM. Defaults to "0000".
+
+    Returns:
+        int: Number of steps
+    """
 
     step_unit, nsteps = step_units.get(step.upper())
     
@@ -72,7 +106,18 @@ def compute_date_steps(startdate, enddate, step, starttime="0000", endtime="0000
 
 
 def compute_mars_timerange(startdate, starttime, aggregation, timestep):
-    # This computes time ranges in mars format
+    """
+    Computes date and time ranges in MARS format
+
+    Args:
+        startdate (str): Start date in format YYYYMMDD
+        starttime (str): Start time in format HHMM
+        aggregation (str): Aggregation step. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y
+        timestep (str): Timestep. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y
+
+    Returns:
+        dform, tform (str): Date and time range in MARS format
+    """
 
     dform = startdate
     tform = starttime
@@ -118,7 +163,17 @@ def compute_mars_timerange(startdate, starttime, aggregation, timestep):
 
 
 def compute_steprange(startdate_obj, newdate_obj, timestep):
-    # This computes number of steps bettween two dates
+    """
+    Compute number of steps between two dates
+
+    Args:
+        startdate_obj (datetime.datetime): Start date
+        newdate_obj (datetime.datetime): End date
+        timestep (str): Timestep. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y
+
+    Returns:
+        int: Number of steps
+    """
 
     ts_unit, ts_nsteps = step_units.get(timestep.upper())
     ts = timedelta(**{ts_unit: ts_nsteps})
@@ -127,6 +182,19 @@ def compute_steprange(startdate_obj, newdate_obj, timestep):
 
 
 def check_dates(startdate, start_date, enddate, end_date):
+    """
+    Check if starting and ending dates are within given range
+
+    Args:
+        startdate (datetime.datetime): Starting date
+        start_date (datetime.datetime): Data start date
+        enddate (datetime.datetime): Ending date
+        end_date (datetime.datetime): Data end date
+
+    Raises:
+        ValueError: If the given date is not within the data range
+    """
+
     if datetime.strptime(str(startdate), '%Y%m%d') < datetime.strptime(str(start_date), '%Y%m%d'):
         raise ValueError(f"Starting date {str(startdate)} is earlier than the data start at {str(start_date)}.")
 

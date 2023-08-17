@@ -1,3 +1,5 @@
+"""An intake driver for FDB/GSV access"""
+
 import sys
 import os
 import contextlib
@@ -19,11 +21,27 @@ except RuntimeError:
 class GSVSource(base.DataSource):
     container = 'xarray'
     name = 'gsv'
-    version = '0.0.1'
+    version = '0.0.2'
     partition_access = True
 
     def __init__(self, request, data_start_date, data_end_date, timestyle="date", aggregation="D", timestep="H", startdate=None, enddate=None, var='167', metadata=None, verbose=False, **kwargs):
+      """
+        Initializes the GSVSource class. These are typically specified in the catalogue entry, but can also be specified upon accessing the catalogue.
 
+        Args:
+            request (dict): Request dictionary
+            data_start_date (str): Start date of the available data.
+            data_end_date (str): End date of the available data.
+            timestyle (str, optional): Time style. Defaults to "date".
+            aggregation (str, optional): Time aggregation level. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y. Defaults to "D". 
+            timestep (str, optional): Time step. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y. Defaults to "H". 
+            startdate (str, optional): Start date for request. Defaults to None.
+            enddate (str, optional): End date for request. Defaults to None.
+            var (str, optional): Variable ID. Defaults to "167".
+            metadata (dict, optional): Metadata read from catalogue. Contains path to FDB.
+            verbose (bool, optional): Whether to print additional info to screen. Used only for FDB access. Defaults to False.
+            kwargs: other keyword arguments.
+    """
         if not startdate:
             startdate = data_start_date
         if not enddate:
@@ -61,8 +79,8 @@ class GSVSource(base.DataSource):
         super(GSVSource, self).__init__(metadata=metadata)
 
     def _get_schema(self):
-        # if self._dataset is None:
-        #     self._get_partition(0)
+        """Standard method providing data schema"""
+
         return base.Schema(
             datashape=None,
             dtype=xr.Dataset,
@@ -73,6 +91,7 @@ class GSVSource(base.DataSource):
         )
 
     def _get_partition(self, i):
+        """Standard internal method reading i-th data partition from FDB"""
 
         if self.timestyle == "date":
             dd, tt, _ = compute_date(self.startdate, self.starttime, self.aggregation, i, self._npartitions)
@@ -108,6 +127,7 @@ class GSVSource(base.DataSource):
         return dataset
 
     def read(self):
+        """Public method providing iterator to read the data"""
         ds = [self._get_partition(i) for i in range(self._npartitions)]
         ds = xr.concat(ds, dim='time')
         return ds
