@@ -48,6 +48,8 @@ source_grids:
         space_coord: [lon, lat]
       intake-esm-test:
         space_coord: [lon, lat]
+      nao:
+        space_coord: [lon, lat]
 
   ICON:
     test-healpix:
