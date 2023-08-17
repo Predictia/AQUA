@@ -6,6 +6,8 @@ import json
 import warnings
 import types
 import xarray as xr
+import numpy as np
+from datetime import timedelta
 import cf2cdm
 from metpy.units import units
 
@@ -63,9 +65,9 @@ class FixerMixin():
     def _fixergen(self, data, **kwargs):
         """Iterator version of the fixer"""
         for ds in data:
-            yield self._fixer(ds, **kwargs)
+            yield self._fixer(ds, keep_memory=True, **kwargs)
 
-    def _fixer(self, data, apply_unit_fix=False):
+    def _fixer(self, data, apply_unit_fix=False, keep_memory=False):
         """
         Perform fixes (var name, units, coord name adjustments) of the input dataset.
 
@@ -74,6 +76,7 @@ class FixerMixin():
             apply_unit_fix (bool):  if to perform immediately unit conversions (which requite a product or an addition).
                                     The fixer sets anyway an offset or a multiplicative factor in the data attributes.
                                     These can be applied also later with the method `apply_unit_fix`. (false)
+            keep_memory (bool):     if to keep memory of the previous fields (used for decumulation of iterators)
 
         Returns:
             A xarray.Dataset containing the fixed data and target units, factors and offsets in variable attributes.
@@ -165,6 +168,9 @@ class FixerMixin():
 
                 # adjust units
                 if unit:
+                    if "units" not in data[source].attrs and "GRIB_units" in data[source].attrs:  # quick fix for some IFS data
+                        data[source].attrs["units"]=data[source].GRIB_units
+
                     if unit.count('{'):
                         unit = self.fixes_dictionary["defaults"]["units"][unit.replace('{', '').replace('}', '')]
                     self.logger.info("%s: %s --> %s", var, data[source].units, unit)
@@ -179,16 +185,32 @@ class FixerMixin():
         data = data.rename(fixd)
 
         if variables:
+            fkeep = False
+            if keep_memory:
+                data1 = data.isel(time=-1)  # save last timestep for possible future use
             for var in variables:
                 # Decumulate if required
                 if variables[var].get("decumulate", None):
                     varname = varlist[var]
                     if varname in data.variables:
                         keep_first = variables[var].get("keep_first", True)
-                        data[varname] = self.simple_decumulate(data[varname],
+                        if keep_memory:  # Special case for iterators
+                            fkeep = True  # We have decumulated at least once and we need to keep data
+                            if not self.previous_data:
+                                previous_data = xr.zeros_like(data[varname].isel(time=0))
+                            else:
+                                previous_data = self.previous_data[varname]
+                            data[varname] = self.simple_decumulate(data[varname],
+                                                               jump=jump,
+                                                               keep_first=keep_first,
+                                                               keep_memory=previous_data)
+                        else:
+                            data[varname] = self.simple_decumulate(data[varname],
                                                                jump=jump,
                                                                keep_first=keep_first)
                         log_history(data[varname], "variable decumulated by AQUA fixer")
+            if fkeep:
+                self.previous_data = data1  # keep the last timestep for further decumulations
 
         if apply_unit_fix:
             for var in data.variables:
@@ -254,7 +276,7 @@ class FixerMixin():
 
         return loadvar
 
-    def simple_decumulate(self, data, jump=None, keep_first=True):
+    def simple_decumulate(self, data, jump=None, keep_first=True, keep_memory=None):
         """
         Remove cumulative effect on IFS fluxes.
 
@@ -263,6 +285,7 @@ class FixerMixin():
             jump (str):              used to fix periodic jumps (a very specific NextGEMS IFS issue)
                                      Examples: jump='month' (the NextGEMS case), jump='day')
             keep_first (bool):       if to keep the first value as it is (True) or place a 0 (False)
+            keep_memory (DataArray): data from previous step
 
         Returns:
             A xarray.DataArray where the cumulation has been removed
@@ -272,23 +295,28 @@ class FixerMixin():
         deltas = data.diff(dim='time')
 
         # add a first timestep empty to align the original and derived fields
+
         if keep_first:
             zeros = data.isel(time=0)
         else:
             zeros = xr.zeros_like(data.isel(time=0))
+        if isinstance(keep_memory, xr.DataArray):
+            data0 = data.isel(time=0)
+            keep_memory = keep_memory.assign_coords(time=data0.time)  # We need them to have the same time
+            zeros = data0 - keep_memory
 
         deltas = xr.concat([zeros, deltas], dim='time').transpose('time', ...)
 
         if jump:
             # universal mask based on the change of month (shifted by one timestep)
-            mask = ~(data[f'time.{jump}'] != data[f'time.{jump}'].shift(time=1))
-            mask = mask.shift(time=1, fill_value=False)
+            dt =  np.timedelta64(timedelta(seconds=self.deltat))
+            data1 = data.assign_coords(time=data.time - dt)
+            data2 = data.assign_coords(time=data1.time - dt)
+            # Mask of dates where month changed in the previous timestep
+            mask = data1[f'time.{jump}'].assign_coords(time=data.time) == data2[f'time.{jump}'].assign_coords(time=data.time)
 
             # kaboom: exploit where
             deltas = deltas.where(mask, data)
-
-            # remove the first timestep (no sense in cumulated)
-            # clean = clean.isel(time=slice(1, None))
 
         # add an attribute that can be later used to infer about decumulation
         deltas.attrs['decumulated'] = 1
