@@ -4,28 +4,45 @@ This module contains miscellaneous tools for the teleconnections diagnostic.
 '''
 import xarray as xr
 
-from aqua.util import load_yaml, get_config_dir
+from aqua.util import load_yaml, ConfigPath
 
 
-def load_namelist(diagname='teleconnections', configdir=None):
+class TeleconnectionsConfig(ConfigPath):
     """
-    Load diagnostic yaml file.
+    Class to handle the configuration of the teleconnections diagnostic.
 
-    Args:
-        diagname (str, opt):    diagnostic name. Default is 'teleconnections'
-        configdir (str, opt):   path to config directory. Default is Nones
-
-    Returns:
-        (dict):        Diagnostic configuration
+    Inherited from ConfigPath, which is a class to handle the configuration
+    of the AQUA framework.
     """
-    if configdir is None:
-        filename = f'{diagname}.yaml'
-        configdir = get_config_dir(filename)
+    def __init__(self, configdir=None, machine=None, diagname='teleconnections'):
+        """
+        Initialize the TeleconnectionsConfig class.
 
-    infile = f'{configdir}/{diagname}.yaml'
-    namelist = load_yaml(infile)
+        Args:
+            configdir (str, opt):   path to config directory. Default is None
+            machine (str, opt):     machine name. Default is None
+            diagname (str, opt):    diagnostic name. Default is 'teleconnections'
+        """
+        # Calling the parent __init__ method
+        super().__init__(configdir=configdir, filename='teleconnections.yaml',
+                         machine=machine)
 
-    return namelist
+        self.diagname = diagname
+
+    def load_namelist(self):
+        """
+        Load diagnostic yaml file.
+
+        Args:
+            diagname (str, opt):    diagnostic name. Default is 'teleconnections'
+
+        Returns:
+            (dict):        Diagnostic configuration
+        """
+        infile = f'{self.configdir}/{self.filename}'
+        namelist = load_yaml(infile)
+
+        return namelist
 
 
 def _check_dim(data: xr.DataArray, dim: str):
