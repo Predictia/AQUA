@@ -98,6 +98,8 @@ class Reader(FixerMixin, RegridMixin):
         self.stream = self.streamer.stream
         self.stream_generator = self.streamer.stream_generator
 
+        self.previous_data = None  # used for FDB iterator fixing 
+
         if not configdir:
             self.configdir = get_config_dir()
         else:
