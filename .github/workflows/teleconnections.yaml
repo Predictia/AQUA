@@ -45,6 +45,10 @@ jobs:
               - conda-forge
           create-args: >-
               python=${{ matrix.python-version }}
+      
+      - name: Download and setup framework data
+        run: |
+          ./download_data_for_tests.sh
 
       - name: Download and setup teleconnections tests
         run: |
