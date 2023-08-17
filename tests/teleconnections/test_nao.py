@@ -5,27 +5,36 @@ approx_rel = 1e-4
 loglevel = 'DEBUG'
 
 @pytest.mark.teleconnections
+def test_import2():
+    """
+    Test that the module can be imported
+    """
+    try:
+        from teleconnections.tc_class import Teleconnection
+    except ImportError:
+        assert False, "Module Teleconnections could not be imported"
+
+@pytest.mark.teleconnections
 def test_class_NAO():
     """
     Test that the NAO class works
     """
-    from teleconnections import Teleconnection
+    from teleconnections.tc_class import Teleconnection
 
     telecname = 'NAO'
     model = 'IFS'
-    exp = 'r1i1p1f1'
-    source = 'monthly'
+    exp = 'test-tco79'
+    source = 'nao'
 
     telec = Teleconnection(model=model, exp=exp, source=source,
-                           loglevel=loglevel, telecname=telecname)
+                           loglevel=loglevel, telecname=telecname,
+                           configdir="diagnostics/teleconnections/config")
 
     telec.evaluate_index()
-    assert telec.index is not None
+    assert telec.index[4].values == pytest.approx(0.21909582, rel=approx_rel)
 
     telec.evaluate_regression()
-    assert telec.regression is not None
+    assert telec.regression.isel(lon=4, lat=23).values == pytest.approx(0.77142069, rel=approx_rel)
 
     telec.evaluate_correlation()
-    assert telec.correlation is not None
-
-    # asser some values for each of the above
+    assert telec.correlation.isel(lon=4, lat=23).values == pytest.approx(0.00220419, rel=approx_rel)
