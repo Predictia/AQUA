@@ -15,7 +15,7 @@ def test_class_NAO():
     telecname = 'NAO'
     model = 'IFS'
     exp = 'test-tco79'
-    source = 'nao'
+    source = 'teleconnections'
 
     telec = Teleconnection(model=model, exp=exp, source=source,
                            loglevel=loglevel, telecname=telecname,
