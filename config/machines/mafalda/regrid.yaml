@@ -49,9 +49,9 @@ source_grids:
         space_coord: ["rgrid"]
     fdb-tco399:
       default:
-        # path:
-        #   2d: /projappl/project_465000454/jvonhar/aqua/grids/cellarea_lonlat_1440x720.nc
-        #   2dm: /projappl/project_465000454/jvonhar/aqua/grids/cellarea_lonlat_1440x720_masked.nc
+        path:
+          2d: /work/users/jost/aqua/grids/cellarea_lonlat_1440x720.nc
+          2dm: /work/users/jost/aqua/grids/cellarea_lonlat_1440x720_masked.nc
         masked_vars:
           - ci
           - sst
