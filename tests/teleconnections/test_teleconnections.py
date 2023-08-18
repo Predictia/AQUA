@@ -53,7 +53,7 @@ def test_station_based(months_window, loglevel=loglevel):
     from teleconnections.tools import TeleconnectionsConfig
     from teleconnections.cdo_testing import cdo_station_based_comparison
 
-    filepath = "./nao_test.nc"
+    filepath = "./AQUA_tests/models/IFS/teleconnections/nao_test.nc"
     configdir = "./diagnostics/teleconnections/config"
     diagname = 'teleconnections'
     telecname = 'NAO'
@@ -80,7 +80,7 @@ def test_regional_mean(months_window):
     from teleconnections.tools import TeleconnectionsConfig
     from teleconnections.cdo_testing import cdo_regional_mean_comparison
 
-    filepath = "./enso_test.nc"
+    filepath = ".AQUA_tests/models/IFS/teleconnections/enso_test.nc"
     configdir = "./diagnostics/teleconnections/config"
     diagname = 'teleconnections'
     telecname = 'ENSO_test'
