@@ -27,12 +27,13 @@ sources:
       query:
         experiment: historical
         frequency: hourly
-  nao:
+  teleconnections:
     args:
       chunks:
         time: 1
       urlpath:
-      - ./AQUA_tests/models/IFS/nao/nao_test.nc
-    description: msl for NAO
+      - ./AQUA_tests/models/IFS/teleconnections/nao_test.nc
+      - ./AQUA_tests/models/IFS/teleconnections/enso_test.nc
+    description: teleconnections catalogue
     driver: netcdf
 
