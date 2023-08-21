@@ -107,7 +107,9 @@ class Gribber():
             self.configdir = get_config_dir()
         else:
             self.configdir = self.dir['configdir']
+        self.logger.debug("Config directory: %s", self.configdir)
         self.machine = get_machine(self.configdir)
+        self.logger.debug("Machine: %s", self.machine)
 
         self.logger.info("Data directory: %s", self.datadir)
         self.logger.info("JSON directory: %s", self.jsondir)
@@ -121,7 +123,7 @@ class Gribber():
                              self.tgt_json)
         else:
             self.tgt_json = self.source
-            self.logger.info("json file will be named as source.",
+            self.logger.info("json file will be named as %s.",
                              self.source)
         self.indices = None
 
@@ -137,9 +139,10 @@ class Gribber():
             self.gribfiles = '*'+format
 
         # Get catalog filename
-        self.catalogfile = os.path.join(self.configdir, 'machines',
-                                        self.machine, 'catalog',
-                                        self.model, self.exp+'.yaml')
+        self.catalogdir = os.path.join(self.configdir, 'machines',
+                                       self.machine, 'catalog',
+                                       self.model)
+        self.catalogfile = os.path.join(self.catalogdir, self.exp+'.yaml')
         self.logger.warning("Catalog file: %s", self.catalogfile)
 
         # Get JSON filename
@@ -174,6 +177,8 @@ class Gribber():
         self._create_catalog_entry()
 
         self._create_main_catalog()
+
+        self._create_regrid_entry()
 
     def check_entry(self):
         """
@@ -371,6 +376,9 @@ class Gribber():
             cat_file['sources'] = {}
             cat_file['sources'][self.source] = block_cat
 
+            # Create folder if needed
+            create_folder(folder=self.catalogdir)
+
         # Write catalog file
         dump_yaml(outfile=self.catalogfile, cfg=cat_file)
 
@@ -415,6 +423,28 @@ class Gribber():
 
         # Write catalog file
         dump_yaml(outfile=mainfilepath, cfg=main_file)
+
+    def _create_regrid_entry(self):
+        """
+        Updates the regrid.yaml file.
+        """
+
+        self.logger.warning("Update regrid.yaml is highly experimental.")
+
+        # # Regrid block
+        # block_regrid = { # here the bloack to be added
+        #     'source'
+        # }
+
+        # # Write regrid catalog file
+        # regridfilepath = os.path.join(self.configdir, 'machines',
+        #                               self.machine, 'regrid.yaml')
+        # regrid_file = load_yaml(regridfilepath)
+
+        # regrid_file['sources'][self.source] = block_regrid
+
+        # # Write catalog file
+        # dump_yaml(outfile=regridfilepath, cfg=regrid_file)
 
     def help(self):
         """
