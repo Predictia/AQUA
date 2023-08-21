@@ -419,7 +419,7 @@ class Gribber():
                     in {mainfilepath}. Skipping...")
             return
         else:  # Source does not exist
-            main_file['sources'][self.source] = block_main
+            main_file['sources'] = block_main
 
         # Write catalog file
         dump_yaml(outfile=mainfilepath, cfg=main_file)
