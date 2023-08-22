@@ -54,13 +54,13 @@ As mentioned, the `Reader` access is built on a 3-level hierarchy of model, expe
 
 .. code-block:: python
 
-    reader = Reader(model="ICON", exp="ngc2009", source="atm_2d_ml_R02B09")
+    reader = Reader(model="ICON", exp="ngc2009", source="atm_2d_ml_R02B09", fix=False)
 
 Now we can read the actual data with the "retrieve" method.
 
 .. code-block:: python
 
-    data = reader.retrieve(fix=False)
+    data = reader.retrieve()
 
 The reader returns an xarray.Dataset with raw ICON data on the original grid.
 
@@ -152,17 +152,18 @@ fixing variable or coordinate names and performing unit conversions.
 The general idea is to convert data from different models to a uniform file format
 with the same variable names and units. The default format is GRIB2.
 
-The fixing is done by default (``apply_unit_fix=False`` to switch it off) when we retrieve the data, 
-using the instructions in the 'config/fixes.yaml' file.
+The fixing is done by default (``apply_unit_fix=False`` to switch it off) when we initialize the reader, 
+using the instructions in the `config/fixes` folder. Each model has its own YAML file that specify the fixes, and a `default.yaml`` 
+file is used for common unit corrections.
 
 The fixer performs a range of operations on data:
 
 - adopt a common 'coordinate data model' (default is the CDS data model): names of coordinates and dimensions (lon, lat, etc.), coordinate units and direction, name (and meaning) of the time dimension. 
 - derive new variables. In particular, it derives from accumulated variables like "tp" (in mm), the equivalent mean-rate variables (like "tprate", paramid 172228; in mm/s). The fixer can identify these derived variables by their Short Names (ECMWF and WMO eccodes tables are used).
 - using the metpy.units module, it is capable of guessing some basic conversions. In particular, if a density is missing, it will assume that it is the density of water and will take it into account. If there is an extra time unit, it will assume that division by the timestep is needed.
+- 
 
-
-In the `fixer.yaml` file, it is also possible to specify in a flexible way custom derived variables. For example:
+In the `fixer` folder, it is also possible to specify in a flexible way custom derived variables. For example:
 
 .. code-block:: markdown
 
