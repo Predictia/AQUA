@@ -231,6 +231,7 @@ If an appropriate entry has been created in the catalogue, the reader can also r
 The request is transparent to the user (no apparent difference to other data sources) in the call.
 
 For example (on Lumi):
+
 .. code-block:: python
     reader = Reader(model="IFS", exp="fdb-tco399", source="fdb-long", aggregation="D", regrid="r025")
     data = reader.retrieve(startdate='20200120', enddate='20200413', var='ci')
