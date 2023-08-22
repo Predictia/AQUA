@@ -233,6 +233,7 @@ The request is transparent to the user (no apparent difference to other data sou
 For example (on Lumi):
 
 .. code-block:: python
+
     reader = Reader(model="IFS", exp="fdb-tco399", source="fdb-long", aggregation="D", regrid="r025")
     data = reader.retrieve(startdate='20200120', enddate='20200413', var='ci')
 
@@ -240,6 +241,7 @@ The main difference compared to a regular call to the reader is that in this cas
 So the next block of data can be read from the iterator with:
 
 .. code-block:: python
+    
     dd = next(data)
 
 or with a loop iterating over `data`. The result is a regular xarray.Dataset containg the data.
