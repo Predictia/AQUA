@@ -223,3 +223,26 @@ The above code will start a dask cluster with 40 workers and one thread per work
 
 AQUA also provides a simple way to move the computation done by dask to a compute node on your HPC system.
 The description of this feature is provided in the section :ref:`slurm`.
+
+Reading from FDB/GSV
+--------------------
+
+If an appropriate entry has been created in the catalogue, the reader can also read data from a FDB/GSV source. 
+The request is transparent to the user (no apparent difference to other data sources) in the call.
+
+For example (on Lumi):
+.. code-block:: python
+    reader = Reader(model="IFS", exp="fdb-tco399", source="fdb-long", aggregation="D", regrid="r025")
+    data = reader.retrieve(startdate='20200120', enddate='20200413', var='ci')
+
+The main difference compared to a regular call to the reader is that in this case the reader always returns an *iterator* object.
+So the next block of data can be read from the iterator with:
+
+.. code-block:: python
+    dd = next(data)
+
+or with a loop iterating over `data`. The result is a regular xarray.Dataset containg the data.
+It is possible to specify the size of the data blocks read at each iteration with the `aggregation` keyword (`M` is month, `D`is day etc.). 
+The default is 'S' (step), i.e. single timesteps are read at each iteration.
+Since this is a data stream the user should also specify the desired initial time and the final time (the latter can be omitted and will default to the end of the dataset).
+Specifying the variable is essential, but a list can be passed.
