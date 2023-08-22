@@ -249,3 +249,6 @@ It is possible to specify the size of the data blocks read at each iteration wit
 The default is 'S' (step), i.e. single timesteps are read at each iteration.
 Since this is a data stream the user should also specify the desired initial time and the final time (the latter can be omitted and will default to the end of the dataset).
 Specifying the variable is essential, but a list can be passed.
+
+Please notice that the resulting object obtained at each iteration is not a lazy dask array, but is instead entirely loaded into memory.
+Please consider memory usage in choosing an appropriate value for the `aggregation`keyword.
