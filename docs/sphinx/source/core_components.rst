@@ -252,3 +252,15 @@ Specifying the variable is essential, but a list can be passed.
 
 Please notice that the resulting object obtained at each iteration is not a lazy dask array, but is instead entirely loaded into memory.
 Please consider memory usage in choosing an appropriate value for the `aggregation`keyword.
+
+In case you wish not to change your workflow and strongly prefer to work with a lazy dask xarray.Dataset, it is possible to store the results of the iterator into a temporary directory (i.e. to buffer them).
+Of course, you will pay the price of additional disk traffic and disk storage.
+The `buffer` keyword should specify the location of a directory with enough space to create large temporary directories.
+
+.. code-block:: python
+    reader = Reader(model="IFS", exp="fdb-tco399", source="fdb-long", aggregation="D", regrid="r025", buffer="/scratch/jost/aqua/buffer", loglevel="INFO")
+    data = reader.retrieve(startdate='20200201', enddate='20200301', var='ci')
+
+The result will now be a regular dask xarray Dataset, not an iterator.
+In theory the temporary directory will be erased automatically if the program terminates in an orderly fashion. This is not always the case with jupyter notebooks, 
+so you should monitor your buffer directory and do manual housekeeping.

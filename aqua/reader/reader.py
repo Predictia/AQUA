@@ -4,6 +4,7 @@ import os
 import re
 
 import types
+import tempfile
 import intake
 import intake_esm
 
@@ -41,7 +42,8 @@ class Reader(FixerMixin, RegridMixin):
                  regrid=None, method="ycon", zoom=None, configdir=None,
                  areas=True,  # pylint: disable=W0622
                  datamodel=None, streaming=False, stream_step=1, stream_unit='steps',
-                 stream_startdate=None, rebuild=False, loglevel=None, nproc=4, aggregation=None, verbose=False):
+                 stream_startdate=None, rebuild=False, loglevel=None, nproc=4, aggregation=None, verbose=False,
+                 buffer=None):
         """
         Initializes the Reader class, which uses the catalog
         `config/config.yaml` to identify the required data.
@@ -65,7 +67,8 @@ class Reader(FixerMixin, RegridMixin):
             loglevel (str, optional): Level of logging according to logging module. Defaults to log_level_default of loglevel().
             nproc (int,optional): Number of processes to use for weights generation. Defaults to 16.
             aggregation (str, optional): aggregation to be used for GSV access (one of S (step), 10M, 15M, 30M, 1H, H, 3H, 6H, D, W, M, Y). Defaults to None (using default from catalogue).
-            verbose (bool, optional):   if to print to screen additional info (used only for FDB access at the moment)
+            verbose (bool, optional): if to print to screen additional info (used only for FDB access at the moment)
+            buffer (str, optional): buffering of FDB/GSV streams in a temporary directory specified by the keyword. The result will be a dask array and not an iterator.
 
         Returns:
             Reader: A `Reader` class object.
@@ -101,6 +104,12 @@ class Reader(FixerMixin, RegridMixin):
         self.stream_generator = self.streamer.stream_generator
 
         self.previous_data = None  # used for FDB iterator fixing 
+        if buffer:  # optional FDB buffering
+            if not os. path. isdir(buffer):
+                raise ValueError("The directory specified by buffer must exist.") 
+            self.buffer = tempfile.TemporaryDirectory(dir=buffer)
+        else:
+            self.buffer = None
 
         # define configuration file and paths
         Configurer = ConfigPath(configdir=configdir)
@@ -361,6 +370,10 @@ class Reader(FixerMixin, RegridMixin):
                         self.logger.warning(f"Would be safer to run with fix=False")
                     except:
                         raise KeyError("You are asking for variables which we cannot find in the catalog!")
+
+        if fiter and self.buffer:
+            data = self.buffer_iter(data)
+            fiter = False
 
         data = log_history_iter(data, "retrieved by AQUA retriever")
 
@@ -736,3 +749,21 @@ class Reader(FixerMixin, RegridMixin):
             self.logger.warning("Duplicate entries found along the time axis, keeping the %s one.", keep)
 
         return data
+
+    def buffer_iter(self, data):
+        """
+        Buffers an iterator object into a temporary directory
+        Args:
+            data (iterator over xarray.Dataset): the data to be buffered
+
+        Returns:
+            A xarray.Dataset pointing to the buffered data
+        """
+
+        self.logger.info("Buffering iterator to: %s", self.buffer.name)
+        niter =0
+        for dd in data:
+            dd.to_netcdf(f"{self.buffer.name}/iter{niter}.nc")
+            niter = niter + 1
+
+        return xr.open_mfdataset(f"{self.buffer.name}/iter*.nc")
