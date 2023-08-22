@@ -17,6 +17,7 @@ Unreleased is the current development version.
 - FDB tests added (Add FDB 5.11, a local FDB with some test data #280)
 - AQUA new common environment installation tool for LUMI added (Adding aqua_common environment for LUMI #413)
 - Refactor of unit conversion and non-metpy cases (Flexible unit fix from YAML file #416)
+- Refactor of the config file definition (Refactor of the configuration search #417)
 
 ## [v0.2-beta]
 

@@ -7,7 +7,7 @@ import subprocess
 from glob import glob
 from aqua.logger import log_configure
 from aqua.util import load_yaml, dump_yaml, create_folder
-from aqua.util import get_config_dir, get_machine
+from aqua.util import ConfigPath
 from aqua.reader import Reader
 
 
@@ -103,11 +103,10 @@ class Gribber():
                                     self.exp)
         self.logger.info("JSON directory: %s", self.jsondir)
 
-        if not self.dir['configdir']:
-            self.configdir = get_config_dir()
-        else:
-            self.configdir = self.dir['configdir']
-        self.machine = get_machine(self.configdir)
+        Configurer = ConfigPath(self.dir['configdir'])
+        self.configdir = Configurer.configdir
+        self.machine = Configurer.machine
+
 
         self.logger.info("Data directory: %s", self.datadir)
         self.logger.info("JSON directory: %s", self.jsondir)

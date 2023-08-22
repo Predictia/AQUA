@@ -14,7 +14,7 @@ import numpy as np
 import smmregrid as rg
 
 from aqua.util import load_yaml, load_multi_yaml
-from aqua.util import get_reader_filenames, get_config_dir, get_machine
+from aqua.util import ConfigPath
 from aqua.logger import log_configure, log_history, log_history_iter
 import aqua.gsv
 
@@ -28,10 +28,6 @@ from .reader_utils import check_catalog_source, group_shared_dims, set_attrs
 default_space_dims = ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude',
                       'latitude', 'cell', 'cells', 'ncells', 'values',
                       'value', 'nod2', 'pix', 'elem']
-
-
-# set default options for xarray
-xr.set_options(keep_attrs=True)
 
 
 # set default options for xarray
@@ -100,15 +96,14 @@ class Reader(FixerMixin, RegridMixin):
         self.stream = self.streamer.stream
         self.stream_generator = self.streamer.stream_generator
 
-        if not configdir:
-            self.configdir = get_config_dir()
-        else:
-            self.configdir = configdir
-        self.machine = get_machine(self.configdir)
+        # define configuration file and paths
+        Configurer = ConfigPath(configdir=configdir)
+        self.configdir = Configurer.configdir
+        self.machine = Configurer.machine
 
         # get configuration from the machine
         self.catalog_file, self.regrid_file, self.fixer_folder, self.config_file = (
-            get_reader_filenames(self.configdir, self.machine))
+            Configurer.get_reader_filenames())
         self.cat = intake.open_catalog(self.catalog_file)
 
         # check source existence
