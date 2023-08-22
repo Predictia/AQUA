@@ -79,9 +79,21 @@ class FixerMixin():
             A xarray.Dataset containing the fixed data and target units, factors and offsets in variable attributes.
         """
 
+        # OLD NAMING SCHEME
+        # unit: name of 'units' attribute
+        # src_units: name of fixer source units
+        # newunits: name of fixer target units
+
+        # NEW NAMING SCHEME
+        # tgt_units: target unit
+        # fixer_src_units: name of fixer source units
+        # fixer_tgt_units: name of fixer target units
+
+
         # add extra units (might be moved somewhere else)
         units_extra_definition()
         fix = self.fixes
+
 
         # if there are no fixes, return
         if fix is None:
@@ -96,9 +108,11 @@ class FixerMixin():
         fixd = {}
         varlist = {}
         variables = fix.get("vars", None)
+        # loop on fixes: this is done even if the underlying variables are not 
+        # in the required source.
         if variables:
             for var in variables:
-                unit = None
+                tgt_units = None
                 attributes = {}
                 varname = var
 
@@ -106,12 +120,15 @@ class FixerMixin():
                 # This is a grib variable, use eccodes to find attributes
                 if grib:
                     # Get relevant eccodes attribues
+                    self.logger.info("Grib variable %s, looking for attributes", var)
                     try:
                         attributes.update(get_eccodes_attr(var))
-                        sn = attributes.get("shortName", None)
-                        if (sn != '~') and (var != sn):
-                            varname = sn
-                            self.logger.info("Grib attributes for %s: %s", varname, attributes)
+                        shortname = attributes.get("shortName", None)
+                        self.logger.info("Grib variable %s, shortname is %s", varname, shortname)
+                        if varname not in ['~', shortname]:
+                            self.logger.info("For grib variable %s find eccodes shortname %s, replacing it", var, shortname)
+                            varname = shortname
+                        self.logger.info("Grib attributes for %s: %s", varname, attributes)
                     except TypeError:
                         self.logger.warning("Cannot get eccodes attributes for %s", var)
                         self.logger.warning("Information may be missing in the output file")
@@ -138,9 +155,10 @@ class FixerMixin():
                         log_history(data[source], "variable derived by AQUA fixer")
                     except KeyError:
                         # The variable could not be computed, let's skip it
+                        self.logger.error('Derived variable %s cannot be computed, is it available?', varname)
                         continue
 
-                # Get extra attributes if any
+                # Get extra attributes if any, leave empty dict otherwise
                 attributes.update(variables[var].get("attributes", {}))
 
                 # update attributes
@@ -148,32 +166,38 @@ class FixerMixin():
                     for att, value in attributes.items():
                         # Already adjust all attributes but not yet units
                         if att == "units":
-                            unit = value
+                            tgt_units = value
                         else:
                             data[source].attrs[att] = value
 
                 # Override destination units
-                newunits = variables[var].get("units", None)
-                if newunits:
-                    data[source].attrs.update({"units": newunits})
-                    unit = newunits
+                fixer_tgt_units = variables[var].get("units", None)
+                if fixer_tgt_units:
+                    self.logger.info('Overriding target units "%s" with "%s"',
+                                     tgt_units, fixer_tgt_units)
+                    #data[source].attrs.update({"units": newunits}) #THIS IS WRONG
+                    tgt_units = fixer_tgt_units
 
                 # Override source units
-                src_units = variables[var].get("src_units", None)
-                if src_units:
-                    data[source].attrs.update({"units": src_units})
+                fixer_src_units = variables[var].get("src_units", None)
+                if fixer_src_units:
+                    self.logger.info('Overriding source units "%s" with "%s"', 
+                                     data[source].units, fixer_src_units)
+                    data[source].attrs.update({"units": fixer_src_units})
 
                 # adjust units
-                if unit:
-                    if unit.count('{'):
-                        unit = self.fixes_dictionary["defaults"]["units"][unit.replace('{', '').replace('}', '')]
-                    self.logger.info("%s: %s --> %s", var, data[source].units, unit)
-                    factor, offset = self.convert_units(data[source].units, unit, var)
+                if tgt_units:
+                    if tgt_units.count('{'): #WHAT IS THIS ABOUT?
+                        tgt_units = self.fixes_dictionary["defaults"]["units"]["shortname"][tgt_units.replace('{', '').replace('}', '')]
+                    self.logger.info("Converting %s: %s --> %s", var, data[source].units, tgt_units)
+                    factor, offset = self.convert_units(data[source].units, tgt_units, var)
+                    #self.logger.info('Factor: %s, offset: %s', factor, offset)
                     if (factor != 1.0) or (offset != 0):
-                        data[source].attrs.update({"target_units": unit})
+                        data[source].attrs.update({"tgt_units": tgt_units})
                         data[source].attrs.update({"factor": factor})
                         data[source].attrs.update({"offset": offset})
-                        self.logger.info("Fixing %s to %s. Unit fix: factor=%f, offset=%f", source, var, factor, offset)
+                        self.logger.info("Fixing %s to %s. Unit fix: factor=%f, offset=%f", 
+                                         source, var, factor, offset)
 
         # Only now rename everything
         data = data.rename(fixd)
@@ -341,8 +365,8 @@ class FixerMixin():
             factor, offset (float): a factor and an offset to convert the input data (None if not needed).
         """
 
-        src = normalize_units(src)
-        dst = normalize_units(dst)
+        src = self.normalize_units(src)
+        dst = self.normalize_units(dst)
         factor = units(src).to_base_units() / units(dst).to_base_units()
 
         if factor.units == units('dimensionless'):
@@ -351,22 +375,27 @@ class FixerMixin():
             if factor.units == "meter ** 3 / kilogram":
                 # Density of water was missing
                 factor = factor * 1000 * units("kg m-3")
-                self.logger.info("%s: corrected multiplying by density of water 1000 kg m-3", var)
+                self.logger.warning("%s: corrected multiplying by density of water 1000 kg m-3", 
+                                    var)
             elif factor.units == "meter ** 3 * second / kilogram":
                 # Density of water and accumulation time were missing
                 factor = factor * 1000 * units("kg m-3") / (self.deltat * units("s"))
-                self.logger.info("%s: corrected multiplying by density of water 1000 kg m-3", var)
-                self.logger.info("%s: corrected dividing by accumulation time %s s", var, self.deltat)
+                self.logger.warning("%s: corrected multiplying by density of water 1000 kg m-3", 
+                                    var)
+                self.logger.warning("%s: corrected dividing by accumulation time %s s",
+                                    var, self.deltat)
             elif factor.units == "second":
                 # Accumulation time was missing
                 factor = factor / (self.deltat * units("s"))
-                self.logger.info("%s: corrected dividing by accumulation time %s s", var, self.deltat)
+                self.logger.warning("%s: corrected dividing by accumulation time %s s", 
+                                    var, self.deltat)
             elif factor.units == "kilogram / meter ** 3":
                 # Density of water was missing
                 factor = factor / (1000 * units("kg m-3"))
-                self.logger.info("%s: corrected dividing by density of water 1000 kg m-3", var)
+                self.logger.warning("%s: corrected dividing by density of water 1000 kg m-3", var)
             else:
-                self.logger.info("%s: incommensurate units converting %s to %s --> %s", var, src, dst, factor.units)
+                self.logger.warning("%s: incommensurate units converting %s to %s --> %s", 
+                                 var, src, dst, factor.units)
             offset = 0 * units(dst)
 
         if offset.magnitude != 0:
@@ -384,12 +413,16 @@ class FixerMixin():
         Arguments:
             data (xr.DataArray):  input DataArray
         """
-        target_units = data.attrs.get("target_units", None)
-        real_units = data.attrs.get("units", None)
-        if target_units and real_units != target_units:
-            d = {"src_units": data.attrs["units"], "units_fixed": 1}
-            data.attrs.update(d)
-            data.attrs["units"] = normalize_units(target_units)
+        tgt_units = data.attrs.get("tgt_units", None)
+        org_units = data.attrs.get("units", None)
+
+        # if units are not already updated and if a tgt_units exist
+        if tgt_units and org_units != tgt_units:
+            self.logger.info("Applying unit fixes for %s ", data.name)
+
+            # define an old units
+            data.attrs.update({"src_units": units, "units_fixed": 1})
+            data.attrs["units"] = self.normalize_units(tgt_units)
             factor = data.attrs.get("factor", 1)
             offset = data.attrs.get("offset", 0)
             if factor != 1:
@@ -397,23 +430,25 @@ class FixerMixin():
             if offset != 0:
                 data += offset
             log_history(data, "units changed by AQUA fixer")
-            data.attrs.pop('target_units', None)
+            data.attrs.pop('tgt_units', None)
 
+    def normalize_units(self, src):
+        """
+        Get rid of crazy grib units based on the default.yaml fix file
 
-def normalize_units(src):
-    """
-    Get rid of crazy grib units: this is a collection of HACK and need to be improved
-    We might want to introdue a dictionary of unit fixes read from dictionary
-    """
-    if src == '1':
-        return 'dimensionless'
-    else:
+        Arguments:
+            src (str): input unit to be fixed
+        """
         src = str(src)
-        src = src.replace("of", "").replace("water", "").replace("equivalent", "")
-        src = src.replace("deg C", "degC")
-        src = src.replace("mm 3h-1", "mm/(3h)") #MSWEP fix
-        return src
+        fix_units = self.fixes_dictionary['defaults']['units']['fix']        
+        for key in fix_units:
+            if key == src:
+                # return fixed
+                self.logger.warning('Replacing non-metpy unit %s with %s', key, fix_units[key])
+                return src.replace(key, fix_units[key])
 
+        # return not fixed
+        return src
 
 def units_extra_definition():
     """Add units to the pint registry"""
