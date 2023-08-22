@@ -30,7 +30,8 @@ source_grids:
         space_coord: ["nod2"]
         extra: 
           - -setgrid,../AQUA_tests_short/grids/pi_griddes_nodes_IFS.nc 
-          - -selname,cell_area 
+          - -selname,cell_area
+
   IFS:
     tco399-orca025:
       default:
@@ -49,17 +50,20 @@ source_grids:
         space_coord: ["rgrid"]
     fdb-tco399:
       default:
-        path: /work/users/jost/aqua/grids/tco399_grid.nc
-        #  2d: /work/users/jost/aqua/grids/cellarea_lonlat_1440x720.nc
-        #  2dm: /work/users/jost/aqua/grids/cellarea_lonlat_1440x720_masked.nc
-        # masked_vars:
-        #  - ci
-        #  - sst
+        path: 
+          2d: /work/users/jost/aqua/grids/tco399_grid.nc
+          2dm: /work/users/jost/aqua/grids/tco399_grid_masked.nc
+        masked_vars:
+          - ci
+          - sst
         space_coord: ["ncells"]
+        vert_coord: ["2d", "2dm"]  # If the case is more complex than simply "2d" we need to specify this
+
   ERA5:
     fdb:
       default:
         space_coord: ["lon", "lat"]
+  
   NEMO:
     tco79-eORCA1:
       default:

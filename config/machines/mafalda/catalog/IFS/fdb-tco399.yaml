@@ -18,6 +18,6 @@ sources:
       aggregation: S
       timestep: H
       timestyle: step
-    description: 'FDB data tco399 grid'
+    description: FDB data tco399 grid
     driver: gsv
     metadata: {fdb_path: /data/users/jost/fdb/fdb-long-mini/config.yaml}
