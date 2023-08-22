@@ -427,24 +427,11 @@ class Gribber():
     def _create_regrid_entry(self):
         """
         Updates the regrid.yaml file.
+
+        At the moment this is only a placeholder for a possible function.
         """
 
-        self.logger.warning("Update regrid.yaml is highly experimental.")
-
-        # # Regrid block
-        # block_regrid = { # here the bloack to be added
-        #     'source'
-        # }
-
-        # # Write regrid catalog file
-        # regridfilepath = os.path.join(self.configdir, 'machines',
-        #                               self.machine, 'regrid.yaml')
-        # regrid_file = load_yaml(regridfilepath)
-
-        # regrid_file['sources'][self.source] = block_regrid
-
-        # # Write catalog file
-        # dump_yaml(outfile=regridfilepath, cfg=regrid_file)
+        self.logger.warning("Update regrid.yaml has to be done manually.")
 
     def help(self):
         """
