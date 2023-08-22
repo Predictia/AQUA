@@ -172,6 +172,9 @@ class Gribber():
         # Create JSON file
         if self.flag[1]:
             self._create_json()
+            if not os.path.exists(self.jsonfile):
+                self.logger.error("Gribscan has created different json filename!")
+                self.logger.error("Please check and modify the catalog files accordingly")
 
         # Create catalog entry
         self._create_catalog_entry()
