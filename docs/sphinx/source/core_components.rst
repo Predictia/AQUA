@@ -224,3 +224,44 @@ The above code will start a dask cluster with 40 workers and one thread per work
 
 AQUA also provides a simple way to move the computation done by dask to a compute node on your HPC system.
 The description of this feature is provided in the section :ref:`slurm`.
+
+Reading from FDB/GSV
+--------------------
+
+If an appropriate entry has been created in the catalogue, the reader can also read data from a FDB/GSV source. 
+The request is transparent to the user (no apparent difference to other data sources) in the call.
+
+For example (on Lumi):
+
+.. code-block:: python
+
+    reader = Reader(model="IFS", exp="fdb-tco399", source="fdb-long", aggregation="D", regrid="r025")
+    data = reader.retrieve(startdate='20200120', enddate='20200413', var='ci')
+
+The main difference compared to a regular call to the reader is that in this case the reader always returns an *iterator/generator* object.
+So the next block of data can be read from the iterator with:
+
+.. code-block:: python
+
+    dd = next(data)
+
+or with a loop iterating over `data`. The result is a regular xarray.Dataset containg the data.
+It is possible to specify the size of the data blocks read at each iteration with the `aggregation` keyword (`M` is month, `D`is day etc.). 
+The default is 'S' (step), i.e. single timesteps are read at each iteration.
+Since this is a data stream the user should also specify the desired initial time and the final time (the latter can be omitted and will default to the end of the dataset).
+Specifying the variable is essential, but a list can be passed.
+
+Please notice that the resulting object obtained at each iteration is not a lazy dask array, but is instead entirely loaded into memory.
+Please consider memory usage in choosing an appropriate value for the `aggregation`keyword.
+
+In case you wish not to change your workflow and strongly prefer to work with a lazy dask xarray.Dataset, it is possible to store the results of the iterator into a temporary directory (i.e. to buffer them).
+Of course, you will pay the price of additional disk traffic and disk storage.
+The `buffer` keyword should specify the location of a directory with enough space to create large temporary directories.
+
+.. code-block:: python
+    reader = Reader(model="IFS", exp="fdb-tco399", source="fdb-long", aggregation="D", regrid="r025", buffer="/scratch/jost/aqua/buffer", loglevel="INFO")
+    data = reader.retrieve(startdate='20200201', enddate='20200301', var='ci')
+
+The result will now be a regular dask xarray Dataset, not an iterator.
+In theory the temporary directory will be erased automatically if the program terminates in an orderly fashion. This is not always the case with jupyter notebooks, 
+so you should monitor your buffer directory and do manual housekeeping.
