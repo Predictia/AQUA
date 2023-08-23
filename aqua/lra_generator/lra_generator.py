@@ -375,7 +375,7 @@ class LRAgenerator():
 
             # real writing
             if self.definitive:
-                self._write_var_month(temp_data, outfile)
+                self.write_chunk(temp_data, outfile)
 
                 # check everything is correct
                 filecheck = file_is_complete(outfile, self.logger)

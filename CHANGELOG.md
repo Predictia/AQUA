@@ -6,8 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased is the current development version.
-- Improve the LRA generator and worklow CLI (Streaming for the LRA #289)
-
+- Allow the LRA generator to work with generators and so with FDB (LRA from fdb on mafalda #430)
+- Improve the LRA generator and workflow CLI (Streaming for the LRA #289)
 - Teleconnections diagnostic adapted to new code improvements (Teleconnections Dev branch update #424)
 - Add support for area selection with fldmean (Fldmean box selection #409)
 - Environment simplified, dependencies are now mostly on the pyproject file (A simpler environment.yml #286)
