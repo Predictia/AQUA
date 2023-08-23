@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Fixes only on selected variables
+- Complete revision of the FDB/GSV access, allowing to access also recent experiments using variable step
 - Teleconnections diagnostic adapted to new code improvements (Teleconnections Dev branch update #424)
 - Add support for area selection with fldmean (Fldmean box selection #409)
 - Environment simplified, dependencies are now mostly on the pyproject file (A simpler environment.yml #286)
