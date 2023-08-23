@@ -53,6 +53,11 @@ if __name__ == '__main__':
     opadir =  config['opa']['opadir']
     opacheckpoint =  config['opa']['opacheckpoint']
     opastreamstep =  config['opa']['opastreamstep']
+    
+    if config['target']['aggregation']:
+        aggregation = config['target']['aggregation']
+    else:
+        aggregation = None
 
     definitive = get_arg(args, 'definitive', False)
     overwrite = get_arg(args, 'overwrite', False)
@@ -85,7 +90,7 @@ if __name__ == '__main__':
                                         var=varname, resolution=resolution,
                                         frequency=frequency, fix=fix,
                                         outdir=outdir, tmpdir=tmpdir, configdir=configdir,
-                                        nproc=workers, loglevel=loglevel,
+                                        nproc=workers, loglevel=loglevel, aggregation=aggregation,
                                         definitive=definitive, overwrite=overwrite)
                     
                     # check that your LRA is not already there (it will not work in streaming mode)
