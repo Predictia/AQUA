@@ -52,6 +52,7 @@ class TestLRA():
         assert pytest.approx(file['2t'][0, 1, 1].item()) == 248.0704
         shutil.rmtree(os.path.join(os.getcwd(), outdir))
 
+    #test with definitive = False but with dask init and catalog generator
     def test_dask_entry(self, lra_arguments):
         """
         Test the LRA generator with definitive = False
