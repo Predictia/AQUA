@@ -23,6 +23,9 @@ def reader(request):
         pytest.skip()
     if model == 'ERA5':
         pytest.skip()
+    # teleconnections catalogue, only on teleconnections workflow
+    if model == 'IFS' and exp == 'test-tco79' and source == 'teleconnections':
+        pytest.skip()
     myread = Reader(model=model, exp=exp, source=source, areas=False,
                     fix=False)
     data = myread.retrieve()
