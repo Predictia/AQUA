@@ -244,6 +244,7 @@ class LRAgenerator():
         cat_file['sources'][entry_name] = block_cat
         dump_yaml(outfile=catalogfile, cfg=cat_file)
 
+
     def _set_dask(self):
         """
         Set up dask cluster
@@ -280,24 +281,25 @@ class LRAgenerator():
     def _concat_var(self, var, year):
         """
         To reduce the amount of files concatenate together all the files
-        from the same year
+        from the same year: do it only if there are 12 files (assuming monthly based data)
         """
 
         infiles =  os.path.join(self.outdir,
                     f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}??.nc')
-        xfield = xr.open_mfdataset(infiles)
-        self.logger.warning('Creating a single file for %s, year %s...',  var, str(year))
-        outfile = os.path.join(self.outdir,
-                    f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}.nc')
-        # clean older file
-        if os.path.exists(outfile):
-            os.remove(outfile)
-        xfield.to_netcdf(outfile)
+        if len(glob.glob(infiles))==12:
+            xfield = xr.open_mfdataset(infiles)
+            self.logger.warning('Creating a single file for %s, year %s...',  var, str(year))
+            outfile = os.path.join(self.outdir,
+                        f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}.nc')
+            # clean older file
+            if os.path.exists(outfile):
+                os.remove(outfile)
+            xfield.to_netcdf(outfile)
 
-        # clean of monthly files
-        for infile in glob.glob(infiles):
-            self.logger.info('Cleaning %s...',  infile)
-            os.remove(infile)
+            # clean of monthly files
+            for infile in glob.glob(infiles):
+                self.logger.info('Cleaning %s...',  infile)
+                os.remove(infile)
 
     def get_filename(self, var, year=None, month=None):
 
@@ -431,7 +433,7 @@ class LRAgenerator():
 
                 # real writing
                 if self.definitive:
-                    self._write_var_month(month_data, outfile)
+                    self.write_chunk(month_data, outfile)
 
                     # check everything is correct
                     filecheck = file_is_complete(outfile, self.logger)
@@ -443,8 +445,8 @@ class LRAgenerator():
             if self.definitive:
                 self._concat_var(var, year)
         del temp_data
-
-    def _write_var_month(self, month_data, outfile):
+       
+    def write_chunk(self, data, outfile):
         """Write a single chunk of data - Xarray Dataset - to a specific file
         using dask if required and monitoring the progress"""
 
@@ -456,7 +458,7 @@ class LRAgenerator():
         self.logger.warning('Writing file %s...', outfile)
 
         # Write data to file, lazy evaluation
-        write_job = month_data.to_netcdf(outfile,
+        write_job = data.to_netcdf(outfile,
                                 encoding={'time': self.time_encoding},
                                 compute=False)
 
