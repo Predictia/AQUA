@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased is the current development version.
+- Add support for area selection with fldmean (Fldmean box selection #409)
 
 - Environment simplified, dependencies are now mostly on the pyproject file (A simpler environment.yml #286)
 - Intake esm functionality added back (Fix intake-esm #287)
@@ -14,7 +15,9 @@ Unreleased is the current development version.
 - Log history working for iterators as well (Logger and yaml issues in util.py #334)
 - Util refactor (Utility refactor #405)
 - Fixer at reader level (Fixes at Reader level #244)
-- AQUA new common environment installation tool for LUMI added (#413)
+- FDB tests added (Add FDB 5.11, a local FDB with some test data #280)
+- AQUA new common environment installation tool for LUMI added (Adding aqua_common environment for LUMI #413)
+- Refactor of unit conversion and non-metpy cases (Flexible unit fix from YAML file #416)
 - Refactor of the config file definition (Refactor of the configuration search #417)
 
 ## [v0.2-beta]
