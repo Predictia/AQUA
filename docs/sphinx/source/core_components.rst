@@ -133,6 +133,16 @@ For example, if we run the following commands:
 
 we get a time series of the global average tprate.
 
+It is also possible to apply a regional section to the domain before performing the averaging
+
+.. code-block:: python
+
+    tprate = data.tprate
+    global_mean = reader.fldmean(tprate, lon_limits=[-50, 50], lat_limits=[-10,20])
+
+.. warning ::
+    Please note that in order to apply an area selection the data Xarray must include `lon` and `lat` as coordinates. It can work also on unstructured grids, but information on coordinate must be available. 
+
 Input data may not be available at the desired time frequency. It is possible to perform time averaging at a given
 frequency by specifying a frequency in the reader definition and then using the `timmean` method. 
 

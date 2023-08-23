@@ -15,7 +15,7 @@ import numpy as np
 import smmregrid as rg
 
 from aqua.util import load_yaml, load_multi_yaml
-from aqua.util import ConfigPath
+from aqua.util import ConfigPath, area_selection
 from aqua.logger import log_configure, log_history, log_history_iter
 import aqua.gsv
 
@@ -524,12 +524,20 @@ class Reader(FixerMixin, RegridMixin):
 
         return att.get("regridded", False)
 
-    def fldmean(self, data):
+    def fldmean(self, data, lon_limits=None, lat_limits=None, **kwargs):
         """
         Perform a weighted global average.
+        If a subset of the data is provided, the average is performed only on the subset.
 
         Arguments:
             data (xr.DataArray or xarray.DataDataset):  the input data
+            lon_limits (list, optional):  the longitude limits of the subset
+            lat_limits (list, optional):  the latitude limits of the subset
+
+        Kwargs:
+            - box_brd (bool,opt): choose if coordinates are comprised or not in area selection.
+                                  Default is True
+
         Returns:
             the value of the averaged field
         """
@@ -542,6 +550,10 @@ class Reader(FixerMixin, RegridMixin):
         else:
             space_coord = self.src_space_coord
             grid_area = self.src_grid_area
+
+        if lon_limits is not None or lat_limits is not None:
+            data = area_selection(data, lon=lon_limits, lat=lat_limits,
+                                  **kwargs)
 
         # check if coordinates are aligned
         try:
