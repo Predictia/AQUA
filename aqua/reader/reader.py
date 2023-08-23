@@ -334,7 +334,7 @@ class Reader(FixerMixin, RegridMixin):
 
         # get loadvar
         if var:
-            if isinstance(var, str):
+            if isinstance(var, str):  # conversion to list guarantees that a Dataset is produced
                 var = var.split()
             self.logger.info("Retrieving variables: %s", var)
 
@@ -354,13 +354,6 @@ class Reader(FixerMixin, RegridMixin):
             data = self.reader_intake(esmcat, var, loadvar)  # Returns a generator object
 
             if var:
-                # conversion to list guarantee that Dataset is produced
-                if isinstance(var, str):
-                    var = var.split()
-
-                # get loadvar
-                loadvar = self.get_fixer_varname(var) if self.fix else var
-
                 if all(element in data.data_vars for element in loadvar):
                     data = data[loadvar]
                 else:
@@ -388,7 +381,7 @@ class Reader(FixerMixin, RegridMixin):
             data = self.regrid(data)
             self.grid_area = self.dst_grid_area
         if self.fix:   # Do not change easily this order. The fixer assumes to be after regridding
-            data = self.fixer(data, apply_unit_fix=apply_unit_fix)
+            data = self.fixer(data, var, apply_unit_fix=apply_unit_fix)
         if not fiter:
             # This is not needed if we already have an iterator
             if streaming or self.streaming or streaming_generator:

@@ -55,24 +55,25 @@ class FixerMixin():
                 return None
         return fixes
 
-    def fixer(self, data, **kwargs):
+    def fixer(self, data, var, **kwargs):
         """Call the fixer function returnin container or iterator"""
         if isinstance(data, types.GeneratorType):
-            return self._fixergen(data, **kwargs)
+            return self._fixergen(data, var, **kwargs)
         else:
-            return self._fixer(data, **kwargs)
+            return self._fixer(data, var, **kwargs)
 
-    def _fixergen(self, data, **kwargs):
+    def _fixergen(self, data, var, **kwargs):
         """Iterator version of the fixer"""
         for ds in data:
-            yield self._fixer(ds, keep_memory=True, **kwargs)
+            yield self._fixer(ds, var, keep_memory=True, **kwargs)
 
-    def _fixer(self, data, apply_unit_fix=False, keep_memory=False):
+    def _fixer(self, data, destvar, apply_unit_fix=False, keep_memory=False):
         """
         Perform fixes (var name, units, coord name adjustments) of the input dataset.
 
         Arguments:
             data (xr.Dataset):      the input dataset
+            destvar (list of str):  the name of the desired variables, if None all variables are fixed
             apply_unit_fix (bool):  if to perform immediately unit conversions (which requite a product or an addition).
                                     The fixer sets anyway an offset or a multiplicative factor in the data attributes.
                                     These can be applied also later with the method `apply_unit_fix`. (false)
@@ -97,7 +98,6 @@ class FixerMixin():
         units_extra_definition()
         fix = self.fixes
 
-
         # if there are no fixes, return
         if fix is None:
             return data
@@ -113,12 +113,19 @@ class FixerMixin():
         variables = fix.get("vars", None)
         # loop on fixes: this is done even if the underlying variables are not 
         # in the required source.
+
+        if destvar and variables:
+            newkeys = list(set(variables.keys()) & set(destvar))
+            if newkeys:
+                variables = {key: value for key, value in variables.items() if key in newkeys}
+            else:
+                variables = None
+
         if variables:
             for var in variables:
                 tgt_units = None
                 attributes = {}
                 varname = var
-
                 grib = variables[var].get("grib", None)
                 # This is a grib variable, use eccodes to find attributes
                 if grib:
@@ -173,28 +180,37 @@ class FixerMixin():
                         else:
                             data[source].attrs[att] = value
 
+                # fix name of units attribute for some IFS data (e.g. FDB data)
+                if "units" not in data[source].attrs and "GRIB_units" in data[source].attrs:
+                    data[source].attrs["units"] = data[source].GRIB_units
+
                 # Override destination units
                 fixer_tgt_units = variables[var].get("units", None)
                 if fixer_tgt_units:
-                    self.logger.info('Overriding target units "%s" with "%s"',
-                                     tgt_units, fixer_tgt_units)
+                    self.logger.info('Variable %s: Overriding target units "%s" with "%s"',
+                                     var, tgt_units, fixer_tgt_units)
                     #data[source].attrs.update({"units": newunits}) #THIS IS WRONG
                     tgt_units = fixer_tgt_units
 
                 # Override source units
                 fixer_src_units = variables[var].get("src_units", None)
                 if fixer_src_units:
-                    self.logger.info('Overriding source units "%s" with "%s"', 
-                                     data[source].units, fixer_src_units)
-                    data[source].attrs.update({"units": fixer_src_units})
+                    if "units" in data[source].attrs:
+                        self.logger.info('Variable %s: Overriding source units "%s" with "%s"', 
+                                         var, data[source].units, fixer_src_units)
+                        data[source].attrs.update({"units": fixer_src_units})
+                    else:
+                        self.logger.info('Variable %s: Setting missing source units to "%s"', 
+                                        var, fixer_src_units)
+                        data[source].attrs["units"] = fixer_src_units
+
+                if "units" not in data[source].attrs:  # Houston we have had a problem, no units!
+                    self.logger.error('Variable %s has no units!', var)
 
                 # adjust units
-
                 if tgt_units:
-                    if "units" not in data[source].attrs and "GRIB_units" in data[source].attrs:  # quick fix for some IFS data
-                        data[source].attrs["units"] = data[source].GRIB_units
 
-                    if tgt_units.count('{'): #WHAT IS THIS ABOUT?
+                    if tgt_units.count('{'):  # WHAT IS THIS ABOUT?
                         tgt_units = self.fixes_dictionary["defaults"]["units"]["shortname"][tgt_units.replace('{', '').replace('}', '')]
                     self.logger.info("Converting %s: %s --> %s", var, data[source].units, tgt_units)
                     factor, offset = self.convert_units(data[source].units, tgt_units, var)
@@ -451,7 +467,7 @@ class FixerMixin():
             self.logger.info("Applying unit fixes for %s ", data.name)
 
             # define an old units
-            data.attrs.update({"src_units": units, "units_fixed": 1})
+            data.attrs.update({"src_units": org_units, "units_fixed": 1})
             data.attrs["units"] = self.normalize_units(tgt_units)
             factor = data.attrs.get("factor", 1)
             offset = data.attrs.get("offset", 0)
@@ -474,7 +490,7 @@ class FixerMixin():
         for key in fix_units:
             if key == src:
                 # return fixed
-                self.logger.warning('Replacing non-metpy unit %s with %s', key, fix_units[key])
+                self.logger.info('Replacing non-metpy unit %s with %s', key, fix_units[key])
                 return src.replace(key, fix_units[key])
 
         # return not fixed
