@@ -16,6 +16,10 @@ try:
     gsv_available = True
 except RuntimeError:
     gsv_available = False
+    gsv_error_cause = "FDB5 binary library not present on system on outdated"
+except KeyError:
+    gsv_available = False
+    gsv_error_cause = "Environment variables for gsv, such as GRID_DEFINITION_PATH, not set."
 
 
 class GSVSource(base.DataSource):
@@ -75,7 +79,7 @@ class GSVSource(base.DataSource):
         if gsv_available:
             self.gsv = GSVRetriever()
         else:
-            raise ImportError("FDB5 binary library not present on system or outdated.")
+            raise ImportError(gsv_error_cause)
         self._dataset = None
         super(GSVSource, self).__init__(metadata=metadata)
 
