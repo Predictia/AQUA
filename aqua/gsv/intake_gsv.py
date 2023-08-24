@@ -58,11 +58,11 @@ class GSVSource(base.DataSource):
         self.aggregation = aggregation
         self.timestep = timestep
         self.data_startdate = data_start_date
-        self.data_starttime = "0000"
+        self.data_starttime = request["time"] 
         self.startdate = startdate
         self.enddate = enddate
-        self.starttime = "0000"
-        self.endtime = "0000"
+        self.starttime = request["time"] 
+        self.endtime = request["time"] 
         self._var = var
         self.verbose = verbose
 

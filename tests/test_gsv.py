@@ -1,12 +1,13 @@
 import pytest
+import types
 
 from aqua.gsv.intake_gsv import GSVSource, gsv_available
+from aqua import Reader
 
 if not gsv_available:
     pytest.skip('Skipping GSV tests: FDB5 libraries not available', allow_module_level=True)
 
 """Tests for GSV in AQUA. Requires FDB library installed and an FDB repository."""
-
 
 # Used to create the ``GSVSource`` if no request provided.
 DEFAULT_GSV_PARAMS = {'request': {
@@ -16,7 +17,7 @@ DEFAULT_GSV_PARAMS = {'request': {
     'param': '130',
     'levtype': 'pl',
     'levelist': '300'
-}, 'step': 'H'}
+}, 'data_start_date': '20080101', 'data_end_date': '20080101', 'timestep': 'H'}
 
 
 @pytest.fixture()
@@ -28,17 +29,18 @@ def gsv(request) -> GSVSource:
         request = request.param
     return GSVSource(**request)
 
-
 @pytest.mark.gsv
 class TestGsv():
     """Pytest marked class to test GSV."""
 
-    def test_constructor(self) -> None:
+    # Low-level tests
+
+    def test_gsv_constructor(self) -> None:
         """Simplest test, to check that we can create it correctly."""
-        source = GSVSource(None, step="H", enddate=None, var='167', metadata=None)
+        source = GSVSource(None, "20080101", "20080101", timestep="H", aggregation="S", var='167', metadata=None)
         assert source is not None
 
-    def test_get_schema(self, gsv: GSVSource) -> None:
+    def test_gsv_get_schema(self, gsv: GSVSource) -> None:
         """
         Test the initial schema.
         """
@@ -58,8 +60,8 @@ class TestGsv():
         'date': '20080101',
         'time': '1200',
         'step': '0'
-    }, 'step': 'H', 'var': '130'}], indirect=True)
-    def test_read_chunked(self, gsv: GSVSource) -> None:
+    }, 'data_start_date': '20080101', 'data_end_date': '20080101', 'timestep': 'H', 'var': '130'}], indirect=True)
+    def test_gsv_read_chunked(self, gsv: GSVSource) -> None:
         """Test that the ``GSVSource`` is able to read data from FDB."""
         data = gsv.read()
         assert len(data) > 0, 'GSVSource could not load data'
@@ -77,8 +79,9 @@ class TestGsv():
         'date': '20080101',
         'time': '1200',
         'step': '0'
-    }, 'step': 'H', 'var': '130', 'startdate': '20080101', 'enddate': '20080101'}], indirect=True)
-    def test_read(self, gsv: GSVSource):
+    }, 'data_start_date': '20080101', 'data_end_date': '20080101',
+    'timestep': 'H', 'var': '130', 'startdate': '20080101', 'enddate': '20080101'}], indirect=True)
+    def test_gsv_read(self, gsv: GSVSource):
         """Test that the chunked data is returned correctly too.
 
         Uses ``startdate`` and ``enddate`` too.
@@ -86,8 +89,17 @@ class TestGsv():
         Note that we do not have enough data in the test FDB to do
         a real test with Dask.
         """
-        gsv.npartitions = 2
         dask_data = list(gsv.to_dask())
         assert len(dask_data) > 0, 'The dask data returned was empty'
         xarray_dataset = dask_data[0]
         assert xarray_dataset.t.GRIB_param == '130.128', 'Wrong GRIB param in Dask data'
+
+    # High-level, integrated test
+    def test_reader(self) -> None:
+        """Simple test, to check that catalog access works and reads correctly"""
+
+        reader = Reader(model="IFS", exp="test-fdb", source="fdb", aggregation="S")
+        data = reader.retrieve(startdate='20080101', enddate='20080101', var='t')
+        assert isinstance(data, types.GeneratorType), 'Reader does not return iterator'
+        dd = next(data)
+        assert dd.t.GRIB_param == '130.128', 'Wrong GRIB param in data'
