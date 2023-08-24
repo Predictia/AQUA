@@ -10,6 +10,8 @@ Unreleased is the current development version.
 
 - AQUA new common environment installation tool for LUMI added (#413)
 
+- Added a bash script "load_aqua_lumi.sh" to load aqua environment in LUMI with containers (Adding an AQUA singularity container for LUMI #418)
+
 ## [v0.2-beta]
 
 This is the `AQUA` version part of the Deliverable D340.7.1.2. 
