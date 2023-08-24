@@ -90,10 +90,9 @@ RUN micromamba remove --force --yes numpy && \
     micromamba install -c conda-forge numpy=1.23.5 && \
     micromamba clean --all --yes
 
-ENV JUPYTER_TOKEN=docker
 
 # Bruno: If aqua has some entrypoint script (e.g. `aqua`), or another
 #        useful command just replace it here.
 # CMD ["python", "-c", "'import aqua'"]
-CMD ["jupyter", "lab", "--ip", "0.0.0.0", "--port", "8888"]
+# CMD ["jupyter", "lab", "--ip", "0.0.0.0", "--port", "8888"]
 
