@@ -107,7 +107,6 @@ class Gribber():
         self.configdir = Configurer.configdir
         self.machine = Configurer.machine
 
-
         self.logger.info("Data directory: %s", self.datadir)
         self.logger.info("JSON directory: %s", self.jsondir)
         self.logger.info("Catalog directory: %s", self.configdir)
@@ -120,7 +119,7 @@ class Gribber():
                              self.tgt_json)
         else:
             self.tgt_json = self.source
-            self.logger.info("json file will be named as source.",
+            self.logger.info("json file will be named as %s.",
                              self.source)
         self.indices = None
 
@@ -136,9 +135,10 @@ class Gribber():
             self.gribfiles = '*'+format
 
         # Get catalog filename
-        self.catalogfile = os.path.join(self.configdir, 'machines',
-                                        self.machine, 'catalog',
-                                        self.model, self.exp+'.yaml')
+        self.catalogdir = os.path.join(self.configdir, 'machines',
+                                       self.machine, 'catalog',
+                                       self.model)
+        self.catalogfile = os.path.join(self.catalogdir, self.exp+'.yaml')
         self.logger.warning("Catalog file: %s", self.catalogfile)
 
         # Get JSON filename
@@ -168,11 +168,16 @@ class Gribber():
         # Create JSON file
         if self.flag[1]:
             self._create_json()
+            if not os.path.exists(self.jsonfile):
+                self.logger.error("Gribscan has created different json filename!")
+                self.logger.error("Please check and modify the catalog files accordingly")
 
         # Create catalog entry
         self._create_catalog_entry()
 
         self._create_main_catalog()
+
+        self._create_regrid_entry()
 
     def check_entry(self):
         """
@@ -370,6 +375,9 @@ class Gribber():
             cat_file['sources'] = {}
             cat_file['sources'][self.source] = block_cat
 
+            # Create folder if needed
+            create_folder(folder=self.catalogdir)
+
         # Write catalog file
         dump_yaml(outfile=self.catalogfile, cfg=cat_file)
 
@@ -410,10 +418,19 @@ class Gribber():
                     in {mainfilepath}. Skipping...")
             return
         else:  # Source does not exist
-            main_file['sources'][self.source] = block_main
+            main_file['sources'] = block_main
 
         # Write catalog file
         dump_yaml(outfile=mainfilepath, cfg=main_file)
+
+    def _create_regrid_entry(self):
+        """
+        Updates the regrid.yaml file.
+
+        At the moment this is only a placeholder for a possible function.
+        """
+
+        self.logger.warning("Update regrid.yaml has to be done manually.")
 
     def help(self):
         """
