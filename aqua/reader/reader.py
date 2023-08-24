@@ -76,7 +76,8 @@ class Reader(FixerMixin, RegridMixin):
         """
 
         # define the internal logger
-        self.logger = log_configure(log_level=loglevel, log_name='Reader')
+        self.loglevel = loglevel
+        self.logger = log_configure(log_level=self.loglevel, log_name='Reader')
 
         self.exp = exp
         self.model = model
@@ -97,17 +98,17 @@ class Reader(FixerMixin, RegridMixin):
         self.streamer = Streaming(stream_step=stream_step,
                                   stream_unit=stream_unit,
                                   stream_startdate=stream_startdate,
-                                  loglevel=loglevel)
+                                  loglevel=self.loglevel)
 
         # Export streaming methods TO DO: probably useless
         self.reset_stream = self.streamer.reset_stream
         self.stream = self.streamer.stream
         self.stream_generator = self.streamer.stream_generator
 
-        self.previous_data = None  # used for FDB iterator fixing 
+        self.previous_data = None  # used for FDB iterator fixing
         if buffer:  # optional FDB buffering
             if not os. path. isdir(buffer):
-                raise ValueError("The directory specified by buffer must exist.") 
+                raise ValueError("The directory specified by buffer must exist.")
             self.buffer = tempfile.TemporaryDirectory(dir=buffer)
         else:
             self.buffer = None
@@ -547,7 +548,7 @@ class Reader(FixerMixin, RegridMixin):
 
         if lon_limits is not None or lat_limits is not None:
             data = area_selection(data, lon=lon_limits, lat=lat_limits,
-                                  **kwargs)
+                                  loglevel=self.loglevel, **kwargs)
 
         # check if coordinates are aligned
         try:
@@ -718,7 +719,7 @@ class Reader(FixerMixin, RegridMixin):
             return esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation, verbose=self.verbose).read_chunked()
         else:
             return esmcat(startdate=startdate, enddate=enddate, var=var, verbose=self.verbose).read_chunked()
-            
+
 
     def reader_intake(self, esmcat, var, loadvar, keep="first"):
         """
