@@ -11,8 +11,8 @@ if not gsv_available:
 
 # Used to create the ``GSVSource`` if no request provided.
 DEFAULT_GSV_PARAMS = {'request': {
-    'date': '20080101/to/20080101',
-    'time': '0000/to/1800/by/0600',
+    'date': '20080101',
+    'time': '1200',
     'step': "0",
     'param': '130',
     'levtype': 'pl',
@@ -37,7 +37,8 @@ class TestGsv():
 
     def test_gsv_constructor(self) -> None:
         """Simplest test, to check that we can create it correctly."""
-        source = GSVSource(None, "20080101", "20080101", timestep="H", aggregation="S", var='167', metadata=None)
+        print(DEFAULT_GSV_PARAMS['request'])
+        source = GSVSource(DEFAULT_GSV_PARAMS['request'], "20080101", "20080101", timestep="H", aggregation="S", var='167', metadata=None)
         assert source is not None
 
     def test_gsv_get_schema(self, gsv: GSVSource) -> None:
