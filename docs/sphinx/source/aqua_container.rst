@@ -3,18 +3,14 @@ AQUA Container
 
 Using a Singularity container, you can quickly load the AQUA environment on platforms like LUMI, Marenostrum, or Levante. This guide explains how to use the AQUA environment using the container, with a focus on LUMI. However, the same instructions apply to Marenostrum 4 and Levante.
 
-.. contents::
-   :local:
-   :depth: 2
-
 Load AQUA Environment into the Shell
 -------------------------------------
 
-1. Create a shell script named "load_aqua" using the following code:
+1. Create a shell script named `load_aqua.sh` using the following code:
 
 .. code-block:: bash
 
-   cat << 'EOF' > load_aqua
+   cat << 'EOF' > load_aqua.sh
    #!/bin/bash
 
    AQUA_container="/project/project_465000454/containers/aqua/aqua-v0.2.sif"
@@ -33,24 +29,26 @@ Load AQUA Environment into the Shell
        $AQUA_container
    EOF
 
-   chmod +x load_aqua
+   chmod +x load_aqua.sh
 
 2. Run the following code to load the AQUA environment into the shell:
 
 .. code-block:: bash
 
-   ./load_aqua
+   ./load_aqua.sh
+
+In this way, you will have your shell with AQUA environment active.
 
 Running Jupyter Notebook
 ------------------------
 
-To run a Jupyter Notebook using the AQUA environment, follow these steps. Note that if you want to run Jupyter Notebook within VS Code, execute these steps inside VS Code.
+To run a Jupyter Notebook using the AQUA environment, follow these steps. 
 
 1. Run the previously saved script in the terminal to load the AQUA Singularity container into the shell:
 
 .. code-block:: bash
 
-   ./load_aqua
+   ./load_aqua.sh
 
 2. Start Jupyter Lab, which will provide a server URL like: http://localhost:8888/lab?token=random_token.
 
@@ -66,13 +64,19 @@ To run a Jupyter Notebook using the AQUA environment, follow these steps. Note t
 
 4. Open the Jupyter Lab URL in your browser. It will launch Jupyter Lab. Choose the "Python 3 (ipykernel)" kernel for the AQUA environment.
 
-5. For opening notebooks in VS Code, copy the Jupyter server URL.
+Running Jupyter Notebook within VSCode
+--------------------------------------
+
+
+If you want to open notebooks in VSCode, follow the same steps as above, but then: 
+
+5. Copy the Jupyter server URL.
 
 6. Open a notebook in VS Code and in the top-right corner of the notebook, click on "Select kernel" >> "Select another kernel" >> "Existing Jupyter server" >> "Enter the URL" and paste the copied Jupyter server URL, then press enter.
 
 7. Select "Python 3 (ipykernel)" as the kernel for the AQUA environment.
 
-That's it! You can now work within the AQUA environment using Jupyter Notebook.
+That's it! You can now work within the AQUA environment using Jupyter Notebook also within VSCode
 
 Temporary Upgrade of Any Package
 ---------------------------------
@@ -81,7 +85,7 @@ If you want to upgrade any Python package in the container environment, it is po
 
 .. code-block:: bash
 
-   ./load_aqua
+   ./load_aqua.sh
    pip install any_package/or/path/to/the/repo/
 
 Pointing to a Specific FDB
@@ -96,7 +100,8 @@ Pointing to a Specific FDB
 Submitting Slurm Job Using the Container
 -----------------------------------------
 
-Below is a template for a Slurm script on Lumi. Customize it for your Slurm job.
+It might be required to use the container within a batch job. 
+Below is a template for a Slurm script on Lumi. Customize it according yo your needs.
 
 .. code-block:: bash
 
