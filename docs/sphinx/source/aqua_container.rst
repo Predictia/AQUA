@@ -101,7 +101,7 @@ Submitting Slurm Job Using the Container
 -----------------------------------------
 
 It might be required to use the container within a batch job. 
-Below is a template for a Slurm script on Lumi. Customize it according yo your needs.
+Below is a template for a Slurm script on Lumi. Customize it according to your needs.
 
 .. code-block:: bash
 
