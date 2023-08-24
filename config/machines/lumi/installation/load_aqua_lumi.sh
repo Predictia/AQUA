@@ -40,5 +40,4 @@ singularity shell \
 # run this in your system terminal "ssh -L port:localhost:port lumi_user@lumi.csc.fi", port is localhost channel.
 # Then paste the jupyter url on your web browser.
 
-# Detailed instruction can be founf here: https://github.com/oloapinivad/AQUA/issues/420
-# If you face any issue, ask in the mattermost AQUA channel.
+# Detailed instructions can be found here: https://github.com/oloapinivad/AQUA/issues/420
