@@ -22,6 +22,7 @@ jobs:
       COVERAGE_ENABLED: ${{ matrix.python-version == '3.10' }}
       DEBIAN_FRONTEND: noninteractive
       GRID_DEFINITION_PATH: /tmp
+      FDB5_CONFIG_FILE: /app/config.yaml
     runs-on: ubuntu-latest
     container:
       # https://hub.docker.com/r/kinow/fdb
