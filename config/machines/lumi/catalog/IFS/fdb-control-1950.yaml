@@ -8,10 +8,10 @@ sources:
         type: fc
         stream: lwda
         date: 19500101
-        time: 0000
+        time: "0000"
         param: 167
         levtype: sfc
-        step: 744
+        step: 0
       data_start_date: 19500101
       data_end_date: 19600101
       aggregation: S # aggregation default, S for step
@@ -29,10 +29,10 @@ sources:
         type: fc
         stream: scda
         date: 19500101
-        time: 0000
+        time: "0000"
         param: 144
         levtype: sfc
-        step: 744
+        step: 0
       data_start_date: 19500101
       data_end_date: 19600101
       aggregation: S # aggregation default, S for step
@@ -50,10 +50,11 @@ sources:
         type: fc
         stream: scwv
         date: 19500101
-        time: 0000
+        time: "0000"
         param: 129 # geopotential
-        levtype: pl # to be checked, how to specify the pl I want?
-        step: 744
+        levtype: pl
+        levelist: [1,5,10,20,30,50,70,100,150,200,250,300,400,500,600,700,850,925,1000]
+        step: 6
       data_start_date: 19500101
       data_end_date: 19600101
       aggregation: S
@@ -71,7 +72,7 @@ sources:
         type: fc
         stream: monr
         date: 19500101
-        time: 0000
+        time: "0000"
         param: 167
         levtype: sfc
         step: 744
