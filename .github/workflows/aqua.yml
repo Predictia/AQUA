@@ -86,7 +86,7 @@ jobs:
       - name: Download and set up tests
         run: |
           ./download_data_for_tests.sh
-          
+          export
           # FDB for GSV
           rm -rf /app/
           cp -r ./AQUA_tests/fdb/ /app/
