@@ -23,6 +23,8 @@ def reader(request):
         pytest.skip()
     if model == 'ERA5':
         pytest.skip()
+    if model == 'IFS' and source == 'fdb':  # there is another test for that
+        pytest.skip()
     myread = Reader(model=model, exp=exp, source=source, areas=False,
                     fix=False)
     data = myread.retrieve()
