@@ -482,26 +482,8 @@ models:
                         decumulate: true
                         src_units: m
                         units: kg m**-2 s**-1
-                    mlsprt:
-                        source: lsp
-                        grib: true
-                        decumulate: true
-                        src_units: m
-                        units: kg m**-2 s**-1
                     erate:
                         source: e
-                        grib: true
-                        decumulate: true
-                        src_units: m
-                        units: kg m**-2 s**-1
-                    esrate:
-                        source: es
-                        grib: true
-                        decumulate: true
-                        src_units: m
-                        units: kg m**-2 s**-1
-                    mrort:
-                        source: ro
                         grib: true
                         decumulate: true
                         src_units: m
@@ -543,8 +525,15 @@ models:
                     mtntrf:
                         source: ttr
                         grib: true
-                        decumulate: true         
-
+                        decumulate: true    
+                    iews:
+                        source: ewss
+                        grib: true
+                        decumulate: true  
+                    inss: 
+                        source: nsss
+                        grib: true
+                        decumulate: true
 
         # These are for tests
         test-tco79:
