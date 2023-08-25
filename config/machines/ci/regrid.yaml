@@ -50,6 +50,9 @@ source_grids:
         space_coord: [lon, lat]
       teleconnections:
         space_coord: [lon, lat]
+    test-fdb:
+      fdb:
+        space_coord: [lon, lat]
 
   ICON:
     test-healpix:

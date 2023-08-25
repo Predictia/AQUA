@@ -22,6 +22,7 @@ jobs:
       COVERAGE_ENABLED: ${{ matrix.python-version == '3.10' }}
       DEBIAN_FRONTEND: noninteractive
       GRID_DEFINITION_PATH: /tmp
+      FDB5_CONFIG_FILE: /app/config.yaml
     runs-on: ubuntu-latest
     container:
       # https://hub.docker.com/r/kinow/fdb
@@ -85,13 +86,15 @@ jobs:
       - name: Download and set up tests
         run: |
           ./download_data_for_tests.sh
-          
+          export
           # FDB for GSV
           rm -rf /app/
           cp -r ./AQUA_tests/fdb/ /app/
+          cat /app/config.yaml
           mkdir -pv /app/localroot/
           cd /app/
           fdb-write sample_test_data.grib
+          ls -l /app/localroot
           # The fdb-list command is a good smoke test.
           fdb-list class=ea,expver=0001
           # But the fdb-read using a request is more like what pyfdb does.
