@@ -1,14 +1,14 @@
 weights:
-   path: /work/users/jost/aqua/weights
+   path: /pfs/lustrep3/projappl/project_465000454/padavini/aqua/weights
    template: weights_{model}_{exp}_{source}_{method}_{target}_l{level}.nc
 
 areas:
-   path: /work/users/jost/aqua/areas
+   path: /pfs/lustrep3/projappl/project_465000454/padavini/aqua/areas
    src_template: cell_area_{model}_{exp}_{source}.nc
    dst_template: cell_area_{grid}.nc
 
 cdo-paths:
-  download: /work/users/jost/aqua/weights
+  download: /pfs/lustrep3/projappl/project_465000454/padavini/aqua/weights
   icon: /pool/data/ICON
 
 target_grids:
@@ -58,6 +58,11 @@ source_grids:
           - sst
         space_coord: ["ncells"]
         vert_coord: ["2d", "2dm"]  # If the case is more complex than simply "2d" we need to specify this
+    fdb-control-1950:
+      default:
+        space_coord: ["ncells"]
+      hourly-1deg:
+        space_coord: ["lon", "lat"]
 
   ERA5:
     fdb:
