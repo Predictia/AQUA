@@ -14,3 +14,8 @@ sources:
     driver: yaml_file_cat
     args:
       path: '{{CATALOG_DIR}}/fdb-control-1950.yaml'
+  fdb-historical-1990:
+    description: fdb IFS/NEMO historical run
+    driver: yaml_file_cat
+    args:
+      path: '{{CATALOG_DIR}}/fdb-historical-1990.yaml'

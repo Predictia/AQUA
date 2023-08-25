@@ -1,0 +1,86 @@
+sources:
+  hourly-native:
+    args:
+      request:
+        domain: g
+        class: rd
+        expver: a06x
+        type: fc
+        stream: lwda
+        date: 19900101
+        time: "0000"
+        param: 167
+        levtype: sfc
+        step: 0
+      data_start_date: 19900101
+      data_end_date: 20200101
+      aggregation: S # aggregation default, S for step
+      timestep: H
+      timestyle: step
+    description: 'FDB IFS/NEMO historical run hourly data native'
+    driver: gsv
+    metadata: {fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-HISTORICAL_1990_DEVCON.yaml}
+  hourly-1deg:
+    args:
+      request:
+        domain: g
+        class: rd
+        expver: a06x
+        type: fc
+        stream: scda
+        date: 19900101
+        time: "0000"
+        param: 144
+        levtype: sfc
+        step: 0
+      data_start_date: 19900101
+      data_end_date: 20200101
+      aggregation: S # aggregation default, S for step
+      timestep: H
+      timestyle: step
+    description: 'FDB IFS/NEMO historical run hourly data 1deg'
+    driver: gsv
+    metadata: {fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-HISTORICAL_1990_DEVCON.yaml}
+  6hourly-1deg:
+    args:
+      request:
+        domain: g
+        class: rd
+        expver: a06x
+        type: fc
+        stream: scwv
+        date: 19900101
+        time: "0000"
+        param: 129 # geopotential
+        levtype: pl
+        levelist: [1,5,10,20,30,50,70,100,150,200,250,300,400,500,600,700,850,925,1000]
+        step: 6
+      data_start_date: 19900101
+      data_end_date: 20200101
+      aggregation: S
+      timestep: 6H
+      timestyle: step
+    description: 'FDB IFS/NEMO historical run 6hourly data 1deg'
+    driver: gsv
+    metadata: {fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-HISTORICAL_1990_DEVCON.yaml}
+  monthly-1deg:
+    args:
+      request:
+        domain: g
+        class: rd
+        expver: a06x
+        type: fc
+        stream: monr
+        date: 19900101
+        time: "0000"
+        param: 167
+        levtype: sfc
+        step: 744
+      data_start_date: 19900101
+      data_end_date: 20200101
+      aggregation: S
+      timestep: M
+      timestyle: step
+    description: 'FDB IFS/NEMO historical run monthly data 1deg'
+    driver: gsv
+    metadata: {fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-HISTORICAL_1990_DEVCON.yaml}
