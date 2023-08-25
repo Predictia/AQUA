@@ -7,7 +7,6 @@ sources:
         expver: a06x
         type: fc
         stream: lwda
-        anoffset: 9
         date: 19500101
         time: 0000
         param: 167
@@ -29,7 +28,6 @@ sources:
         expver: a06x
         type: fc
         stream: scda
-        anoffset: 9
         date: 19500101
         time: 0000
         param: 144
@@ -51,7 +49,6 @@ sources:
         expver: a06x
         type: fc
         stream: scwv
-        anoffset: 9
         date: 19500101
         time: 0000
         param: 129 # geopotential
@@ -73,7 +70,6 @@ sources:
         expver: a06x
         type: fc
         stream: monr
-        anoffset: 9
         date: 19500101
         time: 0000
         param: 167
