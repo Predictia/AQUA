@@ -176,9 +176,16 @@ def compute_steprange(startdate_obj, newdate_obj, timestep):
     """
 
     ts_unit, ts_nsteps = step_units.get(timestep.upper())
-    ts = timedelta(**{ts_unit: ts_nsteps})
 
-    return (newdate_obj - startdate_obj) // ts
+    if ts_unit == "months":
+        delta = relativedelta(newdate_obj, startdate_obj)
+        return delta.years * 12 + delta.months
+    elif ts_unit == "years":
+        delta = relativedelta(newdate_obj, startdate_obj)
+        return delta.years
+    else:
+        ts = timedelta(**{ts_unit: ts_nsteps})
+        return (newdate_obj - startdate_obj) // ts
 
 
 def check_dates(startdate, start_date, enddate, end_date):
