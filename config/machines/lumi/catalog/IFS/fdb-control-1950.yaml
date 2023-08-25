@@ -58,7 +58,7 @@ sources:
       data_start_date: 19500101
       data_end_date: 19600101
       aggregation: 6H  # Default aggregation if timestep=S is used
-      timestep: 1H  # What one step means
+      timestep: H  # What one step means
       timestyle: step
     description: 'FDB IFS/NEMO control run 6hourly data 1deg'
     driver: gsv

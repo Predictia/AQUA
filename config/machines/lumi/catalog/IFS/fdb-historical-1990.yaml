@@ -14,7 +14,7 @@ sources:
         step: 0
       data_start_date: 19900101
       data_end_date: 20200101
-      aggregation: S # aggregation default, S for step
+      aggregation: H  # Default aggregation if timestep=S is used
       timestep: H
       timestyle: step
     description: 'FDB IFS/NEMO historical run hourly data native'
@@ -35,7 +35,7 @@ sources:
         step: 0
       data_start_date: 19900101
       data_end_date: 20200101
-      aggregation: S # aggregation default, S for step
+      aggregation: H  # Default aggregation if timestep=S is used
       timestep: H
       timestyle: step
     description: 'FDB IFS/NEMO historical run hourly data 1deg'
@@ -57,7 +57,7 @@ sources:
         step: 6
       data_start_date: 19900101
       data_end_date: 20200101
-      aggregation: S
+      aggregation: 6H  # Default aggregation if timestep=S is used
       timestep: 6H
       timestyle: step
     description: 'FDB IFS/NEMO historical run 6hourly data 1deg'
