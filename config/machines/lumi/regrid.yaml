@@ -63,6 +63,10 @@ source_grids:
         space_coord: ["ncells"]
       hourly-1deg:
         space_coord: ["lon", "lat"]
+      6hourly-1deg:
+        space_coord: ["lon", "lat"]
+      monthly-1deg:
+        space_coord: ["lon", "lat"]
 
   ERA5:
     fdb:

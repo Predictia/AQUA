@@ -1,4 +1,26 @@
 sources:
+  hourly-native:
+    args:
+      request:
+        domain: g
+        class: rd
+        expver: a06x
+        type: fc
+        stream: lwda
+        anoffset: 9
+        date: 19500101
+        time: 0000
+        param: 167
+        levtype: sfc
+        step: 744
+      data_start_date: 19500101
+      data_end_date: 19600101
+      aggregation: S # aggregation default, S for step
+      timestep: H
+      timestyle: step
+    description: 'FDB IFS/NEMO control run hourly data native'
+    driver: gsv
+    metadata: {fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-CONTROL_1950_DEVCON.yaml}
   hourly-1deg:
     args:
       request:
@@ -15,9 +37,53 @@ sources:
         step: 744
       data_start_date: 19500101
       data_end_date: 19600101
-      aggregation: S # default dell'aggregazione
+      aggregation: S # aggregation default, S for step
       timestep: H
       timestyle: step
-    description: 'FDB IFS/NEMO control run'
+    description: 'FDB IFS/NEMO control run hourly data 1deg'
+    driver: gsv
+    metadata: {fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-CONTROL_1950_DEVCON.yaml}
+  6hourly-1deg:
+    args:
+      request:
+        domain: g
+        class: rd
+        expver: a06x
+        type: fc
+        stream: scwv
+        anoffset: 9
+        date: 19500101
+        time: 0000
+        param: 129 # geopotential
+        levtype: pl # to be checked, how to specify the pl I want?
+        step: 744
+      data_start_date: 19500101
+      data_end_date: 19600101
+      aggregation: S
+      timestep: 6H
+      timestyle: step
+    description: 'FDB IFS/NEMO control run 6hourly data 1deg'
+    driver: gsv
+    metadata: {fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-CONTROL_1950_DEVCON.yaml}
+  monthly-1deg:
+    args:
+      request:
+        domain: g
+        class: rd
+        expver: a06x
+        type: fc
+        stream: monr
+        anoffset: 9
+        date: 19500101
+        time: 0000
+        param: 167
+        levtype: sfc
+        step: 744
+      data_start_date: 19500101
+      data_end_date: 19600101
+      aggregation: S
+      timestep: M
+      timestyle: step
+    description: 'FDB IFS/NEMO control run monthly data 1deg'
     driver: gsv
     metadata: {fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-CONTROL_1950_DEVCON.yaml}
