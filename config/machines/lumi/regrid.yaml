@@ -61,7 +61,9 @@ source_grids:
         space_coord: ["lon", "lat"]
       6hourly-1deg:
         space_coord: ["lon", "lat"]
-      monthly-1deg:
+      monthly-1deg-2d:
+        space_coord: ["lon", "lat"]
+      monthly-1deg-3d:
         space_coord: ["lon", "lat"]
     fdb-historical-1990:
       default:
