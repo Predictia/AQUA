@@ -14,7 +14,7 @@ sources:
         step: 0
       data_start_date: 19500101
       data_end_date: 19600101
-      aggregation: S # aggregation default, S for step
+      aggregation: H  # Default aggregation if timestep=S is used
       timestep: H
       timestyle: step
     description: 'FDB IFS/NEMO control run hourly data native'
@@ -35,7 +35,7 @@ sources:
         step: 0
       data_start_date: 19500101
       data_end_date: 19600101
-      aggregation: S # aggregation default, S for step
+      aggregation: H  # Default aggregation if timestep=S is used
       timestep: H
       timestyle: step
     description: 'FDB IFS/NEMO control run hourly data 1deg'
@@ -57,8 +57,8 @@ sources:
         step: 6
       data_start_date: 19500101
       data_end_date: 19600101
-      aggregation: S
-      timestep: 6H
+      aggregation: 6H  # Default aggregation if timestep=S is used
+      timestep: 1H  # What one step means
       timestyle: step
     description: 'FDB IFS/NEMO control run 6hourly data 1deg'
     driver: gsv
@@ -73,13 +73,13 @@ sources:
         stream: monr
         date: 19500101
         time: "0000"
-        param: 167
+        param: 144
         levtype: sfc
         step: 744
       data_start_date: 19500101
       data_end_date: 19600101
-      aggregation: S
-      timestep: M
+      aggregation: M  # Default aggregation if timestep=S is used
+      timestep: H
       timestyle: step
     description: 'FDB IFS/NEMO control run monthly data 1deg'
     driver: gsv
