@@ -81,8 +81,6 @@ class GSVSource(base.DataSource):
 
         self._npartitions = compute_date_steps(self.startdate, self.enddate, aggregation,
                                                    starttime=self.starttime, endtime=self.endtime)
-        print(self._npartitions)
-        print(self.startdate, self.starttime)
 
         if gsv_available:
             self.gsv = GSVRetriever()

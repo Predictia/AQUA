@@ -55,6 +55,9 @@ def compute_date(startdate, starttime, step, n, npartitions):
     # Convert step string to timedelta unit and date format
     step_unit, nsteps = step_units.get(step.upper())
 
+    if step_unit in ["days", "months", "years"] and n > 0:  # align at beginning of day for later days
+        starttime = "0000"
+
     # Parse startdate into a datetime object
     tstart = datetime.strptime(str(startdate) + ':' + str(starttime), '%Y%m%d:%H%M')
 
