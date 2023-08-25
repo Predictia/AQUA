@@ -73,7 +73,7 @@ sources:
         stream: monr
         date: 19500101
         time: "0000"
-        param: 144
+        param: sd
         levtype: sfc
         step: 744
       data_start_date: 19500101
