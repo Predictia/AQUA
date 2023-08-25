@@ -131,10 +131,10 @@ class Reader(FixerMixin, RegridMixin):
         self.zoom = self._check_zoom(zoom)
 
         # get fixes dictionary and find them
-        self.fix = fix
+        self.fix = fix # fix activation flag
         if self.fix:
             self.fixes_dictionary = load_multi_yaml(self.fixer_folder)
-            self.fixes = self.find_fixes()
+            self.fixes = self.find_fixes() # find fixes for this model/exp/source
 
         # Store the machine-specific CDO path if available
         cfg_base = load_yaml(self.config_file)
@@ -284,8 +284,12 @@ class Reader(FixerMixin, RegridMixin):
                     self._make_dst_area_file(self.dst_areafile, grid)
 
                 self.dst_grid_area = xr.open_mfdataset(self.dst_areafile).cell_area
+                if self.fix:
+                    self.dst_grid_area = self._fix_area(self.dst_grid_area)
 
             self.grid_area = self.src_grid_area
+            if self.fix:
+                self.grid_area = self._fix_area(self.grid_area)
 
     def retrieve(self, regrid=False, timmean=False,
                  apply_unit_fix=True, var=None, vars=None,
