@@ -68,6 +68,14 @@ source_grids:
     fdb-historical-1990:
       default:
         space_coord: ["ncells"]
+      hourly-1deg:
+        space_coord: ["lon", "lat"]
+      6hourly-1deg:
+        space_coord: ["lon", "lat"]
+      monthly-1deg-2d:
+        space_coord: ["lon", "lat"]
+      monthly-1deg-3d:
+        space_coord: ["lon", "lat"]
 
   ERA5:
     fdb:
