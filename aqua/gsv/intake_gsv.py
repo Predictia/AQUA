@@ -5,7 +5,7 @@ import os
 import contextlib
 import xarray as xr
 from intake.source import base
-from .timeutil import compute_date_steps, compute_date, check_dates, compute_mars_timerange, compute_steprange, dateobj
+from .timeutil import compute_date_steps, compute_date, check_dates, compute_mars_timerange, compute_steprange, dateobj, set_stepmin
 
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
@@ -67,14 +67,22 @@ class GSVSource(base.DataSource):
         self.enddate = enddate
         self.starttime = request["time"] 
         self.endtime = request["time"] 
+        self.stepmin = request["step"]  # The minimum existing timestep 
         self._var = var
         self.verbose = verbose
 
         self._request = request
         self._kwargs = kwargs
 
-        self._npartitions = compute_date_steps(startdate, enddate, aggregation,
-                                               starttime=self.starttime, endtime=self.endtime)
+        if timestyle == "step":  # make sure that we start retrieving data from the first available date
+            self.startdate, self.starttime = set_stepmin(self.startdate, self.starttime,
+                                                         self.data_startdate, self.data_starttime,
+                                                         self.stepmin, self.timestep)
+
+        self._npartitions = compute_date_steps(self.startdate, self.enddate, aggregation,
+                                                   starttime=self.starttime, endtime=self.endtime)
+        print(self._npartitions)
+        print(self.startdate, self.starttime)
 
         if gsv_available:
             self.gsv = GSVRetriever()
