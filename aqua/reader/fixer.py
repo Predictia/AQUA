@@ -180,10 +180,6 @@ class FixerMixin():
                         else:
                             data[source].attrs[att] = value
 
-                # fix name of units attribute for some IFS data (e.g. FDB data)
-                if "units" not in data[source].attrs and "GRIB_units" in data[source].attrs:
-                    data[source].attrs["units"] = data[source].GRIB_units
-
                 # Override destination units
                 fixer_tgt_units = variables[var].get("units", None)
                 if fixer_tgt_units:

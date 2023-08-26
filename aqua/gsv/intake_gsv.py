@@ -135,6 +135,11 @@ class GSVSource(base.DataSource):
         else:
             with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
                 dataset = self.gsv.request_data(self._request)
+
+        # Fix GRIB attribute names. This removes "GRIB_" from the beginning
+        for var in dataset.data_vars:
+            dataset[var].attrs = {key.split("GRIB_")[-1]: value for key, value in dataset[var].attrs.items()}
+
         return dataset
 
     def read(self):
