@@ -380,7 +380,7 @@ class FixerMixin():
 
         if "IFSMagician" in data.attrs.get("history", ""):  # Special fix for gribscan levels
             if "level" in data.coords:
-                if data.level.max() >= 1000:
+                if data.level.max() >= 1000:  # IS THERE A REASON FOR THIS CHECK?
                     data.level.attrs["units"] = "hPa"
                     data.level.attrs["standard_name"] = "air_pressure"
                     data.level.attrs["long_name"] = "pressure"
