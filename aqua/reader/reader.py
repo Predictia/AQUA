@@ -759,10 +759,13 @@ class Reader(FixerMixin, RegridMixin):
             data = esmcat.to_dask()
 
         # check for duplicates
-        len0 = len(data.time)
-        data = data.drop_duplicates(dim='time', keep=keep)
-        if len(data.time) != len0:
-            self.logger.warning("Duplicate entries found along the time axis, keeping the %s one.", keep)
+        try:
+            len0 = len(data.time)
+            data = data.drop_duplicates(dim='time', keep=keep)
+            if len(data.time) != len0:
+                self.logger.warning("Duplicate entries found along the time axis, keeping the %s one.", keep)
+        except AttributeError:  # if there is no time (climatology)
+            pass
 
         return data
 
