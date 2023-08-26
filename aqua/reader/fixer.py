@@ -385,6 +385,12 @@ class FixerMixin():
                     data.level.attrs["standard_name"] = "air_pressure"
                     data.level.attrs["long_name"] = "pressure"
 
+        if "GSV interface" in data.attrs.get("history", ""):  # Special fix for FDB retrieved data
+            if "height" in data.coords:
+                data.height.attrs["units"] = "hPa"
+                data.height.attrs["standard_name"] = "air_pressure"
+                data.height.attrs["long_name"] = "pressure"
+
         # this is needed since cf2cdm issues a (useless) UserWarning
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=UserWarning)
