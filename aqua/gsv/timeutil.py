@@ -210,25 +210,6 @@ def check_dates(startdate, start_date, enddate, end_date):
 
     if datetime.strptime(str(enddate), '%Y%m%d') > datetime.strptime(str(end_date), '%Y%m%d'):
         raise ValueError(f"End date {str(enddate)} is later than the data end at {str(end_date)}.")
-    
-
-def set_stepmin(startdate, starttime, stepmin, step):
-    """
-    Make sure that we start at the earliest available date
-    Args:
-        startdate (str): Starting date
-        starttime (str): Starting time
-        stepmin (int): Earliest step
-        step (str): Timestep. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y
-    Returns:
-        A revised startdate and starttime (str)
-    """
-
-    ts_unit, ts_nsteps = step_units.get(timestep.upper())
-    ts = timedelta(**{ts_unit: ts_nsteps * stepmin})
-    
-    newdate = dateobj(startdate, starttime) + ts
-    return datetime.strptime(str(newdate), '%Y%m%d'), datetime.strptime(str(newdate), '%H%M')
 
 
 def set_stepmin(tgtdate, tgttime, startdate, starttime, stepmin, step):
