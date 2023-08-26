@@ -22,7 +22,7 @@ Unreleased is the current development version.
 - Util refactor (Utility refactor #405)
 - Fixer at reader level (Fixes at Reader level #244)
 - Uniform timmean (Uniform time after timmean and add option for time_bnds #419)
-- FDB tests added (Add FDB 5.11, a local FDB with some test data #280)
+- FDB tests added (Add FDB 5.11, a local FDB with some test data #280, #432)
 - Refactor of unit conversion and non-metpy cases (Flexible unit fix from YAML file #416)
 - Refactor of the config file definition (Refactor of the configuration search #417)
 
