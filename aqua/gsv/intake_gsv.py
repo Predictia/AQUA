@@ -3,12 +3,10 @@
 import sys
 import os
 import contextlib
+import datetime
 import xarray as xr
 from intake.source import base
 from .timeutil import compute_date_steps, compute_date, check_dates, compute_mars_timerange, compute_steprange, dateobj, set_stepmin
-
-from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
 
 # Test if FDB5 binary library is available
 try:
@@ -140,6 +138,9 @@ class GSVSource(base.DataSource):
         for var in dataset.data_vars:
             dataset[var].attrs = {key.split("GRIB_")[-1]: value for key, value in dataset[var].attrs.items()}
 
+        # Log history
+        log_history(dataset, "dataset retrieved by GSV interface")
+
         return dataset
 
     def read(self):
@@ -154,3 +155,14 @@ class GSVSource(base.DataSource):
     # def _load(self):
     #     self._dataset = self._get_partition(0)
 
+
+# This function is repeated here in order not to create a cross dependency between GSVSource and AQUA
+
+def log_history(data, msg):
+    """Elementary provenance logger in the history attribute"""
+
+    if isinstance(data, (xr.DataArray, xr.Dataset)):
+        now = datetime.datetime.now()
+        date_now = now.strftime("%Y-%m-%d %H:%M:%S")
+        hist = data.attrs.get("history", "") + f"{date_now} {msg};\n"
+        data.attrs.update({"history": hist})
