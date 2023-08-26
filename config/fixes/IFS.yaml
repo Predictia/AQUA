@@ -469,6 +469,8 @@ models:
                         grib: true
                         decumulate: true   
         fdb-control-1950:
+            default:
+                data_model: ifs
             hourly-1deg:
                 data_model: ifs
                 deltat: 3600
@@ -534,6 +536,10 @@ models:
                         source: nsss
                         grib: true
                         decumulate: true
+
+        fdb-historical-1990:
+            default:
+                data_model: ifs
 
         # These are for tests
         test-tco79:
