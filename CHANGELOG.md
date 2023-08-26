@@ -7,10 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- FDB/GSV access to IFS control and historical simulations (#434)
 - Minor improvements of the gribber (Fix gribber fdb #427)
 - Allow the LRA generator to work with generators and so with FDB (LRA from fdb on mafalda #430)
 - Fixes only on selected variables (Fixer updates #428)
-- Complete revision of the FDB/GSV access, allowing to access also recent experiments using variable step
+- Complete revision of the FDB/GSV access, allowing to access also recent experiments using variable step (#343)
 - Teleconnections diagnostic adapted to new code improvements (Teleconnections Dev branch update #424)
 - Add support for area selection with fldmean (Fldmean box selection #409)
 - Environment simplified, dependencies are now mostly on the pyproject file (A simpler environment.yml #286)
