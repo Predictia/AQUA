@@ -22,7 +22,6 @@ def catalogue(verbose=True, configdir=None):
                                                     containing the data.
     """
 
-
     # get the config dir and the machine
     Configurer = ConfigPath(configdir=configdir)
 
@@ -41,7 +40,7 @@ def catalogue(verbose=True, configdir=None):
     return cat
 
 
-def inspect_catalogue(cat, model=None, exp=None):
+def inspect_catalogue(cat=None, model=None, exp=None):
     """
     Basic function to simplify catalog inspection.
 
@@ -59,6 +58,8 @@ def inspect_catalogue(cat, model=None, exp=None):
     Raises:
         KeyError: If the input specifications are incorrect.
     """
+    if cat is None:
+        cat = catalogue(verbose=False)
 
     if model and exp:
         print(f"Sources available in catalogue for model {model} and exp {exp}:")
