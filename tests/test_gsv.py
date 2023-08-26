@@ -66,7 +66,7 @@ class TestGsv():
         """Test that the ``GSVSource`` is able to read data from FDB."""
         data = gsv.read()
         assert len(data) > 0, 'GSVSource could not load data'
-        assert data.t.GRIB_param == '130.128', 'Wrong GRIB param in Dask data'
+        assert data.t.param == '130.128', 'Wrong GRIB param in Dask data'
 
     @pytest.mark.parametrize('gsv', [{'request': {
         'domain': 'g',
@@ -93,7 +93,7 @@ class TestGsv():
         dask_data = list(gsv.to_dask())
         assert len(dask_data) > 0, 'The dask data returned was empty'
         xarray_dataset = dask_data[0]
-        assert xarray_dataset.t.GRIB_param == '130.128', 'Wrong GRIB param in Dask data'
+        assert xarray_dataset.t.param == '130.128', 'Wrong GRIB param in Dask data'
 
     # High-level, integrated test
     def test_reader(self) -> None:
@@ -103,4 +103,4 @@ class TestGsv():
         data = reader.retrieve(startdate='20080101', enddate='20080101', var='t')
         assert isinstance(data, types.GeneratorType), 'Reader does not return iterator'
         dd = next(data)
-        assert dd.t.GRIB_param == '130.128', 'Wrong GRIB param in data'
+        assert dd.t.param == '130.128', 'Wrong GRIB param in data'
