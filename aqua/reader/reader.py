@@ -176,6 +176,7 @@ class Reader(FixerMixin, RegridMixin):
                 self.src_grid = None
 
             self.src_space_coord = source_grid.get("space_coord", None)
+            self.support_dims = source_grid.get("support_dims", [])
             self.space_coord = self.src_space_coord
 
         if self.fix:
