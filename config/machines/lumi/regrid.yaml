@@ -57,6 +57,7 @@ source_grids:
     fdb-control-1950:
       default:
         space_coord: ["ncells"]
+        support_dims: ["cell_corners"]  # dimensions to keep when selecting a single spatial sample
       hourly-1deg:
         space_coord: ["lon", "lat"]
       6hourly-1deg:
@@ -68,6 +69,7 @@ source_grids:
     fdb-historical-1990:
       default:
         space_coord: ["ncells"]
+        support_dims: ["cell_corners"]
       hourly-1deg:
         space_coord: ["lon", "lat"]
       6hourly-1deg:
