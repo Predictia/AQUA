@@ -467,7 +467,8 @@ models:
                     var172045:  # if the variable has no short name we can use its paramId
                         source: smlt
                         grib: true
-                        decumulate: true   
+                        decumulate: true
+
         fdb-control-1950:
             default:
                 data_model: ifs
@@ -536,6 +537,23 @@ models:
                         source: nsss
                         grib: true
                         decumulate: true
+                    blh:
+                        source: 159
+                    chnk:
+                        source: 148
+                    surfror:  # a very recent version of eccodes is needed for this one
+                        source: 8
+                        grib: true
+                        decumulate: true 
+            hourly-native:
+                data_model: ifs
+                vars:
+                    tprate:
+                        source: 260048
+                    blh:
+                        source: 159
+                    chnk:
+                        source: 148          
             monthly-1deg-2d:
                 data_model: ifs
                 vars:
@@ -547,7 +565,6 @@ models:
                         source: 187
                     hcc:
                         source: 188
-
 
         fdb-historical-1990:
             default:
@@ -617,6 +634,23 @@ models:
                         source: nsss
                         grib: true
                         decumulate: true
+                    blh:
+                        source: 159
+                    chnk:
+                        source: 148
+                    surfror:  # a very recent version of eccodes is needed for this one
+                        source: 8
+                        grib: true
+                        decumulate: true
+            hourly-native:
+                data_model: ifs
+                vars:
+                    tprate:
+                        source: 260048
+                    blh:
+                        source: 159
+                    chnk:
+                        source: 148 
             monthly-1deg-2d:
                 data_model: ifs
                 vars:
