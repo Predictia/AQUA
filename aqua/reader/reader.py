@@ -382,11 +382,10 @@ class Reader(FixerMixin, RegridMixin):
             data = self.buffer_iter(data)
             fiter = False
 
-        if not fiter:
-            # These do not work in the iterator case
-            if self.freq and timmean:
-                data = self.timmean(data)
+        if self.freq and timmean:
+            data = self.timmean(data)
 
+        if not fiter:
             # This is not needed if we already have an iterator
             if streaming or self.streaming or streaming_generator:
                 if streaming_generator:
@@ -458,8 +457,22 @@ class Reader(FixerMixin, RegridMixin):
 
         log_history(out, "regridded by AQUA regridder")
         return out
+    
 
     def timmean(self, data, freq=None, time_bounds=False):
+        """Call the timmean function returning container or iterator"""
+        if isinstance(data, types.GeneratorType):
+            return self._timmeangen(data, freq, time_bounds)
+        else:
+            return self._timmean(data, freq, time_bounds)
+
+
+    def _timmeangen(self, data, freq=None, time_bounds=False):
+        for ds in data:
+            yield self._timmean(ds, freq, time_bounds)
+
+
+    def _timmean(self, data, freq=None, time_bounds=False):
         """
         Perform daily and monthly averaging
 
