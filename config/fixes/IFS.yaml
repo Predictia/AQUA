@@ -486,7 +486,7 @@ models:
                         src_units: m
                         units: kg m**-2 s**-1
                     erate:
-                        source: e
+                        source: 182
                         grib: true
                         decumulate: true
                         src_units: m
@@ -583,7 +583,7 @@ models:
                         src_units: m
                         units: kg m**-2 s**-1
                     erate:
-                        source: e
+                        source: 182
                         grib: true
                         decumulate: true
                         src_units: m
