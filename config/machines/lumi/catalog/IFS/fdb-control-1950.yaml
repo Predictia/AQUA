@@ -8,7 +8,7 @@ sources:
         type: fc
         stream: lwda
         date: 19500101
-        time: "0000"
+        time: '0000'
         param: 167
         levtype: sfc
         step: 0
@@ -17,9 +17,10 @@ sources:
       aggregation: H  # Default aggregation if timestep=S is used
       timestep: H
       timestyle: step
-    description: 'FDB IFS/NEMO control run hourly data native'
+    description: FDB IFS/NEMO control run hourly data native
     driver: gsv
-    metadata: {fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-CONTROL_1950_DEVCON.yaml}
+    metadata: {fdb_path: 
+        /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-CONTROL_1950_DEVCON.yaml}
   hourly-1deg:
     args:
       request:
@@ -29,7 +30,7 @@ sources:
         type: fc
         stream: scda
         date: 19500101
-        time: "0000"
+        time: '0000'
         param: 144
         levtype: sfc
         step: 0
@@ -38,9 +39,10 @@ sources:
       aggregation: H  # Default aggregation if timestep=S is used
       timestep: H
       timestyle: step
-    description: 'FDB IFS/NEMO control run hourly data 1deg'
+    description: FDB IFS/NEMO control run hourly data 1deg
     driver: gsv
-    metadata: {fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-CONTROL_1950_DEVCON.yaml}
+    metadata: {fdb_path: 
+        /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-CONTROL_1950_DEVCON.yaml}
   6hourly-1deg:
     args:
       request:
@@ -50,19 +52,21 @@ sources:
         type: fc
         stream: scwv
         date: 19500101
-        time: "0000"
+        time: '0000'
         param: 129 # geopotential
         levtype: pl
-        levelist: [1,5,10,20,30,50,70,100,150,200,250,300,400,500,600,700,850,925,1000]
+        levelist: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600,
+          700, 850, 925, 1000]
         step: 6
       data_start_date: 19500101
       data_end_date: 19600101
       aggregation: 6H  # Default aggregation if timestep=S is used
       timestep: H  # What one step means
       timestyle: step
-    description: 'FDB IFS/NEMO control run 6hourly data 1deg'
+    description: FDB IFS/NEMO control run 6hourly data 1deg
     driver: gsv
-    metadata: {fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-CONTROL_1950_DEVCON.yaml}
+    metadata: {fdb_path: 
+        /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-CONTROL_1950_DEVCON.yaml}
   monthly-1deg-2d:
     args:
       request:
@@ -72,7 +76,7 @@ sources:
         type: fc
         stream: monr
         date: 19500101
-        time: "0000"
+        time: '0000'
         param: sd
         levtype: sfc
         step: 744
@@ -81,10 +85,11 @@ sources:
       aggregation: M  # Default aggregation if timestep=S is used
       timestep: H
       timestyle: step
-      timeshift: "-M"  # shift time of resulting xarray by this amount
-    description: 'FDB IFS/NEMO control run monthly data 1deg'
+      timeshift: -M    # shift time of resulting xarray by this amount
+    description: FDB IFS/NEMO control run monthly data 1deg
     driver: gsv
-    metadata: {fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-CONTROL_1950_DEVCON.yaml}
+    metadata: {fdb_path: 
+        /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-CONTROL_1950_DEVCON.yaml}
   monthly-1deg-3d:
     args:
       request:
@@ -94,18 +99,28 @@ sources:
         type: fc
         stream: monr
         date: 19500101
-        time: "0000"
+        time: '0000'
         param: t
         levtype: pl
-        levelist: [1,5,10,20,30,50,70,100,150,200,250,300,400,500,600,700,850,925,1000]
+        levelist: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600,
+          700, 850, 925, 1000]
         step: 744
       data_start_date: 19500101
       data_end_date: 19600101
       aggregation: M  # Default aggregation if timestep=S is used
       timestep: H
       timestyle: step
-      timeshift: "-M"  # shift time of resulting xarray by this amount
-    description: 'FDB IFS/NEMO control run monthly data 1deg'
+      timeshift: -M    # shift time of resulting xarray by this amount
+    description: FDB IFS/NEMO control run monthly data 1deg
     driver: gsv
-    metadata: {fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-CONTROL_1950_DEVCON.yaml}
-    
+    metadata: {fdb_path: 
+        /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-CONTROL_1950_DEVCON.yaml}
+  lra-r100-monthly:
+    driver: netcdf
+    description: LRA data monthly at r100
+    args:
+      urlpath: 
+        /pfs/lustrep3/projappl/project_465000454/padavini/LRA/IFS/fdb-control-1950/r100/monthly/*fdb-control-1950_r100_monthly_????.nc
+      chunks: {}
+      xarray_kwargs:
+        decode_times: true
