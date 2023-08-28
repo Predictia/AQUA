@@ -366,10 +366,6 @@ class Reader(FixerMixin, RegridMixin):
                     except:
                         raise KeyError("You are asking for variables which we cannot find in the catalog!")
 
-        if fiter and self.buffer:
-            data = self.buffer_iter(data)
-            fiter = False
-
         data = log_history_iter(data, "retrieved by AQUA retriever")
 
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
@@ -384,6 +380,11 @@ class Reader(FixerMixin, RegridMixin):
             self.grid_area = self.dst_grid_area
         if self.fix:   # Do not change easily this order. The fixer assumes to be after regridding
             data = self.fixer(data, var, apply_unit_fix=apply_unit_fix)
+        
+        if fiter and self.buffer:  # We prefer an xarray, let's buffer everything
+            data = self.buffer_iter(data)
+            fiter = False
+
         if not fiter:
             # This is not needed if we already have an iterator
             if streaming or self.streaming or streaming_generator:
