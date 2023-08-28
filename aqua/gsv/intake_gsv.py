@@ -16,6 +16,10 @@ try:
     gsv_available = True
 except RuntimeError:
     gsv_available = False
+    gsv_error_cause = "FDB5 binary library not present on system on outdated"
+except KeyError:
+    gsv_available = False
+    gsv_error_cause = "Environment variables for gsv, such as GRID_DEFINITION_PATH, not set."
 
 
 class GSVSource(base.DataSource):
@@ -58,11 +62,11 @@ class GSVSource(base.DataSource):
         self.aggregation = aggregation
         self.timestep = timestep
         self.data_startdate = data_start_date
-        self.data_starttime = "0000"
+        self.data_starttime = request["time"] 
         self.startdate = startdate
         self.enddate = enddate
-        self.starttime = "0000"
-        self.endtime = "0000"
+        self.starttime = request["time"] 
+        self.endtime = request["time"] 
         self._var = var
         self.verbose = verbose
 
@@ -75,7 +79,7 @@ class GSVSource(base.DataSource):
         if gsv_available:
             self.gsv = GSVRetriever()
         else:
-            raise ImportError("FDB5 binary library not present on system or outdated.")
+            raise ImportError(gsv_error_cause)
         self._dataset = None
         super(GSVSource, self).__init__(metadata=metadata)
 

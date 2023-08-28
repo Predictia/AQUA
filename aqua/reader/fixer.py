@@ -447,26 +447,26 @@ class FixerMixin():
             if factor.units == "meter ** 3 / kilogram":
                 # Density of water was missing
                 factor = factor * 1000 * units("kg m-3")
-                self.logger.warning("%s: corrected multiplying by density of water 1000 kg m-3", 
-                                    var)
+                self.logger.info("%s: corrected multiplying by density of water 1000 kg m-3",
+                                 var)
             elif factor.units == "meter ** 3 * second / kilogram":
                 # Density of water and accumulation time were missing
                 factor = factor * 1000 * units("kg m-3") / (self.deltat * units("s"))
-                self.logger.warning("%s: corrected multiplying by density of water 1000 kg m-3", 
-                                    var)
-                self.logger.warning("%s: corrected dividing by accumulation time %s s",
-                                    var, self.deltat)
+                self.logger.info("%s: corrected multiplying by density of water 1000 kg m-3",
+                                 var)
+                self.logger.info("%s: corrected dividing by accumulation time %s s",
+                                 var, self.deltat)
             elif factor.units == "second":
                 # Accumulation time was missing
                 factor = factor / (self.deltat * units("s"))
-                self.logger.warning("%s: corrected dividing by accumulation time %s s", 
-                                    var, self.deltat)
+                self.logger.info("%s: corrected dividing by accumulation time %s s",
+                                 var, self.deltat)
             elif factor.units == "kilogram / meter ** 3":
                 # Density of water was missing
                 factor = factor / (1000 * units("kg m-3"))
-                self.logger.warning("%s: corrected dividing by density of water 1000 kg m-3", var)
+                self.logger.info("%s: corrected dividing by density of water 1000 kg m-3", var)
             else:
-                self.logger.warning("%s: incommensurate units converting %s to %s --> %s", 
+                self.logger.info("%s: incommensurate units converting %s to %s --> %s",
                                  var, src, dst, factor.units)
             offset = 0 * units(dst)
 

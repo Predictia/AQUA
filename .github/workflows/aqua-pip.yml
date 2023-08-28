@@ -11,6 +11,7 @@ jobs:
       DEBIAN_FRONTEND: noninteractive
       GRID_DEFINITION_PATH: /tmp
       RUNNER_ALLOW_RUNASROOT: 1
+      FDB5_CONFIG_FILE: /app/config.yaml
     runs-on: ubuntu-latest
     container:
       # https://hub.docker.com/r/kinow/fdb
