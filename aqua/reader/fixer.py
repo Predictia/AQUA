@@ -147,6 +147,12 @@ class FixerMixin():
                 varlist[var] = varname
 
                 source = variables[var].get("source", None)
+
+                # if we are using a gribcode as a source, convert it to shortname to access it
+                if str(source).isdigit():
+                    self.logger.info('The source %s is a grib code, need to convert it')
+                    source = get_eccodes_attr(f'var{source}')['shortName']
+                    
                 # This is a renamed variable. This will be done at the end.
                 if source:
                     if source not in data.variables:
