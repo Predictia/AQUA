@@ -6,7 +6,7 @@ import contextlib
 import datetime
 import xarray as xr
 from intake.source import base
-from .timeutil import compute_date_steps, compute_date, check_dates, compute_mars_timerange, compute_steprange, dateobj, set_stepmin
+from .timeutil import compute_date_steps, compute_date, check_dates, compute_mars_timerange, shift_time, compute_steprange, dateobj, set_stepmin
 
 # Test if FDB5 binary library is available
 try:
@@ -26,7 +26,9 @@ class GSVSource(base.DataSource):
     version = '0.0.2'
     partition_access = True
 
-    def __init__(self, request, data_start_date, data_end_date, timestyle="date", aggregation="D", timestep="H", startdate=None, enddate=None, var='167', metadata=None, verbose=False, **kwargs):
+    def __init__(self, request, data_start_date, data_end_date, timestyle="date",
+                 aggregation="D",timestep="H", timeshift=None,
+                 startdate=None, enddate=None, var='167', metadata=None, verbose=False, **kwargs):
         """
         Initializes the GSVSource class. These are typically specified in the catalogue entry, but can also be specified upon accessing the catalogue.
 
@@ -59,6 +61,7 @@ class GSVSource(base.DataSource):
 
         self.aggregation = aggregation
         self.timestep = timestep
+        self.timeshift = timeshift
         self.data_startdate = data_start_date
         self.data_starttime = request["time"] 
         self.startdate = startdate
@@ -133,6 +136,9 @@ class GSVSource(base.DataSource):
         else:
             with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
                 dataset = self.gsv.request_data(self._request)
+
+        if self.timeshift:  # shift time by given amount (needed eg. by GSV monthly)
+            dataset = shift_time(dataset, self.timeshift)
 
         # Fix GRIB attribute names. This removes "GRIB_" from the beginning
         for var in dataset.data_vars:

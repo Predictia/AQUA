@@ -81,6 +81,7 @@ sources:
       aggregation: M  # Default aggregation if timestep=S is used
       timestep: H
       timestyle: step
+      timeshift: "-M"  # shift time of resulting xarray by this amount
     description: 'FDB IFS/NEMO historical run monthly data 1deg'
     driver: gsv
     metadata: {fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-HISTORICAL_1990_DEVCON.yaml}
@@ -103,6 +104,7 @@ sources:
       aggregation: M  # Default aggregation if timestep=S is used
       timestep: H
       timestyle: step
+      timeshift: "-M"  # shift time of resulting xarray by this amount
     description: 'FDB IFS/NEMO control run monthly data 1deg'
     driver: gsv
     metadata: {fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-HISTORICAL_1990_DEVCON.yaml}

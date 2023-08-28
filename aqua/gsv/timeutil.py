@@ -2,6 +2,7 @@
 
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
+import numpy as np
 
 
 step_units = {
@@ -234,3 +235,25 @@ def set_stepmin(tgtdate, tgttime, startdate, starttime, stepmin, step):
     newdate = max(date0, date1)
     
     return datetime.strftime(newdate, '%Y%m%d'), datetime.strftime(newdate, '%H%M')
+
+
+def shift_time(data, timeshift):
+    """
+    Shift time by a given amount
+    Args:
+        data (xarray.DataSet): The dataset to shift
+        timeshift (str): Time shift. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y. Can be negative.
+    Returns:
+        A revised xarray.DataSet
+    """
+
+    if '-' in timeshift:
+        timeshift = timeshift[1:]
+        sign = -1
+    else:
+        sign = 1
+    
+    units, nsteps = step_units.get(timeshift.upper())
+    ts = relativedelta(**{units: nsteps * sign})
+    newtime= [np.datetime64(d + ts).astype('datetime64[ns]') for d in data.time.data.astype('datetime64[us]').tolist()]
+    return data.assign_coords(time=newtime)
