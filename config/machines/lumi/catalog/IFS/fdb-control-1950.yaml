@@ -57,7 +57,7 @@ sources:
         levtype: pl
         levelist: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600,
           700, 850, 925, 1000]
-        step: 6
+        step: 6  # First available step
       data_start_date: 19500101
       data_end_date: 19600101
       aggregation: 6H  # Default aggregation if timestep=S is used
@@ -79,7 +79,7 @@ sources:
         time: '0000'
         param: sd
         levtype: sfc
-        step: 744
+        step: 0
       data_start_date: 19500101
       data_end_date: 19600101
       aggregation: M  # Default aggregation if timestep=S is used
@@ -104,7 +104,7 @@ sources:
         levtype: pl
         levelist: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600,
           700, 850, 925, 1000]
-        step: 744
+        step: 0
       data_start_date: 19500101
       data_end_date: 19600101
       aggregation: M  # Default aggregation if timestep=S is used

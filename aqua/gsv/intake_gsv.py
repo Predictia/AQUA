@@ -6,7 +6,8 @@ import contextlib
 import datetime
 import xarray as xr
 from intake.source import base
-from .timeutil import compute_date_steps, compute_date, check_dates, compute_mars_timerange, shift_time, compute_steprange, dateobj, set_stepmin
+from .timeutil import compute_date_steps, compute_date, check_dates, compute_mars_timerange
+from .timeutil import shift_time_dataset, shift_time_datetime, compute_steprange, dateobj, set_stepmin
 
 # Test if FDB5 binary library is available
 try:
@@ -75,7 +76,7 @@ class GSVSource(base.DataSource):
         self._request = request
         self._kwargs = kwargs
 
-        if timestyle == "step":  # make sure that we start retrieving data from the first available date
+        if timestyle == "step" and self.stepmin > 0:  # make sure that we start retrieving data from the first available step
             self.startdate, self.starttime = set_stepmin(self.startdate, self.starttime,
                                                          self.data_startdate, self.data_starttime,
                                                          self.stepmin, self.timestep)
@@ -119,6 +120,10 @@ class GSVSource(base.DataSource):
             _, _, ndate0 = compute_date(self.startdate, self.starttime, self.aggregation, i, self._npartitions)
             _, _, ndate1 = compute_date(self.startdate, self.starttime, self.aggregation, i + 1, self._npartitions)
 
+            if self.timeshift:  # shift time for selection by given amount (needed eg. by GSV monthly)
+                ndate0 = shift_time_datetime(ndate0, self.timeshift, sign=-1)
+                ndate1 = shift_time_datetime(ndate1, self.timeshift, sign=-1)
+
             s0 = compute_steprange(date0, ndate0, self.timestep)
             s1 = compute_steprange(date0, ndate1, self.timestep) - 1
 
@@ -138,7 +143,7 @@ class GSVSource(base.DataSource):
                 dataset = self.gsv.request_data(self._request)
 
         if self.timeshift:  # shift time by given amount (needed eg. by GSV monthly)
-            dataset = shift_time(dataset, self.timeshift)
+            dataset = shift_time_dataset(dataset, self.timeshift)
 
         # Fix GRIB attribute names. This removes "GRIB_" from the beginning
         for var in dataset.data_vars:

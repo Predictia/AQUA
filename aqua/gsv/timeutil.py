@@ -237,9 +237,9 @@ def set_stepmin(tgtdate, tgttime, startdate, starttime, stepmin, step):
     return datetime.strftime(newdate, '%Y%m%d'), datetime.strftime(newdate, '%H%M')
 
 
-def shift_time(data, timeshift):
+def shift_time_dataset(data, timeshift):
     """
-    Shift time by a given amount
+    Shift time of a dataset by a given amount
     Args:
         data (xarray.DataSet): The dataset to shift
         timeshift (str): Time shift. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y. Can be negative.
@@ -257,3 +257,23 @@ def shift_time(data, timeshift):
     ts = relativedelta(**{units: nsteps * sign})
     newtime= [np.datetime64(d + ts).astype('datetime64[ns]') for d in data.time.data.astype('datetime64[us]').tolist()]
     return data.assign_coords(time=newtime)
+
+
+def shift_time_datetime(dateobj, timeshift, sign=1):
+    """
+    Shift time of a datetime object by a given amount
+    Args:
+        dateobj (datetime.datetimet): The date to shift
+        timeshift (str): Time shift. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y. Can be negative.
+    Returns:
+        A shifted date (datetime.datetime)
+    """
+
+    if '-' in timeshift:
+        timeshift = timeshift[1:]
+        sign = -sign
+    
+    units, nsteps = step_units.get(timeshift.upper())
+    ts = relativedelta(**{units: nsteps * sign})
+ 
+    return dateobj + ts
