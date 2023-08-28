@@ -70,7 +70,7 @@ class Reader(FixerMixin, RegridMixin):
             nproc (int,optional): Number of processes to use for weights generation. Defaults to 16.
             aggregation (str, optional): aggregation to be used for GSV access (one of S (step), 10M, 15M, 30M, 1H, H, 3H, 6H, D, W, M, Y). Defaults to None (using default from catalogue).
             verbose (bool, optional): if to print to screen additional info (used only for FDB access at the moment)
-            buffer (str, optional): buffering of FDB/GSV streams in a temporary directory specified by the keyword. The result will be a dask array and not an iterator.
+            buffer (str or bool, optional): buffering of FDB/GSV streams in a temporary directory specified by the keyword. The result will be a dask array and not an iterator. Can be simply a boolean True for memory buffering.
 
         Returns:
             Reader: A `Reader` class object.
@@ -105,11 +105,14 @@ class Reader(FixerMixin, RegridMixin):
         self.stream = self.streamer.stream
         self.stream_generator = self.streamer.stream_generator
 
-        self.previous_data = None  # used for FDB iterator fixing 
-        if buffer:  # optional FDB buffering
-            if not os. path. isdir(buffer):
+        self.previous_data = None  # used for FDB iterator fixing
+
+        if buffer and buffer is not True:  # optional FDB buffering
+            if not os.path.isdir(buffer):
                 raise ValueError("The directory specified by buffer must exist.") 
             self.buffer = tempfile.TemporaryDirectory(dir=buffer)
+        elif buffer is True:
+            self.buffer = True
         else:
             self.buffer = None
 
@@ -377,13 +380,16 @@ class Reader(FixerMixin, RegridMixin):
 
         if self.fix:   # Do not change easily this order. The fixer assumes to be after regridding
             data = self.fixer(data, var, apply_unit_fix=apply_unit_fix)
-        
-        if fiter and self.buffer:  # We prefer an xarray, let's buffer everything
-            data = self.buffer_iter(data)
-            fiter = False
 
         if self.freq and timmean:
             data = self.timmean(data)
+
+        if fiter and self.buffer:  # We prefer an xarray, let's buffer everything
+            if self.buffer is True:  # we did not provide a buffer path, use an xarray in memory
+                data = self.buffer_mem(data)
+            else:
+                data = self.buffer_iter(data)
+            fiter = False
 
         if not fiter:
             # This is not needed if we already have an iterator
@@ -500,7 +506,7 @@ class Reader(FixerMixin, RegridMixin):
 
         try:
             # resample
-            self.logger.info('Resamplig to %s frequency...', str(resample_freq))
+            self.logger.info('Resampling to %s frequency...', str(resample_freq))
             out = data.resample(time=resample_freq).mean()
         except ValueError as exc:
             raise ValueError('Cant find a frequency to resample, aborting!') from exc
@@ -797,3 +803,24 @@ class Reader(FixerMixin, RegridMixin):
             niter = niter + 1
 
         return xr.open_mfdataset(f"{self.buffer.name}/iter*.nc")
+    
+
+    def buffer_mem(self, data):
+        """
+        Buffers (reads) an iterator object directly into a dataset
+        Args:
+            data (iterator over xarray.Dataset): the data to be buffered
+
+        Returns:
+            A xarray.Dataset
+        """
+
+        self.logger.info("Buffering iterator to memory")
+        ds = next(data)  # get the first one
+        try: 
+            for dd in data:
+                ds = xr.concat([ds, dd], dim="time")
+        except StopIteration:
+            pass  # The iterator has finished, we are done
+
+        return ds
