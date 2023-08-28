@@ -45,7 +45,7 @@ def inspect_catalogue(cat=None, model=None, exp=None):
     Basic function to simplify catalog inspection.
 
     Args:
-        cat (intake.catalog.local.LocalCatalog): The catalog object containing the data.
+        cat (intake.catalog.local.LocalCatalog, optional): The catalog object containing the data.
         model (str, optional): The model ID to filter the catalog.
             If None, all models are returned. Defaults to None.
         exp (str, optional): The experiment ID to filter the catalog.
