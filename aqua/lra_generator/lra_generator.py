@@ -362,6 +362,7 @@ class LRAgenerator():
         for data in self.data:
             
             temp_data = data[var]
+            self.logger.info('Generator returned data from %s to %s', temp_data.time[0].values, temp_data.time[-1].values)
 
             if self.frequency:
                 temp_data = self.reader.timmean(temp_data)
