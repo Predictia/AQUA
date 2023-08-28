@@ -565,6 +565,11 @@ models:
                         source: 187
                     hcc:
                         source: 188
+            monthly-1deg-3d:
+                data_model: ifs
+                vars:
+                    q:
+                        source: 133
 
         fdb-historical-1990:
             default:
@@ -662,6 +667,11 @@ models:
                         source: 187
                     hcc:
                         source: 188
+            monthly-1deg-3d:
+                data_model: ifs
+                vars:
+                    q:
+                        source: 133
 
         # These are for tests
         test-tco79:
