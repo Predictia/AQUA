@@ -718,9 +718,6 @@ class Reader(FixerMixin, RegridMixin):
         """Read fdb data. Returns an iterator."""
         # These are all needed in theory
 
-        if not enddate:
-            enddate = startdate
-
         fdb_path = esmcat.metadata.get('fdb_path', None)
         if fdb_path:
             os.environ["FDB5_CONFIG_FILE"] = fdb_path
