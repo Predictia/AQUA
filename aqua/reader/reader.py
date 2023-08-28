@@ -60,6 +60,7 @@ class Reader(FixerMixin, RegridMixin):
             areas (bool, optional): Compute pixel areas if needed. Defaults to True.
             var (str or list, optional): Variable(s) to extract; "vars" is a synonym. Defaults to None.
             datamodel (str, optional): Destination data model for coordinates, overrides the one in fixes.yaml. Defaults to None.
+            freq (str, optional): Frequency of the time averaging. Valid values are monthly, daily, yearly. Defaults to None.
             streaming (bool, optional): If to retrieve data in a streaming mode. Defaults to False.
             stream_step (int, optional): The number of time steps to stream the data by. Defaults to 1.
             stream_unit (str, optional): The unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years'). Defaults to 'steps'.
@@ -370,14 +371,10 @@ class Reader(FixerMixin, RegridMixin):
 
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
 
-        # These do not work in the iterator case
-        if not fiter:
-            if self.freq and timmean:
-                data = self.timmean(data)
-
         if self.targetgrid and regrid:
             data = self.regrid(data)
             self.grid_area = self.dst_grid_area
+
         if self.fix:   # Do not change easily this order. The fixer assumes to be after regridding
             data = self.fixer(data, var, apply_unit_fix=apply_unit_fix)
         
@@ -386,6 +383,10 @@ class Reader(FixerMixin, RegridMixin):
             fiter = False
 
         if not fiter:
+            # These do not work in the iterator case
+            if self.freq and timmean:
+                data = self.timmean(data)
+
             # This is not needed if we already have an iterator
             if streaming or self.streaming or streaming_generator:
                 if streaming_generator:
@@ -464,8 +465,8 @@ class Reader(FixerMixin, RegridMixin):
 
         Arguments:
             data (xr.Dataset):  the input xarray.Dataset
-            freq (str):         the frequency of the averaging.
-                                Defaults to None
+            freq (str):         the frequency of the time averaging.
+                                Valid values are monthly, daily, yearly. Defaults to None.
             time_bound (bool):  option to create the time bounds
         Returns:
             A xarray.Dataset containing the time averaged data.
