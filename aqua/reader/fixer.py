@@ -292,7 +292,8 @@ class FixerMixin():
             src_datamodel = self.fixes.get("data_model", src_datamodel)
             self.logger.debug("Default input datamodel: %s", src_datamodel)
             self.logger.debug("Default output datamodel: %s", self.dst_datamodel)
-            area = self.change_coord_datamodel(area, src_datamodel, self.dst_datamodel)
+            if src_datamodel is not False:
+                area = self.change_coord_datamodel(area, src_datamodel, self.dst_datamodel)
 
             return area
 
