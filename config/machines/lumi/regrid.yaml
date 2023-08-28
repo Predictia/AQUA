@@ -47,8 +47,8 @@ source_grids:
     fdb-tco399:
       default:
         path: 
-          2d: /work/users/jost/aqua/grids/tco399_grid.nc
-          2dm: /work/users/jost/aqua/grids/tco399_grid_masked.nc
+          2d: /projappl/project_465000454/jvonhar/aqua/grids/tco399_grid.nc
+          2dm: /projappl/project_465000454/jvonhar/aqua/grids/tco399_grid_masked.nc
         masked_vars:
           - ci
           - sst
