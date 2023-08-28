@@ -3,6 +3,7 @@ LRA class for glob
 """
 
 import os
+import types
 from time import time
 import glob
 import dask
@@ -13,7 +14,7 @@ from aqua.logger import log_configure
 from aqua.reader import Reader
 from aqua.util import create_folder, generate_random_string
 from aqua.util import dump_yaml, load_yaml
-from aqua.util import get_config_dir, get_machine, file_is_complete
+from aqua.util import ConfigPath, file_is_complete
 
 
 class LRAgenerator():
@@ -30,7 +31,7 @@ class LRAgenerator():
                  model=None, exp=None, source=None, zoom=None,
                  var=None, vars=None, configdir=None,
                  resolution=None, frequency=None, fix=True,
-                 outdir=None, tmpdir=None, nproc=1,
+                 outdir=None, tmpdir=None, nproc=1, aggregation=None,
                  loglevel=None, overwrite=False, definitive=False):
         """
         Initialize the LRA_Generator class
@@ -54,6 +55,7 @@ class LRAgenerator():
             configdir (string):      Configuration directory where the catalog
                                      are found
             nproc (int, opt):        Number of processors to use. default is 1
+            aggregation(str, opt)    String to control the aggregation for generator
             loglevel (string, opt):  Logging level
             overwrite (bool, opt):   True to overwrite existing files in LRA,
                                      default is False
@@ -105,11 +107,9 @@ class LRAgenerator():
 
         self.zoom = zoom
 
-        if not configdir:
-            self.configdir = get_config_dir()
-        else:
-            self.configdir = configdir
-        self.machine = get_machine(self.configdir)
+        Configurer = ConfigPath(configdir=configdir)
+        self.configdir = Configurer.configdir
+        self.machine = Configurer.machine
 
         # Initialize variable(s)
         self.var = None
@@ -139,6 +139,9 @@ class LRAgenerator():
         self.fix = fix
         self.logger.info('Fixing data: %s', self.fix)
 
+        # for data reading from FDB
+        self.aggregation = aggregation
+
         # Create LRA folder
         self.outdir = os.path.join(outdir, self.model, self.exp, self.resolution)
 
@@ -146,7 +149,6 @@ class LRAgenerator():
             self.outdir = os.path.join(self.outdir, self.frequency)
 
         create_folder(self.outdir, loglevel=self.loglevel)
-
 
         # Initialize variables used by methods
         self.data = None
@@ -172,7 +174,8 @@ class LRAgenerator():
         self.reader = Reader(model=self.model, exp=self.exp,
                              source=self.source, zoom=self.zoom,
                              regrid=self.resolution, freq=self.frequency,
-                             configdir=self.configdir, loglevel=self.loglevel, rebuild=True)
+                             configdir=self.configdir, loglevel=self.loglevel,
+                             fix=self.fix, aggregation=self.aggregation)
 
 
         self.logger.info('Accessing catalog for %s-%s-%s...',
@@ -185,7 +188,7 @@ class LRAgenerator():
                              self.resolution)
 
         self.logger.warning('Retrieving data...')
-        self.data = self.reader.retrieve(var = self.var, fix=self.fix)
+        self.data = self.reader.retrieve(var = self.var)
         self.logger.debug(self.data)
 
     def generate_lra(self):
@@ -326,15 +329,70 @@ class LRAgenerator():
         else:
             self.logger.warning('Still need to run for var %s...', varname)
             return True
-
+        
     def _write_var(self, var):
+
+        """Call write var for generator or catalog access"""
+        t_beg = time()
+
+        if isinstance(self.data, types.GeneratorType):
+            self._write_var_generator(var)
+        else:
+            self._write_var_catalog(var)
+
+        t_end = time()
+        self.logger.info('Process took {:.4f} seconds'.format(t_end-t_beg))
+
+    def _write_var_generator(self, var):
+
+        """
+        Write a variable to file using the GSV generator
+        """
+        for data in self.data:
+            temp_data = data[var]
+
+            if self.frequency:
+                temp_data = self.reader.timmean(temp_data)
+            temp_data = self.reader.regrid(temp_data)
+
+            year = temp_data.time.dt.year.values[0]
+            month = temp_data.time.dt.month.values[0]
+
+            yearfile = self.get_filename(var, year)
+            filecheck = file_is_complete(yearfile, self.logger)
+            if filecheck and not self.overwrite:
+                self.logger.warning('Yearly file %s already exists, skipping...', yearfile)
+                continue
+
+            self.logger.info('Processing year %s month %s...', str(year), str(month))
+            outfile = self.get_filename(var, year, month)
+            
+            # checking if file is there and is complete
+            filecheck = file_is_complete(outfile, self.logger)
+            if filecheck and not self.overwrite:
+                self.logger.warning('Monthly file %s already exists, skipping...', outfile)
+                continue
+
+            # real writing
+            if self.definitive:
+                self.write_chunk(temp_data, outfile)
+
+                # check everything is correct
+                filecheck = file_is_complete(outfile, self.logger)
+                # we can later add a retry
+                if not filecheck:
+                    self.logger.error('Something has gone wrong in %s!', outfile)
+
+            if self.definitive and month==12:
+                self._concat_var(var, year)
+        
+    def _write_var_catalog(self, var):
         """
         Write variable to file
 
         Args:
             var (str): variable name
         """
-        t_beg = time()
 
         self.logger.warning('Processing variable %s...', var)
         temp_data = self.data[var]
@@ -387,10 +445,7 @@ class LRAgenerator():
             if self.definitive:
                 self._concat_var(var, year)
         del temp_data
-
-        t_end = time()
-        self.logger.info('Process took {:.4f} seconds'.format(t_end-t_beg))
-
+       
     def write_chunk(self, data, outfile):
         """Write a single chunk of data - Xarray Dataset - to a specific file
         using dask if required and monitoring the progress"""

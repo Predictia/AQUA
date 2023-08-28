@@ -7,6 +7,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Climatology support restored in the Reader (Fix for climatology #445)
+- Improvement function to inspect the catalogue (Inspect_catalogue improvement #446)
+- Minor improvements of the gribber (Fix gribber fdb #427)
+- Allow the LRA generator to work with generators and so with FDB (LRA from fdb on mafalda #430)
+- Fixes only on selected variables (Fixer updates #428)
+- Complete revision of the FDB/GSV access, allowing to access also recent experiments using variable step
+- Teleconnections diagnostic adapted to new code improvements (Teleconnections Dev branch update #424)
+- Add support for area selection with fldmean (Fldmean box selection #409)
+- Environment simplified, dependencies are now mostly on the pyproject file (A simpler environment.yml #286)
+- Intake esm functionality added back (Fix intake-esm #287)
+- Intake esm tests (Test also intake-esm #335)
+- Yaml dependencies removed (Logger and yaml issues in util.py #334)
+- Log history working for iterators as well (Logger and yaml issues in util.py #334)
+- Util refactor (Utility refactor #405)
+- Fixer at reader level (Fixes at Reader level #244)
+- Uniform timmean (Uniform time after timmean and add option for time_bnds #419)
+- FDB tests added (Add FDB 5.11, a local FDB with some test data #280)
+- Refactor of unit conversion and non-metpy cases (Flexible unit fix from YAML file #416)
+- Refactor of the config file definition (Refactor of the configuration search #417)
+
 ## [v0.2]
 
 - Improve the LRA generator and worklow CLI (Streaming for the LRA #289)
@@ -53,6 +73,11 @@ This is the `AQUA` version that will be part of the Deliverable D340.7.1.2, sent
 - Added a common environment file (#363)
 - Support for Lumi installation (#315)
 - Added the `changelog` file
+
+### Changed
+
+- Dummy diagnostic is now in the `dummy` folder (previously was `dummy-diagnostic`)
+- Tests and code is now working with python>=3.9 (previously python 3.11 was excluded)
 
 ## [v0.1-beta]
 
