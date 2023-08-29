@@ -30,7 +30,8 @@ source_grids:
         space_coord: ["nod2"]
         extra: 
           - -setgrid,../AQUA_tests_short/grids/pi_griddes_nodes_IFS.nc 
-          - -selname,cell_area 
+          - -selname,cell_area
+
   IFS:
     tco399-orca025:
       default:
@@ -43,14 +44,54 @@ source_grids:
       atm3d:
         path: /pfs/lustrep3/scratch/project_465000454/AQUA-workflow/tco_grids/tco79_grid.nc
         space_coord: ["value"]
-    test-tco79:
-      original_2d:
-        path: ../AQUA_tests_short/grids/tco79_grid.nc
-        space_coord: ["rgrid"]
-  ERA5:
-    fdb:
+    fdb-tco399:
       default:
+        path: 
+          2d: /projappl/project_465000454/jvonhar/aqua/grids/tco399_grid.nc
+          2dm: /projappl/project_465000454/jvonhar/aqua/grids/tco399_grid_masked.nc
+        masked_vars:
+          - ci
+          - sst
+        space_coord: ["ncells"]
+        vert_coord: ["2d", "2dm"]  # If the case is more complex than simply "2d" we need to specify this
+    control-1950-devcon:
+      default:
+        space_coord: ["ncells"]
+        support_dims: ["cell_corners"]  # dimensions to keep when selecting a single spatial sample
+      hourly-1deg:
         space_coord: ["lon", "lat"]
+      6hourly-1deg:
+        space_coord: ["lon", "lat"]
+      monthly-1deg-2d:
+        space_coord: ["lon", "lat"]
+      monthly-1deg-3d:
+        space_coord: ["lon", "lat"]
+      lra-r100-monthly:
+        space_coord: ["lon", "lat"]
+    historical-1990-devcon:
+      default:
+        space_coord: ["ncells"]
+        support_dims: ["cell_corners"]
+      hourly-1deg:
+        space_coord: ["lon", "lat"]
+      6hourly-1deg:
+        space_coord: ["lon", "lat"]
+      monthly-1deg-2d:
+        space_coord: ["lon", "lat"]
+      monthly-1deg-3d:
+        space_coord: ["lon", "lat"]
+
+  ERA5:
+    era5:
+      default:
+        path: 
+          2d: /pfs/lustrep3/projappl/project_465000454/padavini/ERA5/grids/r025_grid.nc
+          2dm: /pfs/lustrep3/projappl/project_465000454/padavini/ERA5/grids/r025_grid_masked.nc
+        masked_vars:
+          - sst
+          - SSTK
+        space_coord: ["lon", "lat"]
+        vert_coord: ["2d", "2dm"]  # If the case is more complex than simply "2d" we need to specify this  
   NEMO:
     tco79-eORCA1:
       default:
