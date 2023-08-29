@@ -54,7 +54,7 @@ source_grids:
           - sst
         space_coord: ["ncells"]
         vert_coord: ["2d", "2dm"]  # If the case is more complex than simply "2d" we need to specify this
-    fdb-control-1950:
+    control-1950-devcon:
       default:
         space_coord: ["ncells"]
         support_dims: ["cell_corners"]  # dimensions to keep when selecting a single spatial sample
@@ -68,7 +68,7 @@ source_grids:
         space_coord: ["lon", "lat"]
       lra-r100-monthly:
         space_coord: ["lon", "lat"]
-    fdb-historical-1990:
+    historical-1990-devcon:
       default:
         space_coord: ["ncells"]
         support_dims: ["cell_corners"]

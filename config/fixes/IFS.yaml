@@ -469,7 +469,7 @@ models:
                         grib: true
                         decumulate: true
 
-        fdb-control-1950:
+        control-1950-devcon:
             default:
                 data_model: ifs
             hourly-1deg:
@@ -571,7 +571,7 @@ models:
                     q:
                         source: 133
 
-        fdb-historical-1990:
+        historical-1990-devcon:
             default:
                 data_model: ifs
             hourly-1deg:

@@ -9,13 +9,13 @@ sources:
     driver: yaml_file_cat
     args:
       path: '{{CATALOG_DIR}}/fdb-tco399.yaml'
-  fdb-control-1950:
+  control-1950-devcon:
     description: fdb IFS/NEMO control run
     driver: yaml_file_cat
     args:
-      path: '{{CATALOG_DIR}}/fdb-control-1950.yaml'
-  fdb-historical-1990:
+      path: '{{CATALOG_DIR}}/control-1950-devcon.yaml'
+  historical-1990-devcon:
     description: fdb IFS/NEMO historical run
     driver: yaml_file_cat
     args:
-      path: '{{CATALOG_DIR}}/fdb-historical-1990.yaml'
+      path: '{{CATALOG_DIR}}/historical-1990-devcon.yaml'
