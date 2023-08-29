@@ -17,7 +17,7 @@ sources:
       aggregation: H  # Default aggregation if timestep=S is used
       timestep: H
       timestyle: step
-    description: FDB IFS/NEMO historical run hourly data native. Contains tprate(260048), 2t(167), 10u(165), 10v(166), 100u(228246), 100v(228247), sr(173), blh(159), sd(141), 2d(168), skt(235), chnk(148). See fix yaml for derived vars.
+    description: hourly data on native grid TCo2560 (about 4.5km). Contains tprate(260048), 2t(167), 10u(165), 10v(166), 100u(228246), 100v(228247), sr(173), blh(159), sd(141), 2d(168), skt(235), chnk(148). See fix yaml for derived vars.
     driver: gsv
     metadata: {fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-HISTORICAL_1990_DEVCON.yaml}
   hourly-1deg:
@@ -38,7 +38,7 @@ sources:
       aggregation: H  # Default aggregation if timestep=S is used
       timestep: H
       timestyle: step
-    description: FDB IFS/NEMO historical run hourly data 1deg. Contains tprate(260048), sf(144), 2t(167), 10u(165), 10v(166), blh(159), sshf(146), slhf(147), ssrd(169), ssr(176), strd(175), str(177), ttr(179), e(182), tsr(178), ewss(180), nsss(181), chnk(148). See fix yaml for derived vars.
+    description: hourly data on r100 grid. Contains tprate(260048), sf(144), 2t(167), 10u(165), 10v(166), blh(159), sshf(146), slhf(147), ssrd(169), ssr(176), strd(175), str(177), ttr(179), e(182), tsr(178), ewss(180), nsss(181), chnk(148). See fix yaml for derived vars.
     driver: gsv
     metadata: {fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-HISTORICAL_1990_DEVCON.yaml}
   6hourly-1deg:
@@ -60,7 +60,7 @@ sources:
       aggregation: 6H  # Default aggregation if timestep=S is used
       timestep: H  # What one step means
       timestyle: step
-    description: FDB IFS/NEMO historical run 6hourly data 1deg. Contains z(129).
+    description: 6hourly data on r100 griddeg. Contains z(129).
     driver: gsv
     metadata: {fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-HISTORICAL_1990_DEVCON.yaml}
   monthly-1deg-2d:
@@ -82,7 +82,7 @@ sources:
       timestep: H
       timestyle: step
       timeshift: "-M"  # shift time of resulting xarray by this amount
-    description: FDB IFS/NEMO historical run monthly data 1deg. Contains tprate(260048), 2t(167), tcc(164), sd(141), tciw(79), tclw(78), msl(151), tcwv(137), lcc(186), mcc(187), hcc(188). 
+    description: monthly data on r100 grid. Contains tprate(260048), 2t(167), tcc(164), sd(141), tciw(79), tclw(78), msl(151), tcwv(137), lcc(186), mcc(187), hcc(188). 
     driver: gsv
     metadata: {fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-HISTORICAL_1990_DEVCON.yaml}
   monthly-1deg-3d:
@@ -105,6 +105,6 @@ sources:
       timestep: H
       timestyle: step
       timeshift: "-M"  # shift time of resulting xarray by this amount
-    description: FDB IFS/NEMO control run monthly data 1deg. Contains u(131), v(132), t(130), r(157), w(135), q(133).
+    description: monthly data on r100 grid. Contains u(131), v(132), t(130), r(157), w(135), q(133).
     driver: gsv
     metadata: {fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-HISTORICAL_1990_DEVCON.yaml}
