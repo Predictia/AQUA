@@ -98,18 +98,11 @@ jobs:
           # When it fails, the test.grib file will have 0 (zero) messages.
           fdb-read sample_test_data_fdb_request test.grib
           grib_dump test.grib
-      - name: Debug Shell Environment
-        run: |
-          echo "PATH: $PATH"
-          echo "SHELL: $SHELL"
-          echo "Environment:"
-          env
       - name: Run tests
         # https://github.com/mamba-org/setup-micromamba#about-login-shells
         # NOTE: We could gain a few seconds in the build, if needed,
         #       by running with coverage in only one matrix job run.
         run: |
-          set eo
           # Produce the HTML report. Defaults to writing in htmlcov/index.html.
           pytest --cov=aqua --cov-report=html --cov-report=xml --cov-branch -m "aqua or slow or gsv" || echo "Pytest exited with status $?"
           
