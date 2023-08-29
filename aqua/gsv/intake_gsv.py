@@ -7,7 +7,7 @@ import datetime
 import xarray as xr
 from intake.source import base
 from .timeutil import compute_date_steps, compute_date, check_dates, compute_mars_timerange
-from .timeutil import shift_time_dataset, shift_time_datetime, compute_steprange, dateobj, set_stepmin
+from .timeutil import shift_time_dataset, shift_time_datetime, compute_steprange, dateobj, set_stepmin, split_date
 
 # Test if FDB5 binary library is available
 try:
@@ -63,12 +63,11 @@ class GSVSource(base.DataSource):
         self.aggregation = aggregation
         self.timestep = timestep
         self.timeshift = timeshift
-        self.data_startdate = data_start_date
-        self.data_starttime = request["time"] 
-        self.startdate = startdate
-        self.enddate = enddate
-        self.starttime = request["time"] 
-        self.endtime = request["time"] 
+
+        self.data_startdate, self.data_starttime = split_date(data_start_date)
+        self.startdate, self.starttime = split_date(startdate)
+        self.enddate, self.endtime = split_date(enddate)
+
         self.stepmin = request["step"]  # The minimum existing timestep 
         self._var = var
         self.verbose = verbose

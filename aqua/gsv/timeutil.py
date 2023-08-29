@@ -206,12 +206,22 @@ def check_dates(startdate, start_date, enddate, end_date):
         ValueError: If the given date is not within the data range
     """
 
-    if datetime.strptime(str(startdate), '%Y%m%d') < datetime.strptime(str(start_date), '%Y%m%d'):
+    startdate_fmt = "%Y%m%d:%H%M" if ':' in str(startdate) else "%Y%m%d"
+    start_date_fmt = "%Y%m%d:%H%M" if ':' in str(start_date) else "%Y%m%d"
+    enddate_fmt = "%Y%m%d:%H%M" if ':' in str(enddate) else "%Y%m%d"
+    end_date_fmt = "%Y%m%d:%H%M" if ':' in str(end_date) else "%Y%m%d"
+
+    if datetime.strptime(str(startdate), startdate_fmt) < datetime.strptime(str(start_date), start_date_fmt):
         raise ValueError(f"Starting date {str(startdate)} is earlier than the data start at {str(start_date)}.")
 
-    if datetime.strptime(str(enddate), '%Y%m%d') > datetime.strptime(str(end_date), '%Y%m%d'):
+    if datetime.strptime(str(enddate), enddate_fmt) > datetime.strptime(str(end_date), end_date_fmt):
         raise ValueError(f"End date {str(enddate)} is later than the data end at {str(end_date)}.")
 
+    if datetime.strptime(str(startdate), startdate_fmt) > datetime.strptime(str(enddate), enddate_fmt):
+        raise ValueError(f"Start date {str(startdate)} is later than the end date at {str(enddate)}.")
+    
+    if datetime.strptime(str(start_date), start_date_fmt) > datetime.strptime(str(end_date), end_date_fmt):
+        raise ValueError(f"Data start date {str(start_date)} is later than the data end at {str(end_date)}.")
 
 def set_stepmin(tgtdate, tgttime, startdate, starttime, stepmin, step):
     """
@@ -277,3 +287,18 @@ def shift_time_datetime(dateobj, timeshift, sign=1):
     ts = relativedelta(**{units: nsteps * sign})
  
     return dateobj + ts
+
+
+def split_date(datestr, timedefault="0000"):
+    """
+    Splits a date in YYYYMMDD:HHMM format into date and time strings
+    Args:
+        datestr (str): The date string to split
+        timedefault (str): Default for time if not provided
+    Returns:
+        date and time as str
+    """
+
+    dd = str(datestr).split(':')
+    timestr = dd[1] if ":" in str(datestr) else timedefault
+    return dd[0], timestr
