@@ -10,12 +10,12 @@ sources:
     args:
       path: '{{CATALOG_DIR}}/fdb-tco399.yaml'
   control-1950-devcon:
-    description: fdb IFS/NEMO control run
+    description: FDB IFS/NEMO control run
     driver: yaml_file_cat
     args:
       path: '{{CATALOG_DIR}}/control-1950-devcon.yaml'
   historical-1990-devcon:
-    description: fdb IFS/NEMO historical run
+    description: FDB IFS/NEMO historical run
     driver: yaml_file_cat
     args:
       path: '{{CATALOG_DIR}}/historical-1990-devcon.yaml'
