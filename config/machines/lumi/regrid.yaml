@@ -3,7 +3,7 @@ weights:
    template: weights_{model}_{exp}_{source}_{method}_{target}_l{level}.nc
 
 areas:
-   path:/pfs/lustrep3/projappl/project_465000454/data/AQUA/areas
+   path: /pfs/lustrep3/projappl/project_465000454/data/AQUA/areas
    src_template: cell_area_{model}_{exp}_{source}.nc
    dst_template: cell_area_{grid}.nc
 
