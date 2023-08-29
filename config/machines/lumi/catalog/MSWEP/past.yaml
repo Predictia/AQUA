@@ -9,4 +9,4 @@ sources:
     args:
       consolidated: False
       urlpath: 
-      - /pfs/lustrep3/projappl/project_465000454/data/AQUA/datasets/MSWEP_V280/monthly/monthly.zarr
+      - '{{DATA_PATH}}/MSWEP_V280/monthly/monthly.zarr'
