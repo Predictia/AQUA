@@ -349,6 +349,15 @@ class LRAgenerator():
         t_end = time()
         self.logger.info('Process took {:.4f} seconds'.format(t_end-t_beg))
 
+    def _remove_regridded(self, data):
+        
+        # remove regridded attribute to avoid issues with Reader
+        # https://github.com/oloapinivad/AQUA/issues/147
+        if 'regridded' in data.attrs:
+            self.logger.info('Removing regridding attribute...')
+            del data.attrs['regridded']
+        return data
+
     def _write_var_generator(self, var):
 
         """
@@ -367,6 +376,8 @@ class LRAgenerator():
             if self.frequency:
                 temp_data = self.reader.timmean(temp_data)
             temp_data = self.reader.regrid(temp_data)
+
+            temp_data = self._remove_regridded(temp_data)
 
             year = temp_data.time.dt.year.values[0]
             month = temp_data.time.dt.month.values[0]
@@ -416,11 +427,7 @@ class LRAgenerator():
             temp_data = self.reader.timmean(temp_data)
         temp_data = self.reader.regrid(temp_data)
 
-        # remove regridded attribute to avoid issues with Reader
-        # https://github.com/oloapinivad/AQUA/issues/147
-        if 'regridded' in temp_data.attrs:
-            self.logger.info('Removing regridding attribute...')
-            del temp_data.attrs['regridded']
+        temp_data = self._remove_regridded(temp_data)
 
         # Splitting data into yearly files
         years = set(temp_data.time.dt.year.values)
