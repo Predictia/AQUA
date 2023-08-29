@@ -267,7 +267,7 @@ class FixerMixin():
 
         # Fix coordinates according to a given data model
         src_datamodel = fix.get("data_model", src_datamodel)
-        if src_datamodel and src_datamodel is not False:
+        if src_datamodel:
             data = self.change_coord_datamodel(data, src_datamodel, self.dst_datamodel)
             log_history(data, "coordinates adjusted by AQUA fixer")
 
@@ -292,7 +292,7 @@ class FixerMixin():
             src_datamodel = self.fixes.get("data_model", src_datamodel)
             self.logger.debug("Default input datamodel: %s", src_datamodel)
             self.logger.debug("Default output datamodel: %s", self.dst_datamodel)
-            if src_datamodel is not False:
+            if src_datamodel:
                 area = self.change_coord_datamodel(area, src_datamodel, self.dst_datamodel)
 
             return area
