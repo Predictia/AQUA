@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+## [v0.2.1]
+
+- Add development control-1950 and historical-1990 experiments to the LRA
+
 ## [v0.2]
 
 - Improve the LRA generator and worklow CLI (Streaming for the LRA #289)
@@ -68,7 +72,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.2...HEAD
+[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.2.1...HEAD
+[v0.2.1]: https://github.com/oloapinivad/AQUA/compare/v0.2...v0.2.1
 [v0.2]: https://github.com/oloapinivad/AQUA/compare/v0.2-beta...v0.2
 [v0.2-beta]: https://github.com/oloapinivad/AQUA/compare/v0.2-alpha...v0.2-beta
 [v0.2-alpha]: https://github.com/oloapinivad/AQUA/compare/v0.1-beta...v0.2-alpha
