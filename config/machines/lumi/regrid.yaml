@@ -1,5 +1,5 @@
 weights:
-   path: /pfs/lustrep3/projappl/project_465000454/data/AQUA/grids/weights
+   path: /pfs/lustrep3/projappl/project_465000454/data/AQUA/weights
    template: weights_{model}_{exp}_{source}_{method}_{target}_l{level}.nc
 
 areas:
@@ -8,7 +8,7 @@ areas:
    dst_template: cell_area_{grid}.nc
 
 cdo-paths:
-  download: /pfs/lustrep3/projappl/project_465000454/data/AQUA/grids/weigths
+  download: /pfs/lustrep3/projappl/project_465000454/data/AQUA/grids
   icon: /pool/data/ICON #WRONG
 
 target_grids:
