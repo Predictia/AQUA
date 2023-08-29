@@ -84,7 +84,6 @@ jobs:
             python=${{ matrix.python-version }}
           init-shell: >-
             bash
-          post-cleanup: 'none'
       - name: Download and set up tests
         run: |
           ./download_data_for_tests.sh
@@ -107,14 +106,12 @@ jobs:
         # https://github.com/mamba-org/setup-micromamba#about-login-shells
         # NOTE: We could gain a few seconds in the build, if needed,
         #       by running with coverage in only one matrix job run.
-        #shell: bash --login -eo pipefail {0}
         run: |
-          # Check the shell
-          set -o | grep pipefail
           # Produce the HTML report. Defaults to writing in htmlcov/index.html.
           pytest --cov=aqua --cov-report=html --cov-report=xml --cov-branch -m "aqua or slow or gsv"
 
           # If pytest failed, then exit with the same status code.
+          # HACK due to #436 and #452 of AQUA
           if [[ $? -ne 0 ]]; then
             exit $?
           fi
