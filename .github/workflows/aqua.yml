@@ -45,7 +45,9 @@ jobs:
         #       command. The default value in GitHub is ``--noprofile --norc -eo pipefail``.
         #       https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsshell
         #       We removed the noprofile and norc so we have pytest set by Conda in our PATH.
-        shell: bash -eo pipefail {0}
+        # NOTE2: login should be kept becuse the action micromamba/setup-micromamba
+        #        writes the environment activation script in the .bashrc file.
+        shell: bash --login -eo pipefail {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -79,9 +81,9 @@ jobs:
             channels:
               - conda-forge
           create-args: >-
-              python=${{ matrix.python-version }}
+            python=${{ matrix.python-version }}
           init-shell: >-
-            bash -eo pipefail {0}
+            bash
           post-cleanup: 'all'
       - name: Download and set up tests
         run: |
@@ -105,6 +107,7 @@ jobs:
         # https://github.com/mamba-org/setup-micromamba#about-login-shells
         # NOTE: We could gain a few seconds in the build, if needed,
         #       by running with coverage in only one matrix job run.
+        shell: bash
         run: |
           # Produce the HTML report. Defaults to writing in htmlcov/index.html.
           pytest --cov=aqua --cov-report=html --cov-report=xml --cov-branch -m "aqua or slow or gsv" || echo "Pytest exited with status $?"
