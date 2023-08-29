@@ -107,3 +107,30 @@ source_grids:
         space_coord:
         - lon
         - lat
+  
+  CERES:
+    ebaf-toa42:
+      default:
+        space_coord:
+        - lon
+        - lat
+    ebaf-toa41:
+      default:
+        space_coord:
+        - lon
+        - lat
+    ebaf-sfc41:
+      default:
+        space_coord:
+        - lon
+        - lat
+    ebaf-sfc42:
+      default:
+        space_coord:
+        - lon
+        - lat
+    syn-toa41:
+      default:
+        space_coord:
+        - lon
+        - lat
