@@ -37,7 +37,7 @@ class TestAqua:
         """
         reader = Reader(model="FESOM", exp="test-pi", source="original_2d",
                         configdir="config", fix=False)
-        assert reader.model == "FESOM"
+        assert reader.model == "FESOM_failure"
         assert reader.exp == "test-pi"
         assert reader.source == "original_2d"
         assert reader.configdir == "config"
