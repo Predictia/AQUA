@@ -7,12 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- FDB/GSV access to IFS control and historical simulations (#434)
 - Climatology support restored in the Reader (Fix for climatology #445)
 - Improvement function to inspect the catalogue (Inspect_catalogue improvement #446)
 - Minor improvements of the gribber (Fix gribber fdb #427)
 - Allow the LRA generator to work with generators and so with FDB (LRA from fdb on mafalda #430)
 - Fixes only on selected variables (Fixer updates #428)
-- Complete revision of the FDB/GSV access, allowing to access also recent experiments using variable step
+- Complete revision of the FDB/GSV access, allowing to access also recent experiments using variable step (#343)
 - Teleconnections diagnostic adapted to new code improvements (Teleconnections Dev branch update #424)
 - Add support for area selection with fldmean (Fldmean box selection #409)
 - Environment simplified, dependencies are now mostly on the pyproject file (A simpler environment.yml #286)
@@ -23,7 +24,7 @@ Unreleased is the current development version.
 - Util refactor (Utility refactor #405)
 - Fixer at reader level (Fixes at Reader level #244)
 - Uniform timmean (Uniform time after timmean and add option for time_bnds #419)
-- FDB tests added (Add FDB 5.11, a local FDB with some test data #280)
+- FDB tests added (Add FDB 5.11, a local FDB with some test data #280, #432)
 - Refactor of unit conversion and non-metpy cases (Flexible unit fix from YAML file #416)
 - Refactor of the config file definition (Refactor of the configuration search #417)
 

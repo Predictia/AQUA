@@ -147,6 +147,12 @@ class FixerMixin():
                 varlist[var] = varname
 
                 source = variables[var].get("source", None)
+
+                # if we are using a gribcode as a source, convert it to shortname to access it
+                if str(source).isdigit():
+                    self.logger.info('The source %s is a grib code, need to convert it')
+                    source = get_eccodes_attr(f'var{source}')['shortName']
+                    
                 # This is a renamed variable. This will be done at the end.
                 if source:
                     if source not in data.variables:
@@ -179,10 +185,6 @@ class FixerMixin():
                             tgt_units = value
                         else:
                             data[source].attrs[att] = value
-
-                # fix name of units attribute for some IFS data (e.g. FDB data)
-                if "units" not in data[source].attrs and "GRIB_units" in data[source].attrs:
-                    data[source].attrs["units"] = data[source].GRIB_units
 
                 # Override destination units
                 fixer_tgt_units = variables[var].get("units", None)
@@ -384,10 +386,16 @@ class FixerMixin():
 
         if "IFSMagician" in data.attrs.get("history", ""):  # Special fix for gribscan levels
             if "level" in data.coords:
-                if data.level.max() >= 1000:
+                if data.level.max() >= 1000:  # IS THERE A REASON FOR THIS CHECK?
                     data.level.attrs["units"] = "hPa"
                     data.level.attrs["standard_name"] = "air_pressure"
                     data.level.attrs["long_name"] = "pressure"
+
+        if "GSV interface" in data.attrs.get("history", ""):  # Special fix for FDB retrieved data
+            if "height" in data.coords:
+                data.height.attrs["units"] = "hPa"
+                data.height.attrs["standard_name"] = "air_pressure"
+                data.height.attrs["long_name"] = "pressure"
 
         # this is needed since cf2cdm issues a (useless) UserWarning
         with warnings.catch_warnings():

@@ -2,6 +2,7 @@
 
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
+import numpy as np
 
 
 step_units = {
@@ -54,6 +55,9 @@ def compute_date(startdate, starttime, step, n, npartitions):
 
     # Convert step string to timedelta unit and date format
     step_unit, nsteps = step_units.get(step.upper())
+
+    if step_unit in ["days", "months", "years"] and n > 0:  # align at beginning of day for later days
+        starttime = "0000"
 
     # Parse startdate into a datetime object
     tstart = datetime.strptime(str(startdate) + ':' + str(starttime), '%Y%m%d:%H%M')
@@ -176,9 +180,16 @@ def compute_steprange(startdate_obj, newdate_obj, timestep):
     """
 
     ts_unit, ts_nsteps = step_units.get(timestep.upper())
-    ts = timedelta(**{ts_unit: ts_nsteps})
 
-    return (newdate_obj - startdate_obj) // ts
+    if ts_unit == "months":
+        delta = relativedelta(newdate_obj, startdate_obj)
+        return delta.years * 12 + delta.months
+    elif ts_unit == "years":
+        delta = relativedelta(newdate_obj, startdate_obj)
+        return delta.years
+    else:
+        ts = timedelta(**{ts_unit: ts_nsteps})
+        return (newdate_obj - startdate_obj) // ts
 
 
 def check_dates(startdate, start_date, enddate, end_date):
@@ -195,8 +206,99 @@ def check_dates(startdate, start_date, enddate, end_date):
         ValueError: If the given date is not within the data range
     """
 
-    if datetime.strptime(str(startdate), '%Y%m%d') < datetime.strptime(str(start_date), '%Y%m%d'):
+    startdate_fmt = "%Y%m%d:%H%M" if ':' in str(startdate) else "%Y%m%d"
+    start_date_fmt = "%Y%m%d:%H%M" if ':' in str(start_date) else "%Y%m%d"
+    enddate_fmt = "%Y%m%d:%H%M" if ':' in str(enddate) else "%Y%m%d"
+    end_date_fmt = "%Y%m%d:%H%M" if ':' in str(end_date) else "%Y%m%d"
+
+    if datetime.strptime(str(startdate), startdate_fmt) < datetime.strptime(str(start_date), start_date_fmt):
         raise ValueError(f"Starting date {str(startdate)} is earlier than the data start at {str(start_date)}.")
 
-    if datetime.strptime(str(enddate), '%Y%m%d') > datetime.strptime(str(end_date), '%Y%m%d'):
+    if datetime.strptime(str(enddate), enddate_fmt) > datetime.strptime(str(end_date), end_date_fmt):
         raise ValueError(f"End date {str(enddate)} is later than the data end at {str(end_date)}.")
+
+    if datetime.strptime(str(startdate), startdate_fmt) > datetime.strptime(str(enddate), enddate_fmt):
+        raise ValueError(f"Start date {str(startdate)} is later than the end date at {str(enddate)}.")
+    
+    if datetime.strptime(str(start_date), start_date_fmt) > datetime.strptime(str(end_date), end_date_fmt):
+        raise ValueError(f"Data start date {str(start_date)} is later than the data end at {str(end_date)}.")
+
+def set_stepmin(tgtdate, tgttime, startdate, starttime, stepmin, step):
+    """
+    Make sure that we start at the earliest available date
+    Args:
+        tgtdate (str): Desired date
+        tgttime (str): Desired time
+        startdate (str): Data starting date
+        starttime (str): Data starting time
+        stepmin (int): Earliest step
+        step (str): Timestep. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y
+    Returns:
+        A revised date and time (str)
+    """
+
+    ts_unit, ts_nsteps = step_units.get(step.upper())
+    ts = timedelta(**{ts_unit: ts_nsteps * stepmin})
+    
+    date0 = dateobj(startdate, starttime) + ts
+    date1 = dateobj(tgtdate, tgttime)
+    newdate = max(date0, date1)
+    
+    return datetime.strftime(newdate, '%Y%m%d'), datetime.strftime(newdate, '%H%M')
+
+
+def shift_time_dataset(data, timeshift):
+    """
+    Shift time of a dataset by a given amount
+    Args:
+        data (xarray.DataSet): The dataset to shift
+        timeshift (str): Time shift. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y. Can be negative.
+    Returns:
+        A revised xarray.DataSet
+    """
+
+    if '-' in timeshift:
+        timeshift = timeshift[1:]
+        sign = -1
+    else:
+        sign = 1
+    
+    units, nsteps = step_units.get(timeshift.upper())
+    ts = relativedelta(**{units: nsteps * sign})
+    newtime= [np.datetime64(d + ts).astype('datetime64[ns]') for d in data.time.data.astype('datetime64[us]').tolist()]
+    return data.assign_coords(time=newtime)
+
+
+def shift_time_datetime(dateobj, timeshift, sign=1):
+    """
+    Shift time of a datetime object by a given amount
+    Args:
+        dateobj (datetime.datetimet): The date to shift
+        timeshift (str): Time shift. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y. Can be negative.
+    Returns:
+        A shifted date (datetime.datetime)
+    """
+
+    if '-' in timeshift:
+        timeshift = timeshift[1:]
+        sign = -sign
+    
+    units, nsteps = step_units.get(timeshift.upper())
+    ts = relativedelta(**{units: nsteps * sign})
+ 
+    return dateobj + ts
+
+
+def split_date(datestr, timedefault="0000"):
+    """
+    Splits a date in YYYYMMDD:HHMM format into date and time strings
+    Args:
+        datestr (str): The date string to split
+        timedefault (str): Default for time if not provided
+    Returns:
+        date and time as str
+    """
+
+    dd = str(datestr).split(':')
+    timestr = dd[1] if ":" in str(datestr) else timedefault
+    return dd[0], timestr
