@@ -19,3 +19,8 @@ sources:
     driver: yaml_file_cat
     args:
         path: "{{CATALOG_DIR}}/catalog/NEMO/main.yaml"
+  MSWEP:
+    description: MSWEP_V280 precipitation data
+    driver: yaml_file_cat
+    args:
+        path: "{{CATALOG_DIR}}/catalog/MSWEP/main.yaml"
