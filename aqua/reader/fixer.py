@@ -290,8 +290,7 @@ class FixerMixin():
             # This operation is a duplicate, rationalization with fixer method is needed
             src_datamodel = self.fixes_dictionary["defaults"].get("src_datamodel", None)
             src_datamodel = self.fixes.get("data_model", src_datamodel)
-            self.logger.debug("Default input datamodel: %s", src_datamodel)
-            self.logger.debug("Default output datamodel: %s", self.dst_datamodel)
+
             if src_datamodel:
                 area = self.change_coord_datamodel(area, src_datamodel, self.dst_datamodel)
 
