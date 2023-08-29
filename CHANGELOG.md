@@ -9,7 +9,7 @@ Unreleased is the current development version.
 
 ## [v0.2.1]
 
-- Add development control-1950 and historical-1990 experiments to the LRA
+- Add development control-1950 and historical-1990 experiments to the LRA (LRA for control-1950 and historical-1990 on Levante from v0.2 #455)
 
 ## [v0.2]
 
