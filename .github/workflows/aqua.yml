@@ -80,6 +80,9 @@ jobs:
               - conda-forge
           create-args: >-
               python=${{ matrix.python-version }}
+          init-shell: >-
+            bash -eo pipefail {0}
+          post-cleanup: 'all'
       - name: Download and set up tests
         run: |
           ./download_data_for_tests.sh
