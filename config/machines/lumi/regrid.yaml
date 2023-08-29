@@ -85,8 +85,8 @@ source_grids:
     era5:
       default:
         path: 
-          2d: /pfs/lustrep3/projappl/project_465000454/padavini/ERA5/grids/r025_grid.nc
-          2dm: /pfs/lustrep3/projappl/project_465000454/padavini/ERA5/grids/r025_grid_masked.nc
+          2d: /pfs/lustrep3/projappl/project_465000454/data/AQUA/grids/r025_grid.nc
+          2dm: /pfs/lustrep3/projappl/project_465000454/data/AQUA/grids/r025_grid_masked.nc
         masked_vars:
           - sst
           - SSTK
