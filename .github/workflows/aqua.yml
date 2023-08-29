@@ -112,7 +112,12 @@ jobs:
           # Check the shell
           set -o | grep pipefail
           # Produce the HTML report. Defaults to writing in htmlcov/index.html.
-          pytest --cov=aqua --cov-report=html --cov-report=xml --cov-branch -m "aqua or slow or gsv" || echo "Pytest exited with status $?"
+          pytest --cov=aqua --cov-report=html --cov-report=xml --cov-branch -m "aqua or slow or gsv"
+
+          # If pytest failed, then exit with the same status code.
+          if [[ $? -ne 0 ]]; then
+            exit $?
+          fi
           
           if [[ ${COVERAGE_ENABLED} ]]; then
             # Extract the top header of the pytest HTML report.
