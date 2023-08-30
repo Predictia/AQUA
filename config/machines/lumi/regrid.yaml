@@ -134,3 +134,38 @@ source_grids:
         space_coord:
         - lon
         - lat
+
+  OSI-SAF:
+    osi-450:
+      nh-monthly:
+        space_coord:
+        - xc
+        - yc
+        cellareas: /pfs/lustrep3/projappl/project_465000454/data/AQUA/grids/grid_nh.nc
+        cellarea_var: areacello
+        mask: /pfs/lustrep3/projappl/project_465000454/data/AQUA/grids/grid_nh.nc
+        mask_var: sftof
+      nh-daily:
+        space_coord:
+        - xc
+        - yc
+        cellareas: /pfs/lustrep3/projappl/project_465000454/data/AQUA/grids/grid_nh.nc
+        cellarea_var: areacello
+        mask: /pfs/lustrep3/projappl/project_465000454/data/AQUA/grids/grid_nh.nc
+        mask_var: sftof
+      sh-daily:
+        space_coord:
+        - xc
+        - yc
+        cellareas: /pfs/lustrep3/projappl/project_465000454/data/AQUA/grids/grid_sh.nc
+        cellarea_var: areacello
+        mask: /pfs/lustrep3/projappl/project_465000454/data/AQUA/grids/grid_nh.nc
+        mask_var: sftof
+      sh-monthly:
+        space_coord:
+        - xc
+        - yc
+        cellareas: /pfs/lustrep3/projappl/project_465000454/data/AQUA/grids/grid_sh.nc
+        cellarea_var: areacello
+        mask: /pfs/lustrep3/projappl/project_465000454/data/AQUA/grids/grid_nh.nc
+        mask_var: sftof
