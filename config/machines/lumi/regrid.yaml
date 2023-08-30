@@ -169,3 +169,11 @@ source_grids:
         cellarea_var: areacello
         mask: /pfs/lustrep3/projappl/project_465000454/data/AQUA/grids/grid_nh.nc
         mask_var: sftof
+
+  EN4:
+    en4:
+      default:
+        path:
+          lev: /pfs/lustrep3/projappl/project_465000454/data/AQUA/grids/en4-grid.nc
+        space_coord: ["lon", "lat"]
+        vert_coord: ["lev"]
