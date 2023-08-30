@@ -148,7 +148,7 @@ class Reader(FixerMixin, RegridMixin):
             if self.cdo:
                 self.logger.debug(f"Found CDO path: {self.cdo}")
             else:
-                self.logger.warning("CDO not found in path: Weight generation will fail.")
+                self.logger.error("CDO not found in path: Weight and area generation will fail.")
         else:
             self.logger.debug(f"Using CDO from config: {self.cdo}")
 
