@@ -28,6 +28,10 @@ Unreleased is the current development version.
 - Refactor of unit conversion and non-metpy cases (Flexible unit fix from YAML file #416)
 - Refactor of the config file definition (Refactor of the configuration search #417)
 
+## [v0.2.1]
+
+- Add development control-1950 and historical-1990 experiments to the LRA (LRA for control-1950 and historical-1990 on Levante from v0.2 #455)
+
 ## [v0.2]
 
 - Improve the LRA generator and worklow CLI (Streaming for the LRA #289)
@@ -94,7 +98,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.2...HEAD
+[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.2.1...HEAD
+[v0.2.1]: https://github.com/oloapinivad/AQUA/compare/v0.2...v0.2.1
 [v0.2]: https://github.com/oloapinivad/AQUA/compare/v0.2-beta...v0.2
 [v0.2-beta]: https://github.com/oloapinivad/AQUA/compare/v0.2-alpha...v0.2-beta
 [v0.2-alpha]: https://github.com/oloapinivad/AQUA/compare/v0.1-beta...v0.2-alpha
