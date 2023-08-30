@@ -145,7 +145,12 @@ class Reader(FixerMixin, RegridMixin):
         self.cdo = cfg_base["cdo"].get(self.machine, None)
         if not self.cdo:
             self.cdo = shutil.which("cdo")
-            self.logger.debug(f"Found CDO path: {self.cdo}")
+            if self.cdo:
+                self.logger.debug(f"Found CDO path: {self.cdo}")
+            else:
+                self.logger.warning("CDO not found in path: Weight generation will fail.")
+        else:
+            self.logger.debug(f"Using CDO from config: {self.cdo}")
 
         # load and check the regrid
         if regrid or areas:
