@@ -177,3 +177,21 @@ source_grids:
           lev: /pfs/lustrep3/projappl/project_465000454/data/AQUA/grids/en4-grid.nc
         space_coord: ["lon", "lat"]
         vert_coord: ["lev"]
+
+  AVISO:
+    ssh-L4:
+      default:
+        space_coord:
+        - longitude
+        - latitude
+  PHC3:
+    phc3:
+      default:
+        space_coord:
+        - lon
+        - lat
+  WOA18:
+    woa18_2005_2017:
+      default:
+        vert_coord: depth
+        space_coord: ["lon", "lat"]

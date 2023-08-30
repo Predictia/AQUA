@@ -36,6 +36,16 @@ sources:
     driver: yaml_file_cat
     args:
       path: "{{CATALOG_DIR}}/catalog/CERES/main.yaml"
+  PHC3:
+    description: PHC3 climatology
+    driver: yaml_file_cat
+    args:
+      path: "{{CATALOG_DIR}}/catalog/PHC3/main.yaml"
+  WOA18:
+    description: World Ocean Atlas climatology
+    driver: yaml_file_cat
+    args:
+      path: "{{CATALOG_DIR}}/catalog/WOA18/main.yaml"
   OSI-SAF:
     description: OSI-SAF sea-ice data
     driver: yaml_file_cat
