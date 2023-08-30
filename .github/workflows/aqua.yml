@@ -29,7 +29,7 @@ jobs:
   aqua_test:
     # NOTE: this option can be uncommented to run the job only when
     #       a pull request contains a label with the name "Ready to merge".
-    #if: contains(github.event.pull_request.labels.*.name, 'Ready to merge')
+    # if: contains(github.event.pull_request.labels.*.name, 'Ready to merge')
     env:
       # You can disable coverage by changing this to false. You can
       # also add other Python versions to the matrix, pinning the
@@ -116,7 +116,8 @@ jobs:
         run: |
           # Produce the HTML report. Defaults to writing in htmlcov/index.html.
           pytest --cov=aqua --cov-report=html --cov-report=xml --cov-branch -m "aqua or slow or gsv"
-          
+      - name: Producing missing lines report
+        run: |
           if [[ ${COVERAGE_ENABLED} ]]; then
             # Extract the top header of the pytest HTML report.
             # Passes the HTML through htmlq, extracting the first H1 displayed.
