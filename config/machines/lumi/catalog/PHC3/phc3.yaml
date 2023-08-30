@@ -18,4 +18,4 @@ sources:
       chunks:
         time: 1
       urlpath:
-      - '{{DATA_PATH}}/phc3.0_seasonal.nc'
+      - '{{DATA_PATH}}/PHC3/phc3.0_seasonal.nc'
