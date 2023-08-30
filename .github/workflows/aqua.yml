@@ -33,7 +33,7 @@ jobs:
       issues: write
       pull-requests: write
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         python-version: ["3.11"]
     defaults:
