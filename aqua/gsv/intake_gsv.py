@@ -28,7 +28,7 @@ class GSVSource(base.DataSource):
     partition_access = True
 
     def __init__(self, request, data_start_date, data_end_date, timestyle="date",
-                 aggregation="D",timestep="H", timeshift=None,
+                 aggregation="S", timestep="H", timeshift=None,
                  startdate=None, enddate=None, var='167', metadata=None, verbose=False, **kwargs):
         """
         Initializes the GSVSource class. These are typically specified in the catalogue entry, but can also be specified upon accessing the catalogue.
@@ -38,7 +38,7 @@ class GSVSource(base.DataSource):
             data_start_date (str): Start date of the available data.
             data_end_date (str): End date of the available data.
             timestyle (str, optional): Time style. Defaults to "date".
-            aggregation (str, optional): Time aggregation level. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y. Defaults to "D". 
+            aggregation (str, optional): Time aggregation level. Can be one of S (step), 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y. Defaults to "S". 
             timestep (str, optional): Time step. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y. Defaults to "H". 
             startdate (str, optional): Start date for request. Defaults to None.
             enddate (str, optional): End date for request. Defaults to None.

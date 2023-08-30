@@ -32,9 +32,7 @@ class RegridMixin():
         grid_area = self.cdo_generate_areas(source=dst_extra)
 
         # Make sure that grid areas contain exactly the same coordinates
-        data = self.retrieve(regrid=True)
-        if isinstance(data, types.GeneratorType):
-            data = next(data)
+        data = self._retrieve_plain(regrid=True)
 
         grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.dst_space_coord})
 
@@ -75,9 +73,7 @@ class RegridMixin():
                                             extra=src_extra)
         # Make sure that the new DataArray uses the expected spatial dimensions
         grid_area = _rename_dims(grid_area, self.src_space_coord)
-        data = self.retrieve(startdate=None)
-        if isinstance(data, types.GeneratorType):
-            data = next(data)
+        data = self._retrieve_plain(startdate=None)
         grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.src_space_coord})
         grid_area.to_netcdf(areafile)
         self.logger.warning("Success!")
@@ -150,9 +146,7 @@ class RegridMixin():
             # let's reconstruct it from the file itself
 
             self.logger.info('Grid file is not defined, retrieving the source itself...')
-            data = self.retrieve()
-            if isinstance(data, types.GeneratorType):
-                data = next(data)
+            data = self._retrieve_plain()
 
             # If we have also a vertical coordinate, include it in the sample
             coords = self.src_space_coord
@@ -265,6 +259,26 @@ class RegridMixin():
                 source_grid_file.close()
             area_file.close()
 
+
+    def _retrieve_plain(self, *args, **kwargs):
+        """
+        Retrieves making sure that no buffering and agregation are used
+        and converts iterator to data
+        """
+        
+        buffer = self.buffer
+        aggregation = self.aggregation
+        self.buffer = None
+        self.aggregation = None
+        data = self.retrieve(*args, **kwargs)
+        self.buffer = buffer
+        self.aggregation = aggregation
+
+        if isinstance(data, types.GeneratorType):
+            data = next(data)
+
+        return data
+            
 
 def _rename_dims(data, dim_list):
     """
