@@ -477,8 +477,6 @@ models:
                 deltat: 3600
                 jump: month
                 vars:
-                    tprate:
-                        source: 260048
                     cprate:
                         source: cp
                         grib: true
@@ -486,7 +484,7 @@ models:
                         src_units: m
                         units: kg m**-2 s**-1
                     erate:
-                        source: 182
+                        source: e
                         grib: true
                         decumulate: true
                         #src_units: m
@@ -537,39 +535,10 @@ models:
                         source: nsss
                         grib: true
                         decumulate: true
-                    blh:
-                        source: 159
-                    chnk:
-                        source: 148
                     surfror:  # a very recent version of eccodes is needed for this one
-                        source: 8
+                        source: sro
                         grib: true
-                        decumulate: true 
-            hourly-native:
-                data_model: ifs
-                vars:
-                    tprate:
-                        source: 260048
-                    blh:
-                        source: 159
-                    chnk:
-                        source: 148          
-            monthly-1deg-2d:
-                data_model: ifs
-                vars:
-                    tprate:
-                        source: 260048
-                    lcc:
-                        source: 186
-                    mcc:
-                        source: 187
-                    hcc:
-                        source: 188
-            monthly-1deg-3d:
-                data_model: ifs
-                vars:
-                    q:
-                        source: 133
+                        decumulate: true
 
         historical-1990-devcon:
             default:
@@ -579,8 +548,6 @@ models:
                 deltat: 3600
                 jump: month
                 vars:
-                    tprate:
-                        source: 260048
                     cprate:
                         source: cp
                         grib: true
@@ -588,7 +555,7 @@ models:
                         src_units: m
                         units: kg m**-2 s**-1
                     erate:
-                        source: 182
+                        source: e
                         grib: true
                         decumulate: true
                         src_units: m
@@ -639,39 +606,10 @@ models:
                         source: nsss
                         grib: true
                         decumulate: true
-                    blh:
-                        source: 159
-                    chnk:
-                        source: 148
                     surfror:  # a very recent version of eccodes is needed for this one
-                        source: 8
+                        source: sro
                         grib: true
                         decumulate: true
-            hourly-native:
-                data_model: ifs
-                vars:
-                    tprate:
-                        source: 260048
-                    blh:
-                        source: 159
-                    chnk:
-                        source: 148 
-            monthly-1deg-2d:
-                data_model: ifs
-                vars:
-                    tprate:
-                        source: 260048
-                    lcc:
-                        source: 186
-                    mcc:
-                        source: 187
-                    hcc:
-                        source: 188
-            monthly-1deg-3d:
-                data_model: ifs
-                vars:
-                    q:
-                        source: 133
 
         # These are for tests
         test-tco79:
