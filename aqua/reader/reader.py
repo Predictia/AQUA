@@ -5,6 +5,7 @@ import re
 
 import types
 import tempfile
+import shutil
 import intake
 import intake_esm
 
@@ -141,7 +142,10 @@ class Reader(FixerMixin, RegridMixin):
 
         # Store the machine-specific CDO path if available
         cfg_base = load_yaml(self.config_file)
-        self.cdo = cfg_base["cdo"].get(self.machine, "cdo")
+        self.cdo = cfg_base["cdo"].get(self.machine, None)
+        if not self.cdo:
+            self.cdo = shutil.which("cdo")
+            self.logger.debug(f"Found CDO path: {self.cdo}")
 
         # load and check the regrid
         if regrid or areas:
