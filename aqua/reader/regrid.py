@@ -160,7 +160,7 @@ class RegridMixin():
             if vert_coord and vert_coord != "2d" and vert_coord != "2dm":
                 coords.append(vert_coord)
 
-            data = _get_spatial_sample(data, coords)
+            data = _get_spatial_sample(data, coords, self.support_dims)
 
             if vert_coord and vert_coord != "2d" and vert_coord != "2dm":
                 varsel = [var for var in data.data_vars if vert_coord in data[var].dims]
@@ -170,7 +170,7 @@ class RegridMixin():
                     raise ValueError(f"No variable with dimension {vert_coord} found in the dataset")
 
             # We need only one variable
-            sgridpath = data[list(data.data_vars)[0]]
+            sgridpath = data.drop_vars(list(data.data_vars)[1:])
         else:
             if isinstance(sgridpath, dict):
                 if vert_coord:
@@ -300,19 +300,20 @@ def _rename_dims(data, dim_list):
     return da_out
 
 
-def _get_spatial_sample(data, space_coord):
+def _get_spatial_sample(data, space_coord, support_dims):
     """
     Selects a single spatial sample along the dimensions specified in `space_coord`.
 
     Arguments:
-        da (xarray.DataArray):     Input data array to select the spatial sample from.
+        da (xarray.DataArray): Input data array to select the spatial sample from.
         space_coord (list of str): List of dimension names corresponding to the spatial coordinates to select.
+        support_dims (list of str): List of additional dimensions to keep when a single slice is taken (eg. "cell_corners")
 
     Returns:
         Data array containing a single spatial sample along the specified dimensions.
     """
 
     dims = list(data.dims)
-    extra_dims = list(set(dims) - set(space_coord))
+    extra_dims = list(set(dims) - set(space_coord) - set(support_dims))
     da_out = data.isel({dim: 0 for dim in extra_dims})
     return da_out

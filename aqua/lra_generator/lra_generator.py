@@ -8,6 +8,7 @@ from time import time
 import glob
 import dask
 import xarray as xr
+import pandas as pd
 from dask.distributed import Client, LocalCluster, progress
 from dask.diagnostics import ProgressBar
 from aqua.logger import log_configure
@@ -141,6 +142,8 @@ class LRAgenerator():
 
         # for data reading from FDB
         self.aggregation = aggregation
+        self.last_record = None
+        self.check = False
 
         # Create LRA folder
         self.outdir = os.path.join(outdir, self.model, self.exp, self.resolution)
@@ -323,12 +326,14 @@ class LRAgenerator():
         checks = [file_is_complete(yearfile) for yearfile in yearfiles]
         all_checks_true = all(checks) and len(checks)>0
         if all_checks_true and not self.overwrite:
-            self.logger.warning('All the data seem there for var %s...', varname)
-            self.definitive = False
-            return False
+            self.logger.warning('All the data produced seems complete for var %s...', varname)
+            last_record = xr.open_mfdataset(self.get_filename(varname)).time[-1].values
+            self.last_record = pd.to_datetime(last_record).strftime('%Y%m%d')
+            self.check = True
+            self.logger.warning('Last record archived is %s...', self.last_record)
         else:
+            self.check = False
             self.logger.warning('Still need to run for var %s...', varname)
-            return True
         
     def _write_var(self, var):
 
@@ -338,22 +343,41 @@ class LRAgenerator():
         if isinstance(self.data, types.GeneratorType):
             self._write_var_generator(var)
         else:
-            self._write_var_catalog(var)
+            if not self.check:
+                self._write_var_catalog(var)
 
         t_end = time()
         self.logger.info('Process took {:.4f} seconds'.format(t_end-t_beg))
+
+    def _remove_regridded(self, data):
+        
+        # remove regridded attribute to avoid issues with Reader
+        # https://github.com/oloapinivad/AQUA/issues/147
+        if 'regridded' in data.attrs:
+            self.logger.info('Removing regridding attribute...')
+            del data.attrs['regridded']
+        return data
 
     def _write_var_generator(self, var):
 
         """
         Write a variable to file using the GSV generator
         """
+
+        # supplementary retrieve tu use the generator
+        self.data = self.reader.retrieve(var = var, startdate = self.last_record)
+        self.logger.warning('Looping on generator data...')
+        t_beg = time()
         for data in self.data:
+            
             temp_data = data[var]
+            self.logger.info('Generator returned data from %s to %s', temp_data.time[0].values, temp_data.time[-1].values)
 
             if self.frequency:
                 temp_data = self.reader.timmean(temp_data)
             temp_data = self.reader.regrid(temp_data)
+
+            temp_data = self._remove_regridded(temp_data)
 
             year = temp_data.time.dt.year.values[0]
             month = temp_data.time.dt.month.values[0]
@@ -385,6 +409,9 @@ class LRAgenerator():
 
             if self.definitive and month==12:
                 self._concat_var(var, year)
+            
+            self.logger.info('Processing this chunk took {:.4f} seconds'.format(time()-t_beg))
+            t_beg = time()
         
     def _write_var_catalog(self, var):
         """
@@ -400,11 +427,7 @@ class LRAgenerator():
             temp_data = self.reader.timmean(temp_data)
         temp_data = self.reader.regrid(temp_data)
 
-        # remove regridded attribute to avoid issues with Reader
-        # https://github.com/oloapinivad/AQUA/issues/147
-        if 'regridded' in temp_data.attrs:
-            self.logger.info('Removing regridding attribute...')
-            del temp_data.attrs['regridded']
+        temp_data = self._remove_regridded(temp_data)
 
         # Splitting data into yearly files
         years = set(temp_data.time.dt.year.values)
