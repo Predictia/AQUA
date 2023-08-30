@@ -2,9 +2,9 @@ name: AQUA tests
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, dev ]
+    branches: [ main ]
   workflow_dispatch:
   schedule:
     - cron: "0 3 * * 1" #run every Monday night at 3AM UTC
@@ -12,19 +12,38 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    # NOTE: We must take care with the shell value here. We have steps
+    #       with mutiline YAML strings. 
+    #       These get converted into shell scripts.
+    #       If execute as ``bash -l fail_first_command.sh``
+    #       then it would fail the first command but run the second
+    #       command. The default value in GitHub is ``--noprofile --norc -eo pipefail``.
+    #       https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsshell
+    #       We removed the noprofile and norc so we have pytest set by Conda in our PATH.
+    # NOTE2: login should be kept becuse the action micromamba/setup-micromamba
+    #        writes the environment activation script in the .bashrc file.
+    shell: bash -l -eo pipefail {0}
 jobs:
   aqua_test:
-    #if: contains(github.event.pull_request.labels.*.name, 'Ready to merge')
+    # NOTE: this option can be uncommented to run the job only when
+    #       a pull request contains a label with the name "Ready to merge".
+    # if: contains(github.event.pull_request.labels.*.name, 'Ready to merge')
     env:
       # You can disable coverage by changing this to false. You can
       # also add other Python versions to the matrix, pinning the
       # coverage job to be executed only on certain versions.
-      COVERAGE_ENABLED: ${{ matrix.python-version == '3.10' }}
+      COVERAGE_ENABLED: ${{ matrix.python-version == '3.11' }}
       DEBIAN_FRONTEND: noninteractive
       GRID_DEFINITION_PATH: /tmp
+      # This is needed for the FDB tests.
       FDB5_CONFIG_FILE: /app/config.yaml
     runs-on: ubuntu-latest
+    # This option applies to the individual job of a matrix.
+    continue-on-error: false
     container:
+      # To run FDB tests we need to use a Docker image with FDB installed.
       # https://hub.docker.com/r/kinow/fdb
       image: kinow/fdb:5.11.17-jammy
       options: --user root
@@ -33,19 +52,11 @@ jobs:
       issues: write
       pull-requests: write
     strategy:
+      # This option applies to all jobs in the matrix.
+      # If true, the entire matrix will stop running when one of the jobs fails.
       fail-fast: false
       matrix:
         python-version: ["3.11"]
-    defaults:
-      run:
-        # NOTE: We must take care with the shell value here. We have steps
-        #       with mutiline YAML strings. These get converted into shell
-        #       scripts. If execute as ``bash -l fail_first_command.sh``
-        #       then it would fail the first command but run the second
-        #       command. The default value in GitHub is ``--noprofile --norc -eo pipefail``.
-        #       https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsshell
-        #       We removed the noprofile and norc so we have pytest set by Conda in our PATH.
-        shell: bash -eo pipefail {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -79,10 +90,7 @@ jobs:
             channels:
               - conda-forge
           create-args: >-
-              python=${{ matrix.python-version }}
-          init-shell: >-
-            bash
-          post-cleanup: 'all'
+            python=${{ matrix.python-version }}
       - name: Download and set up tests
         run: |
           ./download_data_for_tests.sh
@@ -102,14 +110,15 @@ jobs:
           fdb-read sample_test_data_fdb_request test.grib
           grib_dump test.grib
       - name: Run tests
-        # https://github.com/mamba-org/setup-micromamba#about-login-shells
-        shell: micromamba-shell {0}
         # NOTE: We could gain a few seconds in the build, if needed,
         #       by running with coverage in only one matrix job run.
+        # NOTE2: following issue #436 we are running the tests with the default
+        #        shell and not with the micromamba shell.
         run: |
           # Produce the HTML report. Defaults to writing in htmlcov/index.html.
           pytest --cov=aqua --cov-report=html --cov-report=xml --cov-branch -m "aqua or slow or gsv"
-          
+      - name: Processing coverage
+        run: |
           if [[ ${COVERAGE_ENABLED} ]]; then
             # Extract the top header of the pytest HTML report.
             # Passes the HTML through htmlq, extracting the first H1 displayed.
