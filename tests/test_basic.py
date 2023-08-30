@@ -35,7 +35,7 @@ class TestAqua:
         """
         Test the initialization of the Reader class
         """
-        reader = Reader(model="FESOM_failure", exp="test-pi", source="original_2d",
+        reader = Reader(model="FESOM", exp="test-pi", source="original_2d",
                         configdir="config", fix=False)
         assert reader.model == "FESOM"
         assert reader.exp == "test-pi"
