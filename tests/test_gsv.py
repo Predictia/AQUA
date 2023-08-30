@@ -99,8 +99,16 @@ class TestGsv():
     def test_reader(self) -> None:
         """Simple test, to check that catalog access works and reads correctly"""
 
-        reader = Reader(model="IFS", exp="test-fdb", source="fdb", aggregation="S")
+        reader = Reader(model="IFS", exp="test-fdb", source="fdb", aggregation="D")
         data = reader.retrieve(startdate='20080101:1200', enddate='20080101:1200', var='t')
         assert isinstance(data, types.GeneratorType), 'Reader does not return iterator'
+        dd = next(data)
+        assert dd.t.param == '130.128', 'Wrong GRIB param in data'
+
+    def test_reader_novar(self) -> None:
+        """Simple test, to check that catalog access works and reads correctly, no var"""
+
+        reader = Reader(model="IFS", exp="test-fdb", source="fdb")
+        data = reader.retrieve()
         dd = next(data)
         assert dd.t.param == '130.128', 'Wrong GRIB param in data'
