@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Tests missing failure fix (Fix #436 CI workflow passes even if some tests fail #452)
 - FDB/GSV access to IFS control and historical simulations (#434)
 - Climatology support restored in the Reader (Fix for climatology #445)
 - Improvement function to inspect the catalogue (Inspect_catalogue improvement #446)
