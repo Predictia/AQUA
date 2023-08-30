@@ -193,5 +193,7 @@ source_grids:
   WOA18:
     woa18_2005_2017:
       default:
+        path:
+          depth: /pfs/lustrep3/projappl/project_465000454/data/AQUA/grids/grid-woa18.nc
         vert_coord: depth
         space_coord: ["lon", "lat"]
