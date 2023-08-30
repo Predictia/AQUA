@@ -110,13 +110,14 @@ jobs:
           fdb-read sample_test_data_fdb_request test.grib
           grib_dump test.grib
       - name: Run tests
-        # https://github.com/mamba-org/setup-micromamba#about-login-shells
         # NOTE: We could gain a few seconds in the build, if needed,
         #       by running with coverage in only one matrix job run.
+        # NOTE2: following issue #436 we are running the tests with the default
+        #        shell and not with the micromamba shell.
         run: |
           # Produce the HTML report. Defaults to writing in htmlcov/index.html.
           pytest --cov=aqua --cov-report=html --cov-report=xml --cov-branch -m "aqua or slow or gsv"
-      - name: Producing missing lines report
+      - name: Processing coverage
         run: |
           if [[ ${COVERAGE_ENABLED} ]]; then
             # Extract the top header of the pytest HTML report.
