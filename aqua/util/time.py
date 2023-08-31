@@ -1,4 +1,5 @@
 import math
+import re
 import pandas as pd
 import xarray as xr
 from pandas.tseries.frequencies import to_offset
@@ -78,7 +79,7 @@ def check_chunk_completeness(xdataset, resample_frequency = '1D', loglevel='WARN
 
     # the pandas monthly frequency is forced to end of the month. use `MS` to go at the start
     if 'M' in resample_frequency:
-        pandas_frequency = 'MS'
+        pandas_frequency = re.findall(r'\d+', resample_frequency)[0] + 'MS'
     else:
         pandas_frequency = resample_frequency
     chunks = pd.date_range(start=normalized_dates[0], 
@@ -106,7 +107,9 @@ def check_chunk_completeness(xdataset, resample_frequency = '1D', loglevel='WARN
             check_completeness.append(False)
     
     # build the binary mask
-    taxis = xdataset.time.resample(time=resample_frequency).mean()
+    taxis = xdataset.time.resample(time=pandas_frequency).mean()
+    #print(check_completeness)
+    #print(taxis)
     boolean_mask = xr.DataArray(check_completeness, dims=('time',), coords={'time': taxis.time})
 
     return boolean_mask

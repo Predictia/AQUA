@@ -528,12 +528,12 @@ class Reader(FixerMixin, RegridMixin):
         except ValueError as exc:
             raise ValueError('Cant find a frequency to resample, aborting!') from exc
         
+        # set time as the first timestamp of each month/day according to the sampling frequency
+        out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
+
         if exclude_incomplete:
             boolean_mask = check_chunk_completeness(data, resample_frequency=resample_freq)
             out = out.where(boolean_mask, drop=True)
-        
-        # set time as the first timestamp of each month/day according to the sampling frequency
-        out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
 
         # check time is correct
         if np.any(np.isnat(out.time)):
