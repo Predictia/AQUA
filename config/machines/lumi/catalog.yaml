@@ -6,11 +6,6 @@ metadata:
       default: /pfs/lustrep3/projappl/project_465000454/data/AQUA/datasets
   
 sources:
-  FESOM:
-    description: FESOM ocean model
-    driver: yaml_file_cat
-    args:
-        path: "{{CATALOG_DIR}}/catalog/FESOM/main.yaml"
   IFS:
     description: IFS atmospheric model
     driver: yaml_file_cat
@@ -21,11 +16,6 @@ sources:
     driver: yaml_file_cat
     args:
         path: "{{CATALOG_DIR}}/catalog/ERA5/main.yaml"
-  NEMO:
-    description: NEMO ocean model
-    driver: yaml_file_cat
-    args:
-        path: "{{CATALOG_DIR}}/catalog/NEMO/main.yaml"
   MSWEP:
     description: MSWEP_V280 precipitation data
     driver: yaml_file_cat
