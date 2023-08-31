@@ -125,7 +125,9 @@ def check_chunk_completeness(xdataset, resample_frequency = '1D', loglevel='WARN
     
     # build the binary mask
     taxis = xdataset.time.resample(time=pandas_frequency).mean()
-    #print(check_completeness)
+    if sum(check_completeness) == 0:
+        raise ValueError(f'Cannot compute average on {resample_frequency} period, not enough data')
+    
     #print(taxis)
     boolean_mask = xr.DataArray(check_completeness, dims=('time',), coords={'time': taxis.time})
 
