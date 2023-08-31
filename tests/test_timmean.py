@@ -64,7 +64,7 @@ class TestTimmean():
         reader = Reader(model="IFS", exp="test-tco79", source='long',
                         freq='yearly', fix=False)
         data = reader.retrieve()
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError, match=r'Cannot compute average on .* period, not enough data'):
             reader.fldmean(data['ttr'])
         assert data['ttr'].shape == (1, 9, 18)
 
