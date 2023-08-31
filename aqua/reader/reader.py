@@ -18,6 +18,7 @@ import smmregrid as rg
 from aqua.util import load_yaml, load_multi_yaml
 from aqua.util import ConfigPath, area_selection
 from aqua.logger import log_configure, log_history, log_history_iter
+from aqua.util import check_chunk_completeness
 import aqua.gsv
 
 from .streaming import Streaming
@@ -479,20 +480,20 @@ class Reader(FixerMixin, RegridMixin):
         return out
     
 
-    def timmean(self, data, freq=None, time_bounds=False):
+    def timmean(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
         """Call the timmean function returning container or iterator"""
         if isinstance(data, types.GeneratorType):
-            return self._timmeangen(data, freq, time_bounds)
+            return self._timmeangen(data, freq, exclude_incomplete, time_bounds)
         else:
-            return self._timmean(data, freq, time_bounds)
+            return self._timmean(data, freq, exclude_incomplete, time_bounds)
 
 
-    def _timmeangen(self, data, freq=None, time_bounds=False):
+    def _timmeangen(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
         for ds in data:
-            yield self._timmean(ds, freq, time_bounds)
+            yield self._timmean(ds, freq, exclude_incomplete, time_bounds)
 
 
-    def _timmean(self, data, freq=None, time_bounds=False):
+    def _timmean(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
         """
         Perform daily and monthly averaging
 
@@ -500,6 +501,8 @@ class Reader(FixerMixin, RegridMixin):
             data (xr.Dataset):  the input xarray.Dataset
             freq (str):         the frequency of the time averaging.
                                 Valid values are monthly, daily, yearly. Defaults to None.
+            exclude_incomplete (bool):  Check if averages is done on complete chunks, and remove from the output
+                                        chunks which have not all the expected records.
             time_bound (bool):  option to create the time bounds
         Returns:
             A xarray.Dataset containing the time averaged data.
@@ -524,6 +527,10 @@ class Reader(FixerMixin, RegridMixin):
             out = data.resample(time=resample_freq).mean()
         except ValueError as exc:
             raise ValueError('Cant find a frequency to resample, aborting!') from exc
+        
+        if exclude_incomplete:
+            boolean_mask = check_chunk_completeness(data, resample_frequency=resample_freq)
+            out = out.where(boolean_mask, drop=True)
         
         # set time as the first timestamp of each month/day according to the sampling frequency
         out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
