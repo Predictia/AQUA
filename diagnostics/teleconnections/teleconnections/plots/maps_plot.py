@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from aqua.logger import log_configure
-from .plot_utils import minmax_maps, plot_box
+from .plot_utils import minmax_maps, plot_box, add_cyclic_lon
 
 
 def maps_plot(maps=None, models=None, exps=None,
@@ -168,6 +168,9 @@ def single_map_plot(map=None, save=False, **kwargs):
 
     if map is None:
         raise ValueError('Nothing to plot')
+
+    # Add cyclic longitude
+    map = add_cyclic_lon(map)
 
     model = kwargs.get('model')
     exp = kwargs.get('exp')
