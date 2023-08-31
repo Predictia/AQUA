@@ -80,6 +80,8 @@ def check_chunk_completeness(xdataset, resample_frequency = '1D', loglevel='WARN
     # the pandas monthly frequency is forced to end of the month. use `MS` to go at the start
     if 'M' in resample_frequency:
         pandas_frequency = re.findall(r'\d+', resample_frequency)[0] + 'MS'
+    elif 'Y' in resample_frequency:
+        pandas_frequency = re.findall(r'\d+', resample_frequency)[0] + 'YS'
     else:
         pandas_frequency = resample_frequency
     chunks = pd.date_range(start=normalized_dates[0], 
@@ -97,14 +99,29 @@ def check_chunk_completeness(xdataset, resample_frequency = '1D', loglevel='WARN
         logger.debug([chunk, end_date])
         expected_timeseries = _generate_expected_time_series(chunk, data_frequency, resample_frequency)
         expected_len = len(expected_timeseries)
-        try: 
-            effective_len = len(xdataset.time.sel(time=expected_timeseries))
+        # effective_len = len(xdataset.time.sel(time=slice(chunk, end_date)))
+        effective_len = len(xdataset.time[(xdataset['time'] >= chunk) & (xdataset['time'] < end_date)])
+        #print([expected_len, effective_len])
+        if expected_len == effective_len: 
             check_completeness.append(True)
-        except KeyError as exc:
-            effective_len = len(xdataset.time.sel(time=slice(chunk, end_date)))
+        else:
             logger.warning('Chunk %s->%s for has %s elements instead of expected %s, timmean() will exclude this',
                                 chunk, end_date, effective_len, expected_len)
             check_completeness.append(False)
+
+        #except KeyError as exc:
+        #    effective_len = len(xdataset.time.sel(time=slice(chunk, end_date)))
+        #    logger.warning('Chunk %s->%s for has %s elements instead of expected %s, timmean() will exclude this',
+        #                        chunk, end_date, effective_len, expected_len)
+        #    check_completeness.append(False)
+        #try: 
+        #    effective_len = len(xdataset.time.sel(time=expected_timeseries))
+        #    check_completeness.append(True)
+        #except KeyError as exc:
+        #    effective_len = len(xdataset.time.sel(time=slice(chunk, end_date)))
+        #    logger.warning('Chunk %s->%s for has %s elements instead of expected %s, timmean() will exclude this',
+        #                        chunk, end_date, effective_len, expected_len)
+        #    check_completeness.append(False)
     
     # build the binary mask
     taxis = xdataset.time.resample(time=pandas_frequency).mean()
