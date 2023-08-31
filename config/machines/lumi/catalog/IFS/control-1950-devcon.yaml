@@ -9,7 +9,7 @@ sources:
         stream: lwda
         date: 19500101
         time: '0000'
-        param: 167
+        param: 2t
         levtype: sfc
         step: 0
       data_start_date: 19500101:0000
@@ -33,7 +33,7 @@ sources:
         stream: scda
         date: 19500101
         time: '0000'
-        param: 144
+        param: sf
         levtype: sfc
         step: 0
       data_start_date: 19500101:0000
@@ -58,7 +58,7 @@ sources:
         stream: scwv
         date: 19500101
         time: '0000'
-        param: 129 # geopotential
+        param: z
         levtype: pl
         levelist: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600,
           700, 850, 925, 1000]
