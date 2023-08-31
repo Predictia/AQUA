@@ -152,7 +152,8 @@ frequency by specifying a frequency in the reader definition and then using the 
     data = reader.retrieve()
     daily = reader.timmean(data)
 
-Data have now been averaged at the desired daily timescale.
+Data have now been averaged at the desired daily timescale. If you want to avoid to have incomplete average over your time period (for example, be sure that all the months are complete before doing the time mean)
+it is possible to activate the `exclude_incomplete=True` flag which will remove averaged chunks which are not complete. 
 
 ..  note ::
     The `time_bounds` boolean flag can be activated to build time bounds in a similar way to CMOR standard.
