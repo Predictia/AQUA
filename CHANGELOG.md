@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Add observational catalogs on Lumi (Update Lumi catalog #454)
 - Automatic finding of cdo (#456)
 - Area is fixed if data are fixed (Fixer applied to grid areas #442)
 - Tests missing failure fix (Fix #436 CI workflow passes even if some tests fail #452)
