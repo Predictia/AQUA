@@ -70,15 +70,27 @@ def check_chunk_completeness(xdataset, resample_frequency = '1D', loglevel='WARN
     
     logger = log_configure(loglevel, 'timmean_chunk_completeness')
     
+    # get frequency of the dataset. Expected to be regular!
     data_frequency = _xarray_timedelta_string(xdataset)
-    chunks = pd.date_range(start=xdataset.time[0].values, 
-                           end=xdataset.time[-1].values, 
-                           freq=resample_frequency)
 
+    # normalize periods
+    normalized_dates = xdataset.time.to_index().to_period(resample_frequency).to_timestamp()
+
+    # the pandas monthly frequency is forced to end of the month. use `MS` to go at the start
+    if 'M' in resample_frequency:
+        pandas_frequency = 'MS'
+    else:
+        pandas_frequency = resample_frequency
+    chunks = pd.date_range(start=normalized_dates[0], 
+                           end=normalized_dates[-1], 
+                           freq=pandas_frequency)
+
+    # if no chunks, no averages
     if len(chunks) == 0:
         raise ValueError(f'Cannot compute average on {resample_frequency} period, not enough data')
 
     check_completeness = []
+    # loop on the chunks
     for chunk in chunks:
         end_date = _find_end_date(chunk, resample_frequency)
         logger.debug([chunk, end_date])
@@ -86,13 +98,14 @@ def check_chunk_completeness(xdataset, resample_frequency = '1D', loglevel='WARN
         expected_len = len(expected_timeseries)
         try: 
             effective_len = len(xdataset.time.sel(time=expected_timeseries))
-            check_completeness.append(1)
+            check_completeness.append(True)
         except KeyError as exc:
             effective_len = len(xdataset.time.sel(time=slice(chunk, end_date)))
-            logger.warning('Chunk %s for has %s elements instead of expected %s, timmean() will exclude this',
-                                chunk, effective_len, expected_len)
-            check_completeness.append(0)
+            logger.warning('Chunk %s->%s for has %s elements instead of expected %s, timmean() will exclude this',
+                                chunk, end_date, effective_len, expected_len)
+            check_completeness.append(False)
     
+    # build the binary mask
     taxis = xdataset.time.resample(time=resample_frequency).mean()
     boolean_mask = xr.DataArray(check_completeness, dims=('time',), coords={'time': taxis.time})
 
