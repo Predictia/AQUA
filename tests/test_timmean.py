@@ -65,8 +65,7 @@ class TestTimmean():
                         freq='yearly', fix=False)
         data = reader.retrieve()
         with pytest.raises(ValueError, match=r'Cannot compute average on .* period, not enough data'):
-            reader.fldmean(data['ttr'])
-        assert data['ttr'].shape == (1, 9, 18)
+            reader.timmean(data['ttr'], exclude_incomplete=True)
 
     def test_timmean_yearly_reader(self):
         """Timmean test for yearly aggregation from Reader directly"""
