@@ -63,7 +63,7 @@ class TestGsv():
         'step': '0'
         },
         'data_start_date': '20080101:1200', 'data_end_date': '20080101:1200',
-        'timestep': 'H', 'timestyle': 'date', 'verbose': True}], indirect=True)
+        'timestep': 'H', 'timestyle': 'date', 'var'': 130, 'verbose': True}], indirect=True)
     def test_gsv_read_chunked(self, gsv: GSVSource) -> None:
         """Test that the ``GSVSource`` is able to read data from FDB."""
         data = gsv.read()
@@ -84,7 +84,7 @@ class TestGsv():
         'step': '0'
         },
         'data_start_date': '20080101:1200', 'data_end_date': '20080101:1200',
-        'timestep': 'H', 'timestyle': 'date',
+        'timestep': 'H', 'timestyle': 'date', 'var'': '130',
         'startdate': '20080101:1200', 'enddate': '20080101:1200', 'verbose': True}], indirect=True)
     def test_gsv_read(self, gsv: GSVSource):
         """Test that the chunked data is returned correctly too.
