@@ -5,6 +5,7 @@ import re
 
 import types
 import tempfile
+import shutil
 import intake
 import intake_esm
 
@@ -142,7 +143,15 @@ class Reader(FixerMixin, RegridMixin):
 
         # Store the machine-specific CDO path if available
         cfg_base = load_yaml(self.config_file)
-        self.cdo = cfg_base["cdo"].get(self.machine, "cdo")
+        self.cdo = cfg_base["cdo"].get(self.machine, None)
+        if not self.cdo:
+            self.cdo = shutil.which("cdo")
+            if self.cdo:
+                self.logger.debug(f"Found CDO path: {self.cdo}")
+            else:
+                self.logger.error("CDO not found in path: Weight and area generation will fail.")
+        else:
+            self.logger.debug(f"Using CDO from config: {self.cdo}")
 
         # load and check the regrid
         if regrid or areas:
@@ -348,10 +357,14 @@ class Reader(FixerMixin, RegridMixin):
             if isinstance(var, str):  # conversion to list guarantees that a Dataset is produced
                 var = var.split()
             self.logger.info("Retrieving variables: %s", var)
-
             loadvar = self.get_fixer_varname(var) if self.fix else var
         else:
-            loadvar = None
+            if isinstance(esmcat, aqua.gsv.intake_gsv.GSVSource):  # If we are retrieving from fdb we have to specify the var
+                var = [esmcat.request['param']]  # retrieve var from catalogue
+                self.logger.info(f"FDB source, setting default variable to {var[0]}")
+                loadvar = self.get_fixer_varname(var) if self.fix else var
+            else:
+                loadvar = None
 
         fiter = False
         # If this is an ESM-intake catalogue use first dictionary value,
