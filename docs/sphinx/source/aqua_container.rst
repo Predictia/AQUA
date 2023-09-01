@@ -98,6 +98,38 @@ Pointing to a Specific FDB
 
    export FDB5_CONFIG_FILE=/path/to/config.yaml
 
+Points for AQUA Developers or Advanced Users 
+-----------------------------------------------
+If you check the details of the path in Python, you may see this :
+
+.. code-block:: bash
+
+      Singularity> python
+      Python 3.10.12 | packaged by conda-forge | (main, Jun 23 2023, 22:40:32) [GCC 12.3.0] on linux
+      Type "help", "copyright", "credits" or "license" for more information.
+      >>> import sys
+      >>> sys.path
+      ['', '/opt/conda/lib/python3.10/site-packages', '/opt/conda/lib/python310.zip', '/opt/conda/lib/python3.10',
+      '/opt/conda/lib/python3.10/lib-dynload', '__editable__.aqua-0.2.finder.__path_hook__',
+      '__editable__.teleconnections-0.0.9.finder.__path_hook__']
+      >>> import aqua
+      >>> aqua.__file__
+      '/app/AQUA/aqua/__init__.py'
+
+This directory, "/app/AQUA/" is in the container, and aqua is installed as an editable project.
+
+In case you are developing an AQUA project, you want to update the '/app/AQUA/' path with your repository location.
+Add the path of AQUA in Python like this:
+
+.. code-block:: bash
+
+   import sys
+   sys.path.clear()
+   local_repo_path = '/path/to/your/AQUA/'
+   sys.path.insert(0, local_repo_path)
+   import aqua
+   print(aqua.__file__)
+
 Submitting Slurm Job Using the Container
 -----------------------------------------
 
