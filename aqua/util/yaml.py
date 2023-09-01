@@ -10,26 +10,6 @@ from collections import defaultdict
 from ruamel.yaml import YAML
 
 
-def load_yaml(infile):
-    """
-    Load generic yaml file
-
-    Args:
-        infile(str): a file path
-
-    Returns:
-        A dictionary with the yaml file keys
-    """
-    yaml = YAML(typ='rt')  # default, if not specified, is 'rt' (round-trip)
-
-    try:
-        with open(infile, 'r', encoding='utf-8') as file:
-            cfg = yaml.load(file)
-    except IOError:
-        sys.exit(f'ERROR: {infile} not found: you need to have this configuration file!')
-    return cfg
-
-
 def load_multi_yaml(folder_path):
     """
     Load and merge all yaml files located in a given folder
@@ -55,14 +35,14 @@ def load_multi_yaml(folder_path):
     return dict(merged_dict)
 
 
-def load_yaml_template(infile, definitions="definitions"):
+def load_yaml(infile, definitions=None):
     """
     Load yaml file with template substitution
 
     Args:
         infile (str): a file path to the yaml
-        definitions (str or dict): name of the section containing string template
-                                   definitions or a dictionary with the same
+        definitions (str or dict, optional): name of the section containing string template
+                                             definitions or a dictionary with the same
     Returns:
         A dictionary with the yaml file keys
     """
@@ -87,7 +67,7 @@ def load_yaml_template(infile, definitions="definitions"):
         cfg = yaml.load(template)
     else:
         if not cfg:  # did we already load it ?
-            cfg = yaml.safe_load(yaml_text)
+            cfg = yaml.load(yaml_text)
 
     return cfg
 
