@@ -6,39 +6,20 @@ Using a Singularity container, you can quickly load the AQUA environment on plat
 Load AQUA Environment into the Shell
 -------------------------------------
 
-1. Create a shell script named `load_aqua.sh` using the following code:
+1. Navigate to the AQUA repository:
+
+.. code-block:: bash
+   
+   cd AQUA
+
+
+2. Run this `load_aqua_lumi.sh script <https://github.com/oloapinivad/AQUA/blob/main/config/machines/lumi/container/load_aqua_lumi.sh>`_ script  to load the AQUA environment into the shell:
 
 .. code-block:: bash
 
-   cat << 'EOF' > load_aqua.sh
-   #!/bin/bash
+   ./config/machines/lumi/container/load_aqua_lumi.sh
 
-   AQUA_container="/project/project_465000454/containers/aqua/aqua-v0.2.sif"
-   FDB5_CONFIG_FILE="/scratch/project_465000454/igonzalez/fdb-long/config.yaml"
-   GSV_WEIGHTS_PATH="/scratch/project_465000454/igonzalez/gsv_weights/"
-   GRID_DEFINITION_PATH="/scratch/project_465000454/igonzalez/grid_definitions"
-
-   singularity shell \
-       --cleanenv \
-       --env FDB5_CONFIG_FILE=$FDB5_CONFIG_FILE \
-       --env GSV_WEIGHTS_PATH=$GSV_WEIGHTS_PATH \
-       --env GRID_DEFINITION_PATH=$GRID_DEFINITION_PATH \
-       --env PYTHONPATH=/opt/conda/lib/python3.10/site-packages \
-       --env ESMFMKFILE=/opt/conda/lib/esmf.mk \
-       --bind /pfs/lustrep3/scratch/project_465000454 \
-       --bind /scratch/project_465000454 \
-       $AQUA_container
-   EOF
-
-   chmod +x load_aqua.sh
-
-2. Run the following code to load the AQUA environment into the shell:
-
-.. code-block:: bash
-
-   ./load_aqua.sh
-
-In this way, you will have your shell with AQUA environment active.
+In this way, you will have your AQUA environment activated on the shell.
 
 Running Jupyter Notebook
 ------------------------
@@ -49,19 +30,19 @@ To run a Jupyter Notebook using the AQUA environment, follow these steps.
 
 .. code-block:: bash
 
-   ./load_aqua.sh
+   ./config/machines/lumi/container/load_aqua_lumi.sh
 
-2. Start Jupyter Lab, which will provide a server URL like: http://localhost:8888/lab?token=random_token.
+2. Start Jupyter Lab, which will provide a server URL like: http://localhost:<port>/lab?token=random_token.
 
 .. code-block:: bash
 
-   jupyter-lab --port=8888 --no-browser
+   jupyter-lab --no-browser
 
 3. If you wish to open Jupyter Lab in your browser, execute the following command in a separate terminal, replacing "lumi" with your SSH hostname:
 
 .. code-block:: bash
 
-   ssh -L 8888:localhost:8888 lumi
+   ssh -L <port>:localhost:<port> lumi
 
 4. Open the Jupyter Lab URL in your browser. It will launch Jupyter Lab. Choose the "Python 3 (ipykernel)" kernel for the AQUA environment.
 
@@ -116,7 +97,7 @@ If you check the details of the path in Python, you may see this :
       >>> aqua.__file__
       '/app/AQUA/aqua/__init__.py'
 
-This directory, "/app/AQUA/" is in the container, and aqua is installed as an editable project.
+This directory, '/app/AQUA/' is in the container, and aqua is installed as an editable project.
 
 In case you are developing an AQUA project, you want to update the '/app/AQUA/' path with your repository location.
 Add the path of AQUA in Python like this:
