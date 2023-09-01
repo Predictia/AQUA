@@ -1,6 +1,7 @@
 """Test checking if all catalog entries can be read"""
 
 import pytest
+import types
 import xarray
 from aqua import Reader, catalogue, inspect_catalogue
 from aqua.reader.reader_utils import check_catalog_source
@@ -24,6 +25,8 @@ def reader(request):
         pytest.skip()
     if model == 'ERA5':
         pytest.skip()
+    if model == 'IFS' and source == 'fdb':  # there is another test for that
+        pytest.skip()
     # teleconnections catalogue, only on teleconnections workflow
     if model == 'IFS' and exp == 'test-tco79' and source == 'teleconnections':
         pytest.skip()
@@ -40,8 +43,10 @@ def test_catalogue(reader):
     """
     aaa, bbb = reader
     assert isinstance(aaa, Reader)
-    assert isinstance(bbb, xarray.Dataset)
-
+    try:
+        assert isinstance(bbb, xarray.Dataset)
+    except AssertionError: #fdb is a generator
+        assert isinstance(bbb, types.GeneratorType)
 
 @pytest.mark.aqua
 def test_inspect_catalogue():

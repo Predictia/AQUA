@@ -56,7 +56,7 @@ class FixerMixin():
         return fixes
 
     def fixer(self, data, var, **kwargs):
-        """Call the fixer function returnin container or iterator"""
+        """Call the fixer function returning container or iterator"""
         if isinstance(data, types.GeneratorType):
             return self._fixergen(data, var, **kwargs)
         else:
@@ -93,8 +93,7 @@ class FixerMixin():
         # fixer_src_units: name of fixer source units
         # fixer_tgt_units: name of fixer target units
 
-
-        # add extra units (might be moved somewhere else)
+        # Add extra units (might be moved somewhere else, function is at the bottom of this file)
         units_extra_definition()
         fix = self.fixes
 
@@ -104,24 +103,27 @@ class FixerMixin():
 
         # Default input datamodel
         src_datamodel = self.fixes_dictionary["defaults"].get("src_datamodel", None)
+        self.logger.debug("Default input datamodel: %s", src_datamodel)
 
         self.deltat = fix.get("deltat", 1.0)
         jump = fix.get("jump", None)  # if to correct for a monthly accumulation jump
 
         fixd = {}
         varlist = {}
-        variables = fix.get("vars", None)
-        # loop on fixes: this is done even if the underlying variables are not 
+        variables = fix.get("vars", None)  # variables with available fixes
+        # loop on fixes: this is done even if the underlying variables are not
         # in the required source.
 
-        if destvar and variables:
+        if destvar and variables:  # If we have a list of variables to be fixed and fixes are available
             newkeys = list(set(variables.keys()) & set(destvar))
             if newkeys:
                 variables = {key: value for key, value in variables.items() if key in newkeys}
+                self.logger.debug("Variables to be fixed: %s", variables)
             else:
                 variables = None
+                self.logger.debug("No variables to be fixed")
 
-        if variables:
+        if variables:  # This is the list of variables to be fixed
             for var in variables:
                 tgt_units = None
                 attributes = {}
@@ -147,6 +149,12 @@ class FixerMixin():
                 varlist[var] = varname
 
                 source = variables[var].get("source", None)
+
+                # if we are using a gribcode as a source, convert it to shortname to access it
+                if str(source).isdigit():
+                    self.logger.info(f'The source {source} is a grib code, need to convert it')
+                    source = get_eccodes_attr(f'var{source}')['shortName']
+                    
                 # This is a renamed variable. This will be done at the end.
                 if source:
                     if source not in data.variables:
@@ -179,10 +187,6 @@ class FixerMixin():
                             tgt_units = value
                         else:
                             data[source].attrs[att] = value
-
-                # fix name of units attribute for some IFS data (e.g. FDB data)
-                if "units" not in data[source].attrs and "GRIB_units" in data[source].attrs:
-                    data[source].attrs["units"] = data[source].GRIB_units
 
                 # Override destination units
                 fixer_tgt_units = variables[var].get("units", None)
@@ -265,11 +269,34 @@ class FixerMixin():
 
         # Fix coordinates according to a given data model
         src_datamodel = fix.get("data_model", src_datamodel)
-        if src_datamodel and src_datamodel is not False:
+        if src_datamodel:
             data = self.change_coord_datamodel(data, src_datamodel, self.dst_datamodel)
             log_history(data, "coordinates adjusted by AQUA fixer")
 
         return data
+
+    def _fix_area(self, area: xr.DataArray):
+        """
+        Apply fixes to the area file
+
+        Arguments:
+            area (xr.DataArray):  area file to be fixed
+
+        Returns:
+            The fixed area file (xr.DataArray)
+        """
+        if self.fixes is None:  # No fixes available
+            return area
+        else:
+            self.logger.debug("Applying fixes to area file")
+            # This operation is a duplicate, rationalization with fixer method is needed
+            src_datamodel = self.fixes_dictionary["defaults"].get("src_datamodel", None)
+            src_datamodel = self.fixes.get("data_model", src_datamodel)
+
+            if src_datamodel:
+                area = self.change_coord_datamodel(area, src_datamodel, self.dst_datamodel)
+
+            return area
 
     def get_fixer_varname(self, var):
 
@@ -351,7 +378,7 @@ class FixerMixin():
 
         if jump:
             # universal mask based on the change of month (shifted by one timestep)
-            dt =  np.timedelta64(timedelta(seconds=self.deltat))
+            dt = np.timedelta64(timedelta(seconds=self.deltat))
             data1 = data.assign_coords(time=data.time - dt)
             data2 = data.assign_coords(time=data1.time - dt)
             # Mask of dates where month changed in the previous timestep
@@ -384,10 +411,16 @@ class FixerMixin():
 
         if "IFSMagician" in data.attrs.get("history", ""):  # Special fix for gribscan levels
             if "level" in data.coords:
-                if data.level.max() >= 1000:
+                if data.level.max() >= 1000:  # IS THERE A REASON FOR THIS CHECK?
                     data.level.attrs["units"] = "hPa"
                     data.level.attrs["standard_name"] = "air_pressure"
                     data.level.attrs["long_name"] = "pressure"
+
+        if "GSV interface" in data.attrs.get("history", ""):  # Special fix for FDB retrieved data
+            if "height" in data.coords:
+                data.height.attrs["units"] = "hPa"
+                data.height.attrs["standard_name"] = "air_pressure"
+                data.height.attrs["long_name"] = "pressure"
 
         # this is needed since cf2cdm issues a (useless) UserWarning
         with warnings.catch_warnings():
@@ -421,26 +454,26 @@ class FixerMixin():
             if factor.units == "meter ** 3 / kilogram":
                 # Density of water was missing
                 factor = factor * 1000 * units("kg m-3")
-                self.logger.warning("%s: corrected multiplying by density of water 1000 kg m-3", 
-                                    var)
+                self.logger.info("%s: corrected multiplying by density of water 1000 kg m-3",
+                                 var)
             elif factor.units == "meter ** 3 * second / kilogram":
                 # Density of water and accumulation time were missing
                 factor = factor * 1000 * units("kg m-3") / (self.deltat * units("s"))
-                self.logger.warning("%s: corrected multiplying by density of water 1000 kg m-3", 
-                                    var)
-                self.logger.warning("%s: corrected dividing by accumulation time %s s",
-                                    var, self.deltat)
+                self.logger.info("%s: corrected multiplying by density of water 1000 kg m-3",
+                                 var)
+                self.logger.info("%s: corrected dividing by accumulation time %s s",
+                                 var, self.deltat)
             elif factor.units == "second":
                 # Accumulation time was missing
                 factor = factor / (self.deltat * units("s"))
-                self.logger.warning("%s: corrected dividing by accumulation time %s s", 
-                                    var, self.deltat)
+                self.logger.info("%s: corrected dividing by accumulation time %s s",
+                                 var, self.deltat)
             elif factor.units == "kilogram / meter ** 3":
                 # Density of water was missing
                 factor = factor / (1000 * units("kg m-3"))
-                self.logger.warning("%s: corrected dividing by density of water 1000 kg m-3", var)
+                self.logger.info("%s: corrected dividing by density of water 1000 kg m-3", var)
             else:
-                self.logger.warning("%s: incommensurate units converting %s to %s --> %s", 
+                self.logger.info("%s: incommensurate units converting %s to %s --> %s",
                                  var, src, dst, factor.units)
             offset = 0 * units(dst)
 

@@ -3,12 +3,11 @@
 import sys
 import os
 import contextlib
+import datetime
 import xarray as xr
 from intake.source import base
-from .timeutil import compute_date_steps, compute_date, check_dates, compute_mars_timerange, compute_steprange, dateobj
-
-from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
+from .timeutil import compute_date_steps, compute_date, check_dates, compute_mars_timerange
+from .timeutil import shift_time_dataset, shift_time_datetime, compute_steprange, dateobj, set_stepmin, split_date
 
 # Test if FDB5 binary library is available
 try:
@@ -16,6 +15,10 @@ try:
     gsv_available = True
 except RuntimeError:
     gsv_available = False
+    gsv_error_cause = "FDB5 binary library not present on system on outdated"
+except KeyError:
+    gsv_available = False
+    gsv_error_cause = "Environment variables for gsv, such as GRID_DEFINITION_PATH, not set."
 
 
 class GSVSource(base.DataSource):
@@ -24,7 +27,9 @@ class GSVSource(base.DataSource):
     version = '0.0.2'
     partition_access = True
 
-    def __init__(self, request, data_start_date, data_end_date, timestyle="date", aggregation="D", timestep="H", startdate=None, enddate=None, var='167', metadata=None, verbose=False, **kwargs):
+    def __init__(self, request, data_start_date, data_end_date, timestyle="date",
+                 aggregation="S", timestep="H", timeshift=None,
+                 startdate=None, enddate=None, var='167', metadata=None, verbose=False, **kwargs):
         """
         Initializes the GSVSource class. These are typically specified in the catalogue entry, but can also be specified upon accessing the catalogue.
 
@@ -33,7 +38,7 @@ class GSVSource(base.DataSource):
             data_start_date (str): Start date of the available data.
             data_end_date (str): End date of the available data.
             timestyle (str, optional): Time style. Defaults to "date".
-            aggregation (str, optional): Time aggregation level. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y. Defaults to "D". 
+            aggregation (str, optional): Time aggregation level. Can be one of S (step), 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y. Defaults to "S". 
             timestep (str, optional): Time step. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y. Defaults to "H". 
             startdate (str, optional): Start date for request. Defaults to None.
             enddate (str, optional): End date for request. Defaults to None.
@@ -57,25 +62,31 @@ class GSVSource(base.DataSource):
 
         self.aggregation = aggregation
         self.timestep = timestep
-        self.data_startdate = data_start_date
-        self.data_starttime = "0000"
-        self.startdate = startdate
-        self.enddate = enddate
-        self.starttime = "0000"
-        self.endtime = "0000"
+        self.timeshift = timeshift
+
+        self.data_startdate, self.data_starttime = split_date(data_start_date)
+        self.startdate, self.starttime = split_date(startdate)
+        self.enddate, self.endtime = split_date(enddate)
+
+        self.stepmin = request["step"]  # The minimum existing timestep 
         self._var = var
         self.verbose = verbose
 
-        self._request = request
+        self.request = request
         self._kwargs = kwargs
 
-        self._npartitions = compute_date_steps(startdate, enddate, aggregation,
-                                               starttime=self.starttime, endtime=self.endtime)
+        if timestyle == "step" and self.stepmin > 0:  # make sure that we start retrieving data from the first available step
+            self.startdate, self.starttime = set_stepmin(self.startdate, self.starttime,
+                                                         self.data_startdate, self.data_starttime,
+                                                         self.stepmin, self.timestep)
+
+        self._npartitions = compute_date_steps(self.startdate, self.enddate, aggregation,
+                                                   starttime=self.starttime, endtime=self.endtime)
 
         if gsv_available:
             self.gsv = GSVRetriever()
         else:
-            raise ImportError("FDB5 binary library not present on system or outdated.")
+            raise ImportError(gsv_error_cause)
         self._dataset = None
         super(GSVSource, self).__init__(metadata=metadata)
 
@@ -97,34 +108,49 @@ class GSVSource(base.DataSource):
         if self.timestyle == "date":
             dd, tt, _ = compute_date(self.startdate, self.starttime, self.aggregation, i, self._npartitions)
             dform, tform = compute_mars_timerange(dd, tt, self.aggregation, self.timestep)  # computes date and time range in mars style
-            self._request["date"] = dform
-            self._request["time"] = tform
+            self.request["date"] = dform
+            self.request["time"] = tform
         else:  # style is 'step'
-            self._request["date"] = self.data_startdate
-            self._request["time"] = self.data_starttime
+            self.request["date"] = self.data_startdate
+            self.request["time"] = self.data_starttime
 
             date0 = dateobj(self.data_startdate, self.data_starttime)
 
             _, _, ndate0 = compute_date(self.startdate, self.starttime, self.aggregation, i, self._npartitions)
             _, _, ndate1 = compute_date(self.startdate, self.starttime, self.aggregation, i + 1, self._npartitions)
 
+            if self.timeshift:  # shift time for selection by given amount (needed eg. by GSV monthly)
+                ndate0 = shift_time_datetime(ndate0, self.timeshift, sign=-1)
+                ndate1 = shift_time_datetime(ndate1, self.timeshift, sign=-1)
+
             s0 = compute_steprange(date0, ndate0, self.timestep)
             s1 = compute_steprange(date0, ndate1, self.timestep) - 1
 
             if s0 == s1:
-                self._request["step"] = f'{s0}'
+                self.request["step"] = f'{s0}'
             else:
-                self._request["step"] = f'{s0}/to/{s1}'
+                self.request["step"] = f'{s0}/to/{s1}'
 
         if self._var:  # if no var provided keep the default in the catalogue
-            self._request["param"] = self._var
+            self.request["param"] = self._var
 
         if self.verbose:
-            print("Request: ", self._request)
-            dataset = self.gsv.request_data(self._request)
+            print("Request: ", self.request)
+            dataset = self.gsv.request_data(self.request)
         else:
             with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
-                dataset = self.gsv.request_data(self._request)
+                dataset = self.gsv.request_data(self.request)
+
+        if self.timeshift:  # shift time by given amount (needed eg. by GSV monthly)
+            dataset = shift_time_dataset(dataset, self.timeshift)
+
+        # Fix GRIB attribute names. This removes "GRIB_" from the beginning
+        for var in dataset.data_vars:
+            dataset[var].attrs = {key.split("GRIB_")[-1]: value for key, value in dataset[var].attrs.items()}
+
+        # Log history
+        log_history(dataset, "dataset retrieved by GSV interface")
+
         return dataset
 
     def read(self):
@@ -139,3 +165,14 @@ class GSVSource(base.DataSource):
     # def _load(self):
     #     self._dataset = self._get_partition(0)
 
+
+# This function is repeated here in order not to create a cross dependency between GSVSource and AQUA
+
+def log_history(data, msg):
+    """Elementary provenance logger in the history attribute"""
+
+    if isinstance(data, (xr.DataArray, xr.Dataset)):
+        now = datetime.datetime.now()
+        date_now = now.strftime("%Y-%m-%d %H:%M:%S")
+        hist = data.attrs.get("history", "") + f"{date_now} {msg};\n"
+        data.attrs.update({"history": hist})

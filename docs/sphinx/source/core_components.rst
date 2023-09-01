@@ -154,6 +154,9 @@ frequency by specifying a frequency in the reader definition and then using the 
 
 Data have now been averaged at the desired daily timescale.
 
+..  note ::
+    The `time_bounds` boolean flag can be activated to build time bounds in a similar way to CMOR standard.
+
 
 Fixing: Metadata correction 
 ---------------------------

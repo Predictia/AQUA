@@ -92,8 +92,7 @@ def _init_get_eccodes_attr():
                    "shortName": shortname[i]}
             return dic
         except ValueError:
-            print(f"Conversion Error: variable '{sn}' not found in ECMWF tables!")
-            return
+            return None
 
     return _get_eccodes_attr
 

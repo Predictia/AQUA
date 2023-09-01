@@ -175,16 +175,11 @@ def job(exclusive=False, max_resources=False, cores=1, memory="10 GB",
     logger = log_configure(log_level=loglevel, log_name='slurm')
 
     # Getting the machine name
-    Configurer = ConfigPath(configdir=configdir)
-    machine_name = Configurer.machine
-
-
-    # if machine is None:
-    #     if configdir is None:
-    #         configdir = get_config_dir()
-    #     machine_name = get_machine(configdir=configdir)
-    # else:
-    #     machine_name = machine
+    if machine is None:
+        Configurer = ConfigPath(configdir=configdir)
+        machine_name = Configurer.machine
+    else:
+        machine_name = machine
 
     # Setting default values for the queue and account
     if queue is None:
