@@ -4,6 +4,7 @@ import operator
 import os
 import re
 import sys
+from string import Template
 import xarray as xr
 from collections import defaultdict
 from ruamel.yaml import YAML
@@ -52,6 +53,43 @@ def load_multi_yaml(folder_path):
                 for key, value in yaml_dict.items():
                     merged_dict[key].update(value)
     return dict(merged_dict)
+
+
+def load_yaml_template(infile, definitions="definitions"):
+    """
+    Load yaml file with template substitution
+
+    Args:
+        infile (str): a file path to the yaml
+        definitions (str or dict): name of the section containing string template
+                                   definitions or a dictionary with the same
+    Returns:
+        A dictionary with the yaml file keys
+    """
+    
+    if not os.path.exists(infile):
+        sys.exit(f'ERROR: {infile} not found: you need to have this configuration file!')
+         
+    yaml = YAML(typ='rt')  # default, if not specified, is 'rt' (round-trip)
+    
+    cfg = None
+    # Load the YAML file as a text string
+    with open(infile, 'r', encoding='utf-8') as file:
+        yaml_text = file.read()
+
+    if isinstance(definitions, str):  # if it is a string extract from original yaml, else it is directly a dict
+        cfg = yaml.load(yaml_text)
+        definitions = cfg.get(definitions)
+    
+    if definitions:
+        # perform template substitution
+        template = Template(yaml_text).safe_substitute(definitions)
+        cfg = yaml.load(template)
+    else:
+        if not cfg:  # did we already load it ?
+            cfg = yaml.safe_load(yaml_text)
+
+    return cfg
 
 
 def dump_yaml(outfile=None, cfg=None, typ='rt'):

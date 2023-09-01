@@ -15,7 +15,7 @@ import xarray as xr
 import numpy as np
 import smmregrid as rg
 
-from aqua.util import load_yaml, load_multi_yaml
+from aqua.util import load_yaml, load_multi_yaml, load_yaml_template
 from aqua.util import ConfigPath, area_selection
 from aqua.logger import log_configure, log_history, log_history_iter
 import aqua.gsv
@@ -155,7 +155,7 @@ class Reader(FixerMixin, RegridMixin):
 
         # load and check the regrid
         if regrid or areas:
-            cfg_regrid = load_yaml(self.regrid_file)
+            cfg_regrid = load_yaml_template(self.regrid_file, definitions="paths")
             source_grid_id = check_catalog_source(cfg_regrid["source_grids"],
                                                   self.model, self.exp,
                                                   self.source, name='regrid')
@@ -760,6 +760,11 @@ class Reader(FixerMixin, RegridMixin):
         fdb_path = esmcat.metadata.get('fdb_path', None)
         if fdb_path:
             os.environ["FDB5_CONFIG_FILE"] = fdb_path
+
+
+        dd = esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation, verbose=self.verbose).to_dask()
+        print(dd)
+        dd = esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation, verbose=self.verbose).read()
 
         if self.aggregation:
             return esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation, verbose=self.verbose).read_chunked()
