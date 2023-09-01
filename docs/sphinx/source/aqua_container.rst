@@ -83,7 +83,7 @@ Points for AQUA Developers or Advanced Users
 -----------------------------------------------
 If you check the details of the path in Python, you may see this :
 
-.. code-block:: bash
+.. code-block:: quote
 
       Singularity> python
       Python 3.10.12 | packaged by conda-forge | (main, Jun 23 2023, 22:40:32) [GCC 12.3.0] on linux
