@@ -761,11 +761,6 @@ class Reader(FixerMixin, RegridMixin):
         if fdb_path:
             os.environ["FDB5_CONFIG_FILE"] = fdb_path
 
-
-        dd = esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation, verbose=self.verbose).to_dask()
-        print(dd)
-        dd = esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation, verbose=self.verbose).read()
-
         if self.aggregation:
             return esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation, verbose=self.verbose).read_chunked()
         else:
