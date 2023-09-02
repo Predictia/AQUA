@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Xarray dask access to FDB (#476)
 - Templates in configuration yaml files (#469)
 - Bug fixes for FDB access options (#463, #462)
 - Add observational catalogs on Lumi (Update Lumi catalog #454)
