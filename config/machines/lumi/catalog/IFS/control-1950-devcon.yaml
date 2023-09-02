@@ -14,7 +14,7 @@ sources:
         step: 0
       data_start_date: 19500101:0000
       data_end_date: 19591231:2300
-      aggregation: H  # Default aggregation if timestep=S is used
+      aggregation: D  # Default aggregation
       timestep: H
       timestyle: step
     description: hourly data on native grid TCo2560 (about 4.5km). Contains tprate(260048),
@@ -38,7 +38,7 @@ sources:
         step: 0
       data_start_date: 19500101:0000
       data_end_date: 19591231:2300
-      aggregation: H  # Default aggregation if timestep=S is used
+      aggregation: D  # Default aggregation
       timestep: H
       timestyle: step
     description: hourly data on r100 grid. Contains tprate(260048), sf(144), 2t(167),
@@ -65,7 +65,7 @@ sources:
         step: 6  # First available step
       data_start_date: 19500101:0000
       data_end_date: 19591231:1800
-      aggregation: 6H  # Default aggregation if timestep=S is used
+      aggregation: D  # Default aggregation
       timestep: H  # What one step means
       timestyle: step
     description: 6hourly data on r100 grid. Contains z(129).
@@ -87,7 +87,7 @@ sources:
         step: 0
       data_start_date: '19500101'
       data_end_date: '19591201'
-      aggregation: M  # Default aggregation if timestep=S is used
+      aggregation: Y  # Default aggregation if timestep=S is used
       timestep: H
       timestyle: step
       timeshift: -M    # shift time of resulting xarray by this amount
