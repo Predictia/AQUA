@@ -2,6 +2,8 @@
 
 import os
 import re
+import io
+import sys
 
 import types
 import tempfile
@@ -309,7 +311,7 @@ class Reader(FixerMixin, RegridMixin):
                  apply_unit_fix=True, var=None, vars=None,
                  streaming=False, stream_step=None, stream_unit=None,
                  stream_startdate=None, streaming_generator=False,
-                 startdate=None, enddate=None):
+                 startdate=None, enddate=None, dask=False):
         """
         Perform a data retrieve.
 
@@ -339,6 +341,7 @@ class Reader(FixerMixin, RegridMixin):
             stream_startdate (str):     the starting date for streaming the
                                         data (e.g. '2020-02-25').
                                         Defaults to None
+            dask (str):                 Return a dask xarray.Dataset (EXPERIMENTAL)
         Returns:
             A xarray.Dataset containing the required data.
         """
@@ -372,8 +375,8 @@ class Reader(FixerMixin, RegridMixin):
             data = self.reader_esm(esmcat, loadvar)
         # If this is an fdb entry
         elif isinstance(esmcat, aqua.gsv.intake_gsv.GSVSource):
-            data = self.reader_fdb(esmcat, loadvar, startdate, enddate)
-            fiter = True  # this returs an iterator
+            data = self.reader_fdb(esmcat, loadvar, startdate, enddate, dask=dask)
+            fiter = not dask  # this returs an iterator unless dask is set
         else:
             data = self.reader_intake(esmcat, var, loadvar)  # Returns a generator object
 
@@ -753,19 +756,41 @@ class Reader(FixerMixin, RegridMixin):
                                       )
         return list(data.values())[0]
 
-    def reader_fdb(self, esmcat, var, startdate, enddate):
-        """Read fdb data. Returns an iterator."""
+    def reader_fdb(self, esmcat, var, startdate, enddate, dask=False):
+        """
+        Read fdb data. Returns an iterator or dask array.
+        Args:
+            esmcat (intake catalogue): the intake catalogue to read
+            var (str): the shortname of the variable to retrieve
+            startdate (str): a starting date and time in the format YYYYMMDD:HHTT
+            enddate (str): an ending date and time in the format YYYYMMDD:HHTT
+            dask (bool): return directly a dask array instead of an iterator
+        Returns:
+            An xarray.Dataset or an iterator over datasets
+        """
         # These are all needed in theory
 
         fdb_path = esmcat.metadata.get('fdb_path', None)
         if fdb_path:
             os.environ["FDB5_CONFIG_FILE"] = fdb_path
 
-        if self.aggregation:
-            return esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation, verbose=self.verbose).read_chunked()
-        else:
-            return esmcat(startdate=startdate, enddate=enddate, var=var, verbose=self.verbose).read_chunked()
+        if not self.verbose:  # suppress stdout
+            text_trap = io.StringIO()
+            sys.stdout = text_trap
 
+        if self.aggregation:
+            if dask:    
+                return esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation, verbose=self.verbose).to_dask()
+            else:             
+                return esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation, verbose=self.verbose).read_chunked()
+        else:
+            if dask:
+                return esmcat(startdate=startdate, enddate=enddate, var=var, verbose=self.verbose).to_dask()
+            else:
+                return esmcat(startdate=startdate, enddate=enddate, var=var, verbose=self.verbose).read_chunked()
+ 
+        if not self.verbose:  # bring back stdout
+           sys.stdout = sys.__stdout__
 
     def reader_intake(self, esmcat, var, loadvar, keep="first"):
         """

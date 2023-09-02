@@ -1,8 +1,5 @@
 """An intake driver for FDB/GSV access"""
 
-import sys
-import os
-import contextlib
 import datetime
 import pandas as pd
 import xarray as xr
@@ -184,10 +181,8 @@ class GSVSource(base.DataSource):
 
         if self.verbose:
             print("Request: ", i, self._var, s0, s1, request)
-            dataset = gsv.request_data(request)
-        else:
-            with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
-                dataset = gsv.request_data(request)
+
+        dataset = gsv.request_data(request)
 
         if self.timeshift:  # shift time by given amount (needed eg. by GSV monthly)
             dataset = shift_time_dataset(dataset, self.timeshift)
