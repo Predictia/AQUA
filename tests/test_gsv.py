@@ -42,14 +42,6 @@ class TestGsv():
         source = GSVSource(DEFAULT_GSV_PARAMS['request'], "20080101", "20080101", timestep="H", aggregation="S", var='167', metadata=None)
         assert source is not None
 
-    def test_gsv_get_schema(self, gsv: GSVSource) -> None:
-        """
-        Test the initial schema.
-        """
-        schema = gsv._get_schema()
-        assert schema.datashape is None
-        assert schema.npartitions == 1
-
     @pytest.mark.parametrize('gsv', [{'request': {
         'domain': 'g',
         'stream': 'oper',
@@ -67,9 +59,10 @@ class TestGsv():
         'timestep': 'H', 'timestyle': 'date', 'var': 130, 'verbose': True}], indirect=True)
     def test_gsv_read_chunked(self, gsv: GSVSource) -> None:
         """Test that the ``GSVSource`` is able to read data from FDB."""
-        data = gsv.read()
-        assert len(data) > 0, 'GSVSource could not load data'
-        assert data.t.param == '130.128', 'Wrong GRIB param in Dask data'
+        data = gsv.read_chunked()
+        dd = next(data)
+        assert len(dd) > 0, 'GSVSource could not load data'
+        assert dd.t.param == '130.128', 'Wrong GRIB param in Dask data'
 
     @pytest.mark.parametrize('gsv', [{'request': {
         'domain': 'g',
@@ -95,7 +88,7 @@ class TestGsv():
         Note that we do not have enough data in the test FDB to do
         a real test with Dask.
         """
-        dask_data = list(gsv.to_dask())
+        dask_data = list(gsv.read())
         assert len(dask_data) > 0, 'The dask data returned was empty'
         xarray_dataset = dask_data[0]
         assert xarray_dataset.t.param == '130.128', 'Wrong GRIB param in Dask data'
@@ -118,6 +111,13 @@ class TestGsv():
         dd = next(data)
         assert dd.t.param == '130.128', 'Wrong GRIB param in data'
 
+    def test_reader_xarray(self) -> None:
+        """Reading directly into xarray"""
+
+        reader = Reader(model="IFS", exp="test-fdb", source="fdb", dask=True)
+        data = reader.retrieve()
+        assert isinstance(data, xr.Dataset), "Does not return a Dataset"
+        assert data.t.mean().data == pytest.approx(279.3509), "Field values incorrect"
     def test_reader_xarray(self) -> None:
         """Reading directly into xarray"""
 
