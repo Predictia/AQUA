@@ -149,6 +149,8 @@ class GSVSource(base.DataSource):
             dform, tform = compute_mars_timerange(dd, tt, self.aggregation, self.timestep)  # computes date and time range in mars style
             request["date"] = dform
             request["time"] = tform
+            s0 = None
+            s1 = None
         else:  # style is 'step'
             request["date"] = self.data_startdate
             request["time"] = self.data_starttime
