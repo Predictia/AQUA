@@ -4,7 +4,9 @@ import sys
 import os
 import contextlib
 import datetime
+import pandas as pd
 import xarray as xr
+import dask
 from intake.source import base
 from .timeutil import compute_date_steps, compute_date, check_dates, compute_mars_timerange
 from .timeutil import shift_time_dataset, shift_time_datetime, compute_steprange, dateobj, set_stepmin, split_date
@@ -27,6 +29,10 @@ class GSVSource(base.DataSource):
     version = '0.0.2'
     partition_access = True
 
+    _ds = None  # This will contain a sample of the data for dask access
+    dask_access = False  # Flag if dask has been requested
+    timeaxis = None  # Used for dask access
+
     def __init__(self, request, data_start_date, data_end_date, timestyle="date",
                  aggregation="S", timestep="H", timeshift=None,
                  startdate=None, enddate=None, var='167', metadata=None, verbose=False, **kwargs):
@@ -47,12 +53,17 @@ class GSVSource(base.DataSource):
             verbose (bool, optional): Whether to print additional info to screen. Used only for FDB access. Defaults to False.
             kwargs: other keyword arguments.
         """
-        
+
+        if gsv_available:
+            self.gsv = GSVRetriever()
+        else:
+            raise ImportError(gsv_error_cause)
+                
         if not startdate:
             startdate = data_start_date
         if not enddate:
             enddate = data_end_date
-        
+
         check_dates(startdate, data_start_date, enddate, data_end_date)
 
         self.timestyle = timestyle
@@ -72,7 +83,7 @@ class GSVSource(base.DataSource):
         self._var = var
         self.verbose = verbose
 
-        self.request = request
+        self._request = request.copy()
         self._kwargs = kwargs
 
         if timestyle == "step" and self.stepmin > 0:  # make sure that we start retrieving data from the first available step
@@ -80,39 +91,70 @@ class GSVSource(base.DataSource):
                                                          self.data_startdate, self.data_starttime,
                                                          self.stepmin, self.timestep)
 
+        # Compute the number of partitions
         self._npartitions = compute_date_steps(self.startdate, self.enddate, aggregation,
-                                                   starttime=self.starttime, endtime=self.endtime)
+                                               starttime=self.starttime, endtime=self.endtime)
 
-        if gsv_available:
-            self.gsv = GSVRetriever()
-        else:
-            raise ImportError(gsv_error_cause)
-        self._dataset = None
         super(GSVSource, self).__init__(metadata=metadata)
 
     def _get_schema(self):
         """Standard method providing data schema"""
 
-        return base.Schema(
-            datashape=None,
-            dtype=xr.Dataset,
-            # shape=self._dataset.shape,
-            shape=None,
-            npartitions=self._npartitions,
-            extra_metadata={},
-        )
+        if self.dask_access:  # We need a better schema for dask access
+            if not self._ds:  # we still have to retrieve a sample dataset
+                self._ds = self._get_partition(0, first=False)
 
-    def _get_partition(self, i):
-        """Standard internal method reading i-th data partition from FDB"""
+                # Obviously we also still have to compute the timeaxis
+                self.timeaxis = pd.date_range(f"{self.startdate} {self.starttime}",
+                                              f"{self.enddate} {self.endtime}",
+                                              freq='H')
+            
+            var = list(self._ds.data_vars)[0]
+            da = self._ds[var]  # get first variable dataarray
+
+            metadata = {
+                 'dims': da.dims,
+                 'attrs': self._ds.attrs
+            }
+            schema = base.Schema(
+                datashape=None,
+                dtype=da.dtype,
+                shape=da.shape,
+                name=var,
+                npartitions=self._npartitions,
+                extra_metadata=metadata)
+        else:            
+            schema = base.Schema(
+                datashape=None,
+                dtype=xr.Dataset,
+                shape=None,
+                name=None,
+                npartitions=self._npartitions,
+                extra_metadata={},
+            )
+
+        return schema
+
+    def _get_partition(self, i, first=False):
+        """
+        Standard internal method reading i-th data partition from FDB
+        Args:
+            i (int): partition number
+            first (boo): read only the first step (used for schema retrieval)
+        Returns:
+            An xarray.DataSet
+        """
+
+        request = self._request.copy()  # We are going to modify it
 
         if self.timestyle == "date":
             dd, tt, _ = compute_date(self.startdate, self.starttime, self.aggregation, i, self._npartitions)
             dform, tform = compute_mars_timerange(dd, tt, self.aggregation, self.timestep)  # computes date and time range in mars style
-            self.request["date"] = dform
-            self.request["time"] = tform
+            request["date"] = dform
+            request["time"] = tform
         else:  # style is 'step'
-            self.request["date"] = self.data_startdate
-            self.request["time"] = self.data_starttime
+            request["date"] = self.data_startdate
+            request["time"] = self.data_starttime
 
             date0 = dateobj(self.data_startdate, self.data_starttime)
 
@@ -126,20 +168,26 @@ class GSVSource(base.DataSource):
             s0 = compute_steprange(date0, ndate0, self.timestep)
             s1 = compute_steprange(date0, ndate1, self.timestep) - 1
 
-            if s0 == s1:
-                self.request["step"] = f'{s0}'
+            if s0 == s1 or first:
+                request["step"] = f'{s0}'
             else:
-                self.request["step"] = f'{s0}/to/{s1}'
+                request["step"] = f'{s0}/to/{s1}'
 
         if self._var:  # if no var provided keep the default in the catalogue
-            self.request["param"] = self._var
+            request["param"] = self._var
+
+        if self.dask_access:  # if we are using dask then each get_partition needs its own gsv instance.
+                              # Actually it is needed for each processor, this could be possibly improved
+            gsv = GSVRetriever() 
+        else:
+            gsv = self.gsv  # use the one which we already created
 
         if self.verbose:
-            print("Request: ", self.request)
-            dataset = self.gsv.request_data(self.request)
+            print("Request: ", i, self._var, s0, s1, request)
+            dataset = gsv.request_data(request)
         else:
             with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
-                dataset = self.gsv.request_data(self.request)
+                dataset = gsv.request_data(request)
 
         if self.timeshift:  # shift time by given amount (needed eg. by GSV monthly)
             dataset = shift_time_dataset(dataset, self.timeshift)
@@ -154,13 +202,54 @@ class GSVSource(base.DataSource):
         return dataset
 
     def read(self):
-        """Public method providing iterator to read the data"""
+        """Return a in-memory dask dataset"""
         ds = [self._get_partition(i) for i in range(self._npartitions)]
         ds = xr.concat(ds, dim='time')
         return ds
 
+
+    def get_part_delayed(self, i, var, shape, dtype):
+        """
+        Function to read a delayed partition.
+        Returns a dask.array
+        """
+        ds = dask.delayed(self._get_partition)(i)[var]
+        return dask.array.from_delayed(ds, shape, dtype)
+
+
     def to_dask(self):
-        return self.read_chunked()
+        """Return a dask xarray dataset for this data source"""
+
+        # dslist = [dask.delayed(self._get_partition)(i) for i in range(self._npartitions)]
+        # ds = xr.concat(dslist, dim='time')
+
+        self.dask_access = True  # This is used to thell _get_schema() to load dask info
+        self._load_metadata()
+
+        var = self._schema.name
+        shape = self._schema.shape
+        dtype = self._schema.dtype
+
+        # Create a dask array from a list of delayed get_partition calls
+        dalist = [self.get_part_delayed(i, var, shape, dtype) for i in range(self.npartitions)]
+        darr = dask.array.concatenate(dalist, axis=0) # This is a lazy dask array
+        # XXX this assumes that time is the first axis, TBD
+
+        da0 = self._ds[var]  # sample dataarray
+
+        coords = da0.coords.copy()
+        coords['time'] = self.timeaxis
+
+        da = xr.DataArray(darr,
+                  name = da0.name,
+                  attrs = da0.attrs,
+                  dims = da0.dims,
+                  coords = coords)
+
+        ds = da.to_dataset()
+        ds.attrs.update(self._ds.attrs)
+
+        return ds
 
     # def _load(self):
     #     self._dataset = self._get_partition(0)
