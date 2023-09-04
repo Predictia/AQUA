@@ -13,7 +13,7 @@ Load AQUA Environment into the Shell
    cd AQUA
 
 
-2. Run this `load_aqua_lumi.sh script <https://github.com/oloapinivad/AQUA/blob/main/config/machines/lumi/container/load_aqua_lumi.sh>`_ script  to load the AQUA environment into the shell:
+2. Run the `load_aqua_lumi.sh <https://github.com/oloapinivad/AQUA/blob/main/config/machines/lumi/container/load_aqua_lumi.sh>`_ script  to load the AQUA environment into the shell:
 
 .. code-block:: bash
 
@@ -83,7 +83,7 @@ Points for AQUA Developers or Advanced Users
 -----------------------------------------------
 If you check the details of the path in Python, you may see this :
 
-.. code-block:: quote
+.. code-block:: bash
 
       Singularity> python
       Python 3.10.12 | packaged by conda-forge | (main, Jun 23 2023, 22:40:32) [GCC 12.3.0] on linux
@@ -115,7 +115,8 @@ Submitting Slurm Job Using the Container
 -----------------------------------------
 
 It might be required to use the container within a batch job. 
-Below is a template for a Slurm script on Lumi. Customize it according to your needs.
+Below you can find a template for a Slurm script on Lumi.
+You can customize it according to your needs.
 
 .. code-block:: bash
 
