@@ -17,7 +17,7 @@ DEFAULT_GSV_PARAMS = {'request': {
     'param': '130',
     'levtype': 'pl',
     'levelist': '300'
-}, 'data_start_date': '20080101', 'data_end_date': '20080101', 'timestep': 'H'}
+}, 'data_start_date': '20080101:1200', 'data_end_date': '20080101:1200', 'timestep': 'H', 'timestyle': 'date'}
 
 
 @pytest.fixture()
@@ -61,7 +61,9 @@ class TestGsv():
         'date': '20080101',
         'time': '1200',
         'step': '0'
-    }, 'data_start_date': '20080101', 'data_end_date': '20080101', 'timestep': 'H', 'var': '130'}], indirect=True)
+        },
+        'data_start_date': '20080101:1200', 'data_end_date': '20080101:1200',
+        'timestep': 'H', 'timestyle': 'date', 'var': 130, 'verbose': True}], indirect=True)
     def test_gsv_read_chunked(self, gsv: GSVSource) -> None:
         """Test that the ``GSVSource`` is able to read data from FDB."""
         data = gsv.read()
@@ -80,8 +82,10 @@ class TestGsv():
         'date': '20080101',
         'time': '1200',
         'step': '0'
-    }, 'data_start_date': '20080101', 'data_end_date': '20080101',
-    'timestep': 'H', 'var': '130', 'startdate': '20080101', 'enddate': '20080101'}], indirect=True)
+        },
+        'data_start_date': '20080101:1200', 'data_end_date': '20080101:1200',
+        'timestep': 'H', 'timestyle': 'date', 'var': '130',
+        'startdate': '20080101:1200', 'enddate': '20080101:1200', 'verbose': True}], indirect=True)
     def test_gsv_read(self, gsv: GSVSource):
         """Test that the chunked data is returned correctly too.
 
@@ -99,8 +103,16 @@ class TestGsv():
     def test_reader(self) -> None:
         """Simple test, to check that catalog access works and reads correctly"""
 
-        reader = Reader(model="IFS", exp="test-fdb", source="fdb", aggregation="S")
+        reader = Reader(model="IFS", exp="test-fdb", source="fdb", aggregation="D")
         data = reader.retrieve(startdate='20080101:1200', enddate='20080101:1200', var='t')
         assert isinstance(data, types.GeneratorType), 'Reader does not return iterator'
+        dd = next(data)
+        assert dd.t.param == '130.128', 'Wrong GRIB param in data'
+
+    def test_reader_novar(self) -> None:
+        """Simple test, to check that catalog access works and reads correctly, no var"""
+
+        reader = Reader(model="IFS", exp="test-fdb", source="fdb")
+        data = reader.retrieve()
         dd = next(data)
         assert dd.t.param == '130.128', 'Wrong GRIB param in data'

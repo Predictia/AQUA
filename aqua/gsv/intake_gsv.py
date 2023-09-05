@@ -28,7 +28,7 @@ class GSVSource(base.DataSource):
     partition_access = True
 
     def __init__(self, request, data_start_date, data_end_date, timestyle="date",
-                 aggregation="D",timestep="H", timeshift=None,
+                 aggregation="S", timestep="H", timeshift=None,
                  startdate=None, enddate=None, var='167', metadata=None, verbose=False, **kwargs):
         """
         Initializes the GSVSource class. These are typically specified in the catalogue entry, but can also be specified upon accessing the catalogue.
@@ -38,7 +38,7 @@ class GSVSource(base.DataSource):
             data_start_date (str): Start date of the available data.
             data_end_date (str): End date of the available data.
             timestyle (str, optional): Time style. Defaults to "date".
-            aggregation (str, optional): Time aggregation level. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y. Defaults to "D". 
+            aggregation (str, optional): Time aggregation level. Can be one of S (step), 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y. Defaults to "S". 
             timestep (str, optional): Time step. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y. Defaults to "H". 
             startdate (str, optional): Start date for request. Defaults to None.
             enddate (str, optional): End date for request. Defaults to None.
@@ -72,7 +72,7 @@ class GSVSource(base.DataSource):
         self._var = var
         self.verbose = verbose
 
-        self._request = request
+        self.request = request
         self._kwargs = kwargs
 
         if timestyle == "step" and self.stepmin > 0:  # make sure that we start retrieving data from the first available step
@@ -108,11 +108,11 @@ class GSVSource(base.DataSource):
         if self.timestyle == "date":
             dd, tt, _ = compute_date(self.startdate, self.starttime, self.aggregation, i, self._npartitions)
             dform, tform = compute_mars_timerange(dd, tt, self.aggregation, self.timestep)  # computes date and time range in mars style
-            self._request["date"] = dform
-            self._request["time"] = tform
+            self.request["date"] = dform
+            self.request["time"] = tform
         else:  # style is 'step'
-            self._request["date"] = self.data_startdate
-            self._request["time"] = self.data_starttime
+            self.request["date"] = self.data_startdate
+            self.request["time"] = self.data_starttime
 
             date0 = dateobj(self.data_startdate, self.data_starttime)
 
@@ -127,19 +127,19 @@ class GSVSource(base.DataSource):
             s1 = compute_steprange(date0, ndate1, self.timestep) - 1
 
             if s0 == s1:
-                self._request["step"] = f'{s0}'
+                self.request["step"] = f'{s0}'
             else:
-                self._request["step"] = f'{s0}/to/{s1}'
+                self.request["step"] = f'{s0}/to/{s1}'
 
         if self._var:  # if no var provided keep the default in the catalogue
-            self._request["param"] = self._var
+            self.request["param"] = self._var
 
         if self.verbose:
-            print("Request: ", self._request)
-            dataset = self.gsv.request_data(self._request)
+            print("Request: ", self.request)
+            dataset = self.gsv.request_data(self.request)
         else:
             with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
-                dataset = self.gsv.request_data(self._request)
+                dataset = self.gsv.request_data(self.request)
 
         if self.timeshift:  # shift time by given amount (needed eg. by GSV monthly)
             dataset = shift_time_dataset(dataset, self.timeshift)
