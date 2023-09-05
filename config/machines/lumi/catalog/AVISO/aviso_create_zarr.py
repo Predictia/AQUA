@@ -24,9 +24,9 @@ files = "dt_global_twosat_phy_l4*.nc"
 # Initialize an empty list to store the file paths
 file_paths = []
 
-print('generate file paths')
+print('Generate file paths...')
 # Iterate over all year and month directories
-for year in range(1993, 2000):  # Replace YYYY with the start year and n with the number of years
+for year in range(1993, 2023):  # Replace YYYY with the start year and n with the number of years
     for month in range(1, 13):
         # Create a pattern to match all daily files in the current year and month directory
         pattern = os.path.join(root_directory, f"{year}/{month:02d}/*")
@@ -40,7 +40,7 @@ for year in range(1993, 2000):  # Replace YYYY with the start year and n with th
 
 
 # open files with kerchunk as hdf
-print('create hdf files')
+print('Create hdf files...')
 singles = []
 for u in tqdm.tqdm(file_paths):
     with fsspec.open(u) as inf:
@@ -48,7 +48,7 @@ for u in tqdm.tqdm(file_paths):
         singles.append(h5chunks.translate())
 
 # concatenate as a single zarr 
-print('create single zarr and translate')
+print('Create single zarr and translate...')
 mzz = MultiZarrToZarr(
      singles,
     concat_dims=["time"]
@@ -58,6 +58,8 @@ mzz = MultiZarrToZarr(
 out = mzz.translate()
 
 #dump to fle
-print('create json file')
+print('Create json file...')
+if os.path.exists(output_filename):
+  os.remove(output_filename)
 with open(output_filename, "w") as outfile:
     json.dump(out, outfile)
