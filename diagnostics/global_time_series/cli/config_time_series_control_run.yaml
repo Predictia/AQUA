@@ -3,6 +3,7 @@ timeseries:
 # and the savefig name
     variables:
         - "2t"
+        - "erate"
         - "tprate"
         - "tcc"
     sources:
