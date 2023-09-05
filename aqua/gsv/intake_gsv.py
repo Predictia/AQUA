@@ -1,12 +1,11 @@
 """An intake driver for FDB/GSV access"""
 
 import datetime
-import pandas as pd
 import xarray as xr
 import dask
 from intake.source import base
-from .timeutil import compute_date_steps, compute_date, check_dates, compute_mars_timerange
-from .timeutil import shift_time_dataset, shift_time_datetime, compute_steprange, dateobj, set_stepmin, split_date
+from .timeutil import check_dates, shift_time_dataset
+from .timeutil import split_date, make_timeaxis, datestr
 
 # Test if FDB5 binary library is available
 try:
@@ -31,7 +30,7 @@ class GSVSource(base.DataSource):
     timeaxis = None  # Used for dask access
 
     def __init__(self, request, data_start_date, data_end_date, timestyle="date",
-                 aggregation="S", timestep="H", timeshift=None,
+                 aggregation="S", savefreq="H", timestep="H", timeshift=None,
                  startdate=None, enddate=None, var='167', metadata=None, verbose=False, **kwargs):
         """
         Initializes the GSVSource class. These are typically specified in the catalogue entry, but can also be specified upon accessing the catalogue.
@@ -61,36 +60,32 @@ class GSVSource(base.DataSource):
         if not enddate:
             enddate = data_end_date
 
+        # check if dates are within acceptable range
         check_dates(startdate, data_start_date, enddate, data_end_date)
-
+        
         self.timestyle = timestyle
 
-        if aggregation.upper() == "S":  # special case: 'aggegation at single step level
-            aggregation = timestep
+        if aggregation.upper() == "S":  # special case: 'aggegation at single saved level
+            aggregation = savefreq
 
-        self.aggregation = aggregation
-        self.timestep = timestep
         self.timeshift = timeshift
+        self.itime = 0  # position of time dim
 
         self.data_startdate, self.data_starttime = split_date(data_start_date)
-        self.startdate, self.starttime = split_date(startdate)
-        self.enddate, self.endtime = split_date(enddate)
 
-        self.stepmin = request["step"]  # The minimum existing timestep 
         self._var = var
         self.verbose = verbose
 
         self._request = request.copy()
         self._kwargs = kwargs
 
-        if timestyle == "step" and self.stepmin > 0:  # make sure that we start retrieving data from the first available step
-            self.startdate, self.starttime = set_stepmin(self.startdate, self.starttime,
-                                                         self.data_startdate, self.data_starttime,
-                                                         self.stepmin, self.timestep)
+        (self.timeaxis, self.chk_start_idx,
+         self.chk_start_date, self.chk_end_idx,
+         self.chk_end_date, self.chk_size) = make_timeaxis(data_start_date, startdate, enddate,
+                                                           shiftmonth=timeshift, timestep=timestep,
+                                                           savefreq=savefreq, chunkfreq=aggregation)
 
-        # Compute the number of partitions
-        self._npartitions = compute_date_steps(self.startdate, self.enddate, aggregation,
-                                               starttime=self.starttime, endtime=self.endtime)
+        self._npartitions = len(self.chk_start_date)
 
         super(GSVSource, self).__init__(metadata=metadata)
 
@@ -100,11 +95,6 @@ class GSVSource(base.DataSource):
         if self.dask_access:  # We need a better schema for dask access
             if not self._ds:  # we still have to retrieve a sample dataset
                 self._ds = self._get_partition(0, first=False)
-
-                # Obviously we also still have to compute the timeaxis
-                self.timeaxis = pd.date_range(f"{self.startdate} {self.starttime}",
-                                              f"{self.enddate} {self.endtime}",
-                                              freq='H')
             
             var = list(self._ds.data_vars)[0]
             da = self._ds[var]  # get first variable dataarray
@@ -145,27 +135,18 @@ class GSVSource(base.DataSource):
         request = self._request.copy()  # We are going to modify it
 
         if self.timestyle == "date":
-            dd, tt, _ = compute_date(self.startdate, self.starttime, self.aggregation, i, self._npartitions)
-            dform, tform = compute_mars_timerange(dd, tt, self.aggregation, self.timestep)  # computes date and time range in mars style
-            request["date"] = dform
-            request["time"] = tform
+            dds, tts = datestr(self.chk_start_date)
+            dde, tte = datestr(self.chk_end_date)
+            request["date"] = f"{dds}/to/{dde}"
+            request["time"] = f"{tts}/to/{tte}"
             s0 = None
             s1 = None
         else:  # style is 'step'
             request["date"] = self.data_startdate
             request["time"] = self.data_starttime
 
-            date0 = dateobj(self.data_startdate, self.data_starttime)
-
-            _, _, ndate0 = compute_date(self.startdate, self.starttime, self.aggregation, i, self._npartitions)
-            _, _, ndate1 = compute_date(self.startdate, self.starttime, self.aggregation, i + 1, self._npartitions)
-
-            if self.timeshift:  # shift time for selection by given amount (needed eg. by GSV monthly)
-                ndate0 = shift_time_datetime(ndate0, self.timeshift, sign=-1)
-                ndate1 = shift_time_datetime(ndate1, self.timeshift, sign=-1)
-
-            s0 = compute_steprange(date0, ndate0, self.timestep)
-            s1 = compute_steprange(date0, ndate1, self.timestep) - 1
+            s0 = self.chk_start_idx[i]
+            s1 = self.chk_end_idx[i]
 
             if s0 == s1 or first:
                 request["step"] = f'{s0}'
@@ -186,8 +167,8 @@ class GSVSource(base.DataSource):
 
         dataset = gsv.request_data(request)
 
-        if self.timeshift:  # shift time by given amount (needed eg. by GSV monthly)
-            dataset = shift_time_dataset(dataset, self.timeshift)
+        if self.timeshift:  # shift time by one month (special case)
+            dataset = shift_time_dataset(dataset)
 
         # Fix GRIB attribute names. This removes "GRIB_" from the beginning
         for var in dataset.data_vars:
@@ -211,28 +192,28 @@ class GSVSource(base.DataSource):
         Returns a dask.array
         """
         ds = dask.delayed(self._get_partition)(i)[var]
-        return dask.array.from_delayed(ds, shape, dtype)
+        newshape = list(shape)
+        newshape[self.itime] = self.chk_size[i]
+        return dask.array.from_delayed(ds, newshape, dtype)
 
 
     def to_dask(self):
         """Return a dask xarray dataset for this data source"""
 
-        # dslist = [dask.delayed(self._get_partition)(i) for i in range(self._npartitions)]
-        # ds = xr.concat(dslist, dim='time')
-
-        self.dask_access = True  # This is used to thell _get_schema() to load dask info
+        self.dask_access = True  # This is used to tell _get_schema() to load dask info
         self._load_metadata()
 
         var = self._schema.name
         shape = self._schema.shape
         dtype = self._schema.dtype
 
+        da0 = self._ds[var]  # sample dataarray
+
+        self.itime = da0.dims.index("time")
+
         # Create a dask array from a list of delayed get_partition calls
         dalist = [self.get_part_delayed(i, var, shape, dtype) for i in range(self.npartitions)]
-        darr = dask.array.concatenate(dalist, axis=0) # This is a lazy dask array
-        # XXX this assumes that time is the first axis, TBD
-
-        da0 = self._ds[var]  # sample dataarray
+        darr = dask.array.concatenate(dalist, axis=self.itime)  # This is a lazy dask array
 
         coords = da0.coords.copy()
         coords['time'] = self.timeaxis
