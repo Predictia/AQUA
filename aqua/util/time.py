@@ -1,9 +1,33 @@
+"""
+Module including time utilities for AQUA
+"""
+
 import math
 import re
 import pandas as pd
 import xarray as xr
 from pandas.tseries.frequencies import to_offset
 from aqua.logger import log_configure
+
+
+def frequency_string_to_pandas(freq):
+
+    """
+    Convert a string from the OPA/AQUA convention to 
+    the usual pandas frequency standard
+    """
+
+    # translate frequency in pandas-style time
+    if freq == 'monthly':
+        resample_freq = '1M'
+    elif freq == 'daily':
+        resample_freq = '1D'
+    elif freq == 'yearly':
+        resample_freq = '1Y'
+    else:
+        resample_freq = freq
+
+    return resample_freq
 
 def _xarray_timedelta_string(xdataset):
 

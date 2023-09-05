@@ -18,7 +18,7 @@ import smmregrid as rg
 from aqua.util import load_yaml, load_multi_yaml
 from aqua.util import ConfigPath, area_selection
 from aqua.logger import log_configure, log_history, log_history_iter
-from aqua.util import check_chunk_completeness
+from aqua.util import check_chunk_completeness, frequency_string_to_pandas
 import aqua.gsv
 
 from .streaming import Streaming
@@ -511,15 +511,7 @@ class Reader(FixerMixin, RegridMixin):
         if freq is None:
             freq = self.freq
 
-        # translate frequency in pandas-style time
-        if freq == 'monthly':
-            resample_freq = '1M'
-        elif freq == 'daily':
-            resample_freq = '1D'
-        elif freq == 'yearly':
-            resample_freq = '1Y'
-        else:
-            resample_freq = freq
+        resample_freq = frequency_string_to_pandas(freq)
 
         try:
             # resample
