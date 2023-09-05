@@ -59,13 +59,14 @@ class TestTimmean():
         assert len(unique) == nmonths
         assert all(counts == counts[0])
     
-    def test_timmean_yearly_reader_exception(self):
+    def test_timmean_yearly_reader_exclude_incomplete(self):
         """Timmean test for yearly aggregation from Reader directly"""
         reader = Reader(model="IFS", exp="test-tco79", source='long',
-                        freq='yearly', fix=False)
-        data = reader.retrieve()
-        with pytest.raises(ValueError, match=r'Cannot compute average on .* period, not enough data'):
-            reader.timmean(data['ttr'], exclude_incomplete=True)
+                        freq='yearly', exclude_incomplete=True, fix=False)
+        data = reader.retrieve(timmean=True)
+        assert data['ttr'].shape == (0, 9, 18)
+        #with pytest.raises(ValueError, match=r'Cannot compute average on .* period, not enough data'):
+        #    reader.timmean(data['ttr'], exclude_incomplete=True)
 
     def test_timmean_yearly_reader(self):
         """Timmean test for yearly aggregation from Reader directly"""
