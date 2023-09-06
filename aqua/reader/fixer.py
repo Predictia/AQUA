@@ -191,6 +191,7 @@ class FixerMixin():
         # Only now rename everything
         data = data.rename(fixd)
 
+        # decumulate if necessary
         if variables:
             data = self._wrapper_decumulate(data, variables, varlist, var, keep_memory, jump)
 
@@ -198,10 +199,9 @@ class FixerMixin():
             for var in data.variables:
                 self.apply_unit_fix(data[var])
 
-        # remove variables which should be deleted
-        dellist = [x for x in fix.get("delete", []) if x in data.variables]
-        if dellist:
-            data = data.drop_vars(dellist)
+        # remove variables
+        data = self._delete_variables(data, fix)
+
 
         # Fix coordinates according to a given data model
         src_datamodel = fix.get("data_model", src_datamodel)
@@ -210,6 +210,17 @@ class FixerMixin():
             log_history(data, "coordinates adjusted by AQUA fixer")
 
         return data
+    
+    def _delete_variables(self, data, fix):
+
+        """
+        Remove variables which are set to be deleted in the fixer
+        """
+
+        # remove variables which should be deleted
+        dellist = [x for x in fix.get("delete", []) if x in data.variables]
+        if dellist:
+            data = data.drop_vars(dellist)
     
     def _wrapper_decumulate(self, data, variables, varlist, var, keep_memory, jump):
 
