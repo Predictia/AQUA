@@ -107,23 +107,24 @@ class FixerMixin():
         self.deltat = self.fixes.get("deltat", 1.0)
         jump = self.fixes.get("jump", None)  # if to correct for a monthly accumulation jump
 
-        fixd = {}
-        varlist = {}
-        variables = self.fixes.get("vars", None)  # variables with available fixes
+        fixd = {} #variables dictionary for name change: only for source?
+        varlist = {} #variable dictionary for name change: what's the difference with fixd? 
+
+        vars_to_fix = self.fixes.get("vars", None)  # variables with available fixes
 
         # check which variables need to be fixed
-        variables = self._check_which_variables_to_fix(variables, destvar)
+        vars_to_fix = self._check_which_variables_to_fix(vars_to_fix, destvar)
 
 
-        if variables:  # This is the list of variables to be fixed
-            for var in variables:
+        if vars_to_fix:  # This is the list of variables to be fixed
+            for var in vars_to_fix:
                 tgt_units = None
 
-                attributes, varname = self._get_variables_grib_attributes(variables, var)
-
-                varlist[var] = varname
-
-                source = variables[var].get("source", None)
+                attributes, shortname = self._get_variables_grib_attributes(vars_to_fix, var)
+  
+                varlist[var] = shortname
+                
+                source = vars_to_fix[var].get("source", None)
 
                 # if we are using a gribcode as a source, convert it to shortname to access it
                 if str(source).isdigit():
@@ -134,15 +135,15 @@ class FixerMixin():
                 if source:
                     if source not in data.variables:
                         continue
-                    fixd.update({f"{source}": f"{varname}"})
+                    fixd.update({f"{source}": f"{shortname}"})
                     log_history(data[source], "variable renamed by AQUA fixer")
 
-                formula = variables[var].get("derived", None)
+                formula = vars_to_fix[var].get("derived", None)
                 # This is a derived variable, let's compute it and create the new variable
                 if formula:
                     try:
-                        data[varname] = eval_formula(formula, data)
-                        source = varname
+                        data[shortname] = eval_formula(formula, data)
+                        source = shortname
                         attributes.update({"derived": formula})
                         self.logger.info("Derived %s from %s", var, formula)
                         log_history(data[source], "variable derived by AQUA fixer")
@@ -152,7 +153,7 @@ class FixerMixin():
                         continue
 
                 # Get extra attributes if any, leave empty dict otherwise
-                attributes.update(variables[var].get("attributes", {}))
+                attributes.update(vars_to_fix[var].get("attributes", {}))
 
                 # update attributes
                 if attributes:
@@ -163,10 +164,8 @@ class FixerMixin():
                         else:
                             data[source].attrs[att] = value
 
-                
-
-                tgt_units = self._override_tgt_units(tgt_units, variables, var)
-                data = self._override_src_units(data, variables, var, source)
+                tgt_units = self._override_tgt_units(tgt_units, vars_to_fix, var)
+                data = self._override_src_units(data, vars_to_fix, var, source)
 
                 if "units" not in data[source].attrs:  # Houston we have had a problem, no units!
                     self.logger.error('Variable %s has no units!', var)
@@ -191,11 +190,11 @@ class FixerMixin():
         data = data.rename(fixd)
 
         # decumulate if necessary
-        if variables:
-            data = self._wrapper_decumulate(data, variables, varlist, var, keep_memory, jump)
+        if vars_to_fix:
+            data = self._wrapper_decumulate(data, vars_to_fix, varlist, var, keep_memory, jump)
 
         if apply_unit_fix:
-            for var in data.variables:
+            for var in data.data_vars:
                 self.apply_unit_fix(data[var])
 
         # remove variables
