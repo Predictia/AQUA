@@ -165,6 +165,7 @@ class FixerMixin():
                             data[source].attrs[att] = value
 
                 
+
                 tgt_units = self._override_tgt_units(tgt_units, variables, var)
                 data = self._override_src_units(data, variables, var, source)
 
@@ -191,32 +192,7 @@ class FixerMixin():
         data = data.rename(fixd)
 
         if variables:
-            fkeep = False
-            if keep_memory:
-                data1 = data.isel(time=-1)  # save last timestep for possible future use
-            for var in variables:
-                # Decumulate if required
-                if variables[var].get("decumulate", None):
-                    varname = varlist[var]
-                    if varname in data.variables:
-                        keep_first = variables[var].get("keep_first", True)
-                        if keep_memory:  # Special case for iterators
-                            fkeep = True  # We have decumulated at least once and we need to keep data
-                            if not self.previous_data:
-                                previous_data = xr.zeros_like(data[varname].isel(time=0))
-                            else:
-                                previous_data = self.previous_data[varname]
-                            data[varname] = self.simple_decumulate(data[varname],
-                                                               jump=jump,
-                                                               keep_first=keep_first,
-                                                               keep_memory=previous_data)
-                        else:
-                            data[varname] = self.simple_decumulate(data[varname],
-                                                               jump=jump,
-                                                               keep_first=keep_first)
-                        log_history(data[varname], "variable decumulated by AQUA fixer")
-            if fkeep:
-                self.previous_data = data1  # keep the last timestep for further decumulations
+            data = self._wrapper_decumulate(data, variables, varlist, var, keep_memory, jump)
 
         if apply_unit_fix:
             for var in data.variables:
@@ -235,6 +211,43 @@ class FixerMixin():
 
         return data
     
+    def _wrapper_decumulate(self, data, variables, varlist, var, keep_memory, jump):
+
+        """
+        Wrapper function for decumulation, which takes into account the requirement of 
+        keeping into memory the last step for streaming/fdb purposes
+        """
+        
+        fkeep = False
+        if keep_memory:
+            data1 = data.isel(time=-1)  # save last timestep for possible future use
+        for var in variables:
+            # Decumulate if required
+            if variables[var].get("decumulate", None):
+                varname = varlist[var]
+                if varname in data.variables:
+                    self.logger.debug("Starting decumulation for variable %s", varname)
+                    keep_first = variables[var].get("keep_first", True)
+                    if keep_memory:  # Special case for iterators
+                        fkeep = True  # We have decumulated at least once and we need to keep data
+                        if not self.previous_data:
+                            previous_data = xr.zeros_like(data[varname].isel(time=0))
+                        else:
+                            previous_data = self.previous_data[varname]
+                        data[varname] = self.simple_decumulate(data[varname],
+                                                            jump=jump,
+                                                            keep_first=keep_first,
+                                                            keep_memory=previous_data)
+                    else:
+                        data[varname] = self.simple_decumulate(data[varname],
+                                                            jump=jump,
+                                                            keep_first=keep_first)
+                    log_history(data[varname], "variable decumulated by AQUA fixer")
+        if fkeep:
+            self.previous_data = data1  # keep the last timestep for further decumulations
+
+        return data
+
     def _override_tgt_units(self, tgt_units, variables, var):
 
         """
@@ -247,7 +260,10 @@ class FixerMixin():
             self.logger.info('Variable %s: Overriding target units "%s" with "%s"',
                                 var, tgt_units, fixer_tgt_units)
             #data[source].attrs.update({"units": newunits}) #THIS IS WRONG
-            return fixer_tgt_units
+        else:
+            fixer_tgt_units = tgt_units
+        
+        return fixer_tgt_units
     
     def _override_src_units(self, data, variables, var, source):
 
@@ -284,7 +300,6 @@ class FixerMixin():
 
         attributes = {}
         varname = var
-
         grib = vardict[var].get("grib", None)
         # This is a grib variable, use eccodes to find attributes
         if grib:
@@ -548,6 +563,7 @@ class FixerMixin():
         """
         tgt_units = data.attrs.get("tgt_units", None)
         org_units = data.attrs.get("units", None)
+        self.logger.debug("org_units is %s, tgt_units is %s", org_units, tgt_units)
 
         # if units are not already updated and if a tgt_units exist
         if tgt_units and org_units != tgt_units:
