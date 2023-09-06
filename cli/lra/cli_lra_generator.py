@@ -9,7 +9,7 @@ a configuration yaml file.
 import sys
 
 # hack for jost gsv
-sys.path.insert(0, '/projappl/project_465000454/jvonhar/gsv_interface/')
+#sys.path.insert(0, '/projappl/project_465000454/jvonhar/gsv_interface/')
 import gsv
 print(gsv.__version__)
 
