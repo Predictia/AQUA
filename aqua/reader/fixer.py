@@ -119,25 +119,9 @@ class FixerMixin():
         if variables:  # This is the list of variables to be fixed
             for var in variables:
                 tgt_units = None
-                attributes = {}
                 varname = var
-                grib = variables[var].get("grib", None)
-                # This is a grib variable, use eccodes to find attributes
-                if grib:
-                    # Get relevant eccodes attribues
-                    self.logger.info("Grib variable %s, looking for attributes", var)
-                    try:
-                        attributes.update(get_eccodes_attr(var))
-                        shortname = attributes.get("shortName", None)
-                        self.logger.info("Grib variable %s, shortname is %s", varname, shortname)
-                        if varname not in ['~', shortname]:
-                            self.logger.info("For grib variable %s find eccodes shortname %s, replacing it", var, shortname)
-                            varname = shortname
-                        self.logger.info("Grib attributes for %s: %s", varname, attributes)
-                    except TypeError:
-                        self.logger.warning("Cannot get eccodes attributes for %s", var)
-                        self.logger.warning("Information may be missing in the output file")
-                        self.logger.warning("Please check your version of eccodes")
+
+                attributes, varname = self._get_variables_grib_attributes(variables, var)
 
                 varlist[var] = varname
 
@@ -267,6 +251,41 @@ class FixerMixin():
             log_history(data, "coordinates adjusted by AQUA fixer")
 
         return data
+    
+    def _get_variables_grib_attributes(self, vardict, var):
+
+        """
+        Get grib attributes for a specific variable
+
+        Args:
+            vardict: Variables dictionary with fixes
+            var: variable name
+
+        Returns:
+            Dictionary for attributes following GRIB convention and string with updated variable name
+        """
+
+        attributes = {}
+
+        grib = vardict[var].get("grib", None)
+        # This is a grib variable, use eccodes to find attributes
+        if grib:
+            # Get relevant eccodes attribues
+            self.logger.info("Grib variable %s, looking for attributes", var)
+            try:
+                attributes.update(get_eccodes_attr(var))
+                shortname = attributes.get("shortName", None)
+                self.logger.info("Grib variable %s, shortname is %s", varname, shortname)
+                if varname not in ['~', shortname]:
+                    self.logger.info("For grib variable %s find eccodes shortname %s, replacing it", var, shortname)
+                    varname = shortname
+                self.logger.info("Grib attributes for %s: %s", varname, attributes)
+            except TypeError:
+                self.logger.warning("Cannot get eccodes attributes for %s", var)
+                self.logger.warning("Information may be missing in the output file")
+                self.logger.warning("Please check your version of eccodes")
+        
+        return attributes, varname
     
     def _check_which_variables_to_fix(self, var2fix, destvar):
 
