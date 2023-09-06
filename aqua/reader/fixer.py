@@ -119,7 +119,6 @@ class FixerMixin():
         if variables:  # This is the list of variables to be fixed
             for var in variables:
                 tgt_units = None
-                varname = var
 
                 attributes, varname = self._get_variables_grib_attributes(variables, var)
 
@@ -165,25 +164,9 @@ class FixerMixin():
                         else:
                             data[source].attrs[att] = value
 
-                # Override destination units
-                fixer_tgt_units = variables[var].get("units", None)
-                if fixer_tgt_units:
-                    self.logger.info('Variable %s: Overriding target units "%s" with "%s"',
-                                     var, tgt_units, fixer_tgt_units)
-                    #data[source].attrs.update({"units": newunits}) #THIS IS WRONG
-                    tgt_units = fixer_tgt_units
-
-                # Override source units
-                fixer_src_units = variables[var].get("src_units", None)
-                if fixer_src_units:
-                    if "units" in data[source].attrs:
-                        self.logger.info('Variable %s: Overriding source units "%s" with "%s"', 
-                                         var, data[source].units, fixer_src_units)
-                        data[source].attrs.update({"units": fixer_src_units})
-                    else:
-                        self.logger.info('Variable %s: Setting missing source units to "%s"', 
-                                        var, fixer_src_units)
-                        data[source].attrs["units"] = fixer_src_units
+                
+                tgt_units = self._override_tgt_units(tgt_units, variables, var)
+                data = self._override_src_units(data, variables, var, source)
 
                 if "units" not in data[source].attrs:  # Houston we have had a problem, no units!
                     self.logger.error('Variable %s has no units!', var)
@@ -252,6 +235,40 @@ class FixerMixin():
 
         return data
     
+    def _override_tgt_units(self, tgt_units, variables, var):
+
+        """
+        Override destination units for the single variable
+        """
+
+        # Override destination units
+        fixer_tgt_units = variables[var].get("units", None)
+        if fixer_tgt_units:
+            self.logger.info('Variable %s: Overriding target units "%s" with "%s"',
+                                var, tgt_units, fixer_tgt_units)
+            #data[source].attrs.update({"units": newunits}) #THIS IS WRONG
+            return fixer_tgt_units
+    
+    def _override_src_units(self, data, variables, var, source):
+
+        """
+        Override source units for the single variable
+        """
+
+        # Override source units
+        fixer_src_units = variables[var].get("src_units", None)
+        if fixer_src_units:
+            if "units" in data[source].attrs:
+                self.logger.info('Variable %s: Overriding source units "%s" with "%s"', 
+                                    var, data[source].units, fixer_src_units)
+                data[source].attrs.update({"units": fixer_src_units})
+            else:
+                self.logger.info('Variable %s: Setting missing source units to "%s"', 
+                                var, fixer_src_units)
+                data[source].attrs["units"] = fixer_src_units
+        
+        return data
+    
     def _get_variables_grib_attributes(self, vardict, var):
 
         """
@@ -266,6 +283,7 @@ class FixerMixin():
         """
 
         attributes = {}
+        varname = var
 
         grib = vardict[var].get("grib", None)
         # This is a grib variable, use eccodes to find attributes
