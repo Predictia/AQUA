@@ -95,22 +95,21 @@ class FixerMixin():
 
         # Add extra units (might be moved somewhere else, function is at the bottom of this file)
         units_extra_definition()
-        fix = self.fixes
 
         # if there are no fixes, return
-        if fix is None:
+        if self.fixes is None:
             return data
 
         # Default input datamodel
         src_datamodel = self.fixes_dictionary["defaults"].get("src_datamodel", None)
         self.logger.debug("Default input datamodel: %s", src_datamodel)
 
-        self.deltat = fix.get("deltat", 1.0)
-        jump = fix.get("jump", None)  # if to correct for a monthly accumulation jump
+        self.deltat = self.fixes.get("deltat", 1.0)
+        jump = self.fixes.get("jump", None)  # if to correct for a monthly accumulation jump
 
         fixd = {}
         varlist = {}
-        variables = fix.get("vars", None)  # variables with available fixes
+        variables = self.fixes.get("vars", None)  # variables with available fixes
 
         # check which variables need to be fixed
         variables = self._check_which_variables_to_fix(variables, destvar)
@@ -200,27 +199,29 @@ class FixerMixin():
                 self.apply_unit_fix(data[var])
 
         # remove variables
-        data = self._delete_variables(data, fix)
+        data = self._delete_variables(data)
 
 
         # Fix coordinates according to a given data model
-        src_datamodel = fix.get("data_model", src_datamodel)
+        src_datamodel = self.fixes.get("data_model", src_datamodel)
         if src_datamodel:
             data = self.change_coord_datamodel(data, src_datamodel, self.dst_datamodel)
             log_history(data, "coordinates adjusted by AQUA fixer")
 
         return data
     
-    def _delete_variables(self, data, fix):
+    def _delete_variables(self, data):
 
         """
         Remove variables which are set to be deleted in the fixer
         """
 
         # remove variables which should be deleted
-        dellist = [x for x in fix.get("delete", []) if x in data.variables]
+        dellist = [x for x in self.fixes.get("delete", []) if x in data.variables]
         if dellist:
             data = data.drop_vars(dellist)
+
+        return data
     
     def _wrapper_decumulate(self, data, variables, varlist, var, keep_memory, jump):
 
