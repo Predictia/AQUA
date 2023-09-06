@@ -73,7 +73,7 @@ class FixerMixin():
 
         Arguments:
             data (xr.Dataset):      the input dataset
-            destvar (list of str):  the name of the desired variables, if None all variables are fixed
+            destvar (list of str):  the name of the desired variables to be fixed, if None all variables are fixed
             apply_unit_fix (bool):  if to perform immediately unit conversions (which requite a product or an addition).
                                     The fixer sets anyway an offset or a multiplicative factor in the data attributes.
                                     These can be applied also later with the method `apply_unit_fix`. (false)
@@ -111,17 +111,10 @@ class FixerMixin():
         fixd = {}
         varlist = {}
         variables = fix.get("vars", None)  # variables with available fixes
-        # loop on fixes: this is done even if the underlying variables are not
-        # in the required source.
 
-        if destvar and variables:  # If we have a list of variables to be fixed and fixes are available
-            newkeys = list(set(variables.keys()) & set(destvar))
-            if newkeys:
-                variables = {key: value for key, value in variables.items() if key in newkeys}
-                self.logger.debug("Variables to be fixed: %s", variables)
-            else:
-                variables = None
-                self.logger.debug("No variables to be fixed")
+        # check which variables need to be fixed
+        variables = self._check_which_variables_to_fix(variables, destvar)
+
 
         if variables:  # This is the list of variables to be fixed
             for var in variables:
@@ -274,6 +267,30 @@ class FixerMixin():
             log_history(data, "coordinates adjusted by AQUA fixer")
 
         return data
+    
+    def _check_which_variables_to_fix(self, var2fix, destvar):
+
+        """
+        Check on which variables fixes should be applied
+
+        Args:
+            var2fix: Variables for which fixes are available
+            destvar: Variables on which we want to apply fixes 
+
+        Returns:
+            List of variables on which we want to apply fixes for which fixes are available
+        """
+
+        if destvar and var2fix:  # If we have a list of variables to be fixed and fixes are available
+            newkeys = list(set(var2fix.keys()) & set(destvar))
+            if newkeys:
+                var2fix = {key: value for key, value in var2fix.items() if key in newkeys}
+                self.logger.debug("Variables to be fixed: %s", var2fix)
+            else:
+                var2fix = None
+                self.logger.debug("No variables to be fixed")
+            
+        return var2fix
 
     def _fix_area(self, area: xr.DataArray):
         """
