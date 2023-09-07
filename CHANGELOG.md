@@ -7,7 +7,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
-- Teleconnections diagnostic improvements (#465)
 - Area is fixed if data are fixed (Fixer applied to grid areas #442)
 - Tests missing failure fix (Fix #436 CI workflow passes even if some tests fail #452)
 - FDB/GSV access to IFS control and historical simulations (#434)
@@ -17,7 +16,7 @@ Unreleased is the current development version.
 - Allow the LRA generator to work with generators and so with FDB (LRA from fdb on mafalda #430)
 - Fixes only on selected variables (Fixer updates #428)
 - Complete revision of the FDB/GSV access, allowing to access also recent experiments using variable step (#343)
-- Teleconnections diagnostic adapted to new code improvements (Teleconnections Dev branch update #424)
+- Teleconnections diagnostic adapted to new code improvements (Teleconnections Dev branch update #424, #465)
 - Add support for area selection with fldmean (Fldmean box selection #409)
 - Environment simplified, dependencies are now mostly on the pyproject file (A simpler environment.yml #286)
 - Intake esm functionality added back (Fix intake-esm #287)
