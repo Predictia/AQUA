@@ -63,7 +63,6 @@ class GSVSource(base.DataSource):
         offset = int(request["step"])  # optional initial offset for steps (in timesteps)
 
         startdate = add_offset(data_start_date, startdate, offset, timestep)  # special for 6h: set offset startdate if needed
-        print("Startdate: ", startdate)
 
         # check if dates are within acceptable range
         check_dates(startdate, data_start_date, enddate, data_end_date)
