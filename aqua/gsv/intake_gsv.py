@@ -139,8 +139,8 @@ class GSVSource(base.DataSource):
         request = self._request.copy()  # We are going to modify it
 
         if self.timestyle == "date":
-            dds, tts = date2str(self.chk_start_date)
-            dde, tte = date2str(self.chk_end_date)
+            dds, tts = date2str(self.chk_start_date[i])
+            dde, tte = date2str(self.chk_end_date[i])
             request["date"] = f"{dds}/to/{dde}"
             request["time"] = f"{tts}/to/{tte}"
             s0 = None
