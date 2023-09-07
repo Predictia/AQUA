@@ -64,14 +64,14 @@ sources:
         levtype: pl
         levelist: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600,
           700, 850, 925, 1000]
-        step: 6  # First available step
-      data_start_date: 19500101T0000
-      data_end_date: 19591231T1800
+        step: 0  # First available step
+      data_start_date: 19900101T0000
+      data_end_date: 19991231T1800
       aggregation: D  # Default aggregation / chunk size
-      savefreq: 6H
       timestep: H  # What one step means
+      savefreq: 6H
       timestyle: step
-    description: 6hourly data on r100 griddeg. Contains z(129).
+    description: 6hourly data on r100 grid. Contains z(129).
     driver: gsv
     metadata: {fdb_path: 
         /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-HISTORICAL_1990_DEVCON.yaml}
