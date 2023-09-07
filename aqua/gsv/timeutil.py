@@ -15,7 +15,7 @@ def date2str(dateobj):
         date, time (str): Date and time as a strings
     """
 
-    return dateobj.strftime('%Y%m%D'), dateobj.strftime('%H%M')
+    return dateobj.strftime('%Y%m%d'), dateobj.strftime('%H%M')
 
     
 def add_offset(data_start_date, startdate, offset, timestep):
