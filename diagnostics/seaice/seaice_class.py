@@ -1,39 +1,44 @@
-import sys
+"""Sea ice diagnostics"""
+
 import matplotlib.pyplot as plt
 import xarray as xr
 from aqua import Reader
-from aqua.util import load_yaml
+from aqua.util import load_yaml, create_folder
 from aqua.logger import log_configure
-
-sys.path.append("../")
-
-"""Sea ice diagnostics"""
 
 
 class SeaIceExtent:
     """Sea ice extent class"""
 
-    def __init__(self, loglevel="WARNING", threshold = 0.15, regions = "../regions.yml"):
+    def __init__(self, loglevel: str = 'ERROR', threshold=0.15,
+                 regions="../regions.yml", outputdir = "./NetCDF"):
         """
         The SeaIceExtent constructor.
 
         Args:
-            threshold: A float indicating the threshold for sea ice extent.
-            regions: A string indicating the path to the regions.yml file.
-            loglevel: A string indicating the log level.
+            loglevel (str):     The log level
+                                Default: WARNING
+            threshold (float):  The sea ice extent threshold
+                                Default: 0.15
+            regions (str):      The path to the regions.yml file
+                                Default: ../regions.yml
+            outputdir (str):    The path to the folder where outputs (NetCDF) will be stored
+                                Default: ./NetCDF
 
         Returns:
             A SeaIceExtent object.
+        
         """
 
         # Configure logger
         self.loglevel = loglevel
-        self.logger = log_configure(self.loglevel, 'seaice')
+        self.logger = log_configure(self.loglevel, 'Seaice')
         self.mySetups = None
         self.regionDict = load_yaml(regions)
         self.myRegions = None
         self.nRegions = None
         self.thresholdSeaIceExtent = threshold
+        self.outputdir = outputdir
 
     def configure(self,
                   mySetups=[["IFS", "tco1279-orca025-cycle3",
@@ -41,13 +46,15 @@ class SeaIceExtent:
                   myRegions=["Arctic", "Southern Ocean"]):
         """
         The configure method.
-        
+        Set the number of regions and the list of regions to analyse.
+        Set the list of setups to analyse.
+
         Args:
-            mySetups: A list of 3-item lists indicating which setups need to be plotted. A setup = model, experiment, source
-            myRegions: A list of regions to analyse, as described in the regions.yml file
+            mySetups: A list of 3-item lists indicating which setups need to be plotted.
+                      A setup = model, experiment, source
+            myRegions: A list of regions to analyse.
+                       See regions.yml file for the full list.
         
-        Returns:
-            None
         """
 
         self.nRegions = len(myRegions)
@@ -58,12 +65,17 @@ class SeaIceExtent:
         """
         The run diagnostic method.
 
-        Args:
-            mySetups:    A list of 3-item lists indicating which setups need to be plotted. A setup = model, experiment, source
-            myRegions:   A list of regions to analyse, as described in the regions.yml file
+        kwargs:
+            mySetups: A list of 3-item lists indicating which setups need to be plotted.
+                      A setup = model, experiment, source
+            myRegions: A list of regions to analyse.
+                       See regions.yml file for the full list.
 
             The method produces as output a figure with the seasonal cycles
-            of sea ice extent in the regions for the setups"""
+            of sea ice extent in the regions for the setups and a netcdf file
+            containing the time series of sea ice extent in the regions for
+            each setup.
+        """
 
         self.configure(**kwargs)
         self.computeExtent()
@@ -73,18 +85,12 @@ class SeaIceExtent:
     def computeExtent(self):
         """
         Method which computes the seaice extent.
-
-        Args:
-            None
-
-        Returns:
-            None
         """
 
         # Instantiate the various readers (one per setup) and retrieve the
         # corresponding data
         self.myExtents = list()
-        for js, setup in enumerate(self.mySetups):
+        for _, setup in enumerate(self.mySetups):
             model, exp, source = setup[0], setup[1], setup[2]
 
             # Instantiate reader
@@ -113,7 +119,7 @@ class SeaIceExtent:
             # Iterate over regions
             for jr, region in enumerate(self.myRegions):
 
-                self.logger.info("\tProducing diagnostic for region " + region)
+                self.logger.info("\tProducing diagnostic for region %s", region)
                 # Create regional mask
                 latS, latN, lonW, lonE = (
                     self.regionDict[region]["latS"],
@@ -160,12 +166,6 @@ class SeaIceExtent:
     def plotExtent(self):
         """
         Method to produce figures plotting seaice extent.
-
-        Args:
-            None
-        
-        Returns:
-            None
         """
 
         fig, ax = plt.subplots(self.nRegions, figsize=(13, 3 * self.nRegions))
@@ -186,25 +186,21 @@ class SeaIceExtent:
 
             ax[jr].set_title("Sea ice extent: region " + region)
 
-            ax[jr].legend()
+            ax[jr].legend(fontsize=8, ncols=6, loc="best")
             ax[jr].set_ylabel(extent.units)
             ax[jr].grid()
 
         fig.tight_layout()
         for fmt in ["png", "pdf"]:
-            outputDir = "./figures/" + str(fmt) + "/"
+            outputdir = "./PDF/" + str(fmt) + "/"
 
-            fig.savefig(outputDir + "figSIE." + fmt, dpi=300)
+            create_folder(outputdir, loglevel=self.loglevel)
+            figName = "SeaIceExtent_" + "all_models" + "." + fmt
+            fig.savefig(outputdir + "/" + figName, dpi=300)
 
     def createNetCDF(self):
         """
         Method to create NetCDF files.
-
-        Args:
-            None
-
-        Returns:
-            None
         """
 
         # NetCDF creation (one per setup)
@@ -222,7 +218,8 @@ class SeaIceExtent:
                     varName = f"{setup[0]}_{setup[1]}_{setup[2]}_{region.replace(' ', '')}"
                     dataset[varName] = self.myExtents[js][jr]
 
-                    outputDir = "./NetCDF/"
+                    outputdir = self.outputdir
+                    create_folder(outputdir, loglevel=self.loglevel)
 
-                    dataset.to_netcdf(outputDir + "/" + "seaIceExtent_" +
+                    dataset.to_netcdf(outputdir + "/" + "seaIceExtent_" +
                                       "_".join([s for s in setup]) + ".nc")

@@ -4,13 +4,13 @@ dataset:
   #exp: "tco2559-ng5-cycle3"
   exp: "tco1279-orca025-cycle3"
   source2d: "2D_1h_native"
-  source3d: "3D_1h6h_native"
+  source3d: "3D_1h_native"
 
 # folders for regridded data, temprorary and stored high res data
 paths: 
-  tmpdir: '/scratch/b/b382216/tmpdir'
-  fulldir: '/scratch/b/b382216/fullres'
-  plotdir: "/home/b/b382216/AQUA/AQUA/diagnostics/tropical_cyclones/Figures/"
+  tmpdir: '/home/b/b382075/work/tc/tmpdir'
+  fulldir: '/home/b/b382075/work/tc/fullres'
+  plotdir: "/home/b/b382075/work/tc/tropical_cyclones/Figures/"
 
 
 # grid on which operate

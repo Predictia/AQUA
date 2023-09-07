@@ -107,6 +107,8 @@ if __name__ == '__main__':
             cbar_label = 'msl [hPa]'
         elif telecname == 'ENSO':
             cbar_label = 'sst [K]'
+        elif telecname == 'ENSO_2t':
+            cbar_label = '2t [K]'
         else:
             cbar_label = None
 

@@ -1,7 +1,6 @@
 """Module for computing regression maps."""
 import xarray as xr
 
-from aqua.logger import log_configure
 from teleconnections.tools import _check_dim
 
 
@@ -11,13 +10,11 @@ def reg_evaluation(indx, data, dim='time'):
     and a DataArray field
 
     Args:
-        indx (DataArray):       index DataArray
-        data (DataArray):       data DataArray
+        indx (xarray.DataArray): teleconnection index
+        data (xarray.DataArray): data field
 
     Returns:
-        reg (DataArray):        DataArray for regression map
-        fig (Figure,opt):       Figure object
-        ax (Axes,opt):          Axes object
+        (xarray.DataArray):  Regression map
     """
     _check_dim(indx, dim)
     _check_dim(data, dim)
@@ -34,13 +31,13 @@ def cor_evaluation(indx, data, dim='time'):
     and a DataArray field
 
     Args:
-        indx (DataArray):       index DataArray
-        data (DataArray):       data DataArray
+        indx (xarray.DataArray):  teleconnection index
+        data (xarray.DataArray):  data field
+        dim (str,opt):            dimension along which to compute
+                                  correlation. Default is 'time'
 
     Returns:
-        cor (DataArray):        DataArray for correlation map
-        fig (Figure,opt):       Figure object
-        ax (Axes,opt):          Axes object
+        (xarray.DataArray):  Correlation map
     """
     _check_dim(indx, dim)
     _check_dim(data, dim)

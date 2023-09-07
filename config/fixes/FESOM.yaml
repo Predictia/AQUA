@@ -10,30 +10,28 @@ models:
                     - ssh
                 vars:
                     ci:
-                        derived: a_ice
+                        source: a_ice
                         src_units: frac
                         grib: true
                         units: '%'
                     sst: 
-                        derived: sst
-                        src_units: degC
+                        source: sst
                         grib: true
-                        units: K
                     sos:
-                        derived: sss
+                        source: sss
                         grib: true
                         units: psu
                     sithick:
-                        derived: m_ice
+                        source: m_ice
                         grib: true
                     zos:
-                        derived: ssh
+                        source: ssh
                         grib: true
                     ocpt:
                         source: temp 
                         src_units: degC
                         grib: true
-                        units: degC # Override units from grib tables
+                        units: degC 
                     uo:
                         source: u
                         grib: true
@@ -44,8 +42,10 @@ models:
                         source: w
                         grib: true
                     so:
+                        src_units: psu
                         source: salt
                         grib: true
+                        units: psu
                     sivn:
                         source: vice
                         grib: true

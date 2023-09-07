@@ -36,7 +36,7 @@ Available demo notebooks
 
 Notebooks are stored in diagnostics/SSH/notebooks
 
-* `ssh_example_outputs.ipynb <https://github.com/oloapinivad/AQUA/blob/devel/ssh2/diagnostics/ssh/notebooks/ssh_example_outputs.ipynb>`_
+* `ssh_example_outputs.ipynb <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/ssh/notebooks/ssh_example_outputs.ipynb>`_
 
 References
 ----------

@@ -7,6 +7,7 @@ and in particular, the location of the data.
 The best way to explain the process is to follow the example of adding some fake dataset.
 
 Let's imagine we have a dataset called `yearly_SST` that consists of the following:
+
 - 2 netCDF files, each file contains one year of data (`/data/path/1990.nc` and `/data/path/1991.nc`)
 - data are stored in 2D arrays, with dimensions `lat` and `lon`
 - coordinate variables are `lat` and `lon`, and the time variable is `time`, all one dimensional
