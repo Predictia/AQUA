@@ -32,15 +32,19 @@ def add_offset(data_start_date, startdate, offset, timestep):
         New starting date (str)
     """
 
-    if timestep.upper() in ["H", "D"] :
-        base_date = pd.Timestamp(data_start_date) + pd.Timedelta(int(offset), unit=timestep)
-    else:
-        raise ValueError("Timestep not supported")
-    startdate_obj = pd.Timestamp(startdate)
-    if startdate_obj > base_date:
-        base_date = startdate_obj
+    if int(offset) != 0:
+        if timestep.upper() in ["H", "D"] :
+            base_date = pd.Timestamp(str(data_start_date)) + pd.Timedelta(int(offset), unit=timestep)
+        else:
+            raise ValueError("Timestep not supported")
 
-    return base_date.strftime('%Y%m%dT%H%M')
+        startdate_obj = pd.Timestamp(str(startdate))
+        if startdate_obj > base_date:
+            base_date = startdate_obj
+
+        return base_date.strftime('%Y%m%dT%H%M')
+    else:
+        return startdate
 
 
 def check_dates(startdate, start_date, enddate, end_date):
