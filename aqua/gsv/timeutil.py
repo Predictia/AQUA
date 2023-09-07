@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime
 
     
-def datestr(dateobj):
+def date2str(dateobj):
     """
     Converts a date object to a date, time string representation
 
@@ -16,7 +16,32 @@ def datestr(dateobj):
     """
 
     return dateobj.strftime('%Y%m%D'), dateobj.strftime('%H%M')
+
     
+def add_offset(data_start_date, startdate, offset, timestep):
+    """
+    Sets initial date based on an offset in steps (special for DE 6h case)
+
+    Args:
+        data_start_date (datetime.datetime): Data start date
+        startdate (datetime.datetime): User-defined starting date
+        offset (int): Offset to add to data start date
+        timestep (int): Timestep to use (only H and D implemented)
+
+    Returns:
+        New starting date (str)
+    """
+
+    if timestep.upper() in ["H", "D"] :
+        base_date = pd.Timestamp(data_start_date) + pd.Timedelta(int(offset), unit=timestep)
+    else:
+        raise ValueError("Timestep not supported")
+    startdate_obj = pd.Timestamp(startdate)
+    if startdate_obj > base_date:
+        base_date = startdate_obj
+
+    return base_date.strftime('%Y%m%dT%H%M')
+
 
 def check_dates(startdate, start_date, enddate, end_date):
     """
@@ -86,6 +111,7 @@ def make_timeaxis(data_startdate, startdate, enddate, timestep=None, savefreq=No
         data_startdate (datetime.datetime): Starting date of the dataset
         startdate (datetime.datetime): Starting date of the time axis
         enddate (datetime.datetime): Ending date of the time axis
+        offset (int): An initial offset for steps (to be used e.g. for 6H data saved starting from step=6)
         timestep (str): Timestep. Can be one of H, D, M
         savefreq (str): Frequency at which the data are saved. Can be one of H, 6H, D, M
         chunkfreq (str): Frequency at which the data are to be chunked. Can be one of D, M, Y

@@ -5,7 +5,7 @@ import xarray as xr
 import dask
 from intake.source import base
 from .timeutil import check_dates, shift_time_dataset
-from .timeutil import split_date, make_timeaxis, datestr
+from .timeutil import split_date, make_timeaxis, date2str, add_offset
 
 # Test if FDB5 binary library is available
 try:
@@ -59,6 +59,11 @@ class GSVSource(base.DataSource):
             startdate = data_start_date
         if not enddate:
             enddate = data_end_date
+
+        offset = int(request["step"])  # optional initial offset for steps (in timesteps)
+
+        startdate = add_offset(data_start_date, startdate, offset, timestep)  # special for 6h: set offset startdate if needed
+        print("Startdate: ", startdate)
 
         # check if dates are within acceptable range
         check_dates(startdate, data_start_date, enddate, data_end_date)
@@ -135,8 +140,8 @@ class GSVSource(base.DataSource):
         request = self._request.copy()  # We are going to modify it
 
         if self.timestyle == "date":
-            dds, tts = datestr(self.chk_start_date)
-            dde, tte = datestr(self.chk_end_date)
+            dds, tts = date2str(self.chk_start_date)
+            dde, tte = date2str(self.chk_end_date)
             request["date"] = f"{dds}/to/{dde}"
             request["time"] = f"{tts}/to/{tte}"
             s0 = None
