@@ -240,6 +240,16 @@ class FixerMixin():
         """
         Wrapper function for decumulation, which takes into account the requirement of 
         keeping into memory the last step for streaming/fdb purposes
+
+        Args:
+            Data: Xarray Dataset
+            variables: The fixes of the variables
+            varlist: the variable dictionary with the old and new names
+            keep_memory: if to keep memory of the previous fields (used for decumulation of iterators)
+            jump: the jump for decumulation
+
+        Returns: 
+            Dataset with decumulated fixes
         """
         
         fkeep = False
