@@ -73,7 +73,7 @@ class FixerMixin():
 
         Arguments:
             data (xr.Dataset):      the input dataset
-            destvar (list of str):  the name of the desired variables to be fixed, if None all variables are fixed
+            destvar (list of str):  the name of the desired variables to be fixed, if None all available variables are fixed
             apply_unit_fix (bool):  if to perform immediately unit conversions (which requite a product or an addition).
                                     The fixer sets anyway an offset or a multiplicative factor in the data attributes.
                                     These can be applied also later with the method `apply_unit_fix`. (false)
@@ -96,7 +96,7 @@ class FixerMixin():
         # Add extra units (might be moved somewhere else, function is at the bottom of this file)
         units_extra_definition()
 
-        # if there are no fixes, return
+        # if there are no fixes defined, return
         if self.fixes is None:
             return data
 
@@ -107,23 +107,28 @@ class FixerMixin():
         self.deltat = self.fixes.get("deltat", 1.0)
         jump = self.fixes.get("jump", None)  # if to correct for a monthly accumulation jump
 
-        fixd = {} #variables dictionary for name change: only for source?
-        varlist = {} #variable dictionary for name change: what's the difference with fixd? 
-
+        fixd = {} #variables dictionary for name change: only for source
+        varlist = {} #variable dictionary for name change
         vars_to_fix = self.fixes.get("vars", None)  # variables with available fixes
 
-        # check which variables need to be fixed
+        # check which variables need to be fixed among the requested ones
         vars_to_fix = self._check_which_variables_to_fix(vars_to_fix, destvar)
 
-
-        if vars_to_fix:  # This is the list of variables to be fixed
+        if vars_to_fix:
             for var in vars_to_fix:
-                tgt_units = None
-
-                attributes, shortname = self._get_variables_grib_attributes(vars_to_fix, var)
-  
-                varlist[var] = shortname
                 
+                # get grib attributes if requested and fix name
+                grib = vars_to_fix[var].get("grib", None)
+                if grib:
+                    attributes, shortname = self._get_variables_grib_attributes(var)
+                else:
+                    attributes = {}
+                    shortname = var
+
+                # define the list of name changes
+                varlist[var] = shortname
+
+                # 1. source case
                 source = vars_to_fix[var].get("source", None)
 
                 # if we are using a gribcode as a source, convert it to shortname to access it
@@ -138,7 +143,9 @@ class FixerMixin():
                     fixd.update({f"{source}": f"{shortname}"})
                     log_history(data[source], "variable renamed by AQUA fixer")
 
+                # 2. derived case
                 formula = vars_to_fix[var].get("derived", None)
+
                 # This is a derived variable, let's compute it and create the new variable
                 if formula:
                     try:
@@ -156,6 +163,7 @@ class FixerMixin():
                 attributes.update(vars_to_fix[var].get("attributes", {}))
 
                 # update attributes
+                tgt_units = None
                 if attributes:
                     for att, value in attributes.items():
                         # Already adjust all attributes but not yet units
@@ -191,7 +199,7 @@ class FixerMixin():
 
         # decumulate if necessary
         if vars_to_fix:
-            data = self._wrapper_decumulate(data, vars_to_fix, varlist, var, keep_memory, jump)
+            data = self._wrapper_decumulate(data, vars_to_fix, varlist, keep_memory, jump)
 
         if apply_unit_fix:
             for var in data.data_vars:
@@ -222,7 +230,7 @@ class FixerMixin():
 
         return data
     
-    def _wrapper_decumulate(self, data, variables, varlist, var, keep_memory, jump):
+    def _wrapper_decumulate(self, data, variables, varlist, keep_memory, jump):
 
         """
         Wrapper function for decumulation, which takes into account the requirement of 
@@ -270,11 +278,10 @@ class FixerMixin():
         if fixer_tgt_units:
             self.logger.info('Variable %s: Overriding target units "%s" with "%s"',
                                 var, tgt_units, fixer_tgt_units)
-            #data[source].attrs.update({"units": newunits}) #THIS IS WRONG
+            return fixer_tgt_units
         else:
-            fixer_tgt_units = tgt_units
+            return tgt_units
         
-        return fixer_tgt_units
     
     def _override_src_units(self, data, variables, var, source):
 
@@ -296,7 +303,7 @@ class FixerMixin():
         
         return data
     
-    def _get_variables_grib_attributes(self, vardict, var):
+    def _get_variables_grib_attributes_old(self, vardict, var):
 
         """
         Get grib attributes for a specific variable
@@ -330,6 +337,36 @@ class FixerMixin():
                 self.logger.warning("Please check your version of eccodes")
         
         return attributes, varname
+    
+    def _get_variables_grib_attributes(self, var):
+        """
+        Get grib attributes for a specific variable
+
+        Args:
+            vardict: Variables dictionary with fixes
+            var: variable name
+
+        Returns:
+            Dictionary for attributes following GRIB convention and string with updated variable name
+        """
+        self.logger.info("Grib variable %s, looking for attributes", var)
+        try:
+            attributes = get_eccodes_attr(var)
+            shortname = attributes.get("shortName", None)
+            self.logger.info("Grib variable %s, shortname is %s", var, shortname)
+            
+            if var not in ['~', shortname]:
+                self.logger.info("For grib variable %s find eccodes shortname %s, replacing it", var, shortname)
+                var = shortname
+
+            self.logger.info("Grib attributes for %s: %s", var, attributes)
+        except TypeError:
+            self.logger.warning("Cannot get eccodes attributes for %s", var)
+            self.logger.warning("Information may be missing in the output file")
+            self.logger.warning("Please check your version of eccodes")
+
+        return attributes, var
+
     
     def _check_which_variables_to_fix(self, var2fix, destvar):
 
