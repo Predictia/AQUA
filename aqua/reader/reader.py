@@ -500,7 +500,7 @@ class Reader(FixerMixin, RegridMixin):
             yield self._timmean(ds, freq, exclude_incomplete, time_bounds)
 
 
-    def _timmean(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
+    def _timmean(self, data, freq=None, exclude_incomplete=None, time_bounds=False):
         """
         Perform daily and monthly averaging
 
@@ -509,7 +509,7 @@ class Reader(FixerMixin, RegridMixin):
             freq (str):         the frequency of the time averaging.
                                 Valid values are monthly, daily, yearly. Defaults to None.
             exclude_incomplete (bool):  Check if averages is done on complete chunks, and remove from the output
-                                        chunks which have not all the expected records.
+                                        chunks which have not all the expected records. If None, using from Reader
             time_bound (bool):  option to create the time bounds
         Returns:
             A xarray.Dataset containing the time averaged data.
@@ -517,6 +517,9 @@ class Reader(FixerMixin, RegridMixin):
 
         if freq is None:
             freq = self.freq
+        
+        if exclude_incomplete is None:
+            exclude_incomplete = self.exclude_incomplete
 
         resample_freq = frequency_string_to_pandas(freq)
 
