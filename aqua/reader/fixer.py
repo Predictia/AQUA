@@ -142,9 +142,10 @@ class FixerMixin():
                     source = get_eccodes_attr(f'var{source}')['shortName']
                 # This is a renamed variable. This will be done at the end.
                 if source:
-                    if source not in data.variables or source == shortname:
+                    if source not in data.variables:
                         continue
-                    fixd.update({f"{source}": f"{shortname}"})
+                    if source != shortname:
+                        fixd.update({f"{source}": f"{shortname}"})
                     log_history(data[source], "variable renamed by AQUA fixer")
 
                 # 2. derived case: let's compute the formula it and create the new variable
