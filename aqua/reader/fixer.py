@@ -116,41 +116,43 @@ class FixerMixin():
 
         if vars_to_fix:
             for var in vars_to_fix:
+
+                # dictionary of fixes of the single var
+                varfix = vars_to_fix[var]
                 
                 # get grib attributes if requested and fix name
-                grib = vars_to_fix[var].get("grib", None)
+                grib = varfix.get("grib", None)
                 if grib:
                     attributes, shortname = self._get_variables_grib_attributes(var)
                 else:
                     attributes = {}
                     shortname = var
 
+                # Get extra attributes from fixer, leave empty dict otherwise
+                attributes.update(varfix.get("attributes", {}))
+
                 # define the list of name changes
                 varlist[var] = shortname
 
                 # 1. source case
-                source = vars_to_fix[var].get("source", None)
-
+                source = varfix.get("source", None)
                 # if we are using a gribcode as a source, convert it to shortname to access it
                 if str(source).isdigit():
                     self.logger.info(f'The source {source} is a grib code, need to convert it')
                     source = get_eccodes_attr(f'var{source}')['shortName']
-                    
                 # This is a renamed variable. This will be done at the end.
                 if source:
-                    if source not in data.variables:
+                    if source not in data.variables or source == shortname:
                         continue
                     fixd.update({f"{source}": f"{shortname}"})
                     log_history(data[source], "variable renamed by AQUA fixer")
 
-                # 2. derived case
-                formula = vars_to_fix[var].get("derived", None)
-
-                # This is a derived variable, let's compute it and create the new variable
+                # 2. derived case: let's compute the formula it and create the new variable
+                formula = varfix.get("derived", None)
                 if formula:
                     try:
-                        data[shortname] = eval_formula(formula, data)
                         source = shortname
+                        data[source] = eval_formula(formula, data)
                         attributes.update({"derived": formula})
                         self.logger.info("Derived %s from %s", var, formula)
                         log_history(data[source], "variable derived by AQUA fixer")
@@ -158,11 +160,16 @@ class FixerMixin():
                         # The variable could not be computed, let's skip it
                         self.logger.error('Derived variable %s cannot be computed, is it available?', shortname)
                         continue
+            
+                # safe check debugging
+                self.logger.debug('Name of fixer var: %s', var)
+                self.logger.debug('Name of data source var: %s', source)
+                self.logger.debug('Name of target var: %s', shortname)
 
-                # Get extra attributes if any, leave empty dict otherwise
-                attributes.update(vars_to_fix[var].get("attributes", {}))
+                # fix source units
+                data = self._override_src_units(data, varfix, var, source)
 
-                # update attributes
+                # update attributes to the data but the units
                 tgt_units = None
                 if attributes:
                     for att, value in attributes.items():
@@ -172,8 +179,7 @@ class FixerMixin():
                         else:
                             data[source].attrs[att] = value
 
-                tgt_units = self._override_tgt_units(tgt_units, vars_to_fix, var)
-                data = self._override_src_units(data, vars_to_fix, var, source)
+                tgt_units = self._override_tgt_units(tgt_units, varfix, var)
 
                 if "units" not in data[source].attrs:  # Houston we have had a problem, no units!
                     self.logger.error('Variable %s has no units!', var)
@@ -205,9 +211,8 @@ class FixerMixin():
             for var in data.data_vars:
                 self.apply_unit_fix(data[var])
 
-        # remove variables
+        # remove variables following the fixes request
         data = self._delete_variables(data)
-
 
         # Fix coordinates according to a given data model
         src_datamodel = self.fixes.get("data_model", src_datamodel)
@@ -266,15 +271,15 @@ class FixerMixin():
             self.previous_data = data1  # keep the last timestep for further decumulations
 
         return data
-
-    def _override_tgt_units(self, tgt_units, variables, var):
+    
+    def _override_tgt_units(self, tgt_units, varfix, var):
 
         """
         Override destination units for the single variable
         """
 
         # Override destination units
-        fixer_tgt_units = variables[var].get("units", None)
+        fixer_tgt_units = varfix.get("units", None)
         if fixer_tgt_units:
             self.logger.info('Variable %s: Overriding target units "%s" with "%s"',
                                 var, tgt_units, fixer_tgt_units)
@@ -282,15 +287,14 @@ class FixerMixin():
         else:
             return tgt_units
         
-    
-    def _override_src_units(self, data, variables, var, source):
+    def _override_src_units(self, data, varfix, var, source):
 
         """
         Override source units for the single variable
         """
 
         # Override source units
-        fixer_src_units = variables[var].get("src_units", None)
+        fixer_src_units = varfix.get("src_units", None)
         if fixer_src_units:
             if "units" in data[source].attrs:
                 self.logger.info('Variable %s: Overriding source units "%s" with "%s"', 
@@ -303,40 +307,6 @@ class FixerMixin():
         
         return data
     
-    def _get_variables_grib_attributes_old(self, vardict, var):
-
-        """
-        Get grib attributes for a specific variable
-
-        Args:
-            vardict: Variables dictionary with fixes
-            var: variable name
-
-        Returns:
-            Dictionary for attributes following GRIB convention and string with updated variable name
-        """
-
-        attributes = {}
-        varname = var
-        grib = vardict[var].get("grib", None)
-        # This is a grib variable, use eccodes to find attributes
-        if grib:
-            # Get relevant eccodes attribues
-            self.logger.info("Grib variable %s, looking for attributes", var)
-            try:
-                attributes.update(get_eccodes_attr(var))
-                shortname = attributes.get("shortName", None)
-                self.logger.info("Grib variable %s, shortname is %s", varname, shortname)
-                if varname not in ['~', shortname]:
-                    self.logger.info("For grib variable %s find eccodes shortname %s, replacing it", var, shortname)
-                    varname = shortname
-                self.logger.info("Grib attributes for %s: %s", varname, attributes)
-            except TypeError:
-                self.logger.warning("Cannot get eccodes attributes for %s", var)
-                self.logger.warning("Information may be missing in the output file")
-                self.logger.warning("Please check your version of eccodes")
-        
-        return attributes, varname
     
     def _get_variables_grib_attributes(self, var):
         """
