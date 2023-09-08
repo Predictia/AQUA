@@ -110,6 +110,10 @@ class FixerMixin():
                     final_fixes[item] = {**default_fixes[item], **fixes[item]}
                 else:
                     final_fixes[item] = fixes[item]
+
+        # if method is default, roll back to default
+        elif method == 'default':
+            final_fixes = default_fixes
         
         return final_fixes
 
