@@ -95,15 +95,23 @@ class FixerMixin():
                 self.logger.warning("No fixes available for model %s, experiment %s, source %s",
                                     self.model, self.exp, self.source)
                 return None
-
+            else:
+                self.logger.warning("Using default fixes for model %s, experiment %s, source %s",
+                                    self.model, self.exp, self.source)
+                return fixes
+            
         # get method for replacement
-        method = fixes.get('method', None)
+        method = fixes.get('method', 'replace')
+        self.logger.warning("For source %s, method for fixes is: %s", self.source, method)
+
         # if nothing specified or replace method, use the fixes
-        if method == 'replace' or method is None:
+        if method == 'replace':
+            self.logger.debug("Replacing default fixes with source-specific fixes")
             final_fixes = fixes
 
         # if merge method is specified, replace/add to default fixes
         elif method == 'merge':
+            self.logger.debug("Merging default fixes with source-specific fixes")
             final_fixes = default_fixes
             for item in fixes.keys():
                 if item == 'vars':
@@ -113,6 +121,7 @@ class FixerMixin():
 
         # if method is default, roll back to default
         elif method == 'default':
+            self.logger.debug("Rolling back to default fixes")
             final_fixes = default_fixes
         
         return final_fixes
