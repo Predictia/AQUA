@@ -18,7 +18,7 @@ from aqua.logger import log_history
 class FixerMixin():
     """Fixer mixin for the Reader class"""
 
-    def find_fixes(self):
+    def find_fixes_old(self):
 
         """
         Get the fixes for the model/exp/source hierarchy.
@@ -54,6 +54,64 @@ class FixerMixin():
                                     self.model, self.exp, self.source)
                 return None
         return fixes
+    
+    def find_fixes(self):
+
+        """
+        Get the fixes for the model/exp/source hierarchy.
+
+        Args:
+            The fixer class
+
+        Return:
+            The fixer dictionary
+        """
+
+        # look for model fix
+        fix_model = self.fixes_dictionary["models"].get(self.model, None)
+        if not fix_model:
+            self.logger.warning("No fixes available for model %s",
+                                self.model)
+            return None
+        
+        # get default fixes
+        default_fix_exp = fix_model.get('default', None)
+        if default_fix_exp is not None:
+            default_fixes = default_fix_exp.get('default', None)
+
+        # look for exp fix, look for default
+        fix_exp = fix_model.get(self.exp, None)
+        if not fix_exp:
+            fix_exp = default_fix_exp
+            if not fix_exp:
+                self.logger.warning("No fixes available for model %s, experiment %s",
+                                    self.model, self.exp)
+                return None
+
+        fixes = fix_exp.get(self.source, None)
+        if not fixes:
+            fixes = default_fixes
+            if not fixes:
+                self.logger.warning("No fixes available for model %s, experiment %s, source %s",
+                                    self.model, self.exp, self.source)
+                return None
+
+        # get method for replacement
+        method = fixes.get('method', None)
+        # if nothing specified or replace method, use the fixes
+        if method == 'replace' or method is None:
+            final_fixes = fixes
+
+        # if merge method is specified, replace/add to default fixes
+        elif method == 'merge':
+            final_fixes = default_fixes
+            for item in fixes.keys():
+                if item == 'vars':
+                    final_fixes[item] = {**default_fixes[item], **fixes[item]}
+                else:
+                    final_fixes[item] = fixes[item]
+        
+        return final_fixes
 
     def fixer(self, data, var, **kwargs):
         """Call the fixer function returning container or iterator"""
