@@ -113,7 +113,7 @@ class GSVSource(base.DataSource):
             }
             schema = base.Schema(
                 datashape=None,
-                dtype=da.dtype,
+                dtype=str(da.dtype),
                 shape=da.shape,
                 name=var,
                 npartitions=self._npartitions,
@@ -121,7 +121,7 @@ class GSVSource(base.DataSource):
         else:            
             schema = base.Schema(
                 datashape=None,
-                dtype=xr.Dataset,
+                dtype=str(xr.Dataset),
                 shape=None,
                 name=None,
                 npartitions=self._npartitions,
@@ -211,7 +211,7 @@ class GSVSource(base.DataSource):
         Function to read a delayed partition.
         Returns a dask.array
         """
-        ds = dask.delayed(self._get_partition)(i)[var]
+        ds = dask.delayed(self._get_partition)(i)[var].data
         newshape = list(shape)
         newshape[self.itime] = self.chk_size[i]
         return dask.array.from_delayed(ds, newshape, dtype)
