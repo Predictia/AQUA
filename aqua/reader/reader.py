@@ -71,7 +71,7 @@ class Reader(FixerMixin, RegridMixin):
             rebuild (bool, optional): Force rebuilding of area and weight files. Defaults to False.
             loglevel (str, optional): Level of logging according to logging module. Defaults to log_level_default of loglevel().
             nproc (int,optional): Number of processes to use for weights generation. Defaults to 16.
-            aggregation (str, optional): aggregation to be used for GSV access (one of S (step), 10M, 15M, 30M, 1H, H, 3H, 6H, D, W, M, Y). Defaults to None (using default from catalogue).
+            aggregation (str, optional): aggregation/chunking to be used for GSV access (e.g. D, M, Y). Defaults to None (using default from catalogue, recommended).
             verbose (bool, optional): if to print to screen additional info (used only for FDB access at the moment)
             buffer (str or bool, optional): buffering of FDB/GSV streams in a temporary directory specified by the keyword. The result will be a dask array and not an iterator. Can be simply a boolean True for memory buffering.
 
@@ -311,7 +311,7 @@ class Reader(FixerMixin, RegridMixin):
                  apply_unit_fix=True, var=None, vars=None,
                  streaming=False, stream_step=None, stream_unit=None,
                  stream_startdate=None, streaming_generator=False,
-                 startdate=None, enddate=None, dask=False):
+                 startdate=None, enddate=None):
         """
         Perform a data retrieve.
 
@@ -341,10 +341,12 @@ class Reader(FixerMixin, RegridMixin):
             stream_startdate (str):     the starting date for streaming the
                                         data (e.g. '2020-02-25').
                                         Defaults to None
-            dask (str):                 Return a dask xarray.Dataset (EXPERIMENTAL)
         Returns:
             A xarray.Dataset containing the required data.
         """
+
+        if stream_startdate:  # In case the streaming startdate is used also for FDB copy it
+            startdate = stream_startdate
 
         # Extract subcatalogue
         if self.zoom:
@@ -375,8 +377,8 @@ class Reader(FixerMixin, RegridMixin):
             data = self.reader_esm(esmcat, loadvar)
         # If this is an fdb entry
         elif isinstance(esmcat, aqua.gsv.intake_gsv.GSVSource):
-            data = self.reader_fdb(esmcat, loadvar, startdate, enddate, dask=dask)
-            fiter = not dask  # this returs an iterator unless dask is set
+            data = self.reader_fdb(esmcat, loadvar, startdate, enddate, dask=(not streaming_generator))
+            fiter = streaming_generator  # this returs an iterator unless dask is set
         else:
             data = self.reader_intake(esmcat, var, loadvar)  # Returns a generator object
 
