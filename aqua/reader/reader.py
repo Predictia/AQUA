@@ -776,23 +776,29 @@ class Reader(FixerMixin, RegridMixin):
         if fdb_path:
             os.environ["FDB5_CONFIG_FILE"] = fdb_path
 
-        if not self.verbose:  # suppress stdout
-            text_trap = io.StringIO()
-            sys.stdout = text_trap
-
-        if self.aggregation:
-            if dask:    
-                return esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation, verbose=self.verbose).to_dask()
-            else:             
-                return esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation, verbose=self.verbose).read_chunked()
-        else:
-            if dask:
-                return esmcat(startdate=startdate, enddate=enddate, var=var, verbose=self.verbose).to_dask()
+        if dask:
+            # if not self.verbose:  # suppress output here
+            #     print("SUPPRESSING OUTPUT")
+            #     old_stdout = sys.stdout
+            #     text_trap = io.StringIO()
+            #     sys.stdout = text_trap
+            
+            if self.aggregation:
+                data = esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation, verbose=self.verbose).to_dask()
             else:
-                return esmcat(startdate=startdate, enddate=enddate, var=var, verbose=self.verbose).read_chunked()
- 
-        if not self.verbose:  # bring back stdout
-           sys.stdout = sys.__stdout__
+                data =esmcat(startdate=startdate, enddate=enddate, var=var, verbose=self.verbose).to_dask()
+
+            # if not self.verbose:  # reinstate output
+            #     sys.stdout = old_stdout
+            #     print("OUTPUT is BACK")
+
+        else:
+            if self.aggregation:
+                data = esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation, verbose=self.verbose).read_chunked()
+            else:
+                data = esmcat(startdate=startdate, enddate=enddate, var=var, verbose=self.verbose).read_chunked()
+
+        return data
 
     def reader_intake(self, esmcat, var, loadvar, keep="first"):
         """
