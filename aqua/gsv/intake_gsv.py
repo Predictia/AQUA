@@ -1,6 +1,8 @@
 """An intake driver for FDB/GSV access"""
 
 import datetime
+import sys
+import io
 import xarray as xr
 import dask
 from intake.source import base
@@ -82,6 +84,8 @@ class GSVSource(base.DataSource):
 
         self._request = request.copy()
         self._kwargs = kwargs
+
+        sys._gsv_work_counter = 0  # used to suppress printing
 
         (self.timeaxis, self.chk_start_idx,
          self.chk_start_date, self.chk_end_idx,
@@ -166,10 +170,21 @@ class GSVSource(base.DataSource):
         else:
             gsv = self.gsv  # use the one which we already created
 
+        # if self.verbose:
+        #     print("Request: ", i, self._var, s0, s1, request)
+        # else:  # suppress printing
+        #     self.nwork += 1  # increment number of active reads
+        #     print(i, self.nwork, "active")
+        #     if not self.stdout:  # am I the first one to do this?
+        #         self.stdout = sys.stdout
+        #         #self.text_trap = io.StringIO()
+        #         #sys.stdout = self.text_trap
         if self.verbose:
             print("Request: ", i, self._var, s0, s1, request)
-
-        dataset = gsv.request_data(request)
+            dataset = gsv.request_data(request)
+        else:
+            with NoPrinting():
+                dataset = gsv.request_data(request)
 
         if self.timeshift:  # shift time by one month (special case)
             dataset = shift_time_dataset(dataset)
@@ -182,6 +197,7 @@ class GSVSource(base.DataSource):
         log_history(dataset, "dataset retrieved by GSV interface")
 
         return dataset
+
 
     def read(self):
         """Return a in-memory dask dataset"""
@@ -233,12 +249,26 @@ class GSVSource(base.DataSource):
 
         return ds
 
-    # def _load(self):
-    #     self._dataset = self._get_partition(0)
+
+class NoPrinting:
+    """
+    Context manager to suppress printing
+    """
+
+    def __enter__(self):
+        sys._gsv_work_counter += 1
+        if sys._gsv_work_counter == 1 and not isinstance(sys.stdout, io.StringIO):  # We are really the first
+             sys._org_stdout = sys.stdout  # Record the original in sys
+             self._trap = io.StringIO()
+             sys.stdout = self._trap
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys._gsv_work_counter -= 1
+        if sys._gsv_work_counter == 0:  # We are really the last one
+             sys.stdout = sys._org_stdout  # Restore the original
 
 
 # This function is repeated here in order not to create a cross dependency between GSVSource and AQUA
-
 def log_history(data, msg):
     """Elementary provenance logger in the history attribute"""
 
