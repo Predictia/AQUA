@@ -206,11 +206,14 @@ class FixerMixin():
         # loop on fixes: this is done even if the underlying variables are not
         # in the required source.
 
+        # check avilable fixes
+        self.logger.debug("Fixes available for variables: %s", list(variables.keys()))
+
         if destvar and variables:  # If we have a list of variables to be fixed and fixes are available
             newkeys = list(set(variables.keys()) & set(destvar))
             if newkeys:
                 variables = {key: value for key, value in variables.items() if key in newkeys}
-                self.logger.debug("Variables to be fixed: %s", variables)
+                self.logger.debug("After selection, variables to be fixed: %s", list(variables.keys))
             else:
                 variables = None
                 self.logger.debug("No variables to be fixed")
@@ -228,11 +231,11 @@ class FixerMixin():
                     try:
                         attributes.update(get_eccodes_attr(var))
                         shortname = attributes.get("shortName", None)
-                        self.logger.info("Grib variable %s, shortname is %s", varname, shortname)
+                        self.logger.debug("Grib variable %s, shortname is %s", varname, shortname)
                         if varname not in ['~', shortname]:
-                            self.logger.info("For grib variable %s find eccodes shortname %s, replacing it", var, shortname)
+                            self.logger.debug("For grib variable %s find eccodes shortname %s, replacing it", var, shortname)
                             varname = shortname
-                        self.logger.info("Grib attributes for %s: %s", varname, attributes)
+                        self.logger.debug("Grib attributes for %s: %s", varname, attributes)
                     except TypeError:
                         self.logger.warning("Cannot get eccodes attributes for %s", var)
                         self.logger.warning("Information may be missing in the output file")

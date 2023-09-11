@@ -359,9 +359,11 @@ models:
                             long_name: Mean top net thermal radiation flux doubled # assigning a long_name
                             paramId: '999179' # assigning an (invented) paramId
             short:
-                method: default
+                method: replace
                 data_model: ifs
                 vars:
-                    tas:
+                    2t:
                         source: 2t
+                        attributes: 
+                            mickey: 'mouse'
 

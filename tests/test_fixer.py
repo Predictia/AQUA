@@ -62,4 +62,4 @@ def test_fixer_ifs_short():
 
     reader = Reader(model="IFS", exp="test-tco79", source="short")
     data = reader.retrieve()
-    assert list(data.data_vars)[0] == 'tas'
+    assert data['2t'].attrs['mickey'] == 'mouse'
