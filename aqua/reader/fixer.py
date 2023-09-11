@@ -134,7 +134,7 @@ class FixerMixin():
                     # Get relevant eccodes attribues
                     self.logger.info("Grib variable %s, looking for attributes", var)
                     try:
-                        attributes.update(get_eccodes_attr(var))
+                        attributes.update(get_eccodes_attr(var, loglevel=self.loglevel))
                         shortname = attributes.get("shortName", None)
                         self.logger.info("Grib variable %s, shortname is %s", varname, shortname)
                         if varname not in ['~', shortname]:
@@ -153,7 +153,7 @@ class FixerMixin():
                 # if we are using a gribcode as a source, convert it to shortname to access it
                 if str(source).isdigit():
                     self.logger.info(f'The source {source} is a grib code, need to convert it')
-                    source = get_eccodes_attr(f'var{source}')['shortName']
+                    source = get_eccodes_attr(f'var{source}', self.loglevel)['shortName']
                     
                 # This is a renamed variable. This will be done at the end.
                 if source:
