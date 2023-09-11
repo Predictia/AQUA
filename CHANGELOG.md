@@ -7,6 +7,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+## [v0.3]
+
+Main changes are:
+1. Fixer moved at `Reader()` level
+2. Area selection available in `fldmean()` method
+3. FDB/GSV access for IFS-NEMO development simulations
+4. Configuration file `config-aqua.yaml` replaces `config.yaml`
+
+Complete list:
 - Templates in configuration yaml files (#469)
 - Bug fixes for FDB access options (#463, #462)
 - Add observational catalogs on Lumi (Update Lumi catalog #454)
@@ -104,7 +113,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.2.1...HEAD
+[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.3...HEAD
+[v0.3]: https://github.com/oloapinivad/AQUA/compare/v0.2.1...v0.3
 [v0.2.1]: https://github.com/oloapinivad/AQUA/compare/v0.2...v0.2.1
 [v0.2]: https://github.com/oloapinivad/AQUA/compare/v0.2-beta...v0.2
 [v0.2-beta]: https://github.com/oloapinivad/AQUA/compare/v0.2-alpha...v0.2-beta
