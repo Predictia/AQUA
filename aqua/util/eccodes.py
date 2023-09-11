@@ -4,8 +4,6 @@ import eccodes
 from ruamel.yaml import YAML
 from aqua.logger import log_configure
 
-logger = log_configure(log_level='WARNING', log_name='eccodes')
-
 # Currently not used
 def read_eccodes_dic(filename):
     """
@@ -71,15 +69,17 @@ def _init_get_eccodes_attr():
     cfvarname = read_eccodes_def("cfVarName.def")
     units = read_eccodes_def("units.def")
 
-    def _get_eccodes_attr(sn):
+    def _get_eccodes_attr(sn, loglevel='warning'):
         """
         Recover eccodes attributes for a given short name
 
         Args:
             shortname(str): the shortname to search
+            loglevel (str): the loggin level
         Returns:
             A dictionary containing param, long_name, units, short_name
         """
+        logger = log_configure(log_level=loglevel, log_name='eccodes')
         nonlocal shortname, paramid, name, cfname, cfvarname, units
         try:
             if sn.startswith("var"):
