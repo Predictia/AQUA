@@ -46,6 +46,10 @@ class FixerMixin():
 
         # put fixes together
         fixes = self._combine_fixes(default_fixes, model_fixes)
+   
+        # if None or using default fixes, just return and save time
+        if fixes is None or fixes == default_fixes:
+            return fixes
 
         # get method for replacement: replace is the default
         method = fixes.get('method', 'replace')
@@ -72,7 +76,7 @@ class FixerMixin():
             final_fixes = default_fixes
 
         self.logger.debug('Final fixes are: %s', final_fixes)
-        
+ 
         return final_fixes
     
     def _combine_fixes(self, default_fixes, fixes):
