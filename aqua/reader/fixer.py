@@ -17,44 +17,7 @@ from aqua.logger import log_history
 
 class FixerMixin():
     """Fixer mixin for the Reader class"""
-
-    def find_fixes_old(self):
-
-        """
-        Get the fixes for the model/exp/source hierarchy.
-
-        Args:
-            The fixer class
-
-        Return:
-            The fixer dictionary
-        """
-
-        # look for model fix
-        fix_model = self.fixes_dictionary["models"].get(self.model, None)
-        if not fix_model:
-            self.logger.warning("No fixes available for model %s",
-                                self.model)
-            return None
-
-        # look for exp fix, look for default
-        fix_exp = fix_model.get(self.exp, None)
-        if not fix_exp:
-            fix_exp = fix_model.get('default', None)
-            if not fix_exp:
-                self.logger.warning("No fixes available for model %s, experiment %s",
-                                    self.model, self.exp)
-                return None
-
-        fixes = fix_exp.get(self.source, None)
-        if not fixes:
-            fixes = fix_exp.get('default', None)
-            if not fixes:
-                self.logger.warning("No fixes available for model %s, experiment %s, source %s",
-                                    self.model, self.exp, self.source)
-                return None
-        return fixes
-    
+  
     def find_fixes(self):
 
         """
@@ -74,10 +37,20 @@ class FixerMixin():
                                 self.model)
             return None
         
-        # get default fixes
+        # get default fixes: they could be written at the default experiment 
+        # or the default source level. If none of this is found, set as None
         default_fix_exp = fix_model.get('default', None)
-        if default_fix_exp is not None:
-            default_fixes = default_fix_exp.get('default', None)
+        if default_fix_exp is None:
+            default_fixes = None
+        else:
+            if 'default' in default_fix_exp:
+                default_fixes = default_fix_exp.get('default', None)
+            else:
+                default_fixes = default_fix_exp
+
+        if default_fixes is None:
+            self.logger.info("No default fixes available for model %s", self.model)
+            
 
         # look for exp fix, look for default
         fix_exp = fix_model.get(self.exp, None)
@@ -90,15 +63,17 @@ class FixerMixin():
 
         fixes = fix_exp.get(self.source, None)
         if not fixes:
-            fixes = default_fixes
+            fixes = fix_exp.get('default', None)
             if not fixes:
-                self.logger.warning("No fixes available for model %s, experiment %s, source %s",
+                fixes = default_fixes
+                if not fixes:
+                    self.logger.warning("No fixes available for model %s, experiment %s, source %s",
+                                        self.model, self.exp, self.source)
+                    return None
+                else:
+                    self.logger.warning("Using default fixes for model %s, experiment %s, source %s",
                                     self.model, self.exp, self.source)
-                return None
-            else:
-                self.logger.warning("Using default fixes for model %s, experiment %s, source %s",
-                                    self.model, self.exp, self.source)
-                return fixes
+                    return fixes
             
         # get method for replacement
         method = fixes.get('method', 'replace')
@@ -123,6 +98,8 @@ class FixerMixin():
         elif method == 'default':
             self.logger.debug("Rolling back to default fixes")
             final_fixes = default_fixes
+
+        self.logger.debug('Final fixes are: %s', final_fixes)
         
         return final_fixes
 
