@@ -5,9 +5,9 @@ import re
 import json
 import warnings
 import types
+from datetime import timedelta
 import xarray as xr
 import numpy as np
-from datetime import timedelta
 import cf2cdm
 from metpy.units import units
 
@@ -36,46 +36,18 @@ class FixerMixin():
             self.logger.warning("No fixes available for model %s",
                                 self.model)
             return None
-        
-        # get default fixes: they could be written at the default experiment 
+
+        # get default fixes: they could be written at the default experiment
         # or the default source level. If none of this is found, set as None
-        default_fix_exp = fix_model.get('default', None)
-        if default_fix_exp is None:
-            default_fixes = None
-        else:
-            if 'default' in default_fix_exp:
-                default_fixes = default_fix_exp.get('default', None)
-            else:
-                default_fixes = default_fix_exp
+        default_fixes = self._load_default_fixes(fix_model)
 
-        if default_fixes is None:
-            self.logger.info("No default fixes available for model %s", self.model)
-            
+        # browse for model/source fixes
+        model_fixes = self._load_source_fixes(fix_model)
 
-        # look for exp fix, look for default
-        fix_exp = fix_model.get(self.exp, None)
-        if not fix_exp:
-            fix_exp = default_fix_exp
-            if not fix_exp:
-                self.logger.warning("No fixes available for model %s, experiment %s",
-                                    self.model, self.exp)
-                return None
+        # put fixes together
+        fixes = self._combine_fixes(default_fixes, model_fixes)
 
-        fixes = fix_exp.get(self.source, None)
-        if not fixes:
-            fixes = fix_exp.get('default', None)
-            if not fixes:
-                fixes = default_fixes
-                if not fixes:
-                    self.logger.warning("No fixes available for model %s, experiment %s, source %s",
-                                        self.model, self.exp, self.source)
-                    return None
-                else:
-                    self.logger.warning("Using default fixes for model %s, experiment %s, source %s",
-                                    self.model, self.exp, self.source)
-                    return fixes
-            
-        # get method for replacement
+        # get method for replacement: replace is the default
         method = fixes.get('method', 'replace')
         self.logger.warning("For source %s, method for fixes is: %s", self.source, method)
 
@@ -102,6 +74,72 @@ class FixerMixin():
         self.logger.debug('Final fixes are: %s', final_fixes)
         
         return final_fixes
+    
+    def _combine_fixes(self, default_fixes, fixes):
+
+        """Combine fixes from the default or the source/model specific"""
+
+        if fixes is None:
+            if default_fixes is None:
+                self.logger.warning("No default fixes found! No fixes available for model %s, experiment %s, source %s",
+                                    self.model, self.exp, self.source)
+                return None
+            
+            self.logger.info("Default model %s fixes found! Using it for experiment %s, source %s",
+                                self.model, self.exp, self.source)
+            return default_fixes
+        else:
+            return fixes
+    
+    def _load_source_fixes(self, fix_model):
+
+        """Browse for source/model specific fixes, return None if not found"""
+
+        # look for exp fix, if not found, set default fixes
+        fix_exp = fix_model.get(self.exp, None)
+        if fix_exp is None:
+            self.logger.info("No specific fixes available for model %s, experiment %s",
+                             self.model, self.exp)
+            return None
+        
+        fixes = fix_exp.get(self.source, None)
+        if fixes is None:
+            self.logger.info("No specific fixes available for model %s, experiment %s, source %s: checking for model default...",
+                             self.model, self.exp, self.source)
+            fixes = fix_exp.get('default', None)
+            if fixes is None:
+                self.logger.info("Nothing found! I will try with model default fixes...")
+            else:
+                self.logger.info("Using default for model %s, experiment %s", self.model, self.exp)
+
+
+
+        return fixes
+    
+    def _load_default_fixes(self, fix_model):
+            
+        """
+        Brief function to load the deafult fixes of single model.
+        It looks at both the model and the experiment level. 
+        If default fixes are not found, return None
+
+        Args:
+            fix_model: The model dictionary of fixes
+
+        Returns:
+            dictionary of the default fixes
+        """
+
+        default_fix_exp = fix_model.get('default', None)
+        if default_fix_exp is None:
+            default_fixes = None
+        else:
+            if 'default' in default_fix_exp:
+                default_fixes = default_fix_exp.get('default', None)
+            else:
+                default_fixes = default_fix_exp
+    
+        return default_fixes
 
     def fixer(self, data, var, **kwargs):
         """Call the fixer function returning container or iterator"""
