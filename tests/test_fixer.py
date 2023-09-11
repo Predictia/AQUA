@@ -6,7 +6,7 @@ from aqua import Reader
 
 @pytest.mark.aqua
 # @pytest.mark.skip(reason="excluded from GH actions")
-def test_fixer():
+def test_fixer_ifs_long():
     """Test basic fixing"""
 
     ntime = [10, 20, 1000]  # points in time to be checked (includes 1 month jump)
@@ -20,7 +20,7 @@ def test_fixer():
     assert pytest.approx(ttr0.values) == [-6969528.64626286, -14032413.9597565, -9054387.41655567]
 
     # Now let's fix
-    reader1 = Reader(model="IFS", exp="test-tco79", source="long", fix=True)
+    reader1 = Reader(model="IFS", exp="test-tco79", source="long", loglevel='debug')
     data1 = reader1.retrieve()  # Retrieve fixed data
     ttr1 = data1.ttr[ntime, 0, 0]
     tas1 = data1['skt'][ntime, 5, 5]
@@ -55,3 +55,11 @@ def test_fixer():
     assert mtntrf2.attrs['units_fixed'] == 1
     assert mtntrf2.attrs['units'] == 'W m-2'  # these were coded by hand
     assert mtntrf2.attrs['long_name'] == 'Mean top net thermal radiation flux doubled'
+
+def test_fixer_ifs_short():
+
+    """Check alternative fix with replace method"""
+
+    reader = Reader(model="IFS", exp="test-tco79", source="short")
+    data = reader.retrieve()
+    assert list(data.data_vars)[0] == 'tas'

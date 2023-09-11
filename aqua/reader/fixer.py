@@ -115,6 +115,8 @@ class FixerMixin():
                 self.logger.info("Nothing found! I will try with model default fixes...")
             else:
                 self.logger.info("Using default for model %s, experiment %s", self.model, self.exp)
+        else:
+            self.logger.info("Fixes found for model %s, experiment %s, source %s", self.model, self.exp, self.source)
 
 
 

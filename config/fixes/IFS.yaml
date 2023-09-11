@@ -335,7 +335,7 @@ models:
         # These are for tests
         test-tco79:
             long:
-                method: replace #replace #merge
+                method: merge #replace #merge
                 data_model: ifs
                 deltat: 3600
                 jump: month
@@ -358,3 +358,10 @@ models:
                         attributes:
                             long_name: Mean top net thermal radiation flux doubled # assigning a long_name
                             paramId: '999179' # assigning an (invented) paramId
+            short:
+                method: default
+                data_model: ifs
+                vars:
+                    tas:
+                        source: 2t
+
