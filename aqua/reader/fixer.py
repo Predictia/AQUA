@@ -213,7 +213,7 @@ class FixerMixin():
             newkeys = list(set(variables.keys()) & set(destvar))
             if newkeys:
                 variables = {key: value for key, value in variables.items() if key in newkeys}
-                self.logger.debug("After selection, variables to be fixed: %s", list(variables.keys))
+                #self.logger.debug("After selection, variables to be fixed: %s", list(variables.keys))
             else:
                 variables = None
                 self.logger.debug("No variables to be fixed")
