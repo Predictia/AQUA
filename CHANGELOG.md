@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased is the current development version.
 
 - Xarray dask access to FDB (#476)
+
+## [v0.3]
+
+Main changes are:
+1. Fixer moved at `Reader()` level
+2. Area selection available in `fldmean()` method
+3. FDB/GSV access for IFS-NEMO development simulations
+4. Configuration file `config-aqua.yaml` replaces `config.yaml`
+
+Complete list:
 - Templates in configuration yaml files (#469)
 - Bug fixes for FDB access options (#463, #462)
 - Add observational catalogs on Lumi (Update Lumi catalog #454)
@@ -21,7 +31,7 @@ Unreleased is the current development version.
 - Allow the LRA generator to work with generators and so with FDB (LRA from fdb on mafalda #430)
 - Fixes only on selected variables (Fixer updates #428)
 - Complete revision of the FDB/GSV access, allowing to access also recent experiments using variable step (#343)
-- Teleconnections diagnostic adapted to new code improvements (Teleconnections Dev branch update #424)
+- Teleconnections diagnostic adapted to new code improvements (Teleconnections Dev branch update #424, #465)
 - Add support for area selection with fldmean (Fldmean box selection #409)
 - Environment simplified, dependencies are now mostly on the pyproject file (A simpler environment.yml #286)
 - Intake esm functionality added back (Fix intake-esm #287)
@@ -105,7 +115,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.2.1...HEAD
+[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.3...HEAD
+[v0.3]: https://github.com/oloapinivad/AQUA/compare/v0.2.1...v0.3
 [v0.2.1]: https://github.com/oloapinivad/AQUA/compare/v0.2...v0.2.1
 [v0.2]: https://github.com/oloapinivad/AQUA/compare/v0.2-beta...v0.2
 [v0.2-beta]: https://github.com/oloapinivad/AQUA/compare/v0.2-alpha...v0.2-beta
