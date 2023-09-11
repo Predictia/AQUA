@@ -91,7 +91,7 @@ If you check the details of the path in Python, you may see this :
       >>> import sys
       >>> sys.path
       ['', '/opt/conda/lib/python3.10/site-packages', '/opt/conda/lib/python310.zip', '/opt/conda/lib/python3.10',
-      '/opt/conda/lib/python3.10/lib-dynload', '__editable__.aqua-0.2.finder.__path_hook__',
+      '/opt/conda/lib/python3.10/lib-dynload', '__editable__.aqua-0.3.finder.__path_hook__',
       '__editable__.teleconnections-0.0.9.finder.__path_hook__']
       >>> import aqua
       >>> aqua.__file__
@@ -131,7 +131,7 @@ You can customize it according to your needs.
    #SBATCH --error=aqua_slurm.err
    #SBATCH -p dev-g    # Change the partition
 
-   AQUA_container=/project/project_465000454/containers/aqua/aqua-v0.2.sif
+   AQUA_container=/project/project_465000454/containers/aqua/aqua-v0.3.sif
    FDB5_CONFIG_FILE=/scratch/project_465000454/igonzalez/fdb-long/config.yaml  # Change it to your simulation
    GSV_WEIGHTS_PATH=/scratch/project_465000454/igonzalez/gsv_weights/
    GRID_DEFINITION_PATH=/scratch/project_465000454/igonzalez/grid_definitions
@@ -145,7 +145,7 @@ You can customize it according to your needs.
        --env ESMFMKFILE=/opt/conda/lib/esmf.mk  \
        --bind /pfs/lustrep3/scratch/project_465000454  \
        --bind /scratch/project_465000454  \
-       /project/project_465000454/containers/aqua/aqua-v0.2.sif \
+       /project/project_465000454/containers/aqua/aqua-v0.3.sif \
        bash -c \
        ' 
        # You can edit the code below for your required script.
