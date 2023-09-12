@@ -34,6 +34,11 @@ source_grids:
         extra: 
           - -setgrid,../AQUA_tests_short/grids/pi_griddes_nodes_IFS.nc 
           - -selname,cell_area
+    historical-1990-fesom:
+      original_2d:
+        path: $grids/FESOM/AQUA_NG5_griddes_nodes_IFS.nc
+        space_coord:
+        - nod2
 
   IFS:
     tco399-orca025:
