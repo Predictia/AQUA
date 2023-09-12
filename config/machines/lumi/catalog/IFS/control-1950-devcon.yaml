@@ -91,8 +91,7 @@ sources:
       timestep: H
       timestyle: step
       timeshift: -M    # shift time of resulting xarray by this amount
-    description: monthly data on r100 grid. Contains tprate(260048), 2t(167), tcc(164),
-      sd(141), tciw(79), tclw(78), msl(151), tcwv(137), lcc(186), mcc(187), hcc(188).
+    description: monthly data on r100 grid. Contains tcc(164), sd(141), tciw(79), tclw(78), msl(151), tcwv(137), lcc(186), mcc(187), hcc(188).
     driver: gsv
     metadata: {fdb_path: 
         /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-CONTROL_1950_DEVCON.yaml}

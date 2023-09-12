@@ -22,7 +22,7 @@ Complete list:
 - Automatic finding of cdo (#456)
 - Area is fixed if data are fixed (Fixer applied to grid areas #442)
 - Tests missing failure fix (Fix #436 CI workflow passes even if some tests fail #452)
-- FDB/GSV access to IFS control and historical simulations (#434)
+- FDB/GSV access to IFS control and historical simulations (#434, #458)
 - Climatology support restored in the Reader (Fix for climatology #445)
 - Improvement function to inspect the catalogue (Inspect_catalogue improvement #446)
 - Minor improvements of the gribber (Fix gribber fdb #427)
