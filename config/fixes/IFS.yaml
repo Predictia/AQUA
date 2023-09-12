@@ -92,6 +92,10 @@ models:
                         source: nsss
                         grib: true
                         decumulate: true
+                    surfror:  # a very recent version of eccodes is needed for this one
+                        source: sro
+                        grib: true
+                        decumulate: true 
         tco2559-ng5-cycle3:
         # for this exp we have a lot of output from MultI/O, already decumulated and
         # averaged monthly, so default is without decumulation
@@ -243,28 +247,21 @@ models:
                         grib: true  
             2D_1h_native: 
                 method: default
+
+        # this should be exatly the same but we have tprate without decumulation         
         control-1950-devcon:
             hourly-1deg:
                 method: merge
-                data_model: ifs
-                deltat: 3600
-                jump: month
                 vars:
-                    surfror:  # a very recent version of eccodes is needed for this one
-                        source: sro
-                        grib: true
-                        decumulate: true 
+                    tprate: 
+                        source: tprate
+        # this should be exatly the same but we have tprate without decumulation     
         historical-1990-devcon:
             hourly-1deg:
                 method: merge
-                data_model: ifs
-                deltat: 3600
-                jump: month
                 vars:
-                    surfror:  # a very recent version of eccodes is needed for this one
-                        source: sro
-                        grib: true
-                        decumulate: true
+                    tprate:  # a very recent version of eccodes is needed for this one
+                        source: tprate
 
         # These are for tests
         test-tco79:
