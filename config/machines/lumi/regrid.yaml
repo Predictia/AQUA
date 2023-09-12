@@ -71,6 +71,20 @@ source_grids:
         space_coord: ["lon", "lat"]
       lra-r100-monthly:
         space_coord: ["lon", "lat"]
+    historical-1990-fesom:
+      default:
+        space_coord: ["ncells"]
+        support_dims: ["cell_corners"]  # dimensions to keep when selecting a single spatial sample
+      hourly-1deg:
+        space_coord: ["lon", "lat"]
+      6hourly-1deg:
+        space_coord: ["lon", "lat"]
+      monthly-1deg-2d:
+        space_coord: ["lon", "lat"]
+      monthly-1deg-3d:
+        space_coord: ["lon", "lat"]
+      lra-r100-monthly:
+        space_coord: ["lon", "lat"]
     historical-1990-devcon:
       default:
         space_coord: ["ncells"]
