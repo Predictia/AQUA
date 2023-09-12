@@ -35,10 +35,23 @@ source_grids:
           - -setgrid,../AQUA_tests_short/grids/pi_griddes_nodes_IFS.nc 
           - -selname,cell_area
     historical-1990-fesom:
-      original_2d:
+      monthly-original-2d:
         path: $grids/FESOM/AQUA_NG5_griddes_nodes_IFS.nc
         space_coord:
         - nod2
+      daily-original-2d:
+        path: $grids/FESOM/AQUA_NG5_griddes_nodes_IFS.nc
+        space_coord:
+          - nod2
+      monthly-original-3d:
+        path:
+          nz: $grids/FESOM/NG5_nodes_fesom_mask_nz.nc
+          nz1: $grids/FESOM/NG5_nodes_fesom_mask_nz1.nc
+        space_coord: ["nod2"]
+        vert_coord: ["nz", "nz1"]
+        extra: 
+          - -setgrid,$grids/FESOM/NG5_griddes_nodes_IFS.nc 
+
 
   IFS:
     tco399-orca025:
