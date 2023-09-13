@@ -779,19 +779,6 @@ class Reader(FixerMixin, RegridMixin):
 
     def reader_fdb(self, esmcat, var, startdate, enddate):
         """Read fdb data. Returns an iterator."""
-        # These are all needed in theory
-
-        # fdb_path = esmcat.metadata.get('fdb_path', None)
-        # if fdb_path:
-        #     os.environ["FDB5_CONFIG_FILE"] = fdb_path
-        #     self.logger.info("Setting FDB5_CONFIG_FILE to %s", fdb_path)
-        # eccodes_path = esmcat.metadata.get('eccodes_path', None)
-
-        # if eccodes_path and (eccodes_path != self.eccodes_path):  # unless we have already switched
-        #     self.eccodes_path = eccodes_path
-        #     # eccodes.codes_context_delete()
-        #     eccodes.codes_set_definitions_path(eccodes_path)
-        #     self.logger.info("Setting ECCODES_DEFINITION_PATH to %s", eccodes_path)
 
         if self.aggregation:
             return esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation, verbose=self.verbose).read_chunked()
