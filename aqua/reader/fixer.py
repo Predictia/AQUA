@@ -53,7 +53,7 @@ class FixerMixin():
 
         # get method for replacement: replace is the default
         method = fixes.get('method', 'replace')
-        self.logger.warning("For source %s, method for fixes is: %s", self.source, method)
+        self.logger.info("For source %s, method for fixes is: %s", self.source, method)
 
         # if nothing specified or replace method, use the fixes
         if method == 'replace':

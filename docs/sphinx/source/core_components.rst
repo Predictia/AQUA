@@ -186,12 +186,12 @@ In the `fixer` folder, it is also possible to specify in a flexible way custom d
                 units: mm day-1
                 long_name: My own test precipitation in mm / day
 
-When adding the fixes for a new source/experiment, it is possible to exploit of the `default` provided. However, in some cases more fine tuning might be required. In order to do so, since AQUA v0.3 it is possible to specify the `method` key in the fix, so that it allows for 
+When adding the fixes for a new source/experiment, it is possible to exploit of the `default` provided. However, in some cases more fine tuning might be required. In order to do so, since AQUA v0.4 it is possible to specify the `method` key in the fix, so that it allows for 
 three different fixing strategies:
 
-- `replace``: use the source-specific fixes overriding the default ones. If you do not specify anything, this is the basic behaviour.
-- `merge`: merge the source-specific fixes with the default ones, with priority for the former.
-- `default``: for this specific source, roll back to default fixes. This might be necessary if a default fix exists for a specific experiment.
+- `replace`: use the source-specific fixes overriding the default ones. If you do not specify anything, this is the basic behaviour.
+- `merge`: merge the source-specific fixes with the default ones, with priority for the former. It can be used if the most of fixes from default are good, but something different in the specific source is required.
+- `default`: for this specific source, roll back to default fixes. This might be necessary if a default fix exists for a specific experiment and it should not be used in a specific source.
 
 
 Streaming simulation
