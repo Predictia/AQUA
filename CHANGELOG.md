@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Issue a warning when multiple gribcodes are associated to the same shortname (Cases for multiple eccodes grib codes #483)
+
 ## [v0.3]
 
 Main changes are:
