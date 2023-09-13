@@ -4,6 +4,7 @@ import pytest
 import xarray as xr
 from aqua import OPAgenerator, Reader
 
+loglevel = "DEBUG"
 
 @pytest.fixture(
     params=[("IFS", "test-tco79", "long", "2t", "onepass_test",
@@ -22,7 +23,7 @@ class TestOPA():
         model, exp, source, var, outdir, tmpdir = opa_arguments
         opaopa = OPAgenerator(model=model, exp=exp, source=source, var=var,
                               frequency='daily', outdir=outdir, tmpdir=tmpdir,
-                              definitive=False)
+                              definitive=False, loglevel=loglevel)
         opaopa.retrieve()
         opaopa.generate_opa()
         assert os.path.isdir(os.path.join(os.getcwd(), outdir,
@@ -33,7 +34,7 @@ class TestOPA():
         model, exp, source, var, outdir, tmpdir = opa_arguments
         opaopa = OPAgenerator(model=model, exp=exp, source=source, var=var,
                               frequency='dailly', outdir=outdir, tmpdir=tmpdir,
-                              definitive=False, checkpoint=False)
+                              definitive=False, checkpoint=False, loglevel=loglevel)
         opaopa.retrieve()
         opaopa.generate_opa()
         assert os.path.isdir(os.path.join(os.getcwd(), outdir,
@@ -44,7 +45,7 @@ class TestOPA():
         model, exp, source, var, outdir, tmpdir = opa_arguments
         opaopa = OPAgenerator(model=model, exp=exp, source=source, var=var,
                               frequency='monthly', outdir=outdir,
-                              tmpdir=tmpdir, definitive=True)
+                              tmpdir=tmpdir, definitive=True, loglevel=loglevel)
         opaopa.retrieve()
         opaopa.generate_opa()
 
