@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Allowing fixer to overwrite or merge default configuration (Increasing flexibiity of the fixer allowing for merge, replace and default options #480)
 - Added new tests (Increase testing #250)
 - Global time series diagnostic setup for multiple variables CLI (#474)
 - Option to avoid incomplete chunk when averagin with timmean (Introduce check for chunk completeness in timmean() #466)
