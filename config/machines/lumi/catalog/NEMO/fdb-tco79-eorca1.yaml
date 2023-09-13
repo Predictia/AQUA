@@ -1,0 +1,25 @@
+  sources: 
+    monthly-native-3d:
+      args:
+        request:
+          domain: g
+          class: rd
+          expver: a08t
+          type: fc
+          stream: monr
+          date: 19500101
+          time: '0000'
+          param: 263501
+          levtype: o3d
+          levelist: [1,10,20,30,40,45,50,55,60,65,70,75]
+          step: 0
+        data_start_date: '19500101'
+        data_end_date: '19500601'
+        aggregation: M  # Default aggregation if timestep=S is used
+        timestep: H
+        timestyle: step
+        timeshift: -M    # shift time of resulting xarray by this amount
+      description: monthly data on r100 grid. Contains avg_thetao (263501) and avg_so (263500)
+      driver: gsv
+      metadata: {fdb_path: 
+          /scratch/project_465000454/bjimenez/gsv_interface/config.yaml}
