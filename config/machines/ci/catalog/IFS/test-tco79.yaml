@@ -27,4 +27,13 @@ sources:
       query:
         experiment: historical
         frequency: hourly
+  teleconnections:
+    args:
+      chunks:
+        time: 1
+      urlpath:
+      - ./AQUA_tests/models/IFS/teleconnections/nao_test.nc
+      - ./AQUA_tests/models/IFS/teleconnections/enso_test.nc
+    description: teleconnections catalogue
+    driver: netcdf
 

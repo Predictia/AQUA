@@ -4,6 +4,7 @@ import pytest
 import xarray as xr
 from aqua import LRAgenerator
 
+loglevel = "DEBUG"
 
 @pytest.fixture(
     params=[("IFS", "test-tco79", "long", "2t", "lra_test")]
@@ -21,7 +22,7 @@ class TestLRA():
         model, exp, source, var, outdir = lra_arguments
         test = LRAgenerator(model=model, exp=exp, source=source, var=var,
                             outdir=outdir, resolution='r100',
-                            frequency='monthly')
+                            frequency='monthly', loglevel=loglevel)
         test.retrieve()
         test.generate_lra()
         assert os.path.isdir(os.path.join(os.getcwd(), outdir,
@@ -32,7 +33,8 @@ class TestLRA():
         model, exp, source, var, outdir = lra_arguments
         test = LRAgenerator(model=model, exp=exp, source=source, var=var,
                             outdir=outdir, resolution='r100',
-                            frequency='monthly', definitive=True)
+                            frequency='monthly', definitive=True,
+                            loglevel=loglevel)
         test.retrieve()
 
         year = test.data.sel(time=test.data.time.dt.year == 2020)
@@ -42,7 +44,7 @@ class TestLRA():
         test.generate_lra()
 
         path = os.path.join(os.getcwd(), outdir,
-                            "IFS/test-tco79/r100/monthly/2t_test-tco79_r100_monthly_2020.nc")
+                            "IFS/test-tco79/r100/monthly/2t_test-tco79_r100_monthly_202001.nc")
         test.check_integrity(varname=var)
         assert os.path.isfile(path)
 
@@ -52,6 +54,7 @@ class TestLRA():
         assert pytest.approx(file['2t'][0, 1, 1].item()) == 248.0704
         shutil.rmtree(os.path.join(os.getcwd(), outdir))
 
+    # test with definitive = False but with dask init and catalog generator
     def test_dask_entry(self, lra_arguments):
         """
         Test the LRA generator with definitive = False
@@ -60,7 +63,8 @@ class TestLRA():
         model, exp, source, var, outdir = lra_arguments
         test = LRAgenerator(model=model, exp=exp, source=source, var=var,
                             outdir=outdir, tmpdir='tmpdir',
-                            resolution='r100', frequency='monthly', nproc=2)
+                            resolution='r100', frequency='monthly', nproc=2,
+                            loglevel=loglevel)
         test.retrieve()
         test.generate_lra()
         test.create_catalog_entry()
