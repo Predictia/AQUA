@@ -140,6 +140,30 @@ class Reader(FixerMixin, RegridMixin):
         # check that you defined zoom in a correct way
         self.zoom = self._check_zoom(zoom)
 
+        # check if this is a FDB source
+        if self.zoom:
+            self.esmcat = self.cat[self.model][self.exp][self.source](zoom=self.zoom)
+        else:
+            self.esmcat = self.cat[self.model][self.exp][self.source]
+    
+        if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
+            fdb_path = self.esmcat.metadata.get('fdb_path', None)
+            if fdb_path:
+                os.environ["FDB5_CONFIG_FILE"] = fdb_path
+                self.logger.info("Setting FDB5_CONFIG_FILE to %s", fdb_path)
+
+            eccodes_path = self.esmcat.metadata.get('eccodes_path', None)
+            if hasattr(eccodes, "old_eccodes_path"):
+                old_eccodes_path = eccodes.old_eccodes_path
+            else:
+                old_eccodes_path = None
+
+            if eccodes_path and (eccodes_path != old_eccodes_path):  # unless we have already switched
+                eccodes.old_eccodes_path = eccodes_path  # store directly in eccodes
+                eccodes.codes_context_delete()  # flush old definitions in cache
+                eccodes.codes_set_definitions_path(eccodes_path)
+                self.logger.info("Setting ECCODES_DEFINITION_PATH to %s", eccodes_path)
+
         # get fixes dictionary and find them
         self.fix = fix # fix activation flag
         if self.fix:
@@ -348,12 +372,6 @@ class Reader(FixerMixin, RegridMixin):
             A xarray.Dataset containing the required data.
         """
 
-        # Extract subcatalogue
-        if self.zoom:
-            esmcat = self.cat[self.model][self.exp][self.source](zoom=self.zoom)
-        else:
-            esmcat = self.cat[self.model][self.exp][self.source]
-
         if vars:
             var = vars
 
@@ -364,8 +382,8 @@ class Reader(FixerMixin, RegridMixin):
             self.logger.info("Retrieving variables: %s", var)
             loadvar = self.get_fixer_varname(var) if self.fix else var
         else:
-            if isinstance(esmcat, aqua.gsv.intake_gsv.GSVSource):  # If we are retrieving from fdb we have to specify the var
-                var = [esmcat.request['param']]  # retrieve var from catalogue
+            if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):  # If we are retrieving from fdb we have to specify the var
+                var = [self.esmcat.request['param']]  # retrieve var from catalogue
                 self.logger.info(f"FDB source, setting default variable to {var[0]}")
                 loadvar = self.get_fixer_varname(var) if self.fix else var
             else:
@@ -373,14 +391,14 @@ class Reader(FixerMixin, RegridMixin):
 
         fiter = False
         # If this is an ESM-intake catalogue use first dictionary value,
-        if isinstance(esmcat, intake_esm.core.esm_datastore):
-            data = self.reader_esm(esmcat, loadvar)
+        if isinstance(self.esmcat, intake_esm.core.esm_datastore):
+            data = self.reader_esm(self.esmcat, loadvar)
         # If this is an fdb entry
-        elif isinstance(esmcat, aqua.gsv.intake_gsv.GSVSource):
-            data = self.reader_fdb(esmcat, loadvar, startdate, enddate)
+        elif isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
+            data = self.reader_fdb(self.esmcat, loadvar, startdate, enddate)
             fiter = True  # this returs an iterator
         else:
-            data = self.reader_intake(esmcat, var, loadvar)  # Returns a generator object
+            data = self.reader_intake(self.esmcat, var, loadvar)  # Returns a generator object
 
             if var:
                 if all(element in data.data_vars for element in loadvar):
@@ -763,14 +781,17 @@ class Reader(FixerMixin, RegridMixin):
         """Read fdb data. Returns an iterator."""
         # These are all needed in theory
 
-        fdb_path = esmcat.metadata.get('fdb_path', None)
-        if fdb_path:
-            os.environ["FDB5_CONFIG_FILE"] = fdb_path
-            self.logger.info("Setting FDB5_CONFIG_FILE to %s", fdb_path)
-        eccodes_path = esmcat.metadata.get('eccodes_path', None)
-        if eccodes_path:
-            eccodes.codes_set_definitions_path(eccodes_path)
-            self.logger.info("Setting ECCODES_DEFINITION_PATH to %s", eccodes_path)
+        # fdb_path = esmcat.metadata.get('fdb_path', None)
+        # if fdb_path:
+        #     os.environ["FDB5_CONFIG_FILE"] = fdb_path
+        #     self.logger.info("Setting FDB5_CONFIG_FILE to %s", fdb_path)
+        # eccodes_path = esmcat.metadata.get('eccodes_path', None)
+
+        # if eccodes_path and (eccodes_path != self.eccodes_path):  # unless we have already switched
+        #     self.eccodes_path = eccodes_path
+        #     # eccodes.codes_context_delete()
+        #     eccodes.codes_set_definitions_path(eccodes_path)
+        #     self.logger.info("Setting ECCODES_DEFINITION_PATH to %s", eccodes_path)
 
         if self.aggregation:
             return esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation, verbose=self.verbose).read_chunked()
