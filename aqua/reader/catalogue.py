@@ -1,7 +1,7 @@
 """Simple catalogue utility"""
 
 import intake
-from aqua.util import get_config_dir, get_machine, get_reader_filenames
+from aqua.util import ConfigPath
 
 
 def catalogue(verbose=True, configdir=None):
@@ -22,14 +22,11 @@ def catalogue(verbose=True, configdir=None):
                                                     containing the data.
     """
 
-
     # get the config dir and the machine
-    if not configdir:
-        configdir = get_config_dir()
-    machine = get_machine(configdir)
+    Configurer = ConfigPath(configdir=configdir)
 
     # get configuration from the machine
-    catalog_file, _, _, _ = get_reader_filenames(configdir, machine)
+    catalog_file, _, _, _ = Configurer.get_reader_filenames()
 
     cat = intake.open_catalog(catalog_file)
     if verbose:
@@ -43,12 +40,12 @@ def catalogue(verbose=True, configdir=None):
     return cat
 
 
-def inspect_catalogue(cat, model=None, exp=None):
+def inspect_catalogue(cat=None, model=None, exp=None):
     """
     Basic function to simplify catalog inspection.
 
     Args:
-        cat (intake.catalog.local.LocalCatalog): The catalog object containing the data.
+        cat (intake.catalog.local.LocalCatalog, optional): The catalog object containing the data.
         model (str, optional): The model ID to filter the catalog.
             If None, all models are returned. Defaults to None.
         exp (str, optional): The experiment ID to filter the catalog.
@@ -61,6 +58,8 @@ def inspect_catalogue(cat, model=None, exp=None):
     Raises:
         KeyError: If the input specifications are incorrect.
     """
+    if cat is None:
+        cat = catalogue(verbose=False)
 
     if model and exp:
         print(f"Sources available in catalogue for model {model} and exp {exp}:")
