@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Removed the `aqua` environment file, only `aqua_common` is left (#482)
+
 ## [v0.3]
 
 Main changes are:
