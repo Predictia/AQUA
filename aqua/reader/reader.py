@@ -8,6 +8,7 @@ import tempfile
 import shutil
 import intake
 import intake_esm
+import eccodes
 
 import xarray as xr
 
@@ -765,9 +766,11 @@ class Reader(FixerMixin, RegridMixin):
         fdb_path = esmcat.metadata.get('fdb_path', None)
         if fdb_path:
             os.environ["FDB5_CONFIG_FILE"] = fdb_path
+            self.logger.info("Setting FDB5_CONFIG_FILE to %s", fdb_path)
         eccodes_path = esmcat.metadata.get('eccodes_path', None)
         if eccodes_path:
-            os.environ["ECCODES_DEFINITION_PATH"] = eccodes_path
+            eccodes.codes_set_definitions_path(eccodes_path)
+            self.logger.info("Setting ECCODES_DEFINITION_PATH to %s", eccodes_path)
 
         if self.aggregation:
             return esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation, verbose=self.verbose).read_chunked()
