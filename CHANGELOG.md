@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased is the current development version.
 
 - Issue a warning when multiple gribcodes are associated to the same shortname (Cases for multiple eccodes grib codes #483)
+- Added new tests (Increase testing #250)
+- Global time series diagnostic setup for multiple variables CLI (#474)
+- Option to avoid incomplete chunk when averagin with timmean (Introduce check for chunk completeness in timmean() #466)
+- Simplification of Fixer() workflow, more methods and less redundancy (Functionize fixer #478)
+- Removed the `aqua` environment file, only `aqua_common` is left (#482)
 
 ## [v0.3]
 
@@ -24,7 +29,7 @@ Complete list:
 - Automatic finding of cdo (#456)
 - Area is fixed if data are fixed (Fixer applied to grid areas #442)
 - Tests missing failure fix (Fix #436 CI workflow passes even if some tests fail #452)
-- FDB/GSV access to IFS control and historical simulations (#434)
+- FDB/GSV access to IFS control and historical simulations (#434, #458)
 - Climatology support restored in the Reader (Fix for climatology #445)
 - Improvement function to inspect the catalogue (Inspect_catalogue improvement #446)
 - Minor improvements of the gribber (Fix gribber fdb #427)

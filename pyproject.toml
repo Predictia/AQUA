@@ -101,6 +101,7 @@ markers = [
     "aqua: mark test as AQUA framework",
     "slow: tests which are slow",
     "sbatch: tests which require sbatch",
+    "graphics: tests which deal with graphics",
     "gsv: mark test that requires ECMWF FDB libraries",
     # beginning of diagnostic tests
     "dummy: mark test for dummy diagnostic",
