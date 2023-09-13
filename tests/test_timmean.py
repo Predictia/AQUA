@@ -24,6 +24,18 @@ class TestTimmean():
         assert all(counts == counts[0])
 
     @pytest.mark.parametrize('var', ['2t', 'ttr'])
+    def test_timmean_monthly_exclude_incomplete(self, var):
+        """Timmean test for monthly aggregation with excluded incomplete chunks"""
+        reader = Reader(model="IFS", exp="test-tco79", source='long',
+                        freq='monthly', fix=False)
+        data = reader.retrieve()
+        avg = reader.timmean(data[var], exclude_incomplete=True)
+        unique, counts = np.unique(avg.time.dt.month, return_counts=True)
+        assert avg.shape == (6, 9, 18)
+        assert len(unique) == 6
+        assert all(counts == counts[0])
+
+    @pytest.mark.parametrize('var', ['2t', 'ttr'])
     def test_timmean_daily(self, var):
         """Timmean test for daily aggregation"""
         reader = Reader(model="IFS", exp="test-tco79", source='long',
@@ -50,6 +62,15 @@ class TestTimmean():
         assert data['2t'].shape == (nmonths, 9, 18)
         assert len(unique) == nmonths
         assert all(counts == counts[0])
+    
+    def test_timmean_yearly_reader_exclude_incomplete(self):
+        """Timmean test for yearly aggregation from Reader directly"""
+        reader = Reader(model="IFS", exp="test-tco79", source='long',
+                        freq='yearly', exclude_incomplete=True, fix=False)
+        data = reader.retrieve(timmean=True)
+        assert data['ttr'].shape == (0, 9, 18)
+        #with pytest.raises(ValueError, match=r'Cannot compute average on .* period, not enough data'):
+        #    reader.timmean(data['ttr'], exclude_incomplete=True)
 
     def test_timmean_yearly_reader(self):
         """Timmean test for yearly aggregation from Reader directly"""
