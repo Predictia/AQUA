@@ -116,7 +116,7 @@ jobs:
         #        shell and not with the micromamba shell.
         run: |
           # Produce the HTML report. Defaults to writing in htmlcov/index.html.
-          pytest --cov=aqua --cov-report=html --cov-report=xml --cov-branch -m "aqua or slow or gsv"
+          pytest --cov=aqua --cov-report=html --cov-report=xml --cov-branch -m "aqua or slow or gsv or graphics"
       - name: Processing coverage
         run: |
           if [[ ${COVERAGE_ENABLED} ]]; then
