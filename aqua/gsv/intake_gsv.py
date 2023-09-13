@@ -26,6 +26,12 @@ class GSVSource(base.DataSource):
     name = 'gsv'
     version = '0.0.2'
     partition_access = True
+    timeaxis = None
+    chk_start_idx = None
+    chk_start_date = None
+    chk_end_idx = None
+    chk_end_date = None
+    chk_size = None
 
     _ds = None  # This will contain a sample of the data for dask access
     dask_access = False  # Flag if dask has been requested
@@ -54,6 +60,7 @@ class GSVSource(base.DataSource):
 
         if gsv_available:
             self.gsv = GSVRetriever()
+            print("initialized gsv", self.gsv)
         else:
             raise ImportError(gsv_error_cause)
                 
@@ -65,9 +72,6 @@ class GSVSource(base.DataSource):
         offset = int(request["step"])  # optional initial offset for steps (in timesteps)
 
         startdate = add_offset(data_start_date, startdate, offset, timestep)  # special for 6h: set offset startdate if needed
-
-        # check if dates are within acceptable range
-        check_dates(startdate, data_start_date, enddate, data_end_date)
         
         self.timestyle = timestyle
 
@@ -87,10 +91,17 @@ class GSVSource(base.DataSource):
 
         sys._gsv_work_counter = 0  # used to suppress printing
 
+        print("GSVSource: request running __init__")
+
+        self.data_start_date = data_start_date
+        self.data_end_date = data_end_date
+        self.startdate = startdate
+        self.enddate = enddate
+        
         (self.timeaxis, self.chk_start_idx,
          self.chk_start_date, self.chk_end_idx,
-         self.chk_end_date, self.chk_size) = make_timeaxis(data_start_date, startdate, enddate,
-                                                           shiftmonth=timeshift, timestep=timestep,
+         self.chk_end_date, self.chk_size) = make_timeaxis(self.data_start_date, self.startdate, self.enddate,
+                                                           shiftmonth=self.timeshift, timestep=timestep,
                                                            savefreq=savefreq, chunkfreq=aggregation)
 
         self._npartitions = len(self.chk_start_date)
@@ -100,9 +111,12 @@ class GSVSource(base.DataSource):
     def _get_schema(self):
         """Standard method providing data schema"""
 
+        # check if dates are within acceptable range
+        check_dates(self.startdate, self.data_start_date, self.enddate, self.data_end_date)
+
         if self.dask_access:  # We need a better schema for dask access
             if not self._ds:  # we still have to retrieve a sample dataset
-                self._ds = self._get_partition(0, first=False)
+                self._ds = self._get_partition(0, first=True)
             
             var = list(self._ds.data_vars)[0]
             da = self._ds[var]  # get first variable dataarray
@@ -130,7 +144,7 @@ class GSVSource(base.DataSource):
 
         return schema
 
-    def _get_partition(self, i, first=False):
+    def _get_partition(self, i, first=False, dask=False):
         """
         Standard internal method reading i-th data partition from FDB
         Args:
@@ -140,7 +154,7 @@ class GSVSource(base.DataSource):
             An xarray.DataSet
         """
 
-        request = self._request.copy()  # We are going to modify it
+        request = self._request
 
         if self.timestyle == "date":
             dds, tts = date2str(self.chk_start_date[i])
@@ -164,28 +178,22 @@ class GSVSource(base.DataSource):
         if self._var:  # if no var provided keep the default in the catalogue
             request["param"] = self._var
 
-        if self.dask_access:  # if we are using dask then each get_partition needs its own gsv instance.
-                              # Actually it is needed for each processor, this could be possibly improved
-            gsv = GSVRetriever() 
-        else:
-            gsv = self.gsv  # use the one which we already created
+        print("DASK ACCESS: "  ,   self.dask_access)
+        print("DASK DS: "  ,   self.timeaxis)
 
-        # if self.verbose:
-        #     print("Request: ", i, self._var, s0, s1, request)
-        # else:  # suppress printing
-        #     self.nwork += 1  # increment number of active reads
-        #     print(i, self.nwork, "active")
-        #     if not self.stdout:  # am I the first one to do this?
-        #         self.stdout = sys.stdout
-        #         #self.text_trap = io.StringIO()
-        #         #sys.stdout = self.text_trap
         if self.verbose:
             print("Request: ", i, self._var, s0, s1, request)
-            dataset = gsv.request_data(request)
+            print(datetime.datetime.now())
+            print("gsv is ", self.gsv)
+            # gsv = GSVRetriever()
+            # print("new gsv is ", gsv)
+            dataset = self.gsv.request_data(request)
+            print("....retrieved")
         else:
             with NoPrinting():
-                dataset = gsv.request_data(request)
-
+                dataset = self.gsv.request_data(request)
+        print(dataset)
+    
         if self.timeshift:  # shift time by one month (special case)
             dataset = shift_time_dataset(dataset)
 
@@ -211,7 +219,7 @@ class GSVSource(base.DataSource):
         Function to read a delayed partition.
         Returns a dask.array
         """
-        ds = dask.delayed(self._get_partition)(i)[var].data
+        ds = dask.delayed(self._get_partition)(i, dask=True)[var].data
         newshape = list(shape)
         newshape[self.itime] = self.chk_size[i]
         return dask.array.from_delayed(ds, newshape, dtype)
