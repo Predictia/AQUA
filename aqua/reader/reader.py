@@ -785,7 +785,6 @@ class Reader(FixerMixin, RegridMixin):
         else:
             return esmcat(startdate=startdate, enddate=enddate, var=var, verbose=self.verbose).read_chunked()
 
-
     def reader_intake(self, esmcat, var, loadvar, keep="first"):
         """
         Read regular intake entry. Returns dataset.
@@ -841,7 +840,6 @@ class Reader(FixerMixin, RegridMixin):
 
         return xr.open_mfdataset(f"{self.buffer.name}/iter*.nc")
     
-
     def buffer_mem(self, data):
         """
         Buffers (reads) an iterator object directly into a dataset
