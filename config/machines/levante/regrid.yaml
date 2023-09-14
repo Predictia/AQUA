@@ -18,7 +18,7 @@ cdo-paths: # to be checked
 
 #available grids
 grids:
-  lon_lat:
+  lon-lat:
     space_coord: ["lon", "lat"]
  #healpix: {gridpath}/healpix/icon_hpx{zoom}_atm_2d.nc 
  
@@ -40,7 +40,7 @@ grids:
     masked_vars: ["ci", "sst"]
     vert_coord: ["2d", "2dm"]
     space_coord: ["value"]
-  ifs_interpolated: 
+  ifs-interpolated: 
     path: $grids/IFS/ifs_interpolated5400x2700.nc
     space_coord: ["lon", "lat"]
   tco79:
@@ -49,7 +49,7 @@ grids:
   tco399:
     path: $grids/IFS/tco399_grid.nc
     space_coord: ["cell"]
-  multio_r025:
+  multio-r025:
     space_coord: ["value"]
     extra: -setgrid,$grids/IFS/grid_lonlat_025.txt
     cellareas: $grids/IFS/cellarea_unstructured_025.nc
@@ -69,11 +69,11 @@ grids:
   #   space_coord: ["cell"]
   #   extra: -selname,cell_index
   #   vert_coord: ["depth_half", "depth_full"]
-  icon_R02B09_intaketest: 
+  icon-R02B09-intaketest: 
       path: $grids/ICON/icon_grid_0015_R02B09_G.nc
       extra: -selname,cell_index
       space_coord: ["ncells"]
-  icon_healpix:
+  icon-healpix:
     path:
       2d: $grids/HealPix/icon_hpx{zoom}_atm_2d.nc   # this is the default 2d grid
       2dm: $grids/HealPix/icon_hpx{zoom}_oce_2d.nc  # this is an additional and optional 2d grid used if data are masked
@@ -84,39 +84,39 @@ grids:
     space_coord: ["cell"]
     vert_coord: ["depth_half", "depth_full"]
 
-    #FESOM
-    tco2559_interpolated_2d:
-      path: $grids/FESOM/fesom_tco2559_interpolated_2d.nc
-      space_coord: ["lon", "lat"]
+  #FESOM
+  fesom-interpolated-2d:
+    path: $grids/FESOM/fesom_tco2559_interpolated_2d.nc
+    space_coord: ["lon", "lat"]
 
-    tco2559_interpolated_3d:
-      path: $grids/FESOM/fesom_tco2559_interpolated_3d.nc
-      space_coord: ["lon", "lat"]
-      vert_coord: depth
+  fesom-interpolated-3d:
+    path: $grids/FESOM/fesom_tco2559_interpolated_3d.nc
+    space_coord: ["lon", "lat"]
+    vert_coord: depth
 
-    ng5_2d:
-      path: $grids/FESOM/NG5_griddes_nodes_IFS.nc
-      space_coord: ["nod2"]
-      extra:
-      - -setgrid,$grids/FESOM/NG5_griddes_nodes_IFS.nc
-      - -selname,cell_area
-
-    ng5_3d:
-      path:
-        nz: $grids/FESOM/NG5_nodes_fesom_mask_nz.nc
-        nz1: $grids/FESOM/NG5_nodes_fesom_mask_nz1.nc
-      space_coord: ["nod2"]
-      vert_coord: ["nz", "nz1"]
-      extra: 
-      - -setgrid,$grids/FESOM/NG5_griddes_nodes_IFS.nc 
-    
-    ng5_3d_elem:
-      path: 
-        nz1: $grids/FESOM/NG5_elem_fesom_mask_nz1.nc
-      space_coord: ["elem"]
-      vert_coord: ["nz1"]
-      extra: 
-      - -setgrid,$grids/FESOM/NG5_griddes_elem_IFS.nc 
+  ng5-nodes-2d:
+    space_coord: ["nod2"]
+    extra:
+    - -setgrid,$grids/FESOM/NG5_griddes_nodes_IFS.nc
+  ng5-nodes-3d:
+    path:
+      nz: $grids/FESOM/NG5_nodes_fesom_mask_nz.nc
+      nz1: $grids/FESOM/NG5_nodes_fesom_mask_nz1.nc
+    space_coord: ["nod2"]
+    vert_coord: ["nz", "nz1"]
+    extra: 
+    - -setgrid,$grids/FESOM/NG5_griddes_nodes_IFS.nc 
+  ng5-elems-2d:
+    space_coord: ['elem']
+    extra: 
+    - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_elems_IFS.nc 
+  ng5-elems-3d:
+    path:
+      nz1: $grids/FESOM/NG5_elem_fesom_mask_nz1.nc
+    space_coord: ["elem"]
+    vert_coord: ["nz1"]
+    extra: 
+    - -setgrid,$grids/FESOM/NG5_griddes_elems_IFS.nc 
   
   r005: r7200x3600
   r010: r3600x1800
@@ -131,86 +131,96 @@ grids:
 sources:
   IFS:
     control-1950-devcon:
-      default: lon_lat
+      default: lon-lat
 
     historical-1990-devcon:
-      default: lon_lat
+      default: lon-lat
     
     tco3999-ng5:
-      default: lon_lat
+      default: lon-lat
       ICMGG_atm2d: tco3999
       ICMU_atm2d: tco3999
       ICMU_atm3d: tco3999
-      interpolated_global: ifs_interpolated
+      interpolated_global: ifs-interpolated
 
     tco2559-ng5:
-      default: lon_lat
+      default: lon-lat
       ICMGG_atm2d: tco2559
       ICMU_atm2d: tco2559
       ICMU_atm3d: tco2559
-      interpolated_global: ifs_interpolated
+      interpolated_global: ifs-interpolated
 
     tco2559-ng5-cycle3:
-      default: lon_lat
+      default: lon-lat
       2D_1h_native: tco2559
       3D_1h_native: tco2559
       2D_monthly_native: tco2559
       3D_monthly_native: tco2559
       #WAM_1h_native: tco2559
-      2D_monthly_0.25deg: multio_r025
-      3D_monthly_0.25deg: multio_r025
+      2D_monthly_0.25deg: multio-r025
+      3D_monthly_0.25deg: multio-r025
         
     tco1279-orca025-cycle3:
-      default: lon_lat
+      default: lon-lat
       2D_1h_native: tco1279
       3D_1h_native: tco1279
       2D_monthly_native: tco1279
       3D_monthly_native: tco1279
       #WAM_1h_native: tco1279
-      2D_monthly_0.25deg: multio_r025
-      3D_monthly_0.25deg: multio_r025
-      2D_1h_0.25deg: multio_r025
-      3D_1h_0.25deg: multio_r025
+      2D_monthly_0.25deg: multio-r025
+      3D_monthly_0.25deg: multio-r025
+      2D_1h_0.25deg: multio-r025
+      3D_1h_0.25deg: multio-r025
     
     tco1279-orca025:
-      default: lon_lat
+      default: lon-lat
       ICMGG_atm2d: tco1279
       ICMU_atm2d: tco1279
       ICMU_atm3d: tco1279
 
   ICON:
     ngc2009:
-      default: lon_lat
+      default: lon-lat
       atm_2d_ml_R02B09: R02B09
       atm_2d_ml_R02B08: R02B08
       #oce_200m_atmgrid_R02B09: R02B09_complete
       intake-esm-test: icon_R02B09_intaketest
 
     ngc3026:
-      default: icon_healpix
-      lra-r100-monthly: lon_lat
+      default: icon-healpix
+      lra-r100-monthly: lon-lat
 
     ngc3028:
-      default: icon_healpix
-      lra-r100-monthly: lon_lat
+      default: icon-healpix
+      lra-r100-monthly: lon-lat
 
   FESOM:
     tco3999-ng5:
-      default: lon_lat
+      default: lon-lat
       interpolated_global2d: tco2559_interpolated_2d
       interpolated_global_TS: tco2559_interpolated_3d
       interpolated_global_UV: tco2559_interpolated_3d
-      original_2d: ng5_2d
-      original_3d: ng5_3d
-      original_3d_elem: ng5_3d_elem
+      original_2d: ng5-nodes-2d
+      original_3d: ng5-nodes-3d
+      original_3d_elem: ng5-elems-3d
    
     tco2559-ng5:
-      default:  lon_lat
-      interpolated_global2d: tco2559_interpolated_2d
-      interpolated_global_TS: tco2559_interpolated_3d
-      interpolated_global_UV: tco2559_interpolated_3d
-      original_2d: ng5_2d
-      original_3d: ng5_3d
-      original_3d_elem: ng5_3d_elem
+      default:  lon-lat
+      interpolated_global2d: fesom-interpolated-2d
+      interpolated_global_TS: fesom-interpolated-3d
+      interpolated_global_UV: fesom-interpolated-3d
+      original_2d: ng5-nodes-2d
+      original_3d: ng5-nodes-3d
+      original_3d_elem: ng5-elems-3d
+
+    tco2559-ng5-cycle3:
+      default: lon-lat
+      2D_monthly_native: ng5-nodes-2d
+      2D_1h_native:  ng5-nodes-2d
+      2D_daily_native:  ng5-nodes-2d
+      2D_monthly_native_elem:  ng5-elems-2d
+      3D_daily_native:  ng5-nodes-3d
+      3D_daily_native_zarr: ng5-nodes-3d
+      3D_daily_native_elem: ng5-elems-3d
 
 
