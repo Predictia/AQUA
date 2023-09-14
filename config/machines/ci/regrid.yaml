@@ -1,17 +1,50 @@
+weightspath: &weightspath ./AQUA_tests/weights # config.yaml
+areaspath: &areaspath ./AQUA_tests/weights # config.yaml
+
+paths:
+  grids: ./AQUA_tests/grids
+
+#templates
 weights:
-  path: ./AQUA_tests/weights
-  template: weights_{model}_{exp}_{source}_{method}_{target}_l{level}.nc
-
+  template_default: weights_{model}_{exp}_{source}_{method}_{target}_l{level}.nc
+  template_grid: weights_{sourcegrid}_{method}_{targetgrid}_l{level}.nc
 areas:
-  path: ./AQUA_tests/weights
-  src_template: cell_area_{model}_{exp}_{source}.nc
-  dst_template: cell_area_{grid}.nc
-
-cdo-paths:
+  template_default: cell_area_{model}_{exp}_{source}.nc
+  template_grid: cell_area_{grid}.nc
+cdo-paths: # to be checked
   download: ./AQUA_tests/weights
   icon: /pool/data/ICON
 
-target_grids:
+# Old structure to be removed when tests are ok
+# weights:
+#   path: ./AQUA_tests/weights
+#   template: weights_{model}_{exp}_{source}_{method}_{target}_l{level}.nc
+
+# areas:
+#   path: ./AQUA_tests/weights
+#   src_template: cell_area_{model}_{exp}_{source}.nc
+#   dst_template: cell_area_{grid}.nc
+
+# cdo-paths:
+#   download: ./AQUA_tests/weights
+#   icon: /pool/data/ICON
+
+# target_grids: # are these needed at this level?
+#   r005: r7200x3600
+#   r010: r3600x1800
+#   r020: r1800x900
+#   r050: r720x360
+#   r100: r360x180
+#   r200: r180x90
+#   r250: r144x72
+
+# available grids
+# extra is an extra special cdo command to be applied before generating the weights
+grids:
+  # default
+  lon_lat:
+    space_coord: ["lon", "lat"]
+  # target regrid
   r005: r7200x3600
   r010: r3600x1800
   r020: r1800x900
@@ -19,47 +52,94 @@ target_grids:
   r100: r360x180
   r200: r180x90
   r250: r144x72
+  # IFS
+  test-tco79:
+    path: $grids/tco79_grid.nc
+    space_coord: ["cell"]
+  # FESOM
+  test-pi-2d:
+    path: $grids/pi_griddes_nodes_IFS.nc
+    space_coord: ["nod2"]
+    extra:
+    - -setgrid,$grids/pi_griddes_nodes_IFS.nc
+    - -selname,cell_area
+  test-pi-3d:
+    path:
+      nz1: $grids/pi_fesom_mask_nz1.nc
+      nz: $grids/pi_fesom_mask_nz.nc
+    space_coord: ["nod2"]
+    vert_coord: ["nz1", "nz"]
+    extra:
+    - -setgrid,$grids/pi_griddes_nodes_IFS.nc
+  # ICON
+  test-healpix:
+    path: $grids/icon_healpix0.nc
+    space_coord: ["x"]
+  test-r2b0:
+    path: ./AQUA_tests/models/ICON/test-lowres/r2b0.nc
+    space_coord: ["cell"]
 
-# extra is an extra special cdo command to be applied before generating the weights
-source_grids:
-  FESOM:
-    test-pi:
-      original_2d:
-        path: ./AQUA_tests/grids/pi_griddes_nodes_IFS.nc
-        space_coord: [nod2]
-        extra:
-        - -setgrid,./AQUA_tests/grids/pi_griddes_nodes_IFS.nc
-        - -selname,cell_area
-      original_3d:
-        path:
-          nz1: ./AQUA_tests/grids/pi_fesom_mask_nz1.nc
-          nz: ./AQUA_tests/grids/pi_fesom_mask_nz.nc
-        space_coord: [nod2]
-        vert_coord: [nz1, nz]
-        extra:
-        - -setgrid,./AQUA_tests/grids/pi_griddes_nodes_IFS.nc
-
+sources:
   IFS:
     test-tco79:
-      short:
-        path: ./AQUA_tests/grids/tco79_grid.nc
-        space_coord: [cell]
-      long:
-        space_coord: [lon, lat]
-      intake-esm-test:
-        space_coord: [lon, lat]
-      teleconnections:
-        space_coord: [lon, lat]
+      default: lon_lat
+      short: test-tco79
     test-fdb:
-      fdb:
-        space_coord: [lon, lat]
-
+      default: lon_lat
+  FESOM:
+    test-pi:
+      default: lon_lat
+      original_2d: test-pi-2d
+      original_3d: test-pi-3d
   ICON:
     test-healpix:
-      short:
-        path: ./AQUA_tests/grids/icon_healpix0.nc
-        space_coord: [x]
+      default: lon_lat
+      short: test-healpix
     test-r2b0:
-      short:
-        path: ./AQUA_tests/models/ICON/test-lowres/r2b0.nc
-        space_coord: [cell]
+      default: lon_lat
+      short: test-r2b0
+
+
+
+# source_grids:
+#   FESOM:
+#     test-pi:
+#       original_2d:
+#         path: ./AQUA_tests/grids/pi_griddes_nodes_IFS.nc
+#         space_coord: [nod2]
+#         extra:
+#         - -setgrid,./AQUA_tests/grids/pi_griddes_nodes_IFS.nc
+#         - -selname,cell_area
+#       original_3d:
+#         path:
+#           nz1: ./AQUA_tests/grids/pi_fesom_mask_nz1.nc
+#           nz: ./AQUA_tests/grids/pi_fesom_mask_nz.nc
+#         space_coord: [nod2]
+#         vert_coord: [nz1, nz]
+#         extra:
+#         - -setgrid,./AQUA_tests/grids/pi_griddes_nodes_IFS.nc
+
+#   IFS:
+#     test-tco79:
+#       short:
+#         path: ./AQUA_tests/grids/tco79_grid.nc
+#         space_coord: [cell]
+#       long:
+#         space_coord: [lon, lat]
+#       intake-esm-test:
+#         space_coord: [lon, lat]
+#       teleconnections:
+#         space_coord: [lon, lat]
+#     test-fdb:
+#       fdb:
+#         space_coord: [lon, lat]
+
+#   ICON:
+#     test-healpix:
+#       short:
+#         path: ./AQUA_tests/grids/icon_healpix0.nc
+#         space_coord: [x]
+#     test-r2b0:
+#       short:
+#         path: ./AQUA_tests/models/ICON/test-lowres/r2b0.nc
+#         space_coord: [cell]
