@@ -177,12 +177,18 @@ class GSVSource(base.DataSource):
         if self._var:  # if no var provided keep the default in the catalogue
             request["param"] = self._var
 
+        if dask:  # if we are using dask then each get_partition needs its own gsv instance.
+                  # Actually it is needed for each worker, this could be possibly improved
+              gsv = GSVRetriever()
+        else:
+              gsv = self.gsv  # use the one which we already created
+
         if self.verbose:
             print("Request: ", i, self._var, s0, s1, request)
-            dataset = self.gsv.request_data(request)
+            dataset = gsv.request_data(request)
         else:
             with NoPrinting():
-                dataset = self.gsv.request_data(request)
+                dataset = gsv.request_data(request)
     
         if self.timeshift:  # shift time by one month (special case)
             dataset = shift_time_dataset(dataset)
