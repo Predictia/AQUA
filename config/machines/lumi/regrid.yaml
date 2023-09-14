@@ -1,4 +1,4 @@
-# This is the default
+# Default paths for regridding
 paths:
   grids: /pfs/lustrep3/projappl/project_465000454/data/AQUA/grids
   weights: /pfs/lustrep3/projappl/project_465000454/data/AQUA/weights
