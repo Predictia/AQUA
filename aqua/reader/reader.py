@@ -777,26 +777,21 @@ class Reader(FixerMixin, RegridMixin):
             os.environ["FDB5_CONFIG_FILE"] = fdb_path
 
         if dask:
-            # if not self.verbose:  # suppress output here
-            #     print("SUPPRESSING OUTPUT")
-            #     old_stdout = sys.stdout
-            #     text_trap = io.StringIO()
-            #     sys.stdout = text_trap
-            
             if self.aggregation:
-                data = esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation, verbose=self.verbose).to_dask()
+                data = esmcat(startdate=startdate, enddate=enddate, var=var,
+                              aggregation=self.aggregation,
+                              logging = True, verbose=self.verbose).to_dask()
             else:
-                data =esmcat(startdate=startdate, enddate=enddate, var=var, verbose=self.verbose).to_dask()
-
-            # if not self.verbose:  # reinstate output
-            #     sys.stdout = old_stdout
-            #     print("OUTPUT is BACK")
-
+                data =esmcat(startdate=startdate, enddate=enddate, var=var,
+                             logging = True, verbose=self.verbose).to_dask()
         else:
             if self.aggregation:
-                data = esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation, verbose=self.verbose).read_chunked()
+                data = esmcat(startdate=startdate, enddate=enddate, var=var,
+                              aggregation=self.aggregation,
+                              logging=True, verbose=self.verbose).read_chunked()
             else:
-                data = esmcat(startdate=startdate, enddate=enddate, var=var, verbose=self.verbose).read_chunked()
+                data = esmcat(startdate=startdate, enddate=enddate, var=var,
+                              logging=True, verbose=self.verbose).read_chunked()
 
         return data
 
