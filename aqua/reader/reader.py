@@ -236,7 +236,7 @@ class Reader(FixerMixin, RegridMixin):
                                            template_file)
 
                 self.weightsfile.update({vc: os.path.join(
-                    cfg_regrid["weightspath"],
+                    cfg_regrid["paths"]["weights"],
                     template_file)})
 
                 # If weights do not exist, create them
@@ -265,7 +265,7 @@ class Reader(FixerMixin, RegridMixin):
                                        template_file)
 
             self.src_areafile = os.path.join(
-                cfg_regrid["areaspath"],
+                cfg_regrid["paths"]["areas"],
                 template_file)
 
             # If source areas do not exist, create them
@@ -289,7 +289,7 @@ class Reader(FixerMixin, RegridMixin):
 
             if regrid:
                 self.dst_areafile = os.path.join(
-                    cfg_regrid["areaspath"],
+                    cfg_regrid["paths"]["areas"],
                     cfg_regrid["areas"]["template_grid"].format(grid=self.targetgrid))
 
                 if rebuild or not os.path.exists(self.dst_areafile):
