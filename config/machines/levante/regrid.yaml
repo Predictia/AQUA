@@ -4,7 +4,6 @@ areaspath: &areaspath /work/bb1153/b382075/nextgems/areas #config.yaml
 paths:
   grids: /work/bb1153/b382075/aqua/grids
 
-
 #templates
 weights:
   template_default: weights_{model}_{exp}_{source}_{method}_{targetgrid}_l{level}.nc
@@ -88,12 +87,10 @@ grids:
   fesom-interpolated-2d:
     path: $grids/FESOM/fesom_tco2559_interpolated_2d.nc
     space_coord: ["lon", "lat"]
-
   fesom-interpolated-3d:
     path: $grids/FESOM/fesom_tco2559_interpolated_3d.nc
     space_coord: ["lon", "lat"]
     vert_coord: depth
-
   ng5-nodes-2d:
     space_coord: ["nod2"]
     extra:
@@ -117,7 +114,34 @@ grids:
     vert_coord: ["nz1"]
     extra: 
     - -setgrid,$grids/FESOM/NG5_griddes_elems_IFS.nc 
+
+  # OBSERVATIONS
+  aviso:
+    space_coords: ["longitude", "latitude"]
+  woa:
+    path:
+      depth: /work/bb1153/b382076/AQUA-archive/grids/WOA18/grid-woa18.nc
+    vert_coord: depth
+    space_coord: ["lon", "lat"]
+  en4:
+    path:
+      lev: /work/bb1153/b382076/AQUA-archive/grids/EN4/en4-grid.nc
+    space_coord: ["lon", "lat"]
+    vert_coord: ["lev"]
+  era5-r025:
+    path: 
+      2d: /work/bb1153/b382075/nextgems/grids/r025_grid.nc
+      2dm: /work/bb1153/b382075/nextgems/grids/r025_grid_masked.nc
+    masked_vars:
+      - sst
+      - SSTK
+    space_coord: ["lon", "lat"]
+    vert_coord: ["2d", "2dm"]
+  era5-n320:
+    path: /work/bb1153/b382075/nextgems/grids/n320_unstructured.nc
+    space_coord: ["values"]  
   
+
   r005: r7200x3600
   r010: r3600x1800
   r020: r1800x900
@@ -222,5 +246,43 @@ sources:
       3D_daily_native:  ng5-nodes-3d
       3D_daily_native_zarr: ng5-nodes-3d
       3D_daily_native_elem: ng5-elems-3d
+
+  MSWEP:
+    past:
+      default: lon-lat
+       
+  AVISO:
+    ssh-L4:
+      default: aviso
+
+  PHC3:
+    phc3:
+      default: lon-lat
+
+  WOA18:
+    woa18_2005_2017:
+      default: woa
+
+  CERES:
+    ebaf-toa42:
+      default: lon-lat
+    ebaf-toa41:
+      default: lon-lat
+    ebaf-sfc41:
+      default: lon-lat
+    ebaf-sfc42:
+      default: lon-lat
+    syn-toa41:
+      default: lon-lat
+
+  EN4:
+    en4:
+      default: en4
+
+  ERA5:
+    era5-dkrz:
+      default: era5-n320
+    era5:
+      default: era5-r025
 
 

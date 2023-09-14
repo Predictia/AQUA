@@ -36,7 +36,7 @@ def reader(request):
     return myread, data
 
 @pytest.fixture(params=[(model, exp, source)
-                        for model in ['IFS']
+                        for model in catalogue()
                         for exp in catalogue()[model]
                         for source in catalogue()[model][exp]])
 def reader_regrid(request):
