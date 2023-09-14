@@ -58,7 +58,7 @@ def reader_regrid(request):
     if model == 'IFS' and exp == 'test-tco79' and source == 'teleconnections':
         pytest.skip()
     myread = Reader(model=model, exp=exp, source=source, areas=True, regrid='r200',
-                    loglevel=loglevel, rebuild=True)
+                    loglevel=loglevel, rebuild=False)
     data = myread.retrieve()
     
     return myread, data

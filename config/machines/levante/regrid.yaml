@@ -1,5 +1,5 @@
 weightspath: &weightspath /work/bb1153/b382075/nextgems/weights #config.yaml
-areaspath: &areaspath /work/bb1153/b382075/nextgems/weights #config.yaml (fare una cartella diversa per le aree??)
+areaspath: &areaspath /work/bb1153/b382075/nextgems/areas #config.yaml 
 
 paths:
   grids: /work/bb1153/b382075/aqua/grids
@@ -26,35 +26,28 @@ grids:
   tco3999: 
     path: $grids/IFS/tco3999_grid.nc
     space_coord: ["value"]
-  tco2559: 
-    path: $grids/IFS/tco2559_grid.nc
-    space_coord: ["value"]
-  tco2559-masked:
+  tco2559:
     path: 
       2d: $grids/IFS/tco2559_grid.nc
       2dm: $grids/IFS/tco2559_grid_masked.nc
-    masked_vars:
-      - ci
-      - sst
+    masked_vars: ["ci", "sst"]
     vert_coord: ["2d", "2dm"]
     space_coord: ["value"]
-  tco1279:  
-    path: $grids/IFS/tco1279_grid.nc
-    space_coord: ["value"]
-  tco1279-masked:
+  tco1279:
     path: 
       2d: $grids/IFS/tco1279_grid.nc
       2dm: $grids/IFS/tco1279_grid_masked.nc
-    masked_vars:
-      - ci
-      - sst
+    masked_vars: ["ci", "sst"]
     vert_coord: ["2d", "2dm"]
     space_coord: ["value"]
   ifs_interpolated: 
     path: $grids/IFS/ifs_interpolated5400x2700.nc
     space_coord: ["lon", "lat"]
-  tco1279_tests:
+  tco79:
     path: $grids/IFS/tco79_grid.nc
+    space_coord: ["cell"]
+  tco399:
+    path: $grids/IFS/tco399_grid.nc
     space_coord: ["cell"]
   multio_r025:
     space_coord: ["value"]
@@ -91,8 +84,7 @@ grids:
         component: ocean
       space_coord: ["cell"]
       vert_coord: ["depth_half", "depth_full"]
-    lra-r100-monthly: 
-      space_coord: ["lon", "lat"]
+    lra-r100-monthly: lon_lat
   icon_ngc3028_default:
     default:
       path:
@@ -104,8 +96,7 @@ grids:
         component: ocean
       space_coord: ["cell"]
       vert_coord: ["depth_half", "depth_full"]
-    lra-r100-monthly: 
-      space_cooord: ["lon", "lat"]
+    lra-r100-monthly: lon_lat
 
     #FESOM
     tco2559_interpolated_2d:
@@ -153,13 +144,14 @@ grids:
 # couple grids to experiment and sources
 sources: 
   IFS:
-    default: lon_lat
-
     control-1950-devcon:
       default: lon_lat
+
     historical-1990-devcon:
       default: lon_lat
+    
     tco3999-ng5:
+      default: lon_lat
       ICMGG_atm2d: tco3999
       ICMU_atm2d: tco3999
       ICMU_atm3d: tco3999
@@ -167,28 +159,28 @@ sources:
 
     tco2559-ng5:
       default: lon_lat
-      ICMGG_atm2d: tco2559-masked
+      ICMGG_atm2d: tco2559
       ICMU_atm2d: tco2559
       ICMU_atm3d: tco2559
       interpolated_global: ifs_interpolated
 
     tco2559-ng5-cycle3:
       default: lon_lat
-      2D_1h_native: tco2559-masked
+      2D_1h_native: tco2559
       3D_1h_native: tco2559
       2D_monthly_native: tco2559
       3D_monthly_native: tco2559
-      WAM_1h_native: tco1279
+      #WAM_1h_native: tco2559
       2D_monthly_0.25deg: multio_r025
       3D_monthly_0.25deg: multio_r025
         
     tco1279-orca025-cycle3:
       default: lon_lat
-      2D_1h_native: tco1279-masked
+      2D_1h_native: tco1279
       3D_1h_native: tco1279
       2D_monthly_native: tco1279
       3D_monthly_native: tco1279
-      WAM_1h_native: tco1279
+      #WAM_1h_native: tco1279
       2D_monthly_0.25deg: multio_r025
       3D_monthly_0.25deg: multio_r025
       2D_1h_0.25deg: multio_r025
@@ -196,7 +188,7 @@ sources:
     
     tco1279-orca025:
       default: lon_lat
-      ICMGG_atm2d: tco1279-masked
+      ICMGG_atm2d: tco1279
       ICMU_atm2d: tco1279
       ICMU_atm3d: tco1279
   
@@ -205,11 +197,8 @@ sources:
       ICMU_atm3d: tco2559
 
     test-tco79:
-      long:
-        space_coord:
-          - lon
-          - lat
-      short: tco1279_tests
+      long: lon_lat
+      short: tco79
 
   ICON:
     ngc2009:
@@ -222,13 +211,11 @@ sources:
 
     ngc3026:
       default: icon_ngc3026_default
-      lra-r100-monthly: 
-        space_coord: ["lon", "lat"]
+      lra-r100-monthly: lon_lat
 
     ngc3028:
       default: icon_ngc3028_default
-      lra-r100-monthly: 
-        space_coord: ["lon", "lat"]
+      lra-r100-monthly: lon_lat
 
   FESOM:
     tco3999-ng5:
