@@ -1,8 +1,8 @@
-weightspath: &weightspath ./AQUA_tests/weights # config.yaml
-areaspath: &areaspath ./AQUA_tests/weights # config.yaml
-
+# Default paths for regridding
 paths:
   grids: ./AQUA_tests/grids
+  weights: ./AQAU_tests/weights
+  areas: ./AQUA_tests/weights
 
 #templates
 weights:
@@ -12,7 +12,7 @@ areas:
   template_default: cell_area_{model}_{exp}_{source}.nc
   template_grid: cell_area_{grid}.nc
 cdo-paths: # to be checked
-  download: ./AQUA_tests/weights
+  download: $weights
   icon: /pool/data/ICON
 
 # available grids
