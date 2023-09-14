@@ -39,7 +39,8 @@ class GSVSource(base.DataSource):
 
     def __init__(self, request, data_start_date, data_end_date, timestyle="date",
                  aggregation="S", savefreq="H", timestep="H", timeshift=None,
-                 startdate=None, enddate=None, var='167', metadata=None, verbose=False, **kwargs):
+                 startdate=None, enddate=None, var='167', metadata=None, verbose=False,
+                 logging = False, **kwargs):
         """
         Initializes the GSVSource class. These are typically specified in the catalogue entry, but can also be specified upon accessing the catalogue.
 
@@ -60,7 +61,6 @@ class GSVSource(base.DataSource):
 
         if gsv_available:
             self.gsv = GSVRetriever()
-            print("initialized gsv", self.gsv)
         else:
             raise ImportError(gsv_error_cause)
                 
@@ -85,13 +85,12 @@ class GSVSource(base.DataSource):
 
         self._var = var
         self.verbose = verbose
+        self.logging = logging
 
         self._request = request.copy()
         self._kwargs = kwargs
 
         sys._gsv_work_counter = 0  # used to suppress printing
-
-        print("GSVSource: request running __init__")
 
         self.data_start_date = data_start_date
         self.data_end_date = data_end_date
@@ -178,31 +177,19 @@ class GSVSource(base.DataSource):
         if self._var:  # if no var provided keep the default in the catalogue
             request["param"] = self._var
 
-        print("DASK ACCESS: "  ,   self.dask_access)
-        print("DASK DS: "  ,   self.timeaxis)
-
         if self.verbose:
             print("Request: ", i, self._var, s0, s1, request)
-            print(datetime.datetime.now())
-            print("gsv is ", self.gsv)
-            # gsv = GSVRetriever()
-            # print("new gsv is ", gsv)
             dataset = self.gsv.request_data(request)
-            print("....retrieved")
         else:
             with NoPrinting():
                 dataset = self.gsv.request_data(request)
-        print(dataset)
     
         if self.timeshift:  # shift time by one month (special case)
             dataset = shift_time_dataset(dataset)
 
-        # Fix GRIB attribute names. This removes "GRIB_" from the beginning
-        for var in dataset.data_vars:
-            dataset[var].attrs = {key.split("GRIB_")[-1]: value for key, value in dataset[var].attrs.items()}
-
         # Log history
-        log_history(dataset, "dataset retrieved by GSV interface")
+        if self.logging:
+            log_history(dataset, "Dataset retrieved by GSV interface")
 
         return dataset
 
