@@ -64,7 +64,10 @@ class GSVSource(base.DataSource):
         if not gsv_available:
             raise ImportError(gsv_error_cause)
         
-        self.fdbpath = metadata.get('fdb_path', None)
+        if metadata:
+            self.fdbpath = metadata.get('fdb_path', None)
+        else:
+            self.fdbpath = None
 
         if not startdate:
             startdate = data_start_date
