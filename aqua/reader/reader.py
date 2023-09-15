@@ -140,29 +140,20 @@ class Reader(FixerMixin, RegridMixin):
         # check that you defined zoom in a correct way
         self.zoom = self._check_zoom(zoom)
 
-        # check if this is a FDB source
         if self.zoom:
             self.esmcat = self.cat[self.model][self.exp][self.source](zoom=self.zoom)
         else:
             self.esmcat = self.cat[self.model][self.exp][self.source]
     
+        # Set FDB path if needed
         if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
             fdb_path = self.esmcat.metadata.get('fdb_path', None)
             if fdb_path:
                 os.environ["FDB5_CONFIG_FILE"] = fdb_path
                 self.logger.info("Setting FDB5_CONFIG_FILE to %s", fdb_path)
 
-            eccodes_path = self.esmcat.metadata.get('eccodes_path', None)
-            if hasattr(eccodes, "old_eccodes_path"):
-                old_eccodes_path = eccodes.old_eccodes_path
-            else:
-                old_eccodes_path = None
-
-            if eccodes_path and (eccodes_path != old_eccodes_path):  # unless we have already switched
-                eccodes.old_eccodes_path = eccodes_path  # store directly in eccodes
-                eccodes.codes_context_delete()  # flush old definitions in cache
-                eccodes.codes_set_definitions_path(eccodes_path)
-                self.logger.info("Setting ECCODES_DEFINITION_PATH to %s", eccodes_path)
+        if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
+            self.set_eccodes_path()  # We change the eccodes path on the fly based on the content of metadata
 
         # get fixes dictionary and find them
         self.fix = fix # fix activation flag
@@ -859,3 +850,20 @@ class Reader(FixerMixin, RegridMixin):
             pass  # The iterator has finished, we are done
 
         return ds
+
+    def set_eccodes_path(self):
+        """
+        If needed sets the ECCODES_DEFINITION_PATH to that specified in esmcat metadata
+        """
+
+        eccodes_path = self.esmcat.metadata.get('eccodes_path', None)
+        if hasattr(eccodes, "old_eccodes_path"):
+            old_eccodes_path = eccodes.old_eccodes_path
+        else:
+            old_eccodes_path = None
+
+        if eccodes_path and (eccodes_path != old_eccodes_path):  # unless we have already switched
+            eccodes.old_eccodes_path = eccodes_path  # store directly in eccodes
+            eccodes.codes_context_delete()  # flush old definitions in cache
+            eccodes.codes_set_definitions_path(eccodes_path)
+            self.logger.info("Setting ECCODES_DEFINITION_PATH to %s", eccodes_path)
