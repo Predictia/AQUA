@@ -101,8 +101,6 @@ source_grids:
         space_coord: ["lon", "lat"]
       monthly-1deg-3d:
         space_coord: ["lon", "lat"]
-      lra-r100-monthly:
-        space_coord: ["lon", "lat"]
     historical-1990-devcon:
       default:
         space_coord: ["ncells"]
@@ -114,6 +112,8 @@ source_grids:
       monthly-1deg-2d:
         space_coord: ["lon", "lat"]
       monthly-1deg-3d:
+        space_coord: ["lon", "lat"]
+      lra-r100-monthly:
         space_coord: ["lon", "lat"]
 
   ERA5:
