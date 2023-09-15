@@ -18,7 +18,7 @@ sources:
       savefreq: H  # at what frequency are data saved
       timestep: H  # base timestep for step timestyle
       timestyle: step  # variable date or variable step
-    description: hourly data on native grid TCo2560 (about 4.5km). Contains tprate(260048),
+    description: hourly data on native grid TCo2559 (about 4.5km). Contains tprate(260048),
       2t(167), 10u(165), 10v(166), 100u(228246), 100v(228247), sr(173), blh(159),
       sd(141), 2d(168), skt(235), chnk(148). See fix yaml for derived vars.
     driver: gsv
