@@ -15,13 +15,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from aqua.logger import log_configure
-from .plot_utils import minmax_maps, plot_box
+from .plot_utils import minmax_maps, plot_box, add_cyclic_lon
 
 
 def maps_plot(maps=None, models=None, exps=None,
               titles=None, save=False, **kwargs):
-    """
-    Plot maps (regression, correlation, etc.)
+    """Plot maps (regression, correlation, etc.)
     A list of xarray.DataArray objects is expected
     and a map is plotted for each of them
 
@@ -32,16 +31,13 @@ def maps_plot(maps=None, models=None, exps=None,
         titles (list, opt): list of titles for each map
                             overrides models and exps standard titles
         save (bool, opt):   save the figure
-        **kwargs:           additional arguments
 
     Kwargs:
-        loglevel (str,opt):   log level for the logger,
-                              default is 'WARNING'
-        figsize (tuple,opt):  figure size, default is (11, 8.5)
-        nlevels (int,opt):    number of levels for the colorbar,
-                              default is 11
-        cbar_label (str,opt): label for the colorbar
-        title (str,opt):      title for the figure (suptitle)
+        - loglevel (str,opt):   log level for the logger, default is 'WARNING'
+        - figsize (tuple,opt):  figure size, default is (11, 8.5)
+        - nlevels (int,opt):    number of levels for the colorbar, default is 11
+        - cbar_label (str,opt): label for the colorbar
+        - title (str,opt):      title for the figure (suptitle)
     """
     loglevel = kwargs.get('loglevel', 'WARNING')
     logger = log_configure(loglevel, 'Multiple maps')
@@ -154,20 +150,15 @@ def single_map_plot(map=None, save=False, **kwargs):
         **kwargs:               additional arguments
 
     Kwargs:
-        loglevel (str,opt):   log level for the logger,
-                              default is 'WARNING'
-        model (str,opt):      model name
-        exp (str,opt):        experiment name
-        figsize (tuple,opt):  figure size, default is (11, 8.5)
-        nlevels (int,opt):    number of levels for the colorbar,
-                              default is 11
-        title (str,opt):      title for the figure
-        cb_label (str,opt):   label for the colorbar
-        title (str,opt):      title for the figure (suptitle)
-        outputdir (str,opt):  output directory for the figure,
-                              default is '.' (current directory)
-        filename (str,opt):   filename for the figure,
-                              default is 'maps.png'
+        - loglevel (str,opt):   log level for the logger, default is 'WARNING'
+        - model (str,opt):      model name
+        - exp (str,opt):        experiment name
+        - figsize (tuple,opt):  figure size, default is (11, 8.5)
+        - nlevels (int,opt):    number of levels for the colorbar, default is 11
+        - title (str,opt):      title for the figure
+        - cb_label (str,opt):   label for the colorbar
+        - outputdir (str,opt):  output directory for the figure, default is '.' (current directory)
+        - filename (str,opt):   filename for the figure, default is 'maps.png'
 
     Raises:
         ValueError: if no map is provided
@@ -177,6 +168,14 @@ def single_map_plot(map=None, save=False, **kwargs):
 
     if map is None:
         raise ValueError('Nothing to plot')
+
+    # Add cyclic longitude
+    map = add_cyclic_lon(map)
+
+    # Evaluate min and max values for the common colorbar
+    vmin, vmax = minmax_maps([map])
+    logger.debug('Min value for the colorbar: {}'.format(vmin))
+    logger.debug('Max value for the colorbar: {}'.format(vmax))
 
     model = kwargs.get('model')
     exp = kwargs.get('exp')
@@ -188,7 +187,7 @@ def single_map_plot(map=None, save=False, **kwargs):
                            figsize=figsize)
 
     # Set the number of levels for the colorbar
-    nlevels = kwargs.get('nlevels', 11)
+    nlevels = kwargs.get('nlevels', 10)
 
     # Plot the map
     try:
@@ -200,7 +199,7 @@ def single_map_plot(map=None, save=False, **kwargs):
     cs = map.plot.contourf(ax=ax, transform=ccrs.PlateCarree(),
                            cmap='RdBu_r', levels=nlevels,
                            add_colorbar=False, add_labels=False,
-                           extend='both')
+                           extend='both', vmin=vmin, vmax=vmax)
 
     # Title
     title = kwargs.get('title')
@@ -283,19 +282,14 @@ def maps_diffs_plot(maps=None, diffs=None, models=None, exps=None,
         **kwargs:           additional arguments
 
     Kwargs:
-        loglevel (str,opt):      log level for the logger,
-                                 default is 'WARNING'
-        figsize (tuple,opt):     figure size, default is (11, 8.5)
-        vmin_diff (float,opt):   min value for the colorbar of the differences
-        vimax_diff (float,opt):  max value for the colorbar of the differences
-        nlevels (int,opt):       number of levels for the colorbar,
-                                 default is 11
-        cbar_label (str,opt):    label for the colorbar
-        outputdir (str,opt):     output directory for the figure,
-                                    default is '.' (current directory)
-        filename (str,opt):      filename for the figure,
-                                    default is 'map.png'
-
+        - loglevel (str,opt):      log level for the logger, default is 'WARNING'
+        - figsize (tuple,opt):     figure size, default is (11, 8.5)
+        - vmin_diff (float,opt):   min value for the colorbar of the differences
+        - vimax_diff (float,opt):  max value for the colorbar of the differences
+        - nlevels (int,opt):       number of levels for the colorbar, default is 11
+        - cbar_label (str,opt):    label for the colorbar
+        - outputdir (str,opt):     output directory for the figure, default is '.' (current directory)
+        - filename (str,opt):      filename for the figure, default is 'map.png'
     """
     loglevel = kwargs.get('loglevel', 'WARNING')
     logger = log_configure(loglevel, 'Multiple maps and differences')
