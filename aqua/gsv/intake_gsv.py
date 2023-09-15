@@ -183,8 +183,6 @@ class GSVSource(base.DataSource):
         if self._var:  # if no var provided keep the default in the catalogue
             request["param"] = self._var
 
-        # gsv = GSVRetriever()  # if we are using dask then each get_partition needs its own gsv instance.
-
         if self.verbose:
             print("Request: ", i, self._var, s0, s1, request)
             dataset = self.gsv.request_data(request)
