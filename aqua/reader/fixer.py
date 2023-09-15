@@ -66,8 +66,7 @@ class FixerMixin():
             final_fixes = default_fixes
             for item in fixes.keys():
                 if item == 'vars':
-                    final_fixes[item] = default_fixes[item].copy()
-                    final_fixes[item].update(fixes[item])
+                    final_fixes[item] = {**default_fixes[item], **fixes[item]}
                 else:
                     final_fixes[item] = fixes[item]
 
