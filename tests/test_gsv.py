@@ -62,7 +62,7 @@ class TestGsv():
         data = gsv.read_chunked()
         dd = next(data)
         assert len(dd) > 0, 'GSVSource could not load data'
-        assert dd.t.param == '130.128', 'Wrong GRIB param in Dask data'
+        assert dd.t.GRIB_param == '130.128', 'Wrong GRIB param in Dask data'
 
     # High-level, integrated test
     def test_reader(self) -> None:
