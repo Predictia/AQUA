@@ -152,7 +152,8 @@ frequency by specifying a frequency in the reader definition and then using the 
     data = reader.retrieve()
     daily = reader.timmean(data)
 
-Data have now been averaged at the desired daily timescale.
+Data have now been averaged at the desired daily timescale. If you want to avoid to have incomplete average over your time period (for example, be sure that all the months are complete before doing the time mean)
+it is possible to activate the `exclude_incomplete=True` flag which will remove averaged chunks which are not complete. 
 
 ..  note ::
     The `time_bounds` boolean flag can be activated to build time bounds in a similar way to CMOR standard.
@@ -185,6 +186,13 @@ In the `fixer` folder, it is also possible to specify in a flexible way custom d
             attributes:
                 units: mm day-1
                 long_name: My own test precipitation in mm / day
+
+When adding the fixes for a new source/experiment, it is possible to exploit of the `default` provided. However, in some cases more fine tuning might be required. In order to do so, since AQUA v0.4 it is possible to specify the `method` key in the fix, so that it allows for 
+three different fixing strategies:
+
+- `replace`: use the source-specific fixes overriding the default ones. If you do not specify anything, this is the basic behaviour.
+- `merge`: merge the source-specific fixes with the default ones, with priority for the former. It can be used if the most of fixes from default are good, but something different in the specific source is required.
+- `default`: for this specific source, roll back to default fixes. This might be necessary if a default fix exists for a specific experiment and it should not be used in a specific source.
 
 
 Streaming simulation

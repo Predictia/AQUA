@@ -20,6 +20,7 @@ import smmregrid as rg
 from aqua.util import load_yaml, load_multi_yaml
 from aqua.util import ConfigPath, area_selection
 from aqua.logger import log_configure, log_history, log_history_iter
+from aqua.util import check_chunk_completeness, frequency_string_to_pandas
 import aqua.gsv
 
 from .streaming import Streaming
@@ -45,7 +46,8 @@ class Reader(FixerMixin, RegridMixin):
                  regrid=None, method="ycon", zoom=None, configdir=None,
                  areas=True,  # pylint: disable=W0622
                  datamodel=None, streaming=False, stream_step=1, stream_unit='steps',
-                 stream_startdate=None, rebuild=False, loglevel=None, nproc=4, aggregation=None, verbose=False,
+                 stream_startdate=None, rebuild=False, loglevel=None, nproc=4, aggregation=None,
+                 verbose=False, exclude_incomplete=False,
                  buffer=None):
         """
         Initializes the Reader class, which uses the catalog
@@ -73,6 +75,7 @@ class Reader(FixerMixin, RegridMixin):
             nproc (int,optional): Number of processes to use for weights generation. Defaults to 16.
             aggregation (str, optional): aggregation/chunking to be used for GSV access (e.g. D, M, Y). Defaults to None (using default from catalogue, recommended).
             verbose (bool, optional): if to print to screen additional info (used only for FDB access at the moment)
+            exclude_incomplete (bool, optional): when using timmean() method, remove incomplete chunk from averaging. Default to False. 
             buffer (str or bool, optional): buffering of FDB/GSV streams in a temporary directory specified by the keyword. The result will be a dask array and not an iterator. Can be simply a boolean True for memory buffering.
 
         Returns:
@@ -92,6 +95,7 @@ class Reader(FixerMixin, RegridMixin):
         self.deltat = 1
         self.aggregation = aggregation
         self.verbose = verbose
+        self.exclude_incomplete = exclude_incomplete
         extra = []
 
         self.grid_area = None
@@ -149,11 +153,11 @@ class Reader(FixerMixin, RegridMixin):
         if not self.cdo:
             self.cdo = shutil.which("cdo")
             if self.cdo:
-                self.logger.debug(f"Found CDO path: {self.cdo}")
+                self.logger.debug("Found CDO path: %s", self.cdo)
             else:
                 self.logger.error("CDO not found in path: Weight and area generation will fail.")
         else:
-            self.logger.debug(f"Using CDO from config: {self.cdo}")
+            self.logger.debug("Using CDO from config: %s", self.cdo)
 
         # load and check the regrid
         if regrid or areas:
@@ -405,7 +409,7 @@ class Reader(FixerMixin, RegridMixin):
             data = self.fixer(data, var, apply_unit_fix=apply_unit_fix)
 
         if self.freq and timmean:
-            data = self.timmean(data)
+            data = self.timmean(data, exclude_incomplete=self.exclude_incomplete)
 
         if fiter and self.buffer:  # We prefer an xarray, let's buffer everything
             if self.buffer is True:  # we did not provide a buffer path, use an xarray in memory
@@ -488,20 +492,20 @@ class Reader(FixerMixin, RegridMixin):
         return out
     
 
-    def timmean(self, data, freq=None, time_bounds=False):
+    def timmean(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
         """Call the timmean function returning container or iterator"""
         if isinstance(data, types.GeneratorType):
-            return self._timmeangen(data, freq, time_bounds)
+            return self._timmeangen(data, freq, exclude_incomplete, time_bounds)
         else:
-            return self._timmean(data, freq, time_bounds)
+            return self._timmean(data, freq, exclude_incomplete, time_bounds)
 
 
-    def _timmeangen(self, data, freq=None, time_bounds=False):
+    def _timmeangen(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
         for ds in data:
-            yield self._timmean(ds, freq, time_bounds)
+            yield self._timmean(ds, freq, exclude_incomplete, time_bounds)
 
 
-    def _timmean(self, data, freq=None, time_bounds=False):
+    def _timmean(self, data, freq=None, exclude_incomplete=None, time_bounds=False):
         """
         Perform daily and monthly averaging
 
@@ -509,6 +513,8 @@ class Reader(FixerMixin, RegridMixin):
             data (xr.Dataset):  the input xarray.Dataset
             freq (str):         the frequency of the time averaging.
                                 Valid values are monthly, daily, yearly. Defaults to None.
+            exclude_incomplete (bool):  Check if averages is done on complete chunks, and remove from the output
+                                        chunks which have not all the expected records. If None, using from Reader
             time_bound (bool):  option to create the time bounds
         Returns:
             A xarray.Dataset containing the time averaged data.
@@ -516,16 +522,11 @@ class Reader(FixerMixin, RegridMixin):
 
         if freq is None:
             freq = self.freq
+        
+        if exclude_incomplete is None:
+            exclude_incomplete = self.exclude_incomplete
 
-        # translate frequency in pandas-style time
-        if freq == 'monthly':
-            resample_freq = '1M'
-        elif freq == 'daily':
-            resample_freq = '1D'
-        elif freq == 'yearly':
-            resample_freq = '1Y'
-        else:
-            resample_freq = freq
+        resample_freq = frequency_string_to_pandas(freq)
 
         try:
             # resample
@@ -536,6 +537,10 @@ class Reader(FixerMixin, RegridMixin):
         
         # set time as the first timestamp of each month/day according to the sampling frequency
         out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
+
+        if exclude_incomplete:
+            boolean_mask = check_chunk_completeness(data, resample_frequency=resample_freq)
+            out = out.where(boolean_mask, drop=True)
 
         # check time is correct
         if np.any(np.isnat(out.time)):
