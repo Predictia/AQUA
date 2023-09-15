@@ -1,4 +1,5 @@
 """An intake driver for FDB/GSV access"""
+import os
 
 import datetime
 import sys
@@ -26,6 +27,12 @@ class GSVSource(base.DataSource):
     name = 'gsv'
     version = '0.0.2'
     partition_access = True
+    timeaxis = None
+    chk_start_idx = None
+    chk_start_date = None
+    chk_end_idx = None
+    chk_end_date = None
+    chk_size = None
 
     _ds = None  # This will contain a sample of the data for dask access
     dask_access = False  # Flag if dask has been requested
@@ -33,7 +40,8 @@ class GSVSource(base.DataSource):
 
     def __init__(self, request, data_start_date, data_end_date, timestyle="date",
                  aggregation="S", savefreq="H", timestep="H", timeshift=None,
-                 startdate=None, enddate=None, var='167', metadata=None, verbose=False, **kwargs):
+                 startdate=None, enddate=None, var='167', metadata=None, verbose=False,
+                 logging=False, **kwargs):
         """
         Initializes the GSVSource class. These are typically specified in the catalogue entry, but can also be specified upon accessing the catalogue.
 
@@ -49,14 +57,19 @@ class GSVSource(base.DataSource):
             var (str, optional): Variable ID. Defaults to "167".
             metadata (dict, optional): Metadata read from catalogue. Contains path to FDB.
             verbose (bool, optional): Whether to print additional info to screen. Used only for FDB access. Defaults to False.
+            logging (bool, optional): Whether to print to screen. Used only for FDB access. Defaults to False.
             kwargs: other keyword arguments.
         """
 
-        if gsv_available:
-            self.gsv = GSVRetriever()
-        else:
+        if not gsv_available:
             raise ImportError(gsv_error_cause)
-                
+        
+        fdbpath = metadata.get('fdb_path', None)
+        if fdbpath:  # if fdbpath provided, use it, since we are creating a new gsv
+            os.environ["FDB5_CONFIG_FILE"] = fdbpath
+
+        self.gsv = GSVRetriever()
+
         if not startdate:
             startdate = data_start_date
         if not enddate:
@@ -65,9 +78,6 @@ class GSVSource(base.DataSource):
         offset = int(request["step"])  # optional initial offset for steps (in timesteps)
 
         startdate = add_offset(data_start_date, startdate, offset, timestep)  # special for 6h: set offset startdate if needed
-
-        # check if dates are within acceptable range
-        check_dates(startdate, data_start_date, enddate, data_end_date)
         
         self.timestyle = timestyle
 
@@ -81,16 +91,22 @@ class GSVSource(base.DataSource):
 
         self._var = var
         self.verbose = verbose
+        self.logging = logging
 
         self._request = request.copy()
         self._kwargs = kwargs
 
         sys._gsv_work_counter = 0  # used to suppress printing
 
+        self.data_start_date = data_start_date
+        self.data_end_date = data_end_date
+        self.startdate = startdate
+        self.enddate = enddate
+        
         (self.timeaxis, self.chk_start_idx,
          self.chk_start_date, self.chk_end_idx,
-         self.chk_end_date, self.chk_size) = make_timeaxis(data_start_date, startdate, enddate,
-                                                           shiftmonth=timeshift, timestep=timestep,
+         self.chk_end_date, self.chk_size) = make_timeaxis(self.data_start_date, self.startdate, self.enddate,
+                                                           shiftmonth=self.timeshift, timestep=timestep,
                                                            savefreq=savefreq, chunkfreq=aggregation)
 
         self._npartitions = len(self.chk_start_date)
@@ -100,9 +116,12 @@ class GSVSource(base.DataSource):
     def _get_schema(self):
         """Standard method providing data schema"""
 
+        # check if dates are within acceptable range
+        check_dates(self.startdate, self.data_start_date, self.enddate, self.data_end_date)
+
         if self.dask_access:  # We need a better schema for dask access
             if not self._ds:  # we still have to retrieve a sample dataset
-                self._ds = self._get_partition(0, first=False)
+                self._ds = self._get_partition(0, first=True)
             
             var = list(self._ds.data_vars)[0]
             da = self._ds[var]  # get first variable dataarray
@@ -130,7 +149,7 @@ class GSVSource(base.DataSource):
 
         return schema
 
-    def _get_partition(self, i, first=False):
+    def _get_partition(self, i, first=False, dask=False):
         """
         Standard internal method reading i-th data partition from FDB
         Args:
@@ -140,7 +159,7 @@ class GSVSource(base.DataSource):
             An xarray.DataSet
         """
 
-        request = self._request.copy()  # We are going to modify it
+        request = self._request
 
         if self.timestyle == "date":
             dds, tts = date2str(self.chk_start_date[i])
@@ -164,37 +183,19 @@ class GSVSource(base.DataSource):
         if self._var:  # if no var provided keep the default in the catalogue
             request["param"] = self._var
 
-        if self.dask_access:  # if we are using dask then each get_partition needs its own gsv instance.
-                              # Actually it is needed for each processor, this could be possibly improved
-            gsv = GSVRetriever() 
-        else:
-            gsv = self.gsv  # use the one which we already created
-
-        # if self.verbose:
-        #     print("Request: ", i, self._var, s0, s1, request)
-        # else:  # suppress printing
-        #     self.nwork += 1  # increment number of active reads
-        #     print(i, self.nwork, "active")
-        #     if not self.stdout:  # am I the first one to do this?
-        #         self.stdout = sys.stdout
-        #         #self.text_trap = io.StringIO()
-        #         #sys.stdout = self.text_trap
         if self.verbose:
             print("Request: ", i, self._var, s0, s1, request)
-            dataset = gsv.request_data(request)
+            dataset = self.gsv.request_data(request)
         else:
             with NoPrinting():
-                dataset = gsv.request_data(request)
-
+                dataset = self.gsv.request_data(request)
+    
         if self.timeshift:  # shift time by one month (special case)
             dataset = shift_time_dataset(dataset)
 
-        # Fix GRIB attribute names. This removes "GRIB_" from the beginning
-        for var in dataset.data_vars:
-            dataset[var].attrs = {key.split("GRIB_")[-1]: value for key, value in dataset[var].attrs.items()}
-
         # Log history
-        log_history(dataset, "dataset retrieved by GSV interface")
+        if self.logging:
+            log_history(dataset, "Dataset retrieved by GSV interface")
 
         return dataset
 
@@ -211,7 +212,7 @@ class GSVSource(base.DataSource):
         Function to read a delayed partition.
         Returns a dask.array
         """
-        ds = dask.delayed(self._get_partition)(i)[var].data
+        ds = dask.delayed(self._get_partition)(i, dask=True)[var].data
         newshape = list(shape)
         newshape[self.itime] = self.chk_size[i]
         return dask.array.from_delayed(ds, newshape, dtype)
