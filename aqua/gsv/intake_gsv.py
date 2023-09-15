@@ -1,4 +1,5 @@
 """An intake driver for FDB/GSV access"""
+import os
 
 import datetime
 import sys
@@ -40,7 +41,7 @@ class GSVSource(base.DataSource):
     def __init__(self, request, data_start_date, data_end_date, timestyle="date",
                  aggregation="S", savefreq="H", timestep="H", timeshift=None,
                  startdate=None, enddate=None, var='167', metadata=None, verbose=False,
-                 logging = False, **kwargs):
+                 logging=False, **kwargs):
         """
         Initializes the GSVSource class. These are typically specified in the catalogue entry, but can also be specified upon accessing the catalogue.
 
@@ -56,14 +57,19 @@ class GSVSource(base.DataSource):
             var (str, optional): Variable ID. Defaults to "167".
             metadata (dict, optional): Metadata read from catalogue. Contains path to FDB.
             verbose (bool, optional): Whether to print additional info to screen. Used only for FDB access. Defaults to False.
+            logging (bool, optional): Whether to print to screen. Used only for FDB access. Defaults to False.
             kwargs: other keyword arguments.
         """
 
-        if gsv_available:
-            self.gsv = GSVRetriever()
-        else:
+        if not gsv_available:
             raise ImportError(gsv_error_cause)
-                
+        
+        fdbpath = metadata.get('fdb_path', None)
+        if fdbpath:  # if fdbpath provided, use it, since we are creating a new gsv
+            os.environ["FDB5_CONFIG_FILE"] = fdbpath
+
+        self.gsv = GSVRetriever()
+
         if not startdate:
             startdate = data_start_date
         if not enddate:
@@ -177,18 +183,14 @@ class GSVSource(base.DataSource):
         if self._var:  # if no var provided keep the default in the catalogue
             request["param"] = self._var
 
-        if dask:  # if we are using dask then each get_partition needs its own gsv instance.
-                  # Actually it is needed for each worker, this could be possibly improved
-              gsv = GSVRetriever()
-        else:
-              gsv = self.gsv  # use the one which we already created
+        # gsv = GSVRetriever()  # if we are using dask then each get_partition needs its own gsv instance.
 
         if self.verbose:
             print("Request: ", i, self._var, s0, s1, request)
-            dataset = gsv.request_data(request)
+            dataset = self.gsv.request_data(request)
         else:
             with NoPrinting():
-                dataset = gsv.request_data(request)
+                dataset = self.gsv.request_data(request)
     
         if self.timeshift:  # shift time by one month (special case)
             dataset = shift_time_dataset(dataset)

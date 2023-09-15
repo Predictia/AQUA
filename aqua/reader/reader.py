@@ -770,11 +770,6 @@ class Reader(FixerMixin, RegridMixin):
         Returns:
             An xarray.Dataset or an iterator over datasets
         """
-        # These are all needed in theory
-
-        fdb_path = esmcat.metadata.get('fdb_path', None)
-        if fdb_path:
-            os.environ["FDB5_CONFIG_FILE"] = fdb_path
 
         if dask:
             if self.aggregation:
