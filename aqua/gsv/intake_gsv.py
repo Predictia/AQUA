@@ -158,7 +158,7 @@ class GSVSource(base.DataSource):
             An xarray.DataSet
         """
 
-        request = self._request
+        request = self._request.copy()  # We are going to change it, threads do need this
 
         if self.timestyle == "date":
             dds, tts = date2str(self.chk_start_date[i])
