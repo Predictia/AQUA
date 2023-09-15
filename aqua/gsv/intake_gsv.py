@@ -64,11 +64,7 @@ class GSVSource(base.DataSource):
         if not gsv_available:
             raise ImportError(gsv_error_cause)
         
-        fdbpath = metadata.get('fdb_path', None)
-        if fdbpath:  # if fdbpath provided, use it, since we are creating a new gsv
-            os.environ["FDB5_CONFIG_FILE"] = fdbpath
-
-        self.gsv = GSVRetriever()
+        self.fdbpath = metadata.get('fdb_path', None)
 
         if not startdate:
             startdate = data_start_date
@@ -183,12 +179,17 @@ class GSVSource(base.DataSource):
         if self._var:  # if no var provided keep the default in the catalogue
             request["param"] = self._var
 
+        if self.fdbpath:  # if fdbpath provided, use it, since we are creating a new gsv
+            os.environ["FDB5_CONFIG_FILE"] = self.fdbpath
+
+        gsv = GSVRetriever()  # for some reason this is needed here and not in init
+
         if self.verbose:
             print("Request: ", i, self._var, s0, s1, request)
-            dataset = self.gsv.request_data(request)
+            dataset = gsv.request_data(request)
         else:
             with NoPrinting():
-                dataset = self.gsv.request_data(request)
+                dataset = gsv.request_data(request)
     
         if self.timeshift:  # shift time by one month (special case)
             dataset = shift_time_dataset(dataset)
