@@ -76,10 +76,7 @@ tests = [
 ecmean = [
     "ECmean4"
 ]
-teleconnections = [
-    "cdo"
-]
-tropical_rainfall = [
+tropical-rainfall = [
     "boost_histogram",
     "dask_histogram",
     "fast_histogram"
@@ -90,8 +87,7 @@ all = [
     "aqua[tests]",
     # diagnostics
     "aqua[ecmean]",
-    "aqua[teleconnections]",
-    "aqua[tropical_rainfall]"
+    "aqua[tropical-rainfall]"
 ]
 
 [project.urls]

@@ -13,6 +13,7 @@ dependencies:
   - ecCodes      
   - pandoc
   - pip
+  - python-cdo # for teleconnections
   - tempest-extremes # for TCs
   - xesmf # for ECmean
   - pip:
