@@ -48,7 +48,7 @@ sources:
       yaml for derived vars.
     driver: gsv
     metadata:
-      fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-CONTROL_1950_DEVCON.yaml
+      fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-HISTORICAL_1990_DEVCON.yaml
       eccodes_path: /projappl/project_465000454/jvonhar/aqua/eccodes/eccodes-2.30.0/definitions
   6hourly-1deg:
     args:
@@ -73,7 +73,7 @@ sources:
     description: 6hourly data on r100 griddeg. Contains z(129).
     driver: gsv
     metadata:
-      fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-CONTROL_1950_DEVCON.yaml
+      fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-HISTORICAL_1990_DEVCON.yaml
       eccodes_path: /projappl/project_465000454/jvonhar/aqua/eccodes/eccodes-2.30.0/definitions
   monthly-1deg-2d:
     args:
@@ -98,7 +98,7 @@ sources:
       sd(141), tciw(79), tclw(78), msl(151), tcwv(137), lcc(186), mcc(187), hcc(188).
     driver: gsv
     metadata:
-      fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-CONTROL_1950_DEVCON.yaml
+      fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-HISTORICAL_1990_DEVCON.yaml
       eccodes_path: /projappl/project_465000454/jvonhar/aqua/eccodes/eccodes-2.30.0/definitions
   monthly-1deg-3d:
     args:
@@ -125,7 +125,7 @@ sources:
       w(135), q(133).
     driver: gsv
     metadata:
-      fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-CONTROL_1950_DEVCON.yaml
+      fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-HISTORICAL_1990_DEVCON.yaml
       eccodes_path: /projappl/project_465000454/jvonhar/aqua/eccodes/eccodes-2.30.0/definitions
   lra-r100-monthly:
     driver: netcdf
