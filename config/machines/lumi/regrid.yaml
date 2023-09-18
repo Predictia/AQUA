@@ -157,8 +157,7 @@ sources:
 
   ERA5:
     fdb:
-      default:
-        space_coord: ["lon", "lat"]
+      default: lon-lat
     era5:
       default: era5-r025
 
