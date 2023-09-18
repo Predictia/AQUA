@@ -58,6 +58,19 @@ grids:
     # extra:
     #   - selname,tmask          
     # space_coord: ["nav_lon", "nav_lat"]
+  # FESOM
+  ng5-2d:
+    path: $grids/FESOM/AQUA_NG5_griddes_nodes_IFS.nc
+    space_coord:
+      - nod2
+  ng5-3d:
+    path:
+      nz: $grids/FESOM/NG5_nodes_fesom_mask_nz.nc
+      nz1: $grids/FESOM/NG5_nodes_fesom_mask_nz1.nc
+    space_coord: ["nod2"]
+    vert_coord: ["nz", "nz1"]
+    extra: 
+      - -setgrid,$grids/FESOM/NG5_griddes_nodes_IFS.nc 
   # OBSERVATIONS
   era5-r025:
     path: 
@@ -90,6 +103,13 @@ grids:
     space_coord: ["lon", "lat"]
 
 sources:
+# extra is an extra special cdo command to be applied before generating the weights
+  FESOM:
+    historical-1990-fesom:
+      monthly-original-2d: ng5-2d
+      daily-original-2d: ng5-2d
+      monthly-original-3d: ng5-3d
+
   IFS:
     tco399-orca025:
       default: tco399
@@ -114,7 +134,26 @@ sources:
       monthly-1deg-3d: lon-lat
 
   NEMO:
-    tco79-eORCA1: eORCA1
+    tco79-eORCA1:
+      default: ncells
+      hourly-1deg: lon-lat
+      6hourly-1deg: lon-lat
+      monthly-1deg-2d: lon-lat
+      monthly-1deg-3d: lon-lat
+      lra-r100-monthly: lon-lat
+    historical-1990-fesom:
+      default: ncells
+      hourly-1deg: lon-lat
+      6hourly-1deg: lon-lat
+      monthly-1deg-2d: lon-lat
+      monthly-1deg-3d: lon-lat
+    historical-1990-devcon:
+      default: ncells
+      hourly-1deg: lon-lat
+      6hourly-1deg: lon-lat
+      monthly-1deg-2d: lon-lat
+      monthly-1deg-3d: lon-lat
+      lra-r100-monthly: lon-lat
 
   ERA5:
     era5:
