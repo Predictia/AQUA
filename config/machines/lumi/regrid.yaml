@@ -117,6 +117,9 @@ source_grids:
         space_coord: ["lon", "lat"]
 
   ERA5:
+    fdb:
+      default:
+        space_coord: ["lon", "lat"]
     era5:
       default:
         path: 
