@@ -225,10 +225,18 @@ class Reader(FixerMixin, RegridMixin):
                 # compute correct filename ending
                 levname = vc if vc == "2d" or vc == "2dm" else f"3d-{vc}"
 
-                template_file = cfg_regrid["weights"]["template_grid"].format(sourcegrid = source_grid_name,
-                                                                              method = method,
-                                                                              targetgrid = regrid,
-                                                                              level=levname)
+                if 'path' in source_grid:
+                    template_file = cfg_regrid["weights"]["template_grid"].format(sourcegrid=source_grid_name,
+                                                                                  method=method,
+                                                                                  targetgrid=regrid,
+                                                                                  level=levname)   
+                else: 
+                    template_file = cfg_regrid["weights"]["template_default"].format(model=model,
+                                                                                   exp=exp,
+                                                                                   source=source,
+                                                                                   method=method,
+                                                                                   targetgrid=regrid,
+                                                                                   level=levname)                                                      
                 # add the zoom level in the template file
                 if self.zoom is not None:
                     template_file = re.sub(r'\.nc',
@@ -255,9 +263,12 @@ class Reader(FixerMixin, RegridMixin):
                                                         space_dims=default_space_dims)})
 
         if areas:
-
-            template_file = cfg_regrid["areas"]["template_grid"].format(grid = source_grid_name)
-
+            if 'path' in source_grid:
+                template_file = cfg_regrid["areas"]["template_grid"].format(grid = source_grid_name)
+            else:
+                template_file = cfg_regrid["areas"]["template_default"].format(model=model,
+                                                                               exp=exp,
+                                                                               source=source)                                                                                   
             # add the zoom level in the template file
             if self.zoom is not None:
                 template_file = re.sub(r'\.nc',
