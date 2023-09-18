@@ -95,7 +95,7 @@ grids:
     space_coord: ["lon", "lat"]
     vert_coord: ["lev"]
   aviso:
-    space_coords: ["longitude", "latitude"]
+    space_coord: ["longitude", "latitude"]
   woa:
     path:
       depth: $grids/WOA18/grid-woa18.nc
