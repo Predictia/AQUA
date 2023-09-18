@@ -225,7 +225,7 @@ class Reader(FixerMixin, RegridMixin):
                 # compute correct filename ending
                 levname = vc if vc == "2d" or vc == "2dm" else f"3d-{vc}"
 
-                if 'path' in source_grid:
+                if sgridpath:
                     template_file = cfg_regrid["weights"]["template_grid"].format(sourcegrid=source_grid_name,
                                                                                   method=method,
                                                                                   targetgrid=regrid,
@@ -263,7 +263,7 @@ class Reader(FixerMixin, RegridMixin):
                                                         space_dims=default_space_dims)})
 
         if areas:
-            if 'path' in source_grid:
+            if sgridpath:
                 template_file = cfg_regrid["areas"]["template_grid"].format(grid = source_grid_name)
             else:
                 template_file = cfg_regrid["areas"]["template_default"].format(model=model,
