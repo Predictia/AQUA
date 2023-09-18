@@ -6,7 +6,7 @@ paths:
 
 # templates
 weights:
-  template_default: weights_{model}_{exp}_{source}_{method}_{target}_l{level}.nc
+  template_default: weights_{model}_{exp}_{source}_{method}_{targetgrid}_l{level}.nc
   template_grid: weights_{sourcegrid}_{method}_{targetgrid}_l{level}.nc
 areas:
   template_default: cell_area_{model}_{exp}_{source}.nc
