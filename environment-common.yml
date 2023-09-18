@@ -10,7 +10,8 @@ channels:
 dependencies:
   - python>=3.9
   - cdo>=2.2.0 #for healpix support
-  - ecCodes      
+  - ecCodes
+  - pandas      
   - pandoc
   - pip
   - python-cdo # for teleconnections
