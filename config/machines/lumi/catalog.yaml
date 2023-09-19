@@ -10,12 +10,17 @@ sources:
     description: IFS atmospheric model
     driver: yaml_file_cat
     args:
-      path: "{{CATALOG_DIR}}/catalog/IFS/main.yaml"
+        path: "{{CATALOG_DIR}}/catalog/IFS/main.yaml"
   FESOM:
     description: FESOM oceanic model
     driver: yaml_file_cat
     args:
       path: "{{CATALOG_DIR}}/catalog/FESOM/main.yaml"
+  NEMO:
+    description: NEMO oceanic model
+    driver: yaml_file_cat
+    args:
+        path: "{{CATALOG_DIR}}/catalog/NEMO/main.yaml"
   ERA5:
     description: test ERA5 data on fdb
     driver: yaml_file_cat
