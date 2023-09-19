@@ -34,6 +34,24 @@ source_grids:
         extra: 
           - -setgrid,../AQUA_tests_short/grids/pi_griddes_nodes_IFS.nc 
           - -selname,cell_area
+    historical-1990-fesom:
+      monthly-original-2d:
+        path: $grids/FESOM/AQUA_NG5_griddes_nodes_IFS.nc
+        space_coord:
+        - nod2
+      daily-original-2d:
+        path: $grids/FESOM/AQUA_NG5_griddes_nodes_IFS.nc
+        space_coord:
+          - nod2
+      monthly-original-3d:
+        path:
+          nz: $grids/FESOM/NG5_nodes_fesom_mask_nz.nc
+          nz1: $grids/FESOM/NG5_nodes_fesom_mask_nz1.nc
+        space_coord: ["nod2"]
+        vert_coord: ["nz", "nz1"]
+        extra: 
+          - -setgrid,$grids/FESOM/NG5_griddes_nodes_IFS.nc 
+
 
   IFS:
     tco399-orca025:
@@ -71,6 +89,18 @@ source_grids:
         space_coord: ["lon", "lat"]
       lra-r100-monthly:
         space_coord: ["lon", "lat"]
+    historical-1990-fesom:
+      default:
+        space_coord: ["ncells"]
+        support_dims: ["cell_corners"]  # dimensions to keep when selecting a single spatial sample
+      hourly-1deg:
+        space_coord: ["lon", "lat"]
+      6hourly-1deg:
+        space_coord: ["lon", "lat"]
+      monthly-1deg-2d:
+        space_coord: ["lon", "lat"]
+      monthly-1deg-3d:
+        space_coord: ["lon", "lat"]
     historical-1990-devcon:
       default:
         space_coord: ["ncells"]
@@ -83,8 +113,13 @@ source_grids:
         space_coord: ["lon", "lat"]
       monthly-1deg-3d:
         space_coord: ["lon", "lat"]
+      lra-r100-monthly:
+        space_coord: ["lon", "lat"]
 
   ERA5:
+    fdb:
+      default:
+        space_coord: ["lon", "lat"]
     era5:
       default:
         path: 
