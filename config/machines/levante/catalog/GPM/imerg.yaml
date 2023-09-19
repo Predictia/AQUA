@@ -9,6 +9,6 @@ sources:
     args:
       urlpath: /work/bm1235/observations/GPM_IMERG/GPM_IMERG_hourly_202*_*.nc
       chunks:
-        time: 1
+        time: 24
       xarray_kwargs:
         decode_times: True
