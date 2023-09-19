@@ -23,7 +23,7 @@
         timestep: H
         timestyle: step
         timeshift: -M    # shift time of resulting xarray by this amount
-      description: monthly data on r100 grid. Contains avg_thetao (263501) and avg_so (263500)
+      description: monthly data on native resolution. Contains avg_thetao (263501) and avg_so (263500)
       driver: gsv
       metadata: {fdb_path: 
           /scratch/project_465000454/bjimenez/gsv_interface/config.yaml}
