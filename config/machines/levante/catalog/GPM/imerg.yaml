@@ -7,7 +7,7 @@ sources:
     description: IMERG precipitatio 0.1deg hourly 2020-2021
     driver: netcdf
     args:
-      urlpath: /work/bb1153/b382075/datasets/GPM-IMERG/hourly/GPM_IMERG_hourly_202*_*.nc
+      urlpath: /work/bm1235/observations/GPM_IMERG/GPM_IMERG_hourly_202*_*.nc
       chunks:
         time: 1
       xarray_kwargs:
