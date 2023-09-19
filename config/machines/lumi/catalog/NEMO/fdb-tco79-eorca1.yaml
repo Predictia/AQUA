@@ -17,9 +17,10 @@
                     51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 
                     67, 68, 69, 70, 71, 72, 73, 74, 75]
           step: 0
-        data_start_date: '19500101'
-        data_end_date: '19500601'
+        data_start_date: 19500101T0000
+        data_end_date: 19500601T0000
         aggregation: M  # Default aggregation if timestep=S is used
+        savefreq: M
         timestep: H
         timestyle: step
         timeshift: -M    # shift time of resulting xarray by this amount
