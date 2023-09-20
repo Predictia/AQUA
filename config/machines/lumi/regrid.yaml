@@ -51,13 +51,19 @@ grids:
     path: $grids/IFS/tco79_grid.nc
     space_coord: ["value"]
   # NEMO
-  eORCA1:
+  eORCA1-2d:
     path: $grids/NEMO/ORCA1_mesh_sfc_grid_T.nc
     space_coord: ["cell"]
     # path: /pfs/lustrep3/scratch/project_465000454/pool/data/IFS/inputs_de_48r1/nemo/V40/eORCA1_Z75/common/mesh_mask.nc
     # extra:
     #   - selname,tmask          
     # space_coord: ["nav_lon", "nav_lat"]
+  eORCA1-3d:
+    path: $grids/NEMO/eORCA1_mesh_3d_grid_T.nc
+    space_coord: ["ncells"]
+    vert_coord: ["height"]
+    extra:
+      - -selname,dummy    
   # FESOM
   ng5-2d:
     path: $grids/FESOM/AQUA_NG5_griddes_nodes_IFS.nc
@@ -115,8 +121,6 @@ sources:
       default: tco399
     tco79-eORCA1:
       default: tco79
-      # atm2d: tco79
-      # atm3d: tco79
     fdb-tco399:
       default: tco399-fdb
     control-1950-devcon:
@@ -134,13 +138,15 @@ sources:
       monthly-1deg-3d: lon-lat
 
   NEMO:
-    tco79-eORCA1:
-      default: ncells
-      hourly-1deg: lon-lat
-      6hourly-1deg: lon-lat
-      monthly-1deg-2d: lon-lat
-      monthly-1deg-3d: lon-lat
-      lra-r100-monthly: lon-lat
+    fdb-tco79-eORCA1:
+      default: eORCA1-3d
+    # tco79-eORCA1:
+    #   default: ncells
+    #   hourly-1deg: lon-lat
+    #   6hourly-1deg: lon-lat
+    #   monthly-1deg-2d: lon-lat
+    #   monthly-1deg-3d: lon-lat
+    #   lra-r100-monthly: lon-lat
     historical-1990-fesom:
       default: ncells
       hourly-1deg: lon-lat
