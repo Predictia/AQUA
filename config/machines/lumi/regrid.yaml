@@ -87,7 +87,7 @@ grids:
       - SSTK
     space_coord: ["lon", "lat"]
     vert_coord: ["2d", "2dm"]  # If the case is more complex than simply "2d" we need to specify this  
-  osi-saf:
+  osi-saf-nh:
     space_coord:
       - xc
       - yc
@@ -95,9 +95,17 @@ grids:
     cellarea_var: areacello
     mask: $grids/OSI-SAF/grid_nh.nc
     mask_var: sftof
+  osi-saf-sh:
+    space_coord:
+      - xc
+      - yc
+    cellareas: $grids/OSI-SAF/grid_sh.nc
+    cellarea_var: areacello
+    mask: $grids/OSI-SAF/grid_sh.nc
+    mask_var: sftof
   en4:
     path:
-      lev: /work/bb1153/b382076/AQUA-archive/grids/EN4/en4-grid.nc
+      lev: $grids/EN4/en4-grid.nc
     space_coord: ["lon", "lat"]
     vert_coord: ["lev"]
   aviso:
@@ -136,9 +144,16 @@ sources:
       6hourly-1deg: lon-lat
       monthly-1deg-2d: lon-lat
       monthly-1deg-3d: lon-lat
+      lra-r100-monthly: lon-lat
+    historical-1990-fesom:
+      default: ncells
+      hourly-1deg: lon-lat
+      6hourly-1deg: lon-lat
+      monthly-1deg-2d: lon-lat
+      monthly-1deg-3d: lon-lat
 
   NEMO:
-    fdb-tco79-eORCA1:
+    fdb-tco79-eorca1:
       default: eORCA1-3d
     # tco79-eORCA1:
     #   default: ncells
@@ -147,12 +162,7 @@ sources:
     #   monthly-1deg-2d: lon-lat
     #   monthly-1deg-3d: lon-lat
     #   lra-r100-monthly: lon-lat
-    historical-1990-fesom:
-      default: ncells
-      hourly-1deg: lon-lat
-      6hourly-1deg: lon-lat
-      monthly-1deg-2d: lon-lat
-      monthly-1deg-3d: lon-lat
+  
     historical-1990-devcon:
       default: ncells
       hourly-1deg: lon-lat
@@ -185,11 +195,11 @@ sources:
 
   OSI-SAF:
     osi-450:
-      default: osi-saf
-      # nh-monthly: osi-saf
-      # nh-daily: osi-saf
-      # sh-daily: osi-saf
-      # sh-monthly: osi-saf
+      default: osi-saf-nh
+      nh-monthly: osi-saf-nh
+      nh-daily: osi-saf-nh
+      sh-daily: osi-saf-sh
+      sh-monthly: osi-saf-sh
 
   EN4:
     en4:
