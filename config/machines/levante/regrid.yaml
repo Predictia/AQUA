@@ -139,7 +139,23 @@ grids:
     vert_coord: ["2d", "2dm"]
   era5-n320:
     path: /work/bb1153/b382075/nextgems/grids/n320_unstructured.nc
-    space_coord: ["values"]  
+    space_coord: ["values"]
+  osi-saf-nh:
+    space_coord:
+      - xc
+      - yc
+    cellareas: $grids/OSI-SAF/grid_nh.nc
+    cellarea_var: areacello
+    mask: $grids/OSI-SAF/grid_nh.nc
+    mask_var: sftof
+  osi-saf-sh:
+    space_coord:
+      - xc
+      - yc
+    cellareas: $grids/OSI-SAF/grid_sh.nc
+    cellarea_var: areacello
+    mask: $grids/OSI-SAF/grid_sh.nc
+    mask_var: sftof
   
 
   r005: r7200x3600
@@ -221,9 +237,9 @@ sources:
   FESOM:
     tco3999-ng5:
       default: lon-lat
-      interpolated_global2d: tco2559_interpolated_2d
-      interpolated_global_TS: tco2559_interpolated_3d
-      interpolated_global_UV: tco2559_interpolated_3d
+      interpolated_global2d: fesom-interpolated-2d
+      interpolated_global_TS: fesom-interpolated-3d
+      interpolated_global_UV: fesom-interpolated-3d
       original_2d: ng5-nodes-2d
       original_3d: ng5-nodes-3d
       original_3d_elem: ng5-elems-3d
@@ -285,4 +301,10 @@ sources:
     era5:
       default: era5-r025
 
-
+  OSI-SAF:
+    osi-450:
+      default: osi-saf-nh
+      nh-monthly: osi-saf-nh
+      nh-daily: osi-saf-nh
+      sh-daily: osi-saf-sh
+      sh-monthly: osi-saf-sh
