@@ -159,6 +159,7 @@ def single_map_plot(map=None, save=False, **kwargs):
         - cb_label (str,opt):   label for the colorbar
         - outputdir (str,opt):  output directory for the figure, default is '.' (current directory)
         - filename (str,opt):   filename for the figure, default is 'maps.png'
+        - sym (bool,opt):       symmetrical colorbar, default is True
 
     Raises:
         ValueError: if no map is provided
@@ -172,10 +173,15 @@ def single_map_plot(map=None, save=False, **kwargs):
     # Add cyclic longitude
     map = add_cyclic_lon(map)
 
-    # Evaluate min and max values for the common colorbar
-    vmin, vmax = minmax_maps([map])
-    logger.debug('Min value for the colorbar: {}'.format(vmin))
-    logger.debug('Max value for the colorbar: {}'.format(vmax))
+    if kwargs.get('sym', True) is True:
+        logger.debug('Symmetrical colorbar requested')
+        vmin, vmax = minmax_maps([map])
+        logger.debug('Min value for the colorbar: {}'.format(vmin))
+        logger.debug('Max value for the colorbar: {}'.format(vmax))
+    else:
+        logger.debug('Symmetrical colorbar not requested')
+        vmin = map.min()
+        vmax = map.max()
 
     model = kwargs.get('model')
     exp = kwargs.get('exp')
