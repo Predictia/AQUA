@@ -32,11 +32,11 @@ grids:
   # IFS
   test-tco79:
     path: $grids/tco79_grid.nc
-    space_coord: [cell]
+    #space_coord: [cell]
   # FESOM
   test-pi-2d:
     path: $grids/pi_griddes_nodes_IFS.nc
-    space_coord: [nod2]
+    #space_coord: [nod2]
     extra:
     - -setgrid,$grids/pi_griddes_nodes_IFS.nc
     - -selname,cell_area
@@ -51,10 +51,10 @@ grids:
   # ICON
   test-healpix:
     path: $grids/icon_healpix0.nc
-    space_coord: [x]
+    #space_coord: [x]
   test-r2b0:
     path: ./AQUA_tests/models/ICON/test-lowres/r2b0.nc
-    space_coord: [cell]
+    #space_coord: [cell]
 
 sources:
   IFS:

@@ -278,6 +278,22 @@ class RegridMixin():
             data = next(data)
 
         return data
+    
+    def _guess_space_coord(self, default_dims):
+
+        """
+        Given a set of default space dimensions, find the one present in the data
+        and return them
+        """
+    
+        data = self._retrieve_plain(startdate=None, regrid=False)
+        guessed = [x for x in data.dims if x in default_dims]
+        if guessed is None:
+            self.logger.info('Default dims that are screened are %s', default_dims)
+            raise KeyError('Cannot identify any space_coord, you will will need to define it regrid.yaml')
+        
+        self.logger.info('Space_coords deduced from the source are %s', guessed)
+        return guessed
             
 
 def _rename_dims(data, dim_list):
