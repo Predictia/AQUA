@@ -44,7 +44,7 @@ grids:
     path:
       nz1: $grids/pi_fesom_mask_nz1.nc
       nz: $grids/pi_fesom_mask_nz.nc
-    #space_coord: [nod2]
+    space_coord: [nod2]
     vert_coord: [nz1, nz]
     extra:
     - -setgrid,$grids/pi_griddes_nodes_IFS.nc

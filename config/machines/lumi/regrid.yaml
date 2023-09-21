@@ -32,37 +32,34 @@ grids:
   r250: r144x72
 
   # IFS
-  tco399: # notice that tco399 for levante has space_coord: ["cell"]
-    path: $grids/IFS/tco399_grid.nc
-    space_coord: ["value"]
-  tco399-fdb:
+  tco399:
     path: 
       2d: $grids/IFS/tco399_grid.nc
       2dm: $grids/IFS/tco399_grid_masked.nc
     masked_vars: ["ci", "sst"]
-    space_coord: ["ncells"]
+    s#pace_coord: ["ncells"]
     vert_coord: ["2d", "2dm"]  # If the case is more complex than simply "2d" we need to specify this
-  tco1279-fdb:
+  tco1279:
     path: 
       2d: $grids/IFS/tco1279_grid.nc
       2dm: $grids/IFS/tco1279_grid_masked.nc
     masked_vars: ["ci", "sst"]
     vert_coord: ["2d", "2dm"]
-    space_coord: ["ncells"]
+    #space_coord: ["ncells"]
   tco79:
     path: $grids/IFS/tco79_grid.nc
-    space_coord: ["value"]
+    #space_coord: ["value"]
   # NEMO
   eORCA1-2d:
     path: $grids/NEMO/ORCA1_mesh_sfc_grid_T.nc
-    space_coord: ["cell"]
+    #space_coord: ["cell"]
     # path: /pfs/lustrep3/scratch/project_465000454/pool/data/IFS/inputs_de_48r1/nemo/V40/eORCA1_Z75/common/mesh_mask.nc
     # extra:
     #   - selname,tmask          
     # space_coord: ["nav_lon", "nav_lat"]
   eORCA1-3d:
     path: $grids/NEMO/eORCA1_mesh_3d_grid_T.nc
-    space_coord: ["ncells"]
+    #space_coord: ["ncells"]
     vert_coord: ["height"]
     extra:
       - -selname,dummy    
@@ -75,7 +72,7 @@ grids:
     path:
       nz: $grids/FESOM/NG5_nodes_fesom_mask_nz.nc
       nz1: $grids/FESOM/NG5_nodes_fesom_mask_nz1.nc
-    space_coord: ["nod2"]
+    #space_coord: ["nod2"]
     vert_coord: ["nz", "nz1"]
     extra: 
       - -setgrid,$grids/FESOM/NG5_griddes_nodes_IFS.nc 
@@ -87,7 +84,7 @@ grids:
     masked_vars:
       - sst
       - SSTK
-    space_coord: ["lon", "lat"]
+    #space_coord: ["lon", "lat"]
     vert_coord: ["2d", "2dm"]  # If the case is more complex than simply "2d" we need to specify this
 
   osi-saf-nh:
@@ -132,23 +129,23 @@ sources:
     tco79-eORCA1:
       default: tco79
     fdb-tco399:
-      default: tco399-fdb
+      default: tco399
     control-1950-devcon:
-      default: tco1279-fdb
+      default: tco1279
       hourly-1deg: lon-lat
       6hourly-1deg: lon-lat
       monthly-1deg-2d: lon-lat
       monthly-1deg-3d: lon-lat
       lra-r100-monthly: lon-lat
     historical-1990-devcon:
-      default: tco1279-fdb
+      default: tco1279
       hourly-1deg: lon-lat
       6hourly-1deg: lon-lat
       monthly-1deg-2d: lon-lat
       monthly-1deg-3d: lon-lat
       lra-r100-monthly: lon-lat
     historical-1990-fesom:
-      default: tco1279-fdb
+      default: tco1279
       hourly-1deg: lon-lat
       6hourly-1deg: lon-lat
       monthly-1deg-2d: lon-lat

@@ -289,9 +289,10 @@ class RegridMixin():
         data = self._retrieve_plain(startdate=None, regrid=False)
         guessed = [x for x in data.dims if x in default_dims]
         if guessed is None:
-            raise KeyError('Cannot identify any space_cooord, you will will need to define it regrid.yaml')
+            self.logger.info('Default dims that are screened are %s', default_dims)
+            raise KeyError('Cannot identify any space_coord, you will will need to define it regrid.yaml')
         
-        self.logger.warning('Space_coords deduced from the source are %s', guessed)
+        self.logger.info('Space_coords deduced from the source are %s', guessed)
         return guessed
             
 
