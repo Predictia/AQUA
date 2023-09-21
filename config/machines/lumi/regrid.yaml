@@ -30,10 +30,7 @@ grids:
   r100: r360x180
   r200: r180x90
   r250: r144x72
-  # grids without a path
-  ncells:
-    space_coord: ["ncells"]
-    support_dims: ["cell_corners"]  # dimensions to keep when selecting a single spatial sample
+
   # IFS
   tco399: # notice that tco399 for levante has space_coord: ["cell"]
     path: $grids/IFS/tco399_grid.nc
@@ -42,11 +39,16 @@ grids:
     path: 
       2d: $grids/IFS/tco399_grid.nc
       2dm: $grids/IFS/tco399_grid_masked.nc
-    masked_vars:
-      - ci
-      - sst
+    masked_vars: ["ci", "sst"]
     space_coord: ["ncells"]
     vert_coord: ["2d", "2dm"]  # If the case is more complex than simply "2d" we need to specify this
+  tco1279-fdb:
+    path: 
+      2d: $grids/IFS/tco1279_grid.nc
+      2dm: $grids/IFS/tco1279_grid_masked.nc
+    masked_vars: ["ci", "sst"]
+    vert_coord: ["2d", "2dm"]
+    space_coord: ["ncells"]
   tco79:
     path: $grids/IFS/tco79_grid.nc
     space_coord: ["value"]
@@ -89,17 +91,13 @@ grids:
     vert_coord: ["2d", "2dm"]  # If the case is more complex than simply "2d" we need to specify this
 
   osi-saf-nh:
-    space_coord:
-      - xc
-      - yc
+    space_coord: ['xc', 'yc']
     cellareas: $grids/OSI-SAF/grid_nh.nc
     cellarea_var: areacello
     mask: $grids/OSI-SAF/grid_nh.nc
     mask_var: sftof
   osi-saf-sh:
-    space_coord:
-      - xc
-      - yc
+    space_coord: ['xc', 'yc']
     cellareas: $grids/OSI-SAF/grid_sh.nc
     cellarea_var: areacello
     mask: $grids/OSI-SAF/grid_sh.nc
@@ -136,21 +134,21 @@ sources:
     fdb-tco399:
       default: tco399-fdb
     control-1950-devcon:
-      default: ncells
+      default: tco1279-fdb
       hourly-1deg: lon-lat
       6hourly-1deg: lon-lat
       monthly-1deg-2d: lon-lat
       monthly-1deg-3d: lon-lat
       lra-r100-monthly: lon-lat
     historical-1990-devcon:
-      default: ncells
+      default: tco1279-fdb
       hourly-1deg: lon-lat
       6hourly-1deg: lon-lat
       monthly-1deg-2d: lon-lat
       monthly-1deg-3d: lon-lat
       lra-r100-monthly: lon-lat
     historical-1990-fesom:
-      default: ncells
+      default: tco1279-fdb
       hourly-1deg: lon-lat
       6hourly-1deg: lon-lat
       monthly-1deg-2d: lon-lat
@@ -166,14 +164,6 @@ sources:
     #   monthly-1deg-2d: lon-lat
     #   monthly-1deg-3d: lon-lat
     #   lra-r100-monthly: lon-lat
-  
-    historical-1990-devcon:
-      default: ncells
-      hourly-1deg: lon-lat
-      6hourly-1deg: lon-lat
-      monthly-1deg-2d: lon-lat
-      monthly-1deg-3d: lon-lat
-      lra-r100-monthly: lon-lat
 
   ERA5:
     fdb:
