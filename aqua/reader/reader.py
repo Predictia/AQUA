@@ -204,7 +204,9 @@ class Reader(FixerMixin, RegridMixin):
                 self.dst_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
 
         self.src_space_coord = source_grid.get("space_coord", None)
-        guessed = self._guess_space_coord()
+        if self.src_space_coord is None:
+                self.src_space_coord = self._guess_space_coord(default_space_dims)
+
         self.support_dims = source_grid.get("support_dims", [])
         self.space_coord = self.src_space_coord
 

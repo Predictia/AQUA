@@ -279,14 +279,19 @@ class RegridMixin():
 
         return data
     
-    def _guess_space_coord(self):
+    def _guess_space_coord(self, default_dims):
+
+        """
+        Given a set of default space dimensions, find the one present in the data
+        and return them
+        """
     
         data = self._retrieve_plain(startdate=None, regrid=False)
-        default_space_dims = ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude',
-                        'latitude', 'cell', 'cells', 'ncells', 'values',
-                        'value', 'nod2', 'pix', 'elem']
-        guessed = [x for x in data.dims if x in default_space_dims]
-        self.logger.warning('Guessed space dimensions are %s', guessed)
+        guessed = [x for x in data.dims if x in default_dims]
+        if guessed is None:
+            raise KeyError('Cannot identify any space_cooord, you will will need to define it regrid.yaml')
+        
+        self.logger.warning('Space_coords deduced from the source are %s', guessed)
         return guessed
             
 
