@@ -159,6 +159,13 @@ class Reader(FixerMixin, RegridMixin):
         else:
             self.logger.debug("Using CDO from config: %s", self.cdo)
 
+        if self.fix:
+            self.dst_datamodel = datamodel
+            # Default destination datamodel
+            # (unless specified in instantiating the Reader)
+            if not self.dst_datamodel:
+                self.dst_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
+
         # load and check the regrid
         if regrid or areas:
             cfg_regrid = load_yaml(self.regrid_file, definitions="paths")
@@ -196,19 +203,12 @@ class Reader(FixerMixin, RegridMixin):
             else:
                 self.src_grid = None
 
-        if self.fix:
-            self.dst_datamodel = datamodel
-            # Default destination datamodel
-            # (unless specified in instantiating the Reader)
-            if not self.dst_datamodel:
-                self.dst_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
+            self.src_space_coord = source_grid.get("space_coord", None)
+            if self.src_space_coord is None:
+                    self.src_space_coord = self._guess_space_coord(default_space_dims)
 
-        self.src_space_coord = source_grid.get("space_coord", None)
-        if self.src_space_coord is None:
-                self.src_space_coord = self._guess_space_coord(default_space_dims)
-
-        self.support_dims = source_grid.get("support_dims", [])
-        self.space_coord = self.src_space_coord
+            self.support_dims = source_grid.get("support_dims", [])
+            self.space_coord = self.src_space_coord
 
         if regrid:
             self.dst_space_coord = ["lon", "lat"]
