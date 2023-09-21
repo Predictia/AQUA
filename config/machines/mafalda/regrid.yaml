@@ -1,17 +1,24 @@
+paths:
+  grids: /work/users/jost/aqua/grids
+  weights: /work/users/jost/aqua/weights
+  areas: /work/users/jost/aqua/areas
+
+#templates
 weights:
-   path: /work/users/jost/aqua/weights
-   template: weights_{model}_{exp}_{source}_{method}_{target}_l{level}.nc
-
+  template_default: weights_{model}_{exp}_{source}_{method}_{targetgrid}_l{level}.nc
+  template_grid: weights_{sourcegrid}_{method}_{targetgrid}_l{level}.nc
 areas:
-   path: /work/users/jost/aqua/areas
-   src_template: cell_area_{model}_{exp}_{source}.nc
-   dst_template: cell_area_{grid}.nc
-
-cdo-paths:
-  download: /work/users/jost/aqua/weights
+  template_default: cell_area_{model}_{exp}_{source}.nc
+  template_grid: cell_area_{grid}.nc
+cdo-paths: # to be checked
+  download: $weights
   icon: /pool/data/ICON
 
-target_grids:
+#available grids
+grids:
+  lon-lat:
+    space_coord: ["lon", "lat"]
+  # regrid target
   r005: r7200x3600
   r010: r3600x1800
   r020: r1800x900
@@ -21,20 +28,22 @@ target_grids:
   r200: r180x90
   r250: r144x72
 
-# extra is an extra special cdo command to be applied before generating the weights
-source_grids:
+  #IFS
+  tco399: 
+    path: 
+      2d: $grids/tco399_grid.nc
+      2dm: $grids/tco399_grid_masked.nc
+    masked_vars:
+      - ci
+      - sst
+    space_coord: ["ncells"]
+    vert_coord: ["2d", "2dm"]  # If the case is more complex than simply "2d" we need to specify this  
+
+sources:
   IFS:
     fdb-tco399:
-      default:
-        path: 
-          2d: /work/users/jost/aqua/grids/tco399_grid.nc
-          2dm: /work/users/jost/aqua/grids/tco399_grid_masked.nc
-        masked_vars:
-          - ci
-          - sst
-        space_coord: ["ncells"]
-        vert_coord: ["2d", "2dm"]  # If the case is more complex than simply "2d" we need to specify this  
+      default: tco399
+
   ERA5:
     fdb:
-      default:
-        space_coord: ["lon", "lat"]
+      default: lon-lat
