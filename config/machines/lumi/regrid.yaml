@@ -86,7 +86,8 @@ grids:
       - sst
       - SSTK
     space_coord: ["lon", "lat"]
-    vert_coord: ["2d", "2dm"]  # If the case is more complex than simply "2d" we need to specify this  
+    vert_coord: ["2d", "2dm"]  # If the case is more complex than simply "2d" we need to specify this
+
   osi-saf-nh:
     space_coord:
       - xc
@@ -103,13 +104,16 @@ grids:
     cellarea_var: areacello
     mask: $grids/OSI-SAF/grid_sh.nc
     mask_var: sftof
+
   en4:
     path:
       lev: $grids/EN4/en4-grid.nc
     space_coord: ["lon", "lat"]
     vert_coord: ["lev"]
+
   aviso:
     space_coord: ["longitude", "latitude"]
+
   woa:
     path:
       depth: $grids/WOA18/grid-woa18.nc
