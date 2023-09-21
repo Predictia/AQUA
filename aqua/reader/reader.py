@@ -196,16 +196,17 @@ class Reader(FixerMixin, RegridMixin):
             else:
                 self.src_grid = None
 
-            self.src_space_coord = source_grid.get("space_coord", None)
-            self.support_dims = source_grid.get("support_dims", [])
-            self.space_coord = self.src_space_coord
-
         if self.fix:
             self.dst_datamodel = datamodel
             # Default destination datamodel
             # (unless specified in instantiating the Reader)
             if not self.dst_datamodel:
                 self.dst_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
+
+        self.src_space_coord = source_grid.get("space_coord", None)
+        guessed = self._guess_space_coord()
+        self.support_dims = source_grid.get("support_dims", [])
+        self.space_coord = self.src_space_coord
 
         if regrid:
             self.dst_space_coord = ["lon", "lat"]

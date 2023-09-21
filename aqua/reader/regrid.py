@@ -278,6 +278,16 @@ class RegridMixin():
             data = next(data)
 
         return data
+    
+    def _guess_space_coord(self):
+    
+        data = self._retrieve_plain(startdate=None, regrid=False)
+        default_space_dims = ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude',
+                        'latitude', 'cell', 'cells', 'ncells', 'values',
+                        'value', 'nod2', 'pix', 'elem']
+        guessed = [x for x in data.dims if x in default_space_dims]
+        self.logger.warning('Guessed space dimensions are %s', guessed)
+        return guessed
             
 
 def _rename_dims(data, dim_list):
