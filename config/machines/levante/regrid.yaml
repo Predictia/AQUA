@@ -106,7 +106,7 @@ grids:
   ng5-elems-2d:
     space_coord: ['elem']
     extra: 
-    - -setgrid,/work/bm1235/a270046/meshes/NG5_griddes_elems_IFS.nc 
+    - -setgrid,$grids/FESOM/NG5_griddes_elems_IFS.nc 
   ng5-elems-3d:
     path:
       nz1: $grids/FESOM/NG5_elem_fesom_mask_nz1.nc
@@ -121,20 +121,20 @@ grids:
 
   woa:
     path:
-      depth: /work/bb1153/b382076/AQUA-archive/grids/WOA18/grid-woa18.nc
+      depth: $grids/WOA18/grid-woa18.nc
     vert_coord: depth
     space_coord: ["lon", "lat"]
 
   en4:
     path:
-      lev: /work/bb1153/b382076/AQUA-archive/grids/EN4/en4-grid.nc
+      lev: $grids/EN4/en4-grid.nc
     space_coord: ["lon", "lat"]
     vert_coord: ["lev"]
 
   era5-r025:
     path: 
-      2d: /work/bb1153/b382075/nextgems/grids/r025_grid.nc
-      2dm: /work/bb1153/b382075/nextgems/grids/r025_grid_masked.nc
+      2d: $grids/ERA5/r025_grid.nc
+      2dm: $grids/ERA5/r025_grid_masked.nc
     masked_vars:
       - sst
       - SSTK
@@ -142,7 +142,7 @@ grids:
     vert_coord: ["2d", "2dm"]
 
   era5-n320:
-    path: /work/bb1153/b382075/nextgems/grids/n320_unstructured.nc
+    path: $grids/ERA5/n320_unstructured.nc
     space_coord: ["values"]
 
   osi-saf-nh:
