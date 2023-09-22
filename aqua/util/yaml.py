@@ -11,21 +11,20 @@ from ruamel.yaml import YAML
 from aqua.logger import log_configure
 
 
-def load_multi_yaml(folder_path, definitions=None,
-                    filename=None, **kwargs):
+def load_multi_yaml(folder_path=None, filenames=None,
+                    definitions=None, **kwargs):
     """
-    Load and merge all yaml files located in a given folder
-    into a single dictionary.
+    Load and merge yaml files.
+    If a filenames list of strings is provided, only the yaml files with
+    the matching full path will be merged.
+    If a folder_path is provided, all the yaml files in the folder will be merged.
 
     Args:
-        folder_path(st or list):   The path of the folders containing the yaml
-                                   files to be merged.
-        definitions (str or dict, opt): name of the section containing string template
-                                        definitions or a dictionary with the same
-        filename (str, optional):   the name of the file to be merged.
-                                    If None, all the yaml files in the folders will be merged.
-                                    If a string is passed, only the yaml file with
-                                    the matching name will be merged.
+        folder_path (str, optional): the path of the folder containing the yaml
+                                        files to be merged.
+        filenames (list, optional): the list of the yaml files to be merged.
+        definitions (str or dict, optional): name of the section containing string template
+                                                definitions or a dictionary with the same
 
     Keyword Args:
         loglevel (str, optional): the loglevel to be used, default is 'WARNING'
@@ -37,13 +36,13 @@ def load_multi_yaml(folder_path, definitions=None,
 
     if isinstance(definitions, str):  # if definitions is a string we need to read twice
         yaml_dict = _load_merge(folder_path=folder_path, definitions=None,
-                                filename=filename, **kwargs)  # Read without definitions
+                                filenames=filenames, **kwargs)  # Read without definitions
         definitions = yaml_dict.get(definitions)
-        yaml_dict = _load_merge(folder_path, definitions,
-                                filename=filename, **kwargs)  # Read again with definitions
+        yaml_dict = _load_merge(folder_path=folder_path, definitions=definitions,
+                                filenames=filenames, **kwargs)  # Read again with definitions
     else:  # if a dictionary or None has been passed for definitions we read only once
-        yaml_dict = _load_merge(folder_path, definitions,
-                                filename=filename, **kwargs)
+        yaml_dict = _load_merge(folder_path=folder_path, definitions=definitions,
+                                filenames=filenames, **kwargs)
 
     return yaml_dict
 
@@ -55,7 +54,7 @@ def load_yaml(infile, definitions=None):
     Args:
         infile (str): a file path to the yaml
         definitions (str or dict, optional): name of the section containing string template
-                                             definitions or a dictionary with the same
+                                             definitions or a dictionary with the same content
     Returns:
         A dictionary with the yaml file keys
     """
@@ -169,34 +168,28 @@ def _operation(token, xdataset):
     return replacer
 
 
-def _load_merge(folder_path,
-                definitions,
-                filename=None,
-                merged_dict=None,
+def _load_merge(folder_path=None, filenames=None,
+                definitions=None, merged_dict=None,
                 loglevel='WARNING'):
     """
     Helper function for load_merge_yaml.
     Load and merge yaml files located in a given folder
-    into a single dictionary.
-
-    It can merge specific file if a filename is provided
-    and it can create a new dictionary or update an existing one,
-    if merged_dict is provided.
+    or a list of yaml files into a dictionary.
 
     Args:
-        folder_path(str or list):   The path of the folders containing the yaml
-                                    files to be merged.
+        folder_path (str, optional):         the path of the folder containing the yaml
+                                             files to be merged.
+        filenames (list, optional):          the list of the yaml files to be merged.
         definitions (str or dict, optional): name of the section containing string template
-                                                definitions or a dictionary with the same
-        filename (str, optional): the name of the file to be merged. If None, all the yaml
-                                  files in the folders will be merged.
-                                  If a string is passed, only the yaml file with
-                                  the matching name will be merged.
-        merged_dict (dict, optional): the dictionary to be updated
-        loglevel (str, optional): the loglevel to be used
+                                             definitions or a dictionary with the same content
+        merged_dict (dict, optional):        the dictionary to be updated with the yaml files
+        loglevel (str, optional):            the loglevel to be used, default is 'WARNING'
 
     Returns:
         A dictionary containing the merged contents of all the yaml files.
+
+    Raises:
+        ValueError: if both folder_path and filenames are None or if both are not None.
     """
     logger = log_configure(log_name='yaml', log_level=loglevel)
 
@@ -206,27 +199,29 @@ def _load_merge(folder_path,
     else:
         logger.debug('Updating an existing dictionary')
 
-    if isinstance(folder_path, str):
-        folder_path = [folder_path]
+    if filenames and folder_path is not None or filenames is None and folder_path is None:
+        raise ValueError('ERROR: either folder_path or filenames must be provided')
 
-    for folder in folder_path:
-        if not os.path.exists(folder):
-            raise ValueError(f'ERROR: {folder} not found: it is required to have this folder!')
+    if filenames:  #  Merging a list of files
+        logger.debug(f'Files to be merged: {filenames}')
+        for filename in filenames:
+            yaml_dict = load_yaml(filename, definitions)
+            for key, value in yaml_dict.items():
+                merged_dict[key].update(value)
+
+    if folder_path:  # Merging all the files in a folder
+        logger.debug(f'Folder to be merged: {folder_path}')
+        if not os.path.exists(folder_path):
+            raise ValueError(f'ERROR: {folder_path} not found: it is required to have this folder!')
         else:  # folder exists
-            if filename is None:  # Merging all the existing yaml files in the folder
-                for filename in os.listdir(folder):
-                    if filename.endswith(('.yml', '.yaml')):
-                        file_path = os.path.join(folder, filename)
-                        yaml_dict = load_yaml(file_path, definitions)
-                        for key, value in yaml_dict.items():
-                            merged_dict[key].update(value)
-            else:  # Merging a specific file
-                file_path = os.path.join(folder, filename)
-                yaml_dict = load_yaml(file_path, definitions)
-                for key, value in yaml_dict.items():
-                    merged_dict[key].update(value)
+            for filename in os.listdir(folder_path):
+                if filename.endswith(('.yml', '.yaml')):
+                    file_path = os.path.join(folder_path, filename)
+                    yaml_dict = load_yaml(file_path, definitions)
+                    for key, value in yaml_dict.items():
+                        merged_dict[key].update(value)
 
     logger.debug('Dictionary updated')
     logger.debug(f'Keys: {merged_dict.keys()}')
 
-    return dict(merged_dict)
+    return merged_dict
