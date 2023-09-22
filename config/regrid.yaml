@@ -1,0 +1,28 @@
+# This is the configuration file for the regridder.
+# It is the part of the configuration that is machine independent.
+
+# Templates
+weights:
+  template_default: weights_{model}_{exp}_{source}_{method}_{targetgrid}_l{level}.nc
+  template_grid: weights_{sourcegrid}_{method}_{targetgrid}_l{level}.nc
+areas:
+  template_default: cell_area_{model}_{exp}_{source}.nc
+  template_grid: cell_area_{grid}.nc
+cdo-paths: # to be checked
+  download: $weights
+  icon: /pool/data/ICON
+
+# Available grids
+# extra is an extra special cdo command to be applied before generating the weights
+grids:
+  # default
+  lon-lat:
+    space_coord: [lon, lat]
+  # target regrid
+  r005: r7200x3600
+  r010: r3600x1800
+  r020: r1800x900
+  r050: r720x360
+  r100: r360x180
+  r200: r180x90
+  r250: r144x72
