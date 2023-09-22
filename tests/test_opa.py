@@ -7,8 +7,8 @@ from aqua import OPAgenerator, Reader
 loglevel = "DEBUG"
 
 @pytest.fixture(
-    params=[("IFS", "test-tco79", "long", "2t", "onepass_test",
-             "onepass_test")]
+    params=[("IFS", "test-tco79", "long", "2t", "onepass_test/",
+             "onepass_test/")]
 )
 def opa_arguments(request):
     return request.param
