@@ -439,8 +439,6 @@ source_grids:
     imerg:
       default:
         space_coord: ["lon", "lat"]
-        extra: 
-          - -selname,precipitationCal
 
   MSWEP:
     past:

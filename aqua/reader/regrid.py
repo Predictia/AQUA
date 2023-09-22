@@ -163,10 +163,13 @@ class RegridMixin():
                 else:
                     raise ValueError(f"No variable with dimension {vert_coord} found in the dataset")
 
-            # We need only one variable and we do not want vars with "bnds" 
-            l1 = [el for el in list(data.data_vars) if "bnds" not in el]
-            l2 = [el for el in list(data.data_vars) if "bnds"  in el]  # exclude vars with bnds
-            sgridpath = data.drop_vars(l1[1:] + l2)
+            # We need only one variable and we do not want vars with "bnds/bounds" 
+            available_vars = [var for var in list(data.data_vars) if 'bnds' not in var and 'bounds' not in var]
+            if available_vars:
+                sgridpath = data[available_vars[0]]
+            else:
+                raise ValueError("Cannot find any variabile to extract a grid sample")
+            
         else:
             if isinstance(sgridpath, dict):
                 if vert_coord:
