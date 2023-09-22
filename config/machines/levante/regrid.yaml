@@ -106,6 +106,10 @@ sources:
       3D_daily_native_zarr: ng5-nodes-3d
       3D_daily_native_elem: ng5-elems-3d
 
+  GPM:
+    imerg:
+      default: lon-lat
+
   MSWEP:
     past:
       default: lon-lat
