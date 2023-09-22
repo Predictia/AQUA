@@ -20,7 +20,7 @@ from .plot_utils import plot_box, add_cyclic_lon, evaluate_colorbar_limits
 
 def maps_plot(maps=None, models=None, exps=None,
               titles=None, save=False, figsize=(11, 8.5),
-              nlevels=11, cbar_label=None, title=None,
+              nlevels=12, cbar_label=None, title=None,
               sym=True, outputdir='.', filename='maps.png',
               loglevel='WARNING'):
     """Plot maps (regression, correlation, etc.)
@@ -35,7 +35,7 @@ def maps_plot(maps=None, models=None, exps=None,
                               overrides models and exps standard titles
         save (bool, opt):     save the figure
         figsize (tuple,opt):  figure size, default is (11, 8.5)
-        nlevels (int,opt):    number of levels for the colorbar, default is 11
+        nlevels (int,opt):    number of levels for the colorbar, default is 12
         cbar_label (str,opt): label for the colorbar
         title (str,opt):      title for the figure (suptitle)
         sym (bool,opt):       symmetrical colorbar, default is True
@@ -135,7 +135,7 @@ def maps_plot(maps=None, models=None, exps=None,
 
 
 def single_map_plot(map=None, save=False, model=None, exp=None,
-                    figsize=(11, 8.5), nlevels=11, title=None,
+                    figsize=(11, 8.5), nlevels=12, title=None,
                     cbar_label=None, outputdir='.', filename='maps.png',
                     sym=True, loglevel='WARNING'):
     """
@@ -149,7 +149,7 @@ def single_map_plot(map=None, save=False, model=None, exp=None,
         model (str,opt):        model name
         exp (str,opt):          experiment name
         figsize (tuple,opt):    figure size, default is (11, 8.5)
-        nlevels (int,opt):      number of levels for the colorbar, default is 11
+        nlevels (int,opt):      number of levels for the colorbar, default is 12
         title (str,opt):        title for the figure
         cb_label (str,opt):     label for the colorbar
         outputdir (str,opt):    output directory for the figure, default is '.' (current directory)
@@ -245,8 +245,8 @@ def single_map_plot(map=None, save=False, model=None, exp=None,
 
 def maps_diffs_plot(maps=None, diffs=None, models=None, exps=None,
                     titles=None, save=False, figsize=(11, 8.5),
-                    vmin_diff=None, vmax_diff=None, 
-                    sym=True, nlevels=11,
+                    vmin_diff=None, vmax_diff=None,
+                    sym=True, nlevels=12,
                     cbar_label=None, title=None, outputdir='.',
                     filename='maps.png', loglevel='WARNING'):
     """
@@ -265,7 +265,7 @@ def maps_diffs_plot(maps=None, diffs=None, models=None, exps=None,
         figsize (tuple,opt):     figure size, default is (11, 8.5)
         vmin_diff (float,opt):   min value for the colorbar of the differences
         vimax_diff (float,opt):  max value for the colorbar of the differences
-        nlevels (int,opt):       number of levels for the colorbar, default is 11
+        nlevels (int,opt):       number of levels for the colorbar, default is 12
         cbar_label (str,opt):    label for the colorbar
         outputdir (str,opt):     output directory for the figure, default is '.' (current directory)
         filename (str,opt):      filename for the figure, default is 'map.png'
