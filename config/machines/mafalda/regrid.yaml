@@ -3,41 +3,11 @@ paths:
   weights: /work/users/jost/aqua/weights
   areas: /work/users/jost/aqua/areas
 
-#templates
-weights:
-  template_default: weights_{model}_{exp}_{source}_{method}_{targetgrid}_l{level}.nc
-  template_grid: weights_{sourcegrid}_{method}_{targetgrid}_l{level}.nc
-areas:
-  template_default: cell_area_{model}_{exp}_{source}.nc
-  template_grid: cell_area_{grid}.nc
-cdo-paths: # to be checked
-  download: $weights
-  icon: /pool/data/ICON
-
-#available grids
-grids:
-  lon-lat:
-    space_coord: ["lon", "lat"]
-  # regrid target
-  r005: r7200x3600
-  r010: r3600x1800
-  r020: r1800x900
-  r025: r1440x720
-  r050: r720x360
-  r100: r360x180
-  r200: r180x90
-  r250: r144x72
-
-  #IFS
-  tco399: 
-    path: 
-      2d: $grids/tco399_grid.nc
-      2dm: $grids/tco399_grid_masked.nc
-    masked_vars:
-      - ci
-      - sst
-    space_coord: ["ncells"]
-    vert_coord: ["2d", "2dm"]  # If the case is more complex than simply "2d" we need to specify this  
+# available grids, not worth to become machine independent, add here
+# grids:
+#   custom-grid:
+#     default: lon-lat
+#     space_coord: [lon, lat]
 
 sources:
   IFS:
