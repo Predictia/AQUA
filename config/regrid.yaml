@@ -38,7 +38,7 @@ grids:
       2d: $grids/IFS/tco399_grid.nc
       2dm: $grids/IFS/tco399_grid_masked.nc
     # space_coord: ["cell"] # levante
-    # space_coord: ["ncells"] # lumi
+    # space_coord: ["ncells"] # lumi and mafalda
     vert_coord: ["2d", "2dm"]  # If the case is more complex than simply "2d" we need to specify this
     masked_vars: ["ci", "sst"]
   tco1279:
