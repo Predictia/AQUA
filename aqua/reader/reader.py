@@ -174,7 +174,7 @@ class Reader(FixerMixin, RegridMixin):
                                          definitions="paths",
                                          filename="regrid.yaml",
                                          loglevel=self.loglevel)
-            #cfg_regrid = load_yaml(self.regrid_file, definitions="paths")
+
             source_grid_id = check_catalog_source(cfg_regrid["sources"],
                                                   self.model, self.exp,
                                                   self.source, name='regrid')
