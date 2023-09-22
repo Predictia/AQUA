@@ -4,13 +4,14 @@ paths:
   weights: ./AQUA_tests/weights
   areas: ./AQUA_tests/weights
 
-# available grids
+# available grids, not worth to become machine independent
 # extra is an extra special cdo command to be applied before generating the weights
 grids:
   # IFS
   test-tco79:
     path: $grids/tco79_grid.nc
     #space_coord: [cell]
+
   # FESOM
   test-pi-2d:
     path: $grids/pi_griddes_nodes_IFS.nc
@@ -26,6 +27,7 @@ grids:
     vert_coord: [nz1, nz]
     extra:
     - -setgrid,$grids/pi_griddes_nodes_IFS.nc
+  
   # ICON
   test-healpix:
     path: $grids/icon_healpix0.nc
