@@ -69,6 +69,7 @@ class GSVSource(base.DataSource):
             self.eccodes_path = metadata.get('eccodes_path', None)
         else:
             self.fdbpath = None
+            self.eccodes_path = None
 
         if not startdate:
             startdate = data_start_date
