@@ -19,6 +19,8 @@ def find_lat_dir(dataset):
 
     # Iterate through coordinates to find the latitude coordinate
     latitude_coord = None
+    direction = None
+    
     for coord_name in dataset.coords:
         un = dataset.coords[coord_name].attrs.get('units')
         if un in latitude_units:
