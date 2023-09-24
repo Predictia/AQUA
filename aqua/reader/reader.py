@@ -10,7 +10,6 @@ import tempfile
 import shutil
 import intake
 import intake_esm
-import eccodes
 
 import xarray as xr
 
@@ -147,16 +146,6 @@ class Reader(FixerMixin, RegridMixin):
         else:
             self.esmcat = self.cat[self.model][self.exp][self.source]
     
-        # Set FDB path if needed
-        if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
-            fdb_path = self.esmcat.metadata.get('fdb_path', None)
-            if fdb_path:
-                os.environ["FDB5_CONFIG_FILE"] = fdb_path
-                self.logger.info("Setting FDB5_CONFIG_FILE to %s", fdb_path)
-
-        if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
-            self.set_eccodes_path()  # We change the eccodes path on the fly based on the content of metadata
-
         # get fixes dictionary and find them
         self.fix = fix # fix activation flag
         if self.fix:
@@ -391,7 +380,6 @@ class Reader(FixerMixin, RegridMixin):
         if isinstance(self.esmcat, intake_esm.core.esm_datastore):
             data = self.reader_esm(self.esmcat, loadvar)
         # If this is an fdb entry
-
         elif isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
             data = self.reader_fdb(self.esmcat, loadvar, startdate, enddate, dask=(not streaming_generator))
             fiter = streaming_generator  # this returs an iterator unless dask is set
@@ -882,20 +870,3 @@ class Reader(FixerMixin, RegridMixin):
             pass  # The iterator has finished, we are done
 
         return ds
-
-    def set_eccodes_path(self):
-        """
-        If needed sets the ECCODES_DEFINITION_PATH to that specified in esmcat metadata
-        """
-
-        eccodes_path = self.esmcat.metadata.get('eccodes_path', None)
-        if hasattr(eccodes, "old_eccodes_path"):
-            old_eccodes_path = eccodes.old_eccodes_path
-        else:
-            old_eccodes_path = None
-
-        if eccodes_path and (eccodes_path != old_eccodes_path):  # unless we have already switched
-            eccodes.old_eccodes_path = eccodes_path  # store directly in eccodes
-            eccodes.codes_context_delete()  # flush old definitions in cache
-            eccodes.codes_set_definitions_path(eccodes_path)
-            self.logger.info("Setting ECCODES_DEFINITION_PATH to %s", eccodes_path)
