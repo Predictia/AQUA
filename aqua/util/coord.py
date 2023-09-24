@@ -20,7 +20,7 @@ def find_lat_dir(dataset):
     # Iterate through coordinates to find the latitude coordinate
     latitude_coord = None
     direction = None
-    
+
     for coord_name in dataset.coords:
         un = dataset.coords[coord_name].attrs.get('units')
         if un in latitude_units:
@@ -52,13 +52,14 @@ def check_direction(dataset, coord, old_dir):
         None
     """
 
-    if dataset.coords[coord].values[0] < dataset.coords[coord].values[1]:
-        new_dir = "increasing"
-    else:
-        new_dir = "decreasing"
+    if coord:
+        if dataset.coords[coord].values[0] < dataset.coords[coord].values[1]:
+            new_dir = "increasing"
+        else:
+            new_dir = "decreasing"
 
-    if old_dir != new_dir:
-        dataset.coords[coord].attrs["flipped"] = old_dir
+        if old_dir != new_dir:
+            dataset.coords[coord].attrs["flipped"] = old_dir
 
 
 def flip_lat_dir(dataset):
