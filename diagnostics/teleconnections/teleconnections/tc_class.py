@@ -87,7 +87,7 @@ class Teleconnection():
             self.logger.debug('Zoom: {}'.format(self.zoom))
 
         # Teleconnection variables
-        avail_telec = ['NAO', 'ENSO', 'ENSO_test', 'ENSO_2t', 'MJO']+
+        avail_telec = ['NAO', 'ENSO', 'ENSO_test', 'ENSO_2t', 'MJO']
         if telecname in avail_telec:
             self.telecname = telecname
             if self.telecname == 'MJO':
