@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Solve reversed latitudes bug for fixed data (#510)
 - Switch to legacy eccodes tables based on intake source metadata (#493)
 - Add GPM IMERG precipitation data to the catalogue on levante (#505)
 - Fix ocean3d diagnostic colorbars not being symmetric when missing values are present (#504) 

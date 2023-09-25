@@ -21,6 +21,7 @@ from aqua.util import load_yaml, load_multi_yaml
 from aqua.util import ConfigPath, area_selection
 from aqua.logger import log_configure, log_history, log_history_iter
 from aqua.util import check_chunk_completeness, frequency_string_to_pandas
+from aqua.util import flip_lat_dir
 import aqua.gsv
 
 from .streaming import Streaming
@@ -447,7 +448,7 @@ class Reader(FixerMixin, RegridMixin):
         for ds in data:
             yield self._regrid(ds)
 
-    def _regrid(self, data):
+    def _regrid(self, datain):
         """
         Perform regridding of the input dataset.
 
@@ -456,6 +457,8 @@ class Reader(FixerMixin, RegridMixin):
         Returns:
             A xarray.Dataset containing the regridded data.
         """
+
+        data = flip_lat_dir(datain)  # Check if original lat has been flipped and in case flip back, returns a deep copy in that case
 
         if self.vert_coord == ["2d"]:
             datadic = {"2d": data}
