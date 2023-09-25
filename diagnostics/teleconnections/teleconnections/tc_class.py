@@ -87,7 +87,7 @@ class Teleconnection():
             self.logger.debug('Zoom: {}'.format(self.zoom))
 
         # Teleconnection variables
-        avail_telec = ['NAO', 'ENSO', 'ENSO_test', 'MJO']
+        avail_telec = ['NAO', 'ENSO', 'ENSO_test', 'ENSO_2t', 'MJO']+
         if telecname in avail_telec:
             self.telecname = telecname
             if self.telecname == 'MJO':
@@ -106,7 +106,7 @@ class Teleconnection():
         self.logger.debug('Teleconnection type: {}'.format(self.telec_type))
 
         # At the moment it is used by all teleconnections
-        if self.telecname == 'NAO' or self.telecname == 'ENSO' or self.telecname == 'ENSO_test':
+        if self.telecname == 'NAO' or self.telecname == 'ENSO' or self.telecname == 'ENSO_test' or self.telecname == 'ENSO_2t':
             self.months_window = months_window
 
         # Output variables

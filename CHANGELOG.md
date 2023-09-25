@@ -7,19 +7,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Solve reversed latitudes bug for fixed data (#510)
+- Switch to legacy eccodes tables based on intake source metadata (#493)
+- Add GPM IMERG precipitation data to the catalogue on levante (#505)
+- Fix ocean3d diagnostic colorbars not being symmetric when missing values are present (#504) 
+- FDB NEMO test access to data (#488)
+- Xarray dask access to FDB (#476)
+- Issue a warning when multiple gribcodes are associated to the same shortname (Cases for multiple eccodes grib codes #483)
+- Allowing fixer to overwrite or merge default configuration (Increasing flexibiity of the fixer allowing for merge, replace and default options #480)
+- Add new tests (Increase testing #250)
+- Global time series diagnostic setup for multiple variables CLI (#474)
+- Option to avoid incomplete chunk when averagin with timmean (Introduce check for chunk completeness in timmean() #466)
+- Simplification of Fixer() workflow, more methods and less redundancy (Functionize fixer #478)
+- Remove the `aqua` environment file, only `aqua_common` is left (#482)
+
+## [v0.3]
+
+Main changes are:
+1. Fixer moved at `Reader()` level
+2. Area selection available in `fldmean()` method
+3. FDB/GSV access for IFS-NEMO development simulations
+4. Configuration file `config-aqua.yaml` replaces `config.yaml`
+
+Complete list:
+- Templates in configuration yaml files (#469)
 - Bug fixes for FDB access options (#463, #462)
 - Add observational catalogs on Lumi (Update Lumi catalog #454)
 - Automatic finding of cdo (#456)
 - Area is fixed if data are fixed (Fixer applied to grid areas #442)
 - Tests missing failure fix (Fix #436 CI workflow passes even if some tests fail #452)
-- FDB/GSV access to IFS control and historical simulations (#434)
+- FDB/GSV access to IFS control and historical simulations (#434, #458)
 - Climatology support restored in the Reader (Fix for climatology #445)
 - Improvement function to inspect the catalogue (Inspect_catalogue improvement #446)
 - Minor improvements of the gribber (Fix gribber fdb #427)
 - Allow the LRA generator to work with generators and so with FDB (LRA from fdb on mafalda #430)
 - Fixes only on selected variables (Fixer updates #428)
 - Complete revision of the FDB/GSV access, allowing to access also recent experiments using variable step (#343)
-- Teleconnections diagnostic adapted to new code improvements (Teleconnections Dev branch update #424)
+- Teleconnections diagnostic adapted to new code improvements (Teleconnections Dev branch update #424, #465)
 - Add support for area selection with fldmean (Fldmean box selection #409)
 - Environment simplified, dependencies are now mostly on the pyproject file (A simpler environment.yml #286)
 - Intake esm functionality added back (Fix intake-esm #287)
@@ -103,7 +127,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.2.1...HEAD
+[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.3...HEAD
+[v0.3]: https://github.com/oloapinivad/AQUA/compare/v0.2.1...v0.3
 [v0.2.1]: https://github.com/oloapinivad/AQUA/compare/v0.2...v0.2.1
 [v0.2]: https://github.com/oloapinivad/AQUA/compare/v0.2-beta...v0.2
 [v0.2-beta]: https://github.com/oloapinivad/AQUA/compare/v0.2-alpha...v0.2-beta
