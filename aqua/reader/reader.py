@@ -142,6 +142,11 @@ class Reader(FixerMixin, RegridMixin):
         # check that you defined zoom in a correct way
         self.zoom = self._check_zoom(zoom)
 
+        if self.zoom:
+            self.esmcat = self.cat[self.model][self.exp][self.source](zoom=self.zoom)
+        else:
+            self.esmcat = self.cat[self.model][self.exp][self.source]
+    
         # get fixes dictionary and find them
         self.fix = fix # fix activation flag
         if self.fix:
@@ -353,12 +358,6 @@ class Reader(FixerMixin, RegridMixin):
         if stream_startdate:  # In case the streaming startdate is used also for FDB copy it
             startdate = stream_startdate
 
-        # Extract subcatalogue
-        if self.zoom:
-            esmcat = self.cat[self.model][self.exp][self.source](zoom=self.zoom)
-        else:
-            esmcat = self.cat[self.model][self.exp][self.source]
-
         if vars:
             var = vars
 
@@ -369,8 +368,9 @@ class Reader(FixerMixin, RegridMixin):
             self.logger.info("Retrieving variables: %s", var)
             loadvar = self.get_fixer_varname(var) if self.fix else var
         else:
-            if isinstance(esmcat, aqua.gsv.intake_gsv.GSVSource):  # If we are retrieving from fdb we have to specify the var
-                var = [esmcat._request['param']]  # retrieve var from catalogue
+            if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):  # If we are retrieving from fdb we have to specify the var
+                var = [self.esmcat._request['param']]  # retrieve var from catalogue
+
                 self.logger.info(f"FDB source, setting default variable to {var[0]}")
                 loadvar = self.get_fixer_varname(var) if self.fix else var
             else:
@@ -378,14 +378,14 @@ class Reader(FixerMixin, RegridMixin):
 
         fiter = False
         # If this is an ESM-intake catalogue use first dictionary value,
-        if isinstance(esmcat, intake_esm.core.esm_datastore):
-            data = self.reader_esm(esmcat, loadvar)
+        if isinstance(self.esmcat, intake_esm.core.esm_datastore):
+            data = self.reader_esm(self.esmcat, loadvar)
         # If this is an fdb entry
-        elif isinstance(esmcat, aqua.gsv.intake_gsv.GSVSource):
-            data = self.reader_fdb(esmcat, loadvar, startdate, enddate, dask=(not streaming_generator))
+        elif isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
+            data = self.reader_fdb(self.esmcat, loadvar, startdate, enddate, dask=(not streaming_generator))
             fiter = streaming_generator  # this returs an iterator unless dask is set
         else:
-            data = self.reader_intake(esmcat, var, loadvar)  # Returns a generator object
+            data = self.reader_intake(self.esmcat, var, loadvar)  # Returns a generator object
 
             if var:
                 if all(element in data.data_vars for element in loadvar):
@@ -766,6 +766,7 @@ class Reader(FixerMixin, RegridMixin):
                                       )
         return list(data.values())[0]
 
+
     def reader_fdb(self, esmcat, var, startdate, enddate, dask=False):
         """
         Read fdb data. Returns an iterator or dask array.
@@ -853,7 +854,6 @@ class Reader(FixerMixin, RegridMixin):
 
         return xr.open_mfdataset(f"{self.buffer.name}/iter*.nc")
     
-
     def buffer_mem(self, data):
         """
         Buffers (reads) an iterator object directly into a dataset
