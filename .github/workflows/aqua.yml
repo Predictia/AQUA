@@ -84,8 +84,8 @@ jobs:
         with:
           environment-file: environment-common.yml 
           environment-name: aqua
-          cache-downloads: false
-          cache-environment: false
+          cache-downloads: true
+          cache-environment: true
           condarc: |
             channels:
               - conda-forge
