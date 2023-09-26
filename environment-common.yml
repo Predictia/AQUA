@@ -17,6 +17,7 @@ dependencies:
   - python-cdo # for teleconnections
   - tempest-extremes # for TCs
   - xesmf # for ECmean
+  - intake-esm
   - pip:
     - -e ./diagnostics/teleconnections/ # pip install -e of teleconnections
     # pip install -e of AQUA itself
