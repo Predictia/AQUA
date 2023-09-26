@@ -36,17 +36,24 @@ Basic Usage
 Accessing data with the AQUA `Reader` is very straightforward.
 To check what is available in the catalogue, we can use the `inspect_catalogue` function.
 Three hierarchical layer structures describe each dataset. At the top level, there are "models" (e.g., ICON, IFS, etc.). 
-Each model has different "experiments," and each "experiment" can have different "sources".
+Each model has different "experiments," and each "experiment" (keyword `exp`) can have different "sources".
 
 Calling, for example, 
 
 .. code-block:: python
 
-    from aqua import catalogue, inspect_catalogue
-    cat = catalogue()
-    inspect_catalogue(cat, model = 'CERES')
+    from aqua import inspect_catalogue
+    inspect_catalogue(model = 'CERES')
 
 will return experiments available in the catalogue for model CERES.
+If model, experiment and source are all specified, for FDB sources (e.g. on LUMI) the function
+will return a list of available variables, if specified in the catalogue.
+For non-FDB sources or if the variables have not been defined it will simply return a boolean
+value to indicate if that combination exists.
+
+It is also possible to get an overview of the full catalogue on the current machine with the
+`catalogue()` function. This will both list to screen the contents of the catalogue and
+return a catalogue object.
 
 Let's try to load some ICON data with the AQUA "Reader".
 We first instantiate a "Reader" object specifying the type of data we want to read from the catalogue.
