@@ -58,7 +58,7 @@ def opa_catalog_entry(datadir, model, exp, source, frequency='monthly'):
     regridfile = os.path.join(configdir, 'machines', machine,
                                 'regrid.yaml')
     cat_file = load_yaml(regridfile)
-    dictexp = cat_file['source_grids'][model][exp]
+    dictexp = cat_file['sources'][model][exp]
     if source in dictexp:
         regrid_entry = dictexp[entry_name]
     elif 'default' in dictexp:
@@ -67,7 +67,7 @@ def opa_catalog_entry(datadir, model, exp, source, frequency='monthly'):
     else:
         raise KeyError('Cannot find experiment information regrid file')
 
-    cat_file['source_grids'][model][exp][entry_name] = copy.deepcopy(regrid_entry)
+    cat_file['sources'][model][exp][entry_name] = copy.deepcopy(regrid_entry)
 
     dump_yaml(outfile=regridfile, cfg=cat_file)
 
