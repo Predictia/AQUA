@@ -286,7 +286,7 @@ class OPAgenerator():
         regridfile = os.path.join(self.configdir, 'machines', self.machine,
                                   'regrid.yaml')
         cat_file = load_yaml(regridfile)
-        dictexp = cat_file['source_grids'][self.model][self.exp]
+        dictexp = cat_file['sources'][self.model][self.exp]
         if self.source in dictexp:
             regrid_entry = dictexp[self.source]
         elif 'default' in dictexp:
@@ -295,7 +295,7 @@ class OPAgenerator():
         else:
             raise KeyError('Cannot find experiment information regrid file')
 
-        cat_file['source_grids'][self.model][self.exp][self.entry_name] = copy.deepcopy(regrid_entry)
+        cat_file['sources'][self.model][self.exp][self.entry_name] = copy.deepcopy(regrid_entry)
 
         dump_yaml(outfile=regridfile, cfg=cat_file)
 
@@ -317,8 +317,8 @@ class OPAgenerator():
         regridfile = os.path.join(self.configdir, 'machines', self.machine,
                                   'regrid.yaml')
         cat_file = load_yaml(regridfile)
-        if self.entry_name in cat_file['source_grids'][self.model][self.exp]:
-            del cat_file['source_grids'][self.model][self.exp][self.entry_name]
+        if self.entry_name in cat_file['sources'][self.model][self.exp]:
+            del cat_file['sources'][self.model][self.exp][self.entry_name]
         dump_yaml(outfile=regridfile, cfg=cat_file)
 
     def _remove_checkpoint(self):
