@@ -435,6 +435,11 @@ source_grids:
         extra: 
           - -setgrid,/work/bb1153/b382075/aqua/test_datasets/AQUA_tests/grids/pi_griddes_nodes_IFS.nc 
 
+  GPM:
+    imerg:
+      default:
+        space_coord: ["lon", "lat"]
+
   MSWEP:
     past:
       default:

@@ -2,6 +2,8 @@
 
 import os
 import re
+import io
+import sys
 
 import types
 import tempfile
@@ -19,6 +21,7 @@ from aqua.util import load_yaml, load_multi_yaml
 from aqua.util import ConfigPath, area_selection
 from aqua.logger import log_configure, log_history, log_history_iter
 from aqua.util import check_chunk_completeness, frequency_string_to_pandas
+from aqua.util import flip_lat_dir
 import aqua.gsv
 
 from .streaming import Streaming
@@ -71,7 +74,7 @@ class Reader(FixerMixin, RegridMixin):
             rebuild (bool, optional): Force rebuilding of area and weight files. Defaults to False.
             loglevel (str, optional): Level of logging according to logging module. Defaults to log_level_default of loglevel().
             nproc (int,optional): Number of processes to use for weights generation. Defaults to 16.
-            aggregation (str, optional): aggregation to be used for GSV access (one of S (step), 10M, 15M, 30M, 1H, H, 3H, 6H, D, W, M, Y). Defaults to None (using default from catalogue).
+            aggregation (str, optional): aggregation/chunking to be used for GSV access (e.g. D, M, Y). Defaults to None (using default from catalogue, recommended).
             verbose (bool, optional): if to print to screen additional info (used only for FDB access at the moment)
             exclude_incomplete (bool, optional): when using timmean() method, remove incomplete chunk from averaging. Default to False. 
             buffer (str or bool, optional): buffering of FDB/GSV streams in a temporary directory specified by the keyword. The result will be a dask array and not an iterator. Can be simply a boolean True for memory buffering.
@@ -139,6 +142,11 @@ class Reader(FixerMixin, RegridMixin):
         # check that you defined zoom in a correct way
         self.zoom = self._check_zoom(zoom)
 
+        if self.zoom:
+            self.esmcat = self.cat[self.model][self.exp][self.source](zoom=self.zoom)
+        else:
+            self.esmcat = self.cat[self.model][self.exp][self.source]
+    
         # get fixes dictionary and find them
         self.fix = fix # fix activation flag
         if self.fix:
@@ -347,11 +355,8 @@ class Reader(FixerMixin, RegridMixin):
             A xarray.Dataset containing the required data.
         """
 
-        # Extract subcatalogue
-        if self.zoom:
-            esmcat = self.cat[self.model][self.exp][self.source](zoom=self.zoom)
-        else:
-            esmcat = self.cat[self.model][self.exp][self.source]
+        if stream_startdate:  # In case the streaming startdate is used also for FDB copy it
+            startdate = stream_startdate
 
         if vars:
             var = vars
@@ -363,8 +368,9 @@ class Reader(FixerMixin, RegridMixin):
             self.logger.info("Retrieving variables: %s", var)
             loadvar = self.get_fixer_varname(var) if self.fix else var
         else:
-            if isinstance(esmcat, aqua.gsv.intake_gsv.GSVSource):  # If we are retrieving from fdb we have to specify the var
-                var = [esmcat.request['param']]  # retrieve var from catalogue
+            if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):  # If we are retrieving from fdb we have to specify the var
+                var = [self.esmcat._request['param']]  # retrieve var from catalogue
+
                 self.logger.info(f"FDB source, setting default variable to {var[0]}")
                 loadvar = self.get_fixer_varname(var) if self.fix else var
             else:
@@ -372,14 +378,14 @@ class Reader(FixerMixin, RegridMixin):
 
         fiter = False
         # If this is an ESM-intake catalogue use first dictionary value,
-        if isinstance(esmcat, intake_esm.core.esm_datastore):
-            data = self.reader_esm(esmcat, loadvar)
+        if isinstance(self.esmcat, intake_esm.core.esm_datastore):
+            data = self.reader_esm(self.esmcat, loadvar)
         # If this is an fdb entry
-        elif isinstance(esmcat, aqua.gsv.intake_gsv.GSVSource):
-            data = self.reader_fdb(esmcat, loadvar, startdate, enddate)
-            fiter = True  # this returs an iterator
+        elif isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
+            data = self.reader_fdb(self.esmcat, loadvar, startdate, enddate, dask=(not streaming_generator))
+            fiter = streaming_generator  # this returs an iterator unless dask is set
         else:
-            data = self.reader_intake(esmcat, var, loadvar)  # Returns a generator object
+            data = self.reader_intake(self.esmcat, var, loadvar)  # Returns a generator object
 
             if var:
                 if all(element in data.data_vars for element in loadvar):
@@ -442,7 +448,7 @@ class Reader(FixerMixin, RegridMixin):
         for ds in data:
             yield self._regrid(ds)
 
-    def _regrid(self, data):
+    def _regrid(self, datain):
         """
         Perform regridding of the input dataset.
 
@@ -451,6 +457,8 @@ class Reader(FixerMixin, RegridMixin):
         Returns:
             A xarray.Dataset containing the regridded data.
         """
+
+        data = flip_lat_dir(datain)  # Check if original lat has been flipped and in case flip back, returns a deep copy in that case
 
         if self.vert_coord == ["2d"]:
             datadic = {"2d": data}
@@ -758,19 +766,38 @@ class Reader(FixerMixin, RegridMixin):
                                       )
         return list(data.values())[0]
 
-    def reader_fdb(self, esmcat, var, startdate, enddate):
-        """Read fdb data. Returns an iterator."""
-        # These are all needed in theory
 
-        fdb_path = esmcat.metadata.get('fdb_path', None)
-        if fdb_path:
-            os.environ["FDB5_CONFIG_FILE"] = fdb_path
+    def reader_fdb(self, esmcat, var, startdate, enddate, dask=False):
+        """
+        Read fdb data. Returns an iterator or dask array.
+        Args:
+            esmcat (intake catalogue): the intake catalogue to read
+            var (str): the shortname of the variable to retrieve
+            startdate (str): a starting date and time in the format YYYYMMDD:HHTT
+            enddate (str): an ending date and time in the format YYYYMMDD:HHTT
+            dask (bool): return directly a dask array instead of an iterator
+        Returns:
+            An xarray.Dataset or an iterator over datasets
+        """
 
-        if self.aggregation:
-            return esmcat(startdate=startdate, enddate=enddate, var=var, aggregation=self.aggregation, verbose=self.verbose).read_chunked()
+        if dask:
+            if self.aggregation:
+                data = esmcat(startdate=startdate, enddate=enddate, var=var,
+                              aggregation=self.aggregation,
+                              logging = True, verbose=self.verbose).to_dask()
+            else:
+                data =esmcat(startdate=startdate, enddate=enddate, var=var,
+                             logging = True, verbose=self.verbose).to_dask()
         else:
-            return esmcat(startdate=startdate, enddate=enddate, var=var, verbose=self.verbose).read_chunked()
+            if self.aggregation:
+                data = esmcat(startdate=startdate, enddate=enddate, var=var,
+                              aggregation=self.aggregation,
+                              logging=True, verbose=self.verbose).read_chunked()
+            else:
+                data = esmcat(startdate=startdate, enddate=enddate, var=var,
+                              logging=True, verbose=self.verbose).read_chunked()
 
+        return data
 
     def reader_intake(self, esmcat, var, loadvar, keep="first"):
         """
@@ -827,7 +854,6 @@ class Reader(FixerMixin, RegridMixin):
 
         return xr.open_mfdataset(f"{self.buffer.name}/iter*.nc")
     
-
     def buffer_mem(self, data):
         """
         Buffers (reads) an iterator object directly into a dataset
