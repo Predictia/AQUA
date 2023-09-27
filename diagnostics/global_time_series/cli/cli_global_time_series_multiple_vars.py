@@ -89,7 +89,7 @@ def _main():
                     plot_timeseries(**src_config, variable=var, ax=ax, outfile=outfile)
                 except NotEnoughDataError as e:                  
                     print(f"Error: {e}")
-                    exit(1)
+                    exit(0)
                 plot_timeseries(**src_config, variable=var, ax=ax, outfile=outfile)
             if "savefig" in config["timeseries"]:
                 filename = create_plots_filename(config=config, var=var)
