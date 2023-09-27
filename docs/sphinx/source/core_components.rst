@@ -20,8 +20,9 @@ Supported File Formats
 AQUA supports a variety of climate data file formats, including:
 
 - NetCDF
-- GRIB (also through FDB)
+- GRIB files
 - Zarr
+- FDB GRIB
 
 Data Structures
 ~~~~~~~~~~~~~~~~
@@ -316,6 +317,7 @@ Of course, you will pay the price of additional disk traffic and disk storage.
 The `buffer` keyword should specify the location of a directory with enough space to create large temporary directories.
 
 .. code-block:: python
+
     reader = Reader(model="IFS", exp="fdb-tco399", source="fdb-long", aggregation="D", regrid="r025", buffer="/scratch/jost/aqua/buffer", loglevel="INFO")
     data = reader.retrieve(startdate='20200201', enddate='20200301', var='ci')
 
