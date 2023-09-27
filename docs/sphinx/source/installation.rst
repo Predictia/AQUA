@@ -1,7 +1,8 @@
 Installation
 ============
 
-This document provides detailed installation instructions for the Python package AQUA, tested on Python 3.9 and 3.10. 
+This document provides detailed installation instructions for the Python package AQUA, which is currently developed on Python 3.11 (Python>= 3.9 is supported)
+
 We recommend using Mamba, a package manager for conda-forge, for the installation process.
 
 .. contents::
@@ -34,7 +35,7 @@ Change to the AQUA directory:
    
    cd AQUA
 
-Create a new Mamba environment and install the required packages using the provided environment-common.yml file:
+Create a new Mamba environment and install the required packages using the provided ``environment-common.yml`` file:
 
 .. code-block:: bash
    
@@ -51,7 +52,7 @@ Activate the newly created aqua environment:
 At this point, you should have successfully installed the AQUA package and its dependencies 
 in the newly created aqua environment.
 
-If you are not working on Levante, remember to change the machine name in the `config/config.yaml` file:
+If you are not working on Levante, remember to change the machine name in the ``config/config.yaml`` file:
 
 .. code-block:: markdown
    

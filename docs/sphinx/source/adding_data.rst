@@ -9,6 +9,10 @@ To exploit of the regridding functionalities, you will also need to configure th
 The 3-level hierarchy on which AQUA is based, i.e. model - exp - source, must be respected so that 
 specific files must be created within the catalog of a specific machine. 
 
+.. contents::
+   :local:
+   :depth: 1
+
 Files-based sources
 ^^^^^^^^^^^^^^^^^^^
 
@@ -85,7 +89,7 @@ You can add fixes to your dataset by following examples in the `config/fixes/` d
 FDB-based source
 ^^^^^^^^^^^^^^^^
 
-FDB based sources are built on a specific interface built by AQUA. While the procedure of adding information on regrid.yaml and the creation of the catalog tree entries is the same, 
+FDB based sources are built on a specific interface built by AQUA. While the procedure of adding the catalog tree entries is the same, 
 the main difference is on how the specific source is descrived. We report here an example and we later describe the different element.
 
 .. code-block:: yaml
@@ -120,15 +124,15 @@ the main difference is on how the specific source is descrived. We report here a
                 variables: ['tprate', '2t', '10u', '10v', '100u', '100v', 'sr', 'blh', '2d', 'skt', 'chnk']
 
 This is a source entry from the FDB of one of the AQUA control simulation from the IFS model. 
-The source name is `hourly-native`, because is suggesting that the catalog is made hourly data at the native model resolution.
+The source name is ``hourly-native``, because is suggesting that the catalog is made hourly data at the native model resolution.
 It describes 
 
 request
 -------
 
-The "request" entry in the intake catalogue primarily serves as a template for making data requests, following the standard MARS-style syntax used by the GSV retriever. 
+The ``request`` entry in the intake catalogue primarily serves as a template for making data requests, following the standard MARS-style syntax used by the GSV retriever. 
 
-The "date" parameter will be automatically overwritten by the appropriate data_start_date. For the "step" parameter, when using "timestyle: step," setting it to a value other than 0 signals that the initial steps are missing. 
+The ``date`` parameter will be automatically overwritten by the appropriate data_start_date. For the ``step`` parameter, when using ``timestyle: step``, setting it to a value other than 0 signals that the initial steps are missing. 
 
 This is particularly useful for data sets with irregular step intervals, such as 6-hourly output.
 
@@ -154,7 +158,7 @@ When using a generator, it corresponds to the chunk size loaded into memory duri
 The choice of aggregation value is crucial as it strikes a balance between memory consumption and distributing enough work to each worker when Dask is utilized with multiple cores. 
 In most cases, the default values in the catalog have been thoughtfully chosen through experimentation.
 
-For instance, an aggregation value of "D" (for daily) works well for hourly-native data because it occupies approximately 1.2GB in memory. Increasing it beyond this limit may lead to memory issues. 
+For instance, an aggregation value of ``D`` (for daily) works well for hourly-native data because it occupies approximately 1.2GB in memory. Increasing it beyond this limit may lead to memory issues. 
 
 It is possible to choose a smaller aggregation value, but keep in mind that each worker has its own overhead, and it is usually more efficient to retrieve as much data as possible from the FDB for each worker.
 There is also a consideration to rename this parameter to "chunksize."
@@ -162,43 +166,43 @@ There is also a consideration to rename this parameter to "chunksize."
 timestep
 --------
 
-The timestep parameter, denoted as "H," represents the original frequency of the model's output. 
+The timestep parameter, denoted as ``H``, represents the original frequency of the model's output. 
 
-When timestep is set to "H," requesting data at step=6 and step=7 from the FDB will result in a time difference of 1 hour (1H).
+When timestep is set to ``H``, requesting data at step=6 and step=7 from the FDB will result in a time difference of 1 hour (1H).
 
 This parameter exists because even when dealing with monthly data, it is still stored at steps like 744, 1416, 2160, etc., which correspond to the number of hours since 00:00 on January 1st.
 
 savefreq
 --------
 
-Savefreq, indicated as "M" for monthly or "H" for hourly, signifies the actual frequency at which data are available in this stream. 
+Savefreq, indicated as ``M`` for monthly or ``H`` for hourly, signifies the actual frequency at which data are available in this stream. 
 
 Combining this information with the timestep parameter allows us to anticipate data availability at specific steps, such as 744 and 1416 for monthly data.
 
 timestyle
 ---------
 
-The timestyle parameter can be set to either "step" or "date." It determines how data is written in the FDB. 
+The timestyle parameter can be set to either ``step`` or ``date``. It determines how data is written in the FDB. 
 
-The recent examples have used "step," which involves specifying a fixed date (e.g., 19500101) and time (e.g., 0000) in the request. Time is then identified by the step in the request.
+The recent examples have used ``step``, which involves specifying a fixed date (e.g., 19500101) and time (e.g., 0000) in the request. Time is then identified by the step in the request.
 
-Alternatively, when timestyle is set to "date," you can directly specify both date and time in the request, and "step" is always set to 0.
+Alternatively, when timestyle is set to ``date``, you can directly specify both date and time in the request, and ``ste`` is always set to 0.
 
 timeshift
 ---------
 
 Timeshift is a boolean parameter used exclusively for shifting the date of monthly data back by one month. Without this shift, data for January would have a date like 19500201T0000. 
 
-Implementing this correctly in a general case can be quite complex, so it was decided to implement only the monthly shift, though "monthshift" might be a more appropriate name for this parameter.
+Implementing this correctly in a general case can be quite complex, so it was decided to implement only the monthly shift.
 
 metadata
 --------
 
 this includes supplementary very useful information to define the catalog
 
-- fdb_path: the path of the FDB configuration file (mandatory)
-- eccodes_path: the path of the eccodes version used for the encoding/decoding of the FDB
-- variables: a list of variables available in the fdb.
+- ``fdb_path``: the path of the FDB configuration file (mandatory)
+- ``eccodes_path``: the path of the eccodes version used for the encoding/decoding of the FDB
+- ``variables``: a list of variables available in the fdb.
 
 
 
@@ -208,7 +212,7 @@ Regridding
 In order to make use of the AQUA regridding capabilities we will need to define the way the grid are defined. 
 AQUA is shipped with multiple grids definition, which are defined in the `config/aqua-grids.yaml` file. 
 
-A machine-dependent file is found in `config/machines/levante/regrid.yaml`, and will instruct the regridder how to map the sources and the grids.
+A machine-dependent file is found in ``config/machines/levante/regrid.yaml``, and will instruct the regridder how to map the sources and the grids.
 
 In our case, we might imagine to have something as 
 
