@@ -1,7 +1,52 @@
 AQUA Container
 ==============
 
-Using a Singularity container, you can quickly load the AQUA environment on platforms like LUMI, Marenostrum, or Levante. This guide explains how to use the AQUA environment using the container, with a focus on LUMI. However, the same instructions apply to Marenostrum 4 and Levante.
+Using a Singularity container, you can quickly load the AQUA environment on platforms like LUMI, Marenostrum, or Levante. 
+
+This guide explains how to use the AQUA environment using the container, with a focus on LUMI. However, the same instructions apply to Marenostrum 4 and Levante.
+
+
+Generate a Personal Access Token (PAT)
+--------------------------------------
+
+You need to generate a Personal Access Token from GitHub to authenticate your access to the GitHub Container Registry. Follow these steps:
+
+1. Go to your GitHub account settings.
+2. Click on "Developer settings" in the left sidebar at the bottom of the list.
+3. Under "Personal access tokens," click on the "Token (classic)" tab and then "Generate new token" on the top right.
+4. Give the token a name, and make sure to select the appropriate scopes. You'll need at least read:packages and write:packages for the GitHub Container Registry.
+5. Click "Generate token" at the bottom of the page.
+
+Download the docker image
+--------------------------
+
+Pull the docker image from the docker hub::
+
+    .. code-block:: bash
+
+        singularity pull docker://ghcr.io/oloapinivad/aqua:0.3-container
+
+    if you have a token, you can use it to pull the image::
+
+    .. code-block:: bash
+
+        singularity pull --docker-login docker://ghcr.io/oloapinivad/aqua:0.3-container
+
+    This will require you to enter your username and token generated above.
+    The above command will create a file called ``aqua_0.3-container.sif`` in the current directory.
+
+Store the token
+---------------
+
+You can store the token as an environment variable::
+
+    .. code-block:: bash
+
+        export SINGULARITY_DOCKER_USERNAME=mygithubusername
+        export SINGULARITY_DOCKER_PASSWORD=generatedtoken
+
+    This will allow you to pull the image without having to enter your username and token every time.
+    It can be particularly useful if you want to use the image in a batch job.
 
 Load AQUA Environment into the Shell
 -------------------------------------
@@ -48,7 +93,6 @@ To run a Jupyter Notebook using the AQUA environment, follow these steps.
 
 Running Jupyter Notebook within VSCode
 --------------------------------------
-
 
 If you want to open notebooks in VSCode, follow the same steps as above, but then: 
 
