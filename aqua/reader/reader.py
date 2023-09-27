@@ -165,13 +165,28 @@ class Reader(FixerMixin, RegridMixin):
         else:
             self.logger.debug("Using CDO from config: %s", self.cdo)
 
+        if self.fix:
+            self.dst_datamodel = datamodel
+            # Default destination datamodel
+            # (unless specified in instantiating the Reader)
+            if not self.dst_datamodel:
+                self.dst_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
+
         # load and check the regrid
         if regrid or areas:
-            cfg_regrid = load_yaml(self.regrid_file, definitions="paths")
-            source_grid_id = check_catalog_source(cfg_regrid["source_grids"],
+            # New load of regrid.yaml split in multiples folders
+            main_file = os.path.join(self.configdir, 'aqua-grids.yaml')
+            machine_file = os.path.join(self.configdir, 'machines', self.machine, 'regrid.yaml')
+
+            cfg_regrid = load_multi_yaml(filenames=[main_file, machine_file],
+                                         definitions="paths",
+                                         loglevel=self.loglevel)
+
+            source_grid_id = check_catalog_source(cfg_regrid["sources"],
                                                   self.model, self.exp,
                                                   self.source, name='regrid')
-            source_grid = cfg_regrid["source_grids"][self.model][self.exp][source_grid_id]
+            source_grid = cfg_regrid['grids'][cfg_regrid['sources'][self.model][self.exp][source_grid_id]]
+            source_grid_name = cfg_regrid['sources'][self.model][self.exp][source_grid_id]
 
             # Normalize vert_coord to list
             self.vert_coord = source_grid.get("vert_coord", "2d")  # If not specified we assume that this is only a 2D case
@@ -202,15 +217,11 @@ class Reader(FixerMixin, RegridMixin):
                 self.src_grid = None
 
             self.src_space_coord = source_grid.get("space_coord", None)
+            if self.src_space_coord is None:
+                    self.src_space_coord = self._guess_space_coord(default_space_dims)
+
             self.support_dims = source_grid.get("support_dims", [])
             self.space_coord = self.src_space_coord
-
-        if self.fix:
-            self.dst_datamodel = datamodel
-            # Default destination datamodel
-            # (unless specified in instantiating the Reader)
-            if not self.dst_datamodel:
-                self.dst_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
 
         if regrid:
             self.dst_space_coord = ["lon", "lat"]
@@ -232,13 +243,18 @@ class Reader(FixerMixin, RegridMixin):
                 # compute correct filename ending
                 levname = vc if vc == "2d" or vc == "2dm" else f"3d-{vc}"
 
-                template_file = cfg_regrid["weights"]["template"].format(model=self.model,
-                                                                         exp=self.exp,
-                                                                         method=method,
-                                                                         target=regrid,
-                                                                         source=self.source,
-                                                                         level=levname)
-
+                if sgridpath:
+                    template_file = cfg_regrid["weights"]["template_grid"].format(sourcegrid=source_grid_name,
+                                                                                  method=method,
+                                                                                  targetgrid=regrid,
+                                                                                  level=levname)   
+                else: 
+                    template_file = cfg_regrid["weights"]["template_default"].format(model=model,
+                                                                                   exp=exp,
+                                                                                   source=source,
+                                                                                   method=method,
+                                                                                   targetgrid=regrid,
+                                                                                   level=levname)                                                      
                 # add the zoom level in the template file
                 if self.zoom is not None:
                     template_file = re.sub(r'\.nc',
@@ -246,7 +262,7 @@ class Reader(FixerMixin, RegridMixin):
                                            template_file)
 
                 self.weightsfile.update({vc: os.path.join(
-                    cfg_regrid["weights"]["path"],
+                    cfg_regrid["paths"]["weights"],
                     template_file)})
 
                 # If weights do not exist, create them
@@ -265,10 +281,12 @@ class Reader(FixerMixin, RegridMixin):
                                                         space_dims=default_space_dims)})
 
         if areas:
-            template_file = cfg_regrid["areas"]["src_template"].format(model=self.model,
-                                                                       exp=self.exp,
-                                                                       source=self.source)
-
+            if sgridpath:
+                template_file = cfg_regrid["areas"]["template_grid"].format(grid = source_grid_name)
+            else:
+                template_file = cfg_regrid["areas"]["template_default"].format(model=model,
+                                                                               exp=exp,
+                                                                               source=source)                                                                                   
             # add the zoom level in the template file
             if self.zoom is not None:
                 template_file = re.sub(r'\.nc',
@@ -276,7 +294,7 @@ class Reader(FixerMixin, RegridMixin):
                                        template_file)
 
             self.src_areafile = os.path.join(
-                cfg_regrid["areas"]["path"],
+                cfg_regrid["paths"]["areas"],
                 template_file)
 
             # If source areas do not exist, create them
@@ -300,13 +318,13 @@ class Reader(FixerMixin, RegridMixin):
 
             if regrid:
                 self.dst_areafile = os.path.join(
-                    cfg_regrid["areas"]["path"],
-                    cfg_regrid["areas"]["dst_template"].format(grid=self.targetgrid))
+                    cfg_regrid["paths"]["areas"],
+                    cfg_regrid["areas"]["template_grid"].format(grid=self.targetgrid))
 
                 if rebuild or not os.path.exists(self.dst_areafile):
                     if os.path.exists(self.dst_areafile):
                         os.unlink(self.dst_areafile)
-                    grid = cfg_regrid["target_grids"][regrid]
+                    grid = cfg_regrid["grids"][regrid]
                     self._make_dst_area_file(self.dst_areafile, grid)
 
                 self.dst_grid_area = xr.open_mfdataset(self.dst_areafile).cell_area
