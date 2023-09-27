@@ -176,6 +176,8 @@ class OPAgenerator():
 
         self.opa_dict = {
                          "stat": "mean",
+                         "percentile_list": None,
+                         "thresh_exceed" : None,
                          "stat_freq": self.frequency,
                          "output_freq": "monthly",
                          "time_step": self.timedelta,
