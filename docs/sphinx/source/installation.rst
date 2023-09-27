@@ -52,7 +52,7 @@ Activate the newly created aqua environment:
 At this point, you should have successfully installed the AQUA package and its dependencies 
 in the newly created aqua environment.
 
-If you are not working on Levante, remember to change the machine name in the ``config/config.yaml`` file:
+If you are not working on Levante, remember to change the machine name in the ``config/config-aqua.yaml`` file:
 
 .. code-block:: markdown
    
@@ -62,21 +62,30 @@ Installation on Lumi
 --------------------
 
 If you are using LUMI, you cannot use pure conda environments due to the Lustre filesystem.
-A solution using containers must be implemented based on containers, as described on `Lumi user-guide <https://docs.lumi-supercomputer.eu/software/installing/container-wrapper/>`_.
-The script `/config/machines/lumi/installation/lumi_install.sh` provides an installation of the correct environment.
+A solution based on containers can be used, as described on `Lumi user-guide <https://docs.lumi-supercomputer.eu/software/installing/container-wrapper/>`_.
+The script ``/config/machines/lumi/installation/lumi_install.sh`` provides an installation of the correct environment.
 
 .. code-block:: bash
 
    ./config/machines/lumi/installation/lumi_install.sh
 
-This installs the AQUA environment into a container, and then set up the correct modules via a `load_aqua.sh` script that is generated and then called from the `.bash_profile`
+This installs the AQUA environment into a container, and then set up the correct modules via a ``load_aqua.sh`` script that is generated and then called from the ``.bash_profile``.
 
 .. note ::
 
-   Having multiple conda environments on Lumi is not straightforward, but is possible modifying your own `$PATH` pointing to the different conda binaries. Please check the Lumi user-guide mentioned above.
+   Having multiple conda environments on Lumi is not straightforward, but is possible modifying your own ``$PATH`` pointing to the different conda binaries.
+   Please check the Lumi user-guide mentioned above.
 
-   It is possible that, if you're recreating the environment, the code breaks while removing the folder `~/mambaforge/aqua_common/bin`, complaining the resource is busy.
-   In this case you may have some processes running in the background. You can check them with `ps -ef | grep aqua_common` and kill them manally if needed.
+.. warning ::
+   
+   It is possible that, if you're recreating the environment, the code breaks while removing the folder ``~/mambaforge/aqua_common/bin``, complaining the resource is busy.
+   In this case you may have some processes running in the background. 
+   You can check them with ``ps -ef | grep aqua_common`` and kill them manually if needed.
+
+.. note ::
+
+   It is also possible to work using a container and singularity.
+   Please check the :doc:`aqua_container` instructions.
 
 Working with personal kernel in Jupyter Hub 
 -------------------------------------------
