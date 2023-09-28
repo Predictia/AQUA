@@ -1,12 +1,12 @@
 Adding data to AQUA
 ===================
 
-To add your data to AQUA, you have to provide an intake catalogue that describes your data, and in particular, the location of the data. 
-This can be done in two different way, by adding a standard entry in the form of files or using the specific FDB interface. 
-To exploit of the regridding functionalities, you will also need to configure the ``regrid.yaml``. 
+To add your data to AQUA, you have to provide an ``intake`` catalogue that describes your data, and in particular, the location of the data. 
+This can be done in two different way, by adding a standard entry in the form of files or using the specific AQUA FDB interface. 
+Finally, to exploit of the regridding functionalities, you will also need to configure the machine-dependent ``regrid.yaml``. 
 
 The 3-level hierarchy on which AQUA is based, i.e. model - exp - source, must be respected so that 
-specific files must be created within the catalog of a specific machine. 
+specific files must be created within the catalog of a specific machine. How to create a new source and add new data is documented in the next sections. 
 
 .. contents::
    :local:
@@ -15,9 +15,8 @@ specific files must be created within the catalog of a specific machine.
 Files-based sources
 ^^^^^^^^^^^^^^^^^^^
 
-Adding files-based sources in AQUA is done with default interface by intake. 
-Files supported can include NetCDF files or other formats as GRIB or Zarr.
-
+Adding files-based sources in AQUA is done with default interface by ``intake``. 
+Files supported can include NetCDF files - as the one described in the example below - or other formats as GRIB or Zarr. 
 The best way to explain the process is to follow the example of adding some fake dataset.
 
 Let's imagine we have a dataset called ``yearly_SST`` that consists of the following:
@@ -27,10 +26,8 @@ Let's imagine we have a dataset called ``yearly_SST`` that consists of the follo
 - coordinate variables are ``lat`` and ``lon``, and the time variable is ``time``, all one dimensional
 - data located on the Levante machine
 
-We will create a catalogue that will describe this dataset, and then we will add it to AQUA.
-The catalog name will be ``yearly_SST``.
+We will create a catalogue entry that will describe this dataset. The catalog name will be ``yearly_SST``.
 
-The first step is to add this catalogue to the ``config/machines/levante/catalog.yaml`` file. 
 The additional entry in this file will look like this:
 
 .. code-block:: yaml
@@ -41,9 +38,11 @@ The additional entry in this file will look like this:
         args:
           path: "{{CATALOG_DIR}}/yearly_SST/main.yaml"
 
-This will create the ``model`` entry within the catalog.
+The first step is to add this catalogue to the ``config/machines/levante/catalog.yaml`` file.  
+This will create the ``model`` entry within the catalog that can be used later by the ``Reader()``.
+
 Then we will need to create the ``exp`` entry, which will be included in the ``main.yaml``.
-In our case, the ``main.yaml`` file will look like this (but many other experiments can be added aside of this):
+In our case, the ``main.yaml`` file will look like this (but many other experiments - corresponding to the same model - can be added aside of this):
 
 .. code-block:: yaml
 
@@ -74,8 +73,8 @@ The most straightforward intake catalogue describing our dataset will look like 
             - /data/path/1990.nc
             - /data/path/1991.nc
 
-Where we have specified the ``source`` name of the catalog entry.
-Now we can access our dataset from AQUA with the following command:
+Where we have specified the ``source`` name of the catalog entry. As for the ``exp`` case, we could have multiple sources for the same experiment. 
+Once this is defined, we can access our dataset from AQUA with the following command:
 
 .. code-block:: python
 
@@ -83,9 +82,7 @@ Now we can access our dataset from AQUA with the following command:
     reader = Reader(model="yearly_SST", exp="yearly_sst", source="annual")
     data = reader.retrieve()
 
-
-You can add fixes to your dataset by following examples in the ``config/fixes/`` directory.
-
+In the case is needed, you can add fixes to your dataset by following examples in the ``config/fixes/`` directory.
 
 FDB-based source
 ^^^^^^^^^^^^^^^^

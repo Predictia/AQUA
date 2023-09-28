@@ -183,15 +183,15 @@ The general idea is to convert data from different models to a uniform file form
 with the same variable names and units. The default format is GRIB2.
 
 The fixing is done by default (``apply_unit_fix=False`` to switch it off) when we initialize the reader, 
-using the instructions in the ``config/fixes`` folder. Each model has its own YAML file that specify the fixes, and a ``default.yaml``` 
+using the instructions in the ``config/fixes`` folder. Each model has its own YAML file that specify the fixes, and a ``default.yaml``
 file is used for common unit corrections.
 
 The fixer performs a range of operations on data:
 
 - adopt a common 'coordinate data model' (default is the CDS data model): names of coordinates and dimensions (lon, lat, etc.),
   coordinate units and direction, name (and meaning) of the time dimension. 
-- derive new variables. In particular, it derives from accumulated variables like "tp" (in mm), the equivalent mean-rate variables
-  (like "tprate", paramid 172228; in mm/s).
+- derive new variables. In particular, it derives from accumulated variables like ``tp`` (in mm), the equivalent mean-rate variables
+  (like ``tprate``, paramid 172228; in mm/s).
   The fixer can identify these derived variables by their Short Names (ECMWF and WMO eccodes tables are used).
 - using the ``metpy.units`` module, it is capable of guessing some basic conversions.
   In particular, if a density is missing, it will assume that it is the density of water and will take it into account.
@@ -199,7 +199,7 @@ The fixer performs a range of operations on data:
 
 In the ``fixer`` folder, it is also possible to specify in a flexible way custom derived variables. For example:
 
-.. code-block:: markdown
+.. code-block:: yaml
 
     mytprate:
         derived: tprate*86400
