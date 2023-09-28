@@ -24,6 +24,16 @@ def parse_arguments(args):
     parser.add_argument('-l', '--loglevel', type=str,
                         help='log level [default: WARNING]')
 
+    # This arguments will override the configuration file if provided
+    parser.add_argument('--model', type=str, help='model name',
+                        required=False)
+    parser.add_argument('--exp', type=str, help='experiment name',
+                        required=False)
+    parser.add_argument('--source', type=str, help='source name',
+                        required=False)
+    parser.add_argument('--outputdir', type=str, help='output directory',
+                        required=False)
+
     return parser.parse_args(args)
 
 if __name__ == '__main__':
@@ -38,8 +48,19 @@ if __name__ == '__main__':
 
     loglevel = get_arg(args, 'loglevel', 'WARNING')
 
-    NAO = config['teleconnections']['NAO']
-    ENSO = config['teleconnections']['ENSO']
+    # Turning on/off the teleconnections
+    # the try/except is used to avoid KeyError if the teleconnection is not
+    # defined in the yaml file, since we have oceanic and atmospheric
+    # configuration files
+    try:
+        NAO = config['teleconnections']['NAO']
+    except KeyError:
+        NAO = False
+
+    try:
+        ENSO = config['teleconnections']['ENSO']
+    except KeyError:
+        ENSO = False
 
     if NAO:
         print('Running NAO teleconnection...')

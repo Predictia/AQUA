@@ -77,10 +77,10 @@ fi
 if [ "$teleconnections" = true ] ; then
   echo "Running teleconnection"
 
-  # 
+  # Defining some variables to make the code more readable
   telec_python="$aqua/diagnostics/teleconnections/cli/single_analysis/cli_teleconnections.py"
-  config_atm="$aqua/diagnostics/teleconnections/cli/single_analysis/config_atm.yaml"
-  config_oce="$aqua/diagnostics/teleconnections/cli/single_analysis/config_oce.yaml"
+  config_atm="$aqua/diagnostics/teleconnections/cli/single_analysis/cli_config_atm.yaml"
+  config_oce="$aqua/diagnostics/teleconnections/cli/single_analysis/cli_config_oce.yaml"
 
   python $telec_python $args_atm --outputdir $outputdir/teleconnection --config $config_atm -l debug
   python $telec_python $args_oce --outputdir $outputdir/teleconnection --config $config_oce -l debug
