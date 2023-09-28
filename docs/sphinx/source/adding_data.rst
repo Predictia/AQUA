@@ -205,12 +205,11 @@ Some of the parameters are here described:
     - ``variables``: a list of variables available in the fdb.
 
 
+Regridding capabilities
+^^^^^^^^^^^^^^^^^^^^^^^
 
-Regridding
-^^^^^^^^^^
-
-In order to make use of the AQUA regridding capabilities we will need to define the way the grid are defined. 
-AQUA is shipped with multiple grids definition, which are defined in the ``config/aqua-grids.yaml`` file. 
+In order to make use of the AQUA regridding capabilities we will need to define the way the grid are defined for each source. 
+AQUA is shipped with multiple grids definition, which are defined in the ``config/aqua-grids.yaml`` file. Please see later for 
 
 A machine-dependent file is found in ``config/machines/levante/regrid.yaml``, and will instruct the regridder how to map the sources and the grids.
 
@@ -228,9 +227,49 @@ In our case, we might imagine to have something as
                 hourly-native: tco1279
 
 
+Grid definitions
+^^^^^^^^^^^^^^^^
+
+As mentioned above, AQUA has some predefined grids available in ``config/aqua-grids.yaml``: here below we provide some information on the grid key so that it might me possibile define new grids.
+As an example, we use the healpix grid for ICON and tco1279 for IFS:
+
+.. code-block:: yaml
+
+    icon-healpix:
+        path:
+            2d: $grids/HealPix/icon_hpx{zoom}_atm_2d.nc   # this is the default 2d grid
+            2dm: $grids/HealPix/icon_hpx{zoom}_oce_2d.nc  # this is an additional and optional 2d grid used if data are masked
+            depth_full: $grids/HealPix/icon_hpx{zoom}_oce_depth_full.nc
+            depth_half: $grids/HealPix/icon_hpx{zoom}_oce_depth_half.nc
+        masked:   # This is the attribute used to distinguish variables which should go into the masked category
+            component: ocean
+        space_coord: ["cell"]
+        vert_coord: ["depth_half", "depth_full"]
 
 
+    tco1279:
+        path: 
+            2d: $grids/IFS/tco1279_grid.nc
+            2dm: $grids/IFS/tco1279_grid_masked.nc
+        masked_vars: ["ci", "sst"]
+        vert_coord: ["2d", "2dm"]
 
+
+- **path**: Path to the grid data file, can be a single file if the grid is 2d, but can include multiple files as a function of the grid used. ``2d`` refers to the default grids, ``2dm`` to the grid for masked variables, any other key refers to specific 3d vertical structure (see `vert_coord`)
+
+- **space_coord**: The space coordinate how coordinates are defined and used for interpolation. Since AQUA v0.4 there is an automatic guessing routine, but this is a bit costly so it is better to specify this if possible.
+
+- **masked**: Keys to define variables which are masked. When using this is used, the code will search for an attribute to make the distinction (``component: ocean`` in this case). It is an alternative specification to ``masked_vars``
+
+- **masked_vars**: A list of variables subject to land-sea masking according to `2dm` grid. It is an alternative specification to ``masked``
+
+- **vert_coords** (if applicable): Vertical coordinate options for the grid. Specific for oceanic models where interpolation is changing at each depth level.
+
+- **extra** (if applicable): Additional CDO command-line options to be used to process the files defined in `path`.
+
+Other simpler grids can be defined using the CDO syntax, so for example we have ``r100: r360x180``. Other CDO compatible grids can be of course defined in this way. 
+
+A standard `lon-lat` grid is defined for basic interpolation and can be used for most of the regular cases, as long as the ``space_coord`` are ``lon`` and ``lat``.
 
 
 

@@ -33,6 +33,7 @@ The job can be launched to the queue with the following command in a Notebook ce
 The default arguments of ``slurm.job()`` function on Levante (``machine=Levante`` in configdir) are the followings:
 
 .. code-block:: python
+
 	account = "bb1153"
 	queue = "compute"
 	cores=1
@@ -43,6 +44,7 @@ The default arguments of ``slurm.job()`` function on Levante (``machine=Levante`
 The default arguments of ``slurm.job()`` function, i.e., account and queue names, are different for Lumi (``machine=Lumi`` in configdir):
 
 .. code-block:: python
+
 	account = "project_465000454"
 	queue = "small"
 
