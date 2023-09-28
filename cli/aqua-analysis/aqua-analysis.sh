@@ -82,8 +82,8 @@ if [ "$teleconnections" = true ] ; then
   config_atm="$aqua/diagnostics/teleconnections/cli/single_analysis/cli_config_atm.yaml"
   config_oce="$aqua/diagnostics/teleconnections/cli/single_analysis/cli_config_oce.yaml"
 
-  python $telec_python $args_atm --outputdir $outputdir/teleconnection --config $config_atm -l debug
-  python $telec_python $args_oce --outputdir $outputdir/teleconnection --config $config_oce -l debug
+  python $telec_python $args_atm --outputdir $outputdir/teleconnection --config $config_atm
+  python $telec_python $args_oce --outputdir $outputdir/teleconnection --config $config_oce
 fi
 
 echo "Finished"
