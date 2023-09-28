@@ -1,5 +1,5 @@
-teleconnections: # you can turn on/off the teleconnections you want to compute
-  NAO: true
+# you can turn on/off the oceanic teleconnections you want to compute
+teleconnections:
   ENSO: true
 
 # This is overwritten if the script with the flags --model, --exp, --source
@@ -19,9 +19,7 @@ source: 'lra-r100-monthly'
 # |   ├── NAO
 # |   ├── ENSO
 # |   └── ...
-
 outputdir: './output' # common output directory for figures and netcdf files
-
 
 # We assume that regridding and time aggregation has been done before,
 # so we set these parameters to null, if we have to run with native data
@@ -31,8 +29,5 @@ freq: null
 zoom: null
 
 # List of teleconnections specific configuration parameters
-NAO:
-  months_window: 3
-
 ENSO:
   months_window: 3
