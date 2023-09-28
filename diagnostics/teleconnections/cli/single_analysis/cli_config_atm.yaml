@@ -21,6 +21,9 @@ source: 'lra-r100-monthly'
 # |   └── ...
 outputdir: './output' # common output directory for figures and netcdf files
 
+# Configdir for the teleconnections
+configdir: null
+
 # We assume that regridding and time aggregation has been done before,
 # so we set these parameters to null, if we have to run with native data
 # we may have to set these parameters
