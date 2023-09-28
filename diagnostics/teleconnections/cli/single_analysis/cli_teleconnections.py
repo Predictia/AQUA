@@ -5,6 +5,7 @@ AQUA teleconnections command line interface for a single dataset.
 Reads configuration file and performs teleconnections diagnostic.
 '''
 import argparse
+import os
 import sys
 
 from aqua.util import load_yaml, get_arg
@@ -48,6 +49,29 @@ if __name__ == '__main__':
 
     loglevel = get_arg(args, 'loglevel', 'WARNING')
 
+    model = get_arg(args, 'model', config['model'])
+    exp = get_arg(args, 'exp', config['exp'])
+    source = get_arg(args, 'source', config['source'])
+
+    savefig = get_arg(args, 'definitive', True)
+    savefile = get_arg(args, 'definitive', True)
+
+    # These may be needed if we're not using an LRA entry
+    regrid = config['regrid']
+    freq = config['freq']
+    zoom = config['zoom']
+
+    try:
+        outputdir = get_arg(args, 'outputdir', config['outputdir'])
+        outputnetcdf = os.path.join(outputdir, 'NetCDF')
+        outputpdf = os.path.join(outputdir, 'pdf')
+    except KeyError:
+        outputdir = None
+        outputnetcdf = None
+        outputpdf = None
+
+    configdir = config['configdir']
+
     # Turning on/off the teleconnections
     # the try/except is used to avoid KeyError if the teleconnection is not
     # defined in the yaml file, since we have oceanic and atmospheric
@@ -62,8 +86,65 @@ if __name__ == '__main__':
     except KeyError:
         ENSO = False
 
+    # Executing the teleconnections
     if NAO:
         print('Running NAO teleconnection...')
 
+        months_window = config['NAO']['months_window']
+
+        teleconnection = Teleconnection(telecname='NAO', configdir=configdir,
+                                        regrid=regrid, freq=freq, zoom=zoom,
+                                        model=model, exp=exp, source=source,
+                                        months_window=months_window,
+                                        outputdir=outputnetcdf,
+                                        outputfig=outputpdf,
+                                        savefig=savefig, savefile=savefile,
+                                        loglevel=loglevel)
+        teleconnection.retrieve()
+        teleconnection.evaluate_index()
+        teleconnection.evaluate_correlation()
+        teleconnection.evaluate_regression()
+
+        if savefig:
+            teleconnection.plot_index()
+            # Regression map
+            single_map_plot(map=teleconnection.regression, loglevel=loglevel,
+                            outputdir=teleconnection.outputfig,
+                            filename=teleconnection.filename + '_regression.pdf',
+                            save=True, cbar_label=teleconnection.var, sym=True)
+            # Correlation map
+            single_map_plot(map=teleconnection.correlation, loglevel=loglevel,
+                            outputdir=teleconnection.outputfig,
+                            filename=teleconnection.filename + '_correlation.pdf',
+                            save=True, cbar_label='Pearson correlation', sym=True)
+
     if ENSO:
         print('Running ENSO teleconnection...')
+
+        months_window = config['ENSO']['months_window']
+
+        teleconnection = Teleconnection(telecname='ENSO', configdir=configdir,
+                                        regrid=regrid, freq=freq, zoom=zoom,
+                                        model=model, exp=exp, source=source,
+                                        months_window=months_window,
+                                        outputdir=outputnetcdf,
+                                        outputfig=outputpdf,
+                                        savefig=savefig, savefile=savefile,
+                                        loglevel=loglevel)
+        teleconnection.retrieve()
+        teleconnection.evaluate_index()
+        teleconnection.evaluate_correlation()
+        teleconnection.evaluate_regression()
+
+        if savefig:
+            teleconnection.plot_index()
+            # Regression map
+            single_map_plot(map=teleconnection.regression, loglevel=loglevel,
+                            outputdir=teleconnection.outputfig,
+                            filename=teleconnection.filename + '_regression.pdf',
+                            save=True, cbar_label=teleconnection.var, sym=True)
+            # Correlation map
+            single_map_plot(map=teleconnection.correlation, loglevel=loglevel,
+                            outputdir=teleconnection.outputfig,
+                            filename=teleconnection.filename + '_correlation.pdf',
+                            save=True, cbar_label='Pearson correlation', sym=True)
