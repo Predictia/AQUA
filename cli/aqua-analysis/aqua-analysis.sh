@@ -21,7 +21,7 @@ global_time_series=false
 ocean3d=false
 radiation=false
 seaice=false
-teleconnection=false
+teleconnections=true
 
 # End of user defined variables
 # -----------------------------
@@ -74,10 +74,16 @@ if [ "$seaice" = true ] ; then
   python $aqua/diagnostics/seaice/cli/cli_seaice.py $args_oce --outputdir $outputdir/seaice
 fi
 
-if [ "$teleconnection" = true ] ; then
+if [ "$teleconnections" = true ] ; then
   echo "Running teleconnection"
-  python $aqua/diagnostics/teleconnection/cli/cli_teleconnection.py $args_atm --outputdir $outputdir/teleconnection --config $aqua/diagnostics/teleconnection/cli/config_atm.yaml
-  python $aqua/diagnostics/teleconnection/cli/cli_teleconnection.py $args_oce --outputdir $outputdir/teleconnection --config $aqua/diagnostics/teleconnection/cli/config_oce.yaml
+
+  # 
+  telec_python="$aqua/diagnostics/teleconnections/cli/single_analysis/cli_teleconnections.py"
+  config_atm="$aqua/diagnostics/teleconnections/cli/single_analysis/config_atm.yaml"
+  config_oce="$aqua/diagnostics/teleconnections/cli/single_analysis/config_oce.yaml"
+
+  python $telec_python $args_atm --outputdir $outputdir/teleconnection --config $config_atm -l debug
+  python $telec_python $args_oce --outputdir $outputdir/teleconnection --config $config_oce -l debug
 fi
 
 echo "Finished"
