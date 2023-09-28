@@ -11,7 +11,7 @@ import sys
 from aqua.util import load_yaml, get_arg
 from teleconnections.plots import single_map_plot
 from teleconnections.tc_class import Teleconnection
-from teleconnections.tools import get_dataset_config
+
 
 def parse_arguments(args):
     """Parse command line arguments"""
@@ -36,6 +36,7 @@ def parse_arguments(args):
                         required=False)
 
     return parser.parse_args(args)
+
 
 if __name__ == '__main__':
 
@@ -96,8 +97,10 @@ if __name__ == '__main__':
                                         regrid=regrid, freq=freq, zoom=zoom,
                                         model=model, exp=exp, source=source,
                                         months_window=months_window,
-                                        outputdir=outputnetcdf,
-                                        outputfig=outputpdf,
+                                        outputdir=os.path.join(outputnetcdf,
+                                                               'NAO'),
+                                        outputfig=os.path.join(outputpdf,
+                                                               'NAO'),
                                         savefig=savefig, savefile=savefile,
                                         loglevel=loglevel)
         teleconnection.retrieve()
@@ -127,8 +130,10 @@ if __name__ == '__main__':
                                         regrid=regrid, freq=freq, zoom=zoom,
                                         model=model, exp=exp, source=source,
                                         months_window=months_window,
-                                        outputdir=outputnetcdf,
-                                        outputfig=outputpdf,
+                                        outputdir=os.path.join(outputnetcdf,
+                                                               'ENSO'),
+                                        outputfig=os.path.join(outputpdf,
+                                                               'ENSO'),
                                         savefig=savefig, savefile=savefile,
                                         loglevel=loglevel)
         teleconnection.retrieve()
