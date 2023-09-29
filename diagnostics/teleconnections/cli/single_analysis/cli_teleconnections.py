@@ -19,9 +19,9 @@ def parse_arguments(args):
     parser = argparse.ArgumentParser(description='Teleconnections CLI')
     parser.add_argument('-c', '--config', type=str,
                         help='yaml configuration file')
-    parser.add_argument('-d', '--definitive', action='store_true',
+    parser.add_argument('-d', '--dry', action='store_true',
                         required=False,
-                        help='if True, files are saved, default is True')
+                        help='if True, run is dry, no files are written')
     parser.add_argument('-l', '--loglevel', type=str,
                         help='log level [default: WARNING]')
 
@@ -54,8 +54,14 @@ if __name__ == '__main__':
     exp = get_arg(args, 'exp', config['exp'])
     source = get_arg(args, 'source', config['source'])
 
-    savefig = get_arg(args, 'definitive', True)
-    savefile = get_arg(args, 'definitive', True)
+    dry = get_arg(args, 'dry', False)
+    if dry:
+        print('Dry run, no files will be written')
+        savefig = False
+        savefile = False
+    else:
+        savefig = True
+        savefile = True
 
     # These may be needed if we're not using an LRA entry
     regrid = config['regrid']

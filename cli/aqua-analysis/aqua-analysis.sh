@@ -5,12 +5,17 @@
 # The following variables can be changed by the user.
 # ---------------------------------------------------
 model_atm="IFS"
-model_oce="NEMO"
-exp="control-1950-devcon"
+model_oce="FESOM"
+exp="tco2559-ng5-cycle3"
 source="lra-r100-monthly"
 
-outputdir="/scratch/project_465000454/nurissom/cli_outpturdir"
-aqua="/users/nurissom/AQUA"
+# LUMI
+# outputdir="/scratch/project_465000454/nurissom/cli_outpturdir"
+# aqua="/users/nurissom/AQUA"
+
+# LEVANTE
+outputdir="/scratch/b/b382289/cli_test"
+aqua="/home/b/b382289/AQUA"
 
 # Set as true the diagnostics you want to run
 # -------------------------------------------
@@ -22,6 +27,10 @@ ocean3d=false
 radiation=false
 seaice=false
 teleconnections=true
+# teleconnections additional flags
+# --------------------------------
+# --loglevel, -l (can be DEBUG, INFO, WARNING, ERROR, CRITICAL)
+# --dry, -d (dry run, if set it will run without producing plots)
 
 # End of user defined variables
 # -----------------------------
@@ -75,15 +84,23 @@ if [ "$seaice" = true ] ; then
 fi
 
 if [ "$teleconnections" = true ] ; then
-  echo "Running teleconnection"
+  echo "Running teleconnections"
 
   # Defining some variables to make the code more readable
   telec_python="$aqua/diagnostics/teleconnections/cli/single_analysis/cli_teleconnections.py"
   config_atm="$aqua/diagnostics/teleconnections/cli/single_analysis/cli_config_atm.yaml"
   config_oce="$aqua/diagnostics/teleconnections/cli/single_analysis/cli_config_oce.yaml"
 
-  python $telec_python $args_atm --outputdir $outputdir/teleconnection --config $config_atm
-  python $telec_python $args_oce --outputdir $outputdir/teleconnection --config $config_oce
+  # Move to the teleconnection CLI directory
+  cd $aqua/diagnostics/teleconnections/cli/single_analysis
+
+  python cli_teleconnections.py $args_atm --outputdir $outputdir/teleconnection --config cli_config_atm.yaml -d
+  python cli_teleconnections.py $args_oce --outputdir $outputdir/teleconnection --config cli_config_oce.yaml -d
+
+  # Move back to the aqua-analysis directory
+  cd $aqua/cli/aqua-analysis
+
+  echo "Finished teleconnections"
 fi
 
 echo "Finished"
