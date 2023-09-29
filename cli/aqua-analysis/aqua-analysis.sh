@@ -5,12 +5,17 @@
 # The following variables can be changed by the user.
 # ---------------------------------------------------
 model_atm="IFS"
-model_oce="NEMO"
-exp="control-1950-devcon"
+model_oce="FESOM"
+exp="tco2559-ng5-cycle3"
 source="lra-r100-monthly"
 
-outputdir="/scratch/project_465000454/nurissom/cli_outpturdir"
-aqua="/users/nurissom/AQUA"
+# LUMI
+# outputdir="/scratch/project_465000454/nurissom/cli_outpturdir"
+# aqua="/users/nurissom/AQUA"
+
+# LEVANTE
+outputdir="/scratch/b/b382289/cli_test"
+aqua="/home/b/b382289/AQUA"
 
 # Set as true the diagnostics you want to run
 # -------------------------------------------
@@ -18,7 +23,7 @@ atmglobalmean=false
 dummy=false # dummy is a test diagnostic
 ecmean=false
 global_time_series=false
-ocean3d=false
+ocean3d=true
 radiation=false
 seaice=false
 teleconnection=false
@@ -61,7 +66,14 @@ fi
 
 if [ "$ocean3d" = true ] ; then
   echo "Running ocean3d"
-  python $aqua/diagnostics/ocean3d/cli/cli_ocean3d.py $args_oce --outputdir $outputdir/ocean3d
+
+  # Moving to ocean3d directory to run the ocean3d_cli.py script
+  cd $aqua/diagnostics/ocean3d/cli
+  python $aqua/diagnostics/ocean3d/cli/ocean3d_cli.py $args_oce --outputdir $outputdir/ocean3d
+
+  # Moving back to aqua-analysis directory
+  cd $aqua/cli/aqua-analysis
+
 fi
 
 if [ "$radiation" = true ] ; then
