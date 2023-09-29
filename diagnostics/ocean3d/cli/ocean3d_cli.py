@@ -2,7 +2,7 @@ import sys
 import os
 import traceback
 
-#try:
+# try:
 from aqua import Reader,catalogue, inspect_catalogue
 
 # This is needed if loading from the cli directory
@@ -29,7 +29,6 @@ parser.add_argument('--outputdir', type=str, help='Output directory')
 
 args = parser.parse_args()
 
-#ocean3d_config = load_yaml("../config.yaml")
 ocean3d_config = load_yaml("config.yaml")
 
 outputdir = ocean3d_config["outputdir"]
@@ -66,6 +65,8 @@ if not os.path.exists('outputdir'):
 print(f"Reader selecting for model= {model},exp= {exp},source= {source}")
 reader = Reader(model, exp, source, fix=True)
 data = reader.retrieve()
+
+data = data.rename({"nz1":"lev"})
 
 hovmoller_lev_time_plot(data=data, region="Global Ocean", anomaly=False,
                         standardise=False, output=True,
@@ -107,14 +108,20 @@ plot_spatial_mld_clim(data, region="labrador_gin_seas", time="FMA",
                         overlap=True, output=True, output_dir=outputdir)
 
 # except KeyError as ke:
-# print("there is error")
-# print(f"KeyError: {str(ke)}")
+#     print("there is error")
+#     print(f"KeyError: {str(ke)}")
 
 # except ImportError as ie:
-# # Handle ImportError
-# print(f"ImportError: {str(ie)}")
+#     # Handle ImportError
+#     print(f"ImportError: {str(ie)}")
 
+# except AttributeError as ae:
+#     if str(ae) == "'Dataset' object has no attribute 'lev'":
+#         print("AttributeError: 'lev' attribute not found in the Dataset.")
+#     else:
+#         print(f"AttributeError: {str(ae)}")
+        
 # except Exception as e:
-# print("there is error")
-# print(f"An error occurred: {str(e)}")
-# traceback.print_exc()
+#     print("there is error")
+#     print(f"An error occurred: {str(e)}")
+#     traceback.print_exc()
