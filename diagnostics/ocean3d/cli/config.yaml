@@ -1,4 +1,4 @@
 model: 'FESOM' 
 exp: 'historical-1990-fesom'
 source: "control-monthly-original-3d"
-output_dir: './output'
+outputdir: './output'
