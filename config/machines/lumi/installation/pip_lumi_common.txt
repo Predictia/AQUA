@@ -1,0 +1,3 @@
+# pip dependencies
+pip install -e $AQUA/diagnostics/teleconnections/[all]
+pip install -e $AQUA/[all]

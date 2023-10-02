@@ -7,7 +7,7 @@ Welcome to AQUA's documentation!
 ================================
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 4
 
    introduction
    installation
@@ -19,6 +19,7 @@ Welcome to AQUA's documentation!
    adding_data
    tests
    slurm
+   aqua_container
    examples_tutorials
    api_reference
    troubleshooting_faq

@@ -17,14 +17,14 @@ def station_based_index(field, namelist, telecname, months_window=3,
     Evaluate station based index for a teleconnection.
 
     Args:
-        field (DataArray):        field over which evaluate the index
+        field (xarray.DataArray): field over which evaluate the index
         namelist:                 teleconnection yaml infos
         telecname (str):          name of the teleconnection to be evaluated
         months_window (int, opt): months for rolling average, default is 3
         loglevel (str, opt):      log level, default is WARNING
 
     Returns:
-        indx (DataArray): standardized station based index
+        (xarray.DataArray): standardized station based index
     """
     # 0. -- Logging --
     logger = log_configure(loglevel, 'station based index')
@@ -83,14 +83,14 @@ def regional_mean_index(field, namelist, telecname, months_window=3,
     Evaluate regional field mean for a teleconnection.
 
     Args:
-        field (DataArray):        field over which evaluate the index
+        field (xarray.DataArray): field over which evaluate the index
         namelist:                 teleconnection yaml infos
         telecname (str):          name of the teleconnection to be evaluated
         months_window (int, opt): months for rolling average, default is 3
         loglevel (str, opt):      log level, default is WARNING
 
     Returns:
-        field mean (DataArray): field mean
+        (xarray.DataArray): regional field mean
     """
     # 0. -- Logging --
     logger = log_configure(loglevel, 'regional mean index')
@@ -131,14 +131,14 @@ def regional_mean_anomalies(field, namelist, telecname, months_window=3,
     Evaluate regional field mean anomalies for a teleconnection.
 
     Args:
-        field (DataArray):        field over which evaluate the index
+        field (xarray.DataArray): field over which evaluate the index
         namelist:                 teleconnection yaml infos
         telecname (str):          name of the teleconnection to be evaluated
         months_window (int, opt): months for rolling average, default is 3
         loglevel (str, opt):      log level, default is WARNING
 
     Returns:
-        field mean (DataArray): field mean
+        (xarray.DataArray): regional field mean anomalies
     """
     # 0. -- Logging --
     logger = log_configure(loglevel, 'regional mean anomalies')

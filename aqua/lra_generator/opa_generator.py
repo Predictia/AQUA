@@ -5,11 +5,12 @@ import copy
 import warnings
 import dask
 import numpy as np
+import xarray as xr
 from dask.distributed import Client, LocalCluster
 from one_pass.opa import Opa
 from aqua.logger import log_configure
 from aqua.util import create_folder, load_yaml, dump_yaml
-from aqua.util import get_config_dir, get_machine
+from aqua.util import ConfigPath
 from aqua.reader import Reader
 
 
@@ -97,11 +98,9 @@ class OPAgenerator():
         if zoom is not None:
             self.logger.info('Zoom level set at: %s', str(zoom))
 
-        if not configdir:
-            self.configdir = get_config_dir()
-        else:
-            self.configdir = configdir
-        self.machine = get_machine(self.configdir)
+        Configurer = ConfigPath(configdir=configdir)
+        self.configdir = Configurer.configdir
+        self.machine = Configurer.machine
 
         # Initialize variable(s)
         self.var = None
@@ -163,6 +162,9 @@ class OPAgenerator():
         """
 
         data = self.reader.retrieve(var=self.var)
+        if not isinstance(data, xr.Dataset):
+            data = next(data)
+        
         time_diff = np.diff(data.time.values).astype('timedelta64[m]')
         self.timedelta = time_diff[0].astype(int)
         self.logger.info('Timedelta is %s minutes', str(self.timedelta))
@@ -174,6 +176,8 @@ class OPAgenerator():
 
         self.opa_dict = {
                          "stat": "mean",
+                         "percentile_list": None,
+                         "thresh_exceed" : None,
                          "stat_freq": self.frequency,
                          "output_freq": "monthly",
                          "time_step": self.timedelta,
@@ -186,7 +190,7 @@ class OPAgenerator():
 
         return Opa(self.opa_dict)
 
-    def generate_opa(self):
+    def generate_opa(self, gsv=False, start=None, end=None):
         """
         Run the actual computation of the OPA looping on the dataset
         and on the variables
@@ -210,16 +214,23 @@ class OPAgenerator():
             # self.remove_checkpoint()
             print(vars(opa_mean))
 
-            self.logger.warning('Initializing the streaming generator...')
-            self.reader.reset_stream()
-            data_gen = self.reader.retrieve(streaming_generator=True,
-                                            stream_step=self.stream_step,
-                                            stream_unit='days')
-
+            if not gsv: 
+                self.logger.warning('Initializing the streaming generator...')
+                self.reader.reset_stream()
+                data_gen = self.reader.retrieve(streaming_generator=True,
+                                                stream_step=self.stream_step,
+                                                stream_unit='days',
+                                                var=self.var)
+            else: 
+                self.logger.warning('Initializing the FDB access...')
+                data_gen = self.reader.retrieve(startdate=start, enddate=end, var=self.var)
+            
             for data in data_gen:
                 self.logger.info(f"start_date: {data.time[0].values} stop_date: {data.time[-1].values}")
+                               
                 if self.definitive:
                     mydata = data[variable]#.load()
+                    #print(mydata)
                     opa_mean.compute(mydata)
                     if os.path.exists(self.checkpoint_file):
                         file_size = os.path.getsize(self.checkpoint_file)
@@ -249,6 +260,19 @@ class OPAgenerator():
             }
         }
 
+        if self.zoom:
+            block_zoom = {
+                'parameters': {
+                    'zoom': {
+                        'allowed': [self.zoom],
+                        'default': self.zoom,
+                        'description': 'zoom resolution of the dataset',
+                        'type': 'int'
+                    }
+                }
+            }
+            block_cat.update(block_zoom)
+
         # find the catalog of my experiment
         catalogfile = os.path.join(self.configdir, 'machines', self.machine,
                                    'catalog', self.model, self.exp+'.yaml')
@@ -262,7 +286,7 @@ class OPAgenerator():
         regridfile = os.path.join(self.configdir, 'machines', self.machine,
                                   'regrid.yaml')
         cat_file = load_yaml(regridfile)
-        dictexp = cat_file['source_grids'][self.model][self.exp]
+        dictexp = cat_file['sources'][self.model][self.exp]
         if self.source in dictexp:
             regrid_entry = dictexp[self.source]
         elif 'default' in dictexp:
@@ -271,7 +295,7 @@ class OPAgenerator():
         else:
             raise KeyError('Cannot find experiment information regrid file')
 
-        cat_file['source_grids'][self.model][self.exp][self.entry_name] = copy.deepcopy(regrid_entry)
+        cat_file['sources'][self.model][self.exp][self.entry_name] = copy.deepcopy(regrid_entry)
 
         dump_yaml(outfile=regridfile, cfg=cat_file)
 
@@ -293,8 +317,8 @@ class OPAgenerator():
         regridfile = os.path.join(self.configdir, 'machines', self.machine,
                                   'regrid.yaml')
         cat_file = load_yaml(regridfile)
-        if self.entry_name in cat_file['source_grids'][self.model][self.exp]:
-            del cat_file['source_grids'][self.model][self.exp][self.entry_name]
+        if self.entry_name in cat_file['sources'][self.model][self.exp]:
+            del cat_file['sources'][self.model][self.exp][self.entry_name]
         dump_yaml(outfile=regridfile, cfg=cat_file)
 
     def _remove_checkpoint(self):

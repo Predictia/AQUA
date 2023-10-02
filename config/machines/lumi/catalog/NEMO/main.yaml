@@ -1,6 +1,6 @@
 sources:
-  tco79-eORCA1:
-    description: tco79-eORCA1 data
+  fdb-tco79-eorca1:
+    description: tco79-eorca1 from Bernat to test FDB-NEMO access
     driver: yaml_file_cat
     args:
-      path: '{{CATALOG_DIR}}/tco79-eORCA1.yaml'
+        path: "{{CATALOG_DIR}}/fdb-tco79-eorca1.yaml"

@@ -1,0 +1,20 @@
+# Create the environment:
+# mamba env create -f environment.yml 
+# or if you really want to use conda
+# conda env create -f environment.yml
+
+name: aqua_common
+channels:
+  - conda-forge
+# please note that some of these dependencies are made explicit on purpose, but are not directly required by conda/mamba
+dependencies:
+  - python>=3.9
+  - cdo>=2.2.0 #for healpix support
+  - ecCodes
+  - pandas      
+  - pandoc
+  - pip
+  - python-cdo # for teleconnections
+  - tempest-extremes # for TCs
+  - xesmf # for ECmean
+  - intake-esm

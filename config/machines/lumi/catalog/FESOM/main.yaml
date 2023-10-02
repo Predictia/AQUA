@@ -1,11 +1,6 @@
 sources:
-  # test-ng5:
-  #   description: 5km experiment, coupuled with IFS
-  #   driver: yaml_file_cat
-  #   args:
-  #       path: "{{CATALOG_DIR}}/test-ng5.yaml"
-  test-pi:
-    description: 5km experiment, coupuled with IFS
+  historical-1990-fesom:
+    description: historical 1990 development
     driver: yaml_file_cat
     args:
-        path: "{{CATALOG_DIR}}/test-pi.yaml"
+        path: "{{CATALOG_DIR}}/historical-1990-fesom.yaml"
