@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Custom exceptions for AQUA (#518)
+- Speed up of the `retrieve_plain` method (#524)
 - Update documention for adding new data and setting up the container (Increase documentation coverage #519)
 - CLI wrapper for the state-of-the-art diagnostics analysis (#517, #527, #525)
 - Refactor the regrid.yaml as grid-based instead of experiment-based (#291)
