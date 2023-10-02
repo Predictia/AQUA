@@ -47,6 +47,9 @@ else
   aqua=$AQUA
 fi
 
+# print the output directory
+echo "Output directory: $outputdir"
+
 if [ "$atmglobalmean" = true ] ; then
   echo "Running atmglobalmean"
   python $aqua/diagnostics/atmglobalmean/cli/cli_atmglobalmean.py $args_atm --outputdir $outputdir/atmglobalmean
@@ -92,8 +95,8 @@ if [ "$teleconnections" = true ] ; then
   # Move to the teleconnection CLI directory
   cd $aqua/diagnostics/teleconnections/cli/single_analysis
 
-  python cli_teleconnections.py $args_atm --outputdir $outputdir/teleconnection --config cli_config_atm.yaml -d
-  python cli_teleconnections.py $args_oce --outputdir $outputdir/teleconnection --config cli_config_oce.yaml -d
+  python cli_teleconnections.py $args_atm --outputdir $outputdir/teleconnection --config cli_config_atm.yaml
+  python cli_teleconnections.py $args_oce --outputdir $outputdir/teleconnection --config cli_config_oce.yaml
 
   # Move back to the aqua-analysis directory
   cd $aqua/cli/aqua-analysis
