@@ -6,6 +6,7 @@ import sys
 
 from aqua import Reader
 from aqua.util import load_yaml, get_arg
+from aqua.exceptions import NoObservationError
 
 # This is needed if loading from the cli directory
 sys.path.insert(0, '../../..')
@@ -57,67 +58,79 @@ if __name__ == '__main__':
         os.makedirs('outputdir')
 
     print(f"Reader selecting for model= {model},exp= {exp},source= {source}")
-    reader = Reader(model, exp, source, fix=True)
+    try:
+        reader = Reader(model, exp, source, fix=True)
+    except KeyError:
+        print("NoDataError: No data available")
+        sys.exit(0)
+
     data = reader.retrieve()
 
     # HACK: FESOM data has nz1 as the vertical dimension
     if model == 'FESOM':
-        data = data.rename({"nz1":"lev"})
+        data = data.rename({"nz1": "lev"})
 
-    hovmoller_lev_time_plot(data=data, region="Global Ocean", anomaly=False,
-                            standardise=False, output=True,
-                            output_dir=outputdir)
+    try:
+        hovmoller_lev_time_plot(data=data, region="Global Ocean", anomaly=False,
+                                standardise=False, output=True,
+                                output_dir=outputdir)
 
-    hovmoller_lev_time_plot(data=data, region="Global Ocean",
-                            anomaly=True, standardise=False,
-                            anomaly_ref='Tmean', output=True,
-                            output_dir=outputdir)
+        hovmoller_lev_time_plot(data=data, region="Global Ocean",
+                                anomaly=True, standardise=False,
+                                anomaly_ref='Tmean', output=True,
+                                output_dir=outputdir)
 
-    hovmoller_lev_time_plot(data=data, region="Global Ocean",
-                            anomaly=True, standardise=True,
-                            anomaly_ref='Tmean', output=True,
-                            output_dir=outputdir)
+        hovmoller_lev_time_plot(data=data, region="Global Ocean",
+                                anomaly=True, standardise=True,
+                                anomaly_ref='Tmean', output=True,
+                                output_dir=outputdir)
+    except AttributeError:
+        print("NoDataError: so or ocpt not found in the Dataset.")
+        print("Not plotting hovmoller_lev_time_plot")
 
-    time_series_multilevs(data=data, region='Global Ocean', anomaly=False,
-                          standardise=False, anomaly_ref="FullValue",
-                          customise_level=False, levels=list, output=True,
-                          output_dir=outputdir)
-
-    time_series_multilevs(data=data, region='Global Ocean', anomaly=True,
-                          standardise=False, anomaly_ref="t0",
-                          customise_level=False, levels=list, output=True,
-                          output_dir=outputdir)
-
-    multilevel_t_s_trend_plot(data=data, region='Global Ocean',
-                              customise_level=False,
-                              levels=None, output=True,
+    try:
+        time_series_multilevs(data=data, region='Global Ocean', anomaly=False,
+                              standardise=False, anomaly_ref="FullValue",
+                              customise_level=False, levels=list, output=True,
                               output_dir=outputdir)
 
-    plot_stratification(data, region="Labrador Sea", time="February",
-                        output=True, output_dir=outputdir)
-    plot_stratification(data, region="Labrador Sea", time="DJF",
-                        output=True, output_dir=outputdir)
+        time_series_multilevs(data=data, region='Global Ocean', anomaly=True,
+                              standardise=False, anomaly_ref="t0",
+                              customise_level=False, levels=list, output=True,
+                              output_dir=outputdir)
+    except AttributeError:
+        print("NoDataError: so or ocpt not found in the Dataset.")
+        print("Not plotting time_series_multilevs")
 
-    plot_spatial_mld_clim(data, region="labrador_gin_seas", time="Mar",
-                          overlap=True, output=True, output_dir=outputdir)
-    plot_spatial_mld_clim(data, region="labrador_gin_seas", time="FMA",
-                          overlap=True, output=True, output_dir=outputdir)
+    try:
+        multilevel_t_s_trend_plot(data=data, region='Global Ocean',
+                                  customise_level=False,
+                                  levels=None, output=True,
+                                  output_dir=outputdir)
+    except AttributeError:
+        print("NoDataError: so or ocpt not found in the Dataset.")
+        print("Not plotting multilevel_t_s_trend_plot")
 
-# except KeyError as ke:
-#     print("there is error")
-#     print(f"KeyError: {str(ke)}")
+    try:
+        plot_stratification(data, region="Labrador Sea", time="February",
+                            output=True, output_dir=outputdir)
+        plot_stratification(data, region="Labrador Sea", time="DJF",
+                            output=True, output_dir=outputdir)
+    except NoObservationError:
+        print("NoObservationError: No observation available")
+        print("Not plotting plot_stratification")
+    except AttributeError:
+        print("NoDataError: so or ocpt not found in the Dataset.")
+        print("Not plotting plot_stratification")
 
-# except ImportError as ie:
-#     # Handle ImportError
-#     print(f"ImportError: {str(ie)}")
-
-# except AttributeError as ae:
-#     if str(ae) == "'Dataset' object has no attribute 'lev'":
-#         print("AttributeError: 'lev' attribute not found in the Dataset.")
-#     else:
-#         print(f"AttributeError: {str(ae)}")
-        
-# except Exception as e:
-#     print("there is error")
-#     print(f"An error occurred: {str(e)}")
-#     traceback.print_exc()
+    try:
+        plot_spatial_mld_clim(data, region="labrador_gin_seas", time="Mar",
+                            overlap=True, output=True, output_dir=outputdir)
+        plot_spatial_mld_clim(data, region="labrador_gin_seas", time="FMA",
+                            overlap=True, output=True, output_dir=outputdir)
+    except NoObservationError:
+        print("NoObservationError: No observation available")
+        print("Not plotting plot_spatial_mld_clim")
+    except AttributeError:
+        print("NoDataError: so or ocpt not found in the Dataset.")
+        print("Not plotting plot_spatial_mld_clim")
