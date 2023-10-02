@@ -8,6 +8,7 @@ import logging
 import xarray as xr
 import numpy as np
 from aqua import Reader
+from aqua.exceptions import NoObservationError
 
 warnings.filterwarnings("ignore")
 
@@ -265,7 +266,12 @@ def load_obs_data(model='EN4', exp='en4', source='monthly'):
     Returns:
         xarray.Dataset: Observational data containing ocean temperature and salinity.
     """
-    reader = Reader(model, exp, source)
+    try:
+        reader = Reader(model, exp, source)
+    except KeyError:
+        raise NoObservationError(
+            f"No observation of {model}, {exp}, {source} available")
+
     den4 = reader.retrieve()
     # We standardise the name for the vertical dimension
     den4 = den4.rename({"depth": "lev"})
