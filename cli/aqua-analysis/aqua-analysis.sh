@@ -84,8 +84,6 @@ if [ "$seaice" = true ] ; then
 fi
 
 if [ "$teleconnections" = true ] ; then
-  echo "Running teleconnections"
-
   # Defining some variables to make the code more readable
   telec_python="$aqua/diagnostics/teleconnections/cli/single_analysis/cli_teleconnections.py"
   config_atm="$aqua/diagnostics/teleconnections/cli/single_analysis/cli_config_atm.yaml"
