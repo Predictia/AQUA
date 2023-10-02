@@ -15,7 +15,8 @@ Available teleconnections:
 import os
 
 from aqua.logger import log_configure
-from aqua.reader import Reader
+from aqua.reader import Reader, inspect_catalogue
+from aqua.exceptions import NoDataError, NotEnoughDataError
 from teleconnections.index import station_based_index, regional_mean_anomalies
 from teleconnections.plots import index_plot
 from teleconnections.statistics import reg_evaluation, cor_evaluation
@@ -56,6 +57,7 @@ class Teleconnection():
             loglevel (str, optional):       Log level. Defaults to 'WARNING'.
 
         Raises:
+            NoDataError: If the data is not available.
             ValueError: If telecname is not one of the available teleconnections.
         """
 
@@ -69,6 +71,10 @@ class Teleconnection():
         self.source = source
         self.logger.debug('Open dataset: {}/{}/{}'.format(self.model, self.exp,
                                                           self.source))
+
+        if inspect_catalogue(model=self.model, exp=self.exp,
+                             source=self.source) is False:
+            raise NoDataError('Set of data not available')
 
         self.regrid = regrid
         if self.regrid is None:
@@ -193,6 +199,9 @@ class Teleconnection():
 
         Returns:
             xarray.DataArray: Data retrieved if a variable is specified.
+
+        Raises:
+            NoDataError: If the data is not available.
         """
         if var is None:
             try:
@@ -200,7 +209,10 @@ class Teleconnection():
             except ValueError:
                 self.logger.warning('Variable {} not found'.format(self.var))
                 self.logger.warning('Trying to retrieve without fixing and **kwargs')
-                self.data = self.reader.retrieve(var=self.var, fix=False)
+                try:
+                    self.data = self.reader.retrieve(var=self.var, fix=False)
+                except ValueError:
+                    raise NoDataError('Variable {} not found'.format(self.var))
             self.logger.info('Data retrieved')
 
             if self.regrid:
@@ -217,7 +229,10 @@ class Teleconnection():
             except ValueError:
                 self.logger.warning('Variable {} not found'.format(var))
                 self.logger.warning('Trying to retrieve without fixing and **kwargs')
-                data = self.reader.retrieve(var=var, fix=False)
+                try:
+                    data = self.reader.retrieve(var=var, fix=False)
+                except ValueError:
+                    raise NoDataError('Variable {} not found'.format(var))
             self.logger.info('Data retrieved')
 
             if self.regrid:
@@ -240,6 +255,9 @@ class Teleconnection():
             rebuild (bool, optional): If True, the index is recalculated.
                                       Default is False.
             **kwargs: Keyword arguments to be passed to the index function.
+        
+        Raises:
+            ValueError: If the index is not calculated correctly.
         """
 
         if self.index is not None and not rebuild:
@@ -249,6 +267,10 @@ class Teleconnection():
         if self.data is None:
             self.logger.warning('No retrieve has been performed, trying to retrieve')
             self.retrieve()
+
+        # Check that data have at least 2 years:
+        if len(self.data[self.var].time) < 24:
+            raise NotEnoughDataError('Data have less than 24 months')
 
         if self.telec_type == 'station':
             self.logger.debug('Calculating {} index'.format(self.telecname))

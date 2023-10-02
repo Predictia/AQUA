@@ -9,6 +9,7 @@ import os
 import sys
 
 from aqua.util import load_yaml, get_arg
+from aqua.exceptions import NoDataError, NotEnoughDataError
 from teleconnections.plots import single_map_plot
 from teleconnections.tc_class import Teleconnection
 
@@ -17,6 +18,7 @@ def parse_arguments(args):
     """Parse command line arguments"""
 
     parser = argparse.ArgumentParser(description='Teleconnections CLI')
+
     parser.add_argument('-c', '--config', type=str,
                         help='yaml configuration file')
     parser.add_argument('-d', '--dry', action='store_true',
@@ -98,64 +100,107 @@ if __name__ == '__main__':
         print('Running NAO teleconnection...')
 
         months_window = config['NAO']['months_window']
+        try:
+            teleconnection = Teleconnection(telecname='NAO', configdir=configdir,
+                                            regrid=regrid, freq=freq, zoom=zoom,
+                                            model=model, exp=exp, source=source,
+                                            months_window=months_window,
+                                            outputdir=os.path.join(outputnetcdf,
+                                                                'NAO'),
+                                            outputfig=os.path.join(outputpdf,
+                                                                'NAO'),
+                                            savefig=savefig, savefile=savefile,
+                                            loglevel=loglevel)
+            teleconnection.retrieve()
+        except NoDataError:
+            print('No data available for NAO teleconnection')
+            sys.exit(0)
 
-        teleconnection = Teleconnection(telecname='NAO', configdir=configdir,
-                                        regrid=regrid, freq=freq, zoom=zoom,
-                                        model=model, exp=exp, source=source,
-                                        months_window=months_window,
-                                        outputdir=os.path.join(outputnetcdf,
-                                                               'NAO'),
-                                        outputfig=os.path.join(outputpdf,
-                                                               'NAO'),
-                                        savefig=savefig, savefile=savefile,
-                                        loglevel=loglevel)
-        teleconnection.retrieve()
-        teleconnection.evaluate_index()
-        teleconnection.evaluate_correlation()
-        teleconnection.evaluate_regression()
+        # Data are available, are there enough?
+        try:
+            teleconnection.evaluate_index()
+            teleconnection.evaluate_correlation()
+            teleconnection.evaluate_regression()
+        except NotEnoughDataError:
+            print('Not enough data available for NAO teleconnection')
+            sys.exit(0)
 
         if savefig:
-            teleconnection.plot_index()
+            try:
+                teleconnection.plot_index()
+            except Exception as e:
+                print('Error plotting NAO index: ', e)
+
             # Regression map
-            single_map_plot(map=teleconnection.regression, loglevel=loglevel,
-                            outputdir=teleconnection.outputfig,
-                            filename=teleconnection.filename + '_regression.pdf',
-                            save=True, cbar_label=teleconnection.var, sym=True)
+            try:
+                single_map_plot(map=teleconnection.regression, loglevel=loglevel,
+                                outputdir=teleconnection.outputfig,
+                                filename=teleconnection.filename + '_regression.pdf',
+                                save=True, cbar_label=teleconnection.var, sym=True)
+            except Exception as e:
+                print('Error plotting NAO regression: ', e)
+
             # Correlation map
-            single_map_plot(map=teleconnection.correlation, loglevel=loglevel,
-                            outputdir=teleconnection.outputfig,
-                            filename=teleconnection.filename + '_correlation.pdf',
-                            save=True, cbar_label='Pearson correlation', sym=True)
+            try:
+                single_map_plot(map=teleconnection.correlation, loglevel=loglevel,
+                                outputdir=teleconnection.outputfig,
+                                filename=teleconnection.filename + '_correlation.pdf',
+                                save=True, cbar_label='Pearson correlation', sym=True)
+            except Exception as e:
+                print('Error plotting NAO correlation: ', e)
 
     if ENSO:
         print('Running ENSO teleconnection...')
 
         months_window = config['ENSO']['months_window']
 
-        teleconnection = Teleconnection(telecname='ENSO', configdir=configdir,
-                                        regrid=regrid, freq=freq, zoom=zoom,
-                                        model=model, exp=exp, source=source,
-                                        months_window=months_window,
-                                        outputdir=os.path.join(outputnetcdf,
-                                                               'ENSO'),
-                                        outputfig=os.path.join(outputpdf,
-                                                               'ENSO'),
-                                        savefig=savefig, savefile=savefile,
-                                        loglevel=loglevel)
-        teleconnection.retrieve()
-        teleconnection.evaluate_index()
-        teleconnection.evaluate_correlation()
-        teleconnection.evaluate_regression()
+        try:
+            teleconnection = Teleconnection(telecname='ENSO', configdir=configdir,
+                                            regrid=regrid, freq=freq, zoom=zoom,
+                                            model=model, exp=exp, source=source,
+                                            months_window=months_window,
+                                            outputdir=os.path.join(outputnetcdf,
+                                                                'ENSO'),
+                                            outputfig=os.path.join(outputpdf,
+                                                                'ENSO'),
+                                            savefig=savefig, savefile=savefile,
+                                            loglevel=loglevel)
+            teleconnection.retrieve()
+        except NoDataError:
+            print('No data available for ENSO teleconnection')
+            sys.exit(0)
+
+        # Data are available, are there enough?
+        try:
+            teleconnection.evaluate_index()
+            teleconnection.evaluate_correlation()
+            teleconnection.evaluate_regression()
+        except NotEnoughDataError:
+            print('Not enough data available for ENSO teleconnection')
+            sys.exit(0)
 
         if savefig:
-            teleconnection.plot_index()
+            try:
+                teleconnection.plot_index()
+            except Exception as e:
+                print('Error plotting ENSO index: ', e)
+
             # Regression map
-            single_map_plot(map=teleconnection.regression, loglevel=loglevel,
-                            outputdir=teleconnection.outputfig,
-                            filename=teleconnection.filename + '_regression.pdf',
-                            save=True, cbar_label=teleconnection.var, sym=True)
+            try:
+                single_map_plot(map=teleconnection.regression, loglevel=loglevel,
+                                outputdir=teleconnection.outputfig,
+                                filename=teleconnection.filename + '_regression.pdf',
+                                save=True, cbar_label=teleconnection.var, sym=True)
+            except Exception as e:
+                print('Error plotting ENSO regression: ', e)
+
             # Correlation map
-            single_map_plot(map=teleconnection.correlation, loglevel=loglevel,
-                            outputdir=teleconnection.outputfig,
-                            filename=teleconnection.filename + '_correlation.pdf',
-                            save=True, cbar_label='Pearson correlation', sym=True)
+            try:
+                single_map_plot(map=teleconnection.correlation, loglevel=loglevel,
+                                outputdir=teleconnection.outputfig,
+                                filename=teleconnection.filename + '_correlation.pdf',
+                                save=True, cbar_label='Pearson correlation', sym=True)
+            except Exception as e:
+                print('Error plotting ENSO correlation: ', e)
+
+    print('Teleconnections diagnostic finished.')
