@@ -65,8 +65,6 @@ if [ "$global_time_series" = true ] ; then
 fi
 
 if [ "$ocean3d" = true ] ; then
-  echo "Running ocean3d"
-
   # Moving to ocean3d directory to run the ocean3d_cli.py script
   cd $aqua/diagnostics/ocean3d/cli
   python $aqua/diagnostics/ocean3d/cli/ocean3d_cli.py $args_oce --outputdir $outputdir/ocean3d

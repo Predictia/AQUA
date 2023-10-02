@@ -57,7 +57,7 @@ if __name__ == '__main__':
     if not os.path.exists('outputdir'):
         os.makedirs('outputdir')
 
-    print(f"Reader selecting for model= {model},exp= {exp},source= {source}")
+    print(f"Reader selecting for model={model}, exp={exp}, source={source}")
     try:
         reader = Reader(model, exp, source, fix=True)
     except KeyError:
@@ -100,6 +100,9 @@ if __name__ == '__main__':
                               output_dir=outputdir)
     except AttributeError:
         print("NoDataError: so or ocpt not found in the Dataset.")
+        print("Not plotting time_series_multilevs")
+    except ValueError:
+        print("ValueError: No levels provided")
         print("Not plotting time_series_multilevs")
 
     try:
