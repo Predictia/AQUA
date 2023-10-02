@@ -87,16 +87,11 @@ if [ "$seaice" = true ] ; then
 fi
 
 if [ "$teleconnections" = true ] ; then
-  # Defining some variables to make the code more readable
-  telec_python="$aqua/diagnostics/teleconnections/cli/single_analysis/cli_teleconnections.py"
-  config_atm="$aqua/diagnostics/teleconnections/cli/single_analysis/cli_config_atm.yaml"
-  config_oce="$aqua/diagnostics/teleconnections/cli/single_analysis/cli_config_oce.yaml"
-
   # Move to the teleconnection CLI directory
   cd $aqua/diagnostics/teleconnections/cli/single_analysis
 
-  python cli_teleconnections.py $args_atm --outputdir $outputdir/teleconnection --config cli_config_atm.yaml
-  python cli_teleconnections.py $args_oce --outputdir $outputdir/teleconnection --config cli_config_oce.yaml
+  python cli_teleconnections.py $args_atm --outputdir $outputdir/teleconnections --config cli_config_atm.yaml
+  python cli_teleconnections.py $args_oce --outputdir $outputdir/teleconnections --config cli_config_oce.yaml
 
   # Move back to the aqua-analysis directory
   cd $aqua/cli/aqua-analysis
