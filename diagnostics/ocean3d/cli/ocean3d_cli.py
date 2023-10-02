@@ -66,7 +66,9 @@ print(f"Reader selecting for model= {model},exp= {exp},source= {source}")
 reader = Reader(model, exp, source, fix=True)
 data = reader.retrieve()
 
-data = data.rename({"nz1":"lev"})
+# HACK: FESOM data has nz1 as the vertical dimension
+if model == 'FESOM':
+    data = data.rename({"nz1":"lev"})
 
 hovmoller_lev_time_plot(data=data, region="Global Ocean", anomaly=False,
                         standardise=False, output=True,
@@ -83,19 +85,19 @@ hovmoller_lev_time_plot(data=data, region="Global Ocean",
                         output_dir=outputdir)
 
 time_series_multilevs(data=data, region='Global Ocean', anomaly=False,
-                        standardise=False, anomaly_ref="FullValue",
-                        customise_level=False, levels=list, output=True,
-                        output_dir=outputdir)
+                      standardise=False, anomaly_ref="FullValue",
+                      customise_level=False, levels=list, output=True,
+                      output_dir=outputdir)
 
 time_series_multilevs(data=data, region='Global Ocean', anomaly=True,
-                        standardise=False, anomaly_ref="t0",
-                        customise_level=False, levels=list, output=True,
-                        output_dir=outputdir)
+                      standardise=False, anomaly_ref="t0",
+                      customise_level=False, levels=list, output=True,
+                      output_dir=outputdir)
 
 multilevel_t_s_trend_plot(data=data, region='Global Ocean',
-                            customise_level=False,
-                            levels=None, output=True,
-                            output_dir=outputdir)
+                          customise_level=False,
+                          levels=None, output=True,
+                          output_dir=outputdir)
 
 plot_stratification(data, region="Labrador Sea", time="February",
                     output=True, output_dir=outputdir)
@@ -103,9 +105,9 @@ plot_stratification(data, region="Labrador Sea", time="DJF",
                     output=True, output_dir=outputdir)
 
 plot_spatial_mld_clim(data, region="labrador_gin_seas", time="Mar",
-                        overlap=True, output=True, output_dir=outputdir)
+                      overlap=True, output=True, output_dir=outputdir)
 plot_spatial_mld_clim(data, region="labrador_gin_seas", time="FMA",
-                        overlap=True, output=True, output_dir=outputdir)
+                      overlap=True, output=True, output_dir=outputdir)
 
 # except KeyError as ke:
 #     print("there is error")
