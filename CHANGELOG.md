@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Custom exceptions for AQUA (#518)
 - Refactor the regrid.yaml as grid-based instead of experiment-based (#291)
 - aqua_common environment simplified and updated (#498)
 - Update available variables in FDB catalogues on lumi (#514)
