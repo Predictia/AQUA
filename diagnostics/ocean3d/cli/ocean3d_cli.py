@@ -1,9 +1,11 @@
-import sys
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-import sys
+import argparse
 import os
-import traceback
+import sys
 
-# try:
-from aqua import Reader,catalogue, inspect_catalogue
+from aqua import Reader
+from aqua.util import load_yaml, get_arg
 
 # This is needed if loading from the cli directory
 sys.path.insert(0, '../../..')
@@ -17,97 +19,89 @@ from ocean3d import time_series_multilevs
 from ocean3d import multilevel_t_s_trend_plot
 from ocean3d import zonal_mean_trend_plot
 
-import xarray as xr
-from aqua.util import load_yaml
-import argparse
 
-parser = argparse.ArgumentParser(description='Your script description')
-parser.add_argument('--model', type=str, help='Model name')
-parser.add_argument('--exp', type=str, help='Experiment name')
-parser.add_argument('--source', type=str, help='Source name')
-parser.add_argument('--outputdir', type=str, help='Output directory')
+def parse_arguments(args):
+    """Parse command line arguments"""
 
-args = parser.parse_args()
+    parser = argparse.ArgumentParser(description='Ocean3D CLI')
 
-ocean3d_config = load_yaml("config.yaml")
+    parser.add_argument('--config', type=str,
+                        help='yaml configuration file')
 
-outputdir = ocean3d_config["outputdir"]
-model = ocean3d_config["model"]
-exp = ocean3d_config["exp"]
-source = ocean3d_config["source"]
+    # This arguments will override the configuration file is provided
+    parser.add_argument('--model', type=str, help='Model name')
+    parser.add_argument('--exp', type=str, help='Experiment name')
+    parser.add_argument('--source', type=str, help='Source name')
+    parser.add_argument('--outputdir', type=str,
+                        help='Output directory')
 
-print(f"model= {model},exp= {exp},source= {source}")
-print(f"outputdir= {outputdir}")
+    return parser.parse_args(args)
 
-if args.model:
-    model = args.model
-else:
-    model = model
 
-if args.exp:
-    exp = args.exp
-else:
-    exp = exp
+if __name__ == '__main__':
 
-if args.source:
-    source = args.source
-else:
-    source = source
+    print("Running ocean3d diagnostic...")
+    args = parse_arguments(sys.argv[1:])
 
-if args.outputdir:
-    outputdir = args.outputdir
-else:
-    outputdir = outputdir
+    # Read configuration file
+    file = get_arg(args, 'config', 'config.yaml')
+    print('Reading configuration yaml file..')
+    ocean3d_config = load_yaml(file)
 
-if not os.path.exists('outputdir'):
-    os.makedirs('outputdir')
+    model = get_arg(args, 'model', ocean3d_config['model'])
+    exp = get_arg(args, 'exp', ocean3d_config['exp'])
+    source = get_arg(args, 'source', ocean3d_config['source'])
+    outputdir = get_arg(args, 'outputdir', ocean3d_config['outputdir'])
 
-print(f"Reader selecting for model= {model},exp= {exp},source= {source}")
-reader = Reader(model, exp, source, fix=True)
-data = reader.retrieve()
+    if not os.path.exists('outputdir'):
+        os.makedirs('outputdir')
 
-# HACK: FESOM data has nz1 as the vertical dimension
-if model == 'FESOM':
-    data = data.rename({"nz1":"lev"})
+    print(f"Reader selecting for model= {model},exp= {exp},source= {source}")
+    reader = Reader(model, exp, source, fix=True)
+    data = reader.retrieve()
 
-hovmoller_lev_time_plot(data=data, region="Global Ocean", anomaly=False,
-                        standardise=False, output=True,
-                        output_dir=outputdir)
+    # HACK: FESOM data has nz1 as the vertical dimension
+    if model == 'FESOM':
+        data = data.rename({"nz1":"lev"})
 
-hovmoller_lev_time_plot(data=data, region="Global Ocean",
-                        anomaly=True, standardise=False,
-                        anomaly_ref='Tmean', output=True,
-                        output_dir=outputdir)
+    hovmoller_lev_time_plot(data=data, region="Global Ocean", anomaly=False,
+                            standardise=False, output=True,
+                            output_dir=outputdir)
 
-hovmoller_lev_time_plot(data=data, region="Global Ocean",
-                        anomaly=True, standardise=True,
-                        anomaly_ref='Tmean', output=True,
-                        output_dir=outputdir)
+    hovmoller_lev_time_plot(data=data, region="Global Ocean",
+                            anomaly=True, standardise=False,
+                            anomaly_ref='Tmean', output=True,
+                            output_dir=outputdir)
 
-time_series_multilevs(data=data, region='Global Ocean', anomaly=False,
-                      standardise=False, anomaly_ref="FullValue",
-                      customise_level=False, levels=list, output=True,
-                      output_dir=outputdir)
+    hovmoller_lev_time_plot(data=data, region="Global Ocean",
+                            anomaly=True, standardise=True,
+                            anomaly_ref='Tmean', output=True,
+                            output_dir=outputdir)
 
-time_series_multilevs(data=data, region='Global Ocean', anomaly=True,
-                      standardise=False, anomaly_ref="t0",
-                      customise_level=False, levels=list, output=True,
-                      output_dir=outputdir)
-
-multilevel_t_s_trend_plot(data=data, region='Global Ocean',
-                          customise_level=False,
-                          levels=None, output=True,
+    time_series_multilevs(data=data, region='Global Ocean', anomaly=False,
+                          standardise=False, anomaly_ref="FullValue",
+                          customise_level=False, levels=list, output=True,
                           output_dir=outputdir)
 
-plot_stratification(data, region="Labrador Sea", time="February",
-                    output=True, output_dir=outputdir)
-plot_stratification(data, region="Labrador Sea", time="DJF",
-                    output=True, output_dir=outputdir)
+    time_series_multilevs(data=data, region='Global Ocean', anomaly=True,
+                          standardise=False, anomaly_ref="t0",
+                          customise_level=False, levels=list, output=True,
+                          output_dir=outputdir)
 
-plot_spatial_mld_clim(data, region="labrador_gin_seas", time="Mar",
-                      overlap=True, output=True, output_dir=outputdir)
-plot_spatial_mld_clim(data, region="labrador_gin_seas", time="FMA",
-                      overlap=True, output=True, output_dir=outputdir)
+    multilevel_t_s_trend_plot(data=data, region='Global Ocean',
+                              customise_level=False,
+                              levels=None, output=True,
+                              output_dir=outputdir)
+
+    plot_stratification(data, region="Labrador Sea", time="February",
+                        output=True, output_dir=outputdir)
+    plot_stratification(data, region="Labrador Sea", time="DJF",
+                        output=True, output_dir=outputdir)
+
+    plot_spatial_mld_clim(data, region="labrador_gin_seas", time="Mar",
+                          overlap=True, output=True, output_dir=outputdir)
+    plot_spatial_mld_clim(data, region="labrador_gin_seas", time="FMA",
+                          overlap=True, output=True, output_dir=outputdir)
 
 # except KeyError as ke:
 #     print("there is error")
