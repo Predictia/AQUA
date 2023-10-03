@@ -1,0 +1,28 @@
+data:
+  model:  "ICON"
+  exp:    "ngc3028" 
+  source: "lra-r100-monthly"
+
+  model2:  "ERA5"
+  exp2:    "era5"
+  source2: "monthly"
+
+diagnostic_attributes:
+  var_name: "2t"
+  plev: null
+  statistic: "mean"
+
+time_frame:
+  start_date1: '2022-01-01'
+  end_date1: '2023-12-31'
+  start_date2: '2000-01-01'
+  end_date2: '2020-12-31'
+
+plot:
+  model_label1: 'ICON'
+  model_label2: 'ERA5'
+
+path:
+  path_to_output: "/work/bb1153/b382267/AQUA/diagnostics/atmglobalmean/cli/config/"
+  outputfig: "./PDF/"
+  outputdir: "./NetCDF/"
