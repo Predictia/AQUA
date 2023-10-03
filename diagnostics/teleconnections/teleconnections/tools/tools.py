@@ -45,16 +45,21 @@ class TeleconnectionsConfig():
         # if AQUA is defined
         aquadir = os.environ.get('AQUA')
         if aquadir:
-            configdirs.append(os.path.join(aquadir, 'diagnostics', 'teleconnections', 'config'))
+            configdirs.append(os.path.join(aquadir, 'diagnostics',
+                                           'teleconnections', 'config'))
 
         # set of predefined folders to browse
-        configdirs.extend(['./config', '../config', '../../config', '../../../config'])
-        configdirs.extend(['./diagnostics/teleconnections/config', '../diagnostics/teleconnections/config', '../../diagnostics/teleconnections/config', '../../../diagnostics/teleconnections/config'])
+        configdirs.extend(['./config', '../config', '../../config',
+                           '../../../config'])
+        configdirs.extend(['./diagnostics/teleconnections/config',
+                           '../diagnostics/teleconnections/config',
+                           '../../diagnostics/teleconnections/config',
+                           '../../../diagnostics/teleconnections/config'])
 
         for configdir in configdirs:
             if os.path.exists(os.path.join(configdir, self.filename)):
                 return configdir
-        
+
         raise FileNotFoundError(f"No config file {self.filename} found in {configdirs}")
 
     def load_namelist(self):
