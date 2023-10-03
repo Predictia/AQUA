@@ -106,9 +106,9 @@ if __name__ == '__main__':
                                             model=model, exp=exp, source=source,
                                             months_window=months_window,
                                             outputdir=os.path.join(outputnetcdf,
-                                                                'NAO'),
+                                                                   'NAO'),
                                             outputfig=os.path.join(outputpdf,
-                                                                'NAO'),
+                                                                   'NAO'),
                                             savefig=savefig, savefile=savefile,
                                             loglevel=loglevel)
             teleconnection.retrieve()
@@ -134,15 +134,17 @@ if __name__ == '__main__':
             # Regression map
             try:
                 single_map_plot(map=teleconnection.regression, loglevel=loglevel,
+                                model=model, exp=exp,
                                 outputdir=teleconnection.outputfig,
                                 filename=teleconnection.filename + '_regression.pdf',
-                                save=True, cbar_label=teleconnection.var, sym=True)
+                                save=True, cbar_label='msl [hPa]', sym=True)
             except Exception as e:
                 print('Error plotting NAO regression: ', e)
 
             # Correlation map
             try:
                 single_map_plot(map=teleconnection.correlation, loglevel=loglevel,
+                                model=model, exp=exp,
                                 outputdir=teleconnection.outputfig,
                                 filename=teleconnection.filename + '_correlation.pdf',
                                 save=True, cbar_label='Pearson correlation', sym=True)
@@ -188,18 +190,22 @@ if __name__ == '__main__':
             # Regression map
             try:
                 single_map_plot(map=teleconnection.regression, loglevel=loglevel,
+                                model=model, exp=exp,
                                 outputdir=teleconnection.outputfig,
                                 filename=teleconnection.filename + '_regression.pdf',
-                                save=True, cbar_label=teleconnection.var, sym=True)
+                                save=True, cbar_label='sst [K]', sym=True,
+                                transform_first=True)
             except Exception as e:
                 print('Error plotting ENSO regression: ', e)
 
             # Correlation map
             try:
                 single_map_plot(map=teleconnection.correlation, loglevel=loglevel,
+                                model=model, exp=exp,
                                 outputdir=teleconnection.outputfig,
                                 filename=teleconnection.filename + '_correlation.pdf',
-                                save=True, cbar_label='Pearson correlation', sym=True)
+                                save=True, cbar_label='Pearson correlation', sym=True,
+                                transform_first=True)
             except Exception as e:
                 print('Error plotting ENSO correlation: ', e)
 
