@@ -157,8 +157,8 @@ if __name__ == '__main__':
             except Exception as e:
                 print('Error plotting NAO correlation: ', e)
 
-        print('Analysing ERA5')
         if obs:
+            print('Analysing ERA5')
             try:
                 teleconnection_ERA5 = Teleconnection(telecname='NAO', configdir=configdir,
                                                      regrid='r100',
