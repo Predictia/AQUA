@@ -26,7 +26,7 @@ def parse_arguments(args):
                         help='if True, run is dry, no files are written')
     parser.add_argument('-l', '--loglevel', type=str,
                         help='log level [default: WARNING]')
-    parser.add_argument('--obs', type=str, action='store_true',
+    parser.add_argument('--obs', action='store_true',
                         required=False,
                         help='evaluate observations')
 
