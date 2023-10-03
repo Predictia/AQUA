@@ -10,7 +10,7 @@ class_attributes:
   width_of_bin: 1
 
 model_variable: 'tprate'
-new_unit:       'mm/hr'
+new_unit:       'mm/day'
 loglevel:       'WARNING'
 
 plot:

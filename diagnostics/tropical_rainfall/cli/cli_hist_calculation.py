@@ -53,8 +53,8 @@ if __name__ == '__main__':
 
     path_to_output = get_arg(args, 'outputdir', config['path']['path_to_output'])
     if path_to_output is not None: 
-        path_to_netcdf = os.path.join(path_to_output , 'NetCDF')
-        path_to_pdf = os.path.join(path_to_output, 'PDF')
+        path_to_netcdf = os.path.join(path_to_output , 'NetCDF/')
+        path_to_pdf = os.path.join(path_to_output, 'PDF/')
     name_of_netcdf  = config['path']['name_of_netcdf']
     name_of_pdf  = config['path']['name_of_pdf']
 

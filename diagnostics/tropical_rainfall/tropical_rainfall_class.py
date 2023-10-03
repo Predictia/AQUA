@@ -480,9 +480,12 @@ class Tropical_Rainfall:
                                       s_year=self.s_year,                f_year=self.f_year,
                                       s_month=self.s_month,              f_month=self.f_month,
                                       dask_array=False)
-        size_of_the_data = data_size(data)
-        data_with_final_grid = data
 
+        size_of_the_data = data_size(data)
+        
+        if new_unit is not None:
+            data = self.precipitation_rate_units_converter(data, model_variable=model_variable, new_unit = new_unit)
+        data_with_final_grid = data
         if weights is not None:
 
             weights = self.latitude_band(weights, trop_lat=self.trop_lat)
@@ -529,11 +532,10 @@ class Tropical_Rainfall:
         if not lazy and create_xarray:
             tprate_dataset = counts_per_bin.to_dataset(name="counts")
             tprate_dataset.attrs = data_with_global_atributes.attrs
-            # , path_to_histogram = path_to_histogram)
             tprate_dataset = self.add_frequency_and_pdf(
                 tprate_dataset=tprate_dataset)
 
-            mean_from_hist, mean_original, mean_modified = self.mean_from_histogram(hist=tprate_dataset, data=data_original, old_unit=data.units, new_unit=new_unit,
+            mean_from_hist, mean_original, mean_modified = self.mean_from_histogram(hist=tprate_dataset, data=data_with_final_grid, 
                                                                                     model_variable=model_variable, trop_lat=self.trop_lat, positive=positive)
             relative_discrepancy = abs(
                 mean_modified - mean_from_hist)*100/mean_modified
@@ -615,6 +617,9 @@ class Tropical_Rainfall:
                                       s_month=self.s_month,              f_month=self.f_month,
                                       dask_array=False)
         size_of_the_data = data_size(data)
+        
+        if new_unit is not None:
+            data = self.precipitation_rate_units_converter(data, model_variable=model_variable, new_unit = new_unit)
         data_with_final_grid = data
         if isinstance(self.bins, int):
             bins = [self.first_edge + i *
@@ -660,7 +665,7 @@ class Tropical_Rainfall:
         tprate_dataset = self.add_frequency_and_pdf(
             tprate_dataset=tprate_dataset)
 
-        mean_from_hist, mean_original, mean_modified = self.mean_from_histogram(hist=tprate_dataset, data=data_original, old_unit=data.units, new_unit=new_unit,
+        mean_from_hist, mean_original, mean_modified = self.mean_from_histogram(hist=tprate_dataset, data=data_with_final_grid,
                                                                                 model_variable=model_variable, trop_lat=self.trop_lat, positive=positive)
         relative_discrepancy = (
             mean_original - mean_from_hist)*100/mean_original
