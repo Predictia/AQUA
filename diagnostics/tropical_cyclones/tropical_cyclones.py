@@ -21,7 +21,7 @@ class TCs(DetectNodes, StitchNodes):
     """
 
     def __init__(self, tdict=None,
-                 paths=None, model="IFS", exp="tco2559-ng5",
+                 paths=None, model=None, exp="None", source2d="None", source3d="None",
                  boxdim=10, lowgrid='r100', highgrid='r010', var2store=None,
                  streaming=False, frequency='6h',
                  startdate=None, enddate=None,
@@ -82,6 +82,8 @@ class TCs(DetectNodes, StitchNodes):
                 raise ValueError('Define startdate and/or enddate')
             self.model = model
             self.exp = exp
+            self.source2d = source2d
+            self.source3d = source3d
             self.boxdim = boxdim
             self.lowgrid = lowgrid
             self.highgrid = highgrid
