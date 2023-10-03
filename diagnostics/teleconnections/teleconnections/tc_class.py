@@ -184,13 +184,8 @@ class Teleconnection():
         if var is None:
             try:
                 self.data = self.reader.retrieve(var=self.var, **kwargs)
-            except ValueError:
-                self.logger.warning('Variable {} not found'.format(self.var))
-                self.logger.warning('Trying to retrieve without fixing and **kwargs')
-                try:
-                    self.data = self.reader.retrieve(var=self.var, fix=False)
-                except ValueError:
-                    raise NoDataError('Variable {} not found'.format(self.var))
+            except (ValueError, KeyError):
+                raise NoDataError('Variable {} not found'.format(self.var))
             self.logger.info('Data retrieved')
 
             if self.regrid:
@@ -204,13 +199,8 @@ class Teleconnection():
         else:
             try:
                 data = self.reader.retrieve(var=var, **kwargs)
-            except ValueError:
-                self.logger.warning('Variable {} not found'.format(var))
-                self.logger.warning('Trying to retrieve without fixing and **kwargs')
-                try:
-                    data = self.reader.retrieve(var=var, fix=False)
-                except ValueError:
-                    raise NoDataError('Variable {} not found'.format(var))
+            except (ValueError, KeyError):
+                raise NoDataError('Variable {} not found'.format(var))
             self.logger.info('Data retrieved')
 
             if self.regrid:
