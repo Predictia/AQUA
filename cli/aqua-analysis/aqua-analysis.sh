@@ -28,9 +28,11 @@ radiation=false
 seaice=false
 teleconnections=true
 # teleconnections additional flags
-# --------------------------------
+# ---------------------------------------------------------------
 # --loglevel, -l (can be DEBUG, INFO, WARNING, ERROR, CRITICAL)
 # --dry, -d (dry run, if set it will run without producing plots)
+# --obs (if set it will run the teleconnections also for ERA5)
+# ---------------------------------------------------------------
 
 # End of user defined variables
 # -----------------------------
