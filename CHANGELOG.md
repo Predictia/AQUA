@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Further improvement of function to inspect the catalogue (#533)
 - Custom exceptions for AQUA (#518)
 - Speed up of the `retrieve_plain` method (#524)
 - Update documention for adding new data and setting up the container (Increase documentation coverage #519)
