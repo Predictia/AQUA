@@ -1,4 +1,2 @@
-# folders to save output data
-outputfig: "./figs"
-outputdir: "./output"
-  
+outputfig: "./PDF/"
+outputdir: "./NetCDF/"

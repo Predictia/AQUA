@@ -11,16 +11,16 @@ from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 from aqua import Reader
 import pandas as pd
 import datetime
+from aqua.util import load_yaml, create_folder
 
-outputfig = "./output/figs"
-if not os.path.exists(outputfig):
-    os.makedirs(outputfig)
-outputdir = "./output/data"    
-if not os.path.exists(outputdir):
-    os.makedirs(outputdir)
+#outputfig = "./output/figs"
+#if not os.path.exists(outputfig):
+#    os.makedirs(outputfig)
+#outputdir = "./output/data"    
+#if not os.path.exists(outputdir):
+#    os.makedirs(outputdir)
     
-    
-def seasonal_bias(dataset1, dataset2, var_name, plev, statistic, model_label1, model_label2, start_date1, end_date1, start_date2, end_date2):
+def seasonal_bias(dataset1, dataset2, var_name, plev, statistic, model_label1, model_label2, start_date1, end_date1, start_date2, end_date2, outputdir, outputfig):
     '''
     Plot the seasonal bias maps between two datasets for specific variable and time ranges.
 
@@ -138,12 +138,14 @@ def seasonal_bias(dataset1, dataset2, var_name, plev, statistic, model_label1, m
     fig.suptitle(overall_title, fontsize=14, fontweight='bold')
     plt.subplots_adjust(hspace=0.5)
 
+    
+    create_folder(folder=str(outputfig), loglevel='WARNING')
     # Save the figure
-    filename = f"{outputfig}/Seasonal_Bias_Plot_{model_label1}_{var_name}_{statistic}_{start_date1}_{end_date1}_{start_date2}_{end_date2}.pdf"
+    filename = f"{outputfig}Seasonal_Bias_Plot_{model_label1}_{var_name}_{statistic}_{start_date1}_{end_date1}_{start_date2}_{end_date2}.pdf"
     plt.savefig(filename, dpi=300, format='pdf')
     plt.show()
 
-
+    create_folder(folder=str(outputdir), loglevel='WARNING')
     # Write the data into a NetCDF file
     data_directory = outputdir
     data_filename = f"Seasonal_Bias_Data_{model_label1}_{var_name}_{statistic}_{start_date1}_{end_date1}_{start_date2}_{end_date2}.nc"
@@ -220,6 +222,10 @@ def compare_datasets_plev(dataset1, dataset2, var_name, start_date1, end_date1, 
     cbar = fig.colorbar(cax)
     cbar.set_label(f'{var_name} [{dataset1[var_name].units}]')
  
+    config = load_yaml('./config.yaml')
+    outputdir  = config['outputdir']
+    outputfig  = config['outputfig']
+
     # Save the plot as a PDF file
     filename = f"Vertical_biases_{model_label1}_{model_label2}_{var_name}_{start_date1}_{end_date1}_{start_date2}_{end_date2}.pdf"
     output_path = os.path.join(outputfig, filename)
@@ -287,6 +293,10 @@ def plot_map_with_stats(dataset, var_name, start_date, end_date, model_label):
     stat_text = f'Mean: {var_mean:.2f} {dataset[var_name].units}    Std: {var_std:.2f}    Min: {var_min:.2f}    Max: {var_max:.2f}'
     ax.text(0.5, -0.3, stat_text, transform=ax.transAxes, ha='center')
     
+    config = load_yaml('./config.yaml')
+    outputdir  = config['outputdir']
+    outputfig  = config['outputfig']
+
     # Save the plot as a PDF file
     filename = f"Statistics_maps_{model_label}_{var_name}.pdf"
     output_path = os.path.join(outputfig, filename)
