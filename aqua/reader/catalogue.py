@@ -88,7 +88,8 @@ def inspect_catalogue(cat=None, model=None, exp=None, source=None, verbose=True)
         # Check if variables can be explored
         # Added a try/except to avoid the KeyError when the source is not in the catalogue
         # because model or exp are not in the catalogue
-        # This allows to always have a True/False return when model/exp/source are provided
+        # This allows to always have a True/False or var list return
+        # when model/exp/source are provided
         try:
             if is_in_cat(cat, model, exp, source):
                 # Ok, it exists, but does it have metadata?
