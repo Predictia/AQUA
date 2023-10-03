@@ -26,6 +26,9 @@ def parse_arguments(args):
                         help='if True, run is dry, no files are written')
     parser.add_argument('-l', '--loglevel', type=str,
                         help='log level [default: WARNING]')
+    parser.add_argument('--obs', type=str, action='store_true',
+                        required=False,
+                        help='evaluate observations')
 
     # This arguments will override the configuration file if provided
     parser.add_argument('--model', type=str, help='model name',
@@ -55,6 +58,9 @@ if __name__ == '__main__':
     model = get_arg(args, 'model', config['model'])
     exp = get_arg(args, 'exp', config['exp'])
     source = get_arg(args, 'source', config['source'])
+
+    # if obs we're performing the analysis for observations as well
+    obs = get_arg(args, 'obs', False)
 
     dry = get_arg(args, 'dry', False)
     if dry:
@@ -151,6 +157,58 @@ if __name__ == '__main__':
             except Exception as e:
                 print('Error plotting NAO correlation: ', e)
 
+        print('Analysing ERA5')
+        if obs:
+            try:
+                teleconnection_ERA5 = Teleconnection(telecname='NAO', configdir=configdir,
+                                                     regrid='r100',
+                                                     model='ERA5', exp='era5', source='monthly',
+                                                     months_window=months_window,
+                                                     outputdir=os.path.join(outputnetcdf,
+                                                                            'NAO'),
+                                                    outputfig=os.path.join(outputpdf,
+                                                                           'NAO'),
+                                                     savefig=savefig, savefile=savefile,
+                                                     loglevel=loglevel)
+            except NoDataError:
+                print('No ERA5 data available for NAO teleconnection')
+                sys.exit(0)
+
+            # Data are available, are there enough?
+            try:
+                teleconnection_ERA5.evaluate_index()
+                teleconnection_ERA5.evaluate_correlation()
+                teleconnection_ERA5.evaluate_regression()
+            except NotEnoughDataError:
+                print('Not enough data available for ERA5 NAO teleconnection')
+                sys.exit(0)
+
+            if savefig:
+                try:
+                    teleconnection_ERA5.plot_index()
+                except Exception as e:
+                    print('Error plotting ERA5 NAO index: ', e)
+
+                # Regression map
+                try:
+                    single_map_plot(map=teleconnection_ERA5.regression, loglevel=loglevel,
+                                    title='ERA5',
+                                    outputdir=teleconnection_ERA5.outputfig,
+                                    filename=teleconnection_ERA5.filename + '_regression.pdf',
+                                    save=True, cbar_label='msl [hPa]', sym=True)
+                except Exception as e:
+                    print('Error plotting ERA5 NAO regression: ', e)
+
+                # Correlation map
+                try:
+                    single_map_plot(map=teleconnection_ERA5.correlation, loglevel=loglevel,
+                                    title='ERA5',
+                                    outputdir=teleconnection_ERA5.outputfig,
+                                    filename=teleconnection_ERA5.filename + '_correlation.pdf',
+                                    save=True, cbar_label='Pearson correlation', sym=True)
+                except Exception as e:
+                    print('Error plotting ERA5 NAO correlation: ', e)
+
     if ENSO:
         print('Running ENSO teleconnection...')
 
@@ -162,9 +220,9 @@ if __name__ == '__main__':
                                             model=model, exp=exp, source=source,
                                             months_window=months_window,
                                             outputdir=os.path.join(outputnetcdf,
-                                                                'ENSO'),
+                                                                   'ENSO'),
                                             outputfig=os.path.join(outputpdf,
-                                                                'ENSO'),
+                                                                   'ENSO'),
                                             savefig=savefig, savefile=savefile,
                                             loglevel=loglevel)
             teleconnection.retrieve()
@@ -208,5 +266,60 @@ if __name__ == '__main__':
                                 transform_first=True)
             except Exception as e:
                 print('Error plotting ENSO correlation: ', e)
+
+        if obs:
+            print('Analysing ERA5')
+
+            try:
+                teleconnection_ERA5 = Teleconnection(telecname='ENSO', configdir=configdir,
+                                                     regrid='r100',
+                                                     model='ERA5', exp='era5', source='monthly',
+                                                     months_window=months_window,
+                                                     outputdir=os.path.join(outputnetcdf,
+                                                                            'ENSO'),
+                                                     outputfig=os.path.join(outputpdf,
+                                                                            'ENSO'),
+                                                     savefig=savefig, savefile=savefile,
+                                                     loglevel=loglevel)
+            except NoDataError:
+                print('No ERA5 data available for ENSO teleconnection')
+                sys.exit(0)
+
+            # Data are available, are there enough?
+            try:
+                teleconnection_ERA5.evaluate_index()
+                teleconnection_ERA5.evaluate_correlation()
+                teleconnection_ERA5.evaluate_regression()
+            except NotEnoughDataError:
+                print('Not enough data available for ERA5 ENSO teleconnection')
+                sys.exit(0)
+
+            if savefig:
+                try:
+                    teleconnection_ERA5.plot_index()
+                except Exception as e:
+                    print('Error plotting ERA5 ENSO index: ', e)
+
+                # Regression map
+                try:
+                    single_map_plot(map=teleconnection_ERA5.regression, loglevel=loglevel,
+                                    title='ERA5',
+                                    outputdir=teleconnection_ERA5.outputfig,
+                                    filename=teleconnection_ERA5.filename + '_regression.pdf',
+                                    save=True, cbar_label='sst [K]', sym=True,
+                                    transform_first=True)
+                except Exception as e:
+                    print('Error plotting ERA5 ENSO regression: ', e)
+
+                # Correlation map
+                try:
+                    single_map_plot(map=teleconnection_ERA5.correlation, loglevel=loglevel,
+                                    title='ERA5',
+                                    outputdir=teleconnection_ERA5.outputfig,
+                                    filename=teleconnection_ERA5.filename + '_correlation.pdf',
+                                    save=True, cbar_label='Pearson correlation', sym=True,
+                                    transform_first=True)
+                except Exception as e:
+                    print('Error plotting ERA5 ENSO correlation: ', e)
 
     print('Teleconnections diagnostic finished.')
