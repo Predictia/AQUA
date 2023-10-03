@@ -1,10 +1,5 @@
-# Importing the aqua.slurm module and slurm supporting functions nedeed for your script
-from aqua.slurm import slurm 
-from config.slurm_supporting_func import get_job_status, waiting_for_slurm_response
-
-from aqua.util import load_yaml, get_arg
 # All nesessarry import for a cli diagnostic 
-####################################################################
+from aqua.util import load_yaml, get_arg
 import sys
 import os
 import yaml
@@ -12,8 +7,6 @@ import argparse
 from aqua import Reader
 sys.path.insert(0, '../../')
 from tropical_rainfall import Tropical_Rainfall
-####################################################################
-
 
 def parse_arguments(args):
     """Parse command line arguments"""
