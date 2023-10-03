@@ -94,8 +94,8 @@ def inspect_catalogue(cat=None, model=None, exp=None, source=None, verbose=True)
             if is_in_cat(cat, model, exp, source):
                 # Ok, it exists, but does it have metadata?
                 try:
+                    vars = cat[model][exp][source].metadata['variables']
                     if verbose:
-                        vars = cat[model][exp][source].metadata['variables']
                         print(f"The following variables are available for model {model}, exp {exp}, source {source}:")
                     return vars
                 except KeyError:
