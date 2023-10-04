@@ -60,7 +60,6 @@ if __name__ == '__main__':
     exp_ceres = config['data']['exp_ceres']
     source_ceres = config['data']['source_ceres']
 
-    model_era5 = config['data']['model_era5']
     exp_era5 = config['data']['exp_era5']
     source_era5 = config['data']['source_era5']
 
@@ -149,7 +148,7 @@ if __name__ == '__main__':
 
     if gregory_bool:
         try:
-            TOA_ifs_4km_gm, reader_ifs_4km, data_ifs_4km, TOA_ifs_4km, TOA_ifs_4km_r360x180 = process_model_data(
+            TOA_gm, reader, data, TOA, TOA_r360x180 = process_model_data(
                 model=model, exp=exp, source=source)
             data_era5, reader_era5 = process_era5_data(
                 exp=exp_era5, source=source_era5)
@@ -162,7 +161,7 @@ if __name__ == '__main__':
             model_list = [model_label]
             # Define the reader dictionary for each model
             reader_dict = {
-                model_label: reader_ifs_4km,
+                model_label: reader,
             }
             # Call the gregory_plot function
 

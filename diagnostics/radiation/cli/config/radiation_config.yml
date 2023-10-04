@@ -10,7 +10,6 @@ data:
   exp_ceres:   "ebaf-toa41"
   source_ceres: "monthly"
   
-  model_era5:  "ERA5"
   exp_era5:    "era5"
   source_era5: "monthly"
 
@@ -22,16 +21,16 @@ time_frame:
   era5_end_date: '2020-12-31' 
 
 diagnostic_attributes:
-  bar_plot: False
-  bias_maps: False
+  bar_plot: True
+  bias_maps: True
   gregory: True
-  time_series: False
+  time_series: True
 
 plot:
-  model_label: "ifs_4km"
-  icon_label: "ICON"
-  ceres_label: "CERES"
-  obs_label: "ERA5 2000-2020"
+  model_label: "ifs"
+  icon_label: "icon"
+  ceres_label: "ceres"
+  obs_label: "era5 2000-2020"
 
 path:
   path_to_output: "/work/bb1153/b382267/AQUA/diagnostics/radiation/cli/config/"
