@@ -219,4 +219,4 @@ if __name__ == '__main__':
             # Handle other exceptions
             print(f"An unexpected error occurred: {e}")
 
-    print("Radiation Budget Diagnostic diagnostic is terminated.")
+    print("Radiation Budget Diagnostic is terminated.")
