@@ -56,8 +56,8 @@ if __name__ == '__main__':
     path_to_output = get_arg(
         args, 'outputdir', config['path']['path_to_output'])
     if path_to_output is not None:
-        outputdir = os.path.join(path_to_output, 'NetCDF')
-        outputfig = os.path.join(path_to_output, 'PDF')
+        outputdir = os.path.join(path_to_output, 'NetCDF/')
+        outputfig = os.path.join(path_to_output, 'PDF/')
 
     model2 = config['data']['model2']
     exp2 = config['data']['exp2']
