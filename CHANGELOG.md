@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Add CLI for SSH diagnostic (#540)
 - Fix SSH diagnostic to be compatible with lates AQUA version (#538) 
 - Further improvement of function to inspect the catalogue (#533)
 - Custom exceptions for AQUA (#518)
