@@ -136,6 +136,10 @@ def plot_gregory(model, exp, reader_kw={}, plot_kw={}, ax=None, freq='M',
         reader_kw (dict): Additional keyword arguments passed to the `aqua.Reader`.
         plot_kw (dict): Additional keyword arguments passed to the plotting function.
         freq (str): frequency for timmean applied to data, default is 'M' (monthly)
+
+    Raises:
+        NotEnoughDataError: if there are not enough data to plot.
+        NoDataError: if the variable is not found.
     """
     if ax is None:
         ax = plt.gca()
@@ -145,6 +149,9 @@ def plot_gregory(model, exp, reader_kw={}, plot_kw={}, ax=None, freq='M',
         data = reader.retrieve()
     except Exception as e:
         raise NoDataError(f"Could not retrieve data for {model}-{exp}. No plot will be drawn.") from e
+
+    if len(data.time) < 2:
+        raise NotEnoughDataError("There are not enough data to proceed. Global time series diagnostic requires at least two data points.")
 
     try:
         ts = reader.timmean(data=reader.fldmean(data["2t"]), freq=freq).values - 273.15
