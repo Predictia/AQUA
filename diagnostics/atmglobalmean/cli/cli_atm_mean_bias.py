@@ -1,13 +1,24 @@
-# All nesessarry import for a cli diagnostic 
-from aqua.util import load_yaml, get_arg
-import sys
-import os
-import yaml
-import argparse
-from aqua import Reader
-sys.path.insert(0, '../../')
+print("Atmospheric global mean biases diagnostic is started.")
 
-from atmglobalmean import compare_datasets_plev, seasonal_bias, plot_map_with_stats
+# All nesessarry import for a cli diagnostic 
+try:
+    from aqua.util import load_yaml, get_arg
+    import sys
+    import os
+    import yaml
+    import argparse
+    from aqua import Reader
+    sys.path.insert(0, '../../')
+    from atmglobalmean import compare_datasets_plev, seasonal_bias, plot_map_with_stats
+except ImportError as import_error:
+    # Handle ImportError
+    print(f"ImportError occurred: {import_error}")
+except OtherCustomError as custom_error:
+    # Handle other custom exceptions if needed
+    print(f"CustomError occurred: {custom_error}")
+else:
+    # Code to run if the import was successful (optional)
+    print("Modules imported successfully.")
 
 def parse_arguments(args):
     """Parse command line arguments"""
@@ -47,17 +58,6 @@ if __name__ == '__main__':
     outputdir  = config['path']['outputdir']
     outputfig  = config['path']['outputfig']
 
-    line1 = 'outputfig: "'+str(outputfig)+'"\n'
-    line2 = 'outputdir: "'+str(outputdir)+'"\n'
-
-    # Define the filename
-    filename = '../config.yaml'
-
-    # Open the file in write mode and write the lines
-    with open(filename, 'w') as configfile:
-        configfile.write(line1)
-        configfile.write(line2)
-
     model2 = config['data']['model2']
     exp2 = config['data']['exp2']
     source2 = config['data']['source2']
@@ -70,6 +70,10 @@ if __name__ == '__main__':
     var_name  = config['diagnostic_attributes']['var_name'] 
     plev        = config['diagnostic_attributes']['plev']
     statistic = config['diagnostic_attributes']['statistic']
+    seasonal_bias_bool = config['diagnostic_attributes']['seasonal_bias']
+    compare_datasets_plev_bool = config['diagnostic_attributes']['compare_datasets_plev']
+    plot_map_with_stats_bool = config['diagnostic_attributes']['plot_map_with_stats']
+
 
     model_label1 = config['plot']['model_label1']
     model_label2 = config['plot']['model_label2']
@@ -83,9 +87,66 @@ if __name__ == '__main__':
 
     dataset1 = data
     dataset2 = data_obs
-    print('Done')
-    seasonal_bias(dataset1, dataset2, var_name, plev, statistic, model_label1, model_label2, start_date1, end_date1, start_date2, end_date2, outputdir, outputfig)
 
-    print('Done')
+    if seasonal_bias_bool:
+        try:
+            seasonal_bias(dataset1, dataset2, var_name, plev, statistic, model_label1, model_label2, start_date1, end_date1, start_date2, end_date2, outputdir, outputfig)
+            print("The seasonal bias maps were calculated and plotted.")
+        except ZeroDivisionError as zd_error:
+            # Handle ZeroDivisionError
+            print(f"ZeroDivisionError occurred: {zd_error}")
+        except ValueError as value_error:
+            # Handle ValueError
+            print(f"ValueError occurred: {value_error}")
+        except KeyError as key_error:
+            # Handle KeyError
+            print(f"KeyError occurred: {key_error}")
+        except FileNotFoundError as file_error:
+            # Handle FileNotFoundError
+            print(f"FileNotFoundError occurred: {file_error}")
+        except Exception as e:
+            # Handle other exceptions
+            print(f"An unexpected error occurred: {e}")
+
+    if compare_datasets_plev_bool:
+        try:
+            compare_datasets_plev(dataset1, dataset2, var_name, start_date1, end_date1, start_date2, end_date2, model_label1, model_label2, outputdir, outputfig)
+            print("The comparison of the two datasets is calculated and plotted.")
+        except ZeroDivisionError as zd_error:
+            # Handle ZeroDivisionError
+            print(f"ZeroDivisionError occurred: {zd_error}")
+        except ValueError as value_error:
+            # Handle ValueError
+            print(f"ValueError occurred: {value_error}")
+        except KeyError as key_error:
+            # Handle KeyError
+            print(f"KeyError occurred: {key_error}")
+        except FileNotFoundError as file_error:
+            # Handle FileNotFoundError
+            print(f"FileNotFoundError occurred: {file_error}")
+        except Exception as e:
+            # Handle other exceptions
+            print(f"An unexpected error occurred: {e}")
+
     var_name = '2t'
-    compare_datasets_plev(dataset1, dataset2, var_name, start_date1, end_date1, start_date2, end_date2, model_label1, model_label2)
+    if plot_map_with_stats_bool:
+        try:
+            plot_map_with_stats(dataset1, var_name, start_date1, end_date1, model_label1, outputdir, outputfig)
+            print("The map of a chosen variable from a dataset is calculated and plotted. ")
+        except ZeroDivisionError as zd_error:
+            # Handle ZeroDivisionError
+            print(f"ZeroDivisionError occurred: {zd_error}")
+        except ValueError as value_error:
+            # Handle ValueError
+            print(f"ValueError occurred: {value_error}")
+        except KeyError as key_error:
+            # Handle KeyError
+            print(f"KeyError occurred: {key_error}")
+        except FileNotFoundError as file_error:
+            # Handle FileNotFoundError
+            print(f"FileNotFoundError occurred: {file_error}")
+        except Exception as e:
+            # Handle other exceptions
+            print(f"An unexpected error occurred: {e}")
+
+    print("Atmospheric global mean biases diagnostic is terminated.")
