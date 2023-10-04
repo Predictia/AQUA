@@ -1,12 +1,24 @@
-# All nesessarry import for a cli diagnostic 
-from aqua.util import load_yaml, get_arg
-import sys
-import os
-import yaml
-import argparse
-from aqua import Reader
-sys.path.insert(0, '../../')
-from tropical_rainfall import Tropical_Rainfall
+print("Tropical Rainfall Diagnostic is started.")
+try:
+    # All nesessarry import for a cli diagnostic
+    from aqua.util import load_yaml, get_arg
+    import sys
+    import os
+    import yaml
+    import argparse
+    from aqua import Reader
+    sys.path.insert(0, '../../')
+    from tropical_rainfall import Tropical_Rainfall
+except ImportError as import_error:
+    # Handle ImportError
+    print(f"ImportError occurred: {import_error}")
+except OtherCustomError as custom_error:
+    # Handle other custom exceptions if needed
+    print(f"CustomError occurred: {custom_error}")
+else:
+    # Code to run if the import was successful (optional)
+    print("Modules imported successfully.")
+
 
 def parse_arguments(args):
     """Parse command line arguments"""
@@ -29,6 +41,7 @@ def parse_arguments(args):
 
     return parser.parse_args(args)
 
+
 if __name__ == '__main__':
 
     print('Running tropical rainfall diagnostic...')
@@ -44,21 +57,21 @@ if __name__ == '__main__':
     exp = get_arg(args, 'exp', config['data']['exp'])
     source = get_arg(args, 'source', config['data']['source'])
 
-    path_to_output = get_arg(args, 'outputdir', config['path']['path_to_output'])
-    if path_to_output is not None: 
-        path_to_netcdf = os.path.join(path_to_output , 'NetCDF/')
+    path_to_output = get_arg(
+        args, 'outputdir', config['path']['path_to_output'])
+    if path_to_output is not None:
+        path_to_netcdf = os.path.join(path_to_output, 'NetCDF/')
         path_to_pdf = os.path.join(path_to_output, 'PDF/')
-    name_of_netcdf  = config['path']['name_of_netcdf']
-    name_of_pdf  = config['path']['name_of_pdf']
+    # name_of_netcdf  = config['path']['name_of_netcdf']
+    # name_of_pdf  = config['path']['name_of_pdf']
 
-    trop_lat        = config['class_attributes']['trop_lat']
-    num_of_bins     = config['class_attributes']['num_of_bins']
-    first_edge      = config['class_attributes']['first_edge']
-    width_of_bin    = config['class_attributes']['width_of_bin']
+    trop_lat = config['class_attributes']['trop_lat']
+    num_of_bins = config['class_attributes']['num_of_bins']
+    first_edge = config['class_attributes']['first_edge']
+    width_of_bin = config['class_attributes']['width_of_bin']
 
-    model_variable  = config['model_variable'] 
-    new_unit        = config['new_unit']
-
+    model_variable = config['model_variable']
+    new_unit = config['new_unit']
 
     color = config['plot']['color']
     figsize = config['plot']['figsize']
@@ -68,19 +81,31 @@ if __name__ == '__main__':
     loc = config['plot']['loc']
     pdf_format = config['plot']['pdf_format']
 
-    reader          = Reader(model = model, exp = exp, source = source)
-    data            = reader.retrieve(var=model_variable)
+    reader = Reader(model=model, exp=exp, source=source)
+    data = reader.retrieve(var=model_variable)
 
-    print(data.tprate.units)
-    diag            = Tropical_Rainfall(trop_lat = trop_lat,       num_of_bins = num_of_bins, 
-                                        first_edge = first_edge,   width_of_bin = width_of_bin, loglevel=loglevel)
-    
-    
-    hist = diag.histogram(data, model_variable=model_variable,  new_unit=new_unit,  path_to_histogram = path_to_netcdf+'/histograms/', name_of_file=name_of_netcdf)
-
-    diag.histogram_plot(hist, figsize=figsize, new_unit=new_unit,
-                legend=legend, color=color, xmax=xmax, plot_title=plot_title, loc=loc,
-                path_to_pdf=path_to_pdf, pdf_format=pdf_format, name_of_file=name_of_pdf)
-
-
-
+    try:
+        diag = Tropical_Rainfall(trop_lat=trop_lat,       num_of_bins=num_of_bins,
+                                 first_edge=first_edge,   width_of_bin=width_of_bin, loglevel=loglevel)
+        hist = diag.histogram(data, model_variable=model_variable,  new_unit=new_unit,
+                              path_to_histogram=path_to_netcdf+'/histograms/', name_of_file=name_of_netcdf)
+        diag.histogram_plot(hist, figsize=figsize, new_unit=new_unit,
+                            legend=legend, color=color, xmax=xmax, plot_title=plot_title, loc=loc,
+                            path_to_pdf=path_to_pdf, pdf_format=pdf_format, name_of_file=name_of_pdf)
+        print("The histogram is calculated, plotted, and saved in storage.")
+    except ZeroDivisionError as zd_error:
+        # Handle ZeroDivisionError
+        print(f"ZeroDivisionError occurred: {zd_error}")
+    except ValueError as value_error:
+        # Handle ValueError
+        print(f"ValueError occurred: {value_error}")
+    except KeyError as key_error:
+        # Handle KeyError
+        print(f"KeyError occurred: {key_error}")
+    except FileNotFoundError as file_error:
+        # Handle FileNotFoundError
+        print(f"FileNotFoundError occurred: {file_error}")
+    except Exception as e:
+        # Handle other exceptions
+        print(f"An unexpected error occurred: {e}")
+    print("Tropical Rainfall Diagnostic is terminated.")
