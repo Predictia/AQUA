@@ -156,6 +156,7 @@ if __name__ == '__main__':
             try:
                 resample = config["timeseries"][var]["resample"]
             except KeyError:
+                logger.warning("No resample rate provided, using monthly.")
                 resample = "M"
             try:
                 ylim = config["timeseries"][var]["ylim"]
@@ -195,8 +196,9 @@ if __name__ == '__main__':
                 fig.savefig(filename_pdf)
 
     if "gregory" in config:
-        print("Plotting Gregory plot...")
+        logger.warning("Plotting gregory plot...")
 
+        # Creating the output filename
         filename_nc = create_filename(outputdir=outputdir,
                                       plotname="gregory", type="nc",
                                       model=model, exp=exp,
@@ -205,6 +207,33 @@ if __name__ == '__main__':
         logger.info(f"Output file: {filename_nc}")
 
         # Generating the image
+        fig, ax = plt.subplots()
+
+        try:
+            plot_kw = config["gregory"]["plot_kw"]
+        except KeyError:
+            plot_kw = None
+        try:
+            resample = config["gregory"]["resample"]
+        except KeyError:
+            logger.warning("No resample rate provided, using monthly.")
+            resample = "M"
+        try:
+            reader_kw = config["gregory"]["reader_kw"]
+        except KeyError:
+            reader_kw = {}
+        # add source to reader_kw
+        reader_kw["source"] = source
+
+        try:
+            plot_gregory(model=model, exp=exp, reader_kw=reader_kw,
+                        plot_kw=plot_kw, ax=ax, outfile=filename_nc,
+                        freq=resample)
+        except (NotEnoughDataError, NoDataError) as e:
+            logger.error(f"Error: {e}")
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            logger.error("This is a bug, please report it.")
 
         if "savefig" in config["gregory"]:
             filename_pdf = create_filename(outputdir=outputdir,
@@ -213,5 +242,6 @@ if __name__ == '__main__':
                                            source=source)
             filename_pdf = os.path.join(outputdir_pdf, filename_pdf)
             logger.info(f"Output file: {filename_pdf}")
+            fig.savefig(filename_pdf)
 
-    logger.info("Done!")
+    logger.info("Analysis completed.")
