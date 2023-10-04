@@ -1,6 +1,6 @@
 print("Atmospheric global mean biases diagnostic is started.")
 
-# All nesessarry import for a cli diagnostic 
+# All nesessarry import for a cli diagnostic
 try:
     from aqua.util import load_yaml, get_arg
     import sys
@@ -20,6 +20,7 @@ else:
     # Code to run if the import was successful (optional)
     print("Modules imported successfully.")
 
+
 def parse_arguments(args):
     """Parse command line arguments"""
 
@@ -38,6 +39,7 @@ def parse_arguments(args):
 
     return parser.parse_args(args)
 
+
 if __name__ == '__main__':
 
     print('Running tropical rainfall diagnostic...')
@@ -51,29 +53,27 @@ if __name__ == '__main__':
     exp = get_arg(args, 'exp', config['data']['exp'])
     source = get_arg(args, 'source', config['data']['source'])
 
-    path_to_output = get_arg(args, 'outputdir', config['path']['path_to_output'])
-    if path_to_output is not None: 
-        outputdir = os.path.join(path_to_output , 'NetCDF')
+    path_to_output = get_arg(
+        args, 'outputdir', config['path']['path_to_output'])
+    if path_to_output is not None:
+        outputdir = os.path.join(path_to_output, 'NetCDF')
         outputfig = os.path.join(path_to_output, 'PDF')
-    outputdir  = config['path']['outputdir']
-    outputfig  = config['path']['outputfig']
 
     model2 = config['data']['model2']
     exp2 = config['data']['exp2']
     source2 = config['data']['source2']
 
     start_date1 = config['time_frame']['start_date1']
-    end_date1   = config['time_frame']['end_date1']
+    end_date1 = config['time_frame']['end_date1']
     start_date2 = config['time_frame']['start_date2']
-    end_date2   = config['time_frame']['end_date2']
+    end_date2 = config['time_frame']['end_date2']
 
-    var_name  = config['diagnostic_attributes']['var_name'] 
-    plev        = config['diagnostic_attributes']['plev']
+    var_name = config['diagnostic_attributes']['var_name']
+    plev = config['diagnostic_attributes']['plev']
     statistic = config['diagnostic_attributes']['statistic']
     seasonal_bias_bool = config['diagnostic_attributes']['seasonal_bias']
     compare_datasets_plev_bool = config['diagnostic_attributes']['compare_datasets_plev']
     plot_map_with_stats_bool = config['diagnostic_attributes']['plot_map_with_stats']
-
 
     model_label1 = config['plot']['model_label1']
     model_label2 = config['plot']['model_label2']
@@ -84,13 +84,13 @@ if __name__ == '__main__':
     reader = Reader(model=model, exp=exp, source=source)
     data = reader.retrieve()
 
-
     dataset1 = data
     dataset2 = data_obs
 
     if seasonal_bias_bool:
         try:
-            seasonal_bias(dataset1, dataset2, var_name, plev, statistic, model_label1, model_label2, start_date1, end_date1, start_date2, end_date2, outputdir, outputfig)
+            seasonal_bias(dataset1, dataset2, var_name, plev, statistic, model_label1,
+                          model_label2, start_date1, end_date1, start_date2, end_date2, outputdir, outputfig)
             print("The seasonal bias maps were calculated and plotted.")
         except ZeroDivisionError as zd_error:
             # Handle ZeroDivisionError
@@ -110,7 +110,8 @@ if __name__ == '__main__':
 
     if compare_datasets_plev_bool:
         try:
-            compare_datasets_plev(dataset1, dataset2, var_name, start_date1, end_date1, start_date2, end_date2, model_label1, model_label2, outputdir, outputfig)
+            compare_datasets_plev(dataset1, dataset2, var_name, start_date1, end_date1,
+                                  start_date2, end_date2, model_label1, model_label2, outputdir, outputfig)
             print("The comparison of the two datasets is calculated and plotted.")
         except ZeroDivisionError as zd_error:
             # Handle ZeroDivisionError
@@ -128,11 +129,12 @@ if __name__ == '__main__':
             # Handle other exceptions
             print(f"An unexpected error occurred: {e}")
 
-    var_name = '2t'
     if plot_map_with_stats_bool:
         try:
-            plot_map_with_stats(dataset1, var_name, start_date1, end_date1, model_label1, outputdir, outputfig)
-            print("The map of a chosen variable from a dataset is calculated and plotted. ")
+            plot_map_with_stats(dataset1, var_name, start_date1,
+                                end_date1, model_label1, outputdir, outputfig)
+            print(
+                "The map of a chosen variable from a dataset is calculated and plotted. ")
         except ZeroDivisionError as zd_error:
             # Handle ZeroDivisionError
             print(f"ZeroDivisionError occurred: {zd_error}")
