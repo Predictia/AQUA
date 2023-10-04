@@ -166,7 +166,7 @@ class sshVariability():
         Run the sshVariability.
         """
         # Load the configuration - reading and parsing the YAML configuration file.
-        config = util.load_yaml('../config.yml')
+        config = self.config
 
         # Comparing user timespan inputs across the models
         self.validate_time_ranges(config)
