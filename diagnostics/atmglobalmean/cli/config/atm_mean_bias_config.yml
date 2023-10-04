@@ -12,9 +12,9 @@ diagnostic_attributes:
   variables: ['2t', 'msl', 'tprate', 't', 'u', 'v', 'q', 'mtntrf']
   plev: null
   statistic: "mean"
-  seasonal_bias: False
+  seasonal_bias: True
   compare_datasets_plev: True
-  plot_map_with_stats: False
+  plot_map_with_stats: True
 
 time_frame:
   start_date1: '2022-01-01'
