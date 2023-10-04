@@ -24,8 +24,8 @@ time_frame:
 diagnostic_attributes:
   bar_plot: False
   bias_maps: False
-  gregory: False
-  time_series: True
+  gregory: True
+  time_series: False
 
 plot:
   model_label: "ifs_4km"

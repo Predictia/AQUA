@@ -1,6 +1,6 @@
 print("Radiation Budget Diagnostic diagnostic is started.")
 
-# All nesessarry import for a cli diagnostic 
+# All nesessarry import for a cli diagnostic
 try:
     from aqua.util import load_yaml, get_arg
     import sys
@@ -20,6 +20,7 @@ else:
     # Code to run if the import was successful (optional)
     print("Modules imported successfully.")
 
+
 def parse_arguments(args):
     """Parse command line arguments"""
 
@@ -37,6 +38,7 @@ def parse_arguments(args):
                         required=False)
 
     return parser.parse_args(args)
+
 
 if __name__ == '__main__':
 
@@ -62,9 +64,10 @@ if __name__ == '__main__':
     exp_era5 = config['data']['exp_era5']
     source_era5 = config['data']['source_era5']
 
-    path_to_output = get_arg(args, 'outputdir', config['path']['path_to_output'])
-    if path_to_output is not None: 
-        outputdir = os.path.join(path_to_output , 'NetCDF/')
+    path_to_output = get_arg(
+        args, 'outputdir', config['path']['path_to_output'])
+    if path_to_output is not None:
+        outputdir = os.path.join(path_to_output, 'NetCDF/')
         outputfig = os.path.join(path_to_output, 'PDF/')
 
     bar_plot_bool = config['diagnostic_attributes']['bar_plot']
@@ -85,14 +88,18 @@ if __name__ == '__main__':
 
     if bar_plot_bool:
         try:
-            TOA_gm, reader, data, TOA, TOA_r360x180 = process_model_data(model = model, exp = exp, source = source)
-            TOA_icon_gm, reader_icon, data_icon, TOA_icon, TOA_icon_r360x180 = process_model_data(model = model_icon, exp = exp_icon, source = source_icon)
+            TOA_gm, reader, data, TOA, TOA_r360x180 = process_model_data(
+                model=model, exp=exp, source=source)
+            TOA_icon_gm, reader_icon, data_icon, TOA_icon, TOA_icon_r360x180 = process_model_data(
+                model=model_icon, exp=exp_icon, source=source_icon)
             # Call the method to retrieve CERES data
-            TOA_ceres_clim_gm, TOA_ceres_ebaf_gm, TOA_ceres_diff_samples_gm, reader_ceres_toa, TOA_ceres_clim, TOA_ceres_diff_samples = process_ceres_data(exp = exp_ceres, source = source_ceres, TOA_icon_gm=TOA_icon_gm)
+            TOA_ceres_clim_gm, TOA_ceres_ebaf_gm, TOA_ceres_diff_samples_gm, reader_ceres_toa, TOA_ceres_clim, TOA_ceres_diff_samples = process_ceres_data(
+                exp=exp_ceres, source=source_ceres, TOA_icon_gm=TOA_icon_gm)
             datasets = [TOA_ceres_clim_gm, TOA_icon_gm, TOA_ifs_4km_gm]
             model_names = [ceres_label, icon_label, model_label]
-            
-            barplot_model_data(datasets, model_names, outputdir, outputfig, year = year)
+
+            barplot_model_data(datasets, model_names,
+                               outputdir, outputfig, year=year)
             print("The Bar Plot with various models and CERES was created and saved. Variables ttr and tsr are plotted to show imbalances.")
         except ZeroDivisionError as zd_error:
             # Handle ZeroDivisionError
@@ -109,16 +116,21 @@ if __name__ == '__main__':
         except Exception as e:
             # Handle other exceptions
             print(f"An unexpected error occurred: {e}")
-    
+
     if bias_maps_bool:
         for var in ['ttr', 'tsr', 'tnr']:
             try:
-                TOA_gm, reader, data, TOA, TOA_r360x180 = process_model_data(model = model, exp = exp, source = source)
-                TOA_icon_gm, reader_icon, data_icon, TOA_icon, TOA_icon_r360x180 = process_model_data(model = model_icon, exp = exp_icon, source = source_icon)
-                TOA_ceres_clim_gm, TOA_ceres_ebaf_gm, TOA_ceres_diff_samples_gm, reader_ceres_toa, TOA_ceres_clim, TOA_ceres_diff_samples =process_ceres_data(exp = exp_ceres, source = source_ceres, TOA_icon_gm=TOA_icon_gm)
-                
-                plot_mean_bias(TOA, var, model_label, TOA_ceres_clim, model_start_date, model_end_date, outputdir, outputfig)
-                print(f"The mean bias of the data over the specified time range is calculated, plotted, and saved for {var} variable.")
+                TOA_gm, reader, data, TOA, TOA_r360x180 = process_model_data(
+                    model=model, exp=exp, source=source)
+                TOA_icon_gm, reader_icon, data_icon, TOA_icon, TOA_icon_r360x180 = process_model_data(
+                    model=model_icon, exp=exp_icon, source=source_icon)
+                TOA_ceres_clim_gm, TOA_ceres_ebaf_gm, TOA_ceres_diff_samples_gm, reader_ceres_toa, TOA_ceres_clim, TOA_ceres_diff_samples = process_ceres_data(
+                    exp=exp_ceres, source=source_ceres, TOA_icon_gm=TOA_icon_gm)
+
+                plot_mean_bias(TOA, var, model_label, TOA_ceres_clim,
+                               model_start_date, model_end_date, outputdir, outputfig)
+                print(
+                    f"The mean bias of the data over the specified time range is calculated, plotted, and saved for {var} variable.")
             except ZeroDivisionError as zd_error:
                 # Handle ZeroDivisionError
                 print(f"ZeroDivisionError occurred: {zd_error}")
@@ -137,23 +149,27 @@ if __name__ == '__main__':
 
     if gregory_bool:
         try:
-            TOA_ifs_4km_gm, reader_ifs_4km, data_ifs_4km, TOA_ifs_4km, TOA_ifs_4km_r360x180  = process_model_data(model = model, exp = exp, source = source)
-            data_era5, reader_era5 = process_era5_data(exp = exp_era5 , source = source_era5)
+            TOA_ifs_4km_gm, reader_ifs_4km, data_ifs_4km, TOA_ifs_4km, TOA_ifs_4km_r360x180 = process_model_data(
+                model=model, exp=exp, source=source)
+            data_era5, reader_era5 = process_era5_data(
+                exp=exp_era5, source=source_era5)
             # Assuming you have the observational data in an xarray.Dataset object called `obs_data`
             obs_data = data_era5
             obs_reader = reader_era5
-            obs_time_range = ( era5_start_date, era5_end_date)
+            obs_time_range = (era5_start_date, era5_end_date)
             model_label_obs = obs_label
             # Define the list of models to include
             model_list = [model_label]
             # Define the reader dictionary for each model
             reader_dict = {
-                model_label : reader_ifs_4km,
+                model_label: reader_ifs_4km,
             }
             # Call the gregory_plot function
-            
-            gregory_plot(obs_data, obs_reader, obs_time_range, model_label_obs, model_list, reader_dict, outputdir, outputfig)
-            print("Gregory Plot was created and saved with various models and an observational dataset.")
+
+            gregory_plot(obs_data, obs_reader, obs_time_range, model_label_obs,
+                         model_list, reader_dict, outputdir, outputfig)
+            print(
+                "Gregory Plot was created and saved with various models and an observational dataset.")
         except ZeroDivisionError as zd_error:
             # Handle ZeroDivisionError
             print(f"ZeroDivisionError occurred: {zd_error}")
@@ -169,21 +185,25 @@ if __name__ == '__main__':
         except Exception as e:
             # Handle other exceptions
             print(f"An unexpected error occurred: {e}")
-        
-    
+
     if time_series_bool:
         try:
-            TOA_gm, reader, data, TOA, TOA_r360x180 = process_model_data(model = model, exp = exp, source = source)
-            TOA_icon_gm, reader_icon, data_icon, TOA_icon, TOA_icon_r360x180 = process_model_data(model = model_icon, exp = exp_icon, source = source_icon)
+            TOA_gm, reader, data, TOA, TOA_r360x180 = process_model_data(
+                model=model, exp=exp, source=source)
+            TOA_icon_gm, reader_icon, data_icon, TOA_icon, TOA_icon_r360x180 = process_model_data(
+                model=model_icon, exp=exp_icon, source=source_icon)
             # Call the method to retrieve CERES data
-            TOA_ceres_clim_gm, TOA_ceres_ebaf_gm, TOA_ceres_diff_samples_gm, reader_ceres_toa, TOA_ceres_clim, TOA_ceres_diff_samples =process_ceres_data(exp = exp_ceres, source = source_ceres, TOA_icon_gm=TOA_icon_gm)
-            data_era5, reader_era5 = process_era5_data(exp = exp_era5, source = source_era5)
-            #TOA_ceres_clim_gm, TOA_ceres_ebaf_gm, TOA_ceres_diff_samples_gm, _ = radiation_diag.process_ceres_data(exp="ebaf-toa41", source="monthly")
+            TOA_ceres_clim_gm, TOA_ceres_ebaf_gm, TOA_ceres_diff_samples_gm, reader_ceres_toa, TOA_ceres_clim, TOA_ceres_diff_samples = process_ceres_data(
+                exp=exp_ceres, source=source_ceres, TOA_icon_gm=TOA_icon_gm)
+            data_era5, reader_era5 = process_era5_data(
+                exp=exp_era5, source=source_era5)
             models = [TOA_icon_gm.squeeze(), TOA_gm.squeeze()]
             linelabels = [icon_label, model_label]
-            
-            plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_gm, TOA_ceres_clim_gm, outputdir, outputfig)
-            print("The time series bias plot with various models and CERES was created and saved.")
+
+            plot_model_comparison_timeseries(
+                models, linelabels, TOA_ceres_diff_samples_gm, TOA_ceres_clim_gm, outputdir, outputfig)
+            print(
+                "The time series bias plot with various models and CERES was created and saved.")
         except ZeroDivisionError as zd_error:
             # Handle ZeroDivisionError
             print(f"ZeroDivisionError occurred: {zd_error}")
