@@ -3,27 +3,51 @@
 import matplotlib.pyplot as plt
 from aqua import Reader
 from aqua.logger import log_configure
-from aqua.exceptions import NotEnoughDataError
+from aqua.exceptions import NotEnoughDataError, NoObservationError
 
 __all__ = [
     "plot_timeseries",
     "plot_gregory",
 ]
 
-def get_reference_data(varname, sel=None, resample=None, loglevel='WARNING'):
-    """Get ERA5 reference data for a given variable."""
+
+def get_reference_data(varname, model='ERA5', exp='era5', source='monthly',
+                       sel=None, resample=None, loglevel='WARNING'):
+    """
+    Get reference data for a given variable.
+    Default is ERA5 monthly data.
+
+    Parameters:
+        varname (str): Variable name.
+        sel (dict): Optional selection dictionary.
+        resample (str): Optional resample rate (e.g. "M").
+        loglevel (str): Logging level.
+
+    Returns:
+        data (xarray.DataArray): Reference ERA5 data.
+
+    Raises:
+        NoObservationError: if no reference data is found.
+    """
     logger = log_configure(loglevel, 'plot_timeseries')
-    reader = Reader(model="ERA5", exp="era5", source="monthly")
+
+    logger.info(f"Reference data: {model}-{exp}-{source}")
+
+    try:
+        reader = Reader(model=model, exp=exp, source=source,
+                        loglevel=loglevel)
+    except Exception as e:
+        raise NoObservationError("Could not retrieve ERA5 data. No plot will be drawn.") from e
     data = reader.retrieve().sel(sel)
 
     if resample is not None:
+        logger.debug(f"Resampling reference data to {resample}")
         data = reader.timmean(data=data, freq=resample)
 
     try:
         return reader.fldmean(data[varname])
     except KeyError:
-        logger.error(f"Could not retrieve {varname} from ERA5. No plot will be drawn.")
-        return None
+        raise NoObservationError(f"Could not retrieve {varname} from ERA5. No plot will be drawn.") from e
 
 
 def plot_timeseries(
@@ -66,7 +90,6 @@ def plot_timeseries(
         logger.error(f"Could not retrieve {variable} for {model}-{exp}")
         raise KeyError(f'{variable} not found. Pick another variable.')
 
-    
     if len(data.time) < 2:
         raise NotEnoughDataError("There are not enough data to proceed. Global time series diagnostic requires at least two months of data available.")
 
