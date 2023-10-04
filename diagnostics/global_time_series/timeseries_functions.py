@@ -3,7 +3,7 @@
 import matplotlib.pyplot as plt
 from aqua import Reader
 from aqua.logger import log_configure
-from aqua.exceptions import NotEnoughDataError, NoObservationError
+from aqua.exceptions import NotEnoughDataError, NoObservationError, NoDataError
 
 __all__ = [
     "plot_timeseries",
@@ -64,7 +64,8 @@ def plot_timeseries(
     loglevel='WARNING',
     **kwargs,
 ):
-    """Plot a time series of the global mean value of a given variable.
+    """
+    Plot a time series of the global mean value of a given variable.
 
     Parameters:
         model (str): Model ID.
@@ -77,13 +78,17 @@ def plot_timeseries(
         plot_kw (dict): Additional keyword arguments passed to the plotting function.
         ax (matplotlib.Axes): (Optional) axes to plot in.
         outfile (str): (Optional) output file to store data.
+
+    Raises:
+        NotEnoughDataError: if there are not enough data to plot.
+        NoDataError: if the variable is not found.
     """
 
     logger = log_configure(loglevel, 'plot_timeseries')
     if ax is None:
         ax = plt.gca()
 
-    reader = Reader(model, exp, **reader_kw)
+    reader = Reader(model, exp, **reader_kw, loglevel=loglevel)
     try:
         data = reader.retrieve(var=variable)
     except KeyError:
@@ -91,17 +96,22 @@ def plot_timeseries(
         raise KeyError(f'{variable} not found. Pick another variable.')
 
     if len(data.time) < 2:
-        raise NotEnoughDataError("There are not enough data to proceed. Global time series diagnostic requires at least two months of data available.")
+        raise NotEnoughDataError("There are not enough data to proceed. Global time series diagnostic requires at least two data points.")
 
-    data = reader.fldmean(data[variable])
+    try:
+        data = reader.fldmean(data[variable])
+    except KeyError:
+        raise NoDataError(f"Could not retrieve {variable} from {model}-{exp}. No plot will be drawn.") from e
 
     if resample is not None:
+        logger.debug(f"Resampling data to {resample}")
         data = reader.timmean(data=data, freq=resample)
 
     data.plot(**plot_kw, ax=ax)
     ax.set_title(f'Globally averaged {variable}')
 
     if outfile is not None:
+        logger.debug(f"Saving data to {outfile}")
         data.to_netcdf(outfile)
 
     if plot_era5:
@@ -116,7 +126,8 @@ def plot_timeseries(
     ax.set_ylim(**ylim)
 
 
-def plot_gregory(model, exp, reader_kw={}, plot_kw={}, ax=None, freq='M', **kwargs):
+def plot_gregory(model, exp, reader_kw={}, plot_kw={}, ax=None, freq='M',
+                 **kwargs):
     """Plot global mean SST against net radiation at TOA.
 
     Parameters:
@@ -129,11 +140,18 @@ def plot_gregory(model, exp, reader_kw={}, plot_kw={}, ax=None, freq='M', **kwar
     if ax is None:
         ax = plt.gca()
 
-    reader = Reader(model, exp, **reader_kw)
-    data = reader.retrieve()
+    try:
+        reader = Reader(model, exp, **reader_kw)
+        data = reader.retrieve()
+    except Exception as e:
+        raise NoDataError(f"Could not retrieve data for {model}-{exp}. No plot will be drawn.") from e
 
-    ts = reader.timmean(data=reader.fldmean(data["2t"]), freq=freq).values - 273.15
-    toa = reader.timmean(data=reader.fldmean(data["mtnsrf"] + data["mtntrf"]), freq=freq).values
+    try:
+        ts = reader.timmean(data=reader.fldmean(data["2t"]), freq=freq).values - 273.15
+        toa = reader.timmean(data=reader.fldmean(data["mtnsrf"] + data["mtntrf"]),
+                             freq=freq).values
+    except KeyError:
+        raise NoDataError(f"Could not retrieve data for {model}-{exp}. No plot will be drawn.") from e
 
     ax.axhline(0, color="k", lw=0.8)
     lh, = ax.plot(ts, toa, marker=".", **plot_kw)
