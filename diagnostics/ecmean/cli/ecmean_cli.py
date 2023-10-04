@@ -2,14 +2,19 @@
 # -*- coding: utf-8 -*-
 '''
 AQUA dummy diagnositc command line interface. Reads configuration file and performs dummy 
-diagnostic
+diagnostic.
+
+Important: need to be run from its own directory
 '''
 import sys
 import argparse
+import os
 import xarray as xr
 from ecmean.performance_indices import performance_indices
-from aqua.util import load_yaml, get_arg
+from ecmean import __version__ as eceversion
+from aqua.util import load_yaml, get_arg, ConfigPath
 from aqua import Reader
+from aqua import __version__ as aquaversion
 from aqua.logger import log_configure
 
 
@@ -29,6 +34,8 @@ def parse_arguments(args):
                         help='exp to be analysed')
     parser.add_argument('-s', '--source', type=str,
                         help='source to be analysed', default='lra-r100-monthly')
+    parser.add_argument('-i', '--interface', type=str,
+                        help='non-standard interface file')
     parser.add_argument('-o', '--outputdir', type=str,
                         help='source to be analysed')
     parser.add_argument('-l', '--loglevel', type=str,
@@ -41,7 +48,7 @@ def reader_data(model, exp, source, keep_vars):
     Simple function to retrieve and do some operation on reader data
     """
     # if False/None return empty array
-    if not model:
+    if model is False:
         return None
     reader = Reader(model=model, exp=exp, source=source, areas=False, fix=False)
     data = reader.retrieve()
@@ -53,13 +60,24 @@ def reader_data(model, exp, source, keep_vars):
  
 if __name__ == '__main__':
 
+    # change the current directory to the one of the CLI so that relative path works
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    if os.getcwd() != dname:
+        os.chdir(dname)
+        print(f'Moving from current directory to {dname} to run!')
     
-
-    print('Running AQUA Performance Indices diagnostic...')
+    print(f'Running AQUA v{aquaversion} Performance Indices diagnostic with ECmean4 v{eceversion}')
     args = parse_arguments(sys.argv[1:])
     file = get_arg(args, 'config', 'config_ecmean_cli.yaml')
    
     configfile = load_yaml(file)
+    loglevel = configfile['setup']['loglevel']
+    loglevel = get_arg(args, 'loglevel', loglevel)
+    logger = log_configure(log_level=loglevel, log_name='PI')
+
+
+
 
     # setting default from configuration files
     model_atm = configfile['dataset']['model_atm']
@@ -67,23 +85,21 @@ if __name__ == '__main__':
     exp = configfile['dataset']['exp']
     atm_vars = configfile['dataset']['atm_vars']
     oce_vars = configfile['dataset']['oce_vars']
-    #year1 = configfile['dataset']['year1']
-    #year2 = configfile['dataset']['year2']
     numproc = configfile['compute']['numproc']
-    interface = configfile['setup']['interface_file']
-    loglevel = configfile['setup']['loglevel']
     config = configfile['setup']['config_file']
     outputdir = configfile['setup']['outputdir']
 
+    # define the interface file 
+    Configurer = ConfigPath(configdir=None)
+    interface = '../config/interface_AQUA_' + Configurer.machine + '.yml'
+
     # activate override from command line
-    loglevel = get_arg(args, 'loglevel', loglevel)
     exp = get_arg(args, 'exp', exp)
     source = get_arg(args, 'source', 'lra-r100-monthly')
     model_atm = get_arg(args, 'model_atm', model_atm)
     model_oce = get_arg(args, 'model_oce', model_oce)
     outputdir = get_arg(args, 'outputdir', outputdir)
-
-    logger = log_configure(log_level=loglevel, log_name='PI')
+    interface = get_arg(args, 'interface', interface)
 
     # load the data
     logger.warning('Loading atmospheric data %s', model_atm)
