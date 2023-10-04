@@ -74,7 +74,7 @@ if __name__ == '__main__':
     gregory_bool = config['diagnostic_attributes']['gregory']
     time_series_bool = config['diagnostic_attributes']['time_series']
 
-    year = config['time_frame']['year']
+    bar_plot_year = config['time_frame']['bar_plot_year']
     era5_start_date = config['time_frame']['era5_start_date']
     era5_end_date = config['time_frame']['era5_end_date']
     model_start_date = config['time_frame']['model_start_date']
@@ -98,7 +98,7 @@ if __name__ == '__main__':
             model_names = [ceres_label, icon_label, model_label]
 
             barplot_model_data(datasets, model_names,
-                               outputdir, outputfig, year=year)
+                               outputdir, outputfig, year=bar_plot_year)
             print("The Bar Plot with various models and CERES was created and saved. Variables ttr and tsr are plotted to show imbalances.")
         except ZeroDivisionError as zd_error:
             # Handle ZeroDivisionError
