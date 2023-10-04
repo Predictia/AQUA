@@ -8,12 +8,13 @@ data:
   source2: "monthly"
 
 diagnostic_attributes:
-  var_name: "2t"
+  var_name: null
+  variables: ['2t', 'msl', 'tprate', 't', 'u', 'v', 'q', 'mtntrf']
   plev: null
   statistic: "mean"
-  seasonal_bias: True
+  seasonal_bias: False
   compare_datasets_plev: True
-  plot_map_with_stats: True
+  plot_map_with_stats: False
 
 time_frame:
   start_date1: '2022-01-01'
@@ -27,5 +28,3 @@ plot:
 
 path:
   path_to_output: "/work/bb1153/b382267/AQUA/diagnostics/atmglobalmean/cli/config/"
-  outputfig: "./PDF/"
-  outputdir: "./NetCDF/"

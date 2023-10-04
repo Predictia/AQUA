@@ -69,6 +69,7 @@ if __name__ == '__main__':
     end_date2 = config['time_frame']['end_date2']
 
     var_name = config['diagnostic_attributes']['var_name']
+    variables = config['diagnostic_attributes']['variables']
     plev = config['diagnostic_attributes']['plev']
     statistic = config['diagnostic_attributes']['statistic']
     seasonal_bias_bool = config['diagnostic_attributes']['seasonal_bias']
@@ -88,67 +89,72 @@ if __name__ == '__main__':
     dataset2 = data_obs
 
     if seasonal_bias_bool:
-        try:
-            seasonal_bias(dataset1, dataset2, var_name, plev, statistic, model_label1,
-                          model_label2, start_date1, end_date1, start_date2, end_date2, outputdir, outputfig)
-            print("The seasonal bias maps were calculated and plotted.")
-        except ZeroDivisionError as zd_error:
-            # Handle ZeroDivisionError
-            print(f"ZeroDivisionError occurred: {zd_error}")
-        except ValueError as value_error:
-            # Handle ValueError
-            print(f"ValueError occurred: {value_error}")
-        except KeyError as key_error:
-            # Handle KeyError
-            print(f"KeyError occurred: {key_error}")
-        except FileNotFoundError as file_error:
-            # Handle FileNotFoundError
-            print(f"FileNotFoundError occurred: {file_error}")
-        except Exception as e:
-            # Handle other exceptions
-            print(f"An unexpected error occurred: {e}")
+        for var_name in variables:
+            try:
+                seasonal_bias(dataset1, dataset2, var_name, plev, statistic, model_label1,
+                              model_label2, start_date1, end_date1, start_date2, end_date2, outputdir, outputfig)
+                print(
+                    f"The seasonal bias maps were calculated and plotted for {var_name} variable.")
+            except ZeroDivisionError as zd_error:
+                # Handle ZeroDivisionError
+                print(f"ZeroDivisionError occurred: {zd_error}")
+            except ValueError as value_error:
+                # Handle ValueError
+                print(f"ValueError occurred: {value_error}")
+            except KeyError as key_error:
+                # Handle KeyError
+                print(f"KeyError occurred: {key_error}")
+            except FileNotFoundError as file_error:
+                # Handle FileNotFoundError
+                print(f"FileNotFoundError occurred: {file_error}")
+            except Exception as e:
+                # Handle other exceptions
+                print(f"An unexpected error occurred: {e}")
 
     if compare_datasets_plev_bool:
-        try:
-            compare_datasets_plev(dataset1, dataset2, var_name, start_date1, end_date1,
-                                  start_date2, end_date2, model_label1, model_label2, outputdir, outputfig)
-            print("The comparison of the two datasets is calculated and plotted.")
-        except ZeroDivisionError as zd_error:
-            # Handle ZeroDivisionError
-            print(f"ZeroDivisionError occurred: {zd_error}")
-        except ValueError as value_error:
-            # Handle ValueError
-            print(f"ValueError occurred: {value_error}")
-        except KeyError as key_error:
-            # Handle KeyError
-            print(f"KeyError occurred: {key_error}")
-        except FileNotFoundError as file_error:
-            # Handle FileNotFoundError
-            print(f"FileNotFoundError occurred: {file_error}")
-        except Exception as e:
-            # Handle other exceptions
-            print(f"An unexpected error occurred: {e}")
+        for var_name in variables:
+            try:
+                compare_datasets_plev(dataset1, dataset2, var_name, start_date1, end_date1,
+                                      start_date2, end_date2, model_label1, model_label2, outputdir, outputfig)
+                print(
+                    f"The comparison of the two datasets is calculated and plotted for {var_name} variable.")
+            except ZeroDivisionError as zd_error:
+                # Handle ZeroDivisionError
+                print(f"ZeroDivisionError occurred: {zd_error}")
+            except ValueError as value_error:
+                # Handle ValueError
+                print(f"ValueError occurred: {value_error}")
+            except KeyError as key_error:
+                # Handle KeyError
+                print(f"KeyError occurred: {key_error}")
+            except FileNotFoundError as file_error:
+                # Handle FileNotFoundError
+                print(f"FileNotFoundError occurred: {file_error}")
+            except Exception as e:
+                # Handle other exceptions
+                print(f"An unexpected error occurred: {e}")
 
     if plot_map_with_stats_bool:
-        try:
-            plot_map_with_stats(dataset1, var_name, start_date1,
-                                end_date1, model_label1, outputdir, outputfig)
-            print(
-                "The map of a chosen variable from a dataset is calculated and plotted. ")
-        except ZeroDivisionError as zd_error:
-            # Handle ZeroDivisionError
-            print(f"ZeroDivisionError occurred: {zd_error}")
-        except ValueError as value_error:
-            # Handle ValueError
-            print(f"ValueError occurred: {value_error}")
-        except KeyError as key_error:
-            # Handle KeyError
-            print(f"KeyError occurred: {key_error}")
-        except FileNotFoundError as file_error:
-            # Handle FileNotFoundError
-            print(f"FileNotFoundError occurred: {file_error}")
-        except Exception as e:
-            # Handle other exceptions
-            print(f"An unexpected error occurred: {e}")
+        for var_name in variables:
+            try:
+                plot_map_with_stats(dataset1, var_name, start_date1,
+                                    end_date1, model_label1, outputdir, outputfig)
+                print(
+                    f"The map of a chosen variable from a dataset is calculated and plotted for {var_name} variable.")
+            except ZeroDivisionError as zd_error:
+                # Handle ZeroDivisionError
+                print(f"ZeroDivisionError occurred: {zd_error}")
+            except ValueError as value_error:
+                # Handle ValueError
+                print(f"ValueError occurred: {value_error}")
+            except KeyError as key_error:
+                # Handle KeyError
+                print(f"KeyError occurred: {key_error}")
+            except FileNotFoundError as file_error:
+                # Handle FileNotFoundError
+                print(f"FileNotFoundError occurred: {file_error}")
+            except Exception as e:
+                # Handle other exceptions
+                print(f"An unexpected error occurred: {e}")
 
     print("Atmospheric global mean biases diagnostic is terminated.")
