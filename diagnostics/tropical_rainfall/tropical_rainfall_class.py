@@ -482,9 +482,10 @@ class Tropical_Rainfall:
                                       dask_array=False)
 
         size_of_the_data = data_size(data)
-        
+
         if new_unit is not None:
-            data = self.precipitation_rate_units_converter(data, model_variable=model_variable, new_unit = new_unit)
+            data = self.precipitation_rate_units_converter(
+                data, model_variable=model_variable, new_unit=new_unit)
         data_with_final_grid = data
         if weights is not None:
 
@@ -535,7 +536,7 @@ class Tropical_Rainfall:
             tprate_dataset = self.add_frequency_and_pdf(
                 tprate_dataset=tprate_dataset)
 
-            mean_from_hist, mean_original, mean_modified = self.mean_from_histogram(hist=tprate_dataset, data=data_with_final_grid, 
+            mean_from_hist, mean_original, mean_modified = self.mean_from_histogram(hist=tprate_dataset, data=data_with_final_grid,
                                                                                     model_variable=model_variable, trop_lat=self.trop_lat, positive=positive)
             relative_discrepancy = abs(
                 mean_modified - mean_from_hist)*100/mean_modified
@@ -557,8 +558,10 @@ class Tropical_Rainfall:
                     data=data_with_final_grid, tprate_dataset=tprate_dataset, variable=variable)
 
             if path_to_histogram is not None and name_of_file is not None:
+                bins_info = str(bins[0])+'_'+str(bins[-1])+'_'+str(len(bins))
+                bins_info = bins_info.replace('.', '-')
                 self.dataset_to_netcdf(
-                    tprate_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file)
+                    tprate_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file+'_histogram_'+bins_info)
             return tprate_dataset
         else:
             tprate_dataset = counts_per_bin.to_dataset(name="counts")
@@ -568,8 +571,10 @@ class Tropical_Rainfall:
             tprate_dataset = self.grid_attributes(
                 data=data_with_final_grid, tprate_dataset=tprate_dataset)
             if path_to_histogram is not None and name_of_file is not None:
+                bins_info = str(bins[0])+'_'+str(bins[-1])+'_'+str(len(bins)-1)
+                bins_info = bins_info.replace('.', '-')
                 self.dataset_to_netcdf(
-                    tprate_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file)
+                    tprate_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file+'_histogram_'+bins_info)
             return counts_per_bin
 
     def histogram(self,                   data,               data_with_global_atributes=None,
@@ -617,9 +622,10 @@ class Tropical_Rainfall:
                                       s_month=self.s_month,              f_month=self.f_month,
                                       dask_array=False)
         size_of_the_data = data_size(data)
-        
+
         if new_unit is not None:
-            data = self.precipitation_rate_units_converter(data, model_variable=model_variable, new_unit = new_unit)
+            data = self.precipitation_rate_units_converter(
+                data, model_variable=model_variable, new_unit=new_unit)
         data_with_final_grid = data
         if isinstance(self.bins, int):
             bins = [self.first_edge + i *
@@ -702,8 +708,10 @@ class Tropical_Rainfall:
                 tprate_dataset[variable].attrs['relative_discrepancy'] = float(
                     relative_discrepancy)
         if path_to_histogram is not None and name_of_file is not None:
+            bins_info = str(bins[0])+'_'+str(bins[-1])+'_'+str(len(bins)-1)
+            bins_info = bins_info.replace('.', '-')
             self.dataset_to_netcdf(
-                tprate_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file)
+                tprate_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file+'_histogram_'+bins_info)
 
         return tprate_dataset
 
@@ -816,8 +824,15 @@ class Tropical_Rainfall:
         tprate_dataset['pdf'] = hist_pdf
 
         if path_to_histogram is not None and name_of_file is not None:
+            if isinstance(self.bins, int):
+                bins = [self.first_edge + i *
+                        self.width_of_bin for i in range(0, self.num_of_bins+1)]
+            else:
+                bins = self.bins
+            bins_info = str(bins[0])+'_'+str(bins[-1])+'_'+str(len(bins)-1)
+            bins_info = bins_info.replace('.', '-')
             self.dataset_to_netcdf(
-                dataset=tprate_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file)
+                dataset=tprate_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file+'_histogram_'+bins_info)
         return tprate_dataset
 
     def open_dataset(self, path_to_netcdf=None):
@@ -861,7 +876,7 @@ class Tropical_Rainfall:
                     if tprate_dataset_1.attrs[attribute] != tprate_dataset_2.attrs[attribute] and attribute not in 'time_band':
                         dataset_3.attrs[attribute] = str(
                             tprate_dataset_1.attrs[attribute])+';\n '+str(tprate_dataset_2.attrs[attribute])
-                    
+
                     elif attribute in 'time_band':
                         dataset_3.attrs['time_band_history'] = str(
                             tprate_dataset_1.attrs['time_band']) + ';\n '+str(tprate_dataset_2.attrs['time_band'])
