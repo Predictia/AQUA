@@ -1,8 +1,8 @@
 print("Tropical Rainfall Diagnostic is started.")
+import sys
 try:
     # All nesessarry import for a cli diagnostic
-    from aqua.util import load_yaml, get_arg
-    import sys
+    from aqua.util import load_yaml, get_arg   
     import os
     import yaml
     import argparse
@@ -12,9 +12,11 @@ try:
 except ImportError as import_error:
     # Handle ImportError
     print(f"ImportError occurred: {import_error}")
+    sys.exit(0)
 except OtherCustomError as custom_error:
     # Handle other custom exceptions if needed
     print(f"CustomError occurred: {custom_error}")
+    sys.exit(0)
 else:
     # Code to run if the import was successful (optional)
     print("Modules imported successfully.")
