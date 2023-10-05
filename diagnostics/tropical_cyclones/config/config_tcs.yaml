@@ -1,11 +1,11 @@
 # experiment
 dataset:
   model: "IFS"
-  #exp: "tco2559-ng5-cycle3"
+  exp: "tco2559-ng5-cycle3"
   #exp: "tco1279-orca025-cycle3"
-  exp: "control-1950-devcon"
-  source2d: "hourly-native" #"2D_1h_native"
-  source3d: "6hourly-1deg" #"3D_1h_native"
+  #exp: "control-1950-devcon"
+  source2d: "2D_1h_native" #"2D_1h_native"
+  source3d: "2D_1h_native" #"3D_1h_native"
 
 # folders for regridded data, temprorary and stored high res data
 paths: 
