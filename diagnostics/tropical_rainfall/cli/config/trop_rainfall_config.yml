@@ -8,10 +8,9 @@ class_attributes:
   num_of_bins: 1000
   first_edge:   0
   width_of_bin: 1
-
-model_variable: 'tprate'
-new_unit:       'mm/day'
-loglevel:       'WARNING'
+  model_variable: 'tprate'
+  new_unit:       'mm/day'
+  loglevel:       'WARNING'
 
 plot:
   color: 'tab:green'
@@ -29,4 +28,13 @@ path:
   name_of_netcdf: "ICON_ngc3028_lra"
   name_of_pdf: "ICON_ngc3028_lra"
 
+slurm:
+  waiting_time: 60
+  n_cores: 1
+  n_memory: "10 GB"
+  walltime: '02:30:00'
+  jobs: 1
+  machine: 'levante'
+  queue: 'compute'
+  
 
