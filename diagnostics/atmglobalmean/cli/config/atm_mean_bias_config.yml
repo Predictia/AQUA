@@ -13,8 +13,8 @@ diagnostic_attributes:
   plev: null
   statistic: "mean"
   seasonal_bias: True
-  compare_datasets_plev: False
-  plot_map_with_stats: False
+  compare_datasets_plev: True
+  plot_map_with_stats: True
 
 time_frame:
   start_date1: '2022-01-01'
