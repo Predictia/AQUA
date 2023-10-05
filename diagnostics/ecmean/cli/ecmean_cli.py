@@ -99,6 +99,7 @@ if __name__ == '__main__':
     model_oce = get_arg(args, 'model_oce', model_oce)
     outputdir = get_arg(args, 'outputdir', outputdir)
     interface = get_arg(args, 'interface', interface)
+    logger.debug('interface file %s', interface)
 
     # load the data
     logger.warning('Loading atmospheric data %s', model_atm)
