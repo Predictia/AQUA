@@ -6,20 +6,36 @@ source: "lra-r100-monthly"
 outputdir: "./"
 
 timeseries:
-  msl: # each variable will be a separate plot and can have custom kwargs
-    plot_kw:
-      color: "tab:blue"
-      label: "MSL"
-    plot_era5: True
-    resample: "M"
-    savefig: True
   2t: # each variable will be a separate plot and can have custom kwargs
     plot_kw:
       color: "tab:blue"
-      label: "2t"
     plot_era5: True
     resample: "M"
     savefig: True
+  erate:
+    plot_kw:
+      color: "tab:blue"
+    plot_era5: True
+    resample: "M"
+    savefig: True
+  msl:
+    plot_kw:
+      color: "tab:blue"
+    plot_era5: True
+    resample: "M"
+    savefig: True
+  tcc:
+    plot_kw:
+      color: "tab:blue"
+    plot_era5: True
+    resample: "M"
+    savefig: True
+  tprate:
+    plot_kw:
+      color: "tab:blue"
+    plot_era5: True
+    resample: "M"
+    savefig: True  
 
 gregory:
   resample: "M"

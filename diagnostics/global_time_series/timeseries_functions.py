@@ -107,6 +107,11 @@ def plot_timeseries(
         logger.debug(f"Resampling data to {resample}")
         data = reader.timmean(data=data, freq=resample)
 
+    # If no label in plot_kw, use {model}-{exp}
+    if "label" not in plot_kw:
+        logger.debug(f"Using {model}-{exp} as label")
+        plot_kw["label"] = f"{model}-{exp}"
+
     data.plot(**plot_kw, ax=ax)
     ax.set_title(f'Globally averaged {variable}')
 

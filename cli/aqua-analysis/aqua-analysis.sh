@@ -5,12 +5,17 @@
 # The following variables can be changed by the user.
 # ---------------------------------------------------
 model_atm="IFS"
-model_oce="NEMO"
-exp="control-1950-devcon"
+model_oce="FESOM"
+exp="tco2559-ng5-cycle3"
 source="lra-r100-monthly"
 
-outputdir="/scratch/project_465000454/nurissom/cli_outpturdir"
-aqua="/users/nurissom/AQUA"
+# LUMI
+# outputdir="/scratch/project_465000454/nurissom/cli_outpturdir"
+# aqua="/users/nurissom/AQUA"
+
+# LEVANTE
+outputdir="/scratch/b/b382289/cli_test"
+aqua="/home/b/b382289/AQUA"
 
 # Set as true the diagnostics you want to run
 # -------------------------------------------
@@ -60,12 +65,12 @@ fi
 if [ "$global_time_series" = true ] ; then
   echo "Running global_time_series"
 
-  script = $aqua/diagnostics/global_time_series/cli/single_analysis/cli_global_time_series.py
-  conf_atm = $aqua/diagnostics/global_time_series/cli/single_analysis/config_atm.yaml
-  conf_oce = $aqua/diagnostics/global_time_series/cli/single_analysis/config_oce.yaml
+  filepy="$aqua/diagnostics/global_time_series/cli/single_analysis/cli_global_time_series.py"
+  conf_atm="$aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_atm.yaml"
+  conf_oce="$aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_oce.yaml"
 
-  python $script $args_atm --outputdir $outputdir/global_time_series --config $conf_atm -l INFO
-  python $script $args_oce --outputdir $outputdir/global_time_series --config $conf_oce -l INFO
+  python $filepy $args_atm --outputdir $outputdir/global_time_series --config $conf_atm -l INFO
+  python $filepy $args_oce --outputdir $outputdir/global_time_series --config $conf_oce -l INFO
 fi
 
 if [ "$ocean3d" = true ] ; then

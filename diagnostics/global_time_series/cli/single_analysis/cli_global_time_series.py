@@ -106,7 +106,7 @@ if __name__ == '__main__':
 
     # import the functions from the diagnostic now that
     # we are in the right directory
-    sys.path.insert(0, "../../")
+    sys.path.insert(0, "../../../")
     from global_time_series import plot_timeseries, plot_gregory
 
     # Read configuration file
@@ -212,7 +212,7 @@ if __name__ == '__main__':
         try:
             plot_kw = config["gregory"]["plot_kw"]
         except KeyError:
-            plot_kw = None
+            plot_kw = {}
         try:
             resample = config["gregory"]["resample"]
         except KeyError:

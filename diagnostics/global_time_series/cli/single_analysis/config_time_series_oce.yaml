@@ -9,7 +9,6 @@ timeseries:
   sst: # each variable will be a separate plot and can have custom kwargs
     plot_kw:
       color: "tab:blue"
-      label: "SST"
     plot_era5: True
     resample: "M"
     savefig: True
