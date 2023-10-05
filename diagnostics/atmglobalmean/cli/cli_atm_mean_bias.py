@@ -1,9 +1,9 @@
 print("Atmospheric global mean biases diagnostic is started.")
 
 # All nesessarry import for a cli diagnostic
+import sys
 try:
     from aqua.util import load_yaml, get_arg
-    import sys
     import os
     import yaml
     import argparse
@@ -13,9 +13,11 @@ try:
 except ImportError as import_error:
     # Handle ImportError
     print(f"ImportError occurred: {import_error}")
+    sys.exit(0)
 except OtherCustomError as custom_error:
     # Handle other custom exceptions if needed
     print(f"CustomError occurred: {custom_error}")
+    sys.exit(0)
 else:
     # Code to run if the import was successful (optional)
     print("Modules imported successfully.")
