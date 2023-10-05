@@ -171,4 +171,8 @@ def plot_gregory(model, exp, reader_kw={}, plot_kw={}, ax=None, freq='M',
     ax.plot(ts[-1], toa[-1], marker="<", color="tab:red")
     ax.set_xlabel("2m temperature / C")
     ax.set_ylabel(r"Net radiation TOA / $\rm Wm^{-2}$")
-    ax.set_title('Gregory plot')
+
+    # Add model and experiment to title
+    title = "Gregory plot"
+    title += f"\n{model} {exp}"
+    ax.set_title(title)
