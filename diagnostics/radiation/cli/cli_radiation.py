@@ -82,7 +82,7 @@ if __name__ == '__main__':
     model_start_date = config['time_frame']['model_start_date']
     model_end_date = config['time_frame']['model_end_date']
 
-    model_label = model.lower()
+    model_label = model.lower()+'_'+exp.lower()+'_'+source.lower()
     icon_label = config['plot']['icon_label']
     ceres_label = config['plot']['ceres_label']
     obs_label = config['plot']['obs_label']
