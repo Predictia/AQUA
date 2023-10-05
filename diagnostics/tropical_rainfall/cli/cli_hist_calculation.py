@@ -65,8 +65,8 @@ if __name__ == '__main__':
     if path_to_output is not None:
         path_to_netcdf = os.path.join(path_to_output, 'NetCDF/')
         path_to_pdf = os.path.join(path_to_output, 'PDF/')
-    name_of_netcdf = config['path']['name_of_netcdf']
-    name_of_pdf = config['path']['name_of_pdf']
+    name_of_netcdf = model+'_'+exp+'_'+source
+    name_of_pdf = model+'_'+exp+'_'+source
 
     trop_lat = config['class_attributes']['trop_lat']
     num_of_bins = config['class_attributes']['num_of_bins']
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     figsize = config['plot']['figsize']
     legend = config['plot']['legend']
     xmax = config['plot']['xmax']
-    plot_title = config['plot']['plot_title']
+    plot_title = model+'_'+exp+'_'+source
     loc = config['plot']['loc']
     pdf_format = config['plot']['pdf_format']
 
