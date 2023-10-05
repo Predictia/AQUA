@@ -6,11 +6,11 @@
 # ---------------------------------------------------
 model_atm="IFS"
 model_oce="NEMO"
-exp="control-1950-devcon"
+exp="tco2559-ng5-cycle3"
 source="lra-r100-monthly"
 
-outputdir="/scratch/project_465000454/nurissom/cli_outpturdir"
-aqua="/users/nurissom/AQUA"
+outputdir="/work/bb1153/b382267/cli_test/"
+aqua="/work/bb1153/b382267/AQUA/"
 
 # Set as true the diagnostics you want to run
 # -------------------------------------------
@@ -19,7 +19,7 @@ dummy=false # dummy is a test diagnostic
 ecmean=false
 global_time_series=false
 ocean3d=false
-radiation=false
+radiation=true
 seaice=false
 teleconnection=false
 
@@ -66,7 +66,9 @@ fi
 
 if [ "$radiation" = true ] ; then
   echo "Running radiation"
+  cd $aqua/diagnostics/radiation/cli
   python $aqua/diagnostics/radiation/cli/cli_radiation.py $args_atm --outputdir $outputdir/radiation
+  cd $aqua/cli/aqua-analysis
 fi
 
 if [ "$seaice" = true ] ; then
@@ -79,5 +81,7 @@ if [ "$teleconnection" = true ] ; then
   python $aqua/diagnostics/teleconnection/cli/cli_teleconnection.py $args_atm --outputdir $outputdir/teleconnection --config $aqua/diagnostics/teleconnection/cli/config_atm.yaml
   python $aqua/diagnostics/teleconnection/cli/cli_teleconnection.py $args_oce --outputdir $outputdir/teleconnection --config $aqua/diagnostics/teleconnection/cli/config_oce.yaml
 fi
+
+
 
 echo "Finished"
