@@ -1,6 +1,6 @@
-print("Radiation Budget Diagnostic diagnostic is started.")
+print("Radiation Budget Diagnostic is started.")
 
-# All nesessarry import for a cli diagnostic
+# All necessary import for a cli diagnostic
 import sys
 try:
     from aqua.util import load_yaml, get_arg
@@ -26,7 +26,7 @@ else:
 def parse_arguments(args):
     """Parse command line arguments"""
 
-    parser = argparse.ArgumentParser(description='Tropical Rainfall CLI')
+    parser = argparse.ArgumentParser(description='Radiation Budget Diagnostic CLI')
     parser.add_argument('-c', '--config', type=str,
                         help='yaml configuration file')
     # This arguments will override the configuration file if provided
@@ -44,7 +44,7 @@ def parse_arguments(args):
 
 if __name__ == '__main__':
 
-    print('Running tropical rainfall diagnostic...')
+    print('Running Radiation Budget Diagnostic ...')
     args = parse_arguments(sys.argv[1:])
 
     file = get_arg(args, 'config', 'config/radiation_config.yml')
