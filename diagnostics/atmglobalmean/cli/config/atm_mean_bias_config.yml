@@ -13,8 +13,8 @@ diagnostic_attributes:
   plev: null
   statistic: "mean"
   seasonal_bias: True
-  compare_datasets_plev: True
-  plot_map_with_stats: True
+  compare_datasets_plev: False
+  plot_map_with_stats: False
 
 time_frame:
   start_date1: '2022-01-01'
@@ -23,7 +23,6 @@ time_frame:
   end_date2: '2020-12-31'
 
 plot:
-  model_label1: 'ICON'
   model_label2: 'ERA5'
 
 path:

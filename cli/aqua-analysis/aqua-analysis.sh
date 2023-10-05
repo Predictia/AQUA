@@ -14,8 +14,8 @@ source="lra-r100-monthly"
 # aqua="/users/nurissom/AQUA"
 
 # LEVANTE
-outputdir="/scratch/b/b382289/cli_test"
-aqua="/home/b/b382289/AQUA"
+outputdir="/work/bb1153/b382267/cli_test"
+aqua="/work/bb1153/b382267/AQUA"
 
 # Set as true the diagnostics you want to run
 # -------------------------------------------
