@@ -1,8 +1,8 @@
-print("Tropical Rainfall Diagnostic is started.")
 import sys
+print("Tropical Rainfall Diagnostic is started.")
 try:
     # All nesessarry import for a cli diagnostic
-    from aqua.util import load_yaml, get_arg   
+    from aqua.util import load_yaml, get_arg
     import os
     import yaml
     import argparse
@@ -53,7 +53,8 @@ if __name__ == '__main__':
     print('Reading configuration yaml file..')
     config = load_yaml(file)
 
-    loglevel = get_arg(args, 'loglevel', config['loglevel'])
+    loglevel = get_arg(
+        args, 'loglevel', config['class_attributes']['loglevel'])
 
     model = get_arg(args, 'model', config['data']['model'])
     exp = get_arg(args, 'exp', config['data']['exp'])
@@ -72,8 +73,8 @@ if __name__ == '__main__':
     first_edge = config['class_attributes']['first_edge']
     width_of_bin = config['class_attributes']['width_of_bin']
 
-    model_variable = config['model_variable']
-    new_unit = config['new_unit']
+    model_variable = config['class_attributes']['model_variable']
+    new_unit = config['class_attributes']['new_unit']
 
     color = config['plot']['color']
     figsize = config['plot']['figsize']

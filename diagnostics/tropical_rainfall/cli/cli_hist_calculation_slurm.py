@@ -1,8 +1,8 @@
-print("Tropical Rainfall Diagnostic is started.")
 import sys
+print("Tropical Rainfall Diagnostic is started.")
 try:
     # All nesessarry import for a cli diagnostic
-    from aqua.util import load_yaml, get_arg   
+    from aqua.util import load_yaml, get_arg
     import os
     import yaml
     import argparse
@@ -10,7 +10,7 @@ try:
     sys.path.insert(0, '../../')
     from tropical_rainfall import Tropical_Rainfall
     # Importing the aqua.slurm module and slurm supporting functions nedeed for your script
-    from aqua.slurm import slurm 
+    from aqua.slurm import slurm
     from config.slurm_supporting_func import get_job_status, waiting_for_slurm_response
 except ImportError as import_error:
     # Handle ImportError
@@ -45,6 +45,7 @@ def parse_arguments(args):
                         required=False)
 
     return parser.parse_args(args)
+
 
 if __name__ == '__main__':
 
@@ -93,8 +94,9 @@ if __name__ == '__main__':
     machine = config['slurm']['machine']
     queue = config['slurm']['queue']
 
-    # Job initialization 
-    slurm.job(cores=n_cores, memory=n_memory, queue=queue, walltime=walltime, jobs=jobs, loglevel=loglevel, machine=machine)
+    # Job initialization
+    slurm.job(cores=n_cores, memory=n_memory, queue=queue,
+              walltime=walltime, jobs=jobs, loglevel=loglevel, machine=machine)
 
     waiting_for_slurm_response(10)
 
@@ -105,9 +107,9 @@ if __name__ == '__main__':
             data = reader.retrieve(var=model_variable)
             try:
                 diag = Tropical_Rainfall(trop_lat=trop_lat,       num_of_bins=num_of_bins,
-                                        first_edge=first_edge,   width_of_bin=width_of_bin, loglevel=loglevel)
+                                         first_edge=first_edge,   width_of_bin=width_of_bin, loglevel=loglevel)
                 hist = diag.histogram(data, model_variable=model_variable,  new_unit=new_unit,
-                                    path_to_histogram=path_to_netcdf+'/histograms/', name_of_file=name_of_netcdf)
+                                      path_to_histogram=path_to_netcdf+'/histograms/', name_of_file=name_of_netcdf)
                 diag.histogram_plot(hist, figsize=figsize, new_unit=new_unit,
                                     legend=legend, color=color, xmax=xmax, plot_title=plot_title, loc=loc,
                                     path_to_pdf=path_to_pdf, pdf_format=pdf_format, name_of_file=name_of_pdf)
@@ -132,5 +134,5 @@ if __name__ == '__main__':
         else:
             print('The job is waiting in the queue')
             waiting_for_slurm_response(60)
-    # Note: The loop will stop to check your job status only for specified N number of minutes. If the queue is busy, 
+    # Note: The loop will stop to check your job status only for specified N number of minutes. If the queue is busy,
     # consider increasing the range of your loop.
