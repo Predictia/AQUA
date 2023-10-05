@@ -56,7 +56,7 @@ if __name__ == '__main__':
     print('Reading configuration yaml file..')
     config = load_yaml(file)
 
-    loglevel = get_arg(args, 'loglevel', config['loglevel'])
+    loglevel = get_arg(args, 'loglevel', config['class_attributes']['loglevel'])
 
     model = get_arg(args, 'model', config['data']['model'])
     exp = get_arg(args, 'exp', config['data']['exp'])
@@ -67,16 +67,16 @@ if __name__ == '__main__':
     if path_to_output is not None:
         path_to_netcdf = os.path.join(path_to_output, 'NetCDF/')
         path_to_pdf = os.path.join(path_to_output, 'PDF/')
-    # name_of_netcdf  = config['path']['name_of_netcdf']
-    # name_of_pdf  = config['path']['name_of_pdf']
+    name_of_netcdf = config['path']['name_of_netcdf']
+    name_of_pdf = config['path']['name_of_pdf']
 
     trop_lat = config['class_attributes']['trop_lat']
     num_of_bins = config['class_attributes']['num_of_bins']
     first_edge = config['class_attributes']['first_edge']
     width_of_bin = config['class_attributes']['width_of_bin']
 
-    model_variable = config['model_variable']
-    new_unit = config['new_unit']
+    model_variable = config['class_attributes']['model_variable']
+    new_unit = config['class_attributes']['new_unit']
 
     color = config['plot']['color']
     figsize = config['plot']['figsize']
