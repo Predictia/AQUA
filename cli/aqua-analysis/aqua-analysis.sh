@@ -5,18 +5,31 @@
 # The following variables can be changed by the user.
 # ---------------------------------------------------
 model_atm="IFS"
-model_oce="NEMO"
-exp="control-1950-devcon"
+model_oce="FESOM"
+exp="tco2559-ng5-cycle3"
 source="lra-r100-monthly"
 
-outputdir="/scratch/project_465000454/nurissom/cli_outpturdir"
-aqua="/users/nurissom/AQUA"
+# LUMI
+# outputdir="/scratch/project_465000454/nurissom/cli_outpturdir"
+# aqua="/users/nurissom/AQUA"
+
+# LEVANTE
+outputdir="/scratch/b/b382289/cli_test"
+aqua="/home/b/b382289/AQUA"
+
+machine="levante" # will change the aqua config file
 
 # Set as true the diagnostics you want to run
 # -------------------------------------------
 atmglobalmean=false
 dummy=false # dummy is a test diagnostic
-ecmean=false
+ecmean=true
+# ---------------------------------------
+# Command line extra arguments for ecmean
+# -c --config ecmean config file
+# -i --interface custom interface file
+# -l --loglevel loglevel
+# ---------------------------------------
 global_time_series=false
 ocean3d=false
 radiation=false
@@ -38,6 +51,16 @@ else
   aqua=$AQUA
 fi
 
+# set the correct machine in the config file
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  # Mac OSX
+  sed -i '' "/^machine:/c\\
+machine: $machine" "$aqua/config/config-aqua.yaml"
+else
+  # Linux
+  sed -i "/^machine:/c\\machine: $machine" "$aqua/config/config-aqua.yaml"
+fi
+
 if [ "$atmglobalmean" = true ] ; then
   echo "Running atmglobalmean"
   python $aqua/diagnostics/atmglobalmean/cli/cli_atmglobalmean.py $args_atm --outputdir $outputdir/atmglobalmean
@@ -49,8 +72,8 @@ if [ "$dummy" = true ] ; then
 fi
 
 if [ "$ecmean" = true ] ; then
-  echo "Running ecmean"
-  python $aqua/diagnostics/ecmean/cli/cli_ecmean.py $args --outputdir $outputdir/ecmean
+  scriptpy="$aqua/diagnostics/ecmean/cli/ecmean_cli.py"
+  python $scriptpy $args -o $outputdir/ecmean -l INFO
 fi
 
 if [ "$global_time_series" = true ] ; then
