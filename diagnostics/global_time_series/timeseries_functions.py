@@ -3,6 +3,7 @@
 import matplotlib.pyplot as plt
 from aqua import Reader
 from aqua.logger import log_configure
+from aqua.exceptions import NotEnoughDataError
 
 __all__ = [
     "plot_timeseries",
@@ -64,6 +65,10 @@ def plot_timeseries(
     except KeyError:
         logger.error(f"Could not retrieve {variable} for {model}-{exp}")
         raise KeyError(f'{variable} not found. Pick another variable.')
+
+    
+    if len(data.time) < 2:
+        raise NotEnoughDataError("There are not enough data to proceed. Global time series diagnostic requires at least two months of data available.")
 
     data = reader.fldmean(data[variable])
 
