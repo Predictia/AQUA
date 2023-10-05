@@ -43,6 +43,7 @@ def parse_arguments(args):
 
     return parser.parse_args(args)
 
+
 def reader_data(model, exp, source, keep_vars):
     """
     Simple function to retrieve and do some operation on reader data
@@ -57,7 +58,8 @@ def reader_data(model, exp, source, keep_vars):
     if keep_vars is None:
         return data
     return data[[value for value in keep_vars if value in data.data_vars]]
- 
+
+
 if __name__ == '__main__':
 
     # change the current directory to the one of the CLI so that relative path works
@@ -66,18 +68,15 @@ if __name__ == '__main__':
     if os.getcwd() != dname:
         os.chdir(dname)
         print(f'Moving from current directory to {dname} to run!')
-    
+
     print(f'Running AQUA v{aquaversion} Performance Indices diagnostic with ECmean4 v{eceversion}')
     args = parse_arguments(sys.argv[1:])
     file = get_arg(args, 'config', 'config_ecmean_cli.yaml')
-   
+
     configfile = load_yaml(file)
     loglevel = configfile['setup']['loglevel']
     loglevel = get_arg(args, 'loglevel', loglevel)
     logger = log_configure(log_level=loglevel, log_name='PI')
-
-
-
 
     # setting default from configuration files
     model_atm = configfile['dataset']['model_atm']
@@ -124,16 +123,15 @@ if __name__ == '__main__':
     year2 = int(data.time[-1].values.astype('datetime64[Y]').astype(str))
     logger.warning('Guessing starting year %s and ending year %s', year1, year2)
 
-
     # run the performance indices if you have at least 12 month of data
     if len(data.time)<12:
         logger.error('Not enough data, exiting...')
         exit(0)
-    else: 
+    else:
         logger.warning('Launching ECmean performance indices...')
-        performance_indices(exp, year1, year2, numproc = numproc, config = config,
-                interface = interface, loglevel = loglevel, outputdir = outputdir, 
-                xdataset = data)
+        performance_indices(exp, year1, year2, numproc=numproc, config=config,
+                interface=interface, loglevel=loglevel, outputdir=outputdir,
+                xdataset=data)
 
 
     print('AQUA ECmean4 Performance diagnostic run completed. Go outside and live your life!')
