@@ -27,7 +27,6 @@ diagnostic_attributes:
   time_series: True
 
 plot:
-  model_label: "ifs"
   icon_label: "icon"
   ceres_label: "ceres"
   obs_label: "era5 2000-2020"
