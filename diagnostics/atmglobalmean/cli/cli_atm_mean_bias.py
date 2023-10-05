@@ -78,7 +78,7 @@ if __name__ == '__main__':
     compare_datasets_plev_bool = config['diagnostic_attributes']['compare_datasets_plev']
     plot_map_with_stats_bool = config['diagnostic_attributes']['plot_map_with_stats']
 
-    model_label1 = model #config['plot']['model_label1']
+    model_label1 = model+'_'+exp+'_'+source
     model_label2 = config['plot']['model_label2']
 
     reader_obs = Reader(model=model2, exp=exp2, source=source2)
