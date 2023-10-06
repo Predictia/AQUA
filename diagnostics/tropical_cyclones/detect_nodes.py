@@ -37,7 +37,7 @@ class DetectNodes():
             self.logger.warning(f"processing time step {tstep}")
             self.readwrite_from_intake(tstep)
             self.run_detect_nodes(tstep)
-            clean_files([self.tempest_filein])
+            #clean_files([self.tempest_filein])
             self.read_lonlat_nodes()
             self.store_detect_nodes(tstep)
             toc = time()
@@ -68,6 +68,7 @@ class DetectNodes():
             # this assumes that only required 2D data has been retrieved
             lowres2d = self.reader2d.regrid(self.data2d.sel(time=timestep))
             
+            lowres2d.to_netcdf("prova.nc")
             # rename some variables to run DetectNodes command
             if '10u' in lowres2d.data_vars:
                 lowres2d = lowres2d.rename({'10u': 'u10m'})
@@ -75,7 +76,7 @@ class DetectNodes():
                 lowres2d = lowres2d.rename({'10v': 'v10m'})
             # this is required to avoid conflict between z 3D and z 2D (orography)
             if 'z' in lowres2d.data_vars:
-                lowres2d = lowres2d.rename({'z': 'orog'})
+                lowres2d = lowres2d.rename({'z': 'zs'})
                 
             lowres3d = self.reader3d.regrid(
                 self.data3d.sel(time=timestep, plev=[30000, 50000]))
@@ -147,8 +148,7 @@ class DetectNodes():
             f'--closedcontourcmd {tempest_dictionary["psl"]},200.0,5.5,0;_DIFF({tempest_dictionary["zg"]}(30000Pa),{tempest_dictionary["zg"]}(50000Pa)),-58.8,6.5,1.0 --mergedist 6.0 ' \
             f'--outputcmd {tempest_dictionary["psl"]},min,0;_VECMAG({tempest_dictionary["uas"]},{tempest_dictionary["vas"]}),max,2;{tempest_dictionary["orog"]},min,0" --latname {tempest_dictionary["lat"]} --lonname {tempest_dictionary["lon"]}'
 
-        subprocess.run(detect_string.split(),
-                       stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        subprocess.run(detect_string.split()) #stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
     def store_detect_nodes(self, timestep, write_fullres=True):
         """
