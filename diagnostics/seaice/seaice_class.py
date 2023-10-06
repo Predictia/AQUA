@@ -43,6 +43,7 @@ class SeaIceExtent:
         self.outputdir = outputdir
 
         self.config = util.load_yaml(config_file)
+        print("CONFIG:" + str(self.config))
 
     def configure(self,
                   mySetups=[["IFS", "tco1279-orca025-cycle3",

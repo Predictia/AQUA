@@ -65,5 +65,7 @@ if __name__ == '__main__':
 
     # Execute the analyzer.
     analyzer.run()
+    analyzer.computeExtent()
+    analyzer.createNetCDF()
 
     print("sea ice diagnostic completed!")
