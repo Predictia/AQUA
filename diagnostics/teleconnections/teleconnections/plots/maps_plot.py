@@ -199,9 +199,12 @@ def single_map_plot(map=None, save=False, model=None, exp=None,
     # Contour plot
     transform_first = kwargs.get('transform_first', False) # cartopy kwarg
     logger.info('transform_first: {}'.format(transform_first))
+
+    cmap = plt.get_cmap('RdBu_r')
+    cmap.set_bad('white')
+
     cs = ax.contourf(lon, lat, map, transform=ccrs.PlateCarree(),
-                     cmap='RdBu_r', levels=nlevels,
-                     add_colorbar=False, add_labels=False,
+                     cmap=cmap, levels=nlevels,
                      extend='both', vmin=vmin, vmax=vmax,
                      transform_first=transform_first)
 
