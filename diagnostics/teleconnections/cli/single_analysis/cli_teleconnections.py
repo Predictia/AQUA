@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
     try:
         outputdir = get_arg(args, 'outputdir', config['outputdir'])
-        outputnetcdf = os.path.join(outputdir, 'NetCDF')
+        outputnetcdf = os.path.join(outputdir, 'netcdf')
         outputpdf = os.path.join(outputdir, 'pdf')
     except KeyError:
         outputdir = None
@@ -91,15 +91,8 @@ if __name__ == '__main__':
     # the try/except is used to avoid KeyError if the teleconnection is not
     # defined in the yaml file, since we have oceanic and atmospheric
     # configuration files
-    try:
-        NAO = config['teleconnections']['NAO']
-    except KeyError:
-        NAO = False
-
-    try:
-        ENSO = config['teleconnections']['ENSO']
-    except KeyError:
-        ENSO = False
+    NAO = config['teleconnections'].get('NAO', False)
+    ENSO = config['teleconnections'].get('ENSO', False)
 
     # Executing the teleconnections
     if NAO:

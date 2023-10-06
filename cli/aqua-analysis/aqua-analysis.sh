@@ -92,8 +92,8 @@ if [ "$teleconnections" = true ] ; then
   # Move to the teleconnection CLI directory
   cd $aqua/diagnostics/teleconnections/cli/single_analysis
 
-  python cli_teleconnections.py $args_atm --outputdir $outputdir/teleconnections --config cli_config_atm.yaml
-  python cli_teleconnections.py $args_oce --outputdir $outputdir/teleconnections --config cli_config_oce.yaml
+  python cli_teleconnections.py $args_atm --outputdir $outputdir/teleconnections --config cli_config_atm.yaml --obs
+  python cli_teleconnections.py $args_oce --outputdir $outputdir/teleconnections --config cli_config_oce.yaml --obs
 
   # Move back to the aqua-analysis directory
   cd $aqua/cli/aqua-analysis
