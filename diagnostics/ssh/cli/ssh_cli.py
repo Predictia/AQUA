@@ -10,6 +10,7 @@ By default, it will read configurations from 'config.yml' unless specified by th
 import argparse
 import os
 import sys
+from datetime import datetime
 
 # Add the directory containing the `ssh` module to the Python path.
 # Since the module is in the parent directory of this script, we calculate the script's directory
@@ -24,6 +25,15 @@ from ssh import sshVariability
 # Imports related to the aqua package, which is installed and available globally.
 from aqua import Reader
 from aqua.util import get_arg
+
+def valid_date(s):
+    try:
+        datetime.strptime(s, "%Y-%m-%d")
+        return s
+    except ValueError:
+        msg = "Not a valid date: '{0}'.".format(s)
+        raise argparse.ArgumentTypeError(msg)
+    
 
 def parse_arguments(args):
     """
@@ -44,6 +54,10 @@ def parse_arguments(args):
     parser.add_argument('--exp', type=str, help='Experiment name')
     parser.add_argument('--source', type=str, help='Source name')
     parser.add_argument('--outputdir', type=str, help='Output directory')
+    parser.add_argument('--modeltime', default=None, nargs=2, type=valid_date,
+                    help='Model time span in the format: "YYYY-MM-DD", "YYYY-MM-DD"')
+    parser.add_argument('--obstime', default=None, nargs=2, type=valid_date,
+                    help='Observation time span in the format: "YYYY-MM-DD", "YYYY-MM-DD"')
     
     return parser.parse_args(args)
 
@@ -62,6 +76,13 @@ if __name__ == '__main__':
     analyzer.config['models'][0]['experiment'] = get_arg(args, 'exp', analyzer.config['models'][0]['experiment'])
     analyzer.config['models'][0]['source'] = get_arg(args, 'source', analyzer.config['models'][0]['source'])
     analyzer.config['output_directory'] = get_arg(args, 'outputdir', analyzer.config['output_directory'])
+    
+    if "time_span" in analyzer.config['models'][0] and args.modeltime is not None:
+        analyzer.config['models'][0]['time_span'] = get_arg(args, 'modeltime', analyzer.config['models'][0]['time_span'])
+    
+    if args.obstime is not None:
+        timespan = {'start': args.modeltime[0], 'end': args.modeltime[1]}
+        analyzer.config['timespan'] = timespan
     
     # Execute the analyzer.
     analyzer.run()
