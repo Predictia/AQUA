@@ -54,7 +54,7 @@ fi
 
 if [ "$run_dummy" = true ] ; then
   echo "Running setup checker"
-  python $aqua/diagnostics/dummy/cli/cli_dummy.py $args --outputdir $outputdir/dummy
+  python $aqua/diagnostics/dummy/cli/cli_dummy.py $args --outputdir $outputdir/dummy -l $loglevel
 fi
 
 if [ "$run_atmglobalmean" = true ] ; then
