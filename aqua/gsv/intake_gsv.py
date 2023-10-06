@@ -126,7 +126,7 @@ class GSVSource(base.DataSource):
 
         if self.dask_access:  # We need a better schema for dask access
             if not self._ds:  # we still have to retrieve a sample dataset
-                self._ds = self._get_partition(0, self._var[0], first=True)
+                self._ds = self._get_partition(0, var=self._var[0], first=True)
             
             var = list(self._ds.data_vars)[0]
             da = self._ds[var]  # get first variable dataarray
@@ -154,13 +154,13 @@ class GSVSource(base.DataSource):
 
         return schema
 
-    def _get_partition(self, i, var, first=False, dask=False):
+    def _get_partition(self, i, var=None, first=False, dask=False):
         """
         Standard internal method reading i-th data partition from FDB
         Args:
             i (int): partition number
-            var (string): variable to retrieve
-            first (boo): read only the first step (used for schema retrieval)
+            var (string, optional): single variable to retrieve. Defaults to using those set at init
+            first (bool, optional): read only the first step (used for schema retrieval)
         Returns:
             An xarray.DataSet
         """
@@ -186,7 +186,10 @@ class GSVSource(base.DataSource):
             else:
                 request["step"] = f'{s0}/to/{s1}'
 
-        request["param"] = var
+        if var:
+            request["param"] = var
+        else:
+            request["param"] = self._var
 
         if self.fdbpath:  # if fdbpath provided, use it, since we are creating a new gsv
             os.environ["FDB5_CONFIG_FILE"] = self.fdbpath
@@ -227,7 +230,7 @@ class GSVSource(base.DataSource):
         Function to read a delayed partition.
         Returns a dask.array
         """
-        ds = dask.delayed(self._get_partition)(i, var, dask=True)[var].data
+        ds = dask.delayed(self._get_partition)(i, var=var, dask=True)[var].data
         newshape = list(shape)
         newshape[self.itime] = self.chk_size[i]
         return dask.array.from_delayed(ds, newshape, dtype)
