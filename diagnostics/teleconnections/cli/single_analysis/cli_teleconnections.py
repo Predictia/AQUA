@@ -8,9 +8,11 @@ import argparse
 import os
 import sys
 
+from aqua import __version__ as aquaversion
 from aqua.util import load_yaml, get_arg
 from aqua.exceptions import NoDataError, NotEnoughDataError
 from aqua.logger import log_configure
+from teleconnections import __version__ as telecversion
 from teleconnections.plots import single_map_plot
 from teleconnections.tc_class import Teleconnection
 
@@ -46,7 +48,7 @@ def parse_arguments(args):
 
 if __name__ == '__main__':
 
-    print('Running teleconnections diagnostic...')
+    print(f'Running AQUA v{aquaversion} Teleconnections diagnostic v{telecversion}')
     args = parse_arguments(sys.argv[1:])
 
     # Read configuration file
