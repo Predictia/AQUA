@@ -145,6 +145,18 @@ if __name__ == '__main__':
             logger.info(f"Output file: {filename_nc}")
 
             # Reading the configuration file
+            pippo = config["timeseries"].get(var)
+            if pippo:
+                plot_kw = pippo.get("plot_kw")
+                plot_era5 = pippo.get("plot_era5", False)
+                
+            if pippo:
+
+            if plot_kw in config["timeseries"][var]: # get method
+                dfsd
+            else:
+                dsdfsd
+            #change below
             try:
                 plot_kw = config["timeseries"][var]["plot_kw"]
             except KeyError:

@@ -5,8 +5,10 @@ exp: "tco2559-ng5-cycle3"
 source: "lra-r100-monthly"
 outputdir: "./"
 
-timeseries:
-  2t: # each variable will be a separate plot and can have custom kwargs
+timeseries: ['2t', 'tprate', 'sst']
+
+options:
+  default:
     plot_kw:
       color: "tab:blue"
     plot_era5: True
@@ -14,28 +16,13 @@ timeseries:
     savefig: True
   erate:
     plot_kw:
-      color: "tab:blue"
+      color: "tab:orange"
     plot_era5: True
     resample: "M"
     savefig: True
-  msl:
-    plot_kw:
-      color: "tab:blue"
-    plot_era5: True
-    resample: "M"
-    savefig: True
-  tcc:
-    plot_kw:
-      color: "tab:blue"
-    plot_era5: True
-    resample: "M"
-    savefig: True
-  tprate:
-    plot_kw:
-      color: "tab:blue"
-    plot_era5: True
-    resample: "M"
-    savefig: True  
+    ylim: [-0.5, 0.5]
+  sdfsdf:
+  
 
 gregory:
   resample: "M"
