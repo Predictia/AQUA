@@ -1,4 +1,5 @@
 import os
+import sys
 import warnings
 import numpy as np
 import dask.distributed as dd
@@ -7,9 +8,39 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 from dateutil.parser import parse
 from aqua import Reader, util, logger
+from datetime import datetime
+from aqua.exceptions import NotEnoughDataError
+import pandas as pd
 
 logger = logger.log_configure(log_level='INFO', log_name='ssh_logger')
 
+def check_time_span(ds, start, end):
+    """
+    Check if the required time span defined by start and end is within the 
+    time span of the xarray data.
+
+    Parameters:
+    - ds: xarray Dataset or DataArray with a time coordinate.
+    - start: Start of the required time span.
+    - end: End of the required time span.
+
+    Returns:
+    - bool: True if the required time span is within the xarray data's time span, False otherwise.
+    """
+
+    # Convert start and end strings to datetime objects
+    start_date = datetime.strptime(start, '%Y-%m-%d')
+    end_date = datetime.strptime(end, '%Y-%m-%d')
+
+    # Extract the time coordinate from the xarray data
+    time_coord = ds['time']
+
+    # Ensure the min and max time coordinates are in datetime format for comparison
+    time_min = pd.to_datetime(time_coord.min().values)
+    time_max = pd.to_datetime(time_coord.max().values)
+
+    # Check if the required time span is within the xarray data's time span
+    return start_date >= time_min and end_date <= time_max
 
 class sshVariability():
     def __init__(self, config_file):
@@ -203,6 +234,14 @@ class sshVariability():
         # Get the user-defined timespan from the configuration
         timespan_start = config['timespan']['start']
         timespan_end = config['timespan']['end']
+
+        if not check_time_span(aviso_ssh, timespan_start, timespan_end):
+            raise NotEnoughDataError("The time span is not within the range of time steps in the xarray object.")
+            sys.exit(0)
+
+        logger.info("Now computing std on AVISO ssh for the provided timespan")
+
+
         aviso_ssh_std = aviso_ssh.sel(time=slice(
             timespan_start, timespan_end)).std(axis=0).persist()
         # saving the computation in output files
@@ -245,15 +284,25 @@ class sshVariability():
                         model_name['name'])
             # computing std
             if 'timespan' in model_name and model_name['timespan']:
+                if not check_time_span(ssh_data, model_name['timespan'][0], model_name['timespan'][1]):
+                    raise NotEnoughDataError("The time span is not within the range of time steps in the xarray object.")
+                    sys.exit(0)
                 timespan_start = parse(model_name['timespan'][0])
                 timespan_end = parse(model_name['timespan'][1])
+
             else:
                 warnings.warn(
                     "Model does not have a custom timespan, using default.", UserWarning)
+                if not check_time_span(ssh_data, config['timespan']['start'], config['timespan']['end']):
+                    raise NotEnoughDataError("The time span is not within the range of time steps in the xarray object.")
+                    sys.exit(0)
                 timespan_start = config['timespan']['start']
                 timespan_end = config['timespan']['end']
+
             ssh_std_dev_data = ssh_data.sel(time=slice(timespan_start, timespan_end)).std(
                 axis=0, keep_attrs=True).persist()
+            
+
 
             logger.info("computation complete, saving output file")
             # saving the computation in output files
