@@ -63,8 +63,10 @@ if __name__ == '__main__':
     path_to_output = get_arg(
         args, 'outputdir', config['path']['path_to_output'])
     if path_to_output is not None:
-        path_to_netcdf = os.path.join(path_to_output, 'NetCDF/'+model+'_'+exp+'_'+source+'/')
-        path_to_pdf = os.path.join(path_to_output, 'PDF/'+model+'_'+exp+'_'+source+'/')
+        path_to_netcdf = os.path.join(
+            path_to_output, 'NetCDF/'+model+'_'+exp+'_'+source+'/')
+        path_to_pdf = os.path.join(
+            path_to_output, 'PDF/'+model+'_'+exp+'_'+source+'/')
     name_of_netcdf = model+'_'+exp+'_'+source
     name_of_pdf = model+'_'+exp+'_'+source
 
@@ -93,7 +95,8 @@ if __name__ == '__main__':
         hist = diag.histogram(data, model_variable=model_variable,  new_unit=new_unit,
                               path_to_histogram=path_to_netcdf+'histograms/', name_of_file=name_of_netcdf)
 
-        hist_merged = diag.merge_list_of_histograms(path_to_histograms = path_to_netcdf+'histograms/',  all = True)
+        hist_merged = diag.merge_list_of_histograms(
+            path_to_histograms=path_to_netcdf+'histograms/',  all=True)
         diag.histogram_plot(hist_merged, figsize=figsize, new_unit=new_unit,
                             legend=legend, color=color, xmax=xmax, plot_title=plot_title, loc=loc,
                             path_to_pdf=path_to_pdf, pdf_format=pdf_format, name_of_file=name_of_pdf)
