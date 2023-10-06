@@ -2,7 +2,7 @@
 
 import matplotlib.pyplot as plt
 import xarray as xr
-from aqua import Reader
+from aqua import Reader, util
 from aqua.util import load_yaml, create_folder
 from aqua.logger import log_configure
 
@@ -10,12 +10,14 @@ from aqua.logger import log_configure
 class SeaIceExtent:
     """Sea ice extent class"""
 
-    def __init__(self, loglevel: str = 'ERROR', threshold=0.15,
+    def __init__(self, config_file, loglevel: str = 'ERROR', threshold=0.15,
                  regions="../regions.yml", outputdir = "./NetCDF"):
         """
         The SeaIceExtent constructor.
 
         Args:
+            config_file (str):  Path to the YAML configuration file
+
             loglevel (str):     The log level
                                 Default: WARNING
             threshold (float):  The sea ice extent threshold
@@ -39,6 +41,8 @@ class SeaIceExtent:
         self.nRegions = None
         self.thresholdSeaIceExtent = threshold
         self.outputdir = outputdir
+
+        self.config = util.load_yaml(config_file)
 
     def configure(self,
                   mySetups=[["IFS", "tco1279-orca025-cycle3",

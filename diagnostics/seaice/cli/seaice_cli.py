@@ -11,15 +11,15 @@ import argparse
 import os
 import sys
 
-# Add the directory containing the `ssh` module to the Python path.
+# Add the directory containing the `seaice` module to the Python path.
 # Since the module is in the parent directory of this script, we calculate the script's directory
 # and then move one level up.
 script_dir = os.path.dirname(os.path.abspath(__file__))
-ssh_module_path = os.path.join(script_dir, "../../")
-sys.path.insert(0, ssh_module_path)
+seaice_module_path = os.path.join(script_dir, "../../")
+sys.path.insert(0, seaice_module_path)
 
 # Local module imports.
-from ssh import sshVariability
+from seaice import SeaIceExtent
 
 # Imports related to the aqua package, which is installed and available globally.
 from aqua import Reader
@@ -55,14 +55,15 @@ if __name__ == '__main__':
     
     # Read configuration file.
     print('Reading configuration yaml file...')
-    analyzer = sshVariability(args.config)
+    analyzer = SeaIceExtent(args.config)
     
     # Override configurations with CLI arguments if provided.
     analyzer.config['models'][0]['name'] = get_arg(args, 'model', analyzer.config['models'][0]['name'])
     analyzer.config['models'][0]['experiment'] = get_arg(args, 'exp', analyzer.config['models'][0]['experiment'])
     analyzer.config['models'][0]['source'] = get_arg(args, 'source', analyzer.config['models'][0]['source'])
     analyzer.config['output_directory'] = get_arg(args, 'outputdir', analyzer.config['output_directory'])
-    
+
     # Execute the analyzer.
     analyzer.run()
+
     print("sea ice diagnostic completed!")
