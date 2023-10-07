@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from dateutil.parser import parse
 from aqua import Reader, util, logger
 from datetime import datetime
-from aqua.exceptions import NotEnoughDataError
+from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 import pandas as pd
 
 logger = logger.log_configure(log_level='INFO', log_name='ssh_logger')
@@ -219,8 +219,12 @@ class sshVariability():
 
         # Load AVISO data and get its time span
         # idea: think in context of streaming data.
-        reader = Reader(model=config['base_model']['name'], exp=config['base_model']
+        try:
+            reader = Reader(model=config['base_model']['name'], exp=config['base_model']
                         ['experiment'], source=config['base_model']['source'], fix=True)
+        except:
+            raise NoObservationError("AVISO data not found.")
+
         aviso_cat = reader.retrieve()
         aviso_time_min = np.datetime64(aviso_cat.time.min().values)
         aviso_time_max = np.datetime64(aviso_cat.time.max().values)
@@ -269,8 +273,12 @@ class sshVariability():
 
             logger.info(
                 "initializing AQUA reader to read the model inputs for %s", model_name)
-            reader = Reader(model=model_name['name'], exp=model_name['experiment'],
+            try:
+                reader = Reader(model=model_name['name'], exp=model_name['experiment'],
                             source=model_name['source'], regrid=model_name['regrid'], zoom=model_name['zoom'], fix=True)
+            except:
+                raise NoDataError("Model data not found.")
+            
             model_data = reader.retrieve()
 
             ssh_data = model_data[model_name['variable']]
