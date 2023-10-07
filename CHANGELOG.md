@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Helper function to identify vertical coordinates in a dataset (#552)
 - Fix to allow reading a list of multiple variables from FDB (#545)
 - Further improvement of function to inspect the catalogue (#533)
 - Custom exceptions for AQUA (#518)
