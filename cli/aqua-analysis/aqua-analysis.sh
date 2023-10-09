@@ -24,24 +24,24 @@ loglevel="WARNING" # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # Set as true the diagnostics you want to run
 # -------------------------------------------
-atmglobalmean=false
-dummy=false # dummy is a test diagnostic
-ecmean=true
+run_dummy=true # dummy is a diagnostic that checks if the setup is correct
+run_atmglobalmean=false
+run_ecmean=true
 # ---------------------------------------
 # Command line extra arguments for ecmean
 # -c --config ecmean config file
 # -i --interface custom interface file
 # -l --loglevel loglevel
 # ---------------------------------------
-global_time_series=true
+run_global_time_series=true
 # global time series additional flags
 # ---------------------------------------------------------------
 # --loglevel, -l (can be DEBUG, INFO, WARNING, ERROR, CRITICAL)
 # ---------------------------------------------------------------
-ocean3d=true
-radiation=false
-seaice=false
-teleconnections=true
+run_ocean3d=true
+run_radiation=false
+run_seaice=false
+run_teleconnections=true
 # teleconnections additional flags
 # ---------------------------------------------------------------
 # --loglevel, -l (can be DEBUG, INFO, WARNING, ERROR, CRITICAL)
@@ -77,22 +77,28 @@ fi
 # print the output directory
 echo "Output directory: $outputdir"
 
-if [ "$atmglobalmean" = true ] ; then
+if [ "$run_dummy" = true ] ; then
+  echo "Running setup checker"
+  python $aqua/diagnostics/dummy/cli/cli_dummy.py $args -l $loglevel
+
+  # exit if dummy fails
+  if [ $? -ne 0 ]; then
+    echo "Setup checker failed, exiting"
+    exit 1
+  fi
+fi
+
+if [ "$run_atmglobalmean" = true ] ; then
   echo "Running atmglobalmean"
   python $aqua/diagnostics/atmglobalmean/cli/cli_atmglobalmean.py $args_atm --outputdir $outputdir/atmglobalmean
 fi
 
-if [ "$dummy" = true ] ; then
-  echo "Running dummy"
-  python $aqua/diagnostics/dummy/cli/cli_dummy.py $args --outputdir $outputdir/dummy
-fi
-
-if [ "$ecmean" = true ] ; then
+if [ "$run_ecmean" = true ] ; then
   scriptpy="$aqua/diagnostics/ecmean/cli/ecmean_cli.py"
   python $scriptpy $args -o $outputdir/ecmean -l $loglevel
 fi
 
-if [ "$global_time_series" = true ] ; then
+if [ "$run_global_time_series" = true ] ; then
   echo "Running global_time_series"
 
   filepy="$aqua/diagnostics/global_time_series/cli/single_analysis/cli_global_time_series.py"
@@ -103,27 +109,26 @@ if [ "$global_time_series" = true ] ; then
   python $filepy $args_oce --outputdir $outputdir/global_time_series --config $conf_oce -l $loglevel
 fi
 
-if [ "$ocean3d" = true ] ; then
+if [ "$run_ocean3d" = true ] ; then
   # Moving to ocean3d directory to run the ocean3d_cli.py script
   cd $aqua/diagnostics/ocean3d/cli
   python $aqua/diagnostics/ocean3d/cli/ocean3d_cli.py $args_oce --outputdir $outputdir/ocean3d
 
   # Moving back to aqua-analysis directory
   cd $aqua/cli/aqua-analysis
-
 fi
 
-if [ "$radiation" = true ] ; then
+if [ "$run_radiation" = true ] ; then
   echo "Running radiation"
   python $aqua/diagnostics/radiation/cli/cli_radiation.py $args_atm --outputdir $outputdir/radiation
 fi
 
-if [ "$seaice" = true ] ; then
+if [ "$run_seaice" = true ] ; then
   echo "Running seaice"
   python $aqua/diagnostics/seaice/cli/cli_seaice.py $args_oce --outputdir $outputdir/seaice
 fi
 
-if [ "$teleconnections" = true ] ; then
+if [ "$run_teleconnections" = true ] ; then
   # Move to the teleconnection CLI directory
   cd $aqua/diagnostics/teleconnections/cli/single_analysis
 

@@ -15,7 +15,7 @@ Unreleased is the current development version.
 - Custom exceptions for AQUA (#518)
 - Speed up of the `retrieve_plain` method (#524)
 - Update documention for adding new data and setting up the container (Increase documentation coverage #519)
-- CLI wrapper for the state-of-the-art diagnostics analysis (#517, #527, #525, #530, #534)
+- CLI wrapper for the state-of-the-art diagnostics analysis (#517, #527, #525, #530, #534, #548)
 - Refactor the regrid.yaml as grid-based instead of experiment-based (#291)
 - aqua_common environment simplified and updated (#498)
 - Update available variables in FDB catalogues on lumi (#514)
