@@ -19,6 +19,9 @@ aqua="/home/b/b382289/AQUA"
 
 machine="levante" # will change the aqua config file
 
+# When available, use the following variables to set the loglevel
+loglevel="WARNING" # DEBUG, INFO, WARNING, ERROR, CRITICAL
+
 # Set as true the diagnostics you want to run
 # -------------------------------------------
 atmglobalmean=false
@@ -82,7 +85,7 @@ fi
 
 if [ "$ecmean" = true ] ; then
   scriptpy="$aqua/diagnostics/ecmean/cli/ecmean_cli.py"
-  python $scriptpy $args -o $outputdir/ecmean -l INFO
+  python $scriptpy $args -o $outputdir/ecmean -l $loglevel
 fi
 
 if [ "$global_time_series" = true ] ; then
@@ -110,8 +113,8 @@ if [ "$teleconnections" = true ] ; then
   # Move to the teleconnection CLI directory
   cd $aqua/diagnostics/teleconnections/cli/single_analysis
 
-  python cli_teleconnections.py $args_atm --outputdir $outputdir/teleconnections --config cli_config_atm.yaml --obs
-  python cli_teleconnections.py $args_oce --outputdir $outputdir/teleconnections --config cli_config_oce.yaml --obs
+  python cli_teleconnections.py $args_atm --outputdir $outputdir/teleconnections --config cli_config_atm.yaml --obs -l $loglevel
+  python cli_teleconnections.py $args_oce --outputdir $outputdir/teleconnections --config cli_config_oce.yaml --obs -l $loglevel
 
   # Move back to the aqua-analysis directory
   cd $aqua/cli/aqua-analysis
