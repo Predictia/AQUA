@@ -26,7 +26,13 @@ global_time_series=false
 ocean3d=true
 radiation=false
 seaice=false
-teleconnection=false
+teleconnections=true
+# teleconnections additional flags
+# ---------------------------------------------------------------
+# --loglevel, -l (can be DEBUG, INFO, WARNING, ERROR, CRITICAL)
+# --dry, -d (dry run, if set it will run without producing plots)
+# --obs (if set it will run the teleconnections also for ERA5)
+# ---------------------------------------------------------------
 
 # End of user defined variables
 # -----------------------------
@@ -42,6 +48,9 @@ else
   echo "AQUA path is defined, using $AQUA"
   aqua=$AQUA
 fi
+
+# print the output directory
+echo "Output directory: $outputdir"
 
 if [ "$atmglobalmean" = true ] ; then
   echo "Running atmglobalmean"
@@ -84,10 +93,17 @@ if [ "$seaice" = true ] ; then
   python $aqua/diagnostics/seaice/cli/cli_seaice.py $args_oce --outputdir $outputdir/seaice
 fi
 
-if [ "$teleconnection" = true ] ; then
-  echo "Running teleconnection"
-  python $aqua/diagnostics/teleconnection/cli/cli_teleconnection.py $args_atm --outputdir $outputdir/teleconnection --config $aqua/diagnostics/teleconnection/cli/config_atm.yaml
-  python $aqua/diagnostics/teleconnection/cli/cli_teleconnection.py $args_oce --outputdir $outputdir/teleconnection --config $aqua/diagnostics/teleconnection/cli/config_oce.yaml
+if [ "$teleconnections" = true ] ; then
+  # Move to the teleconnection CLI directory
+  cd $aqua/diagnostics/teleconnections/cli/single_analysis
+
+  python cli_teleconnections.py $args_atm --outputdir $outputdir/teleconnections --config cli_config_atm.yaml --obs
+  python cli_teleconnections.py $args_oce --outputdir $outputdir/teleconnections --config cli_config_oce.yaml --obs
+
+  # Move back to the aqua-analysis directory
+  cd $aqua/cli/aqua-analysis
+
+  echo "Finished teleconnections"
 fi
 
 echo "Finished"
