@@ -20,7 +20,7 @@ ecmean=false
 global_time_series=false
 ocean3d=false
 radiation=false
-seaice=false
+seaice=true
 teleconnection=false
 
 # End of user defined variables
@@ -71,7 +71,7 @@ fi
 
 if [ "$seaice" = true ] ; then
   echo "Running seaice"
-  python $aqua/diagnostics/seaice/cli/cli_seaice.py $args_oce --outputdir $outputdir/seaice
+  python $aqua/diagnostics/seaice/cli/seaice_cli.py $args_oce --outputdir $outputdir/seaice
 fi
 
 if [ "$teleconnection" = true ] ; then
