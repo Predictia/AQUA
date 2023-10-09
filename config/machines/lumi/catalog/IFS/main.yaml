@@ -24,3 +24,8 @@ sources:
     driver: yaml_file_cat
     args:
       path: '{{CATALOG_DIR}}/historical-1990-devcon.yaml'
+  dev-control-1990-nemo:
+    description: FDB IFS/NEMO historical run
+    driver: yaml_file_cat
+    args:
+      path: '{{CATALOG_DIR}}/dev-control-1990-nemo.yaml'
