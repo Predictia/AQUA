@@ -5,7 +5,7 @@ import os
 import sys
 
 from aqua import Reader
-from aqua.util import load_yaml, get_arg
+from aqua.util import load_yaml, get_arg, create_folder
 from aqua.exceptions import NoObservationError
 
 # This is needed if loading from the cli directory
@@ -54,19 +54,20 @@ if __name__ == '__main__':
     source = get_arg(args, 'source', ocean3d_config['source'])
     outputdir = get_arg(args, 'outputdir', ocean3d_config['outputdir'])
 
-    if not os.path.exists('outputdir'):
-        os.makedirs('outputdir')
+    create_folder(outputdir)
 
     print(f"Reader selecting for model={model}, exp={exp}, source={source}")
     try:
         reader = Reader(model, exp, source, fix=True)
     except KeyError:
+        # NOTE: This should be a proper NoDataError
         print("NoDataError: No data available")
         sys.exit(0)
 
     data = reader.retrieve()
 
     # HACK: FESOM data has nz1 as the vertical dimension
+    #       Check issue #531 for more details
     if model == 'FESOM':
         data = data.rename({"nz1": "lev"})
 

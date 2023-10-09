@@ -419,8 +419,8 @@ def dir_creation(region=None,  latS: float = None, latN: float = None, lonW: flo
         filename = f"{plot_name}_{region.replace(' ', '_').lower()}"
 
     # output_path = f"{output_dir}/"
-    fig_dir = f"{output_dir}/PDF"
-    data_dir = f"{output_dir}/NetCDF"
+    fig_dir = f"{output_dir}/pdf"
+    data_dir = f"{output_dir}/netcdf"
     os.makedirs(fig_dir, exist_ok=True)
     os.makedirs(data_dir, exist_ok=True)
     return output_dir, fig_dir, data_dir, filename
