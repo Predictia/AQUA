@@ -27,6 +27,10 @@ def parse_arguments(args):
     parser.add_argument("-c", "--config",
                         type=str, required=False,
                         help="yaml configuration file")
+    parser.add_argument("--loglevel", "-l", type=str,
+                        required=False, help="loglevel")
+    
+    # These will override the ones in the config file if provided
     parser.add_argument("--model", type=str,
                         required=False, help="model name")
     parser.add_argument("--exp", type=str,
@@ -35,8 +39,6 @@ def parse_arguments(args):
                         required=False, help="source name")
     parser.add_argument("--outputdir", type=str,
                         required=False, help="output directory")
-    parser.add_argument("--loglevel", "-l", type=str,
-                        required=False, help="loglevel")
 
     return parser.parse_args(args)
 
@@ -125,7 +127,7 @@ if __name__ == '__main__':
     logger.debug(f"source: {source}")
     logger.debug(f"outputdir: {outputdir}")
 
-    outputdir_nc = os.path.join(outputdir, "NetCDF")
+    outputdir_nc = os.path.join(outputdir, "netcdf")
     create_folder(folder=outputdir_nc, loglevel=loglevel)
     outputdir_pdf = os.path.join(outputdir, "pdf")
     create_folder(folder=outputdir_pdf, loglevel=loglevel)
@@ -145,39 +147,21 @@ if __name__ == '__main__':
             logger.info(f"Output file: {filename_nc}")
 
             # Reading the configuration file
-            pippo = config["timeseries"].get(var)
-            if pippo:
-                plot_kw = pippo.get("plot_kw")
-                plot_era5 = pippo.get("plot_era5", False)
-                
-            if pippo:
-
-            if plot_kw in config["timeseries"][var]: # get method
-                dfsd
-            else:
-                dsdfsd
-            #change below
-            try:
-                plot_kw = config["timeseries"][var]["plot_kw"]
-            except KeyError:
-                plot_kw = None
-            try:
-                plot_era5 = config["timeseries"][var]["plot_era5"]
-            except KeyError:
-                plot_era5 = False
-            try:
-                resample = config["timeseries"][var]["resample"]
-            except KeyError:
-                logger.warning("No resample rate provided, using monthly.")
-                resample = "M"
-            try:
-                ylim = config["timeseries"][var]["ylim"]
-            except KeyError:
-                ylim = {}
-            try:
-                reader_kw = config["timeseries"][var]["reader_kw"]
-            except KeyError:
-                reader_kw = {}  # empty dict, source will be added later
+            plot_options = config["timeseries_plot_params"].get(var)
+            if plot_options:
+                plot_kw = plot_options.get("plot_kw", None)
+                plot_era5 = plot_options.get("plot_era5", False)
+                resample = plot_options.get("resample", "M")
+                ylim = plot_options.get("ylim", {})
+                reader_kw = plot_options.get("reader_kw", {})
+                savefig = plot_options.get("savefig", True)
+            else:  # default
+                plot_kw = config["timeseries_plot_params"]["default"].get("plot_kw", None)
+                plot_era5 = config["timeseries_plot_params"]["default"].get("plot_era5", False)
+                resample = config["timeseries_plot_params"]["default"].get("resample", "M")
+                ylim = config["timeseries_plot_params"]["default"].get("ylim", {})
+                reader_kw = config["timeseries_plot_params"]["default"].get("reader_kw", {})
+                savefig = config["timeseries_plot_params"]["default"].get("savefig", True)
             # add source to reader_kw
             reader_kw["source"] = source
 
@@ -198,7 +182,7 @@ if __name__ == '__main__':
                 logger.error("This is a bug, please report it.")
                 continue
 
-            if "savefig" in config["timeseries"][var]:
+            if savefig:
                 filename_pdf = create_filename(outputdir=outputdir,
                                                plotname=var, type="pdf",
                                                model=model, exp=exp,
@@ -239,8 +223,8 @@ if __name__ == '__main__':
 
         try:
             plot_gregory(model=model, exp=exp, reader_kw=reader_kw,
-                        plot_kw=plot_kw, ax=ax, outfile=filename_nc,
-                        freq=resample)
+                         plot_kw=plot_kw, ax=ax, outfile=filename_nc,
+                         freq=resample)
         except (NotEnoughDataError, NoDataError) as e:
             logger.error(f"Error: {e}")
         except Exception as e:
