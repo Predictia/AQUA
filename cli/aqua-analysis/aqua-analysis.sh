@@ -33,7 +33,11 @@ ecmean=true
 # -i --interface custom interface file
 # -l --loglevel loglevel
 # ---------------------------------------
-global_time_series=false
+global_time_series=true
+# global time series additional flags
+# ---------------------------------------------------------------
+# --loglevel, -l (can be DEBUG, INFO, WARNING, ERROR, CRITICAL)
+# ---------------------------------------------------------------
 ocean3d=true
 radiation=false
 seaice=false
@@ -90,8 +94,13 @@ fi
 
 if [ "$global_time_series" = true ] ; then
   echo "Running global_time_series"
-  python $aqua/diagnostics/global_time_series/cli/cli_global_time_series.py $args_atm --outputdir $outputdir/global_time_series --config $aqua/diagnostics/global_time_series/cli/config_atm.yaml
-  python $aqua/diagnostics/global_time_series/cli/cli_global_time_series.py $args_oce --outputdir $outputdir/global_time_series --config $aqua/diagnostics/global_time_series/cli/config_oce.yaml
+
+  filepy="$aqua/diagnostics/global_time_series/cli/single_analysis/cli_global_time_series.py"
+  conf_atm="$aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_atm.yaml"
+  conf_oce="$aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_oce.yaml"
+
+  python $filepy $args_atm --outputdir $outputdir/global_time_series --config $conf_atm -l $loglevel
+  python $filepy $args_oce --outputdir $outputdir/global_time_series --config $conf_oce -l $loglevel
 fi
 
 if [ "$ocean3d" = true ] ; then
