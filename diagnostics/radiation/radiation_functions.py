@@ -1,47 +1,44 @@
 import os
 import xarray as xr
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-import calendar
 from cdo import Cdo
-import cartopy.crs as ccrs
-from matplotlib.legend_handler import HandlerTuple
 from aqua import Reader
-import matplotlib.gridspec as gridspec
 from aqua.util import create_folder
 
 cdo = Cdo(tempdir='./tmp/cdo-py')
-tempdir='./tmp/cdo-py'
+tempdir = './tmp/cdo-py'
 if not os.path.exists(tempdir):
     os.makedirs(tempdir)
 
-def new_process_ceres_data(exp, source):
+
+def new_process_ceres_data(exp=None, source=None):
     """
-    Extract CERES data for further analyis + create global means
+    Function to extract CERES data for further analyis + create global means
 
     Args:
-        exp:                            input experiment to be selected from the catalogue
-        source:                         input source to be selected from the catalogue
-        TOA_icon_gm:                    this is necessary to setting time axis to the same time axis as model output (modify if needed)
+        exp (str):   Input experiment to be selected from the catalogue.
+        source (str): Input source to be selected from the catalogue.
 
     Returns:
-        TOA_ceres_clim_gm:
-        TOA_ceres_ebaf_gm: 
-        TOA_ceres_diff_samples_gm:
-        reader_ceres_toa,
-        TOA_ceres_clim,
-        TOA_ceres_diff_samples: # returns the necessary ceres data for further evaluation
+        dict: A dictionary containing the following information:
+            - "model": "CERES".
+            - "exp": Experiment name.
+            - "source": Source name.
+            - "gm": Global means of CERES data.
+            - "clim_gm": Global means of climatology data.
+            - "anom_gm": Global means of monthly anomalies data.
+            - "clim": Climatology data.
+            - "anom": Monthly anomalies data.
     """
 
     # reader_ceres_toa
     reader = Reader(model='CERES', exp=exp, source=source, regrid='r100')
     data = reader.retrieve()
-    data['tnr']=data['mtntrf'] + data['mtnsrf']
-    ceres = reader.regrid(data[['tnr','mtntrf', 'mtnsrf']])
-
+    data['tnr'] = data['mtntrf'] + data['mtnsrf']
+    ceres = reader.regrid(data[['tnr', 'mtntrf', 'mtnsrf']])
 
     # limit to years that are complete
     complete = data.sel(time=slice('2001', '2021'))
@@ -66,26 +63,31 @@ def new_process_ceres_data(exp, source):
         "anom": monthly_anomalies
 
     }
-
     return dictionary
 
-def new_process_model_data(model, exp, source):
+
+def new_process_model_data(model=None, exp=None, source=None):
     """
-    Extract Model output data for further analyis + create global means
-    Example: TOA_ifs_4km_gm, reader_ifs_4km, data_ifs_4km, TOA_ifs_4km, TOA_ifs_4km_r360x180 = radiation_diag.process_model_data(model =  'IFS' , exp = 'tco2559-ng5-cycle3' , source = 'lra-r100-monthly')
+    Function to extract Model output data for further analysis and create global means.
 
     Args:
-        model:                          input model to be selected from the catalogue
-        exp:                            input experiment to be selected from the catalogue
-        source:                         input source to be selected from the catalogue
+        model (str):   Input model to be selected from the catalogue.
+        exp (str):     Input experiment to be selected from the catalogue.
+        source (str):  Input source to be selected from the catalogue.
 
     Returns:
-        TOA_model_gm, reader_model, data_model, TOA_model, TOA_model_r360x180:       returns the necessary ceres data for further evaluation (xarrayDatSet, -Array, reader, regridded DataSet and Global                                                                                           means
+        dict: A dictionary containing the following information:
+            - "model": Model name.
+            - "exp": Experiment name.
+            - "source": Source name.
+            - "gm": Global means of model output data.
+            - "data": Model output data.
     """
 
-    reader = Reader(model=model, exp=exp, source=source, regrid='r100', fix=False)
+    reader = Reader(model=model, exp=exp, source=source,
+                    regrid='r100', fix=False)
     data = reader.retrieve(var=['mtntrf', 'mtnsrf'])
-    data['tnr']=data['mtntrf'] + data['mtnsrf']
+    data['tnr'] = data['mtntrf'] + data['mtnsrf']
     gm = reader.fldmean(data)
 
     dictionary = {
@@ -99,55 +101,54 @@ def new_process_model_data(model, exp, source):
     return dictionary
 
 
-def new_barplot_model_data(datasets, model_names, outputdir, outputfig, year=None):
+def new_barplot_model_data(datasets=None, model_names=None, outputdir='./', outputfig='./', year=None, fontsize=14):
     """
-    Create Bar Plot with various models and CERES. Variables ttr and tsr are plotted to show imbalances.
-    Default mean for CERES data is the whole time range.
+    Create a grouped bar plot with various models and CERES data. Variables 'ttr' and 'tsr' are plotted to show imbalances.
+    The default mean for CERES data is calculated over the entire time range.
 
     Args:
-        datasets:      a list of xarrayDataSets that should be plotted. Chose the global means (TOA_$model_gm)
-        model_names:   your desired naming for the plotting
-        year:          the year for which the plot is generated (optional)
+        datasets (list of xarray.DataSets): A list of xarray.DataSets to be plotted (e.g., global means).
+        model_names (list of str):      Your desired naming for the plotting, corresponding to the datasets.
+        outputdir (str, optional):      Directory where the output data will be saved (default is './').
+        outputfig (str, optional):      Directory where the output figure will be saved (default is './').
+        year (int, optional):           The year for which the plot is generated (optional).
+        fontsize (int, optional):       Font size for labels and legends in the plot (default is 14).
 
     Returns:
-        A bar plot
+        A bar plot showing the global mean radiation variables ('ttr' and 'tsr') for different models and CERES data.
 
     Example:
 
     .. code-block:: python
 
-        datasets = [TOA_ceres_clim_gm, TOA_icon_gm, TOA_ifs_4km_gm, TOA_ifs_9km_gm]
-        model_names = ['ceres', 'ICON', 'IFS 4.4 km', 'IFS 9 km']
-        barplot_model_data(datasets, model_names, year = 2022)
+        datasets = [ceres['clim_gm'], icon['gm'], ifs_4km['gm'], ifs_9km['gm']]
+        model_names = ['ceres', 'icon', 'ifs 4.4 km', 'ifs 9 km']
+        new_barplot_model_data(datasets, model_names, outputdir='test', outputfig='test')
     """
-
-    #colors = ['red', 'blue', 'green', 'purple']  # Longwave (lw) in red, Shortwave (sw) in blue
     # Set a seaborn color palette
     sns.set_palette("pastel")
-    #variables = ["mtntrf", "mtnsrf"]  # Fixed order: ttr (lw), tsr (sw)
-
-    #global_means = {}
-
-    data = pd.DataFrame({
-        'Models': model_names,
-        'mtntrf': [-datasets[i]["mtntrf"].mean().values.item() for i in range (0, len(datasets))],
-        'mtnsrf': [datasets[i]["mtnsrf"].mean().values.item() for i in range (0, len(datasets))]
-    })
+    global_mean = {'Variables': ["mtntrf", "mtnsrf"]}
+    for i in range(0, len(datasets)):
+        global_mean.update({model_names[i]: [-datasets[i]["mtntrf"].mean(
+        ).values.item(), datasets[i]["mtnsrf"].mean().values.item()]})
+    global_mean = pd.DataFrame(global_mean)
 
     sns.set_palette("pastel")
-
     # Create a grouped bar plot
-    ax = data.plot(x='Models', kind='bar', figsize=(8, 6))
+    ax = global_mean.plot(x='Variables', kind='bar', figsize=(8, 6))
     # Show the plot
-    plt.legend(title='Groups')
-    #ax.set_xticklabels( ('mtntrf', 'mtnsrf') )
-    plt.xlabel('Model')
-    plt.ylabel('Global mean ($W/m^2$)')
+    plt.legend(title='Datasets', fontsize=fontsize-2)
+    plt.xlabel('Variables', fontsize=fontsize)
+    plt.ylabel('Global mean ($W/m^2$)', fontsize=fontsize)
     plt.ylim(236, 250)
+    plt.xticks(rotation=0, fontsize=fontsize-2)
+    plt.yticks(fontsize=fontsize-2)
     if year is not None:
-        plt.title(f"Global Mean TOA radiation for different models ({year}) (all CERES years from 2001 to 2021)")
+        plt.title(
+            f"Global Mean TOA radiation for different models ({year}) (all CERES years from 2001 to 2021)", fontsize=fontsize+2)
     else:
-        plt.title('Global Mean TOA radiation for different models') # (mean over all model times)')
+        plt.title('Global Mean TOA radiation for different models',
+                  fontsize=fontsize+2)  # (mean over all model times)')
 
     create_folder(folder=str(outputfig), loglevel='WARNING')
 
@@ -158,7 +159,7 @@ def new_barplot_model_data(datasets, model_names, outputdir, outputfig, year=Non
     create_folder(folder=str(outputdir), loglevel='WARNING')
 
     # Save the data to a NetCDF file
-    output_data = xr.Dataset(global_means)
+    output_data = xr.Dataset(global_mean)
     filename = f"{outputdir}/BarPlot.nc"
     output_data.to_netcdf(filename)
 
