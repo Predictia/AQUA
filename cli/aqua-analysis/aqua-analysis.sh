@@ -99,8 +99,8 @@ if [ "$global_time_series" = true ] ; then
   conf_atm="$aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_atm.yaml"
   conf_oce="$aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_oce.yaml"
 
-  python $filepy $args_atm --outputdir $outputdir/global_time_series --config $conf_atm -l INFO
-  python $filepy $args_oce --outputdir $outputdir/global_time_series --config $conf_oce -l INFO
+  python $filepy $args_atm --outputdir $outputdir/global_time_series --config $conf_atm -l $loglevel
+  python $filepy $args_oce --outputdir $outputdir/global_time_series --config $conf_oce -l $loglevel
 fi
 
 if [ "$ocean3d" = true ] ; then
