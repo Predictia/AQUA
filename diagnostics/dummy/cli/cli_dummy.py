@@ -5,6 +5,7 @@ AQUA dummy diagnositc command line interface.
 Check that the imports are correct and the requested model is available in the
 Reader catalogue.
 '''
+import os
 import sys
 import argparse
 
@@ -34,6 +35,13 @@ if __name__ == '__main__':
 
     print('Running check setup CLI..')
     args = parse_arguments(sys.argv[1:])
+
+    # change the current directory to the one of the CLI so that relative path works
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    if os.getcwd() != dname:
+        os.chdir(dname)
+        print(f'Moving from current directory to {dname} to run!')
 
     # Checking imports
     try:
