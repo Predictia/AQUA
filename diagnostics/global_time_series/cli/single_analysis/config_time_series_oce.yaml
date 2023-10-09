@@ -5,10 +5,24 @@ exp: "tco2559-ng5-cycle3"
 source: "lra-r100-monthly"
 outputdir: "./"
 
-timeseries:
-  sst: # each variable will be a separate plot and can have custom kwargs
+# This is the list of variables that will be plotted as timeseries
+timeseries: ['ci', 'sos', 'sst']
+
+timeseries_plot_params:
+# These are options that specify how the data is plotted
+# Default values are used if the variable that is being
+# plotted is not specified here.
+# If you need specific options for a variable, you can
+# add it here.
+  default:
     plot_kw:
       color: "tab:blue"
     plot_era5: True
     resample: "M"
     savefig: True
+  # sst:
+  #   plot_kw:
+  #     color: "tab:blue"
+  #   plot_era5: True
+  #   resample: "M"
+  #   savefig: True
