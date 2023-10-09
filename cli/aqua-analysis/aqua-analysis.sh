@@ -17,11 +17,22 @@ source="lra-r100-monthly"
 outputdir="/scratch/b/b382289/cli_test"
 aqua="/home/b/b382289/AQUA"
 
+machine="levante" # will change the aqua config file
+
+# When available, use the following variables to set the loglevel
+loglevel="WARNING" # DEBUG, INFO, WARNING, ERROR, CRITICAL
+
 # Set as true the diagnostics you want to run
 # -------------------------------------------
 atmglobalmean=false
 dummy=false # dummy is a test diagnostic
-ecmean=false
+ecmean=true
+# ---------------------------------------
+# Command line extra arguments for ecmean
+# -c --config ecmean config file
+# -i --interface custom interface file
+# -l --loglevel loglevel
+# ---------------------------------------
 global_time_series=false
 ocean3d=false
 radiation=false
@@ -49,6 +60,16 @@ else
   aqua=$AQUA
 fi
 
+# set the correct machine in the config file
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  # Mac OSX
+  sed -i '' "/^machine:/c\\
+machine: $machine" "$aqua/config/config-aqua.yaml"
+else
+  # Linux
+  sed -i "/^machine:/c\\machine: $machine" "$aqua/config/config-aqua.yaml"
+fi
+
 # print the output directory
 echo "Output directory: $outputdir"
 
@@ -63,8 +84,8 @@ if [ "$dummy" = true ] ; then
 fi
 
 if [ "$ecmean" = true ] ; then
-  echo "Running ecmean"
-  python $aqua/diagnostics/ecmean/cli/cli_ecmean.py $args --outputdir $outputdir/ecmean
+  scriptpy="$aqua/diagnostics/ecmean/cli/ecmean_cli.py"
+  python $scriptpy $args -o $outputdir/ecmean -l $loglevel
 fi
 
 if [ "$global_time_series" = true ] ; then
@@ -92,8 +113,8 @@ if [ "$teleconnections" = true ] ; then
   # Move to the teleconnection CLI directory
   cd $aqua/diagnostics/teleconnections/cli/single_analysis
 
-  python cli_teleconnections.py $args_atm --outputdir $outputdir/teleconnections --config cli_config_atm.yaml --obs
-  python cli_teleconnections.py $args_oce --outputdir $outputdir/teleconnections --config cli_config_oce.yaml --obs
+  python cli_teleconnections.py $args_atm --outputdir $outputdir/teleconnections --config cli_config_atm.yaml --obs -l $loglevel
+  python cli_teleconnections.py $args_oce --outputdir $outputdir/teleconnections --config cli_config_oce.yaml --obs -l $loglevel
 
   # Move back to the aqua-analysis directory
   cd $aqua/cli/aqua-analysis
