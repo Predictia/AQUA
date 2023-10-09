@@ -79,7 +79,13 @@ echo "Output directory: $outputdir"
 
 if [ "$run_dummy" = true ] ; then
   echo "Running setup checker"
-  python $aqua/diagnostics/dummy/cli/cli_dummy.py $args --outputdir $outputdir/dummy -l $loglevel
+  python $aqua/diagnostics/dummy/cli/cli_dummy.py $args -l $loglevel
+
+  # exit if dummy fails
+  if [ $? -ne 0 ]; then
+    echo "Setup checker failed, exiting"
+    exit 1
+  fi
 fi
 
 if [ "$run_atmglobalmean" = true ] ; then
