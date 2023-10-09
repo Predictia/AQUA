@@ -51,8 +51,15 @@ def reader_data(model, exp, source, keep_vars):
     # if False/None return empty array
     if model is False:
         return None
-    reader = Reader(model=model, exp=exp, source=source, areas=False, fix=False)
-    data = reader.retrieve()
+    
+    # Try to read the data, if dataset is not available return None
+    try:
+        reader = Reader(model=model, exp=exp, source=source, areas=False,
+                        fix=False)
+        data = reader.retrieve()
+    except Exception as err:
+        logger.error('Error while reading model %s: %s', model, err)
+        return None
 
     # return only vars that are available
     if keep_vars is None:
@@ -78,26 +85,22 @@ if __name__ == '__main__':
     loglevel = get_arg(args, 'loglevel', loglevel)
     logger = log_configure(log_level=loglevel, log_name='PI')
 
-    # setting default from configuration files
-    model_atm = configfile['dataset']['model_atm']
-    model_oce = configfile['dataset']['model_oce']
-    exp = configfile['dataset']['exp']
+    # setting options from configuration files
     atm_vars = configfile['dataset']['atm_vars']
     oce_vars = configfile['dataset']['oce_vars']
     numproc = configfile['compute']['numproc']
     config = configfile['setup']['config_file']
-    outputdir = configfile['setup']['outputdir']
 
-    # define the interface file 
+    # define the interface file
     Configurer = ConfigPath(configdir=None)
     interface = '../config/interface_AQUA_' + Configurer.machine + '.yml'
 
     # activate override from command line
-    exp = get_arg(args, 'exp', exp)
+    exp = get_arg(args, 'exp', configfile['dataset']['exp'])
     source = get_arg(args, 'source', 'lra-r100-monthly')
-    model_atm = get_arg(args, 'model_atm', model_atm)
-    model_oce = get_arg(args, 'model_oce', model_oce)
-    outputdir = get_arg(args, 'outputdir', outputdir)
+    model_atm = get_arg(args, 'model_atm', configfile['dataset']['model_atm'])
+    model_oce = get_arg(args, 'model_oce', configfile['dataset']['model_oce'])
+    outputdir = get_arg(args, 'outputdir', configfile['setup']['outputdir'])
     interface = get_arg(args, 'interface', interface)
     logger.debug('interface file %s', interface)
 
@@ -114,25 +117,34 @@ if __name__ == '__main__':
     # create a single dataset
     if data_oce is None:
         data = data_atm
+        logger.info('No oceanic data, only atmospheric data will be used')
     elif data_atm is None:
         data = data_oce
+        logger.info('No atmospheric data, only oceanic data will be used')
     else:
         data = xr.merge([data_atm, data_oce])
+        logger.debug('Merging atmospheric and oceanic data')
+
+    # Quit if no data is available
+    if data is None:
+        logger.error('No data available, exiting...')
+        exit(0)
 
     # guessing years from the dataset
     year1 = int(data.time[0].values.astype('datetime64[Y]').astype(str))
     year2 = int(data.time[-1].values.astype('datetime64[Y]').astype(str))
-    logger.warning('Guessing starting year %s and ending year %s', year1, year2)
+    logger.warning('Guessing starting year %s and ending year %s',
+                   year1, year2)
 
     # run the performance indices if you have at least 12 month of data
-    if len(data.time)<12:
+    if len(data.time) < 12:
+        # NOTE: this should become a NotEnoughData exception
         logger.error('Not enough data, exiting...')
         exit(0)
     else:
         logger.warning('Launching ECmean performance indices...')
         performance_indices(exp, year1, year2, numproc=numproc, config=config,
-                interface=interface, loglevel=loglevel, outputdir=outputdir,
-                xdataset=data)
-
+                            interface=interface, loglevel=loglevel,
+                            outputdir=outputdir, xdataset=data)
 
     print('AQUA ECmean4 Performance diagnostic run completed. Go outside and live your life!')
