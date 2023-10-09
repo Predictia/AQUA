@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Orography for tempest extremes TCs detection and update TCs CLI (Orography threshold included and CLI update #404)
 - Improvement of performance indices CLI (Update of ECmean CLI #528)
 - Fix to allow reading a list of multiple variables from FDB (#545)
 - Further improvement of function to inspect the catalogue (#533)
