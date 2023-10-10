@@ -7,12 +7,12 @@ sources:
         expver: a0c7
         type: fc
         stream: lwda
-        date: 19500101
+        date: 19900101
         time: '0000'
         param: 2t
         levtype: sfc
         step: 0
-      data_start_date: 19500101T0000
+      data_start_date: 19900101T0000
       data_end_date: 19900430T2300
       aggregation: D  # Default aggregation / chunk size
       savefreq: H  # at what frequency are data saved
