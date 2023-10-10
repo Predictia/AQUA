@@ -98,6 +98,7 @@ if [ "$run_dummy" = true ] ; then
     colored_echo $RED "Setup checker failed, exiting"
     exit 1
   fi
+  colored_echo $GREEN "Finished setup checker"
 fi
 
 if [ "$run_atmglobalmean" = true ] ; then
