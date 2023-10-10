@@ -34,14 +34,15 @@ run_ecmean=true
 # ---------------------------------------
 run_global_time_series=true
 run_ocean3d=true
-run_radiation=false
-run_seaice=false
+run_radiation=false # not implemented yet
+run_seaice=false # not implemented yet
 run_teleconnections=true
 # teleconnections additional flags
 # ---------------------------------------------------------------
 # --dry, -d (dry run, if set it will run without producing plots)
 # --obs (if set it will run the teleconnections also for ERA5)
 # ---------------------------------------------------------------
+run_tropical_rainfall=true
 
 # End of user defined variables
 # -----------------------------
@@ -158,6 +159,14 @@ if [ "$run_teleconnections" = true ] ; then
   cd $aqua/cli/aqua-analysis
 
   colored_echo $GREEN "Finished teleconnections"
+fi
+
+if [ "$run_tropical_rainfall" = true ] ; then
+  colored_echo $GREEN "Running tropical rainfall"
+  cd $aqua/diagnostics/tropical_rainfall/cli
+  python $aqua/diagnostics/tropical_rainfall/cli/cli_tropical_rainfall.py $args_atm --outputdir $outputdir/tropical_rainfall -l $loglevel
+  cd $aqua/cli/aqua-analysis
+  colored_echo $GREEN "Finished tropical rainfall"
 fi
 
 colored_echo $GREEN "Finished all diagnostics"
