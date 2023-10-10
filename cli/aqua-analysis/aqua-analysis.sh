@@ -19,7 +19,7 @@ aqua="/home/b/b382289/AQUA"
 
 machine="levante" # will change the aqua config file
 
-# When available, use the following variables to set the loglevel
+# When available, this will set the loglevel for the diagnostics
 loglevel="WARNING" # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # Set as true the diagnostics you want to run
@@ -31,20 +31,14 @@ run_ecmean=true
 # Command line extra arguments for ecmean
 # -c --config ecmean config file
 # -i --interface custom interface file
-# -l --loglevel loglevel
 # ---------------------------------------
 run_global_time_series=true
-# global time series additional flags
-# ---------------------------------------------------------------
-# --loglevel, -l (can be DEBUG, INFO, WARNING, ERROR, CRITICAL)
-# ---------------------------------------------------------------
 run_ocean3d=true
 run_radiation=false
 run_seaice=false
 run_teleconnections=true
 # teleconnections additional flags
 # ---------------------------------------------------------------
-# --loglevel, -l (can be DEBUG, INFO, WARNING, ERROR, CRITICAL)
 # --dry, -d (dry run, if set it will run without producing plots)
 # --obs (if set it will run the teleconnections also for ERA5)
 # ---------------------------------------------------------------
@@ -104,7 +98,7 @@ fi
 if [ "$run_atmglobalmean" = true ] ; then
   colored_echo $GREEN "Running atmglobalmean"
   cd $aqua/diagnostics/atmglobalmean/cli
-  python cli_atm_mean_bias.py $args_atm --outputdir $outputdir/atmglobalmean
+  python cli_atm_mean_bias.py $args_atm --outputdir $outputdir/atmglobalmean -l $loglevel
   cd $aqua/cli/aqua-analysis
   colored_echo $GREEN "Finished atmglobalmean"
 fi
