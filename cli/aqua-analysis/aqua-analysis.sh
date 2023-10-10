@@ -24,24 +24,24 @@ loglevel="WARNING" # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # Set as true the diagnostics you want to run
 # -------------------------------------------
-run_dummy=true # dummy is a diagnostic that checks if the setup is correct
+run_dummy=false # dummy is a diagnostic that checks if the setup is correct
 run_atmglobalmean=false
-run_ecmean=true
+run_ecmean=false
 # ---------------------------------------
 # Command line extra arguments for ecmean
 # -c --config ecmean config file
 # -i --interface custom interface file
 # -l --loglevel loglevel
 # ---------------------------------------
-run_global_time_series=true
+run_global_time_series=false
 # global time series additional flags
 # ---------------------------------------------------------------
 # --loglevel, -l (can be DEBUG, INFO, WARNING, ERROR, CRITICAL)
 # ---------------------------------------------------------------
-run_ocean3d=true
-run_radiation=false
-run_seaice=false
-run_teleconnections=true
+run_ocean3d=false
+run_radiation=false # not implemented yet
+run_seaice=false # not implemented yet
+run_teleconnections=false
 # teleconnections additional flags
 # ---------------------------------------------------------------
 # --loglevel, -l (can be DEBUG, INFO, WARNING, ERROR, CRITICAL)
@@ -168,7 +168,7 @@ fi
 if [ "$run_tropical_rainfall" = true ] ; then
   colored_echo $GREEN "Running tropical rainfall"
   cd $aqua/diagnostics/tropical_rainfall/cli
-  python $aqua/diagnostics/tropical_rainfall/cli/cli_tropical_rainfall.py $args_atm --outputdir $outputdir/tropical_rainfall
+  python $aqua/diagnostics/tropical_rainfall/cli/cli_tropical_rainfall.py $args_atm --outputdir $outputdir/tropical_rainfall -l $loglevel
   cd $aqua/cli/aqua-analysis
   colored_echo $GREEN "Finished tropical rainfall"
 fi
