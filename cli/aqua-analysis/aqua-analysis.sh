@@ -14,13 +14,13 @@ source="lra-r100-monthly"
 # aqua="/users/nurissom/AQUA"
 
 # LEVANTE
-outputdir="/scratch/b/b382289/cli_test"
+outputdir="/scratch/b/b382289/cli_test_test"
 aqua="/home/b/b382289/AQUA"
 
 machine="levante" # will change the aqua config file
 
 # When available, use the following variables to set the loglevel
-loglevel="WARNING" # DEBUG, INFO, WARNING, ERROR, CRITICAL
+loglevel="DEBUG" # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # Set as true the diagnostics you want to run
 # -------------------------------------------
