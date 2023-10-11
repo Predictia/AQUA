@@ -91,6 +91,9 @@ jobs:
               - conda-forge
           create-args: >-
             python=${{ matrix.python-version }}
+      - name: List Pip packages
+      run: |
+        pip freeze
       - name: Download and set up tests
         run: |
           ./download_data_for_tests.sh
