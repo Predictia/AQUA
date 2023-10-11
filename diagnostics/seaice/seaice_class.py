@@ -6,7 +6,7 @@ from aqua import Reader
 from aqua.exceptions import NoDataError
 from aqua.util import load_yaml, create_folder
 from aqua.logger import log_configure
-
+import os
 
 class SeaIceExtent:
     """Sea ice extent class"""
@@ -23,23 +23,20 @@ class SeaIceExtent:
                                 Default: WARNING
             threshold (float):  The sea ice extent threshold
                                 Default: 0.15
-            regions (str):      The path to the regions.yml file
-                                Default: ../regions_definition.yml
-            outputdir (str):    The path to the folder where outputs (NetCDF) will be stored
-                                Default: ./netcdf
+            regions_definition_file (str):      The path to the file that specifies the regions boundaries
+                                Default: ./regions_definition.yml
 
         Returns:
             A SeaIceExtent object.
 
         """
-
         # Configure logger
         self.loglevel = loglevel
         self.logger = log_configure(self.loglevel, 'Seaice')
-        self.mySetups = None
-        self.regionDict = load_yaml(regions)
-        self.myRegions = None
-        self.nRegions = None
+        if regions_definition_file is None:
+            regions_definition_file = os.path.dirname(os.path.abspath(__file__)) + "/regions_definition.yml"
+
+        self.regionDict = load_yaml(regions_definition_file)
         self.thresholdSeaIceExtent = threshold
         if outputdir is None:
             outputdir = "./"
@@ -88,10 +85,8 @@ class SeaIceExtent:
         The run diagnostic method.
 
         kwargs:
-            mySetups: A list of 3-item lists indicating which setups need to be plotted.
-                      A setup = model, experiment, source
-            myRegions: A list of regions to analyse.
-                       See regions_definition.yml file for the full list.
+            myConfig
+                      A config specifying data to plot and regions 
 
             The method produces as output a figure with the seasonal cycles
             of sea ice extent in the regions for the setups and a netcdf file
@@ -107,6 +102,13 @@ class SeaIceExtent:
         """
         Method which computes the seaice extent.
         """
+        # Convert the config yaml object to "setup" variable
+        nModels = len(self.config['models'])
+
+        self.mySetups = [[self.config['models'][jModels]['name'], self.config['models'][jModels]['experiment'], self.config['models'][jModels]['source']] for jModels in range(nModels)]
+
+        self.myRegions = self.config['regions']
+        self.nRegions = len(self.myRegions)
 
         # Instantiate the various readers (one per setup) and retrieve the
         # corresponding data
@@ -167,12 +169,18 @@ class SeaIceExtent:
 
                 self.logger.info("Producing diagnostic for region %s", region)
                 # Create regional mask
-                latS, latN, lonW, lonE = (
-                    self.regionDict[region]["latS"],
-                    self.regionDict[region]["latN"],
-                    self.regionDict[region]["lonW"],
-                    self.regionDict[region]["lonE"],
-                )
+                try:
+                    latS, latN, lonW, lonE = (
+                        
+                        self.regionDict[region]["latS"],
+                        self.regionDict[region]["latN"],
+                        self.regionDict[region]["lonW"],
+                        self.regionDict[region]["lonE"],
+                    )
+                except KeyError:
+                    self.logger.info("Error: region not defined")
+                    print("Region " + region + " does not exist in regions_definition.yml")
+                    exit(1)
 
                 # Dealing with regions straddling the 180° meridian
                 if lonW > lonE:

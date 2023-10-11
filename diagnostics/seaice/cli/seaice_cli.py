@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Sea ice Diagnostic CLI. Strongly Inspired from SSH equivalent
+Sea ice Diagnostic CLI. Strongly Inspired from its SSH equivalent
 
 This script allows users to execute sea ice diagnostics using command-line arguments.
 By default, it will read configurations from 'config.yml' unless specified by the user.
@@ -21,9 +21,11 @@ from aqua.util import get_arg, load_yaml
 # change the current directory to the one of the CLI so that relative path works
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
+
 if os.getcwd() != dname:
     os.chdir(dname)
     print(f'Moving from current directory to {dname} to run!')
+
 script_dir = dname
 sys.path.insert(0, "../..")
 # script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -77,7 +79,7 @@ if __name__ == '__main__':
 
     # Outputdir
     outputdir = get_arg(args, 'outputdir', None)
-    logger.debug(f"Output directory: {outputdir}")
+    #logger.debug(f"Output directory: {outputdir}")
 
     # Read configuration file.
     logger.warning('Reading configuration yaml file...')
