@@ -11,7 +11,7 @@ class SeaIceExtent:
     """Sea ice extent class"""
 
     def __init__(self, config_file, loglevel: str = 'ERROR', threshold=0.15,
-                 regions="../regions.yml", outputdir = "./NetCDF"):
+                 regions="../regions_definition.yml", outputdir = "./NetCDF"):
         """
         The SeaIceExtent constructor.
 
@@ -23,7 +23,7 @@ class SeaIceExtent:
             threshold (float):  The sea ice extent threshold
                                 Default: 0.15
             regions (str):      The path to the regions.yml file
-                                Default: ../regions.yml
+                                Default: ../regions_definition.yml
             outputdir (str):    The path to the folder where outputs (NetCDF) will be stored
                                 Default: ./NetCDF
 
@@ -74,7 +74,7 @@ class SeaIceExtent:
             mySetups: A list of 3-item lists indicating which setups need to be plotted.
                       A setup = model, experiment, source
             myRegions: A list of regions to analyse.
-                       See regions.yml file for the full list.
+                       See regions_definition.yml file for the full list.
 
             The method produces as output a figure with the seasonal cycles
             of sea ice extent in the regions for the setups and a netcdf file
