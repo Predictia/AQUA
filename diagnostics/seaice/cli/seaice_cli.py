@@ -48,7 +48,7 @@ def parse_arguments(args):
     default_config_path = os.path.join(script_dir, 'config.yml')
      
     # Define the default path for the file used for selection.
-    default_region_path = os.path.join(script_dir, 'regions_selection.yml')
+    default_region_selection_path = os.path.join(script_dir, 'regions_selection.yml')
     
     # Arguments for the CLI.
     parser.add_argument('--config', type=str, default=default_config_path,
@@ -61,8 +61,8 @@ def parse_arguments(args):
     parser.add_argument('--exp', type=str, help='Experiment name')
     parser.add_argument('--source', type=str, help='Source name')
     parser.add_argument('--outputdir', type=str, help='Output directory')
-    parser.add_argument('--regions'  , type = str, default=default_region_path,
-                        help='Region selection file (default: all regions)')
+    parser.add_argument('--regions'  , type = str, default=default_region_selection_path,
+                        help=f'yaml region selection file (default: {default_region_selection_path})')
 
     return parser.parse_args(args)
 
@@ -73,6 +73,7 @@ if __name__ == '__main__':
     # Parse the provided command line arguments.
     args = parse_arguments(sys.argv[1:])
 
+    print(args)
     # Configure the logger.
     loglevel = get_arg(args, 'loglevel', 'WARNING')
     logger = log_configure(log_name="SeaIce CLI", log_level=loglevel)
