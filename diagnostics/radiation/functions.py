@@ -304,26 +304,24 @@ def barplot_model_data(datasets=None, model_names=None, outputdir='./', outputfi
     print(f"Data has been saved to {outputdir}.")
     print(f"Plot has been saved to {outputfig}.")
 
-#-------------------------------------------------------------------------------------------------------------------------------------
-
-def plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_gm, TOA_ceres_clim_gm, outputdir='./', outputfig='./'):
+def plot_model_comparison_timeseries(models=None, linelabels=None, TOA_ceres_diff_samples_gm=None, TOA_ceres_clim_gm=None, outputdir='./', outputfig='./'):
                         
     """
-    Create time series bias plot with various models and CERES including the individual CERES years to show variabilities. 
-    Variables ttr, tsr and tnr are plotted to show imbalances. Default mean for CERES data is the whole time range. 
+    Create time series bias plot with various models and CERES, including the individual CERES years to show variabilities.
+    Variables ttr, tsr, and tnr are plotted to show imbalances. Default mean for CERES data is the whole time range.
+
     Example:
-            models = [TOA_icon_gm.squeeze(), TOA_ifs_4km_gm.squeeze(), TOA_ifs_9km_gm.squeeze()]
-            linelabels = ['ICON 5 km', 'IFS 4.4 km', 'IFS 9 km']
-            radiation_diag.plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_gm, TOA_ceres_clim_gm)
+    models = [TOA_icon_gm.squeeze(), TOA_ifs_4km_gm.squeeze(), TOA_ifs_9km_gm.squeeze()]
+    linelabels = ['ICON 5 km', 'IFS 4.4 km', 'IFS 9 km']
+    radiation_diag.plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_gm, TOA_ceres_clim_gm)
 
     Args:
-        models:                      a list of xarrayDataSets of the respective models. You can use squeeze() to remove single-dimensional entries from an array
-                                         to ensure that the input arrays have the same dimensions and shape
-        line_labels:                 your desired naming for the plotting (this will also be used in the filename)       
-            
-      
+        models: a list of xarrayDataSets of the respective models. You can use squeeze() to remove single-dimensional entries from an array
+                to ensure that the input arrays have the same dimensions and shape.
+        linelabels: your desired naming for the plotting (this will also be used in the filename).
+
     Returns:
-        A plot to show the model biases for the whole time range
+        A plot to show the model biases for the whole time range.
     """
         
     fig, axes = plt.subplots(3, 1, figsize=(12, 8))
@@ -423,24 +421,21 @@ def plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_
     print(f"Data has been saved to {outputdir}.")
     print(f"Plot has been saved to {outputfig}.")
     
-#-------------------------------------------------------------------------------------------------------------------------------------
-
-def plot_bias(data, iax, title, plotlevels, lower, upper, index):
+def plot_bias(data=None, iax=None, title=None, plotlevels=None, lower=None, upper=None, index=None):
     """
-    Plot the bias of the data on a map. The bias is calculated as the difference between the data and a reference and stippling is applied to highlight data points within the specified lower and upper thresholds.
+    Plot the bias of the data on a map. Bias is calculated as the difference between the data and a reference, with stippling applied to highlight data points falling within specified lower and upper thresholds.
 
     Args:
-        data (xarray.DataArray):            The model data to plot.
-        iax (matplotlib.axes.Axes):         The axes object to plot on.
-        title (str):                        The title of the plot.
-        plotlevels (int or list):           The levels for contour plot.
-        lower (xarray.DataArray):           Lower threshold for stippling.
-        upper (xarray.DataArray):           Upper threshold for stippling.
-        index (int):                        The index of the data.
+        data (xarray.DataArray): The model data to plot.
+        iax (matplotlib.axes.Axes): The axes object to plot on.
+        title (str): The title of the plot.
+        plotlevels (int or list): The contour plot levels.
+        lower (xarray.DataArray): Lower threshold for stippling.
+        upper (xarray.DataArray): Upper threshold for stippling.
+        index (int): The index of the data.
 
     Returns:
-        A contour plot.
-
+        A contour plot representing the bias of the data on the specified axes.
     """
 
     plot = data.plot(ax=iax,
@@ -459,33 +454,28 @@ def plot_bias(data, iax, title, plotlevels, lower, upper, index):
     return plot
 
 
-def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_clim, outputdir='./', outputfig='./', year='2020'):
+def plot_maps(TOA_model=None, var=None, model_label=None, TOA_ceres_diff_samples=None, TOA_ceres_clim=None, outputdir='./', outputfig='./', year='2020'):
     """
-    The function plots maps of TOA bias for the specified variable and model using a Robinson projection.
-    The TOA bias is calculated as the difference between the TOA model data and the TOA CERES climatology. Default year is 2020
-
+    Plot monthly bias maps of the specified variable and model using a Robinson projection.
+    The bias is calculated as the difference between TOA model data and TOA CERES climatology.
+    
     Args:
-        TOA_model (xarray.DataArray):                The TOA model data.
-        var (str):                                   The variable to plot ('tnr', 'mtnsrf', or 'mtntrf').
-        model_label (str):                           Desired label for the model (also used as filename to save figure, better avoid using characters like ' ',...)
-        TOA_ceres_diff_samples (xarray.DataArray):   The TOA CERES difference samples data.
-        TOA_ceres_clim (xarray.DataArray):           The TOA CERES climatology data.
-        year (str, optional):                        The year to plot. Defaults to '2020'.
+        TOA_model (xarray.DataArray): The TOA model data.
+        var (str): The variable to plot ('tnr', 'mtnsrf', or 'mtntrf').
+        model_label (str): Desired label for the model (used as the filename to save the figure).
+        TOA_ceres_diff_samples (xarray.DataArray): The TOA CERES difference samples data.
+        TOA_ceres_clim (xarray.DataArray): The TOA CERES climatology data.
+        year (str, optional): The year to plot. Defaults to '2020'.
 
     Returns:
-        Monthly bias plots of the chosen model, variable and year
+        Monthly bias plots of the chosen model, variable, and year.
 
     Example:
+        plot_maps(TOA_model=TOA_ifs_4km_r360x180, TOA_ceres_diff_samples=TOA_ceres_diff_samples,
+                  TOA_ceres_clim=TOA_ceres_clim, var='mtnsrf', model_label='Cycle 3 4.4 km IFS Fesom', year='2023')
+        # Use the TOA_ifs_4km_r360x180 DataSet to ensure that the gridding is correct.
 
-        plot_maps(TOA_model= TOA_ifs_4km_r360x180, TOA_ceres_diff_samples = TOA_ceres_diff_samples, TOA_ceres_clim = TOA_ceres_clim, var='mtnsrf', model_label='Cycle 3 4.4 km IFS Fesom', year='2023')
-        # Use the TOA_model_r360x180 DataSet to ensure that the gridding is right
-        
     """
-
-    # quantiles are a bit more conservative than the range, but interpolation from few values might not be robust
-    # q05 = TOA_ceres_diff_samples.groupby('time.month').quantile(0.05,dim='ensemble')
-    # q95 = TOA_ceres_diff_samples.groupby('time.month').quantile(0.95,dim='ensemble')
-    # min-max range is more conservative, but could be sensitive to single extreme years
     range_min = TOA_ceres_diff_samples.groupby('time.month').min(dim='ensemble')
     range_max = TOA_ceres_diff_samples.groupby('time.month').max(dim='ensemble')
     TOA_model = TOA_model.sel(time=year)
@@ -510,8 +500,6 @@ def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_cli
     plotlevels = np.arange(-50, 51, 10)
     global small_fonts
     small_fonts = 12
-    # plt.figure(figsize=(8,4))
-    # axes = plt.axes(projection=ccrs.PlateCarree())
     axes = ax.flatten()
 
     for index in range(len(TOA_model.time)):  # some experiments have less than 12 months, draw fewer panels for those
@@ -524,8 +512,6 @@ def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_cli
 
     if panel_1_off:
         axes[0].remove()
-
-    # plt.tight_layout()
     # common colorbar
     fig.subplots_adjust(right=0.95)
     cbar_ax = fig.add_axes([0.96, 0.3, 0.02, 0.4])  # [left, bottom, width, height]
@@ -534,7 +520,6 @@ def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_cli
     cbar.set_label('$W m^{-2}$', labelpad=-32, y=-.08, rotation=0)
 
     plt.suptitle(label+' TOA bias ' + model_label + ' ' + year + '\nrel. to CERES climatology (2001-2021)', fontsize=small_fonts*2)
-    # plt.tight_layout()
 
     create_folder(folder=str(outputfig), loglevel='WARNING')
 
@@ -555,17 +540,17 @@ def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_cli
 
 def plot_mean_bias(TOA_model=None, var=None, model_label=None, TOA_ceres_clim=None, start_year=None, end_year=None, outputdir='./', outputfig='./'):
     """
-    Plot the mean bias of the data over the specified time range.
+    Plot the mean bias of the data over the specified time range and relative to CERES climatology.
 
     Args:
-        TOA_model (xarray.Dataset):       The model TOA radiation data.
-        var (str):                       The variable to plot (e.g., 'mtnsrf', 'mtntrf', 'tnr').
-        model_label (str):               The label for the model.
-        TOA_ceres_clim (float):          The CERES TOA radiation climatology.
-        start_year (str):                The start year of the time range for the model data.
-        end_year (str):                  The end year of the time range for the model data.
-        ceres_start_year (str):          The start year of the time range for the CERES data (optional).
-        ceres_end_year (str):            The end year of the time range for the CERES data (optional).
+        TOA_model (xarray.Dataset): The model TOA radiation data.
+        var (str): The variable to plot (e.g., 'mtnsrf', 'mtntrf', 'tnr').
+        model_label (str): The label for the model.
+        TOA_ceres_clim (float): The CERES TOA radiation climatology.
+        start_year (str): The start year of the time range for the model data.
+        end_year (str): The end year of the time range for the model data.
+        ceres_start_year (str, optional): The start year of the time range for the CERES data (optional).
+        ceres_end_year (str, optional): The end year of the time range for the CERES data (optional).
 
     Returns:
         None. Displays the plot of the mean bias.
