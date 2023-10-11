@@ -19,105 +19,90 @@ if not os.path.exists(tempdir):
     os.makedirs(tempdir)
 
 
-def process_ceres_data(exp, source, TOA_icon_gm):
+def process_ceres_data(exp=None, source=None):
     """
-    Extract CERES data for further analyis + create global means
+    Function to extract CERES data for further analyis + create global means
 
     Args:
-        exp:                            input experiment to be selected from the catalogue
-        source:                         input source to be selected from the catalogue
-        TOA_icon_gm:                    this is necessary to setting time axis to the same time axis as model output (modify if needed)
+        exp (str):   Input experiment to be selected from the catalogue.
+        source (str): Input source to be selected from the catalogue.
 
     Returns:
-        TOA_ceres_clim_gm:
-        TOA_ceres_ebaf_gm: 
-        TOA_ceres_diff_samples_gm:
-        reader_ceres_toa,
-        TOA_ceres_clim,
-        TOA_ceres_diff_samples: # returns the necessary ceres data for further evaluation
+        dict: A dictionary containing the following information:
+            - "model": "CERES".
+            - "exp": Experiment name.
+            - "source": Source name.
+            - "gm": Global means of CERES data.
+            - "clim_gm": Global means of climatology data.
+            - "anom_gm": Global means of monthly anomalies data.
+            - "clim": Climatology data.
+            - "anom": Monthly anomalies data.
     """
 
     # reader_ceres_toa
-    reader_ceres_toa = Reader(model='CERES', exp=exp, source=source)
-    data_ceres_toa = reader_ceres_toa.retrieve() #fix=True)
-
-    # ceres_ebaf_ttr
-    ceres_ebaf_ttr = data_ceres_toa.toa_lw_all_mon * -1
-
-    # ceres_ebaf_tsr
-    ceres_ebaf_tsr = data_ceres_toa.solar_mon - data_ceres_toa.toa_sw_all_mon
-
-    # ceres_ebaf_tnr
-    ceres_ebaf_tnr = data_ceres_toa.toa_net_all_mon
-
-    # TOA_ceres_ebaf
-    TOA_ceres_ebaf = ceres_ebaf_tsr.to_dataset(name='tsr')
-    TOA_ceres_ebaf = TOA_ceres_ebaf.assign(ttr=ceres_ebaf_ttr)
-    TOA_ceres_ebaf = TOA_ceres_ebaf.assign(tnr=ceres_ebaf_tnr)
+    reader = Reader(model='CERES', exp=exp, source=source, regrid='r100')
+    data = reader.retrieve()
+    data['tnr'] = data['mtntrf'] + data['mtnsrf']
+    ceres = reader.regrid(data[['tnr', 'mtntrf', 'mtnsrf']])
 
     # limit to years that are complete
-    TOA_ceres_ebaf = TOA_ceres_ebaf.sel(time=slice('2001', '2021'))
+    complete = data.sel(time=slice('2001', '2021'))
 
-    # TOA_ceres_clim
-    TOA_ceres_clim = TOA_ceres_ebaf.groupby('time.month').mean('time').rename({'month': 'time'}).assign_coords(time=TOA_icon_gm.sel(time='2020').time).transpose("time", ...)
-    # TOA_ceres_clim = TOA_ceres_clim.assign_coords(time=TOA_icon_gm.sel(time='2020').time).transpose("time", ...)
+    # time averages over each month and get the monthly anomaly
+    clim = complete.groupby('time.month').mean('time')
+    monthly_anomalies = complete.groupby('time.month') - clim
 
-    # TOA_ceres_clim_gm
-    TOA_ceres_clim_gm = reader_ceres_toa.fldmean(TOA_ceres_clim)  # cdo.fldmean(input=TOA_ceres_clim, returnXDataset=True)
+    # global mean
+    clim_gm = reader.fldmean(clim)
+    ceres_gm = reader.fldmean(ceres)
+    anom_gm = reader.fldmean(monthly_anomalies)
 
-    # TOA_ceres_ebaf_gm
-    TOA_ceres_ebaf_gm = reader_ceres_toa.fldmean(TOA_ceres_ebaf)  # cdo.fldmean(input=TOA_ceres_ebaf, returnXDataset=True)
+    dictionary = {
+        "model": "CERES",
+        "exp": exp,
+        "source": source,
+        "gm": ceres_gm,
+        "clim_gm": clim_gm,
+        "anom_gm": anom_gm,
+        "clim": clim,
+        "anom": monthly_anomalies
 
-    # samples_tmp
-    samples_tmp = []
-    for year in range(2001, 2021):
-        # select year and assign (fake) time coordinates of 2020 so that the differencing works
-        samples_tmp.append(TOA_ceres_ebaf.sel(time=str(year)).assign_coords(time=TOA_ceres_clim.time) - TOA_ceres_clim)
+    }
+    return dictionary
 
-    # TOA_ceres_diff_samples
-    TOA_ceres_diff_samples = xr.concat(samples_tmp, dim='ensemble').transpose("time", ...)
-
-    # TOA_ceres_diff_samples_gm
-    TOA_ceres_diff_samples_gm = reader_ceres_toa.fldmean(TOA_ceres_diff_samples)  # cdo.fldmean(input=TOA_ceres_diff_samples, returnXDataset=True).squeeze()
-    TOA_ceres_clim['lon'] = TOA_ceres_clim['lon'] - 0.5
-    TOA_ceres_diff_samples['lon'] = TOA_ceres_diff_samples['lon'] - 0.5
-    
-    return TOA_ceres_clim_gm, TOA_ceres_ebaf_gm, TOA_ceres_diff_samples_gm, reader_ceres_toa, TOA_ceres_clim, TOA_ceres_diff_samples
-
-#-------------------------------------------------------------------------------------------------------------------------------------
-
-#-------------------------------------------------------------------------------------------------------------------------------------
-
-def process_model_data(model, exp, source):
+def process_model_data(model=None, exp=None, source=None):
     """
-    Extract Model output data for further analyis + create global means
-    Example: TOA_ifs_4km_gm, reader_ifs_4km, data_ifs_4km, TOA_ifs_4km, TOA_ifs_4km_r360x180 = radiation_diag.process_model_data(model =  'IFS' , exp = 'tco2559-ng5-cycle3' , source = 'lra-r100-monthly')
+    Function to extract Model output data for further analysis and create global means.
 
     Args:
-        model:                          input model to be selected from the catalogue
-        exp:                            input experiment to be selected from the catalogue
-        source:                         input source to be selected from the catalogue
+        model (str):   Input model to be selected from the catalogue.
+        exp (str):     Input experiment to be selected from the catalogue.
+        source (str):  Input source to be selected from the catalogue.
 
     Returns:
-        TOA_model_gm, reader_model, data_model, TOA_model, TOA_model_r360x180:       returns the necessary ceres data for further evaluation (xarrayDatSet, -Array, reader, regridded DataSet and Global                                                                                           means
+        dict: A dictionary containing the following information:
+            - "model": Model name.
+            - "exp": Experiment name.
+            - "source": Source name.
+            - "gm": Global means of model output data.
+            - "data": Model output data.
     """
 
-    reader_model = Reader(model=model, exp=exp, source=source)
-    data_model = reader_model.retrieve()
+    reader = Reader(model=model, exp=exp, source=source,
+                    regrid='r100', fix=False)
+    data = reader.retrieve(var=['mtntrf', 'mtnsrf'])
+    data['tnr'] = data['mtntrf'] + data['mtnsrf']
+    gm = reader.fldmean(data)
 
-    # Combine radiation data into a dataset
-    TOA_model = data_model['mtntrf'].to_dataset()
-    TOA_model = TOA_model.assign(tnr=data_model['mtntrf'] + data_model['mtnsrf'])
-    TOA_model = TOA_model.assign(ttr=data_model['mtntrf'])
-    TOA_model = TOA_model.assign(tsr=data_model['mtnsrf'])
+    dictionary = {
+        "model": model,
+        "exp": exp,
+        "source": source,
+        "data": data,
+        "gm": gm
+    }
 
-    # Compute global mean using cdo.fldmean
-    TOA_model_gm = reader_model.fldmean(TOA_model)  # cdo.fldmean(input=TOA_model, returnXDataset=True)
-    TOA_model_r360x180 = cdo.remapcon('r360x180', input=TOA_model, returnXDataset=True)
-   
-    return TOA_model_gm, reader_model, data_model, TOA_model, TOA_model_r360x180
-
-#-------------------------------------------------------------------------------------------------------------------------------------
+    return dictionary
 
 def process_era5_data(exp, source):
     """
@@ -317,64 +302,54 @@ def gregory_plot(obs_data, obs_reader, obs_time_range, model_label_obs, model_li
     print(f"Plot has been saved to {outputfig}.")
 
 
-#-------------------------------------------------------------------------------------------------------------------------------------
-
-def barplot_model_data(datasets, model_names, outputdir, outputfig, year=None):
+def barplot_model_data(datasets=None, model_names=None, outputdir='./', outputfig='./', year=None, fontsize=14):
     """
-    Create Bar Plot with various models and CERES. Variables ttr and tsr are plotted to show imbalances.
-    Default mean for CERES data is the whole time range.
+    Create a grouped bar plot with various models and CERES data. Variables 'ttr' and 'tsr' are plotted to show imbalances.
+    The default mean for CERES data is calculated over the entire time range.
 
     Args:
-        datasets:      a list of xarrayDataSets that should be plotted. Chose the global means (TOA_$model_gm)
-        model_names:   your desired naming for the plotting
-        year:          the year for which the plot is generated (optional)
+        datasets (list of xarray.DataSets): A list of xarray.DataSets to be plotted (e.g., global means).
+        model_names (list of str):      Your desired naming for the plotting, corresponding to the datasets.
+        outputdir (str, optional):      Directory where the output data will be saved (default is './').
+        outputfig (str, optional):      Directory where the output figure will be saved (default is './').
+        year (int, optional):           The year for which the plot is generated (optional).
+        fontsize (int, optional):       Font size for labels and legends in the plot (default is 14).
 
     Returns:
-        A bar plot
+        A bar plot showing the global mean radiation variables ('ttr' and 'tsr') for different models and CERES data.
 
     Example:
 
     .. code-block:: python
 
-        datasets = [TOA_ceres_clim_gm, TOA_icon_gm, TOA_ifs_4km_gm, TOA_ifs_9km_gm]
-        model_names = ['ceres', 'ICON', 'IFS 4.4 km', 'IFS 9 km']
-        barplot_model_data(datasets, model_names, year = 2022)
+        datasets = [ceres['clim_gm'], icon['gm'], ifs_4km['gm'], ifs_9km['gm']]
+        model_names = ['ceres', 'icon', 'ifs 4.4 km', 'ifs 9 km']
+        new_barplot_model_data(datasets, model_names, outputdir='test', outputfig='test')
     """
+    # Set a seaborn color palette
+    sns.set_palette("pastel")
+    global_mean = {'Variables': ["mtntrf", "mtnsrf"]}
+    for i in range(0, len(datasets)):
+        global_mean.update({model_names[i]: [-datasets[i]["mtntrf"].mean(
+        ).values.item(), datasets[i]["mtnsrf"].mean().values.item()]})
+    global_mean = pd.DataFrame(global_mean)
 
-    colors = ['red', 'blue']  # Longwave (lw) in red, Shortwave (sw) in blue
-    variables = ['ttr', 'tsr']  # Fixed order: ttr (lw), tsr (sw)
-    plt.figure(figsize=(12, 5))
-
-    global_means = {}
-
-    for i, dataset in enumerate(datasets):
-        model_name = model_names[i]
-
-        if model_name != 'ceres':
-            if year is not None:
-                dataset = dataset.sel(time=str(year))
-
-        for j, variable in enumerate(variables):
-            global_mean = dataset[variable].mean().compute()  # Convert to NumPy array
-
-            if variable == 'ttr':
-                global_mean *= -1  # Apply the sign (-1) to ttr
-
-            plt.bar(f"{model_name}_{variable}", global_mean, color=colors[j])
-            global_means[f"{model_name}_{variable}"] = global_mean
-
-    plt.xlabel('Model')
-    plt.ylabel('Global mean ($W/m^2$)')
-    # Add legend with colored text
-    legend_labels = ['ttr = net outgoing longwave (top thermal radiadion)', 'tsr = net incomming shortwave (total solar radiation)']
-    legend_colors = ['red', 'blue']
-    legend_handles = [plt.Rectangle((0, 0), 1, 1, color=color) for color in legend_colors]
-    plt.legend(legend_handles, legend_labels, loc='upper right', facecolor='white', framealpha=1)
+    sns.set_palette("pastel")
+    # Create a grouped bar plot
+    ax = global_mean.plot(x='Variables', kind='bar', figsize=(8, 6))
+    # Show the plot
+    plt.legend(title='Datasets', fontsize=fontsize-2)
+    plt.xlabel('Variables', fontsize=fontsize)
+    plt.ylabel('Global mean ($W/m^2$)', fontsize=fontsize)
     plt.ylim(236, 250)
+    plt.xticks(rotation=0, fontsize=fontsize-2)
+    plt.yticks(fontsize=fontsize-2)
     if year is not None:
-        plt.title(f"Global Mean TOA radiation for different models ({year}) (all CERES years from 2001 to 2021)")
+        plt.title(
+            f"Global Mean TOA radiation for different models ({year}) (all CERES years from 2001 to 2021)", fontsize=fontsize+2)
     else:
-        plt.title('Global Mean TOA radiation for different models (mean over all model times)')
+        plt.title('Global Mean TOA radiation for different models',
+                  fontsize=fontsize+2)  # (mean over all model times)')
 
     create_folder(folder=str(outputfig), loglevel='WARNING')
 
@@ -385,7 +360,7 @@ def barplot_model_data(datasets, model_names, outputdir, outputfig, year=None):
     create_folder(folder=str(outputdir), loglevel='WARNING')
 
     # Save the data to a NetCDF file
-    output_data = xr.Dataset(global_means)
+    output_data = xr.Dataset(global_mean)
     filename = f"{outputdir}/BarPlot.nc"
     output_data.to_netcdf(filename)
 
