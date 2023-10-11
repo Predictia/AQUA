@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Sea ice Diagnostic CLI.
+Sea ice Diagnostic CLI. Strongly Inspired from SSH equivalent
 
 This script allows users to execute sea ice diagnostics using command-line arguments.
 By default, it will read configurations from 'config.yml' unless specified by the user.
@@ -36,6 +36,9 @@ def parse_arguments(args):
     
     # Define the default path for the configuration file.
     default_config_path = os.path.join(script_dir, 'config.yml')
+     
+    # Define the default path for the file used for selection.
+    default_region_path = os.path.join(script_dir, 'regions_selection.yml')
     
     # Arguments for the CLI.
     parser.add_argument('--config', type=str, default=default_config_path,
@@ -44,7 +47,9 @@ def parse_arguments(args):
     parser.add_argument('--exp', type=str, help='Experiment name')
     parser.add_argument('--source', type=str, help='Source name')
     parser.add_argument('--outputdir', type=str, help='Output directory')
-    
+    parser.add_argument('--regions'  , type = str, default=default_region_path,
+                        help='Region selection file (default: all regions)')
+
     return parser.parse_args(args)
 
 if __name__ == '__main__':
