@@ -61,11 +61,8 @@ def parse_arguments(args):
     parser.add_argument('--exp', type=str, help='Experiment name')
     parser.add_argument('--source', type=str, help='Source name')
     parser.add_argument('--outputdir', type=str, help='Output directory')
-<<<<<<< HEAD
     parser.add_argument('--regions'  , type = str, default=default_region_path,
                         help='Region selection file (default: all regions)')
-=======
->>>>>>> 26ef2ad5632123fc72b424d27d861b4490110dfa
 
     return parser.parse_args(args)
 
