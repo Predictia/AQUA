@@ -35,7 +35,7 @@ run_ecmean=true
 run_global_time_series=true
 run_ocean3d=true
 run_radiation=false # not implemented yet
-run_seaice=false # not implemented yet
+run_seaice=true
 run_teleconnections=true
 # teleconnections additional flags
 # ---------------------------------------------------------------
@@ -143,7 +143,7 @@ fi
 
 if [ "$run_seaice" = true ] ; then
   colored_echo $GREEN "Running seaice"
-  python $aqua/diagnostics/seaice/cli/cli_seaice.py $args_oce --outputdir $outputdir/seaice
+  python $aqua/diagnostics/seaice/cli/seaice_cli.py $args_oce --outputdir $outputdir/seaice -l $loglevel
   colored_echo $GREEN "Finished seaice"
 fi
 

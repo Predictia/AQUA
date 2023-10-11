@@ -25,11 +25,11 @@ class SeaIceExtent:
             regions (str):      The path to the regions.yml file
                                 Default: ../regions_definition.yml
             outputdir (str):    The path to the folder where outputs (NetCDF) will be stored
-                                Default: ./NetCDF
+                                Default: ./netcdf
 
         Returns:
             A SeaIceExtent object.
-        
+
         """
 
         # Configure logger
@@ -42,8 +42,9 @@ class SeaIceExtent:
         self.thresholdSeaIceExtent = threshold
         self.outputdir = outputdir
 
-        self.config = util.load_yaml(config_file)
-        print("CONFIG:" + str(self.config))
+        self.logger.debug("Reading configuration file %s", config_file)
+        self.config = load_yaml(config_file)
+        self.logger.warning("CONFIG:" + str(self.config))
 
     def configure(self,
                   mySetups=[["IFS", "tco1279-orca025-cycle3",
@@ -59,7 +60,6 @@ class SeaIceExtent:
                       A setup = model, experiment, source
             myRegions: A list of regions to analyse.
                        See regions.yml file for the full list.
-        
         """
 
         self.nRegions = len(myRegions)
