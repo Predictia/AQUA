@@ -32,7 +32,7 @@ regions: # By default, all regions are evaluated
 
 # Please specify the path to the directory where the outputs should be saved.
 # If output directory/folder does not exist, it will be created.
-output_directory: /home/b/b382289/AQUA/diagnostics/seaice/cli 
+output_directory: /home/b/b382385/git/AQUA/diagnostics/seaice/cli/output 
 
 # This is the current dask configuration which works for the inputs above.
 # It could be adjusted based on the system this application is run.

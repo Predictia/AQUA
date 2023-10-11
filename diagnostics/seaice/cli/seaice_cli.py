@@ -6,18 +6,14 @@ Sea ice Diagnostic CLI. Strongly Inspired from its SSH equivalent
 This script allows users to execute sea ice diagnostics using command-line arguments.
 By default, it will read configurations from 'config.yml' unless specified by the user.
 """
+
 import argparse
 import os
 import sys
 
-# Imports related to the aqua package, which is installed and available globally.
-from aqua import Reader
-from aqua.logger import log_configure
-from aqua.util import get_arg, load_yaml
-
 # Add the directory containing the `seaice` module to the Python path.
-# Since the module is in the parent directory of this script,
-# we calculate the script's directory and then move one level up.
+# Since the module is in the parent directory of this script, we calculate the script's directory
+# and then move one level up.
 # change the current directory to the one of the CLI so that relative path works
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
@@ -35,22 +31,24 @@ sys.path.insert(0, "../..")
 # Local module imports.
 from seaice import SeaIceExtent
 
+# Imports related to the aqua package, which is installed and available globally.
+from aqua import Reader
+from aqua.logger import log_configure
+from aqua.util import get_arg
+
 
 def parse_arguments(args):
     """
     Parse command line arguments.
 
-    Args:
-        args (list): List of command line arguments.
-
-    Returns:
-        argparse.Namespace: The parsed arguments.
+    :param args: List of command line arguments.
+    :return: Parsed arguments.
     """
     parser = argparse.ArgumentParser(description='sea ice CLI')
 
     # Define the default path for the configuration file.
     default_config_path = os.path.join(script_dir, 'config.yml')
-
+     
     # Arguments for the CLI.
     parser.add_argument('--config', type=str, default=default_config_path,
                         help=f'yaml configuration file (default: {default_config_path})')
@@ -62,7 +60,6 @@ def parse_arguments(args):
     parser.add_argument('--exp', type=str, help='Experiment name')
     parser.add_argument('--source', type=str, help='Source name')
     parser.add_argument('--outputdir', type=str, help='Output directory')
-    parser.add_argument('--regrid', type=str, help='Target regrid resolution')
 
     return parser.parse_args(args)
 
@@ -82,10 +79,10 @@ if __name__ == '__main__':
     #logger.debug(f"Output directory: {outputdir}")
 
     # Read configuration file.
-    logger.warning('Reading configuration yaml file...')
+    #logger.warning('Reading configuration yaml file...')
 
-    config = load_yaml(args.config)
-    logger.debug(f"Configuration file: {config}")
+    # Initialize the object
+    analyzer = SeaIceExtent(args.config, loglevel=loglevel)
 
     # Override configurations with CLI arguments if provided.
     analyzer.config['models'][0]['name']       = get_arg(args, 'model', analyzer.config['models'][0]['name'])
@@ -93,12 +90,12 @@ if __name__ == '__main__':
     analyzer.config['models'][0]['source']     = get_arg(args, 'source', analyzer.config['models'][0]['source'])
     analyzer.config['output_directory']        = get_arg(args, 'outputdir', analyzer.config['output_directory'])
 
-    print("====:::::=====")
-    print(analyzer.config['output_directory'])
 
     #logger.warning(f"Configuration: {analyzer.config}")
 
     # Execute the analyzer.
     analyzer.run()
+    analyzer.computeExtent()
+    analyzer.createNetCDF()
 
     print("sea ice diagnostic completed!")
