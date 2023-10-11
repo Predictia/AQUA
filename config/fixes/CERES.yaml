@@ -10,6 +10,26 @@ models:
                 mtnsrf: 
                     derived: solar_mon-toa_sw_all_mon
                     grib: true
+    ebaf-sfc41:
+        default:
+            data_model: False
+            vars:
+                mtntrf: 
+                    derived: 0.-sfc_net_lw_all_mon
+                    grib: true
+                mtnsrf: 
+                    derived: sfc_net_sw_all_mon
+                    grib: true
+    ebaf-sfc42:
+        default:
+            data_model: False
+            vars:
+                mtntrf: 
+                    derived: 0.-sfc_net_lw_all_mon
+                    grib: true
+                mtnsrf: 
+                    derived: sfc_net_sw_all_mon
+                    grib: true
     syn-toa41:
         default:
             vars:
