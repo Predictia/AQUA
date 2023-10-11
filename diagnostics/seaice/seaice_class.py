@@ -12,7 +12,8 @@ class SeaIceExtent:
     """Sea ice extent class"""
 
     def __init__(self, config_file, loglevel: str = 'WARNING', threshold=0.15,
-                 regions="../regions_definition.yml", outputdir=None):
+                 regions_definition_file="../regions_definition.yml",
+                 outputdir=None):
         """
         The SeaIceExtent constructor.
 
@@ -102,14 +103,6 @@ class SeaIceExtent:
         """
         Method which computes the seaice extent.
         """
-        # Convert the config yaml object to "setup" variable
-        nModels = len(self.config['models'])
-
-        self.mySetups = [[self.config['models'][jModels]['name'], self.config['models'][jModels]['experiment'], self.config['models'][jModels]['source']] for jModels in range(nModels)]
-
-        self.myRegions = self.config['regions']
-        self.nRegions = len(self.myRegions)
-
         # Instantiate the various readers (one per setup) and retrieve the
         # corresponding data
         self.myExtents = list()
@@ -171,7 +164,7 @@ class SeaIceExtent:
                 # Create regional mask
                 try:
                     latS, latN, lonW, lonE = (
-                        
+
                         self.regionDict[region]["latS"],
                         self.regionDict[region]["latN"],
                         self.regionDict[region]["lonW"],
@@ -277,5 +270,6 @@ class SeaIceExtent:
                     varName = setup["name"] + "_" + setup["experiment"] + "_" + setup["source"] + "_" + region.replace(' ', '')
                     dataset[varName] = self.myExtents[js][jr]
 
-                    dataset.to_netcdf(outputdir + "/" + "seaIceExtent_" +
-                                      "_".join([s for s in setup]) + ".nc")
+                    filename = outputdir + "/" + varName + ".nc"
+                    self.logger.info("Saving NetCDF file %s", filename)
+                    dataset.to_netcdf(filename)
