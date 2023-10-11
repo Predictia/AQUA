@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased is the current development version.
 
 - Add CLI for SSH diagnostic and some bug fixes (#540)
+- Fix SSH diagnostic to be compatible with lates AQUA version (#538) 
 - Helper function to identify vertical coordinates in a dataset (#552)
 - Orography for tempest extremes TCs detection and update TCs CLI (Orography threshold included and CLI update #404)
 - Improvement of performance indices CLI (Update of ECmean CLI #528)
@@ -16,7 +17,7 @@ Unreleased is the current development version.
 - Custom exceptions for AQUA (#518)
 - Speed up of the `retrieve_plain` method (#524)
 - Update documention for adding new data and setting up the container (Increase documentation coverage #519)
-- CLI wrapper for the state-of-the-art diagnostics analysis (#517, #527, #525, #530, #534, #548)
+- CLI wrapper for the state-of-the-art diagnostics analysis (#517, #527, #525, #530, #534, #536, #539, #548, #559)
 - Refactor the regrid.yaml as grid-based instead of experiment-based (#291)
 - aqua_common environment simplified and updated (#498)
 - Update available variables in FDB catalogues on lumi (#514)

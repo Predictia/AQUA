@@ -232,6 +232,7 @@ class sshVariability():
             raise NoObservationError("AVISO data not found.")
 
         aviso_cat = reader.retrieve()
+
         aviso_time_min = np.datetime64(aviso_cat.time.min().values)
         aviso_time_max = np.datetime64(aviso_cat.time.max().values)
         logger.info("AVISO data spans from %s to %s",
@@ -279,6 +280,7 @@ class sshVariability():
 
             logger.info(
                 "initializing AQUA reader to read the model inputs for %s", model_name)
+
             try:
                 reader = Reader(model=model_name['name'], exp=model_name['experiment'],
                             source=model_name['source'], regrid=model_name['regrid'], zoom=model_name['zoom'], fix=True)
