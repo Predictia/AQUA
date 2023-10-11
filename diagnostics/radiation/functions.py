@@ -61,6 +61,7 @@ def process_ceres_data(exp=None, source=None):
         "model": "CERES",
         "exp": exp,
         "source": source,
+        "data": ceres,
         "gm": ceres_gm,
         "clim_gm": clim_gm,
         "anom_gm": anom_gm,
@@ -118,72 +119,8 @@ def process_era5_data(exp, source):
     """
 
     reader_era5 = Reader(model="ERA5", exp=exp, source=source)
-    data_era5 = reader_era5.retrieve() #fix=True)
+    data_era5 = reader_era5.retrieve()
     return data_era5, reader_era5
-
-#-------------------------------------------------------------------------------------------------------------------------------------
-
-def process_ceres_sfc_data(exp, source, TOA_icon_gm):
-    """
-    Extract surface CERES data for further analyis + create global means
-
-    Args:
-        exp:                            input experiment to be selected from the catalogue
-        source:                         input source to be selected from the catalogue
-        TOA_icon_gm:                    this is necessary to setting time axis to the same time axis as model output (modify if needed)
-
-    Returns:
-        ceres_clim_gm_sfc, ceres_ebaf_gm_sfc, ceres_diff_samples_gm_sfc, reader_ceres_sfc, ceres_clim_sfc, ceres_diff_samples_sfc:       returns the necessary ceres data for further evaluation
-    """
-
-    # reader_ceres_toa
-    reader_ceres_sfc = Reader(model='CERES', exp=exp, source=source)
-    data_ceres_sfc = reader_ceres_sfc.retrieve(fix=True)
-
-    # ceres_ebaf_ttr
-    ceres_ebaf_ttr_sfc = data_ceres_sfc.sfc_net_lw_all_mon * -1
-
-    # ceres_ebaf_tsr
-    ceres_ebaf_tsr_sfc = data_ceres_sfc.sfc_net_sw_all_mon
-
-    # ceres_ebaf_tnr
-    ceres_ebaf_tnr_sfc = data_ceres_sfc.sfc_net_tot_all_mon
-
-    # TOA_ceres_ebaf
-    ceres_ebaf_sfc = ceres_ebaf_tsr_sfc.to_dataset(name='tsr')
-    ceres_ebaf_sfc = ceres_ebaf_sfc.assign(ttr=ceres_ebaf_ttr_sfc)
-    ceres_ebaf_sfc = ceres_ebaf_sfc.assign(tnr=ceres_ebaf_tnr_sfc)
-
-    # limit to years that are complete
-    ceres_ebaf_sfc = ceres_ebaf_sfc.sel(time=slice('2001', '2021'))
-
-    # TOA_ceres_clim
-    ceres_clim_sfc = ceres_ebaf_sfc.groupby('time.month').mean('time').rename({'month': 'time'}).assign_coords(time=TOA_icon_gm.sel(time='2020').time).transpose("time", ...)
-    # TOA_ceres_clim = TOA_ceres_clim.assign_coords(time=TOA_icon_gm.sel(time='2020').time).transpose("time", ...)
-
-    # TOA_ceres_clim_gm
-    ceres_clim_gm_sfc = reader_ceres_sfc.fldmean(ceres_clim_sfc)  # cdo.fldmean(input=TOA_ceres_clim, returnXDataset=True)
-
-    # TOA_ceres_ebaf_gm
-    ceres_ebaf_gm_sfc = reader_ceres_sfc.fldmean(ceres_ebaf_sfc)  # cdo.fldmean(input=TOA_ceres_ebaf, returnXDataset=True)
-
-    # samples_tmp
-    samples_tmp = []
-    for year in range(2001, 2021):
-        # select year and assign (fake) time coordinates of 2020 so that the differencing works
-        samples_tmp.append(ceres_ebaf_sfc.sel(time=str(year)).assign_coords(time=ceres_clim_sfc.time) - ceres_clim_sfc)
-
-    # TOA_ceres_diff_samples
-    ceres_diff_samples_sfc = xr.concat(samples_tmp, dim='ensemble').transpose("time", ...)
-
-    # TOA_ceres_diff_samples_gm
-    ceres_diff_samples_gm_sfc = reader_ceres_sfc.fldmean(ceres_diff_samples_sfc)  # cdo.fldmean(input=TOA_ceres_diff_samples, returnXDataset=True).squeeze()
-    ceres_clim_sfc['lon'] = ceres_clim_sfc['lon'] - 0.5
-    ceres_diff_samples_sfc['lon'] = ceres_diff_samples_sfc['lon'] - 0.5
-
-    return ceres_clim_gm_sfc, ceres_ebaf_gm_sfc, ceres_diff_samples_gm_sfc, reader_ceres_sfc, ceres_clim_sfc, ceres_diff_samples_sfc
-
-#-------------------------------------------------------------------------------------------------------------------------------------
 
 def gregory_plot(obs_data, obs_reader, obs_time_range, model_label_obs, model_list, reader_dict, outputdir, outputfig):
     """
@@ -304,7 +241,7 @@ def gregory_plot(obs_data, obs_reader, obs_time_range, model_label_obs, model_li
 
 def barplot_model_data(datasets=None, model_names=None, outputdir='./', outputfig='./', year=None, fontsize=14):
     """
-    Create a grouped bar plot with various models and CERES data. Variables 'ttr' and 'tsr' are plotted to show imbalances.
+    Create a grouped bar plot with various models and CERES data. Variables 'mtntrf' and 'mtnsrf' are plotted to show imbalances.
     The default mean for CERES data is calculated over the entire time range.
 
     Args:
@@ -316,7 +253,7 @@ def barplot_model_data(datasets=None, model_names=None, outputdir='./', outputfi
         fontsize (int, optional):       Font size for labels and legends in the plot (default is 14).
 
     Returns:
-        A bar plot showing the global mean radiation variables ('ttr' and 'tsr') for different models and CERES data.
+        A bar plot showing the global mean radiation variables ('mtntrf' and 'mtnsrf') for different models and CERES data.
 
     Example:
 
@@ -369,7 +306,7 @@ def barplot_model_data(datasets=None, model_names=None, outputdir='./', outputfi
 
 #-------------------------------------------------------------------------------------------------------------------------------------
 
-def plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_gm, TOA_ceres_clim_gm, outputdir, outputfig):
+def plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_gm, TOA_ceres_clim_gm, outputdir='./', outputfig='./'):
                         
     """
     Create time series bias plot with various models and CERES including the individual CERES years to show variabilities. 
@@ -394,10 +331,10 @@ def plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_
     shading_data = xr.concat(
         (
             TOA_ceres_diff_samples_gm,
-            TOA_ceres_diff_samples_gm.assign_coords(time=models[0].ttr.sel(time='2021').time),
-            TOA_ceres_diff_samples_gm.assign_coords(time=models[0].ttr.sel(time='2022').time),
-            TOA_ceres_diff_samples_gm.assign_coords(time=models[0].ttr.sel(time='2023').time),
-            TOA_ceres_diff_samples_gm.assign_coords(time=models[0].ttr.sel(time='2024').time),
+            TOA_ceres_diff_samples_gm.assign_coords(time=models[0].mtntrf.sel(time='2021').time),
+            TOA_ceres_diff_samples_gm.assign_coords(time=models[0].mtntrf.sel(time='2022').time),
+            TOA_ceres_diff_samples_gm.assign_coords(time=models[0].mtntrf.sel(time='2023').time),
+            TOA_ceres_diff_samples_gm.assign_coords(time=models[0].mtntrf.sel(time='2024').time),
         ),
         dim='time'
     )
@@ -407,17 +344,17 @@ def plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_
     for i, model in enumerate(models):
         ttr_diff = xr.concat(
             (
-                (model.ttr.sel(time='2020').squeeze() - TOA_ceres_clim_gm.squeeze().ttr.values),
-                (model.ttr.sel(time='2021').squeeze() - TOA_ceres_clim_gm.squeeze().ttr.values),
-                (model.ttr.sel(time='2022').squeeze() - TOA_ceres_clim_gm.squeeze().ttr.values),
-                (model.ttr.sel(time='2023').squeeze() - TOA_ceres_clim_gm.squeeze().ttr.values),
-                (model.ttr.sel(time='2024').squeeze() - TOA_ceres_clim_gm.squeeze().ttr.values),
+                (model.mtntrf.sel(time='2020').squeeze() - TOA_ceres_clim_gm.squeeze().mtntrf.values),
+                (model.mtntrf.sel(time='2021').squeeze() - TOA_ceres_clim_gm.squeeze().mtntrf.values),
+                (model.mtntrf.sel(time='2022').squeeze() - TOA_ceres_clim_gm.squeeze().mtntrf.values),
+                (model.mtntrf.sel(time='2023').squeeze() - TOA_ceres_clim_gm.squeeze().mtntrf.values),
+                (model.mtntrf.sel(time='2024').squeeze() - TOA_ceres_clim_gm.squeeze().mtntrf.values),
             ),
             dim='time'
         )
         ttr_diff.plot(ax=axes[0], color=linecolors[i], label=linelabels[i], x='time')
 
-    axes[0].fill(long_time, np.append(shading_data['ttr'].min(dim='ensemble'), shading_data['ttr'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
+    axes[0].fill(long_time, np.append(shading_data['mtntrf'].min(dim='ensemble'), shading_data['mtntrf'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
     axes[0].set_title('LW', fontsize=16)
     axes[0].set_xticklabels([])
     axes[0].set_xlabel('')
@@ -428,17 +365,17 @@ def plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_
     for i, model in enumerate(models):
         tsr_diff = xr.concat(
             (
-                (model.tsr.sel(time='2020') - TOA_ceres_clim_gm.squeeze().tsr.values),
-                (model.tsr.sel(time='2021') - TOA_ceres_clim_gm.squeeze().tsr.values),
-                (model.tsr.sel(time='2022') - TOA_ceres_clim_gm.squeeze().tsr.values),
-                (model.tsr.sel(time='2023') - TOA_ceres_clim_gm.squeeze().tsr.values),
-                (model.tsr.sel(time='2024') - TOA_ceres_clim_gm.squeeze().tsr.values),
+                (model.mtnsrf.sel(time='2020') - TOA_ceres_clim_gm.squeeze().mtnsrf.values),
+                (model.mtnsrf.sel(time='2021') - TOA_ceres_clim_gm.squeeze().mtnsrf.values),
+                (model.mtnsrf.sel(time='2022') - TOA_ceres_clim_gm.squeeze().mtnsrf.values),
+                (model.mtnsrf.sel(time='2023') - TOA_ceres_clim_gm.squeeze().mtnsrf.values),
+                (model.mtnsrf.sel(time='2024') - TOA_ceres_clim_gm.squeeze().mtnsrf.values),
             ),
             dim='time'
         )
         tsr_diff.plot(ax=axes[1], color=linecolors[i], label=linelabels[i], x='time')
 
-    axes[1].fill(long_time, np.append(shading_data['tsr'].min(dim='ensemble'), shading_data['tsr'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
+    axes[1].fill(long_time, np.append(shading_data['mtnsrf'].min(dim='ensemble'), shading_data['mtnsrf'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
     axes[1].set_title('SW', fontsize=16)
     axes[1].set_xticklabels([])
     axes[1].set_xlabel('')
@@ -522,14 +459,14 @@ def plot_bias(data, iax, title, plotlevels, lower, upper, index):
     return plot
 
 
-def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_clim, outputdir, outputfig, year='2020'):
+def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_clim, outputdir='./', outputfig='./', year='2020'):
     """
     The function plots maps of TOA bias for the specified variable and model using a Robinson projection.
     The TOA bias is calculated as the difference between the TOA model data and the TOA CERES climatology. Default year is 2020
 
     Args:
         TOA_model (xarray.DataArray):                The TOA model data.
-        var (str):                                   The variable to plot ('tnr', 'tsr', or 'ttr').
+        var (str):                                   The variable to plot ('tnr', 'mtnsrf', or 'mtntrf').
         model_label (str):                           Desired label for the model (also used as filename to save figure, better avoid using characters like ' ',...)
         TOA_ceres_diff_samples (xarray.DataArray):   The TOA CERES difference samples data.
         TOA_ceres_clim (xarray.DataArray):           The TOA CERES climatology data.
@@ -540,7 +477,7 @@ def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_cli
 
     Example:
 
-        plot_maps(TOA_model= TOA_ifs_4km_r360x180, TOA_ceres_diff_samples = TOA_ceres_diff_samples, TOA_ceres_clim = TOA_ceres_clim, var='tsr', model_label='Cycle 3 4.4 km IFS Fesom', year='2023')
+        plot_maps(TOA_model= TOA_ifs_4km_r360x180, TOA_ceres_diff_samples = TOA_ceres_diff_samples, TOA_ceres_clim = TOA_ceres_clim, var='mtnsrf', model_label='Cycle 3 4.4 km IFS Fesom', year='2023')
         # Use the TOA_model_r360x180 DataSet to ensure that the gridding is right
         
     """
@@ -554,9 +491,9 @@ def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_cli
     TOA_model = TOA_model.sel(time=year)
     if var == 'tnr':
         label = 'net'
-    elif var == 'tsr':
+    elif var == 'mtnsrf':
         label = 'SW'
-    elif var == 'ttr':
+    elif var == 'mtntrf':
         label = 'LW'
 
     if year == '2020':
@@ -616,13 +553,13 @@ def plot_maps(TOA_model, var, model_label, TOA_ceres_diff_samples, TOA_ceres_cli
     print(f"Plot has been saved to {outputfig}.")
 
 
-def plot_mean_bias(TOA_model, var, model_label, TOA_ceres_clim, start_year, end_year, outputdir, outputfig):
+def plot_mean_bias(TOA_model=None, var=None, model_label=None, TOA_ceres_clim=None, start_year=None, end_year=None, outputdir='./', outputfig='./'):
     """
     Plot the mean bias of the data over the specified time range.
 
     Args:
         TOA_model (xarray.Dataset):       The model TOA radiation data.
-        var (str):                       The variable to plot (e.g., 'tsr', 'ttr', 'tnr').
+        var (str):                       The variable to plot (e.g., 'mtnsrf', 'mtntrf', 'tnr').
         model_label (str):               The label for the model.
         TOA_ceres_clim (float):          The CERES TOA radiation climatology.
         start_year (str):                The start year of the time range for the model data.
@@ -634,10 +571,9 @@ def plot_mean_bias(TOA_model, var, model_label, TOA_ceres_clim, start_year, end_
         None. Displays the plot of the mean bias.
 
     Example:
-        plot_mean_bias(TOA_model, 'tsr', 'Cycle3_9km_IFS', TOA_ceres_clim, '2020', '2024', ceres_start_year='2000', ceres_end_year='2010')
+        plot_mean_bias(TOA_model, 'mtnsrf', 'Cycle3_9km_IFS', TOA_ceres_clim, '2020', '2024', ceres_start_year='2000', ceres_end_year='2010')
     """
     plotlevels = np.arange(-50, 51, 10)
-
     # Calculate the mean bias over the specified time range
     mean_bias = (TOA_model[var].sel(time=slice(start_year, end_year)).mean(dim='time') - TOA_ceres_clim[var]).mean(dim='time')
     # Convert masked values to NaN
@@ -657,11 +593,6 @@ def plot_mean_bias(TOA_model, var, model_label, TOA_ceres_clim, start_year, end_
     ax.tick_params(axis='both', which='both', labelsize=10)
     ax.xaxis.set_ticklabels(['-180°', '-150°', '-120°', '-90°', '-60°', '-30°', '0°', '30°', '60°', '90°', '120°', '150°', '180°'])
     ax.yaxis.set_ticklabels(['-90°', '-60°', '-30°', '0°', '30°', '60°', '90°'])
-
-    #cbar_ax = plt.subplot(gs[1])
-    #cbar = plt.colorbar(contour_plot, cax=cbar_ax, orientation='horizontal')
-    #cbar.set_label('Bias (W/m²)')
-
     create_folder(folder=str(outputfig), loglevel='WARNING')
 
     filename = f"{outputfig}{var}_{model_label}_TOA_mean_biases_{start_year}_{end_year}_CERES.pdf"
