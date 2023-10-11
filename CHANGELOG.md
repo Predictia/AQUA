@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Add CLI for SSH diagnostic and some bug fixes (#540)
 - Fix SSH diagnostic to be compatible with lates AQUA version (#538) 
 - Helper function to identify vertical coordinates in a dataset (#552)
 - Orography for tempest extremes TCs detection and update TCs CLI (Orography threshold included and CLI update #404)
