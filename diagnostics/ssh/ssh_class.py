@@ -32,12 +32,18 @@ def check_time_span(ds, start, end):
     start_date = datetime.strptime(start, '%Y-%m-%d')
     end_date = datetime.strptime(end, '%Y-%m-%d')
 
+    logger.debug("start_date: %s", start_date)
+    logger.debug("end_date: %s", end_date)
+
     # Extract the time coordinate from the xarray data
     time_coord = ds['time']
 
     # Ensure the min and max time coordinates are in datetime format for comparison
     time_min = pd.to_datetime(time_coord.min().values)
     time_max = pd.to_datetime(time_coord.max().values)
+
+    logger.debug("time_min: %s", time_min)
+    logger.debug("time_max: %s", time_max)
 
     # Check if the required time span is within the xarray data's time span
     return start_date >= time_min and end_date <= time_max
@@ -90,7 +96,7 @@ class sshVariability():
             std_dev_data (xarray.DataArray): Computed standard deviation data.
         """
         # Create the file type folder within the output directory
-        file_type_folder = os.path.join(output_directory, "NetCDF")
+        file_type_folder = os.path.join(output_directory, "netcdf")
         os.makedirs(file_type_folder, exist_ok=True)
 
         # Set the output file path
@@ -183,7 +189,7 @@ class sshVariability():
             fig (plt.Figure): The figure object containing the subplots.
         """
         # Create the file type folder within the output directory
-        file_type_folder = os.path.join(output_directory, "PDF")
+        file_type_folder = os.path.join(output_directory, "pdf")
         os.makedirs(file_type_folder, exist_ok=True)
 
         # Set the output file path
