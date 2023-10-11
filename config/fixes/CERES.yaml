@@ -3,6 +3,16 @@ models:
           default:
               default:
                   data_model: False
+          ebaf-toa41:
+              default:
+                  data_model: False
+                  vars:
+                      mtntrf: 
+                          derived: 0.-toa_lw_all_mon
+                          grib: true
+                      mtnsrf: 
+                          derived: solar_mon-toa_sw_all_mon
+                          grib: true
           syn-toa41:
               default:
                   vars:
