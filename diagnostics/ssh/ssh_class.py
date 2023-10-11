@@ -166,7 +166,7 @@ class sshVariability():
         Run the sshVariability.
         """
         # Load the configuration - reading and parsing the YAML configuration file.
-        config = util.load_yaml('../config.yml')
+        config = self.config
 
         # Comparing user timespan inputs across the models
         self.validate_time_ranges(config)
@@ -190,7 +190,7 @@ class sshVariability():
         # idea: think in context of streaming data.
         reader = Reader(model=config['base_model']['name'], exp=config['base_model']
                         ['experiment'], source=config['base_model']['source'])
-        aviso_cat = reader.retrieve(fix=True)
+        aviso_cat = reader.retrieve(apply_unit_fix=True)
         aviso_time_min = np.datetime64(aviso_cat.time.min().values)
         aviso_time_max = np.datetime64(aviso_cat.time.max().values)
         logger.info("AVISO data spans from %s to %s",
@@ -232,7 +232,7 @@ class sshVariability():
                 "initializing AQUA reader to read the model inputs for %s", model_name)
             reader = Reader(model=model_name['name'], exp=model_name['experiment'],
                             source=model_name['source'], regrid=model_name['regrid'], zoom=model_name['zoom'])
-            model_data = reader.retrieve(fix=True)
+            model_data = reader.retrieve(apply_unit_fix=True)
 
             ssh_data = model_data[model_name['variable']]
 
