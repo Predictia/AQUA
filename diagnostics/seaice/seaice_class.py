@@ -104,7 +104,6 @@ class SeaIceExtent:
             # for each region and for that setup
             # Iterate over regions
             for jr, region in enumerate(self.myRegions):
-
                 self.logger.info("\tProducing diagnostic for region %s", region)
                 # Create regional mask
                 try:
@@ -117,6 +116,8 @@ class SeaIceExtent:
                     )
                 except KeyError:
                     self.logger.info("Error: region not defined")
+                    print("Region " + region + " does not exist in regions_definition.yml")
+                    exit(1)
 
                 # Dealing with regions straddling the 180° meridian
                 if lonW > lonE:

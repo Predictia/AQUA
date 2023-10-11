@@ -11,11 +11,17 @@ models:
     source: lra-r100-monthly
     regrid: r025
     variable: ci
+  - name: OSI-SAF
+    experiment: osi-450
+    source: "nh-monthly"
+  - name: OSI-SAF
+    experiment: osi-450
+    source: "sh-monthly"
 
 # Regions to be shown
 regions:
   - Arctic
-  - Antarctic
+  - Southern Ocean
 
 # Please specify the path to the directory where the outputs should be saved. If output directory/ folder does not exist, another directory called output will be created in your current working directory.
 output_directory: /home/b/b382385/git/AQUA/diagnostics/seaice/notebooks/output 
