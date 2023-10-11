@@ -6,6 +6,16 @@ models:
     regrid: r025
     variable: ci
     timespan: ['2020-01-20', '2024-12-31']
+  - name: ICON
+    experiment: ngc3028
+    source: lra-r100-monthly
+    regrid: r025
+    variable: ci
+
+# Regions to be shown
+regions:
+  - Arctic
+  - Antarctic
 
 # Please specify the path to the directory where the outputs should be saved. If output directory/ folder does not exist, another directory called output will be created in your current working directory.
 output_directory: /home/b/b382385/git/AQUA/diagnostics/seaice/notebooks/output 
@@ -14,3 +24,5 @@ output_directory: /home/b/b382385/git/AQUA/diagnostics/seaice/notebooks/output
 dask_cluster:
   n_workers: 16
   threads_per_worker: 1
+
+

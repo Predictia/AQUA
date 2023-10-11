@@ -5,13 +5,13 @@ import xarray as xr
 from aqua import Reader, util
 from aqua.util import load_yaml, create_folder
 from aqua.logger import log_configure
-
+import os
 
 class SeaIceExtent:
     """Sea ice extent class"""
 
     def __init__(self, config_file, loglevel: str = 'ERROR', threshold=0.15,
-                 regions="../regions_definition.yml", outputdir = "./NetCDF"):
+            regions_definition_file=None):
         """
         The SeaIceExtent constructor.
 
@@ -22,67 +22,41 @@ class SeaIceExtent:
                                 Default: WARNING
             threshold (float):  The sea ice extent threshold
                                 Default: 0.15
-            regions (str):      The path to the regions.yml file
-                                Default: ../regions_definition.yml
-            outputdir (str):    The path to the folder where outputs (NetCDF) will be stored
-                                Default: ./netcdf
+            regions_definition_file (str):      The path to the file that specifies the regions boundaries
+                                Default: ./regions_definition.yml
 
         Returns:
             A SeaIceExtent object.
 
         """
-
         # Configure logger
         self.loglevel = loglevel
         self.logger = log_configure(self.loglevel, 'Seaice')
-        self.mySetups = None
-        self.regionDict = load_yaml(regions)
-        self.myRegions = None
-        self.nRegions = None
+        if regions_definition_file is None:
+            regions_definition_file = os.path.dirname(os.path.abspath(__file__)) + "/regions_definition.yml"
+
+        self.regionDict = load_yaml(regions_definition_file)
         self.thresholdSeaIceExtent = threshold
-        self.outputdir = outputdir
 
         self.logger.debug("Reading configuration file %s", config_file)
         self.config = load_yaml(config_file)
         self.logger.warning("CONFIG:" + str(self.config))
 
-    def configure(self,
-                  mySetups=[["IFS", "tco1279-orca025-cycle3",
-                             "2D_monthly_native"]],
-                  myRegions=["Arctic", "Southern Ocean"]):
-        """
-        The configure method.
-        Set the number of regions and the list of regions to analyse.
-        Set the list of setups to analyse.
-
-        Args:
-            mySetups: A list of 3-item lists indicating which setups need to be plotted.
-                      A setup = model, experiment, source
-            myRegions: A list of regions to analyse.
-                       See regions.yml file for the full list.
-        """
-
-        self.nRegions = len(myRegions)
-        self.myRegions = myRegions
-        self.mySetups = mySetups
+        self.outputdir = self.config['output_directory']
 
     def run(self, **kwargs):
         """
         The run diagnostic method.
 
         kwargs:
-            mySetups: A list of 3-item lists indicating which setups need to be plotted.
-                      A setup = model, experiment, source
-            myRegions: A list of regions to analyse.
-                       See regions_definition.yml file for the full list.
+            myConfig
+                      A config specifying data to plot and regions 
 
             The method produces as output a figure with the seasonal cycles
             of sea ice extent in the regions for the setups and a netcdf file
             containing the time series of sea ice extent in the regions for
             each setup.
         """
-
-        self.configure(**kwargs)
         self.computeExtent()
         self.plotExtent()
         self.createNetCDF()
@@ -91,6 +65,13 @@ class SeaIceExtent:
         """
         Method which computes the seaice extent.
         """
+        # Convert the config yaml object to "setup" variable
+        nModels = len(self.config['models'])
+
+        self.mySetups = [[self.config['models'][jModels]['name'], self.config['models'][jModels]['experiment'], self.config['models'][jModels]['source']] for jModels in range(nModels)]
+
+        self.myRegions = self.config['regions']
+        self.nRegions = len(self.myRegions)
 
         # Instantiate the various readers (one per setup) and retrieve the
         # corresponding data
@@ -126,12 +107,16 @@ class SeaIceExtent:
 
                 self.logger.info("\tProducing diagnostic for region %s", region)
                 # Create regional mask
-                latS, latN, lonW, lonE = (
-                    self.regionDict[region]["latS"],
-                    self.regionDict[region]["latN"],
-                    self.regionDict[region]["lonW"],
-                    self.regionDict[region]["lonE"],
-                )
+                try:
+                    latS, latN, lonW, lonE = (
+                        
+                        self.regionDict[region]["latS"],
+                        self.regionDict[region]["latN"],
+                        self.regionDict[region]["lonW"],
+                        self.regionDict[region]["lonE"],
+                    )
+                except KeyError:
+                    self.logger.info("Error: region not defined")
 
                 # Dealing with regions straddling the 180° meridian
                 if lonW > lonE:
@@ -197,7 +182,7 @@ class SeaIceExtent:
 
         fig.tight_layout()
         for fmt in ["png", "pdf"]:
-            outputdir = "./PDF/" + str(fmt) + "/"
+            outputdir = self.outputdir + "./PDF/" + str(fmt) + "/"
 
             create_folder(outputdir, loglevel=self.loglevel)
             figName = "SeaIceExtent_" + "all_models" + "." + fmt

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Sea ice Diagnostic CLI. Strongly Inspired from SSH equivalent
+Sea ice Diagnostic CLI. Strongly Inspired from its SSH equivalent
 
 This script allows users to execute sea ice diagnostics using command-line arguments.
 By default, it will read configurations from 'config.yml' unless specified by the user.
@@ -17,9 +17,11 @@ import sys
 # change the current directory to the one of the CLI so that relative path works
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
+
 if os.getcwd() != dname:
     os.chdir(dname)
     print(f'Moving from current directory to {dname} to run!')
+
 script_dir = dname
 sys.path.insert(0, "../..")
 # script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -47,9 +49,6 @@ def parse_arguments(args):
     # Define the default path for the configuration file.
     default_config_path = os.path.join(script_dir, 'config.yml')
      
-    # Define the default path for the file used for selection.
-    default_region_selection_path = os.path.join(script_dir, 'regions_selection.yml')
-    
     # Arguments for the CLI.
     parser.add_argument('--config', type=str, default=default_config_path,
                         help=f'yaml configuration file (default: {default_config_path})')
@@ -61,8 +60,6 @@ def parse_arguments(args):
     parser.add_argument('--exp', type=str, help='Experiment name')
     parser.add_argument('--source', type=str, help='Source name')
     parser.add_argument('--outputdir', type=str, help='Output directory')
-    parser.add_argument('--regions'  , type = str, default=default_region_selection_path,
-                        help=f'yaml region selection file (default: {default_region_selection_path})')
 
     return parser.parse_args(args)
 
@@ -73,26 +70,29 @@ if __name__ == '__main__':
     # Parse the provided command line arguments.
     args = parse_arguments(sys.argv[1:])
 
-    print(args)
     # Configure the logger.
     loglevel = get_arg(args, 'loglevel', 'WARNING')
     logger = log_configure(log_name="SeaIce CLI", log_level=loglevel)
 
     # Outputdir
     outputdir = get_arg(args, 'outputdir', None)
-    logger.debug(f"Output directory: {outputdir}")
+    #logger.debug(f"Output directory: {outputdir}")
 
     # Read configuration file.
-    logger.warning('Reading configuration yaml file...')
-    analyzer = SeaIceExtent(args.config, loglevel=loglevel, outputdir=outputdir)
+    #logger.warning('Reading configuration yaml file...')
+
+    # Initialize the object
+    analyzer = SeaIceExtent(args.config, loglevel=loglevel)
 
     # Override configurations with CLI arguments if provided.
-    analyzer.config['models'][0]['name'] = get_arg(args, 'model', analyzer.config['models'][0]['name'])
+    analyzer.config['models'][0]['name']       = get_arg(args, 'model', analyzer.config['models'][0]['name'])
     analyzer.config['models'][0]['experiment'] = get_arg(args, 'exp', analyzer.config['models'][0]['experiment'])
-    analyzer.config['models'][0]['source'] = get_arg(args, 'source', analyzer.config['models'][0]['source'])
-    analyzer.config['output_directory'] = get_arg(args, 'outputdir', analyzer.config['output_directory'])
+    analyzer.config['models'][0]['source']     = get_arg(args, 'source', analyzer.config['models'][0]['source'])
+    analyzer.config['output_directory']        = get_arg(args, 'outputdir', analyzer.config['output_directory'])
 
-    logger.debug(f"Configuration: {analyzer.config}")
+    #logger.warning(f"Configuration: {analyzer.config}")
+    print('============================')
+    print('\n\n\n')
 
     # Execute the analyzer.
     analyzer.run()
