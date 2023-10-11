@@ -7,6 +7,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+## [v0.4]
+
+Main changes are:
+1. Update to all the diagnostics CLI
+2. Refactor of the regridder so that `regrid.yaml`` is grid-based and not experiment-based
+3. Xarray access to FDB sources
+4. Refactor of the fixer so that merge/replace/default options are available
+5. Remove of the `aqua` environment in favour of the `aqua_common`` one. 
+
+Complete list:
 - Add CLI for SSH diagnostic and some bug fixes (#540)
 - Fix SSH diagnostic to be compatible with lates AQUA version (#538) 
 - Helper function to identify vertical coordinates in a dataset (#552)
@@ -141,7 +151,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.3...HEAD
+[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.4...HEAD
+[v0.4]: https://github.com/oloapinivad/AQUA/compare/v0.3...v0.4
 [v0.3]: https://github.com/oloapinivad/AQUA/compare/v0.2.1...v0.3
 [v0.2.1]: https://github.com/oloapinivad/AQUA/compare/v0.2...v0.2.1
 [v0.2]: https://github.com/oloapinivad/AQUA/compare/v0.2-beta...v0.2
