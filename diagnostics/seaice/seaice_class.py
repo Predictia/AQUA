@@ -43,6 +43,8 @@ class SeaIceExtent:
         self.logger.warning("CONFIG:" + str(self.config))
 
         self.outputdir = self.config['output_directory']
+        print(";;;;;;;;=========,,,,,,,,,")
+        print(self.outputdir)
 
     def run(self, **kwargs):
         """
@@ -67,7 +69,7 @@ class SeaIceExtent:
         """
         # Convert the config yaml object to "setup" variable
         nModels = len(self.config['models'])
-
+        self.outputdir = self.config['output_directory']
         self.mySetups = [[self.config['models'][jModels]['name'], self.config['models'][jModels]['experiment'], self.config['models'][jModels]['source']] for jModels in range(nModels)]
 
         self.myRegions = self.config['regions']
@@ -184,7 +186,6 @@ class SeaIceExtent:
         fig.tight_layout()
         for fmt in ["png", "pdf"]:
             outputdir = self.outputdir + "./PDF/" + str(fmt) + "/"
-
             create_folder(outputdir, loglevel=self.loglevel)
             figName = "SeaIceExtent_" + "all_models" + "." + fmt
             fig.savefig(outputdir + "/" + figName, dpi=300)

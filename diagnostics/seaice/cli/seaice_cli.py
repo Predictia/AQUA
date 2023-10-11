@@ -90,6 +90,9 @@ if __name__ == '__main__':
     analyzer.config['models'][0]['source']     = get_arg(args, 'source', analyzer.config['models'][0]['source'])
     analyzer.config['output_directory']        = get_arg(args, 'outputdir', analyzer.config['output_directory'])
 
+    print("====:::::=====")
+    print(analyzer.config['output_directory'])
+
     #logger.warning(f"Configuration: {analyzer.config}")
     print('============================')
     print('\n\n\n')
