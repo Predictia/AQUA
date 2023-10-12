@@ -40,15 +40,10 @@ def log_configure(log_level=None, log_name=None):
     # cannot use BasicConfig for specific loggers
     logger.setLevel(log_level)
 
-    # # create formatter
-    # formatter = logging.Formatter(
-    #     fmt='%(asctime)s :: %(name)s :: %(levelname)-8s -> %(message)s',
-    #     datefmt='%Y-%m-%d %H:%M:%S')
-
     # create console handler which logs
     terminal = logging.StreamHandler()
     # ch.setLevel(log_level)
-    terminal.setFormatter(CustomLogColors())
+    terminal.setFormatter(CustomLogColors()) # use the custom formatter
     logger.addHandler(terminal)
 
     # this can be used in future to log to file
