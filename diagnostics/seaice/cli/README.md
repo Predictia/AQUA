@@ -29,5 +29,6 @@ Command Line Arguments:
 * `--exp`: Overrides the experiment name in the configuration file.
 * `--source`: Overrides the source name in the configuration file.
 * `--outputdir`: Overrides the output directory in the configuration file.
+* `--regrid`: Overrides the regrid option in the configuration file.
 
 

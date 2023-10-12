@@ -36,6 +36,11 @@ run_global_time_series=true
 run_ocean3d=true
 run_radiation=false # not implemented yet
 run_seaice=true
+# ------------------------------------------
+# Command line extra arguments for seaice
+# --config (seaice config file)
+# --regrid (regrid data to a different grid)
+# ------------------------------------------
 run_teleconnections=true
 # teleconnections additional flags
 # ---------------------------------------------------------------

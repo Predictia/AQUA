@@ -11,6 +11,11 @@ import argparse
 import os
 import sys
 
+# Imports related to the aqua package, which is installed and available globally.
+from aqua import Reader
+from aqua.logger import log_configure
+from aqua.util import get_arg, load_yaml
+
 # Add the directory containing the `seaice` module to the Python path.
 # Since the module is in the parent directory of this script, we calculate the script's directory
 # and then move one level up.
@@ -24,17 +29,9 @@ if os.getcwd() != dname:
 
 script_dir = dname
 sys.path.insert(0, "../..")
-# script_dir = os.path.dirname(os.path.abspath(__file__))
-# seaice_module_path = os.path.join(script_dir, "../../")
-# sys.path.insert(0, seaice_module_path)
 
 # Local module imports.
 from seaice import SeaIceExtent
-
-# Imports related to the aqua package, which is installed and available globally.
-from aqua import Reader
-from aqua.logger import log_configure
-from aqua.util import get_arg
 
 
 def parse_arguments(args):
@@ -48,7 +45,7 @@ def parse_arguments(args):
 
     # Define the default path for the configuration file.
     default_config_path = os.path.join(script_dir, 'config.yml')
-     
+
     # Arguments for the CLI.
     parser.add_argument('--config', type=str, default=default_config_path,
                         help=f'yaml configuration file (default: {default_config_path})')
@@ -60,6 +57,7 @@ def parse_arguments(args):
     parser.add_argument('--exp', type=str, help='Experiment name')
     parser.add_argument('--source', type=str, help='Source name')
     parser.add_argument('--outputdir', type=str, help='Output directory')
+    parser.add_argument('--regrid', type=str, help='Target regrid resolution')
 
     return parser.parse_args(args)
 
@@ -76,26 +74,35 @@ if __name__ == '__main__':
 
     # Outputdir
     outputdir = get_arg(args, 'outputdir', None)
-    #logger.debug(f"Output directory: {outputdir}")
+    logger.debug(f"Output directory: {outputdir}")
 
     # Read configuration file.
-    #logger.warning('Reading configuration yaml file...')
-
-    # Initialize the object
-    analyzer = SeaIceExtent(args.config, loglevel=loglevel)
+    # We first load a config.yml file from the current directory,
+    # then if present, we override the first model with the CLI arguments.
+    logger.info('Reading configuration yaml file...')
+    config = load_yaml(args.config)
+    logger.debug(f"Configuration file: {config}")
 
     # Override configurations with CLI arguments if provided.
-    analyzer.config['models'][0]['name']       = get_arg(args, 'model', analyzer.config['models'][0]['name'])
-    analyzer.config['models'][0]['experiment'] = get_arg(args, 'exp', analyzer.config['models'][0]['experiment'])
-    analyzer.config['models'][0]['source']     = get_arg(args, 'source', analyzer.config['models'][0]['source'])
-    analyzer.config['output_directory']        = get_arg(args, 'outputdir', analyzer.config['output_directory'])
+    config['models'][0]['model'] = get_arg(args, 'model',
+                                          config['models'][0]['model'])
+    config['models'][0]['exp'] = get_arg(args, 'exp',
+                                                config['models'][0]['exp'])
+    config['models'][0]['source'] = get_arg(args, 'source',
+                                            config['models'][0]['source'])
+    config['models'][0]['regrid'] = get_arg(args, 'regrid',
+                                            config['models'][0]['regrid'])
+    config['output_directory'] = get_arg(args, 'outputdir',
+                                         config['output_directory'])
+    logger.debug(f"Final configuration: {config}")
 
+    outputdir = config['output_directory']
 
-    #logger.warning(f"Configuration: {analyzer.config}")
+    # Initialize the object
+    analyzer = SeaIceExtent(config=config, outputdir=outputdir,
+                            loglevel=loglevel)
 
     # Execute the analyzer.
     analyzer.run()
-    analyzer.computeExtent()
-    analyzer.createNetCDF()
 
-    print("sea ice diagnostic completed!")
+    logger.info("sea ice diagnostic completed!")

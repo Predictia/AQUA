@@ -1,24 +1,24 @@
 # Models for sea ice to be evaluated.
 models:
-  - name: IFS
-    experiment: tco1279-orca025-cycle3
+  - model: IFS
+    exp: tco1279-orca025-cycle3
     source: 2D_monthly_native
-    regrid: r025
+    regrid: null
     variable: ci
-    timespan: ['2020-01-20', '2024-12-31']
+    timespan: null # can be of the format ['2020-01-20', '2024-12-31']
   # These are observational datasets
-  - name: OSI-SAF
-    experiment: osi-450
+  - model: OSI-SAF
+    exp: osi-450
     source: nh-monthly
     regrid: null
     variable: ci
-    timespan: ['2020-01-20', '2024-12-31']
-  - name: OSI-SAF
-    experiment: osi-450
+    timespan: null
+  - model: OSI-SAF
+    exp: osi-450
     source: sh-monthly
     regrid: null
     variable: ci
-    timespan: ['2020-01-20', '2024-12-31']
+    timespan: null
 
 regions: # By default, all regions are evaluated
   - Arctic
