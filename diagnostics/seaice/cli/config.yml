@@ -20,18 +20,19 @@ models:
     variable: ci
     timespan: null
 
-regions: # By default, all regions are evaluated
+regions: # If this block is missing all regions will be evaluated
   - Arctic
-  - Hudson Bay
   - Southern Ocean
-  - Ross Sea
-  - Amundsen-Bellingshausen Seas
-  - Weddell Sea
-  - Indian Ocean
-  - Pacific Ocean
+  # - Hudson Bay
+  # - Ross Sea
+  # - Amundsen-Bellingshausen Seas
+  # - Weddell Sea
+  # - Indian Ocean
+  # - Pacific Ocean
 
 # Please specify the path to the directory where the outputs should be saved.
 # If output directory/folder does not exist, it will be created.
+# This can be overwritten by the command line argument --outputdir
 output_directory: /home/b/b382385/git/AQUA/diagnostics/seaice/cli/output 
 
 # This is the current dask configuration which works for the inputs above.

@@ -38,6 +38,8 @@ run_radiation=false # not implemented yet
 run_seaice=true
 # ------------------------------------------
 # Command line extra arguments for seaice
+# --all-regions (if set it will plot all regions)
+#               (default is False)
 # --config (seaice config file)
 # --regrid (regrid data to a different grid)
 # ------------------------------------------

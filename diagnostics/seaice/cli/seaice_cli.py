@@ -12,7 +12,6 @@ import os
 import sys
 
 # Imports related to the aqua package, which is installed and available globally.
-from aqua import Reader
 from aqua.logger import log_configure
 from aqua.util import get_arg, load_yaml
 
@@ -49,6 +48,8 @@ def parse_arguments(args):
     # Arguments for the CLI.
     parser.add_argument('--config', type=str, default=default_config_path,
                         help=f'yaml configuration file (default: {default_config_path})')
+    parser.add_argument('--all-regions', action='store_true',
+                        help='Compute sea ice extent for all regions')
     parser.add_argument('--loglevel', '-l', type=str, default='WARNING',
                         help='Logging level (default: WARNING)')
 
@@ -94,6 +95,12 @@ if __name__ == '__main__':
                                             config['models'][0]['regrid'])
     config['output_directory'] = get_arg(args, 'outputdir',
                                          config['output_directory'])
+
+    # If the user wants to compute sea ice extent for all regions, we override the
+    # configuration file.
+    if args.all_regions:
+        config['regions'] = None
+
     logger.debug(f"Final configuration: {config}")
 
     outputdir = config['output_directory']

@@ -70,12 +70,15 @@ class SeaIceExtent:
         except KeyError:
             self.logger.error("No regions specified in configuration file")
             self.logger.warning("Using all regions")
+            self.myRegions = None
 
+        if self.myRegions is None:
             self.myRegions = ["Arctic", "Hudson Bay",
                               "Southern Ocean", "Ross Sea",
                               "Amundsen-Bellingshausen Seas",
                               "Weddell Sea", "Indian Ocean",
                               "Pacific Ocean"]
+
         self.logger.debug("Regions: " + str(self.myRegions))
         self.nRegions = len(self.myRegions)
         self.logger.debug("Number of regions: " + str(self.nRegions))
