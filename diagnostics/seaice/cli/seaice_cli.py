@@ -14,6 +14,7 @@ import sys
 # Imports related to the aqua package, which is installed and available globally.
 from aqua.logger import log_configure
 from aqua.util import get_arg, load_yaml
+from aqua.exceptions import NoDataError
 
 # Add the directory containing the `seaice` module to the Python path.
 # Since the module is in the parent directory of this script, we calculate the script's directory
@@ -110,6 +111,14 @@ if __name__ == '__main__':
                             loglevel=loglevel)
 
     # Execute the analyzer.
-    analyzer.run()
+    try:
+        analyzer.run()
+    except NoDataError:
+        logger.error("No data found for the given configuration. Exiting...")
+        sys.exit(0)
+    except Exception as e:
+        logger.error(f"An error occurred while running the analyzer: {e}")
+        logger.warning("Please report this error to the developers. Exiting...")
+        sys.exit(0)
 
     logger.info("sea ice diagnostic completed!")
