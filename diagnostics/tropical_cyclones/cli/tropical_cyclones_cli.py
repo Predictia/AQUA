@@ -21,9 +21,7 @@ def parse_arguments(args):
     parser = argparse.ArgumentParser(description='Tropical Cyclones CLI')
     parser.add_argument('-c', '--config', type=str,
                         help='yaml configuration file')
-    parser.add_argument('-d', '--dry', action='store_true',
-                        required=False,
-                        help='if True, run is dry, no files are written')
+
     parser.add_argument('-l', '--loglevel', type=str,
                         help='log level [default: WARNING]')
 
@@ -50,7 +48,7 @@ if __name__ == '__main__':
 
     # Read configuration file
 
-    file = get_arg(args, 'config', 'config/config_tcs.yaml')
+    file = get_arg(args, 'config', 'config_tcs.yaml')
     print('Reading tcs configuration yaml file.')
     config = load_yaml(file)
     
@@ -62,14 +60,6 @@ if __name__ == '__main__':
     exp = get_arg(args, 'exp', config['dataset']['exp'])
     source2d = get_arg(args, 'source2d', config['dataset']['source2d'])
     source3d = get_arg(args, 'source3d', config['dataset']['source3d'])
-
-    dry = get_arg(args, 'dry', False)
-    
-    if dry:
-        print('Dry run, no files will be written')
-        savefile = False
-    else:
-        savefile = True
 
     # initialise tropical class with streaming options
     tropical = TCs(tdict=config, streaming=True, 

@@ -3,7 +3,7 @@ import subprocess
 from time import time
 import xarray as xr
 import pandas as pd
-from .tcs_utils import clean_files, write_fullres_field
+from .tools.tcs_utils import write_fullres_field
 
 
 class DetectNodes():
