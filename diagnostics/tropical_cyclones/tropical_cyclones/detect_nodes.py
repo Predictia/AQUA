@@ -37,7 +37,7 @@ class DetectNodes():
             self.logger.warning(f"processing time step {tstep}")
             self.readwrite_from_intake(tstep)
             self.run_detect_nodes(tstep)
-            #clean_files([self.tempest_filein])
+            clean_files([self.tempest_filein])
             self.read_lonlat_nodes()
             self.store_detect_nodes(tstep)
             toc = time()
@@ -68,7 +68,6 @@ class DetectNodes():
             # this assumes that only required 2D data has been retrieved
             lowres2d = self.reader2d.regrid(self.data2d.sel(time=timestep))
             
-            lowres2d.to_netcdf("prova.nc")
             # rename some variables to run DetectNodes command
             if '10u' in lowres2d.data_vars:
                 lowres2d = lowres2d.rename({'10u': 'u10m'})
