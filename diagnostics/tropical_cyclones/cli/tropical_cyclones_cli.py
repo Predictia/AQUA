@@ -6,7 +6,7 @@
 import argparse
 import sys
 
-sys.path.insert(0, '../')
+#sys.path.insert(0, '../')
 
 from tropical_cyclones import TCs
 from aqua.util import load_yaml, get_arg
