@@ -126,7 +126,7 @@ def regional_mean_index(field, namelist, telecname, months_window=3,
 
 
 def regional_mean_anomalies(field, namelist, telecname, months_window=3,
-                            loglevel='WARNING'):
+                            loglevel='WARNING', aggregation=None):
     """
     Evaluate regional field mean anomalies for a teleconnection.
 
@@ -136,6 +136,8 @@ def regional_mean_anomalies(field, namelist, telecname, months_window=3,
         telecname (str):          name of the teleconnection to be evaluated
         months_window (int, opt): months for rolling average, default is 3
         loglevel (str, opt):      log level, default is WARNING
+        aggregation (str, opt):   aggregation of the data, default is None
+                                  This is needed if the data are not monthly
 
     Returns:
         (xarray.DataArray): regional field mean anomalies
@@ -150,7 +152,7 @@ def regional_mean_anomalies(field, namelist, telecname, months_window=3,
         lonW = namelist[telecname]['lonW']
         lonE = namelist[telecname]['lonE']
     else:
-        logger.debug('Data longitudes are 0-360, converting teleconnection coords')
+        logger.debug('Data longitudes are 0-360, converting')
         lonW = lon_180_to_360(namelist[telecname]['lonW'])
         lonE = lon_180_to_360(namelist[telecname]['lonE'])
 
@@ -160,9 +162,18 @@ def regional_mean_anomalies(field, namelist, telecname, months_window=3,
     logger.debug('Region: lon = %s; %s, lat = %s; %s', lonW, lonE, latS, latN)
 
     # 2. -- Evaluate mean value of the field and then the rolling mean --
-    field_mean = wgt_area_mean(field, latN, latS, lonW, lonE)
-    field_mean_an = field_mean.groupby("time.month") -\
-        field_mean.groupby("time.month").mean(dim="time")
+    field_mean = wgt_area_mean(field, latN, latS, lonW, lonE,
+                               loglevel=loglevel)
+
+    # The groupby operation is needed if the data are not monthly
+    if aggregation == 'M':
+        logger.info("Data are not monthly, grouping by month")
+        field_mean_an = field_mean.groupby("time.month") -\
+            field_mean.groupby("time.month").mean(dim="time")
+    else:
+        logger.info("Data are already monthly, skipping grouping")
+        field_mean_an = field_mean - field_mean.mean(dim="time")
+
     field_mean_an = field_mean_an.rolling(time=months_window,
                                           center=True).mean(skipna=True)
 
