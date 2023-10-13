@@ -50,7 +50,10 @@ def process_ceres_data(exp=None, source=None):
 
     # time averages over each month and get the monthly anomaly
     clim = complete.groupby('time.month').mean('time')
+    
     monthly_anomalies = complete.groupby('time.month') - clim
+
+    clim = clim.rename({'month': 'time'})
 
     # global mean
     clim_gm = reader.fldmean(clim)
@@ -304,7 +307,7 @@ def barplot_model_data(datasets=None, model_names=None, outputdir='./', outputfi
     print(f"Data has been saved to {outputdir}.")
     print(f"Plot has been saved to {outputfig}.")
 
-def plot_model_comparison_timeseries(models=None, linelabels=None, TOA_ceres_diff_samples_gm=None, TOA_ceres_clim_gm=None, outputdir='./', outputfig='./'):
+def plot_model_comparison_timeseries(models=None, linelabels=None, TOA_ceres_diff_samples_gm=None, TOA_ceres_clim_gm=None, outputdir='./', outputfig='./', ylim = 6.5):
                         
     """
     Create time series bias plot with various models and CERES, including the individual CERES years to show variabilities.
@@ -325,82 +328,93 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, TOA_ceres_dif
     """
         
     fig, axes = plt.subplots(3, 1, figsize=(12, 8))
-    linecolors = plt.cm.get_cmap('tab10').colors
-    shading_data = xr.concat(
-        (
-            TOA_ceres_diff_samples_gm,
-            TOA_ceres_diff_samples_gm.assign_coords(time=models[0].mtntrf.sel(time='2021').time),
-            TOA_ceres_diff_samples_gm.assign_coords(time=models[0].mtntrf.sel(time='2022').time),
-            TOA_ceres_diff_samples_gm.assign_coords(time=models[0].mtntrf.sel(time='2023').time),
-            TOA_ceres_diff_samples_gm.assign_coords(time=models[0].mtntrf.sel(time='2024').time),
-        ),
-        dim='time'
-    )
-    long_time = np.append(shading_data['time'], shading_data['time'][::-1])
     
-    #----------------------------- ttr-----------------------------
-    for i, model in enumerate(models):
-        ttr_diff = xr.concat(
-            (
-                (model.mtntrf.sel(time='2020').squeeze() - TOA_ceres_clim_gm.squeeze().mtntrf.values),
-                (model.mtntrf.sel(time='2021').squeeze() - TOA_ceres_clim_gm.squeeze().mtntrf.values),
-                (model.mtntrf.sel(time='2022').squeeze() - TOA_ceres_clim_gm.squeeze().mtntrf.values),
-                (model.mtntrf.sel(time='2023').squeeze() - TOA_ceres_clim_gm.squeeze().mtntrf.values),
-                (model.mtntrf.sel(time='2024').squeeze() - TOA_ceres_clim_gm.squeeze().mtntrf.values),
-            ),
-            dim='time'
-        )
-        ttr_diff.plot(ax=axes[0], color=linecolors[i], label=linelabels[i], x='time')
+    #linecolors = plt.cm.get_cmap('tab10').colors
+    # Set the Seaborn style (you can choose other styles if needed)
+    sns.set_style("darkgrid")
+    # Choose a Seaborn color palette (you can select a different one if needed)
+    color_palette = sns.color_palette("Set1")  # Change "Set1" to your preferred palette
+    # Get a list of colors from the palette
+    linecolors = color_palette.as_hex()
 
-    axes[0].fill(long_time, np.append(shading_data['mtntrf'].min(dim='ensemble'), shading_data['mtntrf'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
+    starting_year = int(models[0]["time.year"][0].values) if len(models[0].sel(time=str(models[0]["time.year"][0].values)).time) == 12 \
+                    else int(models[0]["time.year"][0].values) + 1
+    final_year = int(models[0]["time.year"][-1].values) if len(models[0].sel(time=str(models[0]["time.year"][-1].values)).time) == 12 \
+                 else int(models[0]["time.year"][-1].values) + 1
+    years = range(starting_year, final_year - 1)
+    print(years)
+
+    #if len(models[0].sel(time=models[0]["time.year"][0].values).time)==12:
+    #    starting_year = int(models[0]["time.year"][0].values)
+    #else:
+    #    starting_year = int(models[0]["time.year"][0].values)+1
+    
+    #if len(models[0].sel(time=models[0]["time.year"][-1].values).time)==12:
+    #    final_year = int(models[0]["time.year"][-1].values)
+    #else:
+    #    final_year = int(models[0]["time.year"][-1].values)+1
+
+    #years = range(starting_year, final_year+1)
+
+    xlim = [pd.to_datetime(str(models[0]["time.year"][0].values) +'-'+str(models[0]["time.month"][0].values)+'-'+str(models[0]["time.day"][0].values)), \
+        pd.to_datetime(str(models[0]["time.year"][-1].values) +'-'+str(models[0]["time.month"][-1].values)+'-'+str(models[0]["time.day"][-1].values))]
+    shading_data_list = [TOA_ceres_diff_samples_gm]
+
+    for year in years:
+        new_data = TOA_ceres_diff_samples_gm.assign_coords(time=models[0].sel(time=str(year)).time)
+        shading_data_list.append(new_data)
+
+    #shading_data = xr.concat(shading_data_list, dim='time')
+
+    #long_time = np.append(shading_data['time'], shading_data['time'][::-1])
+    
+    for i, model in enumerate(models):
+        ttr_diff = []  # Initialize an empty list to store the data for each year
+        tsr_diff = []
+        tnr_diff = []
+        # Iterate through the years
+        for year in years:
+            diff_ttr = (model.mtntrf.sel(time=str(year)).squeeze() - TOA_ceres_clim_gm.squeeze().mtntrf.values)
+            ttr_diff.append(diff_ttr)
+
+            diff_tsr = (model.mtnsrf.sel(time=str(year)).squeeze() - TOA_ceres_clim_gm.squeeze().mtnsrf.values)
+            tsr_diff.append(diff_tsr)
+
+            diff_tnr = (model.tnr.sel(time=str(year)).squeeze() - TOA_ceres_clim_gm.squeeze().tnr.values)
+            tnr_diff.append(diff_tnr)
+        # Concatenate the data along the 'time' dimension
+        ttr_diff = xr.concat(ttr_diff, dim='time')
+        tsr_diff = xr.concat(tsr_diff, dim='time')
+        tnr_diff = xr.concat(tnr_diff, dim='time')
+        # Plot the data for the current model
+        ttr_diff.plot(ax=axes[0], color=linecolors[i], label=linelabels[i], x='time')
+        tsr_diff.plot(ax=axes[1], color=linecolors[i], label=linelabels[i], x='time')
+        ttr_diff.plot(ax=axes[2], color=linecolors[i], label=linelabels[i], x='time')
+
+
+
+    #axes[0].fill(long_time, np.append(shading_data['mtntrf'].min(dim='ensemble'), shading_data['mtntrf'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
+    
     axes[0].set_title('LW', fontsize=16)
     axes[0].set_xticklabels([])
     axes[0].set_xlabel('')
     axes[0].legend(loc="upper left", frameon=False, fontsize='medium', ncol=3)
-    
-    #----------------------------- tsr-----------------------------
-    
-    for i, model in enumerate(models):
-        tsr_diff = xr.concat(
-            (
-                (model.mtnsrf.sel(time='2020') - TOA_ceres_clim_gm.squeeze().mtnsrf.values),
-                (model.mtnsrf.sel(time='2021') - TOA_ceres_clim_gm.squeeze().mtnsrf.values),
-                (model.mtnsrf.sel(time='2022') - TOA_ceres_clim_gm.squeeze().mtnsrf.values),
-                (model.mtnsrf.sel(time='2023') - TOA_ceres_clim_gm.squeeze().mtnsrf.values),
-                (model.mtnsrf.sel(time='2024') - TOA_ceres_clim_gm.squeeze().mtnsrf.values),
-            ),
-            dim='time'
-        )
-        tsr_diff.plot(ax=axes[1], color=linecolors[i], label=linelabels[i], x='time')
 
-    axes[1].fill(long_time, np.append(shading_data['mtnsrf'].min(dim='ensemble'), shading_data['mtnsrf'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
+    #axes[1].fill(long_time, np.append(shading_data['mtnsrf'].min(dim='ensemble'), shading_data['mtnsrf'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
+    
     axes[1].set_title('SW', fontsize=16)
     axes[1].set_xticklabels([])
     axes[1].set_xlabel('')
-    
-    #----------------------------- tnr-----------------------------
-    
-    for i, model in enumerate(models):
-        tnr_diff = xr.concat(
-            (
-                (model.tnr.sel(time='2020') - TOA_ceres_clim_gm.squeeze().tnr.values),
-                (model.tnr.sel(time='2021') - TOA_ceres_clim_gm.squeeze().tnr.values),
-                (model.tnr.sel(time='2022') - TOA_ceres_clim_gm.squeeze().tnr.values),
-                (model.tnr.sel(time='2023') - TOA_ceres_clim_gm.squeeze().tnr.values),
-                (model.tnr.sel(time='2024') - TOA_ceres_clim_gm.squeeze().tnr.values),
-            ),
-            dim='time'
-        )
-        tnr_diff.plot(ax=axes[2], color=linecolors[i], label=linelabels[i], x='time')
 
-    axes[2].fill(long_time, np.append(shading_data['tnr'].min(dim='ensemble'), shading_data['tnr'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
+    #axes[2].fill(long_time, np.append(shading_data['tnr'].min(dim='ensemble'), shading_data['tnr'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
+    
     axes[2].set_title('net', fontsize=16)
 
     for i in range(3):
         axes[i].set_ylabel('$W/m^2$')
-        axes[i].set_xlim([pd.to_datetime('2020-01-15'), pd.to_datetime('2024-12-15')])
-        axes[i].plot([pd.to_datetime('2020-01-01'), pd.to_datetime('2030-12-31')], [0, 0], color='black', linestyle=':')
-        axes[i].set_ylim([-6.5, 6.5])
+        axes[i].set_xlim(xlim)
+        #axes[i].plot([pd.to_datetime('2020-01-01'), pd.to_datetime('2030-12-31')], [0, 0], color='black', linestyle=':')
+        axes[i].set_ylim([-ylim, ylim])
 
     plt.suptitle('Global mean TOA radiation bias relative to CERES climatology - nextGEMS Cycle 3', fontsize=18)
     
