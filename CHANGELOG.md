@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+
 ## [v0.4]
 
 Main changes are:
@@ -14,9 +15,11 @@ Main changes are:
 2. Refactor of the regridder so that `regrid.yaml`` is grid-based and not experiment-based
 3. Xarray access to FDB sources
 4. Refactor of the fixer so that merge/replace/default options are available
-5. Remove of the `aqua` environment in favour of the `aqua_common`` one. 
+5. Remove of the `aqua` environment in favour of the `aqua_common` one. 
 
 Complete list:
+- Introduced color scheme for aqua logging (#567)
+- CLI for sea diagnostic (#549)
 - Add CLI for SSH diagnostic and some bug fixes (#540)
 - Fix SSH diagnostic to be compatible with lates AQUA version (#538) 
 - Helper function to identify vertical coordinates in a dataset (#552)
