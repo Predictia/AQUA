@@ -12,9 +12,6 @@ from tropical_cyclones import TCs
 from aqua.util import load_yaml, get_arg
 from aqua.logger import log_configure
 
-mainlogger = log_configure('INFO', log_name='MAIN')
-
-
 def parse_arguments(args):
     """Parse command line arguments"""
 
@@ -51,10 +48,15 @@ if __name__ == '__main__':
     file = get_arg(args, 'config', 'config_tcs.yaml')
     print('Reading tcs configuration yaml file.')
     config = load_yaml(file)
-    
-    #in case you passed args as commands
 
-    loglevel = get_arg(args, 'loglevel', 'WARNING')
+    # logger setup (via config or clommand line)
+
+    loglevel = config['setup']['loglevel']
+    loglevel = get_arg(args, 'loglevel', loglevel)
+    logger = log_configure(log_level=loglevel, log_name='PI')
+
+    
+    # override config args in case they are passed from command line
 
     model = get_arg(args, 'model', config['dataset']['model'])
     exp = get_arg(args, 'exp', config['dataset']['exp'])

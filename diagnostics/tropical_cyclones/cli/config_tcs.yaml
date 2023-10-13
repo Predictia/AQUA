@@ -13,6 +13,10 @@ paths:
   fulldir: '/home/b/b382216/work/tc/fullres'
   plotdir: "/home/b/b382216/work/tc/Figures/"
 
+# log level
+setup:
+  loglevel: 'WARNING'
+
 # grid on which operate
 grids:
   lowgrid: 'r100'
