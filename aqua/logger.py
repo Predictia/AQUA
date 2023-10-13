@@ -114,21 +114,21 @@ def log_history(data, msg):
 
 
 class CustomLogColors(logging.Formatter):
+    """small class for setting up personalized colors for logging"""
 
-    grey = "\x1b[38;20m"
-    green = "\x1b[32;20m"
-    yellow = "\x1b[33;20m"
-    red = "\x1b[31;20m"
-    bold_red = "\x1b[31;1m"
-    reset = "\x1b[0m"
-    format = "%(asctime)s :: %(name)s :: %(levelname)-8s -> %(message)s"
+    GREY = "\x1b[38;20m"
+    GREEN = "\x1b[32m"
+    ORANGE = "\x1b[33m"
+    RED = "\x1b[31;20m"
+    BOLD_RED = "\x1b[31;1m"
+    RESET = "\x1b[0m"
 
     FORMATS = {
-        logging.DEBUG: grey + format + reset,
-        logging.INFO: grey + format + reset,
-        logging.WARNING: green + format + reset,
-        logging.ERROR: red + format + reset,
-        logging.CRITICAL: bold_red + format + reset
+        logging.DEBUG: f"{GREEN}%(asctime)s :: %(name)s :: %(levelname)-8s -> %(message)s{RESET}",
+        logging.INFO: f"{GREY}%(asctime)s :: %(name)s :: %(levelname)-8s -> %(message)s{RESET}",
+        logging.WARNING: f"{ORANGE}%(asctime)s :: %(name)s :: %(levelname)-8s -> %(message)s{RESET}",
+        logging.ERROR: f"{RED}%(asctime)s :: %(name)s :: %(levelname)-8s -> %(message)s{RESET}",
+        logging.CRITICAL: f"{BOLD_RED}%(asctime)s :: %(name)s :: %(levelname)-8s -> %(message)s{RESET}"
     }
 
     def format(self, record):
@@ -136,3 +136,4 @@ class CustomLogColors(logging.Formatter):
         datefmt = '%Y-%m-%d %H:%M:%S'
         formatter = logging.Formatter(fmt=log_fmt, datefmt=datefmt)
         return formatter.format(record)
+
