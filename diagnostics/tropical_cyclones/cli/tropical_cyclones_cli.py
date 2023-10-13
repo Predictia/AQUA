@@ -32,8 +32,6 @@ def parse_arguments(args):
     
     parser.add_argument('--source3d', type=str, help='3d source name',
                         required=False)
-    parser.add_argument('--outputdir', type=str, help='output directory',
-                        required=False)
 
     return parser.parse_args(args)
 
