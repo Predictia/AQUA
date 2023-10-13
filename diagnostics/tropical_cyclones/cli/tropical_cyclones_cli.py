@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
     loglevel = config['setup']['loglevel']
     loglevel = get_arg(args, 'loglevel', loglevel)
-    logger = log_configure(log_level=loglevel, log_name='PI')
+    logger = log_configure(log_level=loglevel, log_name='TC')
 
     
     # override config args in case they are passed from command line
