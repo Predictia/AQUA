@@ -117,6 +117,8 @@ class CustomLogColors(logging.Formatter):
     """small class for setting up personalized colors for logging"""
 
     GREY = "\x1b[38;20m"
+    LGREY = "\x1b[37m;1m"
+    DGREY = "\x1b[90m"
     GREEN = "\x1b[32m"
     ORANGE = "\x1b[33m"
     RED = "\x1b[31;20m"
@@ -124,7 +126,7 @@ class CustomLogColors(logging.Formatter):
     RESET = "\x1b[0m"
 
     FORMATS = {
-        logging.DEBUG: f"{GREEN}%(asctime)s :: %(name)s :: %(levelname)-8s -> %(message)s{RESET}",
+        logging.DEBUG: f"{LGREY}%(asctime)s :: %(name)s :: %(levelname)-8s -> %(message)s{RESET}",
         logging.INFO: f"{GREY}%(asctime)s :: %(name)s :: %(levelname)-8s -> %(message)s{RESET}",
         logging.WARNING: f"{ORANGE}%(asctime)s :: %(name)s :: %(levelname)-8s -> %(message)s{RESET}",
         logging.ERROR: f"{RED}%(asctime)s :: %(name)s :: %(levelname)-8s -> %(message)s{RESET}",
