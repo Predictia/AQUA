@@ -9,7 +9,7 @@ from .tc_class import Teleconnection
 from .tools import TeleconnectionsConfig
 from .tools import area_selection, wgt_area_mean
 
-__version__ = '0.1.2'
+__version__ = '0.2.1'
 
 __all__ = ['station_based_index', 'regional_mean_index',
            'mjo_hovmoller',
@@ -22,7 +22,8 @@ __all__ = ['station_based_index', 'regional_mean_index',
 
 
 # Changelog
-# 0.1.3: Hovmoller plot added
+# 0.2.1: Hovmoller plot added
+# 0.2.0: CLI working with the AQUA wrapper
 # 0.1.2: symmetric colorbar on/off for maps_plot
 # 0.1.1: bugfix of single_maps, ENSO available with 2t and skt
 # 0.1.0: release for version v0.2 of aqua

@@ -116,7 +116,7 @@ class RegridMixin():
         extra = extra + src_extra
 
         weights = rg.cdo_generate_weights(source_grid=sgridpath,
-                                          target_grid=cfg_regrid["target_grids"][regrid],
+                                          target_grid=cfg_regrid["grids"][regrid],
                                           method=method,
                                           gridpath=cfg_regrid["cdo-paths"]["download"],
                                           icongridpath=cfg_regrid["cdo-paths"]["icon"],
@@ -267,22 +267,44 @@ class RegridMixin():
 
     def _retrieve_plain(self, *args, **kwargs):
         """
-        Retrieves making sure that no buffering and agregation are used
+        Retrieves making sure that no buffering, fixer and agregation are used
         and converts iterator to data
         """
         
         buffer = self.buffer
         aggregation = self.aggregation
+        fix = self.fix
+        streaming = self.streaming
+        self.fix = False
         self.buffer = None
         self.aggregation = None
+        self.streaming = False
         data = self.retrieve(*args, **kwargs)
         self.buffer = buffer
         self.aggregation = aggregation
+        self.fix = fix
+        self.streaming = streaming
 
         if isinstance(data, types.GeneratorType):
             data = next(data)
 
         return data
+    
+    def _guess_space_coord(self, default_dims):
+
+        """
+        Given a set of default space dimensions, find the one present in the data
+        and return them
+        """
+    
+        data = self._retrieve_plain(startdate=None, regrid=False)
+        guessed = [x for x in data.dims if x in default_dims]
+        if guessed is None:
+            self.logger.info('Default dims that are screened are %s', default_dims)
+            raise KeyError('Cannot identify any space_coord, you will will need to define it regrid.yaml')
+        
+        self.logger.info('Space_coords deduced from the source are %s', guessed)
+        return guessed
             
 
 def _rename_dims(data, dim_list):
