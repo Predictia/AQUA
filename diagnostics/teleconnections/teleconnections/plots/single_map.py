@@ -17,7 +17,34 @@ def plot_single_map(data: xr.DataArray,
                     nlevels=11, outputdir=".",
                     loglevel='WARNING',
                     **kwargs):
-    """TODO: Docstring for plot_single_map."""
+    """
+    Plot contour or pcolormesh map of a single variable.
+
+    Args:
+        data (xr.DataArray):       Data to plot.
+        save (bool, optional):     If True, save the figure. Defaults to False.
+        contour (bool, optional):  If True, plot a contour map,
+                                   otherwise a pcolormesh.
+                                   Defaults to True.
+        figsize (tuple, optional): Figure size. Defaults to (11, 8.5).
+        nlevels (int, optional):   Number of levels for the contour map.
+                                   Defaults to 11.
+        outputdir (str, optional): Output directory. Defaults to ".".
+        loglevel (str, optional):  Log level. Defaults to 'WARNING'.
+
+    Keyword Args:
+        transform_first (bool, optional): If True, transform the data before
+                                          plotting. Defaults to False.
+        cbar_label (str, optional): Colorbar label. Defaults to None.
+        dpi (int, optional):        Dots per inch. Defaults to 100.
+        model (str, optional):      Model name. Defaults to None.
+        exp (str, optional):        Experiment name. Defaults to None.
+        filename (str, optional):   Filename. Defaults to 'map'.
+        format (str, optional):     Format of the figure. Defaults to 'pdf'.
+
+    Raises:
+        ValueError: If data is not a DataArray.
+    """
     logger = log_configure(loglevel, 'plot_single_map')
 
     # We load in memory the data, to avoid problems with dask
@@ -109,7 +136,7 @@ def plot_single_map(data: xr.DataArray,
         filename = f"{filename}.{format}"
         logger.debug("Setting filename to %s", filename)
 
-        logger.info("Saving figure to %s/%s", outputdir, filename)
+        logger.info("Saving figure as %s/%s", outputdir, filename)
         if contour:
             dpi = kwargs.get('dpi', 300)
         else:
