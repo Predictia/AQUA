@@ -1,5 +1,3 @@
-import os
-
 import cartopy.crs as ccrs
 import cartopy.mpl.ticker as cticker
 import matplotlib.pyplot as plt
@@ -7,20 +5,26 @@ import numpy as np
 import xarray as xr
 
 from aqua.logger import log_configure
+from aqua.util import create_folder
 from .plot_utils import add_cyclic_lon, evaluate_colorbar_limits
+from .plot_utils import cbar_get_label, set_map_title
 
 
-def plot_single_map(data : xr.DataArray, save=False,
+def plot_single_map(data: xr.DataArray,
+                    save=False,
                     contour=True, sym=True,
                     figsize=(11, 8.5),
                     nlevels=11, outputdir=".",
                     loglevel='WARNING',
                     **kwargs):
+    """TODO: Docstring for plot_single_map."""
     logger = log_configure(loglevel, 'plot_single_map')
 
     # We load in memory the data, to avoid problems with dask
     logger.debug("Loading data in memory")
-    data = data.load()
+    data = data.load(keep_attrs=True)
+
+    logger.debug("Adding cyclic longitude")
     data = add_cyclic_lon(data)
 
     proj = ccrs.PlateCarree()
@@ -34,15 +38,17 @@ def plot_single_map(data : xr.DataArray, save=False,
     logger.debug("Setting vmax to %s", vmax)
     if contour:
         levels = np.linspace(vmin, vmax, nlevels+1)
-    
+
     # Plot the data
     if contour:
         cs = ax.contourf(data['lon'], data['lat'], data, cmap='RdBu_r',
-                         transform=proj, levels=levels)
-    else:   
+                         transform=proj, levels=levels,
+                         extend='both')
+    else:
         cs = ax.pcolormesh(data['lon'], data['lat'], data, cmap='RdBu_r',
                            transform=proj, vmin=vmin, vmax=vmax)
 
+    logger.debug("Adding coastlines")
     ax.coastlines()
 
     # Longitude labels
@@ -61,3 +67,50 @@ def plot_single_map(data : xr.DataArray, save=False,
 
     # Add a colorbar axis at the bottom of the graph
     cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.02])
+
+    cbar_label = cbar_get_label(data,
+                                cbar_label=kwargs.get('cbar_label', None),
+                                loglevel=loglevel)
+    logger.debug("Setting colorbar label to %s", cbar_label)
+
+    cbar = fig.colorbar(cs, cax=cbar_ax, orientation='horizontal',
+                        label=cbar_label)
+
+    # Make tick of colorbar simmetric if sym=True
+    if sym:
+        logger.debug("Setting colorbar ticks to be symmetrical")
+        cbar.set_ticks(np.linspace(-vmax, vmax, nlevels+1))
+
+    # Set x-y labels
+    ax.set_xlabel('Longitude [deg]')
+    ax.set_ylabel('Latitude [deg]')
+
+    # Set title
+    title = set_map_title(data, title=kwargs.get('title', None),
+                          model=kwargs.get('model', None),
+                          exp=kwargs.get('exp', None),
+                          loglevel=loglevel)
+
+    if title:
+        logger.debug("Setting title to %s", title)
+        ax.set_title(title)
+
+    # Saving
+    if save:
+        logger.debug("Saving figure to %s", outputdir)
+        create_folder(outputdir, loglevel=loglevel)
+        filename = kwargs.get('filename', 'map')
+        format = kwargs.get('format', 'pdf')
+        filename = f"{filename}.{format}"
+        logger.debug("Setting filename to %s", filename)
+
+        logger.info("Saving figure to %s/%s", outputdir, filename)
+        if contour:
+            dpi = kwargs.get('dpi', 300)
+        else:
+            dpi = kwargs.get('dpi', 100)
+            if dpi == 100:
+                logger.warning("Setting dpi to 100 by default, use dpi kwarg to change it")
+
+        fig.savefig('{}/{}'.format(outputdir, filename),
+                    dpi=dpi, bbox_inches='tight')

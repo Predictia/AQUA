@@ -367,7 +367,7 @@ class Teleconnection():
         if self.correlation is not None and var is None and not rebuild:
             self.logger.warning('Correlation already calculated, skipping')
             return
-        
+
         if rebuild and self.correlation is not None:
             self.logger.info('Rebuilding correlation')
 
