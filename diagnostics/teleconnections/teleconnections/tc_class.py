@@ -231,6 +231,9 @@ class Teleconnection():
         if self.index is not None and not rebuild:
             self.logger.warning('Index already calculated, skipping')
             return
+        
+        if rebuild and self.index is not None:
+            self.logger.info('Rebuilding index')
 
         if self.data is None:
             self.logger.warning('No retrieve has been performed, trying to retrieve')
@@ -299,6 +302,9 @@ class Teleconnection():
             self.logger.warning('Regression already calculated, skipping')
             return
 
+        if rebuild and self.regression is not None:
+            self.logger.info('Rebuilding regression')
+
         data, dim = self._prepare_corr_reg(var=var, data=data, dim=dim)
 
         if var is None:
@@ -361,6 +367,9 @@ class Teleconnection():
         if self.correlation is not None and var is None and not rebuild:
             self.logger.warning('Correlation already calculated, skipping')
             return
+        
+        if rebuild and self.correlation is not None:
+            self.logger.info('Rebuilding correlation')
 
         data, dim = self._prepare_corr_reg(var=var, data=data, dim=dim)
 
