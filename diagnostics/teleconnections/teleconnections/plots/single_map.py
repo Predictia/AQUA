@@ -41,9 +41,14 @@ def plot_single_map(data: xr.DataArray,
 
     # Plot the data
     if contour:
-        cs = ax.contourf(data['lon'], data['lat'], data, cmap='RdBu_r',
+        # grid lon and lat
+        lon, lat = np.meshgrid(data['lon'], data['lat'])
+
+        transform_first = kwargs.get('transform_first', False)
+        cs = ax.contourf(lon, lat, data, cmap='RdBu_r',
                          transform=proj, levels=levels,
-                         extend='both')
+                         extend='both',
+                         transform_first=transform_first)
     else:
         cs = ax.pcolormesh(data['lon'], data['lat'], data, cmap='RdBu_r',
                            transform=proj, vmin=vmin, vmax=vmax)
