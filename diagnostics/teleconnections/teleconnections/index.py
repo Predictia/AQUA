@@ -176,6 +176,9 @@ def regional_mean_anomalies(field, namelist, telecname, months_window=3,
     field_mean = wgt_area_mean(field, latN, latS, lonW, lonE,
                                loglevel=loglevel)
 
+    logger.debug("Loading data in memory")
+    field_mean = field_mean.load()
+
     field_mean_an = field_mean.groupby("time.month") -\
         field_mean.groupby("time.month").mean(dim="time")
 
