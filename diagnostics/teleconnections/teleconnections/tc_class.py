@@ -137,7 +137,7 @@ class Teleconnection():
         else:
             self._reader()
 
-    def run(self):
+    def run(self, **kwargs):
         """Run teleconnection analysis.
 
         The analysis consists of:
@@ -151,15 +151,19 @@ class Teleconnection():
         - Evaluating the correlation
 
         These methods can be also run separately.
+
+        Keyword arguments:
+            - rebuild (bool): If True, the index, regression and correlation
+                              are recalculated. Default is False.
         """
 
         self.logger.debug('Running teleconnection analysis for data: {}/{}/{}'
                           .format(self.model, self.exp, self.source))
 
         self.retrieve()
-        self.evaluate_index()
-        self.evaluate_regression()
-        self.evaluate_correlation()
+        self.evaluate_index(**kwargs)
+        self.evaluate_regression(**kwargs)
+        self.evaluate_correlation(**kwargs)
 
         self.logger.info('Teleconnection analysis completed')
 
