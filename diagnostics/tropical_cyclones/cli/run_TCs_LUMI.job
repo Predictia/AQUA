@@ -9,13 +9,13 @@
 #SBATCH --error=/users/pghinass/AQUA/diagnostics/tropical_cyclones/slurm_jobs/prova_%j.err
 #SBATCH -p debug    #change the partition
 
-AQUA_container=/project/project_465000454/igonzalez/aqua/aqua-v0.2.sif
+AQUA_container=/project/project_465000454/containers/aqua/aqua-v0.4.sif
 FDB5_CONFIG_FILE=/scratch/project_465000454/igonzalez/fdb-long/config.yaml #Change it to your simulation
 GSV_WEIGHTS_PATH=/scratch/project_465000454/igonzalez/gsv_weights/
 GRID_DEFINITION_PATH=/scratch/project_465000454/igonzalez/grid_definitions
 
 # directory of python script to execute
-DIR=/users/pghinass/AQUA/diagnostics/tropical_cyclones
+DIR=/users/pghinass/AQUA/diagnostics/tropical_cyclones/cli
 
 singularity exec  \
     --cleanenv \
@@ -26,8 +26,8 @@ singularity exec  \
     --env ESMFMKFILE=/opt/conda/lib/esmf.mk  \
     --bind /pfs/lustrep3/scratch/project_465000454  \
     --bind /scratch/project_465000454  \
-    /project/project_465000454/containers/aqua/aqua-v0.2.sif \
+    /project/project_465000454/containers/aqua/aqua-v0.4.sif \
     bash -c \
-    python $DIR/prova.py
+    python $DIR/tropical_cyclones_cli.py
 
 
