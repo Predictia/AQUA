@@ -55,6 +55,10 @@ def station_based_index(field: xr.DataArray,
     field1 = field.sel(lon=lon1, lat=lat1, method='nearest')
     field2 = field.sel(lon=lon2, lat=lat2, method='nearest')
 
+    logger.debug("Loading data in memory")
+    field1 = field1.load()
+    field2 = field2.load()
+
     # Monthly field average and anomalies
     field1_av = field1.groupby("time.month").mean(dim="time")
     field1_an = field1.groupby("time.month") - field1_av
