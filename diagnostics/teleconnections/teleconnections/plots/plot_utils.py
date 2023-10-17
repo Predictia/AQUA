@@ -143,11 +143,11 @@ def cbar_get_label(data: xr.DataArray, cbar_label: str = None,
             cbar_label = data.short_name
             logger.debug("Using short_name as colorbar label")
 
-    units = getattr(data, 'units', None)
+        units = getattr(data, 'units', None)
 
-    if units:
-        cbar_label = f"{cbar_label} [{units}]"
-        logger.debug("Adding units to colorbar label")
+        if units:
+            cbar_label = f"{cbar_label} [{units}]"
+            logger.debug("Adding units to colorbar label")
 
     return cbar_label
 
