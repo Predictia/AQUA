@@ -161,7 +161,7 @@ def gregory_plot(obs_data=None, models=None, obs_time_range=None, model_labels=N
     labels.append(obs_labels)
 
     for i, model in enumerate(models):
-        model_name = model["model"] if model_labels is None else model_labels[i]
+        model_name = model["model"]+'_'+model["exp"] if model_labels is None else model_labels[i]
         model_color = colors[i % len(colors)]  # Rotate colors for each model
         model_2t = model["gm"]["2t"].resample(time="M").mean() - 273.15
         model_tnr = model["gm"]["tnr"].resample(time="M").mean()
@@ -203,10 +203,7 @@ def gregory_plot(obs_data=None, models=None, obs_time_range=None, model_labels=N
             model_data_resampled.to_netcdf(f"{outputdir}/Gregory_Plot_{model_name}.nc")
             print(f"Data has been saved to {outputdir}.")
 
-    
-
-
-def barplot_model_data(datasets=None, model_names=None, outputdir='./', outputfig='./', year=None, fontsize=14):
+def barplot_model_data(datasets=None, model_names=None, outputdir=None, outputfig=None, year=None, fontsize=14):
     """
     Create a grouped bar plot with various models and CERES data. Variables 'mtntrf' and 'mtnsrf' are plotted to show imbalances.
     The default mean for CERES data is calculated over the entire time range.
@@ -233,9 +230,15 @@ def barplot_model_data(datasets=None, model_names=None, outputdir='./', outputfi
     # Set a seaborn color palette
     sns.set_palette("pastel")
     global_mean = {'Variables': ["mtntrf", "mtnsrf"]}
+
+    model_names = [dataset["model"] + '_' + dataset["exp"] for dataset in datasets] if model_names is None else model_names
     for i in range(0, len(datasets)):
-        global_mean.update({model_names[i]: [-datasets[i]["mtntrf"].mean(
-        ).values.item(), datasets[i]["mtnsrf"].mean().values.item()]})
+        if "clim_gm" in datasets[i]:
+            global_mean.update({model_names[i]: [-datasets[i]["clim_gm"]["mtntrf"].mean(
+                ).values.item(), datasets[i]["clim_gm"]["mtnsrf"].mean().values.item()]})
+        else:
+            global_mean.update({model_names[i]: [-datasets[i]["gm"]["mtntrf"].mean(
+                ).values.item(), datasets[i]["gm"]["mtnsrf"].mean().values.item()]})
     global_mean = pd.DataFrame(global_mean)
 
     sns.set_palette("pastel")
@@ -254,22 +257,20 @@ def barplot_model_data(datasets=None, model_names=None, outputdir='./', outputfi
     else:
         plt.title('Global Mean TOA radiation for different models',
                   fontsize=fontsize+2)  # (mean over all model times)')
-
-    create_folder(folder=str(outputfig), loglevel='WARNING')
-
-    filename = f"{outputfig}/BarPlot.pdf"
-    plt.savefig(filename, dpi=300, format='pdf')
+    if outputfig is not None:
+        create_folder(folder=str(outputfig), loglevel='WARNING')
+        filename = f"{outputfig}/BarPlot.pdf"
+        plt.savefig(filename, dpi=300, format='pdf')
+        print(f"Plot has been saved to {outputfig}.")
     plt.show()
 
-    create_folder(folder=str(outputdir), loglevel='WARNING')
-
-    # Save the data to a NetCDF file
-    output_data = xr.Dataset(global_mean)
-    filename = f"{outputdir}/BarPlot.nc"
-    output_data.to_netcdf(filename)
-
-    print(f"Data has been saved to {outputdir}.")
-    print(f"Plot has been saved to {outputfig}.")
+    if outputdir is not None:
+        create_folder(folder=str(outputdir), loglevel='WARNING')
+        # Save the data to a NetCDF file
+        output_data = xr.Dataset(global_mean)
+        filename = f"{outputdir}/BarPlot.nc"
+        output_data.to_netcdf(filename)
+        print(f"Data has been saved to {outputdir}.")
 
 def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, outputdir=None, outputfig=None, ylim = 6.5):
                         
