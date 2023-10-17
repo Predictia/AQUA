@@ -18,7 +18,6 @@ tempdir='./tmp/cdo-py'
 if not os.path.exists(tempdir):
     os.makedirs(tempdir)
 
-
 def process_ceres_data(exp=None, source=None):
     """
     Function to extract CERES data for further analyis + create global means
@@ -45,8 +44,12 @@ def process_ceres_data(exp=None, source=None):
     data['tnr'] = data['mtntrf'] + data['mtnsrf']
     ceres = reader.regrid(data[['tnr', 'mtntrf', 'mtnsrf']])
 
+    starting_year = str(ceres["time.year"][0].values) if len(ceres.sel(time=str(ceres["time.year"][0].values)).time) == 12 \
+                    else str(ceres["time.year"][0].values + 1)
+    final_year = str(ceres["time.year"][-1].values) if len(ceres.sel(time=str(ceres["time.year"][-1].values)).time) == 12 \
+                 else str(ceres["time.year"][-1].values -1)
     # limit to years that are complete
-    complete = data.sel(time=slice('2001', '2021'))
+    complete = ceres.sel(time=slice(starting_year, final_year))
 
     # time averages over each month and get the monthly anomaly
     clim = complete.groupby('time.month').mean('time')
@@ -54,6 +57,7 @@ def process_ceres_data(exp=None, source=None):
     monthly_anomalies = complete.groupby('time.month') - clim
 
     clim = clim.rename({'month': 'time'})
+    
 
     # global mean
     clim_gm = reader.fldmean(clim)
@@ -61,15 +65,15 @@ def process_ceres_data(exp=None, source=None):
     anom_gm = reader.fldmean(monthly_anomalies)
 
     dictionary = {
-        "model": "CERES",
-        "exp": exp,
-        "source": source,
-        "data": ceres,
+        "model": "CERES".lower(),
+        "exp": exp.lower(),
+        "source": source.lower(),
+        "data": complete,
         "gm": ceres_gm,
         "clim_gm": clim_gm,
         "anom_gm": anom_gm,
-        "clim": clim,
-        "anom": monthly_anomalies
+        "clim": clim[['time', 'lat', 'lon']] ,
+        "anom": monthly_anomalies[['time', 'lat', 'lon']] 
 
     }
     return dictionary
@@ -93,153 +97,113 @@ def process_model_data(model=None, exp=None, source=None):
     """
 
     reader = Reader(model=model, exp=exp, source=source,
-                    regrid='r100', fix=False)
-    data = reader.retrieve(var=['mtntrf', 'mtnsrf'])
+                    regrid='r100')
+    data = reader.retrieve(var=['2t','mtntrf', 'mtnsrf'])
     data['tnr'] = data['mtntrf'] + data['mtnsrf']
     gm = reader.fldmean(data)
 
     dictionary = {
-        "model": model,
-        "exp": exp,
-        "source": source,
+        "model": model.lower(),
+        "exp": exp.lower(),
+        "source": source.lower(),
         "data": data,
         "gm": gm
     }
 
     return dictionary
 
-def process_era5_data(exp, source):
-    """
-    Extract ERA5 data for further analyis
-    Example: data_era5, reader_era5 = radiation_diag.process_era5_data(exp = "era5" , source = "monthly")
-
-    Args:
-        exp:                            input experiment to be selected from the catalogue
-        source:                         input source to be selected from the catalogue
-
-    Returns:
-        data_era5, reader_era5:       returns the necessary ceres data for further evaluation (xarrayDatSet, reader)
-    """
-
-    reader_era5 = Reader(model="ERA5", exp=exp, source=source)
-    data_era5 = reader_era5.retrieve()
-    return data_era5, reader_era5
-
-def gregory_plot(obs_data, obs_reader, obs_time_range, model_label_obs, model_list, reader_dict, outputdir, outputfig):
+def gregory_plot(obs_data=None, models=None, obs_time_range=None, model_labels=None, obs_labels=None,  outputdir=None, outputfig=None, 
+                 fontsize=14, markersize=3):
     """
     Create Gregory Plot with various models and an observational dataset (e.g., ERA5).
-
     Args:
-        obs_data (xarray.Dataset): Xarray Dataset containing the observational data.
-        obs_reader: corresponding reader object for the observational dataset
-        obs_time_range (tuple): A tuple containing the start and end dates of the time range for the observational data.
+        obs_data (dict): Xarray Dataset containing the observational data.
+        obs_time_range (tuple, optional): A tuple containing the start and end dates of the time range for the observational data.
                                 Format: ('YYYY-MM-DD', 'YYYY-MM-DD')
         model_list (list): A list of models that should be plotted.
-        reader_dict (dict): A dictionary mapping model names to corresponding reader objects.
-        model_label_obs (str): Desired label for the observational data.
+        obs_labels (str, optional): Desired label for the observational data.
+        model_labels (str, optional): 
+
 
     Returns:
         A Gregory Plot.
-
     """
-
     # Create the plot and axes
-    _, ax = plt.subplots()
+    fig, ax = plt.subplots()
+    fig.set_facecolor('white')
     # Colors for the plots
     colors = ["orange", "gray", "dodgerblue", "yellow", "indigo", "violet"]
-
+    
     # Plot the data for each model
     handles = []
     labels = []
-
     # Plot the data for observation
-    obs_2t = obs_data["2t"].sel(time=slice(*obs_time_range))
-    obs_tsr = obs_data["mtnsrf"].sel(time=slice(*obs_time_range))
-    obs_ttr = obs_data["mtntrf"].sel(time=slice(*obs_time_range))
+    if obs_time_range is None:
+        dummy_model_gm = models[0]["gm"]
+        starting_year = str(dummy_model_gm["time.year"][0].values) if len(dummy_model_gm.sel(time=str(dummy_model_gm["time.year"][0].values)).time) == 12 \
+                        else str(dummy_model_gm["time.year"][0].values + 1)
+        final_year = str(dummy_model_gm["time.year"][-1].values) if len(dummy_model_gm.sel(time=str(dummy_model_gm["time.year"][-1].values)).time) == 12 \
+                    else str(dummy_model_gm["time.year"][-1].values -1)
+        # limit to years that are complete
+        obs_data_gm = obs_data["gm"].sel(time=slice(starting_year, final_year))
+    else:
+        obs_data_gm = obs_data["gm"].sel(time=slice(*obs_time_range))
+    obs_2t_resampled = obs_data_gm["2t"].resample(time="M").mean()
+    obs_tnr_resampled = obs_data_gm["tnr"].resample(time="M").mean()
 
-    obs_2t_resampled = obs_2t.resample(time="M").mean()
-    obs_tsr_resampled = obs_tsr.resample(time="M").mean()
-    obs_ttr_resampled = obs_ttr.resample(time="M").mean()
-
+    if obs_labels is None:
+        obs_labels = obs_data["model"]+'_'+starting_year+'_'+final_year
     # Plot the data
     line = ax.plot(
-        obs_reader.fldmean(obs_2t_resampled) - 273.15,
-        obs_reader.fldmean(obs_tsr_resampled) + obs_reader.fldmean(obs_ttr_resampled),
-        marker="o",
-        color="mediumseagreen",
-        linestyle="-",
-        markersize=3,
-        label=model_label_obs,
-    )
+        obs_2t_resampled - 273.15, obs_tnr_resampled,
+        marker="o", color="mediumseagreen", linestyle="-", markersize=markersize, label=obs_labels)
     handles.append(line[0])  # Append the line object itself
-    labels.append(model_label_obs)
+    labels.append(obs_labels)
 
-    for i, model in enumerate(model_list):
-        model_name = model.lower()
-        model_reader = reader_dict[model_name]
-        model_data = model_reader.retrieve() #fix=True)
+    for i, model in enumerate(models):
+        model_name = model["model"] if model_labels is None else model_labels[i]
         model_color = colors[i % len(colors)]  # Rotate colors for each model
-
-        ts = model_reader.fldmean(model_data["2t"].resample(time="M").mean()) - 273.15
-        rad = model_reader.fldmean((model_data["mtnsrf"] + model_data["mtntrf"]).resample(time="M").mean())
-
-        line, = ax.plot(
-            ts,
-            rad,
-            color=model_color,
-            linestyle="-",
-            marker="o",
-            markersize=5,
-            label=model_name
-        )
+        model_2t = model["gm"]["2t"].resample(time="M").mean() - 273.15
+        model_tnr = model["gm"]["tnr"].resample(time="M").mean()
+        
+        line, = ax.plot(model_2t, model_tnr, color=model_color,
+            linestyle="-", marker="o", markersize=5, label=model_name)
         handles.append(line)  # Append the line object itself
         labels.append(model_name)
 
-        ax.plot(
-            ts[0], rad[0],
-            marker="*",
-            color="black",
-            linestyle="-",
-            markersize=15,
-        )
-        ax.plot(
-            ts[-1], rad[-1],
-            marker="X",
-            color="tab:red",
-            linestyle="-",
-            markersize=15,
-        )
-
+        ax.plot(model_2t[0], model_tnr[0],
+            marker="*", color="black", linestyle="-", markersize=markersize*5)
+        ax.plot(model_2t[-1], model_tnr[-1],
+            marker="X", color="tab:red", linestyle="-", markersize=markersize*5)
     # Set labels and title
-    ax.set_xlabel("2m temperature [$^{\circ} C$]", fontsize=12)
-    ax.set_ylabel("Net radiation TOA [Wm$^{-2}$]", fontsize=12)
-    ax.set_title("Gregory Plot", fontsize=14)
+    ax.set_xlabel("2m temperature [$^{\circ} C$]", fontsize=fontsize-2)
+    ax.set_ylabel("Net radiation TOA [Wm$^{-2}$]", fontsize=fontsize-2)
+    ax.set_title("Gregory Plot", fontsize=fontsize)
     ax.legend(handles, labels + ["Start", "End"], handler_map={tuple: HandlerTuple(ndivide=None)})
     ax.text(0.5, -0.15, "Black stars indicate the first value of the dataseries\nRed X indicate the last value of the dataseries.",
-            transform=ax.transAxes, fontsize=8, verticalalignment='top', horizontalalignment='center')
+            transform=ax.transAxes, fontsize=fontsize-6, verticalalignment='top', horizontalalignment='center')
     ax.tick_params(axis="both", which="major", labelsize=10)
     ax.grid(True, linestyle="--", linewidth=0.5)
+    #ax.set_facecolor('white')
 
-    
-    
     # Save the data for each model to separate netCDF files
-    for model in model_list:
-        model_name = model.lower()
-        model_reader = reader_dict[model_name]
-        model_data = model_reader.retrieve() #fix=True)
-
-        model_data_resampled = model_data.resample(time="M").mean()
-
+    if outputfig is not None:
         create_folder(folder=str(outputfig), loglevel='WARNING')
-        create_folder(folder=str(outputdir), loglevel='WARNING')
-
-        model_data_resampled.to_netcdf(f"{outputdir}/Gregory_Plot_{model_name}.nc")
-        filename = f"{outputfig}/Gregory_Plot_{model_name}.pdf"
-        plt.savefig(filename, dpi=300, format='pdf')
-        
+        for model in models:
+            model_name = model["model"] if model_labels is None else model_labels[i]
+            filename = f"{outputfig}/Gregory_Plot_{model_name}.pdf"
+            plt.savefig(filename, dpi=300, format='pdf')
+            print(f"Plot has been saved to {outputfig}.")
     plt.show()
-    print(f"Data has been saved to {outputdir}.")
-    print(f"Plot has been saved to {outputfig}.")
+    if outputdir is not None:
+        create_folder(folder=str(outputdir), loglevel='WARNING')
+        for model in models:
+            model_name = model["model"] if model_labels is None else model_labels[i]
+            model_data_resampled = model["gm"].resample(time="M").mean()
+            model_data_resampled.to_netcdf(f"{outputdir}/Gregory_Plot_{model_name}.nc")
+            print(f"Data has been saved to {outputdir}.")
+
+    
 
 
 def barplot_model_data(datasets=None, model_names=None, outputdir='./', outputfig='./', year=None, fontsize=14):
@@ -307,20 +271,19 @@ def barplot_model_data(datasets=None, model_names=None, outputdir='./', outputfi
     print(f"Data has been saved to {outputdir}.")
     print(f"Plot has been saved to {outputfig}.")
 
-def plot_model_comparison_timeseries(models=None, linelabels=None, TOA_ceres_diff_samples_gm=None, TOA_ceres_clim_gm=None, outputdir='./', outputfig='./', ylim = 6.5):
+def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, outputdir=None, outputfig=None, ylim = 6.5):
                         
     """
     Create time series bias plot with various models and CERES, including the individual CERES years to show variabilities.
     Variables ttr, tsr, and tnr are plotted to show imbalances. Default mean for CERES data is the whole time range.
 
     Example:
-    models = [TOA_icon_gm.squeeze(), TOA_ifs_4km_gm.squeeze(), TOA_ifs_9km_gm.squeeze()]
-    linelabels = ['ICON 5 km', 'IFS 4.4 km', 'IFS 9 km']
-    radiation_diag.plot_model_comparison_timeseries(models, linelabels, TOA_ceres_diff_samples_gm, TOA_ceres_clim_gm)
+    models = [icon, ifs_4km, ifs_9km]
+    linelabels = None
+    radiation_diag.plot_model_comparison_timeseries(models = models, linelabels = linelabels, ceres = ceres)
 
     Args:
-        models: a list of xarrayDataSets of the respective models. You can use squeeze() to remove single-dimensional entries from an array
-                to ensure that the input arrays have the same dimensions and shape.
+        models: a list of xarrayDataSets of the respective models. Y
         linelabels: your desired naming for the plotting (this will also be used in the filename).
 
     Returns:
@@ -328,8 +291,6 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, TOA_ceres_dif
     """
         
     fig, axes = plt.subplots(3, 1, figsize=(12, 8))
-    
-    #linecolors = plt.cm.get_cmap('tab10').colors
     # Set the Seaborn style (you can choose other styles if needed)
     sns.set_style("darkgrid")
     # Choose a Seaborn color palette (you can select a different one if needed)
@@ -337,51 +298,30 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, TOA_ceres_dif
     # Get a list of colors from the palette
     linecolors = color_palette.as_hex()
 
-    starting_year = int(models[0]["time.year"][0].values) if len(models[0].sel(time=str(models[0]["time.year"][0].values)).time) == 12 \
-                    else int(models[0]["time.year"][0].values) + 1
-    final_year = int(models[0]["time.year"][-1].values) if len(models[0].sel(time=str(models[0]["time.year"][-1].values)).time) == 12 \
-                 else int(models[0]["time.year"][-1].values) + 1
-    years = range(starting_year, final_year - 1)
-    print(years)
+    dummy_model_gm = models[0]["gm"]
+    starting_year = int(dummy_model_gm["time.year"][0].values) if len(dummy_model_gm.sel(time=str(dummy_model_gm["time.year"][0].values)).time) == 12 \
+                    else int(dummy_model_gm["time.year"][0].values) + 1
+    final_year = int(dummy_model_gm["time.year"][-1].values) if len(dummy_model_gm.sel(time=str(dummy_model_gm["time.year"][-1].values)).time) == 12 \
+                 else int(dummy_model_gm["time.year"][-1].values) -1
+    years = range(starting_year, final_year+1)
 
-    #if len(models[0].sel(time=models[0]["time.year"][0].values).time)==12:
-    #    starting_year = int(models[0]["time.year"][0].values)
-    #else:
-    #    starting_year = int(models[0]["time.year"][0].values)+1
+    xlim = [pd.to_datetime(str(dummy_model_gm["time.year"][0].values) +'-'+str(dummy_model_gm["time.month"][0].values)+'-'+str(dummy_model_gm["time.day"][0].values)), \
+        pd.to_datetime(str(dummy_model_gm["time.year"][-1].values) +'-'+str(dummy_model_gm["time.month"][-1].values)+'-'+str(dummy_model_gm["time.day"][-1].values))]
     
-    #if len(models[0].sel(time=models[0]["time.year"][-1].values).time)==12:
-    #    final_year = int(models[0]["time.year"][-1].values)
-    #else:
-    #    final_year = int(models[0]["time.year"][-1].values)+1
+    if linelabels is None:
+        linelabels = []
+        for model in models:
+            linelabels.append(model["model"]+'_'+model["exp"])
 
-    #years = range(starting_year, final_year+1)
-
-    xlim = [pd.to_datetime(str(models[0]["time.year"][0].values) +'-'+str(models[0]["time.month"][0].values)+'-'+str(models[0]["time.day"][0].values)), \
-        pd.to_datetime(str(models[0]["time.year"][-1].values) +'-'+str(models[0]["time.month"][-1].values)+'-'+str(models[0]["time.day"][-1].values))]
-    shading_data_list = [TOA_ceres_diff_samples_gm]
-
-    for year in years:
-        new_data = TOA_ceres_diff_samples_gm.assign_coords(time=models[0].sel(time=str(year)).time)
-        shading_data_list.append(new_data)
-
-    #shading_data = xr.concat(shading_data_list, dim='time')
-
-    #long_time = np.append(shading_data['time'], shading_data['time'][::-1])
-    
     for i, model in enumerate(models):
         ttr_diff = []  # Initialize an empty list to store the data for each year
         tsr_diff = []
         tnr_diff = []
         # Iterate through the years
         for year in years:
-            diff_ttr = (model.mtntrf.sel(time=str(year)).squeeze() - TOA_ceres_clim_gm.squeeze().mtntrf.values)
-            ttr_diff.append(diff_ttr)
-
-            diff_tsr = (model.mtnsrf.sel(time=str(year)).squeeze() - TOA_ceres_clim_gm.squeeze().mtnsrf.values)
-            tsr_diff.append(diff_tsr)
-
-            diff_tnr = (model.tnr.sel(time=str(year)).squeeze() - TOA_ceres_clim_gm.squeeze().tnr.values)
-            tnr_diff.append(diff_tnr)
+            ttr_diff.append(model["gm"].mtntrf.sel(time=str(year)).squeeze() - ceres['clim_gm'].squeeze().mtntrf.values)
+            tsr_diff.append(model["gm"].mtnsrf.sel(time=str(year)).squeeze() - ceres['clim_gm'].squeeze().mtnsrf.values)
+            tnr_diff.append(model["gm"].tnr.sel(time=str(year)).squeeze() - ceres['clim_gm'].squeeze().tnr.values)
         # Concatenate the data along the 'time' dimension
         ttr_diff = xr.concat(ttr_diff, dim='time')
         tsr_diff = xr.concat(tsr_diff, dim='time')
@@ -390,50 +330,55 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, TOA_ceres_dif
         ttr_diff.plot(ax=axes[0], color=linecolors[i], label=linelabels[i], x='time')
         tsr_diff.plot(ax=axes[1], color=linecolors[i], label=linelabels[i], x='time')
         ttr_diff.plot(ax=axes[2], color=linecolors[i], label=linelabels[i], x='time')
-
-
-
-    #axes[0].fill(long_time, np.append(shading_data['mtntrf'].min(dim='ensemble'), shading_data['mtntrf'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
     
+    samples_tmp= []
+    for year in range(int(ceres["data"]["time.year"][0].values), int(ceres["data"]["time.year"][-1].values)-1):
+            # select year and assign (fake) time coordinates so that the differencing works
+            samples_tmp.append(ceres["gm"].sel(time=str(year)).assign_coords(time=ceres["clim_gm"].time)- ceres["clim_gm"])
+    TOA_ceres_diff_samples_gm = xr.concat(samples_tmp, dim='ensemble')
+    shading_data_list = []
+    for year in years:
+        new_data = TOA_ceres_diff_samples_gm.assign_coords(time=dummy_model_gm.sel(time=str(year)).time)
+        shading_data_list.append(new_data)
+        shading_data = xr.concat(shading_data_list, dim='time')
+        long_time = np.append(shading_data['time'], shading_data['time'][::-1])
+
+    axes[0].fill(long_time, np.append(shading_data['mtntrf'].min(dim='ensemble'), shading_data['mtntrf'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
     axes[0].set_title('LW', fontsize=16)
     axes[0].set_xticklabels([])
     axes[0].set_xlabel('')
     axes[0].legend(loc="upper left", frameon=False, fontsize='medium', ncol=3)
 
-    #axes[1].fill(long_time, np.append(shading_data['mtnsrf'].min(dim='ensemble'), shading_data['mtnsrf'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
-    
+    axes[1].fill(long_time, np.append(shading_data['mtnsrf'].min(dim='ensemble'), shading_data['mtnsrf'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
     axes[1].set_title('SW', fontsize=16)
     axes[1].set_xticklabels([])
     axes[1].set_xlabel('')
 
-    #axes[2].fill(long_time, np.append(shading_data['tnr'].min(dim='ensemble'), shading_data['tnr'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
-    
+    axes[2].fill(long_time, np.append(shading_data['tnr'].min(dim='ensemble'), shading_data['tnr'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
     axes[2].set_title('net', fontsize=16)
 
     for i in range(3):
         axes[i].set_ylabel('$W/m^2$')
         axes[i].set_xlim(xlim)
-        #axes[i].plot([pd.to_datetime('2020-01-01'), pd.to_datetime('2030-12-31')], [0, 0], color='black', linestyle=':')
+        axes[i].plot(xlim , [0, 0], color='black', linestyle=':')
         axes[i].set_ylim([-ylim, ylim])
 
     plt.suptitle('Global mean TOA radiation bias relative to CERES climatology - nextGEMS Cycle 3', fontsize=18)
-    
-    create_folder(folder=str(outputfig), loglevel='WARNING')
-
-    filename = f"{outputfig}/TimeSeries_{linelabels}.pdf"
-    plt.savefig(filename, dpi=300, format='pdf')
+    if outputfig is not None:
+        create_folder(folder=str(outputfig), loglevel='WARNING')
+        all_labels = '_'.join(linelabels).replace(' ', '_').lower()
+        filename = f"{outputfig}/TimeSeries_{all_labels}.pdf"
+        plt.savefig(filename, dpi=300, format='pdf')
+        print(f"Plot has been saved to {outputfig}.")
     plt.tight_layout()
     plt.show()
-
-    create_folder(folder=str(outputdir), loglevel='WARNING')
-
-    # Save the data for each model to separate netCDF files
-    for i, model in enumerate(models):
-        model_name = linelabels[i].replace(' ', '_').lower()
-        model.to_netcdf(f"{outputdir}Timeseries_{linelabels}.nc")
-
-    print(f"Data has been saved to {outputdir}.")
-    print(f"Plot has been saved to {outputfig}.")
+    if outputdir is not None:
+        create_folder(folder=str(outputdir), loglevel='WARNING')
+        # Save the data for each model to separate netCDF files
+        for i, model in enumerate(models):
+            model_name = linelabels[i].replace(' ', '_').lower()
+            model["gm"].to_netcdf(f"{outputdir}Timeseries_{model_name}.nc")
+        print(f"Data has been saved to {outputdir}.")
     
 def plot_bias(data=None, iax=None, title=None, plotlevels=None, lower=None, upper=None, index=None):
     """
