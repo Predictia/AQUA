@@ -1,5 +1,6 @@
 from ruamel.yaml import YAML
 import os
+from aqua.util import ConfigPath
 
 yaml = YAML()
 yaml.representer.ignore_aliases = lambda *args: True
@@ -112,10 +113,12 @@ sources = {
     }
 }
 
+configurer = ConfigPath()
+catalog_path, regrid_yaml_path, fixer_folder, config_file = configurer.get_reader_filenames()
+
 #create output file in model folder
 output_filename = f"{config['exp']}.yaml"
-folder_path = os.path.join('../../config/machines/lumi/catalog', config['model'])
-
+folder_path = os.path.join(os.path.dirname(catalog_path), 'catalog', config['model'])
 output_file_path = os.path.join(folder_path, output_filename)
 with open(output_file_path, 'w') as output_file:
     yaml.preserve_quotes ==True
@@ -145,8 +148,6 @@ with open(main_yaml_path, 'w') as main_file:
 print(f"'exp' entry in 'main.yaml' has been updated in '{folder_path}'.")
 
 #update regrid.yaml
-
-regrid_yaml_path = "../../config/machines/lumi/regrid.yaml"
 
 with open(regrid_yaml_path, 'r') as regrid_file:
     regrid_yaml = yaml.load(regrid_file)
