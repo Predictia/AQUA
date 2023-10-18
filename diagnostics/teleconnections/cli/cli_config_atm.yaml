@@ -2,10 +2,22 @@
 teleconnections:
   NAO: true
 
-# This is overwritten if the script with the flags --model, --exp, --source
-model: 'IFS'
-exp: 'tco2559-ng5-cycle3'
-source: 'lra-r100-monthly'
+# The first is overwritten if the script with the flags --model, --exp, --source
+# Extra keyword arguments for the models are:
+# regrid: null
+# freq: null
+# zoom: null
+# These are all null (None) by default because we're assuming
+# data are monthly and already regridded to a 1deg grid.
+# If you want to use native data, you have to set these parameters
+# for each model.
+models:
+  - model: 'IFS'
+    exp: 'tco2559-ng5-cycle3'
+    source: 'lra-r100-monthly'
+  - model: 'ERA5'
+    exp: 'era5'
+    source: 'monthly'
 
 # This is overwritten if the script with the flags --configdir
 # Common output directory for all teleconnections
@@ -23,13 +35,6 @@ outputdir: './output' # common output directory for figures and netcdf files
 
 # Configdir for the teleconnections
 configdir: null
-
-# We assume that regridding and time aggregation has been done before,
-# so we set these parameters to null, if we have to run with native data
-# we may have to set these parameters
-regrid: null
-freq: null
-zoom: null
 
 # List of teleconnections specific configuration parameters
 NAO:
