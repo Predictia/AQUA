@@ -45,10 +45,10 @@ run_seaice=true
 # ------------------------------------------
 run_teleconnections=true
 # teleconnections additional flags
-# ---------------------------------------------------------------
+# ------------------------------------------------------------------
 # --dry, -d (dry run, if set it will run without producing plots)
-# --obs (if set it will run the teleconnections also for ERA5)
-# ---------------------------------------------------------------
+# --exclusive, -e (if set it will run only the model specified here)
+# ------------------------------------------------------------------
 run_tropical_rainfall=true
 
 # End of user defined variables
@@ -156,15 +156,10 @@ fi
 
 if [ "$run_teleconnections" = true ] ; then
   colored_echo $GREEN "Running teleconnections"
-  # Move to the teleconnection CLI directory
-  cd $aqua/diagnostics/teleconnections/cli/
+  scriptpy="$aqua/diagnostics/teleconnections/cli/cli_teleconnections.py"
 
-  python cli_teleconnections.py $args_atm --outputdir $outputdir/teleconnections --config cli_config_atm.yaml -l $loglevel
-  python cli_teleconnections.py $args_oce --outputdir $outputdir/teleconnections --config cli_config_oce.yaml -l $loglevel
-
-  # Move back to the aqua-analysis directory
-  cd $aqua/cli/aqua-analysis
-
+  python $scriptpy $args_atm --outputdir $outputdir/teleconnections --config cli_config_atm.yaml -l $loglevel
+  python $scriptpy $args_oce --outputdir $outputdir/teleconnections --config cli_config_oce.yaml -l $loglevel
   colored_echo $GREEN "Finished teleconnections"
 fi
 

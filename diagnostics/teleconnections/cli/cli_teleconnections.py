@@ -48,12 +48,19 @@ def parse_arguments(args):
 
 if __name__ == '__main__':
 
+    # change the current directory to the one of the CLI so that relative path works
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    if os.getcwd() != dname:
+        os.chdir(dname)
+        print(f'Moving from current directory to {dname} to run!')
+
     print(f'Running AQUA v{aquaversion} Teleconnections diagnostic v{telecversion}')
     args = parse_arguments(sys.argv[1:])
 
     # Read configuration file
-    file = get_arg(args, 'config', 'teleconnections_config.yaml')
-    print('Reading configuration yaml file..')
+    file = get_arg(args, 'config', 'cli_config_atm.yaml')
+    print('Reading configuration yaml file: {}'.format(file))
     config = load_yaml(file)
 
     loglevel = get_arg(args, 'loglevel', 'WARNING')
