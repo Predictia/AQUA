@@ -53,12 +53,9 @@ def process_ceres_data(exp=None, source=None):
 
     # time averages over each month and get the monthly anomaly
     clim = complete.groupby('time.month').mean('time')
-    
     monthly_anomalies = complete.groupby('time.month') - clim
 
     clim = clim.rename({'month': 'time'})
-    
-
     # global mean
     clim_gm = reader.fldmean(clim)
     ceres_gm = reader.fldmean(ceres)
@@ -72,8 +69,8 @@ def process_ceres_data(exp=None, source=None):
         "gm": ceres_gm,
         "clim_gm": clim_gm,
         "anom_gm": anom_gm,
-        "clim": clim[['time', 'lat', 'lon']] ,
-        "anom": monthly_anomalies[['time', 'lat', 'lon']] 
+        "clim": clim,
+        "anom": monthly_anomalies
 
     }
     return dictionary
@@ -183,8 +180,8 @@ def gregory_plot(obs_data=None, models=None, obs_time_range=None, model_labels=N
     ax.text(0.5, -0.15, "Black stars indicate the first value of the dataseries\nRed X indicate the last value of the dataseries.",
             transform=ax.transAxes, fontsize=fontsize-6, verticalalignment='top', horizontalalignment='center')
     ax.tick_params(axis="both", which="major", labelsize=10)
+    
     ax.grid(True, linestyle="--", linewidth=0.5)
-    #ax.set_facecolor('white')
 
     # Save the data for each model to separate netCDF files
     if outputfig is not None:
@@ -240,8 +237,6 @@ def barplot_model_data(datasets=None, model_names=None, outputdir=None, outputfi
             global_mean.update({model_names[i]: [-datasets[i]["gm"]["mtntrf"].mean(
                 ).values.item(), datasets[i]["gm"]["mtnsrf"].mean().values.item()]})
     global_mean = pd.DataFrame(global_mean)
-
-    sns.set_palette("pastel")
     # Create a grouped bar plot
     ax = global_mean.plot(x='Variables', kind='bar', figsize=(8, 6))
     # Show the plot
@@ -299,6 +294,8 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, o
     # Get a list of colors from the palette
     linecolors = color_palette.as_hex()
 
+    #linecolors = plt.cm.get_cmap('tab10').colors
+
     dummy_model_gm = models[0]["gm"]
     starting_year = int(dummy_model_gm["time.year"][0].values) if len(dummy_model_gm.sel(time=str(dummy_model_gm["time.year"][0].values)).time) == 12 \
                     else int(dummy_model_gm["time.year"][0].values) + 1
@@ -319,10 +316,10 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, o
         tsr_diff = []
         tnr_diff = []
         # Iterate through the years
-        for year in years:
-            ttr_diff.append(model["gm"].mtntrf.sel(time=str(year)).squeeze() - ceres['clim_gm'].squeeze().mtntrf.values)
-            tsr_diff.append(model["gm"].mtnsrf.sel(time=str(year)).squeeze() - ceres['clim_gm'].squeeze().mtnsrf.values)
-            tnr_diff.append(model["gm"].tnr.sel(time=str(year)).squeeze() - ceres['clim_gm'].squeeze().tnr.values)
+        for year in years: #.squeeze() 
+            ttr_diff.append(model["gm"].mtntrf.sel(time=str(year))- ceres['clim_gm'].mtntrf.values)
+            tsr_diff.append(model["gm"].mtnsrf.sel(time=str(year))- ceres['clim_gm'].mtnsrf.values)
+            tnr_diff.append(model["gm"].tnr.sel(time=str(year)) - ceres['clim_gm'].tnr.values)
         # Concatenate the data along the 'time' dimension
         ttr_diff = xr.concat(ttr_diff, dim='time')
         tsr_diff = xr.concat(tsr_diff, dim='time')
@@ -344,18 +341,21 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, o
         shading_data = xr.concat(shading_data_list, dim='time')
         long_time = np.append(shading_data['time'], shading_data['time'][::-1])
 
-    axes[0].fill(long_time, np.append(shading_data['mtntrf'].min(dim='ensemble'), shading_data['mtntrf'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
+    axes[0].fill(long_time, np.append(shading_data['mtntrf'].min(dim='ensemble'), shading_data['mtntrf'].max(dim='ensemble')[::-1]), 
+                 color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
     axes[0].set_title('LW', fontsize=16)
     axes[0].set_xticklabels([])
     axes[0].set_xlabel('')
     axes[0].legend(loc="upper left", frameon=False, fontsize='medium', ncol=3)
 
-    axes[1].fill(long_time, np.append(shading_data['mtnsrf'].min(dim='ensemble'), shading_data['mtnsrf'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
+    axes[1].fill(long_time, np.append(shading_data['mtnsrf'].min(dim='ensemble'), shading_data['mtnsrf'].max(dim='ensemble')[::-1]),
+                 color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
     axes[1].set_title('SW', fontsize=16)
     axes[1].set_xticklabels([])
     axes[1].set_xlabel('')
 
-    axes[2].fill(long_time, np.append(shading_data['tnr'].min(dim='ensemble'), shading_data['tnr'].max(dim='ensemble')[::-1]), color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
+    axes[2].fill(long_time, np.append(shading_data['tnr'].min(dim='ensemble'), shading_data['tnr'].max(dim='ensemble')[::-1]), 
+                 color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
     axes[2].set_title('net', fontsize=16)
 
     for i in range(3):
@@ -414,7 +414,7 @@ def plot_bias(data=None, iax=None, title=None, plotlevels=None, lower=None, uppe
     return plot
 
 
-def plot_maps(TOA_model=None, var=None, model_label=None, TOA_ceres_diff_samples=None, TOA_ceres_clim=None, outputdir='./', outputfig='./', year='2020'):
+def plot_maps(model=None, var=None, year=None, model_label=None,  ceres=None, outputdir=None, outputfig=None):
     """
     Plot monthly bias maps of the specified variable and model using a Robinson projection.
     The bias is calculated as the difference between TOA model data and TOA CERES climatology.
@@ -436,20 +436,21 @@ def plot_maps(TOA_model=None, var=None, model_label=None, TOA_ceres_diff_samples
         # Use the TOA_ifs_4km_r360x180 DataSet to ensure that the gridding is correct.
 
     """
-    range_min = TOA_ceres_diff_samples.groupby('time.month').min(dim='ensemble')
-    range_max = TOA_ceres_diff_samples.groupby('time.month').max(dim='ensemble')
-    TOA_model = TOA_model.sel(time=year)
-    if var == 'tnr':
-        label = 'net'
-    elif var == 'mtnsrf':
-        label = 'SW'
-    elif var == 'mtntrf':
-        label = 'LW'
+    samples_tmp= []
+    for _year in range(int(ceres["data"]["time.year"][0].values), int(ceres["data"]["time.year"][-1].values)-1):
+            # select year and assign (fake) time coordinates so that the differencing works
+            samples_tmp.append(ceres["data"].sel(time=str(_year)).assign_coords(time=ceres["clim"].time)- ceres["clim"])
+    TOA_ceres_diff_samples = xr.concat(samples_tmp, dim='ensemble')
+    TOA_ceres_diff_samples = TOA_ceres_diff_samples.assign_coords(ensemble=range(len(samples_tmp)))
+    range_min = TOA_ceres_diff_samples.groupby('time').min(dim='ensemble') #time.month
+    range_max = TOA_ceres_diff_samples.groupby('time').max(dim='ensemble')
+    if year is None:
+        year = int(model["data"]["time.year"][0].values)
 
-    if year == '2020':
-        panel_1_off = True
-    else:
-        panel_1_off = False
+    label_dict = {'tnr': 'net', 'mtnsrf': 'SW', 'mtntrf': 'LW'}
+    label = label_dict.get(var, None)
+
+    model_label = model["model"]+'_'+model["exp"] if model_label is None else model_label
 
     # what to use for significance testing
     # everything between these values will be considered not significant and hatched in the plot
@@ -457,21 +458,20 @@ def plot_maps(TOA_model=None, var=None, model_label=None, TOA_ceres_diff_samples
     upper = range_max[var].rename({'time': 'month'})
 
     fig, ax = plt.subplots(4, 3, figsize=(22, 10), subplot_kw={'projection': ccrs.Robinson(central_longitude=180, globe=None)})
-    plotlevels = np.arange(-50, 51, 10)
+    global_mean_bias = model["gm"][var].mean().values-ceres["clim_gm"][var].mean().values
+    plotlevels = np.arange(-50+global_mean_bias, 51+global_mean_bias, 10)
     global small_fonts
     small_fonts = 12
     axes = ax.flatten()
 
-    for index in range(len(TOA_model.time)):  # some experiments have less than 12 months, draw fewer panels for those
-            plot = plot_bias(TOA_model[var].sel(time=year).isel(time=index)-TOA_ceres_clim[var].isel(time=index),
+    for index in range(len(model["gm"].time)):  # some experiments have less than 12 months, draw fewer panels for those
+            plot = plot_bias(model["data"][var].sel(time=str(year)).isel(time=index)-ceres["clim"][var].isel(time=index),
                             iax=axes[index], title=calendar.month_name[index+1], plotlevels=plotlevels,
                             lower=lower, upper=upper, index=index)
 
     for axi in axes:
         axi.coastlines(color='black', linewidth=0.5)
 
-    if panel_1_off:
-        axes[0].remove()
     # common colorbar
     fig.subplots_adjust(right=0.95)
     cbar_ax = fig.add_axes([0.96, 0.3, 0.02, 0.4])  # [left, bottom, width, height]
@@ -479,26 +479,26 @@ def plot_maps(TOA_model=None, var=None, model_label=None, TOA_ceres_diff_samples
     cbar.ax.tick_params(labelsize=small_fonts)
     cbar.set_label('$W m^{-2}$', labelpad=-32, y=-.08, rotation=0)
 
-    plt.suptitle(label+' TOA bias ' + model_label + ' ' + year + '\nrel. to CERES climatology (2001-2021)', fontsize=small_fonts*2)
+    plt.suptitle(label+' TOA bias ' + model_label + ' ' + str(year) + '\nrel. to CERES climatology (2001-2021)', fontsize=small_fonts*2)
 
-    create_folder(folder=str(outputfig), loglevel='WARNING')
-
-    filename = f"{outputfig}{label}_TOA_bias_maps_{year}_{model_label}.pdf"
-    plt.savefig(filename, dpi=300, format='pdf')
+    if outputfig is not None:
+        create_folder(folder=str(outputfig), loglevel='WARNING')
+        filename = f"{outputfig}{label}_TOA_bias_maps_{year}_{model_label}.pdf"
+        plt.savefig(filename, dpi=300, format='pdf')
+        print(f"Plot has been saved to {outputfig}.")
+    plt.tight_layout()
     plt.show()
-    
-    create_folder(folder=str(outputdir), loglevel='WARNING')
 
-    # Save the data to a netCDF file
-    data = TOA_model[var].sel(time=year) - TOA_ceres_clim[var].isel(time=0)
-    filename = f"{outputdir}{var}_TOA_bias_maps_{year}_{model_label}.nc"
-    data.to_netcdf(filename)
-
-    print(f"Data has been saved to {outputdir}.")
-    print(f"Plot has been saved to {outputfig}.")
+    if outputdir is not None:
+        create_folder(folder=str(outputdir), loglevel='WARNING')
+        # Save the data to a netCDF file
+        data = model["data"][var].sel(time=str(year)) - ceres["clim"][var].isel(time=0)
+        filename = f"{outputdir}{var}_TOA_bias_maps_{year}_{model_label}.nc"
+        data.to_netcdf(filename)
+        print(f"Data has been saved to {outputdir}.")
 
 
-def plot_mean_bias(TOA_model=None, var=None, model_label=None, TOA_ceres_clim=None, start_year=None, end_year=None, outputdir='./', outputfig='./'):
+def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_year=None, end_year=None, outputdir=None, outputfig=None):
     """
     Plot the mean bias of the data over the specified time range and relative to CERES climatology.
 
@@ -518,11 +518,13 @@ def plot_mean_bias(TOA_model=None, var=None, model_label=None, TOA_ceres_clim=No
     Example:
         plot_mean_bias(TOA_model, 'mtnsrf', 'Cycle3_9km_IFS', TOA_ceres_clim, '2020', '2024', ceres_start_year='2000', ceres_end_year='2010')
     """
-    plotlevels = np.arange(-50, 51, 10)
     # Calculate the mean bias over the specified time range
-    mean_bias = (TOA_model[var].sel(time=slice(start_year, end_year)).mean(dim='time') - TOA_ceres_clim[var]).mean(dim='time')
+    mean_bias = (model["data"][var].sel(time=slice(str(start_year), str(end_year))).mean(dim='time') - ceres["clim"][var]).mean(dim='time')
     # Convert masked values to NaN
     mean_bias = mean_bias.where(~mean_bias.isnull(), np.nan)
+
+    model_label = model["model"]+'_'+model["exp"] if model_label is None else model_label
+
     # Create the plot
     fig = plt.figure(figsize=(10, 6))
     gs = gridspec.GridSpec(2, 1, height_ratios=[10, 1], hspace=0.1)
@@ -538,18 +540,19 @@ def plot_mean_bias(TOA_model=None, var=None, model_label=None, TOA_ceres_clim=No
     ax.tick_params(axis='both', which='both', labelsize=10)
     ax.xaxis.set_ticklabels(['-180°', '-150°', '-120°', '-90°', '-60°', '-30°', '0°', '30°', '60°', '90°', '120°', '150°', '180°'])
     ax.yaxis.set_ticklabels(['-90°', '-60°', '-30°', '0°', '30°', '60°', '90°'])
-    create_folder(folder=str(outputfig), loglevel='WARNING')
-
-    filename = f"{outputfig}{var}_{model_label}_TOA_mean_biases_{start_year}_{end_year}_CERES.pdf"
-    plt.savefig(filename, dpi=300, format='pdf')
+    
+    if outputfig is not None:
+        create_folder(folder=str(outputfig), loglevel='WARNING')
+        filename = f"{outputfig}{var}_{model_label}_TOA_mean_biases_{start_year}_{end_year}_CERES.pdf"
+        plt.savefig(filename, dpi=300, format='pdf')
+        print(f"Plot has been saved to {outputfig}.")
+    plt.tight_layout()
     plt.show()
 
-    create_folder(folder=str(outputdir), loglevel='WARNING')
-
-    #Save the data to a netCDF file
-    filename = f"{outputdir}{var}_{model_label}_TOA_mean_biases_{start_year}_{end_year}_CERES.nc"
-    mean_bias.to_netcdf(filename)
-
-    print(f"Data has been saved to {outputdir}.")
-    print(f"Plot has been saved to {outputfig}.")
+    if outputdir is not None:
+        create_folder(folder=str(outputdir), loglevel='WARNING')
+        # Save the data to a netCDF file
+        filename = f"{outputdir}{var}_{model_label}_TOA_mean_biases_{start_year}_{end_year}_CERES.nc"
+        mean_bias.to_netcdf(filename)
+        print(f"Data has been saved to {outputdir}.")
 
