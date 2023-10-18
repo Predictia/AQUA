@@ -112,18 +112,22 @@ def process_model_data(model=None, exp=None, source=None):
 def gregory_plot(obs_data=None, models=None, obs_time_range=None, model_labels=None, obs_labels=None,  outputdir=None, outputfig=None, 
                  fontsize=14, markersize=3):
     """
-    Create Gregory Plot with various models and an observational dataset (e.g., ERA5).
+    Create a Gregory Plot with various models and an observational dataset (e.g., ERA5).
+    
     Args:
         obs_data (dict): Xarray Dataset containing the observational data.
-        obs_time_range (tuple, optional): A tuple containing the start and end dates of the time range for the observational data.
-                                Format: ('YYYY-MM-DD', 'YYYY-MM-DD')
-        model_list (list): A list of models that should be plotted.
+        models (list): A list of models that should be plotted.
+        obs_time_range (tuple, optional): A tuple containing the start and end dates of the time range for the observational data. 
+            Format: ('YYYY-MM-DD', 'YYYY-MM-DD')
+        model_labels (list, optional): Labels for the models. If not provided, default labels are used.
         obs_labels (str, optional): Desired label for the observational data.
-        model_labels (str, optional): 
-
+        outputdir (str, optional): The directory to save the data files. 
+        outputfig (str, optional): The directory to save the plot as a PDF.
+        fontsize (int, optional): Font size for the plot labels and title.
+        markersize (int, optional): Size of the markers in the plot.
 
     Returns:
-        A Gregory Plot.
+        A Gregory Plot displaying the data for each model and the observational data.
     """
     # Create the plot and axes
     fig, ax = plt.subplots()
@@ -207,22 +211,14 @@ def barplot_model_data(datasets=None, model_names=None, outputdir=None, outputfi
 
     Args:
         datasets (list of xarray.DataSets): A list of xarray.DataSets to be plotted (e.g., global means).
-        model_names (list of str):      Your desired naming for the plotting, corresponding to the datasets.
-        outputdir (str, optional):      Directory where the output data will be saved (default is './').
-        outputfig (str, optional):      Directory where the output figure will be saved (default is './').
-        year (int, optional):           The year for which the plot is generated (optional).
-        fontsize (int, optional):       Font size for labels and legends in the plot (default is 14).
+        model_names (list of str): Your desired naming for the plotting, corresponding to the datasets.
+        outputdir (str, optional): Directory where the output data will be saved. Default is None.
+        outputfig (str, optional): Directory where the output figure will be saved. Default is None.
+        year (int, optional): The year for which the plot is generated. Default is None.
+        fontsize (int, optional): Font size for labels and legends in the plot. Default is 14.
 
     Returns:
         A bar plot showing the global mean radiation variables ('mtntrf' and 'mtnsrf') for different models and CERES data.
-
-    Example:
-
-    .. code-block:: python
-
-        datasets = [ceres['clim_gm'], icon['gm'], ifs_4km['gm'], ifs_9km['gm']]
-        model_names = ['ceres', 'icon', 'ifs 4.4 km', 'ifs 9 km']
-        new_barplot_model_data(datasets, model_names, outputdir='test', outputfig='test')
     """
     # Set a seaborn color palette
     sns.set_palette("pastel")
@@ -273,14 +269,13 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, o
     Create time series bias plot with various models and CERES, including the individual CERES years to show variabilities.
     Variables ttr, tsr, and tnr are plotted to show imbalances. Default mean for CERES data is the whole time range.
 
-    Example:
-    models = [icon, ifs_4km, ifs_9km]
-    linelabels = None
-    radiation_diag.plot_model_comparison_timeseries(models = models, linelabels = linelabels, ceres = ceres)
-
     Args:
-        models: a list of xarrayDataSets of the respective models. Y
-        linelabels: your desired naming for the plotting (this will also be used in the filename).
+        models (list of xarray.DataSets): A list of xarray.DataSets of the respective models.
+        linelabels (list of str): Your desired naming for the plotting (this will also be used in the filename).
+        ceres (xarray.DataSet): The CERES data to be compared with the models.
+        outputdir (str, optional): Directory where the output data will be saved. Default is None.
+        outputfig (str, optional): Directory where the output figure will be saved. Default is None.
+        ylim (float, optional): The limit for the y-axis in the plot. Default is 6.5.
 
     Returns:
         A plot to show the model biases for the whole time range.
@@ -293,7 +288,6 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, o
     color_palette = sns.color_palette("Set1")  # Change "Set1" to your preferred palette
     # Get a list of colors from the palette
     linecolors = color_palette.as_hex()
-
     #linecolors = plt.cm.get_cmap('tab10').colors
 
     dummy_model_gm = models[0]["gm"]
@@ -420,20 +414,17 @@ def plot_maps(model=None, var=None, year=None, model_label=None,  ceres=None, ou
     The bias is calculated as the difference between TOA model data and TOA CERES climatology.
     
     Args:
-        TOA_model (xarray.DataArray): The TOA model data.
+        model (xarray.DataArray): The TOA model data.
         var (str): The variable to plot ('tnr', 'mtnsrf', or 'mtntrf').
-        model_label (str): Desired label for the model (used as the filename to save the figure).
-        TOA_ceres_diff_samples (xarray.DataArray): The TOA CERES difference samples data.
-        TOA_ceres_clim (xarray.DataArray): The TOA CERES climatology data.
-        year (str, optional): The year to plot. Defaults to '2020'.
+        year (int, optional): The year to plot. Defaults to None.
+        model_label (str, optional): Desired label for the model (used as the filename to save the figure). Defaults to None.
+        ceres (xarray.DataArray): The TOA CERES data to be compared with the model.
+        outputdir (str, optional): Directory where the output data will be saved. Defaults to None.
+        outputfig (str, optional): Directory where the output figure will be saved. Defaults to None.
 
     Returns:
         Monthly bias plots of the chosen model, variable, and year.
 
-    Example:
-        plot_maps(TOA_model=TOA_ifs_4km_r360x180, TOA_ceres_diff_samples=TOA_ceres_diff_samples,
-                  TOA_ceres_clim=TOA_ceres_clim, var='mtnsrf', model_label='Cycle 3 4.4 km IFS Fesom', year='2023')
-        # Use the TOA_ifs_4km_r360x180 DataSet to ensure that the gridding is correct.
 
     """
     samples_tmp= []
@@ -503,20 +494,17 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
     Plot the mean bias of the data over the specified time range and relative to CERES climatology.
 
     Args:
-        TOA_model (xarray.Dataset): The model TOA radiation data.
+        model (xarray.Dataset): The model TOA radiation data.
         var (str): The variable to plot (e.g., 'mtnsrf', 'mtntrf', 'tnr').
         model_label (str): The label for the model.
-        TOA_ceres_clim (float): The CERES TOA radiation climatology.
+        ceres (float): The CERES TOA radiation climatology.
         start_year (str): The start year of the time range for the model data.
         end_year (str): The end year of the time range for the model data.
-        ceres_start_year (str, optional): The start year of the time range for the CERES data (optional).
-        ceres_end_year (str, optional): The end year of the time range for the CERES data (optional).
+        outputdir (str, optional): Directory where the output data will be saved. Defaults to None.
+        outputfig (str, optional): Directory where the output figure will be saved. Defaults to None.
 
     Returns:
         None. Displays the plot of the mean bias.
-
-    Example:
-        plot_mean_bias(TOA_model, 'mtnsrf', 'Cycle3_9km_IFS', TOA_ceres_clim, '2020', '2024', ceres_start_year='2000', ceres_end_year='2010')
     """
     # Calculate the mean bias over the specified time range
     mean_bias = (model["data"][var].sel(time=slice(str(start_year), str(end_year))).mean(dim='time') - ceres["clim"][var]).mean(dim='time')
