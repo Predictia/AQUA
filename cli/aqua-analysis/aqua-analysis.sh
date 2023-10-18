@@ -157,7 +157,7 @@ fi
 if [ "$run_teleconnections" = true ] ; then
   colored_echo $GREEN "Running teleconnections"
   # Move to the teleconnection CLI directory
-  cd $aqua/diagnostics/teleconnections/cli/single_analysis
+  cd $aqua/diagnostics/teleconnections/cli/
 
   python cli_teleconnections.py $args_atm --outputdir $outputdir/teleconnections --config cli_config_atm.yaml -l $loglevel
   python cli_teleconnections.py $args_oce --outputdir $outputdir/teleconnections --config cli_config_oce.yaml -l $loglevel
