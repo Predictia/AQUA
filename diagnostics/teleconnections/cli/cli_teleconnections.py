@@ -73,16 +73,6 @@ if __name__ == '__main__':
         savefig = True
         savefile = True
 
-    # # These may be needed if we're not using an LRA entry
-    # regrid = config['regrid']
-    # freq = config['freq']
-    # zoom = config['zoom']
-
-    # logger.debug('Reader configuration:')
-    # logger.debug('regrid: {}'.format(regrid))
-    # logger.debug('freq: {}'.format(freq))
-    # logger.debug('zoom: {}'.format(zoom))
-
     try:
         outputdir = get_arg(args, 'outputdir', config['outputdir'])
         outputnetcdf = os.path.join(outputdir, 'netcdf')
@@ -110,202 +100,111 @@ if __name__ == '__main__':
 
     logger.debug('Teleconnections to be evaluated: {}'.format(teleclist))
 
+    # if exclusive we're running only the first model/exp/source combination
+    # if model/exp/source are provided as arguments, we're overriding the
+    # first model/exp/source combination
+    models = config['models']
+
+    models[0]['model'] = get_arg(args, 'model', models[0]['model'])
+    models[0]['exp'] = get_arg(args, 'exp', models[0]['exp'])
+    models[0]['source'] = get_arg(args, 'source', models[0]['source'])
+
+    if exclusive:
+        logger.info('--exclusive: running only the first model/exp/source combination')
+        models = [models[0]]
+
+    logger.debug('Models to be evaluated: {}'.format(models))
+
     for telec in teleclist:
         logger.info('Running {} teleconnection...'.format(telec))
 
-        months_window = config[telec]['months_window']
-        logger.debug('months_window: {}'.format(months_window))
+        months_window = config[telec].get('months_window', 3)
 
-        for model in config[telec]['models']:
-            print('model: {}'.format(model))
+        for mod in models:
+            model = mod['model']
+            exp = mod['exp']
+            source = mod['source']
+            regrid = mod.get('regrid', None)
+            freq = mod.get('freq', None)
+            zoom = mod.get('zoom', None)
 
+            logger.debug("setup: ", model, exp, source, regrid, freq, zoom)
 
+            try:
+                tc = Teleconnection(telecname=telec,
+                                    configdir=configdir,
+                                    model=model, exp=exp, source=source,
+                                    regrid=regrid, freq=freq, zoom=zoom,
+                                    months_window=months_window,
+                                    outputdir=os.path.join(outputnetcdf,
+                                                           telec),
+                                    outputfig=os.path.join(outputpdf,
+                                                           telec),
+                                    savefig=savefig, savefile=savefile,
+                                    loglevel=loglevel)
+                tc.retrieve()
+            except NoDataError:
+                logger.error('No data available for {} teleconnection'.format(telec))
+                sys.exit(0)
 
+            # Data are available, are there enough?
+            try:
+                tc.evaluate_index()
+                tc.evaluate_correlation()
+                tc.evaluate_regression()
+            except NotEnoughDataError:
+                logger.error('Not enough data available for {} teleconnection'.format(telec))
+                sys.exit(0)
 
-        # try:
-        #     teleconnection = Teleconnection(telecname=telec,
-        #                                     configdir=configdir,
-        #                                     regrid=regrid, freq=freq,
-        #                                     zoom=zoom,
-        #                                     model=model, exp=exp,
-        #                                     source=source,
-        #                                     months_window=months_window,
-        #                                     outputdir=os.path.join(outputnetcdf,
-        #                                                            telec),
-        #                                     outputfig=os.path.join(outputpdf,
-        #                                                              telec),
-        #                                     savefig=savefig, savefile=savefile,
-        #                                     loglevel=loglevel)
-        #     teleconnection.retrieve()
-        # except NoDataError:
-        #     logger.error('No data available for {} teleconnection'.format(telec))
-        #     sys.exit(0)
+            if savefig:
+                try:
+                    tc.plot_index()
+                except Exception as e:
+                    logger.error('Error plotting {} index: '.format(telec), e)
 
-        # # Data are available, are there enough?
-        # try:
-        #     teleconnection.evaluate_index()
-        #     teleconnection.evaluate_correlation()
-        #     teleconnection.evaluate_regression()
-        # except NotEnoughDataError:
-        #     logger.error('Not enough data available for {} teleconnection'.format(telec))
-        #     sys.exit(0)
+                # Regression and correlation map setups
+                # This way we make the plot routine more compact
+                if telec == 'NAO':
+                    # We duplicate maps if we create more plots
+                    # for different teleconnections
+                    map_names = ['regression', 'correlation']
+                    maps = [tc.regression, tc.correlation]
+                    cbar_label = ['msl [hPa]', 'Pearson correlation']
+                    transform_first = False
+                elif telec == 'ENSO':
+                    map_names = ['regression', 'correlation']
+                    maps = [tc.regression, tc.correlation]
+                    cbar_label = ['sst [K]', 'Pearson correlation']
+                    transform_first = True
 
-        # if savefig:
-        #     try:
-        #         teleconnection.plot_index()
-        #     except Exception as e:
-        #         logger.error('Error plotting {} index: '.format(telec), e)
+                for i in range(len(maps)):
 
-        #     # Regression map
-        #     if telec == 'NAO':
-        #         cbar_label = 'msl [hPa]'
-        #         transform_first = False
-        #     elif telec == 'ENSO':
-        #         cbar_label = 'sst [K]'
-        #         transform_first = True
+                    try:
+                        plot_single_map(data=maps[i],
+                                        save=True,
+                                        cbar_label=cbar_label[i],
+                                        outputdir=tc.outputfig,
+                                        filename=tc.filename + '_{}'.format(map_names[i]),
+                                        title='{} {} {} {}'.format(model, exp,
+                                                                   telec, map_names[i]),
+                                        transform_first=transform_first,
+                                        loglevel=loglevel)
+                    except Exception as e:
+                        logger.debug('Error plotting {} {} {} {}: '.format(model, exp,
+                                                                           telec, map_names[i]), e)
+                        logger.info('Trying without contour')
+                        try:
+                            plot_single_map(data=maps[i],
+                                            save=True, contour=False,
+                                            cbar_label=cbar_label[i],
+                                            outputdir=tc.outputfig,
+                                            filename=tc.filename + '_{}'.format(map_names[i]),
+                                            title='{} {} {} {}'.format(model, exp,
+                                                                       telec, map_names[i]),
+                                            transform_first=transform_first,
+                                            loglevel=loglevel)
+                        except Exception as e:
+                            logger.error('Error plotting {} {} {} {}: '.format(model, exp,
+                                                                               telec, map_names[i]), e)
 
-        #     try:
-        #         plot_single_map(data=teleconnection.regression,
-        #                         save=True,
-        #                         cbar_label=cbar_label,
-        #                         outputdir=teleconnection.outputfig,
-        #                         filename=teleconnection.filename + '_regression.pdf',
-        #                         title='{} {} {} regression'.format(model, exp, telec),
-        #                         transform_first=transform_first,
-        #                         loglevel=loglevel)
-        #     except Exception as e:
-        #         try:
-        #             logger.debug('Error plotting {} {} {} regression: '.format(model, exp, telec), e)
-        #             logger.info('Trying without contour')
-        #             plot_single_map(data=teleconnection.regression,
-        #                             save=True, contour=False,
-        #                             cbar_label=cbar_label,
-        #                             outputdir=teleconnection.outputfig,
-        #                             filename=teleconnection.filename + '_regression',
-        #                             title='{} {} {} regression'.format(model, exp, telec),
-        #                             transform_first=transform_first,
-        #                             loglevel=loglevel)
-        #         except Exception as e:
-        #             logger.error('Error plotting {} {} {} regression: '.format(model, exp, telec), e)
-
-        #     # Correlation map
-        #     cbar = 'Pearson correlation'
-
-        #     try:
-        #         plot_single_map(data=teleconnection.correlation,
-        #                         save=True,
-        #                         cbar_label=cbar_label,
-        #                         outputdir=teleconnection.outputfig,
-        #                         filename=teleconnection.filename + '_correlation',
-        #                         title='{} {} {} correlation'.format(model, exp, telec),
-        #                         transform_first=transform_first,
-        #                         loglevel=loglevel)
-        #     except Exception as e:
-        #         try:
-        #             logger.debug('Error plotting {} {} {} correlation: '.format(model, exp, telec), e)
-        #             logger.info('Trying without contour')
-        #             plot_single_map(data=teleconnection.correlation,
-        #                             save=True, contour=False,
-        #                             cbar_label=cbar_label,
-        #                             outputdir=teleconnection.outputfig,
-        #                             filename=teleconnection.filename + '_correlation',
-        #                             title='{} {} {} correlation'.format(model, exp, telec),
-        #                             transform_first=transform_first,
-        #                             loglevel=loglevel)
-        #         except Exception as e:
-        #             logger.error('Error plotting {} {} {} correlation: '.format(model, exp, telec), e)
-
-        # if obs:
-        #     logger.warning('Analysing ERA5')
-        #     try:
-        #         teleconnection_ERA5 = Teleconnection(telecname=telec,
-        #                                              configdir=configdir,
-        #                                              #regrid='r100', # This would be better but we've some issue with plots
-        #                                              model='ERA5', exp='era5',
-        #                                              source='monthly',
-        #                                              months_window=months_window,
-        #                                              outputdir=os.path.join(outputnetcdf,
-        #                                                                     telec),
-        #                                              outputfig=os.path.join(outputpdf,
-        #                                                                     telec),
-        #                                              savefig=savefig,
-        #                                              savefile=savefile,
-        #                                              loglevel=loglevel)
-        #     except NoDataError:
-        #         logger.error('No ERA5 data available for {} teleconnection'.format(telec))
-        #         sys.exit(0)
-
-        #     # Data are available, are there enough?
-        #     try:
-        #         teleconnection_ERA5.evaluate_index()
-        #         teleconnection_ERA5.evaluate_correlation()
-        #         teleconnection_ERA5.evaluate_regression()
-        #     except NotEnoughDataError:
-        #         logger.error('Not enough data available for ERA5 {} teleconnection'.format(telec))
-        #         sys.exit(0)
-
-        #     if savefig:
-        #         try:
-        #             teleconnection_ERA5.plot_index()
-        #         except Exception as e:
-        #             logger.error('Error plotting ERA5 {} index: '.format(telec), e)
-
-        #         # Regression map
-        #         if telec == 'NAO':
-        #             cbar_label = 'msl [hPa]'
-        #             transform_first = False
-        #         elif telec == 'ENSO':
-        #             cbar_label = 'sst [K]'
-        #             transform_first = True
-
-        #         try:
-        #             plot_single_map(data=teleconnection_ERA5.regression,
-        #                             save=True,
-        #                             cbar_label=cbar_label,
-        #                             outputdir=teleconnection_ERA5.outputfig,
-        #                             filename=teleconnection_ERA5.filename + '_regression',
-        #                             title='{} {} {} regression'.format('ERA5', 'era5', telec),
-        #                             loglevel=loglevel)
-        #         except Exception as e:
-        #             logger.debug('Error plotting {} {} {} regression: '.format('ERA5', 'era5', telec), e)
-        #             logger.info('Trying without contour')
-        #             try:
-        #                 plot_single_map(data=teleconnection_ERA5.regression,
-        #                                 save=True, contour=False,
-        #                                 cbar_label=cbar_label,
-        #                                 outputdir=teleconnection_ERA5.outputfig,
-        #                                 filename=teleconnection_ERA5.filename + '_regression',
-        #                                 title='{} {} {} regression'.format('ERA5', 'era5', telec),
-        #                                 transform_first=transform_first,
-        #                                 loglevel=loglevel)
-        #             except Exception as e:
-        #                 logger.error('Error plotting {} {} {} regression: '.format('ERA5', 'era5', telec), e)
-
-        #         # Correlation map
-        #         cbar_label = 'Pearson correlation'
-
-        #         try:
-        #             plot_single_map(data=teleconnection_ERA5.correlation,
-        #                             save=True,
-        #                             cbar_label=cbar_label,
-        #                             outputdir=teleconnection_ERA5.outputfig,
-        #                             filename=teleconnection_ERA5.filename + '_correlation',
-        #                             title='{} {} {} correlation'.format('ERA5', 'era5', telec),
-        #                             transform_first=transform_first,
-        #                             loglevel=loglevel)
-        #         except Exception as e:
-        #             try:
-        #                 logger.debug('Error plotting {} {} {} correlation: '.format('ERA5', 'era5', telec), e)
-        #                 logger.info('Trying without contour')
-        #                 plot_single_map(data=teleconnection_ERA5.correlation,
-        #                                 save=True, contour=False,
-        #                                 cbar_label=cbar_label,
-        #                                 outputdir=teleconnection_ERA5.outputfig,
-        #                                 filename=teleconnection_ERA5.filename + '_correlation',
-        #                                 title='{} {} {} correlation'.format('ERA5', 'era5', telec),
-        #                                 transform_first=transform_first,
-        #                                 loglevel=loglevel)
-        #             except Exception as e:
-        #                 logger.error('Error plotting {} {} {} correlation: '.format('ERA5', 'era5', telec), e)
-
-    logger.warning('Teleconnections diagnostic finished.')
+    logger.info('Teleconnections diagnostic finished.')

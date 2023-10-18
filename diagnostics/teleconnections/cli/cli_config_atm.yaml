@@ -11,7 +11,7 @@ teleconnections:
 # data are monthly and already regridded to a 1deg grid.
 # If you want to use native data, you have to set these parameters
 # for each model.
-sources:
+models:
   - model: 'IFS'
     exp: 'tco2559-ng5-cycle3'
     source: 'lra-r100-monthly'
