@@ -17,7 +17,7 @@ from teleconnections.plots import plot_single_map
 from teleconnections.tc_class import Teleconnection
 
 
-def parse_arguments(args):
+def parse_arguments(cli_args):
     """Parse command line arguments"""
 
     parser = argparse.ArgumentParser(description='Teleconnections CLI')
@@ -43,7 +43,7 @@ def parse_arguments(args):
     parser.add_argument('--outputdir', type=str, help='output directory',
                         required=False)
 
-    return parser.parse_args(args)
+    return parser.parse_args(cli_args)
 
 
 if __name__ == '__main__':
@@ -90,7 +90,7 @@ if __name__ == '__main__':
         outputpdf = None
 
     configdir = config['configdir']
-    logger.debug('configdir: {}'.format(configdir))
+    logger.debug('configdir: %s', configdir)
 
     # Turning on/off the teleconnections
     # the try/except is used to avoid KeyError if the teleconnection is not
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     if ENSO:
         teleclist.append('ENSO')
 
-    logger.debug('Teleconnections to be evaluated: {}'.format(teleclist))
+    logger.debug('Teleconnections to be evaluated: %s', teleclist)
 
     # if exclusive we're running only the first model/exp/source combination
     # if model/exp/source are provided as arguments, we're overriding the
@@ -120,10 +120,10 @@ if __name__ == '__main__':
         logger.info('--exclusive: running only the first model/exp/source combination')
         models = [models[0]]
 
-    logger.debug('Models to be evaluated: {}'.format(models))
+    logger.debug('Models to be evaluated: %s', models)
 
     for telec in teleclist:
-        logger.info('Running {} teleconnection...'.format(telec))
+        logger.info('Running %s teleconnection', telec)
 
         months_window = config[telec].get('months_window', 3)
 
@@ -135,7 +135,8 @@ if __name__ == '__main__':
             freq = mod.get('freq', None)
             zoom = mod.get('zoom', None)
 
-            logger.debug("setup: ", model, exp, source, regrid, freq, zoom)
+            logger.debug("setup: %s %s %s %s %s %s",
+                         model, exp, source, regrid, freq, zoom)
 
             try:
                 tc = Teleconnection(telecname=telec,
@@ -151,7 +152,7 @@ if __name__ == '__main__':
                                     loglevel=loglevel)
                 tc.retrieve()
             except NoDataError:
-                logger.error('No data available for {} teleconnection'.format(telec))
+                logger.error('No data available for %s teleconnection', telec)
                 sys.exit(0)
 
             # Data are available, are there enough?
@@ -160,14 +161,14 @@ if __name__ == '__main__':
                 tc.evaluate_correlation()
                 tc.evaluate_regression()
             except NotEnoughDataError:
-                logger.error('Not enough data available for {} teleconnection'.format(telec))
+                logger.error('Not enough data available for %s teleconnection', telec)
                 sys.exit(0)
 
             if savefig:
                 try:
                     tc.plot_index()
                 except Exception as e:
-                    logger.error('Error plotting {} index: '.format(telec), e)
+                    logger.error('Error plotting %s index: %s', telec, e)
 
                 # Regression and correlation map setups
                 # This way we make the plot routine more compact
@@ -184,10 +185,10 @@ if __name__ == '__main__':
                     cbar_label = ['sst [K]', 'Pearson correlation']
                     transform_first = True
 
-                for i in range(len(maps)):
-
+                for i, data_map in enumerate(maps):
+                #for i in range(len(maps)):
                     try:
-                        plot_single_map(data=maps[i],
+                        plot_single_map(data=data_map,
                                         save=True,
                                         cbar_label=cbar_label[i],
                                         outputdir=tc.outputfig,
@@ -196,12 +197,12 @@ if __name__ == '__main__':
                                                                    telec, map_names[i]),
                                         transform_first=transform_first,
                                         loglevel=loglevel)
-                    except Exception as e:
-                        logger.debug('Error plotting {} {} {} {}: '.format(model, exp,
-                                                                           telec, map_names[i]), e)
+                    except Exception as err:
+                        logger.error('Error plotting %s %s %s %s: %s',
+                                     model, exp, telec, map_names[i], err)
                         logger.info('Trying without contour')
                         try:
-                            plot_single_map(data=maps[i],
+                            plot_single_map(data=data_map,
                                             save=True, contour=False,
                                             cbar_label=cbar_label[i],
                                             outputdir=tc.outputfig,
@@ -210,8 +211,8 @@ if __name__ == '__main__':
                                                                        telec, map_names[i]),
                                             transform_first=transform_first,
                                             loglevel=loglevel)
-                        except Exception as e:
-                            logger.error('Error plotting {} {} {} {}: '.format(model, exp,
-                                                                               telec, map_names[i]), e)
+                        except Exception as err2:
+                            logger.error('Error plotting %s %s %s %s: %s',
+                                         model, exp, telec, map_names[i], err2)
 
     logger.info('Teleconnections diagnostic finished.')

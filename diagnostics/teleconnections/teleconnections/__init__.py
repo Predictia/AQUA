@@ -21,6 +21,7 @@ __all__ = ['station_based_index', 'regional_mean_index',
 # Changelog
 # 0.2.1: Performance improvements
 #        Refactory of single map plot function
+#        CLI refinement and code linting
 # 0.2.0: CLI working with the AQUA wrapper
 # 0.1.2: symmetric colorbar on/off for maps_plot
 # 0.1.1: bugfix of single_maps, ENSO available with 2t and skt

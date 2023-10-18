@@ -31,31 +31,28 @@ def area_selection(indat, lat=None, lon=None, box_brd=True,
             ValueError: if lat or lon are not in ascending order
             AttributeError: if lat or lon are not found in input data
     """
-    # 0. -- Logging --
     logger = log_configure(loglevel, 'area selection')
     logger.debug("Selecting area: lat = %s, lon = %s", lat, lon)
 
-    # 1. -- Extract coordinates from indat --
+    # Extract coordinates from indat
     if lat is None and lon is None:
         raise ValueError('lat and lon cannot be both None')
     if lat:
         if lat[0] > lat[1]:
             raise ValueError('lat must be specified in ascending order')
-        else:
-            try:
-                lat_coord = indat.lat
-            except AttributeError:
-                raise AttributeError('lat not found in input data')
+        try:
+            lat_coord = indat.lat
+        except AttributeError as err:
+            raise AttributeError('lat not found in input data') from err
     if lon:
         if lon[0] > lon[1]:
             raise ValueError('lon must be specified in ascending order')
-        else:
-            try:
-                lon_coord = indat.lon
-            except AttributeError:
-                raise AttributeError('lon not found in input data')
+        try:
+            lon_coord = indat.lon
+        except AttributeError as err:
+            raise AttributeError('lon not found in input data') from err
 
-    # 2. -- Select area --
+    # Select area
     if box_brd:
         logger.debug('Selecting area with box boundaries')
         if lat:
@@ -73,7 +70,7 @@ def area_selection(indat, lat=None, lon=None, box_brd=True,
             iplon = lon_coord.where((lon_coord > lon[0]) &
                                     (lon_coord < lon[1]), drop=True)
 
-    # 3. -- Area selection --
+    # Area selection
     odat = indat
     if lat:
         logger.debug('Selecting latitudes')

@@ -205,11 +205,11 @@ def regional_anomalies_cdo(infile, namelist, telecname, months_window=3,
     indx = cdo.runmean("{0}".format(months_window), input=field_mean,
                        returnXDataset=True)
 
-    # 4. -- Evaluate the anomalies --
+    # Evaluate the anomalies
 
     # TO DO
 
-    # 5. -- Cleaning the temporary directory --
+    # Cleaning the temporary directory
     logger.debug('Cleaning temporary directory')
     cdo.cleanTempDir()
 
@@ -230,11 +230,7 @@ def cdo_station_based_comparison(infile, namelist, telecname, months_window=3,
         rtol (float, opt):        relative tolerance, default is 1.e-5
         atol (float, opt):        absolute tolerance, default is 1.e-8
         loglevel (str, opt):      log level, default is WARNING
-
-    Returns:
-        None                      returns None and perform assert_allclose().
     """
-    # 0. -- Logging --
     logger = log_configure(loglevel, 'cdo station based comparison')
     logger.info('Comparing station based index for %s with cdo bindings',
                 telecname)
@@ -242,30 +238,25 @@ def cdo_station_based_comparison(infile, namelist, telecname, months_window=3,
     fieldname = namelist[telecname]['field']
     logger.debug('Field name: %s', fieldname)
 
-    # 1. -- cdo index evaluation --
-    logger.debug('Evaluating index with cdo bindings')
+    logger.info('Evaluating index with cdo bindings')
     index_cdo = station_based_cdo(infile, namelist, telecname,
                                   months_window=months_window,
                                   loglevel=loglevel)
 
-    # 2. -- library index evaluation --
-    logger.debug('Evaluating index with library')
+    logger.info('Evaluating index with AQUA library')
     field = xr.open_mfdataset(infile)[fieldname]
     index_lib = station_based_index(field, namelist, telecname,
                                     months_window=months_window,
                                     loglevel=loglevel)
 
-    # 3. -- adapt index for comparison --
     logger.debug('Adapting index for comparison')
     index_cdo = index_cdo.squeeze(['lat', 'lon'], drop=True)
 
-    # 4. -- perform the asser_allclose() test
     logger.debug('Performing assert_allclose() test')
     np.testing.assert_allclose(index_lib.values,
                                index_cdo[namelist[telecname]['field']].values,
                                rtol=rtol, atol=atol)
     logger.info('Test passed')
-    return
 
 
 def cdo_regional_mean_comparison(infile, namelist, telecname, months_window=3,
@@ -286,7 +277,6 @@ def cdo_regional_mean_comparison(infile, namelist, telecname, months_window=3,
     Returns:
         None                      returns None and perform assert_allclose().
     """
-    # 0. -- Logging --
     logger = log_configure(loglevel, 'cdo regional mean comparison')
     logger.info('Comparing regional mean for %s with cdo bindings',
                 telecname)
@@ -294,27 +284,21 @@ def cdo_regional_mean_comparison(infile, namelist, telecname, months_window=3,
     fieldname = namelist[telecname]['field']
     logger.debug('Field name: %s', fieldname)
 
-    # 1. -- cdo average evaluation --
-    logger.debug('Evaluating average with cdo bindings')
+    logger.info('Evaluating average with cdo bindings')
     avg_cdo = regional_mean_cdo(infile, namelist, telecname,
                                 months_window=months_window,
                                 loglevel=loglevel)
 
-    # 2. -- library average evaluation --
-    logger.debug('Evaluating average with library')
+    logger.info('Evaluating average with library')
     field = xr.open_mfdataset(infile)[fieldname]
     avg_lib = regional_mean_index(field, namelist, telecname,
                                   months_window=months_window,
                                   loglevel=loglevel)
 
-    # 3. -- adapt index for comparison --
     logger.debug('Adapting index for comparison')
     avg_cdo = avg_cdo.squeeze(['lat', 'lon'], drop=True)
 
-    # 4. -- perform the asser_allclose() test
     logger.debug('Performing assert_allclose() test')
     np.testing.assert_allclose(avg_lib.values,
                                avg_cdo[namelist[telecname]['field']].values,
                                rtol=rtol, atol=atol)
-
-    return
