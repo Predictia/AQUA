@@ -47,7 +47,8 @@ run_teleconnections=true
 # teleconnections additional flags
 # ------------------------------------------------------------------
 # --dry, -d (dry run, if set it will run without producing plots)
-# --exclusive, -e (if set it will run only the model specified here)
+# --ref (if set it will analyze also the reference data, it is set
+#        by default)
 # ------------------------------------------------------------------
 run_tropical_rainfall=true
 
@@ -158,8 +159,8 @@ if [ "$run_teleconnections" = true ] ; then
   colored_echo $GREEN "Running teleconnections"
   scriptpy="$aqua/diagnostics/teleconnections/cli/cli_teleconnections.py"
 
-  python $scriptpy $args_atm --outputdir $outputdir/teleconnections --config cli_config_atm.yaml -l $loglevel
-  python $scriptpy $args_oce --outputdir $outputdir/teleconnections --config cli_config_oce.yaml -l $loglevel
+  python $scriptpy $args_atm --outputdir $outputdir/teleconnections --config cli_config_atm.yaml -l $loglevel --ref
+  python $scriptpy $args_oce --outputdir $outputdir/teleconnections --config cli_config_oce.yaml -l $loglevel --ref
   colored_echo $GREEN "Finished teleconnections"
 fi
 
