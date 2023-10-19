@@ -29,9 +29,9 @@ def parse_arguments(cli_args):
                         help='if True, run is dry, no files are written')
     parser.add_argument('-l', '--loglevel', type=str,
                         help='log level [default: WARNING]')
-    parser.add_argument('-e', '--exclusive', action='store_true',
+    parser.add_argument('--ref', action='store_true',
                         required=False,
-                        help='run only the first model/exp/source combination')
+                        help='if True, analysis is performed against a reference')
 
     # This arguments will override the configuration file if provided
     parser.add_argument('--model', type=str, help='model name',
@@ -66,8 +66,8 @@ if __name__ == '__main__':
     loglevel = get_arg(args, 'loglevel', 'WARNING')
     logger = log_configure(log_name='Teleconnections CLI', log_level=loglevel)
 
-    # if exclusive we're running only the first model/exp/source combination
-    exclusive = get_arg(args, 'exclusive', False)
+    # if ref we're running the analysis against a reference
+    ref = get_arg(args, 'ref', False)
 
     # if dry we're not saving any file, debug mode
     dry = get_arg(args, 'dry', False)
@@ -116,9 +116,14 @@ if __name__ == '__main__':
     models[0]['exp'] = get_arg(args, 'exp', models[0]['exp'])
     models[0]['source'] = get_arg(args, 'source', models[0]['source'])
 
-    if exclusive:
-        logger.info('--exclusive: running only the first model/exp/source combination')
-        models = [models[0]]
+    # if reference is True the reference models are added to the list
+    if ref:
+        logger.info('--ref: adding reference models to the list')
+        # Add a reference tag to the config block so that if needed
+        # we can distinguish between reference and model
+        for reference in config['references']:
+            reference['reference'] = True
+        models.extend(config['references'])
 
     logger.debug('Models to be evaluated: %s', models)
 
@@ -134,6 +139,7 @@ if __name__ == '__main__':
             regrid = mod.get('regrid', None)
             freq = mod.get('freq', None)
             zoom = mod.get('zoom', None)
+            reference = mod.get('reference', False)
 
             logger.debug("setup: %s %s %s %s %s %s",
                          model, exp, source, regrid, freq, zoom)
@@ -186,7 +192,6 @@ if __name__ == '__main__':
                     transform_first = True
 
                 for i, data_map in enumerate(maps):
-                #for i in range(len(maps)):
                     try:
                         plot_single_map(data=data_map,
                                         save=True,
@@ -214,5 +219,7 @@ if __name__ == '__main__':
                         except Exception as err2:
                             logger.error('Error plotting %s %s %s %s: %s',
                                          model, exp, telec, map_names[i], err2)
+
+    # TODO: additional comparison plots can be added here
 
     logger.info('Teleconnections diagnostic finished.')
