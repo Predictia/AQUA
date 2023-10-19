@@ -12,6 +12,7 @@ from .ocean_util import area_selection
 from .ocean_util import weighted_zonal_mean
 from .ocean_util import logger
 from .ocean_util import dir_creation
+from .ocean_util import custom_region
 
 
 def zonal_mean_trend_plot(data, region=None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None,  output=True, output_dir=None):
@@ -55,6 +56,8 @@ def zonal_mean_trend_plot(data, region=None, latS: float = None, latN: float = N
     data.ocpt.plot.contourf(levels=20, ax=axs[0])
     axs[0].set_ylim((5500, 0))
 
+    region = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
+    
     fig.suptitle(
         f"Zonally-averaged long-term trends in the {region}", fontsize=20)
 
@@ -207,6 +210,7 @@ def hovmoller_lev_time_plot(data, region, anomaly: bool = False, standardise: bo
     logger.info("Hovmoller plotting in process")
     # Create subplots for temperature and salinity plots
     fig, (axs) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
+    region = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
     fig.suptitle(f"Spatially averaged {region} T,S {type}", fontsize=22)
 
     if output:
@@ -314,6 +318,7 @@ def time_series_multilevs(data, region=None, anomaly: bool = False, standardise:
 
     # Create subplots for temperature and salinity time series plots
     fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(16, 5))
+    region = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
 
     fig.suptitle(f"Spatially averaged {region} T,S {type}", fontsize=20)
 
@@ -603,9 +608,10 @@ def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=N
             axs[levs, 1].set_xticklabels([])
         axs[levs, 1].set_facecolor('grey')
         # axs[levs, 1].set_aspect('equal', adjustable='box')
+    region = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
 
     plt.suptitle(
-        f'Linear Trends of T,S at different depths in the {region.replace("_"," ").capitalize()}', fontsize=24)
+        f'Linear Trends of T,S at different depths in the {region}', fontsize=24)
     axs[0, 0].set_title("Temperature", fontsize=18)
     axs[0, 1].set_title("Salinity", fontsize=18)
     if output:

@@ -227,6 +227,10 @@ def weighted_area_mean(data, region=None, latS: float = None, latN: float = None
     wgted_mean = weighted_data.mean(("lat", "lon"))
     return wgted_mean
 
+def custom_region(region=None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None):
+    if region == None:
+        region_name = f"Region ({latS}:{latN} Lat, {lonW}:{lonE} Lon)"
+    return region_name
 
 def split_time_equally(data):
     """
@@ -313,52 +317,70 @@ def data_time_selection(data, time):
     Returns:
         xarray.Dataset: Data for the selected time period.
     """
-    time = time.lower()
+    if not isinstance(time, int):
+        time = time.lower()
     if time in ["jan", "january", "1", 1]:
         data = data.where(data.time.dt.month == 1, drop=True)
+        time = "Jan"
     elif time in ["feb", "february", "2", 2]:
         data = data.where(data.time.dt.month == 2, drop=True)
+        time = "Feb"
     elif time in ["mar", "march", "3", 3]:
         data = data.where(data.time.dt.month == 3, drop=True)
+        time = "Mar"
     elif time in ["apr", "april", "4", 4]:
         data = data.where(data.time.dt.month == 4, drop=True)
+        time = "Apr"
     elif time in ["may", "5", 5]:
         data = data.where(data.time.dt.month == 5, drop=True)
+        time = "May"
     elif time in ["jun", "june", "6", 6]:
         data = data.where(data.time.dt.month == 6, drop=True)
+        time = "Jun"
     elif time in ["jul", "july", "7", 7]:
         data = data.where(data.time.dt.month == 7, drop=True)
+        time = "Jul"
     elif time in ["aug", "august", "8", 8]:
         data = data.where(data.time.dt.month == 8, drop=True)
+        time = "Aug"
     elif time in ["sep", "sept", "september", "9", 9]:
         data = data.where(data.time.dt.month == 9, drop=True)
+        time = "Sep"
     elif time in ["oct", "october", "10", 10]:
         data = data.where(data.time.dt.month == 10, drop=True)
+        time = "Oct"
     elif time in ["nov", "november", "11", 11]:
         data = data.where(data.time.dt.month == 11, drop=True)
+        time = "Nov"
     elif time in ["dec", "december", "12", 12]:
         data = data.where(data.time.dt.month == 12, drop=True)
-    elif time in ["yearly", "year", "y"]:
+        time = "Dec"
+    elif time in ["yearly", "year", "y", "13", 13]:
         data = data.groupby('time.year').mean(dim='time')
         if "year" in list(data.dims):
             data = data.rename({"year": "time"})
-    elif time in ["jja", "jun_jul_aug", "jun-jul-aug", "june-july-august", "june_july_august"]:
+            time = "Yearly"
+    elif time in ["jja", "jun_jul_aug", "jun-jul-aug", "june-july-august", "june_july_august", "14, 14"]:
         data = data.where((data['time.month'] >= 6) & (
             data['time.month'] <= 8), drop=True)
-    elif time in ["fma", "feb_mar_apr", "feb-mar-apr", "february-march-april", "february_march_april"]:
+        time = "Jun-Jul-Aug"
+    elif time in ["fma", "feb_mar_apr", "feb-mar-apr", "february-march-april", "february_march_april", "15", 15]:
         data = data.where((data['time.month'] >= 2) & (
             data['time.month'] <= 4), drop=True)
-    elif time in ["djf", "dec_jan_feb", "dec-jan-feb", "december-january-february", "december_january_february"]:
+        time = "Feb-Mar-Apr"
+    elif time in ["djf", "dec_jan_feb", "dec-jan-feb", "december-january-february", "december_january_february", "16", 16]:
         data = data.where((data['time.month'] == 12) | (
             data['time.month'] <= 2), drop=True)
-    elif time in ["son", "sep_oct_nov", "sep-oct-nov", "september-october-november", "september_october_november"]:
+        time = "Dec-Jan-Feb"
+    elif time in ["son", "sep_oct_nov", "sep-oct-nov", "september-october-november", "september_october_november", "17", 17]:
         data = data.where((data['time.month'] >= 9) & (
             data['time.month'] <= 11), drop=True)
+        time = "Sep-Oct-Nov"
     else:
         raise ValueError("""Invalid month input. Please provide a valid name. Among this:
                          Yearly, 3M, Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec, JJA, FMA, DJF, SON """)
     logger.info("data selected for %s climatology", time)
-    return data
+    return data, time
 
 
 def compare_arrays(mod_data, obs_data):

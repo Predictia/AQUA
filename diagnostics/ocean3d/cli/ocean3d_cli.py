@@ -20,6 +20,8 @@ from ocean3d import time_series_multilevs
 from ocean3d import multilevel_t_s_trend_plot
 from ocean3d import zonal_mean_trend_plot
 
+from aqua.util import find_vert_coord
+
 
 def parse_arguments(args):
     """Parse command line arguments"""
@@ -38,6 +40,38 @@ def parse_arguments(args):
 
     return parser.parse_args(args)
 
+def ocean3d_diags(data, region = None,
+                latS: float = None,
+                latN: float = None,
+                lonW: float = None,
+                lonE: float = None,
+                output_dir = str):
+    
+    
+    hovmoller_lev_time_plot(data=data, lonE=lonE, lonW=lonW, latS=latS, latN=latN, region=region, anomaly=False, standardise=False, output=True, output_dir=output_dir)
+    hovmoller_lev_time_plot(data=data, lonE=lonE, lonW=lonW, latS=latS, latN=latN, region=region, anomaly=False, standardise=False, output=True, output_dir=output_dir)
+    hovmoller_lev_time_plot(data=data, lonE=lonE, lonW=lonW, latS=latS, latN=latN, region=region, anomaly=False, standardise=True, output=True, output_dir=output_dir)
+    hovmoller_lev_time_plot(data=data, lonE=lonE, lonW=lonW, latS=latS, latN=latN, region=region, anomaly= True, anomaly_ref= "t0", standardise=False, output=True, output_dir=output_dir)
+    hovmoller_lev_time_plot(data=data, lonE=lonE, lonW=lonW, latS=latS, latN=latN, region=region, anomaly= True, anomaly_ref= "tmean", standardise=False, output=True, output_dir=output_dir)
+    hovmoller_lev_time_plot(data=data, lonE=lonE, lonW=lonW, latS=latS, latN=latN, region=region, anomaly= True, anomaly_ref= "t0", standardise=True, output=True, output_dir=output_dir)
+    hovmoller_lev_time_plot(data=data, lonE=lonE, lonW=lonW, latS=latS, latN=latN, region=region, anomaly= True, anomaly_ref= "tmean", standardise=True, output=True, output_dir=output_dir)
+    
+    time_series_multilevs(data=data, lonE=lonE, lonW=lonW, latS=latS, latN=latN, region=region, anomaly= False, standardise= False, customise_level=False, levels=list, output = True,  output_dir = output_dir)
+    time_series_multilevs(data=data, lonE=lonE, lonW=lonW, latS=latS, latN=latN, region=region, anomaly= False, standardise= False, customise_level=False, levels=list, output = True,  output_dir = output_dir)
+    time_series_multilevs(data=data, lonE=lonE, lonW=lonW, latS=latS, latN=latN, region=region, anomaly= True, standardise= False, anomaly_ref="tmean", customise_level=False, levels=list, output = True,  output_dir = output_dir)
+    time_series_multilevs(data=data, lonE=lonE, lonW=lonW, latS=latS, latN=latN, region=region, anomaly= True, standardise= False, anomaly_ref="t0", customise_level=False, levels=list, output = True,  output_dir = output_dir)
+    time_series_multilevs(data=data, lonE=lonE, lonW=lonW, latS=latS, latN=latN, region=region, anomaly= True, standardise= True, anomaly_ref="tmean", customise_level=False, levels=list, output = True,  output_dir = output_dir)
+    time_series_multilevs(data=data, lonE=lonE, lonW=lonW, latS=latS, latN=latN, region=region, anomaly= True, standardise= True, anomaly_ref="t0", customise_level=False, levels=list, output = True,  output_dir = output_dir)
+    
+    multilevel_t_s_trend_plot(data=data, lonE=lonE, lonW=lonW, latS=latS, latN=latN, region=region, customise_level=False, levels=None,output= True, output_dir =  output_dir)
+    
+    zonal_mean_trend_plot(data=data, lonE=lonE, lonW=lonW, latS=latS, latN=latN, region=region, output= True, output_dir= output_dir)
+    
+    for time in range(1,2):
+        plot_stratification(mod_data= data, lonE=lonE, lonW=lonW, latS=latS, latN=latN, region=region, time = time, output= True, output_dir= output_dir)
+        plot_spatial_mld_clim(mod_data= data, lonE=lonE, lonW=lonW, latS=latS, latN=latN, region=region, time = time, overlap= True,output= True, output_dir= output_dir)
+    
+    return
 
 if __name__ == '__main__':
 
@@ -53,7 +87,8 @@ if __name__ == '__main__':
     exp = get_arg(args, 'exp', ocean3d_config['exp'])
     source = get_arg(args, 'source', ocean3d_config['source'])
     outputdir = get_arg(args, 'outputdir', ocean3d_config['outputdir'])
-
+    predefined_regions = ocean3d_config["predefined_regions"]
+    
     create_folder(outputdir)
 
     print(f"Reader selecting for model={model}, exp={exp}, source={source}")
@@ -66,75 +101,77 @@ if __name__ == '__main__':
 
     data = reader.retrieve()
 
-    # HACK: FESOM data has nz1 as the vertical dimension
-    #       Check issue #531 for more details
-    if model == 'FESOM':
-        data = data.rename({"nz1": "lev"})
+    vertical_coord = find_vert_coord(data)[0]
+    data = data.rename({vertical_coord: "lev"})
 
     try:
-        hovmoller_lev_time_plot(data=data, region="Global Ocean", anomaly=False,
-                                standardise=False, output=True,
-                                output_dir=outputdir)
+        
+        custom_regions = ocean3d_config["custom_region"] ### add fix if not present
+        custom_region_dict = {}
+        for custom_region in custom_regions:
+            for coord in custom_region:
+                custom_region_dict.update(coord)
+            lonE= custom_region_dict["lonE"]
+            lonW= custom_region_dict["lonW"]
+            latS= custom_region_dict["latS"]
+            latN= custom_region_dict["latN"]
 
-        hovmoller_lev_time_plot(data=data, region="Global Ocean",
-                                anomaly=True, standardise=False,
-                                anomaly_ref='Tmean', output=True,
-                                output_dir=outputdir)
+            ocean3d_diags(data, region=None, latS=latS, latN=latN, lonW=lonW, lonE=lonE, output_dir=outputdir)
 
-        hovmoller_lev_time_plot(data=data, region="Global Ocean",
-                                anomaly=True, standardise=True,
-                                anomaly_ref='Tmean', output=True,
-                                output_dir=outputdir)
+        predefined_regions = ocean3d_config["predefined_regions"] ### add fix if not present
+
+        for predefined_region in predefined_regions:
+                ocean3d_diags(data, region=predefined_region, output_dir=outputdir)
     except AttributeError:
         print("NoDataError: so or ocpt not found in the Dataset.")
         print("Not plotting hovmoller_lev_time_plot")
 
-    try:
-        time_series_multilevs(data=data, region='Global Ocean', anomaly=False,
-                              standardise=False, anomaly_ref="FullValue",
-                              customise_level=False, levels=list, output=True,
-                              output_dir=outputdir)
+    # try:
+    #     time_series_multilevs(data=data, region='Global Ocean', anomaly=False,
+    #                           standardise=False, anomaly_ref="FullValue",
+    #                           customise_level=False, levels=list, output=True,
+    #                           output_dir=outputdir)
 
-        time_series_multilevs(data=data, region='Global Ocean', anomaly=True,
-                              standardise=False, anomaly_ref="t0",
-                              customise_level=False, levels=list, output=True,
-                              output_dir=outputdir)
-    except AttributeError:
-        print("NoDataError: so or ocpt not found in the Dataset.")
-        print("Not plotting time_series_multilevs")
-    except ValueError:
-        print("ValueError: No levels provided")
-        print("Not plotting time_series_multilevs")
+    #     time_series_multilevs(data=data, region='Global Ocean', anomaly=True,
+    #                           standardise=False, anomaly_ref="t0",
+    #                           customise_level=False, levels=list, output=True,
+    #                           output_dir=outputdir)
+    # except AttributeError:
+    #     print("NoDataError: so or ocpt not found in the Dataset.")
+    #     print("Not plotting time_series_multilevs")
+    # except ValueError:
+    #     print("ValueError: No levels provided")
+    #     print("Not plotting time_series_multilevs")
 
-    try:
-        multilevel_t_s_trend_plot(data=data, region='Global Ocean',
-                                  customise_level=False,
-                                  levels=None, output=True,
-                                  output_dir=outputdir)
-    except AttributeError:
-        print("NoDataError: so or ocpt not found in the Dataset.")
-        print("Not plotting multilevel_t_s_trend_plot")
+    # try:
+    #     multilevel_t_s_trend_plot(data=data, region='Global Ocean',
+    #                               customise_level=False,
+    #                               levels=None, output=True,
+    #                               output_dir=outputdir)
+    # except AttributeError:
+    #     print("NoDataError: so or ocpt not found in the Dataset.")
+    #     print("Not plotting multilevel_t_s_trend_plot")
 
-    try:
-        plot_stratification(data, region="Labrador Sea", time="February",
-                            output=True, output_dir=outputdir)
-        plot_stratification(data, region="Labrador Sea", time="DJF",
-                            output=True, output_dir=outputdir)
-    except NoObservationError:
-        print("NoObservationError: No observation available")
-        print("Not plotting plot_stratification")
-    except AttributeError:
-        print("NoDataError: so or ocpt not found in the Dataset.")
-        print("Not plotting plot_stratification")
+    # try:
+    #     plot_stratification(data, region="Labrador Sea", time="February",
+    #                         output=True, output_dir=outputdir)
+    #     plot_stratification(data, region="Labrador Sea", time="DJF",
+    #                         output=True, output_dir=outputdir)
+    # except NoObservationError:
+    #     print("NoObservationError: No observation available")
+    #     print("Not plotting plot_stratification")
+    # except AttributeError:
+    #     print("NoDataError: so or ocpt not found in the Dataset.")
+    #     print("Not plotting plot_stratification")
 
-    try:
-        plot_spatial_mld_clim(data, region="labrador_gin_seas", time="Mar",
-                            overlap=True, output=True, output_dir=outputdir)
-        plot_spatial_mld_clim(data, region="labrador_gin_seas", time="FMA",
-                            overlap=True, output=True, output_dir=outputdir)
-    except NoObservationError:
-        print("NoObservationError: No observation available")
-        print("Not plotting plot_spatial_mld_clim")
-    except AttributeError:
-        print("NoDataError: so or ocpt not found in the Dataset.")
-        print("Not plotting plot_spatial_mld_clim")
+    # try:
+    #     plot_spatial_mld_clim(data, region="labrador_gin_seas", time="Mar",
+    #                         overlap=True, output=True, output_dir=outputdir)
+    #     plot_spatial_mld_clim(data, region="labrador_gin_seas", time="FMA",
+    #                         overlap=True, output=True, output_dir=outputdir)
+    # except NoObservationError:
+    #     print("NoObservationError: No observation available")
+    #     print("Not plotting plot_spatial_mld_clim")
+    # except AttributeError:
+    #     print("NoDataError: so or ocpt not found in the Dataset.")
+    #     print("Not plotting plot_spatial_mld_clim")

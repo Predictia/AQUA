@@ -14,7 +14,7 @@ from .ocean_util import load_obs_data
 from .ocean_util import crop_obs_overlap_time
 from .ocean_util import compare_arrays
 from .ocean_util import dir_creation
-
+from .ocean_util import custom_region
 
 warnings.filterwarnings("ignore")
 
@@ -259,8 +259,8 @@ def prepare_data_for_stratification_plot(data, region=None, time=None, latS: flo
     data = convert_variables(data)
     data_rho = data["rho"] - 1000
     data["rho"] = data_rho
-    data = data_time_selection(data, time)
-    return data
+    data, time = data_time_selection(data, time)
+    return data, time
 
 
 def plot_stratification(mod_data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None,  output=True, output_dir=None):
@@ -284,9 +284,9 @@ def plot_stratification(mod_data, region=None, time=None, latS: float = None, la
     obs_data = load_obs_data().interp(lev=mod_data.lev)
     obs_data = crop_obs_overlap_time(mod_data, obs_data)
 
-    obs_data = prepare_data_for_stratification_plot(
+    obs_data, time = prepare_data_for_stratification_plot(
         obs_data, region, time, latS, latN, lonW, lonE)
-    mod_data = prepare_data_for_stratification_plot(
+    mod_data, time = prepare_data_for_stratification_plot(
         mod_data, region, time, latS, latN, lonW, lonE)
     mod_data_list, obs_data = compare_arrays(mod_data, obs_data)
 
@@ -329,6 +329,8 @@ def plot_stratification(mod_data, region=None, time=None, latS: float = None, la
                 data_3.to_netcdf(
                     f'{data_dir}/{filename}_{legend_info.replace(" ","_")}.nc')
 
+    region = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
+    
     fig.suptitle(
         f"Climatological {time.upper()} T, S and rho0 stratification in {region}", fontsize=20)
     axs[0].set_title("Temperature Profile", fontsize=16)
@@ -432,8 +434,8 @@ def data_for_plot_spatial_mld_clim(data, region=None, time=None, latS: float = N
     data = area_selection(data, region, latS, latN, lonW, lonE)
     data = convert_variables(data)
     data = compute_mld_cont(data)
-    data = data_time_selection(data, time)
-    return data
+    data, time = data_time_selection(data, time)
+    return data.mean("time"), time
 
 
 def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None,
@@ -461,10 +463,8 @@ def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, 
         obs_data = crop_obs_overlap_time(mod_data, obs_data)
         mod_data = crop_obs_overlap_time(obs_data, mod_data)
 
-    mod_clim = data_for_plot_spatial_mld_clim(mod_data, region, time, latS, latN, lonW, lonE).mean(
-        "time")  # To select the month and compute its climatology
-    obs_clim = data_for_plot_spatial_mld_clim(obs_data, region, time, latS, latN, lonW, lonE).mean(
-        "time")  # To select the month and compute its climatology
+    mod_clim, time = data_for_plot_spatial_mld_clim(mod_data, region, time, latS, latN, lonW, lonE)  # To select the month and compute its climatology
+    obs_clim, time = data_for_plot_spatial_mld_clim(obs_data, region, time, latS, latN, lonW, lonE)  # To select the month and compute its climatology
     # obs_data=crop_obs_overlap_time(mod_data, obs_data)
 
     # We identify the first year used in the climatology
@@ -480,6 +480,7 @@ def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, 
     mod_clim = mod_clim["rho"]
     obs_clim = obs_clim["rho"]
 
+        
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(
              region, latS, latN, lonW, lonE, output_dir, plot_name="spatial_MLD")
@@ -487,8 +488,10 @@ def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, 
     logger.info("Spatial MLD plot is in process")
     fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(20, 6.5))
 
+    region = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
+    
     fig.suptitle(
-        f'Climatology of {time.upper()} mixed layer depth in {region.replace("_"," ").upper()}', fontsize=20)
+        f'Climatology of {time.upper()} mixed layer depth in {region}', fontsize=20)
     fig.set_figwidth(18)
 
     clev1 = 0.0
