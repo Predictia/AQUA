@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
-- Teleconnections diagnostic improvements (#571, #574, #576, #580)
+- Teleconnections diagnostic improvements (#571, #574, #576, #581)
 
 ## [v0.4]
 
