@@ -161,6 +161,19 @@ def wgt_area_mean(indat, latN: float, latS: float,
 def select_season(xr_data: xr.DataArray or xr.Dataset, season: str):
     """
     Select a season from a xarray.DataArray or xarray.Dataset.
+    Available seasons are:
+    - DJF: December-January-February
+    - JFM: January-February-March
+    - FMA: February-March-April
+    - MAM: March-April-May
+    - AMJ: April-May-June
+    - MJJ: May-June-July
+    - JJA: June-July-August
+    - JAS: July-August-September
+    - ASO: August-September-October
+    - SON: September-October-November
+    - OND: October-November-December
+    - NDJ: November-December-January
 
     Args:
         xr_data (xarray.DataArray or xarray.Dataset): input data
@@ -169,13 +182,23 @@ def select_season(xr_data: xr.DataArray or xr.Dataset, season: str):
     Returns:
         (xarray.DataArray or xarray.Dataset): selected season
     """
-    if season == 'DJF':
-        return xr_data.sel(time=(xr_data['time.month'] == 12) | (xr_data['time.month'] == 1) | (xr_data['time.month'] == 2))
-    elif season == 'MAM':
-        return xr_data.sel(time=(xr_data['time.month'] == 3) | (xr_data['time.month'] == 4) | (xr_data['time.month'] == 5))
-    elif season == 'JJA':
-        return xr_data.sel(time=(xr_data['time.month'] == 6) | (xr_data['time.month'] == 7) | (xr_data['time.month'] == 8))
-    elif season == 'SON':
-        return xr_data.sel(time=(xr_data['time.month'] == 9) | (xr_data['time.month'] == 10) | (xr_data['time.month'] == 11))
+    triplet_months = {
+        'DJF': [12, 1, 2],
+        'JFM': [1, 2, 3],
+        'FMA': [2, 3, 4],
+        'MAM': [3, 4, 5],
+        'AMJ': [4, 5, 6],
+        'MJJ': [5, 6, 7],
+        'JJA': [6, 7, 8],
+        'JAS': [7, 8, 9],
+        'ASO': [8, 9, 10],
+        'SON': [9, 10, 11],
+        'OND': [10, 11, 12],
+        'NDJ': [11, 12, 1]
+    }
+
+    if season in triplet_months:
+        selected_months = triplet_months[season]
+        return xr_data.sel(time=(xr_data['time.month'] == selected_months[0]) | (xr_data['time.month'] == selected_months[1]) | (xr_data['time.month'] == selected_months[2]))
     else:
-        raise ValueError("Invalid season abbreviation. Please use one of: DJF, MAM, JJA, SON")
+        raise ValueError("Invalid season abbreviation. Please use one of the provided abbreviations.")
