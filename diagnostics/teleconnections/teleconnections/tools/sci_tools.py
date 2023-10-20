@@ -6,6 +6,7 @@ This module contains scientific tools for the teleconnections diagnostic.
 - weighted area mean function, to deal with weighted area mean
 '''
 import numpy as np
+import xarray as xr
 from aqua.logger import log_configure
 
 
@@ -155,3 +156,26 @@ def wgt_area_mean(indat, latN: float, latS: float,
     odat.dropna(dim='time', how='all')
 
     return odat
+
+
+def select_season(xr_data: xr.DataArray or xr.Dataset, season: str):
+    """
+    Select a season from a xarray.DataArray or xarray.Dataset.
+
+    Args:
+        xr_data (xarray.DataArray or xarray.Dataset): input data
+        season (str):                                 season to be selected
+
+    Returns:
+        (xarray.DataArray or xarray.Dataset): selected season
+    """
+    if season == 'DJF':
+        return xr_data.sel(time=(xr_data['time.month'] == 12) | (xr_data['time.month'] == 1) | (xr_data['time.month'] == 2))
+    elif season == 'MAM':
+        return xr_data.sel(time=(xr_data['time.month'] == 3) | (xr_data['time.month'] == 4) | (xr_data['time.month'] == 5))
+    elif season == 'JJA':
+        return xr_data.sel(time=(xr_data['time.month'] == 6) | (xr_data['time.month'] == 7) | (xr_data['time.month'] == 8))
+    elif season == 'SON':
+        return xr_data.sel(time=(xr_data['time.month'] == 9) | (xr_data['time.month'] == 10) | (xr_data['time.month'] == 11))
+    else:
+        raise ValueError("Invalid season abbreviation. Please use one of: DJF, MAM, JJA, SON")
