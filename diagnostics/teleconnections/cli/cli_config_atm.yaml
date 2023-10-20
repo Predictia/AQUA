@@ -44,3 +44,4 @@ configdir: null
 # List of teleconnections specific configuration parameters
 NAO:
   months_window: 3
+  seasons: ['DJF'] # to analyse additionally to the full data

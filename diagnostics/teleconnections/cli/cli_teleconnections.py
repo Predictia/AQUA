@@ -131,6 +131,7 @@ if __name__ == '__main__':
         logger.info('Running %s teleconnection', telec)
 
         months_window = config[telec].get('months_window', 3)
+        seasons = config[telec].get('seasons', None)
 
         for mod in models:
             model = mod['model']
@@ -170,6 +171,21 @@ if __name__ == '__main__':
                 logger.error('Not enough data available for %s teleconnection', telec)
                 sys.exit(0)
 
+            if seasons:
+                for i, season in enumerate(seasons):
+                    reg_season = []
+                    try:
+                        logger.info('Evaluating %s regression for %s season',
+                                    telec, season)
+                        # We need rebuild=True because tc.regression is
+                        # already assigned and will not be rebuilt
+                        reg = tc.evaluate_regression(season=season,
+                                                     rebuild=True)
+                        reg_season.append(reg)
+                    except NotEnoughDataError:
+                        logger.error('Not enough data available for %s teleconnection', telec)
+                        sys.exit(0)
+
             if savefig:
                 try:
                     tc.plot_index()
@@ -190,6 +206,12 @@ if __name__ == '__main__':
                     maps = [tc.regression, tc.correlation]
                     cbar_label = ['sst [K]', 'Pearson correlation']
                     transform_first = True
+                if seasons and (telec == 'NAO' or telec == 'ENSO'):
+                    for i, season in enumerate(seasons):
+                        map_names.append('regression {}'.format(season))
+                        maps.append(reg_season[i])
+                        cbar_label.append(cbar_label[0])
+                logger.debug('map_names: %s', map_names)
 
                 for i, data_map in enumerate(maps):
                     try:
