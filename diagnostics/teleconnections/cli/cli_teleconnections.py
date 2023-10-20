@@ -131,6 +131,7 @@ if __name__ == '__main__':
         logger.info('Running %s teleconnection', telec)
 
         months_window = config[telec].get('months_window', 3)
+        full_year = config[telec].get('full_year', True)
         seasons = config[telec].get('seasons', None)
 
         for mod in models:
@@ -165,25 +166,31 @@ if __name__ == '__main__':
             # Data are available, are there enough?
             try:
                 tc.evaluate_index()
-                tc.evaluate_correlation()
-                tc.evaluate_regression()
+                if full_year:
+                    tc.evaluate_correlation()
+                    tc.evaluate_regression()
             except NotEnoughDataError:
                 logger.error('Not enough data available for %s teleconnection', telec)
                 sys.exit(0)
 
             if seasons:
+                reg_season = []
+                cor_season = []
                 for i, season in enumerate(seasons):
-                    reg_season = []
                     try:
-                        logger.info('Evaluating %s regression for %s season',
+                        logger.info('Evaluating %s regression and correlation for %s season',
                                     telec, season)
                         # We need rebuild=True because tc.regression is
                         # already assigned and will not be rebuilt
                         reg = tc.evaluate_regression(season=season,
                                                      rebuild=True)
                         reg_season.append(reg)
+                        cor = tc.evaluate_correlation(season=season,
+                                                      rebuild=True)
+                        cor_season.append(cor)
                     except NotEnoughDataError:
-                        logger.error('Not enough data available for %s teleconnection', telec)
+                        logger.error('Not enough data available for %s teleconnection',
+                                     telec)
                         sys.exit(0)
 
             if savefig:
@@ -194,23 +201,35 @@ if __name__ == '__main__':
 
                 # Regression and correlation map setups
                 # This way we make the plot routine more compact
+                map_names = []  # we cover the case of no full_year
+                maps = []
+                titles = []
                 if telec == 'NAO':
-                    # We duplicate maps if we create more plots
-                    # for different teleconnections
-                    map_names = ['regression', 'correlation']
-                    maps = [tc.regression, tc.correlation]
                     cbar_label = ['msl [hPa]', 'Pearson correlation']
                     transform_first = False
+                    # We duplicate maps if we create more plots
+                    # for different teleconnections
+                    if full_year:
+                        map_names = ['regression', 'correlation']
+                        maps = [tc.regression, tc.correlation]
+                        titles = map_names
                 elif telec == 'ENSO':
-                    map_names = ['regression', 'correlation']
-                    maps = [tc.regression, tc.correlation]
                     cbar_label = ['sst [K]', 'Pearson correlation']
                     transform_first = True
+                    if full_year:
+                        map_names = ['regression', 'correlation']
+                        maps = [tc.regression, tc.correlation]
+                        titles = map_names
                 if seasons and (telec == 'NAO' or telec == 'ENSO'):
                     for i, season in enumerate(seasons):
-                        map_names.append('regression {}'.format(season))
+                        map_names.append('regression_{}'.format(season))
+                        map_names.append('correlation_{}'.format(season))
                         maps.append(reg_season[i])
+                        maps.append(cor_season[i])
                         cbar_label.append(cbar_label[0])
+                        cbar_label.append(cbar_label[1])
+                        titles.append('regression {}'.format(season))
+                        titles.append('correlation {}'.format(season))
                 logger.debug('map_names: %s', map_names)
 
                 for i, data_map in enumerate(maps):
@@ -221,7 +240,7 @@ if __name__ == '__main__':
                                         outputdir=tc.outputfig,
                                         filename=tc.filename + '_{}'.format(map_names[i]),
                                         title='{} {} {} {}'.format(model, exp,
-                                                                   telec, map_names[i]),
+                                                                   telec, titles[i]),
                                         transform_first=transform_first,
                                         loglevel=loglevel)
                     except Exception as err:
@@ -235,7 +254,7 @@ if __name__ == '__main__':
                                             outputdir=tc.outputfig,
                                             filename=tc.filename + '_{}'.format(map_names[i]),
                                             title='{} {} {} {}'.format(model, exp,
-                                                                       telec, map_names[i]),
+                                                                       telec, titles[i]),
                                             transform_first=transform_first,
                                             loglevel=loglevel)
                         except Exception as err2:
