@@ -6,7 +6,6 @@ import xarray as xr
 import os
 import sys
 
-sys.path.insert(0, '../..')
 from tropical_cyclones import TCs
 from aqua.util import load_yaml
 from aqua.logger import log_configure
