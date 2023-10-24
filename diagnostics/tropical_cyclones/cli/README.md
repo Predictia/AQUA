@@ -9,7 +9,7 @@ The CLI script is called `tropical_cyclones_cli.py` and can be used as follows:
 
 ```bash
 mamba activate aqua_common
-python tropical_cyclones_cli.py --config <path_to_config_file>
+tropical_cyclones_cli.py --config <path_to_config_file>
 ```
 In case the config file is in the same directory of the CLI there is no need to specify the path.
 An example of a configuration files can be found in this folder, please refer to the notes in the configuration files for more information on the options.
