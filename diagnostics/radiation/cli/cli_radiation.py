@@ -1,9 +1,8 @@
-print("Radiation Budget Diagnostic is started.")
-
 # All necessary import for a cli diagnostic
 import sys
 try:
     from aqua.util import load_yaml, get_arg
+    from aqua.logger import log_configure
     import os
     import dask
     import argparse
@@ -47,13 +46,21 @@ if __name__ == '__main__':
     print('Running Radiation Budget Diagnostic ...')
     args = parse_arguments(sys.argv[1:])
 
+    # Configure logging
+    loglevel = get_arg(args, 'loglevel', 'WARNING')
+    logger = log_configure(log_level=loglevel, log_name='Atmglobalmean CLI')
+
     file = get_arg(args, 'config', 'config/radiation_config.yml')
-    print('Reading configuration yaml file..')
+    logger.info('Reading configuration yaml file..')
     config = load_yaml(file)
 
     model = get_arg(args, 'model', config['data']['model'])
     exp = get_arg(args, 'exp', config['data']['exp'])
     source = get_arg(args, 'source', config['data']['source'])
+
+    logger.debug(f"model: {model}")
+    logger.debug(f"exp: {exp}")
+    logger.debug(f"source: {source}")
 
     model_icon = config['data']['model_icon']
     exp_icon = config['data']['exp_icon']
@@ -70,6 +77,9 @@ if __name__ == '__main__':
     if path_to_output is not None:
         outputdir = os.path.join(path_to_output, 'NetCDF/')
         outputfig = os.path.join(path_to_output, 'PDF/')
+
+    logger.debug(f"outputdir: {outputdir}")
+    logger.debug(f"outputfig: {outputfig}")
 
     bar_plot_bool = config['diagnostic_attributes']['bar_plot']
     bias_maps_bool = config['diagnostic_attributes']['bias_maps']
@@ -101,22 +111,22 @@ if __name__ == '__main__':
 
             barplot_model_data(datasets, model_names,
                                outputdir, outputfig, year=bar_plot_year)
-            print("The Bar Plot with various models and CERES was created and saved. Variables ttr and tsr are plotted to show imbalances.")
+            logger.info("The Bar Plot with various models and CERES was created and saved. Variables ttr and tsr are plotted to show imbalances.")
         except ZeroDivisionError as zd_error:
             # Handle ZeroDivisionError
-            print(f"ZeroDivisionError occurred: {zd_error}")
+            logger.error(f"ZeroDivisionError occurred: {zd_error}")
         except ValueError as value_error:
             # Handle ValueError
-            print(f"ValueError occurred: {value_error}")
+            logger.error(f"ValueError occurred: {value_error}")
         except KeyError as key_error:
             # Handle KeyError
-            print(f"KeyError occurred: {key_error}")
+            logger.error(f"KeyError occurred: {key_error}")
         except FileNotFoundError as file_error:
             # Handle FileNotFoundError
-            print(f"FileNotFoundError occurred: {file_error}")
+            logger.error(f"FileNotFoundError occurred: {file_error}")
         except Exception as e:
             # Handle other exceptions
-            print(f"An unexpected error occurred: {e}")
+            logger.error(f"An unexpected error occurred: {e}")
 
     if bias_maps_bool:
         for var in ['ttr', 'tsr', 'tnr']:
@@ -130,23 +140,23 @@ if __name__ == '__main__':
 
                 plot_mean_bias(TOA, var, model_label, TOA_ceres_clim,
                                model_start_date, model_end_date, outputdir, outputfig)
-                print(
+                logger.info(
                     f"The mean bias of the data over the specified time range is calculated, plotted, and saved for {var} variable.")
             except ZeroDivisionError as zd_error:
                 # Handle ZeroDivisionError
-                print(f"ZeroDivisionError occurred: {zd_error}")
+                logger.error(f"ZeroDivisionError occurred: {zd_error}")
             except ValueError as value_error:
                 # Handle ValueError
-                print(f"ValueError occurred: {value_error}")
+                logger.error(f"ValueError occurred: {value_error}")
             except KeyError as key_error:
                 # Handle KeyError
-                print(f"KeyError occurred: {key_error}")
+                logger.error(f"KeyError occurred: {key_error}")
             except FileNotFoundError as file_error:
                 # Handle FileNotFoundError
-                print(f"FileNotFoundError occurred: {file_error}")
+                logger.error(f"FileNotFoundError occurred: {file_error}")
             except Exception as e:
                 # Handle other exceptions
-                print(f"An unexpected error occurred: {e}")
+                logger.error(f"An unexpected error occurred: {e}")
 
     if gregory_bool:
         try:
@@ -169,23 +179,23 @@ if __name__ == '__main__':
 
             gregory_plot(obs_data, obs_reader, obs_time_range, model_label_obs,
                          model_list, reader_dict, outputdir, outputfig)
-            print(
+            logger.info(
                 "Gregory Plot was created and saved with various models and an observational dataset.")
         except ZeroDivisionError as zd_error:
             # Handle ZeroDivisionError
-            print(f"ZeroDivisionError occurred: {zd_error}")
+            logger.error(f"ZeroDivisionError occurred: {zd_error}")
         except ValueError as value_error:
             # Handle ValueError
-            print(f"ValueError occurred: {value_error}")
+            logger.error(f"ValueError occurred: {value_error}")
         except KeyError as key_error:
             # Handle KeyError
-            print(f"KeyError occurred: {key_error}")
+            logger.error(f"KeyError occurred: {key_error}")
         except FileNotFoundError as file_error:
             # Handle FileNotFoundError
-            print(f"FileNotFoundError occurred: {file_error}")
+            logger.error(f"FileNotFoundError occurred: {file_error}")
         except Exception as e:
             # Handle other exceptions
-            print(f"An unexpected error occurred: {e}")
+            logger.error(f"An unexpected error occurred: {e}")
 
     if time_series_bool:
         try:
@@ -203,22 +213,22 @@ if __name__ == '__main__':
 
             plot_model_comparison_timeseries(
                 models, linelabels, TOA_ceres_diff_samples_gm, TOA_ceres_clim_gm, outputdir, outputfig)
-            print(
+            logger.info(
                 "The time series bias plot with various models and CERES was created and saved.")
         except ZeroDivisionError as zd_error:
             # Handle ZeroDivisionError
-            print(f"ZeroDivisionError occurred: {zd_error}")
+            logger.error(f"ZeroDivisionError occurred: {zd_error}")
         except ValueError as value_error:
             # Handle ValueError
-            print(f"ValueError occurred: {value_error}")
+            logger.error(f"ValueError occurred: {value_error}")
         except KeyError as key_error:
             # Handle KeyError
-            print(f"KeyError occurred: {key_error}")
+            logger.error(f"KeyError occurred: {key_error}")
         except FileNotFoundError as file_error:
             # Handle FileNotFoundError
-            print(f"FileNotFoundError occurred: {file_error}")
+            logger.error(f"FileNotFoundError occurred: {file_error}")
         except Exception as e:
             # Handle other exceptions
-            print(f"An unexpected error occurred: {e}")
+            logger.error(f"An unexpected error occurred: {e}")
 
-    print("Radiation Budget Diagnostic is terminated.")
+    logger.info("Radiation Budget Diagnostic is terminated.")
