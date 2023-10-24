@@ -32,6 +32,9 @@ def parse_arguments(args):
     
     parser.add_argument('--source3d', type=str, help='3d source name',
                         required=False)
+    
+    parser.add_argument('--outputdir', type=str, help='full res output directory',
+                        required=False)
 
     return parser.parse_args(args)
 
@@ -48,9 +51,8 @@ if __name__ == '__main__':
     config = load_yaml(file)
 
     # logger setup (via config or clommand line)
-
-    loglevel = config['setup']['loglevel']
-    loglevel = get_arg(args, 'loglevel', loglevel)
+    
+    loglevel = get_arg(args, 'loglevel', config['setup']['loglevel'])
     logger = log_configure(log_level=loglevel, log_name='TC')
 
     
@@ -60,13 +62,15 @@ if __name__ == '__main__':
     exp = get_arg(args, 'exp', config['dataset']['exp'])
     source2d = get_arg(args, 'source2d', config['dataset']['source2d'])
     source3d = get_arg(args, 'source3d', config['dataset']['source3d'])
-
+    paths = get_arg(args, 'outputdir', config['paths']['fulldir'])
+    
     # initialise tropical class with streaming options
     tropical = TCs(tdict=config, streaming=True, 
                     model=model,exp=exp, source2d=source2d, source3d=source3d,
                     stream_step=config['stream']['streamstep'], 
                     stream_unit="days", 
                     stream_startdate=config['time']['startdate'], 
+                    paths=paths,
                     loglevel = loglevel,
                     nproc=1)
     
