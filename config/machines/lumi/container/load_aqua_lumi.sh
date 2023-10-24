@@ -1,6 +1,6 @@
 #!/bin/bash
 
-AQUA_container="/project/project_465000454/containers/aqua/aqua-v0.3.sif"
+AQUA_container="/project/project_465000454/containers/aqua/aqua-v0.4.sif"
 FDB5_CONFIG_FILE="/scratch/project_465000454/igonzalez/fdb-long/config.yaml"
 GSV_WEIGHTS_PATH="/scratch/project_465000454/igonzalez/gsv_weights/"
 GRID_DEFINITION_PATH="/scratch/project_465000454/igonzalez/grid_definitions"
@@ -12,8 +12,8 @@ singularity shell \
     --env GRID_DEFINITION_PATH=$GRID_DEFINITION_PATH \
     --env PYTHONPATH=/opt/conda/lib/python3.10/site-packages \
     --env ESMFMKFILE=/opt/conda/lib/esmf.mk \
-    --bind /pfs/lustrep3/scratch/project_465000454 \
-    --bind /scratch/project_465000454 \
+    --bind /pfs/lustrep3/ \
+    --bind /scratch/ \
     $AQUA_container
 # Run this script in LUMI in VSCode 
 
