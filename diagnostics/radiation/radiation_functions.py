@@ -479,8 +479,9 @@ def plot_maps(model=None, var=None, year=None, model_label=None,  ceres=None, ou
     small_fonts = 12
     axes = ax.flatten()
 
-    for index in range(len(model["gm"].time)):  # some experiments have less than 12 months, draw fewer panels for those
-            plot = plot_bias(model["data"][var].sel(time=str(year)).isel(time=index)-ceres["clim"][var].isel(time=index),
+    data = model["gm"].sel(time=str(year))
+    for index in range(len(data.time)):  # some experiments have less than 12 months, draw fewer panels for those
+            plot = plot_bias(data [var].isel(time=index)-ceres["clim"][var].isel(time=index),
                             iax=axes[index], title=calendar.month_name[index+1], plotlevels=plotlevels,
                             lower=lower, upper=upper, index=index)
 
