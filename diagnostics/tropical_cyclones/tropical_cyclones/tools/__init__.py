@@ -8,10 +8,6 @@
 from .tempest_utils import getTrajectories, getNodes
 from .tcs_utils import clean_files, lonlatbox, write_fullres_field
 
-
-# Optional but recommended
-__version__ = '0.2.0'
-
 # This specifies which methods are exported publicly, used by "from dummy import *"
 __all__ = ["getTrajectories", "getNodes", "clean_files",
            "lonlatbox", "write_fullres_field"]
