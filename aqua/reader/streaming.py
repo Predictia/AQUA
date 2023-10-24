@@ -7,7 +7,7 @@ from aqua.logger import log_configure
 class Streaming():
     """Streaming class to be used in Reader and elsewhere"""
 
-    def __init__(self, stream_step=1, stream_unit='steps', stream_startdate=None, loglevel=None):
+    def __init__(self, stream_step=1, stream_unit='steps', startdate=None, loglevel=None):
         """
         The Streaming constructor.
 
@@ -15,7 +15,7 @@ class Streaming():
             stream_step (int):      the number of time steps to stream the data by (Default = 1)
             stream_unit (str):      the unit of time to stream the data by
                                     (e.g. 'hours', 'days', 'months', 'years', 'steps') (steps)
-            stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
+            startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
             loglevel (string):      Level of logging according to logging module
                                     (default: log_level_default of loglevel())
 
@@ -29,10 +29,10 @@ class Streaming():
         self.stream_index = 0
         self.stream_date = None
         self.stream_step = stream_step
-        self.stream_startdate = stream_startdate
+        self.startdate = startdate
         self.stream_unit = stream_unit
 
-    def stream(self, data, stream_step=None, stream_unit=None, stream_startdate=None):
+    def stream(self, data, stream_step=None, stream_unit=None, startdate=None):
         """
         The stream method is used to stream data by either a specific time interval
         or by a specific number of samples. If the unit parameter is specified, the
@@ -46,14 +46,14 @@ class Streaming():
         to stream through the entire dataset in multiple calls to the function,
         retrieving consecutive chunks of data each time.
 
-        If stream_startdate is not specified, the method will use the first date in the dataset.
+        If startdate is not specified, the method will use the first date in the dataset.
 
         Arguments:
             data (xr.Dataset):      the input xarray.Dataset
             stream_step  (int):     the number of time steps to stream the data by (Default = 1)
             stream_unit (str):      the unit of time to stream the data by
                                     (e.g. 'hours', 'days', 'months', 'years', 'steps') (None)
-            stream_startdate (str): the starting date for streaming the data
+            startdate (str): the starting date for streaming the data
                                     (e.g. '2020-02-25') (None)
         Returns:
             A xarray.Dataset containing the subset of the input data that has been streamed.
@@ -65,17 +65,17 @@ class Streaming():
         if not stream_unit:
             stream_unit = self.stream_unit
 
-        if not stream_startdate:
-            stream_startdate = self.stream_startdate
+        if not startdate:
+            startdate = self.startdate
 
         if not self.stream_date:
-            if stream_startdate:
-                self.stream_date = pd.to_datetime(stream_startdate)
+            if startdate:
+                self.stream_date = pd.to_datetime(startdate)
             else:
                 self.stream_date = pd.to_datetime(data.time[0].values)
 
-        if self.stream_index == 0 and stream_startdate:
-            self.stream_index = data.time.to_index().get_loc(pd.to_datetime(stream_startdate))
+        if self.stream_index == 0 and startdate:
+            self.stream_index = data.time.to_index().get_loc(pd.to_datetime(startdate))
 
         if stream_unit in 'steps':
             start_index = self.stream_index
@@ -88,7 +88,7 @@ class Streaming():
             self.stream_date = stop_date
             return data.sel(time=slice(start_date, stop_date)).where(data.time != stop_date, drop=True)
 
-    def reset_stream(self):
+    def reset(self):
         """
         Reset the state of the streaming process.
         This means that if the stream function is called again after calling reset_stream,
@@ -97,9 +97,9 @@ class Streaming():
         self.stream_index = 0
         self.stream_date = None
 
-    def stream_generator(self, data, stream_step=1, stream_unit=None, stream_startdate=None):
+    def generator(self, data, stream_step=1, stream_unit=None, startdate=None):
         """
-        The stream_generator method is designed to split data into smaller chunks of data for
+        The generator method is designed to split data into smaller chunks of data for
         processing or analysis. It returns a generator object that yields the smaller chunks of data.
         The method can split the data based on either a specific time interval or by a specific number of samples.
         If the unit parameter is specified, the data is streamed by the specified unit and stream_step (e.g. 1 month).
@@ -111,12 +111,12 @@ class Streaming():
             stream_step  (int):     the number of samples or time interval to stream the data by (Default = 1)
             stream_unit (str):      the unit of the time interval to stream the data by
                                     (e.g. 'hours', 'days', 'months', 'years') (None)
-            stream_startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
+            startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
         Returns:
             A generator object that yields the smaller chunks of data.
         """
-        if stream_startdate:
-            start_date = pd.to_datetime(stream_startdate)
+        if startdate:
+            start_date = pd.to_datetime(startdate)
         else:
             start_date = data.time[0].values
         if stream_unit:
