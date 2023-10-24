@@ -12,11 +12,15 @@ from matplotlib.legend_handler import HandlerTuple
 from aqua import Reader
 import matplotlib.gridspec as gridspec
 from aqua.util import create_folder
+from aqua.logger import log_configure
 
 cdo = Cdo(tempdir='./tmp/cdo-py')
 tempdir='./tmp/cdo-py'
 if not os.path.exists(tempdir):
     os.makedirs(tempdir)
+
+loglevel: str = 'WARNING'
+logger = log_configure(log_level=loglevel, log_name='Radiation')
 
 def process_ceres_data(exp=None, source=None):
     """
@@ -194,7 +198,7 @@ def gregory_plot(obs_data=None, models=None, obs_time_range=None, model_labels=N
             model_name = model["model"] if model_labels is None else model_labels[i]
             filename = f"{outputfig}/Gregory_Plot_{model_name}.pdf"
             plt.savefig(filename, dpi=300, format='pdf')
-            print(f"Plot has been saved to {outputfig}.")
+            logger.info(f"Plot has been saved to {outputfig}.")
     plt.show()
     if outputdir is not None:
         create_folder(folder=str(outputdir), loglevel='WARNING')
@@ -202,7 +206,7 @@ def gregory_plot(obs_data=None, models=None, obs_time_range=None, model_labels=N
             model_name = model["model"] if model_labels is None else model_labels[i]
             model_data_resampled = model["gm"].resample(time="M").mean()
             model_data_resampled.to_netcdf(f"{outputdir}/Gregory_Plot_{model_name}.nc")
-            print(f"Data has been saved to {outputdir}.")
+            logger.info(f"Data has been saved to {outputdir}.")
 
 def barplot_model_data(datasets=None, model_names=None, outputdir=None, outputfig=None, year=None, fontsize=14):
     """
@@ -252,7 +256,7 @@ def barplot_model_data(datasets=None, model_names=None, outputdir=None, outputfi
         create_folder(folder=str(outputfig), loglevel='WARNING')
         filename = f"{outputfig}/BarPlot.pdf"
         plt.savefig(filename, dpi=300, format='pdf')
-        print(f"Plot has been saved to {outputfig}.")
+        logger.info(f"Plot has been saved to {outputfig}.")
     plt.show()
 
     if outputdir is not None:
@@ -261,7 +265,7 @@ def barplot_model_data(datasets=None, model_names=None, outputdir=None, outputfi
         output_data = xr.Dataset(global_mean)
         filename = f"{outputdir}/BarPlot.nc"
         output_data.to_netcdf(filename)
-        print(f"Data has been saved to {outputdir}.")
+        logger.info(f"Data has been saved to {outputdir}.")
 
 def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, outputdir=None, outputfig=None, ylim = 6.5):
                         
@@ -310,7 +314,7 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, o
         tsr_diff = []
         tnr_diff = []
         # Iterate through the years
-        for year in years: #.squeeze() 
+        for year in years:
             ttr_diff.append(model["gm"].mtntrf.sel(time=str(year))- ceres['clim_gm'].mtntrf.values)
             tsr_diff.append(model["gm"].mtnsrf.sel(time=str(year))- ceres['clim_gm'].mtnsrf.values)
             tnr_diff.append(model["gm"].tnr.sel(time=str(year)) - ceres['clim_gm'].tnr.values)
@@ -364,7 +368,7 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, o
         all_labels = '_'.join(linelabels).replace(' ', '_').lower()
         filename = f"{outputfig}/TimeSeries_{all_labels}.pdf"
         plt.savefig(filename, dpi=300, format='pdf')
-        print(f"Plot has been saved to {outputfig}.")
+        logger.info(f"Plot has been saved to {outputfig}.")
     plt.tight_layout()
     plt.show()
     if outputdir is not None:
@@ -373,7 +377,7 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, o
         for i, model in enumerate(models):
             model_name = linelabels[i].replace(' ', '_').lower()
             model["gm"].to_netcdf(f"{outputdir}Timeseries_{model_name}.nc")
-        print(f"Data has been saved to {outputdir}.")
+        logger.info(f"Data has been saved to {outputdir}.")
     
 def plot_bias(data=None, iax=None, title=None, plotlevels=None, lower=None, upper=None, index=None):
     """
@@ -476,7 +480,7 @@ def plot_maps(model=None, var=None, year=None, model_label=None,  ceres=None, ou
         create_folder(folder=str(outputfig), loglevel='WARNING')
         filename = f"{outputfig}{label}_TOA_bias_maps_{year}_{model_label}.pdf"
         plt.savefig(filename, dpi=300, format='pdf')
-        print(f"Plot has been saved to {outputfig}.")
+        logger.info(f"Plot has been saved to {outputfig}.")
     plt.tight_layout()
     plt.show()
 
@@ -486,7 +490,7 @@ def plot_maps(model=None, var=None, year=None, model_label=None,  ceres=None, ou
         data = model["data"][var].sel(time=str(year)) - ceres["clim"][var].isel(time=0)
         filename = f"{outputdir}{var}_TOA_bias_maps_{year}_{model_label}.nc"
         data.to_netcdf(filename)
-        print(f"Data has been saved to {outputdir}.")
+        logger.info(f"Data has been saved to {outputdir}.")
 
 
 def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_year=None, end_year=None, outputdir=None, outputfig=None):
@@ -533,7 +537,7 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
         create_folder(folder=str(outputfig), loglevel='WARNING')
         filename = f"{outputfig}{var}_{model_label}_TOA_mean_biases_{start_year}_{end_year}_CERES.pdf"
         plt.savefig(filename, dpi=300, format='pdf')
-        print(f"Plot has been saved to {outputfig}.")
+        logger.info(f"Plot has been saved to {outputfig}.")
     plt.tight_layout()
     plt.show()
 
@@ -542,5 +546,5 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
         # Save the data to a netCDF file
         filename = f"{outputdir}{var}_{model_label}_TOA_mean_biases_{start_year}_{end_year}_CERES.nc"
         mean_bias.to_netcdf(filename)
-        print(f"Data has been saved to {outputdir}.")
+        logger.info(f"Data has been saved to {outputdir}.")
 
