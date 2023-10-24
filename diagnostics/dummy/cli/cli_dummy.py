@@ -72,12 +72,31 @@ if __name__ == '__main__':
     exp = get_arg(args, 'exp', config['dummy']['exp'])
     source = get_arg(args, 'source', config['dummy']['source'])
 
-    reader_atm = Reader(model=model_atm, exp=exp, source=source,
-                        loglevel=loglevel)
-    reader_oce = Reader(model=model_oce, exp=exp, source=source,
-                        loglevel=loglevel)
+    try:
+        reader_atm = Reader(model=model_atm, exp=exp, source=source,
+                            loglevel=loglevel)
+        reader_atm.retrieve()
+    except Exception as e:
+        logger.error('Failed to retrieve atm data: {}'.format(e))
+        logger.warning('Check that the atm model is available in the Reader catalogue.')
+        reader_atm = None
 
-    reader_atm.retrieve()
-    reader_oce.retrieve()
+    try:
+        reader_oce = Reader(model=model_oce, exp=exp, source=source,
+                            loglevel=loglevel)
+        reader_oce.retrieve()
+    except Exception as e:
+        logger.error('Failed to retrieve oce data: {}'.format(e))
+        logger.warning('Check that the oce model is available in the Reader catalogue.')
+        reader_oce = None
+
+    if reader_atm is None and reader_oce is None:
+        logger.error('Failed to retrieve any data. Check that the model name is correct.')
+        sys.exit(1)
+    else:
+        if reader_atm is None:
+            logger.error('Only oceanic data is available. Check that the atmospheric model name is correct.')
+        if reader_oce is None:
+            logger.error('Only atmospheric data is available. Check that the oceanic model name is correct.')
 
     logger.warning('Check complete, diagnostics can run!')
