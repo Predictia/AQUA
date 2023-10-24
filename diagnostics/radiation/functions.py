@@ -142,6 +142,9 @@ def gregory_plot(obs_data=None, models=None, obs_time_range=None, model_labels=N
     # Plot the data for each model
     handles = []
     labels = []
+
+    models = models if isinstance(models, list) else [models]
+
     # Plot the data for observation
     if obs_time_range is None:
         dummy_model_gm = models[0]["gm"]
@@ -199,7 +202,8 @@ def gregory_plot(obs_data=None, models=None, obs_time_range=None, model_labels=N
             filename = f"{outputfig}/Gregory_Plot_{model_name}.pdf"
             plt.savefig(filename, dpi=300, format='pdf')
             logger.info(f"Plot has been saved to {outputfig}.")
-    plt.show()
+    else:
+        plt.show()
     if outputdir is not None:
         create_folder(folder=str(outputdir), loglevel='WARNING')
         for model in models:
@@ -257,7 +261,8 @@ def barplot_model_data(datasets=None, model_names=None, outputdir=None, outputfi
         filename = f"{outputfig}/BarPlot.pdf"
         plt.savefig(filename, dpi=300, format='pdf')
         logger.info(f"Plot has been saved to {outputfig}.")
-    plt.show()
+    else:
+        plt.show()
 
     if outputdir is not None:
         create_folder(folder=str(outputdir), loglevel='WARNING')
@@ -293,6 +298,17 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, o
     # Get a list of colors from the palette
     linecolors = color_palette.as_hex()
     #linecolors = plt.cm.get_cmap('tab10').colors
+
+    if models is None:
+        raise ValueError("models cannot be None")
+    elif isinstance(models, list):
+        pass
+    else:
+        models = [models]
+    if linelabels is None or isinstance(linelabels, list):
+        pass
+    else:
+        linelabels = [linelabels]
 
     dummy_model_gm = models[0]["gm"]
     starting_year = int(dummy_model_gm["time.year"][0].values) if len(dummy_model_gm.sel(time=str(dummy_model_gm["time.year"][0].values)).time) == 12 \
@@ -363,14 +379,18 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, o
         axes[i].set_ylim([-ylim, ylim])
 
     plt.suptitle('Global mean TOA radiation bias relative to CERES climatology - nextGEMS Cycle 3', fontsize=18)
+    
+    plt.tight_layout()
     if outputfig is not None:
         create_folder(folder=str(outputfig), loglevel='WARNING')
         all_labels = '_'.join(linelabels).replace(' ', '_').lower()
         filename = f"{outputfig}/TimeSeries_{all_labels}.pdf"
         plt.savefig(filename, dpi=300, format='pdf')
         logger.info(f"Plot has been saved to {outputfig}.")
-    plt.tight_layout()
-    plt.show()
+    else:
+        plt.show()
+    
+    
     if outputdir is not None:
         create_folder(folder=str(outputdir), loglevel='WARNING')
         # Save the data for each model to separate netCDF files
@@ -475,14 +495,14 @@ def plot_maps(model=None, var=None, year=None, model_label=None,  ceres=None, ou
     cbar.set_label('$W m^{-2}$', labelpad=-32, y=-.08, rotation=0)
 
     plt.suptitle(label+' TOA bias ' + model_label + ' ' + str(year) + '\nrel. to CERES climatology (2001-2021)', fontsize=small_fonts*2)
-
+    plt.tight_layout()
     if outputfig is not None:
         create_folder(folder=str(outputfig), loglevel='WARNING')
         filename = f"{outputfig}{label}_TOA_bias_maps_{year}_{model_label}.pdf"
         plt.savefig(filename, dpi=300, format='pdf')
-        logger.info(f"Plot has been saved to {outputfig}.")
-    plt.tight_layout()
-    plt.show()
+        logger.info(f"Plot has been saved to {outputfig}.") 
+    else:
+        plt.show()
 
     if outputdir is not None:
         create_folder(folder=str(outputdir), loglevel='WARNING')
@@ -511,7 +531,10 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
         None. Displays the plot of the mean bias.
     """
     # Calculate the mean bias over the specified time range
-    mean_bias = (model["data"][var].sel(time=slice(str(start_year), str(end_year))).mean(dim='time') - ceres["clim"][var]).mean(dim='time')
+    if start_year is None or end_year is None:
+        mean_bias = (model["data"][var].mean(dim='time') - ceres["clim"][var]).mean(dim='time')
+    else:
+        mean_bias = (model["data"][var].sel(time=slice(str(start_year), str(end_year))).mean(dim='time') - ceres["clim"][var]).mean(dim='time')
     # Convert masked values to NaN
     mean_bias = mean_bias.where(~mean_bias.isnull(), np.nan)
 
@@ -538,8 +561,8 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
         filename = f"{outputfig}{var}_{model_label}_TOA_mean_biases_{start_year}_{end_year}_CERES.pdf"
         plt.savefig(filename, dpi=300, format='pdf')
         logger.info(f"Plot has been saved to {outputfig}.")
-    plt.tight_layout()
-    plt.show()
+    else:
+        plt.show()
 
     if outputdir is not None:
         create_folder(folder=str(outputdir), loglevel='WARNING')

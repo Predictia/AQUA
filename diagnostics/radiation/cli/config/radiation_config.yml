@@ -3,22 +3,11 @@ data:
   exp:    "tco2559-ng5-cycle3" 
   source: "lra-r100-monthly"
   
-  model_icon:  "ICON"
-  exp_icon:    "ngc3028" 
-  source_icon: "lra-r100-monthly"
-  
   exp_ceres:   "ebaf-toa41"
   source_ceres: "monthly"
   
   exp_era5:    "era5"
   source_era5: "monthly"
-
-time_frame:
-  bar_plot_year: 2020
-  model_start_date: '2020'
-  model_end_date: '2024'
-  era5_start_date: '2000-01-01' 
-  era5_end_date: '2020-12-31' 
 
 diagnostic_attributes:
   bar_plot: True
@@ -26,10 +15,7 @@ diagnostic_attributes:
   gregory: True
   time_series: True
 
-plot:
-  icon_label: "icon"
-  ceres_label: "ceres"
-  obs_label: "era5 2000-2020"
+loglevel: 'debug'
 
 path:
   path_to_output: "/work/bb1153/b382267/AQUA/diagnostics/radiation/cli/config/"
