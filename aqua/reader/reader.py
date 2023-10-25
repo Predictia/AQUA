@@ -47,7 +47,7 @@ class Reader(FixerMixin, RegridMixin):
                  regrid=None, method="ycon", zoom=None, configdir=None,
                  areas=True,  # pylint: disable=W0622
                  datamodel=None, 
-                 streaming=False, stream_generator=False,
+                 streaming=False, stream_generator=None,
                  stream_step=1, stream_unit='steps',
                  startdate=None, enddate=None,
                  rebuild=False, loglevel=None, nproc=4, aggregation=None,
@@ -109,15 +109,23 @@ class Reader(FixerMixin, RegridMixin):
         self.dst_grid_area = None
 
         self.streaming = streaming
-        self.stream_generator = stream_generator
-        if streaming or stream_generator:
+
+        if streaming:
             self.streamer = Streaming(stream_step=stream_step,
                                   stream_unit=stream_unit,
-                                  startdate=startdate,
+                                  startdate=startdate, enddate=enddate,
+                                  aggregation=aggregation,
                                   loglevel=self.loglevel)
             # Export streaming methods TO DO: probably useless
-            self.reset_stream = self.streamer.reset_stream
+            self.reset_stream = self.streamer.reset
             self.stream = self.streamer.stream
+            if stream_generator is None:
+                stream_generator = True  # This is the default for streaming emulator
+        else:
+            if stream_generator is None:
+                stream_generator = False  # This is the default when not using the streaming emulator
+
+        self.stream_generator = stream_generator
 
         self.startdate = startdate
         self.enddate = enddate
@@ -348,7 +356,6 @@ class Reader(FixerMixin, RegridMixin):
 
     def retrieve(self, regrid=False, timmean=False,
                  apply_unit_fix=True, var=None, vars=None,
-                 stream_step=None, stream_unit=None,
                  startdate=None, enddate=None):
         """
         Perform a data retrieve.
@@ -359,8 +366,6 @@ class Reader(FixerMixin, RegridMixin):
             apply_unit_fix (bool): if to already adjust units by multiplying by a factor or adding an offset (this can also be done later
                                    with the `apply_unit_fix` method). Defaults to True
             var (str, list): the variable(s) to retrieve.Defaults to None. vars is a synonym. If None, all variables are retrieved
-            stream_step (int): the number of time steps to stream the data by. Defaults to None
-            stream_unit (str): the unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years'). Defaults to None
             startdate (str, optional): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
             enddate (str, optional): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None. 
             
@@ -368,7 +373,7 @@ class Reader(FixerMixin, RegridMixin):
             A xarray.Dataset containing the required data.
         """
 
-        if self.streaming and (startdate or enddate):  # Streaming emulator require these to be defined in __init__
+        if (self.streaming and not self.stream_generator) and (startdate or enddate):  # Streaming emulator require these to be defined in __init__
             raise KeyError("In case of streaming=true the arguments startdate/enddate have to be specified when initializing the class.")
 
         if not startdate:  # In case the streaming startdate is used also for FDB copy it
@@ -395,6 +400,7 @@ class Reader(FixerMixin, RegridMixin):
                 loadvar = None
 
         fiter = False
+        ffdb = False
         # If this is an ESM-intake catalogue use first dictionary value,
         if isinstance(self.esmcat, intake_esm.core.esm_datastore):
             data = self.reader_esm(self.esmcat, loadvar)
@@ -402,6 +408,7 @@ class Reader(FixerMixin, RegridMixin):
         elif isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
             data = self.reader_fdb(self.esmcat, loadvar, startdate, enddate, dask=(not self.stream_generator))
             fiter = self.stream_generator  # this returs an iterator unless dask is set
+            ffdb = True  # These data have been read from fdb
         else:
             data = self.reader_intake(self.esmcat, var, loadvar)  # Returns a generator object
 
@@ -439,19 +446,13 @@ class Reader(FixerMixin, RegridMixin):
 
         if not fiter:
             # This is not needed if we already have an iterator
-            if self.streaming or self.stream_generator:
+            if self.streaming:
                 if self.stream_generator:
-                    data = self.streamer.generator(data, stream_step=stream_step,
-                                                          stream_unit=stream_unit,
-                                                          startdate=startdate)
+                    data = self.streamer.generator(data, startdate=startdate, enddate=enddate)
                 else:
-                    data = self.streamer.stream(data, stream_step=stream_step,
-                                                stream_unit=stream_unit,
-                                                startdate=startdate)
-
-        # safe check that we provide only what exactly asked by var
-        # if var:
-        #    data = data[var]
+                    data = self.streamer.stream(data)
+            elif startdate and enddate and not ffdb:  # do not select if data come from FDB (already done)
+                data = data.sel(time=slice(startdate, enddate))
 
         return data
 
