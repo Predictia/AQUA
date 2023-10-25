@@ -40,14 +40,9 @@ class Streaming():
 
         # define the internal logger
         self.logger = log_configure(log_level=loglevel, log_name='Streaming')
-
-        #self.stream_index = 0
-        #self.stream_date = None
-        #self.stream_step = stream_step
         self.startdate = startdate
         self.enddate = enddate
         self.aggregation = aggregation
-        #self.stream_unit = stream_unit
         self.idx = 0
 
     def stream_chunk(self, data, startdate=None, enddate=None, aggregation=None):

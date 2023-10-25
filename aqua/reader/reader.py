@@ -111,11 +111,10 @@ class Reader(FixerMixin, RegridMixin):
         self.streaming = streaming
 
         if streaming:
-            self.streamer = Streaming(stream_step=stream_step,
-                                  stream_unit=stream_unit,
-                                  startdate=startdate, enddate=enddate,
-                                  aggregation=aggregation,
-                                  loglevel=self.loglevel)
+            self.streamer = Streaming(startdate=startdate, 
+                                      enddate=enddate,
+                                      aggregation=aggregation,
+                                      loglevel=self.loglevel)
             # Export streaming methods TO DO: probably useless
             self.reset_stream = self.streamer.reset
             self.stream = self.streamer.stream
