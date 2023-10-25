@@ -7,7 +7,7 @@ from aqua.logger import log_configure
 class Streaming():
     """Streaming class to be used in Reader and elsewhere"""
 
-    def __init__(self, stream_step=1, stream_unit='steps', aggregation='S', startdate=None, enddate=None, loglevel=None):
+    def __init__(self, aggregation='S', startdate=None, enddate=None, loglevel=None):
         """
         The Streaming constructor.
         The streamer  is used to stream data by either a specific time interval
