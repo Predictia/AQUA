@@ -60,23 +60,23 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
             try:
                 var1_climatology = var1_climatology.sel(plev=plev)
             except KeyError:
-                logger.warning("The provided value of pressure level is absent in the dataset. Please try again.")
+                logger.warning(f"The provided value of pressure level is absent in the dataset. Please try again.")
         else:
-            logger.warning("The provided dataset has a 'plev' coordinate, but None is provided. The function is terminated.")
+            logger.warning(f"The dataset for {var_name} variable has a 'plev' coordinate, but None is provided. The function is terminated.")
             return
-    logger.debug("The dataset does not have a 'plev' coordinate.")
+    logger.debug(f"The dataset does not have a 'plev' coordinate for {var_name} variable.")
     
     if 'plev' in var2_climatology.dims: 
         if plev is not None:
             try:
                 var2_climatology = var2_climatology.sel(plev=plev)
             except KeyError:
-                logger.warning("The provided value of pressure level is absent in the dataset. Please try again.")
+                logger.warning(f"The provided value of pressure level is absent in the dataset. Please try again.")
         else:
-            logger.warning("The provided dataset has a 'plev' coordinate, but None is provided. The function is terminated.")
+            logger.warning(f"The dataset for {var_name} variable has a 'plev' coordinate, but None is provided. The function is terminated.")
             return 
     else:
-        logger.debug("The dataset does not have a 'plev' coordinate.")
+        logger.debug(f"The dataset does not have a 'plev' coordinate for {var_name} variable.")
         
 
     # Calculate the desired statistic for each season
@@ -165,7 +165,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
         # Save the figure
         filename = f"{outputfig}Seasonal_Bias_Plot_{model_label1}_{var_name}_{statistic}_{start_date1}_{end_date1}_{start_date2}_{end_date2}.pdf"
         plt.savefig(filename, dpi=300, format='pdf')
-        logger.info(f"The seasonal bias plots have been saved to {outputfig}.")
+        logger.info(f"The seasonal bias plots have been saved to {outputfig} for {var_name} variable.")
     else:
         plt.show()
 
@@ -185,7 +185,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
         data_array.attrs['climatology_range2'] = f'{start_date2}-{end_date2}'
 
         data_array.to_netcdf(data_path)
-        logger.info(f"The seasonal bias data has been saved to {outputdir}.")
+        logger.info(f"The seasonal bias data has been saved to {outputdir} for {var_name} variable.")
 
 def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None, start_date1=None, end_date1=None, 
                           start_date2=None, end_date2=None, model_label1=None, model_label2=None, outputdir=None, outputfig=None):
@@ -261,7 +261,7 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None, start_dat
             filename = f"Vertical_biases_{model_label1}_{model_label2}_{var_name}_{start_date1}_{end_date1}_{start_date2}_{end_date2}.pdf"
             output_path = os.path.join(outputfig, filename)
             plt.savefig(output_path, dpi=300, format='pdf')
-            logger.info(f"The zonal bias plot for a selected models have been saved to {outputfig}.")
+            logger.info(f"The zonal bias plot for a selected models have been saved to {outputfig} for {var_name} variable.")
         else:
             plt.show()
 
@@ -270,9 +270,9 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None, start_dat
             # Save the data into a NetCDF file
             filename = f"{outputdir}/Vertical_bias_{model_label1}_{model_label2}_{var_name}_{start_date1}_{end_date1}_{start_date2}_{end_date2}.nc"
             mean_bias.to_netcdf(filename)
-            logger.info(f"The zonal bias for a selected models has been saved to {outputdir}.")
+            logger.info(f"The zonal bias for a selected models has been saved to {outputdir} for {var_name} variable.")
     else:
-        logger.warning("The dataset does not have a 'plev' coordinate. The function 'compare_datasets_plev' is terminated.")
+        logger.warning(f"The dataset for {var_name} variable does not have a 'plev' coordinate. The function 'compare_datasets_plev' is terminated.")
 
 def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=None, model_label=None, outputdir=None, outputfig=None):
     """
@@ -296,6 +296,11 @@ def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=N
                  else str(dataset["time.year"][-1].values -1)
     # Calculate statistics
     var_data = dataset[var_name].sel(time=slice(start_date, end_date)).mean(dim='time')
+    if 'plev' in var_data.dims: 
+        logger.warning(f"The dataset for {var_name} variable has a 'plev' coordinate, but None is provided. The function is terminated.")
+        return
+    logger.debug(f"The dataset does not have a 'plev' coordinate for {var_name} variable.")
+
     weights = np.cos(np.deg2rad(dataset.lat))
     weighted_data = var_data.weighted(weights)
     var_mean = weighted_data.mean(('lon', 'lat')).values.item()
@@ -332,7 +337,7 @@ def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=N
         filename = f"Statistics_maps_{model_label}_{var_name}.pdf"
         output_path = os.path.join(outputfig, filename)
         plt.savefig(output_path, dpi=300, format='pdf')
-        logger.info(f"Plot a map of a chosen variable have been saved to {outputfig}.")
+        logger.info(f"Plot a map of {var_name} variable have been saved to {outputfig}.")
     else:
         plt.show()
 
@@ -347,4 +352,4 @@ def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=N
         data_array.attrs['model_label'] = model_label
 
         data_array.to_netcdf(data_path)
-        logger.info(f"A chosen variable has been saved to {outputdir}.")
+        logger.info(f"A {var_name} variable has been saved to {outputdir}.")
