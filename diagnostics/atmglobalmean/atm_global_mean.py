@@ -54,12 +54,30 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
     var2_climatology = var2.groupby('time.month').mean(dim='time')
 
     # Select the desired pressure level if provided
-    #if plev is not None:
-    try:
-        var1_climatology = var1_climatology.sel(plev=plev)
-        var2_climatology = var2_climatology.sel(plev=plev)
-    except KeyError:
-        logger.warning("The dataset does not have a 'plev' coordinate.")
+    if 'plev' in var1_climatology.dims: 
+        if plev is not None:
+        
+            try:
+                var1_climatology = var1_climatology.sel(plev=plev)
+            except KeyError:
+                logger.warning("The provided value of pressure level is absent in the dataset. Please try again.")
+        else:
+            logger.warning("The provided dataset has a 'plev' coordinate, but None is provided. The function is terminated.")
+            return
+    logger.debug("The dataset does not have a 'plev' coordinate.")
+    
+    if 'plev' in var2_climatology.dims: 
+        if plev is not None:
+            try:
+                var2_climatology = var2_climatology.sel(plev=plev)
+            except KeyError:
+                logger.warning("The provided value of pressure level is absent in the dataset. Please try again.")
+        else:
+            logger.warning("The provided dataset has a 'plev' coordinate, but None is provided. The function is terminated.")
+            return 
+    else:
+        logger.debug("The dataset does not have a 'plev' coordinate.")
+        
 
     # Calculate the desired statistic for each season
     season_ranges = {'DJF': [12, 1, 2], 'MAM': [3, 4, 5], 'JJA': [6, 7, 8], 'SON': [9, 10, 11]}
@@ -100,13 +118,11 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
 
     # Create a list to store the plotted objects
     cnplots = []
-
+    
     for i, (result, season) in enumerate(zip(results, season_ranges.keys())):
         ax = fig.add_subplot(gs[i], projection=projection)
-
         # Add coastlines to the plot
         ax.add_feature(cfeature.COASTLINE)
-
         # Add other cartographic features (optional)
         ax.add_feature(cfeature.LAND, facecolor='lightgray')
         ax.add_feature(cfeature.OCEAN, facecolor='lightblue')
@@ -115,11 +131,11 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
         ax.set_yticks(np.arange(-90, 91, 30), crs=projection)
         ax.xaxis.set_major_formatter(LongitudeFormatter())
         ax.yaxis.set_major_formatter(LatitudeFormatter())
-
+        
         # Plot the bias data using the corresponding cnplot object
         cnplot = result.plot(ax=ax, cmap='RdBu_r', add_colorbar=False)
-        cnplots.append(cnplot)
-
+        cnplots.append(cnplot) 
+        
         ax.set_title(f'{season}')
         ax.set_xlabel('Longitude')
         ax.set_ylabel('Latitude')
@@ -214,7 +230,7 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None, start_dat
     # Calculate the bias between dataset1 and dataset2
     bias = dataset1[var_name] - dataset2[var_name].mean(dim='time')
 
-    try:
+    if 'plev' in bias.dims:
         # Get the pressure levels and coordinate values
         plev = bias['plev'].values
         coord_values = bias['lat'].values
@@ -255,7 +271,7 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None, start_dat
             filename = f"{outputdir}/Vertical_bias_{model_label1}_{model_label2}_{var_name}_{start_date1}_{end_date1}_{start_date2}_{end_date2}.nc"
             mean_bias.to_netcdf(filename)
             logger.info(f"The zonal bias for a selected models has been saved to {outputdir}.")
-    except KeyError:
+    else:
         logger.warning("The dataset does not have a 'plev' coordinate. The function 'compare_datasets_plev' is terminated.")
 
 def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=None, model_label=None, outputdir=None, outputfig=None):
