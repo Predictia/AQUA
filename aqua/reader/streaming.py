@@ -3,7 +3,7 @@
 import pandas as pd
 import numpy as np
 from aqua.logger import log_configure
-
+from aqua.util import frequency_string_to_pandas
 
 class Streaming():
     """Streaming class to be used in Reader and elsewhere"""
@@ -68,6 +68,8 @@ class Streaming():
             enddate = data.time[-1].values
         if not aggregation:
             aggregation = self.aggregation
+        if not aggregation:  # if it is still None set to step
+            aggregation = "S"
 
         if startdate:
             tim = data.time.sel(time=slice(startdate, enddate))
@@ -75,7 +77,7 @@ class Streaming():
             tim = data.time
 
         if 'S' in aggregation:
-            nsteps = int(aggregation.split("S")[0])
+            nsteps = np.maximum(int('0' + aggregation.split("S")[0]), 1)  # this allows also "S" for "1S"
             timr = pd.Series(tim).groupby(by = (np.arange(0, len(tim)) // nsteps) )
         else: 
             timr = tim.resample(time=self.aggregation)
