@@ -82,7 +82,6 @@ if __name__ == '__main__':
 
     variables = config['diagnostic_attributes']['variables']
     plev = config['diagnostic_attributes']['plev']
-    print(plev, 'plev')
     statistic = config['diagnostic_attributes']['statistic']
     seasonal_bias_bool = config['diagnostic_attributes']['seasonal_bias']
     compare_datasets_plev_bool = config['diagnostic_attributes']['compare_datasets_plev']
@@ -93,13 +92,13 @@ if __name__ == '__main__':
 
     try:
         reader_obs = Reader(model=model_obs, exp=exp_obs, source=source_obs, loglevel=loglevel)
-        data_obs = reader_obs.retrieve(vars=variables)
+        data_obs = reader_obs.retrieve()
     except Exception as e:
         logger.error(f"No observation data found: {e}")
 
     try:
         reader = Reader(model=model, exp=exp, source=source, loglevel=loglevel)
-        data = reader.retrieve(vars=variables)
+        data = reader.retrieve()
     except Exception as e:
         logger.error(f"No model data found: {e}")
         logger.info("Atmospheric global mean biases diagnostic is terminated.")
