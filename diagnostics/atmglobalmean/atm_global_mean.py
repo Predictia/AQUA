@@ -14,7 +14,7 @@ import datetime
 from aqua.util import create_folder
 from aqua.logger import log_configure
 
-loglevel: str = 'debug'
+loglevel: str = 'warning'
 logger = log_configure(log_level=loglevel, log_name='Atmglobalmean')
 
 def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statistic=None, model_label1=None, model_label2=None, 
