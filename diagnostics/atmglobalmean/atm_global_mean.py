@@ -187,6 +187,11 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
         data_array.to_netcdf(data_path)
         logger.info(f"The seasonal bias data has been saved to {outputdir} for {var_name} variable.")
 
+    if outputfig is not None and if outputdir is not None:
+        logger.warning(
+                    f"The seasonal bias maps were calculated and plotted for {var_name} variable.")
+
+
 def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None, start_date1=None, end_date1=None, 
                           start_date2=None, end_date2=None, model_label1=None, model_label2=None, outputdir=None, outputfig=None):
     """
@@ -271,6 +276,9 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None, start_dat
             filename = f"{outputdir}/Vertical_bias_{model_label1}_{model_label2}_{var_name}_{start_date1}_{end_date1}_{start_date2}_{end_date2}.nc"
             mean_bias.to_netcdf(filename)
             logger.info(f"The zonal bias for a selected models has been saved to {outputdir} for {var_name} variable.")
+        if outputfig is not None and if outputdir is not None:
+            logger.warning(
+                    f"The comparison of the two datasets is calculated and plotted for {var_name} variable.")
     else:
         logger.error(f"The dataset for {var_name} variable does not have a 'plev' coordinate. The function 'compare_datasets_plev' is terminated.")
 
@@ -353,3 +361,7 @@ def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=N
 
         data_array.to_netcdf(data_path)
         logger.info(f"A {var_name} variable has been saved to {outputdir}.")
+        
+    if outputfig is not None and if outputdir is not None:
+        logger.warning(
+                    f"The map of a chosen variable from a dataset is calculated and plotted for {var_name} variable.")

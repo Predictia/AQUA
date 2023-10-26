@@ -110,8 +110,6 @@ if __name__ == '__main__':
                 seasonal_bias(dataset1=data, dataset2=data_obs, var_name=var_name, plev=plev, statistic=statistic,
                               model_label1=model_label, model_label2=model_label_obs,
                               outputdir=outputdir, outputfig=outputfig)
-                logger.warning(
-                    f"The seasonal bias maps were calculated and plotted for {var_name} variable.")
             except Exception as e:
                 logger.error(f"An unexpected error occurred: {e}")
 
@@ -121,8 +119,6 @@ if __name__ == '__main__':
                 compare_datasets_plev(dataset1=data, dataset2=data_obs, var_name=var_name,
                                       model_label1=model_label, model_label2=model_label_obs,
                                       outputdir=outputdir, outputfig=outputfig)
-                logger.warning(
-                    f"The comparison of the two datasets is calculated and plotted for {var_name} variable.")
             except Exception as e:
                 logger.error(f"An unexpected error occurred: {e}")
 
@@ -131,8 +127,6 @@ if __name__ == '__main__':
             try:
                 plot_map_with_stats(dataset=data, var_name=var_name,  model_label=model_label,
                                     outputdir=outputdir, outputfig=outputfig)
-                logger.warning(
-                    f"The map of a chosen variable from a dataset is calculated and plotted for {var_name} variable.")
             except Exception as e:
                 logger.error(f"An unexpected error occurred: {e}")
 
