@@ -48,7 +48,10 @@ def zonal_mean_trend_plot(data, region=None, latS: float = None, latN: float = N
     Returns:
         None
     """
-    data = TS_3dtrend(data)
+    TS_3dtrend_data = TS_3dtrend(data)
+    TS_3dtrend_data.attrs = data.attrs
+    data = TS_3dtrend_data
+    
     data = weighted_zonal_mean(data, region, latS, latN, lonW, lonE)
 
     fig, (axs) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
@@ -56,10 +59,10 @@ def zonal_mean_trend_plot(data, region=None, latS: float = None, latN: float = N
     data.ocpt.plot.contourf(levels=20, ax=axs[0])
     axs[0].set_ylim((5500, 0))
 
-    region = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
+    region_title = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
     
     fig.suptitle(
-        f"Zonally-averaged long-term trends in the {region}", fontsize=20)
+        f"Zonally-averaged long-term trends in the {region_title}", fontsize=20)
 
     plt.subplots_adjust(top=0.85)
 
@@ -76,7 +79,7 @@ def zonal_mean_trend_plot(data, region=None, latS: float = None, latN: float = N
     axs[1].set_facecolor('grey')
 
     if output:
-        output_path, fig_dir, data_dir, filename = dir_creation(
+        output_path, fig_dir, data_dir, filename = dir_creation(data,
             region, latS, latN, lonW, lonE, output_dir, plot_name="zonal_mean_trend")
 
         data.to_netcdf(f'{data_dir}/{filename}.nc')
@@ -210,14 +213,13 @@ def hovmoller_lev_time_plot(data, region, anomaly: bool = False, standardise: bo
     logger.info("Hovmoller plotting in process")
     # Create subplots for temperature and salinity plots
     fig, (axs) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
-    region = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
-    fig.suptitle(f"Spatially averaged {region} T,S {type}", fontsize=22)
+    region_title = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
+    fig.suptitle(f"Spatially averaged {region_title} T,S {type}", fontsize=22)
 
     if output:
-        output_path, fig_dir, data_dir, filename = dir_creation(
+        output_path, fig_dir, data_dir, filename = dir_creation(data,
             region, latS, latN, lonW, lonE, output_dir, plot_name=f'hovmoller_plot_{type.replace(" ","_")}')
 
-    _ = mcolors.TwoSlopeNorm(vcenter=0)
 
     # plt.pcolor(X, Y, Z, vmin=vmin, vmax=vmax, norm=norm)
 
@@ -254,12 +256,12 @@ def hovmoller_lev_time_plot(data, region, anomaly: bool = False, standardise: bo
     cs1 = axs[0].contourf(data.time, data.lev, data.ocpt.transpose(),
                           levels=ocptlevs, cmap=cmap, extend='both')
     cbar_ax = fig.add_axes([0.13, 0.1, 0.35, 0.05])
-    fig.colorbar(cs1, cax=cbar_ax, orientation='horizontal')
+    fig.colorbar(cs1, cax=cbar_ax, orientation='horizontal', label = f'Potential temperature in {data.ocpt.attrs["units"]}')
 
     cs2 = axs[1].contourf(data.time, data.lev, data.so.transpose(),
                           levels=solevs, cmap=cmap, extend='both')
     cbar_ax = fig.add_axes([0.54, 0.1, 0.35, 0.05])
-    fig.colorbar(cs2, cax=cbar_ax, orientation='horizontal')
+    fig.colorbar(cs2, cax=cbar_ax, orientation='horizontal', label = f'Salinity in {data.so.attrs["units"]}')
 
     if output:
         data.to_netcdf(f'{data_dir}/{filename}.nc')
@@ -268,12 +270,21 @@ def hovmoller_lev_time_plot(data, region, anomaly: bool = False, standardise: bo
     axs[0].invert_yaxis()
     axs[1].invert_yaxis()
 
-    axs[0].set_ylim((5500, 0))
+    axs[0].set_ylim((max(data.lev).data, 0))
+    axs[1].set_ylim((max(data.lev).data, 0))
 
     axs[0].set_title("Temperature", fontsize=15)
     axs[0].set_ylabel("Depth (in m)", fontsize=12)
     axs[0].set_xlabel("Time (in years)", fontsize=12)
+    axs[0].set_xticklabels(axs[0].get_xticklabels(), rotation=30)
+    axs[1].set_xticklabels(axs[0].get_xticklabels(), rotation=30)
+    max_num_ticks = 5  # Adjust this value to control the number of ticks
+    from matplotlib.ticker import MaxNLocator
+    locator = MaxNLocator(integer=True, prune='both', nbins=max_num_ticks)
+    axs[0].xaxis.set_major_locator(locator)
+    axs[1].xaxis.set_major_locator(locator)
 
+    
     axs[1].set_title("Salinity", fontsize=15)
     axs[1].set_xlabel("Time (in years)", fontsize=12)
     axs[1].set_yticklabels([])
@@ -318,9 +329,9 @@ def time_series_multilevs(data, region=None, anomaly: bool = False, standardise:
 
     # Create subplots for temperature and salinity time series plots
     fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(16, 5))
-    region = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
+    region_title = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
 
-    fig.suptitle(f"Spatially averaged {region} T,S {type}", fontsize=20)
+    fig.suptitle(f"Spatially averaged {region_title} T,S {type}", fontsize=20)
 
     # Define the levels at which to plot the time series
     if customise_level:
@@ -346,7 +357,7 @@ def time_series_multilevs(data, region=None, anomaly: bool = False, standardise:
         data_level.so.plot.line(
             ax=axs[1], label=f"{round(int(data_level.lev.data), -2)}")
     if output:
-        output_path, fig_dir, data_dir, filename = dir_creation(
+        output_path, fig_dir, data_dir, filename = dir_creation(data,
             region, latS, latN, lonW, lonE, output_dir, plot_name=f'time_series_{type.replace(" ","_").replace(".","")}')
         data.to_netcdf(f'{data_dir}/{filename}.nc')
 
@@ -569,8 +580,9 @@ def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=N
         None
     """
     data = area_selection(data, region, latS, latN, lonW, lonE)
-    data = TS_3dtrend(data)
-
+    TS_trend_data = TS_3dtrend(data)
+    TS_trend_data.attrs = data.attrs
+    data = TS_trend_data
     # Define the levels for plotting
     if customise_level:
         if levels is None:
@@ -608,14 +620,14 @@ def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=N
             axs[levs, 1].set_xticklabels([])
         axs[levs, 1].set_facecolor('grey')
         # axs[levs, 1].set_aspect('equal', adjustable='box')
-    region = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
+    region_title = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
 
     plt.suptitle(
-        f'Linear Trends of T,S at different depths in the {region}', fontsize=24)
+        f'Linear Trends of T,S at different depths in the {region_title}', fontsize=24)
     axs[0, 0].set_title("Temperature", fontsize=18)
     axs[0, 1].set_title("Salinity", fontsize=18)
     if output:
-        output_path, fig_dir, data_dir, filename = dir_creation(
+        output_path, fig_dir, data_dir, filename = dir_creation(data,
             region, latS, latN, lonW, lonE, output_dir, plot_name="multilevel_t_s_trend")
 
         data.interp(lev=levels[levs]).to_netcdf(f'{data_dir}/{filename}.nc')

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-import sys
+
 import argparse
 import os
 import sys
@@ -7,6 +8,9 @@ import sys
 from aqua import Reader
 from aqua.util import load_yaml, get_arg, create_folder
 from aqua.exceptions import NoObservationError
+
+new_dir = "/home/b/b382397/AQUA/diagnostics/ocean3d/cli/"
+os.chdir(new_dir)
 
 # This is needed if loading from the cli directory
 sys.path.insert(0, '../../..')
@@ -73,6 +77,12 @@ def ocean3d_diags(data, region = None,
     
     return
 
+def get_value_with_default(dictionary, key, default_value):
+    try:
+        return dictionary[key]
+    except KeyError:
+        return default_value
+    
 if __name__ == '__main__':
 
     print("Running ocean3d diagnostic...")
@@ -87,41 +97,52 @@ if __name__ == '__main__':
     exp = get_arg(args, 'exp', ocean3d_config['exp'])
     source = get_arg(args, 'source', ocean3d_config['source'])
     outputdir = get_arg(args, 'outputdir', ocean3d_config['outputdir'])
-    predefined_regions = ocean3d_config["predefined_regions"]
+    
+
+
+    custom_regions = get_value_with_default(ocean3d_config, "custom_region", [])
+    predefined_regions = get_value_with_default(ocean3d_config, "predefined_regions", [])
+
     
     create_folder(outputdir)
 
     print(f"Reader selecting for model={model}, exp={exp}, source={source}")
     try:
         reader = Reader(model, exp, source, fix=True)
+        data = reader.retrieve()
+
+        vertical_coord = find_vert_coord(data)[0]
+        data = data.rename({vertical_coord: "lev"})
     except KeyError:
         # NOTE: This should be a proper NoDataError
         print("NoDataError: No data available")
         sys.exit(0)
 
-    data = reader.retrieve()
 
-    vertical_coord = find_vert_coord(data)[0]
-    data = data.rename({vertical_coord: "lev"})
 
     try:
-        
-        custom_regions = ocean3d_config["custom_region"] ### add fix if not present
-        custom_region_dict = {}
-        for custom_region in custom_regions:
-            for coord in custom_region:
-                custom_region_dict.update(coord)
-            lonE= custom_region_dict["lonE"]
-            lonW= custom_region_dict["lonW"]
-            latS= custom_region_dict["latS"]
-            latN= custom_region_dict["latN"]
+        if custom_regions is not None:
+            custom_regions = ocean3d_config["custom_region"] ### add fix if not present
+            custom_region_dict = {}
+            for custom_region in custom_regions:
+                for coord in custom_region:
+                    custom_region_dict.update(coord)
+                lonE= custom_region_dict["lonE"]
+                lonW= custom_region_dict["lonW"]
+                latS= custom_region_dict["latS"]
+                latN= custom_region_dict["latN"]
 
-            ocean3d_diags(data, region=None, latS=latS, latN=latN, lonW=lonW, lonE=lonE, output_dir=outputdir)
+                ocean3d_diags(data, region=None, latS=latS, latN=latN, lonW=lonW, lonE=lonE, output_dir=outputdir)
 
-        predefined_regions = ocean3d_config["predefined_regions"] ### add fix if not present
+    except AttributeError:
+        print("NoDataError: so or ocpt not found in the Dataset.")
+        print("Not plotting hovmoller_lev_time_plot")
+            
 
-        for predefined_region in predefined_regions:
-                ocean3d_diags(data, region=predefined_region, output_dir=outputdir)
+        if predefined_regions is not None:
+            predefined_regions = ocean3d_config["predefined_regions"] ### add fix if not present
+            for predefined_region in predefined_regions:
+                    ocean3d_diags(data, region=predefined_region, output_dir=outputdir)
     except AttributeError:
         print("NoDataError: so or ocpt not found in the Dataset.")
         print("Not plotting hovmoller_lev_time_plot")

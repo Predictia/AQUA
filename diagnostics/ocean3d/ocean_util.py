@@ -228,8 +228,10 @@ def weighted_area_mean(data, region=None, latS: float = None, latN: float = None
     return wgted_mean
 
 def custom_region(region=None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None):
-    if region == None:
+    if region in [None, "custom"]:
         region_name = f"Region ({latS}:{latN} Lat, {lonW}:{lonE} Lon)"
+    else:
+        region_name = region
     return region_name
 
 def split_time_equally(data):
@@ -412,7 +414,7 @@ def compare_arrays(mod_data, obs_data):
     return mod_data_list, obs_data_selected
 
 
-def dir_creation(region=None,  latS: float = None, latN: float = None, lonW: float = None,
+def dir_creation(data, region=None,  latS: float = None, latN: float = None, lonW: float = None,
                  lonE: float = None, output_dir=None, plot_name=None):
     """
     Creates the directory structure for saving the output data and figures.
@@ -432,13 +434,20 @@ def dir_creation(region=None,  latS: float = None, latN: float = None, lonW: flo
     """
     # current_time = f'{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
 
+    if "model" in data.attrs and "exp" in data.attrs and "source" in data.attrs:
+        model = data.attrs["model"]
+        exp = data.attrs["exp"]
+        source = data.attrs["source"]
+        filename = f"ocean3d_{model}_{exp}_{source}_"
+    else:
+        filename = f"ocean3d_"
     if output_dir is None:
         raise ValueError("Please provide the outut_dir when output = True")
     if region in [None, "custom", "Custom"]:
         region = "custom"
-        filename = f"{plot_name}_{region.replace(' ', '_').lower()}_lat_{latS}_{latN}_lon_{lonW}_{lonE}"
+        filename = filename + f"{plot_name}_{region.replace(' ', '_').lower()}_lat_{latS}_{latN}_lon_{lonW}_{lonE}"
     else:
-        filename = f"{plot_name}_{region.replace(' ', '_').lower()}"
+        filename = filename + f"{plot_name}_{region.replace(' ', '_').lower()}"
 
     # output_path = f"{output_dir}/"
     fig_dir = f"{output_dir}/pdf"

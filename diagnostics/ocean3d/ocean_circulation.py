@@ -297,7 +297,7 @@ def plot_stratification(mod_data, region=None, time=None, latS: float = None, la
     logger.info("Stratification plot is in process")
 
     if output:
-        output_path, fig_dir, data_dir, filename = dir_creation(
+        output_path, fig_dir, data_dir, filename = dir_creation(mod_data,
              region, latS, latN, lonW, lonE, output_dir, plot_name="stratification")
 
     legend_list = []
@@ -329,10 +329,10 @@ def plot_stratification(mod_data, region=None, time=None, latS: float = None, la
                 data_3.to_netcdf(
                     f'{data_dir}/{filename}_{legend_info.replace(" ","_")}.nc')
 
-    region = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
+    region_title = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
     
     fig.suptitle(
-        f"Climatological {time.upper()} T, S and rho0 stratification in {region}", fontsize=20)
+        f"Climatological {time.upper()} T, S and rho0 stratification in {region_title}", fontsize=20)
     axs[0].set_title("Temperature Profile", fontsize=16)
     axs[0].set_ylabel("Depth (m)", fontsize=15)
     axs[0].set_xlabel("Temperature (°C)", fontsize=12)
@@ -482,16 +482,16 @@ def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, 
 
         
     if output:
-        output_path, fig_dir, data_dir, filename = dir_creation(
+        output_path, fig_dir, data_dir, filename = dir_creation(mod_data,
              region, latS, latN, lonW, lonE, output_dir, plot_name="spatial_MLD")
 
     logger.info("Spatial MLD plot is in process")
     fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(20, 6.5))
 
-    region = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
-    
+    region_title = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
+
     fig.suptitle(
-        f'Climatology of {time.upper()} mixed layer depth in {region}', fontsize=20)
+        f'Climatology of {time.upper()} mixed layer depth in {region_title}', fontsize=20)
     fig.set_figwidth(18)
 
     clev1 = 0.0
