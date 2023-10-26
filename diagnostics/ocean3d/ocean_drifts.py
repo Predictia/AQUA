@@ -59,7 +59,7 @@ def zonal_mean_trend_plot(data, region=None, latS: float = None, latN: float = N
     data.ocpt.plot.contourf(levels=20, ax=axs[0])
     axs[0].set_ylim((5500, 0))
 
-    region_title = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
+    region_title = custom_region(region= region, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
     
     fig.suptitle(
         f"Zonally-averaged long-term trends in the {region_title}", fontsize=20)
@@ -213,7 +213,7 @@ def hovmoller_lev_time_plot(data, region, anomaly: bool = False, standardise: bo
     logger.info("Hovmoller plotting in process")
     # Create subplots for temperature and salinity plots
     fig, (axs) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
-    region_title = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
+    region_title = custom_region(region= region, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
     fig.suptitle(f"Spatially averaged {region_title} T,S {type}", fontsize=22)
 
     if output:
@@ -329,7 +329,7 @@ def time_series_multilevs(data, region=None, anomaly: bool = False, standardise:
 
     # Create subplots for temperature and salinity time series plots
     fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(16, 5))
-    region_title = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
+    region_title = custom_region(region= region, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
 
     fig.suptitle(f"Spatially averaged {region_title} T,S {type}", fontsize=20)
 
@@ -620,7 +620,7 @@ def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=N
             axs[levs, 1].set_xticklabels([])
         axs[levs, 1].set_facecolor('grey')
         # axs[levs, 1].set_aspect('equal', adjustable='box')
-    region_title = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
+    region_title = custom_region(region= region, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
 
     plt.suptitle(
         f'Linear Trends of T,S at different depths in the {region_title}', fontsize=24)

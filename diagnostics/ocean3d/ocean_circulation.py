@@ -329,7 +329,7 @@ def plot_stratification(mod_data, region=None, time=None, latS: float = None, la
                 data_3.to_netcdf(
                     f'{data_dir}/{filename}_{legend_info.replace(" ","_")}.nc')
 
-    region_title = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
+    region_title = custom_region(region= region, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
     
     fig.suptitle(
         f"Climatological {time.upper()} T, S and rho0 stratification in {region_title}", fontsize=20)
@@ -488,7 +488,7 @@ def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, 
     logger.info("Spatial MLD plot is in process")
     fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(20, 6.5))
 
-    region_title = custom_region(region= None, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
+    region_title = custom_region(region= region, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
 
     fig.suptitle(
         f'Climatology of {time.upper()} mixed layer depth in {region_title}', fontsize=20)
