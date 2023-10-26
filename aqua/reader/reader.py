@@ -106,6 +106,9 @@ class Reader(FixerMixin, RegridMixin):
         self.src_grid_area = None
         self.dst_grid_area = None
 
+        if stream_generator:  # Stream generator also implies streaming
+            streaming = True
+
         if streaming:
             self.streamer = Streaming(startdate=startdate, 
                                       enddate=enddate,
@@ -118,9 +121,6 @@ class Reader(FixerMixin, RegridMixin):
                 stream_generator = True  # This is the default for streaming emulator
 
         self.stream_generator = stream_generator
-        if stream_generator:  # Stream generator also implies streaming
-            streaming = True
-
         self.streaming = streaming
 
         self.startdate = startdate

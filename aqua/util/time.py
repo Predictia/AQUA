@@ -22,6 +22,8 @@ def frequency_string_to_pandas(freq):
         resample_freq = '1M'
     elif freq == 'daily':
         resample_freq = '1D'
+    elif freq == 'weekly':
+        resample_freq = '1W'
     elif freq == 'yearly':
         resample_freq = '1Y'
     else:

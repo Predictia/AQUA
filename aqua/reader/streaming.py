@@ -71,16 +71,18 @@ class Streaming():
         if not aggregation:  # if it is still None set to step
             aggregation = "S"
 
+        aggregation = frequency_string_to_pandas(aggregation)
+
         if startdate:
             tim = data.time.sel(time=slice(startdate, enddate))
         else:
             tim = data.time
 
         if 'S' in aggregation:
-            nsteps = np.maximum(int('0' + aggregation.split("S")[0]), 1)  # this allows also "S" for "1S"
+            nsteps = np.maximum(int('0' + aggregation.upper().split("S")[0]), 1)  # this allows also "S" for "1S"
             timr = pd.Series(tim).groupby(by = (np.arange(0, len(tim)) // nsteps) )
         else: 
-            timr = tim.resample(time=self.aggregation)
+            timr = tim.resample(time=aggregation)
 
         return timr
 
