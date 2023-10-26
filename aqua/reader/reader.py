@@ -47,7 +47,7 @@ class Reader(FixerMixin, RegridMixin):
                  regrid=None, method="ycon", zoom=None, configdir=None,
                  areas=True,  # pylint: disable=W0622
                  datamodel=None, 
-                 streaming=False, stream_generator=None,
+                 streaming=False, stream_generator=False,
                  stream_step=1, stream_unit='steps',
                  startdate=None, enddate=None,
                  rebuild=False, loglevel=None, nproc=4, aggregation=None,
@@ -71,9 +71,7 @@ class Reader(FixerMixin, RegridMixin):
             datamodel (str, optional): Destination data model for coordinates, overrides the one in fixes.yaml. Defaults to None.
             freq (str, optional): Frequency of the time averaging. Valid values are monthly, daily, yearly. Defaults to None.
             streaming (bool, optional): If to retrieve data in a streaming mode. Defaults to False.
-            stream_generator (bool): if to return a generator object for data streaming. Defaults to False
-            stream_step (int, optional): The number of time steps to stream the data by. Defaults to 1.
-            stream_unit (str, optional): The unit of time to stream the data by (e.g. 'hours', 'days', 'months', 'years'). Defaults to 'steps'.
+            stream_generator (bool, optional): if to return a generator object for data streaming. Defaults to False
             startdate (str, optional): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
             enddate (str, optional): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None.
             rebuild (bool, optional): Force rebuilding of area and weight files. Defaults to False.
@@ -108,8 +106,6 @@ class Reader(FixerMixin, RegridMixin):
         self.src_grid_area = None
         self.dst_grid_area = None
 
-        self.streaming = streaming
-
         if streaming:
             self.streamer = Streaming(startdate=startdate, 
                                       enddate=enddate,
@@ -120,11 +116,12 @@ class Reader(FixerMixin, RegridMixin):
             self.stream = self.streamer.stream
             if stream_generator is None:
                 stream_generator = True  # This is the default for streaming emulator
-        else:
-            if stream_generator is None:
-                stream_generator = False  # This is the default when not using the streaming emulator
 
         self.stream_generator = stream_generator
+        if stream_generator:  # Stream generator also implies streaming
+            streaming = True
+
+        self.streaming = streaming
 
         self.startdate = startdate
         self.enddate = enddate
