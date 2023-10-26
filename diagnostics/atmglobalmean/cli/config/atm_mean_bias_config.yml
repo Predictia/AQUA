@@ -1,6 +1,6 @@
 data:
-  model:  "ICON"
-  exp:    "ngc3028" 
+  model:  "IFS" # "ICON"
+  exp:    "tco2559-ng5-cycle3" #"ngc3028" 
   source: "lra-r100-monthly"
 
   model_obs:  "ERA5"
@@ -8,7 +8,7 @@ data:
   source_obs: "monthly"
 
 diagnostic_attributes:
-  variables: ['2t'] #, 'msl', 'tprate', 't', 'u', 'v', 'q', 'mtntrf']
+  variables: ['2t', 'msl', 'tprate', 't', 'u', 'v', 'q', 'mtntrf']
   plev: null
   statistic: "mean"
   seasonal_bias: True
