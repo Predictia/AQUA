@@ -1,6 +1,7 @@
 """Streaming Mixin for Reader"""
 
 import pandas as pd
+import numpy as np
 from aqua.logger import log_configure
 
 
@@ -73,7 +74,11 @@ class Streaming():
         else:
             tim = data.time
 
-        timr = tim.resample(time=self.aggregation)
+        if 'S' in aggregation:
+            nsteps = int(aggregation.split("S")[0])
+            timr = pd.Series(tim).groupby(by = (np.arange(0, len(tim)) // nsteps) )
+        else: 
+            timr = tim.resample(time=self.aggregation)
 
         return timr
 
