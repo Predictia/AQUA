@@ -1,6 +1,6 @@
 data:
-  model:  "IFS" # "ICON"
-  exp:    "tco2559-ng5-cycle3" #"ngc3028" 
+  model:  "IFS"
+  exp:    "tco2559-ng5-cycle3"
   source: "lra-r100-monthly"
 
   model_obs:  "ERA5"
