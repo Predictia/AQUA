@@ -14,7 +14,7 @@ try:
         print(f'Moving from current directory to {dname} to run!')
     sys.path.insert(0, '../../')
     from radiation import process_ceres_data, process_model_data
-    from radiation import barplot_model_data, plot_bias, plot_maps, plot_mean_bias, gregory_plot, plot_model_comparison_timeseries
+    from radiation import barplot_model_data, plot_mean_bias, gregory_plot, plot_model_comparison_timeseries
 except ImportError as import_error:
     # Handle ImportError
     print(f"ImportError occurred: {import_error}")
