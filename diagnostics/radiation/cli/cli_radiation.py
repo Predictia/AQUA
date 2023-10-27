@@ -115,18 +115,6 @@ if __name__ == '__main__':
             barplot_model_data(datasets=datasets, model_names=model_names,
                                outputdir=outputdir, outputfig=outputfig)
             logger.info("The Bar Plot with provided model and CERES was created and saved. Variables ttr and tsr are plotted to show imbalances.")
-        except ZeroDivisionError as zd_error:
-            # Handle ZeroDivisionError
-            logger.error(f"ZeroDivisionError occurred: {zd_error}")
-        except ValueError as value_error:
-            # Handle ValueError
-            logger.error(f"ValueError occurred: {value_error}")
-        except KeyError as key_error:
-            # Handle KeyError
-            logger.error(f"KeyError occurred: {key_error}")
-        except FileNotFoundError as file_error:
-            # Handle FileNotFoundError
-            logger.error(f"FileNotFoundError occurred: {file_error}")
         except Exception as e:
             # Handle other exceptions
             logger.error(f"An unexpected error occurred: {e}")
@@ -137,18 +125,6 @@ if __name__ == '__main__':
                 plot_mean_bias(model=model_data, var=var, ceres=ceres, outputdir=outputdir, outputfig=outputfig)
                 logger.info(
                     f"The mean bias of the data over the specified time range is calculated, plotted, and saved for {var} variable.")
-            except ZeroDivisionError as zd_error:
-                # Handle ZeroDivisionError
-                logger.error(f"ZeroDivisionError occurred: {zd_error}")
-            except ValueError as value_error:
-                # Handle ValueError
-                logger.error(f"ValueError occurred: {value_error}")
-            except KeyError as key_error:
-                # Handle KeyError
-                logger.error(f"KeyError occurred: {key_error}")
-            except FileNotFoundError as file_error:
-                # Handle FileNotFoundError
-                logger.error(f"FileNotFoundError occurred: {file_error}")
             except Exception as e:
                 # Handle other exceptions
                 logger.error(f"An unexpected error occurred: {e}")
@@ -160,18 +136,6 @@ if __name__ == '__main__':
 
             logger.info(
                 "Gregory Plot was created and saved with various models and an observational dataset.")
-        except ZeroDivisionError as zd_error:
-            # Handle ZeroDivisionError
-            logger.error(f"ZeroDivisionError occurred: {zd_error}")
-        except ValueError as value_error:
-            # Handle ValueError
-            logger.error(f"ValueError occurred: {value_error}")
-        except KeyError as key_error:
-            # Handle KeyError
-            logger.error(f"KeyError occurred: {key_error}")
-        except FileNotFoundError as file_error:
-            # Handle FileNotFoundError
-            logger.error(f"FileNotFoundError occurred: {file_error}")
         except Exception as e:
             # Handle other exceptions
             logger.error(f"An unexpected error occurred: {e}")
@@ -183,18 +147,6 @@ if __name__ == '__main__':
             plot_model_comparison_timeseries(models=models, ceres=ceres, outputdir=outputdir, outputfig=outputfig)
             logger.info(
                 "The time series bias plot with various models and CERES was created and saved.")
-        except ZeroDivisionError as zd_error:
-            # Handle ZeroDivisionError
-            logger.error(f"ZeroDivisionError occurred: {zd_error}")
-        except ValueError as value_error:
-            # Handle ValueError
-            logger.error(f"ValueError occurred: {value_error}")
-        except KeyError as key_error:
-            # Handle KeyError
-            logger.error(f"KeyError occurred: {key_error}")
-        except FileNotFoundError as file_error:
-            # Handle FileNotFoundError
-            logger.error(f"FileNotFoundError occurred: {file_error}")
         except Exception as e:
             # Handle other exceptions
             logger.error(f"An unexpected error occurred: {e}")
