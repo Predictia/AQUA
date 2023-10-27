@@ -8,7 +8,8 @@ data:
   source_obs: "monthly"
 
 diagnostic_attributes:
-  variables: ['2t', 'msl', 'tprate', 't', 'u', 'v', 'q', 'mtntrf']
+  variables_no_plev: ['2t', 'msl', 'tprate', 'mtntrf']
+  variables_with_plev: ['t', 'u', 'v', 'q']
   plev: null
   statistic: "mean"
   seasonal_bias: True
@@ -18,4 +19,4 @@ diagnostic_attributes:
 loglevel: 'warning'
 
 path:
-  path_to_output: "/work/bb1153/b382267/AQUA/diagnostics/atmglobalmean/cli/config/"
+  path_to_output: "/scratch/b/b382267/cli_test/atmglobalmean/"
