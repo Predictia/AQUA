@@ -202,7 +202,7 @@ def gregory_plot(obs_data=None, models=None, obs_time_range=None, model_labels=N
             end_date = str(model["data"]["time.year"][-1].values) +'-'+str(model["data"]["time.month"][-1].values)+'-'+str(model["data"]["time.day"][-1].values)
             model_name = model["model"]+'_'+model["exp"]+'_'+model["source"] if model_labels is None else model_labels[i]
             model_data_resampled = model["gm"].resample(time="M").mean()
-            model_data_resampled.to_netcdf(f"{outputdir}/Gregory_Plot_{model_name}_{start_date}_{end_date}.nc")
+            model_data_resampled.to_netcdf(f"{outputdir}/gregory_plot_{model_name}_{start_date}_{end_date}.nc")
             logger.info(f"Data has been saved to {outputdir}.")
 
     # Save the data for each model to separate netCDF files
@@ -212,7 +212,7 @@ def gregory_plot(obs_data=None, models=None, obs_time_range=None, model_labels=N
             start_date = str(model["data"]["time.year"][0].values) +'-'+str(model["data"]["time.month"][0].values)+'-'+str(model["data"]["time.day"][0].values)
             end_date = str(model["data"]["time.year"][-1].values) +'-'+str(model["data"]["time.month"][-1].values)+'-'+str(model["data"]["time.day"][-1].values)
             model_name = model["model"]+'_'+model["exp"]+'_'+model["source"] if model_labels is None else model_labels[i]
-            filename = f"{outputfig}/Gregory_Plot_{model_name}_{start_date}_{end_date}.pdf"
+            filename = f"{outputfig}/gregory_plot_{model_name}_{start_date}_{end_date}.pdf"
             plt.savefig(filename, dpi=300, format='pdf')
             logger.info(f"Plot has been saved to {outputfig}.")
     else:
@@ -268,14 +268,14 @@ def barplot_model_data(datasets=None, model_names=None, outputdir=None, outputfi
         create_folder(folder=str(outputdir), loglevel='WARNING')
         # Save the data to a NetCDF file
         output_data = xr.Dataset(global_mean)
-        filename = f"{outputdir}/BarPlot_mtntrf_mtnsrf_{'_'.join(model_names).replace(' ', '_').lower()}.nc"
+        filename = f"{outputdir}/barplot_mtntrf_mtnsrf_{'_'.join(model_names).replace(' ', '_').lower()}.nc"
         output_data.to_netcdf(filename)
         logger.info(f"Data has been saved to {outputdir}.")
 
     if outputfig is not None:
         create_folder(folder=str(outputfig), loglevel='WARNING')
         
-        filename = f"{outputfig}/BarPlot_mtntrf_mtnsrf_{'_'.join(model_names).replace(' ', '_').lower()}.pdf"
+        filename = f"{outputfig}/barplot_mtntrf_mtnsrf_{'_'.join(model_names).replace(' ', '_').lower()}.pdf"
         plt.savefig(filename, dpi=300, format='pdf')
         logger.info(f"Plot has been saved to {outputfig}.")
     else:
@@ -400,13 +400,13 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, o
             model_name = linelabels[i].replace(' ', '_').lower()
             start_date = str(model["data"]["time.year"][0].values) +'-'+str(model["data"]["time.month"][0].values)+'-'+str(model["data"]["time.day"][0].values)
             end_date = str(model["data"]["time.year"][-1].values) +'-'+str(model["data"]["time.month"][-1].values)+'-'+str(model["data"]["time.day"][-1].values)
-            model["gm"].to_netcdf(f"{outputdir}Timeseries_{model_name}_{start_date}_{end_date}.nc")
+            model["gm"].to_netcdf(f"{outputdir}timeseries_{model_name}_{start_date}_{end_date}.nc")
         logger.info(f"Data has been saved to {outputdir}.")
 
     if outputfig is not None:
         create_folder(folder=str(outputfig), loglevel='WARNING')
         all_labels = '_'.join(linelabels).replace(' ', '_').lower()
-        filename = f"{outputfig}/TimeSeries_{all_labels}.pdf"
+        filename = f"{outputfig}/timeseries_{all_labels}.pdf"
         plt.savefig(filename, dpi=300, format='pdf')
         logger.info(f"Plot has been saved to {outputfig}.")
     else:
@@ -515,13 +515,13 @@ def plot_maps(model=None, var=None, year=None, model_label=None,  ceres=None, ou
         create_folder(folder=str(outputdir), loglevel='WARNING')
         # Save the data to a netCDF file
         data = model["data"][var].sel(time=str(year)) - ceres["clim"][var].isel(time=0)
-        filename = f"{outputdir}TOA_bias_maps_{var}_{year}_{model_label}.nc"
+        filename = f"{outputdir}toa_bias_maps_{var}_{year}_{model_label}.nc"
         data.to_netcdf(filename)
         logger.info(f"Data has been saved to {outputdir}.")
 
     if outputfig is not None:
         create_folder(folder=str(outputfig), loglevel='WARNING')
-        filename = f"{outputfig}TOA_bias_maps_{label}_{year}_{model_label}.pdf"
+        filename = f"{outputfig}toa_bias_maps_{label}_{year}_{model_label}.pdf"
         plt.savefig(filename, dpi=300, format='pdf')
         logger.info(f"Plot has been saved to {outputfig}.") 
     else:
@@ -581,14 +581,14 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
         create_folder(folder=str(outputdir), loglevel='WARNING')
         # Save the data to a netCDF file
         ceres_model_name = ceres["model"]+'_'+ceres["exp"]+'_'+ceres["source"]
-        filename = f"{outputdir}TOA_mean_biases_{var}_{model_label}_{start_year}_{end_year}_{ceres_model_name}.nc"
+        filename = f"{outputdir}toa_mean_biases_{var}_{model_label}_{start_year}_{end_year}_{ceres_model_name}.nc"
         mean_bias.to_netcdf(filename)
         logger.info(f"Data has been saved to {outputdir}.")
 
     if outputfig is not None:
         create_folder(folder=str(outputfig), loglevel='WARNING')
         ceres_model_name = ceres["model"]+'_'+ceres["exp"]+'_'+ceres["source"]
-        filename = f"{outputfig}TOA_mean_biases_{var}_{model_label}_{start_year}_{end_year}_{ceres_model_name}.pdf"
+        filename = f"{outputfig}toa_mean_biases_{var}_{model_label}_{start_year}_{end_year}_{ceres_model_name}.pdf"
         plt.savefig(filename, dpi=300, format='pdf')
         logger.info(f"Plot has been saved to {outputfig}.")
     else:
