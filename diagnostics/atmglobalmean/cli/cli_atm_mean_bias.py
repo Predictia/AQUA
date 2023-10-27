@@ -80,7 +80,8 @@ if __name__ == '__main__':
 
     logger.debug(f"Comparing with {model_obs} {exp_obs} {source_obs}.")
 
-    variables = config['diagnostic_attributes']['variables']
+    variables_no_plev = config['diagnostic_attributes']['variables_no_plev']
+    variables_with_plev = config['diagnostic_attributes']['variables_with_plev']
     plev = config['diagnostic_attributes']['plev']
     statistic = config['diagnostic_attributes']['statistic']
     seasonal_bias_bool = config['diagnostic_attributes']['seasonal_bias']
@@ -105,7 +106,7 @@ if __name__ == '__main__':
         sys.exit(0)
 
     if seasonal_bias_bool:
-        for var_name in variables:
+        for var_name in variables_no_plev:
             try:
                 seasonal_bias(dataset1=data, dataset2=data_obs, var_name=var_name, plev=plev, statistic=statistic,
                               model_label1=model_label, model_label2=model_label_obs,
@@ -114,7 +115,7 @@ if __name__ == '__main__':
                 logger.error(f"An unexpected error occurred: {e}")
 
     if compare_datasets_plev_bool:
-        for var_name in variables:
+        for var_name in variables_with_plev:
             try:
                 compare_datasets_plev(dataset1=data, dataset2=data_obs, var_name=var_name,
                                       model_label1=model_label, model_label2=model_label_obs,
@@ -123,7 +124,7 @@ if __name__ == '__main__':
                 logger.error(f"An unexpected error occurred: {e}")
 
     if plot_map_with_stats_bool:
-        for var_name in variables:
+        for var_name in variables_no_plev:
             try:
                 plot_map_with_stats(dataset=data, var_name=var_name,  model_label=model_label,
                                     outputdir=outputdir, outputfig=outputfig)
