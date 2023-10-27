@@ -159,15 +159,6 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
     fig.suptitle(overall_title, fontsize=14, fontweight='bold')
     plt.subplots_adjust(hspace=0.5)
 
-    if outputfig is not None:
-        create_folder(folder=str(outputfig), loglevel='WARNING')
-        # Save the figure
-        filename = f"{outputfig}Seasonal_Bias_Plot__{var_name}_{statistic}_{model_label1}_{start_date1}_{end_date1}_{model_label2}_{start_date2}_{end_date2}.pdf"
-        plt.savefig(filename, dpi=300, format='pdf')
-        logger.info(f"The seasonal bias plots have been saved to {outputfig} for {var_name} variable.")
-    else:
-        plt.show()
-
     if outputdir is not None:
         create_folder(folder=str(outputdir), loglevel='WARNING')
         # Write the data into a NetCDF file
@@ -185,6 +176,15 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
 
         data_array.to_netcdf(data_path)
         logger.info(f"The seasonal bias data has been saved to {outputdir} for {var_name} variable.")
+
+    if outputfig is not None:
+        create_folder(folder=str(outputfig), loglevel='WARNING')
+        # Save the figure
+        filename = f"{outputfig}Seasonal_Bias_Plot__{var_name}_{statistic}_{model_label1}_{start_date1}_{end_date1}_{model_label2}_{start_date2}_{end_date2}.pdf"
+        plt.savefig(filename, dpi=300, format='pdf')
+        logger.info(f"The seasonal bias plots have been saved to {outputfig} for {var_name} variable.")
+    else:
+        plt.show()
 
     if outputfig is not None and outputdir is not None:
         logger.warning(
@@ -259,6 +259,13 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None, start_dat
         cbar = fig.colorbar(cax)
         cbar.set_label(f'{var_name} [{dataset1[var_name].units}]')
 
+        if outputdir is not None:
+            create_folder(folder=str(outputdir), loglevel='WARNING')
+            # Save the data into a NetCDF file
+            filename = f"{outputdir}/Vertical_bias_{var_name}_{model_label1}_{start_date1}_{end_date1}_{model_label2}_{start_date2}_{end_date2}.nc"
+            mean_bias.to_netcdf(filename)
+            logger.info(f"The zonal bias for a selected models has been saved to {outputdir} for {var_name} variable.")
+
         if outputfig is not None:
             create_folder(folder=str(outputfig), loglevel='WARNING')
             # Save the plot as a PDF file
@@ -269,12 +276,6 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None, start_dat
         else:
             plt.show()
 
-        if outputdir is not None:
-            create_folder(folder=str(outputdir), loglevel='WARNING')
-            # Save the data into a NetCDF file
-            filename = f"{outputdir}/Vertical_bias_{var_name}_{model_label1}_{start_date1}_{end_date1}_{model_label2}_{start_date2}_{end_date2}.nc"
-            mean_bias.to_netcdf(filename)
-            logger.info(f"The zonal bias for a selected models has been saved to {outputdir} for {var_name} variable.")
         if outputfig is not None and outputdir is not None:
             logger.warning(
                     f"The comparison of the two datasets is calculated and plotted for {var_name} variable.")
@@ -338,16 +339,6 @@ def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=N
     stat_text = f'Mean: {var_mean:.2f} {dataset[var_name].units}    Std: {var_std:.2f}    Min: {var_min:.2f}    Max: {var_max:.2f}'
     ax.text(0.5, -0.3, stat_text, transform=ax.transAxes, ha='center')
 
-    if outputfig is not None:
-        create_folder(folder=str(outputfig), loglevel='WARNING')
-        # Save the plot as a PDF file
-        filename = f"Statistics_maps_{model_label}_{var_name}_{start_date}_{end_date}.pdf"
-        output_path = os.path.join(outputfig, filename)
-        plt.savefig(output_path, dpi=300, format='pdf')
-        logger.info(f"Plot a map of {var_name} variable have been saved to {outputfig}.")
-    else:
-        plt.show()
-
     if outputdir is not None:
         create_folder(folder=str(outputdir), loglevel='WARNING')
         # Save the data into a NetCDF file
@@ -360,6 +351,18 @@ def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=N
 
         data_array.to_netcdf(data_path)
         logger.info(f"A {var_name} variable has been saved to {outputdir}.")
+
+    if outputfig is not None:
+        create_folder(folder=str(outputfig), loglevel='WARNING')
+        # Save the plot as a PDF file
+        filename = f"Statistics_maps_{model_label}_{var_name}_{start_date}_{end_date}.pdf"
+        output_path = os.path.join(outputfig, filename)
+        plt.savefig(output_path, dpi=300, format='pdf')
+        logger.info(f"Plot a map of {var_name} variable have been saved to {outputfig}.")
+    else:
+        plt.show()
+
+    
 
     if outputfig is not None and outputdir is not None:
         logger.warning(
