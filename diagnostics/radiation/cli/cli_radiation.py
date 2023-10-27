@@ -1,11 +1,17 @@
 # All necessary import for a cli diagnostic
 import sys
 try:
+    import os
+    import argparse
     from aqua.util import load_yaml, get_arg
     from aqua.logger import log_configure
-    import os
-    import dask
-    import argparse
+
+    # Setting the path to this directory
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    if os.getcwd() != dname:
+        os.chdir(dname)
+        print(f'Moving from current directory to {dname} to run!')
     sys.path.insert(0, '../../')
     from radiation import process_ceres_data, process_model_data
     from radiation import barplot_model_data, plot_bias, plot_maps, plot_mean_bias, gregory_plot, plot_model_comparison_timeseries
@@ -13,7 +19,7 @@ except ImportError as import_error:
     # Handle ImportError
     print(f"ImportError occurred: {import_error}")
     sys.exit(0)
-except OtherCustomError as custom_error:
+except Exception as custom_error:
     # Handle other custom exceptions if needed
     print(f"CustomError occurred: {custom_error}")
     sys.exit(0)
@@ -73,8 +79,8 @@ if __name__ == '__main__':
     path_to_output = get_arg(
         args, 'outputdir', config['path']['path_to_output'])
     if path_to_output is not None:
-        outputdir = os.path.join(path_to_output, 'NetCDF/')
-        outputfig = os.path.join(path_to_output, 'PDF/')
+        outputdir = os.path.join(path_to_output, 'netcdf/')
+        outputfig = os.path.join(path_to_output, 'pdf/')
 
     logger.debug(f"outputdir: {outputdir}")
     logger.debug(f"outputfig: {outputfig}")
@@ -91,7 +97,7 @@ if __name__ == '__main__':
         model_data = process_model_data(model=model, exp=exp, source=source)
     except Exception as e:
         logger.error(f"No model data found: {e}")
-        logger.info("Atmospheric global mean biases diagnostic is terminated.")
+        logger.error("Atmospheric global mean biases diagnostic is terminated.")
         sys.exit(0)
     try:
         # Call the method to retrieve CERES data
@@ -99,14 +105,15 @@ if __name__ == '__main__':
         era5 = process_model_data(model='ERA5', exp=exp_era5, source=source_era5)
     except Exception as e:
         logger.error(f"No observation data found: {e}")
-        logger.info("Atmospheric global mean biases diagnostic is terminated.")
+        logger.error("Atmospheric global mean biases diagnostic is terminated.")
         sys.exit(0)
 
     if bar_plot_bool:
         try:
             datasets = [ceres, model_data]
             model_names = [ceres_label, model_label]
-            barplot_model_data(datasets=datasets, model_names=model_names, outputdir=outputdir, outputfig=outputfig)
+            barplot_model_data(datasets=datasets, model_names=model_names,
+                               outputdir=outputdir, outputfig=outputfig)
             logger.info("The Bar Plot with provided model and CERES was created and saved. Variables ttr and tsr are plotted to show imbalances.")
         except ZeroDivisionError as zd_error:
             # Handle ZeroDivisionError
