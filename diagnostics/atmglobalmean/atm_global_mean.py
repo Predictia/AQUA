@@ -56,7 +56,6 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
     # Select the desired pressure level if provided
     if 'plev' in var1_climatology.dims: 
         if plev is not None:
-        
             try:
                 var1_climatology = var1_climatology.sel(plev=plev)
             except KeyError:
@@ -163,7 +162,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
     if outputfig is not None:
         create_folder(folder=str(outputfig), loglevel='WARNING')
         # Save the figure
-        filename = f"{outputfig}Seasonal_Bias_Plot_{model_label1}_{var_name}_{statistic}_{start_date1}_{end_date1}_{start_date2}_{end_date2}.pdf"
+        filename = f"{outputfig}Seasonal_Bias_Plot__{var_name}_{statistic}_{model_label1}_{start_date1}_{end_date1}_{model_label2}_{start_date2}_{end_date2}.pdf"
         plt.savefig(filename, dpi=300, format='pdf')
         logger.info(f"The seasonal bias plots have been saved to {outputfig} for {var_name} variable.")
     else:
@@ -173,7 +172,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
         create_folder(folder=str(outputdir), loglevel='WARNING')
         # Write the data into a NetCDF file
         data_directory = outputdir
-        data_filename = f"Seasonal_Bias_Data_{model_label1}_{var_name}_{statistic}_{start_date1}_{end_date1}_{start_date2}_{end_date2}.nc"
+        data_filename = f"Seasonal_Bias_Data_{var_name}_{statistic}_{model_label1}_{start_date1}_{end_date1}_{model_label2}_{start_date2}_{end_date2}.nc"
         data_path = os.path.join(data_directory, data_filename)
 
         data_array = xr.concat(results, dim='season')
@@ -263,7 +262,7 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None, start_dat
         if outputfig is not None:
             create_folder(folder=str(outputfig), loglevel='WARNING')
             # Save the plot as a PDF file
-            filename = f"Vertical_biases_{model_label1}_{model_label2}_{var_name}_{start_date1}_{end_date1}_{start_date2}_{end_date2}.pdf"
+            filename = f"Vertical_biases_{var_name}_{model_label1}_{start_date1}_{end_date1}_{model_label2}_{start_date2}_{end_date2}.pdf"
             output_path = os.path.join(outputfig, filename)
             plt.savefig(output_path, dpi=300, format='pdf')
             logger.info(f"The zonal bias plot for a selected models have been saved to {outputfig} for {var_name} variable.")
@@ -273,7 +272,7 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None, start_dat
         if outputdir is not None:
             create_folder(folder=str(outputdir), loglevel='WARNING')
             # Save the data into a NetCDF file
-            filename = f"{outputdir}/Vertical_bias_{model_label1}_{model_label2}_{var_name}_{start_date1}_{end_date1}_{start_date2}_{end_date2}.nc"
+            filename = f"{outputdir}/Vertical_bias_{var_name}_{model_label1}_{start_date1}_{end_date1}_{model_label2}_{start_date2}_{end_date2}.nc"
             mean_bias.to_netcdf(filename)
             logger.info(f"The zonal bias for a selected models has been saved to {outputdir} for {var_name} variable.")
         if outputfig is not None and outputdir is not None:
@@ -342,7 +341,7 @@ def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=N
     if outputfig is not None:
         create_folder(folder=str(outputfig), loglevel='WARNING')
         # Save the plot as a PDF file
-        filename = f"Statistics_maps_{model_label}_{var_name}.pdf"
+        filename = f"Statistics_maps_{model_label}_{var_name}_{start_date}_{end_date}.pdf"
         output_path = os.path.join(outputfig, filename)
         plt.savefig(output_path, dpi=300, format='pdf')
         logger.info(f"Plot a map of {var_name} variable have been saved to {outputfig}.")
@@ -352,7 +351,7 @@ def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=N
     if outputdir is not None:
         create_folder(folder=str(outputdir), loglevel='WARNING')
         # Save the data into a NetCDF file
-        data_filename = f"Statistics_Data_{model_label}_{var_name}.nc"
+        data_filename = f"Statistics_Data_{model_label}_{var_name}_{start_date}_{end_date}.nc"
         data_path = os.path.join(outputdir, data_filename)
 
         data_array = var_data.to_dataset(name=var_name)
