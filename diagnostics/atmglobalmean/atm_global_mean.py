@@ -47,8 +47,14 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
 
     if start_date1 is not None or end_date1 is not None:
         var1 = var1.sel(time=slice(start_date1, end_date1))
+    else:
+        start_date1 = str(var1["time.year"][0].values) +'-'+str(var1["time.month"][0].values)+'-'+str(var1["time.day"][0].values)
+        end_date1 = str(var1["time.year"][-1].values) +'-'+str(var1["time.month"][-1].values)+'-'+str(var1["time.day"][-1].values)
     if start_date2 is not None or end_date2 is not None:
         var2 = var2.sel(time=slice(start_date2, end_date2))
+    else:
+        start_date2 =  str(var2["time.year"][0].values) +'-'+str(var2["time.month"][0].values)+'-'+str(var2["time.day"][0].values)
+        end_date2 = str(var2["time.year"][-1].values) +'-'+str(var2["time.month"][-1].values)+'-'+str(var2["time.day"][-1].values)
 
     var1_climatology = var1.groupby('time.month').mean(dim='time')
     var2_climatology = var2.groupby('time.month').mean(dim='time')
@@ -159,6 +165,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
     fig.suptitle(overall_title, fontsize=14, fontweight='bold')
     plt.subplots_adjust(hspace=0.5)
 
+
     if outputdir is not None:
         create_folder(folder=str(outputdir), loglevel='WARNING')
         # Write the data into a NetCDF file
@@ -180,7 +187,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
     if outputfig is not None:
         create_folder(folder=str(outputfig), loglevel='WARNING')
         # Save the figure
-        filename = f"{outputfig}Seasonal_Bias_Plot__{var_name}_{statistic}_{model_label1}_{start_date1}_{end_date1}_{model_label2}_{start_date2}_{end_date2}.pdf"
+        filename = f"{outputfig}Seasonal_Bias_Plot_{var_name}_{statistic}_{model_label1}_{start_date1}_{end_date1}_{model_label2}_{start_date2}_{end_date2}.pdf"
         plt.savefig(filename, dpi=300, format='pdf')
         logger.info(f"The seasonal bias plots have been saved to {outputfig} for {var_name} variable.")
     else:
@@ -213,23 +220,21 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None, start_dat
     if start_date1 is not None or end_date1 is not None:
         start1 = datetime.datetime.strptime(start_date1, "%Y-%m-%d")
         end1 = datetime.datetime.strptime(end_date1, "%Y-%m-%d")
+        dataset1 = dataset1.sel(time=slice(start1, end1))
     else:
-        start1 = str(dataset1["time.year"][0].values) if len(dataset1.sel(time=str(dataset1["time.year"][0].values)).time) == 12 \
-                    else str(dataset1["time.year"][0].values + 1)
-        end1 = str(dataset1["time.year"][-1].values) if len(dataset1.sel(time=str(dataset1["time.year"][-1].values)).time) == 12 \
-                 else str(dataset1["time.year"][-1].values -1)
+        start1 = str(dataset1["time.year"][0].values) +'-'+str(dataset1["time.month"][0].values)+'-'+str(dataset1["time.day"][0].values)
+        end1 = str(dataset1["time.year"][-1].values) +'-'+str(dataset1["time.month"][-1].values)+'-'+str(dataset1["time.day"][-1].values)
     # Select the data for the given time ranges
-    dataset1 = dataset1.sel(time=slice(start1, end1))
+    
 
     if start_date2 is not None or end_date2 is not None:
         start2 = datetime.datetime.strptime(start_date2, "%Y-%m-%d")
         end2 = datetime.datetime.strptime(end_date2, "%Y-%m-%d")
+        dataset2 = dataset2.sel(time=slice(start2, end2)) 
     else:
-        start2 = str(dataset2["time.year"][0].values) if len(dataset2.sel(time=str(dataset2["time.year"][0].values)).time) == 12 \
-                    else str(dataset2["time.year"][0].values + 1)
-        end2 = str(dataset2["time.year"][-1].values) if len(dataset2.sel(time=str(dataset2["time.year"][-1].values)).time) == 12 \
-                 else str(dataset2["time.year"][-1].values -1)
-    dataset2 = dataset2.sel(time=slice(start2, end2)) 
+        start2 =  str(dataset2["time.year"][0].values) +'-'+str(dataset2["time.month"][0].values)+'-'+str(dataset2["time.day"][0].values)
+        end2 = str(dataset2["time.year"][-1].values) +'-'+str(dataset2["time.month"][-1].values)+'-'+str(dataset2["time.day"][-1].values)
+    
 
     # Calculate the bias between dataset1 and dataset2
     bias = dataset1[var_name] - dataset2[var_name].mean(dim='time')
@@ -298,13 +303,13 @@ def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=N
     if start_date is not None or end_date is not None:
         start_date = pd.to_datetime(start_date)
         end_date = pd.to_datetime(end_date)
+        var_data = dataset[var_name].sel(time=slice(start_date, end_date)).mean(dim='time')
     else:
-        start_date = str(dataset["time.year"][0].values) if len(dataset.sel(time=str(dataset["time.year"][0].values)).time) == 12 \
-                    else str(dataset["time.year"][0].values + 1)
-        end_date = str(dataset["time.year"][-1].values) if len(dataset.sel(time=str(dataset["time.year"][-1].values)).time) == 12 \
-                 else str(dataset["time.year"][-1].values -1)
+        var_data = dataset[var_name].mean(dim='time')
+        start_date = str(dataset["time.year"][0].values) +'-'+str(dataset["time.month"][0].values)+'-'+str(dataset["time.day"][0].values)
+        end_date = str(dataset["time.year"][-1].values) +'-'+str(dataset["time.month"][-1].values)+'-'+str(dataset["time.day"][-1].values)
     # Calculate statistics
-    var_data = dataset[var_name].sel(time=slice(start_date, end_date)).mean(dim='time')
+    
     if 'plev' in var_data.dims: 
         logger.error(f"The dataset for {var_name} variable has a 'plev' coordinate, but None is provided. The function 'plot_map_with_stats' is terminated.")
         return
@@ -343,7 +348,7 @@ def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=N
     if outputdir is not None:
         create_folder(folder=str(outputdir), loglevel='WARNING')
         # Save the data into a NetCDF file
-        data_filename = f"Statistics_Data_{model_label}_{var_name}_{start_date}_{end_date}.nc"
+        data_filename = f"Statistics_Data_{var_name}_{model_label}_{start_date}_{end_date}.nc"
         data_path = os.path.join(outputdir, data_filename)
 
         data_array = var_data.to_dataset(name=var_name)
@@ -356,7 +361,7 @@ def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=N
     if outputfig is not None:
         create_folder(folder=str(outputfig), loglevel='WARNING')
         # Save the plot as a PDF file
-        filename = f"Statistics_maps_{model_label}_{var_name}_{start_date}_{end_date}.pdf"
+        filename = f"Statistics_maps_{var_name}_{model_label}_{start_date}_{end_date}.pdf"
         output_path = os.path.join(outputfig, filename)
         plt.savefig(output_path, dpi=300, format='pdf')
         logger.info(f"Plot a map of {var_name} variable have been saved to {outputfig}.")
