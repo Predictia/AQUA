@@ -242,12 +242,13 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None, start_dat
         mean_bias = bias.mean(dim='time')
 
         # Create the z-values for the contour plot
-        coord_values_2d, plev_2d = np.meshgrid(coord_values, plev)
+        coord_values_2d = np.broadcast_to(coord_values[:, np.newaxis], (len(coord_values), len(plev)))
+        plev_2d = np.broadcast_to(plev, (len(coord_values), len(plev)))
         z_values = np.mean(mean_bias, axis=2)
 
         # Create the plot
         fig, ax = plt.subplots(figsize=(10, 8))
-        cax = ax.contourf(coord_values_2d, plev_2d, z_values, cmap='RdBu_r')
+        cax = ax.contourf(coord_values_2d, plev_2d, z_values.T, cmap='RdBu_r')
         ax.set_title(f'Bias of {var_name} Experiment {model_label1} with respect to {model_label2} \n Selected model time range: {start_date1} to {end_date1}. Reference time range: {start_date2} to {end_date2}')
         ax.set_yscale('log')
         ax.set_ylabel('Pressure Level (Pa)')
