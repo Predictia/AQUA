@@ -222,19 +222,17 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None, start_dat
         end1 = datetime.datetime.strptime(end_date1, "%Y-%m-%d")
         dataset1 = dataset1.sel(time=slice(start1, end1))
     else:
-        start1 = str(dataset1["time.year"][0].values) +'-'+str(dataset1["time.month"][0].values)+'-'+str(dataset1["time.day"][0].values)
-        end1 = str(dataset1["time.year"][-1].values) +'-'+str(dataset1["time.month"][-1].values)+'-'+str(dataset1["time.day"][-1].values)
+        start_date1 = str(dataset1["time.year"][0].values) +'-'+str(dataset1["time.month"][0].values)+'-'+str(dataset1["time.day"][0].values)
+        end_date1 = str(dataset1["time.year"][-1].values) +'-'+str(dataset1["time.month"][-1].values)+'-'+str(dataset1["time.day"][-1].values)
     # Select the data for the given time ranges
-    
 
     if start_date2 is not None or end_date2 is not None:
         start2 = datetime.datetime.strptime(start_date2, "%Y-%m-%d")
         end2 = datetime.datetime.strptime(end_date2, "%Y-%m-%d")
         dataset2 = dataset2.sel(time=slice(start2, end2)) 
     else:
-        start2 =  str(dataset2["time.year"][0].values) +'-'+str(dataset2["time.month"][0].values)+'-'+str(dataset2["time.day"][0].values)
-        end2 = str(dataset2["time.year"][-1].values) +'-'+str(dataset2["time.month"][-1].values)+'-'+str(dataset2["time.day"][-1].values)
-    
+        start_date2 =  str(dataset2["time.year"][0].values) +'-'+str(dataset2["time.month"][0].values)+'-'+str(dataset2["time.day"][0].values)
+        end_date2 = str(dataset2["time.year"][-1].values) +'-'+str(dataset2["time.month"][-1].values)+'-'+str(dataset2["time.day"][-1].values)
 
     # Calculate the bias between dataset1 and dataset2
     bias = dataset1[var_name] - dataset2[var_name].mean(dim='time')
