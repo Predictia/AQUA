@@ -17,6 +17,7 @@ from aqua.logger import log_configure
 loglevel: str = 'warning'
 logger = log_configure(log_level=loglevel, log_name='Atmglobalmean')
 
+
 def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statistic=None, model_label1=None, model_label2=None, 
                   start_date1=None, end_date1=None, start_date2=None, end_date2=None, outputdir=None, outputfig=None):
     '''
@@ -60,29 +61,28 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
     var2_climatology = var2.groupby('time.month').mean(dim='time')
 
     # Select the desired pressure level if provided
-    if 'plev' in var1_climatology.dims: 
+    if 'plev' in var1_climatology.dims:
         if plev is not None:
             try:
                 var1_climatology = var1_climatology.sel(plev=plev)
             except KeyError:
-                logger.warning(f"The provided value of pressure level is absent in the dataset. Please try again.")
+                logger.warning("The provided value of pressure level is absent in the dataset. Please try again.")
         else:
             logger.error(f"The dataset for {var_name} variable has a 'plev' coordinate, but None is provided. The function 'seasonal_bias' is terminated.")
             return
     logger.debug(f"The dataset does not have a 'plev' coordinate for {var_name} variable.")
-    
+
     if 'plev' in var2_climatology.dims: 
         if plev is not None:
             try:
                 var2_climatology = var2_climatology.sel(plev=plev)
             except KeyError:
-                logger.warning(f"The provided value of pressure level is absent in the dataset. Please try again.")
+                logger.warning("The provided value of pressure level is absent in the dataset. Please try again.")
         else:
             logger.error(f"The dataset for {var_name} variable has a 'plev' coordinate, but None is provided. The function 'seasonal_bias' is terminated.")
             return 
     else:
         logger.debug(f"The dataset does not have a 'plev' coordinate for {var_name} variable.")
-        
 
     # Calculate the desired statistic for each season
     season_ranges = {'DJF': [12, 1, 2], 'MAM': [3, 4, 5], 'JJA': [6, 7, 8], 'SON': [9, 10, 11]}
@@ -110,7 +110,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
 
         results.append(result_season)
 
-     # Create a cartopy projection
+    # Create a cartopy projection
     projection = ccrs.PlateCarree()
 
     # Calculate the number of rows and columns for the subplot grid
@@ -123,7 +123,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
 
     # Create a list to store the plotted objects
     cnplots = []
-    
+
     for i, (result, season) in enumerate(zip(results, season_ranges.keys())):
         ax = fig.add_subplot(gs[i], projection=projection)
         # Add coastlines to the plot
@@ -136,11 +136,11 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
         ax.set_yticks(np.arange(-90, 91, 30), crs=projection)
         ax.xaxis.set_major_formatter(LongitudeFormatter())
         ax.yaxis.set_major_formatter(LatitudeFormatter())
-        
+
         # Plot the bias data using the corresponding cnplot object
         cnplot = result.plot(ax=ax, cmap='RdBu_r', add_colorbar=False)
-        cnplots.append(cnplot) 
-        
+        cnplots.append(cnplot)
+
         ax.set_title(f'{season}')
         ax.set_xlabel('Longitude')
         ax.set_ylabel('Latitude')
@@ -164,7 +164,6 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
     # Set the title above the subplots
     fig.suptitle(overall_title, fontsize=14, fontweight='bold')
     plt.subplots_adjust(hspace=0.5)
-
 
     if outputdir is not None:
         create_folder(folder=str(outputdir), loglevel='WARNING')
@@ -198,7 +197,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
                     f"The seasonal bias maps were calculated and plotted for {var_name} variable.")
 
 
-def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None, start_date1=None, end_date1=None, 
+def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None, start_date1=None, end_date1=None,
                           start_date2=None, end_date2=None, model_label1=None, model_label2=None, outputdir=None, outputfig=None):
     """
     Compare two datasets and plot the zonal bias for a selected model time range with respect to the second dataset.
@@ -229,7 +228,7 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None, start_dat
     if start_date2 is not None or end_date2 is not None:
         start2 = datetime.datetime.strptime(start_date2, "%Y-%m-%d")
         end2 = datetime.datetime.strptime(end_date2, "%Y-%m-%d")
-        dataset2 = dataset2.sel(time=slice(start2, end2)) 
+        dataset2 = dataset2.sel(time=slice(start2, end2))
     else:
         start_date2 =  str(dataset2["time.year"][0].values) +'-'+str(dataset2["time.month"][0].values)+'-'+str(dataset2["time.day"][0].values)
         end_date2 = str(dataset2["time.year"][-1].values) +'-'+str(dataset2["time.month"][-1].values)+'-'+str(dataset2["time.day"][-1].values)
@@ -286,6 +285,7 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None, start_dat
     else:
         logger.error(f"The dataset for {var_name} variable does not have a 'plev' coordinate. The function 'compare_datasets_plev' is terminated.")
 
+
 def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=None, model_label=None, outputdir=None, outputfig=None):
     """
     Plot a map of a chosen variable from a dataset with colorbar and statistics.
@@ -306,9 +306,9 @@ def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=N
         var_data = dataset[var_name].mean(dim='time')
         start_date = str(dataset["time.year"][0].values) +'-'+str(dataset["time.month"][0].values)+'-'+str(dataset["time.day"][0].values)
         end_date = str(dataset["time.year"][-1].values) +'-'+str(dataset["time.month"][-1].values)+'-'+str(dataset["time.day"][-1].values)
+
     # Calculate statistics
-    
-    if 'plev' in var_data.dims: 
+    if 'plev' in var_data.dims:
         logger.error(f"The dataset for {var_name} variable has a 'plev' coordinate, but None is provided. The function 'plot_map_with_stats' is terminated.")
         return
     logger.debug(f"The dataset does not have a 'plev' coordinate for {var_name} variable.")
@@ -319,7 +319,7 @@ def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=N
     var_std = var_data.std().values.item()
     var_min = var_data.min().values.item()
     var_max = var_data.max().values.item()
-    
+
     # Plot the map
     fig = plt.figure(figsize=(10, 8))
     ax = plt.axes(projection=ccrs.PlateCarree())
@@ -365,8 +365,6 @@ def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=N
         logger.info(f"Plot a map of {var_name} variable have been saved to {outputfig}.")
     else:
         plt.show()
-
-    
 
     if outputfig is not None and outputdir is not None:
         logger.warning(
