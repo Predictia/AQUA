@@ -167,10 +167,11 @@ if __name__ == '__main__':
             try:
                 tc.evaluate_index()
                 if full_year:
-                    tc.evaluate_correlation()
-                    tc.evaluate_regression()
+                    reg_full = tc.evaluate_correlation()
+                    cor_full = tc.evaluate_regression()
             except NotEnoughDataError:
-                logger.error('Not enough data available for %s teleconnection', telec)
+                logger.error('Not enough data available for %s teleconnection',
+                             telec)
                 sys.exit(0)
 
             if seasons:
@@ -211,14 +212,14 @@ if __name__ == '__main__':
                     # for different teleconnections
                     if full_year:
                         map_names = ['regression', 'correlation']
-                        maps = [tc.regression, tc.correlation]
+                        maps = [reg_full, cor_full]
                         titles = map_names
                 elif telec == 'ENSO':
                     cbar_label = ['sst [K]', 'Pearson correlation']
                     transform_first = True
                     if full_year:
                         map_names = ['regression', 'correlation']
-                        maps = [tc.regression, tc.correlation]
+                        maps = [reg_full, cor_full]
                         titles = map_names
                 if seasons and (telec == 'NAO' or telec == 'ENSO'):
                     for i, season in enumerate(seasons):

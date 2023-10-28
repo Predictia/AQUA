@@ -124,8 +124,6 @@ class Teleconnection():
         # Data empty at the beginning
         self.data = None
         self.index = None
-        self.regression = None
-        self.correlation = None
 
         # Initialize the Reader class
         # Notice that reader is a private method
@@ -135,33 +133,6 @@ class Teleconnection():
             self._reader(zoom=self.zoom)
         else:
             self._reader()
-
-    def run(self, **kwargs):
-        """Run teleconnection analysis.
-
-        The analysis consists of:
-
-        - Retrieving the data
-        - Evaluating the teleconnection index
-        - Evaluating the regression
-        - Evaluating the correlation
-
-        These methods can be also run separately.
-
-        Keyword arguments:
-            - rebuild (bool): If True, the index, regression and correlation
-                              are recalculated. Default is False.
-        """
-
-        self.logger.debug('Running teleconnection analysis for data: %s/%s/%s',
-                          self.model, self.exp, self.source)
-
-        self.retrieve()
-        self.evaluate_index(**kwargs)
-        self.evaluate_regression(**kwargs)
-        self.evaluate_correlation(**kwargs)
-
-        self.logger.info('Teleconnection analysis completed')
 
     def retrieve(self, var=None, **kwargs):
         """Retrieve teleconnection data with the AQUA reader.
@@ -267,17 +238,14 @@ class Teleconnection():
 
     def evaluate_regression(self, data=None, var=None,
                             dim: str = 'time',
-                            season=None,
-                            rebuild: bool = False):
+                            season=None):
         """
         Evaluate teleconnection regression.
         If var is None, the regression is calculated between the teleconnection
-        index and the teleconnection variable. The regression is saved as
-        teleconnection attribute and can be accessed with self.regression.
+        index and the teleconnection variable.
         If var is not None, the regression is calculated between the teleconnection
-        index and the specified variable. The regression is not saved as
-        teleconnection attribute and can be accessed with the returned value.
-        In both cases the regression is returned as xarray.DataArray.
+        index and the specified variable.
+        The regression is returned as xarray.DataArray.
 
         Args:
             data (xarray.DataArray, optional): Data to be used for regression.
@@ -287,21 +255,12 @@ class Teleconnection():
             dim (str, optional):               Dimension to be used for regression.
                                                Default is 'time'.
             season (str, optional):            Season to be selected. Default is None.
-            rebuild (bool, optional):          If True, the regression is recalculated.
-                                               Default is False.
 
         Returns:
-            xarray.DataArray: Regression map if var is not None.
+            xarray.DataArray: Regression map
         """
-        if self.regression is not None and var is None and not rebuild:
-            self.logger.warning('Regression already calculated, skipping')
-            return
-
-        if rebuild and self.regression is not None:
-            self.logger.info('Rebuilding regression')
-
         # We prepare the data for the regression, season selection is done
-        # inside the function reg_evaluation, because it can be used 
+        # inside the function reg_evaluation, because it can be used
         # also as a standalone function
         data, dim = self._prepare_corr_reg(var=var, data=data, dim=dim)
 
@@ -314,11 +273,6 @@ class Teleconnection():
                 reg = reg.isel(depth_full=0)
             except ValueError:
                 self.logger.warning("Depth_full dimension not found, skipping")
-        if var is None and season is None:
-            # This is the case where the regression is saved as teleconnection attribute
-            self.regression = reg
-        else:
-            self.logger.warning("The result won't be saved as Teleconnection attribute, but only returned")
 
         if self.savefile:
             if var:
@@ -340,17 +294,14 @@ class Teleconnection():
 
     def evaluate_correlation(self, data=None, var=None,
                              dim: str = 'time',
-                             season=None,
-                             rebuild: bool = False):
+                             season=None):
         """
         Evaluate teleconnection correlation.
         If var is None, the correlation is calculated between the teleconnection
-        index and the teleconnection variable. The correlation is saved as
-        teleconnection attribute and can be accessed with self.correlation.
+        index and the teleconnection variable.
         If var is not None, the correlation is calculated between the teleconnection
-        index and the specified variable. The correlation is not saved as
-        teleconnection attribute and can be accessed with the returned value.
-        In both cases the correlation is returned as xarray.DataArray.
+        index and the specified variable. 
+        The correlation is returned as xarray.DataArray.
 
         Args:
             data (xarray.DataArray, optional): Data to be used for correlation.
@@ -360,30 +311,16 @@ class Teleconnection():
             dim (str, optional):               Dimension to be used for correlation.
                                                Default is 'time'.
             season (str, optional):            Season to be selected. Default is None.
-            rebuild (bool, optional):          If True, the correlation is recalculated.
-                                               Default is False.
 
         Returns:
-            xarray.DataArray: Correlation map if var is not None.
+            xarray.DataArray: Correlation map
         """
-        if self.correlation is not None and var is None and not rebuild:
-            self.logger.warning('Correlation already calculated, skipping')
-            return
-
-        if rebuild and self.correlation is not None:
-            self.logger.info('Rebuilding correlation')
-
         # We prepare the data for the regression, season selection is done
-        # inside the function reg_evaluation, because it can be used 
+        # inside the function reg_evaluation, because it can be used
         # also as a standalone function
         data, dim = self._prepare_corr_reg(var=var, data=data, dim=dim)
 
         cor = cor_evaluation(indx=self.index, data=data, dim=dim, season=season)
-
-        if var is None and season is None:
-            self.correlation = cor
-        else:
-            self.logger.warning("The result won't be saved as Teleconnection attribute, but only returned")
 
         if self.savefile:
             if var:
