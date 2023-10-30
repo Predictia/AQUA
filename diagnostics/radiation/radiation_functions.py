@@ -239,7 +239,7 @@ def barplot_model_data(datasets=None, model_names=None, outputdir=None, outputfi
     sns.set_palette("pastel")
     global_mean = {'Variables': ["mtntrf", "mtnsrf"]}
 
-    model_names = [dataset["model"] + '_' + dataset["exp"]+ '_' + dataset["source"] for dataset in datasets] if model_names is None else model_names
+    model_names = [dataset["model"] + ' ' + dataset["exp"]+ ' ' + dataset["source"] for dataset in datasets] if model_names is None else model_names
     for i in range(0, len(datasets)):
         if "clim_gm" in datasets[i]:
             global_mean.update({model_names[i]: [-datasets[i]["clim_gm"]["mtntrf"].mean(
