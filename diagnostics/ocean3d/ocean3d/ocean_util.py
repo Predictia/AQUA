@@ -132,7 +132,8 @@ def convert_longitudes(data):
     return data
 
 
-def area_selection(data, region=None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None):
+def area_selection(data, region=None, latS: float = None, latN: float = None,
+                   lonW: float = None, lonE: float = None):
     """
     Compute the weighted area mean of data within the specified latitude and longitude bounds.
 
@@ -173,7 +174,8 @@ def area_selection(data, region=None, latS: float = None, latN: float = None, lo
     return data
 
 
-def weighted_zonal_mean(data, region=None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None):
+def weighted_zonal_mean(data, region=None, latS: float = None, latN: float = None,
+                        lonW: float = None, lonE: float = None):
     """
     Compute the weighted zonal mean of data within the specified latitude and longitude bounds.
 
@@ -201,7 +203,8 @@ def weighted_zonal_mean(data, region=None, latS: float = None, latN: float = Non
     return wgted_mean
 
 
-def weighted_area_mean(data, region=None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None):
+def weighted_area_mean(data, region=None, latS: float = None, latN: float = None,
+                       lonW: float = None, lonE: float = None):
     """
     Compute the weighted area mean of data within the specified latitude and longitude bounds.
 
@@ -227,12 +230,15 @@ def weighted_area_mean(data, region=None, latS: float = None, latN: float = None
     wgted_mean = weighted_data.mean(("lat", "lon"))
     return wgted_mean
 
-def custom_region(region=None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None):
+
+def custom_region(region=None, latS: float = None, latN: float = None,
+                  lonW: float = None, lonE: float = None):
     if region in [None, "custom"]:
         region_name = f"Region ({latS}:{latN} Lat, {lonW}:{lonE} Lon)"
     else:
         region_name = region
     return region_name
+
 
 def split_time_equally(data):
     """

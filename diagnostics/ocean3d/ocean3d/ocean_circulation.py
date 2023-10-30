@@ -205,7 +205,8 @@ def compute_rho(absso, bigocpt, ref_pressure):
 
 def convert_variables(data):
     """
-    Convert variables in the given dataset to absolute salinity, conservative temperature, and potential density.
+    Convert variables in the given dataset to absolute salinity,
+    conservative temperature, and potential density.
 
     Parameters
     ----------
@@ -215,7 +216,8 @@ def convert_variables(data):
     Returns
     -------
     converted_data : xarray.Dataset
-        Dataset containing the converted variables: absolute salinity (so), conservative temperature (ocpt),
+        Dataset containing the converted variables: absolute salinity (so),
+        conservative temperature (ocpt),
         and potential density (rho) at reference pressure 0 dbar.
 
     """
@@ -223,10 +225,10 @@ def convert_variables(data):
 
     # Convert practical salinity to absolute salinity
     absso = convert_so(data.so)
-    logger.info("practical salinity converted to absolute salinity")
+    logger.info("Practical salinity converted to absolute salinity")
     # Convert potential temperature to conservative temperature
     ocpt = convert_ocpt(absso, data.ocpt)
-    logger.info("potential temperature converted to conservative temperature")
+    logger.info("Potential temperature converted to conservative temperature")
     # Compute potential density in-situ at reference pressure 0 dbar
     rho = compute_rho(absso, ocpt, 0)
     logger.info(
@@ -298,7 +300,8 @@ def plot_stratification(mod_data, region=None, time=None, latS: float = None, la
 
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(mod_data,
-             region, latS, latN, lonW, lonE, output_dir, plot_name=f"stratification_{time}_clim")
+             region, latS, latN, lonW, lonE, output_dir,
+             plot_name=f"stratification_{time}_clim")
 
     legend_list = []
     if time in ["Yearly"]:
@@ -307,7 +310,7 @@ def plot_stratification(mod_data, region=None, time=None, latS: float = None, la
     else:
         start_year = mod_data_list[0].time[0].dt.year.data
         end_year = mod_data_list[0].time[0].dt.year.data
-        
+
     for i, var in zip(range(len(axs)), ["ocpt", "so", "rho"]):
         axs[i].set_ylim((4500, 0))
         data_1 = mod_data_list[0][var].mean("time")
@@ -321,7 +324,7 @@ def plot_stratification(mod_data, region=None, time=None, latS: float = None, la
 
         if len(mod_data_list) > 1:
             data_2 = mod_data_list[1][var].mean("time")
-            axs[i].plot(data_2, data_2.lev, 'b-', linewidth=2.0)  
+            axs[i].plot(data_2, data_2.lev, 'b-', linewidth=2.0)
             legend_info = f"Model {start_year}-{end_year}"
             legend_list.append(legend_info)
             if output:
@@ -336,8 +339,8 @@ def plot_stratification(mod_data, region=None, time=None, latS: float = None, la
                 data_3.to_netcdf(
                     f'{data_dir}/{filename}_{legend_info.replace(" ","_")}.nc')
 
-    region_title = custom_region(region= region, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
-    
+    region_title = custom_region(region=region, latS=latS, latN=latN, lonW=lonW, lonE=lonE)
+
     fig.suptitle(
         f"Climatological {time.upper()} T, S and rho0 stratification in {region_title}", fontsize=20)
     axs[0].set_title("Temperature Profile", fontsize=16)
@@ -359,7 +362,7 @@ def plot_stratification(mod_data, region=None, time=None, latS: float = None, la
     if output:
         plt.savefig(f"{fig_dir}/{filename}.pdf")
         logger.info(
-            " Figure and data used in the plot, saved here : %s", output_path)
+            "Figure and data used in the plot, saved here : %s", output_path)
     plt.show()
     return
 
@@ -380,8 +383,6 @@ def compute_mld_cont(rho):
     Returns
     -------
     mld: xarray.DataArray, dims of time, space
-
-
     """
     # Here we identify the first level to represent the surfac
     surf_dens = rho.isel(lev=slice(0, 1)).mean("lev")
@@ -420,7 +421,9 @@ def compute_mld_cont(rho):
     return mld
 
 
-def data_for_plot_spatial_mld_clim(data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None):
+def data_for_plot_spatial_mld_clim(data, region=None, time=None,
+                                   latS: float = None, latN: float = None,
+                                   lonW: float = None, lonE: float = None):
     """
     Extracts and prepares data for plotting spatial mean mixed layer depth (MLD) climatology.
 
@@ -445,8 +448,10 @@ def data_for_plot_spatial_mld_clim(data, region=None, time=None, latS: float = N
     return data.mean("time"), time
 
 
-def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None,
-                          lonE: float = None, overlap=False, output=False, output_dir=None):
+def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None,
+                          latN: float = None, lonW: float = None,
+                          lonE: float = None, overlap=False,
+                          output=False, output_dir=None):
     """
     Plots the climatology of mixed layer depth in the NH as computed with de Boyer Montegut (2004)'s criteria in
     an observational dataset and a model dataset, allowing the user to select the month the climatology is computed
@@ -470,8 +475,10 @@ def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, 
         obs_data = crop_obs_overlap_time(mod_data, obs_data)
         mod_data = crop_obs_overlap_time(obs_data, mod_data)
 
-    mod_clim, time = data_for_plot_spatial_mld_clim(mod_data, region, time, latS, latN, lonW, lonE)  # To select the month and compute its climatology
-    obs_clim, time = data_for_plot_spatial_mld_clim(obs_data, region, time, latS, latN, lonW, lonE)  # To select the month and compute its climatology
+    mod_clim, time = data_for_plot_spatial_mld_clim(mod_data, region, time,
+                                                    latS, latN, lonW, lonE)  # To select the month and compute its climatology
+    obs_clim, time = data_for_plot_spatial_mld_clim(obs_data, region, time,
+                                                    latS, latN, lonW, lonE)  # To select the month and compute its climatology
     # obs_data=crop_obs_overlap_time(mod_data, obs_data)
 
     # We identify the first year used in the climatology
@@ -486,8 +493,7 @@ def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, 
 
     mod_clim = mod_clim["rho"]
     obs_clim = obs_clim["rho"]
-
-        
+ 
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(mod_data,
              region, latS, latN, lonW, lonE, output_dir, plot_name=f"spatial_MLD_{time}")
@@ -495,7 +501,7 @@ def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, 
     logger.info("Spatial MLD plot is in process")
     fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(20, 6.5))
 
-    region_title = custom_region(region= region, latS = latS, latN = latN, lonW = lonW, lonE = lonE)
+    region_title = custom_region(region=region, latS=latS, latN=latN, lonW=lonW, lonE=lonE)
 
     fig.suptitle(
         f'Climatology of {time.upper()} mixed layer depth in {region_title}', fontsize=20)
@@ -505,27 +511,27 @@ def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None, 
     # We round up to next hundreth
     clev2 = max(np.max(mod_clim), np.max(obs_clim))
     # print(clev2)
-    if clev2<200:
-        inc=10
-        clev2=round(int(clev2), -1)
-    elif clev2>1500:
-        inc=100
-        clev2=round(int(clev2),-2)
+    if clev2 < 200:
+        inc = 10
+        clev2 = round(int(clev2), -1)
+    elif clev2 > 1500:
+        inc = 100
+        clev2 = round(int(clev2),-2)
     else:
-        inc=50
-        clev2=round(int(clev2), -2)
-   
+        inc = 50
+        clev2 = round(int(clev2), -2)
+
     nclev = int(clev2/inc)+1
     clev2 = float(clev2)
 
     cs1 = axs[0].contourf(mod_clim.lon, mod_clim.lat, mod_clim,
                           levels=np.linspace(clev1, clev2, nclev), cmap='jet')
-    fig.colorbar(cs1, location="bottom",label='Mixed layer depth (in m)')
+    fig.colorbar(cs1, location="bottom", label='Mixed layer depth (in m)')
 
     cs1 = axs[1].contourf(obs_clim.lon, obs_clim.lat, obs_clim,
                           levels=np.linspace(clev1, clev2, nclev), cmap='jet')
 
-    fig.colorbar(cs1, location="bottom",label='Mixed layer depth (in m)')
+    fig.colorbar(cs1, location="bottom", label='Mixed layer depth (in m)')
 
     if output:
         mod_clim.to_netcdf(f'{data_dir}/{filename}_Rho.nc')
