@@ -183,11 +183,9 @@ if __name__ == '__main__':
                                     telec, season)
                         # We need rebuild=True because tc.regression is
                         # already assigned and will not be rebuilt
-                        reg = tc.evaluate_regression(season=season,
-                                                     rebuild=True)
+                        reg = tc.evaluate_regression(season=season)
                         reg_season.append(reg)
-                        cor = tc.evaluate_correlation(season=season,
-                                                      rebuild=True)
+                        cor = tc.evaluate_correlation(season=season)
                         cor_season.append(cor)
                     except NotEnoughDataError:
                         logger.error('Not enough data available for %s teleconnection',
