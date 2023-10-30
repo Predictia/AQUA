@@ -362,7 +362,7 @@ def data_time_selection(data, time):
         if "year" in list(data.dims):
             data = data.rename({"year": "time"})
             time = "Yearly"
-    elif time in ["jja", "jun_jul_aug", "jun-jul-aug", "june-july-august", "june_july_august", "14, 14"]:
+    elif time in ["jja", "jun_jul_aug", "jun-jul-aug", "june-july-august", "june_july_august", "14", 14]:
         data = data.where((data['time.month'] >= 6) & (
             data['time.month'] <= 8), drop=True)
         time = "Jun-Jul-Aug"
