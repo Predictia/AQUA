@@ -363,7 +363,7 @@ def plot_stratification(mod_data, region=None, time=None, latS: float = None, la
         plt.savefig(f"{fig_dir}/{filename}.pdf")
         logger.info(
             "Figure and data used in the plot, saved here : %s", output_path)
-    plt.show()
+    #plt.show()
     return
 
 
@@ -554,5 +554,5 @@ def plot_spatial_mld_clim(mod_data, region=None, time=None, latS: float = None,
         logger.info(
             "Figure and data used for this plot are saved here: %s", output_path)
 
-    plt.show()
+    #plt.show()
     return

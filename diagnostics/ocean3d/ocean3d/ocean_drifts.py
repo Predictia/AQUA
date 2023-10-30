@@ -90,7 +90,7 @@ def zonal_mean_trend_plot(data, region=None,
         logger.info(
             "Figure and data used for this plot are saved here: %s", output_path)
 
-    plt.show()
+    #plt.show()
 
     return
 
@@ -389,7 +389,7 @@ def time_series_multilevs(data, region=None, anomaly: bool = False,
         plt.savefig(f"{fig_dir}/{filename}.pdf")
         logger.info(
             " Figure and data used in the plot, saved here : %s", output_path)
-    plt.show()
+    #plt.show()
     return
 
 
@@ -647,6 +647,6 @@ def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=N
         logger.info(
             "Figure and data used for this plot are saved here: %s", output_path)
 
-    plt.show()
+    #plt.show()
 
     return
