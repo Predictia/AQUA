@@ -560,13 +560,21 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
     mean_bias = mean_bias.where(~mean_bias.isnull(), np.nan)
 
     model_label = model["model"]+'_'+model["exp"]+'_'+model["source"] if model_label is None else model_label
+    
+    # Generate the figure
+    fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()},
+                            figsize=(11, 8.5))
 
-    # Create the plot
-    fig = plt.figure(figsize=(14, 8))
-    gs = gridspec.GridSpec(2, 1, hspace=0.1)
-
-    ax = plt.subplot(gs[0], projection=ccrs.PlateCarree())
-    contour_plot = mean_bias.plot.contourf(ax=ax, transform=ccrs.PlateCarree(), cmap='RdBu_r', levels=20)
+    contour_plot = mean_bias.plot.contourf(ax=ax, transform=ccrs.PlateCarree(), cmap='RdBu_r', levels=20,
+                            add_colorbar=False, add_labels=False, extend='both')
+    fig.subplots_adjust(bottom=0.25, top=0.9, left=0.05, right=0.95,
+                         wspace=0.1, hspace=0.5)
+    cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.02])
+    try:
+        fig.colorbar(contour_plot, cax=cbar_ax, orientation='horizontal',
+                    label=mean_bias.long_name+' ['+mean_bias.units+']')
+    except AttributeError:
+        fig.colorbar(contour_plot, cax=cbar_ax, orientation='horizontal')
 
     ax.coastlines(color='black', linewidth=0.5)
     ax.gridlines(linewidth=0.5)
