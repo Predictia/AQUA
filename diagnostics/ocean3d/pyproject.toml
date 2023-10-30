@@ -7,7 +7,8 @@ build-backend = "setuptools.build_meta"
 name = "ocean3d"
 dynamic = ["version"]
 authors = [
-    {name = "Nurisso Matteo", email = "m.nurisso@isac.cnr.it"}
+    {name = "Supriyo Ghosh", email = "supryo.gosh@bsc.es"},
+    {name = "Pablo Ortega", email = "pablo.ortega@bsc.es"}
 ]
 description = "Ocean circulation and drift diagnostic"
 readme = "README.md"
