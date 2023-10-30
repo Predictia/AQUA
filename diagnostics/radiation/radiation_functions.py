@@ -161,7 +161,7 @@ def gregory_plot(obs_data=None, models=None, obs_time_range=None, model_labels=N
     obs_tnr_resampled = obs_data_gm["tnr"].resample(time="M").mean()
 
     if obs_labels is None:
-        obs_labels = obs_data["model"]+'_'+starting_year+'_'+final_year
+        obs_labels = obs_data["model"]+' '+obs_data["exp"]+' '+obs_data["source"] +', ('+starting_year+'-'+final_year+')'
     # Plot the data
     line = ax.plot(
         obs_2t_resampled - 273.15, obs_tnr_resampled,
@@ -170,7 +170,7 @@ def gregory_plot(obs_data=None, models=None, obs_time_range=None, model_labels=N
     labels.append(obs_labels)
 
     for i, model in enumerate(models):
-        model_name = model["model"]+'_'+model["exp"] if model_labels is None else model_labels[i]
+        model_name = model["model"]+' '+model["exp"]+' '+model["source"] if model_labels is None else model_labels[i]
         model_color = colors[i % len(colors)]  # Rotate colors for each model
         model_2t = model["gm"]["2t"].resample(time="M").mean() - 273.15
         model_tnr = model["gm"]["tnr"].resample(time="M").mean()
@@ -213,7 +213,7 @@ def gregory_plot(obs_data=None, models=None, obs_time_range=None, model_labels=N
             end_date = str(model["data"]["time.year"][-1].values) +'-'+str(model["data"]["time.month"][-1].values)+'-'+str(model["data"]["time.day"][-1].values)
             model_name = model["model"]+'_'+model["exp"]+'_'+model["source"] if model_labels is None else model_labels[i]
             filename = f"{outputfig}/gregory_plot_{model_name}_{start_date}_{end_date}.pdf"
-            plt.savefig(filename, dpi=300, format='pdf')
+            plt.savefig(filename, dpi=300, format='pdf', bbox_inches="tight")
             logger.info(f"Plot has been saved to {outputfig}.")
     else:
         plt.show()
@@ -276,7 +276,7 @@ def barplot_model_data(datasets=None, model_names=None, outputdir=None, outputfi
         create_folder(folder=str(outputfig), loglevel='WARNING')
         
         filename = f"{outputfig}/barplot_mtntrf_mtnsrf_{'_'.join(model_names).replace(' ', '_').lower()}.pdf"
-        plt.savefig(filename, dpi=300, format='pdf')
+        plt.savefig(filename, dpi=300, format='pdf', bbox_inches="tight")
         logger.info(f"Plot has been saved to {outputfig}.")
     else:
         plt.show()
@@ -334,7 +334,7 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, o
     if linelabels is None:
         linelabels = []
         for model in models:
-            linelabels.append(model["model"]+'_'+model["exp"]+'_'+model["source"])
+            linelabels.append(model["model"]+' '+model["exp"]+' '+model["source"])
 
     for i, model in enumerate(models):
         ttr_diff = []  # Initialize an empty list to store the data for each year
@@ -367,20 +367,20 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, o
         long_time = np.append(shading_data['time'], shading_data['time'][::-1])
 
     axes[0].fill(long_time, np.append(shading_data['mtntrf'].min(dim='ensemble'), shading_data['mtntrf'].max(dim='ensemble')[::-1]), 
-                 color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
+                 color='lightgrey', alpha=0.6, label='ceres individual years', zorder=0)
     axes[0].set_title('LW', fontsize=16)
     axes[0].set_xticklabels([])
     axes[0].set_xlabel('')
     axes[0].legend(loc="upper left", frameon=False, fontsize='medium', ncol=3)
 
     axes[1].fill(long_time, np.append(shading_data['mtnsrf'].min(dim='ensemble'), shading_data['mtnsrf'].max(dim='ensemble')[::-1]),
-                 color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
+                 color='lightgrey', alpha=0.6, label='ceres individual years', zorder=0)
     axes[1].set_title('SW', fontsize=16)
     axes[1].set_xticklabels([])
     axes[1].set_xlabel('')
 
     axes[2].fill(long_time, np.append(shading_data['tnr'].min(dim='ensemble'), shading_data['tnr'].max(dim='ensemble')[::-1]), 
-                 color='lightgrey', alpha=0.6, label='CERES individual years', zorder=0)
+                 color='lightgrey', alpha=0.6, label='ceres individual years', zorder=0)
     axes[2].set_title('net', fontsize=16)
 
     for i in range(3):
@@ -407,7 +407,7 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, o
         create_folder(folder=str(outputfig), loglevel='WARNING')
         all_labels = '_'.join(linelabels).replace(' ', '_').lower()
         filename = f"{outputfig}/timeseries_{all_labels}.pdf"
-        plt.savefig(filename, dpi=300, format='pdf')
+        plt.savefig(filename, dpi=300, format='pdf', bbox_inches="tight")
         logger.info(f"Plot has been saved to {outputfig}.")
     else:
         plt.show()
@@ -522,7 +522,7 @@ def plot_maps(model=None, var=None, year=None, model_label=None,  ceres=None, ou
     if outputfig is not None:
         create_folder(folder=str(outputfig), loglevel='WARNING')
         filename = f"{outputfig}toa_bias_maps_{label}_{year}_{model_label}.pdf"
-        plt.savefig(filename, dpi=300, format='pdf')
+        plt.savefig(filename, dpi=300, format='pdf', bbox_inches="tight")
         logger.info(f"Plot has been saved to {outputfig}.") 
     else:
         plt.show()
@@ -562,7 +562,7 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
     model_label = model["model"]+'_'+model["exp"]+'_'+model["source"] if model_label is None else model_label
 
     # Create the plot
-    fig = plt.figure(figsize=(14, 10))
+    fig = plt.figure(figsize=(14, 8))
     gs = gridspec.GridSpec(2, 1, hspace=0.1)
 
     ax = plt.subplot(gs[0], projection=ccrs.PlateCarree())
@@ -591,7 +591,7 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
         create_folder(folder=str(outputfig), loglevel='WARNING')
         ceres_model_name = ceres["model"]+'_'+ceres["exp"]+'_'+ceres["source"]
         filename = f"{outputfig}toa_mean_biases_{var}_{model_label}_{start_year}_{end_year}_{ceres_model_name}.pdf"
-        plt.savefig(filename, dpi=300, format='pdf')
+        plt.savefig(filename, dpi=300, format='pdf', bbox_inches="tight")
         logger.info(f"Plot has been saved to {outputfig}.")
     else:
         plt.show()
