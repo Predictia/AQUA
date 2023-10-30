@@ -89,10 +89,6 @@ if __name__ == '__main__':
     bias_maps_bool = config['diagnostic_attributes']['bias_maps']
     gregory_bool = config['diagnostic_attributes']['gregory']
     time_series_bool = config['diagnostic_attributes']['time_series']
-
-    model_label = model.lower()+'_'+exp.lower()+'_'+source.lower()
-    ceres_label = 'icon'+'_'+exp_ceres.lower()+'_'+source_ceres.lower()
-    obs_label = 'era5'+'_'+exp_era5.lower()+'_'+source_era5.lower()
     try:
         model_data = process_model_data(model=model, exp=exp, source=source)
     except Exception as e:
@@ -111,9 +107,7 @@ if __name__ == '__main__':
     if bar_plot_bool:
         try:
             datasets = [ceres, model_data]
-            model_names = [ceres_label, model_label]
-            barplot_model_data(datasets=datasets, model_names=model_names,
-                               outputdir=outputdir, outputfig=outputfig)
+            barplot_model_data(datasets=datasets, outputdir=outputdir, outputfig=outputfig)
             logger.info("The Bar Plot with provided model and CERES was created and saved. Variables ttr and tsr are plotted to show imbalances.")
         except Exception as e:
             # Handle other exceptions
@@ -131,9 +125,7 @@ if __name__ == '__main__':
 
     if gregory_bool:
         try:
-            model_list = model_data
-            gregory_plot(obs_data=era5, models=model_list, outputdir=outputdir, outputfig=outputfig)
-
+            gregory_plot(obs_data=era5, models=model_data, outputdir=outputdir, outputfig=outputfig)
             logger.info(
                 "Gregory Plot was created and saved with various models and an observational dataset.")
         except Exception as e:
@@ -142,9 +134,7 @@ if __name__ == '__main__':
 
     if time_series_bool:
         try:
-            models = model_data
-            linelabels = model_label
-            plot_model_comparison_timeseries(models=models, ceres=ceres, outputdir=outputdir, outputfig=outputfig)
+            plot_model_comparison_timeseries(models=model_data, ceres=ceres, outputdir=outputdir, outputfig=outputfig)
             logger.info(
                 "The time series bias plot with various models and CERES was created and saved.")
         except Exception as e:
