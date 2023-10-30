@@ -562,13 +562,15 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
     model_label = model["model"]+'_'+model["exp"]+'_'+model["source"] if model_label is None else model_label
 
     # Create the plot
-    fig = plt.figure(figsize=(10, 6))
-    gs = gridspec.GridSpec(2, 1, height_ratios=[10, 1], hspace=0.1)
+    fig = plt.figure(figsize=(14, 10))
+    gs = gridspec.GridSpec(2, 1, hspace=0.1)
+
     ax = plt.subplot(gs[0], projection=ccrs.PlateCarree())
     contour_plot = mean_bias.plot.contourf(ax=ax, transform=ccrs.PlateCarree(), cmap='RdBu_r', levels=20)
+
     ax.coastlines(color='black', linewidth=0.5)
     ax.gridlines(linewidth=0.5)
-    ax.set_title(f'{var.upper()} Bias of the {model_label} climatology ({start_year} to {end_year})\n relative to the CERES climatology (2001-2021)', fontsize=14)
+    ax.set_title(f'{var.upper()} bias of the {model_label.replace("_", " ")} climatology ({start_year} to {end_year})\n relative to the CERES climatology (2001-2021)', fontsize=14)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
     ax.set_xticks(np.arange(-180, 181, 30), crs=ccrs.PlateCarree())
@@ -576,7 +578,7 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
     ax.tick_params(axis='both', which='both', labelsize=10)
     ax.xaxis.set_ticklabels(['-180°', '-150°', '-120°', '-90°', '-60°', '-30°', '0°', '30°', '60°', '90°', '120°', '150°', '180°'])
     ax.yaxis.set_ticklabels(['-90°', '-60°', '-30°', '0°', '30°', '60°', '90°'])
-    
+
     if outputdir is not None:
         create_folder(folder=str(outputdir), loglevel='WARNING')
         # Save the data to a netCDF file
