@@ -11,7 +11,7 @@ import cartopy.crs as ccrs
 from matplotlib.legend_handler import HandlerTuple
 from aqua import Reader
 import matplotlib.gridspec as gridspec
-from aqua.util import create_folder
+from aqua.util import create_folder, add_cyclic_lon
 from aqua.logger import log_configure
 
 cdo = Cdo(tempdir='./tmp/cdo-py')
@@ -559,6 +559,9 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
     mean_bias = (model["data"][var].sel(time=slice(str(start_year), str(end_year))).mean(dim='time') - ceres["clim"][var]).mean(dim='time')
     # Convert masked values to NaN
     mean_bias = mean_bias.where(~mean_bias.isnull(), np.nan)
+
+    # Add cyclic longitude
+    mean_bias = add_cyclic_lon(mean_bias)
 
     model_label = model["model"]+'_'+model["exp"]+'_'+model["source"] if model_label is None else model_label
     
