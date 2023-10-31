@@ -189,8 +189,8 @@ def gregory_plot(obs_data=None, models=None, obs_time_range=None, model_labels=N
     ax.set_ylabel("Net radiation TOA [Wm$^{-2}$]", fontsize=fontsize-2)
     ax.set_title("Gregory Plot", fontsize=fontsize)
     ax.legend(handles, labels + ["Start", "End"], handler_map={tuple: HandlerTuple(ndivide=None)})
-    ax.text(0.5, -0.15, "Black stars indicate the first value of the dataseries\nRed X indicate the last value of the dataseries.",
-            transform=ax.transAxes, fontsize=fontsize-6, verticalalignment='top', horizontalalignment='center')
+    # ax.text(0.5, -0.15, "Black stars indicate the first value of the dataseries\nRed X indicate the last value of the dataseries.",
+    #         transform=ax.transAxes, fontsize=fontsize-6, verticalalignment='top', horizontalalignment='center')
     ax.tick_params(axis="both", which="major", labelsize=10)
     
     ax.grid(True, linestyle="--", linewidth=0.5)
@@ -389,7 +389,8 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, o
         axes[i].plot(xlim , [0, 0], color='black', linestyle=':')
         axes[i].set_ylim([-ylim, ylim])
 
-    plt.suptitle('Global mean TOA radiation bias relative to CERES climatology - nextGEMS Cycle 3', fontsize=18)
+    #plt.suptitle('Global mean TOA radiation bias relative to CERES climatology - nextGEMS Cycle 3', fontsize=18)
+    plt.suptitle('Global mean TOA radiation bias relative to CERES climatology', fontsize=18)
     
     plt.tight_layout()
 
