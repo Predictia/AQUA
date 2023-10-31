@@ -889,7 +889,7 @@ class Reader(FixerMixin, RegridMixin):
 
         return ds
 
-    def stream_data(self, data, startdate=None, enddate=None, aggregation=None,
+    def stream(self, data, startdate=None, enddate=None, aggregation=None,
                timechunks=None, reset=False):       
         """
         Stream a dataset chunk using the startdate, enddate, and aggregation parameters defined in the constructor. 
