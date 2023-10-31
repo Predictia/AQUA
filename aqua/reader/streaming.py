@@ -26,9 +26,6 @@ class Streaming():
         If startdate is not specified, the method will use the first date in the dataset.
 
         Arguments:
-            stream_step (int):      the number of time steps to stream the data by (Default = 1)
-            stream_unit (str):      the unit of time to stream the data by
-                                    (e.g. 'hours', 'days', 'months', 'years', 'steps') (steps)
             startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
             enddate (str): the ending date for streaming the data (e.g. '2021-01-01') (None)
             aggregation (str): the streaming frequency in pandas style (1M, 7D etc.)

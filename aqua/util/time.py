@@ -29,14 +29,12 @@ def frequency_string_to_pandas(freq):
         'week': '1W',
         'month': '1M',
         'year': '1Y',
-        'decade': '10Y',
         'hours': '1H',
         'days': '1D',
         'pentads': '5D',
         'weeks': '1W',
         'months': '1M',
         'years': '1Y',
-        'decades': '10Y'
     }
 
     new_freq = trans.get(freq, freq)
