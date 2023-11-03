@@ -2,7 +2,6 @@
 
 import pytest
 import pandas as pd
-import numpy as np
 from aqua import Reader
 
 # pytest approximation, to bear with different machines
@@ -58,10 +57,10 @@ class TestAquaStreaming:
         assert data['2t'].shape == (num_hours, 9, 18)
 
         # Test if starting date is ok
-        assert data.time.values[0] == np.datetime64(start_date)
+        assert data.time.values[0] == pd.to_datetime(start_date)
         
         # Test if end date is ok
-        assert data.time.values[-1] == np.datetime64(end_date - step)
+        assert data.time.values[-1] == pd.to_datetime(end_date - step)
 
         # Test if we can go to the next date
         data = reader.retrieve()
@@ -72,3 +71,16 @@ class TestAquaStreaming:
         reader.reset_stream()
         data = reader.retrieve()
         assert data.time.values[0] == start_date
+
+
+    def test_generator(self):
+        """
+        Test generator option of streaming mode
+        """
+        reader = Reader(model='IFS', exp='test-tco79', source='long', fix = False, stream_generator = True, startdate = '2020-05-01', aggregation = 'monthly')
+        data_gen = reader.retrieve()
+        start_dates = ["2020-05-01", "2020-06-01", "2020-07-01", "2020-08-01"]
+        i = 0
+        for data in data_gen:
+            assert data.time[0].values == pd.to_datetime(start_dates[i])
+            i+=1
