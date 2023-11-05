@@ -238,8 +238,8 @@ The function will automatically determine the appropriate start and end points f
 the internal state of the streaming process.
 If we want to reset the state of the streaming process, we can call the ``reset_stream`` method.
 
-Another possibility to deal with data streaming is to call the `generator` method of the `Streaming` class.
-This can be done through the argument ``streaming_generator = True`` in the Reader initialization:
+Another possibility to deal with data streaming (which we actually recommend)
+is to use the argument ``stream_generator=True`` in the Reader initialization:
 
 .. code-block:: python
 
@@ -247,7 +247,15 @@ This can be done through the argument ``streaming_generator = True`` in the Read
     data_gen = reader.retrieve()
     
 `data_gen` is now a generator object that yields the requested one-month-long chunks of data.
-We can do operations with them by iterating on the generator object.
+We can do operations with them by iterating on the generator object like
+
+.. code-block:: python
+
+    for data in data_gen:
+        # Do something with the data
+
+Please notice that when accessing FDB sources and streaming mode is desired (instead of direct xarrayay dask access), we recommend to set ``stream_generator=True``,
+since the FDB interface can provide directly a generator if desired.
 
 Parallel Processing
 -------------------
