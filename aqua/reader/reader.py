@@ -48,7 +48,6 @@ class Reader(FixerMixin, RegridMixin):
                  areas=True,  # pylint: disable=W0622
                  datamodel=None, 
                  streaming=False, stream_generator=False,
-                 stream_step=1, stream_unit='steps',
                  startdate=None, enddate=None,
                  rebuild=False, loglevel=None, nproc=4, aggregation=None,
                  verbose=False, exclude_incomplete=False,
