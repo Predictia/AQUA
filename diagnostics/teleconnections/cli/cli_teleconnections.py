@@ -167,8 +167,8 @@ if __name__ == '__main__':
             try:
                 tc.evaluate_index()
                 if full_year:
-                    reg_full = tc.evaluate_correlation()
-                    cor_full = tc.evaluate_regression()
+                    reg_full = tc.evaluate_regression()
+                    cor_full = tc.evaluate_correlation()
             except NotEnoughDataError:
                 logger.error('Not enough data available for %s teleconnection',
                              telec)
