@@ -117,8 +117,6 @@ class Reader(FixerMixin, RegridMixin):
             # Export streaming methods TO DO: probably useless
             self.reset_stream = self.streamer.reset
             self.stream = self.streamer.stream
-            if stream_generator is None:
-                stream_generator = True  # This is the default for streaming emulator
 
         self.stream_generator = stream_generator
         self.streaming = streaming
