@@ -247,6 +247,14 @@ models:
                         grib: true  
             2D_1h_native: 
                 method: default
+            2D_1h_0.25deg:
+                method: default
+                vars:
+                    mtntrf:
+                        src_units: W/m2
+                        source: ttr
+                        grib: true
+                        decumulate: true
 
         # this should be exactly the same but we have tprate without decumulation already in the fdb       
         control-1950-devcon:

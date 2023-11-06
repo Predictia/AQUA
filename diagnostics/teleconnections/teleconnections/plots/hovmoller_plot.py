@@ -3,17 +3,25 @@ This module contains simple functions for hovmoller plots.
 Their main purpose is to provide a simple interface for plotting
 hovmoller diagrams with xarray DataArrays.
 '''
-import os
-
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 
+from aqua.util import create_folder
 from aqua.logger import log_configure
 
+# set default options for xarray
+xr.set_options(keep_attrs=True)
 
-def hovmoller_plot(data: xr.DataArray, invert_axis=False, center=False,
-                   contour=True, save=False, **kwargs):
+
+def hovmoller_plot(data: xr.DataArray,
+                   invert_axis=False, center=False,
+                   contour=True, save=False,
+                   dim='lon', figsize=(11, 8.5),
+                   vmin=None, vmax=None, cmap='RdBu_r',
+                   nlevels=8, cbar_label=None,
+                   outputdir='.', filename='hovmoller.png',
+                   loglevel: str = "WARNING"):
     """"
     Args:
         data (DataArray):       DataArray to be plot
@@ -24,11 +32,6 @@ def hovmoller_plot(data: xr.DataArray, invert_axis=False, center=False,
         contour (bool,opt):     True for contour plot, False for pcolormesh,
                                 default is True
         save (bool,opt):        save the figure, default is False
-        **kwargs:               additional arguments
-
-    Kwargs:
-        loglevel (str,opt):     log level for the logger,
-                                default is 'WARNING'
         dim (str,opt):          dimension to be averaged over,
                                 default is 'lon'
         figsize (tuple,opt):    figure size, default is (11, 8.5)
@@ -39,24 +42,20 @@ def hovmoller_plot(data: xr.DataArray, invert_axis=False, center=False,
         cbar_label (str,opt):   colorbar label, default is None
         outputdir (str,opt):    output directory, default is '.'
         filename (str,opt):     output filename, default is 'hovmoller.png'
+        loglevel (str,opt):     log level for the logger,
+                                default is 'WARNING'
     """
-    loglevel = kwargs.pop('loglevel', 'WARNING')
     logger = log_configure(log_level=loglevel, log_name='Hovmoller')
-
-    logger.debug('Plotting Hovmoller diagram')
 
     # Check if data is a DataArray
     if not isinstance(data, xr.DataArray):
-        logger.error('Data is not a DataArray')
         raise TypeError('Data is not a DataArray')
 
-    # Evalueate the mean over the dimension to be averaged over
-    dim = kwargs.get('dim', 'lon')
+    # Evaluate the mean over the dimension to be averaged over
     logger.info('Averaging over dimension: {}'.format(dim))
-    data_mean = data.mean(dim=dim, keep_attrs=True)
+    data_mean = data.mean(dim=dim)
 
     # Create figure and axes
-    figsize = kwargs.get('figsize', (8.5, 11))
     fig, ax = plt.subplots(figsize=figsize)
 
     # Plot the data
@@ -67,29 +66,28 @@ def hovmoller_plot(data: xr.DataArray, invert_axis=False, center=False,
         x = data_mean.coords['time']
         y = data_mean.coords[data_mean.dims[-1]]
 
-    vmin = kwargs.get('vmin', None)
-    vmax = kwargs.get('vmax', None)
-
     if vmin is not None and vmax is not None:
         logger.debug('Cbar limits set by user')
-        logger.debug('vmin: {}, vmax: {}'.format(vmin, vmax))
     if center:
         logger.debug('Centering colorbar around zero')
         if vmin is None or vmax is None:
             logger.warning('Exploring data to find absmax, may take a while')
             absmax = max(abs(data_mean.min().values),
                          abs(data_mean.max().values))
-            vmin = -absmax
-            vmax = absmax
         else:
-            logger.warning('Cbar limits set by user, ignoring center')
-        logger.debug('vmin: {}, vmax: {}'.format(vmin, vmax))
+            logger.info('Cbar limits set by user, centering around zero')
+            absmax = max(abs(vmin), abs(vmax))
+        vmin = -absmax
+        vmax = absmax
     else:
         logger.debug('Not centering colorbar around zero')
+        if vmin is None:
+            vmin = data_mean.min().values
+        if vmax is None:
+            vmax = data_mean.max().values
+    logger.debug('vmin: {}, vmax: {}'.format(vmin, vmax))
 
-    cmap = kwargs.get('cmap', 'RdBu_r')
     if contour:
-        nlevels = kwargs.get('nlevels', 8)
         try:
             levels = np.linspace(vmin, vmax, nlevels)
             if invert_axis:
@@ -98,8 +96,8 @@ def hovmoller_plot(data: xr.DataArray, invert_axis=False, center=False,
             else:
                 im = ax.contourf(x, y, data_mean.T, levels=levels, cmap=cmap,
                                  vmin=vmin, vmax=vmax)
-        except TypeError:
-            logger.warning('levels could not be evaluated')
+        except TypeError as e:
+            logger.warning('Could not evaluate levels: {}'.format(e))
             if invert_axis:
                 im = ax.contourf(x, y, data_mean, cmap=cmap,
                                  vmin=vmin, vmax=vmax)
@@ -121,7 +119,6 @@ def hovmoller_plot(data: xr.DataArray, invert_axis=False, center=False,
     # Add a colorbar axis at the bottom of the graph
     cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.02])
 
-    cbar_label = kwargs.get('cbar_label')
     if cbar_label is not None:
         fig.colorbar(im, cax=cbar_ax, orientation='horizontal',
                      label=cbar_label)
@@ -134,24 +131,7 @@ def hovmoller_plot(data: xr.DataArray, invert_axis=False, center=False,
 
     # Save the figure
     if save is True:
-        outputdir = kwargs.get('outputdir', '.')
-
-        # check the outputdir exists and create it if necessary
-        if not os.path.exists(outputdir):
-            logger.info('Creating output directory {}'.format(outputdir))
-            os.makedirs(outputdir)
-        try:
-            filename = kwargs.get('filename')
-        except ValueError:
-            logger.info('No filename provided, using default')
-            logger.debug('Trying to get model and experiment from kwargs')
-            model = kwargs.get('model')
-            exp = kwargs.get('exp')
-            if model is None or exp is None:
-                logger.error('No model or experiment provided')
-                filename = 'hovmoller.pdf'
-            else:
-                filename = model + '_' + exp + '.pdf'
+        create_folder(outputdir, loglevel=loglevel)
 
         logger.info('Saving figure to {}/{}'.format(outputdir, filename))
         fig.savefig('{}/{}'.format(outputdir, filename), format='pdf',

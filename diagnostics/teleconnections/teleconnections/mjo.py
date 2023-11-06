@@ -4,46 +4,50 @@ Module to evaluate the MJO teleconnection.
 import xarray as xr
 
 from aqua.logger import log_configure
-from teleconnections.tools import load_namelist, area_selection
+from teleconnections.tools import area_selection, TeleconnectionsConfig
+
+# set default options for xarray
+xr.set_options(keep_attrs=True)
 
 
-def mjo_hovmoller(data=None, var=None, **kwargs) -> xr.DataArray:
+def mjo_hovmoller(data: xr.DataArray or xr.Dataset = None,
+                  var: str = None,
+                  loglevel: str = "WARNING",
+                  telecname: str = "MJO",
+                  namelist: dict = None,
+                  day_window: int = 5,
+                  **kwargs) -> xr.DataArray:
     """
     Prepare the data for a MJO Hovmoller plot.
 
     Args:
-        data: Data to be prepared for the MJO Hovmoller plot.
-              May be a xarray.DataArray or a xarray.Dataset.
+        data: (xr.DataArray or xr.Dataset): Data to be used in the Hovmoller plot.
         var (str, opt): Name of the variable to be used in the Hovmoller plot.
                         It is only required if data is a dataset.
                         If not provided, it will be extracted from the namelist
-        **kwargs: Keyword arguments to be passed to the function.
-
-    KwArgs:
         loglevel (str):   Log level to be used. Default is "WARNING".
         telecname (str):  Name of the teleconnection to be evaluated.
                           Default is "MJO".
         namelist (dict):  Namelist with the teleconnection informations.
-        configdir (str):  Path to the configuration directory.
         day_window (int): Number of days to be used in the smoothing window.
                           Default is 5.
+
+    KwArgs:
+        configdir (str):  Path to the configuration directory.
+    
+    Returns:
+        xr.DataArray: DataArray with the data to be used in the Hovmoller plot.
     """
-    loglevel = kwargs.get("loglevel", "WARNING")
     logger = log_configure(log_level=loglevel, log_name='MJO')
 
     if data is None:
         raise ValueError("No data provided.")
 
-    telecname = kwargs.get("telecname", "MJO")
-
-    namelist = kwargs.get("namelist", None)
-
     if namelist is None:
         logger.info("No namelist provided. Trying to load default namelist.")
-        try:
-            namelist = load_namelist(**kwargs)  # can take configdir
-        except TypeError:  # kwargs are not accepted
-            namelist = load_namelist()
+        config = TeleconnectionsConfig(**kwargs)
+        namelist = config.load_namelist()
+
 
     # Subselect field if data is a dataset
     if var is None:
@@ -60,7 +64,7 @@ def mjo_hovmoller(data=None, var=None, **kwargs) -> xr.DataArray:
     data_sel = area_selection(data, lat=lat, lon=lon)
 
     # Evaluating anomalies
-    data_mean = data_sel.mean(dim='time', keep_attrs=True)
+    data_mean = data_sel.mean(dim='time')
     data_anom = data_sel - data_mean
 
     # Smoothing the data
