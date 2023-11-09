@@ -69,7 +69,7 @@ class TestGsv():
         """Simple test, to check that catalog access works and reads correctly"""
 
         reader = Reader(model="IFS", exp="test-fdb", source="fdb", aggregation="D")
-        data = reader.retrieve(startdate='20080101T1200', enddate='20080101T1200', var='t', streaming_generator=True)
+        data = reader.retrieve(startdate='20080101T1200', enddate='20080101T1200', var='t', stream_generator=True)
         assert isinstance(data, types.GeneratorType), 'Reader does not return iterator'
         dd = next(data)
         assert dd.t.param == '130.128', 'Wrong GRIB param in data'
@@ -78,7 +78,7 @@ class TestGsv():
         """Simple test, to check that catalog access works and reads correctly, no var"""
 
         reader = Reader(model="IFS", exp="test-fdb", source="fdb")
-        data = reader.retrieve(streaming_generator=True)
+        data = reader.retrieve(stream_generator=True)
         dd = next(data)
         assert dd.t.param == '130.128', 'Wrong GRIB param in data'
 

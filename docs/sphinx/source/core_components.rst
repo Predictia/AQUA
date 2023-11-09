@@ -324,7 +324,7 @@ the aggregation (i.e. chunk size).
 Iterator access
 ~~~~~~~~~~~~~~~
 
-In alternative it is also possible to ask the reader to return an *iterator/generator* object passing the ``streaming_generator=True`` 
+In alternative it is also possible to ask the reader to return an *iterator/generator* object passing the ``stream_generator=True`` 
 keyword to the ``retrieve()`` method.
 In that case the next block of data can be read from the iterator with ``next()`` as follows:
 
@@ -333,7 +333,7 @@ In that case the next block of data can be read from the iterator with ``next()`
     reader = Reader(model="IFS", exp="fdb-tco399", source="fdb-long", aggregation="D",
                     regrid="r025")
     data = reader.retrieve(startdate='20200120', enddate='20200413', var='ci',
-                           streaming_generator=True)
+                           stream_generator=True)
     dd = next(data)
 
 or with a loop iterating over ``data``. The result of these operations is in turn a regular xarray.Dataset containg the data.
