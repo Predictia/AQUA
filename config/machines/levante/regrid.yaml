@@ -146,3 +146,9 @@ sources:
       nh-daily: osi-saf-nh
       sh-daily: osi-saf-sh
       sh-monthly: osi-saf-sh
+
+  PSC:
+    GIOMAS:
+      default: psc
+    PIOMAS:
+      default: psc

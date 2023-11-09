@@ -1,0 +1,16 @@
+plugins:
+  source:
+    - module: intake_xarray
+
+sources:
+  sivol:
+    description: Polar Science Center sea ice volume (sivol) for the Southern Hemisphere 
+    driver: netcdf
+    args:
+      chunks:
+        time: 1
+        use_cftime: True
+      xarray_kwargs:
+        decode_times: False
+      urlpath:
+      - /work/bb1153/b382075/datasets/PSC/PIOMAS/raw/sivol_r1i1p1_mon_197901-202212_GCCS360x120.nc

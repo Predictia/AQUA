@@ -190,6 +190,11 @@ grids:
       depth: $grids/WOA18/grid-woa18.nc
     vert_coord: depth
     space_coord: ["lon", "lat"]
+  
+  psc:
+    space_coord: ["longitude", "latitude"]
+    cellarea_var: areacello
+    mask_var: sftof
 
   
 
