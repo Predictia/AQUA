@@ -14,7 +14,7 @@ Unreleased is the current development version.
 - Removing OPA, OPAgenerator and related tests from the AQUA (Remove OPA from AQUA #586)
 - Renaming the experiments according to the DE340 AQUA syntax (Including dev-control-1990 in the source and rename the experiment according to DE340 scheme #556)
 - Allow specifying grid in catalogue metadata (#520)
-- Teleconnections diagnostic improvements (#571, #574, #576, #581)
+- Teleconnections diagnostic improvements (#571, #574, #576, #581, #592)
 
 ## [v0.4]
 
