@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     print('Running check setup CLI')
     args = parse_arguments(sys.argv[1:])
-    print(args)
+
     # change the current directory to the one of the CLI so that relative path works
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
@@ -77,7 +77,7 @@ if __name__ == '__main__':
         reader_atm.retrieve()
     except Exception as e:
         logger.error('Failed to retrieve atm data: {}'.format(e))
-        logger.critical('Check that the atm model is available in the Reader catalogue.')
+        logger.critical('Check that the atmospheric model is available in the Reader catalogue.')
         reader_atm = None
 
     try:
@@ -86,7 +86,7 @@ if __name__ == '__main__':
         reader_oce.retrieve()
     except Exception as e:
         logger.error('Failed to retrieve oce data: {}'.format(e))
-        logger.critical('Check that the oce model is available in the Reader catalogue.')
+        logger.critical('Check that the oceanic model is available in the Reader catalogue.')
         reader_oce = None
 
     if reader_atm is None and reader_oce is None:
@@ -94,10 +94,10 @@ if __name__ == '__main__':
         sys.exit(1)
     else:
         if reader_atm is None:
-            logger.error('Only oceanic data is available. Check that the atmospheric model name is correct.')
+            logger.critical('Only oceanic data is available. Check that the atmospheric model name is correct.')
             sys.exit(2)
         if reader_oce is None:
-            logger.error('Only atmospheric data is available. Check that the oceanic model name is correct.')
+            logger.critical('Only atmospheric data is available. Check that the oceanic model name is correct.')
             sys.exit(3)
 
     logger.info('Check complete, diagnostics can run!')

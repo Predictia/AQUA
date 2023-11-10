@@ -152,20 +152,22 @@ if [ "$run_dummy" = true ] ; then
   colored_echo $GREEN "Running setup checker"
   scriptpy="$aqua/diagnostics/dummy/cli/cli_dummy.py"
   python $scriptpy $args -l $loglevel
+  
+  # Store the error code of the dummy script
+  dummy_error=$?
 
   # exit if dummy fails in finding both atmospheric and oceanic model
-  if [ $? -ne 0 ]; then
-    # if error code is 1, then the setup checker failed
-    if [ $? -eq 1 ]; then
+  if [ $dummy_error -ne 0 ]; then
+    if [ $dummy_error -eq 1 ]; then # if error code is 1, then the setup checker failed
       colored_echo $RED "Setup checker failed, exiting"
       exit 1
     fi
     # if error code is 2 or 3, then the setup checker
     # passed but there are some warnings
-    if [ $? -eq 2 ]; then
+    if [ $dummy_error -eq 2 ]; then
       colored_echo $RED "Atmospheric model is not found, it will be skipped"
     fi
-    if [ $? -eq 3 ]; then
+    if [ $dummy_error -eq 3 ]; then
       colored_echo $RED "Oceanic model is not found, it will be skipped"
     fi
   fi
@@ -174,7 +176,7 @@ fi
 
 if [ "$run_atmglobalmean" = true ] ; then
   colored_echo $GREEN "Running atmglobalmean"
-  scriptpy="$aqua/diagnostics/atmglobalmean/cli/cli_atm_mean.py"
+  scriptpy="$aqua/diagnostics/atmglobalmean/cli/cli_atm_mean_bias.py"
   python $scriptpy $args_atm --outputdir $outputdir/atmglobalmean -l $loglevel
   colored_echo $GREEN "Finished atmglobalmean"
 fi

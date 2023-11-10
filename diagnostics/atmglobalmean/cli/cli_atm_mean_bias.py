@@ -1,24 +1,11 @@
 # All necessary import for a cli diagnostic
 import sys
-try:
-    from aqua.util import load_yaml, get_arg
-    import os
-    import argparse
-    from aqua import Reader
-    from aqua.logger import log_configure
-    sys.path.insert(0, '../../')
-    from atmglobalmean import compare_datasets_plev, seasonal_bias, plot_map_with_stats
-except ImportError as import_error:
-    # Handle ImportError
-    print(f"ImportError occurred: {import_error}")
-    sys.exit(0)
-except Exception as custom_error:
-    # Handle other custom exceptions if needed
-    print(f"CustomError occurred: {custom_error}")
-    sys.exit(0)
-else:
-    # Code to run if the import was successful (optional)
-    print("Modules imported successfully.")
+import os
+import argparse
+
+from aqua.util import load_yaml, get_arg
+from aqua import Reader
+from aqua.logger import log_configure
 
 
 def parse_arguments(args):
@@ -52,6 +39,21 @@ if __name__ == '__main__':
     if os.getcwd() != dname:
         os.chdir(dname)
         print(f'Moving from current directory to {dname} to run!')
+
+    try:
+        sys.path.insert(0, '../../')
+        from atmglobalmean import compare_datasets_plev, seasonal_bias, plot_map_with_stats
+    except ImportError as import_error:
+        # Handle ImportError
+        print(f"ImportError occurred: {import_error}")
+        sys.exit(0)
+    except Exception as custom_error:
+        # Handle other custom exceptions if needed
+        print(f"CustomError occurred: {custom_error}")
+        sys.exit(0)
+    else:
+        # Code to run if the import was successful (optional)
+        print("Modules imported successfully.")
 
     # Aquiring arguments and configuration
     args = parse_arguments(sys.argv[1:])
