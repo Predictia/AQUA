@@ -45,8 +45,16 @@ def parse_arguments(args):
 if __name__ == '__main__':
 
     print('Running atmospheric global mean biases diagnostic...')
-    args = parse_arguments(sys.argv[1:])
 
+    # change the current directory to the one of the CLI so that relative path works
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    if os.getcwd() != dname:
+        os.chdir(dname)
+        print(f'Moving from current directory to {dname} to run!')
+
+    # Aquiring arguments and configuration
+    args = parse_arguments(sys.argv[1:])
     file = get_arg(args, 'config', 'config/atm_mean_bias_config.yml')
     print('Reading configuration yaml file..')
     config = load_yaml(file)
@@ -102,7 +110,7 @@ if __name__ == '__main__':
         data = reader.retrieve()
     except Exception as e:
         logger.error(f"No model data found: {e}")
-        logger.info("Atmospheric global mean biases diagnostic is terminated.")
+        logger.critical("Atmospheric global mean biases diagnostic is terminated.")
         sys.exit(0)
 
     if seasonal_bias_bool:
@@ -131,4 +139,4 @@ if __name__ == '__main__':
             except Exception as e:
                 logger.error(f"An unexpected error occurred: {e}")
 
-    logger.warning("Atmospheric global mean biases diagnostic is terminated.")
+    logger.info("Atmospheric global mean biases diagnostic is terminated.")

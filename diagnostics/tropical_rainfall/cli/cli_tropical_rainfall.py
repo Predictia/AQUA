@@ -46,6 +46,13 @@ if __name__ == '__main__':
     print('Running tropical rainfall diagnostic...')
     args = parse_arguments(sys.argv[1:])
 
+    # change the current directory to the one of the CLI so that relative path works
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    if os.getcwd() != dname:
+        os.chdir(dname)
+        print(f'Moving from current directory to {dname} to run!')
+
     file = get_arg(args, 'config', 'config/trop_rainfall_config.yml')
     print('Reading configuration yaml file..')
     config = load_yaml(file)
