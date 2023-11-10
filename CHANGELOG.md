@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased is the current development version.
 
 - CLI wrapper parser (#599)
+- Refactoring of streaming emulator (#593)
 - Radiation CLI and diagnostic refinement (#537)
 - Ocean3D CLI and diagnostic refinement (#578)
 - AtmGlobalMean CLI and diagnostic refinement (#587)
