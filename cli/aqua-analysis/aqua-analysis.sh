@@ -1,20 +1,18 @@
 #!/bin/bash
 
 # User defined variables
-# ----------------------
+# ---------------------------------------------------
 # The following variables can be changed by the user.
+# They can be overwritten by using the command line
+# arguments.
 # ---------------------------------------------------
 model_atm="IFS"
 model_oce="FESOM"
 exp="tco2559-ng5-cycle3"
 source="lra-r100-monthly"
-
-# LUMI
-# outputdir="/scratch/project_465000454/nurissom/cli_outpturdir"
-# aqua="/users/nurissom/AQUA"
-
-# LEVANTE
 outputdir="/scratch/b/b382289/cli_test"
+
+# AQUA path, can be defined as $AQUA env variable
 aqua="/home/b/b382289/AQUA"
 
 machine="levante" # will change the aqua config file
@@ -59,6 +57,42 @@ run_tropical_rainfall=true
 # End of user defined variables
 # -----------------------------
 
+# Command line arguments
+
+# Parse command-line options
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -a|--model_atm)
+      model_atm="$2"
+      shift 2
+      ;;
+    -o|--model_oce)
+      model_oce="$2"
+      shift 2
+      ;;
+    -e|--exp)
+      exp="$2"
+      shift 2
+      ;;
+    -s|--source)
+      source="$2"
+      shift 2
+      ;;
+    -d|--outputdir)
+      outputdir="$2"
+      shift 2
+      ;;
+    -m|--machine)
+      machine="$2"
+      shift 2
+      ;;
+    *)
+      echo "Unknown option: $1"
+      exit 1
+      ;;
+  esac
+done
+
 # Define colors for echo output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -69,6 +103,13 @@ colored_echo() {
   shift
   echo -e "${color}$@${NC}"
 }
+
+colored_echo $GREEN "Atmospheric model: $model_atm"
+colored_echo $GREEN "Oceanic model: $model_oce"
+colored_echo $GREEN "Experiment: $exp"
+colored_echo $GREEN "Source: $source"
+colored_echo $GREEN "Machine: $machine"
+colored_echo $GREEN "Output directory: $outputdir"
 
 # Define the arguments for the diagnostics
 args_atm="--model $model_atm --exp $exp --source $source"
@@ -92,9 +133,6 @@ else
   # Linux
   sed -i "/^machine:/c\\machine: $machine" "$aqua/config/config-aqua.yaml"
 fi
-
-# print the output directory
-colored_echo $GREEN "Output directory: $outputdir"
 
 if [ "$run_dummy" = true ] ; then
   colored_echo $GREEN "Running setup checker"
