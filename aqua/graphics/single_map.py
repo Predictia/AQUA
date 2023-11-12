@@ -8,6 +8,7 @@ from aqua.logger import log_configure
 from aqua.util import create_folder
 from aqua.util import add_cyclic_lon, evaluate_colorbar_limits
 from aqua.util import cbar_get_label, set_map_title
+from aqua.util import check_coordinates
 
 
 def plot_single_map(data: xr.DataArray,
@@ -95,12 +96,48 @@ def plot_single_map(data: xr.DataArray,
     ax.coastlines()
 
     # Longitude labels
-    ax.set_xticks(np.arange(-180, 181, 60), crs=ccrs.PlateCarree())
+    # Evaluate the longitude ticks
+    try:
+        lon_min = data['lon'].values.min()
+        lon_max = data['lon'].values.max()
+        logger.debug("Setting longitude ticks from %s to %s", lon_min, lon_max)
+        (lon_min, lon_max), _ = check_coordinates(lon=(lon_min, lon_max),
+                                                  default={"lon_min": -180,
+                                                           "lon_max": 180,
+                                                           "lat_min": -90,
+                                                           "lat_max": 90},)
+        step = (lon_max - lon_min)/6
+    except KeyError:
+        logger.critical("No longitude coordinate found, setting default values")
+        lon_min = -180
+        lon_max = 180
+        step = 60
+    logger.debug("Setting longitude ticks from %s to %s", lon_min, lon_max)
+    xticks = np.arange(lon_min, lon_max+1, step)
+    logger.debug("Setting longitude ticks to %s", xticks)
+    ax.set_xticks(xticks, crs=ccrs.PlateCarree())
     lon_formatter = cticker.LongitudeFormatter()
     ax.xaxis.set_major_formatter(lon_formatter)
 
     # Latitude labels
-    ax.set_yticks(np.arange(-90, 91, 30), crs=ccrs.PlateCarree())
+    # Evaluate the latitude ticks
+    try:
+        lat_min = data['lat'].values.min()
+        lat_max = data['lat'].values.max()
+        _, (lat_min, lat_max) = check_coordinates(lat=(lat_min, lat_max),
+                                                  default={"lon_min": -180,
+                                                           "lon_max": 180,
+                                                           "lat_min": -90,
+                                                           "lat_max": 90},)
+        step = (lat_max - lat_min)/6
+    except KeyError:
+        logger.critical("No latitude coordinate found, setting default values")
+        lat_min = -90
+        lat_max = 90
+        step = 30
+    logger.debug("Setting latitude ticks from %s to %s", lat_min, lat_max)
+    yticks = np.arange(lat_min, lat_max+1, step)
+    ax.set_yticks(yticks, crs=ccrs.PlateCarree())
     lat_formatter = cticker.LatitudeFormatter()
     ax.yaxis.set_major_formatter(lat_formatter)
 
