@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Load all available variables in FDB xarray/dask access (#619)
 - Fix loading of singularity mounting /projappl (#612)
 - CLI wrapper parser (#599)
 - Refactoring of streaming emulator (#593)
