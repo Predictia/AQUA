@@ -138,7 +138,7 @@ main_yaml['sources'][config['exp']] = {
     'description': config['description'],
     'driver': 'yaml_file_cat',
     'args': {
-        'path': f"{{{{CATALOG_DIR}}}}/{config['exp']}"
+        'path': f"{{{{CATALOG_DIR}}}}/{config['exp']}.yaml"
     }
 }
 
