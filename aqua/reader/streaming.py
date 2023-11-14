@@ -5,6 +5,7 @@ import numpy as np
 from aqua.logger import log_configure
 from aqua.util import frequency_string_to_pandas
 
+
 class Streaming():
     """Streaming class to be used in Reader and elsewhere"""
 
@@ -77,12 +78,11 @@ class Streaming():
 
         if 'S' in aggregation:
             nsteps = np.maximum(int('0' + aggregation.upper().split("S")[0]), 1)  # this allows also "S" for "1S"
-            timr = pd.Series(tim).groupby(by = (np.arange(0, len(tim)) // nsteps) )
-        else: 
+            timr = pd.Series(tim).groupby(by=(np.arange(0, len(tim)) // nsteps))
+        else:
             timr = tim.resample(time=aggregation)
 
         return timr
-
 
     def stream(self, data, startdate=None, enddate=None, aggregation=None,
                timechunks=None, reset=False):
@@ -95,7 +95,7 @@ class Streaming():
             enddate (str): the ending date for streaming the data (e.g. '2021-01-01') (None)
             aggregation (str): the streaming frequency in pandas style (1M, 7D etc.)
             timechunks (DataArrayResample, optional): a precomputed chunked time axis
-            reset (bool, optional): reset the streaming 
+            reset (bool, optional): reset the streaming
 
         Returns:
             A xarray.Dataset containing the subset of the input data that has been streamed.
@@ -113,8 +113,7 @@ class Streaming():
             date1 = timechunks.first()[self.idx]
             date2 = timechunks.last()[self.idx]
             self.idx += 1
-            return(data.sel(time=slice(date1, date2)))
-
+            return (data.sel(time=slice(date1, date2)))
 
     def generator(self, data, startdate=None, enddate=None, aggregation=None):
         """
@@ -138,8 +137,7 @@ class Streaming():
         self.idx = 0  # reset in case stream has been called before
         for idx in range(0, len(timechunks)):
             yield self.stream(data, startdate=startdate, enddate=enddate,
-                         aggregation=aggregation, timechunks=timechunks)
-
+                              aggregation=aggregation, timechunks=timechunks)
 
     def reset(self):
         """

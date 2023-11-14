@@ -44,7 +44,7 @@ class Reader(FixerMixin, RegridMixin):
     def __init__(self, model=None, exp=None, source=None, freq=None, fix=True,
                  regrid=None, method="ycon", zoom=None, configdir=None,
                  areas=True,  # pylint: disable=W0622
-                 datamodel=None, 
+                 datamodel=None,
                  streaming=False, stream_generator=False,
                  startdate=None, enddate=None,
                  rebuild=False, loglevel=None, nproc=4, aggregation=None,
@@ -113,7 +113,7 @@ class Reader(FixerMixin, RegridMixin):
             streaming = True
 
         if streaming:
-            self.streamer = Streaming(startdate=startdate, 
+            self.streamer = Streaming(startdate=startdate,
                                       enddate=enddate,
                                       aggregation=aggregation,
                                       loglevel=self.loglevel)
@@ -131,7 +131,7 @@ class Reader(FixerMixin, RegridMixin):
 
         if buffer and buffer is not True:  # optional FDB buffering
             if not os.path.isdir(buffer):
-                raise ValueError("The directory specified by buffer must exist.") 
+                raise ValueError("The directory specified by buffer must exist.")
             self.buffer = tempfile.TemporaryDirectory(dir=buffer)
         elif buffer is True:
             self.buffer = True
@@ -419,9 +419,9 @@ class Reader(FixerMixin, RegridMixin):
                     try:
                         data = data[var]
                         self.logger.warning(f"You are asking for var {var} which is already fixed from {loadvar}.")
-                        self.logger.warning(f"Would be safer to run with fix=False")
-                    except:
-                        raise KeyError("You are asking for variables which we cannot find in the catalog!")
+                        self.logger.warning("Would be safer to run with fix=False")
+                    except Exception as e:
+                        raise KeyError("You are asking for variables which we cannot find in the catalog!") from e
 
         data = log_history_iter(data, "retrieved by AQUA retriever")
 
@@ -477,7 +477,8 @@ class Reader(FixerMixin, RegridMixin):
             A xarray.Dataset containing the regridded data.
         """
 
-        data = flip_lat_dir(datain)  # Check if original lat has been flipped and in case flip back, returns a deep copy in that case
+        # Check if original lat has been flipped and in case flip back, returns a deep copy in that case
+        data = flip_lat_dir(datain)
 
         if self.vert_coord == ["2d"]:
             datadic = {"2d": data}
@@ -512,7 +513,6 @@ class Reader(FixerMixin, RegridMixin):
 
         log_history(out, "regridded by AQUA regridder")
         return out
-    
 
     def timmean(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
         """Call the timmean function returning container or iterator"""
@@ -521,11 +521,9 @@ class Reader(FixerMixin, RegridMixin):
         else:
             return self._timmean(data, freq, exclude_incomplete, time_bounds)
 
-
     def _timmeangen(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
         for ds in data:
             yield self._timmean(ds, freq, exclude_incomplete, time_bounds)
-
 
     def _timmean(self, data, freq=None, exclude_incomplete=None, time_bounds=False):
         """
@@ -544,7 +542,7 @@ class Reader(FixerMixin, RegridMixin):
 
         if freq is None:
             freq = self.freq
-        
+
         if exclude_incomplete is None:
             exclude_incomplete = self.exclude_incomplete
 
@@ -556,7 +554,7 @@ class Reader(FixerMixin, RegridMixin):
             out = data.resample(time=resample_freq).mean()
         except ValueError as exc:
             raise ValueError('Cant find a frequency to resample, aborting!') from exc
-        
+
         # set time as the first timestamp of each month/day according to the sampling frequency
         out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
 
@@ -580,7 +578,7 @@ class Reader(FixerMixin, RegridMixin):
             if np.any(np.isnat(out.time_bnds)):
                 raise ValueError('Resampling cannot produce output for all time_bnds step!')
             log_history(out, "time_bnds added by by AQUA timmean")
-       
+
         return out
 
     def _check_if_regridded(self, data):
@@ -639,9 +637,9 @@ class Reader(FixerMixin, RegridMixin):
             for coord in self.grid_area.coords:
 
                 xcoord = data.coords[coord]
-                #HACK to solve minor issue in xarray
+                # HACK to solve minor issue in xarray
                 # check https://github.com/oloapinivad/AQUA/pull/397 for further info
-                if len(xcoord.coords)>1:
+                if len(xcoord.coords) > 1:
                     self.logger.warning('Issue found in %s, removing spurious coordinates', coord)
                     drop_coords = [koord for koord in xcoord.coords if koord != coord]
                     xcoord = xcoord.drop_vars(drop_coords)
@@ -649,12 +647,13 @@ class Reader(FixerMixin, RegridMixin):
                 # option1: shape different
                 if len(self.grid_area[coord]) != len(xcoord):
                     raise ValueError(f'{coord} has different shape between area files and your dataset.'
-                                    'If using the LRA, try setting the regrid=r100 option') from err
+                                     'If using the LRA, try setting the regrid=r100 option') from err
                 # shape are ok, but coords are different
                 if not self.grid_area[coord].equals(xcoord):
                     # if they are fine when sorted, there is a sorting mismatch
                     if self.grid_area[coord].sortby(coord).equals(xcoord.sortby(coord)):
-                        self.logger.warning('%s is sorted in different way between area files and your dataset. Flipping it!', coord)
+                        self.logger.warning('%s is sorted in different way between area files and your dataset. Flipping it!',
+                                            coord)
                         self.grid_area = self.grid_area.reindex({coord: list(reversed(self.grid_area[coord]))})
                         # raise ValueError(f'{coord} is sorted in different way between area files and your dataset.') from err
                     # something else
@@ -785,7 +784,6 @@ class Reader(FixerMixin, RegridMixin):
                                       )
         return list(data.values())[0]
 
-
     def reader_fdb(self, esmcat, var, startdate, enddate, dask=False):
         """
         Read fdb data. Returns an iterator or dask array.
@@ -803,10 +801,10 @@ class Reader(FixerMixin, RegridMixin):
             if self.aggregation:
                 data = esmcat(startdate=startdate, enddate=enddate, var=var,
                               aggregation=self.aggregation,
-                              logging = True, verbose=self.verbose).to_dask()
+                              logging=True, verbose=self.verbose).to_dask()
             else:
-                data =esmcat(startdate=startdate, enddate=enddate, var=var,
-                             logging = True, verbose=self.verbose).to_dask()
+                data = esmcat(startdate=startdate, enddate=enddate, var=var,
+                              logging=True, verbose=self.verbose).to_dask()
         else:
             if self.aggregation:
                 data = esmcat(startdate=startdate, enddate=enddate, var=var,
@@ -841,8 +839,8 @@ class Reader(FixerMixin, RegridMixin):
                     data = data[var]
                     self.logger.warning("You are asking for var %s which is already fixed from %s.", var, loadvar)
                     self.logger.warning("It would be safer to run with fix=False")
-                except:
-                    raise KeyError("You are asking for variables which we cannot find in the catalog!")
+                except Exception as e:
+                    raise KeyError("You are asking for variables which we cannot find in the catalog!") from e
         else:
             data = esmcat.to_dask()
 
@@ -866,13 +864,13 @@ class Reader(FixerMixin, RegridMixin):
         """
 
         self.logger.info("Buffering iterator to: %s", self.buffer.name)
-        niter =0
+        niter = 0
         for dd in data:
             dd.to_netcdf(f"{self.buffer.name}/iter{niter}.nc")
             niter = niter + 1
 
         return xr.open_mfdataset(f"{self.buffer.name}/iter*.nc")
-    
+
     def buffer_mem(self, data):
         """
         Buffers (reads) an iterator object directly into a dataset
@@ -885,7 +883,7 @@ class Reader(FixerMixin, RegridMixin):
 
         self.logger.info("Buffering iterator to memory")
         ds = next(data)  # get the first one
-        try: 
+        try:
             for dd in data:
                 ds = xr.concat([ds, dd], dim="time")
         except StopIteration:
@@ -894,10 +892,10 @@ class Reader(FixerMixin, RegridMixin):
         return ds
 
     def stream(self, data, startdate=None, enddate=None, aggregation=None,
-               timechunks=None, reset=False):       
+               timechunks=None, reset=False):
         """
-        Stream a dataset chunk using the startdate, enddate, and aggregation parameters defined in the constructor. 
-        This operation utilizes the 'stream' method from the Streaming class. 
+        Stream a dataset chunk using the startdate, enddate, and aggregation parameters defined in the constructor.
+        This operation utilizes the 'stream' method from the Streaming class.
         It first checks if the Streaming class has been initialized; if not, it initializes the class.
 
         Arguments:
@@ -906,23 +904,21 @@ class Reader(FixerMixin, RegridMixin):
             enddate (str): the ending date for streaming the data (e.g. '2021-01-01') (None)
             aggregation (str): the streaming frequency in pandas style (1M, 7D etc.)
             timechunks (DataArrayResample, optional): a precomputed chunked time axis
-            reset (bool, optional): reset the streaming 
+            reset (bool, optional): reset the streaming
 
         Returns:
             A xarray.Dataset containing the subset of the input data that has been streamed.
         """
         if not hasattr(self, 'streamer'):
-            self.streamer = Streaming(startdate=startdate, 
+            self.streamer = Streaming(startdate=startdate,
                                       enddate=enddate,
                                       aggregation=aggregation)
             self.stream = self.streamer.stream
-                  
-        stream_data = self.stream(data, 
-                        startdate=startdate,
-                        enddate=enddate, 
-                        aggregation=aggregation,
-                        timechunks=timechunks,
-                        reset=reset) 
+
+        stream_data = self.stream(data,
+                                  startdate=startdate,
+                                  enddate=enddate,
+                                  aggregation=aggregation,
+                                  timechunks=timechunks,
+                                  reset=reset)
         return stream_data
-
-

@@ -16,6 +16,6 @@ for reso in resos:
             for s in source:
                 # If ICON is used, the zoom level is needed
                 # please uncomment and loop on zoom
-                #for zoom in range(0, 9):
+                # for zoom in range(0, 9):
                 #    reader = Reader(model=m, exp=e, source=s, regrid=reso, zoom=zoom)
                 reader = Reader(model=m, exp=e, source=s, regrid=reso)
