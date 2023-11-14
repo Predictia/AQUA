@@ -6,6 +6,7 @@
 from .tropical_cyclones import TCs
 from .detect_nodes import DetectNodes
 from .stitch_nodes import StitchNodes
+from .plots.plotting_hist import plot_hist_cat, plot_press_wind
 
 # This specifies which methods are exported publicly, used by "from tropical cyclones import *"
-__all__ = ["TCs", "DetectNodes", "StitchNodes"]
+__all__ = ["TCs", "DetectNodes", "StitchNodes", "plot_hist_cat", "plot_pres_wind"]

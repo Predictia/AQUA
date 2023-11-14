@@ -27,8 +27,8 @@ varlist: ['msl', '10u', '10v', 'tprate']
 
 # temporal definition (YYYY-MM-DD)
 time: 
-  startdate: '2020-01-20'
-  enddate: '2023-02-01'
+  startdate: '2023-02-02'
+  enddate: '2025-01-01'
   frequency: '6h'
 
 stream:

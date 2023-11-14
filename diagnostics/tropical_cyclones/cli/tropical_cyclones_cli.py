@@ -50,7 +50,7 @@ if __name__ == '__main__':
     print('Reading tcs configuration yaml file.')
     config = load_yaml(file)
 
-    # logger setup (via config or clommand line)
+    # logger setup (via config or command line)
     
     loglevel = get_arg(args, 'loglevel', config['setup']['loglevel'])
     logger = log_configure(log_level=loglevel, log_name='TC')
