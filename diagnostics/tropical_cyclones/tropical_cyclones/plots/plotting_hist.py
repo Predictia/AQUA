@@ -81,7 +81,7 @@ def plot_hist_cat(trajfile1, trajfile2, trajfile3, ibtracs_file=None):
     plt.show()
 
 
-def plot_press_wind(trajfile1, trajfile2, trajfile3, ibtracs_file=None):
+def plot_press_wind(trajfile1, trajfile2, trajfile3, ibtracs_file, dot_dim):
     # tempest settings
     nVars = 10
     headerStr = 'start'
@@ -123,16 +123,16 @@ def plot_press_wind(trajfile1, trajfile2, trajfile3, ibtracs_file=None):
         xwind4=xwind4*1.852 #convert from kts to km/h
 
         fig, ax = plt.subplots(figsize=(8, 6))
-        ax.scatter(xwind4, xpres4, s=30, alpha=0.2, marker="x", label='IBTrACS')  # IBTrACS data
-        ax.scatter(xwind3, xpres3, s=30, alpha=0.2, marker="x", label='ERA5', color="black")  # ERA5 data
-        ax.scatter(xwind1, xpres1, s=30, alpha=0.2, marker="x", label='tco1279-orca025-cycle3')
-        ax.scatter(xwind2, xpres2, s=30, alpha=0.2, marker="x", label='tco2559-ng5-cycle3')
+        ax.scatter(xwind4, xpres4, s=dot_dim, alpha=0.2, marker="x", label='IBTrACS')  # IBTrACS data
+        ax.scatter(xwind3, xpres3, s=dot_dim, alpha=0.2, marker="x", label='ERA5', color="black")  # ERA5 data
+        ax.scatter(xwind1, xpres1, s=dot_dim, alpha=0.2, marker="x", label='tco1279-orca025-cycle3')
+        ax.scatter(xwind2, xpres2, s=dot_dim, alpha=0.2, marker="x", label='tco2559-ng5-cycle3')
         
     else:
         fig, ax = plt.subplots(figsize=(8, 6))
-        ax.scatter(xwind3, xpres3, s=30, alpha=0.4, marker="x", label='ERA5', color="black")  # ERA5 data
-        ax.scatter(xwind1, xpres1, s=30, alpha=0.6, marker="x", label='tco1279-orca025-cycle3')
-        ax.scatter(xwind2, xpres2, s=30, alpha=0.6, marker="x", label='tco2559-ng5-cycle3')
+        ax.scatter(xwind3, xpres3, s=dot_dim, alpha=0.4, marker="x", label='ERA5', color="black")  # ERA5 data
+        ax.scatter(xwind1, xpres1, s=dot_dim, alpha=0.6, marker="x", label='tco1279-orca025-cycle3')
+        ax.scatter(xwind2, xpres2, s=dot_dim, alpha=0.6, marker="x", label='tco2559-ng5-cycle3')
     
     ax.set_xlabel('Max Wind Speed (km/h)')
     ax.set_ylabel('Min slp (hPa)')
