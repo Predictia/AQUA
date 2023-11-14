@@ -487,11 +487,11 @@ class Reader(FixerMixin, RegridMixin):
         else:
             self.logger.debug("Grouping variables that share the same dimension")
             self.logger.debug("Vert coord: %s", self.vert_coord)
-            self.logger.debug("masked_att: %s", self.masked_att)
+            self.logger.debug("masked_att: %s", self.masked_attr)
             self.logger.debug("masked_vars: %s", self.masked_vars)
 
             datadic = group_shared_dims(data, self.vert_coord, others="2d",
-                                        masked="2dm", masked_att=self.masked_att,
+                                        masked="2dm", masked_att=self.masked_attr,
                                         masked_vars=self.masked_vars)
 
         # Iterate over list of groups of variables, regridding them separately
