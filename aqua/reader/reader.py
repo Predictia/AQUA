@@ -2,8 +2,6 @@
 
 import os
 import re
-import io
-import sys
 
 import types
 import tempfile
@@ -67,19 +65,25 @@ class Reader(FixerMixin, RegridMixin):
             configdir (str, optional): Folder where the config/catalog files are located. Defaults to None.
             areas (bool, optional): Compute pixel areas if needed. Defaults to True.
             var (str or list, optional): Variable(s) to extract; "vars" is a synonym. Defaults to None.
-            datamodel (str, optional): Destination data model for coordinates, overrides the one in fixes.yaml. Defaults to None.
+            datamodel (str, optional): Destination data model for coordinates, overrides the one in fixes.yaml.
+                                       Defaults to None.
             freq (str, optional): Frequency of the time averaging. Valid values are monthly, daily, yearly. Defaults to None.
             streaming (bool, optional): If to retrieve data in a streaming mode. Defaults to False.
             stream_generator (bool, optional): if to return a generator object for data streaming. Defaults to False
             startdate (str, optional): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
             enddate (str, optional): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None.
             rebuild (bool, optional): Force rebuilding of area and weight files. Defaults to False.
-            loglevel (str, optional): Level of logging according to logging module. Defaults to log_level_default of loglevel().
+            loglevel (str, optional): Level of logging according to logging module.
+                                      Defaults to log_level_default of loglevel().
             nproc (int,optional): Number of processes to use for weights generation. Defaults to 16.
-            aggregation (str, optional): aggregation/chunking to be used for GSV access (e.g. D, M, Y). Defaults to None (using default from catalogue, recommended).
+            aggregation (str, optional): aggregation/chunking to be used for GSV access (e.g. D, M, Y).
+                                         Defaults to None (using default from catalogue, recommended).
             verbose (bool, optional): if to print to screen additional info (used only for FDB access at the moment)
-            exclude_incomplete (bool, optional): when using timmean() method, remove incomplete chunk from averaging. Default to False. 
-            buffer (str or bool, optional): buffering of FDB/GSV streams in a temporary directory specified by the keyword. The result will be a dask array and not an iterator. Can be simply a boolean True for memory buffering.
+            exclude_incomplete (bool, optional): when using timmean() method, remove incomplete chunk from averaging.
+                                                 Default to False.
+            buffer (str or bool, optional): buffering of FDB/GSV streams in a temporary directory specified by the keyword.
+                                            The result will be a dask array and not an iterator.
+                                            Can be simply a boolean True for memory buffering.
 
         Returns:
             Reader: A `Reader` class object.
@@ -155,12 +159,12 @@ class Reader(FixerMixin, RegridMixin):
             self.esmcat = self.cat[self.model][self.exp][self.source](zoom=self.zoom)
         else:
             self.esmcat = self.cat[self.model][self.exp][self.source]
-    
+
         # get fixes dictionary and find them
-        self.fix = fix # fix activation flag
+        self.fix = fix  # fix activation flag
         if self.fix:
             self.fixes_dictionary = load_multi_yaml(self.fixer_folder)
-            self.fixes = self.find_fixes() # find fixes for this model/exp/source
+            self.fixes = self.find_fixes()  # find fixes for this model/exp/source
 
         # Store the machine-specific CDO path if available
         cfg_base = load_yaml(self.config_file)
@@ -194,9 +198,9 @@ class Reader(FixerMixin, RegridMixin):
             source_grid_name = self.esmcat.metadata.get('grid')
             if not source_grid_name:
                 source_grid_id = check_catalog_source(cfg_regrid["sources"],
-                                                    self.model, self.exp,
-                                                    self.source, name='regrid')
-            
+                                                      self.model, self.exp,
+                                                      self.source, name='regrid')
+
                 source_grid_name = cfg_regrid['sources'][self.model][self.exp][source_grid_id]
             source_grid = cfg_regrid['grids'][source_grid_name]
 
@@ -217,20 +221,20 @@ class Reader(FixerMixin, RegridMixin):
                     self.src_grid = {}
                     for k, v in sgridpath.items():
                         self.src_grid.update({k: xr.open_dataset(v.format(zoom=self.zoom),
-                                                                decode_times=False)})
+                                                                 decode_times=False)})
                 else:
                     if self.vert_coord:
                         self.src_grid = {self.vert_coord[0]: xr.open_dataset(sgridpath.format(zoom=self.zoom),
-                                                                            decode_times=False)}
+                                                                             decode_times=False)}
                     else:
                         self.src_grid = {"2d": xr.open_dataset(sgridpath.format(zoom=self.zoom),
-                                                            decode_times=False)}
+                                                               decode_times=False)}
             else:
                 self.src_grid = None
 
             self.src_space_coord = source_grid.get("space_coord", None)
             if self.src_space_coord is None:
-                    self.src_space_coord = self._guess_space_coord(default_space_dims)
+                self.src_space_coord = self._guess_space_coord(default_space_dims)
 
             self.support_dims = source_grid.get("support_dims", [])
             self.space_coord = self.src_space_coord
@@ -259,14 +263,14 @@ class Reader(FixerMixin, RegridMixin):
                     template_file = cfg_regrid["weights"]["template_grid"].format(sourcegrid=source_grid_name,
                                                                                   method=method,
                                                                                   targetgrid=regrid,
-                                                                                  level=levname)   
-                else: 
+                                                                                  level=levname)
+                else:
                     template_file = cfg_regrid["weights"]["template_default"].format(model=model,
-                                                                                   exp=exp,
-                                                                                   source=source,
-                                                                                   method=method,
-                                                                                   targetgrid=regrid,
-                                                                                   level=levname)                                                      
+                                                                                     exp=exp,
+                                                                                     source=source,
+                                                                                     method=method,
+                                                                                     targetgrid=regrid,
+                                                                                     level=levname)
                 # add the zoom level in the template file
                 if self.zoom is not None:
                     template_file = re.sub(r'\.nc',
@@ -294,11 +298,11 @@ class Reader(FixerMixin, RegridMixin):
 
         if areas:
             if sgridpath:
-                template_file = cfg_regrid["areas"]["template_grid"].format(grid = source_grid_name)
+                template_file = cfg_regrid["areas"]["template_grid"].format(grid=source_grid_name)
             else:
                 template_file = cfg_regrid["areas"]["template_default"].format(model=model,
                                                                                exp=exp,
-                                                                               source=source)                                                                                   
+                                                                               source=source)
             # add the zoom level in the template file
             if self.zoom is not None:
                 template_file = re.sub(r'\.nc',
@@ -356,18 +360,20 @@ class Reader(FixerMixin, RegridMixin):
         Arguments:
             regrid (bool): if to regrid the retrieved data. Defaults to False
             timmean (bool): if to average the retrieved data. Defaults to False
-            apply_unit_fix (bool): if to already adjust units by multiplying by a factor or adding an offset (this can also be done later
-                                   with the `apply_unit_fix` method). Defaults to True
-            var (str, list): the variable(s) to retrieve.Defaults to None. vars is a synonym. If None, all variables are retrieved
+            apply_unit_fix (bool): if to already adjust units by multiplying by a factor or adding an offset
+                                   (this can also be done later with the `apply_unit_fix` method). Defaults to True
+            var (str, list): the variable(s) to retrieve.Defaults to None. vars is a synonym.
+                             If None, all variables are retrieved
             startdate (str, optional): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
-            enddate (str, optional): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None. 
-            
+            enddate (str, optional): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None.
+
         Returns:
             A xarray.Dataset containing the required data.
         """
 
-        if (self.streaming and not self.stream_generator) and (startdate or enddate):  # Streaming emulator require these to be defined in __init__
-            raise KeyError("In case of streaming=true the arguments startdate/enddate have to be specified when initializing the class.")
+        # Streaming emulator require these to be defined in __init__
+        if (self.streaming and not self.stream_generator) and (startdate or enddate):
+            raise KeyError("In case of streaming=true the arguments startdate/enddate have to be specified when initializing the class.") # noqa E501
 
         if not startdate:  # In case the streaming startdate is used also for FDB copy it
             startdate = self.startdate
@@ -384,7 +390,8 @@ class Reader(FixerMixin, RegridMixin):
             self.logger.info("Retrieving variables: %s", var)
             loadvar = self.get_fixer_varname(var) if self.fix else var
         else:
-            if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):  # If we are retrieving from fdb we have to specify the var
+            # If we are retrieving from fdb we have to specify the vars
+            if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
                 var = [self.esmcat._request['param']]  # retrieve var from catalogue
 
                 self.logger.info(f"FDB source, setting default variable to {var[0]}")
