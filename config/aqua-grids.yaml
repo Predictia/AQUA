@@ -40,12 +40,14 @@ grids:
     # space_coord: ["cell"] # levante
     # space_coord: ["ncells"] # lumi and mafalda
     vert_coord: ["2d", "2dm"]  # If the case is more complex than simply "2d" we need to specify this
-    masked_vars: ["ci", "sst"]
+    masked: 
+      vars: ["ci", "sst"]
   tco1279:
     path: 
       2d: $grids/IFS/tco1279_grid.nc
       2dm: $grids/IFS/tco1279_grid_masked.nc
-    masked_vars: ["ci", "sst"]
+    masked: 
+      vars: ["ci", "sst"]
     vert_coord: ["2d", "2dm"]
     # space_coord: ["value"] # levante
     # space_coord: ["ncells"] # lumi
@@ -53,7 +55,8 @@ grids:
     path: 
       2d: $grids/IFS/tco2559_grid.nc
       2dm: $grids/IFS/tco2559_grid_masked.nc
-    masked_vars: ["ci", "sst"]
+    masked: 
+      vars: ["ci", "sst"]
     vert_coord: ["2d", "2dm"]
     space_coord: ["value"]
   tco3999: 
@@ -168,7 +171,8 @@ grids:
     path: 
       2d: $grids/ERA5/r025_grid.nc
       2dm: $grids/ERA5/r025_grid_masked.nc
-    masked_vars: ["SSTK", "sst"]
+    masked: 
+      vars: ["SSTK", "sst"]
     space_coord: ["lon", "lat"]
     vert_coord: ["2d", "2dm"]
 

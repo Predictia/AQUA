@@ -206,8 +206,18 @@ class Reader(FixerMixin, RegridMixin):
             if not isinstance(self.vert_coord, list):
                 self.vert_coord = [self.vert_coord]
 
-            self.masked_att = source_grid.get("masked", None)  # Optional selection of masked variables
-            self.masked_vars = source_grid.get("masked_vars", None)  # Optional selection of masked variables
+            # define where to apply masks: if the grids has the 'masked' option, this can be based on
+            # generic attribute or alternatively of a series of specific variables using the 'vars' key
+            masked_info = source_grid.get("masked", None)
+            if masked_info is not None:
+                for attr, value in masked_info.items():
+                    if attr == 'vars':
+                        self.masked_vars = value
+                    else:
+                        self.masked_attr = value
+            else:
+                self.masked_vars = None
+                self.masked_attr = None
 
             # Expose grid information for the source as a dictionary of
             # open xarrays
