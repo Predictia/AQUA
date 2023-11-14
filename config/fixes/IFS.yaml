@@ -249,7 +249,7 @@ models:
                 method: default
 
         # this should be exactly the same but we have tprate without decumulation already in the fdb       
-        control-1990-nemo-devcon:
+        control-1990-nemo-dev:
             hourly-1deg:
                 method: merge
                 vars:
@@ -261,7 +261,7 @@ models:
                     tprate:
                         source: tprate
 
-        control-1950-nemo-devcon:
+        control-1950-nemo-dev:
             hourly-1deg:
                 method: merge
                 vars:
@@ -273,7 +273,7 @@ models:
                     tprate:
                         source: tprate
 
-        historical-1990-fesom-devcon:
+        historical-1990-fesom-dev:
             hourly-1deg:
                 method: merge
                 vars:
@@ -285,7 +285,7 @@ models:
                     tprate:
                         source: tprate
 
-        historical-1990-nemo-devcon:
+        historical-1990-nemo-dev:
             hourly-1deg:
                 method: merge
                 vars:
