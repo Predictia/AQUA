@@ -6,13 +6,21 @@ Make use of aqua.LRA_Generator class to perform the regridding.
 Functionality can be controlled through CLI options and
 a configuration yaml file.
 '''
-import sys
-import gsv
-print(gsv.__version__)
 
+import sys
 import argparse
 from aqua import LRAgenerator
 from aqua.util import load_yaml, get_arg
+
+# to check if GSV is available and return the version
+try:
+    import gsv
+    print('GSV version is: ' + gsv.__version__)
+except RuntimeError:
+    print("GSV not available. FDB5 binary library not present on system.")
+except KeyError:
+    print("GSV not available. Environment variables not correctly set.")
+
 
 def parse_arguments(arguments):
     """
@@ -39,7 +47,7 @@ def parse_arguments(arguments):
 if __name__ == '__main__':
 
     args = parse_arguments(sys.argv[1:])
-    
+  
     file = get_arg(args, 'config', 'lra_config.yaml')
     print('Reading configuration yaml file..')
 
@@ -50,7 +58,7 @@ if __name__ == '__main__':
     tmpdir = config['target']['tmpdir']
     configdir = config['configdir']
     loglevel= config['loglevel']
-   
+
     if config['target']['aggregation']:
         aggregation = config['target']['aggregation']
     else:
