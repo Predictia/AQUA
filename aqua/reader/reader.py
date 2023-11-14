@@ -206,18 +206,8 @@ class Reader(FixerMixin, RegridMixin):
             if not isinstance(self.vert_coord, list):
                 self.vert_coord = [self.vert_coord]
 
-            # define where to apply masks: if the grids has the 'masked' option, this can be based on
-            # generic attribute or alternatively of a series of specific variables using the 'vars' key
-            masked_info = source_grid.get("masked", None)
-            if masked_info is not None:
-                for attr, value in masked_info.items():
-                    if attr == 'vars':
-                        self.masked_vars = value
-                    else:
-                        self.masked_attr = value
-            else:
-                self.masked_vars = None
-                self.masked_attr = None
+            # define which variables has to be masked
+            self.masked_attr, self.masked_vars = configure_masked_fields(source_grid)
 
             # Expose grid information for the source as a dictionary of
             # open xarrays
@@ -820,6 +810,8 @@ class Reader(FixerMixin, RegridMixin):
                               logging=True, verbose=self.verbose).read_chunked()
 
         return data
+    
+            
 
     def reader_intake(self, esmcat, var, loadvar, keep="first"):
         """
@@ -926,6 +918,25 @@ class Reader(FixerMixin, RegridMixin):
                         aggregation=aggregation,
                         timechunks=timechunks,
                         reset=reset) 
-        return stream_data
+        return stream_data    
 
+def configure_masked_fields(source_grid):
+    """
+    Help function to define where to apply masks: 
+    if the grids has the 'masked' option, this can be based on
+    generic attribute or alternatively of a series of specific variables using the 'vars' key
+    """
+
+    masked_info = source_grid.get("masked", None)
+    if masked_info is not None:
+        for attr, value in masked_info.items():
+            if attr == 'vars':
+                masked_vars = value
+            else:
+                masked_attr = value
+    else:
+        masked_vars = None
+        masked_attr = None
+
+    return masked_attr, masked_vars
 
