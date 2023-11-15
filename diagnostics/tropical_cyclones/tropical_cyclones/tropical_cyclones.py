@@ -194,20 +194,18 @@ class TCs(DetectNodes, StitchNodes):
         if self.model in 'IFS':
             self.varlist2d = ['msl', '10u', '10v', 'z']
             self.reader2d = Reader(model=self.model, exp=self.exp, source=self.source2d,
-                                   regrid=self.lowgrid, streaming=self.streaming,
-                                   stream_step=self.stream_step,
-                                   stream_unit=self.stream_units, stream_startdate=self.stream_startdate,
-                                   loglevel=self.loglevel)
+                                         regrid=self.highgrid,
+                                         streaming=self.streaming, aggregation=self.stream_step, loglevel=self.loglevel,
+                                         startdate=self.stream_startdate)
             self.varlist3d = ['z']
             self.reader3d = Reader(model=self.model, exp=self.exp, source=self.source3d,
-                                   regrid=self.lowgrid, streaming=self.streaming,
-                                   stream_step=self.stream_step, stream_unit=self.stream_units,
-                                   stream_startdate=self.stream_startdate,
-                                   loglevel=self.loglevel,)
+                                         regrid=self.highgrid,
+                                         streaming=self.streaming, aggregation=self.stream_step, loglevel=self.loglevel,
+                                         startdate=self.stream_startdate)
             self.reader_fullres = Reader(model=self.model, exp=self.exp, source=self.source2d,
                                          regrid=self.highgrid,
-                                         streaming=self.streaming, stream_step=self.stream_step, loglevel=self.loglevel,
-                                         stream_unit=self.stream_units, stream_startdate=self.stream_startdate)
+                                         streaming=self.streaming, aggregation=self.stream_step, loglevel=self.loglevel,
+                                         startdate=self.stream_startdate)
         else:
             raise ValueError(f'Model {self.model} not supported')
 
