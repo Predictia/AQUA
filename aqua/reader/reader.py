@@ -347,7 +347,7 @@ class Reader(FixerMixin, RegridMixin):
             if self.fix:
                 self.grid_area = self._fix_area(self.grid_area)
 
-    def retrieve(self, regrid=False, timmean=False,
+    def retrieve(self, regrid=False,
                  var=None, vars=None,
                  startdate=None, enddate=None):
         """
@@ -355,7 +355,6 @@ class Reader(FixerMixin, RegridMixin):
 
         Arguments:
             regrid (bool): if to regrid the retrieved data. Defaults to False
-            timmean (bool): if to average the retrieved data. Defaults to False
             var (str, list): the variable(s) to retrieve.Defaults to None. vars is a synonym. If None, all variables are retrieved
             startdate (str, optional): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
             enddate (str, optional): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None. 
@@ -424,9 +423,6 @@ class Reader(FixerMixin, RegridMixin):
 
         if self.fix:   # Do not change easily this order. The fixer assumes to be after regridding
             data = self.fixer(data, var)
-
-        if self.freq and timmean:
-            data = self.timmean(data, exclude_incomplete=self.exclude_incomplete)
 
         if fiter and self.buffer:  # We prefer an xarray, let's buffer everything
             if self.buffer is True:  # we did not provide a buffer path, use an xarray in memory
