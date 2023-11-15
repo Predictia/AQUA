@@ -50,7 +50,7 @@ class Reader(FixerMixin, RegridMixin):
                  streaming=False, stream_generator=False,
                  startdate=None, enddate=None,
                  rebuild=False, loglevel=None, nproc=4, aggregation=None,
-                 verbose=False, exclude_incomplete=False,
+                 verbose=False,
                  buffer=None):
         """
         Initializes the Reader class, which uses the catalog
@@ -78,7 +78,6 @@ class Reader(FixerMixin, RegridMixin):
             nproc (int,optional): Number of processes to use for weights generation. Defaults to 16.
             aggregation (str, optional): aggregation/chunking to be used for GSV access (e.g. D, M, Y). Defaults to None (using default from catalogue, recommended).
             verbose (bool, optional): if to print to screen additional info (used only for FDB access at the moment)
-            exclude_incomplete (bool, optional): when using timmean() method, remove incomplete chunk from averaging. Default to False. 
             buffer (str or bool, optional): buffering of FDB/GSV streams in a temporary directory specified by the keyword. The result will be a dask array and not an iterator. Can be simply a boolean True for memory buffering.
 
         Returns:
@@ -98,7 +97,6 @@ class Reader(FixerMixin, RegridMixin):
         self.deltat = 1
         self.aggregation = aggregation
         self.verbose = verbose
-        self.exclude_incomplete = exclude_incomplete
         extra = []
 
         self.grid_area = None
@@ -514,7 +512,7 @@ class Reader(FixerMixin, RegridMixin):
             yield self._timmean(ds, freq, exclude_incomplete, time_bounds)
 
 
-    def _timmean(self, data, freq=None, exclude_incomplete=None, time_bounds=False):
+    def _timmean(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
         """
         Perform daily and monthly averaging
 
@@ -523,7 +521,7 @@ class Reader(FixerMixin, RegridMixin):
             freq (str):         the frequency of the time averaging.
                                 Valid values are monthly, daily, yearly. Defaults to None.
             exclude_incomplete (bool):  Check if averages is done on complete chunks, and remove from the output
-                                        chunks which have not all the expected records. If None, using from Reader
+                                        chunks which have not all the expected records.
             time_bound (bool):  option to create the time bounds
         Returns:
             A xarray.Dataset containing the time averaged data.
@@ -531,9 +529,6 @@ class Reader(FixerMixin, RegridMixin):
 
         if freq is None:
             freq = self.freq
-        
-        if exclude_incomplete is None:
-            exclude_incomplete = self.exclude_incomplete
 
         resample_freq = frequency_string_to_pandas(freq)
 
