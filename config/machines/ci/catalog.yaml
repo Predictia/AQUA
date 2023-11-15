@@ -1,3 +1,8 @@
+paths:
+  grids: ./AQUA_tests/grids
+  weights: ./AQUA_tests/weights
+  areas: ./AQUA_tests/weights
+
 sources:
   FESOM:
     description: FESOM ocean model
