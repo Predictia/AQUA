@@ -348,7 +348,7 @@ class Reader(FixerMixin, RegridMixin):
                 self.grid_area = self._fix_area(self.grid_area)
 
     def retrieve(self, regrid=False, timmean=False,
-                 apply_unit_fix=True, var=None, vars=None,
+                 var=None, vars=None,
                  startdate=None, enddate=None):
         """
         Perform a data retrieve.
@@ -356,8 +356,6 @@ class Reader(FixerMixin, RegridMixin):
         Arguments:
             regrid (bool): if to regrid the retrieved data. Defaults to False
             timmean (bool): if to average the retrieved data. Defaults to False
-            apply_unit_fix (bool): if to already adjust units by multiplying by a factor or adding an offset (this can also be done later
-                                   with the `apply_unit_fix` method). Defaults to True
             var (str, list): the variable(s) to retrieve.Defaults to None. vars is a synonym. If None, all variables are retrieved
             startdate (str, optional): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
             enddate (str, optional): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None. 
@@ -425,7 +423,7 @@ class Reader(FixerMixin, RegridMixin):
             self.grid_area = self.dst_grid_area
 
         if self.fix:   # Do not change easily this order. The fixer assumes to be after regridding
-            data = self.fixer(data, var, apply_unit_fix=apply_unit_fix)
+            data = self.fixer(data, var)
 
         if self.freq and timmean:
             data = self.timmean(data, exclude_incomplete=self.exclude_incomplete)
