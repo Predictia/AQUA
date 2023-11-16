@@ -88,8 +88,11 @@ if __name__ == '__main__':
                     # check that your LRA is not already there (it will not work in streaming mode)
                     lra.check_integrity(varname)
 
+                    # retrieve and generate
                     lra.retrieve()
                     lra.generate_lra()
-                    lra.create_catalog_entry()
+                    
+                # create the catalog once the loop is over
+                lra.create_catalog_entry()
 
     print('LRA run completed. Have yourself a beer!')

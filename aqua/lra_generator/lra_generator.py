@@ -222,6 +222,7 @@ class LRAgenerator():
         """
 
         entry_name = f'lra-{self.resolution}-{self.frequency}'
+        urlpath = os.path.join(self.outdir, f'*{self.exp}_{self.resolution}_{self.frequency}_????.nc')
         self.logger.warning('Creating catalog entry %s %s %s', self.model, self.exp, entry_name)
 
         # define the block to be uploaded into the catalog
@@ -229,7 +230,7 @@ class LRAgenerator():
             'driver': 'netcdf',
             'description': f'LRA data {self.frequency} at {self.resolution}',
             'args': {
-                'urlpath': os.path.join(self.outdir, f'*{self.exp}_{self.resolution}_{self.frequency}_????.nc'),
+                'urlpath': urlpath,
                 'chunks': {},
                 'xarray_kwargs': {
                     'decode_times': True
@@ -243,6 +244,10 @@ class LRAgenerator():
 
         # load, add the block and close
         cat_file = load_yaml(catalogfile)
+        if entry_name in cat_file['sources']:
+            self.logger.info('Catalog entry for %s %s %s exists, updating the urlpath only...', 
+                             self.model, self.exp, entry_name)
+            cat_file['sources'][entry_name]['args']['urlpath'] = urlpath
         cat_file['sources'][entry_name] = block_cat
         dump_yaml(outfile=catalogfile, cfg=cat_file)
 
