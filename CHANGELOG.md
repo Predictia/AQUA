@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Reader init split with methods (#523)
 - Update documention for adding new data and setting up the container (Increase documentation coverage #519)
 - CLI wrapper for the state-of-the-art diagnostics analysis (#517)
 - Refactor the regrid.yaml as grid-based instead of experiment-based (#291)
