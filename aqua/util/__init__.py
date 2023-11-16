@@ -1,6 +1,5 @@
 """Utilities module"""
 
-#from .config import get_config_dir, get_machine, get_reader_filenames
 from .config import ConfigPath
 from .eccodes import read_eccodes_dic, read_eccodes_def, get_eccodes_attr
 from .graphics import add_cyclic_lon, plot_box, minmax_maps

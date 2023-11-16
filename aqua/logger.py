@@ -43,7 +43,7 @@ def log_configure(log_level=None, log_name=None):
     # create console handler which logs
     terminal = logging.StreamHandler()
     # ch.setLevel(log_level)
-    terminal.setFormatter(CustomLogColors()) # use the custom formatter
+    terminal.setFormatter(CustomLogColors())  # use the custom formatter
     logger.addHandler(terminal)
 
     # this can be used in future to log to file
@@ -138,4 +138,3 @@ class CustomLogColors(logging.Formatter):
         datefmt = '%Y-%m-%d %H:%M:%S'
         formatter = logging.Formatter(fmt=log_fmt, datefmt=datefmt)
         return formatter.format(record)
-
