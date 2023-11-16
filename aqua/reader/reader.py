@@ -41,7 +41,7 @@ xr.set_options(keep_attrs=True)
 class Reader(FixerMixin, RegridMixin):
     """General reader for NextGEMS data."""
 
-    def __init__(self, model=None, exp=None, source=None, freq=None, fix=True,
+    def __init__(self, model=None, exp=None, source=None, fix=True,
                  regrid=None, method="ycon", zoom=None, configdir=None,
                  areas=True,  # pylint: disable=W0622
                  datamodel=None,
@@ -67,7 +67,6 @@ class Reader(FixerMixin, RegridMixin):
             var (str or list, optional): Variable(s) to extract; "vars" is a synonym. Defaults to None.
             datamodel (str, optional): Destination data model for coordinates, overrides the one in fixes.yaml.
                                        Defaults to None.
-            freq (str, optional): Frequency of the time averaging. Valid values are monthly, daily, yearly. Defaults to None.
             streaming (bool, optional): If to retrieve data in a streaming mode. Defaults to False.
             stream_generator (bool, optional): if to return a generator object for data streaming. Defaults to False
             startdate (str, optional): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
@@ -79,8 +78,6 @@ class Reader(FixerMixin, RegridMixin):
             aggregation (str, optional): aggregation/chunking to be used for GSV access (e.g. D, M, Y).
                                          Defaults to None (using default from catalogue, recommended).
             verbose (bool, optional): if to print to screen additional info (used only for FDB access at the moment)
-            exclude_incomplete (bool, optional): when using timmean() method, remove incomplete chunk from averaging.
-                                                 Default to False.
             buffer (str or bool, optional): buffering of FDB/GSV streams in a temporary directory specified by the keyword.
                                             The result will be a dask array and not an iterator.
                                             Can be simply a boolean True for memory buffering.
@@ -97,7 +94,6 @@ class Reader(FixerMixin, RegridMixin):
         self.model = model
         self.targetgrid = regrid
         self.nproc = nproc
-        self.freq = freq
         self.vert_coord = None
         self.deltat = 1
         self.aggregation = aggregation
@@ -555,9 +551,6 @@ class Reader(FixerMixin, RegridMixin):
         Returns:
             A xarray.Dataset containing the time averaged data.
         """
-
-        if freq is None:
-            freq = self.freq
 
         resample_freq = frequency_string_to_pandas(freq)
 
