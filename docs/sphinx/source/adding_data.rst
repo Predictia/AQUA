@@ -268,6 +268,32 @@ Other simpler grids can be defined using the CDO syntax, so for example we have 
 
 A standard `lon-lat` grid is defined for basic interpolation and can be used for most of the regular cases, as long as the ``space_coord`` are ``lon`` and ``lat``.
 
+DE_340 source syntax convention
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Although free combination of model-exp-source can be defined in each catalog to get access to the data, inside DE_340 a series of decision has been 
+taken to try to homogenize the definition of experiments and of sources. We decide to use the dash (`-`) to connect the different elements of the syntax below
+
+- Models (`model` key)
+This will be simply one of the four models used in the project: IFS, NEMO, FESOM and ICON. 
+We will not merge atmospheric and oceanic models which have not the same grid (so only ICON will be represented as a single model)
+
+- Experiments (`exp` key)
+Considering that we have strict set of experiments that must be produced, we will follow this 4-string convention:
+
+1. Experiment kind: historical, control, sspXXX
+2. Starting year: 1950, 1990, etc...
+3. Oceanic model: nemo, fesom, icon (this is required since IFS is run with both configurations)
+4. Extra info (optional): any information that might be important to define an experiment, as dev, test, the expid of the simulation, or anything else that can help for defining the experiment.
+
+Examples are `historical-1990-fesom-dev` or `control-1950-nemo-dev`. We plan to incorporate info on the expid in the metadata, so that we can potentially use it as an alias.
+
+- Sources (`source` key)
+For the sources, we will need to uniform the different requirements of grids and temporal resolution. Sometimes we use native sometimes original, sometimes r100 sometimes 1deg. Do we want to use the 2d/3d key every time? This is confusing. Some options might be...
+
+1. Time resolution: monthly, daily, 6hourly, hourly, etc.
+2. Space resolution: native, 1deg, 025deg, r100, etc... For some oceanic model we could add the horizontal grid so native-elem or native-gridT could be an option). Similarly, healpix can be healpix-0 or healpix-6 in the case we want to specify the zoom level. 
+3. Extra info: 2d or 3d. Not mandatory, but to be used when confusion might arise.
 
 
 

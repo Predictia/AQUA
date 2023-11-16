@@ -14,6 +14,7 @@ import argparse
 from aqua import LRAgenerator
 from aqua.util import load_yaml, get_arg
 
+
 def parse_arguments(arguments):
     """
     Parse command line arguments
@@ -39,7 +40,7 @@ def parse_arguments(arguments):
 if __name__ == '__main__':
 
     args = parse_arguments(sys.argv[1:])
-    
+
     file = get_arg(args, 'config', 'lra_config.yaml')
     print('Reading configuration yaml file..')
 
@@ -49,8 +50,8 @@ if __name__ == '__main__':
     outdir = config['target']['outdir']
     tmpdir = config['target']['tmpdir']
     configdir = config['configdir']
-    loglevel= config['loglevel']
-   
+    loglevel = config['loglevel']
+
     if config['target']['aggregation']:
         aggregation = config['target']['aggregation']
     else:
@@ -69,15 +70,15 @@ if __name__ == '__main__':
 
                     # get the zoom level
                     zoom_level = config['catalog'][model][exp][source].get('zoom', None)
-                                    
+
                     # init the LRA
                     lra = LRAgenerator(model=model, exp=exp, source=source, zoom=zoom_level,
-                                        var=varname, resolution=resolution,
-                                        frequency=frequency, fix=fix,
-                                        outdir=outdir, tmpdir=tmpdir, configdir=configdir,
-                                        nproc=workers, loglevel=loglevel, aggregation=aggregation,
-                                        definitive=definitive, overwrite=overwrite)
-                    
+                                       var=varname, resolution=resolution,
+                                       frequency=frequency, fix=fix,
+                                       outdir=outdir, tmpdir=tmpdir, configdir=configdir,
+                                       nproc=workers, loglevel=loglevel, aggregation=aggregation,
+                                       definitive=definitive, overwrite=overwrite)
+
                     # check that your LRA is not already there (it will not work in streaming mode)
                     lra.check_integrity(varname)
 
