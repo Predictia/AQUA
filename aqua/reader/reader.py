@@ -323,12 +323,18 @@ class Reader(FixerMixin, RegridMixin):
                 self.grid_area = self._fix_area(self.grid_area)
 
     def _define_buffer(self, buffer):
-            
-        """Define the FDB optiona buffering"""
+        """Define the FDB optional buffering
+
+        Arguments:
+            buffer (str or bool): the buffer path or True for memory buffering
+
+        Returns:
+            The buffer path or True for memory buffering or None if no buffering is required
+        """
 
         if buffer and buffer is not True:  # optional FDB buffering
             if not os.path.isdir(buffer):
-                raise ValueError("The directory specified by buffer must exist.") 
+                raise ValueError("The directory specified by buffer must exist.")
             return tempfile.TemporaryDirectory(dir=buffer)
         elif buffer is True:
             return True
@@ -336,8 +342,14 @@ class Reader(FixerMixin, RegridMixin):
             return None
 
     def _set_cdo(self, cfg_base):
+        """Check information on CDO to set the correct version
 
-        """check information on CDO to set the correct version"""
+        Arguments:
+            cfg_base (dict): the configuration dictionary
+
+        Returns:
+            The path to the CDO executable
+        """
 
         cdo = cfg_base["cdo"].get(self.machine, None)
         if not cdo:
@@ -348,9 +360,8 @@ class Reader(FixerMixin, RegridMixin):
                 self.logger.error("CDO not found in path: Weight and area generation will fail.")
         else:
             self.logger.debug("Using CDO from config: %s", cdo)
-        
-        return cdo
 
+        return cdo
 
     def retrieve(self, regrid=False, timmean=False,
                  apply_unit_fix=True, var=None, vars=None,
