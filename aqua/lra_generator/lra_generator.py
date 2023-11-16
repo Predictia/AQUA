@@ -173,7 +173,7 @@ class LRAgenerator():
         # Initialize the reader
         self.reader = Reader(model=self.model, exp=self.exp,
                              source=self.source, zoom=self.zoom,
-                             regrid=self.resolution, freq=self.frequency,
+                             regrid=self.resolution,
                              configdir=self.configdir, loglevel=self.loglevel,
                              fix=self.fix, aggregation=self.aggregation)
 
