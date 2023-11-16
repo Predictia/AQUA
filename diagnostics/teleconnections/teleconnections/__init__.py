@@ -6,7 +6,7 @@ from .plots import maps_diffs_plot
 from .statistics import reg_evaluation, cor_evaluation
 from .tc_class import Teleconnection
 from .tools import TeleconnectionsConfig
-from .tools import area_selection, wgt_area_mean
+from .tools import wgt_area_mean
 
 __version__ = '0.2.3'
 
@@ -16,7 +16,7 @@ __all__ = ['station_based_index', 'regional_mean_index',
            'maps_diffs_plot',
            'reg_evaluation', 'cor_evaluation',
            'Teleconnection', 'TeleconnectionsConfig',
-           'area_selection', 'wgt_area_mean']
+           'wgt_area_mean']
 
 # Changelog
 # 0.2.3: Single map plot function is now in AQUA framework
