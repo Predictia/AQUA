@@ -6,6 +6,7 @@ import cartopy.util as cutil
 
 from aqua.logger import log_configure
 
+
 def add_cyclic_lon(da: xr.DataArray):
     """
     Add a cyclic longitude point to a DataArray using cartopy
