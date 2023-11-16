@@ -32,7 +32,8 @@ class RegridMixin():
         grid_area = self.cdo_generate_areas(source=dst_extra)
 
         # Make sure that grid areas contain exactly the same coordinates
-        data = self._retrieve_plain(regrid=True)
+        data = self._retrieve_plain()
+        data = self.regrid(data)
 
         grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.dst_space_coord})
 
@@ -297,7 +298,7 @@ class RegridMixin():
         and return them
         """
     
-        data = self._retrieve_plain(startdate=None, regrid=False)
+        data = self._retrieve_plain(startdate=None)
         guessed = [x for x in data.dims if x in default_dims]
         if guessed is None:
             self.logger.info('Default dims that are screened are %s', default_dims)

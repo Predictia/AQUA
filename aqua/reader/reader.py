@@ -345,14 +345,13 @@ class Reader(FixerMixin, RegridMixin):
             if self.fix:
                 self.grid_area = self._fix_area(self.grid_area)
 
-    def retrieve(self, regrid=False,
+    def retrieve(self,
                  var=None, vars=None,
                  startdate=None, enddate=None):
         """
         Perform a data retrieve.
 
         Arguments:
-            regrid (bool): if to regrid the retrieved data. Defaults to False
             var (str, list): the variable(s) to retrieve.Defaults to None. vars is a synonym. If None, all variables are retrieved
             startdate (str, optional): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
             enddate (str, optional): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None. 
@@ -414,10 +413,6 @@ class Reader(FixerMixin, RegridMixin):
         data = log_history_iter(data, "retrieved by AQUA retriever")
 
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
-
-        if self.targetgrid and regrid:
-            data = self.regrid(data)
-            self.grid_area = self.dst_grid_area
 
         if self.fix:   # Do not change easily this order. The fixer assumes to be after regridding
             data = self.fixer(data, var)
