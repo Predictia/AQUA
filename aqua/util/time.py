@@ -13,21 +13,34 @@ from aqua.logger import log_configure
 def frequency_string_to_pandas(freq):
 
     """
-    Convert a string from the OPA/AQUA convention to 
+    Convert a string from the AQUA convention to 
     the usual pandas frequency standard
     """
 
-    # translate frequency in pandas-style time
-    if freq == 'monthly':
-        resample_freq = '1M'
-    elif freq == 'daily':
-        resample_freq = '1D'
-    elif freq == 'yearly':
-        resample_freq = '1Y'
-    else:
-        resample_freq = freq
+    trans = {
+        'hourly': '1H',
+        'daily': '1D',
+        'weekly': '1W',
+        'monthly': '1M',
+        'yearly': '1Y',
+        'hour': '1H',
+        'day': '1D',
+        'pentad': '5D',
+        'week': '1W',
+        'month': '1M',
+        'year': '1Y',
+        'hours': '1H',
+        'days': '1D',
+        'pentads': '5D',
+        'weeks': '1W',
+        'months': '1M',
+        'years': '1Y',
+    }
 
-    return resample_freq
+    new_freq = trans.get(freq, freq)
+
+    return new_freq
+
 
 def _xarray_timedelta_string(xdataset):
 
