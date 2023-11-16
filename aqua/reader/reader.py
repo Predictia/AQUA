@@ -140,7 +140,7 @@ class Reader(FixerMixin, RegridMixin):
         self.machine = Configurer.machine
 
         # get configuration from the machine
-        self.catalog_file, self.regrid_file, self.fixer_folder, self.config_file = (
+        self.catalog_file, self.fixer_folder, self.config_file = (
             Configurer.get_reader_filenames())
         self.cat = intake.open_catalog(self.catalog_file)
 
