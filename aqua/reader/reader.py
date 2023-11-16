@@ -306,7 +306,7 @@ class Reader(FixerMixin, RegridMixin):
                 cellareas = source_grid.get("cellareas", None)
                 cellarea_var = source_grid.get("cellarea_var", None)
                 if cellareas and cellarea_var:
-                    self.logger.warning("Using cellareas file provided in regrid.yaml")
+                    self.logger.warning("Using cellareas file provided in aqua-grids.yaml")
                     xr.open_mfdataset(cellareas)[cellarea_var].rename("cell_area").squeeze().to_netcdf(self.src_areafile)
                 else:
                     # We have to reconstruct it
