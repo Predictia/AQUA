@@ -164,13 +164,13 @@ class RegridMixin():
                 else:
                     raise ValueError(f"No variable with dimension {vert_coord} found in the dataset")
 
-            # We need only one variable and we do not want vars with "bnds/bounds" 
+            # We need only one variable and we do not want vars with "bnds/bounds"
             available_vars = [var for var in list(data.data_vars) if 'bnds' not in var and 'bounds' not in var]
             if available_vars:
                 sgridpath = data[available_vars[0]]
             else:
                 raise ValueError("Cannot find any variabile to extract a grid sample")
-            
+
         else:
             if isinstance(sgridpath, dict):
                 if vert_coord:
@@ -265,13 +265,12 @@ class RegridMixin():
                 source_grid_file.close()
             area_file.close()
 
-
     def _retrieve_plain(self, *args, **kwargs):
         """
         Retrieves making sure that no buffering, fixer and agregation are used
         and converts iterator to data
         """
-        
+
         buffer = self.buffer
         aggregation = self.aggregation
         fix = self.fix
@@ -290,7 +289,7 @@ class RegridMixin():
             data = next(data)
 
         return data
-    
+
     def _guess_space_coord(self, default_dims):
 
         """
@@ -303,10 +302,11 @@ class RegridMixin():
         if guessed is None:
             self.logger.info('Default dims that are screened are %s', default_dims)
             raise KeyError('Cannot identify any space_coord, you will will need to define it regrid.yaml')
-        
+
         self.logger.info('Space_coords deduced from the source are %s', guessed)
+
         return guessed
-            
+
 
 def _rename_dims(data, dim_list):
     """
