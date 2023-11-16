@@ -129,14 +129,8 @@ class Reader(FixerMixin, RegridMixin):
 
         self.previous_data = None  # used for FDB iterator fixing
 
-        if buffer and buffer is not True:  # optional FDB buffering
-            if not os.path.isdir(buffer):
-                raise ValueError("The directory specified by buffer must exist.")
-            self.buffer = tempfile.TemporaryDirectory(dir=buffer)
-        elif buffer is True:
-            self.buffer = True
-        else:
-            self.buffer = None
+        # define buffering option in case of FDB
+        self.buffer = self._define_buffer(buffer)
 
         # define configuration file and paths
         Configurer = ConfigPath(configdir=configdir)
@@ -168,15 +162,8 @@ class Reader(FixerMixin, RegridMixin):
 
         # Store the machine-specific CDO path if available
         cfg_base = load_yaml(self.config_file)
-        self.cdo = cfg_base["cdo"].get(self.machine, None)
-        if not self.cdo:
-            self.cdo = shutil.which("cdo")
-            if self.cdo:
-                self.logger.debug("Found CDO path: %s", self.cdo)
-            else:
-                self.logger.error("CDO not found in path: Weight and area generation will fail.")
-        else:
-            self.logger.debug("Using CDO from config: %s", self.cdo)
+        self.cdo = self._set_cdo(cfg_base)
+
 
         if self.fix:
             self.dst_datamodel = datamodel
@@ -350,6 +337,47 @@ class Reader(FixerMixin, RegridMixin):
             self.grid_area = self.src_grid_area
             if self.fix:
                 self.grid_area = self._fix_area(self.grid_area)
+
+    def _define_buffer(self, buffer):
+        """Define the FDB optional buffering
+
+        Arguments:
+            buffer (str or bool): the buffer path or True for memory buffering
+
+        Returns:
+            The buffer path or True for memory buffering or None if no buffering is required
+        """
+
+        if buffer and buffer is not True:  # optional FDB buffering
+            if not os.path.isdir(buffer):
+                raise ValueError("The directory specified by buffer must exist.")
+            return tempfile.TemporaryDirectory(dir=buffer)
+        elif buffer is True:
+            return True
+        else:
+            return None
+
+    def _set_cdo(self, cfg_base):
+        """Check information on CDO to set the correct version
+
+        Arguments:
+            cfg_base (dict): the configuration dictionary
+
+        Returns:
+            The path to the CDO executable
+        """
+
+        cdo = cfg_base["cdo"].get(self.machine, None)
+        if not cdo:
+            cdo = shutil.which("cdo")
+            if cdo:
+                self.logger.debug("Found CDO path: %s", cdo)
+            else:
+                self.logger.error("CDO not found in path: Weight and area generation will fail.")
+        else:
+            self.logger.debug("Using CDO from config: %s", cdo)
+
+        return cdo
 
     def retrieve(self, regrid=False, timmean=False,
                  apply_unit_fix=True, var=None, vars=None,
