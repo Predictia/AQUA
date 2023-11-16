@@ -30,7 +30,7 @@ class LRAgenerator():
 
     def __init__(self,
                  model=None, exp=None, source=None, zoom=None,
-                 var=None, vars=None, configdir=None,
+                 var=None, configdir=None,
                  resolution=None, frequency=None, fix=True,
                  outdir=None, tmpdir=None, nproc=1, aggregation=None,
                  loglevel=None, overwrite=False, definitive=False):
@@ -42,7 +42,7 @@ class LRAgenerator():
             exp (string):            The experiment name from the catalog
             source (string):         The sourceid name from the catalog
             var (str, list):         Variable(s) to be processed and archived
-                                     in LRA,vars in a synonim
+                                     in LRA.
             zoom (int):              Healpix level of zoom
             resolution (string):     The target resolution for the LRA
             frequency (string,opt):  The target frequency for averaging the
@@ -113,11 +113,8 @@ class LRAgenerator():
         self.machine = Configurer.machine
 
         # Initialize variable(s)
-        self.var = None
-        if vars:
-            self.var = vars
-        else:
-            self.var = var
+        self.var = var
+
         if not self.var:
             raise KeyError('Please specify variable string or list.')
         self.logger.info('Variable(s) to be processed: %s', self.var)

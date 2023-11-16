@@ -64,7 +64,6 @@ class Reader(FixerMixin, RegridMixin):
             zoom (int): healpix zoom level. (Default: None)
             configdir (str, optional): Folder where the config/catalog files are located. Defaults to None.
             areas (bool, optional): Compute pixel areas if needed. Defaults to True.
-            var (str or list, optional): Variable(s) to extract; "vars" is a synonym. Defaults to None.
             datamodel (str, optional): Destination data model for coordinates, overrides the one in fixes.yaml.
                                        Defaults to None.
             streaming (bool, optional): If to retrieve data in a streaming mode. Defaults to False.
@@ -374,14 +373,13 @@ class Reader(FixerMixin, RegridMixin):
 
         return cdo
 
-    def retrieve(self,
-                 var=None, vars=None,
+    def retrieve(self, var=None,
                  startdate=None, enddate=None):
         """
         Perform a data retrieve.
 
         Arguments:
-            var (str, list): the variable(s) to retrieve.Defaults to None. vars is a synonym. If None, all variables are retrieved
+            var (str, list): the variable(s) to retrieve.Defaults to None. If None, all variables are retrieved
             startdate (str, optional): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
             enddate (str, optional): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None.
 
@@ -397,9 +395,6 @@ class Reader(FixerMixin, RegridMixin):
             startdate = self.startdate
         if not enddate:  # In case the streaming startdate is used also for FDB copy it
             enddate = self.enddate
-
-        if vars:
-            var = vars
 
         # get loadvar
         if var:
