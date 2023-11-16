@@ -2,8 +2,6 @@
 
 import os
 import re
-import io
-import sys
 
 import types
 import tempfile
@@ -46,7 +44,7 @@ class Reader(FixerMixin, RegridMixin):
     def __init__(self, model=None, exp=None, source=None, freq=None, fix=True,
                  regrid=None, method="ycon", zoom=None, configdir=None,
                  areas=True,  # pylint: disable=W0622
-                 datamodel=None, 
+                 datamodel=None,
                  streaming=False, stream_generator=False,
                  startdate=None, enddate=None,
                  rebuild=False, loglevel=None, nproc=4, aggregation=None,
@@ -67,19 +65,25 @@ class Reader(FixerMixin, RegridMixin):
             configdir (str, optional): Folder where the config/catalog files are located. Defaults to None.
             areas (bool, optional): Compute pixel areas if needed. Defaults to True.
             var (str or list, optional): Variable(s) to extract; "vars" is a synonym. Defaults to None.
-            datamodel (str, optional): Destination data model for coordinates, overrides the one in fixes.yaml. Defaults to None.
+            datamodel (str, optional): Destination data model for coordinates, overrides the one in fixes.yaml.
+                                       Defaults to None.
             freq (str, optional): Frequency of the time averaging. Valid values are monthly, daily, yearly. Defaults to None.
             streaming (bool, optional): If to retrieve data in a streaming mode. Defaults to False.
             stream_generator (bool, optional): if to return a generator object for data streaming. Defaults to False
             startdate (str, optional): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
             enddate (str, optional): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None.
             rebuild (bool, optional): Force rebuilding of area and weight files. Defaults to False.
-            loglevel (str, optional): Level of logging according to logging module. Defaults to log_level_default of loglevel().
+            loglevel (str, optional): Level of logging according to logging module.
+                                      Defaults to log_level_default of loglevel().
             nproc (int,optional): Number of processes to use for weights generation. Defaults to 16.
-            aggregation (str, optional): aggregation/chunking to be used for GSV access (e.g. D, M, Y). Defaults to None (using default from catalogue, recommended).
+            aggregation (str, optional): aggregation/chunking to be used for GSV access (e.g. D, M, Y).
+                                         Defaults to None (using default from catalogue, recommended).
             verbose (bool, optional): if to print to screen additional info (used only for FDB access at the moment)
-            exclude_incomplete (bool, optional): when using timmean() method, remove incomplete chunk from averaging. Default to False. 
-            buffer (str or bool, optional): buffering of FDB/GSV streams in a temporary directory specified by the keyword. The result will be a dask array and not an iterator. Can be simply a boolean True for memory buffering.
+            exclude_incomplete (bool, optional): when using timmean() method, remove incomplete chunk from averaging.
+                                                 Default to False.
+            buffer (str or bool, optional): buffering of FDB/GSV streams in a temporary directory specified by the keyword.
+                                            The result will be a dask array and not an iterator.
+                                            Can be simply a boolean True for memory buffering.
 
         Returns:
             Reader: A `Reader` class object.
@@ -109,7 +113,7 @@ class Reader(FixerMixin, RegridMixin):
             streaming = True
 
         if streaming:
-            self.streamer = Streaming(startdate=startdate, 
+            self.streamer = Streaming(startdate=startdate,
                                       enddate=enddate,
                                       aggregation=aggregation,
                                       loglevel=self.loglevel)
@@ -125,14 +129,8 @@ class Reader(FixerMixin, RegridMixin):
 
         self.previous_data = None  # used for FDB iterator fixing
 
-        if buffer and buffer is not True:  # optional FDB buffering
-            if not os.path.isdir(buffer):
-                raise ValueError("The directory specified by buffer must exist.") 
-            self.buffer = tempfile.TemporaryDirectory(dir=buffer)
-        elif buffer is True:
-            self.buffer = True
-        else:
-            self.buffer = None
+        # define buffering option in case of FDB
+        self.buffer = self._define_buffer(buffer)
 
         # define configuration file and paths
         Configurer = ConfigPath(configdir=configdir)
@@ -155,24 +153,17 @@ class Reader(FixerMixin, RegridMixin):
             self.esmcat = self.cat[self.model][self.exp][self.source](zoom=self.zoom)
         else:
             self.esmcat = self.cat[self.model][self.exp][self.source]
-    
+
         # get fixes dictionary and find them
-        self.fix = fix # fix activation flag
+        self.fix = fix  # fix activation flag
         if self.fix:
             self.fixes_dictionary = load_multi_yaml(self.fixer_folder)
-            self.fixes = self.find_fixes() # find fixes for this model/exp/source
+            self.fixes = self.find_fixes()  # find fixes for this model/exp/source
 
         # Store the machine-specific CDO path if available
         cfg_base = load_yaml(self.config_file)
-        self.cdo = cfg_base["cdo"].get(self.machine, None)
-        if not self.cdo:
-            self.cdo = shutil.which("cdo")
-            if self.cdo:
-                self.logger.debug("Found CDO path: %s", self.cdo)
-            else:
-                self.logger.error("CDO not found in path: Weight and area generation will fail.")
-        else:
-            self.logger.debug("Using CDO from config: %s", self.cdo)
+        self.cdo = self._set_cdo(cfg_base)
+
 
         if self.fix:
             self.dst_datamodel = datamodel
@@ -194,9 +185,9 @@ class Reader(FixerMixin, RegridMixin):
             source_grid_name = self.esmcat.metadata.get('grid')
             if not source_grid_name:
                 source_grid_id = check_catalog_source(cfg_regrid["sources"],
-                                                    self.model, self.exp,
-                                                    self.source, name='regrid')
-            
+                                                      self.model, self.exp,
+                                                      self.source, name='regrid')
+
                 source_grid_name = cfg_regrid['sources'][self.model][self.exp][source_grid_id]
             source_grid = cfg_regrid['grids'][source_grid_name]
 
@@ -217,20 +208,20 @@ class Reader(FixerMixin, RegridMixin):
                     self.src_grid = {}
                     for k, v in sgridpath.items():
                         self.src_grid.update({k: xr.open_dataset(v.format(zoom=self.zoom),
-                                                                decode_times=False)})
+                                                                 decode_times=False)})
                 else:
                     if self.vert_coord:
                         self.src_grid = {self.vert_coord[0]: xr.open_dataset(sgridpath.format(zoom=self.zoom),
-                                                                            decode_times=False)}
+                                                                             decode_times=False)}
                     else:
                         self.src_grid = {"2d": xr.open_dataset(sgridpath.format(zoom=self.zoom),
-                                                            decode_times=False)}
+                                                               decode_times=False)}
             else:
                 self.src_grid = None
 
             self.src_space_coord = source_grid.get("space_coord", None)
             if self.src_space_coord is None:
-                    self.src_space_coord = self._guess_space_coord(default_space_dims)
+                self.src_space_coord = self._guess_space_coord(default_space_dims)
 
             self.support_dims = source_grid.get("support_dims", [])
             self.space_coord = self.src_space_coord
@@ -259,14 +250,14 @@ class Reader(FixerMixin, RegridMixin):
                     template_file = cfg_regrid["weights"]["template_grid"].format(sourcegrid=source_grid_name,
                                                                                   method=method,
                                                                                   targetgrid=regrid,
-                                                                                  level=levname)   
-                else: 
+                                                                                  level=levname)
+                else:
                     template_file = cfg_regrid["weights"]["template_default"].format(model=model,
-                                                                                   exp=exp,
-                                                                                   source=source,
-                                                                                   method=method,
-                                                                                   targetgrid=regrid,
-                                                                                   level=levname)                                                      
+                                                                                     exp=exp,
+                                                                                     source=source,
+                                                                                     method=method,
+                                                                                     targetgrid=regrid,
+                                                                                     level=levname)
                 # add the zoom level in the template file
                 if self.zoom is not None:
                     template_file = re.sub(r'\.nc',
@@ -294,11 +285,11 @@ class Reader(FixerMixin, RegridMixin):
 
         if areas:
             if sgridpath:
-                template_file = cfg_regrid["areas"]["template_grid"].format(grid = source_grid_name)
+                template_file = cfg_regrid["areas"]["template_grid"].format(grid=source_grid_name)
             else:
                 template_file = cfg_regrid["areas"]["template_default"].format(model=model,
                                                                                exp=exp,
-                                                                               source=source)                                                                                   
+                                                                               source=source)
             # add the zoom level in the template file
             if self.zoom is not None:
                 template_file = re.sub(r'\.nc',
@@ -347,6 +338,47 @@ class Reader(FixerMixin, RegridMixin):
             if self.fix:
                 self.grid_area = self._fix_area(self.grid_area)
 
+    def _define_buffer(self, buffer):
+        """Define the FDB optional buffering
+
+        Arguments:
+            buffer (str or bool): the buffer path or True for memory buffering
+
+        Returns:
+            The buffer path or True for memory buffering or None if no buffering is required
+        """
+
+        if buffer and buffer is not True:  # optional FDB buffering
+            if not os.path.isdir(buffer):
+                raise ValueError("The directory specified by buffer must exist.")
+            return tempfile.TemporaryDirectory(dir=buffer)
+        elif buffer is True:
+            return True
+        else:
+            return None
+
+    def _set_cdo(self, cfg_base):
+        """Check information on CDO to set the correct version
+
+        Arguments:
+            cfg_base (dict): the configuration dictionary
+
+        Returns:
+            The path to the CDO executable
+        """
+
+        cdo = cfg_base["cdo"].get(self.machine, None)
+        if not cdo:
+            cdo = shutil.which("cdo")
+            if cdo:
+                self.logger.debug("Found CDO path: %s", cdo)
+            else:
+                self.logger.error("CDO not found in path: Weight and area generation will fail.")
+        else:
+            self.logger.debug("Using CDO from config: %s", cdo)
+
+        return cdo
+
     def retrieve(self, regrid=False, timmean=False,
                  apply_unit_fix=True, var=None, vars=None,
                  startdate=None, enddate=None):
@@ -356,18 +388,20 @@ class Reader(FixerMixin, RegridMixin):
         Arguments:
             regrid (bool): if to regrid the retrieved data. Defaults to False
             timmean (bool): if to average the retrieved data. Defaults to False
-            apply_unit_fix (bool): if to already adjust units by multiplying by a factor or adding an offset (this can also be done later
-                                   with the `apply_unit_fix` method). Defaults to True
-            var (str, list): the variable(s) to retrieve.Defaults to None. vars is a synonym. If None, all variables are retrieved
+            apply_unit_fix (bool): if to already adjust units by multiplying by a factor or adding an offset
+                                   (this can also be done later with the `apply_unit_fix` method). Defaults to True
+            var (str, list): the variable(s) to retrieve.Defaults to None. vars is a synonym.
+                             If None, all variables are retrieved
             startdate (str, optional): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
-            enddate (str, optional): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None. 
-            
+            enddate (str, optional): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None.
+
         Returns:
             A xarray.Dataset containing the required data.
         """
 
-        if (self.streaming and not self.stream_generator) and (startdate or enddate):  # Streaming emulator require these to be defined in __init__
-            raise KeyError("In case of streaming=true the arguments startdate/enddate have to be specified when initializing the class.")
+        # Streaming emulator require these to be defined in __init__
+        if (self.streaming and not self.stream_generator) and (startdate or enddate):
+            raise KeyError("In case of streaming=true the arguments startdate/enddate have to be specified when initializing the class.") # noqa E501
 
         if not startdate:  # In case the streaming startdate is used also for FDB copy it
             startdate = self.startdate
@@ -416,9 +450,9 @@ class Reader(FixerMixin, RegridMixin):
                     try:
                         data = data[var]
                         self.logger.warning(f"You are asking for var {var} which is already fixed from {loadvar}.")
-                        self.logger.warning(f"Would be safer to run with fix=False")
-                    except:
-                        raise KeyError("You are asking for variables which we cannot find in the catalog!")
+                        self.logger.warning("Would be safer to run with fix=False")
+                    except Exception as e:
+                        raise KeyError("You are asking for variables which we cannot find in the catalog!") from e
 
         data = log_history_iter(data, "retrieved by AQUA retriever")
 
@@ -474,7 +508,8 @@ class Reader(FixerMixin, RegridMixin):
             A xarray.Dataset containing the regridded data.
         """
 
-        data = flip_lat_dir(datain)  # Check if original lat has been flipped and in case flip back, returns a deep copy in that case
+        # Check if original lat has been flipped and in case flip back, returns a deep copy in that case
+        data = flip_lat_dir(datain)
 
         if self.vert_coord == ["2d"]:
             datadic = {"2d": data}
@@ -509,7 +544,6 @@ class Reader(FixerMixin, RegridMixin):
 
         log_history(out, "regridded by AQUA regridder")
         return out
-    
 
     def timmean(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
         """Call the timmean function returning container or iterator"""
@@ -518,11 +552,9 @@ class Reader(FixerMixin, RegridMixin):
         else:
             return self._timmean(data, freq, exclude_incomplete, time_bounds)
 
-
     def _timmeangen(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
         for ds in data:
             yield self._timmean(ds, freq, exclude_incomplete, time_bounds)
-
 
     def _timmean(self, data, freq=None, exclude_incomplete=None, time_bounds=False):
         """
@@ -541,7 +573,7 @@ class Reader(FixerMixin, RegridMixin):
 
         if freq is None:
             freq = self.freq
-        
+
         if exclude_incomplete is None:
             exclude_incomplete = self.exclude_incomplete
 
@@ -553,7 +585,7 @@ class Reader(FixerMixin, RegridMixin):
             out = data.resample(time=resample_freq).mean()
         except ValueError as exc:
             raise ValueError('Cant find a frequency to resample, aborting!') from exc
-        
+
         # set time as the first timestamp of each month/day according to the sampling frequency
         out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
 
@@ -577,7 +609,7 @@ class Reader(FixerMixin, RegridMixin):
             if np.any(np.isnat(out.time_bnds)):
                 raise ValueError('Resampling cannot produce output for all time_bnds step!')
             log_history(out, "time_bnds added by by AQUA timmean")
-       
+
         return out
 
     def _check_if_regridded(self, data):
@@ -636,9 +668,9 @@ class Reader(FixerMixin, RegridMixin):
             for coord in self.grid_area.coords:
 
                 xcoord = data.coords[coord]
-                #HACK to solve minor issue in xarray
+                # HACK to solve minor issue in xarray
                 # check https://github.com/oloapinivad/AQUA/pull/397 for further info
-                if len(xcoord.coords)>1:
+                if len(xcoord.coords) > 1:
                     self.logger.warning('Issue found in %s, removing spurious coordinates', coord)
                     drop_coords = [koord for koord in xcoord.coords if koord != coord]
                     xcoord = xcoord.drop_vars(drop_coords)
@@ -646,12 +678,13 @@ class Reader(FixerMixin, RegridMixin):
                 # option1: shape different
                 if len(self.grid_area[coord]) != len(xcoord):
                     raise ValueError(f'{coord} has different shape between area files and your dataset.'
-                                    'If using the LRA, try setting the regrid=r100 option') from err
+                                     'If using the LRA, try setting the regrid=r100 option') from err
                 # shape are ok, but coords are different
                 if not self.grid_area[coord].equals(xcoord):
                     # if they are fine when sorted, there is a sorting mismatch
                     if self.grid_area[coord].sortby(coord).equals(xcoord.sortby(coord)):
-                        self.logger.warning('%s is sorted in different way between area files and your dataset. Flipping it!', coord)
+                        self.logger.warning('%s is sorted in different way between area files and your dataset. Flipping it!',
+                                            coord)
                         self.grid_area = self.grid_area.reindex({coord: list(reversed(self.grid_area[coord]))})
                         # raise ValueError(f'{coord} is sorted in different way between area files and your dataset.') from err
                     # something else
@@ -782,7 +815,6 @@ class Reader(FixerMixin, RegridMixin):
                                       )
         return list(data.values())[0]
 
-
     def reader_fdb(self, esmcat, var, startdate, enddate, dask=False):
         """
         Read fdb data. Returns an iterator or dask array.
@@ -800,10 +832,10 @@ class Reader(FixerMixin, RegridMixin):
             if self.aggregation:
                 data = esmcat(startdate=startdate, enddate=enddate, var=var,
                               aggregation=self.aggregation,
-                              logging = True, verbose=self.verbose).to_dask()
+                              logging=True, verbose=self.verbose).to_dask()
             else:
-                data =esmcat(startdate=startdate, enddate=enddate, var=var,
-                             logging = True, verbose=self.verbose).to_dask()
+                data = esmcat(startdate=startdate, enddate=enddate, var=var,
+                              logging=True, verbose=self.verbose).to_dask()
         else:
             if self.aggregation:
                 data = esmcat(startdate=startdate, enddate=enddate, var=var,
@@ -838,8 +870,8 @@ class Reader(FixerMixin, RegridMixin):
                     data = data[var]
                     self.logger.warning("You are asking for var %s which is already fixed from %s.", var, loadvar)
                     self.logger.warning("It would be safer to run with fix=False")
-                except:
-                    raise KeyError("You are asking for variables which we cannot find in the catalog!")
+                except Exception as e:
+                    raise KeyError("You are asking for variables which we cannot find in the catalog!") from e
         else:
             data = esmcat.to_dask()
 
@@ -863,13 +895,13 @@ class Reader(FixerMixin, RegridMixin):
         """
 
         self.logger.info("Buffering iterator to: %s", self.buffer.name)
-        niter =0
+        niter = 0
         for dd in data:
             dd.to_netcdf(f"{self.buffer.name}/iter{niter}.nc")
             niter = niter + 1
 
         return xr.open_mfdataset(f"{self.buffer.name}/iter*.nc")
-    
+
     def buffer_mem(self, data):
         """
         Buffers (reads) an iterator object directly into a dataset
@@ -882,7 +914,7 @@ class Reader(FixerMixin, RegridMixin):
 
         self.logger.info("Buffering iterator to memory")
         ds = next(data)  # get the first one
-        try: 
+        try:
             for dd in data:
                 ds = xr.concat([ds, dd], dim="time")
         except StopIteration:
@@ -891,10 +923,10 @@ class Reader(FixerMixin, RegridMixin):
         return ds
 
     def stream(self, data, startdate=None, enddate=None, aggregation=None,
-               timechunks=None, reset=False):       
+               timechunks=None, reset=False):
         """
-        Stream a dataset chunk using the startdate, enddate, and aggregation parameters defined in the constructor. 
-        This operation utilizes the 'stream' method from the Streaming class. 
+        Stream a dataset chunk using the startdate, enddate, and aggregation parameters defined in the constructor.
+        This operation utilizes the 'stream' method from the Streaming class.
         It first checks if the Streaming class has been initialized; if not, it initializes the class.
 
         Arguments:
@@ -903,23 +935,21 @@ class Reader(FixerMixin, RegridMixin):
             enddate (str): the ending date for streaming the data (e.g. '2021-01-01') (None)
             aggregation (str): the streaming frequency in pandas style (1M, 7D etc.)
             timechunks (DataArrayResample, optional): a precomputed chunked time axis
-            reset (bool, optional): reset the streaming 
+            reset (bool, optional): reset the streaming
 
         Returns:
             A xarray.Dataset containing the subset of the input data that has been streamed.
         """
         if not hasattr(self, 'streamer'):
-            self.streamer = Streaming(startdate=startdate, 
+            self.streamer = Streaming(startdate=startdate,
                                       enddate=enddate,
                                       aggregation=aggregation)
             self.stream = self.streamer.stream
-                  
-        stream_data = self.stream(data, 
-                        startdate=startdate,
-                        enddate=enddate, 
-                        aggregation=aggregation,
-                        timechunks=timechunks,
-                        reset=reset) 
+
+        stream_data = self.stream(data,
+                                  startdate=startdate,
+                                  enddate=enddate,
+                                  aggregation=aggregation,
+                                  timechunks=timechunks,
+                                  reset=reset)
         return stream_data
-
-
