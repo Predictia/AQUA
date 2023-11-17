@@ -50,7 +50,7 @@ sources:
           simulation_id: ngc2009
           frequency: 30minute
           time_reduction: inst
-        source_grid_name: icon_R02B09_intaketest
+        source_grid_name: icon-R02B09-intaketest
 
   lra-r100-monthly:
     driver: netcdf
