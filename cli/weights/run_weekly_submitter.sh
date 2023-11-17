@@ -10,7 +10,7 @@ conda activate aqua
 
 while true; do
     # Your commands to run your job
-    /usr/bin/env python3 AQUA/cli/weights/generate_weights_for_catalog.py
+    /usr/bin/env python3 generate_weights_for_catalog.py
     # Sleep for one week (adjust the time as needed)
     sleep 604800  # 604800 seconds = 1 week
 
