@@ -48,8 +48,7 @@ class Reader(FixerMixin, RegridMixin):
                  streaming=False, stream_generator=False,
                  startdate=None, enddate=None,
                  rebuild=False, loglevel=None, nproc=4, aggregation=None,
-                 verbose=False,
-                 buffer=None):
+                 verbose=False):
         """
         Initializes the Reader class, which uses the catalog
         `config/config.yaml` to identify the required data.
@@ -76,9 +75,6 @@ class Reader(FixerMixin, RegridMixin):
             aggregation (str, optional): aggregation/chunking to be used for GSV access (e.g. D, M, Y).
                                          Defaults to None (using default from catalogue, recommended).
             verbose (bool, optional): if to print to screen additional info (used only for FDB access at the moment)
-            buffer (str or bool, optional): buffering of FDB/GSV streams in a temporary directory specified by the keyword.
-                                            The result will be a dask array and not an iterator.
-                                            Can be simply a boolean True for memory buffering.
 
         Returns:
             Reader: A `Reader` class object.
@@ -121,9 +117,6 @@ class Reader(FixerMixin, RegridMixin):
         self.enddate = enddate
 
         self.previous_data = None  # used for FDB iterator fixing
-
-        # define buffering option in case of FDB
-        self.buffer = self._define_buffer(buffer)
 
         # define configuration file and paths
         Configurer = ConfigPath()
@@ -331,25 +324,6 @@ class Reader(FixerMixin, RegridMixin):
             if self.fix:
                 self.grid_area = self._fix_area(self.grid_area)
 
-    def _define_buffer(self, buffer):
-        """Define the FDB optional buffering
-
-        Arguments:
-            buffer (str or bool): the buffer path or True for memory buffering
-
-        Returns:
-            The buffer path or True for memory buffering or None if no buffering is required
-        """
-
-        if buffer and buffer is not True:  # optional FDB buffering
-            if not os.path.isdir(buffer):
-                raise ValueError("The directory specified by buffer must exist.")
-            return tempfile.TemporaryDirectory(dir=buffer)
-        elif buffer is True:
-            return True
-        else:
-            return None
-
     def _set_cdo(self, cfg_base):
         """Check information on CDO to set the correct version
 
@@ -441,13 +415,6 @@ class Reader(FixerMixin, RegridMixin):
 
         if self.fix:   # Do not change easily this order. The fixer assumes to be after regridding
             data = self.fixer(data, var)
-
-        if fiter and self.buffer:  # We prefer an xarray, let's buffer everything
-            if self.buffer is True:  # we did not provide a buffer path, use an xarray in memory
-                data = self.buffer_mem(data)
-            else:
-                data = self.buffer_iter(data)
-            fiter = False
 
         if not fiter:
             # This is not needed if we already have an iterator
@@ -853,43 +820,6 @@ class Reader(FixerMixin, RegridMixin):
 
         return data
 
-    def buffer_iter(self, data):
-        """
-        Buffers an iterator object into a temporary directory
-        Args:
-            data (iterator over xarray.Dataset): the data to be buffered
-
-        Returns:
-            A xarray.Dataset pointing to the buffered data
-        """
-
-        self.logger.info("Buffering iterator to: %s", self.buffer.name)
-        niter = 0
-        for dd in data:
-            dd.to_netcdf(f"{self.buffer.name}/iter{niter}.nc")
-            niter = niter + 1
-
-        return xr.open_mfdataset(f"{self.buffer.name}/iter*.nc")
-
-    def buffer_mem(self, data):
-        """
-        Buffers (reads) an iterator object directly into a dataset
-        Args:
-            data (iterator over xarray.Dataset): the data to be buffered
-
-        Returns:
-            A xarray.Dataset
-        """
-
-        self.logger.info("Buffering iterator to memory")
-        ds = next(data)  # get the first one
-        try:
-            for dd in data:
-                ds = xr.concat([ds, dd], dim="time")
-        except StopIteration:
-            pass  # The iterator has finished, we are done
-
-        return ds
 
     def stream(self, data, startdate=None, enddate=None, aggregation=None,
                timechunks=None, reset=False):

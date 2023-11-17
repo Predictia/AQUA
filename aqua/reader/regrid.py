@@ -267,20 +267,17 @@ class RegridMixin():
 
     def _retrieve_plain(self, *args, **kwargs):
         """
-        Retrieves making sure that no buffering, fixer and agregation are used
+        Retrieves making sure that no fixer and agregation are used
         and converts iterator to data
         """
 
-        buffer = self.buffer
         aggregation = self.aggregation
         fix = self.fix
         streaming = self.streaming
         self.fix = False
-        self.buffer = None
         self.aggregation = None
         self.streaming = False
         data = self.retrieve(*args, **kwargs)
-        self.buffer = buffer
         self.aggregation = aggregation
         self.fix = fix
         self.streaming = streaming
