@@ -150,9 +150,9 @@ class CustomLogColors(logging.Formatter):
 
     # ANSI escape sequences for colors
     # GREY = "\x1b[38;20m"  # Unnecessary
-    # LGREY = "\x1b[37m"
+    LGREY = "\x1b[37m"
     # DGREY = "\x1b[90m"
-    LBLUE = "\x1b[38;2;64;183;197m"
+    # LBLUE = "\x1b[38;2;64;183;197m"
     # GREEN = "\x1b[32m"  # Less vibrant green
     # ORANGE = "\x1b[33m" # Less vibrant orange
     # RED = "\x1b[31;20m"  # Less vibrant red
@@ -163,7 +163,7 @@ class CustomLogColors(logging.Formatter):
     RESET = "\x1b[0m"
 
     FORMATS = {
-        logging.DEBUG: f"{LBLUE}%(asctime)s :: %(name)s :: %(levelname)-8s -> %(message)s{RESET}",
+        logging.DEBUG: f"{LGREY}%(asctime)s :: %(name)s :: %(levelname)-8s -> %(message)s{RESET}",
         logging.INFO: f"{GREEN}%(asctime)s :: %(name)s :: %(levelname)-8s -> %(message)s{RESET}",
         logging.WARNING: f"{ORANGE}%(asctime)s :: %(name)s :: %(levelname)-8s -> %(message)s{RESET}",
         logging.ERROR: f"{RED}%(asctime)s :: %(name)s :: %(levelname)-8s -> %(message)s{RESET}",
