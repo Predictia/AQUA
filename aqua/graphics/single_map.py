@@ -112,10 +112,10 @@ def plot_single_map(data: xr.DataArray,
         lon_max = data['lon'].values.max()
         logger.debug("Setting longitude ticks from %s to %s", lon_min, lon_max)
         (lon_min, lon_max), _ = check_coordinates(lon=(lon_min, lon_max),
-                                                default={"lon_min": -180,
-                                                         "lon_max": 180,
-                                                         "lat_min": -90,
-                                                         "lat_max": 90},)
+                                                  default={"lon_min": -180,
+                                                           "lon_max": 180,
+                                                           "lat_min": -90,
+                                                           "lat_max": 90},)
     except KeyError:
         logger.critical("No longitude coordinate found, setting default values")
         lon_min = -180
@@ -135,10 +135,10 @@ def plot_single_map(data: xr.DataArray,
         lat_min = data['lat'].values.min()
         lat_max = data['lat'].values.max()
         _, (lat_min, lat_max) = check_coordinates(lat=(lat_min, lat_max),
-                                                default={"lon_min": -180,
-                                                         "lon_max": 180,
-                                                         "lat_min": -90,
-                                                         "lat_max": 90},)
+                                                  default={"lon_min": -180,
+                                                           "lon_max": 180,
+                                                           "lat_min": -90,
+                                                           "lat_max": 90},)
     except KeyError:
         logger.critical("No latitude coordinate found, setting default values")
         lat_min = -90
