@@ -174,7 +174,7 @@ class LRAgenerator():
         self.reader = Reader(model=self.model, exp=self.exp,
                              source=self.source, zoom=self.zoom,
                              regrid=self.resolution,
-                             configdir=self.configdir, loglevel=self.loglevel,
+                             loglevel=self.loglevel,
                              fix=self.fix, aggregation=self.aggregation)
 
         self.logger.info('Accessing catalog for %s-%s-%s...',

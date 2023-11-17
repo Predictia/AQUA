@@ -42,7 +42,7 @@ class Reader(FixerMixin, RegridMixin):
     """General reader for NextGEMS data."""
 
     def __init__(self, model=None, exp=None, source=None, fix=True,
-                 regrid=None, method="ycon", zoom=None, configdir=None,
+                 regrid=None, method="ycon", zoom=None,
                  areas=True,  # pylint: disable=W0622
                  datamodel=None,
                  streaming=False, stream_generator=False,
@@ -62,7 +62,6 @@ class Reader(FixerMixin, RegridMixin):
             method (str, optional): Regridding method. Defaults to "ycon".
             fix (bool, optional): Activate data fixing
             zoom (int): healpix zoom level. (Default: None)
-            configdir (str, optional): Folder where the config/catalog files are located. Defaults to None.
             areas (bool, optional): Compute pixel areas if needed. Defaults to True.
             datamodel (str, optional): Destination data model for coordinates, overrides the one in fixes.yaml.
                                        Defaults to None.
@@ -127,7 +126,7 @@ class Reader(FixerMixin, RegridMixin):
         self.buffer = self._define_buffer(buffer)
 
         # define configuration file and paths
-        Configurer = ConfigPath(configdir=configdir)
+        Configurer = ConfigPath()
         self.configdir = Configurer.configdir
         self.machine = Configurer.machine
 
