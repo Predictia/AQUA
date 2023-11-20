@@ -191,12 +191,20 @@ grids:
     vert_coord: depth
     space_coord: ["lon", "lat"]
   
-  psc:
+  psc-piomas:
     space_coord: ["longitude", "latitude"]
+    cellareas: $grids/PSC/grid_piomas.nc
     cellarea_var: areacello
+    mask: $grids/PSC/grid_piomas.nc
     mask_var: sftof
 
-  
+  psc-giomas:
+    space_coord: ["longitude", "latitude"]
+    cellareas: $grids/PSC/grid_giomas.nc
+    cellarea_var: areacello
+    mask: $grids/PSC/grid_giomas.nc
+    mask_var: sftof
+
 
   
 

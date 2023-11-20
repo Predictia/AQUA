@@ -6,6 +6,8 @@ sources:
   sivol:
     description: Polar Science Center sea ice volume (sivol) for the Northern Hemisphere 
     driver: netcdf
+    metadata:
+      source_grid_name: psc-piomas
     args:
       chunks:
         time: 1
@@ -13,4 +15,4 @@ sources:
       xarray_kwargs:
         decode_times: False
       urlpath:
-      - /work/bb1153/b382075/datasets/PSC/PIOMAS/raw/sivol_r1i1p1_mon_197901-202212_GCCS360x120.nc
+      - /work/bb1153/b382075/datasets/PSC/PIOMAS/raw/sivol_r1i1p1_mon_197901-202212_GCCS360x120.new.nc

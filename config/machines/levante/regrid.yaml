@@ -148,7 +148,8 @@ sources:
       sh-monthly: osi-saf-sh
 
   PSC:
-    GIOMAS:
-      default: psc
     PIOMAS:
-      default: psc
+      default: psc-piomas
+    GIOMAS:
+      default: psc-giomas
+      
