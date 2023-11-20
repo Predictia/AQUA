@@ -196,16 +196,16 @@ class TCs(DetectNodes, StitchNodes):
             self.reader2d = Reader(model=self.model, exp=self.exp, source=self.source2d,
                                          regrid=self.highgrid,
                                          streaming=self.streaming, aggregation=self.stream_step, loglevel=self.loglevel,
-                                         startdate=self.stream_startdate)
+                                         startdate=self.stream_startdate, enddate=self.enddate)
             self.varlist3d = ['z']
             self.reader3d = Reader(model=self.model, exp=self.exp, source=self.source3d,
                                          regrid=self.highgrid,
                                          streaming=self.streaming, aggregation=self.stream_step, loglevel=self.loglevel,
-                                         startdate=self.stream_startdate)
+                                         startdate=self.stream_startdate, enddate=self.enddate)
             self.reader_fullres = Reader(model=self.model, exp=self.exp, source=self.source2d,
                                          regrid=self.highgrid,
                                          streaming=self.streaming, aggregation=self.stream_step, loglevel=self.loglevel,
-                                         startdate=self.stream_startdate)
+                                         startdate=self.stream_startdate, enddate=self.enddate)
         else:
             raise ValueError(f'Model {self.model} not supported')
 
