@@ -3,7 +3,7 @@
 
 resos = [None] # or specify ['r025', 'r100']
 
-from aqua import Reader
+from aqua import Reader, inspect_catalogue
 from aqua.slurm import slurm, get_job_status, waiting_for_slurm_response
 from aqua.util import ConfigPath
 from aqua.logger import log_configure
