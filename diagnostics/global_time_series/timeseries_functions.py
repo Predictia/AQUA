@@ -129,6 +129,7 @@ def plot_timeseries(
             eradata.plot(color="grey", label="ERA5", ax=ax)
     ax.legend()
     ax.set_ylim(**ylim)
+    ax.grid(axis="x", color="k")
 
 
 def plot_gregory(model, exp, reader_kw={}, plot_kw={}, ax=None, freq='M',
