@@ -12,8 +12,8 @@ from aqua import __version__ as aquaversion
 from aqua.util import load_yaml, get_arg
 from aqua.exceptions import NoDataError, NotEnoughDataError
 from aqua.logger import log_configure
+from aqua.graphics import plot_single_map
 from teleconnections import __version__ as telecversion
-from teleconnections.plots import plot_single_map
 from teleconnections.tc_class import Teleconnection
 
 
@@ -238,12 +238,12 @@ if __name__ == '__main__':
                         logger.debug('Setting vmin=-1 and vmax=1')
                         vmin = -1
                         vmax = 1
-                    else: # otherwise we evaluate vmin and vmax
+                    else:  # otherwise we evaluate vmin and vmax
                         vmin = None
                         vmax = None
                     try:
                         plot_single_map(data=data_map,
-                                        save=True,
+                                        save=True, sym=True,
                                         cbar_label=cbar_label[i],
                                         outputdir=tc.outputfig,
                                         filename=tc.filename + '_{}'.format(map_names[i]),
@@ -257,7 +257,7 @@ if __name__ == '__main__':
                                      model, exp, telec, map_names[i], err)
                         logger.info('Trying without contour')
                         try:
-                            plot_single_map(data=data_map,
+                            plot_single_map(data=data_map, sym=True,
                                             save=True, contour=False,
                                             cbar_label=cbar_label[i],
                                             outputdir=tc.outputfig,
