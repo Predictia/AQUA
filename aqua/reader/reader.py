@@ -138,7 +138,7 @@ class Reader(FixerMixin, RegridMixin):
         self.machine = Configurer.machine
 
         # get configuration from the machine
-        self.catalog_file, self.regrid_file, self.fixer_folder, self.config_file = (
+        self.catalog_file, self.fixer_folder, self.config_file = (
             Configurer.get_reader_filenames())
         self.cat = intake.open_catalog(self.catalog_file)
 
@@ -176,24 +176,15 @@ class Reader(FixerMixin, RegridMixin):
         if regrid or areas:
             # New load of regrid.yaml split in multiples folders
             main_file = os.path.join(self.configdir, 'aqua-grids.yaml')
-            machine_file = os.path.join(self.configdir, 'machines', self.machine, 'regrid.yaml')
+            machine_file = os.path.join(self.configdir, 'machines', self.machine, 'catalog.yaml')
 
             cfg_regrid = load_multi_yaml(filenames=[main_file, machine_file],
                                          definitions="paths",
                                          loglevel=self.loglevel)
-
-            source_grid_name = self.esmcat.metadata.get('grid')
-            if not source_grid_name:
-                source_grid_id = check_catalog_source(cfg_regrid["sources"],
-                                                      self.model, self.exp,
-                                                      self.source, name='regrid')
-
-                source_grid_name = cfg_regrid['sources'][self.model][self.exp][source_grid_id]
+            source_grid_name = self.esmcat.metadata.get('source_grid_name')
             source_grid = cfg_regrid['grids'][source_grid_name]
-
             # Normalize vert_coord to list
             self.vert_coord = source_grid.get("vert_coord", "2d")  # If not specified we assume that this is only a 2D case
-
             if not isinstance(self.vert_coord, list):
                 self.vert_coord = [self.vert_coord]
 
@@ -306,7 +297,7 @@ class Reader(FixerMixin, RegridMixin):
                 cellareas = source_grid.get("cellareas", None)
                 cellarea_var = source_grid.get("cellarea_var", None)
                 if cellareas and cellarea_var:
-                    self.logger.warning("Using cellareas file provided in regrid.yaml")
+                    self.logger.warning("Using cellareas file provided in aqua-grids.yaml")
                     xr.open_mfdataset(cellareas)[cellarea_var].rename("cell_area").squeeze().to_netcdf(self.src_areafile)
                 else:
                     # We have to reconstruct it

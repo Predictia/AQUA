@@ -6,6 +6,8 @@ sources:
   monthly:
     description: ERA5 monthly data from 1940 to 2022
     driver: netcdf
+    metadata:
+      source_grid_name: era5-r025
     args:
       urlpath: '{{DATA_PATH}}/ERA5/mon/ERA5_*_mon_full**.nc'
       chunks: 
