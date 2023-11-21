@@ -130,6 +130,8 @@ def plot_timeseries(
     ax.legend()
     ax.set_ylim(**ylim)
     ax.grid(axis="x", color="k")
+    ax.spines["right"].set_visible(False)
+    ax.spines["top"].set_visible(False)
 
 
 def plot_gregory(model, exp, reader_kw={}, plot_kw={}, ax=None, freq='M',
