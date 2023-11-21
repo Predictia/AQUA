@@ -259,9 +259,7 @@ As an example, we use the healpix grid for ICON and tco1279 for IFS:
 
 - **space_coord**: The space coordinate how coordinates are defined and used for interpolation. Since AQUA v0.4 there is an automatic guessing routine, but this is a bit costly so it is better to specify this if possible.
 
-- **masked**: Keys to define variables which are masked. When using this is used, the code will search for an attribute to make the distinction (``component: ocean`` in this case). It is an alternative specification to ``masked_vars``
-
-- **masked_vars**: A list of variables subject to land-sea masking according to `2dm` grid. It is an alternative specification to ``masked``
+- **masked** (if applicable): Keys to define variables which are masked. When using this, the code will search for an attribute to make the distinction (``component: ocean`` in this case). In alternative, if you want to apply masking only on a group of variables, you can defined ``vars: [var1, var2]``. In all the cases, the `2dm` grid will be applied to the data.
 
 - **vert_coords** (if applicable): Vertical coordinate options for the grid. Specific for oceanic models where interpolation is changing at each depth level.
 
