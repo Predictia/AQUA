@@ -45,6 +45,7 @@ class ConfigPath():
 
         # set of predefined folders to browse
         configdirs.extend(['./../../AQUA/config', './config', '../config', '../../config', '../../../config'])
+        configdirs.extend([os.path.dirname(__file__) + "/../../config"])  # look at top-level git folder
 
         # if the home is defined
         homedir = os.environ.get('HOME')
