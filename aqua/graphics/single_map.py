@@ -19,6 +19,7 @@ def plot_single_map(data: xr.DataArray,
                     vmin=None, vmax=None,
                     cmap='RdBu_r',
                     gridlines=False,
+                    display=True,
                     loglevel='WARNING',
                     **kwargs):
     """
@@ -40,6 +41,7 @@ def plot_single_map(data: xr.DataArray,
                                    Defaults to None.
         cmap (str, optional):      Colormap. Defaults to 'RdBu_r'.
         gridlines (bool, optional): If True, plot gridlines. Defaults to False.
+        display (bool, optional):  If True, display the figure. Defaults to True.
         loglevel (str, optional):  Log level. Defaults to 'WARNING'.
 
     Keyword Args:
@@ -199,7 +201,11 @@ def plot_single_map(data: xr.DataArray,
         else:
             dpi = kwargs.get('dpi', 100)
             if dpi == 100:
-                logger.warning("Setting dpi to 100 by default, use dpi kwarg to change it")
+                logger.info("Setting dpi to 100 by default, use dpi kwarg to change it")
 
         fig.savefig('{}/{}'.format(outputdir, filename),
                     dpi=dpi, bbox_inches='tight')
+    
+    if display is False:
+        logger.debug("Display is set to False, closing figure")
+        plt.close(fig)
