@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from aqua import Reader
 from aqua.logger import log_configure
 from aqua.exceptions import NotEnoughDataError, NoObservationError, NoDataError
+from aqua.util import eval_formula
 
 __all__ = [
     "plot_timeseries",
@@ -47,7 +48,10 @@ def get_reference_data(varname, model='ERA5', exp='era5', source='monthly',
     try:
         return reader.fldmean(data[varname])
     except KeyError as e:
-        raise NoObservationError(f"Could not retrieve {varname} from ERA5. No plot will be drawn.") from e
+        try:
+            return reader.fldmean(eval_formula(varname, data))
+        except KeyError:
+            raise NoObservationError(f"Could not retrieve {varname} from ERA5. No plot will be drawn.") from e
 
 
 def plot_timeseries(
@@ -89,17 +93,21 @@ def plot_timeseries(
         ax = plt.gca()
 
     reader = Reader(model, exp, **reader_kw, loglevel=loglevel)
-    try:
-        data = reader.retrieve(var=variable)
-    except KeyError:
-        logger.error(f"Could not retrieve {variable} for {model}-{exp}")
-        raise KeyError(f'{variable} not found. Pick another variable.')
+    data = reader.retrieve()
+
+    if variable not in data:
+        try:
+            data[variable] = eval_formula(variable, data)
+        except KeyError:
+            logger.error(f"Could not retrieve/derive {variable} for {model}-{exp}")
+            raise KeyError(f'{variable} not found. Pick another variable.')
+    data = data[variable]
 
     if len(data.time) < 2:
         raise NotEnoughDataError("There are not enough data to proceed. Global time series diagnostic requires at least two data points.")
 
     try:
-        data = reader.fldmean(data[variable])
+        data = reader.fldmean(data)
     except KeyError as e:
         raise NoDataError(f"Could not retrieve {variable} from {model}-{exp}. No plot will be drawn.") from e
 
