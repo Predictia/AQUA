@@ -180,14 +180,14 @@ grids:
     space_coord: ['xc', 'yc']
     cellareas: $grids/OSI-SAF/grid_nh.nc
     cellarea_var: areacello
-    mask: $grids/OSI-SAF/grid_nh.nc
-    mask_var: sftof
+    # mask: $grids/OSI-SAF/grid_nh.nc
+    # mask_var: sftof
   osi-saf-sh:
     space_coord: ['xc', 'yc']
     cellareas: $grids/OSI-SAF/grid_sh.nc
     cellarea_var: areacello
-    mask: $grids/OSI-SAF/grid_sh.nc
-    mask_var: sftof
+    # mask: $grids/OSI-SAF/grid_sh.nc
+    # mask_var: sftof
   
   woa:
     path:
