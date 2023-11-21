@@ -3,6 +3,10 @@
 
 resos = [None] # or specify ['r025', 'r100']
 test_mode = True
+if test_mode:
+    loglevel = 'info'
+else:
+    loglevel = 'WARNING'
 
 import sys
 from aqua import Reader, inspect_catalogue
@@ -10,7 +14,7 @@ from aqua.slurm import slurm, get_job_status, waiting_for_slurm_response
 from aqua.util import ConfigPath
 from aqua.logger import log_configure
 
-def generate_catalogue_weights(loglevel='WARNING'):
+def generate_catalogue_weights():
     logger = log_configure(log_level=loglevel, log_name='Weights Generator')
     logger.info('The weight generation is started.')
     for reso in resos:
@@ -27,7 +31,7 @@ def generate_catalogue_weights(loglevel='WARNING'):
                             # Handle other exceptions
                             logger.error(f"For the source {m} {e} {s} {reso} {zoom} an unexpected error occurred: {e}")
                             
-def job_initialization(loglevel='WARNING'):
+def job_initialization():
     logger = log_configure(log_level=loglevel, log_name='Weights Submitter')
     # Job initialization 
     if ConfigPath().machine=='levante':        
@@ -37,10 +41,11 @@ def job_initialization(loglevel='WARNING'):
     waiting_for_slurm_response(10)
     logger.info('The weights submitter is submitted to the queue.')
     
-def generate_catalogue_weights_on_slurm(loglevel='WARNING'):
+def generate_catalogue_weights_on_slurm():
     logger = log_configure(log_level=loglevel, log_name='Weights Submitter')
     for i in range(0, 120):
         if get_job_status() == 'R':
+            logger.info('The job is started.')
             if test_mode:
                 logger.info('TEST.')
                 waiting_for_slurm_response(10)
@@ -56,20 +61,16 @@ def generate_catalogue_weights_on_slurm(loglevel='WARNING'):
 if __name__ == '__main__':
     # Initializing the logger
     if test_mode:
-        loglevel = 'info'
         logger = log_configure(log_level=loglevel, log_name='Weights Submitter')
-    else:
-        loglevel = 'WARNING'
-    
     if ConfigPath().machine=='levante' or ConfigPath().machine=='lumi':
-        job_initialization(loglevel=loglevel)
-        generate_catalogue_weights_on_slurm(loglevel=loglevel)
+        job_initialization()
+        generate_catalogue_weights_on_slurm()
         sys.exit("Exiting the script")
     else:
         if test_mode:
             logger.info('TEST.')
             waiting_for_slurm_response(10)
         else:
-            generate_catalogue_weights(loglevel=loglevel)
+            generate_catalogue_weights()
             sys.exit("Exiting the script")
 
