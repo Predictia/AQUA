@@ -954,6 +954,8 @@ def configure_masked_fields(source_grid):
     generic attribute or alternatively of a series of specific variables using the 'vars' key
     """
 
+    masked_vars = None
+    masked_attr = None
     masked_info = source_grid.get("masked", None)
     if masked_info is not None:
         for attr, value in masked_info.items():
@@ -961,8 +963,6 @@ def configure_masked_fields(source_grid):
                 masked_vars = value
             else:
                 masked_attr = value
-    else:
-        masked_vars = None
-        masked_attr = None
+
 
     return masked_attr, masked_vars
