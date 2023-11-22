@@ -30,9 +30,12 @@ grids:
 
   #IFS
   tco79:
-    path: $grids/IFS/tco79_grid.nc
-    # space_coord: ["cell"] # levante
-    # space_coord: ["value"] # lumi
+    path:  
+      2d: $grids/IFS/tco79_grid.nc
+      2dm: $grids/IFS/tco79_grid_masked.nc
+    vert_coord: ["2d", "2dm"]  # If the case is more complex than simply "2d" we need to specify this
+    masked: 
+      vars: ["ci", "sst"]
   tco399:
     path: 
       2d: $grids/IFS/tco399_grid.nc
