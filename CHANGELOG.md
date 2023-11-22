@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Fldmean fix if only one dimension is present for area selection (#640)
 - Adding higher frequency ERA5 data on Levante and Lumi (#628)
 - regrid.yaml files are removed, grid infos are now in the catalogue metadata (#622)
 - Load all available variables in FDB xarray/dask access (#619)
