@@ -26,6 +26,7 @@ from .streaming import Streaming
 from .fixer import FixerMixin
 from .regrid import RegridMixin
 from .reader_utils import check_catalog_source, group_shared_dims, set_attrs
+from .reader_utils import configure_masked_fields
 
 
 # default spatial dimensions and vertical coordinates
@@ -946,23 +947,3 @@ class Reader(FixerMixin, RegridMixin):
                                   timechunks=timechunks,
                                   reset=reset)
         return stream_data
-
-def configure_masked_fields(source_grid):
-    """
-    Help function to define where to apply masks: 
-    if the grids has the 'masked' option, this can be based on
-    generic attribute or alternatively of a series of specific variables using the 'vars' key
-    """
-
-    masked_vars = None
-    masked_attr = None
-    masked_info = source_grid.get("masked", None)
-    if masked_info is not None:
-        for attr, value in masked_info.items():
-            if attr == 'vars':
-                masked_vars = value
-            else:
-                masked_attr = value
-
-
-    return masked_attr, masked_vars
