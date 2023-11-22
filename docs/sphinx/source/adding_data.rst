@@ -265,7 +265,9 @@ As an example, we use the healpix grid for ICON and tco1279 for IFS:
 
 - **extra** (if applicable): Additional CDO command-line options to be used to process the files defined in `path`.
 
-Other simpler grids can be defined using the CDO syntax, so for example we have ``r100: r360x180``. Other CDO compatible grids can be of course defined in this way. 
+- **cellareas**, **cellarea_var** (if applicable): Optional path and variable name where to specify a file to retrieve the grid area cells when the grid shape is too complex for being automatically computed by CDO.
+
+Other simpler grids can be defined using the CDO syntax, so for example we have ``r100: r360x180``. Further CDO compatible grids can be of course defined in this way. 
 
 A standard `lon-lat` grid is defined for basic interpolation and can be used for most of the regular cases, as long as the ``space_coord`` are ``lon`` and ``lat``.
 
