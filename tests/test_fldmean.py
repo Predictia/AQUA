@@ -49,14 +49,22 @@ class TestFldmean():
         assert avg[1] == pytest.approx(286.1479)
 
     def test_fldmean_healpix_selection(self):
-        """Fldmean test for FESOM"""
+        """Fldmean test for FESOM with area selection"""
         reader = Reader(model="ICON", exp="test-healpix", source='short', regrid='r200')
         data = reader.retrieve()
         data = reader.regrid(data)
         avg = reader.fldmean(data['2t'],  lon_limits=[-30,50], lat_limits=[-30, -90]).values
         assert avg.shape == (2,)
         assert avg[0] == pytest.approx(285.131484)
-
+    
+    def test_fldmean_healpix_selection_lat_only(self):
+        """Fldmean test for FESOM with area selection, only lat"""
+        reader = Reader(model="ICON", exp="test-healpix", source='short', regrid='r200')
+        data = reader.retrieve()
+        data = reader.regrid(data)
+        avg = reader.fldmean(data['2t'], lat_limits=[-30, 30]).values
+        assert avg.shape == (2,)
+        assert avg[0] == pytest.approx(292.6823)
 
     def test_fldmean_icon(self):
         """Fldmean test for FESOM"""
