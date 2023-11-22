@@ -132,8 +132,13 @@ class TCs(DetectNodes, StitchNodes):
             2*tdict['stitch']['n_days_ext']
         last_run_stitch = pd.Timestamp(self.startdate)
 
+        # do this to remove the last letter from streamstep! e.g. tdict['stream']['streamstep'] is defined as "10D" but we want only the value 10!
+        numbers = [int(i) for i in tdict['stream']['streamstep'] if i.isdigit()]
+        streamstep_n=int(''.join(map(str, numbers)))
+
         # loop to simulate streaming
-        while len(np.unique(self.data2d.time.dt.day)) == tdict['stream']['streamstep']:
+        while len(np.unique(self.data2d.time.dt.day)) == streamstep_n:
+            print("entered the loop")
             self.data_retrieve()
             self.logger.warning(
                 "New streaming from %s to %s", pd.Timestamp(self.stream_startdate).strftime('%Y%m%dT%H'), pd.Timestamp(self.stream_enddate).strftime('%Y%m%dT%H'))
@@ -196,16 +201,16 @@ class TCs(DetectNodes, StitchNodes):
             self.reader2d = Reader(model=self.model, exp=self.exp, source=self.source2d,
                                          regrid=self.highgrid,
                                          streaming=self.streaming, aggregation=self.stream_step, loglevel=self.loglevel,
-                                         startdate=self.stream_startdate, enddate=self.enddate)
+                                         startdate=self.startdate, enddate=self.enddate)
             self.varlist3d = ['z']
             self.reader3d = Reader(model=self.model, exp=self.exp, source=self.source3d,
                                          regrid=self.highgrid,
                                          streaming=self.streaming, aggregation=self.stream_step, loglevel=self.loglevel,
-                                         startdate=self.stream_startdate, enddate=self.enddate)
+                                         startdate=self.startdate, enddate=self.enddate)
             self.reader_fullres = Reader(model=self.model, exp=self.exp, source=self.source2d,
                                          regrid=self.highgrid,
                                          streaming=self.streaming, aggregation=self.stream_step, loglevel=self.loglevel,
-                                         startdate=self.stream_startdate, enddate=self.enddate)
+                                         startdate=self.startdate, enddate=self.enddate)
         else:
             raise ValueError(f'Model {self.model} not supported')
 
