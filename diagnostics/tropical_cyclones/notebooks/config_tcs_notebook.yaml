@@ -1,16 +1,16 @@
 # experiment
 dataset:
   model: "IFS"
-  exp: "tco2559-ng5-cycle3"
-  #exp: "tco1279-orca025-cycle3"
+  #exp: "tco2559-ng5-cycle3"
+  exp: "tco1279-orca025-cycle3"
   #exp: "control-1950-devcon"
   source2d: "2D_1h_native" #"2D_1h_native"
   source3d: "3D_1h_native" #"3D_1h_native"
 
 # folders for regridded data, temprorary and stored high res data
 paths: 
-  tmpdir: '/home/b/b382216/work/tc/tmpdir'
-  fulldir: '/home/b/b382216/work/tc/fullres'
+  tmpdir: '/home/b/b382216/scratch/test/fulldir'
+  fulldir: '/home/b/b382216/scratch/test/fulldir'
   plotdir: "/home/b/b382216/work/tc/Figures/"
 
 # log level
@@ -20,10 +20,10 @@ setup:
 # grid on which operate
 grids:
   lowgrid: 'r100'
-  highgrid: 'r010'
+  highgrid: '100'
 
 # variables to stored 
-varlist: ['msl', '10u', '10v', 'tprate']
+varlist: ['msl']
 
 # temporal definition (YYYY-MM-DD)
 time: 
