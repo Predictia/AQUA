@@ -6,7 +6,7 @@ whereconda=$(which mamba | rev | cut -f 3-10 -d"/" | rev)
 source $whereconda/etc/profile.d/conda.sh
 
 # activate conda environment
-conda activate aqua
+conda activate aqua_common
 
 while true; do
     # Your commands to run your job
