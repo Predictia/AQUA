@@ -23,8 +23,6 @@ sources:
 # available grids, not worth to become machine independent
 # extra is an extra special cdo command to be applied before generating the weights
 grids:
-  # IFS
-  test-tco79: {path: $grids/tco79_grid.nc} #space_coord: [cell]
   # FESOM
   test-pi-2d:
     path: $grids/pi_griddes_nodes_IFS.nc
