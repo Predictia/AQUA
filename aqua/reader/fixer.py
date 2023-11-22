@@ -253,7 +253,11 @@ class FixerMixin():
                         log_history(data[source], "variable derived by AQUA fixer")
                     except KeyError:
                         # The variable could not be computed, let's skip it
-                        self.logger.error('Derived variable %s cannot be computed, is it available?', shortname)
+                        if destvar is not None: 
+                            # issue an error if you are asking that specific variable!
+                            self.logger.error('Requested derived variable %s cannot be computed, is it available?', shortname)
+                        else: 
+                            self.logger.warning('%s is defined in the fixes but cannot be computed, is it available?', shortname)
                         continue
 
                 # safe check debugging
@@ -460,10 +464,10 @@ class FixerMixin():
             newkeys = list(set(var2fix.keys()) & set(destvar))
             if newkeys:
                 var2fix = {key: value for key, value in var2fix.items() if key in newkeys}
-                self.logger.debug("Variables to be fixed: %s", var2fix)
+                self.logger.info("Variables to be fixed: %s", var2fix)
             else:
                 var2fix = None
-                self.logger.debug("No variables to be fixed")
+                self.logger.info("No variables to be fixed")
 
         return var2fix
 
