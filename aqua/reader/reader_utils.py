@@ -44,15 +44,18 @@ def check_att(da, att):
 
     Arguments:
         da (xarray.DataArray): DataArray to check
-        att (str): Attribute to check for
+        att (dict or str): Attribute to check for
 
     Returns:
         Boolean
     """
     if att:
-        key = list(att.keys())[0]
-        if key in da.attrs:
-            return da.attrs[key] == list(att.values())[0]
+        if isinstance(att, str):
+            return att in da.attrs
+        elif isinstance(att, dict):
+            key = list(att.keys())[0]
+            if key in da.attrs:
+                return da.attrs[key] == list(att.values())[0]
         else:
             return False
     else:
