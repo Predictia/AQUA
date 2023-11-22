@@ -17,4 +17,4 @@ source $whereconda/etc/profile.d/conda.sh
 # activate conda environment
 conda activate aqua
 
-./generate_weights.py
+./generate_weights_for_datasets.py
