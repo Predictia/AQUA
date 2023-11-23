@@ -824,18 +824,18 @@ class Reader(FixerMixin, RegridMixin):
             if self.aggregation:
                 data = esmcat(startdate=startdate, enddate=enddate, var=var,
                               aggregation=self.aggregation,
-                              logging=True, verbose=self.verbose).to_dask()
+                              logging=True, loglevel=self.loglevel).to_dask()
             else:
                 data = esmcat(startdate=startdate, enddate=enddate, var=var,
-                              logging=True, verbose=self.verbose).to_dask()
+                              logging=True, loglevel=self.loglevel).to_dask()
         else:
             if self.aggregation:
                 data = esmcat(startdate=startdate, enddate=enddate, var=var,
                               aggregation=self.aggregation,
-                              logging=True, verbose=self.verbose).read_chunked()
+                              logging=True, loglevel=self.loglevel).read_chunked()
             else:
                 data = esmcat(startdate=startdate, enddate=enddate, var=var,
-                              logging=True, verbose=self.verbose).read_chunked()
+                              logging=True, loglevel=self.loglevel).read_chunked()
 
         return data
     
