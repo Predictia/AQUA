@@ -49,6 +49,7 @@ class Reader(FixerMixin, RegridMixin):
                  streaming=False, stream_generator=False,
                  startdate=None, enddate=None,
                  rebuild=False, loglevel=None, nproc=4, aggregation=None)
+
         """
         Initializes the Reader class, which uses the catalog
         `config/config.yaml` to identify the required data.
@@ -74,11 +75,6 @@ class Reader(FixerMixin, RegridMixin):
             nproc (int,optional): Number of processes to use for weights generation. Defaults to 16.
             aggregation (str, optional): aggregation/chunking to be used for GSV access (e.g. D, M, Y).
                                          Defaults to None (using default from catalogue, recommended).
-            exclude_incomplete (bool, optional): when using timmean() method, remove incomplete chunk from averaging.
-                                                 Default to False.
-            buffer (str or bool, optional): buffering of FDB/GSV streams in a temporary directory specified by the keyword.
-                                            The result will be a dask array and not an iterator.
-                                            Can be simply a boolean True for memory buffering.
 
         Returns:
             Reader: A `Reader` class object.
