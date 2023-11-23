@@ -49,7 +49,7 @@ class Reader(FixerMixin, RegridMixin):
                  streaming=False, stream_generator=False,
                  startdate=None, enddate=None,
                  rebuild=False, loglevel=None, nproc=4, aggregation=None,
-                 verbose=False, exclude_incomplete=False,
+                 exclude_incomplete=False,
                  buffer=None):
         """
         Initializes the Reader class, which uses the catalog
@@ -102,7 +102,6 @@ class Reader(FixerMixin, RegridMixin):
         self.vert_coord = None
         self.deltat = 1
         self.aggregation = aggregation
-        self.verbose = verbose
         self.exclude_incomplete = exclude_incomplete
         extra = []
 
