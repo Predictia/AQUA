@@ -136,6 +136,12 @@ class TCs(DetectNodes, StitchNodes):
         numbers = [int(i) for i in tdict['stream']['streamstep'] if i.isdigit()]
         streamstep_n=int(''.join(map(str, numbers)))
 
+        # raise value error if stream step is not expressed as "D"
+        
+        # Check if the character after the number is 'D'
+        if tdict['stream']['streamstep'][len(numbers)] != 'D':
+            raise ValueError("Critical error! Stream step must be specified in days as 'D' in the config file!")
+
         # loop to simulate streaming
         while len(np.unique(self.data2d.time.dt.day)) == streamstep_n:
             print("entered the loop")

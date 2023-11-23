@@ -32,7 +32,7 @@ time:
   frequency: '6h'
 
 stream:
-  streamstep: "10D" # n of days for streaming (check reader args options)
+  streamstep: "10D" # n of days for streaming (check reader args options, IMPORTANT: must be specified in days, "D")
 
 # detect nodes options
 detect:
