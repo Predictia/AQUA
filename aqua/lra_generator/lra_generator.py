@@ -234,7 +234,9 @@ class LRAgenerator():
                 'chunks': {},
                 'xarray_kwargs': {
                     'decode_times': True
-                }
+                },
+            'metadata':
+                'source_grid_name': 'lon-lat'
             }
         }
 
