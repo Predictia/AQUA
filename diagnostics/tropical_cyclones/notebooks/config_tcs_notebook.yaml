@@ -20,7 +20,7 @@ setup:
 # grid on which operate
 grids:
   lowgrid: 'r100'
-  highgrid: '100'
+  highgrid: 'r100'
 
 # variables to stored 
 varlist: ['msl']
@@ -32,7 +32,7 @@ time:
   frequency: '6h'
 
 stream:
-  streamstep: "10D" # n of days for streaming (check reader args options)
+  streamstep: "4D" # n of days for streaming (check reader args options)
 
 # detect nodes options
 detect:
@@ -40,6 +40,6 @@ detect:
 
 # stich nodes options
 stitch:
-  n_days_freq: 30 # run stitch nodes (tracks computation) and save tracks every n days
+  n_days_freq: 5 # run stitch nodes (tracks computation) and save tracks every n days
   n_days_ext: 2  # n of days to extend time boundaries not to miss tracks which may start/end before/after the chosen n of days
 
