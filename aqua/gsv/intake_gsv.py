@@ -61,8 +61,7 @@ class GSVSource(base.DataSource):
             enddate (str, optional): End date for request. Defaults to None.
             var (str, optional): Variable ID. Defaults to those in the catalogue.
             metadata (dict, optional): Metadata read from catalogue. Contains path to FDB.
-            verbose (bool, optional): Whether to print additional info to screen.
-                                      Used only for FDB access. Defaults to False.
+            loglevel (string) : The loglevel for the GSVSource
             logging (bool, optional): Whether to print to screen. Used only for FDB access. Defaults to False.
             kwargs: other keyword arguments.
         """

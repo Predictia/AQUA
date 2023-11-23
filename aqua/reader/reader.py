@@ -79,7 +79,6 @@ class Reader(FixerMixin, RegridMixin):
             nproc (int,optional): Number of processes to use for weights generation. Defaults to 16.
             aggregation (str, optional): aggregation/chunking to be used for GSV access (e.g. D, M, Y).
                                          Defaults to None (using default from catalogue, recommended).
-            verbose (bool, optional): if to print to screen additional info (used only for FDB access at the moment)
             exclude_incomplete (bool, optional): when using timmean() method, remove incomplete chunk from averaging.
                                                  Default to False.
             buffer (str or bool, optional): buffering of FDB/GSV streams in a temporary directory specified by the keyword.
