@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Adding tests for NEMO 2D and 3D (#652)
 - Tropical cyclons improvements (#645)
 - configdir is not searched based on util file position in the repo (#636)
 - Cleaner mask treatment (Revision of mask structure in the reader #617)
