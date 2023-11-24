@@ -4,7 +4,6 @@ import os
 import re
 
 import types
-import tempfile
 import shutil
 import intake
 import intake_esm
@@ -48,8 +47,8 @@ class Reader(FixerMixin, RegridMixin):
                  datamodel=None,
                  streaming=False, stream_generator=False,
                  startdate=None, enddate=None,
-                 rebuild=False, loglevel=None, nproc=4, aggregation=None,
-                 verbose=False):
+                 rebuild=False, loglevel=None, nproc=4, aggregation=None):
+
         """
         Initializes the Reader class, which uses the catalog
         `config/config.yaml` to identify the required data.
@@ -75,7 +74,6 @@ class Reader(FixerMixin, RegridMixin):
             nproc (int,optional): Number of processes to use for weights generation. Defaults to 16.
             aggregation (str, optional): aggregation/chunking to be used for GSV access (e.g. D, M, Y).
                                          Defaults to None (using default from catalogue, recommended).
-            verbose (bool, optional): if to print to screen additional info (used only for FDB access at the moment)
 
         Returns:
             Reader: A `Reader` class object.
@@ -92,7 +90,6 @@ class Reader(FixerMixin, RegridMixin):
         self.vert_coord = None
         self.deltat = 1
         self.aggregation = aggregation
-        self.verbose = verbose
         extra = []
 
         self.grid_area = None
@@ -763,18 +760,18 @@ class Reader(FixerMixin, RegridMixin):
             if self.aggregation:
                 data = esmcat(startdate=startdate, enddate=enddate, var=var,
                               aggregation=self.aggregation,
-                              logging=True, verbose=self.verbose).to_dask()
+                              logging=True, loglevel=self.loglevel).to_dask()
             else:
                 data = esmcat(startdate=startdate, enddate=enddate, var=var,
-                              logging=True, verbose=self.verbose).to_dask()
+                              logging=True, loglevel=self.loglevel).to_dask()
         else:
             if self.aggregation:
                 data = esmcat(startdate=startdate, enddate=enddate, var=var,
                               aggregation=self.aggregation,
-                              logging=True, verbose=self.verbose).read_chunked()
+                              logging=True, loglevel=self.loglevel).read_chunked()
             else:
                 data = esmcat(startdate=startdate, enddate=enddate, var=var,
-                              logging=True, verbose=self.verbose).read_chunked()
+                              logging=True, loglevel=self.loglevel).read_chunked()
 
         return data
     
