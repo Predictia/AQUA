@@ -75,13 +75,14 @@ def generate_catalogue_weights():
         e="past" 
         s="monthly" 
         reso="r025"
+        # remove already computed weights
         file_path="/work/bb1153/b382075/aqua/weights/weights_MSWEP_past_monthly_ycon_r025_l2d.nc"
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            logger.info(f"File '{file_path}' removed successfully.")
+        else:
+            logger.info(f"File '{file_path}' does not exist.")
         if measure_time:
-            if os.path.exists(file_path):
-                os.remove(file_path)
-                logger.info(f"File '{file_path}' removed successfully.")
-            else:
-                logger.info(f"File '{file_path}' does not exist.")
             t_1 = time.time()
             Reader(model=m, exp=e, source=s, regrid=reso)
             t_2 = time.time()
