@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Simplify reader init and retrieve (#620)
 - configdir is not searched based on util file position in the repo (#636)
 - Cleaner mask treatment (Revision of mask structure in the reader #617)
 - Fldmean fix if only one dimension is present for area selection (#640)
