@@ -54,3 +54,9 @@ grids:
   # ICON
   test-healpix: {path: $grids/icon_healpix0.nc} #space_coord: [x]
   test-r2b0: {path: ./AQUA_tests/models/ICON/test-lowres/r2b0.nc} #space_coord: [cell]
+  test-eORCA1-3d:
+    path: 
+      level: $grids/NEMO/test-eorca1_3D.nc
+    vert_coord: ["level"]
+    extra: 
+      - -selname,dummy
