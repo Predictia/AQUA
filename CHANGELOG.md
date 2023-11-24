@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased is the current development version.
 
 - Tropical cyclons improvements (#645)
+- configdir is not searched based on util file position in the repo (#636)
+- Cleaner mask treatment (Revision of mask structure in the reader #617)
+- Fldmean fix if only one dimension is present for area selection (#640)
+- Adding higher frequency ERA5 data on Levante and Lumi (#628)
+- regrid.yaml files are removed, grid infos are now in the catalogue metadata (#622, #643)
+- Load all available variables in FDB xarray/dask access (#619)
+- Lint standard and enforced in CI (#616)
+- Reader init split with methods (#523)
+- Single map plot utility (#594)
+- Script for automatic generation of Fdb catalog entries (#572)
 - Fix loading of singularity mounting /projappl (#612)
 - CLI wrapper parser (#599)
 - Refactoring of streaming emulator (#593)
@@ -16,9 +26,9 @@ Unreleased is the current development version.
 - AtmGlobalMean CLI and diagnostic refinement (#587)
 - Tropical cyclones CLI refinements and TC module (#568)
 - Removing OPA, OPAgenerator and related tests from the AQUA (Remove OPA from AQUA #586)
-- Renaming the experiments according to the DE340 AQUA syntax (Including dev-control-1990 in the source and rename the experiment according to DE340 scheme #556, #614)
+- Renaming the experiments according to the DE340 AQUA syntax (Including dev-control-1990 in the source and rename the experiment according to DE340 scheme #556, #614, #618)
 - Allow specifying grid in catalogue metadata (#520)
-- Teleconnections diagnostic improvements (#571, #574, #576, #581, #592)
+- Teleconnections diagnostic improvements (#571, #574, #576, #581, #592, #623)
 
 ## [v0.4]
 
