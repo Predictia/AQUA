@@ -111,3 +111,24 @@ def _init_get_eccodes_attr():
 
 
 get_eccodes_attr = _init_get_eccodes_attr()
+
+# Define this as a closure to avoid reading twice the same file
+def init_get_eccodes_shortname():
+    shortname = read_eccodes_def("shortName.def")
+    paramid = read_eccodes_def("paramId.def")
+
+    def _get_eccodes_shortname(var):
+        """
+        """
+        nonlocal shortname, paramid
+         
+        if str(var).isdigit():
+            try: 
+                i = paramid.index(str(var))
+                return shortname[i]
+            except (ValueError, IndexError) as error:
+                print(error)
+        else:
+            return var
+
+    return _get_eccodes_shortname
