@@ -114,6 +114,15 @@ get_eccodes_attr = _init_get_eccodes_attr()
 
 # Define this as a closure to avoid reading twice the same file
 def init_get_eccodes_shortname():
+    """
+    Recover eccodes shorthname from a given paramid
+
+    Args:
+        var(str, int): the variable name (a short_name or a paramid) 
+
+    Returns:
+        A string containing the short_name
+    """
     shortname = read_eccodes_def("shortName.def")
     paramid = read_eccodes_def("paramId.def")
 
