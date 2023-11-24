@@ -94,9 +94,9 @@ class TestGsv():
         assert data.t.mean().data == pytest.approx(279.3509), "Field values incorrect"
 
     def test_reader_paramid(self) -> None:
-        """Reading directly into xarray"""
+        """Reading with the variable paramid"""
 
         reader = Reader(model="IFS", exp="test-fdb", source="fdb", loglevel=loglevel)
-        data = reader.retrieve(paramid=130)
+        data = reader.retrieve(var=130)
         assert isinstance(data, xr.Dataset), "Does not return a Dataset"
         assert data.t.mean().data == pytest.approx(279.3509), "Field values incorrect"
