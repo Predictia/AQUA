@@ -267,8 +267,7 @@ class GSVSource(base.DataSource):
                               attrs=da0.attrs,
                               dims=da0.dims,
                               coords=coords)
-
-            ds[var] = da
+            ds[da0.name] = da
 
         ds.attrs.update(self._ds.attrs)
 
