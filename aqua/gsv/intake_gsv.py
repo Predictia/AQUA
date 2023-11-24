@@ -281,22 +281,22 @@ class GSVSource(base.DataSource):
         return ds
 
 
-class NoPrinting:
-    """
-    Context manager to suppress printing
-    """
+# class NoPrinting:
+#     """
+#     Context manager to suppress printing
+#     """
 
-    def __enter__(self):
-        sys._gsv_work_counter += 1
-        if sys._gsv_work_counter == 1 and not isinstance(sys.stdout, io.StringIO):  # We are really the first
-            sys._org_stdout = sys.stdout  # Record the original in sys
-            self._trap = io.StringIO()
-            sys.stdout = self._trap
+#     def __enter__(self):
+#         sys._gsv_work_counter += 1
+#         if sys._gsv_work_counter == 1 and not isinstance(sys.stdout, io.StringIO):  # We are really the first
+#             sys._org_stdout = sys.stdout  # Record the original in sys
+#             self._trap = io.StringIO()
+#             sys.stdout = self._trap
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        sys._gsv_work_counter -= 1
-        if sys._gsv_work_counter == 0:  # We are really the last one
-            sys.stdout = sys._org_stdout  # Restore the original
+#     def __exit__(self, exc_type, exc_val, exc_tb):
+#         sys._gsv_work_counter -= 1
+#         if sys._gsv_work_counter == 0:  # We are really the last one
+#             sys.stdout = sys._org_stdout  # Restore the original
 
 
 # This function is repeated here in order not to create a cross dependency between GSVSource and AQUA

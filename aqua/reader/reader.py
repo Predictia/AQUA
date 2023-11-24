@@ -4,7 +4,6 @@ import os
 import re
 
 import types
-import tempfile
 import shutil
 import intake
 import intake_esm
@@ -48,7 +47,7 @@ class Reader(FixerMixin, RegridMixin):
                  datamodel=None,
                  streaming=False, stream_generator=False,
                  startdate=None, enddate=None,
-                 rebuild=False, loglevel=None, nproc=4, aggregation=None)
+                 rebuild=False, loglevel=None, nproc=4, aggregation=None):
 
         """
         Initializes the Reader class, which uses the catalog
