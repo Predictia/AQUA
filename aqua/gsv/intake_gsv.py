@@ -110,7 +110,7 @@ class GSVSource(base.DataSource):
 
         sys._gsv_work_counter = 0  # used to suppress printing
 
-        self.get_eccodes_shortname =  init_get_eccodes_shortname()
+        self.get_eccodes_shortname = init_get_eccodes_shortname()
 
         self.data_start_date = data_start_date
         self.data_end_date = data_end_date
@@ -237,6 +237,12 @@ class GSVSource(base.DataSource):
         """
         Function to read a delayed partition.
         Returns a dask.array
+
+        Args:
+            i (int): partition number
+            var (string): variable name
+            shape: shape of the schema
+            dtype: data type of the schema
         """
         ds = dask.delayed(self._get_partition)(i, var=var, dask=True)
 
