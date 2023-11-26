@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- tprate not derived from tp for GSV sources (#653)
 - var='paramid' can be used to select variables in the retriee method (#648)
 - Tropical cyclons improvements (#645)
 - configdir is not searched based on util file position in the repo (#636)
