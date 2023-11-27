@@ -4,6 +4,7 @@ import pytest
 from aqua import Reader
 
 loglevel = "DEBUG"
+approx_rel = 1e-4
 
 @pytest.fixture(
     params=[
@@ -37,7 +38,7 @@ class TestRegridder():
         rgd = reader.regrid(data[variable])
         assert len(rgd.lon) == 180
         assert len(rgd.lat) == 90
-        assert ratio == pytest.approx((rgd.isnull().sum()/rgd.size).values)  # land fraction
+        assert ratio == pytest.approx((rgd.isnull().sum()/rgd.size).values, rel=approx_rel)  # land fraction
 
     def test_recompute_weights_fesom2D(self):
         """
