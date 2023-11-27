@@ -147,9 +147,8 @@ grids:
     path: $grids/NEMO/ORCA1_mesh_sfc_grid_T.nc
   eORCA1-2d:
     path: $grids/NEMO/eORCA1_mesh_sfc_grid_T.nc
-  eORCA1-3d:
-    path: 
-      level: $grids/NEMO/eORCA1_mesh_3d_grid_T.nc
+  eORCA1-3d: 
+    path: $grids/NEMO/eORCA1_mesh_3d_grid_T.nc
     #space_coord: ["ncells"]
     vert_coord: ["height"]
     extra:
