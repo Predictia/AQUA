@@ -426,7 +426,7 @@ class LRAgenerator():
         self.logger.warning('Processing variable %s...', var)
         temp_data = self.data[var]
         if self.frequency:
-            temp_data = self.reader.timmean(temp_data)
+            temp_data = self.reader.timmean(temp_data, freq=self.frequency)
         temp_data = self.reader.regrid(temp_data)
 
         temp_data = self._remove_regridded(temp_data)
