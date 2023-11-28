@@ -368,7 +368,7 @@ class Reader(FixerMixin, RegridMixin):
             if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):  # If we are retrieving from fdb we have to specify the var
                 metadata = self.esmcat.metadata
                 if metadata:
-                    var = metadata.get('variables')       
+                    var = metadata.get('variables')
                 if not var:
                     var = [self.esmcat._request['param']]  # retrieve var from catalogue
 
@@ -407,6 +407,13 @@ class Reader(FixerMixin, RegridMixin):
 
         if self.fix:   # Do not change easily this order. The fixer assumes to be after regridding
             data = self.fixer(data, var)
+
+        # log an error if some variables have no units
+        if isinstance(data, xr.Dataset):
+            for var in data.data_vars:
+                if not hasattr(data[var], 'units'):
+                    self.logger.error('Variable %s has no units!', var)
+
 
         if not fiter:
             # This is not needed if we already have an iterator
@@ -774,8 +781,6 @@ class Reader(FixerMixin, RegridMixin):
                               logging=True, loglevel=self.loglevel).read_chunked()
 
         return data
-    
-            
 
     def reader_intake(self, esmcat, var, loadvar, keep="first"):
         """
