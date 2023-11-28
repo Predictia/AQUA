@@ -8,11 +8,7 @@ if measure_time:
     import time
     import json
 
-if test_mode:
-    loglevel = 'info'
-    import os
-else:
-    loglevel = 'WARNING' 
+loglevel = 'WARNING'
 
 from aqua import Reader, inspect_catalogue
 from aqua.util import ConfigPath
