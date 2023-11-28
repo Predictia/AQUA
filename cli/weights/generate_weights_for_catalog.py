@@ -2,7 +2,6 @@
 """Loop on multiple dataset to crete weights using the Reader"""
 
 resos = [None] # or specify ['r025', 'r100']
-test_mode = True
 measure_time = True
 
 if measure_time:
@@ -47,20 +46,7 @@ def append_dict_to_file(file_path, new_dict):
     # Write the updated list back to the file
     with open(file_path, 'w') as file:
         json.dump(existing_data, file, indent=2)  # indent for pretty formatting
-    """        
-    try:
-        # Read the existing list from the file
-        with open(file_path, 'r') as file:
-            existing_data = json.load(file)
-    except FileNotFoundError:
-        # If the file doesn't exist, start with an empty list
-        existing_data = []
-    # Append the new dictionary to the existing list
-    existing_data.append(new_dict)
-    # Write the updated list back to the file
-    with open(file_path, 'w') as file:
-        json.dump(existing_data, file, indent=2)  # indent for pretty formatting
-    """
+        
 def grid_size(data):
     """ Function to get the size of the grid
 
@@ -92,7 +78,6 @@ def generate_catalogue_weights():
 
     Args:
       loglevel (str): The logging level for the function (default is "INFO").
-      test_mode (bool): If True, generates weights for a test case; if False, generates weights for all combinations.
       measure_time (bool): If True, records the processing time for each operation.
       resos (list): A list of regridding resolutions.
 
@@ -100,48 +85,28 @@ def generate_catalogue_weights():
       None
     """
     logger = log_configure(log_level=loglevel, log_name='Weights Generator')
-    logger.info('The weight generation is started.')
-    if test_mode:
-        m="MSWEP"
-        e="past" 
-        s="monthly" 
-        reso="r025"
-        # remove already computed weights
-        file_path="/work/bb1153/b382075/aqua/weights/weights_MSWEP_past_monthly_ycon_r025_l2d.nc"
-        if os.path.exists(file_path):
-            os.remove(file_path)
-            logger.info(f"File '{file_path}' removed successfully.")
-        else:
-            logger.info(f"File '{file_path}' does not exist.")
-        t_1 = time.time()
-        reader = Reader(model=m, exp=e, source=s, regrid=reso)
-        t_2 = time.time()
-        data = reader.retrieve()
-        new_dict_to_append = {'model': m, 'exp': e,  'source': s, 'regrid': reso, 'time': t_2-t_1, 'size': grid_size(data)}
-        append_dict_to_file('timing.json', new_dict_to_append)
-        logger.info(f"dict '{new_dict_to_append}'")
-    else:        
-        for reso in resos:
-            model = inspect_catalogue()
-            for m in model:
-                exp = inspect_catalogue(model = m)
-                for e in exp:
-                    source = inspect_catalogue(model = m, exp = e)
-                    for s in source:
-                        for zoom in range(0, 9):
-                            try:
-                                if measure_time:
-                                    t_1 = time.time()
-                                    reader = Reader(model=m, exp=e, source=s, regrid=reso, zoom=zoom)
-                                    t_2 = time.time()
-                                    data = reader.retrieve()
-                                    new_dict_to_append = {'model': m, 'exp': e,  'source': s, 'regrid': reso, 'zoom': zoom, 'time': t_2-t_1, 'size': grid_size(data)}
-                                    append_dict_to_file('weights_calculation_time.json', new_dict_to_append)
-                                else:
-                                    Reader(model=m, exp=e, source=s, regrid=reso, zoom=zoom)
-                            except Exception as e:
-                                # Handle other exceptions
-                                logger.error(f"For the source {m} {e} {s} {reso} {zoom} an unexpected error occurred: {e}")
+    logger.info('The weight generation is started.')   
+    for reso in resos:
+        model = inspect_catalogue()
+        for m in model:
+            exp = inspect_catalogue(model = m)
+            for e in exp:
+                source = inspect_catalogue(model = m, exp = e)
+                for s in source:
+                    for zoom in range(0, 9):
+                        try:
+                            if measure_time:
+                                t_1 = time.time()
+                                reader = Reader(model=m, exp=e, source=s, regrid=reso, zoom=zoom)
+                                t_2 = time.time()
+                                data = reader.retrieve()
+                                new_dict_to_append = {'model': m, 'exp': e,  'source': s, 'regrid': reso, 'zoom': zoom, 'time': t_2-t_1, 'size': grid_size(data)}
+                                append_dict_to_file('weights_calculation_time.json', new_dict_to_append)
+                            else:
+                                Reader(model=m, exp=e, source=s, regrid=reso, zoom=zoom)
+                        except Exception as e:
+                            # Handle other exceptions
+                            logger.error(f"For the source {m} {e} {s} {reso} {zoom} an unexpected error occurred: {e}")
     
 if __name__ == '__main__': 
     generate_catalogue_weights()

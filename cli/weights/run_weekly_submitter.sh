@@ -29,13 +29,13 @@ while true; do
 #!/bin/bash
 #SBATCH --account=$account
 #SBATCH --partition=$partition
-#SBATCH --job-name=we
+#SBATCH --job-name=weights
 #SBATCH --output=weights_%j.out
 #SBATCH --error=weights_%j.log
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
-#SBATCH --time=0:10:00
-#SBATCH --mem=10G
+#SBATCH --ntasks-per-node=16
+#SBATCH --time=08:00:00
+#SBATCH --mem=200G
 
 echo 'Hello from SLURM job!'
 /usr/bin/env python3 generate_weights_for_catalog.py
