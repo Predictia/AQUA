@@ -457,9 +457,10 @@ class Reader(FixerMixin, RegridMixin):
             data = self.fixer(data, var, apply_unit_fix=apply_unit_fix)
 
         # log an error if some variables have no units
-        for var in data.data_vars:
-            if not hasattr(data[var], 'units'):
-                self.logger.error('Variable %s has no units!', var)
+        if isinstance(data, xr.Dataset):
+            for var in data.data_vars:
+                if not hasattr(data[var], 'units'):
+                    self.logger.error('Variable %s has no units!', var)
 
         if self.freq and timmean:
             data = self.timmean(data, exclude_incomplete=self.exclude_incomplete)
