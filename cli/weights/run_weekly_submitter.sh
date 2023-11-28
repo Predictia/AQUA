@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Check a condition (replace this with your actual condition)
+should_resubmit=false
+
 # find mamba/conda (to be refined)
 whereconda=$(which mamba | rev | cut -f 3-10 -d"/" | rev)
 source $whereconda/etc/profile.d/conda.sh
@@ -38,9 +41,12 @@ while true; do
     else
         /usr/bin/env python3 generate_weights_for_catalog.py
     fi
-    # Sleep for one week (adjust the time as needed)
-    ##sleep 604800  # 604800 seconds = 1 week
-    # Resubmit the job to Slurm
-    #sbatch $0
+    
+    # Use an if statement to decide whether to resubmit
+    if $should_resubmit; then
+        # Sleep for one week (adjust the time as needed)
+        sleep 604800  # 604800 seconds = 1 week
+        sbatch "$0"  # Resubmit the job to Slurm
+    fi
     exit  # Exit the current instance of the script after submitting
 done
