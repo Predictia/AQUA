@@ -3,22 +3,19 @@
 
 resos = [None] # or specify ['r025', 'r100']
 test_mode = True
-measure_time = False
-weekly = False
+measure_time = True
 
 if measure_time:
     import time
+    import json
 
 if test_mode:
     loglevel = 'info'
-else:
-    loglevel = 'WARNING'
-if measure_time and test_mode:    
     import os
+else:
+    loglevel = 'WARNING' 
 
-import sys
 from aqua import Reader, inspect_catalogue
-from aqua.slurm import slurm, get_job_status, waiting_for_slurm_response
 from aqua.util import ConfigPath
 from aqua.logger import log_configure
 
@@ -40,6 +37,21 @@ def append_dict_to_file(file_path, new_dict):
         # Read the existing list from the file
         with open(file_path, 'r') as file:
             existing_data = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        # If the file doesn't exist or is empty, start with an empty list
+        existing_data = []
+
+    # Append the new dictionary to the existing list
+    existing_data.append(new_dict)
+
+    # Write the updated list back to the file
+    with open(file_path, 'w') as file:
+        json.dump(existing_data, file, indent=2)  # indent for pretty formatting
+    """        
+    try:
+        # Read the existing list from the file
+        with open(file_path, 'r') as file:
+            existing_data = json.load(file)
     except FileNotFoundError:
         # If the file doesn't exist, start with an empty list
         existing_data = []
@@ -48,7 +60,26 @@ def append_dict_to_file(file_path, new_dict):
     # Write the updated list back to the file
     with open(file_path, 'w') as file:
         json.dump(existing_data, file, indent=2)  # indent for pretty formatting
-        
+    """
+def grid_size(data):
+    """ Function to get the size of the grid
+
+    Args:
+        data (xarray):                  The Dataset
+
+    Returns:
+        int:                           The size of the grid
+    """
+    if 'DataArray' in str(type(data)):
+        _size = data.size
+    elif 'Dataset' in str(type(data)):
+        _names = list(data.dims)
+        _names = [name for name in _names if name != 'time']
+        _size = 1
+        for i in _names:
+            _size *= data[i].size
+    return _size
+     
 def generate_catalogue_weights():
     """
     Generates weights for regridding and records the processing time in a catalog.
@@ -82,14 +113,13 @@ def generate_catalogue_weights():
             logger.info(f"File '{file_path}' removed successfully.")
         else:
             logger.info(f"File '{file_path}' does not exist.")
-        if measure_time:
-            t_1 = time.time()
-            Reader(model=m, exp=e, source=s, regrid=reso)
-            t_2 = time.time()
-            new_dict_to_append = {'model': m, 'exp': e,  'source': s, 'regrid': reso, 'time': t_2-t_1}
-            append_dict_to_file('data.json', new_dict_to_append)
-        else:
-            Reader(model=m, exp=e, source=s, regrid=reso)
+        t_1 = time.time()
+        reader = Reader(model=m, exp=e, source=s, regrid=reso)
+        t_2 = time.time()
+        data = reader.retrieve()
+        new_dict_to_append = {'model': m, 'exp': e,  'source': s, 'regrid': reso, 'time': t_2-t_1, 'size': grid_size(data)}
+        append_dict_to_file('timing.json', new_dict_to_append)
+        logger.info(f"dict '{new_dict_to_append}'")
     else:        
         for reso in resos:
             model = inspect_catalogue()
@@ -102,78 +132,17 @@ def generate_catalogue_weights():
                             try:
                                 if measure_time:
                                     t_1 = time.time()
-                                    Reader(model=m, exp=e, source=s, regrid=reso, zoom=zoom)
+                                    reader = Reader(model=m, exp=e, source=s, regrid=reso, zoom=zoom)
                                     t_2 = time.time()
-                                    new_dict_to_append = {'model': m, 'exp': e,  'source': s, 'regrid': reso, 'zoom': zoom, 'time': t_2-t_1}
+                                    data = reader.retrieve()
+                                    new_dict_to_append = {'model': m, 'exp': e,  'source': s, 'regrid': reso, 'zoom': zoom, 'time': t_2-t_1, 'size': grid_size(data)}
                                     append_dict_to_file('weights_calculation_time.json', new_dict_to_append)
                                 else:
                                     Reader(model=m, exp=e, source=s, regrid=reso, zoom=zoom)
                             except Exception as e:
                                 # Handle other exceptions
                                 logger.error(f"For the source {m} {e} {s} {reso} {zoom} an unexpected error occurred: {e}")
-                            
-def job_initialization():
-    """
-    Initializes and submits a job to the SLURM queue.
-    This function initializes and submits a job to the SLURM queue based on the configuration of the current machine.
-    After submitting the job, it waits for a SLURM response for a specified duration.
-
-    Args:
-      loglevel (str): The logging level for the function (default is "INFO").
-      test_mode (bool): If True, submits a test job; if False, submits a job with specified configurations.
-
-    Returns:
-      None
-    """
-    logger = log_configure(log_level=loglevel, log_name='Weights Submitter')
-    # Job initialization 
-    if ConfigPath().machine=='levante':     
-        if test_mode:
-            slurm.job() 
-        else:
-            slurm.job(cores=16, memory="200 GB", walltime='08:00:00', jobs=1, path_to_output='.', loglevel=loglevel)
-    elif ConfigPath().machine=='lumi':
-        slurm.job()
-    waiting_for_slurm_response(10)
-    logger.info('The job is submitted to the queue.')
     
-def generate_catalogue_weights_on_slurm():
-    """
-    Submits weights generation job to SLURM and waits for its completion.
-    This function continuously checks the status of a SLURM job for a specified duration (120 iterations).
-    If the job is running ('R'), it calls the 'generate_catalogue_weights' function.
-    If the job is still in the queue, it waits for 60 seconds.
-
-    Args:
-      loglevel (str): The logging level for the function (default is "INFO").
-
-    Returns:
-      None
-    """
-    logger = log_configure(log_level=loglevel, log_name='Weights Submitter')
-    for i in range(0, 120):
-        if get_job_status() == 'R':
-            logger.info('The job is started.')
-            generate_catalogue_weights()
-            break
-        else:
-            logger.info('The job is waiting in the queue.')
-            waiting_for_slurm_response(60)
-    logger.info('The weights submitter is terminated.')
- 
-
 if __name__ == '__main__': 
-    if test_mode:
-        # Initializing the logger
-        logger = log_configure(log_level=loglevel, log_name='Weights Submitter')
-    if ConfigPath().machine=='levante' or ConfigPath().machine=='lumi':
-        job_initialization()
-        generate_catalogue_weights_on_slurm()
-        if not weekly:
-            sys.exit("Exiting the script")
-    else:
-        generate_catalogue_weights()
-        if not weekly:
-            sys.exit("Exiting the script")
-            
+    generate_catalogue_weights()
 
