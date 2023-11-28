@@ -408,8 +408,8 @@ class FixerMixin():
                                  var, data[source].units, fixer_src_units)
                 data[source].attrs.update({"units": fixer_src_units})
             else:
-                self.logger.warning('Variable %s: Setting missing source units to "%s"',
-                                    var, fixer_src_units)
+                self.logger.info('Variable %s: Setting missing source units to "%s"',
+                                 var, fixer_src_units)
                 data[source].attrs["units"] = fixer_src_units
 
         return data

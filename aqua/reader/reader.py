@@ -447,11 +447,6 @@ class Reader(FixerMixin, RegridMixin):
 
         data = log_history_iter(data, "retrieved by AQUA retriever")
 
-        # log an error if some variables have no units
-        for var in data.data_vars:
-            if not hasattr(data[var], 'units'):
-                self.logger.error('Variable %s has no units!', var)
-
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
 
         if self.targetgrid and regrid:
@@ -460,6 +455,11 @@ class Reader(FixerMixin, RegridMixin):
 
         if self.fix:   # Do not change easily this order. The fixer assumes to be after regridding
             data = self.fixer(data, var, apply_unit_fix=apply_unit_fix)
+
+        # log an error if some variables have no units
+        for var in data.data_vars:
+            if not hasattr(data[var], 'units'):
+                self.logger.error('Variable %s has no units!', var)
 
         if self.freq and timmean:
             data = self.timmean(data, exclude_incomplete=self.exclude_incomplete)
