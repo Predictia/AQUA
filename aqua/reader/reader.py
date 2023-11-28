@@ -165,7 +165,6 @@ class Reader(FixerMixin, RegridMixin):
         cfg_base = load_yaml(self.config_file)
         self.cdo = self._set_cdo(cfg_base)
 
-
         if self.fix:
             self.dst_datamodel = datamodel
             # Default destination datamodel
@@ -413,7 +412,7 @@ class Reader(FixerMixin, RegridMixin):
             if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):  # If we are retrieving from fdb we have to specify the var
                 metadata = self.esmcat.metadata
                 if metadata:
-                    var = metadata.get('variables')       
+                    var = metadata.get('variables')
                 if not var:
                     var = [self.esmcat._request['param']]  # retrieve var from catalogue
 
@@ -447,6 +446,11 @@ class Reader(FixerMixin, RegridMixin):
                         raise KeyError("You are asking for variables which we cannot find in the catalog!") from e
 
         data = log_history_iter(data, "retrieved by AQUA retriever")
+
+        # log an error if some variables have no units
+        for var in data.data_vars:
+            if not hasattr(data[var], 'units'):
+                self.logger.error('Variable %s has no units!', var)
 
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
 
@@ -838,8 +842,6 @@ class Reader(FixerMixin, RegridMixin):
                               logging=True, verbose=self.verbose).read_chunked()
 
         return data
-    
-            
 
     def reader_intake(self, esmcat, var, loadvar, keep="first"):
         """
