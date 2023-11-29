@@ -39,17 +39,19 @@ def get_reference_data(varname, model='ERA5', exp='era5', source='monthly',
                         loglevel=loglevel)
     except Exception as e:
         raise NoObservationError("Could not retrieve ERA5 data. No plot will be drawn.") from e
-    data = reader.retrieve().sel(sel)
+    data = reader.retrieve()
+    std = reader.fldmean(data.sel(time=slice("1991", "2020")).groupby("time.month").std())
+    data = data.sel(sel)
 
     if resample is not None:
         logger.debug(f"Resampling reference data to {resample}")
         data = reader.timmean(data=data, freq=resample)
 
     try:
-        return reader.fldmean(data[varname])
+        return reader.fldmean(data[varname]), std[varname]
     except KeyError as e:
         try:
-            return reader.fldmean(eval_formula(varname, data))
+            return reader.fldmean(eval_formula(varname, data)), std[varname]
         except KeyError:
             raise NoObservationError(f"Could not retrieve {varname} from ERA5. No plot will be drawn.") from e
 
@@ -128,13 +130,24 @@ def plot_timeseries(
         data.to_netcdf(outfile)
 
     if plot_era5:
-        eradata = get_reference_data(
+        eradata, erastd = get_reference_data(
             variable,
             sel={"time": slice(data.time.min(), data.time.max())},
             resample=resample, loglevel=loglevel
         )
         if eradata is not None:
-            eradata.plot(color="grey", label="ERA5", ax=ax)
+            eradata.compute()
+            erastd.compute()
+            ax.fill_between(
+                eradata.time,
+                eradata - erastd.sel(month=eradata["time.month"]),
+                eradata + erastd.sel(month=eradata["time.month"]),
+                facecolor="grey",
+                alpha=0.3678,
+                color="grey",
+                label="ERA5",
+            )
+
     ax.legend()
     ax.set_ylim(**ylim)
     ax.grid(axis="x", color="k")
