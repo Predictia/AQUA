@@ -19,7 +19,6 @@ class FixerMixin():
     """Fixer mixin for the Reader class"""
 
     def find_fixes(self):
-
         """
         Get the fixes for the model/exp/source hierarchy.
 
@@ -80,7 +79,6 @@ class FixerMixin():
         return final_fixes
 
     def _combine_fixes(self, default_fixes, fixes):
-
         """Combine fixes from the default or the source/model specific"""
 
         if fixes is None:
@@ -96,7 +94,6 @@ class FixerMixin():
             return fixes
 
     def _load_source_fixes(self, fix_model):
-
         """Browse for source/model specific fixes, return None if not found"""
 
         # look for exp fix, if not found, set default fixes
@@ -320,7 +317,6 @@ class FixerMixin():
         return data
 
     def _delete_variables(self, data):
-
         """
         Remove variables which are set to be deleted in the fixer
         """
@@ -333,7 +329,6 @@ class FixerMixin():
         return data
 
     def _wrapper_decumulate(self, data, variables, varlist, keep_memory, jump):
-
         """
         Wrapper function for decumulation, which takes into account the requirement of
         keeping into memory the last step for streaming/fdb purposes
@@ -380,7 +375,6 @@ class FixerMixin():
         return data
 
     def _override_tgt_units(self, tgt_units, varfix, var):
-
         """
         Override destination units for the single variable
         """
@@ -395,7 +389,6 @@ class FixerMixin():
             return tgt_units
 
     def _override_src_units(self, data, varfix, var, source):
-
         """
         Override source units for the single variable
         """
@@ -444,7 +437,6 @@ class FixerMixin():
         return attributes, var
 
     def _check_which_variables_to_fix(self, var2fix, destvar):
-
         """
         Check on which variables fixes should be applied
 
@@ -491,7 +483,6 @@ class FixerMixin():
             return area
 
     def get_fixer_varname(self, var):
-
         """
         Load the fixes and check if the variable requested is there
 

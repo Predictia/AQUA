@@ -205,7 +205,7 @@ def plot_single_map(data: xr.DataArray,
 
         fig.savefig('{}/{}'.format(outputdir, filename),
                     dpi=dpi, bbox_inches='tight')
-    
+
     if display is False:
         logger.debug("Display is set to False, closing figure")
         plt.close(fig)

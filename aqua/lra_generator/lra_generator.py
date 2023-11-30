@@ -132,7 +132,7 @@ class LRAgenerator():
             'units': 'days since 1970-01-01',
             'calendar': 'standard',
             'dtype': 'float64'
-            }
+        }
 
         self.fix = fix
         self.logger.info('Fixing data: %s', self.fix)
@@ -213,7 +213,6 @@ class LRAgenerator():
         self.logger.warning('Finished generating LRA data.')
 
     def create_catalog_entry(self):
-
         """
         Create an entry in the catalog for the LRA
         """
@@ -231,12 +230,12 @@ class LRAgenerator():
                 'chunks': {},
                 'xarray_kwargs': {
                     'decode_times': True
-                    },
                 },
+            },
             'metadata': {
                 'source_grid_name': 'lon-lat'
-                }
             }
+        }
 
         # find the catalog of my experiment
         catalogfile = os.path.join(self.configdir, 'machines', self.machine,
@@ -307,7 +306,6 @@ class LRAgenerator():
                 os.remove(infile)
 
     def get_filename(self, var, year=None, month=None):
-
         """Create output filenames"""
 
         filename = os.path.join(self.outdir,
@@ -320,7 +318,6 @@ class LRAgenerator():
         return filename
 
     def check_integrity(self, varname):
-
         """To check if the LRA entry is fine before running"""
 
         yearfiles = self.get_filename(varname)
@@ -338,7 +335,6 @@ class LRAgenerator():
             self.logger.warning('Still need to run for var %s...', varname)
 
     def _write_var(self, var):
-
         """Call write var for generator or catalog access"""
         t_beg = time()
 
@@ -361,7 +357,6 @@ class LRAgenerator():
         return data
 
     def _write_var_generator(self, var):
-
         """
         Write a variable to file using the GSV generator
         """

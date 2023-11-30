@@ -330,7 +330,7 @@ class Gribber():
         if self.model == 'IFS':
             cmd = ['gribscan-build', '-o', self.jsondir, '--magician', 'ifs',
                    '--prefix', self.datadir + '/'] +\
-                   glob(os.path.join(self.tmpdir, '*index'))
+                glob(os.path.join(self.tmpdir, '*index'))
         else:
             self.logger.warning("Model %s is experimental.", self.model)
             cmd = ['gribscan-build', '-o', self.jsondir,

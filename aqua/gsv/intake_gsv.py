@@ -42,7 +42,7 @@ class GSVSource(base.DataSource):
 
     def __init__(self, request, data_start_date, data_end_date, timestyle="date",
                  aggregation="S", savefreq="H", timestep="H", timeshift=None,
-                 startdate=None, enddate=None, var=None, metadata=None, 
+                 startdate=None, enddate=None, var=None, metadata=None,
                  logging=False, loglevel='WARNING', **kwargs):
         """
         Initializes the GSVSource class. These are typically specified in the catalogue entry,
@@ -142,8 +142,8 @@ class GSVSource(base.DataSource):
             da = self._ds[var]  # get first variable dataarray
 
             metadata = {
-                 'dims': da.dims,
-                 'attrs': self._ds.attrs
+                'dims': da.dims,
+                'attrs': self._ds.attrs
             }
             schema = base.Schema(
                 datashape=None,
@@ -218,8 +218,8 @@ class GSVSource(base.DataSource):
         # else:
         #     with NoPrinting():
         #         dataset = gsv.request_data(request)
-        
-        # to silence the logging from the GSV retriever, we increase its level by one 
+
+        # to silence the logging from the GSV retriever, we increase its level by one
         # in this way the 'info' is printed only in 'debug' mode
         gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel() + 10)
         dataset = gsv.request_data(request, logging_level=gsv_log_level)
