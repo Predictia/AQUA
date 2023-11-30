@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Controlling the loglevel of the GSV interface (#665)
 - Fix wrong fdb source (#657)
 - Adding tests for NEMO 2D and 3D (#652)
 - tprate not derived from tp for GSV sources (#653)
