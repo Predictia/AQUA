@@ -22,7 +22,6 @@ if [[ "$user_defined_aqua" = "yes" || "$user_defined_aqua" = "y" || "$user_defin
     script_dir=$(cd "$(dirname "$0")" && pwd)
     # AQUA_path=$(echo "$script_dir" | grep -oP '.*?AQUA' | head -n 1)
     AQUA_path=$(echo "$script_dir" | awk -F'/AQUA' '{print ($2 ? $1 "/AQUA" : "")}')
-    echo $AQUA_path
     if [ -z "$AQUA_path" ]; then
         colored_echo $RED "Not able to find the local AQUA Repository"
         read -p "Please provide the AQUA path: " AQUA_path
