@@ -43,7 +43,7 @@ class GSVSource(base.DataSource):
     def __init__(self, request, data_start_date, data_end_date, timestyle="date",
                  aggregation="S", savefreq="H", timestep="H", timeshift=None,
                  startdate=None, enddate=None, var=None, metadata=None, 
-                 logging=False, loglevel='WARNING', **kwargs):
+                 log_history=False, loglevel='WARNING', **kwargs):
         """
         Initializes the GSVSource class. These are typically specified in the catalogue entry,
         but can also be specified upon accessing the catalogue.
@@ -66,6 +66,9 @@ class GSVSource(base.DataSource):
             logging (bool, optional): Whether to print to screen. Used only for FDB access. Defaults to False.
             kwargs: other keyword arguments.
         """
+
+        self.log_history = log_history
+        self.logger = log_configure(log_level=loglevel, log_name='GSVSource')
 
         if not gsv_available:
             raise ImportError(gsv_error_cause)
@@ -101,10 +104,6 @@ class GSVSource(base.DataSource):
             self._var = request["param"]
         else:
             self._var = var
-
-        self.logging = logging
-        self.loglevel = loglevel
-        self.logger = log_configure(log_level=self.loglevel, log_name='GSVSource')
 
         self._request = request.copy()
         self._kwargs = kwargs
@@ -210,7 +209,9 @@ class GSVSource(base.DataSource):
                 eccodes.codes_context_delete()  # flush old definitions in cache
                 eccodes.codes_set_definitions_path(self.eccodes_path)
 
-        gsv = GSVRetriever()  # for some reason this is needed here and not in init
+        # for some reason this is needed here and not in init
+        gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel())
+        gsv = GSVRetriever(logging_level=gsv_log_level)  
 
         # if self.verbose:
         #     print("Request: ", i, self._var, s0, s1, request)
@@ -221,14 +222,14 @@ class GSVSource(base.DataSource):
         
         # to silence the logging from the GSV retriever, we increase its level by one 
         # in this way the 'info' is printed only in 'debug' mode
-        gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel() + 10)
-        dataset = gsv.request_data(request, logging_level=gsv_log_level)
+        # gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel() + 10)
+        dataset = gsv.request_data(request)
 
         if self.timeshift:  # shift time by one month (special case)
             dataset = shift_time_dataset(dataset)
 
         # Log history
-        if self.logging:
+        if self.log_history:
             log_history(dataset, "Dataset retrieved by GSV interface")
 
         return dataset
