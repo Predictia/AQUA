@@ -16,6 +16,7 @@ Main changes are:
 4. Refactoring of the streaming emulator with equal treatment for FDB or file sources
 
 Complete list
+- Controlling the loglevel of the GSV interface (#665)
 - Fix wrong fdb source (#657)
 - Adding sample files and tests for NEMO 2D and 3D grids (#652)
 - tprate not derived from tp for GSV sources (#653)
