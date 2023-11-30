@@ -5,7 +5,7 @@ FDB5_CONFIG_FILE="/scratch/project_465000454/igonzalez/fdb-long/config.yaml"
 GSV_WEIGHTS_PATH="/scratch/project_465000454/igonzalez/gsv_weights/"
 GRID_DEFINITION_PATH="/scratch/project_465000454/igonzalez/grid_definitions"
 
-read -p "Do you want to use your local AQUA (yes/no): " user_defined_aqua
+read -p "Do you want to use your local AQUA (y/n): " user_defined_aqua
 
 # Define colors for echo output
 RED='\033[0;31m'
@@ -18,7 +18,7 @@ colored_echo() {
   echo -e "${color}$@${NC}"
 }
 
-if [ "$user_defined_aqua" = "yes" ]; then
+if [[ "$user_defined_aqua" = "yes" || "$user_defined_aqua" = "y" || "$user_defined_aqua" = "Y" ]]; then
     script_dir=$(cd "$(dirname "$0")" && pwd)
     AQUA_path=$(echo "$script_dir" | grep -oP '.*?AQUA' | head -n 1)
     if [ -z "$AQUA_path" ]; then
@@ -35,7 +35,7 @@ if [ "$user_defined_aqua" = "yes" ]; then
         last_commit=$(git log -1 --pretty=format:"%h %an: %s")
         colored_echo $GREEN "Last commit: $last_commit"
     fi
-elif [ "$user_defined_aqua" = "no" ]; then
+elif [[ "$user_defined_aqua" = "no" || "$user_defined_aqua" = "n" || "$user_defined_aqua" = "N" ]]; then
     echo "Selecting the AQUA of the container"
     AQUA_path="/app/AQUA"
 else 
