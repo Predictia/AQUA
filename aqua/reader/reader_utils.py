@@ -137,7 +137,7 @@ def set_attrs(ds, attrs):
 
 def configure_masked_fields(source_grid):
     """
-    Help function to define where to apply masks: 
+    Help function to define where to apply masks:
     if the grids has the 'masked' option, this can be based on
     generic attribute or alternatively of a series of specific variables using the 'vars' key
 

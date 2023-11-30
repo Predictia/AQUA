@@ -2,7 +2,6 @@
 import os
 import datetime
 import sys
-import io
 import eccodes
 import xarray as xr
 import dask

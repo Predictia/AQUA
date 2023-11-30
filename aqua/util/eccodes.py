@@ -51,7 +51,7 @@ def read_eccodes_def(filename):
 
     # ECMWF lists
     fn = eccodes.codes_definition_path().split(':')[0]  # LUMI fix, take only first
-    fn = os.path.join(fn, 'grib2',  'localConcepts', 'ecmf', filename)
+    fn = os.path.join(fn, 'grib2', 'localConcepts', 'ecmf', filename)
     with open(fn, "r", encoding='utf-8') as f:
         for line in f:
             line = line.replace(" =", "").replace('{', '').replace('}', '').replace(';', '').replace('\t', '#    ')

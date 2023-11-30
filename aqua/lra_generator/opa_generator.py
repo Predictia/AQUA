@@ -272,7 +272,7 @@ class OPAgenerator():
 
         # find the catalog of my experiment
         catalogfile = os.path.join(self.configdir, 'machines', self.machine,
-                                   'catalog', self.model, self.exp+'.yaml')
+                                   'catalog', self.model, self.exp + '.yaml')
 
         # load, add the block and close
         cat_file = load_yaml(catalogfile)
@@ -304,7 +304,7 @@ class OPAgenerator():
 
         # find the catalog of my experiment
         catalogfile = os.path.join(self.configdir, 'machines', self.machine,
-                                   'catalog', self.model, self.exp+'.yaml')
+                                   'catalog', self.model, self.exp + '.yaml')
         cat_file = load_yaml(catalogfile)
         if self.entry_name in cat_file['sources']:
             del cat_file['sources'][self.entry_name]

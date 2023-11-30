@@ -363,7 +363,8 @@ class Reader(FixerMixin, RegridMixin):
             self.logger.info("Retrieving variables: %s", var)
             loadvar = self.get_fixer_varname(var) if self.fix else var
         else:
-            if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):  # If we are retrieving from fdb we have to specify the var
+            # If we are retrieving from fdb we have to specify the var
+            if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
                 metadata = self.esmcat.metadata
                 if metadata:
                     var = metadata.get('variables')
@@ -533,7 +534,7 @@ class Reader(FixerMixin, RegridMixin):
         # add a variable to create time_bounds
         if time_bounds:
             resampled = data.time.resample(time=resample_freq)
-            time_bnds = xr.concat([resampled.min(),  resampled.max()], dim='bnds').transpose()
+            time_bnds = xr.concat([resampled.min(), resampled.max()], dim='bnds').transpose()
             time_bnds['time'] = out.time
             time_bnds.name = 'time_bnds'
             out = xr.merge([out, time_bnds])

@@ -239,7 +239,7 @@ class LRAgenerator():
 
         # find the catalog of my experiment
         catalogfile = os.path.join(self.configdir, 'machines', self.machine,
-                                   'catalog', self.model, self.exp+'.yaml')
+                                   'catalog', self.model, self.exp + '.yaml')
 
         # load, add the block and close
         cat_file = load_yaml(catalogfile)
@@ -292,7 +292,7 @@ class LRAgenerator():
                                f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}??.nc')
         if len(glob.glob(infiles)) > 1:
             xfield = xr.open_mfdataset(infiles)
-            self.logger.warning('Creating a single file for %s, year %s...',  var, str(year))
+            self.logger.warning('Creating a single file for %s, year %s...', var, str(year))
             outfile = os.path.join(self.outdir,
                                    f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}.nc')
             # clean older file
@@ -302,7 +302,7 @@ class LRAgenerator():
 
             # clean of monthly files
             for infile in glob.glob(infiles):
-                self.logger.info('Cleaning %s...',  infile)
+                self.logger.info('Cleaning %s...', infile)
                 os.remove(infile)
 
     def get_filename(self, var, year=None, month=None):
@@ -345,7 +345,7 @@ class LRAgenerator():
                 self._write_var_catalog(var)
 
         t_end = time()
-        self.logger.info('Process took {:.4f} seconds'.format(t_end-t_beg))
+        self.logger.info('Process took {:.4f} seconds'.format(t_end - t_beg))
 
     def _remove_regridded(self, data):
 
@@ -407,7 +407,7 @@ class LRAgenerator():
             if self.definitive and month == 12:
                 self._concat_var(var, year)
 
-            self.logger.info('Processing this chunk took {:.4f} seconds'.format(time()-t_beg))
+            self.logger.info('Processing this chunk took {:.4f} seconds'.format(time() - t_beg))
             t_beg = time()
 
     def _write_var_catalog(self, var):
