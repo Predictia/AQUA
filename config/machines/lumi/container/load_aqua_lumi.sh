@@ -7,23 +7,33 @@ GRID_DEFINITION_PATH="/scratch/project_465000454/igonzalez/grid_definitions"
 
 read -p "Do you want to use your local AQUA (yes/no): " user_defined_aqua
 
+# Define colors for echo output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+colored_echo() {
+  local color=$1
+  shift
+  echo -e "${color}$@${NC}"
+}
 
 if [ "$user_defined_aqua" = "yes" ]; then
     script_dir=$(cd "$(dirname "$0")" && pwd)
     AQUA_path=$(echo "$script_dir" | grep -oP '.*?AQUA' | head -n 1)
     if [ -z "$AQUA_path" ]; then
-        echo "Not able to find the local AQUA Repository"
+        colored_echo $RED "Not able to find the local AQUA Repository"
         read -p "Please provide the AQUA path: " AQUA_path
         branch_name=$(git rev-parse --abbrev-ref HEAD)
-        echo "Current branch: $branch_name"
+        colored_echo $GREEN "Current branch: $branch_name"
         last_commit=$(git log -1 --pretty=format:"%h %an: %s")
-        echo "Last commit: $last_commit"
+        colored_echo $GREEN "Last commit: $last_commit"
     else
         echo "Selecting this AQUA path for the container: $AQUA_path"
         branch_name=$(git rev-parse --abbrev-ref HEAD)
-        echo "Current branch: $branch_name"
+        colored_echo $GREEN "Current branch: $branch_name"
         last_commit=$(git log -1 --pretty=format:"%h %an: %s")
-        echo "Last commit: $last_commit"
+        colored_echo $GREEN "Last commit: $last_commit"
     fi
 elif [ "$user_defined_aqua" = "no" ]; then
     echo "Selecting the AQUA of the container"
