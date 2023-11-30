@@ -59,6 +59,7 @@ singularity shell \
     --env AQUA=$AQUA_path \
     --bind /pfs/lustrep3/ \
     --bind /projappl/ \
+    --bind /project \
     --bind /scratch/ \
     $AQUA_container
 # Run this script in LUMI in VSCode 
