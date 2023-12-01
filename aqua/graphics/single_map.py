@@ -19,6 +19,7 @@ def plot_single_map(data: xr.DataArray,
                     vmin=None, vmax=None,
                     cmap='RdBu_r',
                     gridlines=False,
+                    display=True,
                     loglevel='WARNING',
                     **kwargs):
     """
@@ -40,6 +41,7 @@ def plot_single_map(data: xr.DataArray,
                                    Defaults to None.
         cmap (str, optional):      Colormap. Defaults to 'RdBu_r'.
         gridlines (bool, optional): If True, plot gridlines. Defaults to False.
+        display (bool, optional):  If True, display the figure. Defaults to True.
         loglevel (str, optional):  Log level. Defaults to 'WARNING'.
 
     Keyword Args:
@@ -81,7 +83,7 @@ def plot_single_map(data: xr.DataArray,
             vmin, vmax = evaluate_colorbar_limits(maps=[data], sym=sym)
     logger.debug("Setting vmin to %s, vmax to %s", vmin, vmax)
     if contour:
-        levels = np.linspace(vmin, vmax, nlevels+1)
+        levels = np.linspace(vmin, vmax, nlevels + 1)
 
     # Plot the data
     if contour:
@@ -112,17 +114,17 @@ def plot_single_map(data: xr.DataArray,
         lon_max = data['lon'].values.max()
         logger.debug("Setting longitude ticks from %s to %s", lon_min, lon_max)
         (lon_min, lon_max), _ = check_coordinates(lon=(lon_min, lon_max),
-                                                default={"lon_min": -180,
-                                                         "lon_max": 180,
-                                                         "lat_min": -90,
-                                                         "lat_max": 90},)
+                                                  default={"lon_min": -180,
+                                                           "lon_max": 180,
+                                                           "lat_min": -90,
+                                                           "lat_max": 90},)
     except KeyError:
         logger.critical("No longitude coordinate found, setting default values")
         lon_min = -180
         lon_max = 180
-    step = (lon_max - lon_min)/(nxticks-1)
+    step = (lon_max - lon_min) / (nxticks - 1)
     logger.debug("Setting longitude ticks from %s to %s", lon_min, lon_max)
-    xticks = np.arange(lon_min, lon_max+1, step)
+    xticks = np.arange(lon_min, lon_max + 1, step)
     logger.debug("Setting longitude ticks to %s", xticks)
     ax.set_xticks(xticks, crs=proj)
     lon_formatter = cticker.LongitudeFormatter()
@@ -135,17 +137,17 @@ def plot_single_map(data: xr.DataArray,
         lat_min = data['lat'].values.min()
         lat_max = data['lat'].values.max()
         _, (lat_min, lat_max) = check_coordinates(lat=(lat_min, lat_max),
-                                                default={"lon_min": -180,
-                                                         "lon_max": 180,
-                                                         "lat_min": -90,
-                                                         "lat_max": 90},)
+                                                  default={"lon_min": -180,
+                                                           "lon_max": 180,
+                                                           "lat_min": -90,
+                                                           "lat_max": 90},)
     except KeyError:
         logger.critical("No latitude coordinate found, setting default values")
         lat_min = -90
         lat_max = 90
-    step = (lat_max - lat_min)/(nyticks-1)
+    step = (lat_max - lat_min) / (nyticks - 1)
     logger.debug("Setting latitude ticks from %s to %s", lat_min, lat_max)
-    yticks = np.arange(lat_min, lat_max+1, step)
+    yticks = np.arange(lat_min, lat_max + 1, step)
     ax.set_yticks(yticks, crs=proj)
     lat_formatter = cticker.LatitudeFormatter()
     ax.yaxis.set_major_formatter(lat_formatter)
@@ -168,7 +170,7 @@ def plot_single_map(data: xr.DataArray,
     # Make tick of colorbar simmetric if sym=True
     if sym:
         logger.debug("Setting colorbar ticks to be symmetrical")
-        cbar.set_ticks(np.linspace(-vmax, vmax, nlevels+1))
+        cbar.set_ticks(np.linspace(-vmax, vmax, nlevels + 1))
 
     # Set x-y labels
     ax.set_xlabel('Longitude [deg]')
@@ -199,7 +201,11 @@ def plot_single_map(data: xr.DataArray,
         else:
             dpi = kwargs.get('dpi', 100)
             if dpi == 100:
-                logger.warning("Setting dpi to 100 by default, use dpi kwarg to change it")
+                logger.info("Setting dpi to 100 by default, use dpi kwarg to change it")
 
         fig.savefig('{}/{}'.format(outputdir, filename),
                     dpi=dpi, bbox_inches='tight')
+
+    if display is False:
+        logger.debug("Display is set to False, closing figure")
+        plt.close(fig)

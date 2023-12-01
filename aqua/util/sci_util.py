@@ -44,8 +44,6 @@ def area_selection(data=None, lat=None, lon=None,
     if lat is None and lon is None:
         raise ValueError('lat and lon cannot be both None')
 
-    # TODO: check behaviour if lat or lon are None
-
     lon, lat = check_coordinates(lon=lon, lat=lat, **kwargs)
 
     # Selection based on box_brd
@@ -55,9 +53,9 @@ def area_selection(data=None, lat=None, lon=None,
         if lon[0] > lon[1]:
             lon_condition = (
                 (data.lon >= lon[0]) & (data.lon <= 360)
-                ) | (
+            ) | (
                 (data.lon >= 0) & (data.lon <= lon[1])
-                )
+            )
         else:
             lon_condition = (data.lon >= lon[0]) & (data.lon <= lon[1])
     else:
@@ -66,9 +64,9 @@ def area_selection(data=None, lat=None, lon=None,
         if lon[0] > lon[1]:
             lon_condition = (
                 (data.lon > lon[0]) & (data.lon < 360)
-                ) | (
+            ) | (
                 (data.lon > 0) & (data.lon < lon[1])
-                )
+            )
         else:
             lon_condition = (data.lon > lon[0]) & (data.lon < lon[1])
 
@@ -156,7 +154,12 @@ def check_coordinates(lon=None, lat=None,
 
         lon = [lon_min, lon_max]
 
-    logger.debug('Output coordinates: lat=%s, lon=%s', lon, lat)
+    if lat is None:
+        lat = [default["lat_min"], default["lat_max"]]
+    if lon is None:
+        lon = [default["lon_min"], default["lon_max"]]
+
+    logger.debug('Output coordinates: lat=%s, lon=%s', lat, lon)
 
     return lon, lat
 
