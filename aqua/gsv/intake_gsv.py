@@ -2,7 +2,6 @@
 import os
 import datetime
 import sys
-import io
 import eccodes
 import xarray as xr
 import dask
@@ -42,7 +41,7 @@ class GSVSource(base.DataSource):
 
     def __init__(self, request, data_start_date, data_end_date, timestyle="date",
                  aggregation="S", savefreq="H", timestep="H", timeshift=None,
-                 startdate=None, enddate=None, var=None, metadata=None, 
+                 startdate=None, enddate=None, var=None, metadata=None,
                  log_history=False, loglevel='WARNING', **kwargs):
         """
         Initializes the GSVSource class. These are typically specified in the catalogue entry,
@@ -141,8 +140,8 @@ class GSVSource(base.DataSource):
             da = self._ds[var]  # get first variable dataarray
 
             metadata = {
-                 'dims': da.dims,
-                 'attrs': self._ds.attrs
+                'dims': da.dims,
+                'attrs': self._ds.attrs
             }
             schema = base.Schema(
                 datashape=None,
@@ -211,7 +210,7 @@ class GSVSource(base.DataSource):
 
         # for some reason this is needed here and not in init
         gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel())
-        gsv = GSVRetriever(logging_level=gsv_log_level)  
+        gsv = GSVRetriever(logging_level=gsv_log_level)
 
         # if self.verbose:
         #     print("Request: ", i, self._var, s0, s1, request)
@@ -219,8 +218,8 @@ class GSVSource(base.DataSource):
         # else:
         #     with NoPrinting():
         #         dataset = gsv.request_data(request)
-        
-        # to silence the logging from the GSV retriever, we increase its level by one 
+
+        # to silence the logging from the GSV retriever, we increase its level by one
         # in this way the 'info' is printed only in 'debug' mode
         # gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel() + 10)
         dataset = gsv.request_data(request)
