@@ -30,7 +30,7 @@ sources:
     args:
       path: '{{CATALOG_DIR}}/control-1990-nemo-dev.yaml'
   coupled-spinup-1990-1991:
-    description: "FDB IFS/NEMO \t1990 - 1991 coupled spinup (2y)"
+    description: "1990-1991 coupled spinup (2y) with fractional sea ice coupling"
     driver: yaml_file_cat
     args:
       path: '{{CATALOG_DIR}}/coupled-spinup-1990-1991.yaml'
