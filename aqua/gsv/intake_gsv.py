@@ -210,7 +210,7 @@ class GSVSource(base.DataSource):
 
         # for some reason this is needed here and not in init
         gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel())
-        gsv = GSVRetriever(logging_level=gsv_log_level)  
+        gsv = GSVRetriever(logging_level=gsv_log_level)
 
         # if self.verbose:
         #     print("Request: ", i, self._var, s0, s1, request)
