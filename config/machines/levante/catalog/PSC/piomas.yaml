@@ -4,7 +4,7 @@ plugins:
 
 sources:
   sivol:
-    description: sea ice volume (sivol)
+    description: sea ice thickness
     driver: netcdf
     metadata:
       source_grid_name: psc-piomas
