@@ -4,7 +4,7 @@ plugins:
 
 sources:
   sivol:
-    description: Polar Science Center sea ice volume (sivol) for the Southern Hemisphere 
+    description: sea ice volume (sivol)
     driver: netcdf
     metadata:
       source_grid_name: psc-giomas
