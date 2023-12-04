@@ -10,6 +10,22 @@ machine=$(grep -E "^machine:" "$script_dir/../../config/config-aqua.yaml" | awk 
 # Now $machine contains the name of the machine
 echo "Machine name: $machine"
 
+# if machine is levante use mamba/conda
+if [ $machine == "levante" ]; then
+    # find mamba/conda (to be refined)
+    whereconda=$(which mamba | rev | cut -f 3-10 -d"/" | rev)
+    source $whereconda/etc/profile.d/conda.sh
+    conda init
+    # activate conda environment
+    conda activate aqua_common
+fi
+
+function load_environment_AQUA() {
+        # Load env modules on LUMI
+    module purge
+    module use LUMI/23.03
+}
+
 while true; do
     if [ "$machine" == 'levante' ] || [ "$machine" == 'lumi' ]; then    
         if [ "$machine" == 'levante' ]; then
@@ -33,20 +49,7 @@ while true; do
 #SBATCH --mem=200G
 
 echo 'Hello from SLURM job!'
-# if machine is levante use mamba/conda
-if [ $machine == "levante" ]; then
-    # find mamba/conda (to be refined)
-    whereconda=$(which mamba | rev | cut -f 3-10 -d"/" | rev)
-    source $whereconda/etc/profile.d/conda.sh
-    # activate conda environment
-    conda activate aqua_common
-fi
 
-function load_environment_AQUA() {
-        # Load env modules on LUMI
-    module purge
-    module use LUMI/23.03
-}
 # if machine is lumi use modules
 if [ $machine == "lumi" ]; then
     load_environment_AQUA
