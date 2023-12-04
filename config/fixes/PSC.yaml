@@ -5,7 +5,7 @@ models:
                 data_model: false  # Do not attempt to fix coordinates
                 delete: [latitude, longitude]
                 vars:
-                    var262000:  # sithick - sea ice thickness
+                    var263008:  # avg_sivol - average sea ice volume [m3/m2]
                         source: sivol
                         grib: true
                     sftof:
@@ -17,7 +17,7 @@ models:
                 data_model: false  # Do not attempt to fix coordinates
                 delete: [latitude, longitude]
                 vars:
-                    var262000:  # sithick - sea ice thickness
+                    var263008:  # avg_sivol - average sea ice volume [m3/m2]
                         source: sivol
                         grib: true
                     sftof:
