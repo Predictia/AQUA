@@ -4,7 +4,7 @@
 from aqua import Reader
 
 resos = ['r025', 'r100']
-model = inspect_catalogue()
+model = ['FESOM']
 exp = ['tco2559-ng5-cycle3']
 source = ['3D_daily_native', '2D_daily_native', '2D_monthly_native_elem',
           '2D_monthly_native', '2D_1h_native']
