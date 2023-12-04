@@ -117,9 +117,8 @@ class SeaIceExtent:
             source = setup.get("source", None)
             regrid = setup.get("regrid", None)
             var = setup.get("var", None)
-            # NOTE: this is not implemented yet
             timespan = setup.get("timespan", None)
-
+       
             self.logger.info(f"Retrieving data for {model} {exp} {source}")
 
             # Instantiate reader
@@ -143,7 +142,9 @@ class SeaIceExtent:
 
             if timespan:
                 # TODO: implement timespan
-                self.logger.warning("Timespan not implemented yet")
+                start_year = int(timespan[0][:4])
+                end_year   = int(timespan[1][:4])
+                time_mask =  (data['time.year'] >= start_year) & (data['time.year'] <= end_year) #(data['time.month'] == 3) &
 
             if regrid:
                 self.logger.info("Regridding data")
@@ -164,10 +165,12 @@ class SeaIceExtent:
             lon = (lon + 360) % 360
             lon.attrs["units"] = "degrees"
 
+            # Compute climatology
+
             # Create mask based on threshold
             try:
                 ci_mask = data.ci.where((data.ci > self.thresholdSeaIceExtent) &
-                                        (data.ci < 1.0))
+                                        (data.ci < 1.0) & time_mask)
             except Exception:
                 raise NoDataError("No sea ice concentration data found in dataset")
 
