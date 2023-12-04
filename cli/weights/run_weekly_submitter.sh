@@ -3,15 +3,7 @@ set -e
 
 # Check a condition (replace this with your actual condition)
 should_resubmit=false
-
-# find mamba/conda (to be refined)
-whereconda=$(which mamba | rev | cut -f 3-10 -d"/" | rev)
-source $whereconda/etc/profile.d/conda.sh
-
-# activate conda environment
-conda activate aqua_common
-
-machine=$(python get_machine.py)
+machine=$(python "$(dirname "${BASH_SOURCE[0]}")/get_machine.py")
 echo "Machine name: $machine"
 
 while true; do
@@ -21,9 +13,8 @@ while true; do
             partition='shared'
         else
             account='project_465000454'
-            partition='standard'
+            partition='small'
         fi
-
         # Submit the SLURM job directly
         sbatch <<EOL
 #!/bin/bash
@@ -38,14 +29,33 @@ while true; do
 #SBATCH --mem=200G
 
 echo 'Hello from SLURM job!'
-/usr/bin/env python3 generate_weights_for_catalog.py
+# if machine is levante use mamba/conda
+if [ $machine == "levante" ]; then
+    # find mamba/conda (to be refined)
+    whereconda=$(which mamba | rev | cut -f 3-10 -d"/" | rev)
+    source $whereconda/etc/profile.d/conda.sh
+    # activate conda environment
+    conda activate aqua_common
+fi
+
+function load_environment_AQUA() {
+        # Load env modules on LUMI
+    module purge
+    module use LUMI/23.03
+}
+# if machine is lumi use modules
+if [ $machine == "lumi" ]; then
+    load_environment_AQUA
+    # get username
+    username=$USER
+    export PATH="/users/$username/mambaforge/aqua/bin:$PATH"
+fi
+/usr/bin/env python3 "$(dirname "${BASH_SOURCE[0]}")/generate_weights_for_catalog.py"
 EOL
 
     else
-        /usr/bin/env python3 generate_weights_for_catalog.py
+        /usr/bin/env python3 "$(dirname "${BASH_SOURCE[0]}")/generate_weights_for_catalog.py"
     fi
-
-    
     # Use an if statement to decide whether to resubmit
     if $should_resubmit; then
         # Sleep for one week (adjust the time as needed)
