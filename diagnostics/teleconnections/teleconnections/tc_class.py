@@ -175,6 +175,8 @@ class Teleconnection():
             if self.freq == 'monthly':
                 self.data = self.reader.timmean(data=self.data, freq=self.freq)
                 self.logger.info('Time aggregated to %s', self.freq)
+            else:
+                self.logger.warning('Time aggregation %s not implemented for teleconnections', self.freq)
 
         if var:
             self.logger.info("Returning data as xarray.DataArray")
