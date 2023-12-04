@@ -3,7 +3,11 @@ set -e
 
 # Check a condition (replace this with your actual condition)
 should_resubmit=false
-machine=$(python "$(dirname "${BASH_SOURCE[0]}")/get_machine.py")
+script_dir=$(dirname "${BASH_SOURCE[0]}")
+
+# Read the machine name from the YAML file
+machine=$(grep -E "^machine:" "$script_dir/../../config/config-aqua.yaml" | awk '{print $2}')
+# Now $machine contains the name of the machine
 echo "Machine name: $machine"
 
 while true; do
@@ -50,11 +54,11 @@ if [ $machine == "lumi" ]; then
     username=$USER
     export PATH="/users/$username/mambaforge/aqua/bin:$PATH"
 fi
-/usr/bin/env python3 "$(dirname "${BASH_SOURCE[0]}")/generate_weights_for_catalog.py"
+/usr/bin/env python3 "$script_dir/generate_weights_for_catalog.py"
 EOL
 
     else
-        /usr/bin/env python3 "$(dirname "${BASH_SOURCE[0]}")/generate_weights_for_catalog.py"
+        /usr/bin/env python3 "$script_dir/generate_weights_for_catalog.py"
     fi
     # Use an if statement to decide whether to resubmit
     if $should_resubmit; then
