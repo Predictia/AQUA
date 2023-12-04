@@ -5,20 +5,20 @@ models:
     source: 2D_monthly_native
     regrid: null
     variable: ci
-    timespan: null # can be of the format ['2020-01-20', '2024-12-31']
+    timespan: ['2020-01-20', '2024-12-31']
   # These are observational datasets
   - model: OSI-SAF
     exp: osi-450
     source: nh-monthly
     regrid: null
     variable: ci
-    timespan: null
+    timespan: ['2018-01-01', '2020-12-31']
   - model: OSI-SAF
     exp: osi-450
     source: sh-monthly
     regrid: null
     variable: ci
-    timespan: null
+    timespan: ['2018-01-01', '2020-12-31']
 
 regions: # If this block is missing all regions will be evaluated
   - Arctic
