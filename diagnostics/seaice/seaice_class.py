@@ -286,3 +286,52 @@ class SeaIceExtent:
                     filename = outputdir + "/" + varName + ".nc"
                     self.logger.info("Saving NetCDF file %s", filename)
                     dataset.to_netcdf(filename)
+
+
+
+class SeaIceThickness:
+    def __init__(self, config, loglevel: str = 'WARNING',
+                 outputdir=None):
+        
+         """
+        The SeaIceThickness constructor.
+
+        Args:
+            config (str or dict):   If str, the path to the yaml file
+                                    containing the configuration. If dict, the
+                                    configuration itself.
+            loglevel (str):     The log level
+                                Default: WARNING
+        Returns:
+            A SeaIceThickness object.
+
+        """
+         
+        # Configure the logger
+        self.loglevel = loglevel
+        self.logger = log_configure(self.loglevel, 'Seaice')
+
+        if outputdir is None:
+            outputdir = os.path.dirname(os.path.abspath(__file__)) + "/output/"
+            self.logger.info("Using default output directory %s", outputdir)
+        self.outputdir = outputdir
+
+        if config is str:
+            self.logger.debug("Reading configuration file %s", config)
+            config = load_yaml(config)
+        else:
+            self.logger.debug("Configuration is a dictionary")
+
+        self.logger.debug("CONFIG:" + str(config))
+
+        self.configure(config)
+    
+
+    
+    def configure()
+
+    def run()
+
+    def plotThickness()
+
+        
