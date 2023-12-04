@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Loop on multiple dataset to crete weights using the Reader"""
 
-resos = [None] # or specify ['r025', 'r100']
+resos = ['r025'] # True
 measure_time = True
 
 if measure_time:
