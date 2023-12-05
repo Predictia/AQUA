@@ -116,12 +116,31 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Function to run a diagnostic
-run_diagnostic() {
+# Define a function to run diagnostics
+function run_diagnostic {
   colored_echo $GREEN "Running $1"
-  python "$aqua/diagnostics/$1" "$2" -l "$loglevel" "$3"
+  python "$aqua/$1" "$2" -l "$3" "$4"
   colored_echo $GREEN "Finished $1"
 }
+
+function run_diagnostics {
+  declare -a diagnostics=("${!1[@]}")  # Get the array of diagnostics
+  declare -A extra_args=("${!2[@]}")   # Get the associative array of extra arguments
+  declare -A cli_names=("${!3[@]}")    # Get the associative array of CLI names
+
+  for diagnostic in "${diagnostics[@]}"; do
+    # Build the paths and arguments
+    script_path="${cli_names[$diagnostic]:-$diagnostic/cli/cli_$diagnostic.py}"
+    extra_arg="${extra_args[$diagnostic]:-}"
+
+    # Run the diagnostic in the background
+    run_diagnostic "$script_path" "$1" "$2" "--outputdir $outputdir/$diagnostic $extra_arg" &
+  done
+
+  # Wait for all background processes to finish
+  wait
+}
+
 
 colored_echo $GREEN "Setting loglevel to $loglevel"
 colored_echo $GREEN "Atmospheric model: $model_atm"
@@ -181,55 +200,35 @@ if [ "$run_dummy" = true ] ; then
   colored_echo $GREEN "Finished setup checker"
 fi
 
-# Define the array of diagnostic names
+# Define the array of atmospheric diagnostics
 atm_diagnostics=("atmglobalmean" "global_time_series" "radiation" "ecmean" "tropical_rainfall" "teleconnections")
 
-# Define an associative array for extra arguments
+# Define an associative array for atmospheric extra arguments
 declare -A atm_extra_args=([default]="")
 atm_extra_args["global_time_series"]="--config $aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_atm.yaml"
 atm_extra_args["teleconnections"]="--config cli_config_atm.yaml --ref"
 
-declare -A cli_name=([default]="")
-cli_name["global_time_series"]="global_time_series/cli/single_analysis/cli_global_time_series.py"
+declare -A atm_cli_names=([default]="")
+atm_cli_names["global_time_series"]="global_time_series/cli/single_analysis/cli_global_time_series.py"
 
-# Loop through each diagnostic and run it if requested
-for diagnostic in "${atm_diagnostics[@]}"; do
-  # Build the paths and arguments
-  if [ "${cli_name[$diagnostic]}" != "" ]; then
-    script_path="${cli_name[$diagnostic]}"
-  else
-    script_path="$diagnostic/cli/cli_$diagnostic.py"
-  fi
-  extra_args="${atm_extra_args[$diagnostic]}"
+# Run atmospheric diagnostics in parallel
+run_diagnostics "$args_atm" atm_extra_args atm_cli_names atm_diagnostics &
 
-  # Run the diagnostic using the function
-  run_diagnostic "$script_path" "$args_atm" "--outputdir $outputdir/$diagnostic $extra_args"
-done
-
-
-# Define the array of diagnostic names
+# Define the array of oceanic diagnostics
 oce_diagnostics=("global_time_series" "ocean3d" "teleconnections" "ecmean")
 
-# Define an associative array for extra arguments
+# Define an associative array for oceanic extra arguments
 declare -A oce_extra_args=([default]="")
 oce_extra_args["global_time_series"]="--config $aqua/diagnostics/$path/config_time_series_oce.yaml"
 oce_extra_args["teleconnections"]="--config cli_config_oce.yaml --ref"
 
-declare -A cli_name=([default]="")
-cli_name["global_time_series"]="global_time_series/cli/single_analysis/cli_global_time_series.py"
+declare -A oce_cli_names=([default]="")
+oce_cli_names["global_time_series"]="global_time_series/cli/single_analysis/cli_global_time_series.py"
 
-# Loop through each diagnostic and run it if requested
-for diagnostic in "${oce_diagnostics[@]}"; do
-  # Build the paths and arguments
-  if [ "${cli_name[$diagnostic]}" != "" ]; then
-    script_path="${cli_name[$diagnostic]}"
-  else
-    script_path="$diagnostic/cli/cli_$diagnostic.py"
-  fi
-  extra_args="${oce_extra_args[$diagnostic]}"
+# Run oceanic diagnostics in parallel
+run_diagnostics "$args_oce" oce_extra_args oce_cli_names oce_diagnostics &
 
-  # Run the diagnostic using the function
-  run_diagnostic "$script_path" "$args_oce" "--outputdir $outputdir/$diagnostic $extra_args"
-done
+# Wait for all background processes to finish
+wait
 
 colored_echo $GREEN "Finished all diagnostics"
