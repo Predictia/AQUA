@@ -146,7 +146,7 @@ class RegridMixin():
             # there is no source grid path at all defined in the regrid.yaml file:
             # let's reconstruct it from the file itself
 
-            self.logger.info('Grid file is not defined, retrieving the source itself...')
+            self.logger.warning('Grid file is not defined, retrieving the source itself...')
             data = self._retrieve_plain()
 
             # If we have also a vertical coordinate, include it in the sample
