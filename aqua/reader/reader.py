@@ -401,10 +401,8 @@ class Reader(FixerMixin, RegridMixin):
                         raise KeyError("You are asking for variables which we cannot find in the catalog!") from e
 
         if ffdb:
-            self.logger.info(f"History: retrieved from {self.model}-{self.exp}-{self.source} using FDB.")
             data = log_history_iter(data, f"Retrieved from {self.model}-{self.exp}-{self.source} using FDB.")
         else:
-            self.logger.info(f"History: retrieved from {self.model}-{self.exp}-{self.source} using AQUA.")
             data = log_history_iter(data, f"Retrieved from {self.model}-{self.exp}-{self.source} using AQUA.")
         
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
@@ -487,7 +485,6 @@ class Reader(FixerMixin, RegridMixin):
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
 
-        self.logger.info(f"History: regrid from {self.esmcat.metadata.get('source_grid_name')} to {self.targetgrid}.")
         out=log_history_iter(out, f"Regrid from {self.esmcat.metadata.get('source_grid_name')} to {self.targetgrid}.")
         
         return out
@@ -543,7 +540,6 @@ class Reader(FixerMixin, RegridMixin):
         if np.any(np.isnat(out.time)):
             raise ValueError('Resampling cannot produce output for all frequency step, is your input data correct?')
 
-        self.logger.info(f"History: resampled from frequency {orig_freq} h to frequency {resample_freq} by AQUA timmean")
         log_history(out, f"resampled from frequency {orig_freq} h to frequency {resample_freq} by AQUA timmean")
 
         # add a variable to create time_bounds
@@ -732,8 +728,7 @@ class Reader(FixerMixin, RegridMixin):
         else:
             raise ValueError('This is not an xarray object!')
         
-        # IMPROVE TO
-        # add history
+        final = log_history(final, f"Interpolated from original levels {data[vert_coord].values} {data[vert_coord].units} to level {levels} using {method} method.")
 
         return final
 
