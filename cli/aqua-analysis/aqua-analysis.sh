@@ -18,24 +18,30 @@ machine="levante" # will change the aqua config file
 # if not defined it will use the aqua path in the script
 aqua="/work/bb1153/b382267/AQUA" #"/home/b/b382289/AQUA"
 
-# Set as true the diagnostics you want to run
-# -------------------------------------------
-run_dummy=true # dummy is a diagnostic that checks if the setup is correct
-run_atmglobalmean=true
-run_ecmean=true
+# Define the array of atmospheric diagnostics
+atm_diagnostics=("atmglobalmean" "global_time_series" "radiation" "ecmean" "tropical_rainfall" "teleconnections")
+# Define the array of oceanic diagnostics
+oce_diagnostics=("global_time_series" "ocean3d" "teleconnections" "ecmean")
+
+# Define an associative array for atmospheric extra arguments
+declare -A atm_extra_args=([default]="")
+# Define an associative array for oceanic extra arguments
+declare -A oce_extra_args=([default]="")
+# ---------------------------------------
+# Command line extra arguments for global_time_series
+# --config (ecmean config file)
+# ---------------------------------------
+atm_extra_args["global_time_series"]="--config $aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_atm.yaml"
+oce_extra_args["global_time_series"]="--config $aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_oce.yaml"
 # ---------------------------------------
 # Command line extra arguments for ecmean
-# -c --config ecmean config file
-# -i --interface custom interface file
+# -c --config (ecmean config file)
+# -i --interface (custom interface file)
 # ---------------------------------------
-run_global_time_series=true
-run_ocean3d=true
-run_radiation=true
 # ------------------------------------------
 # Command line extra arguments for radiation
 # --config (readiation config file)
 # ------------------------------------------
-run_seaice=true
 # ------------------------------------------
 # Command line extra arguments for seaice
 # --all-regions (if set it will plot all regions)
@@ -43,14 +49,14 @@ run_seaice=true
 # --config (seaice config file)
 # --regrid (regrid data to a different grid)
 # ------------------------------------------
-run_teleconnections=true
-# teleconnections additional flags
+# Command line extra arguments for teleconnections
 # ------------------------------------------------------------------
 # --dry, -d (dry run, if set it will run without producing plots)
 # --ref (if set it will analyze also the reference data, it is set
 #        by default)
 # ------------------------------------------------------------------
-run_tropical_rainfall=true
+atm_extra_args["teleconnections"]="--config cli_config_atm.yaml --ref"
+oce_extra_args["teleconnections"]="--config cli_config_oce.yaml --ref"
 
 # End of user defined variables
 # -----------------------------
@@ -141,7 +147,6 @@ function run_diagnostics {
   wait
 }
 
-
 colored_echo $GREEN "Setting loglevel to $loglevel"
 colored_echo $GREEN "Atmospheric model: $model_atm"
 colored_echo $GREEN "Oceanic model: $model_oce"
@@ -200,33 +205,15 @@ if [ "$run_dummy" = true ] ; then
   colored_echo $GREEN "Finished setup checker"
 fi
 
-# Define the array of atmospheric diagnostics
-atm_diagnostics=("atmglobalmean" "global_time_series" "radiation" "ecmean" "tropical_rainfall" "teleconnections")
-
-# Define an associative array for atmospheric extra arguments
-declare -A atm_extra_args=([default]="")
-atm_extra_args["global_time_series"]="--config $aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_atm.yaml"
-atm_extra_args["teleconnections"]="--config cli_config_atm.yaml --ref"
-
-declare -A atm_cli_names=([default]="")
-atm_cli_names["global_time_series"]="global_time_series/cli/single_analysis/cli_global_time_series.py"
+# Declare the path and cli name if it is not standard, i.e., not AQUA/diagnostics/dummy/cli/cli_dummy.py.
+declare -A cli_names=([default]="")
+cli_names["global_time_series"]="global_time_series/cli/single_analysis/cli_global_time_series.py"
 
 # Run atmospheric diagnostics in parallel
-run_diagnostics "$args_atm" atm_extra_args atm_cli_names atm_diagnostics &
-
-# Define the array of oceanic diagnostics
-oce_diagnostics=("global_time_series" "ocean3d" "teleconnections" "ecmean")
-
-# Define an associative array for oceanic extra arguments
-declare -A oce_extra_args=([default]="")
-oce_extra_args["global_time_series"]="--config $aqua/diagnostics/$path/config_time_series_oce.yaml"
-oce_extra_args["teleconnections"]="--config cli_config_oce.yaml --ref"
-
-declare -A oce_cli_names=([default]="")
-oce_cli_names["global_time_series"]="global_time_series/cli/single_analysis/cli_global_time_series.py"
+run_diagnostics "$args_atm" atm_extra_args cli_names atm_diagnostics &
 
 # Run oceanic diagnostics in parallel
-run_diagnostics "$args_oce" oce_extra_args oce_cli_names oce_diagnostics &
+run_diagnostics "$args_oce" oce_extra_args cli_names oce_diagnostics &
 
 # Wait for all background processes to finish
 wait
