@@ -29,6 +29,7 @@ def check_time_span(config, ds, start, end):
     Returns:
     - bool: True if the required time span is within the xarray data's time span, False otherwise.
     """
+    #logger details from the config file
     aqua_logger = logger.log_configure(log_level=config['log_level'], log_name=config['log_name'])
 
     # Convert start and end strings to datetime objects
@@ -141,7 +142,7 @@ class sshVariability():
                     data = data.where(data.lat < northern_boundary_latitude)
                 if "ICON" in model_name and mask_southern_boundary and southern_boundary_latitude:
                     data = data.where(data.lat > southern_boundary_latitude)
-               
+               #seperate pcolormesh plots for data with lat and lon dim names and latitude and logitude dim names
                 if 'lon' in data.coords:
                     contf = ax.pcolormesh(data.lon.values, data.lat.values, data, transform=ccrs.PlateCarree(), 
                                       vmin=config["subplot_options"]["scale_min"], vmax=config["subplot_options"]["scale_max"], 
@@ -269,6 +270,7 @@ class sshVariability():
         timespan_start = config['timespan']['start']
         timespan_end = config['timespan']['end']
         
+        #considering the complete timespan
         if config.get('check_complete_timespan_data', False):
             timespan_start = aviso_time_min
             timespan_end = aviso_time_max

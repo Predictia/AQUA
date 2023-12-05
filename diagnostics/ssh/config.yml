@@ -1,5 +1,8 @@
+#enter the logger details here
 log_level: DEBUG
 log_name: ssh_logger
+
+#opt True if complete timespan is required to be used - seperate for data and models
 check_complete_timespan_data: False
 check_complete_timespan_models: False
 
