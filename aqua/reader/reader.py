@@ -48,7 +48,6 @@ class Reader(FixerMixin, RegridMixin):
                  streaming=False, stream_generator=False,
                  startdate=None, enddate=None,
                  rebuild=False, loglevel=None, nproc=4, aggregation=None):
-
         """
         Initializes the Reader class, which uses the catalog
         `config/config.yaml` to identify the required data.
@@ -147,7 +146,6 @@ class Reader(FixerMixin, RegridMixin):
         # Store the machine-specific CDO path if available
         cfg_base = load_yaml(self.config_file)
         self.cdo = self._set_cdo(cfg_base)
-
 
         if self.fix:
             self.dst_datamodel = datamodel
@@ -351,7 +349,7 @@ class Reader(FixerMixin, RegridMixin):
 
         # Streaming emulator require these to be defined in __init__
         if (self.streaming and not self.stream_generator) and (startdate or enddate):
-            raise KeyError("In case of streaming=true the arguments startdate/enddate have to be specified when initializing the class.") # noqa E501
+            raise KeyError("In case of streaming=true the arguments startdate/enddate have to be specified when initializing the class.")  # noqa E501
 
         if not startdate:  # In case the streaming startdate is used also for FDB copy it
             startdate = self.startdate
@@ -365,7 +363,8 @@ class Reader(FixerMixin, RegridMixin):
             self.logger.info("Retrieving variables: %s", var)
             loadvar = self.get_fixer_varname(var) if self.fix else var
         else:
-            if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):  # If we are retrieving from fdb we have to specify the var
+            # If we are retrieving from fdb we have to specify the var
+            if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
                 metadata = self.esmcat.metadata
                 if metadata:
                     var = metadata.get('variables')
@@ -413,7 +412,6 @@ class Reader(FixerMixin, RegridMixin):
             for var in data.data_vars:
                 if not hasattr(data[var], 'units'):
                     self.logger.error('Variable %s has no units!', var)
-
 
         if not fiter:
             # This is not needed if we already have an iterator
@@ -496,7 +494,6 @@ class Reader(FixerMixin, RegridMixin):
         for ds in data:
             yield self._timmean(ds, freq, exclude_incomplete, time_bounds)
 
-
     def _timmean(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
         """
         Perform daily and monthly averaging
@@ -537,7 +534,7 @@ class Reader(FixerMixin, RegridMixin):
         # add a variable to create time_bounds
         if time_bounds:
             resampled = data.time.resample(time=resample_freq)
-            time_bnds = xr.concat([resampled.min(),  resampled.max()], dim='bnds').transpose()
+            time_bnds = xr.concat([resampled.min(), resampled.max()], dim='bnds').transpose()
             time_bnds['time'] = out.time
             time_bnds.name = 'time_bnds'
             out = xr.merge([out, time_bnds])
@@ -818,7 +815,6 @@ class Reader(FixerMixin, RegridMixin):
                 self.logger.warning("Duplicate entries found along the time axis, keeping the %s one.", keep)
 
         return data
-
 
     def stream(self, data, startdate=None, enddate=None, aggregation=None,
                timechunks=None, reset=False):
