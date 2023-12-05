@@ -116,6 +116,13 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# Function to run a diagnostic
+run_diagnostic() {
+  colored_echo $GREEN "Running $1"
+  python "$aqua/diagnostics/$1" "$2" -l "$loglevel" "$3"
+  colored_echo $GREEN "Finished $1"
+}
+
 colored_echo $GREEN "Setting loglevel to $loglevel"
 colored_echo $GREEN "Atmospheric model: $model_atm"
 colored_echo $GREEN "Oceanic model: $model_oce"
@@ -174,67 +181,53 @@ if [ "$run_dummy" = true ] ; then
   colored_echo $GREEN "Finished setup checker"
 fi
 
+# Run atmglobalmean if requested
 if [ "$run_atmglobalmean" = true ] ; then
-  colored_echo $GREEN "Running atmglobalmean"
-  scriptpy="$aqua/diagnostics/atmglobalmean/cli/cli_atm_mean_bias.py"
-  python $scriptpy $args_atm --outputdir $outputdir/atmglobalmean -l $loglevel
-  colored_echo $GREEN "Finished atmglobalmean"
+  run_diagnostic "atmglobalmean/cli/cli_atm_mean_bias.py" "$args_atm" "--outputdir $outputdir/atmglobalmean"
 fi
 
+# Run atmglobalmean if requested
 if [ "$run_ecmean" = true ] ; then
-  colored_echo $GREEN "Running ecmean"
-  scriptpy="$aqua/diagnostics/ecmean/cli/ecmean_cli.py"
-  python $scriptpy $args -o $outputdir/ecmean -l $loglevel
-  colored_echo $GREEN "Finished ecmean"
+  run_diagnostic "ecmean/cli/ecmean_cli.py" "$args" "--outputdir $outputdir/ecmean"
 fi
 
+# Run atmglobalmean if requested
 if [ "$run_global_time_series" = true ] ; then
-  colored_echo $GREEN "Running global_time_series"
-
-  scriptpy="$aqua/diagnostics/global_time_series/cli/single_analysis/cli_global_time_series.py"
   conf_atm="$aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_atm.yaml"
-  conf_oce="$aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_oce.yaml"
-
-  python $scriptpy $args_atm --outputdir $outputdir/global_time_series --config $conf_atm -l $loglevel
-  python $scriptpy $args_oce --outputdir $outputdir/global_time_series --config $conf_oce -l $loglevel
-  colored_echo $GREEN "Finished global_time_series"
+  run_diagnostic "global_time_series/cli/single_analysis/cli_global_time_series.py" "$args_atm" "--outputdir $outputdir/global_time_series --config $conf_atm"
 fi
 
+# Run global_time_series if requested
+if [ "$run_global_time_series" = true ] ; then
+  path="global_time_series/cli/single_analysis"
+  run_diagnostic "$path/cli_global_time_series.py" "$args_atm" "--outputdir $outputdir/global_time_series --config $aqua/diagnostics/$path/config_time_series_atm.yaml"
+  run_diagnostic "$path/cli_global_time_series.py" "$args_oce" "--outputdir $outputdir/global_time_series --config $aqua/diagnostics/$path/config_time_series_oce.yaml"
+fi
+
+# Run atmglobalmean if requested
 if [ "$run_ocean3d" = true ] ; then
-  colored_echo $GREEN "Running ocean3d"
-  scriptpy="$aqua/diagnostics/ocean3d/cli/ocean3d_cli.py"
-  python $scriptpy $args_oce --outputdir $outputdir/ocean3d -l $loglevel
-  colored_echo $GREEN "Finished ocean3d"
+  run_diagnostic "ocean3d/cli/ocean3d_cli.py" "$args_oce" "--outputdir $outputdir/ocean3d"
 fi
 
+# Run atmglobalmean if requested
 if [ "$run_radiation" = true ] ; then
-  colored_echo $GREEN "Running radiation"
-  scriptpy="$aqua/diagnostics/radiation/cli/cli_radiation.py"
-  python $scriptpy $args_atm --outputdir $outputdir/radiation -l $loglevel
-  colored_echo $GREEN "Finished radiation"
+  run_diagnostic "radiation/cli/cli_radiation.py" "$args_atm" "--outputdir $outputdir/radiation"
 fi
 
+# Run atmglobalmean if requested
 if [ "$run_seaice" = true ] ; then
-  colored_echo $GREEN "Running seaice"
-  scriptpy="$aqua/diagnostics/seaice/cli/seaice_cli.py"
-  python $scriptpy $args_oce --outputdir $outputdir/seaice -l $loglevel
-  colored_echo $GREEN "Finished seaice"
+  run_diagnostic "seaice/cli/seaice_cli.py" "$args_oce" "--outputdir $outputdir/seaice"
 fi
 
+# Run atmglobalmean if requested
 if [ "$run_teleconnections" = true ] ; then
-  colored_echo $GREEN "Running teleconnections"
-  scriptpy="$aqua/diagnostics/teleconnections/cli/cli_teleconnections.py"
-
-  python $scriptpy $args_atm --outputdir $outputdir/teleconnections --config cli_config_atm.yaml -l $loglevel --ref
-  python $scriptpy $args_oce --outputdir $outputdir/teleconnections --config cli_config_oce.yaml -l $loglevel --ref
-  colored_echo $GREEN "Finished teleconnections"
+  run_diagnostic "teleconnections/cli/cli_teleconnections.py" "$args_atm" "--outputdir $outputdir/teleconnections --config cli_config_atm.yaml --ref"
+  run_diagnostic "teleconnections/cli/cli_teleconnections.py" "$args_oce" "--outputdir $outputdir/teleconnections --config cli_config_oce.yaml --ref"
 fi
 
+# Run atmglobalmean if requested
 if [ "$run_tropical_rainfall" = true ] ; then
-  colored_echo $GREEN "Running tropical rainfall"
-  scriptpy="$aqua/diagnostics/tropical_rainfall/cli/cli_tropical_rainfall.py"
-  python $scriptpy $args_atm --outputdir $outputdir/tropical_rainfall -l $loglevel
-  colored_echo $GREEN "Finished tropical rainfall"
+  run_diagnostic "tropical_rainfall/cli/cli_tropical_rainfall.py" "$args_atm" "--outputdir $outputdir/tropical_rainfall"
 fi
 
 colored_echo $GREEN "Finished all diagnostics"
