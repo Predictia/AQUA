@@ -400,8 +400,13 @@ class Reader(FixerMixin, RegridMixin):
                     except Exception as e:
                         raise KeyError("You are asking for variables which we cannot find in the catalog!") from e
 
-        data = log_history_iter(data, "retrieved by AQUA retriever")
-
+        if ffdb:
+            self.logger.info(f"History: retrieved from {self.model}-{self.exp}-{self.source} using FDB.")
+            data = log_history_iter(data, f"Retrieved from {self.model}-{self.exp}-{self.source} using FDB.")
+        else:
+            self.logger.info(f"History: retrieved from {self.model}-{self.exp}-{self.source} using AQUA.")
+            data = log_history_iter(data, f"Retrieved from {self.model}-{self.exp}-{self.source} using AQUA.")
+        
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
 
         if self.fix:   # Do not change easily this order. The fixer assumes to be after regridding
@@ -427,10 +432,12 @@ class Reader(FixerMixin, RegridMixin):
 
     def regrid(self, data):
         """Call the regridder function returning container or iterator"""
+        
         if isinstance(data, types.GeneratorType):
             return self._regridgen(data)
         else:
             return self._regrid(data)
+        
 
     def _regridgen(self, data):
         for ds in data:
@@ -480,7 +487,9 @@ class Reader(FixerMixin, RegridMixin):
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
 
-        log_history(out, "regridded by AQUA regridder")
+        self.logger.info(f"History: regrid from {self.esmcat.metadata.get('source_grid_name')} to {self.targetgrid}.")
+        out=log_history_iter(out, f"Regrid from {self.esmcat.metadata.get('source_grid_name')} to {self.targetgrid}.")
+        
         return out
 
     def timmean(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
@@ -511,6 +520,11 @@ class Reader(FixerMixin, RegridMixin):
 
         resample_freq = frequency_string_to_pandas(freq)
 
+        # get original frequency (for history)
+        orig_freq=data['time'].values[1]-data['time'].values[0]
+        # Convert time difference to hours
+        orig_freq = np.timedelta64(orig_freq, 'ns') / np.timedelta64(1, 'h')
+
         try:
             # resample
             self.logger.info('Resampling to %s frequency...', str(resample_freq))
@@ -529,7 +543,8 @@ class Reader(FixerMixin, RegridMixin):
         if np.any(np.isnat(out.time)):
             raise ValueError('Resampling cannot produce output for all frequency step, is your input data correct?')
 
-        log_history(out, f"resampled to frequency {resample_freq} by AQUA timmean")
+        self.logger.info(f"History: resampled from frequency {orig_freq} h to frequency {resample_freq} by AQUA timmean")
+        log_history(out, f"resampled from frequency {orig_freq} h to frequency {resample_freq} by AQUA timmean")
 
         # add a variable to create time_bounds
         if time_bounds:
@@ -625,6 +640,8 @@ class Reader(FixerMixin, RegridMixin):
 
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
 
+        self.logger.info(f"History: spatially averaged from {self.esmcat.metadata.get('source_grid_name')} grid.")
+
         return out
 
     def _check_zoom(self, zoom):
@@ -714,6 +731,9 @@ class Reader(FixerMixin, RegridMixin):
                                             vert_coord=vert_coord, method=method)
         else:
             raise ValueError('This is not an xarray object!')
+        
+        # IMPROVE TO
+        # add history
 
         return final
 
