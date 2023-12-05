@@ -1,3 +1,9 @@
+
+log_level: DEBUG
+log_name: ssh_logger
+check_complete_timespan_data: False
+check_complete_timespan_models: False
+
 # Models for which sea surface height (SSH) variability is to be evaluated.
 models:
   - name: FESOM
@@ -6,7 +12,7 @@ models:
     regrid: r025
     variable: zos
     zoom: 7
-    timespan: ['2020-01-20', '2024-12-31']
+    timespan: ['2020-01-21', '2020-12-31']
   # - name: ICON
   #   experiment: ngc3028
   #   source: P1D
@@ -41,7 +47,7 @@ subplot_options:
   } 
 
 # Please specify the path to the directory where the outputs should be saved. If output directory/ folder does not exist, another directory called output will be created in your current working directory.
-output_directory: /work/ab0995/a270088/AQUA/diagnostics/ssh/output
+output_directory: /work/ab0995/a270238/work/AQUA/diagnostics/ssh_jal/out.
 
 # This is the current dask configuration which works for the inputs above. It could be adjusted based on the system this application is run.
 dask_cluster:

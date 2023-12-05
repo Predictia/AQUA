@@ -20,7 +20,7 @@ ssh_module_path = os.path.join(script_dir, "../../")
 sys.path.insert(0, ssh_module_path)
 
 # Local module imports.
-from ssh import sshVariability
+from ssh_jal import sshVariability
 
 # Imports related to the aqua package, which is installed and available globally.
 from aqua import Reader

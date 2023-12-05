@@ -14,50 +14,6 @@ from datetime import datetime
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 import pandas as pd
 
-#logger = logger.log_configure(log_level='DEBUG', log_name='ssh_logger')
-# Configure the logger using the loaded configuration
-#logger.log_configure(log_level=config['log_level'], log_name=config['log_name'])
-
-# Now you can use the logger from the aqua module
-#logger = logger.getLogger(config['log_name'])
-
-# def check_time_span(config, ds, start, end):
-#     """
-#     Check if the required time span defined by start and end is within the 
-#     time span of the xarray data.
-
-#     Parameters:
-#     - ds: xarray Dataset or DataArray with a time coordinate.
-#     - start: Start of the required time span.
-#     - end: End of the required time span.
-
-#     Returns:
-#     - bool: True if the required time span is within the xarray data's time span, False otherwise.
-#     """
-#     aqua_logger = logger.log_configure(log_level=config['log_level'], log_name=config['log_name'])
-
-#     # Convert start and end strings to datetime objects
-#     start_date = datetime.strptime(start, '%Y-%m-%d')
-#     end_date = datetime.strptime(end, '%Y-%m-%d')
-
-#     aqua_logger.debug("start_date: %s", start_date)
-#     aqua_logger.debug("end_date: %s", end_date)
-
-#     # Extract the time coordinate from the xarray data
-#     time_coord = ds['time']
-
-#     # Ensure the min and max time coordinates are in datetime format for comparison
-#     time_min = pd.to_datetime(time_coord.min().values)
-#     #time_min = time_min.replace(hour=0, minute=0, second=0, microsecond=0)
-#     time_max = pd.to_datetime(time_coord.max().values)
-#     #time_max = time_max.replace(hour=0, minute=0, second=0, microsecond=0)
-
-
-#     aqua_logger.debug("time_min: %s", time_min)
-#     aqua_logger.debug("time_max: %s", time_max)
-
-#     # Check if the required time span is within the xarray data's time span
-#     return start_date >= time_min and end_date <= time_max
 
 
 def check_time_span(config, ds, start, end):
@@ -73,32 +29,30 @@ def check_time_span(config, ds, start, end):
     Returns:
     - bool: True if the required time span is within the xarray data's time span, False otherwise.
     """
-    #aqua_logger = logger.log_configure(log_level=config['log_level'], log_name=config['log_name'])
+    aqua_logger = logger.log_configure(log_level=config['log_level'], log_name=config['log_name'])
 
     # Convert start and end strings to datetime objects
     start_date = datetime.strptime(start, '%Y-%m-%d')
     end_date = datetime.strptime(end, '%Y-%m-%d')
 
-    #aqua_logger.debug("start_date: %s", start_date)
-    #aqua_logger.debug("end_date: %s", end_date)
+    aqua_logger.debug("start_date: %s", start_date)
+    aqua_logger.debug("end_date: %s", end_date)
 
     # Extract the time coordinate from the xarray data
     time_coord = ds['time']
 
     # Ensure the min and max time coordinates are in datetime format for comparison
     time_min = pd.to_datetime(time_coord.min().values)
+    #time_min = time_min.replace(hour=0, minute=0, second=0, microsecond=0)
     time_max = pd.to_datetime(time_coord.max().values)
+    #time_max = time_max.replace(hour=0, minute=0, second=0, microsecond=0)
 
-    #aqua_logger.debug("time_min: %s", time_min)
-    #aqua_logger.debug("time_max: %s", time_max)
 
-    # Check if the config specifies checking for the complete time span
-    if config.get('check_complete_timespan', False):
-        return True
-    else:
-        # Check if the required time span is within the xarray data's time span
-        return start_date >= time_min and end_date <= time_max
+    aqua_logger.debug("time_min: %s", time_min)
+    aqua_logger.debug("time_max: %s", time_max)
 
+    # Check if the required time span is within the xarray data's time span
+    return start_date >= time_min and end_date <= time_max
 
 
 class sshVariability():
@@ -171,7 +125,6 @@ class sshVariability():
             fig (plt.Figure): The figure object for the subplots.
             axes (list): List of subplot axes.
         """
-        ref_model_name, ref_data = next(iter(ssh_data_dict.items()))
         # Retrieve the masking flags and boundary latitudes from the configuration
         mask_northern_boundary = config.get("mask_northern_boundary", False)
         mask_southern_boundary = config.get("mask_southern_boundary", False)
@@ -188,9 +141,7 @@ class sshVariability():
                     data = data.where(data.lat < northern_boundary_latitude)
                 if "ICON" in model_name and mask_southern_boundary and southern_boundary_latitude:
                     data = data.where(data.lat > southern_boundary_latitude)
-                # Create a contour plot on the current axis
-                levels = np.linspace(
-                    config["subplot_options"]["scale_min"], config["subplot_options"]["scale_max"], num=100)
+               
                 if 'lon' in data.coords:
                     contf = ax.pcolormesh(data.lon.values, data.lat.values, data, transform=ccrs.PlateCarree(), 
                                       vmin=config["subplot_options"]["scale_min"], vmax=config["subplot_options"]["scale_max"], 
@@ -201,11 +152,11 @@ class sshVariability():
                                       cmap=config["subplot_options"]["cmap"])
                 ax.set_title(f"{model_name}")
                 ax.coastlines()               
-
+                
                 # Add a colorbar for each subplot
                 cbar = fig.colorbar(contf, ax=ax, orientation='vertical', shrink=0.9)
                 cbar.set_label('SSH Variability (mm)')
-                
+
 
         if len(ssh_data_dict) < len(axes):
             for j in range(len(ssh_data_dict), len(axes)):
@@ -215,50 +166,6 @@ class sshVariability():
 
 
 
-#     @staticmethod
-#     def visualize_subplots(config, ssh_data_dict, fig, axes):
-#         """
-#         Visualize the SSH variability data as subplots using Cartopy.
-
-#         Args:
-#             config (dict): The configuration dictionary containing the flags for masking the boundaries.
-#             ssh_data_dict (dict): Dictionary of SSH variability data arrays with model names to visualize.
-#             fig (plt.Figure): The figure object for the subplots.
-#             axes (list): List of subplot axes.
-#         """
-#         # Retrieve the masking flags and boundary latitudes from the configuration
-#         mask_northern_boundary = config.get("mask_northern_boundary", False)
-#         mask_southern_boundary = config.get("mask_southern_boundary", False)
-#         northern_boundary_latitude = config.get(
-#             "northern_boundary_latitude", None)
-#         southern_boundary_latitude = config.get(
-#             "southern_boundary_latitude", None)
-
-#         # cmap_reversed = plt.cm.inferno.reversed()
-
-#         for i, (model_name, data) in enumerate(ssh_data_dict.items()):
-#             if i < len(axes):
-#                 ax = axes[i]
-
-#                 # Apply masking if the model is "ICON" and the flags are enabled with boundary latitudes provided
-#                 if "ICON" in model_name and mask_northern_boundary and northern_boundary_latitude:
-#                     data = data.where(data.lat < northern_boundary_latitude)
-#                 if "ICON" in model_name and mask_southern_boundary and southern_boundary_latitude:
-#                     data = data.where(data.lat > southern_boundary_latitude)
-
-#                 data.plot(ax=ax, transform=ccrs.PlateCarree(
-#                 ), vmin=config["subplot_options"]["scale_min"], vmax=config["subplot_options"]["scale_max"], cmap=config["subplot_options"]["cmap"])
-#                 # data.plot(ax=ax, transform=ccrs.PlateCarree(), vmin=config["subplot_options"]["scale_min"], vmax=config["subplot_options"]["scale_max"], cmap=cmap_reversed)
-#                 ax.set_title(f"{model_name}")
-#                 ax.coastlines()
-
-#         if len(ssh_data_dict) < len(axes):
-#             for j in range(len(ssh_data_dict), len(axes)):
-#                 fig.delaxes(axes[j])
-#         fig.tight_layout()
-        
-        
-
     @staticmethod
     def create_output_directory(config):
         # Check if the output_directory key exists in the config dictionary
@@ -266,7 +173,7 @@ class sshVariability():
             output_directory = config['output_directory']
             os.makedirs(output_directory, exist_ok=True)
         else:
-            logger.warning(
+            aqua_logger.warning(
                 "Output directory not found in config file. Outputs will be saved in a directory named 'output' in your current working directory.")
             # Create a directory named 'output' in the current working directory
             output_directory = os.path.join(os.getcwd(), 'output')
@@ -289,12 +196,12 @@ class sshVariability():
         output_file = os.path.join(output_directory, filename)
 
         # Save the figure as a JPEG file. fig.savefig() or plt.savefig() should accomplish the same task of saving the figure to a file. (DPI = dots per inch)
-        fig.savefig(output_file, dpi=500, format='jpeg')
+        fig.savefig(output_file, dpi=100, format='jpeg')
 
     @staticmethod
-    def save_subplots_as_pdf(output_directory, filename, fig):
+    def save_subplots_as_png(output_directory, filename, fig):
         """
-        Saves the subplots as a PDF file.
+        Saves the subplots as a png file.
 
         Parameters:
             config (dict): The configuration dictionary containing the output directory.
@@ -309,7 +216,7 @@ class sshVariability():
         output_file = os.path.join(file_type_folder, filename)
 
         # Save the figure as a PDF file. fig.savefig() or plt.savefig() should accomplish the same task of saving the figure to a file. (DPI = dots per inch)
-        fig.savefig(output_file, dpi=500, format='pdf')
+        fig.savefig(output_file, dpi=200, format='png')
 
     def run(self):
         """
@@ -364,10 +271,15 @@ class sshVariability():
         # Get the user-defined timespan from the configuration
         timespan_start = config['timespan']['start']
         timespan_end = config['timespan']['end']
-
-        if not check_time_span(config, aviso_ssh, timespan_start, timespan_end):
-            raise NotEnoughDataError("The time span is not within the range of time steps in the xarray object.")
-            sys.exit(0)
+        
+        if config.get('check_complete_timespan_data', False):
+            timespan_start = aviso_time_min
+            timespan_end = aviso_time_max
+        else:
+            
+            if not check_time_span(config, aviso_ssh, timespan_start, timespan_end):
+                raise NotEnoughDataError("The time span is not within the range of time steps in the xarray object.")
+                sys.exit(0)
 
         aqua_logger.info("Now computing std on AVISO ssh for the provided timespan")
 
@@ -418,22 +330,28 @@ class sshVariability():
             aqua_logger.info("Getting SSH data complete for %s, now computing standard deviation on the default timestamp",
                         model_name['name'])
             # computing std
-            if 'timespan' in model_name and model_name['timespan']:
-                if not check_time_span(config, ssh_data, model_name['timespan'][0], model_name['timespan'][1]):
-                    raise NotEnoughDataError("The time span is not within the range of time steps in the xarray object.")
-                    sys.exit(0)
-                timespan_start = parse(model_name['timespan'][0])
-                timespan_end = parse(model_name['timespan'][1])
-
+            
+            if config.get('check_complete_timespan_models', False):
+                timespan_start = model_data_time_min
+                timespan_end = model_data_time_max 
+                
             else:
-                warnings.warn(
-                    "Model does not have a custom timespan, using default.", UserWarning)
-                if not check_time_span(config, ssh_data, config['timespan']['start'], config['timespan']['end']):
-                    raise NotEnoughDataError("The time span is not within the range of time steps in the xarray object.")
-                    sys.exit(0)
-                timespan_start = config['timespan']['start']
-                timespan_end = config['timespan']['end']
+            
+                if 'timespan' in model_name and model_name['timespan']:
+                    if not check_time_span(config, ssh_data, model_name['timespan'][0], model_name['timespan'][1]):
+                        raise NotEnoughDataError("The time span is not within the range of time steps in the xarray object.")
+                        sys.exit(0)
+                    timespan_start = parse(model_name['timespan'][0])
+                    timespan_end = parse(model_name['timespan'][1])
 
+                else:
+                    warnings.warn(
+                        "Model does not have a custom timespan, using default.", UserWarning)
+                    if not check_time_span(config, ssh_data, config['timespan']['start'], config['timespan']['end']):
+                        raise NotEnoughDataError("The time span is not within the range of time steps in the xarray object.")
+                        sys.exit(0)
+                    timespan_start = config['timespan']['start']
+                    timespan_end = config['timespan']['end']
             ssh_std_dev_data = ssh_data.sel(time=slice(timespan_start, timespan_end)).std(
                 axis=0, keep_attrs=True).persist()
             
@@ -451,17 +369,17 @@ class sshVariability():
             # regridding the data and plotting for visualization
             ssh_std_dev_regrid = reader.regrid(ssh_std_dev_data)
             # ssh_data_dict[model_name['name']] = ssh_std_dev_regrid
-            ssh_data_dict[f"{model_name['name']}:{model_name['experiment']} {model_name['timespan'][0]} to {model_name['timespan'][1]}"] = ssh_std_dev_regrid
+            ssh_data_dict[f"{model_name['name']}:{model_name['experiment']} {timespan_start} to {timespan_end}"] = ssh_std_dev_regrid
     
 
         aqua_logger.info("visualizing the data in subplots")
         # self.visualize_subplots(config, ssh_data_list, fig, axes)
         self.visualize_subplots(config, ssh_data_dict, fig, axes)
 
-        aqua_logger.info("Saving plots as a PDF output file")
+        aqua_logger.info("Saving plots as a PNG output file")
         # self.save_subplots_as_jpeg(config, "subplots_output.jpeg", fig)
-        self.save_subplots_as_pdf(self.create_output_directory(
-            config), "ssh_all_models_ssh-variablity.pdf", fig)
+        self.save_subplots_as_png(self.create_output_directory(
+            config), "ssh_all_models_ssh-variablity.png", fig)
 
         # Close the Dask client and cluster
         client.close()
