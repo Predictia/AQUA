@@ -16,7 +16,7 @@ machine="levante" # will change the aqua config file
 
 # AQUA path, can be defined as $AQUA env variable
 # if not defined it will use the aqua path in the script
-aqua="/home/b/b382289/AQUA"
+aqua="/work/bb1153/b382267/AQUA" #"/home/b/b382289/AQUA"
 
 # Set as true the diagnostics you want to run
 # -------------------------------------------
@@ -181,53 +181,55 @@ if [ "$run_dummy" = true ] ; then
   colored_echo $GREEN "Finished setup checker"
 fi
 
-# Run atmglobalmean if requested
-if [ "$run_atmglobalmean" = true ] ; then
-  run_diagnostic "atmglobalmean/cli/cli_atm_mean_bias.py" "$args_atm" "--outputdir $outputdir/atmglobalmean"
-fi
+# Define the array of diagnostic names
+atm_diagnostics=("atmglobalmean" "global_time_series" "radiation" "ecmean" "tropical_rainfall" "teleconnections")
 
-# Run atmglobalmean if requested
-if [ "$run_ecmean" = true ] ; then
-  run_diagnostic "ecmean/cli/ecmean_cli.py" "$args" "--outputdir $outputdir/ecmean"
-fi
+# Define an associative array for extra arguments
+declare -A atm_extra_args=([default]="")
+atm_extra_args["global_time_series"]="--config $aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_atm.yaml"
+atm_extra_args["teleconnections"]="--config cli_config_atm.yaml --ref"
 
-# Run atmglobalmean if requested
-if [ "$run_global_time_series" = true ] ; then
-  conf_atm="$aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_atm.yaml"
-  run_diagnostic "global_time_series/cli/single_analysis/cli_global_time_series.py" "$args_atm" "--outputdir $outputdir/global_time_series --config $conf_atm"
-fi
+declare -A cli_name=([default]="")
+cli_name["global_time_series"]="global_time_series/cli/single_analysis/cli_global_time_series.py"
 
-# Run global_time_series if requested
-if [ "$run_global_time_series" = true ] ; then
-  path="global_time_series/cli/single_analysis"
-  run_diagnostic "$path/cli_global_time_series.py" "$args_atm" "--outputdir $outputdir/global_time_series --config $aqua/diagnostics/$path/config_time_series_atm.yaml"
-  run_diagnostic "$path/cli_global_time_series.py" "$args_oce" "--outputdir $outputdir/global_time_series --config $aqua/diagnostics/$path/config_time_series_oce.yaml"
-fi
+# Loop through each diagnostic and run it if requested
+for diagnostic in "${atm_diagnostics[@]}"; do
+  # Build the paths and arguments
+  if [ "${cli_name[$diagnostic]}" != "" ]; then
+    script_path="${cli_name[$diagnostic]}"
+  else
+    script_path="$diagnostic/cli/cli_$diagnostic.py"
+  fi
+  extra_args="${atm_extra_args[$diagnostic]}"
 
-# Run atmglobalmean if requested
-if [ "$run_ocean3d" = true ] ; then
-  run_diagnostic "ocean3d/cli/ocean3d_cli.py" "$args_oce" "--outputdir $outputdir/ocean3d"
-fi
+  # Run the diagnostic using the function
+  run_diagnostic "$script_path" "$args_atm" "--outputdir $outputdir/$diagnostic $extra_args"
+done
 
-# Run atmglobalmean if requested
-if [ "$run_radiation" = true ] ; then
-  run_diagnostic "radiation/cli/cli_radiation.py" "$args_atm" "--outputdir $outputdir/radiation"
-fi
 
-# Run atmglobalmean if requested
-if [ "$run_seaice" = true ] ; then
-  run_diagnostic "seaice/cli/seaice_cli.py" "$args_oce" "--outputdir $outputdir/seaice"
-fi
+# Define the array of diagnostic names
+oce_diagnostics=("global_time_series" "ocean3d" "teleconnections" "ecmean")
 
-# Run atmglobalmean if requested
-if [ "$run_teleconnections" = true ] ; then
-  run_diagnostic "teleconnections/cli/cli_teleconnections.py" "$args_atm" "--outputdir $outputdir/teleconnections --config cli_config_atm.yaml --ref"
-  run_diagnostic "teleconnections/cli/cli_teleconnections.py" "$args_oce" "--outputdir $outputdir/teleconnections --config cli_config_oce.yaml --ref"
-fi
+# Define an associative array for extra arguments
+declare -A oce_extra_args=([default]="")
+oce_extra_args["global_time_series"]="--config $aqua/diagnostics/$path/config_time_series_oce.yaml"
+oce_extra_args["teleconnections"]="--config cli_config_oce.yaml --ref"
 
-# Run atmglobalmean if requested
-if [ "$run_tropical_rainfall" = true ] ; then
-  run_diagnostic "tropical_rainfall/cli/cli_tropical_rainfall.py" "$args_atm" "--outputdir $outputdir/tropical_rainfall"
-fi
+declare -A cli_name=([default]="")
+cli_name["global_time_series"]="global_time_series/cli/single_analysis/cli_global_time_series.py"
+
+# Loop through each diagnostic and run it if requested
+for diagnostic in "${oce_diagnostics[@]}"; do
+  # Build the paths and arguments
+  if [ "${cli_name[$diagnostic]}" != "" ]; then
+    script_path="${cli_name[$diagnostic]}"
+  else
+    script_path="$diagnostic/cli/cli_$diagnostic.py"
+  fi
+  extra_args="${oce_extra_args[$diagnostic]}"
+
+  # Run the diagnostic using the function
+  run_diagnostic "$script_path" "$args_oce" "--outputdir $outputdir/$diagnostic $extra_args"
+done
 
 colored_echo $GREEN "Finished all diagnostics"
