@@ -278,15 +278,12 @@ class Reader(FixerMixin, RegridMixin):
                 # Another possibility: was a "cellarea" file provided in regrid.yaml?
                 cellareas = source_grid.get("cellareas", None)
                 cellarea_var = source_grid.get("cellarea_var", None)
+                if os.path.exists(self.src_areafile):
+                    os.unlink(self.src_areafile)
                 if cellareas and cellarea_var:
                     self.logger.warning("Using cellareas file provided in aqua-grids.yaml")
-                    if os.path.exists(self.src_areafile):
-                        os.unlink(self.src_areafile)  # This is needed to avoid a permission denied error if file exists already
                     xr.open_mfdataset(cellareas)[cellarea_var].rename("cell_area").squeeze().to_netcdf(self.src_areafile)
                 else:
-                    # We have to reconstruct it
-                    if os.path.exists(self.src_areafile):
-                        os.unlink(self.src_areafile)
                     self._make_src_area_file(self.src_areafile, source_grid,
                                              gridpath=cfg_regrid["cdo-paths"]["download"],
                                              icongridpath=cfg_regrid["cdo-paths"]["icon"],
