@@ -3,8 +3,8 @@ plugins:
     - module: intake_xarray
 
 sources:
-  sivol:
-    description: sea ice thickness
+  monthly:
+    description: sea ice thickness monthly data
     driver: netcdf
     metadata:
       source_grid_name: psc-piomas
