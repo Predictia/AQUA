@@ -1,14 +1,43 @@
 #!/bin/bash
+set -e
 
 # This script downloads the grids from the Swift server of DKRZ
 # and stores them in the specified output directory.
 # The user can specify the models to download by removing objects from the
 # models array.
+model=$1
 
-models=("EN4" "ERA5" "FESOM" "HealPix" "ICON" "IFS" "lonlat" "NEMO" "OSI-SAF" "PSC" "WOA18")
+usage()
+{
+   echo "To download a single dataset:"
+   echo "       ./grids-downloader.sh dataset-name"
+   echo "To download all datasets:"
+echo "       ./grids-downloader.sh all"
+   echo
+}
+
+# Check if no arguments are provided
+if [ $# -eq 0 ]; then
+    echo "Error: No arguments provided. Use -h or --help for help."
+    usage
+    exit 1
+fi
+
+
+
+if [[ $model == "all" ]] ; then
+	models=("EN4" "ERA5" "FESOM" "HealPix" "ICON" "IFS" "lonlat" "NEMO" "OSI-SAF" "PSC" "WOA18")
+else
+	models=( $model ) 	
+fi
 
 # User defined variables
-outputdir="/scratch/b/b382289/grids_test"
+outputdir="/pfs/lustrep3/projappl/project_465000454/data/AQUA/grids"
+
+echo "Creating output directory $outputdir"
+mkdir -p $outputdir
+
+
 
 # Define colors for echo output
 RED='\033[0;31m'
@@ -21,9 +50,7 @@ colored_echo() {
   echo -e "${color}$@${NC}"
 }
 
-# Create output directory if it does not exist
-echo "Creating output directory $outputdir"
-mkdir -p $outputdir
+
 
 # Download grids
 for model in "${models[@]}"
