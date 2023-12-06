@@ -42,7 +42,7 @@ class Reader(FixerMixin, RegridMixin):
     """General reader for NextGEMS data."""
 
     def __init__(self, model=None, exp=None, source=None, fix=True,
-                 regrid=None, method="ycon", zoom=None,
+                 regrid=None, regrid_method=None, zoom=None,
                  areas=True,  # pylint: disable=W0622
                  datamodel=None,
                  streaming=False, stream_generator=False,
@@ -57,7 +57,7 @@ class Reader(FixerMixin, RegridMixin):
             exp (str, optional): Experiment ID. Defaults to "tco2559-ng5".
             source (str, optional): Source ID. Defaults to None.
             regrid (str, optional): Perform regridding to grid `regrid`, as defined in `config/regrid.yaml`. Defaults to None.
-            method (str, optional): Regridding method. Defaults to "ycon".
+            regrid_method (str, optional): CDO Regridding regridding method. Read from grid configuration. If not specified anywhere, using "ycon".
             fix (bool, optional): Activate data fixing
             zoom (int): healpix zoom level. (Default: None)
             areas (bool, optional): Compute pixel areas if needed. Defaults to True.
@@ -192,6 +192,13 @@ class Reader(FixerMixin, RegridMixin):
             else:
                 self.src_grid = None
 
+            # if regrid method is not defined, read from the grid and use "ycon" as default
+            default_regrid_method = "ycon"
+            if regrid_method is None: 
+                self.regrid_method = source_grid.get("regrid_method", default_regrid_method) 
+            else:
+                self.regrid_method = regrid_method
+
             self.src_space_coord = source_grid.get("space_coord", None)
             if self.src_space_coord is None:
                 self.src_space_coord = self._guess_space_coord(default_space_dims)
@@ -221,14 +228,14 @@ class Reader(FixerMixin, RegridMixin):
 
                 if sgridpath:
                     template_file = cfg_regrid["weights"]["template_grid"].format(sourcegrid=source_grid_name,
-                                                                                  method=method,
+                                                                                  method=self.regrid_method,
                                                                                   targetgrid=regrid,
                                                                                   level=levname)
                 else:
                     template_file = cfg_regrid["weights"]["template_default"].format(model=model,
                                                                                      exp=exp,
                                                                                      source=source,
-                                                                                     method=method,
+                                                                                     method=self.regrid_method,
                                                                                      targetgrid=regrid,
                                                                                      level=levname)
                 # add the zoom level in the template file
@@ -248,7 +255,7 @@ class Reader(FixerMixin, RegridMixin):
                     self._make_weights_file(self.weightsfile[vc], source_grid,
                                             cfg_regrid, regrid=regrid,
                                             vert_coord=vc, extra=extra,
-                                            zoom=self.zoom, method=method)
+                                            zoom=self.zoom, method=self.regrid_method)
 
                 self.weights.update({vc: xr.open_mfdataset(self.weightsfile[vc])})
                 vc2 = None if vc == "2d" or vc == "2dm" else vc
