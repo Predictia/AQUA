@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased is the current development version.
 
 - Sea ice volume datasets for the Northern Hemisphere (PIOMAS) and the Southern Hemisphere (GIOMAS) (#598)
+- Possibility of defining the regrid method frome the grid definition (#678)
+- Grids stored online and tool to deploy them on cli folder (#675)
 - Global time series diagnostic improvements (#637)
 - Teleconnections diagnostic improvements (#672)
 
