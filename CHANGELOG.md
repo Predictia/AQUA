@@ -11,7 +11,6 @@ Unreleased is the current development version.
 - Grids stored online and tool to deploy them on cli folder (#675)
 - Global time series diagnostic improvements (#637)
 - Teleconnections diagnostic improvements (#672)
-- Teleconnections diagnostic improvements (#672)
 
 ## [v0.5]
 
