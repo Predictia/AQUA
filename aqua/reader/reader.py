@@ -856,3 +856,20 @@ class Reader(FixerMixin, RegridMixin):
                                   timechunks=timechunks,
                                   reset=reset)
         return stream_data
+
+    def info(self):
+        """Prints info about the reader"""
+        print("Reader for model %s, experiment %s, source %s" %
+              (self.model, self.exp, self.source))
+
+        try:
+            print("Source grid: %s" % self.src_grid)
+        except AttributeError:
+            print("Source grid: None")
+
+        # # Check if an expid is defined in the catalogue
+        # expid = self.esmcat.metadata.get('expid', None)
+        # if expid:
+        #     print("Experiment ID: %s" % expid)
+        
+        # self.
