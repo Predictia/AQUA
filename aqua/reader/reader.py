@@ -194,10 +194,13 @@ class Reader(FixerMixin, RegridMixin):
 
             # if regrid method is not defined, read from the grid and use "ycon" as default
             default_regrid_method = "ycon"
-            if regrid_method is None: 
-                self.regrid_method = source_grid.get("regrid_method", default_regrid_method) 
+            if regrid_method is None:
+                self.regrid_method = source_grid.get("regrid_method", default_regrid_method)
             else:
                 self.regrid_method = regrid_method
+
+            if self.regrid_method is not default_regrid_method:
+                self.logger.info("Regrid method: %s", self.regrid_method)
 
             self.src_space_coord = source_grid.get("space_coord", None)
             if self.src_space_coord is None:
