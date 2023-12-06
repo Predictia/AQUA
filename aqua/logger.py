@@ -96,7 +96,7 @@ def _check_loglevel(log_level=None):
     return log_level
 
 
-def log_history_iter(data, msg):
+def log_history(data, msg):
     """
     Elementary provenance logger in the history attribute also for iterators.
 
@@ -111,7 +111,7 @@ def log_history_iter(data, msg):
         data = _log_history_iter(data, msg)
         return data
     else:
-        log_history(data, msg)
+        _log_history(data, msg)
         return data
 
 
@@ -128,7 +128,7 @@ def _log_history_iter(data, msg):
         yield ds
 
 
-def log_history(data, msg):
+def _log_history(data, msg):
     """
     Elementary provenance logger in the history attribute
 

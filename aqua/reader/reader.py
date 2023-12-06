@@ -16,7 +16,7 @@ import smmregrid as rg
 
 from aqua.util import load_yaml, load_multi_yaml
 from aqua.util import ConfigPath, area_selection
-from aqua.logger import log_configure, log_history, log_history_iter
+from aqua.logger import log_configure, log_history
 from aqua.util import check_chunk_completeness, frequency_string_to_pandas
 from aqua.util import flip_lat_dir
 import aqua.gsv
@@ -401,9 +401,9 @@ class Reader(FixerMixin, RegridMixin):
                         raise KeyError("You are asking for variables which we cannot find in the catalog!") from e
 
         if ffdb:
-            data = log_history_iter(data, f"Retrieved from {self.model}-{self.exp}-{self.source} using FDB.")
+            data = log_history(data, f"Retrieved from {self.model}-{self.exp}-{self.source} using FDB.")
         else:
-            data = log_history_iter(data, f"Retrieved from {self.model}-{self.exp}-{self.source} using AQUA.")
+            data = log_history(data, f"Retrieved from {self.model}-{self.exp}-{self.source} using file from disk.")
         
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
 
@@ -485,7 +485,7 @@ class Reader(FixerMixin, RegridMixin):
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
 
-        out=log_history_iter(out, f"Regrid from {self.esmcat.metadata.get('source_grid_name')} to {self.targetgrid}.")
+        out = log_history(out, f"Regrid from {self.esmcat.metadata.get('source_grid_name')} to {self.targetgrid}.")
         
         return out
 
