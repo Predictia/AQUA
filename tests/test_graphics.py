@@ -2,7 +2,12 @@ import pytest
 import xarray as xr
 import numpy as np
 
+from aqua import Reader
 from aqua.util.graphics import add_cyclic_lon, plot_box, minmax_maps
+from aqua.util import cbar_get_label
+
+loglevel = 'DEBUG'
+
 
 @pytest.fixture()
 def da():
@@ -59,3 +64,22 @@ def test_minmax_maps(da):
     for i in range(len(maps)):
         assert min_val <= maps[i].min().values, "Minimum value should be less than minimum value of the map"
         assert max_val >= maps[i].max().values, "Maximum value should be greater than maximum value of the map"
+
+
+@pytest.mark.graphics
+def test_cbar_get_label():
+    """Test the cbar_get_label function"""
+    # Retrieve data
+    reader = Reader(model='IFS', exp='test-tco79', source='short', loglevel=loglevel)
+    ds = reader.retrieve()
+    da = ds['2t']
+
+    # Test the function
+    label = cbar_get_label(da, loglevel=loglevel)
+    # assert label is a string
+    assert isinstance(label, str), "Colorbar label should be a string"
+    assert label == '2t (K)', "Colorbar label is incorrect"
+
+    # Test the function with a custom label
+    label = cbar_get_label(da, cbar_label='Temperature', loglevel=loglevel)
+    assert label == 'Temperature', "Colorbar label is incorrect"
