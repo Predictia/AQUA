@@ -280,7 +280,8 @@ class Reader(FixerMixin, RegridMixin):
                 cellarea_var = source_grid.get("cellarea_var", None)
                 if cellareas and cellarea_var:
                     self.logger.warning("Using cellareas file provided in aqua-grids.yaml")
-                    os.remove(self.src_areafile)  # This is needed to avoid a permission denied error if file exists already
+                    if os.path.exists(self.src_areafile):
+                        os.unlink(self.src_areafile)  # This is needed to avoid a permission denied error if file exists already
                     xr.open_mfdataset(cellareas)[cellarea_var].rename("cell_area").squeeze().to_netcdf(self.src_areafile)
                 else:
                     # We have to reconstruct it
