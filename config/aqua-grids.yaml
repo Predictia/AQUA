@@ -215,6 +215,7 @@ grids:
     cellarea_var: areacello
     mask: $grids/PSC/grid_piomas.nc
     mask_var: sftof
+    regrid_method: 'bil'
 
   psc-giomas:
     space_coord: ["x", "y"]
@@ -222,6 +223,7 @@ grids:
     cellarea_var: areacello
     mask: $grids/PSC/grid_giomas.nc
     mask_var: sftof
+    regrid_method: 'bil'
 
 
   
