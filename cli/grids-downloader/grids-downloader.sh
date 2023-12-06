@@ -12,18 +12,15 @@ usage()
    echo "To download a single dataset:"
    echo "       ./grids-downloader.sh dataset-name"
    echo "To download all datasets:"
-echo "       ./grids-downloader.sh all"
+   echo "       ./grids-downloader.sh all"
    echo
 }
 
 # Check if no arguments are provided
 if [ $# -eq 0 ]; then
-    echo "Error: No arguments provided. Use -h or --help for help."
     usage
     exit 1
 fi
-
-
 
 if [[ $model == "all" ]] ; then
 	models=("EN4" "ERA5" "FESOM" "HealPix" "ICON" "IFS" "lonlat" "NEMO" "OSI-SAF" "PSC" "WOA18")
@@ -32,12 +29,14 @@ else
 fi
 
 # User defined variables
+
+# for LUMI
 outputdir="/pfs/lustrep3/projappl/project_465000454/data/AQUA/grids"
+# for Levante
+#outputdir="/work/bb1153/b382075/aqua/grids"
 
 echo "Creating output directory $outputdir"
 mkdir -p $outputdir
-
-
 
 # Define colors for echo output
 RED='\033[0;31m'
@@ -49,8 +48,6 @@ colored_echo() {
   shift
   echo -e "${color}$@${NC}"
 }
-
-
 
 # Download grids
 for model in "${models[@]}"
