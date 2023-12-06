@@ -35,9 +35,6 @@ outputdir="/pfs/lustrep3/projappl/project_465000454/data/AQUA/grids"
 # for Levante
 #outputdir="/work/bb1153/b382075/aqua/grids"
 
-echo "Creating output directory $outputdir"
-mkdir -p $outputdir
-
 # Define colors for echo output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -48,6 +45,9 @@ colored_echo() {
   shift
   echo -e "${color}$@${NC}"
 }
+
+colored_echo $GREEN "Creating output directory $outputdir"
+mkdir -p $outputdir
 
 # Download grids
 for model in "${models[@]}"
