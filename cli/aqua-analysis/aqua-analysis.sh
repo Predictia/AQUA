@@ -32,12 +32,14 @@ max_threads=-1  # Set to the desired maximum number of threads, or leave it as 0
 # Excluded for testing: "atmglobalmean"
 atm_diagnostics=("tropical_rainfall" "global_time_series" "radiation" "teleconnections") # Add more atmospheric diagnostics if needed
 # Define the array of oceanic diagnostics
-oce_diagnostics=("global_time_series" "teleconnections" "ocean3d") # Add more oceanic diagnostics if needed
+oce_diagnostics=("global_time_series" "teleconnections" "ocean3d" "seaice") # Add more oceanic diagnostics if needed
 # Define the array of diagnostics combining atmospheric and oceanic
 atm_oce_diagnostics=("ecmean") # Add more combined diagnostics if needed
 
 # Combine all diagnostics into a single array
 all_diagnostics=("${atm_diagnostics[@]}" "${oce_diagnostics[@]}" "${atm_oce_diagnostics[@]}")
+
+run_dummy=true
 
 # Define an associative array for atmospheric extra arguments
 declare -A atm_extra_args
