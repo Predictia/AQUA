@@ -19,23 +19,36 @@ machine="levante" # will change the aqua config file
 aqua="/work/bb1153/b382267/AQUA" #"/home/b/b382289/AQUA"
 
 # Define the array of atmospheric diagnostics
-atm_diagnostics=("tropical_rainfall" "global_time_series") # "atmglobalmean" "radiation" "tropical_rainfall" "teleconnections")
+atm_diagnostics=("tropical_rainfall" "global_time_series") # "atmglobalmean" "radiation" "tropical_rainfall" "teleconnections") # Add more atmospheric diagnostics if needed
 # Define the array of oceanic diagnostics
-oce_diagnostics=("global_time_series" "teleconnections") #"ocean3d"
-atm_oce_diagnostics=("ecmean")
+oce_diagnostics=("global_time_series" "teleconnections") # "ocean3d") # Add more oceanic diagnostics if needed
+# Define the array of diagnostics combining atmospheric and oceanic
+atm_oce_diagnostics=("ecmean") # Add more combined diagnostics if needed
+
+# Combine all diagnostics into a single array
 all_diagnostics=("${atm_diagnostics[@]}" "${oce_diagnostics[@]}" "${atm_oce_diagnostics[@]}")
 
 # Define an associative array for atmospheric extra arguments
 declare -A atm_extra_args
 # Define an associative array for oceanic extra arguments
 declare -A oce_extra_args
-# Set default value for all keys
+# Define an associative array for combined atmospheric and oceanic extra arguments
+declare -A atm_oce_extra_args
+
+# Set default value for all keys in atmospheric extra arguments
 default_value=" "
 for diagnostic in ${atm_diagnostics[@]}; do
   atm_extra_args["$diagnostic"]=$default_value
 done
+
+# Set default value for all keys in oceanic extra arguments
 for diagnostic in ${oce_diagnostics[@]}; do
   oce_extra_args["$diagnostic"]=$default_value
+done
+
+# Set default value for all keys in combined atmospheric and oceanic extra arguments
+for diagnostic in ${atm_oce_diagnostics[@]}; do
+  atm_oce_extra_args["$diagnostic"]=$default_value
 done
 # ---------------------------------------
 # Command line extra arguments for global_time_series
@@ -74,9 +87,12 @@ oce_extra_args["teleconnections"]="${oce_extra_args["teleconnections"]} --config
 
 # Declare the path and cli name if it is not standard, i.e., not AQUA/diagnostics/dummy/cli/cli_dummy.py.
 declare -A script_path
+
+# Iterate over all diagnostics and set the default script path
 for diagnostic in ${all_diagnostics[@]}; do
   script_path["$diagnostic"]="$diagnostic/cli/cli_$diagnostic.py"
 done
+
 # Set specific value for "global_time_series"
 script_path["global_time_series"]="global_time_series/cli/single_analysis/cli_global_time_series.py"
 
@@ -197,18 +213,30 @@ if [ "$run_dummy" = true ] ; then
   fi
   colored_echo $GREEN "Finished setup checker"
 fi
-for diagnostic in ${atm_diagnostics[@]}; do
-    colored_echo $GREEN "Running $diagnostic"
+# Run diagnostics in parallel
+for diagnostic in "${all_diagnostics[@]}"; do
+  colored_echo $GREEN "Running $diagnostic"
+
+  if [[ "${atm_diagnostics[@]}" =~ "$diagnostic" ]]; then
     python "$aqua/diagnostics/${script_path[$diagnostic]}" $args_atm ${atm_extra_args[$diagnostic]} -l $loglevel --outputdir $outputdir/$diagnostic &
-  done
-for diagnostic in ${oce_diagnostics[@]}; do
-    colored_echo $GREEN "Running $diagnostic"
+  elif [[ "${oce_diagnostics[@]}" =~ "$diagnostic" ]]; then
     python "$aqua/diagnostics/${script_path[$diagnostic]}" $args_oce ${oce_extra_args[$diagnostic]} -l $loglevel --outputdir $outputdir/$diagnostic &
-  done
-for diagnostic in ${atm_oce_diagnostics[@]}; do
-    colored_echo $GREEN "Running $diagnostic"
-    python "$aqua/diagnostics/${script_path[$diagnostic]}" $args -l $loglevel --outputdir $outputdir/$diagnostic &
-  done
+  elif [[ "${atm_oce_diagnostics[@]}" =~ "$diagnostic" ]]; then
+    python "$aqua/diagnostics/${script_path[$diagnostic]}" $args ${atm_oce_extra_args[$diagnostic]} -l $loglevel --outputdir $outputdir/$diagnostic &
+  fi
+done
+#for diagnostic in ${atm_diagnostics[@]}; do
+#    colored_echo $GREEN "Running $diagnostic"
+#    python "$aqua/diagnostics/${script_path[$diagnostic]}" $args_atm ${atm_extra_args[$diagnostic]} -l $loglevel --outputdir $outputdir/$diagnostic &
+#  done
+#for diagnostic in ${oce_diagnostics[@]}; do
+#    colored_echo $GREEN "Running $diagnostic"
+#    python "$aqua/diagnostics/${script_path[$diagnostic]}" $args_oce ${oce_extra_args[$diagnostic]} -l $loglevel --outputdir $outputdir/$diagnostic &
+#  done
+#for diagnostic in ${atm_oce_diagnostics[@]}; do
+#    colored_echo $GREEN "Running $diagnostic"
+#    python "$aqua/diagnostics/${script_path[$diagnostic]}" $args -l $loglevel --outputdir $outputdir/$diagnostic &
+#  done
 # Wait for all background processes to finish
 wait
 colored_echo $GREEN "Finished all diagnostics"
