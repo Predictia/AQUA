@@ -46,8 +46,7 @@ class Reader(FixerMixin, RegridMixin):
 
     def __init__(self, model=None, exp=None, source=None, fix=True,
                  regrid=None, regrid_method=None, zoom=None,
-                 areas=True,  # pylint: disable=W0622
-                 datamodel=None,
+                 areas=True, datamodel=None,
                  streaming=False, stream_generator=False,
                  startdate=None, enddate=None,
                  rebuild=False, loglevel=None, nproc=4, aggregation=None):
@@ -73,7 +72,7 @@ class Reader(FixerMixin, RegridMixin):
             rebuild (bool, optional): Force rebuilding of area and weight files. Defaults to False.
             loglevel (str, optional): Level of logging according to logging module.
                                       Defaults to log_level_default of loglevel().
-            nproc (int,optional): Number of processes to use for weights generation. Defaults to 16.
+            nproc (int,optional): Number of processes to use for weights generation. Defaults to 4.
             aggregation (str, optional): aggregation/chunking to be used for GSV access (e.g. D, M, Y).
                                          Defaults to None (using default from catalogue, recommended).
 
@@ -218,6 +217,9 @@ class Reader(FixerMixin, RegridMixin):
         Args:
             cfg_regrid (dict): dictionary with the grid definitions
             rebuild (bool): true/false flag to trigger recomputation of areas
+
+        Returns:
+            Define in the class object the smmregridder object
         """
 
         self.weightsfile = {}
@@ -285,6 +287,9 @@ class Reader(FixerMixin, RegridMixin):
 
         Args: 
             cfg_regrid (dict): dictionary with the grid definitions
+
+        Returns:
+            Defined into the class object space and vert cordinates
         """
 
         source_grid = cfg_regrid['grids'][self.src_grid_name]
@@ -314,6 +319,9 @@ class Reader(FixerMixin, RegridMixin):
 
         Args:
             cfg_regrid (dict): dictionary with the grid definitions
+
+        Returns:
+            All the required class definition to run the regridding later on
         """
 
         source_grid = cfg_regrid['grids'][self.src_grid_name]
@@ -363,7 +371,7 @@ class Reader(FixerMixin, RegridMixin):
             rebuild (bool): true/false flag to trigger recomputation of areas
     
         Returns:
-            the area file loaded as xarray dataset and stored in the class object
+            the destination area file loaded as xarray dataset and stored in the class object
         """
 
         self.dst_areafile = os.path.join(
@@ -390,7 +398,7 @@ class Reader(FixerMixin, RegridMixin):
             rebuild (bool): true/false flag to trigger recomputation of areas
     
         Returns:
-            the area file loaded as xarray dataset and stored in the class object
+            the source area file loaded as xarray dataset and stored in the class object
         """
 
         source_grid = cfg_regrid['grids'][self.src_grid_name]

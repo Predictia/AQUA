@@ -134,8 +134,8 @@ class RegridMixin():
 
         Args:
             source_grid (dict): The source grid specification.
-            vert_coord (list)
-            zoom (str)
+            vert_coord (list): vertical coordinate
+            zoom (str): zoom option
 
         Returns:
             xarray.DataArray: The source grid path.
@@ -296,10 +296,10 @@ class RegridMixin():
         find the one present in the data and return them
 
         Args: 
-            space_coord (str or list):
-            vert_coord (str or list):
-            default_horizontal_dims (list):
-            default_vertical_dims (list):
+            space_coord (str or list): horizontal dimension already defined. If None, autosearch enabled.
+            vert_coord (str or list): vertical dimension already defined. If None, autosearch enabled.
+            default_horizontal_dims (list): default dimensions for the horizontal search
+            default_vertical_dims (list): default dimensions for the vertical search 
 
         Return
             space_coord and vert_coord from the data source
