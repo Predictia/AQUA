@@ -89,7 +89,6 @@ class Reader(FixerMixin, RegridMixin):
         self.vert_coord = None
         self.deltat = 1
         self.aggregation = aggregation
-        extra = []
 
         self.grid_area = None
         self.src_grid_area = None
@@ -167,7 +166,7 @@ class Reader(FixerMixin, RegridMixin):
             self.dst_grid_name = regrid
 
             # configure all the required elements
-            self._regrid_areas_configure(cfg_regrid)
+            self._configure_coords(cfg_regrid)
         
         # generate source areas
         if areas:
@@ -175,6 +174,7 @@ class Reader(FixerMixin, RegridMixin):
 
         # generate weights
         if regrid:
+            self._regrid_configure(cfg_regrid)
             self._load_generate_regrid_weights(cfg_regrid, rebuild)
 
         # generate destination areas
@@ -214,8 +214,6 @@ class Reader(FixerMixin, RegridMixin):
             cfg_regrid (dict): dictionary with the grid definitions
             rebuild (bool): true/false flag to trigger recomputation of areas
         """
-
-        self.dst_space_coord = ["lon", "lat"]
 
         self.weightsfile = {}
         self.weights = {}
@@ -274,23 +272,40 @@ class Reader(FixerMixin, RegridMixin):
                                                     vert_coord=vc2,
                                                     space_dims=default_space_dims)})
 
-    def _regrid_areas_configure(self, cfg_regrid):
-
+    def _configure_coords(self, cfg_regrid):
         """
-        Configure all the different steps need for the regridding and areas computation
-
-        Args:
-            cfg_regrid (dict): dictionary with the grid definitions
+        Define the horizontal and vertical coordinates 
         """
-     
+
         source_grid = cfg_regrid['grids'][self.src_grid_name]
         # Normalize vert_coord to list
         self.vert_coord = source_grid.get("vert_coord", "2d")  # If not specified we assume that this is only a 2D case
         if not isinstance(self.vert_coord, list):
             self.vert_coord = [self.vert_coord]
 
+        # get space coordinates
+        self.src_space_coord = source_grid.get("space_coord", None)
+        if self.src_space_coord is None:
+            self.src_space_coord = self._guess_space_coord(default_space_dims)
+
+        self.support_dims = source_grid.get("support_dims", [])
+        self.space_coord = self.src_space_coord
+
+    def _regrid_configure(self, cfg_regrid):
+        """
+        Configure all the different steps need for the regridding and areas computation
+
+        Args:
+            cfg_regrid (dict): dictionary with the grid definitions
+        """
+
+        source_grid = cfg_regrid['grids'][self.src_grid_name]
+
         # define which variables has to be masked
         self.masked_attr, self.masked_vars = configure_masked_fields(source_grid)
+
+        # set target grid coordinates
+        self.dst_space_coord = ["lon", "lat"]
 
         # Expose grid information for the source as a dictionary of
         # open xarrays
@@ -321,12 +336,6 @@ class Reader(FixerMixin, RegridMixin):
         if self.regrid_method is not default_regrid_method:
             self.logger.info("Regrid method: %s", self.regrid_method)
 
-        self.src_space_coord = source_grid.get("space_coord", None)
-        if self.src_space_coord is None:
-            self.src_space_coord = self._guess_space_coord(default_space_dims)
-
-        self.support_dims = source_grid.get("support_dims", [])
-        self.space_coord = self.src_space_coord
     
     def _generate_load_dst_area(self, cfg_regrid, rebuild):
         """
@@ -355,7 +364,6 @@ class Reader(FixerMixin, RegridMixin):
         if self.fix:
             self.dst_grid_area = self._fix_area(self.dst_grid_area)
 
-    
     def _generate_load_src_area(self, cfg_regrid, rebuild):
         """
         Generate and load area file for the source grid
