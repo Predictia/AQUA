@@ -55,14 +55,14 @@ class RegridMixin():
         Returns:
             None
         """
-
+       
         if self.vert_coord and self.vert_coord != ["2d"]:
             vert_coord = self.vert_coord[0]  # We need only the first one for areas
         else:
             vert_coord = None
 
         sgridpath = self._get_source_gridpath(source_grid, vert_coord, zoom)
-
+       
         self.logger.warning("Source areas file not found: %s", areafile)
         self.logger.warning("Attempting to generate it ...")
 
@@ -73,7 +73,6 @@ class RegridMixin():
                                             icongridpath=icongridpath,
                                             extra=src_extra)
         # Make sure that the new DataArray uses the expected spatial dimensions
-        self.logger.warning("Space coords are %s", self.src_space_coord)
         grid_area = _rename_dims(grid_area, self.src_space_coord)
         data = self._retrieve_plain(startdate=None)
         self.logger.warning(data.coords)
@@ -136,6 +135,8 @@ class RegridMixin():
 
         Args:
             source_grid (dict): The source grid specification.
+            vert_coord (list)
+            zoom (str)
 
         Returns:
             xarray.DataArray: The source grid path.
@@ -151,9 +152,10 @@ class RegridMixin():
             self.logger.info('Grid file is not defined, retrieving the source itself...')
             data = self._retrieve_plain()
 
-            # If we have also a vertical coordinate, include it in the sample
-            coords = self.src_space_coord
+            # use slicing to copy the object and not create a pointer
+            coords = self.src_space_coord[:]
 
+            # If we have also a vertical coordinate, include it in the sample
             if vert_coord and vert_coord != "2d" and vert_coord != "2dm":
                 coords.append(vert_coord)
 
