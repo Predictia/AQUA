@@ -978,9 +978,9 @@ class Reader(FixerMixin, RegridMixin):
                 # TODO: to be removed when all the catalogues are updated
                 print("  Fixes: %s" % self.fixes)
 
-        if self.targetgrid:
+        if self.dst_grid_name:
             print("Regridding is active:")
-            print("  Target grid is %s" % self.targetgrid)
+            print("  Target grid is %s" % self.dst_grid_name)
             print("  Regridding method is %s" % self.regrid_method)
 
         print("Metadata:")
