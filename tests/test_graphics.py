@@ -4,7 +4,7 @@ import numpy as np
 
 from aqua import Reader
 from aqua.util.graphics import add_cyclic_lon, plot_box, minmax_maps
-from aqua.util import cbar_get_label
+from aqua.util import cbar_get_label, evaluate_colorbar_limits
 
 loglevel = 'DEBUG'
 
@@ -69,14 +69,14 @@ def test_minmax_maps(da):
 
 
 @pytest.mark.graphics
-def test_cbar_get_label():
+def test_label():
     """Test the cbar_get_label function"""
     # Retrieve data
     reader = Reader(model='IFS', exp='test-tco79', source='short', loglevel=loglevel)
     ds = reader.retrieve()
     da = ds['2t']
 
-    # Test the function
+    # Test cbar_get_label function
     label = cbar_get_label(da, loglevel=loglevel)
     # assert label is a string
     assert isinstance(label, str), "Colorbar label should be a string"
@@ -85,3 +85,15 @@ def test_cbar_get_label():
     # Test the function with a custom label
     label = cbar_get_label(da, cbar_label='Temperature', loglevel=loglevel)
     assert label == 'Temperature', "Colorbar label is incorrect"
+
+    # Test the cbar limits function with sym=False
+    vmin, vmax = evaluate_colorbar_limits(da, sym=False)
+    assert vmin < vmax, "Minimum value should be less than maximum value"
+    assert vmin == 232.79393005371094, "Minimum value is incorrect"
+    assert vmax == 310.61033630371094, "Maximum value is incorrect"
+
+    # Test the cbar limits function with sym=True
+    vmin, vmax = evaluate_colorbar_limits(da, sym=True)
+    assert vmin < vmax, "Minimum value should be less than maximum value"
+    assert vmin == -310.61033630371094, "Minimum value is incorrect"
+    assert vmax == 310.61033630371094, "Maximum value is incorrect"
