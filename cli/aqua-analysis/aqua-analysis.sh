@@ -16,7 +16,7 @@ machine="levante" # will change the aqua config file
 
 # AQUA path, can be defined as $AQUA env variable
 # if not defined it will use the aqua path in the script
-aqua="/work/bb1153/b382267/AQUA" #"/home/b/b382289/AQUA"
+aqua="/work/bb1153/b382267/AQUA"
 
 # ---------------------------------------
 # The max_threads variable serves as a mechanism to control the maximum number of threads or parallel processes that can run simultaneously.
@@ -26,11 +26,11 @@ aqua="/work/bb1153/b382267/AQUA" #"/home/b/b382289/AQUA"
 #   After launching the designated number of threads, the script waits for these threads to complete before launching additional ones. 
 #   This is useful when you are working on a system with limitations on the number of concurrent threads, like a login node.
 # ---------------------------------------
-max_threads=4  # Set to the desired maximum number of threads, or leave it as 0 for no limit
+max_threads=1  # Set to the desired maximum number of threads, or leave it as 0 for no limit
 
 # Define the array of atmospheric diagnostics
 # Excluded for testing: "atmglobalmean"
-atm_diagnostics=("tropical_rainfall" "global_time_series" "radiation" "tropical_rainfall" "teleconnections") # Add more atmospheric diagnostics if needed
+atm_diagnostics=("tropical_rainfall" "global_time_series" "radiation" "teleconnections") # Add more atmospheric diagnostics if needed
 # Define the array of oceanic diagnostics
 oce_diagnostics=("global_time_series" "teleconnections" "ocean3d") # Add more oceanic diagnostics if needed
 # Define the array of diagnostics combining atmospheric and oceanic
