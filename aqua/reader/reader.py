@@ -142,7 +142,7 @@ class Reader(FixerMixin, RegridMixin):
         # get fixes dictionary and find them
         self.fix = fix  # fix activation flag
         if self.fix:
-            self.fixes_dictionary = load_multi_yaml(self.fixer_folder)
+            self.fixes_dictionary = load_multi_yaml(self.fixer_folder, loglevel=self.loglevel)
             self.fixes = self.find_fixes()  # find fixes for this model/exp/source
             self.dst_datamodel = datamodel
             # Default destination datamodel
@@ -279,9 +279,9 @@ class Reader(FixerMixin, RegridMixin):
 
     def _configure_coords(self, cfg_regrid):
         """
-        Define the horizontal and vertical coordinates 
-        Horizontal coordinates are guessed from a predefined list
-        Vertical coordinates are read from the grid file
+        Define the horizontal and vertical coordinates to be used by areas and regrid.
+        Horizontal coordinates are guessed from a predefined list.
+        Vertical coordinates are read from the grid file.
 
         Args: 
             cfg_regrid (dict): dictionary with the grid definitions
@@ -355,7 +355,7 @@ class Reader(FixerMixin, RegridMixin):
     
     def _generate_load_dst_area(self, cfg_regrid, rebuild):
         """
-        Generate and load area file for the destination grid
+        Generate and load area file for the destination grid.
         
         Arguments:
             cfg_regrid (dict): dictionary with the grid definitions
@@ -382,7 +382,7 @@ class Reader(FixerMixin, RegridMixin):
 
     def _generate_load_src_area(self, cfg_regrid, rebuild):
         """
-        Generate and load area file for the source grid
+        Generate and load area file for the source grid.
         
         Arguments:
             cfg_regrid (dict): dictionary with the grid definitions
