@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Reader.info() method to print the catalogue information (#683)
 - Simpler reader init() by reorganizing the calls to areas and regrid weights configurition and loading (#682)
 - Optional autosearch for vert_coord (#682)
 - plot_single_map adapted to different coordinate names and bugfixes (#680)

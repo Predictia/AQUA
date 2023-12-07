@@ -59,7 +59,8 @@ class Reader(FixerMixin, RegridMixin):
             exp (str, optional): Experiment ID. Defaults to "tco2559-ng5".
             source (str, optional): Source ID. Defaults to None.
             regrid (str, optional): Perform regridding to grid `regrid`, as defined in `config/regrid.yaml`. Defaults to None.
-            regrid_method (str, optional): CDO Regridding regridding method. Read from grid configuration. If not specified anywhere, using "ycon".
+            regrid_method (str, optional): CDO Regridding regridding method. Read from grid configuration.
+                                           If not specified anywhere, using "ycon".
             fix (bool, optional): Activate data fixing
             zoom (int): healpix zoom level. (Default: None)
             areas (bool, optional): Compute pixel areas if needed. Defaults to True.
@@ -957,3 +958,37 @@ class Reader(FixerMixin, RegridMixin):
                                   timechunks=timechunks,
                                   reset=reset)
         return stream_data
+
+    def info(self):
+        """Prints info about the reader"""
+        print("Reader for model %s, experiment %s, source %s" %
+              (self.model, self.exp, self.source))
+
+        if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
+            if "expver" in self.esmcat._request.keys():
+                print("  This experiment has expID %s" % self.esmcat._request['expver'])
+
+        metadata = self.esmcat.metadata
+
+        if self.fix:
+            print("Data fixing is active:")
+            if "fix_family" in metadata.keys():
+                print("  Fix family is %s" % metadata["fix_family"])
+            else:
+                # TODO: to be removed when all the catalogues are updated
+                print("  Fixes: %s" % self.fixes)
+
+        if self.dst_grid_name:
+            print("Regridding is active:")
+            print("  Target grid is %s" % self.dst_grid_name)
+            print("  Regridding method is %s" % self.regrid_method)
+
+        print("Metadata:")
+        for k, v in metadata.items():
+            print("  %s: %s" % (k, v))
+
+        if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
+            print("GSV request for this source:")
+            for k, v in self.esmcat._request.items():
+                if k not in ["time", "param", "step", "expver"]:
+                    print("  %s: %s" % (k, v))
