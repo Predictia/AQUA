@@ -140,8 +140,11 @@ class Reader(FixerMixin, RegridMixin):
         # get fixes dictionary and find them
         self.fix = fix  # fix activation flag
         if self.fix:
+            self.fix_family = self.esmcat.metadata.get('fix_family')
+            self.logger.debug('Fix family metadata is %s', self.fix_family)
             self.fixes_dictionary = load_multi_yaml(self.fixer_folder)
             self.fixes = self.find_fixes()  # find fixes for this model/exp/source
+            
 
         # Store the machine-specific CDO path if available
         cfg_base = load_yaml(self.config_file)
@@ -164,6 +167,7 @@ class Reader(FixerMixin, RegridMixin):
                                          definitions="paths",
                                          loglevel=self.loglevel)
             source_grid_name = self.esmcat.metadata.get('source_grid_name')
+            self.logger.debug('Grid metadata is %s', source_grid_name)
             source_grid = cfg_regrid['grids'][source_grid_name]
             # Normalize vert_coord to list
             self.vert_coord = source_grid.get("vert_coord", "2d")  # If not specified we assume that this is only a 2D case
