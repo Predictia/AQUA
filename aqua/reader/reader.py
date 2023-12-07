@@ -484,8 +484,9 @@ class Reader(FixerMixin, RegridMixin):
         # (but they are actually not used so far)
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
-
-        out = log_history(out, f"Regrid from {self.esmcat.metadata.get('source_grid_name')} to {self.targetgrid}.")
+        
+        self.original_grid_name = self.esmcat.metadata.get('source_grid_name')
+        out = log_history(out, f"Regrid from {self.original_grid_name} to {self.targetgrid}.")
         
         return out
 
@@ -520,7 +521,7 @@ class Reader(FixerMixin, RegridMixin):
         # get original frequency (for history)
         orig_freq=data['time'].values[1]-data['time'].values[0]
         # Convert time difference to hours
-        orig_freq = np.timedelta64(orig_freq, 'ns') / np.timedelta64(1, 'h')
+        self.orig_freq = np.timedelta64(orig_freq, 'ns') / np.timedelta64(1, 'h')
 
         try:
             # resample
@@ -540,7 +541,7 @@ class Reader(FixerMixin, RegridMixin):
         if np.any(np.isnat(out.time)):
             raise ValueError('Resampling cannot produce output for all frequency step, is your input data correct?')
 
-        log_history(out, f"resampled from frequency {orig_freq} h to frequency {resample_freq} by AQUA timmean")
+        out=log_history(out, f"resampled from frequency {self.orig_freq} h to frequency {resample_freq} by AQUA timmean")
 
         # add a variable to create time_bounds
         if time_bounds:
@@ -636,7 +637,7 @@ class Reader(FixerMixin, RegridMixin):
 
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
 
-        self.logger.info(f"History: spatially averaged from {self.esmcat.metadata.get('source_grid_name')} grid.")
+        log_history(data, f"spatially averaged from {self.original_grid_name} grid.")
 
         return out
 
