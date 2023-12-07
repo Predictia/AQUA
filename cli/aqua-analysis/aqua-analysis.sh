@@ -26,7 +26,7 @@ aqua="/work/bb1153/b382267/AQUA"
 #   After launching the designated number of threads, the script waits for these threads to complete before launching additional ones. 
 #   This is useful when you are working on a system with limitations on the number of concurrent threads, like a login node.
 # ---------------------------------------
-max_threads=1  # Set to the desired maximum number of threads, or leave it as 0 for no limit
+max_threads=-1  # Set to the desired maximum number of threads, or leave it as 0 for no limit
 
 # Define the array of atmospheric diagnostics
 # Excluded for testing: "atmglobalmean"
