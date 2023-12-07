@@ -208,7 +208,9 @@ class Reader(FixerMixin, RegridMixin):
     def _load_generate_regrid_weights(self, cfg_regrid, rebuild):
 
         """
-        Generated and load the regrid weights
+        Generated and load the regrid weights for all the vertical coordinates available
+        This is done by looping on vetical coordinates, defining a template and calling
+        the correspondet smmregrid function
 
         Args:
             cfg_regrid (dict): dictionary with the grid definitions
@@ -275,6 +277,11 @@ class Reader(FixerMixin, RegridMixin):
     def _configure_coords(self, cfg_regrid):
         """
         Define the horizontal and vertical coordinates 
+        Horizontal coordinates are guessed from a predefined list
+        Vertical coordinates are read from the grid file
+
+        Args: 
+            cfg_regrid (dict): dictionary with the grid definitions
         """
 
         source_grid = cfg_regrid['grids'][self.src_grid_name]
@@ -288,12 +295,14 @@ class Reader(FixerMixin, RegridMixin):
         if self.src_space_coord is None:
             self.src_space_coord = self._guess_space_coord(default_space_dims)
 
-        self.support_dims = source_grid.get("support_dims", [])
+        self.support_dims = source_grid.get("support_dims", []) #do we use this?
         self.space_coord = self.src_space_coord
 
     def _regrid_configure(self, cfg_regrid):
         """
-        Configure all the different steps need for the regridding and areas computation
+        Configure all the different steps need for the regridding computation
+        1) define the masked variables 2) load the source grid file for the different vert grids
+        3) define regrid_method to be passed to CDO
 
         Args:
             cfg_regrid (dict): dictionary with the grid definitions
@@ -339,7 +348,7 @@ class Reader(FixerMixin, RegridMixin):
     
     def _generate_load_dst_area(self, cfg_regrid, rebuild):
         """
-        Generate and load area file for the source grid
+        Generate and load area file for the destination grid
         
         Arguments:
             cfg_regrid (dict): dictionary with the grid definitions
@@ -370,7 +379,6 @@ class Reader(FixerMixin, RegridMixin):
         
         Arguments:
             cfg_regrid (dict): dictionary with the grid definitions
-            source_grid_name (str): the grid name stored in the catalog metadata
             rebuild (bool): true/false flag to trigger recomputation of areas
     
         Returns:
