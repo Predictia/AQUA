@@ -29,8 +29,10 @@ def test_add_cyclic_lon(da):
     assert 'lon' in new_da.coords, "Output should have a 'lon' coordinate"
     assert 'lat' in new_da.coords, "Output should have a 'lat' coordinate"
     assert np.allclose(new_da.lat, old_da.lat), "Latitude values should be equal"
-    assert np.allclose(new_da.isel(lon=-1).values, old_da.isel(lon=0).values), "First and last longitude values should be equal"
+    assert np.allclose(new_da.isel(lon=-1).values, old_da.isel(lon=0).values), \
+           "First and last longitude values should be equal"
     assert new_da.shape == (18, 37), "Output shape is incorrect"
+
 
 @pytest.mark.graphics
 def test_plot_box():
@@ -78,7 +80,7 @@ def test_cbar_get_label():
     label = cbar_get_label(da, loglevel=loglevel)
     # assert label is a string
     assert isinstance(label, str), "Colorbar label should be a string"
-    assert label == '2t (K)', "Colorbar label is incorrect"
+    assert label == '2t [K]', "Colorbar label is incorrect"
 
     # Test the function with a custom label
     label = cbar_get_label(da, cbar_label='Temperature', loglevel=loglevel)
