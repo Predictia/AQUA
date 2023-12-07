@@ -287,25 +287,46 @@ class RegridMixin():
 
         return data
 
-    def _guess_coords(self, default_horizontal_dims, default_vertical_dims):
+    def _guess_coords(self, space_coord, vert_coord, default_horizontal_dims, default_vertical_dims):
         """
         Given a set of default space and vertical dimensions, 
         find the one present in the data and return them
+
+        Args: 
+            space_coord (str or list):
+            vert_coord (str or list):
+            default_horizontal_dims (list):
+            default_vertical_dims (list):
+
+        Return
+            space_coord and vert_coord from the data source
         """
+        data = None
 
-        data = self._retrieve_plain(startdate=None)
-        horizontal_guessed = [x for x in data.dims if x in default_horizontal_dims]
-        if horizontal_guessed is None:
-            self.logger.info('Default dims that are screened are %s', default_horizontal_dims)
-            raise KeyError('Cannot identify any space_coord, you will will need to define it regrid.yaml')
-        self.logger.info('Space_coords deduced from the source are %s', horizontal_guessed)
+        if space_coord is None:
 
-        vertical_guessed = [x for x in data.dims if x in default_vertical_dims]
-        if vertical_guessed is None:
-            self.logger.info('Default dims that are screened are %s', default_vertical_dims)
-            self.logger.info('Assuming this is a 2d file, vert_coord=2d')
-            vertical_guessed = '2d'
-        self.logger.info('vert_coord deduced from the source are %s', vertical_guessed)
+            # this is done to load only if necessary
+            if data is None:
+                data = self._retrieve_plain(startdate=None)
+            horizontal_guessed = [x for x in data.dims if x in default_horizontal_dims]
+            if horizontal_guessed is None:
+                self.logger.info('Default dims that are screened are %s', default_horizontal_dims)
+                raise KeyError('Cannot identify any space_coord, you will will need to define it regrid.yaml')
+            self.logger.info('Space_coords deduced from the source are %s', horizontal_guessed)
+
+        if vert_coord is None:
+        
+            # this is done to load only if necessary
+            if data is None:
+                data = self._retrieve_plain(startdate=None)
+            vertical_guessed = [x for x in data.dims if x in default_vertical_dims]
+            if vertical_guessed is None:
+                self.logger.info('Default dims that are screened are %s', default_vertical_dims)
+                self.logger.info('Assuming this is a 2d file, vert_coord=2d')
+                # If not specified we assume that this is only a 2D case
+                vertical_guessed = '2d'
+            
+            self.logger.info('vert_coord deduced from the source are %s', vertical_guessed)
 
         return horizontal_guessed, vertical_guessed
 
