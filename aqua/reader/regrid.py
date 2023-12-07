@@ -309,7 +309,7 @@ class RegridMixin():
             if data is None:
                 data = self._retrieve_plain(startdate=None)
             space_coord = [x for x in data.dims if x in default_horizontal_dims]
-            if space_coord is None:
+            if not space_coord:
                 self.logger.info('Default dims that are screened are %s', default_horizontal_dims)
                 raise KeyError('Cannot identify any space_coord, you will will need to define it regrid.yaml')
             self.logger.info('Space_coords deduced from the source are %s', space_coord)
@@ -320,9 +320,9 @@ class RegridMixin():
             if data is None:
                 data = self._retrieve_plain(startdate=None)
             vert_coord = [x for x in data.dims if x in default_vertical_dims]
-            if vert_coord is None:
+            if not vert_coord:
                 self.logger.info('Default dims that are screened are %s', default_vertical_dims)
-                self.logger.info('Assuming this is a 2d file, vert_coord=2d')
+                self.logger.info('Assuming this is a 2d file, i.e. vert_coord=2d')
                 # If not specified we assume that this is only a 2D case
                 vert_coord = '2d'
             
