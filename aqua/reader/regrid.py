@@ -308,27 +308,27 @@ class RegridMixin():
             # this is done to load only if necessary
             if data is None:
                 data = self._retrieve_plain(startdate=None)
-            horizontal_guessed = [x for x in data.dims if x in default_horizontal_dims]
-            if horizontal_guessed is None:
+            space_coord = [x for x in data.dims if x in default_horizontal_dims]
+            if space_coord is None:
                 self.logger.info('Default dims that are screened are %s', default_horizontal_dims)
                 raise KeyError('Cannot identify any space_coord, you will will need to define it regrid.yaml')
-            self.logger.info('Space_coords deduced from the source are %s', horizontal_guessed)
+            self.logger.info('Space_coords deduced from the source are %s', space_coord)
 
         if vert_coord is None:
         
             # this is done to load only if necessary
             if data is None:
                 data = self._retrieve_plain(startdate=None)
-            vertical_guessed = [x for x in data.dims if x in default_vertical_dims]
-            if vertical_guessed is None:
+            vert_coord = [x for x in data.dims if x in default_vertical_dims]
+            if vert_coord is None:
                 self.logger.info('Default dims that are screened are %s', default_vertical_dims)
                 self.logger.info('Assuming this is a 2d file, vert_coord=2d')
                 # If not specified we assume that this is only a 2D case
-                vertical_guessed = '2d'
+                vert_coord = '2d'
             
-            self.logger.info('vert_coord deduced from the source are %s', vertical_guessed)
+            self.logger.info('vert_coord deduced from the source are %s', vert_coord)
 
-        return horizontal_guessed, vertical_guessed
+        return space_coord, vert_coord
 
 
 def _rename_dims(data, dim_list):

@@ -288,15 +288,19 @@ class Reader(FixerMixin, RegridMixin):
         """
 
         source_grid = cfg_regrid['grids'][self.src_grid_name]
+        
+        # get values from files
+        vert_coord = source_grid.get("vert_coord", None)  
+        space_coord = source_grid.get("space_coord", None)
+
+        # guessing space coordinates
+        self.src_space_coord, self.vert_coord = self._guess_coords(space_coord, vert_coord, 
+                                                                   default_space_dims, 
+                                                                   default_vertical_dims)
+
         # Normalize vert_coord to list
-        self.vert_coord = source_grid.get("vert_coord", "2d")  # If not specified we assume that this is only a 2D case
         if not isinstance(self.vert_coord, list):
             self.vert_coord = [self.vert_coord]
-
-        # get space coordinates
-        self.src_space_coord = source_grid.get("space_coord", None)
-        if self.src_space_coord is None:
-            self.src_space_coord, _ = self._guess_coords(default_space_dims, default_vertical_dims)
 
         self.support_dims = source_grid.get("support_dims", []) #do we use this?
         self.space_coord = self.src_space_coord
