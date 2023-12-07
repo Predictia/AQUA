@@ -33,6 +33,9 @@ default_space_dims = ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude',
                       'latitude', 'cell', 'cells', 'ncells', 'values',
                       'value', 'nod2', 'pix', 'elem']
 
+# default vertical dimension
+default_vertical_dims = ['nz1', 'nz', 'level', 'height']
+
 
 # set default options for xarray
 xr.set_options(keep_attrs=True)
@@ -43,8 +46,7 @@ class Reader(FixerMixin, RegridMixin):
 
     def __init__(self, model=None, exp=None, source=None, fix=True,
                  regrid=None, regrid_method=None, zoom=None,
-                 areas=True,  # pylint: disable=W0622
-                 datamodel=None,
+                 areas=True, datamodel=None,
                  streaming=False, stream_generator=False,
                  startdate=None, enddate=None,
                  rebuild=False, loglevel=None, nproc=4, aggregation=None):
@@ -71,7 +73,7 @@ class Reader(FixerMixin, RegridMixin):
             rebuild (bool, optional): Force rebuilding of area and weight files. Defaults to False.
             loglevel (str, optional): Level of logging according to logging module.
                                       Defaults to log_level_default of loglevel().
-            nproc (int,optional): Number of processes to use for weights generation. Defaults to 16.
+            nproc (int,optional): Number of processes to use for weights generation. Defaults to 4.
             aggregation (str, optional): aggregation/chunking to be used for GSV access (e.g. D, M, Y).
                                          Defaults to None (using default from catalogue, recommended).
 
@@ -85,12 +87,11 @@ class Reader(FixerMixin, RegridMixin):
 
         self.exp = exp
         self.model = model
-        self.targetgrid = regrid
+        self.regrid_method = regrid_method
         self.nproc = nproc
         self.vert_coord = None
         self.deltat = 1
         self.aggregation = aggregation
-        extra = []
 
         self.grid_area = None
         self.src_grid_area = None
@@ -141,188 +142,52 @@ class Reader(FixerMixin, RegridMixin):
         # get fixes dictionary and find them
         self.fix = fix  # fix activation flag
         if self.fix:
-            self.fixes_dictionary = load_multi_yaml(self.fixer_folder)
+            self.fixes_dictionary = load_multi_yaml(self.fixer_folder, loglevel=self.loglevel)
             self.fixes = self.find_fixes()  # find fixes for this model/exp/source
-
-        # Store the machine-specific CDO path if available
-        cfg_base = load_yaml(self.config_file)
-        self.cdo = self._set_cdo(cfg_base)
-
-        if self.fix:
             self.dst_datamodel = datamodel
             # Default destination datamodel
             # (unless specified in instantiating the Reader)
             if not self.dst_datamodel:
                 self.dst_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
 
+        # Store the machine-specific CDO path if available
+        cfg_base = load_yaml(self.config_file)
+        self.cdo = self._set_cdo(cfg_base)
+
         # load and check the regrid
         if regrid or areas:
-            # New load of regrid.yaml split in multiples folders
+
+            # loading the grid defintion file
             main_file = os.path.join(self.configdir, 'aqua-grids.yaml')
             machine_file = os.path.join(self.configdir, 'machines', self.machine, 'catalog.yaml')
-
             cfg_regrid = load_multi_yaml(filenames=[main_file, machine_file],
-                                         definitions="paths",
-                                         loglevel=self.loglevel)
-            source_grid_name = self.esmcat.metadata.get('source_grid_name')
-            source_grid = cfg_regrid['grids'][source_grid_name]
-            # Normalize vert_coord to list
-            self.vert_coord = source_grid.get("vert_coord", "2d")  # If not specified we assume that this is only a 2D case
-            if not isinstance(self.vert_coord, list):
-                self.vert_coord = [self.vert_coord]
+                                        definitions="paths",
+                                        loglevel=self.loglevel)
+            
+            # define grid names
+            self.src_grid_name = self.esmcat.metadata.get('source_grid_name')
+            self.dst_grid_name = regrid
 
-            # define which variables has to be masked
-            self.masked_attr, self.masked_vars = configure_masked_fields(source_grid)
-
-            # Expose grid information for the source as a dictionary of
-            # open xarrays
-            sgridpath = source_grid.get("path", None)
-            if sgridpath:
-                if isinstance(sgridpath, dict):
-                    self.src_grid = {}
-                    for k, v in sgridpath.items():
-                        self.src_grid.update({k: xr.open_dataset(v.format(zoom=self.zoom),
-                                                                 decode_times=False)})
-                else:
-                    if self.vert_coord:
-                        self.src_grid = {self.vert_coord[0]: xr.open_dataset(sgridpath.format(zoom=self.zoom),
-                                                                             decode_times=False)}
-                    else:
-                        self.src_grid = {"2d": xr.open_dataset(sgridpath.format(zoom=self.zoom),
-                                                               decode_times=False)}
-            else:
-                self.src_grid = None
-
-            # if regrid method is not defined, read from the grid and use "ycon" as default
-            default_regrid_method = "ycon"
-            if regrid_method is None:
-                self.regrid_method = source_grid.get("regrid_method", default_regrid_method)
-            else:
-                self.regrid_method = regrid_method
-
-            if self.regrid_method is not default_regrid_method:
-                self.logger.info("Regrid method: %s", self.regrid_method)
-
-            self.src_space_coord = source_grid.get("space_coord", None)
-            if self.src_space_coord is None:
-                self.src_space_coord = self._guess_space_coord(default_space_dims)
-
-            self.support_dims = source_grid.get("support_dims", [])
-            self.space_coord = self.src_space_coord
-
-        if regrid:
-            self.dst_space_coord = ["lon", "lat"]
-
-            self.weightsfile = {}
-            self.weights = {}
-            self.regridder = {}
-
-            # List of vertical coordinates or 2d to iterate over
-            if sgridpath:
-                if isinstance(sgridpath, dict):
-                    vclist = sgridpath.keys()
-                else:
-                    vclist = self.vert_coord
-            else:
-                vclist = self.vert_coord
-
-            for vc in vclist:
-                # compute correct filename ending
-                levname = vc if vc == "2d" or vc == "2dm" else f"3d-{vc}"
-
-                if sgridpath:
-                    template_file = cfg_regrid["weights"]["template_grid"].format(sourcegrid=source_grid_name,
-                                                                                  method=self.regrid_method,
-                                                                                  targetgrid=regrid,
-                                                                                  level=levname)
-                else:
-                    template_file = cfg_regrid["weights"]["template_default"].format(model=model,
-                                                                                     exp=exp,
-                                                                                     source=source,
-                                                                                     method=self.regrid_method,
-                                                                                     targetgrid=regrid,
-                                                                                     level=levname)
-                # add the zoom level in the template file
-                if self.zoom is not None:
-                    template_file = re.sub(r'\.nc',
-                                           '_z' + str(self.zoom) + r'\g<0>',
-                                           template_file)
-
-                self.weightsfile.update({vc: os.path.join(
-                    cfg_regrid["paths"]["weights"],
-                    template_file)})
-
-                # If weights do not exist, create them
-                if rebuild or not os.path.exists(self.weightsfile[vc]):
-                    if os.path.exists(self.weightsfile[vc]):
-                        os.unlink(self.weightsfile[vc])
-                    self._make_weights_file(self.weightsfile[vc], source_grid,
-                                            cfg_regrid, regrid=regrid,
-                                            vert_coord=vc, extra=extra,
-                                            zoom=self.zoom, method=self.regrid_method)
-
-                self.weights.update({vc: xr.open_mfdataset(self.weightsfile[vc])})
-                vc2 = None if vc == "2d" or vc == "2dm" else vc
-                self.regridder.update({vc: rg.Regridder(weights=self.weights[vc],
-                                                        vert_coord=vc2,
-                                                        space_dims=default_space_dims)})
-
+            # configure all the required elements
+            self._configure_coords(cfg_regrid)
+        
+        # generate source areas
         if areas:
-            if sgridpath:
-                template_file = cfg_regrid["areas"]["template_grid"].format(grid=source_grid_name)
-            else:
-                template_file = cfg_regrid["areas"]["template_default"].format(model=model,
-                                                                               exp=exp,
-                                                                               source=source)
-            # add the zoom level in the template file
-            if self.zoom is not None:
-                template_file = re.sub(r'\.nc',
-                                       '_z' + str(self.zoom) + r'\g<0>',
-                                       template_file)
+            self._generate_load_src_area(cfg_regrid, rebuild)
 
-            self.src_areafile = os.path.join(
-                cfg_regrid["paths"]["areas"],
-                template_file)
+        # configure regridder and generate weights
+        if regrid:
+            self._regrid_configure(cfg_regrid)
+            self._load_generate_regrid_weights(cfg_regrid, rebuild)
 
-            # If source areas do not exist, create them
-            if rebuild or not os.path.exists(self.src_areafile):
-                # Another possibility: was a "cellarea" file provided in regrid.yaml?
-                cellareas = source_grid.get("cellareas", None)
-                cellarea_var = source_grid.get("cellarea_var", None)
-                if os.path.exists(self.src_areafile):
-                    os.unlink(self.src_areafile)
-                if cellareas and cellarea_var:
-                    self.logger.warning("Using cellareas file provided in aqua-grids.yaml")
-                    xr.open_mfdataset(cellareas)[cellarea_var].rename("cell_area").squeeze().to_netcdf(self.src_areafile)
-                else:
-                    self._make_src_area_file(self.src_areafile, source_grid,
-                                             gridpath=cfg_regrid["cdo-paths"]["download"],
-                                             icongridpath=cfg_regrid["cdo-paths"]["icon"],
-                                             zoom=self.zoom)
+        # generate destination areas
+        if areas and regrid:
+                self._generate_load_dst_area(cfg_regrid, rebuild)
 
-            self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
-
-            if regrid:
-                self.dst_areafile = os.path.join(
-                    cfg_regrid["paths"]["areas"],
-                    cfg_regrid["areas"]["template_grid"].format(grid=self.targetgrid))
-
-                if rebuild or not os.path.exists(self.dst_areafile):
-                    if os.path.exists(self.dst_areafile):
-                        os.unlink(self.dst_areafile)
-                    grid = cfg_regrid["grids"][regrid]
-                    self._make_dst_area_file(self.dst_areafile, grid)
-
-                self.dst_grid_area = xr.open_mfdataset(self.dst_areafile).cell_area
-                if self.fix:
-                    self.dst_grid_area = self._fix_area(self.dst_grid_area)
-
-            self.grid_area = self.src_grid_area
-            if self.fix:
-                self.grid_area = self._fix_area(self.grid_area)
-
+             
     def _set_cdo(self, cfg_base):
-        """Check information on CDO to set the correct version
+        """
+        Check information on CDO to set the correct version
 
         Arguments:
             cfg_base (dict): the configuration dictionary
@@ -342,6 +207,242 @@ class Reader(FixerMixin, RegridMixin):
             self.logger.debug("Using CDO from config: %s", cdo)
 
         return cdo
+
+    def _load_generate_regrid_weights(self, cfg_regrid, rebuild):
+
+        """
+        Generated and load the regrid weights for all the vertical coordinates available
+        This is done by looping on vetical coordinates, defining a template and calling
+        the correspondet smmregrid function
+
+        Args:
+            cfg_regrid (dict): dictionary with the grid definitions
+            rebuild (bool): true/false flag to trigger recomputation of areas
+
+        Returns:
+            Define in the class object the smmregridder object
+        """
+
+        self.weightsfile = {}
+        self.weights = {}
+        self.regridder = {}
+
+        source_grid = cfg_regrid['grids'][self.src_grid_name]
+        sgridpath = source_grid.get("path", None)
+        
+        # List of vertical coordinates or 2d to iterate over
+        if sgridpath:
+            if isinstance(sgridpath, dict):
+                vclist = sgridpath.keys()
+            else:
+                vclist = self.vert_coord
+        else:
+            vclist = self.vert_coord
+
+        for vc in vclist:
+            # compute correct filename ending
+            levname = vc if vc == "2d" or vc == "2dm" else f"3d-{vc}"
+
+            if sgridpath:
+                template_file = cfg_regrid["weights"]["template_grid"].format(sourcegrid=self.src_grid_name,
+                                                                                method=self.regrid_method,
+                                                                                targetgrid=self.dst_grid_name,
+                                                                                level=levname)
+            else:
+                template_file = cfg_regrid["weights"]["template_default"].format(model=self.model,
+                                                                                    exp=self.exp,
+                                                                                    source=self.source,
+                                                                                    method=self.regrid_method,
+                                                                                    targetgrid=self.dst_grid_name,
+                                                                                    level=levname)
+            # add the zoom level in the template file
+            if self.zoom is not None:
+                template_file = re.sub(r'\.nc',
+                                        '_z' + str(self.zoom) + r'\g<0>',
+                                        template_file)
+
+            self.weightsfile.update({vc: os.path.join(
+                cfg_regrid["paths"]["weights"],
+                template_file)})
+
+            # If weights do not exist, create them
+            if rebuild or not os.path.exists(self.weightsfile[vc]):
+                if os.path.exists(self.weightsfile[vc]):
+                    os.unlink(self.weightsfile[vc])
+                self._make_weights_file(self.weightsfile[vc], source_grid,
+                                        cfg_regrid, regrid=self.dst_grid_name,
+                                        vert_coord=vc, extra=[],
+                                        zoom=self.zoom, method=self.regrid_method)
+
+            self.weights.update({vc: xr.open_mfdataset(self.weightsfile[vc])})
+            vc2 = None if vc == "2d" or vc == "2dm" else vc
+            self.regridder.update({vc: rg.Regridder(weights=self.weights[vc],
+                                                    vert_coord=vc2,
+                                                    space_dims=default_space_dims)})
+
+    def _configure_coords(self, cfg_regrid):
+        """
+        Define the horizontal and vertical coordinates to be used by areas and regrid.
+        Horizontal coordinates are guessed from a predefined list.
+        Vertical coordinates are read from the grid file.
+
+        Args: 
+            cfg_regrid (dict): dictionary with the grid definitions
+
+        Returns:
+            Defined into the class object space and vert cordinates
+        """
+
+        source_grid = cfg_regrid['grids'][self.src_grid_name]
+        
+        # get values from files
+        vert_coord = source_grid.get("vert_coord", None)  
+        space_coord = source_grid.get("space_coord", None)
+
+        # guessing space coordinates
+        self.src_space_coord, self.vert_coord = self._guess_coords(space_coord, vert_coord, 
+                                                                   default_space_dims, 
+                                                                   default_vertical_dims)
+        #self.logger.info("Space coords are %s", self.src_space_coord)
+
+        # Normalize vert_coord to list
+        if not isinstance(self.vert_coord, list):
+            self.vert_coord = [self.vert_coord]
+
+        self.support_dims = source_grid.get("support_dims", []) #do we use this?
+        self.space_coord = self.src_space_coord
+
+    def _regrid_configure(self, cfg_regrid):
+        """
+        Configure all the different steps need for the regridding computation
+        1) define the masked variables 2) load the source grid file for the different vert grids
+        3) define regrid_method to be passed to CDO
+
+        Args:
+            cfg_regrid (dict): dictionary with the grid definitions
+
+        Returns:
+            All the required class definition to run the regridding later on
+        """
+
+        source_grid = cfg_regrid['grids'][self.src_grid_name]
+
+        # define which variables has to be masked
+        self.masked_attr, self.masked_vars = configure_masked_fields(source_grid)
+
+        # set target grid coordinates
+        self.dst_space_coord = ["lon", "lat"]
+
+        # Expose grid information for the source as a dictionary of
+        # open xarrays
+        sgridpath = source_grid.get("path", None)
+        if sgridpath:
+            if isinstance(sgridpath, dict):
+                self.src_grid = {}
+                for k, v in sgridpath.items():
+                    self.src_grid.update({k: xr.open_dataset(v.format(zoom=self.zoom),
+                                                                decode_times=False)})
+            else:
+                if self.vert_coord:
+                    self.src_grid = {self.vert_coord[0]: xr.open_dataset(sgridpath.format(zoom=self.zoom),
+                                                                            decode_times=False)}
+                else:
+                    self.src_grid = {"2d": xr.open_dataset(sgridpath.format(zoom=self.zoom),
+                                                            decode_times=False)}
+        else:
+            self.src_grid = None
+
+        # if regrid method is not defined, read from the grid and use "ycon" as default
+        default_regrid_method = "ycon"
+        if self.regrid_method is None:
+            self.regrid_method = source_grid.get("regrid_method", default_regrid_method)
+        else:
+            self.regrid_method = self.regrid_method
+
+        if self.regrid_method is not default_regrid_method:
+            self.logger.info("Regrid method: %s", self.regrid_method)
+
+    
+    def _generate_load_dst_area(self, cfg_regrid, rebuild):
+        """
+        Generate and load area file for the destination grid.
+        
+        Arguments:
+            cfg_regrid (dict): dictionary with the grid definitions
+            rebuild (bool): true/false flag to trigger recomputation of areas
+    
+        Returns:
+            the destination area file loaded as xarray dataset and stored in the class object
+        """
+
+        self.dst_areafile = os.path.join(
+                cfg_regrid["paths"]["areas"],
+                cfg_regrid["areas"]["template_grid"].format(grid=self.dst_grid_name))
+
+        if rebuild or not os.path.exists(self.dst_areafile):
+            if os.path.exists(self.dst_areafile):
+                os.unlink(self.dst_areafile)
+            grid = cfg_regrid["grids"][self.dst_grid_name]
+            self._make_dst_area_file(self.dst_areafile, grid)
+
+        # open the area file and possibily fix it
+        self.dst_grid_area = xr.open_mfdataset(self.dst_areafile).cell_area
+        if self.fix:
+            self.dst_grid_area = self._fix_area(self.dst_grid_area)
+
+    def _generate_load_src_area(self, cfg_regrid, rebuild):
+        """
+        Generate and load area file for the source grid.
+        
+        Arguments:
+            cfg_regrid (dict): dictionary with the grid definitions
+            rebuild (bool): true/false flag to trigger recomputation of areas
+    
+        Returns:
+            the source area file loaded as xarray dataset and stored in the class object
+        """
+
+        source_grid = cfg_regrid['grids'][self.src_grid_name]
+        sgridpath = source_grid.get("path", None)
+
+        if sgridpath:
+            template_file = cfg_regrid["areas"]["template_grid"].format(grid=self.src_grid_name)
+        else:
+            template_file = cfg_regrid["areas"]["template_default"].format(model=self.model,
+                                                                            exp=self.exp,
+                                                                            source=self.source)
+        # add the zoom level in the template file
+        if self.zoom is not None:
+            template_file = re.sub(r'\.nc',
+                                    '_z' + str(self.zoom) + r'\g<0>',
+                                    template_file)
+
+        self.src_areafile = os.path.join(
+            cfg_regrid["paths"]["areas"],
+            template_file)
+
+        # If source areas do not exist, create them
+        if rebuild or not os.path.exists(self.src_areafile):
+            if os.path.exists(self.src_areafile):
+                os.unlink(self.src_areafile)
+
+            # Another possibility: was a "cellarea" file provided in regrid.yaml?
+            cellareas = source_grid.get("cellareas", None)
+            cellarea_var = source_grid.get("cellarea_var", None)
+            if cellareas and cellarea_var:
+                self.logger.warning("Using cellareas file provided in aqua-grids.yaml")
+                xr.open_mfdataset(cellareas)[cellarea_var].rename("cell_area").squeeze().to_netcdf(self.src_areafile)
+            else:
+                self._make_src_area_file(self.src_areafile, source_grid,
+                                            gridpath=cfg_regrid["cdo-paths"]["download"],
+                                            icongridpath=cfg_regrid["cdo-paths"]["icon"],
+                                            zoom=self.zoom)
+
+        self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
+  
+        self.grid_area = self.src_grid_area
+        if self.fix:
+            self.grid_area = self._fix_area(self.grid_area)
 
     def retrieve(self, var=None,
                  startdate=None, enddate=None):

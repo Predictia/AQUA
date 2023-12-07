@@ -60,6 +60,6 @@ grids:
   test-eORCA1-3d:
     path: 
       level: $grids/NEMO/test-eorca1_3D.nc
-    vert_coord: ["level"]
+    #vert_coord: ["level"]
     extra: 
       - -selname,dummy
