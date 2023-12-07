@@ -42,13 +42,12 @@ class Reader(FixerMixin, RegridMixin):
     """General reader for NextGEMS data."""
 
     def __init__(self, model=None, exp=None, source=None, fix=True,
-                 regrid=None, method="ycon", zoom=None,
+                 regrid=None, regrid_method=None, zoom=None,
                  areas=True,  # pylint: disable=W0622
                  datamodel=None,
                  streaming=False, stream_generator=False,
                  startdate=None, enddate=None,
                  rebuild=False, loglevel=None, nproc=4, aggregation=None):
-
         """
         Initializes the Reader class, which uses the catalog
         `config/config.yaml` to identify the required data.
@@ -58,7 +57,7 @@ class Reader(FixerMixin, RegridMixin):
             exp (str, optional): Experiment ID. Defaults to "tco2559-ng5".
             source (str, optional): Source ID. Defaults to None.
             regrid (str, optional): Perform regridding to grid `regrid`, as defined in `config/regrid.yaml`. Defaults to None.
-            method (str, optional): Regridding method. Defaults to "ycon".
+            regrid_method (str, optional): CDO Regridding regridding method. Read from grid configuration. If not specified anywhere, using "ycon".
             fix (bool, optional): Activate data fixing
             zoom (int): healpix zoom level. (Default: None)
             areas (bool, optional): Compute pixel areas if needed. Defaults to True.
@@ -148,7 +147,6 @@ class Reader(FixerMixin, RegridMixin):
         cfg_base = load_yaml(self.config_file)
         self.cdo = self._set_cdo(cfg_base)
 
-
         if self.fix:
             self.dst_datamodel = datamodel
             # Default destination datamodel
@@ -194,6 +192,16 @@ class Reader(FixerMixin, RegridMixin):
             else:
                 self.src_grid = None
 
+            # if regrid method is not defined, read from the grid and use "ycon" as default
+            default_regrid_method = "ycon"
+            if regrid_method is None:
+                self.regrid_method = source_grid.get("regrid_method", default_regrid_method)
+            else:
+                self.regrid_method = regrid_method
+
+            if self.regrid_method is not default_regrid_method:
+                self.logger.info("Regrid method: %s", self.regrid_method)
+
             self.src_space_coord = source_grid.get("space_coord", None)
             if self.src_space_coord is None:
                 self.src_space_coord = self._guess_space_coord(default_space_dims)
@@ -223,14 +231,14 @@ class Reader(FixerMixin, RegridMixin):
 
                 if sgridpath:
                     template_file = cfg_regrid["weights"]["template_grid"].format(sourcegrid=source_grid_name,
-                                                                                  method=method,
+                                                                                  method=self.regrid_method,
                                                                                   targetgrid=regrid,
                                                                                   level=levname)
                 else:
                     template_file = cfg_regrid["weights"]["template_default"].format(model=model,
                                                                                      exp=exp,
                                                                                      source=source,
-                                                                                     method=method,
+                                                                                     method=self.regrid_method,
                                                                                      targetgrid=regrid,
                                                                                      level=levname)
                 # add the zoom level in the template file
@@ -250,7 +258,7 @@ class Reader(FixerMixin, RegridMixin):
                     self._make_weights_file(self.weightsfile[vc], source_grid,
                                             cfg_regrid, regrid=regrid,
                                             vert_coord=vc, extra=extra,
-                                            zoom=self.zoom, method=method)
+                                            zoom=self.zoom, method=self.regrid_method)
 
                 self.weights.update({vc: xr.open_mfdataset(self.weightsfile[vc])})
                 vc2 = None if vc == "2d" or vc == "2dm" else vc
@@ -280,13 +288,12 @@ class Reader(FixerMixin, RegridMixin):
                 # Another possibility: was a "cellarea" file provided in regrid.yaml?
                 cellareas = source_grid.get("cellareas", None)
                 cellarea_var = source_grid.get("cellarea_var", None)
+                if os.path.exists(self.src_areafile):
+                    os.unlink(self.src_areafile)
                 if cellareas and cellarea_var:
                     self.logger.warning("Using cellareas file provided in aqua-grids.yaml")
                     xr.open_mfdataset(cellareas)[cellarea_var].rename("cell_area").squeeze().to_netcdf(self.src_areafile)
                 else:
-                    # We have to reconstruct it
-                    if os.path.exists(self.src_areafile):
-                        os.unlink(self.src_areafile)
                     self._make_src_area_file(self.src_areafile, source_grid,
                                              gridpath=cfg_regrid["cdo-paths"]["download"],
                                              icongridpath=cfg_regrid["cdo-paths"]["icon"],
@@ -351,7 +358,7 @@ class Reader(FixerMixin, RegridMixin):
 
         # Streaming emulator require these to be defined in __init__
         if (self.streaming and not self.stream_generator) and (startdate or enddate):
-            raise KeyError("In case of streaming=true the arguments startdate/enddate have to be specified when initializing the class.") # noqa E501
+            raise KeyError("In case of streaming=true the arguments startdate/enddate have to be specified when initializing the class.")  # noqa E501
 
         if not startdate:  # In case the streaming startdate is used also for FDB copy it
             startdate = self.startdate
@@ -365,7 +372,8 @@ class Reader(FixerMixin, RegridMixin):
             self.logger.info("Retrieving variables: %s", var)
             loadvar = self.get_fixer_varname(var) if self.fix else var
         else:
-            if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):  # If we are retrieving from fdb we have to specify the var
+            # If we are retrieving from fdb we have to specify the var
+            if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
                 metadata = self.esmcat.metadata
                 if metadata:
                     var = metadata.get('variables')
@@ -413,7 +421,6 @@ class Reader(FixerMixin, RegridMixin):
             for var in data.data_vars:
                 if not hasattr(data[var], 'units'):
                     self.logger.error('Variable %s has no units!', var)
-
 
         if not fiter:
             # This is not needed if we already have an iterator
@@ -496,7 +503,6 @@ class Reader(FixerMixin, RegridMixin):
         for ds in data:
             yield self._timmean(ds, freq, exclude_incomplete, time_bounds)
 
-
     def _timmean(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
         """
         Perform daily and monthly averaging
@@ -537,7 +543,7 @@ class Reader(FixerMixin, RegridMixin):
         # add a variable to create time_bounds
         if time_bounds:
             resampled = data.time.resample(time=resample_freq)
-            time_bnds = xr.concat([resampled.min(),  resampled.max()], dim='bnds').transpose()
+            time_bnds = xr.concat([resampled.min(), resampled.max()], dim='bnds').transpose()
             time_bnds['time'] = out.time
             time_bnds.name = 'time_bnds'
             out = xr.merge([out, time_bnds])
@@ -818,7 +824,6 @@ class Reader(FixerMixin, RegridMixin):
                 self.logger.warning("Duplicate entries found along the time axis, keeping the %s one.", keep)
 
         return data
-
 
     def stream(self, data, startdate=None, enddate=None, aggregation=None,
                timechunks=None, reset=False):

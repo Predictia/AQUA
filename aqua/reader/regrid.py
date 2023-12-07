@@ -288,12 +288,11 @@ class RegridMixin():
         return data
 
     def _guess_space_coord(self, default_dims):
-
         """
         Given a set of default space dimensions, find the one present in the data
         and return them
         """
-    
+
         data = self._retrieve_plain(startdate=None)
         guessed = [x for x in data.dims if x in default_dims]
         if guessed is None:
