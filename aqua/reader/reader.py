@@ -226,7 +226,7 @@ class Reader(FixerMixin, RegridMixin):
 
         source_grid = cfg_regrid['grids'][self.src_grid_name]
         sgridpath = source_grid.get("path", None)
-
+        
         # List of vertical coordinates or 2d to iterate over
         if sgridpath:
             if isinstance(sgridpath, dict):

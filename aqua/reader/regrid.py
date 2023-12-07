@@ -73,8 +73,10 @@ class RegridMixin():
                                             icongridpath=icongridpath,
                                             extra=src_extra)
         # Make sure that the new DataArray uses the expected spatial dimensions
+        self.logger.warning("Space coords are %s", self.src_space_coord)
         grid_area = _rename_dims(grid_area, self.src_space_coord)
         data = self._retrieve_plain(startdate=None)
+        self.logger.warning(data.coords)
         grid_area = grid_area.assign_coords({coord: data.coords[coord] for coord in self.src_space_coord})
         grid_area.to_netcdf(areafile)
         self.logger.warning("Success!")
