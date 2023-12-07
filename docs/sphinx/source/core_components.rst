@@ -73,6 +73,14 @@ Now we can read the actual data with the ``retrieve`` method.
 
 The reader returns an xarray.Dataset with raw ICON data on the original grid.
 
+If some information about the data is needed, it is possible to use the ``info`` method of the ``Reader`` class.
+
+.. code-block:: python
+
+    reader.info()
+
+This will print to screen some information about the data, including the grid, fixes, regrid setup and FDB details if available.
+
 
 Interpolation and Regridding
 ----------------------------
