@@ -33,6 +33,9 @@ default_space_dims = ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude',
                       'latitude', 'cell', 'cells', 'ncells', 'values',
                       'value', 'nod2', 'pix', 'elem']
 
+# default vertical dimension
+default_vertical_dims = ['nz1', 'nz', 'level', 'height']
+
 
 # set default options for xarray
 xr.set_options(keep_attrs=True)
@@ -172,7 +175,7 @@ class Reader(FixerMixin, RegridMixin):
         if areas:
             self._generate_load_src_area(cfg_regrid, rebuild)
 
-        # generate weights
+        # configure regridder and generate weights
         if regrid:
             self._regrid_configure(cfg_regrid)
             self._load_generate_regrid_weights(cfg_regrid, rebuild)
@@ -293,7 +296,7 @@ class Reader(FixerMixin, RegridMixin):
         # get space coordinates
         self.src_space_coord = source_grid.get("space_coord", None)
         if self.src_space_coord is None:
-            self.src_space_coord = self._guess_space_coord(default_space_dims)
+            self.src_space_coord, _ = self._guess_space_coord(default_space_dims)
 
         self.support_dims = source_grid.get("support_dims", []) #do we use this?
         self.space_coord = self.src_space_coord
