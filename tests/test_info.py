@@ -34,8 +34,8 @@ def test_info_gsv(capsys):
     captured = capsys.readouterr()
 
     assert "Reader for model IFS, experiment test-fdb, source fdb" in captured.out
+    assert "This experiment has expID" in captured.out
+    assert "fdb_path: /app/config.yaml" in captured.out
     assert "Metadata:" in captured.out
     assert "source_grid_name: lon-lat" in captured.out
-    assert "fdb_path: /app/config.yaml" in captured.out
-    assert "This experiment has expID" in captured.out
     assert "GSV request for this source:" in captured.out
