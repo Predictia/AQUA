@@ -18,10 +18,21 @@ machine="levante" # will change the aqua config file
 # if not defined it will use the aqua path in the script
 aqua="/work/bb1153/b382267/AQUA" #"/home/b/b382289/AQUA"
 
+# ---------------------------------------
+# The max_threads variable serves as a mechanism to control the maximum number of threads or parallel processes that can run simultaneously.
+# - If max_threads is set to 0 or a negative value: There is no limit on the number of threads, and all processes run in parallel without waiting. 
+#   This is suitable for situations where you want to utilize the maximum available resources without any restrictions.
+# - If max_threads is set to a positive value: It limits the number of concurrent threads to the specified value. 
+#   After launching the designated number of threads, the script waits for these threads to complete before launching additional ones. 
+#   This is useful when you are working on a system with limitations on the number of concurrent threads, like a login node.
+# ---------------------------------------
+max_threads=4  # Set to the desired maximum number of threads, or leave it as 0 for no limit
+
 # Define the array of atmospheric diagnostics
-atm_diagnostics=("tropical_rainfall" "global_time_series") # "atmglobalmean" "radiation" "tropical_rainfall" "teleconnections") # Add more atmospheric diagnostics if needed
+# Excluded for testing: "atmglobalmean"
+atm_diagnostics=("tropical_rainfall" "global_time_series" "radiation" "tropical_rainfall" "teleconnections") # Add more atmospheric diagnostics if needed
 # Define the array of oceanic diagnostics
-oce_diagnostics=("global_time_series" "teleconnections") # "ocean3d") # Add more oceanic diagnostics if needed
+oce_diagnostics=("global_time_series" "teleconnections" "ocean3d") # Add more oceanic diagnostics if needed
 # Define the array of diagnostics combining atmospheric and oceanic
 atm_oce_diagnostics=("ecmean") # Add more combined diagnostics if needed
 
@@ -213,6 +224,7 @@ if [ "$run_dummy" = true ] ; then
   fi
   colored_echo $GREEN "Finished setup checker"
 fi
+thread_count=0
 # Run diagnostics in parallel
 for diagnostic in "${all_diagnostics[@]}"; do
   colored_echo $GREEN "Running $diagnostic"
@@ -224,19 +236,18 @@ for diagnostic in "${all_diagnostics[@]}"; do
   elif [[ "${atm_oce_diagnostics[@]}" =~ "$diagnostic" ]]; then
     python "$aqua/diagnostics/${script_path[$diagnostic]}" $args ${atm_oce_extra_args[$diagnostic]} -l $loglevel --outputdir $outputdir/$diagnostic &
   fi
+  if [ $max_threads -gt 0 ]; then
+    ((thread_count++))
+
+    # Check if the maximum number of threads has been reached
+    if [ $thread_count -ge $max_threads ]; then
+      # Wait for the background processes to finish
+      wait
+      # Reset the thread count
+      thread_count=0
+    fi
+  fi
 done
-#for diagnostic in ${atm_diagnostics[@]}; do
-#    colored_echo $GREEN "Running $diagnostic"
-#    python "$aqua/diagnostics/${script_path[$diagnostic]}" $args_atm ${atm_extra_args[$diagnostic]} -l $loglevel --outputdir $outputdir/$diagnostic &
-#  done
-#for diagnostic in ${oce_diagnostics[@]}; do
-#    colored_echo $GREEN "Running $diagnostic"
-#    python "$aqua/diagnostics/${script_path[$diagnostic]}" $args_oce ${oce_extra_args[$diagnostic]} -l $loglevel --outputdir $outputdir/$diagnostic &
-#  done
-#for diagnostic in ${atm_oce_diagnostics[@]}; do
-#    colored_echo $GREEN "Running $diagnostic"
-#    python "$aqua/diagnostics/${script_path[$diagnostic]}" $args -l $loglevel --outputdir $outputdir/$diagnostic &
-#  done
 # Wait for all background processes to finish
 wait
 colored_echo $GREEN "Finished all diagnostics"
