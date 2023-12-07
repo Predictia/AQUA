@@ -266,62 +266,18 @@ class Reader(FixerMixin, RegridMixin):
                                                         vert_coord=vc2,
                                                         space_dims=default_space_dims)})
 
+        # generate source areas
         if areas:
-            if sgridpath:
-                template_file = cfg_regrid["areas"]["template_grid"].format(grid=source_grid_name)
-            else:
-                template_file = cfg_regrid["areas"]["template_default"].format(model=model,
-                                                                               exp=exp,
-                                                                               source=source)
-            # add the zoom level in the template file
-            if self.zoom is not None:
-                template_file = re.sub(r'\.nc',
-                                       '_z' + str(self.zoom) + r'\g<0>',
-                                       template_file)
-
-            self.src_areafile = os.path.join(
-                cfg_regrid["paths"]["areas"],
-                template_file)
-
-            # If source areas do not exist, create them
-            if rebuild or not os.path.exists(self.src_areafile):
-                # Another possibility: was a "cellarea" file provided in regrid.yaml?
-                cellareas = source_grid.get("cellareas", None)
-                cellarea_var = source_grid.get("cellarea_var", None)
-                if os.path.exists(self.src_areafile):
-                    os.unlink(self.src_areafile)
-                if cellareas and cellarea_var:
-                    self.logger.warning("Using cellareas file provided in aqua-grids.yaml")
-                    xr.open_mfdataset(cellareas)[cellarea_var].rename("cell_area").squeeze().to_netcdf(self.src_areafile)
-                else:
-                    self._make_src_area_file(self.src_areafile, source_grid,
-                                             gridpath=cfg_regrid["cdo-paths"]["download"],
-                                             icongridpath=cfg_regrid["cdo-paths"]["icon"],
-                                             zoom=self.zoom)
-
-            self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
-
+            self._generate_load_src_area(cfg_regrid, source_grid_name, rebuild)
+  
+            # generate destination areas
             if regrid:
-                self.dst_areafile = os.path.join(
-                    cfg_regrid["paths"]["areas"],
-                    cfg_regrid["areas"]["template_grid"].format(grid=self.targetgrid))
+                self._generate_load_dst_area(cfg_regrid, regrid, rebuild)
 
-                if rebuild or not os.path.exists(self.dst_areafile):
-                    if os.path.exists(self.dst_areafile):
-                        os.unlink(self.dst_areafile)
-                    grid = cfg_regrid["grids"][regrid]
-                    self._make_dst_area_file(self.dst_areafile, grid)
-
-                self.dst_grid_area = xr.open_mfdataset(self.dst_areafile).cell_area
-                if self.fix:
-                    self.dst_grid_area = self._fix_area(self.dst_grid_area)
-
-            self.grid_area = self.src_grid_area
-            if self.fix:
-                self.grid_area = self._fix_area(self.grid_area)
-
+             
     def _set_cdo(self, cfg_base):
-        """Check information on CDO to set the correct version
+        """
+        Check information on CDO to set the correct version
 
         Arguments:
             cfg_base (dict): the configuration dictionary
@@ -341,6 +297,90 @@ class Reader(FixerMixin, RegridMixin):
             self.logger.debug("Using CDO from config: %s", cdo)
 
         return cdo
+    
+    def _generate_load_dst_area(self, cfg_regrid, destination_grid_name, rebuild):
+        """
+        Generate and load area file for the source grid
+        
+        Arguments:
+            cfg_regrid (dict): dictionary with the grid definitions
+            destination_grid_name (str): the grid name stored in the catalog metadata
+            rebuild (bool): true/false flag to trigger recomputation of areas
+    
+        Returns:
+            the area file loaded as xarray dataset and stored in the class object
+        """
+
+        self.dst_areafile = os.path.join(
+                cfg_regrid["paths"]["areas"],
+                cfg_regrid["areas"]["template_grid"].format(grid=self.targetgrid))
+
+        if rebuild or not os.path.exists(self.dst_areafile):
+            if os.path.exists(self.dst_areafile):
+                os.unlink(self.dst_areafile)
+            grid = cfg_regrid["grids"][destination_grid_name]
+            self._make_dst_area_file(self.dst_areafile, grid)
+
+        # open the area file and possibily fix it
+        self.dst_grid_area = xr.open_mfdataset(self.dst_areafile).cell_area
+        if self.fix:
+            self.dst_grid_area = self._fix_area(self.dst_grid_area)
+
+    
+    def _generate_load_src_area(self, cfg_regrid, source_grid_name, rebuild):
+        """
+        Generate and load area file for the source grid
+        
+        Arguments:
+            cfg_regrid (dict): dictionary with the grid definitions
+            source_grid_name (str): the grid name stored in the catalog metadata
+            rebuild (bool): true/false flag to trigger recomputation of areas
+    
+        Returns:
+            the area file loaded as xarray dataset and stored in the class object
+        """
+
+        source_grid = cfg_regrid['grids'][source_grid_name]
+        sgridpath = source_grid.get("path", None)
+
+        if sgridpath:
+            template_file = cfg_regrid["areas"]["template_grid"].format(grid=source_grid_name)
+        else:
+            template_file = cfg_regrid["areas"]["template_default"].format(model=self.model,
+                                                                            exp=self.exp,
+                                                                            source=self.source)
+        # add the zoom level in the template file
+        if self.zoom is not None:
+            template_file = re.sub(r'\.nc',
+                                    '_z' + str(self.zoom) + r'\g<0>',
+                                    template_file)
+
+        self.src_areafile = os.path.join(
+            cfg_regrid["paths"]["areas"],
+            template_file)
+
+        # If source areas do not exist, create them
+        if rebuild or not os.path.exists(self.src_areafile):
+            if os.path.exists(self.src_areafile):
+                os.unlink(self.src_areafile)
+
+            # Another possibility: was a "cellarea" file provided in regrid.yaml?
+            cellareas = source_grid.get("cellareas", None)
+            cellarea_var = source_grid.get("cellarea_var", None)
+            if cellareas and cellarea_var:
+                self.logger.warning("Using cellareas file provided in aqua-grids.yaml")
+                xr.open_mfdataset(cellareas)[cellarea_var].rename("cell_area").squeeze().to_netcdf(self.src_areafile)
+            else:
+                self._make_src_area_file(self.src_areafile, source_grid,
+                                            gridpath=cfg_regrid["cdo-paths"]["download"],
+                                            icongridpath=cfg_regrid["cdo-paths"]["icon"],
+                                            zoom=self.zoom)
+
+        self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
+  
+        self.grid_area = self.src_grid_area
+        if self.fix:
+            self.grid_area = self._fix_area(self.grid_area)
 
     def retrieve(self, var=None,
                  startdate=None, enddate=None):
