@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
-- Simpler reader init() by reorganizing the calls to areas and regrid weights configuraiton and loading (#682)
+- Simpler reader init() by reorganizing the calls to areas and regrid weights configurition and loading (#682)
 - plot_single_map adapted to different coordinate names and bugfixes (#680)
 - Sea ice volume datasets for the Northern Hemisphere (PIOMAS) and the Southern Hemisphere (GIOMAS) (#598)
 - Possibility of defining the regrid method frome the grid definition (#678)

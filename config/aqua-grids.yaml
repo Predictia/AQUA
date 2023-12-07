@@ -117,8 +117,8 @@ grids:
     path:
       nz: $grids/FESOM/NG5_nodes_fesom_mask_nz.nc
       nz1: $grids/FESOM/NG5_nodes_fesom_mask_nz1.nc
-    #space_coord: ["nod2"]
-    #vert_coord: ["nz", "nz1"]
+    space_coord: ["nod2"]
+    vert_coord: ["nz", "nz1"]
     extra: 
     - -setgrid,$grids/FESOM/NG5_griddes_nodes_IFS.nc 
   ng5-elems-2d:
