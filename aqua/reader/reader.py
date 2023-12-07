@@ -296,7 +296,7 @@ class Reader(FixerMixin, RegridMixin):
         # get space coordinates
         self.src_space_coord = source_grid.get("space_coord", None)
         if self.src_space_coord is None:
-            self.src_space_coord, _ = self._guess_space_coord(default_space_dims)
+            self.src_space_coord, _ = self._guess_coords(default_space_dims, default_vertical_dims)
 
         self.support_dims = source_grid.get("support_dims", []) #do we use this?
         self.space_coord = self.src_space_coord
