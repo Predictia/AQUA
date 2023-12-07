@@ -10,7 +10,7 @@ model_atm="IFS"
 model_oce="FESOM"
 exp="tco2559-ng5-cycle3"
 source="lra-r100-monthly"
-outputdir="/scratch/b/b382289/cli_test"
+outputdir="/scratch/b/b382267/cli_test"
 loglevel="WARNING" # DEBUG, INFO, WARNING, ERROR, CRITICAL
 machine="levante" # will change the aqua config file
 
@@ -18,21 +18,37 @@ machine="levante" # will change the aqua config file
 # if not defined it will use the aqua path in the script
 aqua="/work/bb1153/b382267/AQUA" #"/home/b/b382289/AQUA"
 
+run_ecmean=false
+
 # Define the array of atmospheric diagnostics
-atm_diagnostics=("atmglobalmean" "global_time_series" "radiation" "ecmean" "tropical_rainfall" "teleconnections")
+atm_diagnostics=("tropical_rainfall" "global_time_series") # "atmglobalmean" "radiation" "tropical_rainfall" "teleconnections")
 # Define the array of oceanic diagnostics
-oce_diagnostics=("global_time_series" "ocean3d" "teleconnections" "ecmean")
+oce_diagnostics=("global_time_series" "teleconnections") #"ocean3d"
+atm_oce_diagnostics=("ecmean")
+all_diagnostics=("${atm_diagnostics[@]}" "${oce_diagnostics[@]}" "${atm_oce_diagnostics[@]}")
 
 # Define an associative array for atmospheric extra arguments
-declare -A atm_extra_args=([default]="")
+declare -A atm_extra_args
 # Define an associative array for oceanic extra arguments
-declare -A oce_extra_args=([default]="")
+declare -A oce_extra_args
+# Set default value for all keys
+default_value=" "
+for diagnostic in ${atm_diagnostics[@]}; do
+  atm_extra_args["$diagnostic"]=$default_value
+done
+for diagnostic in ${oce_diagnostics[@]}; do
+  oce_extra_args["$diagnostic"]=$default_value
+done
 # ---------------------------------------
 # Command line extra arguments for global_time_series
 # --config (ecmean config file)
 # ---------------------------------------
-atm_extra_args["global_time_series"]="--config $aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_atm.yaml"
-oce_extra_args["global_time_series"]="--config $aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_oce.yaml"
+# Concatenate the new part to the existing content
+atm_extra_args["global_time_series"]="${atm_extra_args["global_time_series"]} \
+  --config $aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_atm.yaml"
+oce_extra_args["global_time_series"]="${oce_extra_args["global_time_series"]} \
+  --config $aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_oce.yaml"
+echo "::: global_time_series ${atm_extra_args["global_time_series"]}"
 # ---------------------------------------
 # Command line extra arguments for ecmean
 # -c --config (ecmean config file)
@@ -55,11 +71,22 @@ oce_extra_args["global_time_series"]="--config $aqua/diagnostics/global_time_ser
 # --ref (if set it will analyze also the reference data, it is set
 #        by default)
 # ------------------------------------------------------------------
-atm_extra_args["teleconnections"]="--config cli_config_atm.yaml --ref"
-oce_extra_args["teleconnections"]="--config cli_config_oce.yaml --ref"
+# Concatenate the new part to the existing content
+atm_extra_args["teleconnections"]="${atm_extra_args["teleconnections"]} --config cli_config_atm.yaml --ref"
+oce_extra_args["teleconnections"]="${oce_extra_args["teleconnections"]} --config cli_config_oce.yaml --ref"
+
+echo "::: teleconnections ${atm_extra_args["teleconnections"]}"
 
 # End of user defined variables
 # -----------------------------
+
+# Declare the path and cli name if it is not standard, i.e., not AQUA/diagnostics/dummy/cli/cli_dummy.py.
+declare -A script_path
+for diagnostic in ${all_diagnostics[@]}; do
+  script_path["$diagnostic"]="$diagnostic/cli/cli_$diagnostic.py"
+done
+# Set specific value for "global_time_series"
+script_path["global_time_series"]="global_time_series/cli/single_analysis/cli_global_time_series.py"
 
 # Define colors for echo output
 RED='\033[0;31m'
@@ -73,7 +100,6 @@ colored_echo() {
 }
 
 # Command line arguments
-
 # Define accepted log levels
 accepted_loglevels=("info" "debug" "error" "warning" "critical" "INFO" "DEBUG" "ERROR" "WARNING" "CRITICAL")
 
@@ -121,31 +147,6 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
-
-# Define a function to run diagnostics
-function run_diagnostic {
-  colored_echo $GREEN "Running $1"
-  python "$aqua/$1" "$2" -l "$3" "$4"
-  colored_echo $GREEN "Finished $1"
-}
-
-function run_diagnostics {
-  declare -a diagnostics=("${!1[@]}")  # Get the array of diagnostics
-  declare -A extra_args=("${!2[@]}")   # Get the associative array of extra arguments
-  declare -A cli_names=("${!3[@]}")    # Get the associative array of CLI names
-
-  for diagnostic in "${diagnostics[@]}"; do
-    # Build the paths and arguments
-    script_path="${cli_names[$diagnostic]:-$diagnostic/cli/cli_$diagnostic.py}"
-    extra_arg="${extra_args[$diagnostic]:-}"
-
-    # Run the diagnostic in the background
-    run_diagnostic "$script_path" "$1" "$2" "--outputdir $outputdir/$diagnostic $extra_arg" &
-  done
-
-  # Wait for all background processes to finish
-  wait
-}
 
 colored_echo $GREEN "Setting loglevel to $loglevel"
 colored_echo $GREEN "Atmospheric model: $model_atm"
@@ -205,16 +206,40 @@ if [ "$run_dummy" = true ] ; then
   colored_echo $GREEN "Finished setup checker"
 fi
 
-# Declare the path and cli name if it is not standard, i.e., not AQUA/diagnostics/dummy/cli/cli_dummy.py.
-declare -A cli_names=([default]="")
-cli_names["global_time_series"]="global_time_series/cli/single_analysis/cli_global_time_series.py"
+for diagnostic in ${atm_diagnostics[@]}; do
+    echo "diagnostic" $diagnostic
+    echo "args_atm" $args_atm
+    echo "script_path" ${script_path[$diagnostic]}
+    echo "extra_args " ${atm_extra_args[$diagnostic]}
 
-# Run atmospheric diagnostics in parallel
-run_diagnostics "$args_atm" atm_extra_args cli_names atm_diagnostics &
+    colored_echo $GREEN "Running $diagnostic"
+    # Run the diagnostic in the background
+    python "$aqua/diagnostics/${script_path[$diagnostic]}" $args_atm ${atm_extra_args[$diagnostic]} -l $loglevel --outputdir $outputdir/$diagnostic &
+    colored_echo $GREEN "Finished $diagnostic"
+  done
+for diagnostic in ${oce_diagnostics[@]}; do
+    echo "diagnostic" $diagnostic
+    echo "args_atm" $args_oce
+    echo "script_path" ${script_path[$diagnostic]}
+    echo "extra_args " ${oce_extra_args[$diagnostic]}
+    # Build the paths and arguments
 
-# Run oceanic diagnostics in parallel
-run_diagnostics "$args_oce" oce_extra_args cli_names oce_diagnostics &
+    colored_echo $GREEN "Running $diagnostic"
+    # Run the diagnostic in the background
+    python "$aqua/diagnostics/${script_path[$diagnostic]}" $args_oce ${oce_extra_args[$diagnostic]} -l $loglevel --outputdir $outputdir/$diagnostic &
+    colored_echo $GREEN "Finished $diagnostic"
+  done
+for diagnostic in ${atm_oce_diagnostics[@]}; do
+    echo "diagnostic" $diagnostic
+    echo "args_atm" $args
+    echo "script_path" ${script_path[$diagnostic]}
+    # Build the paths and arguments
 
+    colored_echo $GREEN "Running $diagnostic"
+    # Run the diagnostic in the background
+    python "$aqua/diagnostics/${script_path[$diagnostic]}" $args -l $loglevel --outputdir $outputdir/$diagnostic &
+    colored_echo $GREEN "Finished $diagnostic"
+  done
 # Wait for all background processes to finish
 wait
 
