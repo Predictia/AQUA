@@ -483,7 +483,8 @@ class Reader(FixerMixin, RegridMixin):
                 if not var:
                     var = [self.esmcat._request['param']]  # retrieve var from catalogue
                 if sample:
-                    var = var[0]
+                    var = [var[0]]
+
                 self.logger.info(f"FDB source, setting default variables to {var}")
                 loadvar = self.get_fixer_varname(var) if self.fix else var
             else:
