@@ -445,7 +445,7 @@ class Reader(FixerMixin, RegridMixin):
             self.grid_area = self._fix_area(self.grid_area)
 
     def retrieve(self, var=None,
-                 startdate=None, enddate=None):
+                 startdate=None, enddate=None, sample=False):
         """
         Perform a data retrieve.
 
@@ -453,6 +453,7 @@ class Reader(FixerMixin, RegridMixin):
             var (str, list): the variable(s) to retrieve.Defaults to None. If None, all variables are retrieved
             startdate (str, optional): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
             enddate (str, optional): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None.
+            sample (bool, optional): read only one default variable (used only if var is not specified)
 
         Returns:
             A xarray.Dataset containing the required data.
@@ -481,7 +482,8 @@ class Reader(FixerMixin, RegridMixin):
                     var = metadata.get('variables')
                 if not var:
                     var = [self.esmcat._request['param']]  # retrieve var from catalogue
-
+                if sample:
+                    var = var[0]
                 self.logger.info(f"FDB source, setting default variables to {var}")
                 loadvar = self.get_fixer_varname(var) if self.fix else var
             else:
