@@ -64,9 +64,6 @@ class FixerMixin():
         # if only fixes family/default is available, return them
         if source_fixes is None:
             return base_fixes
-        else:
-            warn("Source-specific fixes are used. This will be deprecated in the future.",
-                 DeprecationWarning, stacklevel=2)
 
         # join source specific fixes together with default/family
         final_fixes = self._combine_fixes(base_fixes, source_fixes)
