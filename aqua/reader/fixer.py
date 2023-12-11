@@ -34,16 +34,16 @@ class FixerMixin():
 
         # check the presence of model-specific fix
         fix_model = self.fixes_dictionary["models"].get(self.model, None)
-        
+
         # if family fix is not there check for model fix
         if base_fixes is None:
-            
+
             # if also model fix are not there, quit
             if not fix_model:
                 self.logger.warning("No fixes available for model %s",
                                     self.model)
                 return None
-            
+
             # otherwise load the model default
             else:
                 base_fixes = self._load_default_fixes(fix_model)
@@ -65,12 +65,12 @@ class FixerMixin():
     def _combine_fixes(self, default_fixes, model_fixes):
         """
         Combine fixes from the default or the source/model specific or the family fixes
-        
+
         Args:
-            default_fixes: Model default or family fixes 
+            default_fixes: Model default or family fixes
             model_fixes: Source specific fixes with ad hoc rules
 
-        Returns: 
+        Returns:
             Final fix configuration
         """
 
@@ -81,7 +81,7 @@ class FixerMixin():
                 return None
 
             self.logger.info("Default model %s fixes found! Using it for experiment %s, source %s",
-                            self.model, self.exp, self.source)
+                             self.model, self.exp, self.source)
             return default_fixes
         else:
             # get method for replacement: replace is the default
@@ -107,9 +107,9 @@ class FixerMixin():
 
     def _load_family_fixes(self):
         """
-        Load the family fixes reading from the metadata of the catalog. 
-        If the family has a parent, load it and merge it giving priority to the child. 
-        """ 
+        Load the family fixes reading from the metadata of the catalog.
+        If the family has a parent, load it and merge it giving priority to the child.
+        """
 
         # if fix family is not found, return None
         if self.fix_family is None:
@@ -119,30 +119,30 @@ class FixerMixin():
         family_fixes = self.fixes_dictionary["family"].get(self.fix_family, None)
 
         # if found, proceed as expected
-        if family_fixes is not None: 
+        if family_fixes is not None:
             self.logger.info("Family fix %s found for model %s, experiment %s, source %s",
-                                self.fix_family, self.model, self.exp, self.source)
-            if 'parent' in family_fixes: 
+                             self.fix_family, self.model, self.exp, self.source)
+            if 'parent' in family_fixes:
                 parent_fixes = self.fixes_dictionary["family"].get(family_fixes['parent'])
                 self.logger.info("Parent fix %s found! Mergin with family fixes %s!", family_fixes['parent'], self.fix_family)
                 family_fixes = self._merge_fixes(parent_fixes, family_fixes)
         else:
-            self.logger.error("Family fix %s does not exist in %s.yaml file. Will try to use model default fixes!", 
+            self.logger.error("Family fix %s does not exist in %s.yaml file. Will try to use model default fixes!",
                               self.fix_family, self.model)
 
         return family_fixes
-    
+
     def _merge_fixes(self, base, specific):
         """
         Small function to merge fixes. Base fixes will be used as a default
         and specific fixes will replace where necessary. Dictionaries will be merged
         for variables, with priority for the specific ones.
-        
+
         Args:
             base (dict): Base fixes
             specific (dict): Specific fixes
-            
-        Return: 
+
+        Return:
             dict with merged fixes
         """
         final = base
@@ -150,11 +150,10 @@ class FixerMixin():
             if item == 'vars':
                 final[item] = {**base[item], **specific[item]}
             else:
-                if item in specific: 
+                if item in specific:
                     final[item] = specific[item]
 
         return final
-
 
     def _load_source_fixes(self, fix_model):
         """Browse for source/model specific fixes, return None if not found"""
@@ -163,7 +162,7 @@ class FixerMixin():
         fix_exp = fix_model.get(self.exp, None)
         if fix_exp is None:
             self.logger.debug("No experiment-specific fixes available for model %s, experiment %s",
-                             self.model, self.exp)
+                              self.model, self.exp)
             return None
 
         fixes = fix_exp.get(self.source, None)
@@ -176,7 +175,8 @@ class FixerMixin():
             else:
                 self.logger.info("Using experiment-specific default for model %s, experiment %s", self.model, self.exp)
         else:
-            self.logger.info("Source-specific fixes found for model %s, experiment %s, source %s", self.model, self.exp, self.source)
+            self.logger.info("Source-specific fixes found for model %s, experiment %s, source %s",
+                             self.model, self.exp, self.source)
 
         return fixes
 
@@ -318,11 +318,12 @@ class FixerMixin():
                         log_history(data[source], "variable derived by AQUA fixer")
                     except KeyError:
                         # The variable could not be computed, let's skip it
-                        if destvar is not None: 
+                        if destvar is not None:
                             # issue an error if you are asking that specific variable!
                             self.logger.error('Requested derived variable %s cannot be computed, is it available?', shortname)
-                        else: 
-                            self.logger.warning('%s is defined in the fixes but cannot be computed, is it available?', shortname)
+                        else:
+                            self.logger.warning('%s is defined in the fixes but cannot be computed, is it available?',
+                                                shortname)
                         continue
 
                 # safe check debugging
