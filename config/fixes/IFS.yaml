@@ -170,8 +170,7 @@ family:
             mtntrf:
                 src_units: W/m2
                 source: ttr
-                        grib: true  
-
+                grib: true  
 
 models:
     IFS:

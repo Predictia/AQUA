@@ -168,6 +168,7 @@ class Reader(FixerMixin, RegridMixin):
             
             # define grid names
             self.src_grid_name = self.esmcat.metadata.get('source_grid_name')
+            self.logger.debug('Grid metadata is %s', self.src_grid_name)
             self.dst_grid_name = regrid
 
             # configure all the required elements
