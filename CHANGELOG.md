@@ -7,12 +7,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+## [v0.5.1]
+
+Main changes are:
+1. A new `Reader` method `info()` is available to print the catalogue information
+2. Grids are now stored online and a tool to deploy them on the `cli` folder is available
+
+Complete list:
 - Reader.info() method to print the catalogue information (#683)
-- Simpler reader init() by reorganizing the calls to areas and regrid weights configurition and loading (#682)
+- Simpler reader init() by reorganizing the calls to areas and regrid weights configuration and loading (#682)
 - Optional autosearch for vert_coord (#682)
 - plot_single_map adapted to different coordinate names and bugfixes (#680)
 - Sea ice volume datasets for the Northern Hemisphere (PIOMAS) and the Southern Hemisphere (GIOMAS) (#598)
-- Possibility of defining the regrid method frome the grid definition (#678)
+- Possibility of defining the regrid method from the grid definition (#678)
 - Grids stored online and tool to deploy them on cli folder (#675)
 - Global time series diagnostic improvements (#637)
 - Teleconnections diagnostic improvements (#672)
@@ -25,7 +32,7 @@ Main changes are:
 3. CLI wrapper is available to run all diagnostics in a single call
 4. Refactoring of the streaming emulator with equal treatment for FDB or file sources
 
-Complete list
+Complete list:
 - Controlling the loglevel of the GSV interface (#665)
 - Fix wrong fdb source (#657)
 - Adding sample files and tests for NEMO 2D and 3D grids (#652)
@@ -199,7 +206,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.5...HEAD
+[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.5.1...HEAD
+[v0.5.1]: https://github.com/oloapinivad/AQUA/compare/v0.5...v0.5.1
 [v0.5]: https://github.com/oloapinivad/AQUA/compare/v0.4...v0.5
 [v0.4]: https://github.com/oloapinivad/AQUA/compare/v0.3...v0.4
 [v0.3]: https://github.com/oloapinivad/AQUA/compare/v0.2.1...v0.3
