@@ -14,6 +14,7 @@ Main changes are:
 2. Grids are now stored online and a tool to deploy them on the `cli` folder is available
 
 Complete list:
+- Fix attributes of DataArrays read from FDB (#686)
 - Reader.info() method to print the catalogue information (#683)
 - Simpler reader init() by reorganizing the calls to areas and regrid weights configuration and loading (#682)
 - Optional autosearch for vert_coord (#682)
