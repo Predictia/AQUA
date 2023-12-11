@@ -25,6 +25,9 @@ class FixerMixin():
     def find_fixes(self):
         """
         Get the fixes for the model/exp/source hierarchy.
+        First looks for family fixes as base_fixes.
+        If not found, looks for default fixes for the model.
+        Then source_fixes are loaded and merged with base_fixes.
 
         Args:
             The fixer class
@@ -42,7 +45,7 @@ class FixerMixin():
         # if family fix is not there check for model fix
         if base_fixes is None:
 
-            # if also model fix are not there, quit
+            # if also model fix are not there, return None
             if not fix_model:
                 self.logger.warning("No fixes available for model %s",
                                     self.model)
@@ -50,9 +53,10 @@ class FixerMixin():
 
             # otherwise load the model default
             else:
-                warn("Source based fixes are used. This will be deprecated in the future.",
-                     DeprecationWarning, stacklevel=2)
                 base_fixes = self._load_default_fixes(fix_model)
+                if base_fixes:
+                    warn("Default experiment based fixes are used. This will be deprecated in the future.",
+                         DeprecationWarning, stacklevel=2)
 
         # browse for source-specific fixes
         source_fixes = self._load_source_fixes(fix_model)
@@ -60,6 +64,9 @@ class FixerMixin():
         # if only fixes family/default is available, return them
         if source_fixes is None:
             return base_fixes
+        else:
+            warn("Source-specific fixes are used. This will be deprecated in the future.",
+                 DeprecationWarning, stacklevel=2)
 
         # join source specific fixes together with default/family
         final_fixes = self._combine_fixes(base_fixes, source_fixes)
