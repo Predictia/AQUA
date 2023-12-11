@@ -127,7 +127,8 @@ class FixerMixin():
                 self.logger.info("Parent fix %s found! Mergin with family fixes %s!", family_fixes['parent'], self.fix_family)
                 family_fixes = self._merge_fixes(parent_fixes, family_fixes)
         else:
-            self.logger.error("Family fix %s does not exist in fix file. Will try to use model default fixes!", self.fix_family)
+            self.logger.error("Family fix %s does not exist in %s.yaml file. Will try to use model default fixes!", 
+                              self.fix_family, self.model)
 
         return family_fixes
     
