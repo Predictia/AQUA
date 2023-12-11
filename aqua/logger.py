@@ -31,7 +31,7 @@ def log_configure(log_level=None, log_name=None):
     if logger.handlers:
         if log_level != logging.getLevelName(logger.getEffectiveLevel()):
             logger.setLevel(log_level)
-            logger.info('Updating the log_level to %s', log_level)
+            logger.debug('Updating the log_level to %s', log_level)
         return logger
 
     # avoid duplication/propagation of loggers
