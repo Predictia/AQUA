@@ -122,15 +122,26 @@ class FixerMixin():
         return family_fixes
     
     def _merge_fixes(self, base, specific):
-
-        """Small function to merge fixes"""
+        """
+        Small function to merge fixes. Base fixes will be used as a default
+        and specific fixes will replace where necessary. Dictionaries will be merged
+        for variables, with priority for the specific ones
+        
+        Args:
+            base (dict): Base fixes
+            specific (dict): Specific fixes
+            
+        Return: 
+            dict with merged fixes
+        """
 
         final = base
         for item in base.keys():
             if item == 'vars':
                 final[item] = {**base[item], **specific[item]}
             else:
-                final[item] = specific[item]
+                if item in specific: 
+                    final[item] = specific[item]
 
         return final       
 
