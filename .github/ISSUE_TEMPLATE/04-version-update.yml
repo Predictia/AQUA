@@ -15,3 +15,9 @@ body:
         - [ ] update bug report menu
         - [ ] update version number on `__init__` AQUA file
         - [ ] check if internal projects pinned to a specific version need to be updated
+  - type: textarea
+    id: extras
+    attributes:
+      label: Extras
+    validations:
+      required: False
