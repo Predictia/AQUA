@@ -475,9 +475,9 @@ class LRAgenerator():
         
         # update data attributes for history
         if self.frequency:
-            log_history(data, f'regridded from {self.reader.original_grid_name} to {self.resolution} and from frequency {self.reader.orig_freq} to {self.frequency} through LR generator')                
+            log_history(data, f'regridded from {self.reader.original_grid_name} to {self.resolution} and from frequency {self.reader.orig_freq} to {self.frequency} through LRA generator')                
         else:
-            log_history(data, f'regridded from {self.reader.original_grid_name} to {self.resolution} through LR generator')
+            log_history(data, f'regridded from {self.reader.original_grid_name} to {self.resolution} through LRA generator')
 
         # File to be written
         if os.path.exists(outfile):
