@@ -109,8 +109,16 @@ class FixerMixin():
         """
         Load the family fixes reading from the metadata of the catalog. 
         If the family has a parent, load it and merge it giving priority to the child. 
-        """
+        """ 
+
+        # if fix family is not found, return None
+        if self.fix_family is None:
+            return None
+
+        # get the family from the fix files
         family_fixes = self.fixes_dictionary["family"].get(self.fix_family, None)
+
+        # if found, proceed as expected
         if family_fixes is not None: 
             self.logger.info("Family fix %s found for model %s, experiment %s, source %s",
                                 self.fix_family, self.model, self.exp, self.source)
@@ -118,6 +126,8 @@ class FixerMixin():
                 parent_fixes = self.fixes_dictionary["family"].get(family_fixes['parent'])
                 self.logger.info("Parent fix %s found! Mergin with family fixes %s!", family_fixes['parent'], self.fix_family)
                 family_fixes = self._merge_fixes(parent_fixes, family_fixes)
+        else:
+            self.logger.error("Family fix %s does not exist in fix file!", self.fix_family)
 
         return family_fixes
     
@@ -136,7 +146,7 @@ class FixerMixin():
         """
         final = base
         for item in base.keys():
-            if item in ['vars']:
+            if item == 'vars':
                 final[item] = {**base[item], **specific[item]}
             else:
                 if item in specific: 

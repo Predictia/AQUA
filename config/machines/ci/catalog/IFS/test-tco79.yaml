@@ -26,7 +26,6 @@ sources:
   short_nn:
     metadata:
       source_grid_name: tco79-nn
-      fix_family: ifs-ci-test-two
     args:
       chunks:
         time: 1

@@ -143,7 +143,8 @@ class Reader(FixerMixin, RegridMixin):
         self.fix = fix  # fix activation flag
         if self.fix:
             self.fix_family = self.esmcat.metadata.get('fix_family')
-            self.logger.debug('Fix family metadata is %s', self.fix_family)
+            if self.fix_family is not None:
+                self.logger.info('Fix family metadata is %s', self.fix_family)
             self.fixes_dictionary = load_multi_yaml(self.fixer_folder, loglevel=self.loglevel)
             self.fixes = self.find_fixes()  # find fixes for this model/exp/source
             self.dst_datamodel = datamodel
@@ -168,7 +169,8 @@ class Reader(FixerMixin, RegridMixin):
             
             # define grid names
             self.src_grid_name = self.esmcat.metadata.get('source_grid_name')
-            self.logger.debug('Grid metadata is %s', self.src_grid_name)
+            if self.src_grid_name is not None:
+                self.logger.info('Grid metadata is %s', self.src_grid_name)
             self.dst_grid_name = regrid
 
             # configure all the required elements

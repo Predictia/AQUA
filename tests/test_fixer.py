@@ -72,9 +72,9 @@ def test_fixer_ifs_family():
     data = reader.retrieve()
     assert data['2t'].attrs['donald'] == 'duck'
 
-def test_fixer_ifs_family():
-    """Check with fixer parent family method (not working)"""
+def test_fixer_fesom_family():
+    """Check with fixer parent family method"""
 
-    reader = Reader(model="IFS", exp="test-tco79", source="short_nn", loglevel=loglevel)
+    reader = Reader(model="FESOM", exp="test-pi", source="original_2d_fix", loglevel=loglevel)
     data = reader.retrieve()
-    assert data['2t'].attrs['uncle'] == 'scrooge'
+    assert data['mlotst125'].attrs['uncle'] == 'scrooge'

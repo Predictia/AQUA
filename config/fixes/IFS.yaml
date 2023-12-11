@@ -178,13 +178,6 @@ family:
                 source: 2t
                 attributes: 
                     donald: 'duck'
-    ifs-ci-test-two:
-        parent: ifs-ci-test
-        vars:
-            2t:
-                source: 2t
-                attributes: 
-                    uncle: 'scrooge'
 models:
     IFS:
         default:
