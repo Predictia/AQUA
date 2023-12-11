@@ -298,6 +298,9 @@ class Reader(FixerMixin, RegridMixin):
             Defined into the class object space and vert cordinates
         """
 
+        if self.src_grid_name not in cfg_regrid['grids']:
+            raise KeyError(f'Source grid {self.src_grid_name} does exist in aqua-grid.yaml!')
+
         source_grid = cfg_regrid['grids'][self.src_grid_name]
         
         # get values from files
