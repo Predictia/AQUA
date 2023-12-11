@@ -127,7 +127,7 @@ class FixerMixin():
                 self.logger.info("Parent fix %s found! Mergin with family fixes %s!", family_fixes['parent'], self.fix_family)
                 family_fixes = self._merge_fixes(parent_fixes, family_fixes)
         else:
-            self.logger.error("Family fix %s does not exist in fix file!", self.fix_family)
+            self.logger.error("Family fix %s does not exist in fix file. Will try to use model default fixes!", self.fix_family)
 
         return family_fixes
     
@@ -135,7 +135,7 @@ class FixerMixin():
         """
         Small function to merge fixes. Base fixes will be used as a default
         and specific fixes will replace where necessary. Dictionaries will be merged
-        for variables, with priority for the specific ones
+        for variables, with priority for the specific ones.
         
         Args:
             base (dict): Base fixes
@@ -194,11 +194,16 @@ class FixerMixin():
 
         default_fix_exp = fix_model.get('default', None)
         if default_fix_exp is None:
+            self.logger.warning("Default fixes not found for %s", self.model)
             default_fixes = None
         else:
             if 'default' in default_fix_exp:
                 default_fixes = default_fix_exp.get('default', None)
+                if default_fixes is not None:
+                    self.logger.info("Default based fixes found for %s-%s", self.model, self.exp)
+
             else:
+                self.logger.info("Default based fixes found for %s", self.model)
                 default_fixes = default_fix_exp
 
         return default_fixes
