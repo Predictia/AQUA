@@ -29,63 +29,50 @@ class FixerMixin():
             The fixer dictionary
         """
 
-        # look for model fix
-        fix_model = self.fixes_dictionary["models"].get(self.model, None)
-        if not fix_model:
-            self.logger.warning("No fixes available for model %s",
-                                self.model)
-            return None
-
         # look for family fixes and set them as default
-        default_fixes = self._load_family_fixes()
+        base_fixes = self._load_family_fixes()
 
-        # get default fixes: they could be written at the default experiment
-        # or the default source level. If none of this is found, set as None
-        # This is called only when family fixes are not set or available
-        # it is a temporary solution to guarantee that default fixes are still working
-        if default_fixes is None:
-            default_fixes = self._load_default_fixes(fix_model)
+        # check the presence of model-specific fix
+        fix_model = self.fixes_dictionary["models"].get(self.model, None)
+        
+        # if family fix is not there check for model fix
+        if base_fixes is None:
+            
+            # if also model fix are not there, quit
+            if not fix_model:
+                self.logger.warning("No fixes available for model %s",
+                                    self.model)
+                return None
+            
+            # otherwise load the model default
+            else:
+                base_fixes = self._load_default_fixes(fix_model)
 
-        # browse for model/source fixes
-        model_fixes = self._load_source_fixes(fix_model)
+        # browse for source-specific fixes
+        source_fixes = self._load_source_fixes(fix_model)
 
-        # put fixes together
-        fixes = self._combine_fixes(default_fixes, model_fixes)
+        # if only fixes family/default is available, return them
+        if source_fixes is None:
+            return base_fixes
 
-        # if None or using default fixes, just return and save time
-        if fixes is None or fixes == default_fixes:
-            return fixes
-
-        # get method for replacement: replace is the default
-        method = fixes.get('method', 'replace')
-        self.logger.info("For source %s, method for fixes is: %s", self.source, method)
-
-        # if nothing specified or replace method, use the fixes
-        if method == 'replace':
-            self.logger.debug("Replacing default/family fixes with source-specific fixes")
-            final_fixes = fixes
-
-        # if merge method is specified, replace/add to default fixes
-        elif method == 'merge':
-            self.logger.debug("Merging default/family fixes with source-specific fixes")
-            final_fixes = default_fixes
-            for item in fixes.keys():
-                if item == 'vars':
-                    final_fixes[item] = {**default_fixes[item], **fixes[item]}
-                else:
-                    final_fixes[item] = fixes[item]
-
-        # if method is default, roll back to default
-        elif method == 'default':
-            self.logger.debug("Rolling back to default/family fixes")
-            final_fixes = default_fixes
+        # join source specific fixes together with default/family
+        final_fixes = self._combine_fixes(base_fixes, source_fixes)
 
         self.logger.debug('Final fixes are: %s', final_fixes)
 
         return final_fixes
 
     def _combine_fixes(self, default_fixes, model_fixes):
-        """Combine fixes from the default or the source/model specific or the family fixes"""
+        """
+        Combine fixes from the default or the source/model specific or the family fixes
+        
+        Args:
+            default_fixes: Model default or family fixes 
+            model_fixes: Source specific fixes with ad hoc rules
+
+        Returns: 
+            Final fix configuration
+        """
 
         if model_fixes is None:
             if default_fixes is None:
@@ -97,16 +84,55 @@ class FixerMixin():
                             self.model, self.exp, self.source)
             return default_fixes
         else:
-            return model_fixes
+            # get method for replacement: replace is the default
+            method = model_fixes.get('method', 'replace')
+            self.logger.info("For source %s, method for fixes is: %s", self.source, method)
+
+            # if nothing specified or replace method, use the fixes
+            if method == 'replace':
+                self.logger.debug("Replacing default/family fixes with source-specific fixes")
+                final_fixes = model_fixes
+
+            # if merge method is specified, replace/add to default fixes
+            elif method == 'merge':
+                self.logger.debug("Merging default/family fixes with source-specific fixes")
+                final_fixes = self._merge_fixes(default_fixes, model_fixes)
+
+            # if method is default, roll back to default
+            elif method == 'default':
+                self.logger.debug("Rolling back to default/family fixes")
+                final_fixes = default_fixes
+
+            return final_fixes
 
     def _load_family_fixes(self):
-        """Load the family fixes"""
+        """
+        Load the family fixes reading from the metadata of the catalog. 
+        If the family has a parent, load it and merge it giving priority to the child. 
+        """
         family_fixes = self.fixes_dictionary["family"].get(self.fix_family, None)
         if family_fixes is not None: 
-            self.logger.warning("Family fix  %s found for model %s, experiment %s, source %s",
+            self.logger.info("Family fix %s found for model %s, experiment %s, source %s",
                                 self.fix_family, self.model, self.exp, self.source)
+            if 'parent' in family_fixes: 
+                parent_fixes = self.fixes_dictionary["family"].get(family_fixes['parent'])
+                self.logger.info("Parent fix %s found! Mergin with family fixes %s!", family_fixes['parent'], self.fix_family)
+                family_fixes = self._merge_fixes(parent_fixes, family_fixes)
+
         return family_fixes
-            
+    
+    def _merge_fixes(self, base, specific):
+
+        """Small function to merge fixes"""
+
+        final = base
+        for item in base.keys():
+            if item == 'vars':
+                final[item] = {**base[item], **specific[item]}
+            else:
+                final[item] = specific[item]
+
+        return final       
 
 
     def _load_source_fixes(self, fix_model):
@@ -115,21 +141,21 @@ class FixerMixin():
         # look for exp fix, if not found, set default fixes
         fix_exp = fix_model.get(self.exp, None)
         if fix_exp is None:
-            self.logger.info("No specific fixes available for model %s, experiment %s",
+            self.logger.debug("No experiment-specific fixes available for model %s, experiment %s",
                              self.model, self.exp)
             return None
 
         fixes = fix_exp.get(self.source, None)
         if fixes is None:
-            self.logger.info("No specific fixes available for model %s, experiment %s, source %s: checking for model default...",  # noqa: E501
+            self.logger.info("No source-specific fixes available for model %s, experiment %s, source %s: checking for model default...",  # noqa: E501
                              self.model, self.exp, self.source)
             fixes = fix_exp.get('default', None)
             if fixes is None:
-                self.logger.info("Nothing found! I will try with model default fixes...")
+                self.logger.info("Nothing found! I will use with model default or family fixes...")
             else:
-                self.logger.info("Using default for model %s, experiment %s", self.model, self.exp)
+                self.logger.info("Using experiment-specific default for model %s, experiment %s", self.model, self.exp)
         else:
-            self.logger.info("Fixes found for model %s, experiment %s, source %s", self.model, self.exp, self.source)
+            self.logger.info("Source-specific fixes found for model %s, experiment %s, source %s", self.model, self.exp, self.source)
 
         return fixes
 
