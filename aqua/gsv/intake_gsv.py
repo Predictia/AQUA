@@ -288,8 +288,8 @@ class GSVSource(base.DataSource):
 
             da = xr.DataArray(darr,
                               name=shortname,
-                              attrs=self._ds[var].attrs,
-                              dims=self._ds[var].dims,
+                              attrs=self._ds[shortname].attrs,
+                              dims=self._ds[shortname].dims,
                               coords=coords)
 
             
