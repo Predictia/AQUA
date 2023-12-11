@@ -171,7 +171,20 @@ family:
                 src_units: W/m2
                 source: ttr
                 grib: true  
-
+    ifs-ci-test:
+        data_model: ifs
+        vars:
+            2t:
+                source: 2t
+                attributes: 
+                    donald: 'duck'
+    ifs-ci-test-two:
+        parent: ifs-ci-test
+        vars:
+            2t:
+                source: 2t
+                attributes: 
+                    uncle: 'scrooge'
 models:
     IFS:
         default:

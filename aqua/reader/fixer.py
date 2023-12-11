@@ -134,16 +134,15 @@ class FixerMixin():
         Return: 
             dict with merged fixes
         """
-
         final = base
         for item in base.keys():
-            if item == 'vars':
+            if item in ['vars']:
                 final[item] = {**base[item], **specific[item]}
             else:
                 if item in specific: 
                     final[item] = specific[item]
 
-        return final       
+        return final
 
 
     def _load_source_fixes(self, fix_model):

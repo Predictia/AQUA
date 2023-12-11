@@ -59,9 +59,22 @@ def test_fixer_ifs_long():
     assert mtntrf2.attrs['long_name'] == 'Mean top net thermal radiation flux doubled'
 
 def test_fixer_ifs_short():
-
     """Check alternative fix with replace method"""
 
     reader = Reader(model="IFS", exp="test-tco79", source="short", loglevel=loglevel)
     data = reader.retrieve()
     assert data['2t'].attrs['mickey'] == 'mouse'
+
+def test_fixer_ifs_family():
+    """Check with fixer family method"""
+
+    reader = Reader(model="IFS", exp="test-tco79", source="short_masked", loglevel=loglevel)
+    data = reader.retrieve()
+    assert data['2t'].attrs['donald'] == 'duck'
+
+def test_fixer_ifs_family():
+    """Check with fixer parent family method (not working)"""
+
+    reader = Reader(model="IFS", exp="test-tco79", source="short_nn", loglevel=loglevel)
+    data = reader.retrieve()
+    assert data['2t'].attrs['uncle'] == 'scrooge'
