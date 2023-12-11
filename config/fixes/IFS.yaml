@@ -100,7 +100,77 @@ family:
         vars:
             tprate:
                 source: tprate
-
+    ifs-cycle3:
+        # for this exp we have a lot of output from MultI/O, already decumulated and
+        # averaged monthly, so default is without decumulation
+        vars:
+            tprate:
+                src_units: m s**-1
+                source: tp
+                grib: true
+                units: kg m**-2 s**-1
+            cprate:
+                src_units: m s**-1
+                source: cp
+                grib: true
+                units: kg m**-2 s**-1
+            mlsprt:
+                src_units: m s**-1
+                source: lsp
+                grib: true
+                units: kg m**-2 s**-1 
+            erate:
+                src_units: m s**-1
+                source: e
+                grib: true
+                units: kg m**-2 s**-1 
+            esrate:
+                src_units: m s**-1
+                source: es
+                grib: true
+                units: kg m**-2 s**-1 
+            mrort:
+                src_units: m s**-1
+                source: ro
+                grib: true
+                units: kg m**-2 s**-1
+            mtsfr:
+                src_units: m s**-1
+                source: sf
+                grib: true
+                units: kg m**-2 s**-1
+            mslhfl:
+                src_units: W/m2
+                source: slhf
+                grib: true
+            msshfl:
+                src_units: W/m2
+                source: sshf
+                grib: true
+            msnsrf:
+                src_units: W/m2
+                source: ssr
+                grib: true
+            msdsrf:
+                src_units: W/m2
+                source: ssrd
+                grib: true
+            msntrf:
+                src_units: W/m2
+                source: str
+                grib: true
+            msdtrf:
+                src_units: W/m2
+                source: strd
+                grib: true
+            mtnsrf:
+                src_units: W/m2
+                source: tsr
+                grib: true
+            mtntrf:
+                src_units: W/m2
+                source: ttr
+                        grib: true  
 
 
 models:
