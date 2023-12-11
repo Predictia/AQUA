@@ -6,6 +6,7 @@ import json
 import warnings
 import types
 from datetime import timedelta
+from warnings import warn
 import xarray as xr
 import numpy as np
 import cf2cdm
@@ -13,6 +14,9 @@ from metpy.units import units
 
 from aqua.util import eval_formula, get_eccodes_attr, find_lat_dir, check_direction
 from aqua.logger import log_history
+
+# Set the warning filter to always display DeprecationWarning
+warnings.simplefilter('always', DeprecationWarning)
 
 
 class FixerMixin():
@@ -46,6 +50,8 @@ class FixerMixin():
 
             # otherwise load the model default
             else:
+                warn("Source based fixes are used. This will be deprecated in the future.",
+                     DeprecationWarning, stacklevel=2)
                 base_fixes = self._load_default_fixes(fix_model)
 
         # browse for source-specific fixes
