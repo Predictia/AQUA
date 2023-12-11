@@ -127,14 +127,17 @@ class GSVSource(base.DataSource):
         super(GSVSource, self).__init__(metadata=metadata)
 
     def _get_schema(self):
-        """Standard method providing data schema"""
+        """
+        Standard method providing data schema.
+        For dask access it is assumed that all dataarrays read share the same shape and data type.
+        """
 
         # check if dates are within acceptable range
         check_dates(self.startdate, self.data_start_date, self.enddate, self.data_end_date)
 
         if self.dask_access:  # We need a better schema for dask access
             if not self._ds:  # we still have to retrieve a sample dataset
-                self._ds = self._get_partition(0, var=self._var[0], first=True)
+                self._ds = self._get_partition(0, var=self._var, first=True)
 
             var = list(self._ds.data_vars)[0]
             da = self._ds[var]  # get first variable dataarray
@@ -147,7 +150,7 @@ class GSVSource(base.DataSource):
                 datashape=None,
                 dtype=str(da.dtype),
                 shape=da.shape,
-                name=var,
+                name=None,
                 npartitions=self._npartitions,
                 extra_metadata=metadata)
         else:
@@ -267,7 +270,8 @@ class GSVSource(base.DataSource):
         shape = self._schema.shape
         dtype = self._schema.dtype
 
-        da0 = self._ds[self._schema.name]  # sample dataarray
+        var = list(self._ds.data_vars)[0]
+        da0 = self._ds[var]  # sample dataarray
 
         self.itime = da0.dims.index("time")
         coords = da0.coords.copy()
@@ -280,13 +284,15 @@ class GSVSource(base.DataSource):
             dalist = [self.get_part_delayed(i, var, shape, dtype) for i in range(self.npartitions)]
             darr = dask.array.concatenate(dalist, axis=self.itime)  # This is a lazy dask array
 
+            shortname = self.get_eccodes_shortname(var)
+
             da = xr.DataArray(darr,
-                              name=da0.name,
-                              attrs=da0.attrs,
-                              dims=da0.dims,
+                              name=shortname,
+                              attrs=self._ds[shortname].attrs,
+                              dims=self._ds[shortname].dims,
                               coords=coords)
 
-            shortname = self.get_eccodes_shortname(var)
+            
             ds[shortname] = da
 
         ds.attrs.update(self._ds.attrs)
