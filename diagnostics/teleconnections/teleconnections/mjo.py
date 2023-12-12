@@ -4,7 +4,8 @@ Module to evaluate the MJO teleconnection.
 import xarray as xr
 
 from aqua.logger import log_configure
-from teleconnections.tools import area_selection, TeleconnectionsConfig
+from aqua.util import area_selection
+from teleconnections.tools import TeleconnectionsConfig
 
 # set default options for xarray
 xr.set_options(keep_attrs=True)
@@ -61,7 +62,7 @@ def mjo_hovmoller(data: xr.DataArray or xr.Dataset = None,
     lon = [namelist[telecname]['lonW'], namelist[telecname]['lonE']]
 
     # Selecting the MJO box
-    data_sel = area_selection(data, lat=lat, lon=lon)
+    data_sel = area_selection(data, lat=lat, lon=lon, drop=True)
 
     # Evaluating anomalies
     data_mean = data_sel.mean(dim='time')
