@@ -33,12 +33,12 @@ aqua="/work/bb1153/b382267/AQUA"
 # ---------------------------------------
 max_threads=-1  # Set to the desired maximum number of threads, or leave it as 0 for no limit
 
-# Define the array of atmospheric diagnostics
-atm_diagnostics=("tropical_rainfall" "global_time_series" "radiation" "teleconnections" "atmglobalmean") # Add more atmospheric diagnostics if needed
-# Define the array of oceanic diagnostics
-oce_diagnostics=("global_time_series" "teleconnections" "ocean3d" "seaice") # Add more oceanic diagnostics if needed
-# Define the array of diagnostics combining atmospheric and oceanic
-atm_oce_diagnostics=("ecmean") # Add more combined diagnostics if needed
+# Define the array of atmospheric diagnostics, add more if needed or available
+atm_diagnostics=("tropical_rainfall" "global_time_series" "radiation" "teleconnections" "atmglobalmean")
+# Define the array of oceanic diagnostics, add more if needed or available
+oce_diagnostics=("global_time_series" "teleconnections" "ocean3d" "seaice")
+# Define the array of diagnostics combining atmospheric and oceanic data, add more if needed or available
+atm_oce_diagnostics=("ecmean")
 
 # Combine all diagnostics into a single array
 all_diagnostics=("${atm_diagnostics[@]}" "${oce_diagnostics[@]}" "${atm_oce_diagnostics[@]}")
@@ -67,38 +67,38 @@ done
 for diagnostic in ${atm_oce_diagnostics[@]}; do
   atm_oce_extra_args["$diagnostic"]=$default_value
 done
-# ---------------------------------------
-# Command line extra arguments for global_time_series
-# --config (ecmean config file)
-# ---------------------------------------
+# Here we can set the extra arguments for each diagnostic
+# ----------------------------------------------------
+# Command line extra arguments for global_time_series:
+# --config (config file)
 # Concatenate the new part to the existing content
-atm_extra_args["global_time_series"]="${atm_extra_args["global_time_series"]} --config $aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_atm.yaml"
-oce_extra_args["global_time_series"]="${oce_extra_args["global_time_series"]} --config $aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_oce.yaml"
-# ---------------------------------------
-# Command line extra arguments for ecmean
+atm_extra_args["global_time_series"]="${atm_extra_args["global_time_series"]} \
+--config $aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_atm.yaml"
+oce_extra_args["global_time_series"]="${oce_extra_args["global_time_series"]} \
+--config $aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_oce.yaml"
+# ----------------------------------------
+# Command line extra arguments for ecmean:
 # -c --config (ecmean config file)
 # -i --interface (custom interface file)
-# ---------------------------------------
-# ------------------------------------------
-# Command line extra arguments for radiation
+# -------------------------------------------
+# Command line extra arguments for radiation:
 # --config (readiation config file)
 # ------------------------------------------
-# ------------------------------------------
-# Command line extra arguments for seaice
+# Command line extra arguments for seaice:
 # --all-regions (if set it will plot all regions)
 #               (default is False)
 # --config (seaice config file)
 # --regrid (regrid data to a different grid)
-# ------------------------------------------
-# Command line extra arguments for teleconnections
-# ------------------------------------------------------------------
+# ----------------------------------------------------------------
+# Command line extra arguments for teleconnections:
 # --dry, -d (dry run, if set it will run without producing plots)
 # --ref (if set it will analyze also the reference data, it is set
 #        by default)
-# ------------------------------------------------------------------
 # Concatenate the new part to the existing content
-atm_extra_args["teleconnections"]="${atm_extra_args["teleconnections"]} --config cli_config_atm.yaml --ref"
-oce_extra_args["teleconnections"]="${oce_extra_args["teleconnections"]} --config cli_config_oce.yaml --ref"
+atm_extra_args["teleconnections"]="${atm_extra_args["teleconnections"]} \
+--config cli_config_atm.yaml --ref"
+oce_extra_args["teleconnections"]="${oce_extra_args["teleconnections"]} \
+--config cli_config_oce.yaml --ref"
 # End of user defined variables
 # -----------------------------
 
@@ -241,11 +241,14 @@ for diagnostic in "${all_diagnostics[@]}"; do
   colored_echo $GREEN "Running $diagnostic"
 
   if [[ "${atm_diagnostics[@]}" =~ "$diagnostic" ]]; then
-    python "$aqua/diagnostics/${script_path[$diagnostic]}" $args_atm ${atm_extra_args[$diagnostic]} -l $loglevel --outputdir $outputdir/$diagnostic &
+    python "$aqua/diagnostics/${script_path[$diagnostic]}" $args_atm ${atm_extra_args[$diagnostic]} \
+    -l $loglevel --outputdir $outputdir/$diagnostic &
   elif [[ "${oce_diagnostics[@]}" =~ "$diagnostic" ]]; then
-    python "$aqua/diagnostics/${script_path[$diagnostic]}" $args_oce ${oce_extra_args[$diagnostic]} -l $loglevel --outputdir $outputdir/$diagnostic &
+    python "$aqua/diagnostics/${script_path[$diagnostic]}" $args_oce ${oce_extra_args[$diagnostic]} \
+    -l $loglevel --outputdir $outputdir/$diagnostic &
   elif [[ "${atm_oce_diagnostics[@]}" =~ "$diagnostic" ]]; then
-    python "$aqua/diagnostics/${script_path[$diagnostic]}" $args ${atm_oce_extra_args[$diagnostic]} -l $loglevel --outputdir $outputdir/$diagnostic &
+    python "$aqua/diagnostics/${script_path[$diagnostic]}" $args ${atm_oce_extra_args[$diagnostic]} \
+    -l $loglevel --outputdir $outputdir/$diagnostic &
   fi
   if [ $max_threads -gt 0 ]; then
     ((thread_count++))
