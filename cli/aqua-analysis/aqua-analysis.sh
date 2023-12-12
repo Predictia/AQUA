@@ -10,7 +10,7 @@ model_atm="IFS"
 model_oce="FESOM"
 exp="tco2559-ng5-cycle3"
 source="lra-r100-monthly"
-outputdir="/scratch/b/b382289/cli_test"
+outputdir="./output"
 loglevel="WARNING" # DEBUG, INFO, WARNING, ERROR, CRITICAL
 machine="levante" # will change the aqua config file
 
