@@ -1,3 +1,8 @@
+paths:
+  grids: /pfs/lustrep3/projappl/project_465000454/data/AQUA/grids
+  weights: /pfs/lustrep3/projappl/project_465000454/data/AQUA/weights
+  areas: /pfs/lustrep3/projappl/project_465000454/data/AQUA/areas
+
 metadata:
   parameters:
     DATA_PATH:
@@ -61,3 +66,8 @@ sources:
     driver: yaml_file_cat
     args:
       path: "{{CATALOG_DIR}}/catalog/AVISO/main.yaml"
+  PSC:
+    description: Polar Science Center sea ice volume
+    driver: yaml_file_cat
+    args:
+      path: "{{CATALOG_DIR}}/catalog/PSC/main.yaml"

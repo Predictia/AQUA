@@ -6,6 +6,8 @@ sources:
   ICMGG_atm2d:
     driver: zarr
     description: original 2d output
+    metadata:
+      source_grid_name: tco1279
     args:
       consolidated: false
       urlpath:
@@ -14,6 +16,8 @@ sources:
   ICMU_atm2d:
     driver: zarr
     description: original 2d output (lnsp)
+    metadata:
+      source_grid_name: tco1279
     args:
       consolidated: false
       urlpath:
@@ -22,6 +26,8 @@ sources:
   ICMU_atm3d:
     driver: zarr
     description: original 3d output
+    metadata:
+      source_grid_name: tco1279
     args:
       consolidated: false
       urlpath:
@@ -30,6 +36,8 @@ sources:
   lra-r100-monthly:
     driver: netcdf
     description: LRA data monthly at r100
+    metadata:
+      source_grid_name: lon-lat
     args:
       urlpath: 
         /work/bb1153/b382076/LRA-cycle2/IFS/tco1279-orca025/r100/monthly/*tco1279-orca025_r100_monthly_????.nc

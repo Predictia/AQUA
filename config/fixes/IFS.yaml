@@ -268,6 +268,11 @@ models:
                 vars:
                     tprate:
                         source: tprate
+            monthly-1deg-2d:
+                method: merge
+                vars:
+                    tprate:
+                        source: tprate
 
         control-1950-nemo-dev:
             hourly-1deg:
@@ -276,6 +281,11 @@ models:
                     tprate:
                         source: tprate
             hourly-native:
+                method: merge
+                vars:
+                    tprate:
+                        source: tprate
+            monthly-1deg-2d:
                 method: merge
                 vars:
                     tprate:
@@ -292,6 +302,11 @@ models:
                 vars:
                     tprate:
                         source: tprate
+            monthly-1deg-2d:
+                method: merge
+                vars:
+                    tprate:
+                        source: tprate
 
         historical-1990-nemo-dev:
             hourly-1deg:
@@ -300,6 +315,11 @@ models:
                     tprate:
                         source: tprate
             hourly-native:
+                method: merge
+                vars:
+                    tprate:
+                        source: tprate
+            monthly-1deg-2d:
                 method: merge
                 vars:
                     tprate:

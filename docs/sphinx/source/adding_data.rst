@@ -206,22 +206,25 @@ Regridding capabilities
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 In order to make use of the AQUA regridding capabilities we will need to define the way the grid are defined for each source. 
-AQUA is shipped with multiple grids definition, which are defined in the ``config/aqua-grids.yaml`` file. Please see later for 
+AQUA is shipped with multiple grids definition, which are defined in the ``config/aqua-grids.yaml`` file.
+In the following paragraphs we will describe how to define a new grid if needed.
+Once the grid is defined, you can come back to this section to understand how to use it for your source.
 
-A machine-dependent file is found in ``config/machines/levante/regrid.yaml``, and will instruct the regridder how to map the sources and the grids.
+Let's imagine that for our ``yearly_SST`` source we want to use the ``lon-lat`` grid, which is defined in the ``config/aqua-grids.yaml`` file
+and consists on a regular lon-lat grid.
 
-In our case, we might imagine to have something as 
+Since AQUA v0.5 the informations about which grid to use for each source are defined in the metadata of the source itself.
+In our case, we will need to add the following metadata to the ``yearly_SST.yaml`` file as ``source_grid_name``.
 
 .. code-block:: yaml
 
-    sources:
-        yearly_SST:
-            yearly_sst:
-                default: lon-lat
-                
-        IFS:
-            control-1950-devcon:
-                hourly-native: tco1279
+     yearly_SST:
+        description: amazing yearly_SST dataset
+        driver: yaml_file_cat
+        args:
+          path: "{{CATALOG_DIR}}/yearly_SST/main.yaml"
+        metadata:
+            source_grid_name: lon-lat
 
 
 Grid definitions
@@ -256,15 +259,17 @@ As an example, we use the healpix grid for ICON and tco1279 for IFS:
 
 - **space_coord**: The space coordinate how coordinates are defined and used for interpolation. Since AQUA v0.4 there is an automatic guessing routine, but this is a bit costly so it is better to specify this if possible.
 
-- **masked**: Keys to define variables which are masked. When using this is used, the code will search for an attribute to make the distinction (``component: ocean`` in this case). It is an alternative specification to ``masked_vars``
-
-- **masked_vars**: A list of variables subject to land-sea masking according to `2dm` grid. It is an alternative specification to ``masked``
+- **masked** (if applicable): Keys to define variables which are masked. When using this, the code will search for an attribute to make the distinction (``component: ocean`` in this case). In alternative, if you want to apply masking only on a group of variables, you can defined ``vars: [var1, var2]``. In all the cases, the `2dm` grid will be applied to the data.
 
 - **vert_coords** (if applicable): Vertical coordinate options for the grid. Specific for oceanic models where interpolation is changing at each depth level.
 
 - **extra** (if applicable): Additional CDO command-line options to be used to process the files defined in `path`.
 
-Other simpler grids can be defined using the CDO syntax, so for example we have ``r100: r360x180``. Other CDO compatible grids can be of course defined in this way. 
+- **cellareas**, **cellarea_var** (if applicable): Optional path and variable name where to specify a file to retrieve the grid area cells when the grid shape is too complex for being automatically computed by CDO.
+
+- **regrid_method** (if applicable): Alternative CDO regridding method which is not the `ycon` default. To be used when grid corners are not available. Alterntives might be `bil`, `bic` or `nn`.
+
+Other simpler grids can be defined using the CDO syntax, so for example we have ``r100: r360x180``. Further CDO compatible grids can be of course defined in this way. 
 
 A standard `lon-lat` grid is defined for basic interpolation and can be used for most of the regular cases, as long as the ``space_coord`` are ``lon`` and ``lat``.
 
@@ -274,26 +279,32 @@ DE_340 source syntax convention
 Although free combination of model-exp-source can be defined in each catalog to get access to the data, inside DE_340 a series of decision has been 
 taken to try to homogenize the definition of experiments and of sources. We decide to use the dash (`-`) to connect the different elements of the syntax below
 
-- Models (`model` key)
+Models (`model` key)
+--------------------
+
 This will be simply one of the four models used in the project: IFS, NEMO, FESOM and ICON. 
 We will not merge atmospheric and oceanic models which have not the same grid (so only ICON will be represented as a single model)
 
-- Experiments (`exp` key)
+Experiments (`exp` key)
+-----------------------
+
 Considering that we have strict set of experiments that must be produced, we will follow this 4-string convention:
 
-1. Experiment kind: historical, control, sspXXX
-2. Starting year: 1950, 1990, etc...
-3. Oceanic model: nemo, fesom, icon (this is required since IFS is run with both configurations)
-4. Extra info (optional): any information that might be important to define an experiment, as dev, test, the expid of the simulation, or anything else that can help for defining the experiment.
+1. **Experiment kind**: historical, control, sspXXX
+2. **Starting year**: 1950, 1990, etc...
+3. **Oceanic model**: nemo, fesom, icon (this is required since IFS is run with both configurations)
+4. **Extra info** (optional): any information that might be important to define an experiment, as dev, test, the expid of the simulation, or anything else that can help for defining the experiment.
 
 Examples are `historical-1990-fesom-dev` or `control-1950-nemo-dev`. We plan to incorporate info on the expid in the metadata, so that we can potentially use it as an alias.
 
-- Sources (`source` key)
+Sources (`source` key)
+----------------------
+
 For the sources, we will need to uniform the different requirements of grids and temporal resolution. Sometimes we use native sometimes original, sometimes r100 sometimes 1deg. Do we want to use the 2d/3d key every time? This is confusing. Some options might be...
 
-1. Time resolution: monthly, daily, 6hourly, hourly, etc.
-2. Space resolution: native, 1deg, 025deg, r100, etc... For some oceanic model we could add the horizontal grid so native-elem or native-gridT could be an option). Similarly, healpix can be healpix-0 or healpix-6 in the case we want to specify the zoom level. 
-3. Extra info: 2d or 3d. Not mandatory, but to be used when confusion might arise.
+1. **Time resolution**: monthly, daily, 6hourly, hourly, etc.
+2. **Space resolution**: native, 1deg, 025deg, r100, etc... For some oceanic model we could add the horizontal grid so native-elem or native-gridT could be an option). Similarly, healpix can be healpix-0 or healpix-6 in the case we want to specify the zoom level. 
+3. **Extra info**: 2d or 3d. Not mandatory, but to be used when confusion might arise.
 
 
 
