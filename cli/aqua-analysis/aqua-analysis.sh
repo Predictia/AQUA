@@ -155,6 +155,10 @@ while [[ $# -gt 0 ]]; do
       machine="$2"
       shift 2
       ;;
+    -t|--threads)
+      max_threads="$2"
+      shift 2
+      ;;
     -l|--loglevel)
       # Check if the specified log level is in the accepted list
       if [[ " ${accepted_loglevels[@]} " =~ " $2 " ]]; then
