@@ -63,14 +63,14 @@ This script will take care of calling the correct Python script for each diagnos
 It is possible to set the following options by changing the values of the variables in the script
 or by passing them as command line arguments:
 
-- `model_atm`: name of the atmospheric model to use (default: `IFS`)
-- `model_ocean`: name of the ocean model to use (default: `FESOM`)
-- `exp`: name of the experiment to use (default: `tco2559-ng5-cycle3`)
-- `source`: name of the source to use (default: `lra-r100-monthly`)
-- `outputdir`: name of the output directory to use (default: `./output`)
-- `machine`: name of the machine to use (default: `levante`)
-- `max_threads`: maximum number of threads to use (default: `-1`, i.e. use all available threads)
-- `loglevel`: log level to use (default: `WARNING`)
+- **model_atm**: name of the atmospheric model to use (default: `IFS`)
+- **model_ocean**: name of the ocean model to use (default: `FESOM`)
+- **exp**: name of the experiment to use (default: `tco2559-ng5-cycle3`)
+- **source**: name of the source to use (default: `lra-r100-monthly`)
+- **outputdir**: name of the output directory to use (default: `./output`)
+- **machine**: name of the machine to use (default: `levante`)
+- **max_threads**: maximum number of threads to use (default: `-1`, i.e. use all available threads)
+- **loglevel**: log level to use (default: `WARNING`)
 
 The AQUA folder can be defined by modifying the `aqua` variable in the script, but the
 preferred way is to set the `AQUA` environment variable to the path of the AQUA folder.
@@ -98,7 +98,7 @@ or by passing the options as command line arguments:
    ./aqua-analysis --model-atm IFS --model-ocean FESOM --exp tco2559-ng5-cycle3 --source lra-r100-monthly --outputdir ./output --machine levante --max-threads -1 --loglevel WARNING
 
 Advanced options
-+++++++++++++
+++++++++++++++++
 
 It is possible to run a subset of the diagnostics by modifying the arrays `atm_diagnostics` and
 `oce_diagnostics` in the script. By default, all the diagnostics are run.
@@ -109,6 +109,11 @@ set the `run_dummy` variable to `false`.
 
 Some diagnostics may accept additional options. These options are listed in the comments of the
 script and can be set by modifying the `atm_extra_args` or `oce_extra_args` arrays.
+
+.. note::
+   The `aqua-analysis` tool is a simple way to run the diagnostics with a single command and predefined options.
+   However, it is possible to run the diagnostics in other ways, for example by calling the Python scripts directly or by
+   running them in a Jupyter notebook, allowing more flexibility and customization.
 
 Creating Custom Diagnostics
 ---------------------------
