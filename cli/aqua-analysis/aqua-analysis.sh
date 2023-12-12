@@ -102,6 +102,9 @@ oce_extra_args["teleconnections"]="${oce_extra_args["teleconnections"]} \
 # End of user defined variables
 # -----------------------------
 
+# Trap Ctrl-C to clean up and kill the entire process group
+trap 'kill 0' SIGINT
+
 # Declare the path and cli name if it is not standard, i.e., not AQUA/diagnostics/dummy/cli/cli_dummy.py.
 declare -A script_path
 
