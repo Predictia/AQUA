@@ -7,7 +7,6 @@ loglevel = 'DEBUG'
 
 
 @pytest.mark.aqua
-# @pytest.mark.skip(reason="excluded from GH actions")
 def test_fixer_ifs_long():
     """Test basic fixing"""
 
@@ -60,6 +59,7 @@ def test_fixer_ifs_long():
     assert mtntrf2.attrs['long_name'] == 'Mean top net thermal radiation flux doubled'
 
 
+@pytest.mark.aqua
 def test_fixer_ifs_short():
     """Check alternative fix with replace method"""
 
@@ -68,6 +68,7 @@ def test_fixer_ifs_short():
     assert data['2t'].attrs['mickey'] == 'mouse'
 
 
+@pytest.mark.aqua
 def test_fixer_ifs_family():
     """Check with fixer family method"""
 
@@ -76,6 +77,7 @@ def test_fixer_ifs_family():
     assert data['2t'].attrs['donald'] == 'duck'
 
 
+@pytest.mark.aqua
 def test_fixer_fesom_family():
     """Check with fixer parent family method"""
 
