@@ -85,10 +85,11 @@ class FixerMixin():
         """
 
         if model_fixes is None:
-            if default_fixes is None:
-                self.logger.warning("No default fixes found! No fixes available for model %s, experiment %s, source %s",
-                                    self.model, self.exp, self.source)
-                return None
+            # TODO; to be removed when restructuring the fixes
+            # if default_fixes is None:
+            #     self.logger.warning("No default fixes found! No fixes available for model %s, experiment %s, source %s",
+            #                         self.model, self.exp, self.source)
+            #     return None
 
             self.logger.info("Default model %s fixes found! Using it for experiment %s, source %s",
                              self.model, self.exp, self.source)
