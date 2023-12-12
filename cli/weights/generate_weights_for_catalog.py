@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Loop on multiple dataset to crete weights using the Reader"""
 
-resos = [True] # ['r025']
+resos = ['r050']
 measure_time = True
 
 if measure_time:
@@ -52,14 +52,11 @@ def grid_size(data):
     Returns:
         int:                           The size of the grid
     """
-    if 'DataArray' in str(type(data)):
-        _size = data.size
-    elif 'Dataset' in str(type(data)):
-        _names = list(data.dims)
-        _names = [name for name in _names if name != 'time']
-        _size = 1
-        for i in _names:
-            _size *= data[i].size
+    _names = list(data.dims)
+    _names = [name for name in _names if name != 'time']
+    _size = 1
+    for i in _names:
+        _size *= data[i].size
     return _size
      
 def generate_catalogue_weights():
@@ -96,8 +93,10 @@ def generate_catalogue_weights():
                                 reader = Reader(model=m, exp=e, source=s, regrid=reso, zoom=zoom)
                                 t_2 = time.time()
                                 data = reader.retrieve()
-                                new_dict_to_append = {'model': m, 'exp': e,  'source': s, 'regrid': reso, 'zoom': zoom, 'time': t_2-t_1, 'size': grid_size(data)}
-                                append_dict_to_file('weights_calculation_time.json', new_dict_to_append)
+                                if t_2-t_1>10:
+                                    new_dict_to_append = {'model': m, 'exp': e,  'source': s, 'regrid': reso, 'zoom': zoom, \
+                                        'time': t_2-t_1, 'size': grid_size(data), 'time_per_element': (t_2-t_1)/grid_size(data)}
+                                    append_dict_to_file('weights_calculation_time.json', new_dict_to_append)
                             else:
                                 Reader(model=m, exp=e, source=s, regrid=reso, zoom=zoom)
                         except Exception as e:
