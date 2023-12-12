@@ -105,6 +105,29 @@ class RegridMixin():
         self.logger.warning("Weights file not found: %s", weightsfile)
         self.logger.warning("Attempting to generate it ...")
 
+        time_to_generate = 10**(-6)
+        warning_threshold = 0
+
+        grid_times = {
+            'r005': 7200 * 3600 * time_to_generate,
+            'r010': 3600 * 1800 * time_to_generate,
+            'r020': 1800 * 900 * time_to_generate,
+            'r025': 1440 * 720 * time_to_generate,
+            'r050': 720 * 360 * time_to_generate,
+            'r100': 360 * 180 * time_to_generate,
+            'r200': 180 * 90 * time_to_generate,
+            'r250': 144 * 72 * time_to_generate,
+        }
+
+        expected_time = grid_times.get(regrid, 0)
+        print(expected_time)
+        if expected_time > warning_threshold:
+            hours, remainder = divmod(int(expected_time), 3600)
+            minutes, seconds = divmod(remainder, 60)
+
+            self.logger.warning(f'Time to generate the weights will take approximately {hours} hours, {minutes} minutes, and {seconds} seconds.')
+
+
         # hack to  pass a correct list of all options
         src_extra = source_grid.get("extra", [])
         if src_extra:
