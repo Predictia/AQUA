@@ -23,7 +23,7 @@ def opa_catalog_entry(datadir, model, exp, source, frequency='monthly',
     logger = log_configure(log_level=loglevel, log_name='opa_catalog_entry')
 
     entry_name = 'opa'
-    logger.warning('Creating catalog entry %s %s %s', model, exp, entry_name)
+    logger.info('Creating catalog entry %s %s %s', model, exp, entry_name)
 
     # load the catalog experiment file
     Configurer = ConfigPath()
@@ -45,7 +45,7 @@ def opa_catalog_entry(datadir, model, exp, source, frequency='monthly',
             logger.error('Cannot find source grid name in catalog, assuming lon-lat')
             grid = 'lon-lat'
     else:
-        raise KeyError('Cannot find source information in catalog')
+        raise KeyError('Cannot find source %s in catalog' % source)
 
     # define the block to be uploaded into the catalog
     description = 'OPA output from %s' % source
