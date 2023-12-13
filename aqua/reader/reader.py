@@ -142,9 +142,9 @@ class Reader(FixerMixin, RegridMixin):
         # get fixes dictionary and find them
         self.fix = fix  # fix activation flag
         if self.fix:
-            self.fix_family = self.esmcat.metadata.get('fix_family')
-            if self.fix_family is not None:
-                self.logger.info('Fix family metadata is %s', self.fix_family)
+            self.fix_names = self.esmcat.metadata.get('fix_names')
+            if self.fix_names is not None:
+                self.logger.info('Fix names in metadata is %s', self.fix_names)
             self.fixes_dictionary = load_multi_yaml(self.fixer_folder, loglevel=self.loglevel)
             self.fixes = self.find_fixes()  # find fixes for this model/exp/source
             self.dst_datamodel = datamodel

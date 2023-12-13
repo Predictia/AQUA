@@ -37,7 +37,7 @@ class FixerMixin():
         """
 
         # look for family fixes and set them as default
-        base_fixes = self._load_family_fixes()
+        base_fixes = self._load_fix_names()
 
         # check the presence of model-specific fix
         fix_model = self.fixes_dictionary["models"].get(self.model, None)
@@ -101,47 +101,49 @@ class FixerMixin():
 
             # if nothing specified or replace method, use the fixes
             if method == 'replace':
-                self.logger.debug("Replacing default/family fixes with source-specific fixes")
+                self.logger.debug("Replacing fixes with source-specific fixes")
                 final_fixes = model_fixes
 
             # if merge method is specified, replace/add to default fixes
             elif method == 'merge':
-                self.logger.debug("Merging default/family fixes with source-specific fixes")
+                self.logger.debug("Merging fixes with source-specific fixes")
                 final_fixes = self._merge_fixes(default_fixes, model_fixes)
 
             # if method is default, roll back to default
             elif method == 'default':
-                self.logger.debug("Rolling back to default/family fixes")
+                self.logger.debug("Rolling back to default fixes")
                 final_fixes = default_fixes
 
             return final_fixes
 
-    def _load_family_fixes(self):
+    def _load_fix_names(self):
         """
-        Load the family fixes reading from the metadata of the catalog.
-        If the family has a parent, load it and merge it giving priority to the child.
+        Load the fix_names reading from the metadata of the catalog.
+        If the fix_names has a parent, load it and merge it giving priority to the child.
         """
 
-        # if fix family is not found, return None
-        if self.fix_family is None:
+        # if fix names is not found in metadata, return None
+        if self.fix_names is None:
             return None
 
-        # get the family from the fix files
-        family_fixes = self.fixes_dictionary["family"].get(self.fix_family, None)
+        # get the fixes from the fix files
+        fixes = self.fixes_dictionary["fix_names"].get(self.fix_names, None)
 
         # if found, proceed as expected
-        if family_fixes is not None:
-            self.logger.info("Family fix %s found for model %s, experiment %s, source %s",
-                             self.fix_family, self.model, self.exp, self.source)
-            if 'parent' in family_fixes:
-                parent_fixes = self.fixes_dictionary["family"].get(family_fixes['parent'])
-                self.logger.info("Parent fix %s found! Mergin with family fixes %s!", family_fixes['parent'], self.fix_family)
-                family_fixes = self._merge_fixes(parent_fixes, family_fixes)
+        if fixes is not None:
+            self.logger.info("Fix names %s found for model %s, experiment %s, source %s",
+                             self.fix_names, self.model, self.exp, self.source)
+            if 'parent' in fixes:
+                parent_fixes = self.fixes_dictionary["fix_names"].get(fixes['parent'])
+                self.logger.info("Parent fix %s found! Mergin with family fixes %s!", fixes['parent'], self.fix_names)
+                fixes = self._merge_fixes(parent_fixes, fixes)
         else:
-            self.logger.error("Family fix %s does not exist in %s.yaml file. Will try to use model default fixes!",
+            self.logger.error("Fix names %s does not exist in %s.yaml file. Will try to use model default fixes!",
                               self.fix_family, self.model)
+            warn("The model default will be deprecated in the future in favour of a fix_names structure default.",
+                 DeprecationWarning, stacklevel=2)
 
-        return family_fixes
+        return fixes
 
     def _merge_fixes(self, base, specific):
         """
