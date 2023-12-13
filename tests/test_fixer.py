@@ -69,8 +69,8 @@ def test_fixer_ifs_short():
 
 
 @pytest.mark.aqua
-def test_fixer_ifs_family():
-    """Check with fixer family method"""
+def test_fixer_ifs_names():
+    """Check with fix_names method"""
 
     reader = Reader(model="IFS", exp="test-tco79", source="short_masked", loglevel=loglevel)
     data = reader.retrieve()
@@ -78,8 +78,8 @@ def test_fixer_ifs_family():
 
 
 @pytest.mark.aqua
-def test_fixer_fesom_family():
-    """Check with fixer parent family method"""
+def test_fixer_fesom_names():
+    """Check with fixer parent from fix_names method"""
 
     reader = Reader(model="FESOM", exp="test-pi", source="original_2d_fix", loglevel=loglevel)
     data = reader.retrieve()

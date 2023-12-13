@@ -1,4 +1,4 @@
-family:
+fix_names:
     icon-default:
         data_model: false  # Do not attempt to correct coordinates
         delete:  # variables to drop at the end

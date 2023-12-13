@@ -1,4 +1,4 @@
-family:
+fix_names:
     ifs-default:
         data_model: ifs
         deltat: 3600
