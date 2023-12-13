@@ -19,6 +19,12 @@ def opa_catalog_entry(datadir, model, exp, source, frequency='monthly',
         source (str): name of the origin source
         frequency (str, opt): frequency of the data, default is 'monthly'
         loglevel (str, opt): logging level, default is 'WARNING'
+
+    Returns:
+        entry_name (str): name of the entry created in the catalog
+
+    Raises:
+        KeyError: if the origin source is not found in the catalog
     """
     logger = log_configure(log_level=loglevel, log_name='opa_catalog_entry')
 
@@ -48,7 +54,7 @@ def opa_catalog_entry(datadir, model, exp, source, frequency='monthly',
         raise KeyError('Cannot find source %s in catalog' % source)
 
     # define the block to be uploaded into the catalog
-    description = 'OPA output from %s' % source
+    description = 'OPA output from %s as origin source' % source
 
     block_cat = {
         'driver': 'netcdf',
