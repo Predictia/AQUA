@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- OPA lra compatible with no regrid.yaml (#692)
 - AQUA analysis wrapper is parallelized (#684)
 
 ## [v0.5.1]
