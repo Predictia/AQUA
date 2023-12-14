@@ -219,7 +219,7 @@ mkdir -p "$outputdir"
 if [ "$run_dummy" = true ] ; then
   colored_echo $GREEN "Running setup checker"
   scriptpy="$aqua/diagnostics/dummy/cli/cli_dummy.py"
-  python $scriptpy $args -l $loglevel
+  python $scriptpy $args -l $loglevel > "$outputdir/setup_checker.log" 2>&1
   
   # Store the error code of the dummy script
   dummy_error=$?
