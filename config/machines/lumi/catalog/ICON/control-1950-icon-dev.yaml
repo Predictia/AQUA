@@ -2,11 +2,6 @@ sources:
   monthly-healpix-2d:
     args:
       request:
-        #domain: g
-        #class: rd
-        #expver: a06x
-        #type: fc
-        #stream: lwda
         date: 19900101
         time: '0000'
         param: 10u
@@ -23,6 +18,6 @@ sources:
     metadata: 
       fdb_path: /projappl/project_465000454/experiments/ig01/config.yaml
       eccodes_path: /projappl/project_465000454/jvonhar/aqua/eccodes/eccodes-2.32.0/definitions
-      variables: ['10u']
+      variables: ['10u', '10v', '2t']
       source_grid_name: icon-healpix-dev
-      fix_names: ifs-control
+      fix_names: icon-destine
