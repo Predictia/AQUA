@@ -334,7 +334,7 @@ class Reader(FixerMixin, RegridMixin):
         return cdo
 
     def retrieve(self, var=None,
-                 startdate=None, enddate=None):
+                 startdate=None, enddate=None, history=True):
         """
         Perform a data retrieve.
 
@@ -342,6 +342,7 @@ class Reader(FixerMixin, RegridMixin):
             var (str, list): the variable(s) to retrieve.Defaults to None. If None, all variables are retrieved
             startdate (str, optional): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
             enddate (str, optional): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None.
+            history (bool): If you want to add to the metadata history information about retrieve. Default to True
 
         Returns:
             A xarray.Dataset containing the required data.
@@ -400,10 +401,13 @@ class Reader(FixerMixin, RegridMixin):
                     except Exception as e:
                         raise KeyError("You are asking for variables which we cannot find in the catalog!") from e
 
-        if ffdb:
-            data = log_history(data, f"Retrieved from {self.model}_{self.exp}_{self.source} using FDB")
-        else:
-            data = log_history(data, f"Retrieved from {self.model}_{self.exp}_{self.source} using file from disk")
+        # if retrieve history is required (disable for retrieve_plain)
+        if history:
+            if ffdb:
+                fkind = "FDB"
+            else:
+                fkind = "file from disk"
+            data = log_history(data, f"Retrieved from {self.model}_{self.exp}_{self.source} using {fkind}")
         
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
 
