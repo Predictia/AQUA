@@ -1,5 +1,5 @@
 sources:
-  monthly-healpix-2d:
+  hourly-healpix-2d:
     args:
       request:
         date: 19900101
@@ -7,13 +7,13 @@ sources:
         param: 10u
         levtype: sfc
         step: 0
-      data_start_date: '19900101'
-      data_end_date: '19900401'
-      aggregation: Y  # Default aggregation / chunk size
-      savefreq: M
+      data_start_date: 19900101T0000
+      data_end_date: 19901231T2300
+      aggregation: D  # Default aggregation / chunk size
+      savefreq: H
       timestyle: date
-      timeshift: Yes    # shift time of resulting xarray by this amount
-    description: unknown
+      #timeshift: Yes    # shift time of resulting xarray by this amount
+    description: ICON historical development run refactored into a simpler FDB
     driver: gsv
     metadata: 
       fdb_path: /projappl/project_465000454/experiments/ig01/config.yaml
