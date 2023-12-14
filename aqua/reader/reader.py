@@ -610,8 +610,7 @@ class Reader(FixerMixin, RegridMixin):
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
         
-        self.original_grid_name = self.esmcat.metadata.get('source_grid_name')
-        out = log_history(out, f"Regrid from {self.original_grid_name} to {self.targetgrid}")
+        out = log_history(out, f"Regrid from {self.src_grid_name} to {self.dst_grid_name}")
         
         return out
 
@@ -762,7 +761,7 @@ class Reader(FixerMixin, RegridMixin):
 
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
 
-        log_history(data, f"spatially averaged from {self.original_grid_name} grid")
+        log_history(data, f"spatially averaged from {self.src_grid_name} grid")
 
         return out
 
