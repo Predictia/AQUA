@@ -401,9 +401,9 @@ class Reader(FixerMixin, RegridMixin):
                         raise KeyError("You are asking for variables which we cannot find in the catalog!") from e
 
         if ffdb:
-            data = log_history(data, f"Retrieved from {self.model}_{self.exp}_{self.source} using FDB.")
+            data = log_history(data, f"Retrieved from {self.model}_{self.exp}_{self.source} using FDB")
         else:
-            data = log_history(data, f"Retrieved from {self.model}_{self.exp}_{self.source} using file from disk.")
+            data = log_history(data, f"Retrieved from {self.model}_{self.exp}_{self.source} using file from disk")
         
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
 
@@ -486,7 +486,7 @@ class Reader(FixerMixin, RegridMixin):
         self.space_coord = ["lon", "lat"]
         
         self.original_grid_name = self.esmcat.metadata.get('source_grid_name')
-        out = log_history(out, f"Regrid from {self.original_grid_name} to {self.targetgrid}.")
+        out = log_history(out, f"Regrid from {self.original_grid_name} to {self.targetgrid}")
         
         return out
 
@@ -637,7 +637,7 @@ class Reader(FixerMixin, RegridMixin):
 
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
 
-        log_history(data, f"spatially averaged from {self.original_grid_name} grid.")
+        log_history(data, f"spatially averaged from {self.original_grid_name} grid")
 
         return out
 

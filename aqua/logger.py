@@ -140,7 +140,7 @@ def _log_history(data, msg):
     if isinstance(data, (xr.DataArray, xr.Dataset)):
         now = datetime.datetime.now()
         date_now = now.strftime("%Y-%m-%d %H:%M:%S")
-        hist = data.attrs.get("history", "") + f"{date_now} AQUA: {msg};\n"
+        hist = data.attrs.get("history", "") + f"\n{date_now} AQUA💧: {msg};"
         data.attrs.update({"history": hist})
 
 
