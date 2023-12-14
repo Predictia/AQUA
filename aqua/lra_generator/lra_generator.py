@@ -9,9 +9,10 @@ import glob
 import dask
 import xarray as xr
 import pandas as pd
+import numpy as np
 from dask.distributed import Client, LocalCluster, progress
 from dask.diagnostics import ProgressBar
-from aqua.logger import log_configure
+from aqua.logger import log_configure, log_history
 from aqua.reader import Reader
 from aqua.util import create_folder, generate_random_string
 from aqua.util import dump_yaml, load_yaml
@@ -188,6 +189,7 @@ class LRAgenerator():
 
         self.logger.warning('Retrieving data...')
         self.data = self.reader.retrieve(var=self.var)
+        
         self.logger.debug(self.data)
 
     def generate_lra(self):
@@ -202,14 +204,15 @@ class LRAgenerator():
         if isinstance(self.var, list):
             for var in self.var:
                 self._write_var(var)
+
         else:  # Only one variable
             self._write_var(self.var)
-
+            
         # Cleaning
         self.data.close()
         self._close_dask()
         # self._remove_tmpdir()
-
+            
         self.logger.warning('Finished generating LRA data.')
 
     def create_catalog_entry(self):
@@ -218,7 +221,7 @@ class LRAgenerator():
         """
 
         entry_name = f'lra-{self.resolution}-{self.frequency}'
-        urlpath = os.path.join(self.outdir, f'*{self.exp}_{self.resolution}_{self.frequency}_????.nc')
+        urlpath = os.path.join(self.outdir, f'*{self.exp}_{self.resolution}_{self.frequency}_*.nc')
         self.logger.warning('Creating catalog entry %s %s %s', self.model, self.exp, entry_name)
 
         # define the block to be uploaded into the catalog
@@ -290,7 +293,7 @@ class LRAgenerator():
 
         infiles = os.path.join(self.outdir,
                                f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}??.nc')
-        if len(glob.glob(infiles)) > 1:
+        if len(glob.glob(infiles)) == 12:
             xfield = xr.open_mfdataset(infiles)
             self.logger.warning('Creating a single file for %s, year %s...', var, str(year))
             outfile = os.path.join(self.outdir,
@@ -469,6 +472,12 @@ class LRAgenerator():
     def write_chunk(self, data, outfile):
         """Write a single chunk of data - Xarray Dataset - to a specific file
         using dask if required and monitoring the progress"""
+        
+        # update data attributes for history
+        if self.frequency:
+            log_history(data, f'regridded from {self.reader.src_grid_name} to {self.resolution} and from frequency {self.reader.orig_freq} to {self.frequency} through LRA generator')                
+        else:
+            log_history(data, f'regridded from {self.reader.src_grid_name} to {self.resolution} through LRA generator')
 
         # File to be written
         if os.path.exists(outfile):

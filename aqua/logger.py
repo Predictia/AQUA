@@ -96,7 +96,7 @@ def _check_loglevel(log_level=None):
     return log_level
 
 
-def log_history_iter(data, msg):
+def log_history(data, msg):
     """
     Elementary provenance logger in the history attribute also for iterators.
 
@@ -111,7 +111,7 @@ def log_history_iter(data, msg):
         data = _log_history_iter(data, msg)
         return data
     else:
-        log_history(data, msg)
+        _log_history(data, msg)
         return data
 
 
@@ -128,7 +128,7 @@ def _log_history_iter(data, msg):
         yield ds
 
 
-def log_history(data, msg):
+def _log_history(data, msg):
     """
     Elementary provenance logger in the history attribute
 
@@ -140,7 +140,7 @@ def log_history(data, msg):
     if isinstance(data, (xr.DataArray, xr.Dataset)):
         now = datetime.datetime.now()
         date_now = now.strftime("%Y-%m-%d %H:%M:%S")
-        hist = data.attrs.get("history", "") + f"{date_now} {msg};\n"
+        hist = data.attrs.get("history", "") + f"\n{date_now} AQUA💧: {msg};"
         data.attrs.update({"history": hist})
 
 
