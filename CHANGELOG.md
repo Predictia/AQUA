@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- LRA fix now correctly aggregating monthly data to yearly when a full year is available (#696)
+- History update and refinement creating preliminary provenance information (plus AQUA emoji!) (#676)
 - OPA lra compatible with no regrid.yaml (#692)
 - Introducing fixer definitions not model/exp/source dependents to be specified at the metadata level (#681)
 - AQUA analysis wrapper is parallelized (#684)
