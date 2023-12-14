@@ -212,6 +212,10 @@ else
 fi
 colored_echo $GREEN "Machine set to $machine in the config file"
 
+# Create output directory if it does not exist
+colored_echo $GREEN "Creating output directory $outputdir"
+mkdir -p "$outputdir"
+
 if [ "$run_dummy" = true ] ; then
   colored_echo $GREEN "Running setup checker"
   scriptpy="$aqua/diagnostics/dummy/cli/cli_dummy.py"
