@@ -249,13 +249,13 @@ for diagnostic in "${all_diagnostics[@]}"; do
 
   if [[ "${atm_diagnostics[@]}" =~ "$diagnostic" ]]; then
     python "$aqua/diagnostics/${script_path[$diagnostic]}" $args_atm ${atm_extra_args[$diagnostic]} \
-    -l $loglevel --outputdir $outputdir/$diagnostic >> "$outputdir/$diagnostic.log" 2>&1 &
+    -l $loglevel --outputdir $outputdir/$diagnostic > "$outputdir/$diagnostic.log" 2>&1 &
   elif [[ "${oce_diagnostics[@]}" =~ "$diagnostic" ]]; then
     python "$aqua/diagnostics/${script_path[$diagnostic]}" $args_oce ${oce_extra_args[$diagnostic]} \
-    -l $loglevel --outputdir $outputdir/$diagnostic >> "$outputdir/$diagnostic.log" 2>&1 &
+    -l $loglevel --outputdir $outputdir/$diagnostic > "$outputdir/$diagnostic.log" 2>&1 &
   elif [[ "${atm_oce_diagnostics[@]}" =~ "$diagnostic" ]]; then
     python "$aqua/diagnostics/${script_path[$diagnostic]}" $args ${atm_oce_extra_args[$diagnostic]} \
-    -l $loglevel --outputdir $outputdir/$diagnostic >> "$outputdir/$diagnostic.log" 2>&1 &
+    -l $loglevel --outputdir $outputdir/$diagnostic > "$outputdir/$diagnostic.log" 2>&1 &
   fi
   if [ $max_threads -gt 0 ]; then
     ((thread_count++))
