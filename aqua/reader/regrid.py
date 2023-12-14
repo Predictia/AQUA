@@ -280,7 +280,7 @@ class RegridMixin():
         self.fix = False
         self.aggregation = None
         self.streaming = False
-        data = self.retrieve(sample=True, *args, **kwargs)
+        data = self.retrieve(sample=True, history=False, *args, **kwargs)
         self.aggregation = aggregation
         self.fix = fix
         self.streaming = streaming
