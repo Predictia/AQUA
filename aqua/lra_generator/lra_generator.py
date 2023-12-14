@@ -221,7 +221,7 @@ class LRAgenerator():
         """
 
         entry_name = f'lra-{self.resolution}-{self.frequency}'
-        urlpath = os.path.join(self.outdir, f'*{self.exp}_{self.resolution}_{self.frequency}_????.nc')
+        urlpath = os.path.join(self.outdir, f'*{self.exp}_{self.resolution}_{self.frequency}_??????.nc')
         self.logger.warning('Creating catalog entry %s %s %s', self.model, self.exp, entry_name)
 
         # define the block to be uploaded into the catalog
