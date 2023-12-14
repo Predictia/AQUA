@@ -436,7 +436,7 @@ class Reader(FixerMixin, RegridMixin):
             cellareas = source_grid.get("cellareas", None)
             cellarea_var = source_grid.get("cellarea_var", None)
             if cellareas and cellarea_var:
-                self.logger.warning("Using cellareas file provided in aqua-grids.yaml")
+                self.logger.info("Using cellareas file provided in aqua-grids.yaml")
                 xr.open_mfdataset(cellareas)[cellarea_var].rename("cell_area").squeeze().to_netcdf(self.src_areafile)
             else:
                 self._make_src_area_file(self.src_areafile, source_grid,
@@ -491,7 +491,7 @@ class Reader(FixerMixin, RegridMixin):
                 if sample:
                     var = [var[0]]
 
-                self.logger.info(f"FDB source, setting default variables to {var}")
+                self.logger.debug(f"FDB source, setting default variables to {var}")
                 loadvar = self.get_fixer_varname(var) if self.fix else var
             else:
                 loadvar = None
@@ -509,16 +509,17 @@ class Reader(FixerMixin, RegridMixin):
         else:
             data = self.reader_intake(self.esmcat, var, loadvar)  # Returns a generator object
 
-            if var:
-                if all(element in data.data_vars for element in loadvar):
-                    data = data[loadvar]
-                else:
-                    try:
-                        data = data[var]
-                        self.logger.warning(f"You are asking for var {var} which is already fixed from {loadvar}.")
-                        self.logger.warning("Would be safer to run with fix=False")
-                    except Exception as e:
-                        raise KeyError("You are asking for variables which we cannot find in the catalog!") from e
+            # IS THIS NECESSARY? COMMETING OUT
+            # if var:
+            #     if all(element in data.data_vars for element in loadvar):
+            #         data = data[loadvar]
+            #     else:
+            #         try:
+            #             data = data[var]
+            #             self.logger.warning(f"You are asking for var {var} which is already fixed from {loadvar}.")
+            #             self.logger.warning("Would be safer to run with fix=False")
+            #         except Exception as e:
+            #             raise KeyError("You are asking for variables which we cannot find in the catalog!") from e
 
         data = log_history_iter(data, "retrieved by AQUA retriever")
 
