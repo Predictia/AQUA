@@ -1,0 +1,7 @@
+data:
+  model:  []
+  exp:    []
+  source: []
+  resos: ['r025', 'r100']
+full_catalogue: True
+loglevel: 'debug'

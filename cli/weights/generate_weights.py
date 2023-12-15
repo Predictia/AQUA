@@ -1,38 +1,87 @@
 #!/usr/bin/env python3
-"""Loop on multiple dataset to crete weights using the Reader"""
+"""Loop on multiple datasets to create weights using the Reader"""
 
 import sys
+import argparse
 from aqua import Reader, inspect_catalogue
 from aqua.logger import log_configure
+from aqua.util import load_yaml, get_arg
 
-loglevel = 'WARNING'
-logger = log_configure(log_level=loglevel, log_name='Weights Generator')
+def parse_arguments(args):
+    """Parse command line arguments"""
 
-resos = ['r025', 'r100']
+    parser = argparse.ArgumentParser(description='Weights Generator CLI')
+    parser.add_argument('--config', type=str, 
+                        help='path to configuration yaml file', default='config/weights_config.yml')
+    # This arguments will override the configuration file if provided
+    parser.add_argument('--catalogue', type=str,
+                        help='calculate the weights for entire catalog')
+    parser.add_argument('-l', '--loglevel', type=str,
+                        help='log level [default: WARNING]')
+    parser.add_argument('--model', type=str, help='model name',
+                        required=False)
+    parser.add_argument('--exp', type=str, help='experiment name',
+                        required=False)
+    parser.add_argument('--source', type=str, help='source name',
+                        required=False)
+    parser.add_argument('--resos', type=str, help='resolution of the grid',
+                        required=False)
+    return parser.parse_args(args)
 
-full_catalogue=False
-# example 
-model = []  # ['FESOM']
-exp = []    # ['tco2559-ng5-cycle3']
-source = [] # ['3D_daily_native', '2D_daily_native', '2D_monthly_native_elem']
 
-if not full_catalogue and len(model) == 0 or len(exp)==0 or len(source)==0:
-    logger.error(f"If you do not want to generate the weights for the entire catalog, "
-      f"you must provide the models, experiments, and sources list.")
-    sys.exit(1)
+def check_input_parameters(full_catalogue, models, experiments, sources):
+    """Check input parameters and exit if necessary"""
+    if not full_catalogue and (not models or not experiments or not sources):
+        logger.error("If you do not want to generate weights for the entire catalog, "
+                     "you must provide non-empty lists of models, experiments, and sources.")
+        sys.exit(1)
+    elif full_catalogue:
+        logger.info("The weights will be generated for the entire catalog.")
+    else:
+        logger.info("The weights will be generated for the specified models, experiments, and sources.")
+
+def ensure_list(value):
+    """Ensure that the input is a list"""
+    return [value] if not isinstance(value, list) else value
+
+def calculate_weights(logger, model, exp, source, regrid, zoom):
+    """Calculate weights for a specific combination of model, experiment, source, regrid, and zoom"""
+    logger.debug(f"The weights are calculating for {model} {exp} {source} {regrid} {zoom}")
+    try:
+        Reader(model=model, exp=exp, source=source, regrid=regrid, zoom=zoom)
+    except Exception as e:
+        logger.error(f"An unexpected error occurred for source {model} {exp} {source} {regrid} {zoom}: {e}")
+
+def generate_weights(logger, full_catalogue, resos, models, experiments, sources):
+    logger.info("Weight generation is started.")
+    if full_catalogue:
+        models, experiments, sources = [], [], []
+    models = ensure_list(models)
+    experiments = ensure_list(experiments)
+    sources = ensure_list(sources)
     
-logger.info('The weight generation is started.')   
+    for reso in resos:
+        for model in models or inspect_catalogue():
+            for exp in experiments or inspect_catalogue(model=model):
+                for source in sources or inspect_catalogue(model=model, exp=exp):
+                    for zoom in range(9):
+                        calculate_weights(logger, model, exp, source, reso, zoom)
 
-for reso in resos:
-        model = inspect_catalogue() if full_catalogue else model
-        for m in model:      
-            exp = inspect_catalogue(model = m) if full_catalogue else exp
-            for e in exp:
-                source = inspect_catalogue(model = m, exp = e) if full_catalogue else source
-                for s in source:
-                    for zoom in range(0, 9):
-                        try:
-                            Reader(model=m, exp=e, source=s, regrid=reso, zoom=zoom)
-                        except Exception as e:
-                            # Handle other exceptions
-                            logger.error(f"For the source {m} {e} {s} {reso} {zoom} an unexpected error occurred: {e}")
+if __name__ == "__main__":
+    args = parse_arguments(sys.argv[1:])
+    
+    file = get_arg(args, 'config', 'config/weights_config.yml.yml')
+    print('Reading configuration yaml file..')
+    config = load_yaml(file)
+
+    loglevel = get_arg(args, 'loglevel', config['loglevel'])
+    logger = log_configure(log_name='Weights Generator', log_level=loglevel)
+
+    models = get_arg(args, 'model', config['data']['model'])
+    experiments = get_arg(args, 'exp', config['data']['exp'])
+    sources = get_arg(args, 'source', config['data']['source'])
+    resos = get_arg(args, 'resos', config['data']['resos'])
+    full_catalogue = get_arg(args, 'catalogue', config['full_catalogue'])
+    
+    check_input_parameters(full_catalogue, models, experiments, sources)
+    generate_weights(logger, full_catalogue, resos, models, experiments, sources)
