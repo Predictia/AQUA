@@ -140,7 +140,12 @@ def _log_history(data, msg):
     if isinstance(data, (xr.DataArray, xr.Dataset)):
         now = datetime.datetime.now()
         date_now = now.strftime("%Y-%m-%d %H:%M:%S")
-        hist = data.attrs.get("history", "") + f"\n{date_now} AQUA💧: {msg};"
+        hist = data.attrs.get("history", "")
+
+        # check that there is a new line at the end of the current history
+        if hist[-2:] != '\n':
+            hist = hist + '\n'
+        hist = hist + f"{date_now} AQUA💧: {msg};\n"
         data.attrs.update({"history": hist})
 
 
