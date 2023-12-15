@@ -3,5 +3,5 @@ data:
   exp:    []
   source: []
   resos: ['r025', 'r100']
-full_catalogue: True
+full_catalogue: False
 loglevel: 'debug'
