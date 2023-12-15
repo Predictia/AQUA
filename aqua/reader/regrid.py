@@ -9,6 +9,7 @@ import xarray as xr
 
 import smmregrid as rg
 
+import time
 
 class RegridMixin():
     """Regridding mixin for the Reader class"""
@@ -80,7 +81,8 @@ class RegridMixin():
         self.logger.warning("Success!")
 
     def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, method='ycon',
-                           regrid=None, extra=None, zoom=None, vert_coord=None):
+                           regrid=None, extra=None, zoom=None, vert_coord=None,
+                           dims=None, grid_size=None):
         """
         Helper function to produce weights file.
 
@@ -99,35 +101,75 @@ class RegridMixin():
 
         sgridpath = self._get_source_gridpath(source_grid, vert_coord, zoom)
 
-        if vert_coord == "2d" or vert_coord == "2dm":  # if 2d we need to pass None to smmregrid
-            vert_coord = None
+        try:
+            _vert_coord = vert_coord.get('vert_coord', [])
+        except AttributeError:
+            _vert_coord = vert_coord
+
+        self.logger.error(f'The vertical coordinat and dims are {_vert_coord}, {dims}.')
 
         self.logger.warning("Weights file not found: %s", weightsfile)
         self.logger.warning("Attempting to generate it ...")
-
-        time_to_generate = 10**(-6)
+            
         warning_threshold = 0
 
-        grid_times = {
-            'r005': 7200 * 3600 * time_to_generate,
-            'r010': 3600 * 1800 * time_to_generate,
-            'r020': 1800 * 900 * time_to_generate,
-            'r025': 1440 * 720 * time_to_generate,
-            'r050': 720 * 360 * time_to_generate,
-            'r100': 360 * 180 * time_to_generate,
-            'r200': 180 * 90 * time_to_generate,
-            'r250': 144 * 72 * time_to_generate,
+        grid_2d = {
+            'r005': {'size_2d':7200 * 3600, 'index': 11},
+            'r010': {'size_2d':3600 * 1800, 'index': 7},
+            'r020': {'size_2d':1800 * 900, 'index': 5},
+            'r025': {'size_2d':1440 * 720, 'index': 4},
+            'r050': {'size_2d':720 * 360, 'index':  3},
+            'r100': {'size_2d':360 * 180, 'index': 2},
+            'r200': {'size_2d':180 * 90, 'index': 1},
+            'r250': {'size_2d':144 * 72, 'index': 0},
         }
+        
+        coefficient_mapping = {
+            "2d": 3,
+            "2dm": 3.5, # 7
+            "depth": 23.5, #1.1
+            "level": 1,
+            "nz": 1.9,
+            "nz1": 11,
+        }
+        coefficient_space_mapping = {
+            "('lat', 'lon')": 1,
+            "('value',)": 2,
+            "('elem',)": 2, #?
+            "('node',)": 2, #?
+        }
+        
+        coefficient_vertical = coefficient_mapping.get(_vert_coord, 1)
+        coefficient_space = coefficient_space_mapping.get(dims, 1)
+        
+        self.logger.error(f'The coefficients are {coefficient_vertical}, {coefficient_space}.')
+        time_r250 = grid_size * coefficient_vertical * coefficient_space * 10**(-6)
 
-        expected_time = grid_times.get(regrid, 0)
-        print(expected_time)
+        regrid_data = grid_2d.get(regrid, {'index': 0})
+        expected_time = time_r250 * (1.2)**(regrid_data['index'])
+        
+        self.logger.error(f"The expected time is {expected_time} seconds.")
+    
+        precision='seconds'
+        total_seconds = int(expected_time)
         if expected_time > warning_threshold:
-            hours, remainder = divmod(int(expected_time), 3600)
-            minutes, seconds = divmod(remainder, 60)
+            if precision=='hours':
+                hours = round(total_seconds / 3600)
+                formatted_time = f'{hours} hours'
+            elif precision=='minutes':
+                hours, remainder = divmod(int(expected_time), 3600)
+                minutes = round((total_seconds % 3600) / 60)
+                formatted_time = f'{hours} hours, {minutes} minutes'
+            else:
+                hours, remainder = divmod(int(expected_time), 3600)
+                minutes, seconds = divmod(remainder, 60)
+                seconds = round(total_seconds % 60)
+                formatted_time = f'{hours} hours, {minutes} minutes, and {seconds} seconds'
+            self.logger.warning(f'Time to generate the weights will take approximately {formatted_time}.')
 
-            self.logger.warning(f'Time to generate the weights will take approximately {hours} hours, {minutes} minutes, and {seconds} seconds.')
-
-
+        if vert_coord == "2d" or vert_coord == "2dm":  # if 2d we need to pass None to smmregrid
+            vert_coord = None
+            
         # hack to  pass a correct list of all options
         src_extra = source_grid.get("extra", [])
         if src_extra:
@@ -138,7 +180,7 @@ class RegridMixin():
         else:
             extra = []
         extra = extra + src_extra
-
+        t_1 = time.time()
         weights = rg.cdo_generate_weights(source_grid=sgridpath,
                                           target_grid=cfg_regrid["grids"][regrid],
                                           method=method,
@@ -149,6 +191,8 @@ class RegridMixin():
                                           vert_coord=vert_coord,
                                           nproc=self.nproc)
         weights.to_netcdf(weightsfile)
+        t_2 = time.time()
+        self.logger.error(f"The actual time is {t_2 -t_1} seconds.")
         self.logger.warning("Success!")
 
     def _get_source_gridpath(self, source_grid, vert_coord, zoom):
