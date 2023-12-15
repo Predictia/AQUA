@@ -57,11 +57,11 @@ if [ $machine == "lumi" ]; then
     username=$USER
     export PATH="/users/$username/mambaforge/aqua/bin:$PATH"
 fi
-/usr/bin/env python3 "$script_dir/generate_weights_for_catalog.py"
+/usr/bin/env python3 "$script_dir/generate_weights.py"
 EOL
 
     else
-        /usr/bin/env python3 "$script_dir/generate_weights_for_catalog.py"
+        /usr/bin/env python3 "$script_dir/generate_weights.py"
     fi
     # Use an if statement to decide whether to resubmit
     if $should_resubmit; then
