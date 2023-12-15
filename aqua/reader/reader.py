@@ -926,7 +926,7 @@ class Reader(FixerMixin, RegridMixin):
 
         Args:
             esmcat (intake.catalog.Catalog): your catalog
-            var (str): Variable to load
+            var (list or str): Variable to load
             loadvar (list of str): List of variables to load
             keep (str, optional): which duplicate entry to keep ("first" (default), "last" or None)
 
@@ -934,19 +934,19 @@ class Reader(FixerMixin, RegridMixin):
             Dataset
         """
 
+        data = esmcat.to_dask()
+
         if loadvar:
-            data = esmcat.to_dask()
+            
             if all(element in data.data_vars for element in loadvar):
                 data = data[loadvar]
             else:
                 try:
                     data = data[var]
-                    self.logger.warning("You are asking for var %s which is already fixed from %s.", var, loadvar)
-                    self.logger.warning("It would be safer to run with fix=False")
+                    self.logger.warning("You are asking for var %s but the fixes definition requires %s, which is not there.", var, loadvar)
+                    self.logger.warning("Retrieving %s, but it would be safer to run with fix=False or to correct the fixes", var)
                 except Exception as e:
                     raise KeyError("You are asking for variables which we cannot find in the catalog!") from e
-        else:
-            data = esmcat.to_dask()
 
         # check for duplicates
         if 'time' in data.coords:
