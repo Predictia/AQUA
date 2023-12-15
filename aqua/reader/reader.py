@@ -511,18 +511,6 @@ class Reader(FixerMixin, RegridMixin):
         else:
             data = self.reader_intake(self.esmcat, var, loadvar)  # Returns a generator object
 
-            # IS THIS NECESSARY? COMMETING OUT
-            # if var:
-            #     if all(element in data.data_vars for element in loadvar):
-            #         data = data[loadvar]
-            #     else:
-            #         try:
-            #             data = data[var]
-            #             self.logger.warning(f"You are asking for var {var} which is already fixed from {loadvar}.")
-            #             self.logger.warning("Would be safer to run with fix=False")
-            #         except Exception as e:
-            #             raise KeyError("You are asking for variables which we cannot find in the catalog!") from e
-
         # if retrieve history is required (disable for retrieve_plain)
         if history:
             if ffdb:
