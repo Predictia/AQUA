@@ -3,6 +3,10 @@ set -e
 
 # Check a condition (replace this with your actual condition)
 should_resubmit=false
+cores='16'
+time='08:00:00'
+mem='200G'
+
 script_dir=$(dirname "${BASH_SOURCE[0]}")
 
 # Read the machine name from the YAML file
@@ -44,9 +48,9 @@ while true; do
 #SBATCH --output=weights_%j.out
 #SBATCH --error=weights_%j.log
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=16
-#SBATCH --time=08:00:00
-#SBATCH --mem=200G
+#SBATCH --ntasks-per-node=$cores
+#SBATCH --time=$time
+#SBATCH --mem=$mem
 
 echo 'Hello from SLURM job!'
 
