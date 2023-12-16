@@ -42,7 +42,7 @@ class GSVSource(base.DataSource):
 
     def __init__(self, request, data_start_date, data_end_date, timestyle="date",
                  aggregation="S", savefreq="H", timestep="H", timeshift=None,
-                 startdate=None, enddate=None, var=None, metadata=None,
+                 startdate=None, enddate=None, var=None, metadata=None, level=None,
                  loglevel='WARNING', **kwargs):
         """
         Initializes the GSVSource class. These are typically specified in the catalogue entry,
@@ -62,6 +62,7 @@ class GSVSource(base.DataSource):
             enddate (str, optional): End date for request. Defaults to None.
             var (str, optional): Variable ID. Defaults to those in the catalogue.
             metadata (dict, optional): Metadata read from catalogue. Contains path to FDB.
+            level (int, float, list): optional level(s) to be read. Must use the same units as the original source.
             loglevel (string) : The loglevel for the GSVSource
             kwargs: other keyword arguments.
         """
@@ -106,7 +107,8 @@ class GSVSource(base.DataSource):
         self._request = request.copy()
         self._kwargs = kwargs
 
-        sys._gsv_work_counter = 0  # used to suppress printing
+        if level and ("levelist" in self._request):
+            self._request["levelist"] = level  # override default levels
 
         self.get_eccodes_shortname = init_get_eccodes_shortname()
 
