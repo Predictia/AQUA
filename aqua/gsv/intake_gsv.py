@@ -35,7 +35,8 @@ class GSVSource(base.DataSource):
     chk_end_date = None
     chk_size = None
 
-    _ds = None  # This will contain a sample of the data for dask access
+    _ds = None  # _ds and _da will contain samples of the data for dask access
+    _da = None
     dask_access = False  # Flag if dask has been requested
     timeaxis = None  # Used for dask access
 
@@ -134,19 +135,32 @@ class GSVSource(base.DataSource):
         check_dates(self.startdate, self.data_start_date, self.enddate, self.data_end_date)
 
         if self.dask_access:  # We need a better schema for dask access
-            if not self._ds:  # we still have to retrieve a sample dataset
+            if not self._ds or not self._da:  # we still have to retrieve a sample dataset
                 self._ds = self._get_partition(0, var=self._var, first=True)
 
-            var = list(self._ds.data_vars)[0]
-            da = self._ds[var]  # get first variable dataarray
+                var = list(self._ds.data_vars)[0]
+                da = self._ds[var]  # get first variable dataarray
+
+                # If we have multiple levels, then this array needs to be expanded
+                if "levelist" in self._request:
+                    lev = self._request["levelist"]
+                    # the following is needed only if there is more than one level requested
+                    if isinstance(lev, list) and len(lev) > 1:
+                        lev = [float(x) for x in lev]  # make sure these are floats
+                        apos = da.dims.index("level")  # expand the size of the "level" axis
+                        attrs = da["level"].attrs
+                        da = da.squeeze("level").drop("level").expand_dims(level=lev,axis=apos)
+                        da["level"].attrs.update(attrs)
+
+                self._da = da
 
             metadata = {
-                'dims': da.dims,
+                'dims': self._da.dims,
                 'attrs': self._ds.attrs
             }
             schema = base.Schema(
                 datashape=None,
-                dtype=str(da.dtype),
+                dtype=str(self._da.dtype),
                 shape=da.shape,
                 name=None,
                 npartitions=self._npartitions,
@@ -179,8 +193,12 @@ class GSVSource(base.DataSource):
         if self.timestyle == "date":
             dds, tts = date2str(self.chk_start_date[i])
             dde, tte = date2str(self.chk_end_date[i])
-            request["date"] = f"{dds}/to/{dde}"
-            request["time"] = f"{tts}/to/{tte}"
+            if ((dds == dde) and (tts == tte)) or first:
+                request["date"] = f"{dds}"
+                request["time"] = f"{tts}"     
+            else:
+                request["date"] = f"{dds}/to/{dde}"
+                request["time"] = f"{tts}/to/{tte}"
             s0 = None
             s1 = None
         else:  # style is 'step'
@@ -194,6 +212,9 @@ class GSVSource(base.DataSource):
                 request["step"] = f'{s0}'
             else:
                 request["step"] = f'{s0}/to/{s1}'
+
+        if first and "levelist" in request:  # limit to one single level
+            request["levelist"] = request["levelist"][0]
 
         if var:
             request["param"] = var
@@ -267,11 +288,8 @@ class GSVSource(base.DataSource):
         shape = self._schema.shape
         dtype = self._schema.dtype
 
-        var = list(self._ds.data_vars)[0]
-        da0 = self._ds[var]  # sample dataarray
-
-        self.itime = da0.dims.index("time")
-        coords = da0.coords.copy()
+        self.itime = self._da.dims.index("time")
+        coords = self._da.coords.copy()
         coords['time'] = self.timeaxis
 
         ds = xr.Dataset()
@@ -286,9 +304,8 @@ class GSVSource(base.DataSource):
             da = xr.DataArray(darr,
                               name=shortname,
                               attrs=self._ds[shortname].attrs,
-                              dims=self._ds[shortname].dims,
+                              dims=self._da.dims,
                               coords=coords)
-
             
             ds[shortname] = da
 
