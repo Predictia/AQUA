@@ -123,52 +123,14 @@ def plot_single_map(data: xr.DataArray,
     # Longitude labels
     # Evaluate the longitude ticks
     nxticks = kwargs.get('nxticks', 7)
-    ticks_rounding = kwargs.get('ticks_rounding', None)
-    if ticks_precision:
-        logger.debug("Setting ticks rounding to %s", ticks_rounding)
-    try:
-        lon_min = data[lon_name].values.min()
-        lon_max = data[lon_name].values.max()
-        (lon_min, lon_max), _ = check_coordinates(lon=(lon_min, lon_max),
-                                                  default={"lon_min": -180,
-                                                           "lon_max": 180,
-                                                           "lat_min": -90,
-                                                           "lat_max": 90},)
-        logger.debug("Setting longitude ticks from %s to %s", lon_min, lon_max)
-    except KeyError:
-        logger.critical("No longitude coordinate found, setting default values")
-        lon_min = -180
-        lon_max = 180
-    step = (lon_max - lon_min) / (nxticks - 1)
-    xticks = np.arange(lon_min, lon_max + 1, step)
-    xticks = ticks_round(ticks=xticks, round_to=ticks_rounding)
-    logger.debug("Setting longitude ticks to %s", xticks)
-    ax.set_xticks(xticks, crs=proj)
-    lon_formatter = cticker.LongitudeFormatter()
-    ax.xaxis.set_major_formatter(lon_formatter)
-
-    # Latitude labels
-    # Evaluate the latitude ticks
     nyticks = kwargs.get('nyticks', 7)
-    try:
-        lat_min = data[lat_name].values.min()
-        lat_max = data[lat_name].values.max()
-        _, (lat_min, lat_max) = check_coordinates(lat=(lat_min, lat_max),
-                                                  default={"lon_min": -180,
-                                                           "lon_max": 180,
-                                                           "lat_min": -90,
-                                                           "lat_max": 90},)
-        logger.debug("Setting latitude ticks from %s to %s", lat_min, lat_max)
-    except KeyError:
-        logger.critical("No latitude coordinate found, setting default values")
-        lat_min = -90
-        lat_max = 90
-    step = (lat_max - lat_min) / (nyticks - 1)
-    yticks = np.arange(lat_min, lat_max + 1, step)
-    yticks = ticks_round(ticks=yticks, round_to=ticks_rounding)
-    ax.set_yticks(yticks, crs=proj)
-    lat_formatter = cticker.LatitudeFormatter()
-    ax.yaxis.set_major_formatter(lat_formatter)
+    ticks_rounding = kwargs.get('ticks_rounding', None)
+    if ticks_rounding:
+        logger.debug("Setting ticks rounding to %s", ticks_rounding)
+
+    fig, ax = _set_ticks(data=data, fig=fig, ax=ax, nticks=(nxticks, nyticks),
+                         ticks_rounding=ticks_rounding, lon_name=lon_name,
+                         lat_name=lat_name, proj=proj, loglevel=loglevel)
 
     # Adjust the location of the subplots on the page to make room for the colorbar
     fig.subplots_adjust(bottom=0.25, top=0.9, left=0.05, right=0.95,
@@ -227,3 +189,78 @@ def plot_single_map(data: xr.DataArray,
     if display is False:
         logger.debug("Display is set to False, closing figure")
         plt.close(fig)
+
+
+def _set_ticks(data: xr.DataArray,
+               fig: plt.figure,
+               ax: plt.axes,
+               nticks: tuple,
+               lon_name: str,
+               lat_name: str,
+               ticks_rounding: int = None,
+               proj=ccrs.PlateCarree(),
+               loglevel='WARNING'):
+    """
+    Set the ticks of the map.
+
+    Args:
+        data (xr.DataArray): Data to plot.
+        fig (matplotlib.figure.Figure): Figure.
+        ax (matplotlib.axes._subplots.AxesSubplot): Axes.
+        nticks (tuple): Number of ticks for x and y axes.
+        lon_name (str): Name of the longitude coordinate.
+        lat_name (str): Name of the latitude coordinate.
+        ticks_rounding (int, optional): Number of digits to round the ticks.
+        loglevel (str, optional): Log level. Defaults to 'WARNING'.
+
+    Returns:
+        matplotlib.figure.Figure, matplotlib.axes._subplots.AxesSubplot: Figure and axes.
+    """
+    logger = log_configure(loglevel, 'set_ticks')
+    nxticks, nyticks = nticks
+
+    try:
+        lon_min = data[lon_name].values.min()
+        lon_max = data[lon_name].values.max()
+        (lon_min, lon_max), _ = check_coordinates(lon=(lon_min, lon_max),
+                                                  default={"lon_min": -180,
+                                                           "lon_max": 180,
+                                                           "lat_min": -90,
+                                                           "lat_max": 90},)
+        logger.debug("Setting longitude ticks from %s to %s", lon_min, lon_max)
+    except KeyError:
+        logger.critical("No longitude coordinate found, setting default values")
+        lon_min = -180
+        lon_max = 180
+    step = (lon_max - lon_min) / (nxticks - 1)
+    xticks = np.arange(lon_min, lon_max + 1, step)
+    xticks = ticks_round(ticks=xticks, round_to=ticks_rounding)
+    logger.debug("Setting longitude ticks to %s", xticks)
+    ax.set_xticks(xticks, crs=proj)
+    lon_formatter = cticker.LongitudeFormatter()
+    ax.xaxis.set_major_formatter(lon_formatter)
+
+    # Latitude labels
+    # Evaluate the latitude ticks
+    try:
+        lat_min = data[lat_name].values.min()
+        lat_max = data[lat_name].values.max()
+        _, (lat_min, lat_max) = check_coordinates(lat=(lat_min, lat_max),
+                                                  default={"lon_min": -180,
+                                                           "lon_max": 180,
+                                                           "lat_min": -90,
+                                                           "lat_max": 90},)
+        logger.debug("Setting latitude ticks from %s to %s", lat_min, lat_max)
+    except KeyError:
+        logger.critical("No latitude coordinate found, setting default values")
+        lat_min = -90
+        lat_max = 90
+    step = (lat_max - lat_min) / (nyticks - 1)
+    yticks = np.arange(lat_min, lat_max + 1, step)
+    yticks = ticks_round(ticks=yticks, round_to=ticks_rounding)
+    logger.debug("Setting latitude ticks to %s", yticks)
+    ax.set_yticks(yticks, crs=proj)
+    lat_formatter = cticker.LatitudeFormatter()
+    ax.yaxis.set_major_formatter(lat_formatter)
+
+    return fig, ax
