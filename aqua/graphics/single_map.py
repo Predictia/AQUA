@@ -5,7 +5,7 @@ import numpy as np
 import xarray as xr
 
 from aqua.logger import log_configure
-from aqua.util import create_folder
+from aqua.util import create_folder, ticks_round
 from aqua.util import add_cyclic_lon, evaluate_colorbar_limits
 from aqua.util import cbar_get_label, set_map_title
 from aqua.util import check_coordinates, coord_names
@@ -43,6 +43,9 @@ def plot_single_map(data: xr.DataArray,
         gridlines (bool, optional): If True, plot gridlines. Defaults to False.
         display (bool, optional):  If True, display the figure. Defaults to True.
         loglevel (str, optional):  Log level. Defaults to 'WARNING'.
+        ticks_rounding (int, optional):  Number of digits to round the ticks.
+                                         Defaults to 0 for full map, 1 if min-max < 10,
+                                         2 if min-max < 1.
 
     Keyword Args:
         title (str, optional):       Title of the figure. Defaults to None.
@@ -120,6 +123,9 @@ def plot_single_map(data: xr.DataArray,
     # Longitude labels
     # Evaluate the longitude ticks
     nxticks = kwargs.get('nxticks', 7)
+    ticks_rounding = kwargs.get('ticks_rounding', None)
+    if ticks_precision:
+        logger.debug("Setting ticks rounding to %s", ticks_rounding)
     try:
         lon_min = data[lon_name].values.min()
         lon_max = data[lon_name].values.max()
@@ -135,6 +141,7 @@ def plot_single_map(data: xr.DataArray,
         lon_max = 180
     step = (lon_max - lon_min) / (nxticks - 1)
     xticks = np.arange(lon_min, lon_max + 1, step)
+    xticks = ticks_round(ticks=xticks, round_to=ticks_rounding)
     logger.debug("Setting longitude ticks to %s", xticks)
     ax.set_xticks(xticks, crs=proj)
     lon_formatter = cticker.LongitudeFormatter()
@@ -158,6 +165,7 @@ def plot_single_map(data: xr.DataArray,
         lat_max = 90
     step = (lat_max - lat_min) / (nyticks - 1)
     yticks = np.arange(lat_min, lat_max + 1, step)
+    yticks = ticks_round(ticks=yticks, round_to=ticks_rounding)
     ax.set_yticks(yticks, crs=proj)
     lat_formatter = cticker.LatitudeFormatter()
     ax.yaxis.set_major_formatter(lat_formatter)
