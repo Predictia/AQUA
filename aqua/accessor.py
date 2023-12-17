@@ -10,11 +10,11 @@ class AquaAccessor:
 
     def __init__(self, xarray_obj):
         self._obj = xarray_obj
-        self.instance = aqua.Reader.instance  # buffer the current Reader instance
+        self.instance = None
 
-    def init(self):
-        """Does nothing (but forces initialization of the class)."""
-        pass
+    def init(self, reader):
+        """Record the Reader instance to use."""
+        self.instance = reader
     
     def plot_single_map(self, **kwargs):
         """Plot contour or pcolormesh map of a single variable."""
