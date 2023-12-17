@@ -44,6 +44,8 @@ xr.set_options(keep_attrs=True)
 class Reader(FixerMixin, RegridMixin):
     """General reader for NextGEMS data."""
 
+    instance = None
+
     def __init__(self, model=None, exp=None, source=None, fix=True,
                  regrid=None, regrid_method=None, zoom=None,
                  areas=True, datamodel=None,
@@ -80,6 +82,8 @@ class Reader(FixerMixin, RegridMixin):
         Returns:
             Reader: A `Reader` class object.
         """
+
+        Reader.instance = self  # saving latest instance of this class
 
         # define the internal logger
         self.loglevel = loglevel
