@@ -10,10 +10,10 @@ class AquaAccessor:
 
     def __init__(self, xarray_obj):
         self._obj = xarray_obj
-        self.instance = None
+        self.instance = aqua.Reader.instance  # by default use the latest available instance of the Reader class
 
     def init(self, reader):
-        """Record the Reader instance to use."""
+        """Record explicitly the Reader instance to use."""
         self.instance = reader
     
     def plot_single_map(self, **kwargs):

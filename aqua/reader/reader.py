@@ -44,6 +44,8 @@ xr.set_options(keep_attrs=True)
 class Reader(FixerMixin, RegridMixin):
     """General reader for NextGEMS data."""
 
+    instance = None  # Used to store the latest instance of the class
+
     def __init__(self, model=None, exp=None, source=None, fix=True,
                  regrid=None, regrid_method=None, zoom=None,
                  areas=True, datamodel=None,
@@ -80,6 +82,8 @@ class Reader(FixerMixin, RegridMixin):
         Returns:
             Reader: A `Reader` class object.
         """
+
+        Reader.instance = self  # record the latest instance of the class (used for accessor)
 
         # define the internal logger
         self.loglevel = loglevel
@@ -551,8 +555,9 @@ class Reader(FixerMixin, RegridMixin):
             elif startdate and enddate and not ffdb:  # do not select if data come from FDB (already done)
                 data = data.sel(time=slice(startdate, enddate))
 
-        data.aqua.init(self)  # This links the accessor to this instance of the Reader class
-        
+        data.aqua.init(self)  # This links the dataset accessor to this instance of the Reader class
+        Reader.instance = self  # Refresh the latest reader instance used
+
         return data
 
     def regrid(self, data):
