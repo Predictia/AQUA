@@ -382,8 +382,5 @@ we can write
 data.tcc.aqua.timmean(freq="Y").aqua.fldmean()
 ```
 
-Please notice that for methods of `Reader` class instances (such as `regrid()`, `fldmean()` etc.) the latest instance of 
-the class will be used. This means that if `Reader` is instantiated twice or more, the `aqua` suffix gives access to
-the methods of the latest one. So if you need to create different instances of the reader, to be used at the same time
-(for example if you need to access and compare multiple data sources at the same time), we recommend not to use the accessor
-and to use rather the standard functions and methods of the reader.
+The accessor instance for the data will cache the reader instance used to create the data themselves, so this is expected
+that this will work smoothly also if multiple instances of the Reader class are used.

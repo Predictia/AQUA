@@ -555,6 +555,8 @@ class Reader(FixerMixin, RegridMixin):
             elif startdate and enddate and not ffdb:  # do not select if data come from FDB (already done)
                 data = data.sel(time=slice(startdate, enddate))
 
+        data.aqua.init()  # This does nothing but it forces intialization of the accessor
+        
         return data
 
     def regrid(self, data):
