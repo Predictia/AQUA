@@ -363,3 +363,27 @@ The default is ``S`` (step), i.e. single saved timesteps are read at each iterat
 
 Please notice that the resulting object obtained at each iteration is not a lazy dask array, but is instead entirely loaded into memory.
 Please consider memory usage in choosing an appropriate value for the ``aggregation`` keyword.
+
+Accessor
+~~~~~~~~
+
+AQUA also provides a special 'aqua' accessor to Xarray which allows to call most functions and methods of the reader
+class as if they were methods of an Xarray DataArray or Dataset.
+Reader methods like `reader.regrid()` or functions like `plot_single_map()` can now also be accessed by appending
+the suffix `aqua`to a DataArray or Dataset, followed by the function of interest, like in `data.aqua.regrid()`
+
+This means that instead of writing:
+
+```
+reader.fldmean(reader.timmean(data.tcc, freq="Y"))
+```
+we can write
+```
+data.tcc.aqua.timmean(freq="Y").aqua.fldmean()
+```
+
+Please notice that for methods of `Reader` class instances (such as `regrid()`, `fldmean()` etc.) the latest instance of 
+the class will be used. This means that if `Reader` is instantiated twice or more, the `aqua` suffix gives access to
+the methods of the latest one. So if you need to create different instances of the reader, to be used at the same time
+(for example if you need to access and compare multiple data sources at the same time), we recommend not to use the accessor
+and to use rather the standard functions and methods of the reader.
