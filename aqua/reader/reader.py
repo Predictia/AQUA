@@ -440,7 +440,7 @@ class Reader(FixerMixin, RegridMixin):
             cellareas = source_grid.get("cellareas", None)
             cellarea_var = source_grid.get("cellarea_var", None)
             if cellareas and cellarea_var:
-                self.logger.warning("Using cellareas file provided in aqua-grids.yaml")
+                self.logger.info("Using cellareas file provided in aqua-grids.yaml")
                 xr.open_mfdataset(cellareas)[cellarea_var].rename("cell_area").squeeze().to_netcdf(self.src_areafile)
             else:
                 self._make_src_area_file(self.src_areafile, source_grid,
@@ -497,7 +497,7 @@ class Reader(FixerMixin, RegridMixin):
                 if sample:
                     var = [var[0]]
 
-                self.logger.info(f"FDB source, setting default variables to {var}")
+                self.logger.debug(f"FDB source, setting default variables to {var}")
                 loadvar = self.get_fixer_varname(var) if self.fix else var
             else:
                 loadvar = None
@@ -514,17 +514,6 @@ class Reader(FixerMixin, RegridMixin):
             ffdb = True  # These data have been read from fdb
         else:
             data = self.reader_intake(self.esmcat, var, loadvar)  # Returns a generator object
-
-            if var:
-                if all(element in data.data_vars for element in loadvar):
-                    data = data[loadvar]
-                else:
-                    try:
-                        data = data[var]
-                        self.logger.warning(f"You are asking for var {var} which is already fixed from {loadvar}.")
-                        self.logger.warning("Would be safer to run with fix=False")
-                    except Exception as e:
-                        raise KeyError("You are asking for variables which we cannot find in the catalog!") from e
 
         # if retrieve history is required (disable for retrieve_plain)
         if history:
@@ -936,7 +925,7 @@ class Reader(FixerMixin, RegridMixin):
 
         Args:
             esmcat (intake.catalog.Catalog): your catalog
-            var (str): Variable to load
+            var (list or str): Variable to load
             loadvar (list of str): List of variables to load
             keep (str, optional): which duplicate entry to keep ("first" (default), "last" or None)
 
@@ -944,19 +933,19 @@ class Reader(FixerMixin, RegridMixin):
             Dataset
         """
 
+        data = esmcat.to_dask()
+
         if loadvar:
-            data = esmcat.to_dask()
+            
             if all(element in data.data_vars for element in loadvar):
                 data = data[loadvar]
             else:
                 try:
                     data = data[var]
-                    self.logger.warning("You are asking for var %s which is already fixed from %s.", var, loadvar)
-                    self.logger.warning("It would be safer to run with fix=False")
+                    self.logger.warning("You are asking for var %s but the fixes definition requires %s, which is not there.", var, loadvar)
+                    self.logger.warning("Retrieving %s, but it would be safer to run with fix=False or to correct the fixes", var)
                 except Exception as e:
                     raise KeyError("You are asking for variables which we cannot find in the catalog!") from e
-        else:
-            data = esmcat.to_dask()
 
         # check for duplicates
         if 'time' in data.coords:
