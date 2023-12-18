@@ -20,4 +20,4 @@ sources:
       eccodes_path: /projappl/project_465000454/jvonhar/aqua/eccodes/eccodes-2.32.0/definitions
       variables: ['10u', '10v', '2t']
       source_grid_name: icon-healpix-dev
-      fix_names: icon-destine
+      fixer_name: icon-destine
