@@ -555,10 +555,15 @@ class Reader(FixerMixin, RegridMixin):
             elif startdate and enddate and not ffdb:  # do not select if data come from FDB (already done)
                 data = data.sel(time=slice(startdate, enddate))
 
-        data.aqua.init(self)  # This links the dataset accessor to this instance of the Reader class
-        Reader.instance = self  # Refresh the latest reader instance used
+        if isinstance(data, xr.Dataset):
+            data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
 
         return data
+
+    def set_default(self):
+        """Sets this reader as the default for the accessor."""
+
+        Reader.instance = self  # Refresh the latest reader instance used
 
     def regrid(self, data):
         """Call the regridder function returning container or iterator"""
@@ -568,7 +573,6 @@ class Reader(FixerMixin, RegridMixin):
         else:
             return self._regrid(data)
         
-
     def _regridgen(self, data):
         for ds in data:
             yield self._regrid(ds)
