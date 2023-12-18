@@ -25,7 +25,7 @@ sources:
     description: IFS-FESOM coupled model
     driver: yaml_file_cat
     args:
-        path: "{{CATALOG_DIR}}/catalog/IFS-NEMO/main.yaml"
+        path: "{{CATALOG_DIR}}/catalog/IFS-FESOM/main.yaml"
   FESOM:
     description: FESOM oceanic model
     driver: yaml_file_cat
