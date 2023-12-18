@@ -223,6 +223,7 @@ class GSVSource(base.DataSource):
         # to silence the logging from the GSV retriever, we increase its level by one
         # in this way the 'info' is printed only in 'debug' mode
         # gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel() + 10)
+        self.logger.debug('Request %s', request)
         dataset = gsv.request_data(request)
 
         if self.timeshift:  # shift time by one month (special case)
