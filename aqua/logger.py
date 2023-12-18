@@ -31,7 +31,7 @@ def log_configure(log_level=None, log_name=None):
     if logger.handlers:
         if log_level != logging.getLevelName(logger.getEffectiveLevel()):
             logger.setLevel(log_level)
-            logger.info('Updating the log_level to %s', log_level)
+            logger.debug('Updating the log_level to %s', log_level)
         return logger
 
     # avoid duplication/propagation of loggers
@@ -141,9 +141,12 @@ def _log_history(data, msg):
         now = datetime.datetime.now()
         date_now = now.strftime("%Y-%m-%d %H:%M:%S")
         hist = data.attrs.get("history", "")
+
+
+        # check that there is a new line at the end of the current history
         if not hist.endswith("\n"):
             hist += "\n"
-        hist += f"{date_now} AQUA💧: {msg};"
+        hist += f"{date_now} AQUA💧: {msg};\n"
         data.attrs.update({"history": hist})
 
 
