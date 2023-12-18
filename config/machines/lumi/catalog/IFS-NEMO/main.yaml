@@ -13,4 +13,4 @@ sources:
     description: "1990-1991 coupled spinup (2y) with fractional sea ice coupling"
     driver: yaml_file_cat
     args:
-      path: '{{CATALOG_DIR}}/spinup-fracice.yaml'
+      path: '{{CATALOG_DIR}}/spinup-1990-fracice.yaml'
