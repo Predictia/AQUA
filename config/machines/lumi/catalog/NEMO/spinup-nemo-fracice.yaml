@@ -13,7 +13,7 @@ sources:
         levtype: o2d
         step: 0
       data_start_date: '19900101'
-      data_end_date: '19910501'
+      data_end_date: '19920101'
       aggregation: M
       savefreq: M
       timestep: H
@@ -26,7 +26,6 @@ sources:
         /project/project_465000454/models/ifs-nemo/DE_CY48R1.0_climateDT_develop/source/eccodes/definitions
       source_grid_name: nemo-healpix
       variables: [263101, 263001, 263122, 263121, 263100]
-
   monthly-1deg-3d:
     args:
       request:
@@ -49,7 +48,7 @@ sources:
                   61, 62, 63, 64, 65, 66, 67, 68, 69, 70,
                   71, 72, 73, 74, 75]
       data_start_date: '19900101'
-      data_end_date: '19910501'
+      data_end_date: '19920101'
       aggregation: M
       savefreq: M
       timestep: H
