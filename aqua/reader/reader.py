@@ -610,6 +610,8 @@ class Reader(FixerMixin, RegridMixin):
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
         
+        out.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
+
         out = log_history(out, f"Regrid from {self.src_grid_name} to {self.dst_grid_name}")
         
         return out
@@ -677,6 +679,8 @@ class Reader(FixerMixin, RegridMixin):
             if np.any(np.isnat(out.time_bnds)):
                 raise ValueError('Resampling cannot produce output for all time_bnds step!')
             log_history(out, "time_bnds added by by AQUA timmean")
+
+        out.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
 
         return out
 
@@ -760,6 +764,8 @@ class Reader(FixerMixin, RegridMixin):
                         raise ValueError(f'{coord} has a mismatch in coordinate values!') from err
 
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
+
+        out.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
 
         log_history(data, f"spatially averaged from {self.src_grid_name} grid")
 
@@ -854,6 +860,8 @@ class Reader(FixerMixin, RegridMixin):
             raise ValueError('This is not an xarray object!')
         
         final = log_history(final, f"Interpolated from original levels {data[vert_coord].values} {data[vert_coord].units} to level {levels} using {method} method.")
+
+        final.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
 
         return final
 
@@ -986,6 +994,9 @@ class Reader(FixerMixin, RegridMixin):
                                   aggregation=aggregation,
                                   timechunks=timechunks,
                                   reset=reset)
+
+        stream_data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
+
         return stream_data
 
     def info(self):
