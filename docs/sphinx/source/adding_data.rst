@@ -301,11 +301,13 @@ Examples are `historical-1990-dev` or `control-1950-dev`. We plan to incorporate
 Sources (`source` key)
 ----------------------
 
-For the sources, we will need to uniform the different requirements of grids and temporal resolution. Sometimes we use native sometimes original, sometimes r100 sometimes 1deg. Do we want to use the 2d/3d key every time? This is confusing. Some options might be...
+For the sources, we decide to uniform the different requirements of grids and temporal resolution. 
 
-1. **Time resolution**: monthly, daily, 6hourly, hourly, etc.
-2. **Space resolution**: native, 1deg, 025deg, r100, etc... For some oceanic model we could add the horizontal grid so native-elem or native-gridT could be an option. Similarly, healpix can be healpix-0 or healpix-6 in the case we want to specify the zoom level. 
-3. **Extra info**: 2d or 3d. Not mandatory, but to be used when confusion might arise.
+0. **Domain**: Oceanic sources will have a `oce` prepended to all their sources
+1. **Time resolution**: `monthly`, `daily`, `6hourly`, `hourly`, etc.
+2. **Space resolution**: `native`, `1deg`, `025deg`, `r100`, etc... For some oceanic model we could add the horizontal grid so `native-elem` or `native-gridT`` could be an option. Similarly, if multiple healpix are present, they can be `healpix-0` or `healpix-6` in the case we want to specify the zoom level. 
+3. **Extra info**: `2d` or `3d`. Not mandatory, but to be used when confusion might arise.
+
 
 
 
