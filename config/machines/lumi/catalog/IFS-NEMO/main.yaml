@@ -9,3 +9,8 @@ sources:
     driver: yaml_file_cat
     args:
       path: '{{CATALOG_DIR}}/historical-1990-dev.yaml'
+  spinup-fracice:
+    description: "1990-1991 coupled spinup (2y) with fractional sea ice coupling"
+    driver: yaml_file_cat
+    args:
+      path: '{{CATALOG_DIR}}/spinup-fracice.yaml'
