@@ -37,7 +37,7 @@ class FixerMixin():
         """
 
         # look for family fixes and set them as default
-        base_fixes = self._load_fix_names()
+        base_fixes = self._load_fixer_name()
 
         # check the presence of model-specific fix
         fix_model = self.fixes_dictionary["models"].get(self.model, None)
@@ -116,31 +116,31 @@ class FixerMixin():
 
             return final_fixes
 
-    def _load_fix_names(self):
+    def _load_fixer_name(self):
         """
-        Load the fix_names reading from the metadata of the catalog.
-        If the fix_names has a parent, load it and merge it giving priority to the child.
+        Load the fixer_name reading from the metadata of the catalog.
+        If the fixer_name has a parent, load it and merge it giving priority to the child.
         """
 
         # if fix names is not found in metadata, return None
-        if self.fix_names is None:
+        if self.fixer_name is None:
             return None
 
         # get the fixes from the fix files
-        fixes = self.fixes_dictionary["fix_names"].get(self.fix_names, None)
+        fixes = self.fixes_dictionary["fixer_name"].get(self.fixer_name, None)
 
         # if found, proceed as expected
         if fixes is not None:
             self.logger.info("Fix names %s found for model %s, experiment %s, source %s",
-                             self.fix_names, self.model, self.exp, self.source)
+                             self.fixer_name, self.model, self.exp, self.source)
             if 'parent' in fixes:
-                parent_fixes = self.fixes_dictionary["fix_names"].get(fixes['parent'])
-                self.logger.info("Parent fix %s found! Mergin with family fixes %s!", fixes['parent'], self.fix_names)
+                parent_fixes = self.fixes_dictionary["fixer_name"].get(fixes['parent'])
+                self.logger.info("Parent fix %s found! Mergin with family fixes %s!", fixes['parent'], self.fixer_name)
                 fixes = self._merge_fixes(parent_fixes, fixes)
         else:
             self.logger.error("Fix names %s does not exist in %s.yaml file. Will try to use model default fixes!",
                               self.fix_family, self.model)
-            warn("The model default will be deprecated in the future in favour of a fix_names structure default.",
+            warn("The model default will be deprecated in the future in favour of a fixer_name structure default.",
                  DeprecationWarning, stacklevel=2)
 
         return fixes
