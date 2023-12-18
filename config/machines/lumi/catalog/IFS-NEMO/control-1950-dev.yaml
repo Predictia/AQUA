@@ -142,7 +142,7 @@ sources:
       fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-CONTROL_1950_DEVCON.yaml
       eccodes_path: /projappl/project_465000454/jvonhar/aqua/eccodes/eccodes-2.30.0/definitions
       variables: ['u', 'v', 't', 'r', 'q']
-      source_grid_name: lon-lat-2d
+      source_grid_name: lon-lat
   lra-r100-monthly:
     driver: netcdf
     description: LRA data monthly at r100
