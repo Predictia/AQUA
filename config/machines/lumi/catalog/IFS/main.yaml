@@ -4,8 +4,3 @@ sources:
     driver: yaml_file_cat
     args:
       path: '{{CATALOG_DIR}}/fdb-tco399.yaml'
-  historical-1990-fesom-dev:
-    description: FDB IFS/FESOM tco1279-ng5 historical 1990 run
-    driver: yaml_file_cat
-    args:
-      path: '{{CATALOG_DIR}}/historical-1990-fesom-dev.yaml'
