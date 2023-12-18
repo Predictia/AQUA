@@ -374,13 +374,34 @@ the suffix `aqua`to a DataArray or Dataset, followed by the function of interest
 
 This means that instead of writing:
 
-```
-reader.fldmean(reader.timmean(data.tcc, freq="Y"))
-```
-we can write
-```
-data.tcc.aqua.timmean(freq="Y").aqua.fldmean()
-```
+.. code-block:: python
+    reader.fldmean(reader.timmean(data.tcc, freq="Y"))
 
-The accessor instance for the data will cache the reader instance used to create the data themselves, so this is expected
-that this will work smoothly also if multiple instances of the Reader class are used.
+we can write
+
+.. code-block:: python
+    data.tcc.aqua.timmean(freq="Y").aqua.fldmean()
+
+Please notice that the accessor always assumes that the Reader instance to be used is either
+the one with which a Dataset was created or, for new derived objects and for *DataArrays in the Datasets*,
+the last instantiated Reader or the last use of the `retrieve()` method.
+This means that if more than one reader instance is used (for example to compare different datasets)
+we recommend not to use the accessor.
+
+As an alternative the Reader class contains a special `set_default()` method which sets that reader
+as an accessor default in the following. The accessor itself also has a `set_default()` method
+(accepting a reader instance as an argument) which sets the default and returns the same object.
+Usage examples when multiple readers are used:
+
+.. code-block:: python
+    from aqua import Reader
+    reader1=Reader(model="IFS", exp="test-tco79", source="short", regrid="r100")  # the default is now reader1
+    reader2=Reader(model="IFS", exp="test-tco79", source="short", regrid="r200")  # the default is now reader2
+    data1 = reader1.retrieve()  # the default is now reader1 
+    data2 = reader2.retrieve()  # the default is now reader2
+    reader1.set_default()  # the default is now reader1 
+    data1r = data1.aqua.regrid()
+    data2r = data2.aqua.regrid()  # data2 was created by retrieve(), so it remembers its default reader
+    data2r = data2['2t'].aqua.set_default(reader2).aqua.regrid()  # the default is set to reader2 before using a method
+
+
