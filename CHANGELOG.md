@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
-- Defining catalog entry for coupled models IFS-NEMO and IFS-FESOM #720
+- Defining catalog entry for coupled models IFS-NEMO and IFS-FESOM (#720)
 - Change fixer_name to fixer_name (#703)
 - Reorganization of logging calls (#700)
 - Minor metadata fixes (logger newline and keep "GRIB_" in attrs) (#715)
