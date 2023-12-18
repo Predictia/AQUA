@@ -52,7 +52,7 @@ def create_folder(folder, loglevel="WARNING"):
 
     if not os.path.exists(folder):
         logger.info('Creating folder %s', folder)
-        os.makedirs(folder)
+        os.makedirs(folder, exist_ok=True)
     else:
         logger.info('Folder %s already exists', folder)
 
