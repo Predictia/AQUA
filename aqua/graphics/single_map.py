@@ -83,7 +83,7 @@ def plot_single_map(data: xr.DataArray,
             vmin, vmax = evaluate_colorbar_limits(maps=[data], sym=sym)
     logger.debug("Setting vmin to %s, vmax to %s", vmin, vmax)
     if contour:
-        levels = np.linspace(vmin, vmax, nlevels+1)
+        levels = np.linspace(vmin, vmax, nlevels + 1)
 
     # Plot the data
     if contour:
@@ -122,9 +122,9 @@ def plot_single_map(data: xr.DataArray,
         logger.critical("No longitude coordinate found, setting default values")
         lon_min = -180
         lon_max = 180
-    step = (lon_max - lon_min)/(nxticks-1)
+    step = (lon_max - lon_min) / (nxticks - 1)
     logger.debug("Setting longitude ticks from %s to %s", lon_min, lon_max)
-    xticks = np.arange(lon_min, lon_max+1, step)
+    xticks = np.arange(lon_min, lon_max + 1, step)
     logger.debug("Setting longitude ticks to %s", xticks)
     ax.set_xticks(xticks, crs=proj)
     lon_formatter = cticker.LongitudeFormatter()
@@ -145,9 +145,9 @@ def plot_single_map(data: xr.DataArray,
         logger.critical("No latitude coordinate found, setting default values")
         lat_min = -90
         lat_max = 90
-    step = (lat_max - lat_min)/(nyticks-1)
+    step = (lat_max - lat_min) / (nyticks - 1)
     logger.debug("Setting latitude ticks from %s to %s", lat_min, lat_max)
-    yticks = np.arange(lat_min, lat_max+1, step)
+    yticks = np.arange(lat_min, lat_max + 1, step)
     ax.set_yticks(yticks, crs=proj)
     lat_formatter = cticker.LatitudeFormatter()
     ax.yaxis.set_major_formatter(lat_formatter)
@@ -170,7 +170,7 @@ def plot_single_map(data: xr.DataArray,
     # Make tick of colorbar simmetric if sym=True
     if sym:
         logger.debug("Setting colorbar ticks to be symmetrical")
-        cbar.set_ticks(np.linspace(-vmax, vmax, nlevels+1))
+        cbar.set_ticks(np.linspace(-vmax, vmax, nlevels + 1))
 
     # Set x-y labels
     ax.set_xlabel('Longitude [deg]')
@@ -205,7 +205,7 @@ def plot_single_map(data: xr.DataArray,
 
         fig.savefig('{}/{}'.format(outputdir, filename),
                     dpi=dpi, bbox_inches='tight')
-    
+
     if display is False:
         logger.debug("Display is set to False, closing figure")
         plt.close(fig)

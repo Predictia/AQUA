@@ -53,9 +53,9 @@ def area_selection(data=None, lat=None, lon=None,
         if lon[0] > lon[1]:
             lon_condition = (
                 (data.lon >= lon[0]) & (data.lon <= 360)
-                ) | (
+            ) | (
                 (data.lon >= 0) & (data.lon <= lon[1])
-                )
+            )
         else:
             lon_condition = (data.lon >= lon[0]) & (data.lon <= lon[1])
     else:
@@ -64,9 +64,9 @@ def area_selection(data=None, lat=None, lon=None,
         if lon[0] > lon[1]:
             lon_condition = (
                 (data.lon > lon[0]) & (data.lon < 360)
-                ) | (
+            ) | (
                 (data.lon > 0) & (data.lon < lon[1])
-                )
+            )
         else:
             lon_condition = (data.lon > lon[0]) & (data.lon < lon[1])
 
@@ -153,7 +153,7 @@ def check_coordinates(lon=None, lat=None,
                 raise ValueError(f'lon_max cannot be higher than {default["lon_max"]}')
 
         lon = [lon_min, lon_max]
-    
+
     if lat is None:
         lat = [default["lat_min"], default["lat_max"]]
     if lon is None:
