@@ -1,0 +1,11 @@
+sources:
+  control-1950-dev:
+    description: FDB IFS/NEMO tco1279-orca025 control 1950 run
+    driver: yaml_file_cat
+    args:
+      path: '{{CATALOG_DIR}}/control-1950-dev.yaml'
+  historical-1990-dev:
+    description: FDB IFS/NEMO tco1279-orca025 historical 1990 run
+    driver: yaml_file_cat
+    args:
+      path: '{{CATALOG_DIR}}/historical-1990-dev.yaml'
