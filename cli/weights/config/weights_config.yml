@@ -3,7 +3,9 @@ data:
   experiments:    []
   sources: []
   resolutions: ['r025', 'r100']
+  zoom_max: 10
 full_catalogue: False
+
 
 loglevel: 'DEBUG'
 nproc: 4

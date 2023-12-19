@@ -7,6 +7,7 @@ from aqua import Reader, inspect_catalogue
 from aqua.logger import log_configure
 from aqua.util import load_yaml, get_arg
 
+
 def parse_arguments(args):
     """Parse command line arguments"""
 
@@ -66,7 +67,7 @@ def generate_weights(logger, full_catalogue, resolutions, models, experiments, s
         for model in models or inspect_catalogue():
             for exp in experiments or inspect_catalogue(model=model):
                 for source in sources or inspect_catalogue(model=model, exp=exp):
-                    for zoom in range(9):
+                    for zoom in range(zoom_max):
                         calculate_weights(logger, model, exp, source, reso, zoom, nproc)
 
 if __name__ == "__main__":
@@ -83,6 +84,7 @@ if __name__ == "__main__":
     experiments = get_arg(args, 'exp', config['data']['experiments'])
     sources = get_arg(args, 'source', config['data']['sources'])
     resolutions = get_arg(args, 'resolution', config['data']['resolutions'])
+    zoom_max = get_arg(args, 'zoom_max', config['data']['zoom_max'])
     full_catalogue = get_arg(args, 'catalogue', config['full_catalogue'])
     nproc = get_arg(args, 'nproc', config['nproc'])
     
