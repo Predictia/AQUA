@@ -29,12 +29,12 @@ def parse_arguments(args):
                         required=False)
     parser.add_argument('--resolution', type=str, help='resolution of the grid',
                         required=False)
-    parser.add_argument('--rebuild', type=str, help='force rebuilding of area and weight files',
+    parser.add_argument('--rebuild', type=str, help=' Force rebuilding of area and weight files',
                         required=False)
     return parser.parse_args(args)
 
 
-def check_input_parameters(full_catalogue, models, experiments, sources):
+def check_input_parameters(full_catalogue=None, models=None, experiments=None, sources=None):
     """Check input parameters and exit if necessary"""
     if not full_catalogue and (not models or not experiments or not sources):
         logger.error("If you do not want to generate weights for the entire catalog, "
@@ -45,11 +45,11 @@ def check_input_parameters(full_catalogue, models, experiments, sources):
     else:
         logger.info("The weights will be generated for the specified models, experiments, and sources.")
 
-def ensure_list(value):
+def ensure_list(value=None):
     """Ensure that the input is a list"""
     return [value] if not isinstance(value, list) else value
 
-def calculate_weights(logger, model, exp, source, regrid, zoom, nproc, rebuild):
+def calculate_weights(logger='WARNING', model=None, exp=None, source=None, regrid=None, zoom=None, nproc=None, rebuild=None):
     """Calculate weights for a specific combination of model, experiment, source, regrid, and zoom"""
     logger.debug(f"The weights are calculating for {model} {exp} {source} {regrid} {zoom}")
     try:
@@ -57,7 +57,7 @@ def calculate_weights(logger, model, exp, source, regrid, zoom, nproc, rebuild):
     except Exception as e:
         logger.error(f"An unexpected error occurred for source {model} {exp} {source} {regrid} {zoom}: {e}")
 
-def generate_weights(logger, full_catalogue, resolutions, models, experiments, sources, nproc, zoom_max, rebuild):
+def generate_weights(logger='WARNING', full_catalogue=None, resolutions=None, models=None, experiments=None, sources=None, nproc=None, zoom_max=None, rebuild=None):
     logger.info("Weight generation is started.")
     if full_catalogue:
         models, experiments, sources = [], [], []
@@ -70,7 +70,7 @@ def generate_weights(logger, full_catalogue, resolutions, models, experiments, s
             for exp in experiments or inspect_catalogue(model=model):
                 for source in sources or inspect_catalogue(model=model, exp=exp):
                     for zoom in range(zoom_max):
-                        calculate_weights(logger, model, exp, source, reso, zoom, nproc, rebuild)
+                        calculate_weights(logger=logger, model=model, exp=exp, source=source, regrid=reso, zoom=zoom, nproc=nproc, rebuild=rebuild)
 
 if __name__ == "__main__":
     args = parse_arguments(sys.argv[1:])
@@ -91,5 +91,5 @@ if __name__ == "__main__":
     full_catalogue = get_arg(args, 'catalogue', config['full_catalogue'])
     nproc = get_arg(args, 'nproc', config['nproc'])
     
-    check_input_parameters(full_catalogue, models, experiments, sources)
-    generate_weights(logger, full_catalogue, resolutions, models, experiments, sources, nproc, zoom_max, rebuild)
+    check_input_parameters(full_catalogue=full_catalogue, models=models, experiments=experiments, sources=sources)
+    generate_weights(logger=logger, full_catalogue=full_catalogue, resolutions=resolutions, models=models, experiments=experiments, sources=sources, nproc=nproc, zoom_max=zoom_max, rebuild=rebuild)
