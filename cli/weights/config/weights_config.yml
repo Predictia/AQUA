@@ -4,4 +4,4 @@ data:
   source: []
   resos: ['r025', 'r100']
 full_catalogue: False
-loglevel: 'debug'
+loglevel: 'DEBUG'
