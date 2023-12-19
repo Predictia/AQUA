@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Accessor to use functions and reader methods as if they were methods of xarray objects (#716)
 - Suggestions are printed if a model/exp/source is not found while inspecting the catalogue (#721)
 - Improvements in the single map plot function (#717)
 - Minor metadata fixes (logger newline and keep "GRIB_" in attrs) (#715)
