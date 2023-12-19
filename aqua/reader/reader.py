@@ -892,6 +892,9 @@ class Reader(FixerMixin, RegridMixin):
             An xarray.Dataset or an iterator over datasets
         """
 
+        if level and not isinstance(level, list):
+            level = [level]
+
         if dask:
             if self.aggregation:
                 data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
