@@ -29,6 +29,8 @@ def parse_arguments(args):
                         required=False)
     parser.add_argument('--resolution', type=str, help='resolution of the grid',
                         required=False)
+    parser.add_argument('--rebuild', type=str, help='force rebuilding of area and weight files',
+                        required=False)
     return parser.parse_args(args)
 
 
@@ -47,15 +49,15 @@ def ensure_list(value):
     """Ensure that the input is a list"""
     return [value] if not isinstance(value, list) else value
 
-def calculate_weights(logger, model, exp, source, regrid, zoom, nproc):
+def calculate_weights(logger, model, exp, source, regrid, zoom, nproc, rebuild):
     """Calculate weights for a specific combination of model, experiment, source, regrid, and zoom"""
     logger.debug(f"The weights are calculating for {model} {exp} {source} {regrid} {zoom}")
     try:
-        Reader(model=model, exp=exp, source=source, regrid=regrid, zoom=zoom, nproc=nproc)
+        Reader(model=model, exp=exp, source=source, regrid=regrid, zoom=zoom, nproc=nproc, rebuild=rebuild)
     except Exception as e:
         logger.error(f"An unexpected error occurred for source {model} {exp} {source} {regrid} {zoom}: {e}")
 
-def generate_weights(logger, full_catalogue, resolutions, models, experiments, sources, nproc):
+def generate_weights(logger, full_catalogue, resolutions, models, experiments, sources, nproc, zoom_max, rebuild):
     logger.info("Weight generation is started.")
     if full_catalogue:
         models, experiments, sources = [], [], []
@@ -68,7 +70,7 @@ def generate_weights(logger, full_catalogue, resolutions, models, experiments, s
             for exp in experiments or inspect_catalogue(model=model):
                 for source in sources or inspect_catalogue(model=model, exp=exp):
                     for zoom in range(zoom_max):
-                        calculate_weights(logger, model, exp, source, reso, zoom, nproc)
+                        calculate_weights(logger, model, exp, source, reso, zoom, nproc, rebuild)
 
 if __name__ == "__main__":
     args = parse_arguments(sys.argv[1:])
@@ -85,8 +87,9 @@ if __name__ == "__main__":
     sources = get_arg(args, 'source', config['data']['sources'])
     resolutions = get_arg(args, 'resolution', config['data']['resolutions'])
     zoom_max = get_arg(args, 'zoom_max', config['data']['zoom_max'])
+    rebuild = get_arg(args, 'rebuild', config['rebuild'])
     full_catalogue = get_arg(args, 'catalogue', config['full_catalogue'])
     nproc = get_arg(args, 'nproc', config['nproc'])
     
     check_input_parameters(full_catalogue, models, experiments, sources)
-    generate_weights(logger, full_catalogue, resolutions, models, experiments, sources, nproc)
+    generate_weights(logger, full_catalogue, resolutions, models, experiments, sources, nproc, zoom_max, rebuild)
