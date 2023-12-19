@@ -10,6 +10,7 @@ Unreleased is the current development version.
 - Defining catalog entry for coupled models IFS-NEMO and IFS-FESOM (#720)
 - Change fixer_name to fixer_name (#703)
 - Reorganization of logging calls (#700)
+- Suggestions are printed if a model/exp/source is not found while inspecting the catalogue (#721)
 - Improvements in the single map plot function (#717)
 - Minor metadata fixes (logger newline and keep "GRIB_" in attrs) (#715)
 - LRA fix now correctly aggregating monthly data to yearly when a full year is available (#696)
