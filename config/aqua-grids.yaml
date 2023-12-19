@@ -180,9 +180,9 @@ grids:
   nemo-healpix:
     path:
       2d: $grids/HealPix/nemo_hpx10_oce_2d.nc 
-      #level: $grids/HealPix/nemo_hpx10_oce_level.nc
+      level: $grids/HealPix/nemo_hpx10_oce_level.nc
     space_coord: ["ncells"]
-    #vert_coord: ["level"]
+    vert_coord: ["level"]
 
   # OBSERVATIONS
   aviso:
