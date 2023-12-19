@@ -24,7 +24,7 @@ def parse_arguments(args):
                         required=False)
     parser.add_argument('--source', type=str, help='source name',
                         required=False)
-    parser.add_argument('--resos', type=str, help='resolution of the grid',
+    parser.add_argument('--resolution', type=str, help='resolution of the grid',
                         required=False)
     return parser.parse_args(args)
 
@@ -52,7 +52,7 @@ def calculate_weights(logger, model, exp, source, regrid, zoom):
     except Exception as e:
         logger.error(f"An unexpected error occurred for source {model} {exp} {source} {regrid} {zoom}: {e}")
 
-def generate_weights(logger, full_catalogue, resos, models, experiments, sources):
+def generate_weights(logger, full_catalogue, resolutions, models, experiments, sources):
     logger.info("Weight generation is started.")
     if full_catalogue:
         models, experiments, sources = [], [], []
@@ -60,7 +60,7 @@ def generate_weights(logger, full_catalogue, resos, models, experiments, sources
     experiments = ensure_list(experiments)
     sources = ensure_list(sources)
     
-    for reso in resos:
+    for reso in resolutions:
         for model in models or inspect_catalogue():
             for exp in experiments or inspect_catalogue(model=model):
                 for source in sources or inspect_catalogue(model=model, exp=exp):
@@ -77,11 +77,11 @@ if __name__ == "__main__":
     loglevel = get_arg(args, 'loglevel', config['loglevel'])
     logger = log_configure(log_name='Weights Generator', log_level=loglevel)
 
-    models = get_arg(args, 'model', config['data']['model'])
-    experiments = get_arg(args, 'exp', config['data']['exp'])
-    sources = get_arg(args, 'source', config['data']['source'])
-    resos = get_arg(args, 'resos', config['data']['resos'])
+    models = get_arg(args, 'model', config['data']['models'])
+    experiments = get_arg(args, 'exp', config['data']['experiments'])
+    sources = get_arg(args, 'source', config['data']['sources'])
+    resolutions = get_arg(args, 'resolution', config['data']['resolutions'])
     full_catalogue = get_arg(args, 'catalogue', config['full_catalogue'])
     
     check_input_parameters(full_catalogue, models, experiments, sources)
-    generate_weights(logger, full_catalogue, resos, models, experiments, sources)
+    generate_weights(logger, full_catalogue, resolutions, models, experiments, sources)

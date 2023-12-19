@@ -1,7 +1,7 @@
 data:
-  model:  []
-  exp:    []
-  source: []
-  resos: ['r025', 'r100']
+  models:  []
+  experiments:    []
+  sources: []
+  resolutions: ['r025', 'r100']
 full_catalogue: False
 loglevel: 'DEBUG'
