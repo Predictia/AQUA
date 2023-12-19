@@ -3,9 +3,9 @@ set -e
 
 # Check a condition (replace this with your actual condition)
 should_resubmit=false
-cores='16'
-time='08:00:00'
-mem='200G'
+nproc='16'
+walltime='08:00:00'
+memory='200G'
 
 script_dir=$(dirname "${BASH_SOURCE[0]}")
 
@@ -48,9 +48,9 @@ while true; do
 #SBATCH --output=weights_%j.out
 #SBATCH --error=weights_%j.log
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=$cores
-#SBATCH --time=$time
-#SBATCH --mem=$mem
+#SBATCH --ntasks-per-node=$nproc
+#SBATCH --time=$walltime
+#SBATCH --mem=$memory
 
 echo 'Hello from SLURM job!'
 
@@ -61,11 +61,11 @@ if [ $machine == "lumi" ]; then
     username=$USER
     export PATH="/users/$username/mambaforge/aqua/bin:$PATH"
 fi
-/usr/bin/env python3 "$script_dir/generate_weights.py"
+/usr/bin/env python3 "$script_dir/generate_weights.py" --nproc=$nproc
 EOL
 
     else
-        /usr/bin/env python3 "$script_dir/generate_weights.py"
+        /usr/bin/env python3 "$script_dir/generate_weights.py" --nproc=$nproc
     fi
     # Use an if statement to decide whether to resubmit
     if $should_resubmit; then

@@ -4,4 +4,6 @@ data:
   sources: []
   resolutions: ['r025', 'r100']
 full_catalogue: False
+
 loglevel: 'DEBUG'
+nproc: 4

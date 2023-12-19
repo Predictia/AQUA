@@ -18,6 +18,8 @@ def parse_arguments(args):
                         help='calculate the weights for entire catalog')
     parser.add_argument('-l', '--loglevel', type=str,
                         help='log level [default: WARNING]')
+    parser.add_argument('--nproc', type=str,
+                        help='the number of processes to run in parallel [default: 4]')
     parser.add_argument('--model', type=str, help='model name',
                         required=False)
     parser.add_argument('--exp', type=str, help='experiment name',
@@ -44,15 +46,15 @@ def ensure_list(value):
     """Ensure that the input is a list"""
     return [value] if not isinstance(value, list) else value
 
-def calculate_weights(logger, model, exp, source, regrid, zoom):
+def calculate_weights(logger, model, exp, source, regrid, zoom, nproc):
     """Calculate weights for a specific combination of model, experiment, source, regrid, and zoom"""
     logger.debug(f"The weights are calculating for {model} {exp} {source} {regrid} {zoom}")
     try:
-        Reader(model=model, exp=exp, source=source, regrid=regrid, zoom=zoom)
+        Reader(model=model, exp=exp, source=source, regrid=regrid, zoom=zoom, nproc=nproc)
     except Exception as e:
         logger.error(f"An unexpected error occurred for source {model} {exp} {source} {regrid} {zoom}: {e}")
 
-def generate_weights(logger, full_catalogue, resolutions, models, experiments, sources):
+def generate_weights(logger, full_catalogue, resolutions, models, experiments, sources, nproc):
     logger.info("Weight generation is started.")
     if full_catalogue:
         models, experiments, sources = [], [], []
@@ -65,7 +67,7 @@ def generate_weights(logger, full_catalogue, resolutions, models, experiments, s
             for exp in experiments or inspect_catalogue(model=model):
                 for source in sources or inspect_catalogue(model=model, exp=exp):
                     for zoom in range(9):
-                        calculate_weights(logger, model, exp, source, reso, zoom)
+                        calculate_weights(logger, model, exp, source, reso, zoom, nproc)
 
 if __name__ == "__main__":
     args = parse_arguments(sys.argv[1:])
@@ -82,6 +84,7 @@ if __name__ == "__main__":
     sources = get_arg(args, 'source', config['data']['sources'])
     resolutions = get_arg(args, 'resolution', config['data']['resolutions'])
     full_catalogue = get_arg(args, 'catalogue', config['full_catalogue'])
+    nproc = get_arg(args, 'nproc', config['nproc'])
     
     check_input_parameters(full_catalogue, models, experiments, sources)
-    generate_weights(logger, full_catalogue, resolutions, models, experiments, sources)
+    generate_weights(logger, full_catalogue, resolutions, models, experiments, sources, nproc)
