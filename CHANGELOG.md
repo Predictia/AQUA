@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- Suggestions are printed if a model/exp/source is not found while inspecting the catalogue (#721)
+- Improvements in the single map plot function (#717)
+- Minor metadata fixes (logger newline and keep "GRIB_" in attrs) (#715)
 - LRA fix now correctly aggregating monthly data to yearly when a full year is available (#696)
 - History update and refinement creating preliminary provenance information (plus AQUA emoji!) (#676)
 - OPA lra compatible with no regrid.yaml (#692)
