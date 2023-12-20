@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Loop on multiple datasets to create weights using the Reader"""
-
+import os
 import sys
 import argparse
 from aqua import Reader, inspect_catalogue
@@ -10,27 +10,53 @@ from aqua.util import load_yaml, get_arg
 
 def parse_arguments(args):
     """Parse command line arguments"""
-
     parser = argparse.ArgumentParser(description='Weights Generator CLI')
-    parser.add_argument('--config', type=str, 
-                        help='path to configuration yaml file', default='config/weights_config.yml')
+    # Determine the script directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    # Set the default file path
+    default_config_file = os.path.join(script_dir, 'config', 'weights_config.yml')
+
+     # Add the '--config' argument
+    parser.add_argument('--config', type=str, required=False,
+                        help='path to configuration yaml file',
+                        default=default_config_file)
+
+    # Parse the arguments
+    parsed_args = parser.parse_args(args)
+
+    # Load the configuration
+    config_file = get_arg(parsed_args, 'config', default_config_file)
+    config = load_yaml(config_file)
+
     # This arguments will override the configuration file if provided
-    parser.add_argument('--catalogue', type=str,
-                        help='calculate the weights for entire catalog')
-    parser.add_argument('-l', '--loglevel', type=str,
-                        help='log level [default: WARNING]')
-    parser.add_argument('--nproc', type=str,
-                        help='the number of processes to run in parallel [default: 4]')
-    parser.add_argument('--model', type=str, help='model name',
-                        required=False)
-    parser.add_argument('--exp', type=str, help='experiment name',
-                        required=False)
-    parser.add_argument('--source', type=str, help='source name',
-                        required=False)
-    parser.add_argument('--resolution', type=str, help='resolution of the grid',
-                        required=False)
-    parser.add_argument('--rebuild', type=str, help=' Force rebuilding of area and weight files',
-                        required=False)
+
+    parser.add_argument('--catalogue', action='store_true', required=False,
+                        help='calculate the weights for entire catalog',
+                        default=config['catalogue'])
+    parser.add_argument('-l', '--loglevel', type=str, required=False,
+                        help='log level',
+                        default=config['loglevel'])
+    parser.add_argument('--nproc', type=int, required=False,
+                        help='the number of processes to run in parallel',
+                        default=config['nproc'])
+    parser.add_argument('-m', '--model', type=str, required=False,
+                        help='model name',
+                        default=config['data']['models'])
+    parser.add_argument('-e', '--exp', type=str, required=False,
+                        help='experiment name',
+                        default=config['data']['experiments'])
+    parser.add_argument('-s', '--source', type=str, required=False,
+                        help='source name',
+                        default=config['data']['sources'])
+    parser.add_argument('-r', '--resolution', type=str, required=False,
+                        help='resolution of the grid',
+                        default=config['data']['resolutions'])
+    parser.add_argument('--zoom_max', type=int, required=False,
+                        help='the maximum value of zoom',
+                        default=config['data']['zoom_max'])
+    parser.add_argument('--rebuild', action='store_true', required=False,
+                        help='force rebuilding of area and weight files',
+                        default=config['rebuild'])
     return parser.parse_args(args)
 
 
@@ -74,22 +100,19 @@ def generate_weights(logger='WARNING', full_catalogue=None, resolutions=None, mo
 
 if __name__ == "__main__":
     args = parse_arguments(sys.argv[1:])
-    
-    file = get_arg(args, 'config', 'config/weights_config.yml.yml')
-    print('Reading configuration yaml file..')
-    config = load_yaml(file)
 
-    loglevel = get_arg(args, 'loglevel', config['loglevel'])
+    print('args', args)
+
+    loglevel = getattr(args, 'loglevel')
     logger = log_configure(log_name='Weights Generator', log_level=loglevel)
 
-    models = get_arg(args, 'model', config['data']['models'])
-    experiments = get_arg(args, 'exp', config['data']['experiments'])
-    sources = get_arg(args, 'source', config['data']['sources'])
-    resolutions = get_arg(args, 'resolution', config['data']['resolutions'])
-    zoom_max = get_arg(args, 'zoom_max', config['data']['zoom_max'])
-    rebuild = get_arg(args, 'rebuild', config['rebuild'])
-    full_catalogue = get_arg(args, 'catalogue', config['full_catalogue'])
-    nproc = get_arg(args, 'nproc', config['nproc'])
-    
+    models = getattr(args, 'model')
+    experiments = getattr(args, 'exp')
+    sources = getattr(args, 'source')
+    resolutions = getattr(args, 'resolution')
+    zoom_max = getattr(args, 'zoom_max')
+    rebuild = getattr(args, 'rebuild')
+    full_catalogue = getattr(args, 'catalogue')
+    nproc = getattr(args, 'nproc')
     check_input_parameters(full_catalogue=full_catalogue, models=models, experiments=experiments, sources=sources)
     generate_weights(logger=logger, full_catalogue=full_catalogue, resolutions=resolutions, models=models, experiments=experiments, sources=sources, nproc=nproc, zoom_max=zoom_max, rebuild=rebuild)
