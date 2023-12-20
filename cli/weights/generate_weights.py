@@ -96,9 +96,9 @@ def validate_config(logger=None, args=None):
                 message += f" and no less than {min_value}"
             raise ValueError(message)
 
-def check_input_parameters(logger=None, full_catalogue=None, models=None, experiments=None, sources=None, resolutions=None):
+def validate_models(logger=None, full_catalogue=None, models=None, experiments=None, sources=None, resolutions=None):
     """
-    Check input parameters and exit if necessary.
+    Validate the models and exit if necessary.
 
     Args:
         logger (Logger): The logger object for logging messages.
@@ -114,10 +114,11 @@ def check_input_parameters(logger=None, full_catalogue=None, models=None, experi
 
     if full_catalogue:
         models, experiments, sources = [], [], []
-    models = ensure_list(models)
-    experiments = ensure_list(experiments)
-    sources = ensure_list(sources)
-    resolutions = ensure_list(resolutions)
+    else:
+        models = ensure_list(models)
+        experiments = ensure_list(experiments)
+        sources = ensure_list(sources)
+        resolutions = ensure_list(resolutions)
 
     if not full_catalogue and (not models or not experiments or not sources):
         logger.error("If you do not want to generate weights for the entire catalog, "
@@ -200,7 +201,7 @@ def main():
     """
     args = parse_arguments(sys.argv[1:])
     logger = log_configure(log_name='Weights Generator', log_level=args.loglevel)
-    check_input_parameters(logger=logger, full_catalogue=args.catalogue, models=args.model, experiments=args.exp,
+    validate_models(logger=logger, full_catalogue=args.catalogue, models=args.model, experiments=args.exp,
                            sources=args.source, resolutions=args.resolution)
     validate_config(logger=logger, args=args)
     generate_weights(logger=logger, full_catalogue=args.catalogue, resolutions=args.resolution, models=args.model,
