@@ -468,6 +468,9 @@ class Reader(FixerMixin, RegridMixin):
             A xarray.Dataset containing the required data.
         """
 
+        if level:  # This is temporary until we introduce a smarter 3D regridding option
+            self.logger.warning('Specific level(s) selected: regridding will not work properly.")
+
         # Streaming emulator require these to be defined in __init__
         if (self.streaming and not self.stream_generator) and (startdate or enddate):
             raise KeyError("In case of streaming=true the arguments startdate/enddate have to be specified when initializing the class.")  # noqa E501
