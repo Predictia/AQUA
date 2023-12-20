@@ -54,12 +54,45 @@ def parse_arguments(args):
     parser.add_argument('--rebuild', action='store_true', required=False,
                         help='force rebuilding of area and weight files',
                         default=config['rebuild'])
-    #return parser.parse_args(args)
     return parser.parse_args()
 
+def validate_config(logger=None, args=None):
+    """
+    Validate the loaded configuration.
+    :param args: The argparse Namespace containing the arguments.
+    :return: None. Raises an exception if validation fails.
+    """
+    validations = {
+        'catalogue': (bool, None),
+        'rebuild': (bool, None),
+        'loglevel': (str, None),
+        'model': (list, None),
+        'exp': (list, None),
+        'source': (list, None),
+        'resolution': (list, None),
+        'nproc': (int, 1),
+        'zoom_max': (int, 1)
+    }
 
-def check_input_parameters(logger=None, full_catalogue=None, models=None, experiments=None, sources=None):
+    for arg, (expected_type, min_value) in validations.items():
+        value = getattr(args, arg, None)
+        logger.debug(f"Arg {arg} is type {type(value)}")
+        if not isinstance(value, expected_type) or (min_value is not None and value < min_value):
+            message = f"{arg} must be a {expected_type.__name__}"
+            if min_value is not None:
+                message += f" and no less than {min_value}"
+            raise ValueError(message)
+
+def check_input_parameters(logger=None, full_catalogue=None, models=None, experiments=None, sources=None, resolutions=None):
     """Check input parameters and exit if necessary"""
+
+    if full_catalogue:
+        models, experiments, sources = [], [], []
+    models = ensure_list(models)
+    experiments = ensure_list(experiments)
+    sources = ensure_list(sources)
+    resolutions = ensure_list(resolutions)
+
     if not full_catalogue and (not models or not experiments or not sources):
         logger.error("If you do not want to generate weights for the entire catalog, "
                      "you must provide non-empty lists of models, experiments, and sources.")
@@ -81,25 +114,23 @@ def calculate_weights(logger='WARNING', model=None, exp=None, source=None, regri
     except Exception as e:
         logger.error(f"An unexpected error occurred for source {model} {exp} {source} {regrid} {zoom}: {e}")
 
-def generate_weights(logger='WARNING', full_catalogue=None, resolutions=None, models=None, experiments=None, sources=None, nproc=None, zoom_max=None, rebuild=None):
+def generate_weights(logger='WARNING', full_catalogue=None, resolutions=None, models=None, experiments=None, sources=None,
+                     nproc=None, zoom_max=None, rebuild=None):
     logger.info("Weight generation is started.")
-    if full_catalogue:
-        models, experiments, sources = [], [], []
-    models = ensure_list(models)
-    experiments = ensure_list(experiments)
-    sources = ensure_list(sources)
     
     for reso in resolutions:
         for model in models or inspect_catalogue():
             for exp in experiments or inspect_catalogue(model=model):
                 for source in sources or inspect_catalogue(model=model, exp=exp):
                     for zoom in range(zoom_max):
-                        calculate_weights(logger=logger, model=model, exp=exp, source=source, regrid=reso, zoom=zoom, nproc=nproc, rebuild=rebuild)
+                        calculate_weights(logger=logger, model=model, exp=exp, source=source, regrid=reso, zoom=zoom,
+                                          nproc=nproc, rebuild=rebuild)
 def main():
     args = parse_arguments(sys.argv[1:])
-    print('args:', args)
     logger = log_configure(log_name='Weights Generator', log_level=args.loglevel)
-    check_input_parameters(logger=logger, full_catalogue=args.catalogue, models=args.model, experiments=args.exp, sources=args.source)
+    check_input_parameters(logger=logger, full_catalogue=args.catalogue, models=args.model, experiments=args.exp,
+                           sources=args.source, resolutions=args.resolution)
+    validate_config(logger=logger, args=args)
     generate_weights(logger=logger, full_catalogue=args.catalogue, resolutions=args.resolution, models=args.model,
                      experiments=args.exp, sources=args.source, nproc=args.nproc, zoom_max=args.zoom_max, rebuild=args.rebuild)
 
