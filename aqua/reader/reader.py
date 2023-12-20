@@ -469,7 +469,7 @@ class Reader(FixerMixin, RegridMixin):
         """
 
         if level:  # This is temporary until we introduce a smarter 3D regridding option
-            self.logger.warning('Specific level(s) selected: regridding will not work properly.")
+            self.logger.warning("Specific level(s) selected: regridding will not work properly.")
 
         # Streaming emulator require these to be defined in __init__
         if (self.streaming and not self.stream_generator) and (startdate or enddate):
