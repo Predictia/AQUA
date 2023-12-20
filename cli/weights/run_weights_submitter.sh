@@ -25,13 +25,8 @@ if [ "$run_on_sunday" == "True" ]; then
 else
     begin_time=$(date -d "now + 1 minute" +"%Y-%m-%dT%H:%M:%S")
 fi
+
 echo "Begin run time: $begin_time"
-echo "Number of processes (nproc): $nproc"
-echo "Number of nodes: $nodes"
-echo "Walltime: $walltime"
-echo "Memory: $memory"
-echo "Account: $account"
-echo "Partition: $partition"
 
 # if machine is levante use mamba/conda
 if [ $machine == "levante" ]; then
@@ -63,8 +58,13 @@ if [ "$machine" == 'levante' ] || [ "$machine" == 'lumi' ]; then
 #SBATCH --time=$walltime
 #SBATCH --mem=$memory
 
-echo "Submission time: $submission_time"
 echo 'Hello from SLURM job!'
+echo "Number of processes (nproc): $nproc"
+echo "Number of nodes: $nodes"
+echo "Walltime: $walltime"
+echo "Memory: $memory"
+echo "Account: $account"
+echo "Partition: $partition"
 
 # if machine is lumi use modules
 if [ $machine == "lumi" ]; then
