@@ -1,0 +1,19 @@
+sources: 
+
+
+# Example request:
+# class: d1
+# dataset: climate-dt
+# activity: CMIP6
+# experiment: hist
+# generation: 1
+# model: IFS-NEMO
+# realization: 1
+# resolution: standard
+# expver: a0fe
+# type: fc
+# stream: clte
+# levtype: sfc
+# param: 167
+# date: 19900101
+# time: "0000"
