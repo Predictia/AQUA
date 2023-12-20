@@ -44,6 +44,8 @@ xr.set_options(keep_attrs=True)
 class Reader(FixerMixin, RegridMixin):
     """General reader for NextGEMS data."""
 
+    instance = None  # Used to store the latest instance of the class
+
     def __init__(self, model=None, exp=None, source=None, fix=True,
                  regrid=None, regrid_method=None, zoom=None,
                  areas=True, datamodel=None,
@@ -80,6 +82,8 @@ class Reader(FixerMixin, RegridMixin):
         Returns:
             Reader: A `Reader` class object.
         """
+
+        Reader.instance = self  # record the latest instance of the class (used for accessor)
 
         # define the internal logger
         self.loglevel = loglevel
@@ -310,7 +314,8 @@ class Reader(FixerMixin, RegridMixin):
         self.src_space_coord, self.vert_coord = self._guess_coords(space_coord, vert_coord,
                                                                    default_space_dims,
                                                                    default_vertical_dims)
-        # self.logger.info("Space coords are %s", self.src_space_coord)
+        self.logger.debug("Space coords are %s", self.src_space_coord)
+        self.logger.debug("Vert coords are %s", self.vert_coord)
 
         # Normalize vert_coord to list
         if not isinstance(self.vert_coord, list):
@@ -545,7 +550,15 @@ class Reader(FixerMixin, RegridMixin):
             elif startdate and enddate and not ffdb:  # do not select if data come from FDB (already done)
                 data = data.sel(time=slice(startdate, enddate))
 
+        if isinstance(data, xr.Dataset):
+            data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
+
         return data
+
+    def set_default(self):
+        """Sets this reader as the default for the accessor."""
+
+        Reader.instance = self  # Refresh the latest reader instance used
 
     def regrid(self, data):
         """Call the regridder function returning container or iterator"""
@@ -555,7 +568,6 @@ class Reader(FixerMixin, RegridMixin):
         else:
             return self._regrid(data)
         
-
     def _regridgen(self, data):
         for ds in data:
             yield self._regrid(ds)
@@ -604,6 +616,8 @@ class Reader(FixerMixin, RegridMixin):
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
         
+        out.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
+
         out = log_history(out, f"Regrid from {self.src_grid_name} to {self.dst_grid_name}")
         
         return out
@@ -671,6 +685,8 @@ class Reader(FixerMixin, RegridMixin):
             if np.any(np.isnat(out.time_bnds)):
                 raise ValueError('Resampling cannot produce output for all time_bnds step!')
             log_history(out, "time_bnds added by by AQUA timmean")
+
+        out.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
 
         return out
 
@@ -754,6 +770,8 @@ class Reader(FixerMixin, RegridMixin):
                         raise ValueError(f'{coord} has a mismatch in coordinate values!') from err
 
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
+
+        out.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
 
         log_history(data, f"spatially averaged from {self.src_grid_name} grid")
 
@@ -848,6 +866,8 @@ class Reader(FixerMixin, RegridMixin):
             raise ValueError('This is not an xarray object!')
         
         final = log_history(final, f"Interpolated from original levels {data[vert_coord].values} {data[vert_coord].units} to level {levels} using {method} method.")
+
+        final.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
 
         return final
 
@@ -984,6 +1004,9 @@ class Reader(FixerMixin, RegridMixin):
                                   aggregation=aggregation,
                                   timechunks=timechunks,
                                   reset=reset)
+
+        stream_data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
+
         return stream_data
 
     def info(self):
