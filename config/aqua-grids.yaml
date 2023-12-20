@@ -75,6 +75,9 @@ grids:
     extra: -setgrid,$grids/IFS/grid_lonlat_025.txt
     cellareas: $grids/IFS/cellarea_unstructured_025.nc
     cellarea_var: cell_area
+  ifs-healpix:
+    space_coord: ["ncells"]
+    path: $grids/HealPix/ifs_hpx10.nc
 
   #ICON
   R02B08:
