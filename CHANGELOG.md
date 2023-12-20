@@ -15,7 +15,7 @@ Unreleased is the current development version.
 - History update and refinement creating preliminary provenance information (plus AQUA emoji!) (#676)
 - OPA lra compatible with no regrid.yaml (#692)
 - Introducing fixer definitions not model/exp/source dependents to be specified at the metadata level (#681)
-- AQUA analysis wrapper is parallelized (#684)
+- AQUA analysis wrapper is parallelized and output folder is restructured (#684, #725)
 
 ## [v0.5.1]
 
