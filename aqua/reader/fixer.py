@@ -9,11 +9,11 @@ from datetime import timedelta
 from warnings import warn
 import xarray as xr
 import numpy as np
-import cf2cdm
 from metpy.units import units
 
 from aqua.util import eval_formula, get_eccodes_attr, find_lat_dir, check_direction
 from aqua.logger import log_history
+from aqua.data_models import translate_coords
 
 # Set the warning filter to always display DeprecationWarning
 warnings.simplefilter('always', DeprecationWarning)
@@ -716,7 +716,7 @@ class FixerMixin():
         # this is needed since cf2cdm issues a (useless) UserWarning
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=UserWarning)
-            data = cf2cdm.translate_coords(data, dm)
+            data = translate_coords(data, dm)
             # Hack needed because cfgrib.cf2cdm mixes up coordinates with dims
             if "forecast_reference_time" in data.dims:
                 data = data.swap_dims({"forecast_reference_time": "time"})
