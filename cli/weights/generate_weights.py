@@ -10,23 +10,20 @@ from aqua.util import load_yaml, get_arg
 
 def parse_arguments(args):
     """Parse command line arguments"""
-    parser = argparse.ArgumentParser(description='Weights Generator CLI')
     # Determine the script directory
     script_dir = os.path.dirname(os.path.abspath(__file__))
     # Set the default file path
     default_config_file = os.path.join(script_dir, 'config', 'weights_config.yml')
+    # Create a temporary parser to just parse the config file argument
+    temp_parser = argparse.ArgumentParser(add_help=False)
+    temp_parser.add_argument('--config', type=str, default=default_config_file)
+    args, remaining_argv = temp_parser.parse_known_args()
 
-     # Add the '--config' argument
-    parser.add_argument('--config', type=str, required=False,
-                        help='path to configuration yaml file',
-                        default=default_config_file)
-
-    # Parse the arguments
-    parsed_args = parser.parse_args(args)
-
-    # Load the configuration
-    config_file = get_arg(parsed_args, 'config', default_config_file)
-    config = load_yaml(config_file)
+    # Load the configuration file
+    config = load_yaml(args.config)
+    # Now create the main parser with all arguments
+    parser = argparse.ArgumentParser(description='Weights Generator CLI')
+    parser.add_argument('--config', type=str, default=args.config)
 
     # This arguments will override the configuration file if provided
 
@@ -57,10 +54,11 @@ def parse_arguments(args):
     parser.add_argument('--rebuild', action='store_true', required=False,
                         help='force rebuilding of area and weight files',
                         default=config['rebuild'])
-    return parser.parse_args(args)
+    #return parser.parse_args(args)
+    return parser.parse_args()
 
 
-def check_input_parameters(full_catalogue=None, models=None, experiments=None, sources=None):
+def check_input_parameters(logger=None, full_catalogue=None, models=None, experiments=None, sources=None):
     """Check input parameters and exit if necessary"""
     if not full_catalogue and (not models or not experiments or not sources):
         logger.error("If you do not want to generate weights for the entire catalog, "
@@ -97,22 +95,13 @@ def generate_weights(logger='WARNING', full_catalogue=None, resolutions=None, mo
                 for source in sources or inspect_catalogue(model=model, exp=exp):
                     for zoom in range(zoom_max):
                         calculate_weights(logger=logger, model=model, exp=exp, source=source, regrid=reso, zoom=zoom, nproc=nproc, rebuild=rebuild)
+def main():
+    args = parse_arguments(sys.argv[1:])
+    print('args:', args)
+    logger = log_configure(log_name='Weights Generator', log_level=args.loglevel)
+    check_input_parameters(logger=logger, full_catalogue=args.catalogue, models=args.model, experiments=args.exp, sources=args.source)
+    generate_weights(logger=logger, full_catalogue=args.catalogue, resolutions=args.resolution, models=args.model,
+                     experiments=args.exp, sources=args.source, nproc=args.nproc, zoom_max=args.zoom_max, rebuild=args.rebuild)
 
 if __name__ == "__main__":
-    args = parse_arguments(sys.argv[1:])
-
-    print('args', args)
-
-    loglevel = getattr(args, 'loglevel')
-    logger = log_configure(log_name='Weights Generator', log_level=loglevel)
-
-    models = getattr(args, 'model')
-    experiments = getattr(args, 'exp')
-    sources = getattr(args, 'source')
-    resolutions = getattr(args, 'resolution')
-    zoom_max = getattr(args, 'zoom_max')
-    rebuild = getattr(args, 'rebuild')
-    full_catalogue = getattr(args, 'catalogue')
-    nproc = getattr(args, 'nproc')
-    check_input_parameters(full_catalogue=full_catalogue, models=models, experiments=experiments, sources=sources)
-    generate_weights(logger=logger, full_catalogue=full_catalogue, resolutions=resolutions, models=models, experiments=experiments, sources=sources, nproc=nproc, zoom_max=zoom_max, rebuild=rebuild)
+    main()
