@@ -75,9 +75,11 @@ class GSVSource(base.DataSource):
         if metadata:
             self.fdbpath = metadata.get('fdb_path', None)
             self.eccodes_path = metadata.get('eccodes_path', None)
+            self.levels =  metadata.get('levels', None)
         else:
             self.fdbpath = None
             self.eccodes_path = None
+            self.levels = None
 
         if not startdate:
             startdate = data_start_date
@@ -138,20 +140,26 @@ class GSVSource(base.DataSource):
 
         if self.dask_access:  # We need a better schema for dask access
             if not self._ds or not self._da:  # we still have to retrieve a sample dataset
-                self._ds = self._get_partition(0, var=self._var, first=True)
+
+                if self.levels:  # Do we have physical levels specified in metadata?
+                    onelevel = True  # If yes we can afford to read only one level
+                else:
+                    onelevel = False
+
+                self._ds = self._get_partition(0, var=self._var, first=True, onelevel=onelevel)
 
                 var = list(self._ds.data_vars)[0]
                 da = self._ds[var]  # get first variable dataarray
 
                 # If we have multiple levels, then this array needs to be expanded
-                if "levelist" in self._request:
+                if onelevel and "levelist" in self._request:
                     lev = self._request["levelist"]
                     # the following is needed only if there is more than one level requested
                     if isinstance(lev, list) and len(lev) > 1:
-                        lev = [float(x) for x in lev]  # make sure these are floats
+                        lev = self.levels
                         apos = da.dims.index("level")  # expand the size of the "level" axis
                         attrs = da["level"].attrs
-                        da = da.squeeze("level").drop("level").expand_dims(level=lev,axis=apos)
+                        da = da.squeeze("level").drop("level").expand_dims(level=lev, axis=apos)
                         da["level"].attrs.update(attrs)
 
                 self._da = da
@@ -179,13 +187,14 @@ class GSVSource(base.DataSource):
 
         return schema
 
-    def _get_partition(self, i, var=None, first=False, dask=False):
+    def _get_partition(self, i, var=None, first=False, onelevel=False):
         """
         Standard internal method reading i-th data partition from FDB
         Args:
             i (int): partition number
             var (string, optional): single variable to retrieve. Defaults to using those set at init
             first (bool, optional): read only the first step (used for schema retrieval)
+            onelevel (bool, optional): read only one level (used for schema retrieval)
         Returns:
             An xarray.DataSet
         """
@@ -215,7 +224,7 @@ class GSVSource(base.DataSource):
             else:
                 request["step"] = f'{s0}/to/{s1}'
 
-        if first and "levelist" in request:  # limit to one single level
+        if onelevel and "levelist" in request:  # limit to one single level
             request["levelist"] = request["levelist"][0]
 
         if var:
@@ -236,16 +245,6 @@ class GSVSource(base.DataSource):
         gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel())
         gsv = GSVRetriever(logging_level=gsv_log_level)
 
-        # if self.verbose:
-        #     print("Request: ", i, self._var, s0, s1, request)
-        #     dataset = gsv.request_data(request)
-        # else:
-        #     with NoPrinting():
-        #         dataset = gsv.request_data(request)
-
-        # to silence the logging from the GSV retriever, we increase its level by one
-        # in this way the 'info' is printed only in 'debug' mode
-        # gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel() + 10)
         self.logger.debug('Request %s', request)
         dataset = gsv.request_data(request)
 
@@ -274,7 +273,7 @@ class GSVSource(base.DataSource):
             shape: shape of the schema
             dtype: data type of the schema
         """
-        ds = dask.delayed(self._get_partition)(i, var=var, dask=True)
+        ds = dask.delayed(self._get_partition)(i, var=var)
 
         # get the data from the first (and only) data array
         ds = ds.to_array()[0].data
@@ -315,24 +314,6 @@ class GSVSource(base.DataSource):
         ds.attrs.update(self._ds.attrs)
 
         return ds
-
-
-# class NoPrinting:
-#     """
-#     Context manager to suppress printing
-#     """
-
-#     def __enter__(self):
-#         sys._gsv_work_counter += 1
-#         if sys._gsv_work_counter == 1 and not isinstance(sys.stdout, io.StringIO):  # We are really the first
-#             sys._org_stdout = sys.stdout  # Record the original in sys
-#             self._trap = io.StringIO()
-#             sys.stdout = self._trap
-
-#     def __exit__(self, exc_type, exc_val, exc_tb):
-#         sys._gsv_work_counter -= 1
-#         if sys._gsv_work_counter == 0:  # We are really the last one
-#             sys.stdout = sys._org_stdout  # Restore the original
 
 
 # This function is repeated here in order not to create a cross dependency between GSVSource and AQUA
