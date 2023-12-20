@@ -1,25 +1,25 @@
 data:
-  models:  ['MSWEP']
-  experiments:    ['past']
-  sources: [monthly]
-  resolutions: ['r025'] #, 'r100']
-  zoom_max: 1
+  models: ['MSWEP']     # List of models to be used
+  experiments: ['past'] # List of experiments
+  sources: [monthly]    # Data sources, e.g., 'monthly'
+  resolutions: ['r025'] # Spatial resolutions, e.g., 'r025'
+  zoom_max: 1           # Maximum zoom level
 
-rebuild: False
-catalogue: False
-loglevel: 'DEBUG'
+rebuild: False          # Flag to indicate whether to rebuild data
+catalogue: False        # Flag to use the entire catalogue or not
+loglevel: 'DEBUG'       # Logging level
 
 compute_resources:
-  resubmit: False
-  run_on_sunday: False
-  nproc: 4
-  nodes: 1
-  walltime: '01:00:00'
-  memory: '20G'
-  lumi_version: 23.03
-  account:
+  resubmit: False       # Whether to automatically resubmit the job
+  run_on_sunday: False  # Whether the job should run only on Sundays
+  nproc: 4              # Number of processors to use
+  nodes: 1              # Number of nodes required
+  walltime: '01:00:00'  # Maximum time allowed for the job
+  memory: '20G'         # Memory allocation for the job
+  lumi_version: 23.03   # Version of LUMI to be used
+  account:              # Account details for different machines
     lumi: 'project_465000454'
     levante: 'bb1153'
-  partition:
+  partition:            # Partition settings for different machines
     lumi: 'small'
     levante: 'shared'
