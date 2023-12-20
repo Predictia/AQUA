@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Loop on multiple datasets to create weights using the Reader"""
+"""
+Script to loop on multiple datasets for weight generation using the Reader.
+
+This script initializes the Reader class to use the catalog `config/config.yaml`
+for identifying required data and calculating weights based on various parameters.
+"""
 import os
 import sys
 import argparse
@@ -9,23 +14,26 @@ from aqua.util import load_yaml, get_arg
 
 
 def parse_arguments(args):
-    """Parse command line arguments"""
-    # Determine the script directory
+    """
+    Parse command line arguments.
+
+    Args:
+        args (list): List of arguments passed from the command line.
+
+    Returns:
+        Namespace: The parsed arguments as a Namespace object.
+    """
+    # Initial setup for configuration file parsing
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    # Set the default file path
     default_config_file = os.path.join(script_dir, 'config', 'weights_config.yml')
-    # Create a temporary parser to just parse the config file argument
     temp_parser = argparse.ArgumentParser(add_help=False)
     temp_parser.add_argument('--config', type=str, default=default_config_file)
     args, remaining_argv = temp_parser.parse_known_args()
 
-    # Load the configuration file
+    # Loading configuration and setting up the main parser
     config = load_yaml(args.config)
-    # Now create the main parser with all arguments
     parser = argparse.ArgumentParser(description='Weights Generator CLI')
     parser.add_argument('--config', type=str, default=args.config)
-
-    # This arguments will override the configuration file if provided
 
     parser.add_argument('--catalogue', action='store_true', required=False,
                         help='calculate the weights for entire catalog',
@@ -59,8 +67,13 @@ def parse_arguments(args):
 def validate_config(logger=None, args=None):
     """
     Validate the loaded configuration.
-    :param args: The argparse Namespace containing the arguments.
-    :return: None. Raises an exception if validation fails.
+
+    Args:
+        logger (Logger): The logger object for logging messages.
+        args (Namespace): The argparse Namespace containing the arguments.
+
+    Raises:
+        ValueError: If any configuration validation fails.
     """
     validations = {
         'catalogue': (bool, None),
@@ -84,7 +97,20 @@ def validate_config(logger=None, args=None):
             raise ValueError(message)
 
 def check_input_parameters(logger=None, full_catalogue=None, models=None, experiments=None, sources=None, resolutions=None):
-    """Check input parameters and exit if necessary"""
+    """
+    Check input parameters and exit if necessary.
+
+    Args:
+        logger (Logger): The logger object for logging messages.
+        full_catalogue (bool): Flag to indicate processing the full catalogue.
+        models (list): List of model IDs.
+        experiments (list): List of experiment IDs.
+        sources (list): List of source IDs.
+        resolutions (list): List of resolutions.
+
+    Exits:
+        1: If the required input parameters are not provided.
+    """
 
     if full_catalogue:
         models, experiments, sources = [], [], []
@@ -103,19 +129,62 @@ def check_input_parameters(logger=None, full_catalogue=None, models=None, experi
         logger.info("The weights will be generated for the specified models, experiments, and sources.")
 
 def ensure_list(value=None):
-    """Ensure that the input is a list"""
+    """
+    Ensure that the input is a list.
+
+    Args:
+        value: A single value or a list.
+
+    Returns:
+        list: A list containing the input value(s).
+    """
     return [value] if not isinstance(value, list) else value
 
-def calculate_weights(logger='WARNING', model=None, exp=None, source=None, regrid=None, zoom=None, nproc=None, rebuild=None):
-    """Calculate weights for a specific combination of model, experiment, source, regrid, and zoom"""
+def calculate_weights(logger=None, model=None, exp=None, source=None, regrid=None, zoom=None, nproc=None, rebuild=None):
+    """
+    Calculate weights for a specific combination of parameters.
+
+    Uses the Reader class for calculating weights based on provided model, experiment,
+    source, and other parameters.
+
+    Args:
+        logger (Logger): Logger for logging the process.
+        model (str): Model ID.
+        exp (str): Experiment ID.
+        source (str): Source ID.
+        regrid (str): Regridding parameter.
+        zoom (int): Zoom level.
+        nproc (int): Number of processes.
+        rebuild (bool): Flag to rebuild area and weight files.
+
+    Catches:
+        Exception: Logs any unexpected error during weight calculation.
+    """
     logger.debug(f"The weights are calculating for {model} {exp} {source} {regrid} {zoom}")
     try:
         Reader(model=model, exp=exp, source=source, regrid=regrid, zoom=zoom, nproc=nproc, rebuild=rebuild)
     except Exception as e:
         logger.error(f"An unexpected error occurred for source {model} {exp} {source} {regrid} {zoom}: {e}")
 
-def generate_weights(logger='WARNING', full_catalogue=None, resolutions=None, models=None, experiments=None, sources=None,
+def generate_weights(logger=None, full_catalogue=None, resolutions=None, models=None, experiments=None, sources=None,
                      nproc=None, zoom_max=None, rebuild=None):
+    """
+    Generate weights based on provided parameters.
+
+    Iterates over different combinations of models, experiments, sources, and other
+    parameters to generate weights.
+
+    Args:
+        logger (Logger): Logger for logging the process.
+        full_catalogue (bool): Flag to process the full catalogue.
+        resolutions (list): List of resolutions.
+        models (list): List of model IDs.
+        experiments (list): List of experiment IDs.
+        sources (list): List of source IDs.
+        nproc (int): Number of processes.
+        zoom_max (int): Maximum zoom level.
+        rebuild (bool): Flag to rebuild area and weight files.
+    """
     logger.info("Weight generation is started.")
     
     for reso in resolutions:
@@ -126,6 +195,9 @@ def generate_weights(logger='WARNING', full_catalogue=None, resolutions=None, mo
                         calculate_weights(logger=logger, model=model, exp=exp, source=source, regrid=reso, zoom=zoom,
                                           nproc=nproc, rebuild=rebuild)
 def main():
+    """
+    Main function to orchestrate the weight generation process.
+    """
     args = parse_arguments(sys.argv[1:])
     logger = log_configure(log_name='Weights Generator', log_level=args.loglevel)
     check_input_parameters(logger=logger, full_catalogue=args.catalogue, models=args.model, experiments=args.exp,
