@@ -52,5 +52,6 @@ sources:
       fdb_path: /scratch/project_465000454/iwagner/a0ef/config.yaml
       eccodes_path: 
         /project/project_465000454/models/ifs-nemo/DE_CY48R1.0_climateDT_develop/source/eccodes/definitions
+      levels: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600,700, 850, 925, 1000]
       source_grid_name: tco1279
       variables: [60, 132, 157, 130, 133, 131, 129, 135]
