@@ -4,9 +4,10 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-
 import calendar
+import dask
 from cdo import Cdo
+from scipy.stats import ttest_1samp
 import cartopy.crs as ccrs
 from matplotlib.legend_handler import HandlerTuple
 from aqua import Reader
@@ -14,10 +15,10 @@ import matplotlib.gridspec as gridspec
 from aqua.util import create_folder, add_cyclic_lon
 from aqua.logger import log_configure
 
-cdo = Cdo(tempdir='./tmp/cdo-py')
-tempdir='./tmp/cdo-py'
-if not os.path.exists(tempdir):
-    os.makedirs(tempdir)
+#cdo = Cdo(tempdir='./tmp/cdo-py')
+#tempdir='./tmp/cdo-py'
+#if not os.path.exists(tempdir):
+#    os.makedirs(tempdir)
 
 loglevel: str = 'WARNING'
 logger = log_configure(log_level=loglevel, log_name='Radiation')
@@ -79,7 +80,7 @@ def process_ceres_data(exp=None, source=None):
     }
     return dictionary
 
-def process_model_data(model=None, exp=None, source=None):
+def process_model_data(model=None, exp=None, source=None, fix=None):
     """
     Function to extract Model output data for further analysis and create global means.
 
@@ -96,9 +97,12 @@ def process_model_data(model=None, exp=None, source=None):
             - "gm": Global means of model output data.
             - "data": Model output data.
     """
-
-    reader = Reader(model=model, exp=exp, source=source,
-                    regrid='r100')
+    if fix is None:
+        reader = Reader(model=model, exp=exp, source=source,
+                    regrid='r100', fix = False)
+    else: 
+        reader = Reader(model=model, exp=exp, source=source,
+                    regrid='r100', fix = True)
     data = reader.retrieve(var=['2t','mtntrf', 'mtnsrf'])
     data['tnr'] = data['mtntrf'] + data['mtnsrf']
     gm = reader.fldmean(data)
@@ -219,9 +223,9 @@ def gregory_plot(obs_data=None, models=None, obs_time_range=None, model_labels=N
         plt.show()
     
 
-def barplot_model_data(datasets=None, model_names=None, outputdir=None, outputfig=None, year=None, fontsize=14):
+def boxplot_model_data(datasets=None, model_names=None, outputdir=None, outputfig=None, year=None, fontsize=14):
     """
-    Create a grouped bar plot with various models and CERES data. Variables 'mtntrf' and 'mtnsrf' are plotted to show imbalances.
+    Create a boxplot with various models and CERES data. Variables 'mtntrf' and 'mtnsrf' are plotted to show imbalances.
     The default mean for CERES data is calculated over the entire time range.
 
     Args:
@@ -233,49 +237,63 @@ def barplot_model_data(datasets=None, model_names=None, outputdir=None, outputfi
         fontsize (int, optional): Font size for labels and legends in the plot. Default is 14.
 
     Returns:
-        A bar plot showing the global mean radiation variables ('mtntrf' and 'mtnsrf') for different models and CERES data.
+        A boxplot showing the uncertainty of global mean radiation variables ('mtntrf' and 'mtnsrf') for different models and CERES data.
     """
     # Set a seaborn color palette
     sns.set_palette("pastel")
-    global_mean = {'Variables': ["mtntrf", "mtnsrf"]}
 
-    model_names = [dataset["model"] + ' ' + dataset["exp"]+ ' ' + dataset["source"] for dataset in datasets] if model_names is None else model_names
+    # Initialize a dictionary to store data for the boxplot
+    boxplot_data = {'Variables': [], 'Values': [], 'Datasets': []}
+
+    model_names = [dataset["model"] + ' ' + dataset["exp"] + ' ' + dataset["source"] for dataset in datasets] if model_names is None else model_names
+
     for i in range(0, len(datasets)):
-        if "clim_gm" in datasets[i]:
-            global_mean.update({model_names[i]: [-datasets[i]["clim_gm"]["mtntrf"].mean(
-                ).values.item(), datasets[i]["clim_gm"]["mtnsrf"].mean().values.item()]})
-        else:
-            global_mean.update({model_names[i]: [-datasets[i]["gm"]["mtntrf"].mean(
-                ).values.item(), datasets[i]["gm"]["mtnsrf"].mean().values.item()]})
-    global_mean = pd.DataFrame(global_mean)
-    # Create a grouped bar plot
-    ax = global_mean.plot(x='Variables', kind='bar', figsize=(8, 6))
-    # Show the plot
-    plt.legend(title='Datasets', fontsize=fontsize-2)
+        # Extract values for 'mtntrf' and 'mtnsrf' from each dataset
+        mtntrf_values = -datasets[i]["gm"]["mtntrf"].values.flatten()
+        mtnsrf_values = datasets[i]["gm"]["mtnsrf"].values.flatten()
+
+        # Update the boxplot_data dictionary
+        boxplot_data['Variables'].extend(['mtntrf'] * len(mtntrf_values))
+        boxplot_data['Variables'].extend(['mtnsrf'] * len(mtnsrf_values))
+        boxplot_data['Values'].extend(mtntrf_values)
+        boxplot_data['Values'].extend(mtnsrf_values)
+        boxplot_data['Datasets'].extend([model_names[i]] * (len(mtntrf_values) + len(mtnsrf_values)))
+
+    # Create a DataFrame from the boxplot_data dictionary
+    boxplot_df = pd.DataFrame(boxplot_data)
+
+    # Create a boxplot
+    ax = sns.boxplot(x='Variables', y='Values', hue='Datasets', data=boxplot_df)
+
+    # Add a legend outside the plot to the right side
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), title='Datasets', fontsize=fontsize-2)
+
+    # Set labels and title
     plt.xlabel('Variables', fontsize=fontsize)
     plt.ylabel('Global mean ($W/m^2$)', fontsize=fontsize)
-    plt.ylim(236, 250)
+    #plt.ylim(230, 255)
     plt.xticks(rotation=0, fontsize=fontsize-2)
     plt.yticks(fontsize=fontsize-2)
+
     if year is not None:
         plt.title(
-            f"Global Mean TOA radiation for different models ({year}) (all CERES years from 2001 to 2021)", fontsize=fontsize+2)
+            f"Global Mean TOA radiation for different models ({year})", fontsize=fontsize+2)
     else:
-        plt.title('Global Mean TOA radiation for different models',
-                  fontsize=fontsize+2)  # (mean over all model times)')
+        plt.title("Global Mean TOA radiation for different models", fontsize=fontsize+2)
+
 
     if outputdir is not None:
         create_folder(folder=str(outputdir), loglevel='WARNING')
         # Save the data to a NetCDF file
         output_data = xr.Dataset(global_mean)
-        filename = f"{outputdir}/barplot_mtntrf_mtnsrf_{'_'.join(model_names).replace(' ', '_').lower()}.nc"
+        filename = f"{outputdir}/boxplot_mtntrf_mtnsrf_{'_'.join(model_names).replace(' ', '_').lower()}.nc"
         output_data.to_netcdf(filename)
         logger.info(f"Data has been saved to {outputdir}.")
 
     if outputfig is not None:
         create_folder(folder=str(outputfig), loglevel='WARNING')
         
-        filename = f"{outputfig}/barplot_mtntrf_mtnsrf_{'_'.join(model_names).replace(' ', '_').lower()}.pdf"
+        filename = f"{outputfig}/boxplot_mtntrf_mtnsrf_{'_'.join(model_names).replace(' ', '_').lower()}.pdf"
         plt.savefig(filename, dpi=300, format='pdf', bbox_inches="tight")
         logger.info(f"Plot has been saved to {outputfig}.")
     else:
@@ -412,6 +430,8 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, o
         logger.info(f"Plot has been saved to {outputfig}.")
     else:
         plt.show()
+       
+
     
 def plot_bias(data=None, iax=None, title=None, plotlevels=None, lower=None, upper=None, index=None):
     """
@@ -528,10 +548,9 @@ def plot_maps(model=None, var=None, year=None, model_label=None,  ceres=None, ou
     else:
         plt.show()
 
-    
 
 
-def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_year=None, end_year=None, outputdir=None, outputfig=None):
+def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_year=None, end_year=None, outputdir=None, outputfig=None, seasons=False, quantiles=False):
     """
     Plot the mean bias of the data over the specified time range and relative to CERES climatology.
 
@@ -544,69 +563,250 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
         end_year (str): The end year of the time range for the model data.
         outputdir (str, optional): Directory where the output data will be saved. Defaults to None.
         outputfig (str, optional): Directory where the output figure will be saved. Defaults to None.
+        seasons (bool, optional): If True, generate plots for each season (DJF, MAM, JJA, SON). Defaults to False.
 
     Returns:
         None. Displays the plot of the mean bias.
     """
-    # Calculate the mean bias over the specified time range
     if start_year is None or end_year is None:
 
         start_year = str(model["data"]["time.year"][0].values) if len(model["data"].sel(time=str(model["data"]["time.year"][0].values)).time) == 12 \
                     else str(model["data"]["time.year"][0].values + 1)
         end_year = str(model["data"]["time.year"][-1].values) if len(model["data"].sel(time=str(model["data"]["time.year"][-1].values)).time) == 12 \
-                 else str(model["data"]["time.year"][-1].values -1)
-    
-    mean_bias = (model["data"][var].sel(time=slice(str(start_year), str(end_year))).mean(dim='time') - ceres["clim"][var]).mean(dim='time')
-    # Convert masked values to NaN
-    mean_bias = mean_bias.where(~mean_bias.isnull(), np.nan)
+                    else str(model["data"]["time.year"][-1].values -1)
+    if seasons:
+        # Generate plots for each season
+        season_months = {
+            'DJF': [12, 1, 2],
+            'MAM': [3, 4, 5],
+            'JJA': [6, 7, 8],
+            'SON': [9, 10, 11],
+        }
 
-    # Add cyclic longitude
-    mean_bias = add_cyclic_lon(mean_bias)
+        # Create a single subplot for all seasons
+        fig, axs = plt.subplots(2, 2, subplot_kw={'projection': ccrs.PlateCarree()}, figsize=(15, 10))
+        axs = axs.flatten()
 
-    model_label = model["model"]+'_'+model["exp"]+'_'+model["source"] if model_label is None else model_label
-    
-    # Generate the figure
-    fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()},
-                            figsize=(11, 8.5))
+        for i, (season, months) in enumerate(season_months.items()):
+            # Calculate the mean bias over the specified time range and months
+            if season == 'DJF':
+                # Include December from the last year only if it's available
+                if 12 in months:
+                    months = [12] + months[1:]
+                    years = np.arange(int(start_year) - 1, int(end_year) + 1)
+                else:
+                    years = np.arange(int(start_year), int(end_year) + 1)
+            else:
+                years = np.arange(int(start_year), int(end_year) + 1)
 
-    contour_plot = mean_bias.plot.contourf(ax=ax, transform=ccrs.PlateCarree(), cmap='RdBu_r', levels=20,
-                            add_colorbar=False, add_labels=False, extend='both')
-    fig.subplots_adjust(bottom=0.25, top=0.9, left=0.05, right=0.95,
-                         wspace=0.1, hspace=0.5)
-    cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.02])
-    try:
-        fig.colorbar(contour_plot, cax=cbar_ax, orientation='horizontal',
-                    label=mean_bias.long_name+' ['+mean_bias.units+']')
-    except AttributeError:
-        fig.colorbar(contour_plot, cax=cbar_ax, orientation='horizontal')
+            #print(f"Season: {season}, Months: {months}, Years: {years}")
 
-    ax.coastlines(color='black', linewidth=0.5)
-    ax.gridlines(linewidth=0.5)
-    ax.set_title(f'{var.upper()} bias of the {model_label.replace("_", " ")} climatology ({start_year} to {end_year})\n relative to the CERES climatology (2001-2021)', fontsize=14)
-    ax.set_xlabel('Longitude')
-    ax.set_ylabel('Latitude')
-    ax.set_xticks(np.arange(-180, 181, 30), crs=ccrs.PlateCarree())
-    ax.set_yticks(np.arange(-90, 91, 30), crs=ccrs.PlateCarree())
-    ax.tick_params(axis='both', which='both', labelsize=10)
-    ax.xaxis.set_ticklabels(['-180°', '-150°', '-120°', '-90°', '-60°', '-30°', '0°', '30°', '60°', '90°', '120°', '150°', '180°'])
-    ax.yaxis.set_ticklabels(['-90°', '-60°', '-30°', '0°', '30°', '60°', '90°'])
+            # Extract model data for the specific season
+            model_season_data = (
+                model["data"][var]
+                .sel(time=(model["data"]["time.month"].isin(months)) & (model["data"]["time.year"].isin(years)))
+                .mean(dim='time')
+            )
 
-    if outputdir is not None:
-        create_folder(folder=str(outputdir), loglevel='WARNING')
-        # Save the data to a netCDF file
-        ceres_model_name = ceres["model"]+'_'+ceres["exp"]+'_'+ceres["source"]
-        filename = f"{outputdir}toa_mean_biases_{var}_{model_label}_{start_year}_{end_year}_{ceres_model_name}.nc"
-        mean_bias.to_netcdf(filename)
-        logger.info(f"Data has been saved to {outputdir}.")
+            #print(model_season_data)
 
-    if outputfig is not None:
-        create_folder(folder=str(outputfig), loglevel='WARNING')
-        ceres_model_name = ceres["model"]+'_'+ceres["exp"]+'_'+ceres["source"]
-        filename = f"{outputfig}toa_mean_biases_{var}_{model_label}_{start_year}_{end_year}_{ceres_model_name}.pdf"
-        plt.savefig(filename, dpi=300, format='pdf', bbox_inches="tight")
-        logger.info(f"Plot has been saved to {outputfig}.")
+            # Convert masked values to NaN
+            model_season_data = model_season_data.where(~model_season_data.isnull(), np.nan)
+                                    
+            # Extract CERES climatology for the specific season
+            ceres_time_month = ceres["clim"]["time"]
+            ceres_seasonal_climatology = ceres["clim"][var].sel(
+                time=ceres_time_month[ceres_time_month.isin(months)]
+            ).mean(dim='time')
+            
+            # Calculate the mean bias over the specified time range and months
+            mean_bias = model_season_data - ceres_seasonal_climatology
+
+            # Add cyclic longitude
+            mean_bias = add_cyclic_lon(mean_bias)
+
+            model_label = model["model"]+'_'+model["exp"]+'_'+model["source"] if model_label is None else model_label
+            
+            model_label_season = f'{model_label}_{season}'
+            
+            # #debugging part:
+            # print('mean bias data')
+            # print(mean_bias)
+            # print('model season data coordinates')
+            # print(model_season_data.coords)
+            # print('ceres seasonal climatology coordinates')
+            # print(ceres_seasonal_climatology.coords)
+            
+            # Plot on the current subplot
+            contour_plot = mean_bias.plot.contourf(ax=axs[i], transform=ccrs.PlateCarree(), cmap='RdBu_r', levels=20,
+                                                   add_colorbar=False, add_labels=False, extend='both')
+
+            # Explicitly convert masked elements to NaN for warning suppression
+            contour_plot.collections[0].set_edgecolor("face")
+            
+            axs[i].coastlines(color='black', linewidth=0.5)
+            axs[i].gridlines(linewidth=0.5)
+            axs[i].set_title(f'{var.upper()} bias ({season} of the {model_label}\n climatology {start_year} to {end_year})\n relative to the CERES climatology (2001-2021)',
+                             fontsize=12)
+            axs[i].set_xlabel('Longitude')
+            axs[i].set_ylabel('Latitude')
+            axs[i].set_xticks(np.arange(-180, 181, 30), crs=ccrs.PlateCarree())
+            axs[i].set_yticks(np.arange(-90, 91, 30), crs=ccrs.PlateCarree())
+            axs[i].tick_params(axis='both', which='both', labelsize=8)
+            axs[i].xaxis.set_ticklabels(
+                ['-180°', '-150°', '-120°', '-90°', '-60°', '-30°', '0°', '30°', '60°', '90°', '120°', '150°', '180°'])
+            axs[i].yaxis.set_ticklabels(['-90°', '-60°', '-30°', '0°', '30°', '60°', '90°'])
+            
+#             ################################
+#             #investigating quantiles
+            
+#             # Calculate quantiles (e.g., 5th and 95th percentiles)
+           
+#             try:
+#                 quantiles = mean_bias.quantile([0.05, 0.95], dim=['lat','lon'])
+#             except ValueError as e:
+#                 print(f"Error calculating quantiles: {e}")
+#                 print("Dimensions of mean_bias:")
+#                 print(mean_bias.dims)
+#                 print("Shape of mean_bias:")
+#                 print(mean_bias.shape)
+#                 raise ValueError(f"Error calculating quantiles: {e}")
+            
+#             print("Quantiles Shape:", quantiles.shape)
+#             print("Quantiles Values:")
+#             print(quantiles)
+#             print('quantile coords:')
+#             print(quantiles.coords)
+
+             
+#             axs[i].contourf(model_season_data.lon, model_season_data.lat, quantiles.sel(quantile=0.05).squeeze().values,
+#                 levels=1, colors='none', hatches=['.'], extend='both', transform=ccrs.PlateCarree())
+#             axs[i].contourf(model_season_data.lon, model_season_data.lat, quantiles.sel(quantile=0.95).squeeze().values,
+#                 levels=1, colors='none', hatches=['.'], extend='both', transform=ccrs.PlateCarree())
+
+#             plt.figure(figsize=(10, 6))
+#             plt.title('Quantile 0.05')
+#             plt.colorbar()
+#             plt.show()
+
+#             plt.figure(figsize=(10, 6))
+#             plt.imshow(quantiles.sel(quantile=0.95).squeeze().values, extent=[model_season_data.lon.min(), model_season_data.lon.max(), model_season_data.lat.min(), model_season_data.lat.max()])
+#             plt.title('Quantile 0.95')
+#             plt.colorbar()
+#             plt.show()
+
+#             ################################
+            
+        # Add a colorbar for the entire figure
+        cbar_ax = fig.add_axes([0.2, 0.08, 0.6, 0.02])
+        cbar = fig.colorbar(contour_plot, cax=cbar_ax, orientation='horizontal',
+                            label=f'{var.lower()} bias [' + mean_bias.units + ']')
+        # Explicitly convert masked elements to NaN for warning suppression
+        contour_plot.collections[0].set_edgecolor("face")
+
+        if outputdir is not None:
+            create_folder(folder=str(outputdir), loglevel='WARNING')
+            # Save the data to a netCDF file
+            ceres_model_name = ceres["model"] + '_' + ceres["exp"] + '_' + ceres["source"]
+            filename = f"{outputdir}toa_mean_biases_{var}_{model_label}_{start_year}_{end_year}_{ceres_model_name}_seasons.pdf"
+            plt.savefig(filename, dpi=300, format='pdf', bbox_inches="tight")
+            logger.info(f"Data has been saved to {outputdir}.")
+
+        if outputfig is not None:
+            create_folder(folder=str(outputfig), loglevel='WARNING')
+            ceres_model_name = ceres["model"] + '_' + ceres["exp"] + '_' + ceres["source"]
+            filename = f"{outputfig}toa_mean_biases_{var}_{model_label}_{start_year}_{end_year}_{ceres_model_name}_seasons.pdf"
+            plt.savefig(filename, dpi=300, format='pdf', bbox_inches="tight")
+            logger.info(f"Plot has been saved to {outputfig}.")
+        else:
+            plt.show()
+            
+    ################################################################################################################        
+     
     else:
-        plt.show()
+        # Extract model data for the entire time series
+        model_data = model["data"][var].sel(time=slice(str(start_year), str(end_year)))
 
-    
+        mean_bias = (model_data.mean(dim='time') - ceres["clim"][var]).mean(dim='time')
+        # Convert masked values to NaN
+        mean_bias = mean_bias.where(~mean_bias.isnull(), np.nan)
+        mean_bias = add_cyclic_lon(mean_bias)
+
+        model_label = model["model"]+'_'+model["exp"]+'_'+model["source"] if model_label is None else model_label
+
+        fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()}, figsize=(8, 6))
+
+        # Plot mean biases
+        contour_plot = mean_bias.plot.contourf(ax=ax, transform=ccrs.PlateCarree(), cmap='RdBu_r', levels=20,
+                                               add_colorbar=False, add_labels=False, extend='both')
+
+        ########################### significance part testing
+        try:
+            # Initialize an array to store the significance mask for each month
+            monthly_significance_masks = []
+
+            for month in range(1, 13):
+                # Extract model data for the specific month
+                model_month_data = model_data.sel(time=model_data['time.month'] == month)
+
+                # Calculate the mean bias for the specific month
+                mean_bias_month = (model_month_data.mean(dim='time') - ceres["clim"][var].sel(time=month)).mean(dim='time')
+
+                # Calculate quantiles for the specific month
+                q05 = mean_bias_month.quantile(0.05, dim=['lat', 'lon'])
+                q95 = mean_bias_month.quantile(0.95, dim=['lat', 'lon'])
+
+                # Stippling for points within the 95% confidence interval for the specific month
+                monthly_significance_mask = (mean_bias_month >= q05) & (mean_bias_month <= q95)
+                monthly_significance_masks.append(monthly_significance_mask)
+
+                # Stipple points on the plot
+                lons, lats = np.meshgrid(mean_bias_month['lon'], mean_bias_month['lat'])
+                ax.scatter(lons[monthly_significance_mask], lats[monthly_significance_mask], marker='.', color='black', s=.1, alpha=0.7, transform=ccrs.PlateCarree())
+
+            # Combine the monthly significance masks to check for consistency across months
+            combined_significance_mask = np.all(monthly_significance_masks, axis=0)
+
+        except ValueError as e:
+            print(f"Error calculating quantiles: {e}")
+        
+        ###############################################
+
+        fig.subplots_adjust(bottom=0.25, top=0.9, left=0.05, right=0.95,
+                             wspace=0.1, hspace=0.5)
+        cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.02])
+        try:
+            fig.colorbar(contour_plot, cax=cbar_ax, orientation='horizontal',
+                        label=mean_bias.long_name+' bias ['+mean_bias.units+']')
+        except AttributeError:
+            fig.colorbar(contour_plot, cax=cbar_ax, orientation='horizontal')
+
+        ax.coastlines(color='black', linewidth=0.5)
+        ax.gridlines(linewidth=0.5)
+        ax.set_title(f'{var.upper()} bias of the {model_label.replace("_", " ")} climatology ({start_year} to {end_year})\n relative to the CERES climatology (2001-2021)', fontsize=14)
+        ax.set_xlabel('Longitude')
+        ax.set_ylabel('Latitude')
+        ax.set_xticks(np.arange(-180, 181, 30), crs=ccrs.PlateCarree())
+        ax.set_yticks(np.arange(-90, 91, 30), crs=ccrs.PlateCarree())
+        ax.tick_params(axis='both', which='both', labelsize=10)
+        ax.xaxis.set_ticklabels(['-180°', '-150°', '-120°', '-90°', '-60°', '-30°', '0°', '30°', '60°', '90°', '120°', '150°', '180°'])
+        ax.yaxis.set_ticklabels(['-90°', '-60°', '-30°', '0°', '30°', '60°', '90°'])
+
+        if outputdir is not None:
+            create_folder(folder=str(outputdir), loglevel='WARNING')
+            # Save the data to a netCDF file
+            ceres_model_name = ceres["model"]+'_'+ceres["exp"]+'_'+ceres["source"]
+            filename = f"{outputdir}toa_mean_biases_{var}_{model_label}_{start_year}_{end_year}_{ceres_model_name}.nc"
+            mean_bias.to_netcdf(filename)
+            logger.info(f"Data has been saved to {outputdir}.")
+
+        if outputfig is not None:
+            create_folder(folder=str(outputfig), loglevel='WARNING')
+            ceres_model_name = ceres["model"]+'_'+ceres["exp"]+'_'+ceres["source"]
+            filename = f"{outputfig}toa_mean_biases_{var}_{model_label}_{start_year}_{end_year}_{ceres_model_name}.pdf"
+            plt.savefig(filename, dpi=300, format='pdf', bbox_inches="tight")
+            logger.info(f"Plot has been saved to {outputfig}.")
+        else:
+            plt.show()
+
 

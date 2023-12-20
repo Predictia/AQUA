@@ -14,7 +14,7 @@ try:
         print(f'Moving from current directory to {dname} to run!')
     sys.path.insert(0, '../../')
     from radiation import process_ceres_data, process_model_data
-    from radiation import barplot_model_data, plot_mean_bias, gregory_plot, plot_model_comparison_timeseries
+    from radiation import boxplot_model_data, plot_mean_bias, gregory_plot, plot_model_comparison_timeseries
 except ImportError as import_error:
     # Handle ImportError
     print(f"ImportError occurred: {import_error}")
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     logger.debug(f"outputdir: {outputdir}")
     logger.debug(f"outputfig: {outputfig}")
 
-    bar_plot_bool = config['diagnostic_attributes']['bar_plot']
+    box_plot_bool = config['diagnostic_attributes']['box_plot']
     bias_maps_bool = config['diagnostic_attributes']['bias_maps']
     gregory_bool = config['diagnostic_attributes']['gregory']
     time_series_bool = config['diagnostic_attributes']['time_series']
@@ -104,11 +104,11 @@ if __name__ == '__main__':
         logger.error("Atmospheric global mean biases diagnostic is terminated.")
         sys.exit(0)
 
-    if bar_plot_bool:
+    if box_plot_bool:
         try:
             datasets = [ceres, model_data]
-            barplot_model_data(datasets=datasets, outputdir=outputdir, outputfig=outputfig)
-            logger.info("The Bar Plot with provided model and CERES was created and saved. Variables ttr and tsr are plotted to show imbalances.")
+            boxplot_model_data(datasets=datasets, outputdir=outputdir, outputfig=outputfig)
+            logger.info("The boxplot with provided model and CERES was created and saved. Variables ttr and tsr are plotted to show imbalances.")
         except Exception as e:
             # Handle other exceptions
             logger.error(f"An unexpected error occurred: {e}")
