@@ -11,7 +11,7 @@ import argparse
 from aqua import Reader, inspect_catalogue
 from aqua.logger import log_configure
 from aqua.util import load_yaml, get_arg
-
+import subprocess
 
 def parse_arguments(args):
     """
@@ -43,7 +43,7 @@ def parse_arguments(args):
                         default=config['loglevel'])
     parser.add_argument('--nproc', type=int, required=False,
                         help='the number of processes to run in parallel',
-                        default=config['nproc'])
+                        default=config['compute_resources']['nproc'])
     parser.add_argument('-m', '--model', type=str, required=False,
                         help='model name',
                         default=config['data']['models'])
@@ -62,6 +62,9 @@ def parse_arguments(args):
     parser.add_argument('--rebuild', action='store_true', required=False,
                         help='force rebuilding of area and weight files',
                         default=config['rebuild'])
+    parser.add_argument('--resubmit', action='store_true', required=False,
+                        help='resubmit a new sbatch job after the current job is completed',
+                        default=config['compute_resources']['resubmit'])
     return parser.parse_args()
 
 def validate_config(logger=None, args=None):
@@ -89,7 +92,6 @@ def validate_config(logger=None, args=None):
 
     for arg, (expected_type, min_value) in validations.items():
         value = getattr(args, arg, None)
-        logger.debug(f"Arg {arg} is type {type(value)}")
         if not isinstance(value, expected_type) or (min_value is not None and value < min_value):
             message = f"{arg} must be a {expected_type.__name__}"
             if min_value is not None:
@@ -195,6 +197,30 @@ def generate_weights(logger=None, full_catalogue=None, resolutions=None, models=
                     for zoom in range(zoom_max):
                         calculate_weights(logger=logger, model=model, exp=exp, source=source, regrid=reso, zoom=zoom,
                                           nproc=nproc, rebuild=rebuild)
+def resubmit_job(logger=None):
+    """
+    Resubmits the current job by executing a separate Bash script.
+
+    This function calls a Bash script 'run_weights_submitter.sh' located in
+    the same directory as the current script. The Bash script is responsible
+    for scheduling a new SLURM job. This function should be called at the
+    end of the job's execution if automatic resubmission is desired.
+
+    Uses `subprocess.call` to execute the Bash script. Ensure that the
+    Bash script has execute permissions and contains the correct sbatch
+    command for resubmission.
+    """
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    path_to_bash_script = os.path.join(script_dir, 'run_weights_submitter.sh')
+    try:
+        bash_command = f"bash {path_to_bash_script}"
+        subprocess.call(bash_command, shell=True)
+        logger.info("The 'run_weights_submitter.sh' script is running.")
+    except FileNotFoundError:
+        logger.error(f"File not found: {path_to_bash_script}")
+    except Exception as e:
+        logger.error(f"Error occurred: {e}")
+
 def main():
     """
     Main function to orchestrate the weight generation process.
@@ -206,6 +232,8 @@ def main():
     validate_config(logger=logger, args=args)
     generate_weights(logger=logger, full_catalogue=args.catalogue, resolutions=args.resolution, models=args.model,
                      experiments=args.exp, sources=args.source, nproc=args.nproc, zoom_max=args.zoom_max, rebuild=args.rebuild)
+    if args.resubmit:
+        resubmit_job(logger=logger)
 
 if __name__ == "__main__":
     main()
