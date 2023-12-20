@@ -5,25 +5,31 @@ script_dir=$(dirname "${BASH_SOURCE[0]}")
 
 # Read the machine name from the YAML file
 machine=$(python -c "
-import yaml
-with open('$script_dir/../../config/config-aqua.yaml') as f:
-    config = yaml.safe_load(f)
-    print(config['machine'])
+try:
+    import yaml
+    with open('$script_dir/../../config/config-aqua.yaml') as f:
+        config = yaml.safe_load(f)
+        print(config['machine'])
+except Exception as e:
+    print('Error:', e)
 ")
 echo "Machine Name: $machine"
 
 read -r nproc nodes walltime memory lumi_version account partition run_on_sunday < <(python -c "
-import yaml
-with open('$script_dir/config/weights_config.yml') as f:
-    config = yaml.safe_load(f)['compute_resources']
-    print(config['nproc'], config['nodes'], config['walltime'], config['memory'], config['lumi_version'], \
-    config['account']['$machine'], config['partition']['$machine'], config['run_on_sunday'])
+try:
+    import yaml
+    with open('$script_dir/config/weights_config.yml') as f:
+        config = yaml.safe_load(f)['compute_resources']
+        print(config['nproc'], config['nodes'], config['walltime'], config['memory'], config['lumi_version'], \
+        config['account']['$machine'], config['partition']['$machine'], config['run_on_sunday'])
+except Exception as e:
+    print('Error:', e)
 ")
 
 if [ "$run_on_sunday" == "True" ]; then
     begin_time=$(date -d "next Sunday 21:00" +"%Y-%m-%dT%H:%M:%S")
 else
-    begin_time=$(date -d "now + 1 minute" +"%Y-%m-%dT%H:%M:%S")
+    begin_time=$(date +"%Y-%m-%dT%H:%M:%S")
 fi
 
 echo "Begin run time: $begin_time"
