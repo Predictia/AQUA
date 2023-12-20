@@ -1,11 +1,25 @@
 data:
-  models:  []
-  experiments:    []
-  sources: []
-  resolutions: ['r025', 'r100']
-  zoom_max: 10
-rebuild: True
-full_catalogue: False
+  models:  ['MSWEP']
+  experiments:    ['past']
+  sources: [monthly]
+  resolutions: ['r025'] #, 'r100']
+  zoom_max: 1
 
+rebuild: False
+catalogue: False
 loglevel: 'DEBUG'
-nproc: 4
+
+compute_resources:
+  resubmit: False
+  run_on_sunday: False
+  nproc: 4
+  nodes: 1
+  walltime: '01:00:00'
+  memory: '20G'
+  lumi_version: 23.03
+  account:
+    lumi: 'project_465000454'
+    levante: 'bb1153'
+  partition:
+    lumi: 'small'
+    levante: 'shared'
