@@ -259,7 +259,7 @@ for diagnostic in "${all_diagnostics[@]}"; do
     -l $loglevel --outputdir $outputdir_atm/$diagnostic > "$outputdir_atm/$diagnostic.log" 2>&1 &
   elif [[ "${oce_diagnostics[@]}" =~ "$diagnostic" ]]; then
     python "$aqua/diagnostics/${script_path[$diagnostic]}" $args_oce ${oce_extra_args[$diagnostic]} \
-    -l $loglevel --outputdir $outputdir_atm/$diagnostic > "$outputdir_atm/$diagnostic.log" 2>&1 &
+    -l $loglevel --outputdir $outputdir_oce/$diagnostic > "$outputdir_oce/$diagnostic.log" 2>&1 &
   elif [[ "${atm_oce_diagnostics[@]}" =~ "$diagnostic" ]]; then
     # NOTE: atm_oce diagnostics are run in the atmospheric output directory
     python "$aqua/diagnostics/${script_path[$diagnostic]}" $args ${atm_oce_extra_args[$diagnostic]} \
