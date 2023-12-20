@@ -314,7 +314,8 @@ class Reader(FixerMixin, RegridMixin):
         self.src_space_coord, self.vert_coord = self._guess_coords(space_coord, vert_coord,
                                                                    default_space_dims,
                                                                    default_vertical_dims)
-        # self.logger.info("Space coords are %s", self.src_space_coord)
+        self.logger.debug("Space coords are %s", self.src_space_coord)
+        self.logger.debug("Vert coords are %s", self.vert_coord)
 
         # Normalize vert_coord to list
         if not isinstance(self.vert_coord, list):

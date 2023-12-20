@@ -171,6 +171,11 @@ class FixerMixin():
     def _load_source_fixes(self, fix_model):
         """Browse for source/model specific fixes, return None if not found"""
 
+        if fix_model is None:
+            self.logger.debug("No model-specific fixes available for model %s",
+                              self.model)
+            return None
+
         # look for exp fix, if not found, set default fixes
         fix_exp = fix_model.get(self.exp, None)
         if fix_exp is None:
