@@ -3,10 +3,15 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
-## [Unreleased]
+## [v0.5.2]
 
-Unreleased is the current development version.
+Main changes are:
+1. Coupled models IFS-NEMO and IFS-FESOM are now supported
+2. Accessor to use functions and reader methods as if they were methods of xarray objects, see [notebook](https://github.com/DestinE-Climate-DT/AQUA/blob/main/notebooks/reader/accessor.ipynb)
+3. Preliminary provenance information is now available in the history attribute of the output files
+4. AQUA analysis wrapper is parallelized
 
+Complete list:
 - Defining catalog entry for coupled models IFS-NEMO and IFS-FESOM (#720)
 - Change fixer_name to fixer_name (#703)
 - Reorganization of logging calls (#700)
@@ -220,7 +225,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.5.1...HEAD
+[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.5.2...HEAD
+[v0.5.2]: https://github.com/oloapinivad/AQUA/compare/v0.5.1...v0.5.2
 [v0.5.1]: https://github.com/oloapinivad/AQUA/compare/v0.5...v0.5.1
 [v0.5]: https://github.com/oloapinivad/AQUA/compare/v0.4...v0.5
 [v0.4]: https://github.com/oloapinivad/AQUA/compare/v0.3...v0.4
