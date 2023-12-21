@@ -1,9 +1,31 @@
 #!/bin/bash
 set -e
 
+function log_message() {
+    local msg_type=$1
+    local message=$2
+    local color
+    local no_color="\033[0m" # Reset to default terminal color
+
+    # Check if only one argument is provided
+    if [ $# -eq 1 ]; then
+        message=$1
+        color=$no_color  # Use default terminal color for unspecified message types
+    else
+        # Set color based on message type
+        case $msg_type in
+            INFO) color="\033[0;32m" ;;  # Green for INFO
+            ERROR) color="\033[0;31m" ;; # Red for ERROR
+            *) color=$no_color ;;        # Default terminal color
+        esac
+    fi
+
+    echo -e "${color}$(date '+%Y-%m-%d %H:%M:%S'): $message${no_color}"
+}
+
 script_dir=$(dirname "${BASH_SOURCE[0]}")
 
-# Read the machine name from the YAML file
+log_message "Reading machine name from YAML"
 machine=$(python -c "
 try:
     import yaml
@@ -13,7 +35,11 @@ try:
 except Exception as e:
     print('Error:', e)
 ")
-echo "Machine Name: $machine"
+if [[ $machine == Error:* ]]; then
+    log_message ERROR "Error reading machine name: ${machine#Error: }"
+    exit 1
+fi
+log_message INFO "Machine Name: $machine"
 
 read -r nproc nodes walltime memory lumi_version account partition run_on_sunday < <(python -c "
 try:
@@ -25,14 +51,17 @@ try:
 except Exception as e:
     print('Error:', e)
 ")
-
+if [[ $nproc == Error:* ]]; then
+    log_message ERROR "Failed to read compute resources from weights_config.yml: ${nproc#Error: }"
+    exit 1
+fi
 if [ "$run_on_sunday" == "True" ]; then
     begin_time=$(date -d "next Sunday 21:00" +"%Y-%m-%dT%H:%M:%S")
 else
     begin_time=$(date +"%Y-%m-%dT%H:%M:%S")
 fi
 
-echo "Begin run time: $begin_time"
+log_message INFO "Begin run time: $begin_time"
 
 # if machine is levante use mamba/conda
 if [ $machine == "levante" ]; then
@@ -50,6 +79,7 @@ function load_environment_AQUA() {
     module use LUMI/$lumi_version
 }
 
+log_message INFO "Submitting the SLURM job"
 if [ "$machine" == 'levante' ] || [ "$machine" == 'lumi' ]; then
     # Submit the SLURM job with submission_time variable
     sbatch --begin="$begin_time" <<EOL
@@ -64,13 +94,13 @@ if [ "$machine" == 'levante' ] || [ "$machine" == 'lumi' ]; then
 #SBATCH --time=$walltime
 #SBATCH --mem=$memory
 
-echo 'Hello from SLURM job!'
-echo "Number of processes (nproc): $nproc"
-echo "Number of nodes: $nodes"
-echo "Walltime: $walltime"
-echo "Memory: $memory"
-echo "Account: $account"
-echo "Partition: $partition"
+log_message INFO 'Hello from SLURM job!'
+log_message INFO "Number of processes (nproc): $nproc"
+log_message INFO "Number of nodes: $nodes"
+log_message INFO "Walltime: $walltime"
+log_message INFO "Memory: $memory"
+log_message INFO "Account: $account"
+log_message INFO "Partition: $partition"
 
 # if machine is lumi use modules
 if [ $machine == "lumi" ]; then
