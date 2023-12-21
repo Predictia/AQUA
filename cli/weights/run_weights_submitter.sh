@@ -3,31 +3,11 @@
 
 set -e # Exit immediately if a command exits with a non-zero status.
 
-# Function to log messages with colored output
-function log_message() {
-    local msg_type=$1
-    local message=$2
-    local color
-    local no_color="\033[0m" # Reset to default terminal color
-
-    # Check if only one argument is provided
-    if [ $# -eq 1 ]; then
-        message=$1
-        color=$no_color  # Use default terminal color for unspecified message types
-    else
-        # Set color based on message type
-        case $msg_type in
-            INFO) color="\033[0;32m" ;;  # Green for INFO
-            ERROR) color="\033[0;31m" ;; # Red for ERROR
-            *) color=$no_color ;;        # Default terminal color
-        esac
-    fi
-
-    echo -e "${color}$(date '+%Y-%m-%d %H:%M:%S'): $message${no_color}"
-}
-
 # Determine the directory of the current script
 script_dir=$(dirname "${BASH_SOURCE[0]}")
+
+# Load function to log messages with colored output
+source $script_dir/logging.sh
 
 # Read and log the machine name from the YAML configuration file
 log_message "Reading machine name from YAML"
@@ -104,6 +84,9 @@ if [ "$machine" == 'levante' ] || [ "$machine" == 'lumi' ]; then
 #SBATCH --ntasks-per-node=$nproc
 #SBATCH --time=$walltime
 #SBATCH --mem=$memory
+
+# Load function to log messages with colored output
+source $script_dir/logging.sh
 
 log_message INFO 'Hello from SLURM job!'
 log_message INFO "Number of processes (nproc): $nproc"
