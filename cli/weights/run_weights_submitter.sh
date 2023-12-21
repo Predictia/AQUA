@@ -1,6 +1,9 @@
 #!/bin/bash
-set -e
+# This script sets up and submits a SLURM job based on configurations from YAML files.
 
+set -e # Exit immediately if a command exits with a non-zero status.
+
+# Function to log messages with colored output
 function log_message() {
     local msg_type=$1
     local message=$2
@@ -23,8 +26,10 @@ function log_message() {
     echo -e "${color}$(date '+%Y-%m-%d %H:%M:%S'): $message${no_color}"
 }
 
+# Determine the directory of the current script
 script_dir=$(dirname "${BASH_SOURCE[0]}")
 
+# Read and log the machine name from the YAML configuration file
 log_message "Reading machine name from YAML"
 machine=$(python -c "
 try:
@@ -41,6 +46,7 @@ if [[ $machine == Error:* ]]; then
 fi
 log_message INFO "Machine Name: $machine"
 
+# Read configuration values like number of processes, nodes, etc., from another YAML file
 read -r nproc nodes walltime memory lumi_version account partition run_on_sunday < <(python -c "
 try:
     import yaml
@@ -55,6 +61,8 @@ if [[ $nproc == Error:* ]]; then
     log_message ERROR "Failed to read compute resources from weights_config.yml: ${nproc#Error: }"
     exit 1
 fi
+
+# Set the job's start time based on 'run_on_sunday' flag
 if [ "$run_on_sunday" == "True" ]; then
     begin_time=$(date -d "next Sunday 21:00" +"%Y-%m-%dT%H:%M:%S")
 else
@@ -63,7 +71,7 @@ fi
 
 log_message INFO "Begin run time: $begin_time"
 
-# if machine is levante use mamba/conda
+# Environment setup for different machines
 if [ $machine == "levante" ]; then
     # find mamba/conda (to be refined)
     whereconda=$(which mamba | rev | cut -f 3-10 -d"/" | rev)
@@ -72,13 +80,14 @@ if [ $machine == "levante" ]; then
     # activate conda environment
     conda activate aqua_common
 fi
-
+# Function to load environment on LUMI
 function load_environment_AQUA() {
         # Load env modules on LUMI
     module purge
     module use LUMI/$lumi_version
 }
 
+# Submitting the SLURM job
 log_message INFO "Submitting the SLURM job"
 if [ "$machine" == 'levante' ] || [ "$machine" == 'lumi' ]; then
     # Submit the SLURM job with submission_time variable
