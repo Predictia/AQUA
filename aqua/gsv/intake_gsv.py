@@ -110,8 +110,25 @@ class GSVSource(base.DataSource):
         self._kwargs = kwargs
 
         if level and ("levelist" in self._request):
+            levelist = self._request["levelist"]
             self._request["levelist"] = level  # override default levels
+            if self.levels:  # if levels in metadata select them too
+                if not isinstance(levelist, list): levelist = [levelist]
+                if not isinstance(level, list): level = [level]
+                if not isinstance(self.levels, list): self.levels = [self.levels]
+                idx = list(map(levelist.index, level))
+                self._request["levelist"] = level  # override default levels
+                self.levels = [self.levels[i] for i in idx]
 
+        self.onelevel = False
+        if "levelist" in self._request:
+            if self.levels: # Do we have physical levels specified in metadata?
+                lev = self._request["levelist"]
+                if isinstance(lev, list) and len(lev) > 1:
+                    self.onelevel = True  # If yes we can afford to read only one level
+            else:
+                self.logger.warning("A speedup of data retrieval could be achieved by specifying the levels keyword in metadata.")
+        
         self.get_eccodes_shortname = init_get_eccodes_shortname()
 
         self.data_start_date = data_start_date
@@ -141,26 +158,18 @@ class GSVSource(base.DataSource):
         if self.dask_access:  # We need a better schema for dask access
             if not self._ds or not self._da:  # we still have to retrieve a sample dataset
 
-                if self.levels:  # Do we have physical levels specified in metadata?
-                    onelevel = True  # If yes we can afford to read only one level
-                else:
-                    onelevel = False
-
-                self._ds = self._get_partition(0, var=self._var, first=True, onelevel=onelevel)
+                self._ds = self._get_partition(0, var=self._var, first=True, onelevel=self.onelevel)
 
                 var = list(self._ds.data_vars)[0]
                 da = self._ds[var]  # get first variable dataarray
 
                 # If we have multiple levels, then this array needs to be expanded
-                if onelevel and "levelist" in self._request:
-                    lev = self._request["levelist"]
-                    # the following is needed only if there is more than one level requested
-                    if isinstance(lev, list) and len(lev) > 1:
-                        lev = self.levels
-                        apos = da.dims.index("level")  # expand the size of the "level" axis
-                        attrs = da["level"].attrs
-                        da = da.squeeze("level").drop("level").expand_dims(level=lev, axis=apos)
-                        da["level"].attrs.update(attrs)
+                if self.onelevel:
+                    lev = self.levels
+                    apos = da.dims.index("level")  # expand the size of the "level" axis
+                    attrs = da["level"].attrs
+                    da = da.squeeze("level").drop("level").expand_dims(level=lev, axis=apos)
+                    da["level"].attrs.update(attrs)
 
                 self._da = da
 
@@ -193,8 +202,8 @@ class GSVSource(base.DataSource):
         Args:
             i (int): partition number
             var (string, optional): single variable to retrieve. Defaults to using those set at init
-            first (bool, optional): read only the first step (used for schema retrieval)
-            onelevel (bool, optional): read only one level (used for schema retrieval)
+            first (bool, optional): read only the first step (used for schema retrieval
+            onelevel (bool, optional): read only one level. Defaults to False.
         Returns:
             An xarray.DataSet
         """
@@ -224,7 +233,7 @@ class GSVSource(base.DataSource):
             else:
                 request["step"] = f'{s0}/to/{s1}'
 
-        if onelevel and "levelist" in request:  # limit to one single level
+        if onelevel:  # limit to one single level
             request["levelist"] = request["levelist"][0]
 
         if var:
