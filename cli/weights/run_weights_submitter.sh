@@ -64,8 +64,10 @@ fi
 
 # Set the job's start time based on 'run_on_sunday' flag
 if [ "$run_on_sunday" == "True" ]; then
+    log_message INFO "Scheduling job for next Sunday"
     begin_time=$(date -d "next Sunday 21:00" +"%Y-%m-%dT%H:%M:%S")
 else
+    log_message INFO "Scheduling job for immediate execution"
     begin_time=$(date +"%Y-%m-%dT%H:%M:%S")
 fi
 
