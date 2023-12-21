@@ -6,20 +6,20 @@ data:
   zoom_max: 10          # Maximum zoom level
 
 rebuild: False          # Flag to indicate whether to rebuild data
-catalogue: False        # Flag to use the entire catalogue or not
+catalogue: True         # Flag to use the entire catalogue or not
 loglevel: 'WARNING'     # Logging level
 
 compute_resources:
   resubmit: False       # Whether to automatically resubmit the job
   run_on_sunday: False  # Whether the job should run only on Sundays
-  nproc: 4              # Number of processors to use
+  nproc: 16              # Number of processors to use
   nodes: 1              # Number of nodes required
   walltime: '08:00:00'  # Maximum time allowed for the job
-  memory: '200G'        # Memory allocation for the job
+  memory: 0             # Memory allocation for the job
   lumi_version: 23.03   # Version of LUMI to be used
   account:              # Account details for different machines
     lumi: 'project_465000454'
     levante: 'bb1153'
   partition:            # Partition settings for different machines
     lumi: 'small'
-    levante: 'shared'
+    levante: 'compute'
