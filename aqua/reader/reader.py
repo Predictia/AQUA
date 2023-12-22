@@ -462,12 +462,12 @@ class Reader(FixerMixin, RegridMixin):
         Perform a data retrieve.
 
         Arguments:
-            var (str, list): the variable(s) to retrieve.Defaults to None. If None, all variables are retrieved
-            level (list, float, int, optional): Levels to be read, overriding default in catalogue source (only for FDB) 
-            startdate (str, optional): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
-            enddate (str, optional): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None.
-            history (bool): If you want to add to the metadata history information about retrieve. Default to True
-            sample (bool, optional): read only one default variable (used only if var is not specified). Default to False
+            var (str, list): the variable(s) to retrieve. Defaults to None. If None, all variables are retrieved.
+            level (list, float, int): Levels to be read, overriding default in catalogue source (only for FDB) .
+            startdate (str): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
+            enddate (str): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None.
+            history (bool): If you want to add to the metadata history information about retrieve. Defaults to True.
+            sample (bool): read only one default variable (used only if var is not specified). Defaults to False.
 
         Returns:
             A xarray.Dataset containing the required data.
