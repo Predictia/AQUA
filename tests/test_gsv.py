@@ -107,3 +107,25 @@ class TestGsv():
         assert data.t.mean().data == pytest.approx(279.3509), "Field values incorrect"
         data = reader.retrieve(var=130)  # test numeric argument
         assert data.t.mean().data == pytest.approx(279.3509), "Field values incorrect"
+
+    def test_reader_3d(self) -> None:
+        """Testing 3D access"""
+
+        reader = Reader(model="IFS", exp="test-fdb", source="fdb-levels", loglevel=loglevel)
+        data = reader.retrieve()
+        # coordinates read from levels key
+        assert all(data.t.coords["level"].data == [999.99, 899.99, 799.99]), "Wrong coordinates from levels metadata key"
+        # can read second level
+        assert data.t.isel(level=1).mean().data == pytest.approx(281.4037), "Field values incorrect"
+
+        data = reader.retrieve(level=[900, 800])  # Read only two levels
+        assert data.t.isel(level=1).mean().data == pytest.approx(277.6650), "Field values incorrect"
+
+        reader = Reader(model="IFS", exp="test-fdb", source="fdb-nolevels", loglevel=loglevel)
+        data = reader.retrieve()
+        # coordinates read from levels key
+        assert all(data.t.coords["level"].data == [1000, 900, 800]), "Wrong level info"
+        # can read second level
+        assert data.t.isel(level=1).mean().data == pytest.approx(281.4037), "Field values incorrect"
+
+        
