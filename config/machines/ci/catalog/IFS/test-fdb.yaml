@@ -34,7 +34,7 @@ sources:
         expver: "0001"
         param: t
         levtype: pl
-        levelist: [1000, 900]
+        levelist: [1000, 900, 800]
         date: "20080101"
         time: "0000"
         step: 0
@@ -48,7 +48,7 @@ sources:
     metadata: 
       fdb_path: /app/config.yaml
       source_grid_name: lon-lat
-      levels: [999.99 899.99]
+      levels: [999.99, 899.99, 799.99]
 
   fdb-nolevels:
     args:
@@ -60,7 +60,7 @@ sources:
         expver: "0001"
         param: t
         levtype: pl
-        levelist: [1000, 900]
+        levelist: [1000, 900, 800]
         date: "20080101"
         time: "0000"
         step: 0
