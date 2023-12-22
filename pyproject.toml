@@ -43,7 +43,7 @@ dependencies = [
     "matplotlib",
     "metpy",
     "numpy",
-    "pydantic=2.5.2",
+    "pydantic"="2.5.2",
     "pyYAML",
     "ruamel.yaml",
     "smmregrid",
