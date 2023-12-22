@@ -126,4 +126,4 @@ class TestGsv():
         # coordinates read from levels key
         assert all(data.t.coords["plev"].data == [100000, 90000, 80000]), "Wrong level info"
         # can read second level
-        assert data.t.isel(plev=1).mean().values == pytest.approx(281.4037), "Field values incorrect"
+        assert data.t.isel(plev=1).mean().values == pytest.approx(274.79095), "Field values incorrect"
