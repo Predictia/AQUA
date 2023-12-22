@@ -10,8 +10,10 @@ Main changes are:
 2. Accessor to use functions and reader methods as if they were methods of xarray objects, see [notebook](https://github.com/DestinE-Climate-DT/AQUA/blob/main/notebooks/reader/accessor.ipynb)
 3. Preliminary provenance information is now available in the history attribute of the output files
 4. AQUA analysis wrapper is parallelized
+5. A levelist can be provided in FDB sources, this will greatly speed up the data retrieve
 
 Complete list:
+- Read only one level for retrieving 3D array metadata, select single level for retrieve (#713)
 - Defining catalog entry for coupled models IFS-NEMO and IFS-FESOM (#720)
 - Change fixer_name to fixer_name (#703)
 - Reorganization of logging calls (#700)
