@@ -116,14 +116,14 @@ class TestGsv():
         # coordinates read from levels key
         assert all(data.t.coords["plev"].data == [99999., 89999., 79999.]), "Wrong coordinates from levels metadata key"
         # can read second level
-        assert data.t.isel(plev=1).mean().data == pytest.approx(281.4037), "Field values incorrect"
+        assert data.t.isel(plev=1).mean().values == pytest.approx(281.4037), "Field values incorrect"
 
         data = reader.retrieve(level=[900, 800])  # Read only two levels
-        assert data.t.isel(plev=1).mean().data == pytest.approx(277.6650), "Field values incorrect"
+        assert data.t.isel(plev=1).mean().values == pytest.approx(277.6650), "Field values incorrect"
 
         reader = Reader(model="IFS", exp="test-fdb", source="fdb-nolevels", loglevel=loglevel)
         data = reader.retrieve()
         # coordinates read from levels key
         assert all(data.t.coords["plev"].data == [100000, 90000, 80000]), "Wrong level info"
         # can read second level
-        assert data.t.isel(plev=1).mean().data == pytest.approx(281.4037), "Field values incorrect"
+        assert data.t.isel(plev=1).mean().values == pytest.approx(281.4037), "Field values incorrect"
