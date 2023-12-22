@@ -85,6 +85,7 @@ sources:
     metadata: 
       fdb_path: /pfs/lustrep3/scratch/project_465000454/sbeyer/raps_sbeyer/etc/fdb/config.yaml
       eccodes_path: /projappl/project_465000454/jvonhar/aqua/eccodes/eccodes-2.31.2/definitions
+      levels: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600,700, 850, 925, 1000]
       variables: ['z']
       source_grid_name: lon-lat
   monthly-1deg-2d:
@@ -143,5 +144,6 @@ sources:
     metadata: 
       fdb_path: /pfs/lustrep3/scratch/project_465000454/sbeyer/raps_sbeyer/etc/fdb/config.yaml
       eccodes_path: /projappl/project_465000454/jvonhar/aqua/eccodes/eccodes-2.31.2/definitions
+      levels: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600,700, 850, 925, 1000]
       variables: ['u', 'v', 't', 'r', 'q']
       source_grid_name: lon-lat

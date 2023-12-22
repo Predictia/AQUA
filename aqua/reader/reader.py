@@ -455,22 +455,26 @@ class Reader(FixerMixin, RegridMixin):
         if self.fix:
             self.grid_area = self._fix_area(self.grid_area)
 
-    def retrieve(self, var=None,
+    def retrieve(self, var=None, level=None,
                  startdate=None, enddate=None, 
                  history=True, sample=False):
         """
         Perform a data retrieve.
 
         Arguments:
-            var (str, list): the variable(s) to retrieve.Defaults to None. If None, all variables are retrieved
-            startdate (str, optional): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
-            enddate (str, optional): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None.
-            history (bool): If you want to add to the metadata history information about retrieve. Default to True
-            sample (bool, optional): read only one default variable (used only if var is not specified). Default to False
+            var (str, list): the variable(s) to retrieve. Defaults to None. If None, all variables are retrieved.
+            level (list, float, int): Levels to be read, overriding default in catalogue source (only for FDB) .
+            startdate (str): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
+            enddate (str): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None.
+            history (bool): If you want to add to the metadata history information about retrieve. Defaults to True.
+            sample (bool): read only one default variable (used only if var is not specified). Defaults to False.
 
         Returns:
             A xarray.Dataset containing the required data.
         """
+
+        if level:  # This is temporary until we introduce a smarter 3D regridding option
+            self.logger.warning("Specific level(s) selected: regridding will not work properly.")
 
         # Streaming emulator require these to be defined in __init__
         if (self.streaming and not self.stream_generator) and (startdate or enddate):
@@ -510,7 +514,8 @@ class Reader(FixerMixin, RegridMixin):
             data = self.reader_esm(self.esmcat, loadvar)
         # If this is an fdb entry
         elif isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
-            data = self.reader_fdb(self.esmcat, loadvar, startdate, enddate, dask=(not self.stream_generator))
+            data = self.reader_fdb(self.esmcat, loadvar, startdate, enddate,
+                                   dask=(not self.stream_generator), level=level)
             fiter = self.stream_generator  # this returs an iterator unless dask is set
             ffdb = True  # These data have been read from fdb
         else:
@@ -896,7 +901,7 @@ class Reader(FixerMixin, RegridMixin):
                                       )
         return list(data.values())[0]
 
-    def reader_fdb(self, esmcat, var, startdate, enddate, dask=False):
+    def reader_fdb(self, esmcat, var, startdate, enddate, dask=False, level=None):
         """
         Read fdb data. Returns an iterator or dask array.
         Args:
@@ -905,25 +910,29 @@ class Reader(FixerMixin, RegridMixin):
             startdate (str): a starting date and time in the format YYYYMMDD:HHTT
             enddate (str): an ending date and time in the format YYYYMMDD:HHTT
             dask (bool): return directly a dask array instead of an iterator
+            level (list, float, int): level to be read, overriding default in catalogue 
         Returns:
             An xarray.Dataset or an iterator over datasets
         """
 
+        if level and not isinstance(level, list):
+            level = [level]
+
         if dask:
             if self.aggregation:
-                data = esmcat(startdate=startdate, enddate=enddate, var=var,
+                data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
                               aggregation=self.aggregation,
                               logging=True, loglevel=self.loglevel).to_dask()
             else:
-                data = esmcat(startdate=startdate, enddate=enddate, var=var,
+                data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
                               logging=True, loglevel=self.loglevel).to_dask()
         else:
             if self.aggregation:
-                data = esmcat(startdate=startdate, enddate=enddate, var=var,
+                data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
                               aggregation=self.aggregation,
                               logging=True, loglevel=self.loglevel).read_chunked()
             else:
-                data = esmcat(startdate=startdate, enddate=enddate, var=var,
+                data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
                               logging=True, loglevel=self.loglevel).read_chunked()
 
         return data
