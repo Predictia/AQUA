@@ -80,36 +80,16 @@ class RegridMixin():
         grid_area.to_netcdf(areafile)
         self.logger.warning("Success!")
 
-    def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, method='ycon',
-                           regrid=None, extra=None, zoom=None, vert_coord=None,
-                           dims=None, grid_size=None):
-        """
-        Helper function to produce weights file.
-
-        Args:
-            weightsfile (str): The path to the weights file to be created.
-            source_grid (dict): The source grid specification.
-            cfg_regrid (dict): The regrid configuration.
-            regrid (str, optional): The regrid option. Defaults to None.
-            extra (str or list, optional): Extra command(s) to apply to source grid before weight generation. Defaults to None.
-            zoom (int, optional): The zoom level for the grid (for HealPix grids). Defaults to None.
-            vert_coord (str, optional): The vertical coordinate to use for weight generation. Defaults to None.
-            method (str, optional): The interpolation method to be used (see CDO manual). Defaults to 'ycon'.
-        Returns:
-            None
-        """
-
-        sgridpath = self._get_source_gridpath(source_grid, vert_coord, zoom)
+    def _weights_generation_time(self, regrid=None, vert_coord=None, dims=None, grid_size=None, nproc=None):
 
         try:
             _vert_coord = vert_coord.get('vert_coord', [])
         except AttributeError:
             _vert_coord = vert_coord
 
-        self.logger.error(f'The vertical coordinat and dims are {_vert_coord}, {dims}.')
+        self.logger.error(f'The vertical coordinat is {_vert_coord}.')
+        self.logger.error(f'The dims are {dims}.')
 
-        self.logger.warning("Weights file not found: %s", weightsfile)
-        self.logger.warning("Attempting to generate it ...")
             
         warning_threshold = 0
 
@@ -124,27 +104,30 @@ class RegridMixin():
             'r250': {'size_2d':144 * 72, 'index': 0},
         }
         
-        coefficient_mapping = {
-            "2d": 3,
-            "2dm": 3.5, # 7
-            "depth": 23.5, #1.1
+        coefficient_vert_mapping = {
+            #"2d": 1,
+            #"2dm": 1,
+            "depth": 1.2 / ((nproc)**(1/2)),
             "level": 1,
             "nz": 1.9,
             "nz1": 11,
         }
+        self.logger.error(f"The nproc number is {nproc}.")
         coefficient_space_mapping = {
-            "('lat', 'lon')": 1,
-            "('value',)": 2,
-            "('elem',)": 2, #?
-            "('node',)": 2, #?
+            ('lat', 'lon'): 2.25,
+            ('latitude', 'longitude'): 2.25,
+            ('value',): 6,
+            ('elem',): 4,
+            ('node',): 2,
         }
+
+        coefficient_space = coefficient_space_mapping.get(dims, -1)
         
-        coefficient_vertical = coefficient_mapping.get(_vert_coord, 1)
-        coefficient_space = coefficient_space_mapping.get(dims, 1)
-        
+        coefficient_vertical = self._guess_vert_coord_size(_vert_coord) * coefficient_vert_mapping.get(_vert_coord, 1)
         self.logger.error(f'The coefficients are {coefficient_vertical}, {coefficient_space}.')
         time_r250 = grid_size * coefficient_vertical * coefficient_space * 10**(-6)
 
+        self.logger.error(f"The grid_size is {grid_size}.")
         regrid_data = grid_2d.get(regrid, {'index': 0})
         expected_time = time_r250 * (1.2)**(regrid_data['index'])
         
@@ -167,9 +150,34 @@ class RegridMixin():
                 formatted_time = f'{hours} hours, {minutes} minutes, and {seconds} seconds'
             self.logger.warning(f'Time to generate the weights will take approximately {formatted_time}.')
 
+    def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, method='ycon', regrid=None, extra=None, zoom=None, vert_coord=None,
+                           dims=None, grid_size=None, nproc=None):
+        """
+        Helper function to produce weights file.
+
+        Args:
+            weightsfile (str): The path to the weights file to be created.
+            source_grid (dict): The source grid specification.
+            cfg_regrid (dict): The regrid configuration.
+            regrid (str, optional): The regrid option. Defaults to None.
+            extra (str or list, optional): Extra command(s) to apply to source grid before weight generation. Defaults to None.
+            zoom (int, optional): The zoom level for the grid (for HealPix grids). Defaults to None.
+            vert_coord (str, optional): The vertical coordinate to use for weight generation. Defaults to None.
+            method (str, optional): The interpolation method to be used (see CDO manual). Defaults to 'ycon'.
+        Returns:
+            None
+        """
+
+        sgridpath = self._get_source_gridpath(source_grid, vert_coord, zoom)
+
+        self.logger.warning("Weights file not found: %s", weightsfile)
+        self.logger.warning("Attempting to generate it ...")
+
         if vert_coord == "2d" or vert_coord == "2dm":  # if 2d we need to pass None to smmregrid
             vert_coord = None
             
+        self._weights_generation_time(regrid=regrid, vert_coord=vert_coord, dims=dims, grid_size=grid_size, nproc=nproc)
+
         # hack to  pass a correct list of all options
         src_extra = source_grid.get("extra", [])
         if src_extra:
@@ -398,6 +406,38 @@ class RegridMixin():
             self.logger.info('vert_coord deduced from the source are %s', vert_coord)
 
         return space_coord, vert_coord
+
+    def _guess_vert_coord_size(self, vert_coord):
+        """
+        Guesses the size of the vertical coordinate from the data. If vert_coord is None,
+        it attempts to determine vert_coord from the data using default_vertical_dims.
+
+        Args:
+            vert_coord (str or list): Predefined vertical dimension. If None, autosearch is enabled.
+            default_vertical_dims (list): List of default dimensions for vertical search.
+
+        Returns:
+            int: Size of the vertical coordinate. Returns 1 if vert_coord is not found.
+        """
+        if not vert_coord:
+            try:
+                self.logger.error('try', data[vert_coord].size)
+            except (AttributeError, UnboundLocalError):
+                pass
+        self.logger.error('start vert_guess function')
+
+        data = None
+        self.logger.error('Calling _retrieve_plain function')
+        data = self._retrieve_plain(startdate=None)
+
+        self.logger.debug('Data type%s', type(data))
+        if vert_coord: # and vert_coord != "2d" and vert_coord != "2dm":
+            vert_coord_size = data[vert_coord].size
+        else:
+            vert_coord_size = 1
+        self.logger.error('The size of vert_coord is %s', vert_coord_size) #info
+        return vert_coord_size
+
 
 
 def _rename_dims(data, dim_list):
