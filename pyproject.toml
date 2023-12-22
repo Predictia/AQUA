@@ -43,7 +43,7 @@ dependencies = [
     "matplotlib",
     "metpy",
     "numpy",
-    "pydantic<2.5.3",
+    "pydantic<2.5.3", # NOTE: pydantic 2.5.3 has a bug that breaks tests
     "pyYAML",
     "ruamel.yaml",
     "smmregrid",
