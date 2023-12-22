@@ -281,7 +281,8 @@ class Reader(FixerMixin, RegridMixin):
                                         cfg_regrid, regrid=self.dst_grid_name,
                                         vert_coord=vc, extra=[],
                                         zoom=self.zoom, method=self.regrid_method,
-                                        dims=self.grid_area.dims, grid_size=self.grid_area.size)
+                                        dims=self.grid_area.dims, grid_size=self.grid_area.size,
+                                        nproc = self.nproc)
 
 
             self.weights.update({vc: xr.open_mfdataset(self.weightsfile[vc])})
