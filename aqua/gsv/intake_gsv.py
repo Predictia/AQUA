@@ -109,16 +109,21 @@ class GSVSource(base.DataSource):
         self._request = request.copy()
         self._kwargs = kwargs
 
-        if level and ("levelist" in self._request):
+        if "levelist" in self._request:
             levelist = self._request["levelist"]
-            self._request["levelist"] = level  # override default levels
-            if self.levels:  # if levels in metadata select them too
-                if not isinstance(levelist, list): levelist = [levelist]
+            if not isinstance(levelist, list): levelist = [levelist]
+            if level:
                 if not isinstance(level, list): level = [level]
-                if not isinstance(self.levels, list): self.levels = [self.levels]
                 idx = list(map(levelist.index, level))
-                self._request["levelist"] = level  # override default levels
-                self.levels = [self.levels[i] for i in idx]
+                self.idx_3d = idx
+                self._request["levelist"] = level  # override default levels                
+                if self.levels:  # if levels in metadata select them too
+                    if not isinstance(self.levels, list): self.levels = [self.levels]
+                    self.levels = [self.levels[i] for i in idx]
+            else:
+                self.idx_3d = list(range(0, len(levelist)))
+        else:
+            self.idx_3d = None
 
         self.onelevel = False
         if "levelist" in self._request:
@@ -321,6 +326,8 @@ class GSVSource(base.DataSource):
             ds[shortname] = da
 
         ds.attrs.update(self._ds.attrs)
+        if self.idx_3d:
+            ds = ds.assign_coords(idx_3d=("level", self.idx_3d))
 
         return ds
 
