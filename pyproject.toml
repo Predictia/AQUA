@@ -46,7 +46,7 @@ dependencies = [
     "pydantic<2.5.3",
     "pyYAML",
     "ruamel.yaml",
-    "smmregrid@git+https://github.com/jhardenberg/smmregrid@devel/partial_level",
+    "smmregrid",
     "sparse",
     "xarray",
     "pyfdb@git+https://github.com/ecmwf/pyfdb.git@master",
