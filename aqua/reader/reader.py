@@ -18,7 +18,7 @@ from aqua.util import load_yaml, load_multi_yaml
 from aqua.util import ConfigPath, area_selection
 from aqua.logger import log_configure, log_history
 from aqua.util import check_chunk_completeness, frequency_string_to_pandas
-from aqua.util import flip_lat_dir
+from aqua.util import flip_lat_dir, find_vert_coord
 import aqua.gsv
 
 from .streaming import Streaming
@@ -473,9 +473,6 @@ class Reader(FixerMixin, RegridMixin):
             A xarray.Dataset containing the required data.
         """
 
-        if level:  # This is temporary until we introduce a smarter 3D regridding option
-            self.logger.warning("Specific level(s) selected: regridding will not work properly.")
-
         # Streaming emulator require these to be defined in __init__
         if (self.streaming and not self.stream_generator) and (startdate or enddate):
             raise KeyError("In case of streaming=true the arguments startdate/enddate have to be specified when initializing the class.")  # noqa E501
@@ -529,10 +526,11 @@ class Reader(FixerMixin, RegridMixin):
                 fkind = "file from disk"
             data = log_history(data, f"Retrieved from {self.model}_{self.exp}_{self.source} using {fkind}")
         
-        # sequence which should be more efficient: decumulate - averaging - regridding - fixing
-
-        if self.fix:   # Do not change easily this order. The fixer assumes to be after regridding
+        if self.fix:
             data = self.fixer(data, var)
+
+        if not ffdb:  # FDB sources already have the index, already selected levels
+            data = self._index_and_level(data, level=level)  # add helper index, select levels (optional)
 
         # log an error if some variables have no units
         if isinstance(data, xr.Dataset):
@@ -540,8 +538,7 @@ class Reader(FixerMixin, RegridMixin):
                 if not hasattr(data[var], 'units'):
                     self.logger.error('Variable %s has no units!', var)
 
-        if not fiter:
-            # This is not needed if we already have an iterator
+        if not fiter:  # This is not needed if we already have an iterator
             if self.streaming:
                 if self.stream_generator:
                     data = self.streamer.generator(data, startdate=startdate, enddate=enddate)
@@ -552,6 +549,35 @@ class Reader(FixerMixin, RegridMixin):
 
         if isinstance(data, xr.Dataset):
             data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
+
+        return data
+    
+    def _index_and_level(self, data, level=None):
+        """
+        Add a helper idx_3d coordinate to the data and select levels if provided
+
+        Arguments:
+            data (xr.Dataset):  the input xarray.Dataset
+            level (list, int):  levels to be selected. Defaults to None.
+
+        Returns:
+            A xarray.Dataset containing the data with the idx_3d coordinate.
+        """
+
+        vert_coord = [coord for coord in self.vert_coord if coord not in ["2d", "2dm"]]  # filter out 2d stuff
+        if vert_coord and vert_coord[0] in data.coords:  # For now use only first one
+            idx = list(range(0, len(data.coords[vert_coord[0]])))
+            data = data.assign_coords(idx_3d=(vert_coord[0], idx))
+        
+        if level:
+            if not vert_coord:  # try to find a vertical coordinate
+                vert_coord = find_vert_coord(data)
+
+            if vert_coord:
+                data = data.sel(**{vert_coord[0]: level})
+                data = log_history(data, f"Selecting levels {level} from vertical coordinate {vert_coord[0]}")
+            else:
+                self.logger.error("Levels selected but no vertical coordinate found in data!")
 
         return data
 
@@ -673,7 +699,7 @@ class Reader(FixerMixin, RegridMixin):
         if np.any(np.isnat(out.time)):
             raise ValueError('Resampling cannot produce output for all frequency step, is your input data correct?')
 
-        out=log_history(out, f"resampled from frequency {self.orig_freq} h to frequency {resample_freq} by AQUA timmean")
+        out=log_history(out, f"Resampled from frequency {self.orig_freq} h to frequency {resample_freq} by AQUA timmean")
 
         # add a variable to create time_bounds
         if time_bounds:
@@ -773,7 +799,7 @@ class Reader(FixerMixin, RegridMixin):
 
         out.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
 
-        log_history(data, f"spatially averaged from {self.src_grid_name} grid")
+        log_history(data, f"Spatially averaged from {self.src_grid_name} grid")
 
         return out
 
@@ -953,8 +979,7 @@ class Reader(FixerMixin, RegridMixin):
 
         data = esmcat.to_dask()
 
-        if loadvar:
-            
+        if loadvar:       
             if all(element in data.data_vars for element in loadvar):
                 data = data[loadvar]
             else:
