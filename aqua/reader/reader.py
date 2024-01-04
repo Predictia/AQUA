@@ -613,16 +613,38 @@ class Reader(FixerMixin, RegridMixin):
         # Check if original lat has been flipped and in case flip back, returns a deep copy in that case
         data = flip_lat_dir(datain)
 
-        # # If this is a slice of a larger 3D field insert additional dimension
-        # vert_coord = [coord for coord in self.vert_coord if coord not in ["2d", "2dm"]]  # filter out 2d stuff
-        # if vert_coord:
-        #     if not isinstance(data, xr.Dataset):
-        #         data = data.expand_dims(dim=vert_coord[0])
-        #     else:
-        #         for var in data:
-        #             data[var] = data[var].expand_dims(dim=vert_coord[0])
-        # print("NEW data is ", data)
-
+        # scan the variables:
+        # if a 2d one is found but this was not expected, then assume that it comes from a 3d one
+        # and expand it along the vertical dimension.
+        # This works only if only one variable was selected,
+        # else the information on which variable was using which dimension is lost.
+        expand_list = []
+        if self.vert_coord and "2d" not in self.vert_coord:
+            if isinstance(data, xr.Dataset):
+                for var in data:
+                    # check if none of the dimensions of var is in self.vert_coord
+                    if not list(set(data[var].dims) & set(self.vert_coord)):
+                        # find list of coordinates that start with idx_ in their name
+                        idx = [coord for coord in data[var].coords if coord.startswith("idx_")]
+                        if idx:  # found coordinates starting with idx_, use first one to expand var
+                            coord = idx[0][4:]  # remove idx_ from the name of the first one (there should be only one)
+                            if coord in data[var].coords:
+                                expand_list.append(var)
+                if expand_list:
+                    data[expand_list] = data[expand_list].expand_dims(dim=coord, axis=1)
+                    self.logger.debug(f"Expanding variables {expand_list} with vertical dimension {coord}")
+                    
+            else:  # assume DataArray
+                if not list(set(data.dims) & set(self.vert_coord)):
+                    idx = [coord for coord in data.coords if coord.startswith("idx_")]
+                    if idx:
+                        if len(idx) > 1:
+                            self.logger.warning("Found more than one idx_ coordinate, did you select slices of multiple vertical coordinates? Results may not be correct.")
+                        coord = idx[0][4:]
+                        if coord in data.coords:
+                            data = data.expand_dims(dim=coord, axis=1)
+                            self.logger.debug(f"Expanding variable {data.name} with vertical dimension {coord}")
+ 
         if self.vert_coord == ["2d"]:
             datadic = {"2d": data}
         else:
@@ -634,27 +656,26 @@ class Reader(FixerMixin, RegridMixin):
             datadic = group_shared_dims(data, self.vert_coord, others="2d",
                                         masked="2dm", masked_att=self.masked_attr,
                                         masked_vars=self.masked_vars)
-        
+
         # Iterate over list of groups of variables, regridding them separately
         out = []
         for vc, dd in datadic.items():
-
-            # check if coordinates of dd contain a coordinate starting with "idx_"
-            # if so, rename it to "idx_3d" which is what the regridder expects
-            # (this is a hack to make the regridder work with the helper index)
-            # TODO: to be fixed in smmregrid itself
-
-            idx = None
-            for coord in dd.coords:
-                if coord.startswith("idx_"):
-                    dd = dd.rename({coord: "idx_3d"})
-                    idx = coord
-                    break
-
-            if idx:
-                out.append(self.regridder[vc].regrid(dd).rename({"idx_3d": coord}))
+            if isinstance(dd, xr.Dataset):
+                self.logger.debug(f"Using vertical coordinate {vc}: {list(dd.data_vars)}")
             else:
-                out.append(self.regridder[vc].regrid(dd))
+                self.logger.debug(f"Using vertical coordinate {vc}: {dd.name}")            
+
+            # remove extra coordinates starting with idx_ (if any)
+            # to make the regridder work correctly with multiple helper indices
+            for coord in dd.coords:
+                if coord.startswith("idx_") and coord != f"idx_{vc}":
+                    dd = dd.drop_vars(coord)
+                    if isinstance(dd, xr.Dataset):
+                        self.logger.debug(f"Dropping {coord} from {list(dd.data_vars)}")
+                    else:
+                        self.logger.debug(f"Dropping {coord} from {dd.name}")
+
+            out.append(self.regridder[vc].regrid(dd))
 
         if len(out) > 1:
             out = xr.merge(out)
