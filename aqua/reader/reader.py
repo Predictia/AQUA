@@ -565,9 +565,11 @@ class Reader(FixerMixin, RegridMixin):
         """
 
         vert_coord = [coord for coord in self.vert_coord if coord not in ["2d", "2dm"]]  # filter out 2d stuff
-        if vert_coord and vert_coord[0] in data.coords:  # For now use only first one
-            idx = list(range(0, len(data.coords[vert_coord[0]])))
-            data = data.assign_coords(idx_3d=(vert_coord[0], idx))
+
+        for dim in vert_coord:  # Add a helper index to the data
+            if dim in data.coords:
+                idx = list(range(0, len(data.coords[dim])))
+                data = data.assign_coords(**{f"idx_{dim}": (dim, idx)})
         
         if level:
             if not vert_coord:  # try to find a vertical coordinate
@@ -611,6 +613,16 @@ class Reader(FixerMixin, RegridMixin):
         # Check if original lat has been flipped and in case flip back, returns a deep copy in that case
         data = flip_lat_dir(datain)
 
+        # # If this is a slice of a larger 3D field insert additional dimension
+        # vert_coord = [coord for coord in self.vert_coord if coord not in ["2d", "2dm"]]  # filter out 2d stuff
+        # if vert_coord:
+        #     if not isinstance(data, xr.Dataset):
+        #         data = data.expand_dims(dim=vert_coord[0])
+        #     else:
+        #         for var in data:
+        #             data[var] = data[var].expand_dims(dim=vert_coord[0])
+        # print("NEW data is ", data)
+
         if self.vert_coord == ["2d"]:
             datadic = {"2d": data}
         else:
@@ -622,11 +634,27 @@ class Reader(FixerMixin, RegridMixin):
             datadic = group_shared_dims(data, self.vert_coord, others="2d",
                                         masked="2dm", masked_att=self.masked_attr,
                                         masked_vars=self.masked_vars)
-
+        
         # Iterate over list of groups of variables, regridding them separately
         out = []
         for vc, dd in datadic.items():
-            out.append(self.regridder[vc].regrid(dd))
+
+            # check if coordinates of dd contain a coordinate starting with "idx_"
+            # if so, rename it to "idx_3d" which is what the regridder expects
+            # (this is a hack to make the regridder work with the helper index)
+            # TODO: to be fixed in smmregrid itself
+
+            idx = None
+            for coord in dd.coords:
+                if coord.startswith("idx_"):
+                    dd = dd.rename({coord: "idx_3d"})
+                    idx = coord
+                    break
+
+            if idx:
+                out.append(self.regridder[vc].regrid(dd).rename({"idx_3d": coord}))
+            else:
+                out.append(self.regridder[vc].regrid(dd))
 
         if len(out) > 1:
             out = xr.merge(out)
