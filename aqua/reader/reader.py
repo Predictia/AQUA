@@ -613,7 +613,9 @@ class Reader(FixerMixin, RegridMixin):
         # Check if original lat has been flipped and in case flip back, returns a deep copy in that case
         data = flip_lat_dir(datain)
 
-        # scan the variables:
+        data = data.copy()  # make a copy to avoid modifying the original dataset/dataarray
+
+        # Scan the variables:
         # if a 2d one is found but this was not expected, then assume that it comes from a 3d one
         # and expand it along the vertical dimension.
         # This works only if only one variable was selected,
@@ -627,13 +629,15 @@ class Reader(FixerMixin, RegridMixin):
                         # find list of coordinates that start with idx_ in their name
                         idx = [coord for coord in data[var].coords if coord.startswith("idx_")]
                         if idx:  # found coordinates starting with idx_, use first one to expand var
-                            coord = idx[0][4:]  # remove idx_ from the name of the first one (there should be only one)
-                            if coord in data[var].coords:
+                            coord_exp = idx[0][4:]  # remove idx_ from the name of the first one (there should be only one)
+                            if coord_exp in data[var].coords:
                                 expand_list.append(var)
                 if expand_list:
-                    data[expand_list] = data[expand_list].expand_dims(dim=coord, axis=1)
-                    self.logger.debug(f"Expanding variables {expand_list} with vertical dimension {coord}")
-                    
+                    data[expand_list] = data[expand_list].expand_dims(dim=coord_exp, axis=1)
+                    self.logger.debug(f"Expanding variables {expand_list} with vertical dimension {coord_exp}")
+                    if len(idx) > 1:
+                        self.logger.warning(f"Found more than one idx_ coordinate for expanded variables, did you select slices of multiple vertical coordinates? Results may not be correct.")
+
             else:  # assume DataArray
                 if not list(set(data.dims) & set(self.vert_coord)):
                     idx = [coord for coord in data.coords if coord.startswith("idx_")]
@@ -682,6 +686,10 @@ class Reader(FixerMixin, RegridMixin):
         else:
             # If this was a single dataarray
             out = out[0]
+
+        if expand_list:  # Reverse the expansion
+            out[expand_list] = out[expand_list].squeeze(dim=coord_exp)
+
 
         # set regridded attribute to 1 for all vars
         out = set_attrs(out, {"regridded": 1})
