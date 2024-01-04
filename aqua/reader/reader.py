@@ -644,11 +644,12 @@ class Reader(FixerMixin, RegridMixin):
                     if idx:
                         if len(idx) > 1:
                             self.logger.warning("Found more than one idx_ coordinate, did you select slices of multiple vertical coordinates? Results may not be correct.")
-                        coord = idx[0][4:]
-                        if coord in data.coords:
-                            data = data.expand_dims(dim=coord, axis=1)
-                            self.logger.debug(f"Expanding variable {data.name} with vertical dimension {coord}")
- 
+                        coord_exp = idx[0][4:]
+                        if coord_exp in data.coords:
+                            data = data.expand_dims(dim=coord_exp, axis=1)
+                            self.logger.debug(f"Expanding variable {data.name} with vertical dimension {coord_exp}")
+                            expand_list = [data.name]
+
         if self.vert_coord == ["2d"]:
             datadic = {"2d": data}
         else:
@@ -687,9 +688,9 @@ class Reader(FixerMixin, RegridMixin):
             # If this was a single dataarray
             out = out[0]
 
-        if expand_list:  # Reverse the expansion
-            out[expand_list] = out[expand_list].squeeze(dim=coord_exp)
-
+        # If we expanded some variables, squeeze them back
+        if expand_list:
+            out = out.squeeze(dim=coord_exp)
 
         # set regridded attribute to 1 for all vars
         out = set_attrs(out, {"regridded": 1})
