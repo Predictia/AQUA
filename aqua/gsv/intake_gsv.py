@@ -331,7 +331,16 @@ class GSVSource(base.DataSource):
 
         return ds
 
-
+    # Overload read_chunked() from base.DataSource
+    def read_chunked(self):
+        """Return iterator over container fragments of data source"""
+        self._load_metadata()
+        for i in range(self.npartitions):
+            ds = self._get_partition(i)
+            if self.idx_3d:
+                ds = ds.assign_coords(idx_level=("level", self.idx_3d))
+            yield ds
+            
 # This function is repeated here in order not to create a cross dependency between GSVSource and AQUA
 def log_history(data, msg):
     """Elementary provenance logger in the history attribute"""
