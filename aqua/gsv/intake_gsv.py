@@ -327,7 +327,7 @@ class GSVSource(base.DataSource):
 
         ds.attrs.update(self._ds.attrs)
         if self.idx_3d:
-            ds = ds.assign_coords(idx_3d=("level", self.idx_3d))
+            ds = ds.assign_coords(idx_level=("level", self.idx_3d))
 
         return ds
 
