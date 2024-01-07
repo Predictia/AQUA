@@ -138,7 +138,12 @@ class TestRegridder():
         assert val == pytest.approx(0.54845744)
         val = data.aqua.regrid().isel(time=1, nz=40, nz1=[5, 40, 42]).ocpt.isel(nz1=2).aqua.fldmean().values
         assert val == pytest.approx(0.54845744)
-        data.isel(time=1, nz=40, nz1=[5, 40, 42]).ocpt.aqua.regrid().isel(nz1=2).aqua.fldmean().values
+        val = data.isel(time=1, nz=40, nz1=[5, 40, 42]).ocpt.aqua.regrid().isel(nz1=2).aqua.fldmean().values
+        assert val == pytest.approx(0.54845744)
+
+        # test reading specific levels for first vertical coordinate (nz1)
+        data = reader.retrieve(level=[45, 4525, 5025])
+        val = data.isel(time=1).aqua.regrid().ocpt.isel(nz1=2).aqua.fldmean().values
         assert val == pytest.approx(0.54845744)
         
 # missing test for ICON-Healpix
