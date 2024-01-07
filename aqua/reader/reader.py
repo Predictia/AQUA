@@ -633,7 +633,8 @@ class Reader(FixerMixin, RegridMixin):
                             if coord_exp in data[var].coords:
                                 expand_list.append(var)
                 if expand_list:
-                    data[expand_list] = data[expand_list].expand_dims(dim=coord_exp, axis=1)
+                    for var in expand_list:
+                        data[var] = data[var].expand_dims(dim=coord_exp, axis=1)
                     self.logger.debug(f"Expanding variables {expand_list} with vertical dimension {coord_exp}")
                     if len(idx) > 1:
                         self.logger.warning(f"Found more than one idx_ coordinate for expanded variables, did you select slices of multiple vertical coordinates? Results may not be correct.")
