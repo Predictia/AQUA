@@ -535,7 +535,7 @@ class Reader(FixerMixin, RegridMixin):
             data = self.fixer(data, var)
 
         # log an error if some variables have no units
-        if isinstance(data, xr.Dataset):
+        if isinstance(data, xr.Dataset) and self.fix:
             for var in data.data_vars:
                 if not hasattr(data[var], 'units'):
                     self.logger.error('Variable %s has no units!', var)
@@ -651,7 +651,7 @@ class Reader(FixerMixin, RegridMixin):
         resample_freq = frequency_string_to_pandas(freq)
 
         # get original frequency (for history)
-        orig_freq=data['time'].values[1]-data['time'].values[0]
+        orig_freq = data['time'].values[1]-data['time'].values[0]
         # Convert time difference to hours
         self.orig_freq = np.timedelta64(orig_freq, 'ns') / np.timedelta64(1, 'h')
 
@@ -673,7 +673,7 @@ class Reader(FixerMixin, RegridMixin):
         if np.any(np.isnat(out.time)):
             raise ValueError('Resampling cannot produce output for all frequency step, is your input data correct?')
 
-        out=log_history(out, f"resampled from frequency {self.orig_freq} h to frequency {resample_freq} by AQUA timmean")
+        out = log_history(out, f"resampled from frequency {self.orig_freq} h to frequency {resample_freq} by AQUA timmean")
 
         # add a variable to create time_bounds
         if time_bounds:
@@ -899,6 +899,7 @@ class Reader(FixerMixin, RegridMixin):
                                       # use_cftime=True)
                                       progressbar=False
                                       )
+        print(data)
         return list(data.values())[0]
 
     def reader_fdb(self, esmcat, var, startdate, enddate, dask=False, level=None):
