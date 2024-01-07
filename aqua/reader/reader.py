@@ -572,6 +572,8 @@ class Reader(FixerMixin, RegridMixin):
                 data = data.assign_coords(**{f"idx_{dim}": (dim, idx)})
         
         if level:
+            if not isinstance(level, list):
+                level = [level]
             if not vert_coord:  # try to find a vertical coordinate
                 vert_coord = find_vert_coord(data)
             if vert_coord:
