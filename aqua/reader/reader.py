@@ -564,7 +564,10 @@ class Reader(FixerMixin, RegridMixin):
             A xarray.Dataset containing the data with the idx_3d coordinate.
         """
 
-        vert_coord = [coord for coord in self.vert_coord if coord not in ["2d", "2dm"]]  # filter out 2d stuff
+        if self.vert_coord:
+            vert_coord = [coord for coord in self.vert_coord if coord not in ["2d", "2dm"]]  # filter out 2d stuff
+        else:
+            vert_coord = []
 
         for dim in vert_coord:  # Add a helper index to the data
             if dim in data.coords:
