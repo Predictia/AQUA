@@ -382,10 +382,10 @@ selection has been performed.
 
 This means that when regridding 3D data the regridding can be performed first on a full dataset and then
 levels are selected or vice versa. In both cases the regridding will be performed using the correct weights.
-Since by default in xarray when a single vertical level is selected the vertical dimension is dropped,
+By default in xarray when a single vertical level is selected the vertical dimension is dropped, but
 the regridder is still able to deal with this situation using the information in the hidden index.
 
-Please avoid performing regridding on datasets in which single levels have been selected for different
+Please avoid performing regridding on datasets in which single levels have been selected for multiple
 3D variables using different vertical dimensions or on datasets containing also 2D data,
 because in such cases it may not be possible to reconstruct which vertical dimension
 each variable was supposed to be using. 
@@ -394,7 +394,7 @@ The regridder will issue a warning if it detects such a situation.
 An alternative is to maintain the vertical dimension when selecting a single level by specifying a list with one element,
 for example using `isel(nz1=[40])` instead of `isel(nz1=40)`.
 If level selection was performed at the `retrieve()` stage this is not a problem,
-since in that case the vertical level information is preserved by producing still 3D variables
+since in that case the vertical level information is preserved by producing 3D variables
 with a single vertical level.
 
 Accessor
