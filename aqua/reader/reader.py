@@ -574,8 +574,9 @@ class Reader(FixerMixin, RegridMixin):
         if level:
             if not vert_coord:  # try to find a vertical coordinate
                 vert_coord = find_vert_coord(data)
-
             if vert_coord:
+                if len(vert_coord) > 1:
+                    self.logger.warning("Found more than one vertical coordinate, using the first one: %s", vert_coord[0])
                 data = data.sel(**{vert_coord[0]: level})
                 data = log_history(data, f"Selecting levels {level} from vertical coordinate {vert_coord[0]}")
             else:
