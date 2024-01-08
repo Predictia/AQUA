@@ -456,7 +456,7 @@ class Reader(FixerMixin, RegridMixin):
             self.grid_area = self._fix_area(self.grid_area)
 
     def retrieve(self, var=None, level=None,
-                 startdate=None, enddate=None, 
+                 startdate=None, enddate=None,
                  history=True, sample=False):
         """
         Perform a data retrieve.
@@ -502,7 +502,7 @@ class Reader(FixerMixin, RegridMixin):
                 if sample:
                     var = [var[0]]
 
-                self.logger.debug(f"FDB source, setting default variables to {var}")
+                self.logger.debug("FDB source, setting default variables to %s", var)
                 loadvar = self.get_fixer_varname(var) if self.fix else var
             else:
                 loadvar = None
@@ -528,7 +528,7 @@ class Reader(FixerMixin, RegridMixin):
             else:
                 fkind = "file from disk"
             data = log_history(data, f"Retrieved from {self.model}_{self.exp}_{self.source} using {fkind}")
-        
+
         # sequence which should be more efficient: decumulate - averaging - regridding - fixing
 
         if self.fix:   # Do not change easily this order. The fixer assumes to be after regridding
@@ -562,12 +562,12 @@ class Reader(FixerMixin, RegridMixin):
 
     def regrid(self, data):
         """Call the regridder function returning container or iterator"""
-        
+
         if isinstance(data, types.GeneratorType):
             return self._regridgen(data)
         else:
             return self._regrid(data)
-        
+
     def _regridgen(self, data):
         for ds in data:
             yield self._regrid(ds)
@@ -615,11 +615,11 @@ class Reader(FixerMixin, RegridMixin):
         # (but they are actually not used so far)
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
-        
+
         out.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
 
         out = log_history(out, f"Regrid from {self.src_grid_name} to {self.dst_grid_name}")
-        
+
         return out
 
     def timmean(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
@@ -864,7 +864,7 @@ class Reader(FixerMixin, RegridMixin):
                                             vert_coord=vert_coord, method=method)
         else:
             raise ValueError('This is not an xarray object!')
-        
+
         final = log_history(final, f"Interpolated from original levels {data[vert_coord].values} {data[vert_coord].units} to level {levels} using {method} method.")
 
         final.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
@@ -899,7 +899,6 @@ class Reader(FixerMixin, RegridMixin):
                                       # use_cftime=True)
                                       progressbar=False
                                       )
-        print(data)
         return list(data.values())[0]
 
     def reader_fdb(self, esmcat, var, startdate, enddate, dask=False, level=None):
@@ -911,7 +910,7 @@ class Reader(FixerMixin, RegridMixin):
             startdate (str): a starting date and time in the format YYYYMMDD:HHTT
             enddate (str): an ending date and time in the format YYYYMMDD:HHTT
             dask (bool): return directly a dask array instead of an iterator
-            level (list, float, int): level to be read, overriding default in catalogue 
+            level (list, float, int): level to be read, overriding default in catalogue
         Returns:
             An xarray.Dataset or an iterator over datasets
         """
@@ -955,7 +954,7 @@ class Reader(FixerMixin, RegridMixin):
         data = esmcat.to_dask()
 
         if loadvar:
-            
+
             if all(element in data.data_vars for element in loadvar):
                 data = data[loadvar]
             else:
