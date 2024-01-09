@@ -44,8 +44,7 @@ jobs:
     continue-on-error: false
     container:
       # To run FDB tests we need to use a Docker image with FDB installed.
-      # https://hub.docker.com/r/kinow/fdb
-      image: kinow/fdb:5.11.17-jammy
+      image: ghcr.io/destine-climate-dt/fdb:5.11.10-ubuntu
       options: --user root
     permissions:
       contents: read
