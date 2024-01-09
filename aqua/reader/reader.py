@@ -44,6 +44,8 @@ xr.set_options(keep_attrs=True)
 class Reader(FixerMixin, RegridMixin):
     """General reader for NextGEMS data."""
 
+    instance = None  # Used to store the latest instance of the class
+
     def __init__(self, model=None, exp=None, source=None, fix=True,
                  regrid=None, regrid_method=None, zoom=None,
                  areas=True, datamodel=None,
@@ -80,6 +82,8 @@ class Reader(FixerMixin, RegridMixin):
         Returns:
             Reader: A `Reader` class object.
         """
+
+        Reader.instance = self  # record the latest instance of the class (used for accessor)
 
         # define the internal logger
         self.loglevel = loglevel
@@ -310,7 +314,8 @@ class Reader(FixerMixin, RegridMixin):
         self.src_space_coord, self.vert_coord = self._guess_coords(space_coord, vert_coord,
                                                                    default_space_dims,
                                                                    default_vertical_dims)
-        # self.logger.info("Space coords are %s", self.src_space_coord)
+        self.logger.debug("Space coords are %s", self.src_space_coord)
+        self.logger.debug("Vert coords are %s", self.vert_coord)
 
         # Normalize vert_coord to list
         if not isinstance(self.vert_coord, list):
@@ -450,22 +455,26 @@ class Reader(FixerMixin, RegridMixin):
         if self.fix:
             self.grid_area = self._fix_area(self.grid_area)
 
-    def retrieve(self, var=None,
+    def retrieve(self, var=None, level=None,
                  startdate=None, enddate=None, 
                  history=True, sample=False):
         """
         Perform a data retrieve.
 
         Arguments:
-            var (str, list): the variable(s) to retrieve.Defaults to None. If None, all variables are retrieved
-            startdate (str, optional): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
-            enddate (str, optional): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None.
-            history (bool): If you want to add to the metadata history information about retrieve. Default to True
-            sample (bool, optional): read only one default variable (used only if var is not specified). Default to False
+            var (str, list): the variable(s) to retrieve. Defaults to None. If None, all variables are retrieved.
+            level (list, float, int): Levels to be read, overriding default in catalogue source (only for FDB) .
+            startdate (str): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
+            enddate (str): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None.
+            history (bool): If you want to add to the metadata history information about retrieve. Defaults to True.
+            sample (bool): read only one default variable (used only if var is not specified). Defaults to False.
 
         Returns:
             A xarray.Dataset containing the required data.
         """
+
+        if level:  # This is temporary until we introduce a smarter 3D regridding option
+            self.logger.warning("Specific level(s) selected: regridding will not work properly.")
 
         # Streaming emulator require these to be defined in __init__
         if (self.streaming and not self.stream_generator) and (startdate or enddate):
@@ -505,7 +514,8 @@ class Reader(FixerMixin, RegridMixin):
             data = self.reader_esm(self.esmcat, loadvar)
         # If this is an fdb entry
         elif isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
-            data = self.reader_fdb(self.esmcat, loadvar, startdate, enddate, dask=(not self.stream_generator))
+            data = self.reader_fdb(self.esmcat, loadvar, startdate, enddate,
+                                   dask=(not self.stream_generator), level=level)
             fiter = self.stream_generator  # this returs an iterator unless dask is set
             ffdb = True  # These data have been read from fdb
         else:
@@ -540,7 +550,15 @@ class Reader(FixerMixin, RegridMixin):
             elif startdate and enddate and not ffdb:  # do not select if data come from FDB (already done)
                 data = data.sel(time=slice(startdate, enddate))
 
+        if isinstance(data, xr.Dataset):
+            data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
+
         return data
+
+    def set_default(self):
+        """Sets this reader as the default for the accessor."""
+
+        Reader.instance = self  # Refresh the latest reader instance used
 
     def regrid(self, data):
         """Call the regridder function returning container or iterator"""
@@ -550,7 +568,6 @@ class Reader(FixerMixin, RegridMixin):
         else:
             return self._regrid(data)
         
-
     def _regridgen(self, data):
         for ds in data:
             yield self._regrid(ds)
@@ -599,6 +616,8 @@ class Reader(FixerMixin, RegridMixin):
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
         
+        out.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
+
         out = log_history(out, f"Regrid from {self.src_grid_name} to {self.dst_grid_name}")
         
         return out
@@ -666,6 +685,8 @@ class Reader(FixerMixin, RegridMixin):
             if np.any(np.isnat(out.time_bnds)):
                 raise ValueError('Resampling cannot produce output for all time_bnds step!')
             log_history(out, "time_bnds added by by AQUA timmean")
+
+        out.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
 
         return out
 
@@ -749,6 +770,8 @@ class Reader(FixerMixin, RegridMixin):
                         raise ValueError(f'{coord} has a mismatch in coordinate values!') from err
 
         out = data.weighted(weights=grid_area.fillna(0)).mean(dim=space_coord)
+
+        out.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
 
         log_history(data, f"spatially averaged from {self.src_grid_name} grid")
 
@@ -844,6 +867,8 @@ class Reader(FixerMixin, RegridMixin):
         
         final = log_history(final, f"Interpolated from original levels {data[vert_coord].values} {data[vert_coord].units} to level {levels} using {method} method.")
 
+        final.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
+
         return final
 
     def _vertinterp(self, data, levels=None, units='Pa', vert_coord='plev', method='linear'):
@@ -876,7 +901,7 @@ class Reader(FixerMixin, RegridMixin):
                                       )
         return list(data.values())[0]
 
-    def reader_fdb(self, esmcat, var, startdate, enddate, dask=False):
+    def reader_fdb(self, esmcat, var, startdate, enddate, dask=False, level=None):
         """
         Read fdb data. Returns an iterator or dask array.
         Args:
@@ -885,25 +910,29 @@ class Reader(FixerMixin, RegridMixin):
             startdate (str): a starting date and time in the format YYYYMMDD:HHTT
             enddate (str): an ending date and time in the format YYYYMMDD:HHTT
             dask (bool): return directly a dask array instead of an iterator
+            level (list, float, int): level to be read, overriding default in catalogue 
         Returns:
             An xarray.Dataset or an iterator over datasets
         """
 
+        if level and not isinstance(level, list):
+            level = [level]
+
         if dask:
             if self.aggregation:
-                data = esmcat(startdate=startdate, enddate=enddate, var=var,
+                data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
                               aggregation=self.aggregation,
                               logging=True, loglevel=self.loglevel).to_dask()
             else:
-                data = esmcat(startdate=startdate, enddate=enddate, var=var,
+                data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
                               logging=True, loglevel=self.loglevel).to_dask()
         else:
             if self.aggregation:
-                data = esmcat(startdate=startdate, enddate=enddate, var=var,
+                data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
                               aggregation=self.aggregation,
                               logging=True, loglevel=self.loglevel).read_chunked()
             else:
-                data = esmcat(startdate=startdate, enddate=enddate, var=var,
+                data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
                               logging=True, loglevel=self.loglevel).read_chunked()
 
         return data
@@ -975,6 +1004,9 @@ class Reader(FixerMixin, RegridMixin):
                                   aggregation=aggregation,
                                   timechunks=timechunks,
                                   reset=reset)
+
+        stream_data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
+
         return stream_data
 
     def info(self):

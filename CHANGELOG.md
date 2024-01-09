@@ -8,14 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased is the current development version.
 
 - AtmoGlobalMean diagnostic improvements (#722)
-- Teleconnections diagnostic improvements (#722
+- Teleconnections diagnostic improvements (#722)
+- Read only one level for retrieving 3D array metadata, select single level for retrieve (#713)
+- Defining catalog entry for coupled models IFS-NEMO and IFS-FESOM (#720)
+- Change fixer_name to fixer_name (#703)
+- Reorganization of logging calls (#700)
+- Accessor to use functions and reader methods as if they were methods of xarray objects (#716)
+- Suggestions are printed if a model/exp/source is not found while inspecting the catalogue (#721)
 - Improvements in the single map plot function (#717)
 - Minor metadata fixes (logger newline and keep "GRIB_" in attrs) (#715)
 - LRA fix now correctly aggregating monthly data to yearly when a full year is available (#696)
 - History update and refinement creating preliminary provenance information (plus AQUA emoji!) (#676)
 - OPA lra compatible with no regrid.yaml (#692)
 - Introducing fixer definitions not model/exp/source dependents to be specified at the metadata level (#681)
-- AQUA analysis wrapper is parallelized (#684)
+- AQUA analysis wrapper is parallelized and output folder is restructured (#684, #725)
 
 ## [v0.5.1]
 
