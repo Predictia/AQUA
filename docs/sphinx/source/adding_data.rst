@@ -12,10 +12,10 @@ specific files must be created within the catalog of a specific machine. How to 
    :local:
    :depth: 1
 
-Files-based sources
+File-based sources
 ^^^^^^^^^^^^^^^^^^^
 
-Adding files-based sources in AQUA is done with default interface by ``intake``. 
+Adding file-based sources in AQUA is done with default interface by ``intake``. 
 Files supported can include NetCDF files - as the one described in the example below - or other formats as GRIB or Zarr. 
 The best way to explain the process is to follow the example of adding some fake dataset.
 
@@ -72,6 +72,9 @@ The most straightforward intake catalogue describing our dataset will look like 
             urlpath:
             - /data/path/1990.nc
             - /data/path/1991.nc
+        metadata:
+            source_grid_name: lon-lat
+            fixer_name: amazing_fixer
 
 Where we have specified the ``source`` name of the catalog entry. As for the ``exp`` case, we could have multiple sources for the same experiment. 
 Once this is defined, we can access our dataset from AQUA with the following command:
@@ -82,14 +85,21 @@ Once this is defined, we can access our dataset from AQUA with the following com
     reader = Reader(model="yearly_SST", exp="yearly_sst", source="annual")
     data = reader.retrieve()
 
-In the case is needed, you can add fixes to your dataset by following examples in the ``config/fixes/`` directory.
+Finally, the ``metadata`` entry contains optional additional information useful to define how to postprocess the data:
 
-FDB-based source
-^^^^^^^^^^^^^^^^
+    - ``source_grid_name``: the grid name defined in aqua-grids.yaml to be used for areas and regridding
+    - ``fixer_name``: the name of the fixer defined in the fixes folder
 
-FDB based sources are built on a specific interface built by AQUA.
-While the procedure of adding the catalog tree entries is the same, the main difference is on how the specific source is descrived.
-We report here an example and we later describe the different element.
+You can add fixes to your dataset by following examples in the ``config/fixes/`` directory.
+
+
+FDB-based sources
+^^^^^^^^^^^^^^^^^
+
+FDB based sources are built using a specific interface developed by AQUA.
+While the procedure of adding the catalog tree entries is the same,
+the main difference is on how the specific source is descrived.
+We report here an example and we later describe the different elements.
 
 .. code-block:: yaml
 
@@ -195,14 +205,18 @@ Some of the parameters are here described:
 
 .. option:: metadata
 
-    this includes supplementary very useful information to define the catalog
+    This includes important supplementary information:
 
     - ``fdb_path``: the path of the FDB configuration file (mandatory)
     - ``eccodes_path``: the path of the eccodes version used for the encoding/decoding of the FDB
     - ``variables``: a list of variables available in the fdb.
     - ``source_grid_name``: the grid name defined in aqua-grids.yaml to be used for areas and regridding
-    - ``fix_family``: the fix family definition defined in the fixes folder
+    - ``fixer_name``: the name of the fixer defined in the fixes folder
+    - ``levels``: for 3D FDB data with a `levelist` in the request, this is the list of physical levels 
+                  (e.g. [0.5, 10, 100, ...] meters while levelist contains [1, 2, 3, ...]).
 
+    If the ``levels`` key is defined, then retrieving 3D data is greatly accelerated, since only one level 
+    of each variable will actually have to be retrieved in order to define the Dataset.
 
 Regridding capabilities
 ^^^^^^^^^^^^^^^^^^^^^^^
