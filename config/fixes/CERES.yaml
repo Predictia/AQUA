@@ -1,10 +1,6 @@
-models:
-  CERES:
-          default:
-              default:
-                  data_model: False
+fixer_name:
+    CERES:
           ebaf-toa41:
-              default:
                   data_model: False
                   vars:
                       mtntrf: 
@@ -23,7 +19,6 @@ models:
                               positive: down
           
           ebaf-toa42:
-              default:
                   data_model: False
                   vars:
                       mtntrf: 
@@ -41,7 +36,6 @@ models:
                               valid_max: 1400
                               positive: down
           ebaf-sfc41:
-              default:
                   data_model: False
                   vars:
                       mtntrf: 
@@ -51,7 +45,6 @@ models:
                           derived: sfc_net_sw_all_mon
                           grib: true
           ebaf-sfc42:
-              default:
                   data_model: False
                   vars:
                       mtntrf: 
@@ -61,7 +54,6 @@ models:
                           derived: sfc_net_sw_all_mon
                           grib: true              
           syn-toa41:
-              default:
                   vars:
                       toa_lw_all_daily_eb:
                           derived: toa_lw_all_daily*1.0060667743 
