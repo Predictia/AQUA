@@ -243,6 +243,7 @@ class Reader(FixerMixin, RegridMixin):
         else:
             vclist = self.vert_coord
 
+        self.logger.error(f'dims are {self.src_grid_area.dims}.')
         for vc in vclist:
             # compute correct filename ending
             levname = vc if vc == "2d" or vc == "2dm" else f"3d-{vc}"
