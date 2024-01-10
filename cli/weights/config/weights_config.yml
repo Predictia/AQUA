@@ -2,8 +2,8 @@ data:
   models: []            # List of models to be used
   experiments: []       # List of experiments
   sources: []           # Data sources, e.g., 'monthly'
-  resolutions: ['r025', 'r100'] # Spatial resolutions
-  zoom_max: 10          # Maximum zoom level
+  resolutions: ['r250'] # Spatial resolutions
+  zoom_max: 1          # Maximum zoom level
 
 rebuild: False          # Flag to indicate whether to rebuild data
 catalogue: True         # Flag to use the entire catalogue or not
