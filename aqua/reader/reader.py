@@ -456,7 +456,7 @@ class Reader(FixerMixin, RegridMixin):
             self.grid_area = self._fix_area(self.grid_area)
 
     def retrieve(self, var=None, level=None,
-                 startdate=None, enddate=None, 
+                 startdate=None, enddate=None,
                  history=True, sample=False):
         """
         Perform a data retrieve.
@@ -499,7 +499,7 @@ class Reader(FixerMixin, RegridMixin):
                 if sample:
                     var = [var[0]]
 
-                self.logger.debug(f"FDB source, setting default variables to {var}")
+                self.logger.debug("FDB source, setting default variables to %s", var)
                 loadvar = self.get_fixer_varname(var) if self.fix else var
             else:
                 loadvar = None
@@ -525,7 +525,7 @@ class Reader(FixerMixin, RegridMixin):
             else:
                 fkind = "file from disk"
             data = log_history(data, f"Retrieved from {self.model}_{self.exp}_{self.source} using {fkind}")
-        
+
         if self.fix:
             data = self.fixer(data, var)
 
@@ -533,7 +533,7 @@ class Reader(FixerMixin, RegridMixin):
             data = self._index_and_level(data, level=level)  # add helper index, select levels (optional)
 
         # log an error if some variables have no units
-        if isinstance(data, xr.Dataset):
+        if isinstance(data, xr.Dataset) and self.fix:
             for var in data.data_vars:
                 if not hasattr(data[var], 'units'):
                     self.logger.error('Variable %s has no units!', var)
@@ -596,12 +596,12 @@ class Reader(FixerMixin, RegridMixin):
 
     def regrid(self, data):
         """Call the regridder function returning container or iterator"""
-        
+
         if isinstance(data, types.GeneratorType):
             return self._regridgen(data)
         else:
             return self._regrid(data)
-        
+
     def _regridgen(self, data):
         for ds in data:
             yield self._regrid(ds)
@@ -706,11 +706,11 @@ class Reader(FixerMixin, RegridMixin):
         # (but they are actually not used so far)
         self.grid_area = self.dst_grid_area
         self.space_coord = ["lon", "lat"]
-        
+
         out.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
 
         out = log_history(out, f"Regrid from {self.src_grid_name} to {self.dst_grid_name}")
-        
+
         return out
 
     def timmean(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
@@ -742,7 +742,7 @@ class Reader(FixerMixin, RegridMixin):
         resample_freq = frequency_string_to_pandas(freq)
 
         # get original frequency (for history)
-        orig_freq=data['time'].values[1]-data['time'].values[0]
+        orig_freq = data['time'].values[1]-data['time'].values[0]
         # Convert time difference to hours
         self.orig_freq = np.timedelta64(orig_freq, 'ns') / np.timedelta64(1, 'h')
 
@@ -764,7 +764,7 @@ class Reader(FixerMixin, RegridMixin):
         if np.any(np.isnat(out.time)):
             raise ValueError('Resampling cannot produce output for all frequency step, is your input data correct?')
 
-        out=log_history(out, f"Resampled from frequency {self.orig_freq} h to frequency {resample_freq} by AQUA timmean")
+        out = log_history(out, f"resampled from frequency {self.orig_freq} h to frequency {resample_freq} by AQUA timmean")
 
         # add a variable to create time_bounds
         if time_bounds:
@@ -955,7 +955,7 @@ class Reader(FixerMixin, RegridMixin):
                                             vert_coord=vert_coord, method=method)
         else:
             raise ValueError('This is not an xarray object!')
-        
+
         final = log_history(final, f"Interpolated from original levels {data[vert_coord].values} {data[vert_coord].units} to level {levels} using {method} method.")
 
         final.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
@@ -1001,7 +1001,7 @@ class Reader(FixerMixin, RegridMixin):
             startdate (str): a starting date and time in the format YYYYMMDD:HHTT
             enddate (str): an ending date and time in the format YYYYMMDD:HHTT
             dask (bool): return directly a dask array instead of an iterator
-            level (list, float, int): level to be read, overriding default in catalogue 
+            level (list, float, int): level to be read, overriding default in catalogue
         Returns:
             An xarray.Dataset or an iterator over datasets
         """
@@ -1044,7 +1044,7 @@ class Reader(FixerMixin, RegridMixin):
 
         data = esmcat.to_dask()
 
-        if loadvar:       
+        if loadvar:
             if all(element in data.data_vars for element in loadvar):
                 data = data[loadvar]
             else:
