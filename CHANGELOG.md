@@ -7,8 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
-- Fix reading only one sample variable and avoid *_bnds variables (#743)
-- Read only one level for retrieving 3D array metadata, select single level for retrieve (#713)
+- Fix reading only one sample variable and avoid _bnds variables (#743)
+- Allow correct masked regridding after level selection. Add level selection also for not-FDB sources (#741)
+- Read only one level for retrieving 3D array metadata, select specific levels for FDB retrieve (#713)
 - Defining catalog entry for coupled models IFS-NEMO and IFS-FESOM (#720)
 - Change fixer_name to fixer_name (#703)
 - Reorganization of logging calls (#700)
