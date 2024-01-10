@@ -256,7 +256,7 @@ class SeaIceExtent:
 
         for jr, region in enumerate(self.myRegions):
             for js, setup in enumerate(self.mySetups):
-                label = setup["model"] + " " + setup["exp"] + " " + setup["source"] + " " + "-".join(setup["timespan"])
+                label = setup["model"] + " " + setup["exp"] + " " + setup["source"] + " " + " to ".join(setup["timespan"])
                 color_plot = setup["color_plot"]
                 self.logger.debug(f"Plotting {label} for region {region}")
                 extent = self.myExtents[js][jr]
