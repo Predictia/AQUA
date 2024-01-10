@@ -12,6 +12,7 @@ from aqua import Reader, inspect_catalogue
 from aqua.logger import log_configure
 from aqua.util import load_yaml, get_arg
 import subprocess
+import time
 
 def parse_arguments(args):
     """
@@ -165,7 +166,11 @@ def calculate_weights(logger=None, model=None, exp=None, source=None, regrid=Non
     """
     logger.debug(f"The weights are calculating for {model} {exp} {source} {regrid} {zoom}")
     try:
+        t_1 = time.time()
         Reader(model=model, exp=exp, source=source, regrid=regrid, zoom=zoom, nproc=nproc, rebuild=rebuild)
+        t_2 = time.time()
+        if t_2-t_1>10:
+            logger.error(f"Took {t_2-t_1} seconds to rebuild")
     except Exception as e:
         logger.error(f"An unexpected error occurred for source {model} {exp} {source} {regrid} {zoom}: {e}")
 
