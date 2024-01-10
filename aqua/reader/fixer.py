@@ -123,6 +123,11 @@ class FixerMixin():
         """
 
         # if fix names is not found in metadata, return None
+        # CHANGE HERE THE EXCEPTION
+        # The case when fix_namesis missing in the source metadata has to be dealt .
+        # the idea could be that for model $model_name we have a fix_names: $model_name-default defined in the fixes.
+        # This can be searched if any other metadata is missing inside the code
+        
         if self.fixer_name is None:
             return None
 
