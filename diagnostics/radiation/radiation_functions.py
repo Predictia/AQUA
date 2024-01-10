@@ -6,8 +6,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import calendar
 import dask
+import dask.array as da
+from dask.diagnostics import ProgressBar
+import time
 from cdo import Cdo
-from scipy.stats import ttest_1samp
+from scipy.stats import ttest_ind
 import cartopy.crs as ccrs
 from matplotlib.legend_handler import HandlerTuple
 from aqua import Reader
@@ -15,10 +18,10 @@ import matplotlib.gridspec as gridspec
 from aqua.util import create_folder, add_cyclic_lon
 from aqua.logger import log_configure
 
-#cdo = Cdo(tempdir='./tmp/cdo-py')
-#tempdir='./tmp/cdo-py'
-#if not os.path.exists(tempdir):
-#    os.makedirs(tempdir)
+# cdo = Cdo(tempdir='./tmp/cdo-py')
+# tempdir='./tmp/cdo-py'
+# if not os.path.exists(tempdir):
+#     os.makedirs(tempdir)
 
 loglevel: str = 'WARNING'
 logger = log_configure(log_level=loglevel, log_name='Radiation')
@@ -430,127 +433,10 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, o
         logger.info(f"Plot has been saved to {outputfig}.")
     else:
         plt.show()
-       
-
-    
-def plot_bias(data=None, iax=None, title=None, plotlevels=None, lower=None, upper=None, index=None):
-    """
-    Plot the bias of the data on a map. Bias is calculated as the difference between the data and a reference, with stippling applied to highlight data points falling within specified lower and upper thresholds.
-
-    Args:
-        data (xarray.DataArray): The model data to plot.
-        iax (matplotlib.axes.Axes): The axes object to plot on.
-        title (str): The title of the plot.
-        plotlevels (int or list): The contour plot levels.
-        lower (xarray.DataArray): Lower threshold for stippling.
-        upper (xarray.DataArray): Upper threshold for stippling.
-        index (int): The index of the data.
-
-    Returns:
-        A contour plot representing the bias of the data on the specified axes.
-    """
-
-    plot = data.plot(ax=iax,
-                     transform=ccrs.PlateCarree(),
-                     colors='RdBu_r',
-                     linewidths=0.3,
-                     levels=plotlevels,
-                     add_colorbar=False,
-                    )
-    stipple_data = data.where(np.logical_and(data > lower.isel(month=index), data < upper.isel(month=index))) / data.where(np.logical_and(data > lower.isel(month=index), data < upper.isel(month=index)))
-    #plot2 = stipple_data.plot.contourf(ax=iax, levels=[-10, 0, 10], hatches=["", "...."], add_colorbar=False, alpha=0, transform=ccrs.PlateCarree())
-
-    iax.set_title(title, fontsize=small_fonts)
-    # iax.set_title(data.label+' ('+str(len(data.ensemble))+')',fontsize=small_fonts)
-
-    return plot
-
-
-def plot_maps(model=None, var=None, year=None, model_label=None,  ceres=None, outputdir=None, outputfig=None):
-    """
-    Plot monthly bias maps of the specified variable and model using a Robinson projection.
-    The bias is calculated as the difference between TOA model data and TOA CERES climatology.
-    
-    Args:
-        model (xarray.DataArray): The TOA model data.
-        var (str): The variable to plot ('tnr', 'mtnsrf', or 'mtntrf').
-        year (int, optional): The year to plot. Defaults to None.
-        model_label (str, optional): Desired label for the model (used as the filename to save the figure). Defaults to None.
-        ceres (xarray.DataArray): The TOA CERES data to be compared with the model.
-        outputdir (str, optional): Directory where the output data will be saved. Defaults to None.
-        outputfig (str, optional): Directory where the output figure will be saved. Defaults to None.
-
-    Returns:
-        Monthly bias plots of the chosen model, variable, and year.
-
-
-    """
-    samples_tmp= []
-    for _year in range(int(ceres["data"]["time.year"][0].values), int(ceres["data"]["time.year"][-1].values)-1):
-            # select year and assign (fake) time coordinates so that the differencing works
-            samples_tmp.append(ceres["data"].sel(time=str(_year)).assign_coords(time=ceres["clim"].time)- ceres["clim"])
-    TOA_ceres_diff_samples = xr.concat(samples_tmp, dim='ensemble')
-    TOA_ceres_diff_samples = TOA_ceres_diff_samples.assign_coords(ensemble=range(len(samples_tmp)))
-    range_min = TOA_ceres_diff_samples.groupby('time').min(dim='ensemble') #time.month
-    range_max = TOA_ceres_diff_samples.groupby('time').max(dim='ensemble')
-    if year is None:
-        year = int(model["data"]["time.year"][0].values)
-
-    label_dict = {'tnr': 'net', 'mtnsrf': 'SW', 'mtntrf': 'LW'}
-    label = label_dict.get(var, None)
-
-    model_label = model["model"]+'_'+model["exp"]+'_'+model["source"] if model_label is None else model_label
-
-    # what to use for significance testing
-    # everything between these values will be considered not significant and hatched in the plot
-    lower = range_min[var].rename({'time': 'month'})
-    upper = range_max[var].rename({'time': 'month'})
-
-    fig, ax = plt.subplots(4, 3, figsize=(22, 10), subplot_kw={'projection': ccrs.Robinson(central_longitude=180, globe=None)})
-    global_mean_bias = model["gm"][var].mean().values-ceres["clim_gm"][var].mean().values
-    plotlevels = np.arange(-50+global_mean_bias, 51+global_mean_bias, 10)
-    global small_fonts
-    small_fonts = 12
-    axes = ax.flatten()
-
-    data = model["gm"].sel(time=str(year))
-    for index in range(len(data.time)):  # some experiments have less than 12 months, draw fewer panels for those
-            plot = plot_bias(data [var].isel(time=index)-ceres["clim"][var].isel(time=index),
-                            iax=axes[index], title=calendar.month_name[index+1], plotlevels=plotlevels,
-                            lower=lower, upper=upper, index=index)
-
-    for axi in axes:
-        axi.coastlines(color='black', linewidth=0.5)
-
-    # common colorbar
-    fig.subplots_adjust(right=0.95)
-    cbar_ax = fig.add_axes([0.96, 0.3, 0.02, 0.4])  # [left, bottom, width, height]
-    cbar = fig.colorbar(plot, cax=cbar_ax)
-    cbar.ax.tick_params(labelsize=small_fonts)
-    cbar.set_label('$W m^{-2}$', labelpad=-32, y=-.08, rotation=0)
-
-    plt.suptitle(label+' TOA bias ' + model_label + ' ' + str(year) + '\nrel. to CERES climatology (2001-2021)', fontsize=small_fonts*2)
-    plt.tight_layout()
-
-    if outputdir is not None:
-        create_folder(folder=str(outputdir), loglevel='WARNING')
-        # Save the data to a netCDF file
-        data = model["data"][var].sel(time=str(year)) - ceres["clim"][var].isel(time=0)
-        filename = f"{outputdir}toa_bias_maps_{var}_{year}_{model_label}.nc"
-        data.to_netcdf(filename)
-        logger.info(f"Data has been saved to {outputdir}.")
-
-    if outputfig is not None:
-        create_folder(folder=str(outputfig), loglevel='WARNING')
-        filename = f"{outputfig}toa_bias_maps_{label}_{year}_{model_label}.pdf"
-        plt.savefig(filename, dpi=300, format='pdf', bbox_inches="tight")
-        logger.info(f"Plot has been saved to {outputfig}.") 
-    else:
-        plt.show()
 
 
 
-def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_year=None, end_year=None, outputdir=None, outputfig=None, seasons=False, quantiles=False):
+def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_year=None, end_year=None, outputdir=None, outputfig=None, seasons=False, statistics=False):
     """
     Plot the mean bias of the data over the specified time range and relative to CERES climatology.
 
@@ -564,6 +450,7 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
         outputdir (str, optional): Directory where the output data will be saved. Defaults to None.
         outputfig (str, optional): Directory where the output figure will be saved. Defaults to None.
         seasons (bool, optional): If True, generate plots for each season (DJF, MAM, JJA, SON). Defaults to False.
+        statistics (bool, optional): If True, add stipples where biases do not exceed the interannual variability of CERES data.
 
     Returns:
         None. Displays the plot of the mean bias.
@@ -584,13 +471,13 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
         }
 
         # Create a single subplot for all seasons
-        fig, axs = plt.subplots(2, 2, subplot_kw={'projection': ccrs.PlateCarree()}, figsize=(15, 10))
+        fig, axs = plt.subplots(2, 2, subplot_kw={'projection': ccrs.PlateCarree()}, figsize=(12, 10))
         axs = axs.flatten()
 
         for i, (season, months) in enumerate(season_months.items()):
             # Calculate the mean bias over the specified time range and months
             if season == 'DJF':
-                # Include December from the last year only if it's available
+                # Include December from the last year and only if it's available
                 if 12 in months:
                     months = [12] + months[1:]
                     years = np.arange(int(start_year) - 1, int(end_year) + 1)
@@ -628,18 +515,55 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
             model_label = model["model"]+'_'+model["exp"]+'_'+model["source"] if model_label is None else model_label
             
             model_label_season = f'{model_label}_{season}'
-            
-            # #debugging part:
-            # print('mean bias data')
-            # print(mean_bias)
-            # print('model season data coordinates')
-            # print(model_season_data.coords)
-            # print('ceres seasonal climatology coordinates')
-            # print(ceres_seasonal_climatology.coords)
-            
+ 
             # Plot on the current subplot
             contour_plot = mean_bias.plot.contourf(ax=axs[i], transform=ccrs.PlateCarree(), cmap='RdBu_r', levels=20,
                                                    add_colorbar=False, add_labels=False, extend='both')
+            
+            ###################### start significance testing
+
+            if statistics:
+                # this step calculates the lower and upper bounds based on the statistics of the CERES dataset
+                # and then creates a boolean mask to identify where the biases are within these bounds.
+                # Stipples are plotted at locations where biases are within the interannual variability.
+
+                # Calculate differences between each year and climatology
+                samples_tmp = []
+                for year in range(int(ceres["data"]["time.year"][0].values), int(ceres["data"]["time.year"][-1].values) - 1):
+                    samples_tmp.append(ceres["gm"].sel(time=str(year)).assign_coords(
+                        time=ceres["clim_gm"].time) - ceres["clim_gm"])
+
+                TOA_ceres_diff_samples = xr.concat(samples_tmp, dim='ensemble')
+                # Rechunk along the 'ensemble' dimension
+                TOA_ceres_diff_samples = TOA_ceres_diff_samples.chunk({'ensemble': -1})
+                TOA_ceres_diff_samples['time'] = pd.to_datetime(TOA_ceres_diff_samples['time'].values)
+
+                # Calculate the lower and upper bounds
+                lower_bound = TOA_ceres_diff_samples.quantile(0.05, dim='ensemble')
+                upper_bound = TOA_ceres_diff_samples.quantile(0.95, dim='ensemble')
+
+                # Create a boolean mask where biases are within the bounds
+                mask = np.logical_and(mean_bias > lower_bound, mean_bias < upper_bound)
+
+                # Convert the xarray mask to a numpy array
+                mask_np = mask.values
+
+                # Plot filled contour plot with stipples where the biases are within the bounds
+                stipple_plot = mean_bias.plot.contourf(ax=axs[i], transform=ccrs.PlateCarree(), add_colorbar=False,
+                                                       add_labels=False, levels=20, hatches=["", "...."], cmap='RdBu_r')
+
+                # Stipple non-significant points
+                indices = np.argwhere(mask_np)
+
+                if indices.size > 0:
+                    y, x = indices[:, 0], indices[:, 1]
+                    axs[i].scatter(mean_bias['lon'].values[x], mean_bias['lat'].values[y], marker='.', color='black',
+                                   alpha=0.4, transform=ccrs.PlateCarree(), zorder=10)
+
+                note_text = "Stipples indicate non-significant points within\nthe interannual variability bounds of the CERES dataset."
+                fig.text(0.5, 0.02, note_text, ha='center', va='center', fontsize=7)
+
+            ###################### end significance testing
 
             # Explicitly convert masked elements to NaN for warning suppression
             contour_plot.collections[0].set_edgecolor("face")
@@ -656,46 +580,6 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
             axs[i].xaxis.set_ticklabels(
                 ['-180°', '-150°', '-120°', '-90°', '-60°', '-30°', '0°', '30°', '60°', '90°', '120°', '150°', '180°'])
             axs[i].yaxis.set_ticklabels(['-90°', '-60°', '-30°', '0°', '30°', '60°', '90°'])
-            
-#             ################################
-#             #investigating quantiles
-            
-#             # Calculate quantiles (e.g., 5th and 95th percentiles)
-           
-#             try:
-#                 quantiles = mean_bias.quantile([0.05, 0.95], dim=['lat','lon'])
-#             except ValueError as e:
-#                 print(f"Error calculating quantiles: {e}")
-#                 print("Dimensions of mean_bias:")
-#                 print(mean_bias.dims)
-#                 print("Shape of mean_bias:")
-#                 print(mean_bias.shape)
-#                 raise ValueError(f"Error calculating quantiles: {e}")
-            
-#             print("Quantiles Shape:", quantiles.shape)
-#             print("Quantiles Values:")
-#             print(quantiles)
-#             print('quantile coords:')
-#             print(quantiles.coords)
-
-             
-#             axs[i].contourf(model_season_data.lon, model_season_data.lat, quantiles.sel(quantile=0.05).squeeze().values,
-#                 levels=1, colors='none', hatches=['.'], extend='both', transform=ccrs.PlateCarree())
-#             axs[i].contourf(model_season_data.lon, model_season_data.lat, quantiles.sel(quantile=0.95).squeeze().values,
-#                 levels=1, colors='none', hatches=['.'], extend='both', transform=ccrs.PlateCarree())
-
-#             plt.figure(figsize=(10, 6))
-#             plt.title('Quantile 0.05')
-#             plt.colorbar()
-#             plt.show()
-
-#             plt.figure(figsize=(10, 6))
-#             plt.imshow(quantiles.sel(quantile=0.95).squeeze().values, extent=[model_season_data.lon.min(), model_season_data.lon.max(), model_season_data.lat.min(), model_season_data.lat.max()])
-#             plt.title('Quantile 0.95')
-#             plt.colorbar()
-#             plt.show()
-
-#             ################################
             
         # Add a colorbar for the entire figure
         cbar_ax = fig.add_axes([0.2, 0.08, 0.6, 0.02])
@@ -740,44 +624,55 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
         contour_plot = mean_bias.plot.contourf(ax=ax, transform=ccrs.PlateCarree(), cmap='RdBu_r', levels=20,
                                                add_colorbar=False, add_labels=False, extend='both')
 
-        ########################### significance part testing
-        try:
-            # Initialize an array to store the significance mask for each month
-            monthly_significance_masks = []
+        ###################### start significance testing 
 
-            for month in range(1, 13):
-                # Extract model data for the specific month
-                model_month_data = model_data.sel(time=model_data['time.month'] == month)
+        if statistics:
 
-                # Calculate the mean bias for the specific month
-                mean_bias_month = (model_month_data.mean(dim='time') - ceres["clim"][var].sel(time=month)).mean(dim='time')
+            # this step calculates the lower and upper bounds based on the statistics of the CERES dataset and then creates a boolean mask to identify where the biases are within these bounds. Stipples are plotted at locations where biases are within the interannual variability.
 
-                # Calculate quantiles for the specific month
-                q05 = mean_bias_month.quantile(0.05, dim=['lat', 'lon'])
-                q95 = mean_bias_month.quantile(0.95, dim=['lat', 'lon'])
+            # Calculate differences between each year and climatology
+            samples_tmp = []
+            for year in range(int(ceres["data"]["time.year"][0].values), int(ceres["data"]["time.year"][-1].values) - 1):
+                samples_tmp.append(ceres["gm"].sel(time=str(year)).assign_coords(
+                    time=ceres["clim_gm"].time) - ceres["clim_gm"])
 
-                # Stippling for points within the 95% confidence interval for the specific month
-                monthly_significance_mask = (mean_bias_month >= q05) & (mean_bias_month <= q95)
-                monthly_significance_masks.append(monthly_significance_mask)
+            TOA_ceres_diff_samples = xr.concat(samples_tmp, dim='ensemble')
+            # Rechunk along the 'ensemble' dimension
+            TOA_ceres_diff_samples = TOA_ceres_diff_samples.chunk({'ensemble': -1})
+            TOA_ceres_diff_samples['time'] = pd.to_datetime(TOA_ceres_diff_samples['time'].values)
 
-                # Stipple points on the plot
-                lons, lats = np.meshgrid(mean_bias_month['lon'], mean_bias_month['lat'])
-                ax.scatter(lons[monthly_significance_mask], lats[monthly_significance_mask], marker='.', color='black', s=.1, alpha=0.7, transform=ccrs.PlateCarree())
+            # Calculate the lower and upper bounds 
+            lower_bound = TOA_ceres_diff_samples.quantile(0.05, dim='ensemble')
+            upper_bound = TOA_ceres_diff_samples.quantile(0.95, dim='ensemble')
 
-            # Combine the monthly significance masks to check for consistency across months
-            combined_significance_mask = np.all(monthly_significance_masks, axis=0)
+            # Create a boolean mask where biases are within the bounds
+            mask = np.logical_and(mean_bias > lower_bound, mean_bias < upper_bound)
 
-        except ValueError as e:
-            print(f"Error calculating quantiles: {e}")
-        
-        ###############################################
+            # Convert the xarray mask to a numpy array
+            mask_np = mask.values
+            
+            # Plot filled contour plot with stipples where the biases are within the bounds
+            stipple_plot  = mean_bias.plot.contourf(ax=ax, transform=ccrs.PlateCarree(), add_colorbar=False, add_labels=False, levels =20, hatches=["", "...."], cmap='RdBu_r')
+            
+            # Stipple non-significant points
+            indices = np.argwhere(mask_np)
+
+            if indices.size > 0:
+                y, x = indices[:, 0], indices[:, 1]
+                ax.scatter(mean_bias['lon'].values[x], mean_bias['lat'].values[y], marker='.', color='black', alpha=0.4, transform=ccrs.PlateCarree(), zorder=10)
+                
+            note_text = "Stipples indicate non-significant points within\nthe interannual variability bounds of the CERES dataset."
+            fig.text(0.5, 0.05, note_text, ha='center', va='center', fontsize=7)
+
+
+            ########################### end significance testing
 
         fig.subplots_adjust(bottom=0.25, top=0.9, left=0.05, right=0.95,
                              wspace=0.1, hspace=0.5)
         cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.02])
         try:
             fig.colorbar(contour_plot, cax=cbar_ax, orientation='horizontal',
-                        label=mean_bias.long_name+' bias ['+mean_bias.units+']')
+                         label=mean_bias.long_name+' bias ['+mean_bias.units+']')
         except AttributeError:
             fig.colorbar(contour_plot, cax=cbar_ax, orientation='horizontal')
 
