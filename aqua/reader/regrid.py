@@ -97,6 +97,13 @@ class RegridMixin():
             None
         """
 
+        try:
+            _vert_coord = vert_coord.get('vert_coord', [])
+        except AttributeError:
+            _vert_coord = vert_coord
+
+        self.logger.error(f'The vertical coordinat is {_vert_coord}.')
+
         sgridpath = self._get_source_gridpath(source_grid, vert_coord, zoom)
 
         if vert_coord == "2d" or vert_coord == "2dm":  # if 2d we need to pass None to smmregrid
