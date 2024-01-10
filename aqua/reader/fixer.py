@@ -171,6 +171,11 @@ class FixerMixin():
     def _load_source_fixes(self, fix_model):
         """Browse for source/model specific fixes, return None if not found"""
 
+        if fix_model is None:
+            self.logger.debug("No model-specific fixes available for model %s",
+                              self.model)
+            return None
+
         # look for exp fix, if not found, set default fixes
         fix_exp = fix_model.get(self.exp, None)
         if fix_exp is None:
@@ -319,7 +324,7 @@ class FixerMixin():
                     if source != shortname:
                         fixd.update({f"{source}": f"{shortname}"})
 
-                    log_history(data[source], f"variable renamed {shortname} by fixer")
+                    log_history(data[source], f"Variable renamed {shortname} by fixer")
 
                 # 2. derived case: let's compute the formula it and create the new variable
                 formula = varfix.get("derived", None)
@@ -329,7 +334,7 @@ class FixerMixin():
                         data[source] = eval_formula(formula, data)
                         attributes.update({"derived": formula})
                         self.logger.debug("Derived %s from %s", var, formula)
-                        log_history(data[source], f"variable {var}, derived with {formula} by fixer")
+                        log_history(data[source], f"Variable {var}, derived with {formula} by fixer")
                     except KeyError:
                         # The variable could not be computed, let's skip it
                         if destvar is not None:
@@ -402,7 +407,7 @@ class FixerMixin():
         if src_datamodel:
             data = self.change_coord_datamodel(data, src_datamodel, self.dst_datamodel)
             self.logger.info(f"coordinates adjusted to {src_datamodel} by AQUA fixer")
-            data=log_history(data, f"coordinates adjusted to {src_datamodel} by fixer")
+            data=log_history(data, f"Coordinates adjusted to {src_datamodel} by fixer")
 
         return data
 
@@ -458,7 +463,7 @@ class FixerMixin():
                         data[varname] = self.simple_decumulate(data[varname],
                                                                jump=jump,
                                                                keep_first=keep_first)
-                    log_history(data[varname], "variable decumulated by fixer")
+                    log_history(data[varname], f"Variable {varname} decumulated by fixer")
         if fkeep:
             self.previous_data = data1  # keep the last timestep for further decumulations
 
@@ -797,7 +802,7 @@ class FixerMixin():
                 data *= factor
             if offset != 0:
                 data += offset
-            log_history(data, f"units changed to {tgt_units} by fixer")
+            log_history(data, f"Units changed to {tgt_units} by fixer")
             data.attrs.pop('tgt_units', None)
 
     def normalize_units(self, src):
