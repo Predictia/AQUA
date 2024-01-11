@@ -88,13 +88,9 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
     season_ranges = {'DJF': [12, 1, 2], 'MAM': [3, 4, 5], 'JJA': [6, 7, 8], 'SON': [9, 10, 11]}
     results = []
     for season, months in season_ranges.items():
-        if season == 'DJF':
-            var1_season = var1_climatology.sel(month=months[1:])
-            var2_season = var2_climatology.sel(month=months)
-        else:
-            var1_season = var1_climatology.sel(month=months)
-            var2_season = var2_climatology.sel(month=months)
-
+        var1_season = var1_climatology.sel(month=months)
+        var2_season = var2_climatology.sel(month=months)
+        
         if statistic == 'mean':
             result_season = var1_season.mean(dim='month') - var2_season.mean(dim='month')
         elif statistic == 'max':
@@ -136,6 +132,9 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
         ax.set_yticks(np.arange(-90, 91, 30), crs=projection)
         ax.xaxis.set_major_formatter(LongitudeFormatter())
         ax.yaxis.set_major_formatter(LatitudeFormatter())
+
+        # Add dashed latitude and longitude gridlines
+        ax.gridlines(color='black', linestyle='dashed')
 
         # Plot the bias data using the corresponding cnplot object
         cnplot = result.plot(ax=ax, cmap='RdBu_r', add_colorbar=False)
