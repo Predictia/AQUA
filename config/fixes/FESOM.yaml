@@ -73,6 +73,23 @@ fixer_name:
                 attributes:
                     uncle: "scrooge"
 
+    interpolated_global_TS:
+        data_model: False  # Do not attempto to correct coordinates
+        vars:
+            ocpt: 
+                derived: temp
+                src_units: degC
+                grib: true
+                units: degC # Override units from grib tables
+
+    lra-r100-monthly:
+        data_model: False
+        vars:
+            sst: 
+                derived: sst
+                grib: true
+                units: K
+
 models:
     FESOM:
         default:
@@ -156,4 +173,3 @@ models:
                         derived: sst
                         grib: true
                         units: K
-    
