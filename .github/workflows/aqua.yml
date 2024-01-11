@@ -45,7 +45,10 @@ jobs:
     container:
       # To run FDB tests we need to use a Docker image with FDB installed.
       image: ghcr.io/destine-climate-dt/fdb:5.11.10-ubuntu
-      options: --user root
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
+      #options: --user root
     permissions:
       contents: read
       issues: write
