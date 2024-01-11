@@ -1,5 +1,5 @@
-models:  
-  EN4:
+fixer_name:  
+  EN4-default:
     en4:
       monthly:
         data_model: cf

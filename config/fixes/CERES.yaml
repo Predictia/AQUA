@@ -1,5 +1,5 @@
 fixer_name:
-    CERES:
+    CERES-default:
           ebaf-toa41:
                   data_model: False
                   vars:
