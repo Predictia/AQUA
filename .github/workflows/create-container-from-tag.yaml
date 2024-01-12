@@ -1,8 +1,9 @@
 name: "Container build and publish"
 
 on:
-  release:
-    types: [published]
+  # release:
+  #   types: [published]
+  workflow-dispatch:
   # push: # We remove this to create the container only when we create a release from browser (issue #490)
   #   tags:
   #     - v*
