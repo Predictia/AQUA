@@ -19,3 +19,8 @@ sources:
     driver: yaml_file_cat
     args:
       path: '{{CATALOG_DIR}}/spinup-1990-fracice.yaml'
+  historical-1990:
+    description: FDB IFS/NEMO tco1279-orca025 historical 1990 run
+    driver: yaml_file_cat
+    args:
+      path: '{{CATALOG_DIR}}/historical-1990.yaml'
