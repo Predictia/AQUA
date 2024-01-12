@@ -1,9 +1,9 @@
 # -----------------------------------------------------------------------------
 # --- Micromamba / Conda (used later).
-FROM mambaorg/micromamba:1.4.9 as micromamba
+FROM mambaorg/micromamba:1.5.6 as micromamba
 
 # -----------------------------------------------------------------------------
-FROM ghcr.io/destine-climate-dt/fdb:5.11.10-ubuntu as fdb
+FROM ghcr.io/destine-climate-dt/fdb:5.11.93-ubuntu as fdb
 
 # We switch to mamba user later, root for now just to create the user.
 USER root
