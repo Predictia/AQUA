@@ -11,7 +11,7 @@ on:
   #     - v*
 
 env:
-  IMAGE_NAME_AQUA: aqua-test
+  IMAGE_NAME_AQUA: aqua
   IMAGE_NAME_FDB: ubuntu22.04-fdb-aqua
 jobs:
   build:
