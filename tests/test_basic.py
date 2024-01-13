@@ -82,7 +82,7 @@ class TestAqua:
         reader = Reader(model="IFS", exp="test-tco79", source="short_override",
                         loglevel=loglevel)
         assert reader.esmcat.metadata['test-key'] == "test-value"  # from the default
-        assert reader.src_grid_name == "tco79-test"  # overwritten key
+        assert reader.src_grid_name == "tco79-nn"  # overwritten key
 
     @pytest.fixture(
         params=[
