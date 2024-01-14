@@ -51,7 +51,8 @@ class Reader(FixerMixin, RegridMixin):
                  areas=True, datamodel=None,
                  streaming=False, stream_generator=False,
                  startdate=None, enddate=None,
-                 rebuild=False, loglevel=None, nproc=4, aggregation=None):
+                 rebuild=False, loglevel=None, nproc=4, aggregation=None,
+                 **kwargs):
         """
         Initializes the Reader class, which uses the catalog
         `config/config.yaml` to identify the required data.
@@ -78,6 +79,7 @@ class Reader(FixerMixin, RegridMixin):
             nproc (int,optional): Number of processes to use for weights generation. Defaults to 4.
             aggregation (str, optional): aggregation/chunking to be used for GSV access (e.g. D, M, Y).
                                          Defaults to None (using default from catalogue, recommended).
+            **kwargs: Arbitrary keyword arguments to be passed as parameters to the catalogue entry.
 
         Returns:
             Reader: A `Reader` class object.
@@ -139,9 +141,9 @@ class Reader(FixerMixin, RegridMixin):
         self.zoom = self._check_zoom(zoom)
 
         if self.zoom:
-            self.esmcat = self.cat[self.model][self.exp][self.source](zoom=self.zoom)
+            self.esmcat = self.cat[self.model][self.exp][self.source](zoom=self.zoom, **kwargs)
         else:
-            self.esmcat = self.cat[self.model][self.exp][self.source]
+            self.esmcat = self.cat[self.model][self.exp][self.source](**kwargs)
 
         # get fixes dictionary and find them
         self.fix = fix  # fix activation flag
