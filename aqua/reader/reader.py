@@ -493,14 +493,16 @@ class Reader(FixerMixin, RegridMixin):
             if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
                 metadata = self.esmcat.metadata
                 if metadata:
-                    var = metadata.get('variables')
-                if not var:
-                    var = [self.esmcat._request['param']]  # retrieve var from catalogue
-                if sample:
-                    var = [var[0]]
+                    loadvar = metadata.get('variables')
+                else:
+                    loadvar = None
 
-                self.logger.debug("FDB source, setting default variables to %s", var)
-                loadvar = self.get_fixer_varname(var) if self.fix else var
+                if not loadvar:
+                    loadvar = [self.esmcat._request['param']]  # retrieve var from catalogue
+                if sample:
+                    loadvar = [loadvar[0]]
+
+                self.logger.debug("FDB source, setting default variables to %s", loadvar)
             else:
                 loadvar = None
 
