@@ -98,9 +98,9 @@ if __name__ == '__main__':
     try:
         # Call the method to retrieve CERES data
         ceres = process_ceres_data(exp=exp_ceres, source=source_ceres)
-        era5 = process_model_data(model='ERA5', exp=exp_era5, source=source_era5)
+        era5 = process_model_data(model='ERA5', exp=exp_era5, source=source_era5, fix=True)
     except Exception as e:
-        logger.error(f"No observation data found: {e}")
+        logger.warning(f"No observation data found: {e}")
         logger.error("Radiation diagnostic is terminated.")
         sys.exit(0) #remove @ and change loggers 
 
