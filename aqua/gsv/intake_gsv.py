@@ -5,6 +5,8 @@ import sys
 import eccodes
 import xarray as xr
 import dask
+from ruamel.yaml import YAML
+from dateutil.parser import parse
 from aqua.util.eccodes import init_get_eccodes_shortname
 from intake.source import base
 from .timeutil import check_dates, shift_time_dataset
@@ -80,6 +82,9 @@ class GSVSource(base.DataSource):
             self.fdbpath = None
             self.eccodes_path = None
             self.levels = None
+
+        if data_start_date == 'auto' or data_end_date == 'auto':
+            data_start_date, data_end_date = self.parse_fdb(self.fdbpath)
 
         if not startdate:
             startdate = data_start_date
@@ -340,7 +345,41 @@ class GSVSource(base.DataSource):
             if self.idx_3d:
                 ds = ds.assign_coords(idx_level=("level", self.idx_3d))
             yield ds
-            
+
+    
+    def parse_fdb(self, fdbpath):
+        """Parse the FDB config file and return the start and end dates of the data."""
+
+        yaml = YAML() 
+
+        with open(fdbpath, 'r') as file:
+            cfg = yaml.load(file)
+
+        root = cfg['spaces'][0]['roots'][0]['path']
+
+        file_list = os.listdir(root)
+        dates = [filename[-8:] for filename in file_list]
+
+        dates.sort()
+
+        # keep only strings which are valid dates
+        datesel = [] 
+        for date in dates:
+            try:
+                parse(date)
+                datesel.append(date)
+            except ValueError:
+                break
+
+        if len(datesel) == 0:
+            raise ValueError('Auto date selection in catalogue but no valid dates found in FDB')
+        else:
+            start_date = datesel[0] + 'T0000'
+            end_date = datesel[-1] + 'T2300'
+            self.logger.debug('Automatic FDB date range: %s - %s', start_date, end_date)
+
+        return start_date, end_date
+                
 # This function is repeated here in order not to create a cross dependency between GSVSource and AQUA
 def log_history(data, msg):
     """Elementary provenance logger in the history attribute"""
