@@ -350,6 +350,9 @@ class GSVSource(base.DataSource):
     def parse_fdb(self, fdbpath):
         """Parse the FDB config file and return the start and end dates of the data."""
 
+        if not fdbpath:
+            raise ValueError('Automatic dates requested but FDB path not specified in catalogue.')
+
         yaml = YAML() 
 
         with open(fdbpath, 'r') as file:
