@@ -92,3 +92,23 @@ sources:
       fdb_path: /pfs/lustrep3/scratch/project_465000454/sbeyer/production_fdb_tco1279_historic/REGULARLL_grids/etc/fdb/config.yaml
       source_grid_name: lon-lat
 
+  hourly-r025-3d:
+    <<: *base-default
+    description: hourly 3D atmospheric data on regular r025 grid (1440x721).
+    args:
+      <<: *args-default
+      aggregation: 6H
+      request:
+        <<: *request-default
+        resolution: standard
+        param: 131
+        levtype: pl
+        levelist: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600,
+          700, 850, 925, 1000]
+    metadata:
+      <<: *metadata-default
+      fdb_path: /pfs/lustrep3/scratch/project_465000454/sbeyer/production_fdb_tco1279_historic/REGULARLL_grids/etc/fdb/config.yaml
+      source_grid_name: lon-lat
+      levels: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600,700, 850, 925, 1000]
+      variables: [60, 129, 130, 131, 132, 133, 135, 157, 246]
+
