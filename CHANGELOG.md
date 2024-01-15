@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
-Unreleased is the current development version.
+Unreleased in the current development version.
 
 - Add kwargs parsing of reader arguments, passing them to intake (#757)
 
