@@ -119,6 +119,9 @@ class RegridMixin():
             ('value',): 6,
             ('elem',): 4,
             ('node',): 2,
+            ('nod2',): 2,
+            ('cell',): 8,
+            ('ncells',): 8,
         }
 
         coefficient_space = coefficient_space_mapping.get(dims, -1)
