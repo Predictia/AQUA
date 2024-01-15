@@ -1,5 +1,5 @@
 sources: 
-  hourly-native: &base-default
+  hourly-native-atm2d: &base-default
     args: &args-default
       request: &request-default
         class: d1
@@ -33,7 +33,7 @@ sources:
       source_grid_name: tco1279
       fixer_name: ifs-destine-v1
   
-  hourly-native-3d:
+  hourly-native-atm3d:
     <<: *base-default
     description: hourly 3D atmospheric data on native grid TCo1279 (about 10km).
     args:
@@ -50,7 +50,7 @@ sources:
       levels: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600,700, 850, 925, 1000]
       variables: [60, 129, 130, 131, 132, 133, 135, 157, 246]
 
-  hourly-hpxstd:
+  hourly-hpxstd-atm2d:
     <<: *base-default
     description: hourly 2D atmospheric data on healpix grid (zoom=7, h128).
     args:
@@ -63,7 +63,7 @@ sources:
       fdb_path: /project/project_465000454/experiments/a0h3/fdb/HEALPIX_grids/etc/fdb/config.yaml
       source_grid_name: ifs-healpix
 
-  hourly-hpxhigh:
+  hourly-hpxhigh-atm2d:
     <<: *base-default
     description: hourly 2D atmospheric data on healpix grid (zoom=10, h1024).
     args:
@@ -76,7 +76,7 @@ sources:
       fdb_path: /project/project_465000454/experiments/a0h3/fdb/HEALPIX_grids/etc/fdb/config.yaml
       source_grid_name: ifs-healpix
 
-  hourly-r025:
+  hourly-r025-atm2d:
     <<: *base-default
     description: hourly 2D atmospheric data on regular r025 grid (1440x721).
     args:
@@ -89,7 +89,7 @@ sources:
       fdb_path: /project/project_465000454/experiments/a0h3/fdb/REGULARLL_grids/etc/fdb/config.yaml
       source_grid_name: lon-lat
 
-  hourly-r025-3d:
+  hourly-r025-atm3d:
     <<: *base-default
     description: hourly 3D atmospheric data on regular r025 grid (1440x721).
     args:
@@ -109,7 +109,7 @@ sources:
       levels: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600,700, 850, 925, 1000]
       variables: [60, 129, 130, 131, 132, 133, 135, 157, 246]
 
-  daily-r025-o2d:
+  daily-r025-oce2d:
     <<: *base-default
     description: daily 2D oceanic data on regular r025 grid (1440x721).
     args:
