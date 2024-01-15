@@ -226,7 +226,7 @@ def gregory_plot(obs_data=None, models=None, obs_time_range=None, model_labels=N
         plt.show()
     
 
-def boxplot_model_data(datasets=None, model_names=None, outputdir=None, outputfig=None, year=None, fontsize=14):
+def boxplot_model_data(datasets=None, model_names=None, outputdir=None, outputfig=None, year=None, fontsize=14): #@year for time selection
     """
     Create a boxplot with various models and CERES data. Variables 'mtntrf' and 'mtnsrf' are plotted to show imbalances.
     The default mean for CERES data is calculated over the entire time range.
@@ -288,7 +288,7 @@ def boxplot_model_data(datasets=None, model_names=None, outputdir=None, outputfi
     if outputdir is not None:
         create_folder(folder=str(outputdir), loglevel='WARNING')
         # Save the data to a NetCDF file
-        output_data = xr.Dataset(global_mean)
+        output_data = xr.Dataset(global_mean) #@
         filename = f"{outputdir}/boxplot_mtntrf_mtnsrf_{'_'.join(model_names).replace(' ', '_').lower()}.nc"
         output_data.to_netcdf(filename)
         logger.info(f"Data has been saved to {outputdir}.")
@@ -436,7 +436,7 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, o
 
 
 
-def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_year=None, end_year=None, outputdir=None, outputfig=None, seasons=False, statistics=False):
+def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_year=None, end_year=None, outputdir=None, outputfig=None, seasons=False, statistics=False, q_lower=0.05, q_upper=0.95):
     """
     Plot the mean bias of the data over the specified time range and relative to CERES climatology.
 
@@ -451,6 +451,8 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
         outputfig (str, optional): Directory where the output figure will be saved. Defaults to None.
         seasons (bool, optional): If True, generate plots for each season (DJF, MAM, JJA, SON). Defaults to False.
         statistics (bool, optional): If True, add stipples where biases do not exceed the interannual variability of CERES data.
+        q_lower (float, optional): Lower bound for statistic calculation. Defaults 0.05
+        q_upper (float, optional): Upper bound for statistic calculation. Defaults 0.95
 
     Returns:
         None. Displays the plot of the mean bias.
@@ -539,8 +541,8 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
                 TOA_ceres_diff_samples['time'] = pd.to_datetime(TOA_ceres_diff_samples['time'].values)
 
                 # Calculate the lower and upper bounds
-                lower_bound = TOA_ceres_diff_samples.quantile(0.05, dim='ensemble')
-                upper_bound = TOA_ceres_diff_samples.quantile(0.95, dim='ensemble')
+                lower_bound = TOA_ceres_diff_samples.quantile(q_lower, dim='ensemble')
+                upper_bound = TOA_ceres_diff_samples.quantile(q_upper, dim='ensemble')
 
                 # Create a boolean mask where biases are within the bounds
                 mask = np.logical_and(mean_bias > lower_bound, mean_bias < upper_bound)
@@ -642,8 +644,8 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
             TOA_ceres_diff_samples['time'] = pd.to_datetime(TOA_ceres_diff_samples['time'].values)
 
             # Calculate the lower and upper bounds 
-            lower_bound = TOA_ceres_diff_samples.quantile(0.05, dim='ensemble')
-            upper_bound = TOA_ceres_diff_samples.quantile(0.95, dim='ensemble')
+            lower_bound = TOA_ceres_diff_samples.quantile(q_lower, dim='ensemble')
+            upper_bound = TOA_ceres_diff_samples.quantile(q_upper, dim='ensemble')
 
             # Create a boolean mask where biases are within the bounds
             mask = np.logical_and(mean_bias > lower_bound, mean_bias < upper_bound)
