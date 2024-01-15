@@ -236,7 +236,7 @@ def boxplot_model_data(datasets=None, model_names=None, outputdir=None, outputfi
         model_names (list of str): Your desired naming for the plotting, corresponding to the datasets.
         outputdir (str, optional): Directory where the output data will be saved. Default is None.
         outputfig (str, optional): Directory where the output figure will be saved. Default is None.
-        year (int, optional): The year for which the plot is generated. Default is None.
+        year (int, optional): The year for which the plot is generated. Default is None (calculation for the entire time range).
         fontsize (int, optional): Font size for labels and legends in the plot. Default is 14.
 
     Returns:
@@ -244,7 +244,7 @@ def boxplot_model_data(datasets=None, model_names=None, outputdir=None, outputfi
     """
     # Set a seaborn color palette
     sns.set_palette("pastel")
-
+    
     # Initialize a dictionary to store data for the boxplot
     boxplot_data = {'Variables': [], 'Values': [], 'Datasets': []}
 
@@ -252,8 +252,24 @@ def boxplot_model_data(datasets=None, model_names=None, outputdir=None, outputfi
 
     for i in range(0, len(datasets)):
         # Extract values for 'mtntrf' and 'mtnsrf' from each dataset
-        mtntrf_values = -datasets[i]["gm"]["mtntrf"].values.flatten()
-        mtnsrf_values = datasets[i]["gm"]["mtnsrf"].values.flatten()
+        if year is not None:
+            # Select data for the specified year if 'gm' key exists
+            if 'gm' in datasets[i]:
+                dataset_year = datasets[i]['gm'].sel(time=str(year))
+                mtntrf_values = -dataset_year["mtntrf"].values.flatten()
+                mtnsrf_values = dataset_year["mtnsrf"].values.flatten()
+            else:
+                # Handle the case where 'gm' key is not present in the dictionary
+                mtntrf_values = []
+                mtnsrf_values = []
+        else:
+            # Use the entire dataset if 'gm' key exists
+            if 'gm' in datasets[i]:
+                mtntrf_values = -datasets[i]['gm']["mtntrf"].values.flatten()
+                mtnsrf_values = datasets[i]['gm']["mtnsrf"].values.flatten()
+            else:
+                mtntrf_values = []
+                mtnsrf_values = []
 
         # Update the boxplot_data dictionary
         boxplot_data['Variables'].extend(['mtntrf'] * len(mtntrf_values))
@@ -288,7 +304,7 @@ def boxplot_model_data(datasets=None, model_names=None, outputdir=None, outputfi
     if outputdir is not None:
         create_folder(folder=str(outputdir), loglevel='WARNING')
         # Save the data to a NetCDF file
-        output_data = xr.Dataset(global_mean) #@
+        output_data = xr.Dataset(boxplot_data) 
         filename = f"{outputdir}/boxplot_mtntrf_mtnsrf_{'_'.join(model_names).replace(' ', '_').lower()}.nc"
         output_data.to_netcdf(filename)
         logger.info(f"Data has been saved to {outputdir}.")
