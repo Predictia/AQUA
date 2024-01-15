@@ -80,8 +80,24 @@ class RegridMixin():
         grid_area.to_netcdf(areafile)
         self.logger.warning("Success!")
 
-    def _weights_generation_time(self, regrid=None, vert_coord=None, dims=None, grid_size=None, nproc=None):
+    def _weights_generation_time(self, regrid=None, vert_coord=None, dims=None, grid_size=None, nproc=None,
+                                 warning_precision='seconds'):
+        """
+        Helper function to estimate the time required for generating regridding weights.
 
+        Args:
+            regrid (str, optional): Identifier for the regrid resolution. Defaults to None.
+            vert_coord (dict or str, optional): Information about the vertical coordinate, either as a string or a dictionary
+                with a 'vert_coord' key. Defaults to None.
+            dims (tuple of str, optional): Tuple specifying the dimensions involved in the regridding process. Defaults to None.
+            grid_size (int, optional): Size of the grid being used. Defaults to None.
+            nproc (int, optional): Number of processors to be used in the computation. Defaults to None.
+            warning_precision (str, optional): Desired precision for the warning message ('hours', 'minutes', 'seconds').
+                Defaults to 'seconds'.
+
+        Returns:
+            None: This function does not return a value but logs the estimated time for weight generation.
+        """
         try:
             _vert_coord = vert_coord.get('vert_coord', [])
         except AttributeError:
@@ -111,7 +127,6 @@ class RegridMixin():
             "nz": 1.9,
             "nz1": 11,
         }
-        self.logger.error(f"The nproc number is {nproc}.")
         coefficient_space_mapping = {
             ('lat', 'lon'): 2.25,
             ('latitude', 'longitude'): 2.25,
@@ -124,24 +139,23 @@ class RegridMixin():
         }
 
         coefficient_space = coefficient_space_mapping.get(dims, -1)
-        
         coefficient_vertical = self._guess_vert_coord_size(_vert_coord) * coefficient_vert_mapping.get(_vert_coord, 1)
-        self.logger.error(f'The coefficients are {coefficient_vertical}, {coefficient_space}.')
-        time_r250 = grid_size * coefficient_vertical * coefficient_space * 10**(-6)
+        self.logger.debug(f'The coefficients are {coefficient_vertical}, {coefficient_space}.')
 
-        self.logger.error(f"The grid_size is {grid_size}.")
+        time_r250 = grid_size * coefficient_vertical * coefficient_space * 10**(-6)
+        self.logger.debug(f"The grid_size is {grid_size}.")
         regrid_data = grid_2d.get(regrid, {'index': 0})
-        expected_time = time_r250 * (1.2)**(regrid_data['index'])
         
-        self.logger.error(f"The expected time is {expected_time} seconds.")
+        expected_time = time_r250 * (1.2)**(regrid_data['index'])
+        self.logger.debug(f"The expected time is {expected_time} seconds.")
     
-        precision='seconds'
+
         total_seconds = int(expected_time)
         if expected_time > warning_threshold:
-            if precision=='hours':
+            if warning_precision=='hours':
                 hours = round(total_seconds / 3600)
                 formatted_time = f'{hours} hours'
-            elif precision=='minutes':
+            elif warning_precision=='minutes':
                 hours, remainder = divmod(int(expected_time), 3600)
                 minutes = round((total_seconds % 3600) / 60)
                 formatted_time = f'{hours} hours, {minutes} minutes'
@@ -424,23 +438,14 @@ class RegridMixin():
         Returns:
             int: Size of the vertical coordinate. Returns 1 if vert_coord is not found.
         """
-        if not vert_coord:
-            try:
-                self.logger.error('try', data[vert_coord].size)
-            except (AttributeError, UnboundLocalError):
-                pass
-        self.logger.error('start vert_guess function')
-
         data = None
-        self.logger.error('Calling _retrieve_plain function')
         data = self._retrieve_plain(startdate=None)
 
-        self.logger.debug('Data type%s', type(data))
-        if vert_coord: # and vert_coord != "2d" and vert_coord != "2dm":
+        if vert_coord:
             vert_coord_size = data[vert_coord].size
         else:
             vert_coord_size = 1
-        self.logger.error('The size of vert_coord is %s', vert_coord_size) #info
+        self.logger.debug('The size of vert_coord is %s', vert_coord_size)
         return vert_coord_size
 
 
