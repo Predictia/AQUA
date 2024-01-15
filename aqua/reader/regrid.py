@@ -81,7 +81,7 @@ class RegridMixin():
         self.logger.warning("Success!")
 
     def _weights_generation_time(self, regrid=None, vert_coord=None, dims=None, grid_size=None, nproc=None,
-                                 warning_precision='seconds'):
+                                 warning_precision=None):
         """
         Helper function to estimate the time required for generating regridding weights.
 
@@ -93,7 +93,6 @@ class RegridMixin():
             grid_size (int, optional): Size of the grid being used. Defaults to None.
             nproc (int, optional): Number of processors to be used in the computation. Defaults to None.
             warning_precision (str, optional): Desired precision for the warning message ('hours', 'minutes', 'seconds').
-                Defaults to 'seconds'.
 
         Returns:
             None: This function does not return a value but logs the estimated time for weight generation.
@@ -102,7 +101,7 @@ class RegridMixin():
             _vert_coord = vert_coord.get('vert_coord', [])
         except AttributeError:
             _vert_coord = vert_coord
-
+        #Temporarily, the logger is set to the error level for simplier debugging.
         self.logger.error(f'The vertical coordinat is {_vert_coord}.')
         self.logger.error(f'The dims are {dims}.')
 
@@ -147,7 +146,7 @@ class RegridMixin():
         regrid_data = grid_2d.get(regrid, {'index': 0})
         
         expected_time = time_r250 * (1.2)**(regrid_data['index'])
-        self.logger.debug(f"The expected time is {expected_time} seconds.")
+        self.logger.error(f"The expected time is {expected_time} seconds.")
     
 
         total_seconds = int(expected_time)
@@ -167,7 +166,7 @@ class RegridMixin():
             self.logger.warning(f'Time to generate the weights will take approximately {formatted_time}.')
 
     def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, method='ycon', regrid=None, extra=None, zoom=None, vert_coord=None,
-                           dims=None, grid_size=None, nproc=None):
+                           dims=None, grid_size=None, nproc=None, warning_precision=None):
         """
         Helper function to produce weights file.
 
@@ -180,6 +179,7 @@ class RegridMixin():
             zoom (int, optional): The zoom level for the grid (for HealPix grids). Defaults to None.
             vert_coord (str, optional): The vertical coordinate to use for weight generation. Defaults to None.
             method (str, optional): The interpolation method to be used (see CDO manual). Defaults to 'ycon'.
+            warning_precision (str, optional): Desired precision for the warning message ('hours', 'minutes', 'seconds').
         Returns:
             None
         """
@@ -192,7 +192,8 @@ class RegridMixin():
         if vert_coord == "2d" or vert_coord == "2dm":  # if 2d we need to pass None to smmregrid
             vert_coord = None
             
-        self._weights_generation_time(regrid=regrid, vert_coord=vert_coord, dims=dims, grid_size=grid_size, nproc=nproc)
+        self._weights_generation_time(regrid=regrid, vert_coord=vert_coord, dims=dims, grid_size=grid_size, nproc=nproc,
+                                      warning_precision=warning_precision)
 
         # hack to  pass a correct list of all options
         src_extra = source_grid.get("extra", [])
@@ -204,6 +205,7 @@ class RegridMixin():
         else:
             extra = []
         extra = extra + src_extra
+        #The clock needs to be removed after proper debugging, or the logger level should be changed.
         t_1 = time.time()
         weights = rg.cdo_generate_weights(source_grid=sgridpath,
                                           target_grid=cfg_regrid["grids"][regrid],
