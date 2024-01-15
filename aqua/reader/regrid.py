@@ -116,6 +116,9 @@ class RegridMixin():
             extra = []
         extra = extra + src_extra
 
+        sgridpath.load()  # load the data to avoid problems with dask in smmregrid
+        sgridpath = sgridpath.compute()  # for some reason both lines are needed 
+
         weights = rg.cdo_generate_weights(source_grid=sgridpath,
                                           target_grid=cfg_regrid["grids"][regrid],
                                           method=method,
