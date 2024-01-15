@@ -230,6 +230,8 @@ class Reader(FixerMixin, RegridMixin):
         Returns:
             Define in the class object the smmregridder object
         """
+        #Desired precision for the warning message ('hours', 'minutes', 'seconds').
+        warning_precision='seconds'
 
         self.weightsfile = {}
         self.weights = {}
@@ -282,7 +284,7 @@ class Reader(FixerMixin, RegridMixin):
                                         vert_coord=vc, extra=[],
                                         zoom=self.zoom, method=self.regrid_method,
                                         dims=self.grid_area.dims, grid_size=self.grid_area.size,
-                                        nproc = self.nproc)
+                                        nproc = self.nproc, warning_precision=warning_precision)
 
 
             self.weights.update({vc: xr.open_mfdataset(self.weightsfile[vc])})
