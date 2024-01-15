@@ -18,11 +18,6 @@ import matplotlib.gridspec as gridspec
 from aqua.util import create_folder, add_cyclic_lon
 from aqua.logger import log_configure
 
-# cdo = Cdo(tempdir='./tmp/cdo-py')
-# tempdir='./tmp/cdo-py'
-# if not os.path.exists(tempdir):
-#     os.makedirs(tempdir)
-
 loglevel: str = 'WARNING'
 logger = log_configure(log_level=loglevel, log_name='Radiation')
 
@@ -168,7 +163,10 @@ def gregory_plot(obs_data=None, models=None, obs_time_range=None, model_labels=N
     obs_tnr_resampled = obs_data_gm["tnr"].resample(time="M").mean()
 
     if obs_labels is None:
-        obs_labels = obs_data["model"]+' '+obs_data["exp"]+' '+obs_data["source"] +', ('+starting_year+'-'+final_year+')'
+        if obs_time_range is None:
+            obs_labels = obs_data["model"]+' '+obs_data["exp"]+' '+obs_data["source"] +', ('+starting_year+'-'+final_year+')'
+        else: 
+            obs_labels = obs_data["model"]+' '+obs_data["exp"]+' '+obs_data["source"] + f', ({obs_time_range[0]} - {obs_time_range[1]})'
     # Plot the data
     line = ax.plot(
         obs_2t_resampled - 273.15, obs_tnr_resampled,
@@ -196,8 +194,8 @@ def gregory_plot(obs_data=None, models=None, obs_time_range=None, model_labels=N
     ax.set_ylabel("Net radiation TOA [Wm$^{-2}$]", fontsize=fontsize-2)
     ax.set_title("Gregory Plot", fontsize=fontsize)
     ax.legend(handles, labels + ["Start", "End"], handler_map={tuple: HandlerTuple(ndivide=None)})
-    # ax.text(0.5, -0.15, "Black stars indicate the first value of the dataseries\nRed X indicate the last value of the dataseries.",
-    #         transform=ax.transAxes, fontsize=fontsize-6, verticalalignment='top', horizontalalignment='center')
+    ax.text(0.5, -0.15, "Black stars indicate the first value of the dataseries\nRed X indicate the last value of the dataseries.",
+             transform=ax.transAxes, fontsize=fontsize-6, verticalalignment='top', horizontalalignment='center')
     ax.tick_params(axis="both", which="major", labelsize=10)
     
     ax.grid(True, linestyle="--", linewidth=0.5)
@@ -226,7 +224,7 @@ def gregory_plot(obs_data=None, models=None, obs_time_range=None, model_labels=N
         plt.show()
     
 
-def boxplot_model_data(datasets=None, model_names=None, outputdir=None, outputfig=None, year=None, fontsize=14): #@year for time selection
+def boxplot_model_data(datasets=None, model_names=None, outputdir=None, outputfig=None, year=None, fontsize=14): 
     """
     Create a boxplot with various models and CERES data. Variables 'mtntrf' and 'mtnsrf' are plotted to show imbalances.
     The default mean for CERES data is calculated over the entire time range.
