@@ -94,21 +94,20 @@ class RegridMixin():
         warning_threshold = 0
 
         grid_2d = {
-            'r005': {'size_2d':7200 * 3600, 'index': 11},
-            'r010': {'size_2d':3600 * 1800, 'index': 7},
-            'r020': {'size_2d':1800 * 900, 'index': 5},
-            'r025': {'size_2d':1440 * 720, 'index': 4},
-            'r050': {'size_2d':720 * 360, 'index':  3},
-            'r100': {'size_2d':360 * 180, 'index': 2},
-            'r200': {'size_2d':180 * 90, 'index': 1},
-            'r250': {'size_2d':144 * 72, 'index': 0},
+            'r005': {'index': 11},
+            'r010': {'index': 7},
+            'r020': {'index': 5},
+            'r025': {'index': 4},
+            'r050': {'index': 3},
+            'r100': {'index': 2},
+            'r200': {'index': 1},
+            'r250': {'index': 0},
         }
         
         coefficient_vert_mapping = {
-            #"2d": 1,
-            #"2dm": 1,
             "depth": 1.2 / ((nproc)**(1/2)),
             "level": 1,
+            #Can't test the coefficient for the 'nz' and 'nz1' coordinate due to the lack of datasets.
             "nz": 1.9,
             "nz1": 11,
         }
