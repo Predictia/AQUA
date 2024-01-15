@@ -93,7 +93,7 @@ if __name__ == '__main__':
         model_data = process_model_data(model=model, exp=exp, source=source)
     except Exception as e:
         logger.error(f"No model data found: {e}")
-        logger.error("Atmospheric global mean biases diagnostic is terminated.")
+        logger.error("Radiation diagnostic is terminated.")
         sys.exit(0)
     try:
         # Call the method to retrieve CERES data
@@ -101,8 +101,8 @@ if __name__ == '__main__':
         era5 = process_model_data(model='ERA5', exp=exp_era5, source=source_era5)
     except Exception as e:
         logger.error(f"No observation data found: {e}")
-        logger.error("Atmospheric global mean biases diagnostic is terminated.")
-        sys.exit(0)
+        logger.error("Radiation diagnostic is terminated.")
+        sys.exit(0) #remove @ and change loggers 
 
     if box_plot_bool:
         try:
