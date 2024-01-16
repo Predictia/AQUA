@@ -55,7 +55,6 @@ grids:
       level: $grids/HealPix/nemo_hpz7_nested_oce_level.nc
     space_coord: ["ncells"]
     vert_coord: ["level"]
-    #path: $grids/HealPix/nemo_hpz7_nested_oce_level.nc
   nemo-hpz10-nested:
     space_coord: ["ncells"]
     path: $grids/HealPix/nemo_hpz10_nested_oce.nc
