@@ -83,7 +83,7 @@ class GSVSource(base.DataSource):
             self.levels = None
 
         if data_start_date == 'auto' or data_end_date == 'auto':
-            self.logger.info('Autoguessing of the FDB start and end date ensabled!')
+            self.logger.debug('Autoguessing of the FDB start and end date enabled.')
             data_start_date, data_end_date = self.parse_fdb(self.fdbpath)
 
         if not startdate:
