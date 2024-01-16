@@ -124,13 +124,15 @@ class FixerMixin():
 
         # if found, proceed as expected
         if fixes is not None:
-            self.logger.info("Fix names %s found for model %s, experiment %s, source %s",
-                             self.fixer_name, self.model, self.exp, self.source)
+            if self.fixer_name is not None:
+                self.logger.info("Fix names %s found for model %s, experiment %s, source %s",
+                                self.fixer_name, self.model, self.exp, self.source)
             if 'parent' in fixes:
                 parent_fixes = self.fixes_dictionary["fixer_name"].get(fixes['parent'])
                 self.logger.info("Parent fix %s found! Mergin with fixer_name fixes %s!", fixes['parent'], self.fixer_name)
                 fixes = self._merge_fixes(parent_fixes, fixes)
         else:
+
             return None
 
         return fixes
@@ -162,7 +164,7 @@ class FixerMixin():
         """Browse for source/model specific fixes, return None if not found"""
 
         if fix_model is None:
-            self.logger.debug("No source-specific fixes available for model %s",
+            self.logger.debug("No source-specific fixes available for model %s, using default fixes",
                               self.model)
             return None
 
