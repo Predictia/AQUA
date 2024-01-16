@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased is the current development version.
 
 - Compact catalogues using yaml override syntax (#752)
+- Fix loading source grid file before smmregrid weight generation (#756)
 
 ## [v0.5.2]
 
