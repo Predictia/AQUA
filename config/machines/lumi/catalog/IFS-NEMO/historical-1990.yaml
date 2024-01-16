@@ -311,7 +311,7 @@ sources:
     description: daily 3D oceanic data on healpix grid (zoom=7, h128).
     args:
       <<: *args-default
-      aggregation: M
+      aggregation: D
       savefreq: D
       request:
         <<: *request-default
@@ -346,14 +346,14 @@ sources:
                  4687.5810546875, 4888.06982421875, 5089.478515625, 5291.68310546875,
                  5494.5751953125, 5698.060546875, 5902.0576171875 ]
       variables:  [263500, 263501, 263505, 263506, 263507]
-      source_grid_name: nemo-healpix #to be changed
+      source_grid_name: nemo-hpz7-nested-3d
 
   daily-hpxhigh-oce3d:
     <<: *base-default
     description: daily 3D oceanic data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      aggregation: M
+      aggregation: D
       savefreq: D
       request:
         <<: *request-default
@@ -388,4 +388,4 @@ sources:
                  4687.5810546875, 4888.06982421875, 5089.478515625, 5291.68310546875,
                  5494.5751953125, 5698.060546875, 5902.0576171875 ]
       variables:  [263500, 263501, 263505, 263506, 263507]
-      source_grid_name: nemo-healpix #to be changed
+      source_grid_name: nemo-hpz10-nested-3d
