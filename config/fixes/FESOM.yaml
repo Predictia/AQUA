@@ -1,5 +1,5 @@
 fixer_name:
-    fesom-default: 
+    FESOM-default: 
         data_model: false
         delete:  # variables to drop at the end
             - a_ice
@@ -62,7 +62,7 @@ fixer_name:
                 source: MLD2
                 src_units: m
                 grib: true
-    fesom-test:
+    FESOM-test:
         parent: fesom-default
         data_model: false
         vars:
@@ -73,7 +73,7 @@ fixer_name:
                 attributes:
                     uncle: "scrooge"
 
-    interpolated_global_TS:
+    FESOM-interpolated_global_TS:
         data_model: False  # Do not attempto to correct coordinates
         vars:
             ocpt: 
@@ -82,7 +82,7 @@ fixer_name:
                 grib: true
                 units: degC # Override units from grib tables
 
-    lra-r100-monthly:
+    FESOM-lra-r100-monthly:
         data_model: False
         vars:
             sst: 
