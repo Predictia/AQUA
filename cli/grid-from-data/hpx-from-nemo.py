@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
     # setting output filename
     tgt = config['tgt']
-    filename_tgt = tgt + '/' + model_name + '_hpz' + str(zoom) + 
+    filename_tgt = tgt + '/' + model_name + '_hpz' + str(zoom)
     if nested:
         filename_tgt = filename_tgt + '_nested_oce'
     else:
