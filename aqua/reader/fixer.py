@@ -56,7 +56,12 @@ class FixerMixin():
                 return base_fixes
 
         # Join source specific fixes together with the found fixer_name
-        final_fixes = self._combine_fixes(base_fixes, source_fixes)
+        if base_fixes is not None and source_fixes is not None:
+            final_fixes = self._combine_fixes(base_fixes, source_fixes)
+        elif base_fixes is None:
+            final_fixes = source_fixes
+        else:  # source_fixes is None
+            final_fixes = base_fixes
 
         self.logger.debug('Final fixes are: %s', final_fixes)
         return final_fixes
