@@ -362,8 +362,9 @@ class GSVSource(base.DataSource):
 
         file_list = os.listdir(root)
         
-        # single line alternative: check if is a digit and if it is made by 8-character. We could avoid the try structure
-        datesel = [parse(filename[-8:]) for filename in file_list if (filename[-8:].isdigit() and len(filename[-8:])==8)]
+        # single line alternative: check if is a digit and if it is made by 8-character. 
+        # We could avoid the try structure and the parsing check
+        datesel = [filename[-8:] for filename in file_list if (filename[-8:].isdigit() and len(filename[-8:])==8)]
         datesel.sort()
 
         # dates = [filename[-8:] for filename in file_list] 
