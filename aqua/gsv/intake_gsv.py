@@ -5,7 +5,6 @@ import eccodes
 import xarray as xr
 import dask
 from ruamel.yaml import YAML
-from dateutil.parser import parse
 from aqua.util.eccodes import init_get_eccodes_shortname
 from intake.source import base
 from .timeutil import check_dates, shift_time_dataset
@@ -362,21 +361,8 @@ class GSVSource(base.DataSource):
 
         file_list = os.listdir(root)
         
-        # single line alternative: check if is a digit and if it is made by 8-character. 
-        # We could avoid the try structure and the parsing check
         datesel = [filename[-8:] for filename in file_list if (filename[-8:].isdigit() and len(filename[-8:])==8)]
         datesel.sort()
-
-        # dates = [filename[-8:] for filename in file_list] 
-        # dates.sort()
-        # # keep only strings which are valid dates
-        # datesel = [] 
-        # for date in dates:
-        #     try:
-        #         parse(date)
-        #         datesel.append(date)
-        #     except ValueError:
-        #         break
 
         if len(datesel) == 0:
             raise ValueError('Auto date selection in catalogue but no valid dates found in FDB')
