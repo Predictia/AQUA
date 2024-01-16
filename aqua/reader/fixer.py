@@ -42,34 +42,23 @@ class FixerMixin():
         # check the presence of model-specific fix
         fix_model = self.fixes_dictionary["models"].get(self.model, None)
 
-        # if family fix is not there check for model fix
-        if base_fixes is None:
-
-            # if also model fix are not there, return None
-            if not fix_model:
-                self.logger.warning("No fixes available for model %s",
-                                    self.model)
-                return None
-
-            # otherwise load the model default
-            else:
-                base_fixes = self._load_default_fixes(fix_model)
-                if base_fixes:
-                    warn("Default experiment based fixes are used. This will be deprecated in the future.",
-                         DeprecationWarning, stacklevel=2)
-
         # browse for source-specific fixes
         source_fixes = self._load_source_fixes(fix_model)
 
         # if only fixes family/default is available, return them
         if source_fixes is None:
-            return base_fixes
+            if base_fixes is None:
+                self.logger.warning("No fixes available for model %s, experiment %s, source %s",
+                                    self.model, self.exp, self.source)
+                return None
+            else:
+                self.logger.debug('Final fixes are: %s', base_fixes)
+                return base_fixes
 
-        # join source specific fixes together with default/family
+        # Join source specific fixes together with the found fixer_name
         final_fixes = self._combine_fixes(base_fixes, source_fixes)
 
         self.logger.debug('Final fixes are: %s', final_fixes)
-
         return final_fixes
 
     def _combine_fixes(self, default_fixes, model_fixes):
@@ -122,17 +111,11 @@ class FixerMixin():
         If the fixer_name has a parent, load it and merge it giving priority to the child.
         """
 
-        # if fix names is not found in metadata, return None
-        # CHANGE HERE THE EXCEPTION
-        # The case when fix_namesis missing in the source metadata has to be dealt .
-        # the idea could be that for model $model_name we have a fix_names: $model_name-default defined in the fixes.
-        # This can be searched if any other metadata is missing inside the code
-        
-        if self.fixer_name is None:
-            return None
-
-        # get the fixes from the fix files
-        fixes = self.fixes_dictionary["fixer_name"].get(self.fixer_name, None)
+        # Get the fixes from the fix files, default is model-default
+        default_fixer_name = self.model + '-default'
+        # First we check that default is available
+        default_fix = self.fixes_dictionary["fixer_name"].get(default_fixer_name, None)
+        fixes = self.fixes_dictionary["fixer_name"].get(self.fixer_name, default_fix)
 
         # if found, proceed as expected
         if fixes is not None:
@@ -140,13 +123,10 @@ class FixerMixin():
                              self.fixer_name, self.model, self.exp, self.source)
             if 'parent' in fixes:
                 parent_fixes = self.fixes_dictionary["fixer_name"].get(fixes['parent'])
-                self.logger.info("Parent fix %s found! Mergin with family fixes %s!", fixes['parent'], self.fixer_name)
+                self.logger.info("Parent fix %s found! Mergin with fixer_name fixes %s!", fixes['parent'], self.fixer_name)
                 fixes = self._merge_fixes(parent_fixes, fixes)
         else:
-            self.logger.error("Fix names %s does not exist in %s.yaml file. Will try to use model default fixes!",
-                              self.fix_family, self.model)
-            warn("The model default will be deprecated in the future in favour of a fixer_name structure default.",
-                 DeprecationWarning, stacklevel=2)
+            return None
 
         return fixes
 
@@ -177,29 +157,25 @@ class FixerMixin():
         """Browse for source/model specific fixes, return None if not found"""
 
         if fix_model is None:
-            self.logger.debug("No model-specific fixes available for model %s",
+            self.logger.debug("No source-specific fixes available for model %s",
                               self.model)
             return None
 
         # look for exp fix, if not found, set default fixes
         fix_exp = fix_model.get(self.exp, None)
         if fix_exp is None:
-            self.logger.debug("No experiment-specific fixes available for model %s, experiment %s",
+            self.logger.debug("No source-specific fixes available for model %s, experiment %s",
                               self.model, self.exp)
             return None
 
         fixes = fix_exp.get(self.source, None)
         if fixes is None:
-            self.logger.debug("No source-specific fixes available for model %s, experiment %s, source %s: checking for model default...",  # noqa: E501
-                             self.model, self.exp, self.source)
-            fixes = fix_exp.get('default', None)
-            if fixes is None:
-                self.logger.debug("Nothing found! I will use with model default or family fixes...")
-            else:
-                self.logger.debug("Using experiment-specific default for model %s, experiment %s", self.model, self.exp)
+            self.logger.debug("No source-specific fixes available for model %s, experiment %s, source %s: using fixer_name",  # noqa: E501
+                              self.model, self.exp, self.source)
+            return None
         else:
             self.logger.debug("Source-specific fixes found for model %s, experiment %s, source %s",
-                             self.model, self.exp, self.source)
+                              self.model, self.exp, self.source)
 
         return fixes
 
