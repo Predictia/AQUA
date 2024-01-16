@@ -3,75 +3,62 @@ fixer_name:
         data_model: ifs
         deltat: 3600
         vars:
-            tprate:
-                source: tp
-                grib: true
-                src_units: m
-                units: kg m**-2 s**-1
-            cprate:
-                source: cp
-                grib: true
-                src_units: m
-                units: kg m**-2 s**-1
-            mlsprt:
-                source: lsp
-                grib: true
-                src_units: m
-                units: kg m**-2 s**-1
-            erate:
+            # Evaporation and snowfall
+            mer: # https://codes.ecmwf.int/grib/param-db/?id=235043
                 source: e
                 grib: true
                 src_units: m
-                units: kg m**-2 s**-1
-            esrate:
-                source: es
-                grib: true
-                src_units: m
-                units: kg m**-2 s**-1
-            mrort:
-                source: ro
-                grib: true
-                src_units: m
-                units: kg m**-2 s**-1
-            mtsfr:
+                #units: kg m**-2 s**-1
+            msr: # https://codes.ecmwf.int/grib/param-db/?id=235031
                 source: sf
                 grib: true
                 src_units: m
-                units: kg m**-2 s**-1
-            mslhfl:
+                #units: kg m**-2 s**-1
+            # Latent and sensible heat
+            mslhf: # https://codes.ecmwf.int/grib/param-db/?id=235034
                 source: slhf
                 grib: true
-            msshfl:
+            msshf:
                 source: sshf
                 grib: true
-            msnsrf:
+            # Surface fluxes
+            msnswrf:
                 source: ssr
                 grib: true
-            msdsrf:
-                source: ssrd
-                grib: true
-            msntrf:
+            msnlwrf:
                 source: str
                 grib: true
-            msdtrf:
+            msdwlwrf:
                 source: strd
                 grib: true
-            mtnsrf:
+            msdwswrf:
+                source: ssrd
+                grib: true
+            # TOA fluxes
+            mtnswrf:
                 source: tsr
                 grib: true
-            mtntrf:
+            mtnlwrf:
                 source: ttr
+                grib: true
+            mtdwswrf:
+                source: tisr
                 grib: true      
-            iews:
+            # Wind stresses
+            metss: # https://codes.ecmwf.int/grib/param-db/?id=235041
                 source: ewss
                 grib: true
-            inss: 
+            mntss: # https://codes.ecmwf.int/grib/param-db/?id=235042 
                 source: nsss
                 grib: true
-            surfror:  # a very recent version of eccodes is needed for this one
+            # Runoffs
+            msror:  # https://codes.ecmwf.int/grib/param-db/?id=235020
                 source: sro
                 grib: true
-                decumulate: true 
+            mssror: # https://codes.ecmwf.int/grib/param-db/?id=235021
+                source: ssro
+                grib: true
+
     ifs-default:
         data_model: ifs
         deltat: 3600
