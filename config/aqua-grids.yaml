@@ -28,6 +28,24 @@ grids:
   r200: r180x90
   r250: r144x72
 
+  # Generic Healpix
+  hpz7-nested:
+    space_coord: ["ncells"]
+    vert_coord: ["2d"]
+    path: $grids/HealPix/hpz7_nested_atm.nc
+  hpz10-nested:
+    space_coord: ["ncells"]
+    vert_coord: ["2d"]
+    path: $grids/HealPix/hpz10_nested_atm.nc
+  hpz7-ring:
+    space_coord: ["ncells"]
+    vert_coord: ["2d"]
+    path: $grids/HealPix/hpz7_ring_atm.nc
+  hpz10-ring:
+    space_coord: ["ncells"]
+    vert_coord: ["2d"]
+    path: $grids/HealPix/hpz10_ring_atm.nc
+
   #IFS
   tco79:
     path:  
@@ -78,7 +96,7 @@ grids:
   ifs-healpix:
     space_coord: ["ncells"]
     vert_coord: ["2d"]
-    path: $grids/HealPix/ifs_hpx10.nc
+    path: $grids/HealPix_old/ifs_hpx10.nc
 
   #ICON
   R02B08:
@@ -100,20 +118,20 @@ grids:
       space_coord: ["ncells"]
   icon-healpix:
     path:
-      2d: $grids/HealPix/icon_hpx{zoom}_atm_2d.nc   # this is the default 2d grid
-      2dm: $grids/HealPix/icon_hpx{zoom}_oce_2d.nc  # this is an additional and optional 2d grid used if data are masked
-      depth_full: $grids/HealPix/icon_hpx{zoom}_oce_depth_full.nc
-      depth_half: $grids/HealPix/icon_hpx{zoom}_oce_depth_half.nc
+      2d: $grids/HealPix_old/icon_hpx{zoom}_atm_2d.nc   # this is the default 2d grid
+      2dm: $grids/HealPix_old/icon_hpx{zoom}_oce_2d.nc  # this is an additional and optional 2d grid used if data are masked
+      depth_full: $grids/HealPix_old/icon_hpx{zoom}_oce_depth_full.nc
+      depth_half: $grids/HealPix_old/icon_hpx{zoom}_oce_depth_half.nc
     masked:   # This is the attribute used to distinguish variables which should go into the masked category
       component: ocean
     space_coord: ["cell"]
     vert_coord: ["depth_half", "depth_full"]
   icon-healpix-dev:
     path:
-      2d: $grids/HealPix/icon_hpx9_atm_2d.nc   # this is the default 2d grid
-      #2dm: $grids/HealPix/icon_hpx9_oce_2d.nc  # this is an additional and optional 2d grid used if data are masked
-      #depth_full: $grids/HealPix/icon_hpx9_oce_depth_full.nc
-      #depth_half: $grids/HealPix/icon_hpx9_oce_depth_half.nc
+      2d: $grids/HealPix_old/icon_hpx9_atm_2d.nc   # this is the default 2d grid
+      #2dm: $grids/HealPix_old/icon_hpx9_oce_2d.nc  # this is an additional and optional 2d grid used if data are masked
+      #depth_full: $grids/HealPix_old/icon_hpx9_oce_depth_full.nc
+      #depth_half: $grids/HealPix_old/icon_hpx9_oce_depth_half.nc
     #masked:   # This is the attribute used to distinguish variables which should go into the masked category
     #  component: ocean
     space_coord: ["ncells"]
@@ -183,8 +201,8 @@ grids:
     vert_coord: ["height"]
   nemo-healpix:
     path:
-      2d: $grids/HealPix/nemo_hpx10_oce_2d.nc 
-      level: $grids/HealPix/nemo_hpx10_oce_level.nc
+      2d: $grids/HealPix_old/nemo_hpx10_oce_2d.nc 
+      level: $grids/HealPix_old/nemo_hpx10_oce_level.nc
     space_coord: ["ncells"]
     vert_coord: ["level"]
 
