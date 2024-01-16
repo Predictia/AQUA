@@ -68,9 +68,8 @@ fixer_name:
             t:
                 source: T
                 grib: true         
-era5:
-    # daily data are done as an average from hourly data, need to multiply by 24 for fluxes
-    daily:
+    ERA5-daily:
+        # daily data are done as an average from hourly data, need to multiply by 24 for fluxes
         delete:
             - SLHF
             - SSHF
@@ -123,8 +122,7 @@ era5:
                 grib: true
                 derived: TP*24
                 src_units: m/day
-fdb:
-    fdb-test:
+    ERA5-fdb:
         method: replace
             
         # default:
