@@ -50,6 +50,9 @@ grids:
   nemo-hpz7-nested:
     space_coord: ["ncells"]
     path: $grids/HealPix/nemo_hpz7_nested_oce.nc
+  nemo-hpz10-nested:
+    space_coord: ["ncells"]
+    path: $grids/HealPix/nemo_hpz10_nested_oce.nc
 
   #IFS
   tco79:

@@ -304,7 +304,7 @@ sources:
       <<: *metadata-default
       fdb_path: /project/project_465000454/experiments/a0h3/fdb/HEALPIX_grids/etc/fdb/config.yaml
       variables:  [263000, 263001, 263003, 263004, 263008, 263009, 263021, 263022, 263100, 263101, 263121, 263122, 263124]
-      source_grid_name: nemo-healpix #to be changed
+      source_grid_name: nemo-hpz10-nested
 
   daily-hpxstd-oce3d:
     <<: *base-default
