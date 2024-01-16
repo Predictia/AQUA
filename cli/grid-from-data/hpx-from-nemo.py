@@ -53,6 +53,10 @@ if __name__ == '__main__':
                     areas=False, fix=False, loglevel=loglevel)
     data = reader.retrieve(var=var)
 
+    if model3d:
+        logger.debug("Modifying level axis attributes as Z")
+        data['level'].attrs['axis'] = 'Z'
+
     # Save data in a netcdf file on the temporary directory
     filename = tmp + '/' + model + '_' + exp + '_' + source + '_' + var + '.nc'
 
