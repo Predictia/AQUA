@@ -1,7 +1,6 @@
 """An intake driver for FDB/GSV access"""
 import os
 import datetime
-import sys
 import eccodes
 import xarray as xr
 import dask
@@ -84,6 +83,7 @@ class GSVSource(base.DataSource):
             self.levels = None
 
         if data_start_date == 'auto' or data_end_date == 'auto':
+            self.logger.info('Autoguessing of the FDB start and end date ensabled!')
             data_start_date, data_end_date = self.parse_fdb(self.fdbpath)
 
         if not startdate:
@@ -361,25 +361,28 @@ class GSVSource(base.DataSource):
         root = cfg['spaces'][0]['roots'][0]['path']
 
         file_list = os.listdir(root)
-        dates = [filename[-8:] for filename in file_list]
+        
+        # single line alternative: check if is a digit and if it is made by 8-character. We could avoid the try structure
+        datesel = [parse(filename[-8:]) for filename in file_list if (filename[-8:].isdigit() and len(filename[-8:])==8)]
+        datesel.sort()
 
-        dates.sort()
-
-        # keep only strings which are valid dates
-        datesel = [] 
-        for date in dates:
-            try:
-                parse(date)
-                datesel.append(date)
-            except ValueError:
-                break
+        # dates = [filename[-8:] for filename in file_list] 
+        # dates.sort()
+        # # keep only strings which are valid dates
+        # datesel = [] 
+        # for date in dates:
+        #     try:
+        #         parse(date)
+        #         datesel.append(date)
+        #     except ValueError:
+        #         break
 
         if len(datesel) == 0:
             raise ValueError('Auto date selection in catalogue but no valid dates found in FDB')
         else:
             start_date = datesel[0] + 'T0000'
             end_date = datesel[-1] + 'T2300'
-            self.logger.debug('Automatic FDB date range: %s - %s', start_date, end_date)
+            self.logger.info('Automatic FDB date range: %s - %s', start_date, end_date)
 
         return start_date, end_date
                 
