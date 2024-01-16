@@ -112,11 +112,14 @@ fixer_name:
                 source: v
                 grib: true
 
-    icon-destine:
+    #ICON-destine: 
+        #data_model: false
+
+    ICON-test-r2b0: 
         data_model: false
 
-    icon-cycle3:
-        parent: icon-default
+    ICON-cycle3:
+        parent: ICON-default
         vars:
             msl: # from here different from default
                 source: pres_msl
@@ -126,6 +129,21 @@ fixer_name:
                 source: ts
                 grib: false
                 src_units: K
+    ICON-hpx: 
+        data_model: false
+        vars:
+            msl:
+                source: sea_level_pressure
+                src_units: Pa
+                grib: true
+            2t:
+                source: tas
+                src_units: K
+                grib: true 
+            10si:
+                source: 10m_wind_speed
+                src_units: m/s
+                grib: true
 
 models:
     ICON:
