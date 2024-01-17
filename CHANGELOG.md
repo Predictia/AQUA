@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+## [v0.6]
+
+Main changes are:
+1. Inclusion in the catalog of the historical-1990 production simulations from IFS-NEMO and IFS-FESOM.
+
+Complete list:
 - Compact catalogues using yaml override syntax (#752)
 - Fix loading source grid file before smmregrid weight generation (#756)
 
@@ -236,7 +242,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.5.2...HEAD
+[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.6...HEAD
+[v0.5.2]: https://github.com/oloapinivad/AQUA/compare/v0.5.2...v0.6
 [v0.5.2]: https://github.com/oloapinivad/AQUA/compare/v0.5.1...v0.5.2
 [v0.5.1]: https://github.com/oloapinivad/AQUA/compare/v0.5...v0.5.1
 [v0.5]: https://github.com/oloapinivad/AQUA/compare/v0.4...v0.5
