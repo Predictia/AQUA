@@ -494,18 +494,21 @@ class Reader(FixerMixin, RegridMixin):
             # If we are retrieving from fdb we have to specify the var
             if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
 
-                loadvar = self.esmcat.metadata.get('variables', None)
-                if loadvar is not None:
-                    self.logger.debug('FDB metadata variables found')
-                else:
-                    loadvar = [self.esmcat._request['param']]  # retrieve var from catalogue
-                    self.logger.debug('FDB metadata not found: Loading default variable')
+                metadata = self.esmcat.get('metadata')
+                if metadata is not None:
+                    loadvar = metadata.get('variables')
+                    
+                    if loadvar is None:
+                        loadvar = [self.esmcat._request['param']]  # retrieve var from catalogue
+        
+                    if not isinstance(loadvar, list):
+                        loadvar = [loadvar]
 
-                if sample:
-                    self.logger.debug("FDB source sample reading, selecting only one variable")
-                    loadvar = [loadvar[0]]
+                    if sample:
+                        #self.logger.debug("FDB source sample reading, selecting only one variable")
+                        loadvar = [loadvar[0]]
 
-                self.logger.debug("FDB source: loading variables as %s", loadvar)
+                    self.logger.debug("FDB source: loading variables as %s", loadvar)
 
             else:
                 loadvar = None
