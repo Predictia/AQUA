@@ -368,7 +368,7 @@ class GSVSource(base.DataSource):
             raise ValueError('Auto date selection in catalogue but no valid dates found in FDB')
         else:
             start_date = datesel[0] + 'T0000'
-            end_date = datesel[-1] + 'T2300'
+            end_date = datesel[-1] + 'T0000'
             self.logger.info('Automatic FDB date range: %s - %s', start_date, end_date)
 
         return start_date, end_date

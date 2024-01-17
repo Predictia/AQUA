@@ -153,6 +153,9 @@ Some of the parameters are here described:
     It is mandatory to be set up because there is no easy way to get this information directly from the FDB.
     In the case of the schema used in the operational experiments, which use the 'date' ``timestyle`` (see below), 
     it is possible to set this parameter to 'auto'. In that case the date will be automatically determined from the FDB.
+    Please notice that, due to how the date information is retrieved in the 'auto' case,
+    the time of the last date wll always be '0000'. If there is more data available on the 
+    last day, please consider setting the date manually.
 
 .. option:: data_end_date
 
