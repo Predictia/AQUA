@@ -17,7 +17,12 @@ Complete list:
 - Compact catalogues using yaml override syntax (#752)
 - Fix loading source grid file before smmregrid weight generation (#756)
 
-## [v0.5.2]
+## [v0.5.2-beta]
+
+Complete list:
+-  A new fdb container is used to generate the correct AQUA container
+
+## [v0.5.2-alpha]
 
 Main changes are:
 1. Coupled models IFS-NEMO and IFS-FESOM are now supported
@@ -244,8 +249,9 @@ This is the AQUA pre-release to be sent to internal reviewers.
 Documentations is completed and notebooks are working.
 
 [unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.6...HEAD
-[v0.5.2]: https://github.com/oloapinivad/AQUA/compare/v0.5.2...v0.6
-[v0.5.2]: https://github.com/oloapinivad/AQUA/compare/v0.5.1...v0.5.2
+[v0.6]: https://github.com/oloapinivad/AQUA/compare/v0.5.2...v0.6
+[v0.5.2-beta]: https://github.com/oloapinivad/AQUA/compare/v0.5.2-alpha...v0.5.2-beta
+[v0.5.2-alpha]: https://github.com/oloapinivad/AQUA/compare/v0.5.1...v0.5.2-alpha
 [v0.5.1]: https://github.com/oloapinivad/AQUA/compare/v0.5...v0.5.1
 [v0.5]: https://github.com/oloapinivad/AQUA/compare/v0.4...v0.5
 [v0.4]: https://github.com/oloapinivad/AQUA/compare/v0.3...v0.4
