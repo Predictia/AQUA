@@ -225,6 +225,11 @@ grids:
       level: $grids/HealPix_old/nemo_hpx10_oce_level.nc
     space_coord: ["ncells"]
     vert_coord: ["level"]
+  nemo-multiIO-r025:
+    path: $grids/lonlat/nemo-multiIO-r025.nc
+  nemo-multiIO-r025-3d:
+    path:
+      level: $grids/lonlat/nemo-multiIO-r025-3d.nc
 
   # OBSERVATIONS
 
