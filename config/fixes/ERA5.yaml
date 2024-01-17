@@ -124,6 +124,14 @@ fixer_name:
                 src_units: m/day
     ERA5-fdb:
         method: replace
+        deltat: 86400
+        data_model: cf
+        vars:
+            2t:
+                source: 2t
+                src_units: K
+                grib: true
+
             
         # default:
         #     default:
