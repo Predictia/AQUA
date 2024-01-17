@@ -31,6 +31,10 @@ grids:
   r250: r144x72
 
   # Generic Healpix
+  hpz5-nested:
+    space_coord: ["ncells"]
+    vert_coord: ["2d"]
+    path: $grids/HealPix/hpz5_nested_atm.nc
   hpz7-nested:
     space_coord: ["ncells"]
     vert_coord: ["2d"]

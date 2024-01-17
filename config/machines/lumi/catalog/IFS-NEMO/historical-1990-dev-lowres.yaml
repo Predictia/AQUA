@@ -1,44 +1,7 @@
-sources: 
-  hourly-healpix:
-    args:
-      request:
-        #domain: g
-        class: d1
-        dataset: climate-dt
-        activity: CMIP6
-        experiment: hist
-        generation: 1
-        model: IFS-NEMO
-        realization: 1
-        resolution: standard
-        expver: a0fe
-        type: fc
-        stream: clte
-        date: 19900101
-        time: "0000"
-        param: 167
-        levtype: sfc
-        step: 0
-      data_start_date: 19900101T0000
-      data_end_date: 20191231T2300
-      aggregation: M  # Default aggregation / chunk size
-      savefreq: H  # at what frequency are data saved
-      timestep: H  # base timestep for step timestyle
-      timestyle: step  # variable date or variable step
-    description: hourly data on native grid TCo1279 (about 10km). Contains tprate(260048),
-      2t(167), 10u(165), 10v(166), 100u(228246), 100v(228247), sr(173), blh(159),
-      2d(168), skt(235), sp(134). See fix yaml for derived vars.
-    driver: gsv
-    metadata:
-      fdb_path: /projappl/project_465000454/experiments/a0fe/config.yaml
-      eccodes_path: /projappl/project_465000454/jvonhar/aqua/eccodes/eccodes-2.32.2/definitions
-      variables: [167]
-      source_grid_name: tco79
-      fixer_name: ifs-control
-  hourly-native:
-    args:
-      request:
-        #domain: g
+sources:
+  hourly-native-atm: &base-default
+    args: &args-default
+      request: &request-default
         class: d1
         dataset: climate-dt
         activity: CMIP6
@@ -61,31 +24,38 @@ sources:
       savefreq: H  # at what frequency are data saved
       timestep: H  # base timestep for step timestyle
       timestyle: step  # variable date or variable step
-    description: hourly data on native grid TCo1279 (about 10km). Contains tprate(260048),
-      2t(167), 10u(165), 10v(166), 100u(228246), 100v(228247), sr(173), blh(159),
-      2d(168), skt(235), sp(134). See fix yaml for derived vars.
+    description: hourly data on native grid TCo79.
     driver: gsv
-    metadata:
+    metadata: &metadata-default
       fdb_path: /projappl/project_465000454/experiments/a0fe/fdb/NATIVE_grids/etc/fdb/config.yaml
       eccodes_path: /projappl/project_465000454/jvonhar/aqua/eccodes/eccodes-2.32.2/definitions
-      variables: [167]
+      variables: [175, 176, 177, 178, 179, 144, 146, 147, 169, 182, 212, 228,
+                  165, 166, 141, 164, 78, 79, 167, 168, 235]
       source_grid_name: tco79
-      fixer_name: ifs-control
+      fixer_name: ifs-destine-v1
 
+  hourly-hpz5-atm:
+    <<: *base-default
+    description: hourly atmospheric data on healpix zoom=5 grid
+    args:
+      <<: *args-default
+      request:
+        <<: *request-default
+        resolution: standard
+    metadata:
+      <<: *metadata-default
+      fdb_path: /projappl/project_465000454/experiments/a0fe/config.yaml
+      source_grid_name: hpz5-nested
 
-# Example request:
-# class: d1
-# dataset: climate-dt
-# activity: CMIP6
-# experiment: hist
-# generation: 1
-# model: IFS-NEMO
-# realization: 1
-# resolution: standard
-# expver: a0fe
-# type: fc
-# stream: clte
-# levtype: sfc
-# param: 167
-# date: 19900101
-# time: "0000"
+  hourly-r100-atm:
+    <<: *base-default
+    description: hourly atmospheric data on regular 0.25 degree grid
+    args:
+      <<: *args-default
+      request:
+        <<: *request-default
+        resolution: standard
+    metadata:
+      <<: *metadata-default
+      fdb_path: /projappl/project_465000454/experiments/a0fe/fdb/REGULARLL_grids/etc/fdb/config.yaml 
+      source_grid_name: lon-lat
