@@ -17,7 +17,9 @@ cdo-paths: # to be checked
 grids:
   # default
   lon-lat:
+    vert_coord: ["2d"]
     space_coord: [lon, lat]
+
   # target regrid
   r005: r7200x3600
   r010: r3600x1800
@@ -225,15 +227,19 @@ grids:
     vert_coord: ["level"]
 
   # OBSERVATIONS
+
+  # AVISO
   aviso:
     space_coord: ["longitude", "latitude"]
 
+  # EN4
   en4:
     path:
       lev: $grids/EN4/en4-grid.nc
     space_coord: ["lon", "lat"]
     vert_coord: ["lev"]
-  
+
+  # ERA5
   era5-n320:
     path: $grids/ERA5/n320_unstructured.nc
     space_coord: ["values"]
@@ -246,6 +252,7 @@ grids:
     space_coord: ["lon", "lat"]
     vert_coord: ["2d", "2dm"]
 
+  # OSI-SAF
   osi-saf-nh:
     space_coord: ['xc', 'yc']
     cellareas: $grids/OSI-SAF/grid_nh.nc
@@ -258,13 +265,15 @@ grids:
     cellarea_var: areacello
     # mask: $grids/OSI-SAF/grid_sh.nc
     # mask_var: sftof
-  
+
+  # WOA
   woa:
     path:
       depth: $grids/WOA18/grid-woa18.nc
     vert_coord: depth
     space_coord: ["lon", "lat"]
-  
+
+  # PSC
   psc-piomas:
     space_coord: ["x", "y"]
     cellareas: $grids/PSC/grid_piomas.nc
@@ -272,7 +281,6 @@ grids:
     mask: $grids/PSC/grid_piomas.nc
     mask_var: sftof
     regrid_method: 'bil'
-
   psc-giomas:
     space_coord: ["x", "y"]
     cellareas: $grids/PSC/grid_giomas.nc
@@ -280,8 +288,3 @@ grids:
     mask: $grids/PSC/grid_giomas.nc
     mask_var: sftof
     regrid_method: 'bil'
-
-
-  
-
-  
