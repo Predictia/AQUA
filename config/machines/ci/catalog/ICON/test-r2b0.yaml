@@ -4,7 +4,6 @@ plugins:
 sources:
   short:
     metadata:
-      fixer_name: ICON-test-r2b0
       source_grid_name: test-r2b0
     args:
       chunks:

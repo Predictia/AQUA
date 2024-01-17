@@ -1,4 +1,6 @@
 fixer_name:
+    icon-destine:
+        data_model: false
     ICON-default:
         data_model: false  # Do not attempt to correct coordinates
         delete:  # variables to drop at the end
@@ -112,9 +114,6 @@ fixer_name:
                 source: v
                 grib: true
 
-    #ICON-destine: 
-        #data_model: false
-
     ICON-cycle3:
         parent: ICON-default
         vars:
@@ -141,9 +140,6 @@ fixer_name:
                 source: 10m_wind_speed
                 src_units: m/s
                 grib: true
-    ICON-test-r2b0: 
-        data_model: false
-        parent: ICON-default
 
 models:
     ICON:
