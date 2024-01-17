@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased is the current development version.
 
+- IFS-FESOM historical-1990-dev-lowres with new data governance added to the catalogue
 - Compact catalogues using yaml override syntax (#752)
 - Fix loading source grid file before smmregrid weight generation (#756)
 
