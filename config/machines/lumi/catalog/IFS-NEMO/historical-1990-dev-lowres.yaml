@@ -77,4 +77,44 @@ sources:
       levels: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500,
                600, 700, 850, 925, 1000]
       variables: [129, 130, 131, 132, 133, 157]
+  
+  hourly-hpz5-atm3d:
+    <<: *base-default
+    description: hourly atmospheric 3D data on healpix zoom=5 grid
+    args:
+      <<: *args-default
+      request:
+        <<: *request-default
+        resolution: standard
+        param: 130
+        levtype: pl
+        levelist: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500,
+                   600, 700, 850, 925, 1000]
+    metadata:
+      <<: *metadata-default
+      levels: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500,
+               600, 700, 850, 925, 1000]
+      variables: [129, 130, 131, 132, 133, 157]
+      fdb_path: /projappl/project_465000454/experiments/a0fe/config.yaml
+      source_grid_name: hpz5-nested
+  
+  hourly-r100-atm3d:
+    <<: *base-default
+    description: hourly atmospheric 3D data on regular 0.25 degree grid
+    args:
+      <<: *args-default
+      request:
+        <<: *request-default
+        resolution: standard
+        param: 130
+        levtype: pl
+        levelist: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500,
+                   600, 700, 850, 925, 1000]
+    metadata:
+      <<: *metadata-default
+      levels: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500,
+               600, 700, 850, 925, 1000]
+      variables: [129, 130, 131, 132, 133, 157]
+      fdb_path: /projappl/project_465000454/experiments/a0fe/fdb/REGULARLL_grids/etc/fdb/config.yaml
+      source_grid_name: lon-lat
         
