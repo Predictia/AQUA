@@ -18,7 +18,7 @@ loglevel: str = 'warning'
 logger = log_configure(log_level=loglevel, log_name='Atmglobalmean')
 
 
-def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statistic=None, model_label1=None, model_label2=None, 
+def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statistic='mean', model_label1=None, model_label2=None, 
                   start_date1=None, end_date1=None, start_date2=None, end_date2=None, outputdir=None, outputfig=None):
     '''
     Plot the seasonal bias maps between two datasets for specific variable and time ranges.
@@ -28,7 +28,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
         dataset2 (xarray.Dataset): The second dataset, that will be compared to the first dataset (reference dataset).
         var_name (str): The name of the variable to compare (e.g., '2t', 'tprate', 'mtntrf', 'mtnsrf', ...).
         plev (float or None): The desired pressure level in Pa. If None, the variable is assumed to be at surface level.
-        statistic (str): The desired statistic to calculate for each season. Valid options are: 'mean', 'max', 'min', 'diff', and 'std'.
+        statistic (str): The desired statistic to calculate for each season. Valid options are: 'mean', 'max', 'min', 'diff', and 'std'. The default statistic is 'mean'.
         model_label1 (str): The labeling for the first dataset.
         model_label2 (str): The labeling for the second dataset.
         start_date1 (str): The start date of the time range for dataset1 in 'YYYY-MM-DD' format.
@@ -88,9 +88,13 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
     season_ranges = {'DJF': [12, 1, 2], 'MAM': [3, 4, 5], 'JJA': [6, 7, 8], 'SON': [9, 10, 11]}
     results = []
     for season, months in season_ranges.items():
-        var1_season = var1_climatology.sel(month=months)
-        var2_season = var2_climatology.sel(month=months)
-        
+        if season == 'DJF':
+            var1_season = var1_climatology.sel(month=months[1:])
+            var2_season = var2_climatology.sel(month=months)
+        else:
+            var1_season = var1_climatology.sel(month=months)
+            var2_season = var2_climatology.sel(month=months)
+
         if statistic == 'mean':
             result_season = var1_season.mean(dim='month') - var2_season.mean(dim='month')
         elif statistic == 'max':
@@ -132,9 +136,6 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
         ax.set_yticks(np.arange(-90, 91, 30), crs=projection)
         ax.xaxis.set_major_formatter(LongitudeFormatter())
         ax.yaxis.set_major_formatter(LatitudeFormatter())
-
-        # Add dashed latitude and longitude gridlines
-        ax.gridlines(color='black', linestyle='dashed')
 
         # Plot the bias data using the corresponding cnplot object
         cnplot = result.plot(ax=ax, cmap='RdBu_r', add_colorbar=False)
