@@ -115,9 +115,6 @@ fixer_name:
     #ICON-destine: 
         #data_model: false
 
-    ICON-test-r2b0: 
-        data_model: false
-
     ICON-cycle3:
         parent: ICON-default
         vars:
@@ -144,6 +141,9 @@ fixer_name:
                 source: 10m_wind_speed
                 src_units: m/s
                 grib: true
+    ICON-test-r2b0: 
+        data_model: false
+        parent: ICON-hpx
 
 models:
     ICON:
