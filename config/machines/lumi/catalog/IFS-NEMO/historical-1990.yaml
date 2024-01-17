@@ -185,7 +185,7 @@ sources:
     description: daily 3D oceanic data on native grid eORCA12.
     args:
       <<: *args-default
-      aggregation: M
+      aggregation: D
       savefreq: D
       request:
         <<: *request-default
@@ -247,7 +247,7 @@ sources:
     description: daily 3D oceanic data on regular r025 grid (1440x721).
     args:
       <<: *args-default
-      aggregation: M
+      aggregation: D
       savefreq: D
       request:
         <<: *request-default
