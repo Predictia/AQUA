@@ -294,6 +294,59 @@ Other simpler grids can be defined using the CDO syntax, so for example we have 
 
 A standard `lon-lat` grid is defined for basic interpolation and can be used for most of the regular cases, as long as the ``space_coord`` are ``lon`` and ``lat``.
 
+
+Compact catalogues with YAML override
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In order to avoid having to write the same catalogue entry for each source,
+in AQUA we can use the YAML override functionality also for the intake catalogues.
+This allows to write the full rquest information only for a first 
+base catalogue source and then define the following ones as copies of the first,
+overriding only the keys that are different.
+
+For example, let's imagine that we have a first source called ``hourly-native``
+that is defined as:
+
+.. code-block:: yaml
+
+    sources: 
+    hourly-native: &base-default
+        description: hourly data on native grid TCo1279 (about 10km).
+        args: &args-default
+        request: &request-default
+            class: d1
+            resolution: high
+            [ ... other request parameters ... ]
+        data_start_date: 19900101T0000
+        data_end_date: 19941231T2300
+        aggregation: D  
+        [ ... other keys ... ]
+        metadata: &metadata-default
+            fdb_path: [ ... some path to the FDB ... ]
+            eccodes_path: [ ... some path to the eccodes ... ]
+            [ ... other keys ... ]
+
+We can then define a second source as a copy of the first one,
+specifying only what is different:
+
+.. code-block:: yaml
+
+    hourly-r025:
+        <<: *base-default
+        description: hourly 2D atmospheric data on regular r025 grid (1440x721).
+        args:
+            <<: *args-default
+            request:
+                <<: *request-default
+                resolution: standard
+        metadata:
+            <<: *metadata-default
+            fdb_path: [ ... some different path to the FDB ... ]
+
+This second source will have the same keys as the first one, except for
+the ones that are explicitly overridden.
+
+
 DE_340 source syntax convention
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
