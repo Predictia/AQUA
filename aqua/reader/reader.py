@@ -494,8 +494,8 @@ class Reader(FixerMixin, RegridMixin):
             # If we are retrieving from fdb we have to specify the var
             if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
 
-                metadata = self.esmcat.get('metadata')
-                if metadata is not None:
+                metadata = self.esmcat.metadata
+                if metadata:
                     loadvar = metadata.get('variables')
                     
                     if loadvar is None:
