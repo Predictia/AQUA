@@ -11,6 +11,7 @@ Unreleased is the current development version.
 
 Main changes are:
 1. Inclusion in the catalog of the historical-1990 production simulations from IFS-NEMO and IFS-FESOM.
+2. New fixes that target the DestinE updated Data Governance
 
 Complete list:
 - Compact catalogues using yaml override syntax (#752)
