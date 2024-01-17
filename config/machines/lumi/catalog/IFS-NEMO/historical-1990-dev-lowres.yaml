@@ -1,5 +1,5 @@
 sources:
-  hourly-native-atm: &base-default
+  hourly-native-atm2d: &base-default
     args: &args-default
       request: &request-default
         class: d1
@@ -24,7 +24,7 @@ sources:
       savefreq: H  # at what frequency are data saved
       timestep: H  # base timestep for step timestyle
       timestyle: step  # variable date or variable step
-    description: hourly data on native grid TCo79.
+    description: hourly atmospheric 2D data on native grid TCo79.
     driver: gsv
     metadata: &metadata-default
       fdb_path: /projappl/project_465000454/experiments/a0fe/fdb/NATIVE_grids/etc/fdb/config.yaml
@@ -34,9 +34,9 @@ sources:
       source_grid_name: tco79
       fixer_name: ifs-destine-v1
 
-  hourly-hpz5-atm:
+  hourly-hpz5-atm2d:
     <<: *base-default
-    description: hourly atmospheric data on healpix zoom=5 grid
+    description: hourly atmospheric 2D data on healpix zoom=5 grid
     args:
       <<: *args-default
       request:
@@ -47,9 +47,9 @@ sources:
       fdb_path: /projappl/project_465000454/experiments/a0fe/config.yaml
       source_grid_name: hpz5-nested
 
-  hourly-r100-atm:
+  hourly-r100-atm2d:
     <<: *base-default
-    description: hourly atmospheric data on regular 0.25 degree grid
+    description: hourly atmospheric 2D data on regular 0.25 degree grid
     args:
       <<: *args-default
       request:
@@ -59,3 +59,22 @@ sources:
       <<: *metadata-default
       fdb_path: /projappl/project_465000454/experiments/a0fe/fdb/REGULARLL_grids/etc/fdb/config.yaml 
       source_grid_name: lon-lat
+  
+  hourly-native-atm3d:
+    <<: *base-default
+    description: hourly atmospheric 3D data on native grid TCo79
+    args:
+      <<: *args-default
+      aggregation: D
+      request:
+        <<: *request-default
+        param: 130
+        levtype: pl
+        levelist: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500,
+                   600, 700, 850, 925, 1000]
+    metadata:
+      <<: *metadata-default
+      levels: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500,
+               600, 700, 850, 925, 1000]
+      variables: [129, 130, 131, 132, 133, 157]
+        
