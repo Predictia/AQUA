@@ -139,7 +139,7 @@ class FixerMixin():
                 fixes = self._merge_fixes(parent_fixes, fixes)
         else:
             self.logger.error("Fix names %s does not exist in %s.yaml file. Will try to use model default fixes!",
-                              self.fix_family, self.model)
+                              self.fixer_name, self.model)
             warn("The model default will be deprecated in the future in favour of a fixer_name structure default.",
                  DeprecationWarning, stacklevel=2)
 
