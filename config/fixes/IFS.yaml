@@ -58,6 +58,11 @@ fixer_name:
             mssror: # https://codes.ecmwf.int/grib/param-db/?id=235021
                 source: ssro
                 grib: true
+    ifs-destine-lowres-v1:
+        vars:
+            tprate:
+                source: tp
+                grib: true
 
     ifs-default:
         data_model: ifs
