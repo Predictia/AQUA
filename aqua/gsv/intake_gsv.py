@@ -83,7 +83,7 @@ class GSVSource(base.DataSource):
 
         if data_start_date == 'auto' or data_end_date == 'auto':
             self.logger.debug('Autoguessing of the FDB start and end date enabled.')
-            data_start_date, data_end_date = self.parse_fdb()
+            data_start_date, data_end_date = self.parse_fdb(self.fdbpath, data_start_date, data_end_date)
 
         if not startdate:
             startdate = data_start_date
@@ -346,15 +346,15 @@ class GSVSource(base.DataSource):
             yield ds
 
     
-    def parse_fdb(self):
+    def parse_fdb(self, fdbpath, start_date, end_date):
         """Parse the FDB config file and return the start and end dates of the data."""
 
-        if not self.fdbpath:
+        if not fdbpath:
             raise ValueError('Automatic dates requested but FDB path not specified in catalogue.')
 
         yaml = YAML() 
 
-        with open(self.fdbpath, 'r') as file:
+        with open(fdbpath, 'r') as file:
             cfg = yaml.load(file)
 
         root = cfg['spaces'][0]['roots'][0]['path']
@@ -367,15 +367,10 @@ class GSVSource(base.DataSource):
         if len(datesel) == 0:
             raise ValueError('Auto date selection in catalogue but no valid dates found in FDB')
         else:
-            if self.data_start_date == 'auto':
+            if start_date == 'auto':
                 start_date = datesel[0] + 'T0000'
-            else:
-                start_date = self.data_start_date
-            if self.data_end_date == 'auto':
+            if end_date == 'auto':
                 end_date = datesel[-1] + 'T0000'
-            else:
-                end_date = self.data_end_date
-
             self.logger.info('Automatic FDB date range: %s - %s', start_date, end_date)
 
         return start_date, end_date
