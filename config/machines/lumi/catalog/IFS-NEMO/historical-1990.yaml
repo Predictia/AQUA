@@ -18,7 +18,7 @@ sources:
         param: 167
         levtype: sfc
         step: 0
-      data_start_date: auto
+      data_start_date: 19900101T0000
       data_end_date: auto
       aggregation: D  # Default aggregation / chunk size
       savefreq: H  # at what frequency are data saved
