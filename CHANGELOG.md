@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version.
 
+- AtmoGlobalMean diagnostic improvements (#722)
+- Teleconnections diagnostic improvements (#722)
+- Read only one level for retrieving 3D array metadata, select single level for retrieve (#713)
 - IFS-FESOM historical-1990-dev-lowres with new data governance added to the catalogue
 - Fix mismatch between var argument and variables specified in catalogue for FDB (#761)
 - Compact catalogues using yaml override syntax (#752)
