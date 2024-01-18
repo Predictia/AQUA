@@ -128,6 +128,9 @@ fixer_name:
     ICON-hpx: 
         data_model: false
         vars:
+            t:
+                source: ta
+                grib: true
             msl:
                 source: sea_level_pressure
                 src_units: Pa
@@ -140,42 +143,3 @@ fixer_name:
                 source: 10m_wind_speed
                 src_units: m/s
                 grib: true
-
-models:
-    ICON:
-        hpx: 
-            default:
-                data_model: false
-                vars:
-                    msl:
-                        source: sea_level_pressure
-                        src_units: Pa
-                        grib: true
-                    2t:
-                        source: tas
-                        src_units: K
-                        grib: true 
-                    10si:
-                        source: 10m_wind_speed
-                        src_units: m/s
-                        grib: true
-        ngc3026:
-            default:
-                method: merge
-                vars:
-                    msl: # different from default
-                        source: pres_msl
-                        src_units: Pa
-                        grib: true
-        ngc3028:
-            default:
-                method: merge
-                vars:
-                    msl: # from here different from default
-                        source: pres_msl
-                        src_units: Pa
-                        grib: true
-                    sst:
-                        source: ts
-                        grib: false
-                        src_units: K

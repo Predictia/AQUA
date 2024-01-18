@@ -4,7 +4,6 @@ plugins:
 sources:
   short:
     metadata:
-      fixer_name: test-tco79
       source_grid_name: tco79
     args:
       chunks:
@@ -37,7 +36,7 @@ sources:
     driver: netcdf
   long:
     metadata:
-      fixer_name: test-tco79
+      fixer_name: ifs-ci-test
       source_grid_name: lon-lat
     args:
       chunks:
