@@ -14,6 +14,10 @@ Main changes are:
 2. New fixes that targets the DestinE updated Data Governance
 
 - IFS-FESOM historical-1990-dev-lowres with new data governance added to the catalogue (#770)
+- AtmoGlobalMean diagnostic improvements (#722)
+- Teleconnections diagnostic improvements (#722)
+- Read only one level for retrieving 3D array metadata, select single level for retrieve (#713)
+- IFS-FESOM historical-1990-dev-lowres with new data governance added to the catalogue
 - Fix mismatch between var argument and variables specified in catalogue for FDB (#761)
 - Compact catalogues using yaml override syntax (#752)
 - Fix loading source grid file before smmregrid weight generation (#756)
