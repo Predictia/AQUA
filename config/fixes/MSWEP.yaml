@@ -6,16 +6,3 @@ fixer_name:
             tprate:
                 source: precipitation
                 grib: true
-
-
-
-models:  
-    MSWEP:
-        default:
-            default:
-                data_model: cf
-                vars:
-                    # Automatic conversion to destination grib units
-                    tprate:
-                        source: precipitation
-                        grib: true
