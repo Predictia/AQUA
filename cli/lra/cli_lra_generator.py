@@ -11,7 +11,7 @@ import sys
 import argparse
 from aqua import LRAgenerator
 from aqua.util import load_yaml, get_arg
-import aqua.__version__ as version
+from aqua import __version__ as version
 
 # to check if GSV is available and return the version
 try:
@@ -90,7 +90,7 @@ if __name__ == '__main__':
                     lra.retrieve()
                     lra.generate_lra()
                     
-                # create the catalog once the loop is over
-                lra.create_catalog_entry()
+        # create the catalog once the loop is over
+        lra.create_catalog_entry()
 
     print('LRA run completed. Have yourself a beer!')
