@@ -135,7 +135,6 @@ class FixerMixin():
                 else:
                     self.logger.error("Parent fix %s defined but not available in the fixes file.", fixes['parent'])
         else:
-
             return None
 
         return fixes
@@ -368,8 +367,8 @@ class FixerMixin():
                         tgt_units = self.fixes_dictionary["defaults"]["units"]["shortname"][tgt_units.replace('{',
                                                                                                               '').replace('}',
                                                                                                                           '')]
-                    self.logger.info("Converting %s: %s --> %s", var, data[source].units, tgt_units)
-                    log_history(data, f"Converting units of {var}: from {data[source].units} to {tgt_units}")
+                    self.logger.info("%s: converting units %s --> %s", var, data[source].units, tgt_units)
+                    log_history(data[source], f"Converting units of {var}: from {data[source].units} to {tgt_units}")
                     factor, offset = self.convert_units(data[source].units, tgt_units, var)
                     # self.logger.info('Factor: %s, offset: %s', factor, offset)
 
@@ -379,7 +378,7 @@ class FixerMixin():
                         data[source].attrs.update({"offset": offset})
                         self.logger.debug("Fixing %s to %s. Unit fix: factor=%f, offset=%f",
                                          source, var, factor, offset)
-                        log_history(data, f"Fixing {source} to {var}. Unit fix: factor={factor}, offset={offset}")
+                        log_history(data[source], f"Fixing {source} to {var}. Unit fix: factor={factor}, offset={offset}")
 
         # Only now rename everything
         data = data.rename(fixd)
@@ -784,7 +783,7 @@ class FixerMixin():
 
         # if units are not already updated and if a tgt_units exist
         if tgt_units and org_units != tgt_units:
-            self.logger.info("Applying unit fixes for %s ", data.name)
+            self.logger.debug("Applying unit fixes for %s ", data.name)
 
             # define an old units
             data.attrs.update({"src_units": org_units, "units_fixed": 1})
