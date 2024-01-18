@@ -88,7 +88,7 @@ def file_is_complete(filename, loglevel='WARNING'):
                         
         # we have no clue which kind of exception might show up
         except ValueError:
-            logger.info('Something wrong with file %s! Recomputing...', filename)
+            logger.error('Something wrong with file %s! Recomputing...', filename)
             check = False
     else:
         logger.info('File %s not found...', filename)
