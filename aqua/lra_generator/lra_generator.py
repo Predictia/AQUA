@@ -9,7 +9,6 @@ import glob
 import dask
 import xarray as xr
 import pandas as pd
-import numpy as np
 from dask.distributed import Client, LocalCluster, progress
 from dask.diagnostics import ProgressBar
 from aqua.logger import log_configure, log_history
@@ -33,7 +32,7 @@ class LRAgenerator():
                  model=None, exp=None, source=None, zoom=None,
                  var=None, configdir=None,
                  resolution=None, frequency=None, fix=True,
-                 outdir=None, tmpdir=None, nproc=1, aggregation=None,
+                 outdir=None, tmpdir=None, nproc=1,
                  loglevel=None, overwrite=False, definitive=False):
         """
         Initialize the LRA_Generator class
@@ -57,7 +56,6 @@ class LRAgenerator():
             configdir (string):      Configuration directory where the catalog
                                      are found
             nproc (int, opt):        Number of processors to use. default is 1
-            aggregation(str, opt)    String to control the aggregation for generator
             loglevel (string, opt):  Logging level
             overwrite (bool, opt):   True to overwrite existing files in LRA,
                                      default is False
@@ -86,11 +84,6 @@ class LRAgenerator():
 
             self.tmpdir = os.path.join(self.tmpdir, 'LRA_' +
                                        generate_random_string(10))
-
-        # # Data settings
-        # self._assign_key('model', model)
-        # self._assign_key('exp', exp)
-        # self._assign_key('source', source)
 
         if model:
             self.model = model
@@ -139,7 +132,6 @@ class LRAgenerator():
         self.logger.info('Fixing data: %s', self.fix)
 
         # for data reading from FDB
-        self.aggregation = aggregation
         self.last_record = None
         self.check = False
 
@@ -157,15 +149,6 @@ class LRAgenerator():
         self.client = None
         self.reader = None
 
-    # def _assign_key(self, name, key):
-
-    #     """Assign the key and raise and error"""
-
-    #     if key:
-    #         setattr(self, name, key)
-    #     else:
-    #         raise KeyError('Please specify {name}.')
-
     def retrieve(self):
         """
         Retrieve data from the catalog
@@ -176,7 +159,7 @@ class LRAgenerator():
                              source=self.source, zoom=self.zoom,
                              regrid=self.resolution,
                              loglevel=self.loglevel,
-                             fix=self.fix, aggregation=self.aggregation)
+                             fix=self.fix)
 
         self.logger.info('Accessing catalog for %s-%s-%s...',
                          self.model, self.exp, self.source)
