@@ -408,12 +408,13 @@ class LRAgenerator():
         self.logger.info('Processing variable %s...', var)
         temp_data = self.data[var]
 
-        if self.frequency:
-            temp_data = self.reader.timmean(temp_data, freq=self.frequency)
+        # Old version pre-HACK
+        #if self.frequency:
+        #    temp_data = self.reader.timmean(temp_data, freq=self.frequency)
 
         # regrid
-        temp_data = self.reader.regrid(temp_data)
-        temp_data = self._remove_regridded(temp_data)
+        #temp_data = self.reader.regrid(temp_data)
+        #temp_data = self._remove_regridded(temp_data)
 
         # Splitting data into yearly files
         years = set(temp_data.time.dt.year.values)
@@ -440,12 +441,16 @@ class LRAgenerator():
                 month_data = year_data.sel(time=year_data.time.dt.month == month)
 
                 # HACK: check for ifs wrong fluxes only
-                #if len(month_data.time)>1: 
-                #    month_data = check_correct_ifs_fluxes(month_data, loglevel=self.loglevel)
+                if len(month_data.time)>1:
+                    month_data = check_correct_ifs_fluxes(month_data, loglevel=self.loglevel)
 
-                #if self.frequency:
-                #    month_data = self.reader.timmean(month_data, freq=self.frequency)
+                # HACK: move the regrid and frequency here
+                if self.frequency:
+                    month_data = self.reader.timmean(month_data, freq=self.frequency)
+                month_data = self.reader.regrid(month_data)
+                month_data = self._remove_regridded(month_data)
 
+                self.logger.debug(month_data.mean().values)
                 self.logger.debug(month_data)
 
                 # real writing
