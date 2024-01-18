@@ -129,8 +129,11 @@ class FixerMixin():
                                 self.fixer_name, self.model, self.exp, self.source)
             if 'parent' in fixes:
                 parent_fixes = self.fixes_dictionary["fixer_name"].get(fixes['parent'])
-                self.logger.info("Parent fix %s found! Mergin with fixer_name fixes %s!", fixes['parent'], self.fixer_name)
-                fixes = self._merge_fixes(parent_fixes, fixes)
+                if parent_fixes is not None:
+                    self.logger.info("Parent fix %s found! Mergin with fixer_name fixes %s!", fixes['parent'], self.fixer_name)
+                    fixes = self._merge_fixes(parent_fixes, fixes)
+                else:
+                    self.logger.error("Parent fix %s defined but not available in the fixes file.", fixes['parent'])
         else:
 
             return None
@@ -150,6 +153,8 @@ class FixerMixin():
         Return:
             dict with merged fixes
         """
+        print(base)
+        print(specific)
         final = base
         for item in base.keys():
             if item == 'vars':

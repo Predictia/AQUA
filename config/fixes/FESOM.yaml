@@ -63,7 +63,7 @@ fixer_name:
                 src_units: m
                 grib: true
     FESOM-test:
-        parent: fesom-default
+        parent: FESOM-default
         data_model: false
         vars:
             mlotst125:
