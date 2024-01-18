@@ -16,6 +16,7 @@ from aqua.reader import Reader
 from aqua.util import create_folder, generate_random_string
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import ConfigPath, file_is_complete
+from aqua.lra_generator.util import check_correct_ifs_fluxes
 
 
 class LRAgenerator():
@@ -379,7 +380,7 @@ class LRAgenerator():
             if filecheck and not self.overwrite:
                 self.logger.info('Monthly file %s already exists, skipping...', outfile)
                 continue
-
+            
             # real writing
             if self.definitive:
                 self.write_chunk(temp_data, outfile)
@@ -406,10 +407,9 @@ class LRAgenerator():
 
         self.logger.info('Processing variable %s...', var)
         temp_data = self.data[var]
-        if self.frequency:
-            temp_data = self.reader.timmean(temp_data, freq=self.frequency)
-        temp_data = self.reader.regrid(temp_data)
 
+        # regrid
+        temp_data = self.reader.regrid(temp_data)
         temp_data = self._remove_regridded(temp_data)
 
         # Splitting data into yearly files
@@ -435,6 +435,14 @@ class LRAgenerator():
                     self.logger.info('Monthly file %s already exists, skipping...', outfile)
                     continue
                 month_data = year_data.sel(time=year_data.time.dt.month == month)
+
+                # HACK: check for ifs wrong fluxes only
+                #if len(month_data.time)>1: 
+                #    month_data = check_correct_ifs_fluxes(month_data, loglevel=self.loglevel)
+
+                if self.frequency:
+                    month_data = self.reader.timmean(month_data, freq=self.frequency)
+
                 self.logger.debug(month_data)
 
                 # real writing
