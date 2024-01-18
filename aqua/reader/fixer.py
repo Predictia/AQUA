@@ -139,7 +139,7 @@ class FixerMixin():
                 fixes = self._merge_fixes(parent_fixes, fixes)
         else:
             self.logger.error("Fix names %s does not exist in %s.yaml file. Will try to use model default fixes!",
-                              self.fix_family, self.model)
+                              self.fixer_name, self.model)
             warn("The model default will be deprecated in the future in favour of a fixer_name structure default.",
                  DeprecationWarning, stacklevel=2)
 
@@ -324,7 +324,7 @@ class FixerMixin():
                     if source != shortname:
                         fixd.update({f"{source}": f"{shortname}"})
 
-                    log_history(data[source], f"variable renamed {shortname} by fixer")
+                    log_history(data[source], f"Variable renamed {shortname} by fixer")
 
                 # 2. derived case: let's compute the formula it and create the new variable
                 formula = varfix.get("derived", None)
@@ -334,7 +334,7 @@ class FixerMixin():
                         data[source] = eval_formula(formula, data)
                         attributes.update({"derived": formula})
                         self.logger.debug("Derived %s from %s", var, formula)
-                        log_history(data[source], f"variable {var}, derived with {formula} by fixer")
+                        log_history(data[source], f"Variable {var}, derived with {formula} by fixer")
                     except KeyError:
                         # The variable could not be computed, let's skip it
                         if destvar is not None:
@@ -375,8 +375,8 @@ class FixerMixin():
                         tgt_units = self.fixes_dictionary["defaults"]["units"]["shortname"][tgt_units.replace('{',
                                                                                                               '').replace('}',
                                                                                                                           '')]
-                    self.logger.info("Converting %s: %s --> %s", var, data[source].units, tgt_units)
-                    log_history(data, f"Converting units of {var}: from {data[source].units} to {tgt_units}")
+                    self.logger.info("%s: converting units %s --> %s", var, data[source].units, tgt_units)
+                    log_history(data[source], f"Converting units of {var}: from {data[source].units} to {tgt_units}")
                     factor, offset = self.convert_units(data[source].units, tgt_units, var)
                     # self.logger.info('Factor: %s, offset: %s', factor, offset)
 
@@ -386,7 +386,7 @@ class FixerMixin():
                         data[source].attrs.update({"offset": offset})
                         self.logger.debug("Fixing %s to %s. Unit fix: factor=%f, offset=%f",
                                          source, var, factor, offset)
-                        log_history(data, f"Fixing {source} to {var}. Unit fix: factor={factor}, offset={offset}")
+                        log_history(data[source], f"Fixing {source} to {var}. Unit fix: factor={factor}, offset={offset}")
 
         # Only now rename everything
         data = data.rename(fixd)
@@ -407,7 +407,7 @@ class FixerMixin():
         if src_datamodel:
             data = self.change_coord_datamodel(data, src_datamodel, self.dst_datamodel)
             self.logger.info(f"coordinates adjusted to {src_datamodel} by AQUA fixer")
-            data=log_history(data, f"coordinates adjusted to {src_datamodel} by fixer")
+            data=log_history(data, f"Coordinates adjusted to {src_datamodel} by fixer")
 
         return data
 
@@ -463,7 +463,7 @@ class FixerMixin():
                         data[varname] = self.simple_decumulate(data[varname],
                                                                jump=jump,
                                                                keep_first=keep_first)
-                    log_history(data[varname], "variable decumulated by fixer")
+                    log_history(data[varname], f"Variable {varname} decumulated by fixer")
         if fkeep:
             self.previous_data = data1  # keep the last timestep for further decumulations
 
@@ -791,7 +791,7 @@ class FixerMixin():
 
         # if units are not already updated and if a tgt_units exist
         if tgt_units and org_units != tgt_units:
-            self.logger.info("Applying unit fixes for %s ", data.name)
+            self.logger.debug("Applying unit fixes for %s ", data.name)
 
             # define an old units
             data.attrs.update({"src_units": org_units, "units_fixed": 1})
@@ -802,7 +802,7 @@ class FixerMixin():
                 data *= factor
             if offset != 0:
                 data += offset
-            log_history(data, f"units changed to {tgt_units} by fixer")
+            log_history(data, f"Units changed to {tgt_units} by fixer")
             data.attrs.pop('tgt_units', None)
 
     def normalize_units(self, src):
