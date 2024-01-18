@@ -408,6 +408,9 @@ class LRAgenerator():
         self.logger.info('Processing variable %s...', var)
         temp_data = self.data[var]
 
+        if self.frequency:
+            temp_data = self.reader.timmean(temp_data, freq=self.frequency)
+
         # regrid
         temp_data = self.reader.regrid(temp_data)
         temp_data = self._remove_regridded(temp_data)
@@ -440,8 +443,8 @@ class LRAgenerator():
                 #if len(month_data.time)>1: 
                 #    month_data = check_correct_ifs_fluxes(month_data, loglevel=self.loglevel)
 
-                if self.frequency:
-                    month_data = self.reader.timmean(month_data, freq=self.frequency)
+                #if self.frequency:
+                #    month_data = self.reader.timmean(month_data, freq=self.frequency)
 
                 self.logger.debug(month_data)
 
