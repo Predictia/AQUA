@@ -1,7 +1,7 @@
 #!/bin/bash
 
 file_url="https://swift.dkrz.de/v1/dkrz_a973e394-5f24-4f4d-8bbf-1a83bd387ccb/AQUA/framework/AQUA_testsv2.tar.gz?temp_url_sig=129efdbed5a4f57e8437083aca893236db7377c8&temp_url_expires=2025-10-22T17:37:39Z"
-file_path="AQUA_testsv2.tar.gz"
+file_path="AQUA_testsv3.tar.gz"
 
 if [ ! -f "$file_path" ]; then
     echo "Downloading file..."
