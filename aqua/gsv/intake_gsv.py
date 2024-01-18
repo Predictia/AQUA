@@ -173,7 +173,7 @@ class GSVSource(base.DataSource):
                     lev = self.levels
                     apos = da.dims.index("level")  # expand the size of the "level" axis
                     attrs = da["level"].attrs
-                    da = da.squeeze("level").drop("level").expand_dims(level=lev, axis=apos)
+                    da = da.squeeze("level").drop_vars("level").expand_dims(level=lev, axis=apos)
                     da["level"].attrs.update(attrs)
 
                 self._da = da
