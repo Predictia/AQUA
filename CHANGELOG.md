@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version.
 
 - Automatic data start and end dates for FDB sources (#762)
+- Fix mismatch between var argument and variables specified in catalogue for FDB (#761)
+- Compact catalogues using yaml override syntax (#752)
 - Fix loading source grid file before smmregrid weight generation (#756)
 
 ## [v0.5.2]
