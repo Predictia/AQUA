@@ -118,11 +118,13 @@ sources:
       fdb_path: /projappl/project_465000454/experiments/a0fe/fdb/REGULARLL_grids/etc/fdb/config.yaml
       source_grid_name: lon-lat
   
-  hourly-native-oce2d:
+  monthly-native-oce2d:
     <<: *base-default
     description: daily ocean 2D data on native grid eORCA1
     args:
       <<: *args-default
+      aggregation: M
+      savefreq: M
       request:
         <<: *request-default
         param: 263022
@@ -133,11 +135,13 @@ sources:
                   263000, 263004, 263003]
       source_grid_name: eORCA1-2d
   
-  hourly-hpz5-oce2d:
+  monthly-hpz5-oce2d:
     <<: *base-default
     description: hourly ocean 2D data on healpix zoom=5 grid
     args:
       <<: *args-default
+      aggregation: M
+      savefreq: M
       request:
         <<: *request-default
         resolution: standard
@@ -175,12 +179,13 @@ sources:
   #     fdb_path: /projappl/project_465000454/experiments/a0fe/fdb/REGULARLL_grids/etc/fdb/config.yaml
   #     source_grid_name: lon-lat
 
-  hourly-native-oce3d:
+  monthly-native-oce3d:
     <<: *base-default
     description: hourly ocean 3D data on native grid eORCA1
     args:
       <<: *args-default
-      aggregation: D
+      aggregation: M
+      savefreq: M
       request:
         <<: *request-default
         param: 263506
@@ -213,11 +218,13 @@ sources:
         5902.0576171875]
       source_grid_name: eORCA1-3d-level
 
-  hourly-hpz5-oce3d:
+  monthly-hpz5-oce3d:
     <<: *base-default
     description: hourly ocean 3D data on healpix zoom=5 grid
     args:
       <<: *args-default
+      aggregation: M
+      savefreq: M
       request:
         <<: *request-default
         resolution: standard
