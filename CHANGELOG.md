@@ -5,15 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
-Unreleased is the current development version.
+Unreleased in the current development version.
 
 ## [v0.6]
 
 Main changes are:
 1. Inclusion in the catalog of the historical-1990 production simulations from IFS-NEMO and IFS-FESOM.
-2. New fixes that target the DestinE updated Data Governance
+2. New fixes that targets the DestinE updated Data Governance
 
-Complete list:
+- Fix mismatch between var argument and variables specified in catalogue for FDB (#761)
 - Compact catalogues using yaml override syntax (#752)
 - Fix loading source grid file before smmregrid weight generation (#756)
 
