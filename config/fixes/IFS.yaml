@@ -1,5 +1,5 @@
 fixer_name:
-    ifs-default:
+    IFS-default:
         data_model: ifs
         deltat: 3600
         jump: month
@@ -268,5 +268,7 @@ models:
 
         test-fdb:
             fdb-levels:
+                method: replace
+            fdb-nolevels:
                 method: replace
 
