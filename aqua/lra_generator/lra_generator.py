@@ -308,7 +308,7 @@ class LRAgenerator():
 
         yearfiles = self.get_filename(varname)
         yearfiles = glob.glob(yearfiles)
-        checks = [file_is_complete(yearfile) for yearfile in yearfiles]
+        checks = [file_is_complete(yearfile, loglevel=self.loglevel) for yearfile in yearfiles]
         all_checks_true = all(checks) and len(checks) > 0
         if all_checks_true and not self.overwrite:
             self.logger.info('All the data produced seems complete for var %s...', varname)
@@ -366,7 +366,7 @@ class LRAgenerator():
             month = temp_data.time.dt.month.values[0]
 
             yearfile = self.get_filename(var, year)
-            filecheck = file_is_complete(yearfile, self.logger)
+            filecheck = file_is_complete(yearfile, loglevel=self.loglevel)
             if filecheck and not self.overwrite:
                 self.logger.info('Yearly file %s already exists, skipping...', yearfile)
                 continue
@@ -375,7 +375,7 @@ class LRAgenerator():
             outfile = self.get_filename(var, year, month)
 
             # checking if file is there and is complete
-            filecheck = file_is_complete(outfile, self.logger)
+            filecheck = file_is_complete(outfile, loglevel=self.loglevel)
             if filecheck and not self.overwrite:
                 self.logger.info('Monthly file %s already exists, skipping...', outfile)
                 continue
@@ -385,7 +385,7 @@ class LRAgenerator():
                 self.write_chunk(temp_data, outfile)
 
                 # check everything is correct
-                filecheck = file_is_complete(outfile, self.logger)
+                filecheck = file_is_complete(outfile, loglevel=self.loglevel)
                 # we can later add a retry
                 if not filecheck:
                     self.logger.error('Something has gone wrong in %s!', outfile)
@@ -418,7 +418,7 @@ class LRAgenerator():
 
             self.logger.info('Processing year %s...', str(year))
             yearfile = self.get_filename(var, year)
-            filecheck = file_is_complete(yearfile, self.logger)
+            filecheck = file_is_complete(yearfile, loglevel=self.loglevel)
             if filecheck and not self.overwrite:
                 self.logger.info('Yearly file %s already exists, skipping...', yearfile)
                 continue
@@ -430,7 +430,7 @@ class LRAgenerator():
                 self.logger.info('Processing month %s...', str(month))
                 outfile = self.get_filename(var, year, month)
                 # checking if file is there and is complete
-                filecheck = file_is_complete(outfile, self.logger)
+                filecheck = file_is_complete(outfile, loglevel=self.loglevel)
                 if filecheck and not self.overwrite:
                     self.logger.info('Monthly file %s already exists, skipping...', outfile)
                     continue
@@ -442,7 +442,7 @@ class LRAgenerator():
                     self.write_chunk(month_data, outfile)
 
                     # check everything is correct
-                    filecheck = file_is_complete(outfile, self.logger)
+                    filecheck = file_is_complete(outfile, loglevel=self.loglevel)
                     # we can later add a retry
                     if not filecheck:
                         self.logger.error('Something has gone wrong in %s!', outfile)
