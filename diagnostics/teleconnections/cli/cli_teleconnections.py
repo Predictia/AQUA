@@ -204,7 +204,10 @@ if __name__ == '__main__':
                 maps = []
                 titles = []
                 if telec == 'NAO':
-                    cbar_label = ['msl [hPa]', 'Pearson correlation']
+                    # TODO: units are Pa since msl is in Pa
+                    #       but we should convert to hPa for readability
+                    #       see issue #575
+                    cbar_label = ['msl [Pa]', 'Pearson correlation']
                     transform_first = False
                     # We duplicate maps if we create more plots
                     # for different teleconnections
