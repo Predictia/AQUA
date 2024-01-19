@@ -110,7 +110,7 @@ def check_correct_ifs_fluxes(xfield, threshold=100, loglevel='WARNING'):
     ratio = abs(data1)/abs(data2)
     logger.info('Ratio of first two timesteps is %s', round(ratio,2))
     if ratio > threshold:
-        logger.warning('Ratio %s is unrealistically high, we will set the firsttimestep to NaN', round(ratio, 2))
+        logger.warning('Ratio %s is unrealistically high, we will set the first time step to NaN', round(ratio, 2))
         xfield.loc[{'time': xfield.time.values[0]}] = np.nan
 
     return xfield
