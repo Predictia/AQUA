@@ -80,6 +80,8 @@ oce_extra_args["global_time_series"]="${oce_extra_args["global_time_series"]} \
 # Command line extra arguments for ecmean:
 # -c --config (ecmean config file)
 # -i --interface (custom interface file)
+atm_oce_extra_args["ecmean"]="${atm_oce_extra_args["ecmean"]} \
+--interface $aqua/diagnostics/ecmean/config/interface_AQUA_destine-v1.yml"
 # -------------------------------------------
 # Command line extra arguments for radiation:
 # --config (readiation config file)
