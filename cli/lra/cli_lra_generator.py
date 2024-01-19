@@ -81,7 +81,8 @@ if __name__ == '__main__':
                                        frequency=frequency, fix=fix,
                                        outdir=outdir, tmpdir=tmpdir, configdir=configdir,
                                        nproc=workers, loglevel=loglevel,
-                                       definitive=definitive, overwrite=overwrite)
+                                       definitive=definitive, overwrite=overwrite,
+                                       exclude_incomplete=True)
 
                     # check that your LRA is not already there (it will not work in streaming mode)
                     lra.check_integrity(varname)

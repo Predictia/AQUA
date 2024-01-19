@@ -34,7 +34,8 @@ class LRAgenerator():
                  var=None, configdir=None,
                  resolution=None, frequency=None, fix=True,
                  outdir=None, tmpdir=None, nproc=1,
-                 loglevel=None, overwrite=False, definitive=False):
+                 loglevel=None, overwrite=False, definitive=False,
+                 exclude_incomplete=False):
         """
         Initialize the LRA_Generator class
 
@@ -63,6 +64,8 @@ class LRAgenerator():
             definitive (bool, opt):  True to create the output file,
                                      False to just explore the reader
                                      operations, default is False
+            exclude_incomplete (bool,opt)   : True to remove incomplete chunk
+                                            when averaging, default is false.  
         """
         # General settings
         self.logger = log_configure(loglevel, 'lra_generator')
@@ -71,6 +74,10 @@ class LRAgenerator():
         self.overwrite = overwrite
         if self.overwrite:
             self.logger.warning('File will be overwritten if already existing.')
+
+        self.exclude_incomplete = exclude_incomplete
+        if self.exclude_incomplete:
+            self.logger.info('Exclude incomplete for time averaging activated!')
 
         self.definitive = definitive
         if not self.definitive:
@@ -458,7 +465,8 @@ class LRAgenerator():
 
                 # HACK: move the regrid and frequency here
                 if self.frequency:
-                    month_data = self.reader.timmean(month_data, freq=self.frequency, exclude_incomplete=True)
+                    month_data = self.reader.timmean(month_data, freq=self.frequency, 
+                                                     exclude_incomplete=self.exclude_incomplete)
                 month_data = self.reader.regrid(month_data)
                 month_data = self._remove_regridded(month_data)
 
