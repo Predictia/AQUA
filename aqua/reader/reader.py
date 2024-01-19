@@ -751,10 +751,15 @@ class Reader(FixerMixin, RegridMixin):
         resample_freq = frequency_string_to_pandas(freq)
 
         # get original frequency (for history)
-        orig_freq = data['time'].values[1]-data['time'].values[0]
-        # Convert time difference to hours
-        self.orig_freq = np.timedelta64(orig_freq, 'ns') / np.timedelta64(1, 'h')
+        if len(data.time)>1:
+            orig_freq = data['time'].values[1]-data['time'].values[0]
+            # Convert time difference to hours
+            self.orig_freq = np.timedelta64(orig_freq, 'ns') / np.timedelta64(1, 'h')
+        else:
+            self.logger.warning('A single timestep is available, is this correct?')
+            self.orig_freq = 'Unknown'
 
+    
         try:
             # resample
             self.logger.info('Resampling to %s frequency...', str(resample_freq))
