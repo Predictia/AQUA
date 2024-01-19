@@ -60,6 +60,10 @@ variables:
     derived: 'tprate'
     varname: 'Total precipitation'
     filetype: atmbase 
+  prns:
+    derived: 'msr'
+    varname: 'Snowfall'
+    filetype: atmbase
   evspsbl:
     varname: Evaporation
     derived: 'mer'
@@ -184,12 +188,11 @@ variables:
   net_sfc_nosn:
     varname: 'Net Surface (no snowfall)'
     filetype: atmbase
-    derived: 'msshf+mslhf+msnsrf+msntrf'
-  # net_sfc:
-  #   varname: 'Net Surface'
-  #   units: W/m2
-  #   filetype: atmbase
-  #   derived: 'str+ssr+slhf+sshf-sf*334000000'
+    derived: 'msshf+mslhf+msnlwrf+msnswrf'
+  net_sfc:
+    varname: 'Net Surface'
+    filetype: atmbase
+    derived: 'msshf+mslhf+msnlwrf+msnswrf-msr*334000'
   # toamsfc:
   #   varname: 'TOA-Sfc net radiation'
   #   units: W/m2
