@@ -118,6 +118,7 @@ jobs:
           mkdir -pv /app/localroot/
           cd /app/
           fdb-write sample_test_data.grib
+          fdb-write sample_test_data_d1.grib
           ls -l /app/localroot
           # The fdb-list command is a good smoke test.
           fdb-list class=ea,expver=0001
