@@ -70,7 +70,7 @@ class LRAgenerator():
 
         self.overwrite = overwrite
         if self.overwrite:
-            self.logger.info('File will be overwritten if already existing.')
+            self.logger.warning('File will be overwritten if already existing.')
 
         self.definitive = definitive
         if not self.definitive:
@@ -368,18 +368,24 @@ class LRAgenerator():
 
             yearfile = self.get_filename(var, year)
             filecheck = file_is_complete(yearfile, loglevel=self.loglevel)
-            if filecheck and not self.overwrite:
-                self.logger.info('Yearly file %s already exists, skipping...', yearfile)
-                continue
+            if filecheck:
+                if not self.overwrite:
+                    self.logger.info('Yearly file %s already exists, skipping...', yearfile)
+                    continue
+                else:
+                    self.logger.warning('Yearly file %s already exists, overwriting as requested...', yearfile)
 
             self.logger.info('Processing year %s month %s...', str(year), str(month))
             outfile = self.get_filename(var, year, month)
 
             # checking if file is there and is complete
             filecheck = file_is_complete(outfile, loglevel=self.loglevel)
-            if filecheck and not self.overwrite:
-                self.logger.info('Monthly file %s already exists, skipping...', outfile)
-                continue
+            if filecheck:
+                if not self.overwrite:
+                    self.logger.info('Monthly file %s already exists, skipping...', outfile)
+                    continue
+                else:
+                    self.logger.warning('Monthly file %s already exists, overwriting as requested...', outfile)
             
             # real writing
             if self.definitive:
@@ -423,23 +429,29 @@ class LRAgenerator():
             self.logger.info('Processing year %s...', str(year))
             yearfile = self.get_filename(var, year)
             filecheck = file_is_complete(yearfile, loglevel=self.loglevel)
-            if filecheck and not self.overwrite:
-                self.logger.info('Yearly file %s already exists, skipping...', yearfile)
-                continue
-
+            if filecheck:
+                if not self.overwrite:
+                    self.logger.info('Yearly file %s already exists, skipping...', yearfile)
+                    continue
+                else:
+                    self.logger.warning('Yearly file %s already exists, overwriting as requested...', yearfile)
             year_data = temp_data.sel(time=temp_data.time.dt.year == year)
             # Splitting data into monthly files
             months = set(year_data.time.dt.month.values)
             for month in months:
                 self.logger.info('Processing month %s...', str(month))
                 outfile = self.get_filename(var, year, month)
+
                 # checking if file is there and is complete
                 filecheck = file_is_complete(outfile, loglevel=self.loglevel)
-                if filecheck and not self.overwrite:
-                    self.logger.info('Monthly file %s already exists, skipping...', outfile)
-                    continue
-                month_data = year_data.sel(time=year_data.time.dt.month == month)
+                if filecheck:
+                    if not self.overwrite:
+                        self.logger.info('Monthly file %s already exists, skipping...', outfile)
+                        continue
+                    else:
+                        self.logger.warning('Monthly file %s already exists, overwriting as requested...', outfile)
 
+                month_data = year_data.sel(time=year_data.time.dt.month == month)
                 # HACK: check for ifs wrong fluxes only
                 if len(month_data.time)>1:
                     month_data = check_correct_ifs_fluxes(month_data, loglevel=self.loglevel)
