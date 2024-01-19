@@ -14,30 +14,33 @@ sources:
         type: fc
         stream: clte
         date: 19900101
-        time: "0000"
+        time: '0000'
         param: 167
         levtype: sfc
         step: 0
       data_start_date: 19900101T0000
       data_end_date: 20191231T2300
-      aggregation: M  # Default aggregation / chunk size
+      aggregation: D  # Default aggregation / chunk size
       savefreq: H  # at what frequency are data saved
       timestep: H  # base timestep for step timestyle
-      timestyle: step  # variable date or variable step
+      timestyle: date  # variable date or variable step
     description: hourly atmospheric 2D data on native grid TCo79.
     driver: gsv
     metadata: &metadata-default
-      fdb_path: /projappl/project_465000454/experiments/a0fe/fdb/NATIVE_grids/etc/fdb/config.yaml
+      fdb_path: 
+        /projappl/project_465000454/experiments/a0fe/fdb/NATIVE_grids/etc/fdb/config.yaml
       eccodes_path: /projappl/project_465000454/jvonhar/aqua/eccodes/eccodes-2.32.2/definitions
-      variables: [175, 176, 177, 178, 179, 144, 146, 147, 169, 182, 212, 228,
-                  165, 166, 141, 164, 78, 79, 167, 168, 235]
+      variables: [175, 176, 177, 178, 179, 144, 146, 147, 169, 182, 212, 228, 165,
+        166, 141, 164, 78, 79, 167, 168, 235]
       source_grid_name: tco79
       fixer_name: ifs-destine-lowres-v1
 
-  hourly-hpz5-atm2d:
+  daily-hpz5-atm2d:
     <<: *base-default
-    description: hourly atmospheric 2D data on healpix zoom=5 grid
+    description: daily atmospheric 2D data on healpix zoom=5 grid
     args:
+      aggregation: M
+      savefreq: M
       <<: *args-default
       request:
         <<: *request-default
@@ -47,19 +50,22 @@ sources:
       fdb_path: /projappl/project_465000454/experiments/a0fe/config.yaml
       source_grid_name: hpz5-nested
 
-  hourly-r100-atm2d:
+  daily-r100-atm2d:
     <<: *base-default
-    description: hourly atmospheric 2D data on regular 1 degree grid
+    description: daily atmospheric 2D data on regular 1 degree grid (multiIO)
     args:
+      aggregation: M
+      savefreq: M
       <<: *args-default
       request:
         <<: *request-default
         resolution: standard
     metadata:
       <<: *metadata-default
-      fdb_path: /projappl/project_465000454/experiments/a0fe/fdb/REGULARLL_grids/etc/fdb/config.yaml 
+      fdb_path: 
+        /projappl/project_465000454/experiments/a0fe/fdb/REGULARLL_grids/etc/fdb/config.yaml
       source_grid_name: lon-lat
-  
+
   hourly-native-atm3d:
     <<: *base-default
     description: hourly atmospheric 3D data on native grid TCo79
@@ -70,74 +76,83 @@ sources:
         <<: *request-default
         param: 130
         levtype: pl
-        levelist: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500,
-                   600, 700, 850, 925, 1000]
+        levelist: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600,
+          700, 850, 925, 1000]
     metadata:
       <<: *metadata-default
-      levels: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500,
-               600, 700, 850, 925, 1000]
+      levels: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600, 700,
+        850, 925, 1000]
       variables: [129, 130, 131, 132, 133, 157]
-  
-  hourly-hpz5-atm3d:
+
+  daily-hpz5-atm3d:
     <<: *base-default
-    description: hourly atmospheric 3D data on healpix zoom=5 grid
+    description: daily atmospheric 3D data on healpix zoom=5 grid
     args:
+      aggregation: M
+      savefreq: M
       <<: *args-default
       request:
         <<: *request-default
         resolution: standard
         param: 130
         levtype: pl
-        levelist: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500,
-                   600, 700, 850, 925, 1000]
+        levelist: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600,
+          700, 850, 925, 1000]
     metadata:
       <<: *metadata-default
-      levels: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500,
-               600, 700, 850, 925, 1000]
+      levels: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600, 700,
+        850, 925, 1000]
       variables: [129, 130, 131, 132, 133, 157]
       fdb_path: /projappl/project_465000454/experiments/a0fe/config.yaml
       source_grid_name: hpz5-nested
-  
-  hourly-r100-atm3d:
+
+  daily-r100-atm3d:
     <<: *base-default
-    description: hourly atmospheric 3D data on regular 1 degree grid
+    description: daily atmospheric 3D data on regular 1 degree grid
     args:
+      aggregation: M
+      savefreq: M
       <<: *args-default
       request:
         <<: *request-default
         resolution: standard
         param: 130
         levtype: pl
-        levelist: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500,
-                   600, 700, 850, 925, 1000]
+        levelist: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600,
+          700, 850, 925, 1000]
     metadata:
       <<: *metadata-default
-      levels: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500,
-               600, 700, 850, 925, 1000]
+      levels: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600, 700,
+        850, 925, 1000]
       variables: [129, 130, 131, 132, 133, 157]
-      fdb_path: /projappl/project_465000454/experiments/a0fe/fdb/REGULARLL_grids/etc/fdb/config.yaml
+      fdb_path: 
+        /projappl/project_465000454/experiments/a0fe/fdb/REGULARLL_grids/etc/fdb/config.yaml
       source_grid_name: lon-lat
-  
-  hourly-native-oce2d:
+
+  daily-native-oce2d:
     <<: *base-default
     description: daily ocean 2D data on native grid eORCA1
     args:
       <<: *args-default
+      aggregation: M
+      savefreq: M
       request:
         <<: *request-default
         param: 263022
         levtype: o2d
     metadata:
       <<: *metadata-default
-      variables: [263022, 263100, 263101, 263124, 263001, 263021,
-                  263000, 263004, 263003]
+      variables: [263022, 263100, 263101, 263124, 263001, 263021, 263000, 263004,
+        263003]
       source_grid_name: eORCA1-2d
-  
-  hourly-hpz5-oce2d:
+
+  daily-hpz5-oce2d:
     <<: *base-default
-    description: hourly ocean 2D data on healpix zoom=5 grid
+    description: daily ocean 2D data on healpix zoom=5 grid
     args:
       <<: *args-default
+      aggregation: M
+      savefreq: M
       request:
         <<: *request-default
         resolution: standard
@@ -145,11 +160,11 @@ sources:
         levtype: o2d
     metadata:
       <<: *metadata-default
-      variables: [263022, 263100, 263101, 263124, 263001, 263021,
-                  263000, 263004, 263003]
+      variables: [263022, 263100, 263101, 263124, 263001, 263021, 263000, 263004,
+        263003]
       fdb_path: /projappl/project_465000454/experiments/a0fe/config.yaml
       source_grid_name: nemo-hpz5-nested
-  
+
 
   # I get:
   # InvalidShapeError: Cannot reshape values for xarray.
@@ -175,12 +190,13 @@ sources:
   #     fdb_path: /projappl/project_465000454/experiments/a0fe/fdb/REGULARLL_grids/etc/fdb/config.yaml
   #     source_grid_name: lon-lat
 
-  hourly-native-oce3d:
+  daily-native-oce3d:
     <<: *base-default
-    description: hourly ocean 3D data on native grid eORCA1
+    description: daily ocean 3D data on native grid eORCA1
     args:
       <<: *args-default
-      aggregation: D
+      aggregation: M
+      savefreq: M
       request:
         <<: *request-default
         param: 263506
@@ -213,11 +229,13 @@ sources:
         5902.0576171875]
       source_grid_name: eORCA1-3d-level
 
-  hourly-hpz5-oce3d:
+  daily-hpz5-oce3d:
     <<: *base-default
-    description: hourly ocean 3D data on healpix zoom=5 grid
+    description: daily ocean 3D data on healpix zoom=5 grid
     args:
       <<: *args-default
+      aggregation: M
+      savefreq: M
       request:
         <<: *request-default
         resolution: standard
@@ -292,3 +310,15 @@ sources:
   #       5902.0576171875]
   #     fdb_path: /projappl/project_465000454/experiments/a0fe/fdb/REGULARLL_grids/etc/fdb/config.yaml
   #     source_grid_name: lon-lat
+
+  lra-r100-monthly:
+    driver: netcdf
+    description: LRA data monthly at r100
+    args:
+      urlpath: 
+        /pfs/lustrep3/projappl/project_465000454/data/AQUA/LRA/IFS-NEMO/historical-1990-dev-lowres/r100/monthly/*historical-1990-dev-lowres_r100_monthly_*.nc
+      chunks: {}
+      xarray_kwargs:
+        decode_times: true
+    metadata:
+      source_grid_name: lon-lat
