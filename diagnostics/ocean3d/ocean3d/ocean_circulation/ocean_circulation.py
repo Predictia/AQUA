@@ -7,14 +7,14 @@ import logging
 import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
-from .ocean_util import weighted_area_mean
-from .ocean_util import area_selection
-from .ocean_util import data_time_selection
-from .ocean_util import load_obs_data
-from .ocean_util import crop_obs_overlap_time
-from .ocean_util import compare_arrays
-from .ocean_util import dir_creation
-from .ocean_util import custom_region
+from ocean3d import weighted_area_mean
+from ocean3d import area_selection
+from ocean3d import data_time_selection
+from ocean3d import load_obs_data
+from ocean3d import crop_obs_overlap_time
+from ocean3d import compare_arrays
+from ocean3d import dir_creation
+from ocean3d import custom_region
 
 warnings.filterwarnings("ignore")
 
