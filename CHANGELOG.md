@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version.
 
+- Implement a fix setting to NaN the data of the first step in each month (for historical-1990) #776
 - Update the LRA generator (removing aggregation and improving) filecheck and fix entries for historical-1990-dev-lowres (#772)
 - Updates of ECmean to work with production experiments (#773)
 - Automatic data start and end dates for FDB sources (#762)
