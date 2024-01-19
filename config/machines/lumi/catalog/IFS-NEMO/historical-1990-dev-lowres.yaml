@@ -35,10 +35,12 @@ sources:
       source_grid_name: tco79
       fixer_name: ifs-destine-lowres-v1
 
-  hourly-hpz5-atm2d:
+  monthly-hpz5-atm2d:
     <<: *base-default
-    description: hourly atmospheric 2D data on healpix zoom=5 grid
+    description: monthly atmospheric 2D data on healpix zoom=5 grid
     args:
+      aggregation: M
+      savefreq: M
       <<: *args-default
       request:
         <<: *request-default
@@ -48,10 +50,12 @@ sources:
       fdb_path: /projappl/project_465000454/experiments/a0fe/config.yaml
       source_grid_name: hpz5-nested
 
-  hourly-r100-atm2d:
+  monthly-r100-atm2d:
     <<: *base-default
     description: hourly atmospheric 2D data on regular 1 degree grid
     args:
+      aggregation: M
+      savefreq: M
       <<: *args-default
       request:
         <<: *request-default
@@ -79,10 +83,12 @@ sources:
       levels: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600, 700,
         850, 925, 1000]
       variables: [129, 130, 131, 132, 133, 157]
-  hourly-hpz5-atm3d:
+  monthly-hpz5-atm3d:
     <<: *base-default
     description: hourly atmospheric 3D data on healpix zoom=5 grid
     args:
+      aggregation: M
+      savefreq: M
       <<: *args-default
       request:
         <<: *request-default
@@ -99,10 +105,12 @@ sources:
       fdb_path: /projappl/project_465000454/experiments/a0fe/config.yaml
       source_grid_name: hpz5-nested
 
-  hourly-r100-atm3d:
+  monthly-r100-atm3d:
     <<: *base-default
     description: hourly atmospheric 3D data on regular 1 degree grid
     args:
+      aggregation: M
+      savefreq: M
       <<: *args-default
       request:
         <<: *request-default
