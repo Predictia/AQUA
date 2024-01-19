@@ -458,7 +458,7 @@ class LRAgenerator():
 
                 # HACK: move the regrid and frequency here
                 if self.frequency:
-                    month_data = self.reader.timmean(month_data, freq=self.frequency)
+                    month_data = self.reader.timmean(month_data, freq=self.frequency, exclude_incomplete=True)
                 month_data = self.reader.regrid(month_data)
                 month_data = self._remove_regridded(month_data)
 
