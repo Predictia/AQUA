@@ -20,7 +20,7 @@ sources:
         step: 0
       data_start_date: 19900101T0000
       data_end_date: 20191231T2300
-      aggregation: M  # Default aggregation / chunk size
+      aggregation: D  # Default aggregation / chunk size
       savefreq: H  # at what frequency are data saved
       timestep: H  # base timestep for step timestyle
       timestyle: date  # variable date or variable step
@@ -35,9 +35,9 @@ sources:
       source_grid_name: tco79
       fixer_name: ifs-destine-lowres-v1
 
-  monthly-hpz5-atm2d:
+  daily-hpz5-atm2d:
     <<: *base-default
-    description: monthly atmospheric 2D data on healpix zoom=5 grid
+    description: daily atmospheric 2D data on healpix zoom=5 grid
     args:
       aggregation: M
       savefreq: M
@@ -50,9 +50,9 @@ sources:
       fdb_path: /projappl/project_465000454/experiments/a0fe/config.yaml
       source_grid_name: hpz5-nested
 
-  monthly-r100-atm2d:
+  daily-r100-atm2d:
     <<: *base-default
-    description: hourly atmospheric 2D data on regular 1 degree grid
+    description: daily atmospheric 2D data on regular 1 degree grid (multiIO)
     args:
       aggregation: M
       savefreq: M
@@ -83,9 +83,10 @@ sources:
       levels: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600, 700,
         850, 925, 1000]
       variables: [129, 130, 131, 132, 133, 157]
-  monthly-hpz5-atm3d:
+
+  daily-hpz5-atm3d:
     <<: *base-default
-    description: hourly atmospheric 3D data on healpix zoom=5 grid
+    description: daily atmospheric 3D data on healpix zoom=5 grid
     args:
       aggregation: M
       savefreq: M
@@ -105,9 +106,9 @@ sources:
       fdb_path: /projappl/project_465000454/experiments/a0fe/config.yaml
       source_grid_name: hpz5-nested
 
-  monthly-r100-atm3d:
+  daily-r100-atm3d:
     <<: *base-default
-    description: hourly atmospheric 3D data on regular 1 degree grid
+    description: daily atmospheric 3D data on regular 1 degree grid
     args:
       aggregation: M
       savefreq: M
@@ -128,7 +129,7 @@ sources:
         /projappl/project_465000454/experiments/a0fe/fdb/REGULARLL_grids/etc/fdb/config.yaml
       source_grid_name: lon-lat
 
-  monthly-native-oce2d:
+  daily-native-oce2d:
     <<: *base-default
     description: daily ocean 2D data on native grid eORCA1
     args:
@@ -145,9 +146,9 @@ sources:
         263003]
       source_grid_name: eORCA1-2d
 
-  monthly-hpz5-oce2d:
+  daily-hpz5-oce2d:
     <<: *base-default
-    description: hourly ocean 2D data on healpix zoom=5 grid
+    description: daily ocean 2D data on healpix zoom=5 grid
     args:
       <<: *args-default
       aggregation: M
@@ -189,9 +190,9 @@ sources:
   #     fdb_path: /projappl/project_465000454/experiments/a0fe/fdb/REGULARLL_grids/etc/fdb/config.yaml
   #     source_grid_name: lon-lat
 
-  monthly-native-oce3d:
+  daily-native-oce3d:
     <<: *base-default
-    description: hourly ocean 3D data on native grid eORCA1
+    description: daily ocean 3D data on native grid eORCA1
     args:
       <<: *args-default
       aggregation: M
@@ -228,9 +229,9 @@ sources:
         5902.0576171875]
       source_grid_name: eORCA1-3d-level
 
-  monthly-hpz5-oce3d:
+  daily-hpz5-oce3d:
     <<: *base-default
-    description: hourly ocean 3D data on healpix zoom=5 grid
+    description: daily ocean 3D data on healpix zoom=5 grid
     args:
       <<: *args-default
       aggregation: M
@@ -309,6 +310,7 @@ sources:
   #       5902.0576171875]
   #     fdb_path: /projappl/project_465000454/experiments/a0fe/fdb/REGULARLL_grids/etc/fdb/config.yaml
   #     source_grid_name: lon-lat
+
   lra-r100-monthly:
     driver: netcdf
     description: LRA data monthly at r100
