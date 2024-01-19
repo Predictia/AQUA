@@ -18,7 +18,7 @@ NAO:
 # ENSO 3.4 region coordinates 
 ENSO:
   telec_type: 'region'
-  field: sst
+  field: avg_tos
   latN:  5
   lonW: -170
   latS: -5

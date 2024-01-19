@@ -15,10 +15,10 @@ NAO:
   lat2: 64.1
   lon2: -22
 
-# ENSO 3.4 region coordinates 
-ENSO:
+# Fake teleconnection for CI/CD tests
+ENSO_test:
   telec_type: 'region'
-  field: sst
+  field: skt
   latN:  5
   lonW: -170
   latS: -5
