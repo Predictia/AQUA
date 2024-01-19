@@ -285,7 +285,7 @@ class FixerMixin():
         jump = self.fixes.get("jump", None)  # if to correct for a monthly accumulation jump
         # Special feature to fix corrupted data in first step of each month
 
-        nanfirst_stardate = self.fixes.get("nanfirst_startdate", None)
+        nanfirst_startdate = self.fixes.get("nanfirst_startdate", None)
         nanfirst_enddate = self.fixes.get("nanfirst_enddate", None)
 
         fixd = {}  # variables dictionary for name change: only for source
@@ -400,7 +400,7 @@ class FixerMixin():
             data = self._wrapper_decumulate(data, vars_to_fix, varlist, keep_memory, jump)
             if nanfirst_enddate:  # This is a temporary fix for IFS data, run ony if an end date is specified
                 data = self._wrapper_nanfirst(data, vars_to_fix, varlist,
-                                            startdate=nanfirst_stardate,
+                                            startdate=nanfirst_startdate,
                                             enddate=nanfirst_enddate)
 
         if apply_unit_fix:
@@ -515,7 +515,7 @@ class FixerMixin():
             enddate: date after which to fix the first timestep of each month (defaults to False)
 
         Returns:
-            DataArray in with data on first step of each month is set to NaN or dropped
+            DataArray in with data on first step of each month is set to NaN
         """
 
         first = data.time.groupby(data['time.year']*100+data['time.month']).first()
