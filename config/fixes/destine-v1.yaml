@@ -21,9 +21,12 @@ fixer_name:
                 grib: true 
                 source: TCC
                 units: frac
-            sst:
+            avg_tos:
                 grib: true
                 source: SSTK
+            avg_siconc:
+                grib: true
+                source: CI
             mslhf:
                 src_units: J m**-2 day**-1
                 source: SLHF
