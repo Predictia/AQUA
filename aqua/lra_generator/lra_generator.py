@@ -16,7 +16,7 @@ from aqua.reader import Reader
 from aqua.util import create_folder, generate_random_string
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import ConfigPath, file_is_complete
-from aqua.lra_generator.util import check_correct_ifs_fluxes
+from aqua.lra_generator.lra_util import check_correct_ifs_fluxes
 
 
 class LRAgenerator():
