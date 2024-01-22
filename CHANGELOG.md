@@ -10,6 +10,8 @@ Unreleased in the current development version.
 ## [v0.6.1]
 
 Complete list:
+- Teleconnection improvement to accept different variable names for ENSO (avg_tos instead of sst) (#778)
+- ERA5 fixes compatible with new data governance (#772)
 - Update the LRA generator (removing aggregation and improving) filecheck and fix entries for historical-1990-dev-lowres (#772)
 - Updates of ECmean to work with production experiments (#773, #780)
 - Automatic data start and end dates for FDB sources (#762)
