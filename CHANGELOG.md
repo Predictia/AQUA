@@ -7,9 +7,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version.
 
-- Implement a fix setting to NaN the data of the first step in each month (for historical-1990) #776
+- Implement a fix setting to NaN the data of the first step in each month (for historical-1990) (#776)
+
+## [v0.6.1]
+
+Complete list:
+- Teleconnection improvement to accept different variable names for ENSO (avg_tos instead of sst) (#778)
+- ERA5 fixes compatible with new data governance (#772)
 - Update the LRA generator (removing aggregation and improving) filecheck and fix entries for historical-1990-dev-lowres (#772)
-- Updates of ECmean to work with production experiments (#773)
+- Updates of ECmean to work with production experiments (#773, #780)
 - Automatic data start and end dates for FDB sources (#762)
 
 ## [v0.6]
@@ -258,16 +264,17 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.6...HEAD
-[v0.6]: https://github.com/oloapinivad/AQUA/compare/v0.5.2...v0.6
-[v0.5.2-beta]: https://github.com/oloapinivad/AQUA/compare/v0.5.2-alpha...v0.5.2-beta
-[v0.5.2-alpha]: https://github.com/oloapinivad/AQUA/compare/v0.5.1...v0.5.2-alpha
-[v0.5.1]: https://github.com/oloapinivad/AQUA/compare/v0.5...v0.5.1
-[v0.5]: https://github.com/oloapinivad/AQUA/compare/v0.4...v0.5
-[v0.4]: https://github.com/oloapinivad/AQUA/compare/v0.3...v0.4
-[v0.3]: https://github.com/oloapinivad/AQUA/compare/v0.2.1...v0.3
-[v0.2.1]: https://github.com/oloapinivad/AQUA/compare/v0.2...v0.2.1
-[v0.2]: https://github.com/oloapinivad/AQUA/compare/v0.2-beta...v0.2
-[v0.2-beta]: https://github.com/oloapinivad/AQUA/compare/v0.2-alpha...v0.2-beta
-[v0.2-alpha]: https://github.com/oloapinivad/AQUA/compare/v0.1-beta...v0.2-alpha
-[v0.1-beta]: https://github.com/oloapinivad/AQUA/compare/v0.1-alpha...v0.1-beta
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.1...HEAD
+[v0.6.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6...v0.6.1
+[v0.6]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.5.2-beta...v0.6
+[v0.5.2-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.5.2-alpha...v0.5.2-beta
+[v0.5.2-alpha]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.5.1...v0.5.2-alpha
+[v0.5.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.5...v0.5.1
+[v0.5]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.4...v0.5
+[v0.4]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.3...v0.4
+[v0.3]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.2.1...v0.3
+[v0.2.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.2...v0.2.1
+[v0.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.2-beta...v0.2
+[v0.2-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.2-alpha...v0.2-beta
+[v0.2-alpha]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.1-beta...v0.2-alpha
+[v0.1-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.1-alpha...v0.1-beta
