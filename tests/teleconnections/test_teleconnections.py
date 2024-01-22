@@ -57,11 +57,12 @@ def test_station_based(months_window, loglevel=loglevel):
     configdir = "./diagnostics/teleconnections/config"
     diagname = 'teleconnections'
     telecname = 'NAO'
+    interface = 'teleconnections-ci'
     rtol = approx_rel
     atol = approx_rel
 
     # 1. -- Opening yaml file
-    config = TeleconnectionsConfig(diagname=diagname, configdir=configdir)
+    config = TeleconnectionsConfig(diagname=diagname, configdir=configdir, interface=interface)
     namelist = config.load_namelist()
 
     # 2. -- Comparison cdo vs lib method
@@ -83,12 +84,13 @@ def test_regional_mean(months_window):
     filepath = "./AQUA_tests/models/IFS/teleconnections/enso_test.nc"
     configdir = "./diagnostics/teleconnections/config"
     diagname = 'teleconnections'
-    telecname = 'ENSO_test'
+    telecname = 'ENSO'
+    interface = 'teleconnections-ci'
     rtol = approx_rel
     atol = approx_rel
 
     # 1. -- Opening yaml file
-    config = TeleconnectionsConfig(diagname=diagname, configdir=configdir)
+    config = TeleconnectionsConfig(diagname=diagname, configdir=configdir, interface=interface)
     namelist = config.load_namelist()
 
     # 2. -- Comparison cdo vs lib method

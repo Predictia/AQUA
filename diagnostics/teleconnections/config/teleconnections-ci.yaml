@@ -16,7 +16,7 @@ NAO:
   lon2: -22
 
 # Fake teleconnection for CI/CD tests
-ENSO_test:
+ENSO:
   telec_type: 'region'
   field: skt
   latN:  5
