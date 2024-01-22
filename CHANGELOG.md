@@ -257,16 +257,16 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.6...HEAD
-[v0.6]: https://github.com/oloapinivad/AQUA/compare/v0.5.2...v0.6
-[v0.5.2-beta]: https://github.com/oloapinivad/AQUA/compare/v0.5.2-alpha...v0.5.2-beta
-[v0.5.2-alpha]: https://github.com/oloapinivad/AQUA/compare/v0.5.1...v0.5.2-alpha
-[v0.5.1]: https://github.com/oloapinivad/AQUA/compare/v0.5...v0.5.1
-[v0.5]: https://github.com/oloapinivad/AQUA/compare/v0.4...v0.5
-[v0.4]: https://github.com/oloapinivad/AQUA/compare/v0.3...v0.4
-[v0.3]: https://github.com/oloapinivad/AQUA/compare/v0.2.1...v0.3
-[v0.2.1]: https://github.com/oloapinivad/AQUA/compare/v0.2...v0.2.1
-[v0.2]: https://github.com/oloapinivad/AQUA/compare/v0.2-beta...v0.2
-[v0.2-beta]: https://github.com/oloapinivad/AQUA/compare/v0.2-alpha...v0.2-beta
-[v0.2-alpha]: https://github.com/oloapinivad/AQUA/compare/v0.1-beta...v0.2-alpha
-[v0.1-beta]: https://github.com/oloapinivad/AQUA/compare/v0.1-alpha...v0.1-beta
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6...HEAD
+[v0.6]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.5.2-beta...v0.6
+[v0.5.2-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.5.2-alpha...v0.5.2-beta
+[v0.5.2-alpha]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.5.1...v0.5.2-alpha
+[v0.5.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.5...v0.5.1
+[v0.5]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.4...v0.5
+[v0.4]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.3...v0.4
+[v0.3]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.2.1...v0.3
+[v0.2.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.2...v0.2.1
+[v0.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.2-beta...v0.2
+[v0.2-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.2-alpha...v0.2-beta
+[v0.2-alpha]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.1-beta...v0.2-alpha
+[v0.1-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.1-alpha...v0.1-beta
