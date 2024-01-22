@@ -97,7 +97,7 @@ class Teleconnection():
 
         # Teleconnection variables
         self.telecname = telecname
-        avail_telec = ['NAO', 'ENSO', 'ENSO_test', 'ENSO_2t']
+        avail_telec = ['NAO', 'ENSO']
         if self.telecname not in avail_telec:
             raise ValueError("telecname must be one of {}".format(avail_telec))
 
