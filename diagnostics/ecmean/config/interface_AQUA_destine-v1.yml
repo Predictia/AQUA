@@ -15,7 +15,7 @@
 
 # Definition of model name and components belonging to it
 model:
-  basedir: '{expname}'
+  basedir: ''
   component:
     atm: cmoratm
     oce: cmoroce
@@ -42,13 +42,13 @@ filetype:
 # If a relative path is used this is attached to $ECEDIR/$basedir
 component:
   cmoratm:
-    maskfile: '/pfs/lustrep3/projappl/project_465000454/data/AQUA/diagnostics/ecmean/atm_mask_r100.nc'
+    maskfile: 'atm_mask_r100.nc'
     gridfile: ''
-    areafile: '/pfs/lustrep3/projappl/project_465000454/data/AQUA/diagnostics/ecmean/cell_area_r100.nc'
+    areafile: 'cell_area_r100.nc'
   cmoroce:
-    maskfile: '/pfs/lustrep3/projappl/project_465000454/data/AQUA/diagnostics/ecmean/oce_mask_r100.nc'
+    maskfile: 'oce_mask_r100.nc'
     gridfile: ''
-    areafile: '/pfs/lustrep3/projappl/project_465000454/data/AQUA/diagnostics/ecmean/cell_area_r100.nc'
+    areafile: 'cell_area_r100.nc'
 
 # Definition of individual variables
 variables:

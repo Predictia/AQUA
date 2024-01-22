@@ -5,7 +5,7 @@ model:
   name: ClimateDT
 
 dirs:
-  exp: '' #not necessary we use xarray dataset instead of files
+  exp: /pfs/lustrep3/projappl/project_465000454/data/AQUA/diagnostics/ecmean
   clm: /users/padavini/AQUA/diagnostics/ecmean/ECmean4/ecmean/climatology
   tab: /pfs/lustrep3/projappl/project_465000454/padavini/ecmean/output/YAML
   fig: /pfs/lustrep3/projappl/project_465000454/padavini/ecmean/output/PDF
