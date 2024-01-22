@@ -100,17 +100,21 @@ variables:
     varname: 'Meridional Wind Stress'
     derived: mntss
     filetype: atmbase
+  clt: 
+    derived: tcc
+    varname: 'Total Cloud Cover'
+    filetype: atmbase
   cll:
     derived: lcc
-    varname: 'Low cloud cover'
+    varname: 'Low Cloud Cover'
     filetype: atmbase
   clm:
     derived: mcc
-    varname: 'Medium cloud cover'
+    varname: 'Medium Cloud Cover'
     filetype: atmbase
   clh:
     derived: hcc
-    varname: 'High cloud cover'
+    varname: 'High Cloud Cover'
     filetype: atmbase
   siconc:
     varname: 'Sea-ice Concentration'
