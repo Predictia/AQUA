@@ -215,7 +215,8 @@ if __name__ == '__main__':
                     # TODO: units are Pa since msl is in Pa
                     #       but we should convert to hPa for readability
                     #       see issue #575
-                    cbar_label = ['msl [Pa]', 'Pearson correlation']
+                    label1 = tc.var + ' [Pa]'
+                    cbar_label = [label1, 'Pearson correlation']
                     transform_first = False
                     # We duplicate maps if we create more plots
                     # for different teleconnections
@@ -224,7 +225,8 @@ if __name__ == '__main__':
                         maps = [reg_full, cor_full]
                         titles = map_names
                 elif telec == 'ENSO':
-                    cbar_label = ['sst [K]', 'Pearson correlation']
+                    label1 = tc.var + ' [K]'
+                    cbar_label = [label1, 'Pearson correlation']
                     transform_first = True
                     if full_year:
                         map_names = ['regression', 'correlation']
