@@ -219,6 +219,22 @@ class TCs(DetectNodes, StitchNodes):
                                          regrid=self.highgrid,
                                          streaming=self.streaming, aggregation=self.stream_step, loglevel=self.loglevel,
                                          startdate=self.startdate, enddate=self.enddate)
+            
+        elif self.model in 'IFS-NEMO':
+            self.varlist2d = ['msl', '10u', '10v']
+            self.reader2d = Reader(model=self.model, exp=self.exp, source=self.source2d,
+                                         regrid=self.highgrid,
+                                         streaming=self.streaming, aggregation=self.stream_step, loglevel=self.loglevel,
+                                         startdate=self.startdate, enddate=self.enddate)
+            self.varlist3d = ['z']
+            self.reader3d = Reader(model=self.model, exp=self.exp, source=self.source3d,
+                                         regrid=self.highgrid,
+                                         streaming=self.streaming, aggregation=self.stream_step, loglevel=self.loglevel,
+                                         startdate=self.startdate, enddate=self.enddate)
+            self.reader_fullres = Reader(model=self.model, exp=self.exp, source=self.source2d,
+                                         regrid=self.highgrid,
+                                         streaming=self.streaming, aggregation=self.stream_step, loglevel=self.loglevel,
+                                         startdate=self.startdate, enddate=self.enddate)
         else:
             raise ValueError(f'Model {self.model} not supported')
 
@@ -241,8 +257,8 @@ class TCs(DetectNodes, StitchNodes):
 
         # now retrieve 2d and 3d data needed
         else:
-            self.data2d = self.reader2d.retrieve(vars=self.varlist2d)
-            self.data3d = self.reader3d.retrieve(vars=self.varlist3d)
+            self.data2d = self.reader2d.retrieve(var=self.varlist2d)
+            self.data3d = self.reader3d.retrieve(var=self.varlist3d)
             self.fullres = self.reader_fullres.retrieve(var=self.var2store)
 
 
