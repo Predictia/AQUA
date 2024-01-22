@@ -20,7 +20,10 @@ class TeleconnectionsConfig():
             configdir (str, opt):   path to config directory. Default is None
             interface (str, opt):    interface filename. Default is 'teleconnections-destine'
         """
-        self.filename = interface + '.yaml'
+        if interface:
+            self.filename = interface + '.yaml'
+        else:
+            raise ValueError('No interface file specified')
 
         if not configdir:
             self.configdir = self.get_config_dir()
