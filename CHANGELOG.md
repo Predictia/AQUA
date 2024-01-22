@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version.
 
+## [v0.6.1]
+
+Complete list:
 - Teleconnection improvement to accept different variable names for ENSO (avg_tos instead of sst) (#778)
 - ERA5 fixes compatible with new data governance (#772)
 - Update the LRA generator (removing aggregation and improving) filecheck and fix entries for historical-1990-dev-lowres (#772)
@@ -259,7 +262,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.1...HEAD
+[v0.6.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6...v0.6.1
 [v0.6]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.5.2-beta...v0.6
 [v0.5.2-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.5.2-alpha...v0.5.2-beta
 [v0.5.2-alpha]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.5.1...v0.5.2-alpha
