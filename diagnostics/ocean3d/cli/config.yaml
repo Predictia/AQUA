@@ -7,7 +7,6 @@ source: lra-r100-monthly
 # source: nemo-spinup-exp-5744567
 
 outputdir: ./output
-# "--model FESOM --exp tco2559-ng5-cycle3 --source $source"
 
 time_selection : True
 start_year : 1991

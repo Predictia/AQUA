@@ -16,10 +16,82 @@ from ocean3d import custom_region
 from ocean3d import write_data
 
 
-def zonal_mean_trend_plot(data, region=None,
-                          latS: float = None, latN: float = None,
-                          lonW: float = None, lonE: float = None,
-                          output=True, output_dir=None):
+
+def data_process_by_type(**kwargs):
+    """
+    Selects the type of timeseries and colormap based on the given parameters.
+
+    Args:
+        data (DataArray): Input data containing temperature (ocpt) and salinity (so).
+        anomaly (bool, optional): Specifies whether to compute anomalies. Defaults to False.
+        standardise (bool, optional): Specifies whether to standardize the data. Defaults to False.
+        anomaly_ref (str, optional): Reference for the anomaly computation. Valid options: "t0", "tmean". Defaults to None.
+
+    Returns:
+        process_data (Dataset): Processed data based on the selected preprocessing approach.
+        type (str): Type of preprocessing approach applied
+        cmap (str): Colormap to be used for the plot.
+    """
+    data = kwargs["data"]
+    anomaly = kwargs["anomaly"]
+    anomaly_ref = kwargs["anomaly_ref"]
+    standardise = kwargs["standardise"]
+    
+    
+    process_data = xr.Dataset()
+
+    
+    if anomaly:
+        anomaly_ref = anomaly_ref.lower().replace(" ", "").replace("_", "")
+        if not standardise:
+            if anomaly_ref in ['tmean', "meantime", "timemean"]:
+                cmap = "PuOr"
+                for var in list(data.data_vars.keys()):
+                    process_data[var] = data[var] - data[var].mean(dim='time')
+                type = "anomaly wrt temporal mean"
+            elif anomaly_ref in ['t0', "intialtime", "firsttime"]:
+                cmap = "PuOr"
+                for var in list(data.data_vars.keys()):
+                    process_data[var] = data[var] - data[var].isel(time=0)
+                type = "anomaly wrt initial time"
+            else:
+                raise ValueError(
+                    "Select proper value of anomaly_ref: t0 or tmean, when anomaly = True ")
+            logger.info(f"Data processed for {type}")
+        if standardise:
+            if anomaly_ref in ['t0', "intialtime", "firsttime"]:
+                cmap = "PuOr"
+                for var in list(data.data_vars.keys()):
+                    var_data = data[var] - data[var].isel(time=0)
+                    var_data.attrs['units'] = 'Stand. Units'
+                    # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
+                    process_data[var] = var_data / var_data.std(dim="time")
+                type = "Std. anomaly wrt initial time"
+            elif anomaly_ref in ['tmean', "meantime", "timemean"]:
+                cmap = "PuOr"
+                for var in list(data.data_vars.keys()):
+                    var_data = data[var] - data[var].mean(dim='time')
+                    var_data.attrs['units'] = 'Stand. Units'
+                    # Calculate the standard anomaly by dividing the anomaly by its standard deviation along the time dimension
+                    process_data[var] = var_data / var_data.std(dim="time")
+                type = "Std. anomaly wrt temporal mean"
+            else:
+                raise ValueError(
+                    "Select proper value of type: t0 or tmean, when anomaly = True ")
+            logger.info(
+                f"Data processed for {type}")
+
+    else:
+        cmap = 'jet'
+        logger.info("Data processed for Full values as anomaly = False")
+        type = "Full values"
+
+        process_data = data
+    # logger.info(f"Data processed for {type}")
+    return process_data, type, cmap
+    
+    
+def zonal_mean_trend_plot(o3d_request):
     """
     Plots spatial trends at different vertical levels for two variables.
 
@@ -51,6 +123,18 @@ def zonal_mean_trend_plot(data, region=None,
     Returns:
         None
     """
+    data = o3d_request.get('data')
+    model = o3d_request.get('model')
+    exp = o3d_request.get('exp')
+    source = o3d_request.get('source')
+    region = o3d_request.get('region', None)
+    latS = o3d_request.get('latS', None)
+    latN = o3d_request.get('latN', None)
+    lonW = o3d_request.get('lonW', None)
+    lonE = o3d_request.get('lonE', None)
+    output = o3d_request.get('output')
+    output_dir = o3d_request.get('output_dir')
+    
     TS_3dtrend_data = TS_3dtrend(data)
     TS_3dtrend_data.attrs = data.attrs
     data = TS_3dtrend_data
@@ -85,13 +169,13 @@ def zonal_mean_trend_plot(data, region=None,
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(data,
             region, latS, latN, lonW, lonE, output_dir, plot_name="zonal_mean_trend")
-
-        data.to_netcdf(f'{data_dir}/{filename}.nc')
+        filename = f"{model}_{exp}_{source}_{filename}"
+        write_data(f'{data_dir}/{filename}.nc',data)
         plt.savefig(f"{fig_dir}/{filename}.pdf")
         logger.info(
             "Figure and data used for this plot are saved here: %s", output_path)
 
-    #plt.show()
+    # plt.show()
 
     return
 
@@ -488,7 +572,7 @@ def time_series_multilevs(o3d_request, anomaly: bool = False,
     
     data = weighted_area_mean(data, region, latS, latN, lonW, lonE)
     data, type, cmap = data_process_by_type(
-        data, anomaly, standardise, anomaly_ref)
+                        data=data, anomaly=anomaly, standardise=standardise, anomaly_ref=anomaly_ref)
 
     logger.info("Time series plot is in process")
 
@@ -727,7 +811,7 @@ def TS_3dtrend(data):
     return TS_3dtrend_data
 
 
-def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=None, latS: float = None, latN: float = None, lonW: float = None, lonE: float = None,  output=True, output_dir=None):
+def multilevel_t_s_trend_plot(o3d_request, customise_level=False, levels=None):
     """
     Generates a plot showing trends at different depths for temperature and salinity variables.
 
@@ -746,6 +830,18 @@ def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=N
     Returns:
         None
     """
+    data = o3d_request.get('data')
+    model = o3d_request.get('model')
+    exp = o3d_request.get('exp')
+    source = o3d_request.get('source')
+    region = o3d_request.get('region', None)
+    latS = o3d_request.get('latS', None)
+    latN = o3d_request.get('latN', None)
+    lonW = o3d_request.get('lonW', None)
+    lonE = o3d_request.get('lonE', None)
+    output = o3d_request.get('output')
+    output_dir = o3d_request.get('output_dir')
+    
     data = area_selection(data, region, latS, latN, lonW, lonE)
     TS_trend_data = TS_3dtrend(data)
     TS_trend_data.attrs = data.attrs
@@ -796,8 +892,8 @@ def multilevel_t_s_trend_plot(data, region=None, customise_level=False, levels=N
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(data,
             region, latS, latN, lonW, lonE, output_dir, plot_name="multilevel_t_s_trend")
-
-        data.interp(lev=levels[levs]).to_netcdf(f'{data_dir}/{filename}.nc')
+        filename = f"{model}_{exp}_{source}_{filename}"
+        write_data(f'{data_dir}/{filename}.nc',data.interp(lev=levels[levs]))
         plt.savefig(f"{fig_dir}/{filename}.pdf")
         logger.info(
             "Figure and data used for this plot are saved here: %s", output_path)

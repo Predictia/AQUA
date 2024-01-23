@@ -144,7 +144,7 @@ class hovmoller_lev_time_plot:
         for anomaly in [False,True]:
             for standardise in [False,True]:
                 for anomaly_ref in ["t0","tmean"]:
-                    data_proc, type, cmap = self.data_process_by_type(
+                    data_proc, type, cmap = data_process_by_type(
                         data=data, anomaly=anomaly, standardise=standardise, anomaly_ref=anomaly_ref)
                     key = counter
                     
