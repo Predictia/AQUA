@@ -8,12 +8,14 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import matplotlib.gridspec as gridspec
 from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
-from aqua import Reader
 import pandas as pd
 import datetime
 from aqua.exceptions import NoDataError
 from aqua.util import create_folder, add_cyclic_lon, evaluate_colorbar_limits
 from aqua.logger import log_configure
+
+# set default options for xarray
+xr.set_options(keep_attrs=True)
 
 
 def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
@@ -77,8 +79,8 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
 
     # Load in memory to speed up the calculation
     logger.warning("Loading data into memory to speed up the calculation...")
-    var1.load()
-    var2.load()
+    var1 = var1.load()
+    var2 = var2.load()
 
     var1_climatology = var1.groupby('time.month').mean(dim='time')
     var2_climatology = var2.groupby('time.month').mean(dim='time')
@@ -285,20 +287,29 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None,
         raise NoDataError(f"The variable {var_name} is not present in the dataset. Please try again.")
 
     if 'plev' in bias.dims:
+        # Load in memory to speed up the calculation
+        logger.warning("Loading data into memory to speed up the calculation...")
+        bias = bias.load()
+
         # Get the pressure levels and coordinate values
-        plev = bias['plev'].values
-        coord_values = bias['lat'].values
+        lat, plev = np.meshgrid(bias['lat'], bias['plev'])
+
         # Calculate the mean bias along the time axis
         mean_bias = bias.mean(dim='time')
 
         # Create the z-values for the contour plot
-        coord_values_2d = np.broadcast_to(coord_values[:, np.newaxis], (len(coord_values), len(plev)))
-        plev_2d = np.broadcast_to(plev, (len(coord_values), len(plev)))
-        z_values = np.mean(mean_bias, axis=2)
+        z_values = mean_bias.mean(dim='lon')
+
+        vmin, vmax = evaluate_colorbar_limits(z_values)
+        if vmin*vmax < 0:  # we want the colorbar to be symmetric
+            vmax = max(abs(vmin), abs(vmax))
+            vmin = -vmax
+        logger.debug(f"vmin: {vmin}, vmax: {vmax}")
+        levels = np.linspace(vmin, vmax, 18)
 
         # Create the plot
         fig, ax = plt.subplots(figsize=(10, 8))
-        cax = ax.contourf(coord_values_2d, plev_2d, z_values.T, cmap='RdBu_r')
+        cax = ax.contourf(lat, plev, z_values, cmap='RdBu_r', levels=levels, extend='both')
         ax.set_title(f'Bias of {var_name} Experiment {model_label1} with respect to {model_label2} \n Selected model time range: {start_date1} to {end_date1}. Reference time range: {start_date2} to {end_date2}')
         ax.set_yscale('log')
         ax.set_ylabel('Pressure Level (Pa)')
