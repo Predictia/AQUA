@@ -254,16 +254,8 @@ if __name__ == '__main__':
     if "gregory" in config:
         logger.info("Plotting gregory plot")
 
-        # Creating the output filename
-        filename_nc = create_filename(outputdir=outputdir,
-                                      plotname="gregory", type="nc",
-                                      model=model, exp=exp,
-                                      source=source)
-        filename_nc = os.path.join(outputdir_nc, filename_nc)
-        logger.info(f"Output file: {filename_nc}")
-
         # Generating the image
-        fig, ax = plt.subplots()
+        fig = plt.figure()
 
         try:
             plot_kw = config["gregory"]["plot_kw"]
@@ -293,12 +285,20 @@ if __name__ == '__main__':
         except KeyError:
             toa = ['mtnlwrf', 'mtnswrf']
 
+        # Creating the output filename
+        filename_nc = create_filename(outputdir=outputdir,
+                                      plotname="gregory", type="nc",
+                                      model=model, exp=exp,
+                                      source=source, resample=resample)
+        filename_nc = os.path.join(outputdir_nc, filename_nc)
+        logger.info(f"Output file: {filename_nc}")
+
         try:
-            plot_gregory(model=model, exp=exp, source=source,
-                         reader_kw=reader_kw, plot_kw=plot_kw,
-                         ax=ax, outfile=filename_nc,
-                         ts_name=ts, toa_name=toa,
-                         regrid=regrid, freq=resample)
+            fig = plot_gregory(model=model, exp=exp, source=source,
+                               reader_kw=reader_kw, plot_kw=plot_kw,
+                               outfile=filename_nc,
+                               ts_name=ts, toa_name=toa,
+                               regrid=regrid, freq=resample)
         except (NotEnoughDataError, NoDataError) as e:
             logger.error(f"Error: {e}")
         except Exception as e:
@@ -309,7 +309,7 @@ if __name__ == '__main__':
             filename_pdf = create_filename(outputdir=outputdir,
                                            plotname="gregory", type="pdf",
                                            model=model, exp=exp,
-                                           source=source, freq=resample)
+                                           source=source, resample=resample)
             filename_pdf = os.path.join(outputdir_pdf, filename_pdf)
             logger.info(f"Output file: {filename_pdf}")
             fig.savefig(filename_pdf)
