@@ -29,7 +29,7 @@ def parse_arguments(args):
                         help="yaml configuration file")
     parser.add_argument("--loglevel", "-l", type=str,
                         required=False, help="loglevel")
-    
+
     # These will override the ones in the config file if provided
     parser.add_argument("--model", type=str,
                         required=False, help="model name")
@@ -134,7 +134,7 @@ if __name__ == '__main__':
     create_folder(folder=outputdir_pdf, loglevel=loglevel)
 
     if "timeseries" in config:
-        logger.info("Plotting timeseries...")
+        logger.info("Plotting timeseries")
 
         for var in config["timeseries"]:
             logger.info(f"Plotting {var}")
@@ -163,18 +163,73 @@ if __name__ == '__main__':
                 ylim = config["timeseries_plot_params"]["default"].get("ylim", {})
                 reader_kw = config["timeseries_plot_params"]["default"].get("reader_kw", {})
                 savefig = config["timeseries_plot_params"]["default"].get("savefig", True)
-            # add source to reader_kw
-            reader_kw["source"] = source
 
             # Generating the image
             fig, ax = plt.subplots()
 
             try:
-                plot_timeseries(model=model, exp=exp, variable=var,
+                plot_timeseries(model=model, exp=exp, source=source, variable=var,
                                 resample=resample, plot_era5=plot_era5,
                                 ylim=ylim, plot_kw=plot_kw, ax=ax,
                                 reader_kw=reader_kw, outfile=filename_nc,
                                 loglevel=loglevel)
+            except (NotEnoughDataError, NoDataError, NoObservationError) as e:
+                logger.error(f"Error: {e}")
+                continue
+            except Exception as e:
+                logger.error(f"Error: {e}")
+                logger.error("This is a bug, please report it.")
+                continue
+
+            if savefig:
+                filename_pdf = create_filename(outputdir=outputdir,
+                                               plotname=var, type="pdf",
+                                               model=model, exp=exp,
+                                               source=source)
+                filename_pdf = os.path.join(outputdir_pdf, filename_pdf)
+                logger.info(f"Output file: {filename_pdf}")
+                fig.savefig(filename_pdf)
+
+    if "timeseries_fomulae" in config:
+        logger.info("Plotting timeseries formulae")
+
+        for var in config["timeseries_fomulae"]:
+            logger.info(f"Plotting {var}")
+
+            # Creating the output filename
+            filename_nc = create_filename(outputdir=outputdir,
+                                          plotname=var, type="nc",
+                                          model=model, exp=exp,
+                                          source=source)
+            filename_nc = os.path.join(outputdir_nc, filename_nc)
+            logger.info(f"Output file: {filename_nc}")
+
+            # Reading the configuration file
+            plot_options = config["timeseries_plot_params"].get(var)
+            if plot_options:
+                plot_kw = plot_options.get("plot_kw", None)
+                plot_era5 = plot_options.get("plot_era5", False)
+                resample = plot_options.get("resample", "M")
+                ylim = plot_options.get("ylim", {})
+                reader_kw = plot_options.get("reader_kw", {})
+                savefig = plot_options.get("savefig", True)
+            else:  # default
+                plot_kw = config["timeseries_plot_params"]["default"].get("plot_kw", None)
+                plot_era5 = config["timeseries_plot_params"]["default"].get("plot_era5", False)
+                resample = config["timeseries_plot_params"]["default"].get("resample", "M")
+                ylim = config["timeseries_plot_params"]["default"].get("ylim", {})
+                reader_kw = config["timeseries_plot_params"]["default"].get("reader_kw", {})
+                savefig = config["timeseries_plot_params"]["default"].get("savefig", True)
+
+            # Generating the image
+            fig, ax = plt.subplots()
+
+            try:
+                plot_timeseries(model=model, exp=exp, source=source, variable=var,
+                                resample=resample, plot_era5=plot_era5,
+                                ylim=ylim, plot_kw=plot_kw, ax=ax,
+                                reader_kw=reader_kw, outfile=filename_nc,
+                                loglevel=loglevel, formula=True)
             except (NotEnoughDataError, NoDataError, NoObservationError) as e:
                 logger.error(f"Error: {e}")
                 continue
