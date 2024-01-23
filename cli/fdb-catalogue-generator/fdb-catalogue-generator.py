@@ -52,7 +52,7 @@ sources = {
             'data_start_date': common_dict['args']['data_start_date'] + 'T0000',
             'data_end_date': common_dict['args']['data_end_date'] + 'T2300',
             'aggregation': 'D',
-            'savefreq': 'H'
+            'savefreq': 'h'
         }
     },
     'hourly-1deg': {
@@ -65,7 +65,7 @@ sources = {
             'data_start_date': common_dict['args']['data_start_date'] + 'T0000',
             'data_end_date': common_dict['args']['data_end_date'] + 'T2300',
             'aggregation': 'D',
-            'savefreq': 'H'
+            'savefreq': 'h'
         }
     },
     '6hourly-1deg': {
@@ -81,7 +81,7 @@ sources = {
         'data_start_date': common_dict['args']['data_start_date'] + 'T0000',
         'data_end_date': common_dict['args']['data_end_date'] + 'T1800',
         'aggregation': 'D',
-        'savefreq': '6H'
+        'savefreq': '6h'
         }
     },           
 

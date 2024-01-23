@@ -21,7 +21,7 @@
         data_end_date: 19500601T0000
         aggregation: M  # Default aggregation if timestep=S is used
         savefreq: M
-        timestep: H
+        timestep: h
         timestyle: step
         timeshift: -M    # shift time of resulting xarray by this amount
       description: monthly data on native resolution. Contains avg_thetao (263501) and avg_so (263500)

@@ -16,8 +16,8 @@ sources:
       data_start_date: 20200120
       data_end_date: 20240101
       aggregation: D
-      savefreq: H
-      timestep: H
+      savefreq: h
+      timestep: h
       timestyle: step
     description: 'FDB data tco399 grid'
     driver: gsv
@@ -50,8 +50,8 @@ sources:
       data_start_date: 20200120
       data_end_date: 20240101
       aggregation: D
-      savefreq: H
-      timestep: H
+      savefreq: h
+      timestep: h
       timestyle: step
     description: 'FDB data tco399 grid'
     driver: gsv

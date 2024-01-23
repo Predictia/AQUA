@@ -16,7 +16,7 @@ sources:
       data_end_date: '19911231'
       aggregation: Y
       savefreq: M
-      timestep: H
+      timestep: h
       timestyle: step
       timeshift: Yes
     driver: gsv
@@ -45,7 +45,7 @@ sources:
       data_end_date: '19911231'
       aggregation: M
       savefreq: M
-      timestep: H
+      timestep: h
       timestyle: step
       timeshift: Yes
     driver: gsv
@@ -73,7 +73,7 @@ sources:
       data_end_date: '19911231'
       aggregation: M
       savefreq: M
-      timestep: H
+      timestep: h
       timestyle: step
       timeshift: Yes
     driver: gsv
@@ -105,7 +105,7 @@ sources:
       data_end_date: '19911231'
       aggregation: M
       savefreq: M
-      timestep: H
+      timestep: h
       timestyle: step
       timeshift: Yes
     driver: gsv
