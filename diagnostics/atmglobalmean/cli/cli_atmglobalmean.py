@@ -51,9 +51,6 @@ if __name__ == '__main__':
         # Handle other custom exceptions if needed
         print(f"CustomError occurred: {custom_error}")
         sys.exit(0)
-    else:
-        # Code to run if the import was successful (optional)
-        print("Modules imported successfully.")
 
     # Aquiring arguments and configuration
     args = parse_arguments(sys.argv[1:])
@@ -70,15 +67,17 @@ if __name__ == '__main__':
     exp = get_arg(args, 'exp', config['data']['exp'])
     source = get_arg(args, 'source', config['data']['source'])
 
-    logger.debug(f"model: {model}")
-    logger.debug(f"exp: {exp}")
-    logger.debug(f"source: {source}")
+    logger.debug(f"Running for {model} {exp} {source}.")
 
     path_to_output = get_arg(
         args, 'outputdir', config['path']['path_to_output'])
-    if path_to_output is not None:
+    if path_to_output:
         outputdir = os.path.join(path_to_output, 'netcdf/')
         outputfig = os.path.join(path_to_output, 'pdf/')
+    else:
+        logger.error("No output directory provided.")
+        logger.critical("Atmospheric global mean biases diagnostic is terminated.")
+        sys.exit(0)
 
     logger.debug(f"outputdir: {outputdir}")
     logger.debug(f"outputfig: {outputfig}")
@@ -98,8 +97,8 @@ if __name__ == '__main__':
     compare_datasets_plev_bool = config['diagnostic_attributes']['compare_datasets_plev']
     plot_map_with_stats_bool = config['diagnostic_attributes']['plot_map_with_stats']
 
-    model_label = model+'_'+exp+'_'+source
-    model_label_obs = model_obs+'_'+exp_obs+'_'+source_obs
+    model_label = model+'_'+exp
+    model_label_obs = model_obs+'_'+exp_obs
 
     try:
         reader_obs = Reader(model=model_obs, exp=exp_obs, source=source_obs, loglevel=loglevel)
@@ -117,27 +116,31 @@ if __name__ == '__main__':
 
     if seasonal_bias_bool:
         for var_name in variables_no_plev:
+            logger.info(f"Running seasonal bias diagnostic for {var_name}...")
             try:
-                seasonal_bias(dataset1=data, dataset2=data_obs, var_name=var_name, plev=plev, statistic=statistic,
+                seasonal_bias(dataset1=data, dataset2=data_obs,
+                              var_name=var_name, plev=plev, statistic=statistic,
                               model_label1=model_label, model_label2=model_label_obs,
-                              outputdir=outputdir, outputfig=outputfig)
+                              outputdir=outputdir, outputfig=outputfig, loglevel=loglevel)
             except Exception as e:
                 logger.error(f"An unexpected error occurred: {e}")
 
     if compare_datasets_plev_bool:
         for var_name in variables_with_plev:
+            logger.info(f"Running compare datasets plev diagnostic for {var_name}...")
             try:
                 compare_datasets_plev(dataset1=data, dataset2=data_obs, var_name=var_name,
                                       model_label1=model_label, model_label2=model_label_obs,
-                                      outputdir=outputdir, outputfig=outputfig)
+                                      outputdir=outputdir, outputfig=outputfig, loglevel=loglevel)
             except Exception as e:
                 logger.error(f"An unexpected error occurred: {e}")
 
     if plot_map_with_stats_bool:
         for var_name in variables_no_plev:
+            logger.info(f"Running plot map with stats diagnostic for {var_name}...")
             try:
                 plot_map_with_stats(dataset=data, var_name=var_name,  model_label=model_label,
-                                    outputdir=outputdir, outputfig=outputfig)
+                                    outputdir=outputdir, outputfig=outputfig, loglevel=loglevel)
             except Exception as e:
                 logger.error(f"An unexpected error occurred: {e}")
 
