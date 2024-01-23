@@ -1,7 +1,7 @@
 # This block can be overridden in the command line by using:
 # --model, --exp, --source, --outputdir
-model: "IFS"
-exp: "tco2559-ng5-cycle3"
+model: "IFS-NEMO"
+exp: "historical-1990"
 source: "lra-r100-monthly"
 outputdir: "./"
 
@@ -23,7 +23,7 @@ timeseries_plot_params:
     plot_kw:
       color: "tab:blue"
     plot_era5: True
-    resample: "M"
+    resample: null
     savefig: True
   # 2t:
   #   plot_kw:
