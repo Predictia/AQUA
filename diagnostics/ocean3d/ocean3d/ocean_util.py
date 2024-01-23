@@ -497,3 +497,31 @@ def dir_creation(data, region=None,  latS: float = None, latN: float = None, lon
     os.makedirs(fig_dir, exist_ok=True)
     os.makedirs(data_dir, exist_ok=True)
     return output_dir, fig_dir, data_dir, filename
+
+
+def write_data(file_name, xarray_data):
+    # Check if the file exists
+    if os.path.exists(file_name):
+        # If it exists, delete it
+        os.remove(file_name)
+        print(f"Deleted existing file: {file_name}")
+
+    # Write the new xarray data to the NetCDF file
+    xarray_data.to_netcdf(file_name)
+    print(f"Data written to: {file_name}")
+    return
+
+def split_ocean3d_req(self, o3d_request):
+    self.data = o3d_request.get('data')
+    self.model = o3d_request.get('model')
+    self.exp = o3d_request.get('exp')
+    self.source = o3d_request.get('source')
+    self.region = o3d_request.get('region', None)
+    self.latS = o3d_request.get('latS', None)
+    self.latN = o3d_request.get('latN', None)
+    self.lonW = o3d_request.get('lonW', None)
+    self.lonE = o3d_request.get('lonE', None)
+    self.output = o3d_request.get('output')
+    self.output_dir = o3d_request.get('output_dir')
+    
+    return self

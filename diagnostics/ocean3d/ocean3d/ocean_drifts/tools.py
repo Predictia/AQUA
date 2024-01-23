@@ -13,6 +13,7 @@ from ocean3d import weighted_zonal_mean
 from ocean3d import logger
 from ocean3d import dir_creation
 from ocean3d import custom_region
+from ocean3d import write_data
 
 
 def zonal_mean_trend_plot(data, region=None,
@@ -447,12 +448,9 @@ def reg_mean(data, region=None, latS=None, latN=None, lonW=None, lonE=None):
 #     return
 
 
-def time_series_multilevs(data, region=None, anomaly: bool = False,
+def time_series_multilevs(o3d_request, anomaly: bool = False,
                           standardise: bool = False, anomaly_ref=None,
-                          customise_level=False, levels=None,
-                          latS: float = None, latN: float = None,
-                          lonW: float = None, lonE: float = None,
-                          output=True, output_dir=None):
+                          customise_level=False, levels=None):
     """
     Create time series plots of global temperature and salinity at selected levels.
 
@@ -474,6 +472,20 @@ def time_series_multilevs(data, region=None, anomaly: bool = False,
     Returns:
         None
     """
+    data = o3d_request.get('data')
+    model = o3d_request.get('model')
+    exp = o3d_request.get('exp')
+    source = o3d_request.get('source')
+    region = o3d_request.get('region', None)
+    latS = o3d_request.get('latS', None)
+    latN = o3d_request.get('latN', None)
+    lonW = o3d_request.get('lonW', None)
+    lonE = o3d_request.get('lonE', None)
+    output = o3d_request.get('output')
+    output_dir = o3d_request.get('output_dir')
+    
+    
+    
     data = weighted_area_mean(data, region, latS, latN, lonW, lonE)
     data, type, cmap = data_process_by_type(
         data, anomaly, standardise, anomaly_ref)
@@ -512,7 +524,8 @@ def time_series_multilevs(data, region=None, anomaly: bool = False,
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(data,
             region, latS, latN, lonW, lonE, output_dir, plot_name=f'time_series_{type.replace(" ","_").replace(".","")}')
-        data.to_netcdf(f'{data_dir}/{filename}.nc')
+        filename = f"{model}_{exp}_{source}_{filename}"
+
 
     tunits = data_level.ocpt.attrs['units']
     sunits = data_level.so.attrs['units']
@@ -527,6 +540,7 @@ def time_series_multilevs(data, region=None, anomaly: bool = False,
     plt.subplots_adjust(bottom=0.3, top=0.85, wspace=0.2)
 
     if output:
+        write_data(f'{data_dir}/{filename}.nc', data)
         plt.savefig(f"{fig_dir}/{filename}.pdf")
         logger.info(
             " Figure and data used in the plot, saved here : %s", output_path)
