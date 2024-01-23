@@ -1,12 +1,12 @@
 # This block can be overridden in the command line by using:
 # --model, --exp, --source, --outputdir
-model: "FESOM"
-exp: "tco2559-ng5-cycle3"
+model: "IFS-NEMO"
+exp: "historical-1990"
 source: "lra-r100-monthly"
 outputdir: "./"
 
 # This is the list of variables that will be plotted as timeseries
-timeseries: ['sst']
+timeseries: ['avg_tos']
 
 timeseries_plot_params:
 # These are options that specify how the data is plotted
