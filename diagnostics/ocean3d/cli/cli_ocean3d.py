@@ -68,17 +68,17 @@ class Ocean3DCLI:
         self.config["source"] = self.get_arg('source', self.ocean3d_config_dict['source'])
         self.config["outputdir"] = self.get_arg('outputdir', self.ocean3d_config_dict['outputdir'])
 
-        self.config["custom_regions"] = self.get_value_with_default(self.ocean3d_config_dict,
-                                                "custom_region", [])
+        self.config["custom_region"] = self.get_value_with_default(self.ocean3d_config_dict,
+                                                "custom_region", None)
         self.config["predefined_regions"] = self.get_value_with_default(self.ocean3d_config_dict,
                                                     "predefined_regions", [])
-        self.config["time_selection"] = self.get_value_with_default(self.ocean3d_config_dict,"time_selection", [])
+        self.config["time_selection"] = self.get_value_with_default(self.ocean3d_config_dict,"time_selection", None)
         if self.config["time_selection"] == True:
             self.config["start_year"] = self.get_value_with_default(self.ocean3d_config_dict,"start_year", [])
             self.config["end_year"] = self.get_value_with_default(self.ocean3d_config_dict,"end_year", [])
         
-        if self.ocean3d_config_dict['custom_region']:
-            self.config["custom_region"] = self.get_value_with_default(self.ocean3d_config_dict,"custom_region", [])
+        # if self.ocean3d_config_dict['custom_region'] :
+        #     self.config["custom_region"] = self.get_value_with_default(self.ocean3d_config_dict,"custom_region", [])
             
     def data_retrieve(self):
         model = self.config["model"]
@@ -160,7 +160,7 @@ class Ocean3DCLI:
                                   time = time, overlap= True)
 
     def custom_region_diag(self):
-        if self.config["custom_region"]:
+        if self.config["custom_region"] != None:
             self.logger.info("Analysing custom regions")
             custom_regions = self.config["custom_region"] ### add fix if not present
             custom_region_dict = {}
@@ -208,7 +208,7 @@ class Ocean3DCLI:
         
         self.data_retrieve()
         
-        # self.custom_region_diag()
+        self.custom_region_diag()
         self.predefined_region_diag()
 
 
