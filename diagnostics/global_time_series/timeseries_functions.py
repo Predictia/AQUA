@@ -252,6 +252,10 @@ def plot_gregory(model, exp, source,
 
     # Preparing data for annual mean
     data = reader.timmean(data=data, freq='Y')
+
+    if len(data.time) < 2:
+        raise NotEnoughDataError("There are not enough data to proceed with annual Gregory plot.")
+
     ts_annual = reader.fldmean(data[ts_name]).values - 273.15
     toa_annual = reader.fldmean(data[toa_name[0]] + data[toa_name[1]]).values
 
