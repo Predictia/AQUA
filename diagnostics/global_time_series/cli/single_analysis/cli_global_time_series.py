@@ -248,7 +248,7 @@ if __name__ == '__main__':
                 fig.savefig(filename_pdf)
 
     if "gregory" in config:
-        logger.info("Plotting gregory plot...")
+        logger.info("Plotting gregory plot")
 
         # Creating the output filename
         filename_nc = create_filename(outputdir=outputdir,
@@ -274,13 +274,27 @@ if __name__ == '__main__':
             reader_kw = config["gregory"]["reader_kw"]
         except KeyError:
             reader_kw = {}
-        # add source to reader_kw
-        reader_kw["source"] = source
+        try:
+            regrid = config["gregory"]["regrid"]
+        except KeyError:
+            logger.warning("No regrid provided, using raw data")
+            regrid = None
+        # Dictionary for Gregory plot
+        try:
+            ts = config["gregory"]["ts"]
+        except KeyError:
+            ts = '2t'
+        try:
+            toa = config["gregory"]["toa"]
+        except KeyError:
+            toa = ['mtnlwrf', 'mtnswrf']
 
         try:
-            plot_gregory(model=model, exp=exp, reader_kw=reader_kw,
-                         plot_kw=plot_kw, ax=ax, outfile=filename_nc,
-                         freq=resample)
+            plot_gregory(model=model, exp=exp, source=source,
+                         reader_kw=reader_kw, plot_kw=plot_kw,
+                         ax=ax, outfile=filename_nc,
+                         ts_name=ts, toa_name=toa,
+                         regrid=regrid, freq=resample)
         except (NotEnoughDataError, NoDataError) as e:
             logger.error(f"Error: {e}")
         except Exception as e:

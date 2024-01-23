@@ -148,10 +148,6 @@ def plot_timeseries(
         raise NotEnoughDataError("There are not enough data to proceed. Global time series diagnostic requires at least two data points.")
 
     data = reader.fldmean(data)
-    # try:
-    #     data = reader.fldmean(data)
-    # except KeyError as e:
-    #     raise NoDataError(f"Could not retrieve {variable} from {model}-{exp}. No plot will be drawn.") from e
 
     if resample:
         logger.debug(f"Resampling data to {resample}")
@@ -200,38 +196,60 @@ def plot_timeseries(
     ax.spines["top"].set_visible(False)
 
 
-def plot_gregory(model, exp, reader_kw={}, plot_kw={}, ax=None, freq='M',
-                 **kwargs):
+def plot_gregory(model, exp, source,
+                 reader_kw={}, plot_kw={}, ax=None,
+                 regrid=None, freq=None,
+                 ts_name='2t', toa_name=['mtnlwrf', 'mtnswrf'],
+                 loglevel='WARNING', **kwargs):
     """Plot global mean SST against net radiation at TOA.
 
     Parameters:
         model (str): Model ID.
         exp (str): Experiment ID.
+        source (str): Source ID.
         reader_kw (dict): Additional keyword arguments passed to the `aqua.Reader`.
         plot_kw (dict): Additional keyword arguments passed to the plotting function.
-        freq (str): frequency for timmean applied to data, default is 'M' (monthly)
+        ax (matplotlib.Axes): (Optional) axes to plot in.
+        regrid (str): Optional regrid resolution. Default is None.
+        freq (str): frequency for timmean applied to data, default is None.
+        ts (str): variable name for 2m temperature, default is '2t'.
+        toa (list): list of variable names for net radiation at TOA, default is ['mtnlwrf', 'mtnswrf'].
+        loglevel (str): Logging level. Default is WARNING.
 
     Raises:
         NotEnoughDataError: if there are not enough data to plot.
         NoDataError: if the variable is not found.
     """
+    logger = log_configure(loglevel, 'Gregory plot')
+
     if ax is None:
         ax = plt.gca()
 
+    retrieve_list = [ts_name] + toa_name
+    logger.debug(f"Retrieving {retrieve_list}")
+
     try:
-        reader = Reader(model, exp, **reader_kw)
-        data = reader.retrieve()
+        reader = Reader(model, exp, source, regrid=regrid, loglevel=loglevel, **reader_kw)
+        data = reader.retrieve(var=retrieve_list)
     except Exception as e:
+        logger.error(f"Error: {e}")
         raise NoDataError(f"Could not retrieve data for {model}-{exp}. No plot will be drawn.") from e
 
     if len(data.time) < 2:
         raise NotEnoughDataError("There are not enough data to proceed. Global time series diagnostic requires at least two data points.")
 
+    if freq:
+        logger.debug(f"Resampling data to {freq}")
+        data = reader.timmean(data=data, freq=freq)
+    if regrid:
+        logger.debug(f"Regridding data to {regrid}")
+        data = reader.regrid(data)
+
     try:
-        ts = reader.timmean(data=reader.fldmean(data["2t"]), freq=freq).values - 273.15
-        toa = reader.timmean(data=reader.fldmean(data["mtnsrf"] + data["mtntrf"]),
-                             freq=freq).values
-    except KeyError as e:
+        ts = reader.fldmean(data[ts_name]).values - 273.15
+        toa = reader.fldmean(data[toa_name[0]] + data[toa_name[1]]).values
+    except Exception as e:
+        logger.error(f"Error: {e}")
         raise NoDataError(f"Could not retrieve data for {model}-{exp}. No plot will be drawn.") from e
 
     ax.axhline(0, color="k", lw=0.8)
