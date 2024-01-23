@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version.
 
+- Hotfix for v0.12.0 of the GSV_interface related to valid_time (#788)
+
 ## [v0.6.1]
 
 Complete list:
