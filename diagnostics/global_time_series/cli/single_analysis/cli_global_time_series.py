@@ -44,7 +44,7 @@ def parse_arguments(args):
 
 
 def create_filename(outputdir=None, plotname=None, type=None,
-                    model=None, exp=None, source=None):
+                    model=None, exp=None, source=None, resample=None):
     """
     Create a filename for the plots
 
@@ -55,6 +55,7 @@ def create_filename(outputdir=None, plotname=None, type=None,
         model (str): model name
         exp (str): experiment name
         source (str): source name
+        resample (str): resample frequency
 
     Returns:
         filename (str): filename
@@ -78,6 +79,9 @@ def create_filename(outputdir=None, plotname=None, type=None,
     filename = f"{diagnostic}"
     filename += f"_{model}_{exp}_{source}"
     filename += f"_{plotname}"
+
+    if resample == 'Y':
+        filename += "_annual"
 
     if type == "pdf":
         filename += ".pdf"
@@ -305,7 +309,7 @@ if __name__ == '__main__':
             filename_pdf = create_filename(outputdir=outputdir,
                                            plotname="gregory", type="pdf",
                                            model=model, exp=exp,
-                                           source=source)
+                                           source=source, freq=resample)
             filename_pdf = os.path.join(outputdir_pdf, filename_pdf)
             logger.info(f"Output file: {filename_pdf}")
             fig.savefig(filename_pdf)
