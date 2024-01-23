@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version.
 
+- Global time series adapted to new data governance (#785)
+
 ## [v0.6.1]
 
 Complete list:
