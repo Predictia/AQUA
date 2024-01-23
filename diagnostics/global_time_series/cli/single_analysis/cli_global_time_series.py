@@ -2,7 +2,7 @@
 """
 Command-line interface for global time series diagnostic.
 
-This CLI allows to plot timeseries of a set of variables 
+This CLI allows to plot timeseries of a set of variables
 defined in a yaml configuration file for a single experiment
 and gregory plot.
 """
