@@ -17,23 +17,23 @@ def frequency_string_to_pandas(freq):
     """
 
     trans = {
-        'hourly': '1H',
-        'daily': '1D',
-        'weekly': '1W',
-        'monthly': '1M',
-        'yearly': '1Y',
-        'hour': '1H',
-        'day': '1D',
-        'pentad': '5D',
-        'week': '1W',
-        'month': '1M',
-        'year': '1Y',
-        'hours': '1H',
-        'days': '1D',
+        'hourly': 'h',
+        'daily': 'D',
+        'weekly': 'W',
+        'monthly': 'MS', #this implies start of the month
+        'yearly': 'YS', #this implies start of the year
+        'hour': 'h',
+        'day': 'D',
+        'pentad': '5d',
+        'week': 'W',
+        'month': 'MS',
+        'year': 'YS',
+        'hours': 'h',
+        'days': 'D',
         'pentads': '5D',
-        'weeks': '1W',
-        'months': '1M',
-        'years': '1Y',
+        'weeks': 'W',
+        'months': 'MS',
+        'years': 'YS',
     }
 
     new_freq = trans.get(freq, freq)
@@ -64,7 +64,7 @@ def _xarray_timedelta_string(xdataset):
     elif days >= 1:
         return f"{days}D"
     else:
-        return f"{hours}H"
+        return f"{hours}h"
 
 
 def _find_end_date(start_date, offset):
@@ -74,8 +74,8 @@ def _find_end_date(start_date, offset):
     start_date = pd.Timestamp(start_date)
     end_date = start_date + to_offset(offset)
     # this because to_offset does not go to next month/year
-    if 'Y' in offset or 'M' in offset:
-        end_date = end_date + pd.DateOffset(days=1)
+    #if 'Y' in offset or 'M' in offset:
+    #    end_date = end_date + pd.DateOffset(days=1)
     return end_date
 
 
@@ -111,17 +111,22 @@ def check_chunk_completeness(xdataset, resample_frequency='1D', loglevel='WARNIN
     data_frequency = _xarray_timedelta_string(xdataset)
 
     # normalize periods
-    normalized_dates = xdataset.time.to_index().to_period(resample_frequency).to_timestamp()
+    #print(xdataset.time)
+    #normalized_dates = xdataset.time.to_index().to_period('M').to_timestamp()
+    #print(normalized_dates)
 
     # the pandas monthly frequency is forced to end of the month. use `MS` to go at the start
-    if 'M' in resample_frequency:
-        pandas_frequency = re.findall(r'\d+', resample_frequency)[0] + 'MS'
-    elif 'Y' in resample_frequency:
-        pandas_frequency = re.findall(r'\d+', resample_frequency)[0] + 'YS'
-    else:
-        pandas_frequency = resample_frequency
-    chunks = pd.date_range(start=normalized_dates[0],
-                           end=normalized_dates[-1],
+    #if 'M' in resample_frequency:
+    #    pandas_frequency = re.findall(r'\d+', resample_frequency)[0] + 'MS'
+    #elif 'Y' in resample_frequency:
+    #    pandas_frequency = re.findall(r'\d+', resample_frequency)[0] + 'YS'
+    #else:
+    pandas_frequency = resample_frequency
+    #chunks = pd.date_range(start=normalized_dates[0],
+    #                       end=normalized_dates[-1],
+    #                       freq=pandas_frequency)
+    chunks = pd.date_range(start=xdataset.time.to_index()[0],
+                           end=xdataset.time.to_index()[-1],
                            freq=pandas_frequency)
 
     # if no chunks, no averages

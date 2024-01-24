@@ -759,20 +759,22 @@ class Reader(FixerMixin, RegridMixin):
             self.logger.warning('A single timestep is available, is this correct?')
             self.orig_freq = 'Unknown'
 
-    
         try:
             # resample
             self.logger.info('Resampling to %s frequency...', str(resample_freq))
             out = data.resample(time=resample_freq).mean()
         except ValueError as exc:
             raise ValueError('Cant find a frequency to resample, aborting!') from exc
-
+    
+        # TEST: no longer necessary if we use MS and YS
         # set time as the first timestamp of each month/day according to the sampling frequency
-        out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
+        # out['time'] = out['time'].to_index().to_period('M').to_timestamp().values
 
         if exclude_incomplete:
             #if len(data.time)>1:
-            boolean_mask = check_chunk_completeness(data, resample_frequency=resample_freq)
+            self.logger.info('Checking if incomplete chunks has been produced...')
+            boolean_mask = check_chunk_completeness(data, resample_frequency=resample_freq, 
+                                                    loglevel=self.loglevel)
             out = out.where(boolean_mask, drop=True)
             #else:
             #    self.logger.warning('A single timestep is available, is this correct?')
