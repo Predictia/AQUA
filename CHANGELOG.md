@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version.
 
+- Seaince diagnostic adapted to new data governance (#790)
 - Implement a fix setting to NaN the data of the first step in each month (for historical-1990) (#776)
 
 ## [v0.6.1]
