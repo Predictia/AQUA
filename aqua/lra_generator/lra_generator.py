@@ -467,6 +467,9 @@ class LRAgenerator():
                 if self.frequency:
                     month_data = self.reader.timmean(month_data, freq=self.frequency, 
                                                      exclude_incomplete=self.exclude_incomplete)
+                    if month_data.attrs.get("incomplete_time"):
+                        self.logger.warning('Timmean returned an empty array, skipping month %s!', month)
+                        continue
                 month_data = self.reader.regrid(month_data)
                 month_data = self._remove_regridded(month_data)
 
