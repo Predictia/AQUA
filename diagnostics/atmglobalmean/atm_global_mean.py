@@ -384,11 +384,20 @@ def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=N
     var_min = var_data.min().values.item()
     var_max = var_data.max().values.item()
 
+    # Add cyclic longitude
+    try:
+        var_data = add_cyclic_lon(var_data)
+    except Exception as e:
+        logger.debug(f"Error: {e}")
+        logger.warning(f"Cannot add cyclic longitude for {var_name} variable.")
+
     # Plot the map
     fig = plt.figure(figsize=(10, 8))
     ax = plt.axes(projection=ccrs.PlateCarree())
     cmap = 'RdBu_r'  # Choose a colormap (reversed)
-    im = ax.pcolormesh(var_data.lon, var_data.lat, var_data.values, cmap=cmap, transform=ccrs.PlateCarree())
+    levels = np.linspace(var_min, var_max, num=21)
+    im = ax.contourf(var_data.lon, var_data.lat, var_data.values, cmap=cmap, transform=ccrs.PlateCarree(),
+                     levels=levels, extend='both')
     # Set plot title and axis labels
     ax.set_title(f'Map of {var_name} for {model_label} from {pd.to_datetime(start_date).strftime("%Y-%m-%d")} to {pd.to_datetime(end_date).strftime("%Y-%m-%d")}')
     ax.set_xlabel('Longitude')
