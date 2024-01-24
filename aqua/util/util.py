@@ -3,6 +3,7 @@
 import os
 import random
 import string
+import re
 import numpy as np
 import xarray as xr
 from aqua.logger import log_configure
@@ -104,3 +105,20 @@ def find_vert_coord(ds):
     """
     vert_coord = [x for x in ds.coords if ds.coords[x].attrs.get("units") in ["Pa", "hPa", "m", "km", "Km", "cm", ""]]
     return vert_coord
+
+
+def extract_literal_and_numeric(text):
+    """
+    Given a string, extract its literatl and numeric part
+    """
+    # Using regular expression to find alphabetical characters and digits in the text
+    match = re.search(r'([A-Za-z]+)(\d*)', text)
+    
+    if match:
+        # If a match is found, return the literal and numeric parts
+        literal_part = match.group(1)
+        numeric_part = match.group(2)
+        return literal_part, numeric_part
+    else:
+        # If no match is found, return None or handle it accordingly
+        return None, None
