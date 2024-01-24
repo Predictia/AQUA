@@ -219,17 +219,17 @@ class hovmoller_lev_time_plot:
 
         axs[0].set_title("Temperature", fontsize=15)
         axs[0].set_ylabel("Depth (in m)", fontsize=12)
-        axs[0].set_xlabel("Time (in years)", fontsize=12)
+        axs[0].set_xlabel("Time", fontsize=12)
         axs[0].set_xticklabels(axs[0].get_xticklabels(), rotation=30)
         axs[1].set_xticklabels(axs[0].get_xticklabels(), rotation=30)
-        max_num_ticks = 5  # Adjust this value to control the number of ticks
-        from matplotlib.ticker import MaxNLocator
-        locator = MaxNLocator(integer=True, prune='both', nbins=max_num_ticks)
-        axs[0].xaxis.set_major_locator(locator)
-        axs[1].xaxis.set_major_locator(locator)
+        # max_num_ticks = 10  # Adjust this value to control the number of ticks
+        # from matplotlib.ticker import MaxNLocator
+        # locator = MaxNLocator(integer=True, prune='both', nbins=max_num_ticks)
+        # axs[0].xaxis.set_major_locator(locator)
+        # axs[1].xaxis.set_major_locator(locator)
 
         axs[1].set_title("Salinity", fontsize=15)
-        axs[1].set_xlabel("Time (in years)", fontsize=12)
+        axs[1].set_xlabel("Time", fontsize=12)
         axs[1].set_yticklabels([])
 
         plt.subplots_adjust(bottom=0.3, top=0.85, wspace=0.1)
