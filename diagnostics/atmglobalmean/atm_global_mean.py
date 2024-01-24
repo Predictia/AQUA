@@ -19,7 +19,7 @@ logger = log_configure(log_level=loglevel, log_name='Atmglobalmean')
 
 
 def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statistic='mean', model_label1=None, model_label2=None, 
-                  start_date1=None, end_date1=None, start_date2=None, end_date2=None, outputdir=None, outputfig=None):
+                  start_date1=None, end_date1=None, start_date2=None, end_date2=None, outputdir=None, outputfig=None, dataset2_precomputed=None):
     '''
     Plot the seasonal bias maps between two datasets for specific variable and time ranges.
 
@@ -35,7 +35,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
         end_date1 (str): The end date of the time range for dataset1 in 'YYYY-MM-DD' format.
         start_date2 (str): The start date of the time range for dataset2 in 'YYYY-MM-DD' format.
         end_date2 (str): The end date of the time range for dataset2 in 'YYYY-MM-DD' format.
-
+        dataset2_precomputed (xarray.Dataset or None): Pre-computed climatology for dataset2.
     Raises:
         ValueError: If an invalid statistic is provided.
 
@@ -56,9 +56,15 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
     else:
         start_date2 =  str(var2["time.year"][0].values) +'-'+str(var2["time.month"][0].values)+'-'+str(var2["time.day"][0].values)
         end_date2 = str(var2["time.year"][-1].values) +'-'+str(var2["time.month"][-1].values)+'-'+str(var2["time.day"][-1].values)
+    # Check if pre-computed climatology is provided, otherwise compute it
+    if dataset2_precomputed is None:
+        # Compute climatology
+        dataset2_climatology = dataset2.groupby('time.month').mean(dim='time')
+        var2_climatology = dataset2_climatology[var_name]
+    else:
+        var2_climatology = dataset2_precomputed
 
     var1_climatology = var1.groupby('time.month').mean(dim='time')
-    var2_climatology = var2.groupby('time.month').mean(dim='time')
 
     # Select the desired pressure level if provided
     if 'plev' in var1_climatology.dims:
@@ -88,12 +94,8 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
     season_ranges = {'DJF': [12, 1, 2], 'MAM': [3, 4, 5], 'JJA': [6, 7, 8], 'SON': [9, 10, 11]}
     results = []
     for season, months in season_ranges.items():
-        if season == 'DJF':
-            var1_season = var1_climatology.sel(month=months[1:])
-            var2_season = var2_climatology.sel(month=months)
-        else:
-            var1_season = var1_climatology.sel(month=months)
-            var2_season = var2_climatology.sel(month=months)
+        var1_season = var1_climatology.sel(month=months)
+        var2_season = var2_climatology.sel(month=months)
 
         if statistic == 'mean':
             result_season = var1_season.mean(dim='month') - var2_season.mean(dim='month')
@@ -198,7 +200,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None, plev=None, statis
 
 
 def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None, start_date1=None, end_date1=None,
-                          start_date2=None, end_date2=None, model_label1=None, model_label2=None, outputdir=None, outputfig=None):
+                          start_date2=None, end_date2=None, model_label1=None, model_label2=None, outputdir=None, outputfig=None, dataset2_precomputed=None):
     """
     Compare two datasets and plot the zonal bias for a selected model time range with respect to the second dataset.
 
@@ -232,6 +234,14 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None, start_dat
     else:
         start_date2 =  str(dataset2["time.year"][0].values) +'-'+str(dataset2["time.month"][0].values)+'-'+str(dataset2["time.day"][0].values)
         end_date2 = str(dataset2["time.year"][-1].values) +'-'+str(dataset2["time.month"][-1].values)+'-'+str(dataset2["time.day"][-1].values)
+        
+     # Check if pre-computed climatology is provided, otherwise compute it
+    if dataset2_precomputed is None:
+        # Compute climatology
+        dataset2_climatology = dataset2.groupby('time.month').mean(dim='time')
+        var2_climatology = dataset2_climatology[var_name]
+    else:
+        var2_climatology = dataset2_precomputed
 
     # Calculate the bias between dataset1 and dataset2
     bias = dataset1[var_name] - dataset2[var_name].mean(dim='time')
