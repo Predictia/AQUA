@@ -127,7 +127,7 @@ class SeaIceExtent:
             # automatically the first source available
             source = setup.get("source", None)
             regrid = setup.get("regrid", None)
-            var = setup.get("var", 'ci')
+            var = setup.get("var", 'avg_siconc')
             timespan = setup.get("timespan", None)
        
             self.logger.info(f"Retrieving data for {model} {exp} {source}")
@@ -246,7 +246,13 @@ class SeaIceExtent:
 
         for jr, region in enumerate(self.myRegions):
             for js, setup in enumerate(self.mySetups):
-                label = setup["model"] + " " + setup["exp"] + " " + setup["source"] + " " + " to ".join(setup["timespan"])
+                print(setup["timespan"])
+                if setup["timespan"] is None:
+                    strTimeInfo = "(default period)"
+                else:
+                    strTimeInfo = " to ".join(setup["timespan"])
+
+                label = setup["model"] + " " + setup["exp"] + " " + setup["source"] + " " + strTimeInfo
                 color_plot = setup["color_plot"]
                 self.logger.debug(f"Plotting {label} for region {region}")
                 extent = self.myExtents[js][jr]
