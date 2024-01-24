@@ -1,6 +1,6 @@
 data:
-  model:  "IFS"
-  exp:    "tco2559-ng5-cycle3"
+  model:  "IFS-NEMO"
+  exp:    "historical-1990"
   source: "lra-r100-monthly"
 
   model_obs:  "ERA5"
@@ -8,10 +8,10 @@ data:
   source_obs: "monthly"
 
 diagnostic_attributes:
-  variables_no_plev: ['2t', 'msl', 'tprate', 'mtntrf']
+  variables_no_plev: ['2t', 'msl', 'tprate', 'mtnlwrf']
   variables_with_plev: ['t', 'u', 'v', 'q']
-  plev: null
-  statistic: "mean"
+  plev: null # You can specify a pressure level here
+  statistic: "mean" # Valid options are: 'mean', 'max', 'min', 'diff', and 'std'.
   seasonal_bias: True
   compare_datasets_plev: True
   plot_map_with_stats: True
@@ -19,4 +19,4 @@ diagnostic_attributes:
 loglevel: 'warning'
 
 path:
-  path_to_output: "/scratch/b/b382267/cli_test/atmglobalmean/"
+  path_to_output: "./"
