@@ -2,8 +2,12 @@ fixer_name:
     ifs-destine-v1:
         data_model: ifs
         deltat: 3600
+        # The nanfirst keys fix to NaN the first step of each month
+        # for cumulated variables of this experiment
+        # The fix is activated by specifying nanfirst_enddate
+        # The dates are exclusive (the first step is actually ok and will be kept)
         nanfirst_startdate: 1990-01-01
-        nanfirst_enddate: 2020-01-01
+        nanfirst_enddate: 2020-01-01 
         vars:
             # Evaporation and snowfall
             mer: # https://codes.ecmwf.int/grib/param-db/?id=235043
