@@ -59,6 +59,7 @@ fixer_name:
                 source: ssro
                 grib: true
     ifs-destine-lowres-v1:
+        parent: ifs-destine-v1
         vars:
             tprate:
                 source: tp
