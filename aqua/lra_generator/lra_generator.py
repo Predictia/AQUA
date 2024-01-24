@@ -16,7 +16,7 @@ from aqua.reader import Reader
 from aqua.util import create_folder, generate_random_string
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import ConfigPath, file_is_complete
-from aqua.lra_generator.lra_util import check_correct_ifs_fluxes
+#from aqua.lra_generator.lra_util import check_correct_ifs_fluxes
 
 
 class LRAgenerator():
@@ -276,7 +276,7 @@ class LRAgenerator():
             self.logger.info('Removing temporary directory %s', self.tmpdir)
             os.removedirs(self.tmpdir)
 
-    def _concat_var(self, var, year):
+    def _concat_var_year(self, var, year):
         """
         To reduce the amount of files concatenate together all the files
         from the same year
@@ -405,7 +405,7 @@ class LRAgenerator():
                     self.logger.error('Something has gone wrong in %s!', outfile)
 
             if self.definitive and month == 12:
-                self._concat_var(var, year)
+                self._concat_var_year(var, year)
 
             self.logger.info('Processing this chunk took {:.4f} seconds'.format(time() - t_beg))
             t_beg = time()
@@ -487,7 +487,7 @@ class LRAgenerator():
                 del month_data
             del year_data
             if self.definitive:
-                self._concat_var(var, year)
+                self._concat_var_year(var, year)
         del temp_data
 
     def write_chunk(self, data, outfile):
