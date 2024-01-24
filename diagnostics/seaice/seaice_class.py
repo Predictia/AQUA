@@ -344,9 +344,9 @@ class SeaIceExtent:
 
 class SeaIceThickness:
     def __init__(self, config, loglevel: str = 'WARNING',
-                 outputdir=None):
+            outputdir=None):
         
-         """
+        """
         The SeaIceThickness constructor.
 
         Args:
@@ -381,10 +381,83 @@ class SeaIceThickness:
     
 
     
-    def configure()
+    def configure(self, config=None):
+        pass
+    def run(self):
+        self.plotThickness()
+    def plotThickness(self):
 
-    def run()
+        model    = "IFS-NEMO"
+        exp      = "control-1950-dev"
+        source   = "lra-r100-monthly"
+        regrid   = None
 
-    def plotThickness()
+        loglevel = "WARNING"
+        print("HELLO000")
+        reader = Reader(model=model, exp=exp, source=source,
+                                regrid=regrid, loglevel=loglevel)
 
+        print("HELLO")
+        data = reader.retrieve(regrid = regrid)
+        lat = data.coords["lat"]
+        lon = data.coords["lon"]
+        lon1D = lon.values
+        lat1D = lat.values
+
+        lon2D, lat2D = np.meshgrid(lon1D, lat1D)
+        month_diagnostic = 3 # Classical (non-Pythonic) convention
+        start_year = 2020
+        end_year   = 2023
+        monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+        maskTime = (data['time.month'] == month_diagnostic) & \
+                (data['time.year'] >= start_year)        & \
+                (data['time.year'] <= end_year)
+
+        dataThick = data.sithick.where(maskTime, drop=True).mean("time").values
+
+        # Create a polar stereographic projection
+        projection = ccrs.Stereographic(central_longitude=180.0, central_latitude=90.0)
+        projection = ccrs.NearsidePerspective(central_longitude=0.0, central_latitude=90.0, satellite_height=35785831, false_easting=0, false_northing=0, globe=None)
+
+
+        # Create color sequence for sic
+        masterColors = [[0.0, 0.0, 0.2],[0.0, 0.8, 0.8], [0.0, 0.1, 0.0],[0.0, 0.0, 0.4],]
+        masterColors = [[0.0, 0.0, 0.2],[0.0, 0.5, 0.5],[0.0, 0.5, 0.0], [1.0, 0.5, 0.0], [0.5, 0.0, 0.0] ]
+
+        listCol = list()
+        for m in masterColors:
+            alpha = 0.80
+            tmp = colInterpolatOr([m, [mm + alpha * (1 - mm) for mm in m]], 5)
+            listCol += tmp
+
+        myCM = LinearSegmentedColormap.from_list('myCM', listCol, N = len(listCol))
+
+        # Create a figure and axis with the specified projection
+        fig, ax = plt.subplots(subplot_kw={'projection': projection}, figsize=(8, 8))
+
+
+        # Add cyclic points to avoid a white Greenwich meridian
+        varShow, lon1DCyclic = add_cyclic_point(dataThick, coord = lon1D, axis = 1)
+
+        # Plot the field data using contourf
+        levels = np.arange(0.0, 5.05, 0.2)
+        levelsShow = np.arange(0.0, np.max(levels), 1.0)
+        contour = ax.contourf(lon1DCyclic, lat1D, varShow, levels = levels, transform=ccrs.PlateCarree(), cmap=myCM)
+
+
+        # Add coastlines and gridlines
+        ax.coastlines()
+        #ax.gridlines()
+        ax.add_feature(cfeature.LAND, edgecolor='k')
+
+        # Add colorbar
+        cbar = plt.colorbar(contour, ax=ax, orientation='vertical', pad=0.05)
+        cbar.set_label('meters')
+        cbar.set_ticks(levelsShow)
+
+        # Set title
+        ax.set_title(monthNames[month_diagnostic - 1] + ' sea ice thickness (' + str(start_year) + "-" + str(end_year) + ' average) \n ' + str(model) + "-" + str(exp) + "-" + str(source))
+
+        fig.savefig("./test.pdf") 
         
