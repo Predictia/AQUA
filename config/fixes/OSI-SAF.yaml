@@ -5,6 +5,6 @@ models:
                 data_model: false  # Do not attempt to fix coordinates
                 vars:
                     # Automatic conversion to destination grib units
-                    var262001:  # siconc
+                    avg_siconc:  # siconc
                         source: ice_conc
                         grib: true
