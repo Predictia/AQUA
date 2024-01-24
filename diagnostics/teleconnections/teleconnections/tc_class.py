@@ -30,6 +30,7 @@ class Teleconnection():
     def __init__(self, model: str, exp: str, source: str,
                  telecname: str,
                  configdir=None, aquaconfigdir=None,
+                 interface='teleconnections-destine',
                  regrid=None, freq=None,
                  zoom=None,
                  savefig=False, outputfig=None,
@@ -45,6 +46,7 @@ class Teleconnection():
                                             See documentation for available teleconnections.
             configdir (str, optional):      Path to diagnostics configuration folder.
             aquaconfigdir (str, optional):  Path to AQUA configuration folder.
+            interface (str, optional):      Interface filename. Defaults to 'teleconnections-destine'.
             regrid (str, optional):         Regridding resolution. Defaults to None.
             freq (str, optional):           Frequency of the data. Defaults to None.
             zoom (str, optional):           Zoom for ICON data. Defaults to None.
@@ -95,11 +97,11 @@ class Teleconnection():
 
         # Teleconnection variables
         self.telecname = telecname
-        avail_telec = ['NAO', 'ENSO', 'ENSO_test', 'ENSO_2t']
+        avail_telec = ['NAO', 'ENSO']
         if self.telecname not in avail_telec:
             raise ValueError("telecname must be one of {}".format(avail_telec))
 
-        self._load_namelist(configdir=configdir)
+        self._load_namelist(configdir=configdir, interface=interface)
 
         # Variable to be used for teleconnection
         self.var = self.namelist[self.telecname]['field']
@@ -109,17 +111,20 @@ class Teleconnection():
         self.telec_type = self.namelist[self.telecname]['telec_type']
 
         # At the moment it is used by all teleconnections
-        #if self.telecname == 'NAO' or self.telecname == 'ENSO' or self.telecname == 'ENSO_test' or self.telecname == 'ENSO_2t':
         self.months_window = months_window
 
         # Output variables
         self.outputfig = None
         self.outputdir = None
-        self.logger.info("Saving figure to %s/%s", outputdir, filename)
+
         self._load_figs_options(savefig, outputfig)
         self._load_data_options(savefile, outputdir)
         if self.savefile or self.savefig:
             self._filename(filename)
+            if self.savefile:
+                self.logger.info("Saving file to %s/%s", outputdir, filename)
+            if self.savefig:
+                self.logger.info("Saving figures to %s/%s", outputfig, filename)
 
         # Data empty at the beginning
         self.data = None
@@ -170,8 +175,10 @@ class Teleconnection():
 
         if self.freq:
             if self.freq == 'monthly':
-                self.data = self.reader.timmean(self.data)
+                self.data = self.reader.timmean(data=self.data, freq=self.freq)
                 self.logger.info('Time aggregated to %s', self.freq)
+            else:
+                self.logger.warning('Time aggregation %s not implemented for teleconnections', self.freq)
 
         if var:
             self.logger.info("Returning data as xarray.DataArray")
@@ -300,7 +307,7 @@ class Teleconnection():
         If var is None, the correlation is calculated between the teleconnection
         index and the teleconnection variable.
         If var is not None, the correlation is calculated between the teleconnection
-        index and the specified variable. 
+        index and the specified variable.
         The correlation is returned as xarray.DataArray.
 
         Args:
@@ -372,14 +379,14 @@ class Teleconnection():
                        loglevel=self.loglevel, step=step, title=title,
                        ylabel=ylabel, **kwargs)
 
-    def _load_namelist(self, configdir=None):
+    def _load_namelist(self, configdir=None, interface=None):
         """Load namelist.
 
         Args:
             configdir (str, optional): Path to diagnostics configuration folder.
                                        If None, the default diagnostics folder is used.
         """
-        config = TeleconnectionsConfig(configdir=configdir)
+        config = TeleconnectionsConfig(configdir=configdir, interface=interface)
 
         self.namelist = config.load_namelist()
         self.logger.info('Namelist loaded')
@@ -392,7 +399,7 @@ class Teleconnection():
         """
         aqua_config = ConfigPath(configdir=self.aquaconfigdir)
         self.machine = aqua_config.machine
-        self.logger.debug("Nachine: %s", self.machine)
+        self.logger.debug("Machine: %s", self.machine)
 
         # Check that the data is available in the catalogue
         if inspect_catalogue(model=self.model, exp=self.exp,
@@ -482,10 +489,7 @@ class Teleconnection():
         """
 
         self.reader = Reader(model=self.model, exp=self.exp, source=self.source,
-                             regrid=self.regrid, freq=self.freq,
-                             loglevel=self.loglevel, 
-                             configdir=self.aquaconfigdir,
-                             **kwargs)
+                             regrid=self.regrid, loglevel=self.loglevel, **kwargs)
         self.logger.info('Reader initialized')
 
     def _prepare_corr_reg(self, data=None, var=None,

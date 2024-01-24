@@ -3,12 +3,37 @@
 import operator
 import os
 import re
-import sys
 from string import Template
 import xarray as xr
 from collections import defaultdict
 from ruamel.yaml import YAML
 from aqua.logger import log_configure
+
+import yaml  # This is needed to allow YAML override in intake
+
+
+def construct_yaml_merge(loader, node):
+    """
+    This function is used to enable override in yaml for intake
+    """
+    if isinstance(node, yaml.ScalarNode):
+        # Handle scalar nodes
+        return loader.construct_scalar(node)
+    else:
+        # Handle sequence nodes
+        maps = []
+        for subnode in node.value:
+            maps.append(loader.construct_object(subnode))
+        result = {}
+        for dictionary in reversed(maps):
+            result.update(dictionary)
+        return result
+
+
+# Run this to enable YAML override for the yaml package when using SafeLoader in intake 
+yaml.SafeLoader.add_constructor(
+            'tag:yaml.org,2002:merge',
+            construct_yaml_merge)
 
 
 def load_multi_yaml(folder_path=None, filenames=None,
@@ -32,7 +57,7 @@ def load_multi_yaml(folder_path=None, filenames=None,
     Returns:
         A dictionary containing the merged contents of all the yaml files.
     """
-    yaml = YAML()  # default, if not specified, is 'rt' (round-trip)
+    yaml = YAML()  # default, if not specified, is 'rt' (round-trip) # noqa F841
 
     if isinstance(definitions, str):  # if definitions is a string we need to read twice
         yaml_dict = _load_merge(folder_path=folder_path, definitions=None,
@@ -202,7 +227,7 @@ def _load_merge(folder_path=None, filenames=None,
     if filenames and folder_path is not None or filenames is None and folder_path is None:
         raise ValueError('ERROR: either folder_path or filenames must be provided')
 
-    if filenames:  #  Merging a list of files
+    if filenames:  # Merging a list of files
         logger.debug(f'Files to be merged: {filenames}')
         for filename in filenames:
             yaml_dict = load_yaml(filename, definitions)

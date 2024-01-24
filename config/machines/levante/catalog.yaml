@@ -1,3 +1,8 @@
+paths:
+  grids: /work/bb1153/b382075/aqua/grids
+  weights: /work/bb1153/b382075/aqua/weights
+  areas: /work/bb1153/b382075/aqua/areas
+  
 sources:
   IFS:
     description: IFS atmosphere model
@@ -59,3 +64,8 @@ sources:
     driver: yaml_file_cat
     args:
       path: "{{CATALOG_DIR}}/catalog/GPM/main.yaml"
+  PSC:
+    description: Polar Science Center sea ice volume
+    driver: yaml_file_cat
+    args:
+      path: "{{CATALOG_DIR}}/catalog/PSC/main.yaml"
