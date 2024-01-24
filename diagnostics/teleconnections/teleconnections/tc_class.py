@@ -36,6 +36,7 @@ class Teleconnection():
                  savefig=False, outputfig=None,
                  savefile=False, outputdir=None,
                  filename=None,
+                 startdate=None, enddate=None,
                  months_window: int = 3, loglevel: str = 'WARNING'):
         """
         Args:
@@ -57,6 +58,10 @@ class Teleconnection():
             outputdir (str, optional):      Output directory for files.
                                             If None, the current directory is used.
             filename (str, optional):       Output filename.
+            startdate (str, optional):     Start date for the data.
+                                            Format: YYYY-MM-DD. Defaults to None.
+            enddate (str, optional):        End date for the data.
+                                            Format: YYYY-MM-DD. Defaults to None.
             months_window (int, optional):  Months window for teleconnection
                                             index. Defaults to 3.
             loglevel (str, optional):       Log level. Defaults to 'WARNING'.
@@ -74,6 +79,9 @@ class Teleconnection():
         self.model = model
         self.exp = exp
         self.source = source
+
+        self.startdate = startdate
+        self.enddate = enddate
 
         # Load AQUA config and check that the data is available
         self.machine = None
@@ -135,9 +143,9 @@ class Teleconnection():
         # but **kwargs are passed to it so that it can be used to pass
         # arguments to the reader if needed
         if self.zoom:
-            self._reader(zoom=self.zoom)
+            self._reader(zoom=self.zoom, startdate=self.startdate, enddate=self.enddate)
         else:
-            self._reader()
+            self._reader(startdate=self.startdate, enddate=self.enddate)
 
     def retrieve(self, var=None, **kwargs):
         """Retrieve teleconnection data with the AQUA reader.
