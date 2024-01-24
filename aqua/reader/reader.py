@@ -777,10 +777,6 @@ class Reader(FixerMixin, RegridMixin):
             boolean_mask = check_chunk_completeness(data, resample_frequency=resample_freq)
             out = out.where(boolean_mask, drop=True)
 
-            # adding an attribute to keep track of it
-            if not boolean_mask:
-                out = set_attrs(out, {"incomplete_time": 1})
-
         # check time is correct
         if np.any(np.isnat(out.time)):
             raise ValueError('Resampling cannot produce output for all frequency step, is your input data correct?')
