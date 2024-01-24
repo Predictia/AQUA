@@ -19,11 +19,12 @@ xr.set_options(keep_attrs=True)
 
 
 def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
-                  plev=None, statistic=None,
+                  plev=None, statistic="mean",
                   model_label1=None, model_label2=None,
                   start_date1=None, end_date1=None,
                   start_date2=None, end_date2=None,
                   outputdir=None, outputfig=None,
+                  dataset2_precomputed=None,
                   loglevel='WARNING'):
     '''
     Plot the seasonal bias maps between two datasets for specific variable and time ranges.
@@ -33,7 +34,8 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
         dataset2 (xarray.Dataset): The second dataset, that will be compared to the first dataset (reference dataset).
         var_name (str): The name of the variable to compare (e.g., '2t', 'tprate', 'mtntrf', 'mtnsrf', ...).
         plev (float or None): The desired pressure level in Pa. If None, the variable is assumed to be at surface level.
-        statistic (str): The desired statistic to calculate for each season. Valid options are: 'mean', 'max', 'min', 'diff', and 'std'.
+        statistic (str): The desired statistic to calculate for each season.
+                         Valid options are: 'mean', 'max', 'min', 'diff', and 'std'. The default statistic is 'mean'.
         model_label1 (str): The labeling for the first dataset.
         model_label2 (str): The labeling for the second dataset.
         start_date1 (str): The start date of the time range for dataset1 in 'YYYY-MM-DD' format.
@@ -42,6 +44,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
         end_date2 (str): The end date of the time range for dataset2 in 'YYYY-MM-DD' format.
         outputdir (str): The directory to save the output files.
         outputfig (str): The directory to save the output figures.
+        dataset2_precomputed (xarray.Dataset or None): Pre-computed climatology for dataset2.
         loglevel (str): The desired level of logging.
 
     Raises:
@@ -76,14 +79,29 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
     else:
         start_date2 = str(var2["time.year"][0].values) + '-' + str(var2["time.month"][0].values) + '-' + str(var2["time.day"][0].values)
         end_date2 = str(var2["time.year"][-1].values) + '-' + str(var2["time.month"][-1].values) + '-' + str(var2["time.day"][-1].values)
-
+    
     # Load in memory to speed up the calculation
     logger.warning("Loading data into memory to speed up the calculation...")
     var1 = var1.load()
-    var2 = var2.load()
+    
+    # Check if pre-computed climatology is provided, otherwise compute it
+    if dataset2_precomputed is None:
+        # Compute climatology
+        var2 = var2.load()
+        var2_climatology = var2.groupby('time.month').mean(dim='time')
+    else:
+        logger.debug("Precomputed climatology found")
+        if isinstance(dataset2_precomputed, xr.Dataset):
+          var2_climatology = dataset2_precomputed[var_name]
+        elif isinstance(dataset2_precomputed, xr.DataArray):
+          var2_climatology = dataset2_precomputed
+        else:
+          logger.error("Error in precomputer climatology, recomputing")
+          # Compute climatology
+          var2 = var2.load()
+          var2_climatology = var2.groupby('time.month').mean(dim='time')
 
     var1_climatology = var1.groupby('time.month').mean(dim='time')
-    var2_climatology = var2.groupby('time.month').mean(dim='time')
 
     # Select the desired pressure level if provided
     if 'plev' in var1_climatology.dims:
@@ -237,7 +255,8 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None,
                           start_date1=None, end_date1=None,
                           start_date2=None, end_date2=None,
                           model_label1=None, model_label2=None,
-                          outputdir=None, outputfig=None, loglevel='WARNING'):
+                          outputdir=None, outputfig=None,
+                          dataset2_precomputed=None, loglevel='WARNING'):
     """
     Compare two datasets and plot the zonal bias for a selected model time range with respect to the second dataset.
 
@@ -253,6 +272,7 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None,
         model_label2 (str): The label for the model.
         outputdir (str): The directory to save the output files.
         outputfig (str): The directory to save the output figures.
+        dataset2_precomputed (xarray.Dataset or None): Pre-computed climatology for dataset2.
         loglevel (str): The desired level of logging. Default is 'WARNING'.
 
     Returns:
@@ -279,10 +299,27 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None,
         start_date2 = str(dataset2["time.year"][0].values) + '-' + str(dataset2["time.month"][0].values) + '-' + str(dataset2["time.day"][0].values)
         end_date2 = str(dataset2["time.year"][-1].values) + '-' + str(dataset2["time.month"][-1].values) + '-' + str(dataset2["time.day"][-1].values)
     logger.debug(f"Dataset2 time range: {start_date2} to {end_date2}")
+        
+    # Check if pre-computed climatology is provided, otherwise compute it
+    if dataset2_precomputed is None:
+        # Compute climatology
+        try:
+            var2_climatology = dataset2[var_name].mean(dim='time')
+        except KeyError:
+            raise NoDataError(f"The variable {var_name} is not present in the dataset. Please try again.")
+    else:
+        if isinstance(dataset2_precomputed, xr.Dataset):
+            try:
+                var2_climatology = dataset2_precomputed[var_name]
+            except KeyError:
+                raise NoDataError(f"The variable {var_name} is not present in the dataset. Please try again.")
+        elif isinstance(dataset2_precomputed, xr.DataArray):
+            var2_climatology = dataset2_precomputed
+        
 
     # Calculate the bias between dataset1 and dataset2
     try:
-        bias = dataset1[var_name] - dataset2[var_name].mean(dim='time')
+        bias = dataset1[var_name] - var2_climatology
     except KeyError:
         raise NoDataError(f"The variable {var_name} is not present in the dataset. Please try again.")
 

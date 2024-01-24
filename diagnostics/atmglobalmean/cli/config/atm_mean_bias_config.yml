@@ -15,6 +15,10 @@ diagnostic_attributes:
   seasonal_bias: True
   compare_datasets_plev: True
   plot_map_with_stats: True
+  start_date1: "2020-01-01"
+  end_date1: "2024-12-01"
+  start_date2: "1990-01-01"
+  end_date2: "2019-12-31"
 
 loglevel: 'warning'
 

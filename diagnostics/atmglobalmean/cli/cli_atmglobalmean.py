@@ -25,6 +25,15 @@ def parse_arguments(args):
                         required=False)
     parser.add_argument('--loglevel', '-l', type=str, help='loglevel',
                         required=False)
+    parser.add_argument('--start_date1', type=str, help='start date for dataset1',
+                       required=False)
+    parser.add_argument('--end_date1', type=str, help='end date for dataset1',
+                       required=False)
+    parser.add_argument('--start_date2', type=str, help='start date for dataset2',
+                       required=False)
+    parser.add_argument('--end_date2', type=str, help='end date for dataset2',
+                       required=False)
+
 
     return parser.parse_args(args)
 
@@ -66,6 +75,12 @@ if __name__ == '__main__':
     model = get_arg(args, 'model', config['data']['model'])
     exp = get_arg(args, 'exp', config['data']['exp'])
     source = get_arg(args, 'source', config['data']['source'])
+    
+    # Acquiring start and end dates for dataset1 and dataset2
+    start_date1 = get_arg(args, 'start_date1', None)
+    end_date1 = get_arg(args, 'end_date1', None)
+    start_date2 = get_arg(args, 'start_date2', None)
+    end_date2 = get_arg(args, 'end_date2', None)
 
     logger.debug(f"Running for {model} {exp} {source}.")
 
@@ -96,6 +111,10 @@ if __name__ == '__main__':
     seasonal_bias_bool = config['diagnostic_attributes']['seasonal_bias']
     compare_datasets_plev_bool = config['diagnostic_attributes']['compare_datasets_plev']
     plot_map_with_stats_bool = config['diagnostic_attributes']['plot_map_with_stats']
+    start_date1 = config['diagnostic_attributes']['start_date1']
+    end_date1 = config['diagnostic_attributes']['end_date1']
+    start_date2 = config['diagnostic_attributes']['start_date2']
+    end_date2 = config['diagnostic_attributes']['end_date2']
 
     model_label = model+'_'+exp
     model_label_obs = model_obs+'_'+exp_obs
@@ -121,10 +140,13 @@ if __name__ == '__main__':
                 seasonal_bias(dataset1=data, dataset2=data_obs,
                               var_name=var_name, plev=plev, statistic=statistic,
                               model_label1=model_label, model_label2=model_label_obs,
-                              outputdir=outputdir, outputfig=outputfig, loglevel=loglevel)
+                              start_date1=start_date1, end_date1=end_date1,
+                              start_date2=start_date2, end_date2=end_date2,
+                              outputdir=outputdir, outputfig=outputfig,
+                              loglevel=loglevel)
             except Exception as e:
                 logger.error(f"An unexpected error occurred: {e}")
-
+    
     if compare_datasets_plev_bool:
         for var_name in variables_with_plev:
             logger.info(f"Running compare datasets plev diagnostic for {var_name}...")
@@ -132,6 +154,10 @@ if __name__ == '__main__':
                 compare_datasets_plev(dataset1=data, dataset2=data_obs, var_name=var_name,
                                       model_label1=model_label, model_label2=model_label_obs,
                                       outputdir=outputdir, outputfig=outputfig, loglevel=loglevel)
+                                      start_date1=start_date1, end_date1=end_date1,
+                                      start_date2=start_date2, end_date2=end_date2,
+                                      outputdir=outputdir, outputfig=outputfig,
+                                      loglevel=loglevel)
             except Exception as e:
                 logger.error(f"An unexpected error occurred: {e}")
 
