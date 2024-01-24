@@ -38,11 +38,10 @@ class TestAqua:
         Test the initialization of the Reader class
         """
         reader = Reader(model="FESOM", exp="test-pi", source="original_2d",
-                        configdir="config", fix=False, loglevel=loglevel)
+                        fix=False, loglevel=loglevel)
         assert reader.model == "FESOM"
         assert reader.exp == "test-pi"
         assert reader.source == "original_2d"
-        assert reader.configdir == "config"
 
     def test_retrieve_data(self, reader_instance):
         """
@@ -76,10 +75,20 @@ class TestAqua:
         assert global_mean.values[1] == pytest.approx(17.98060367,
                                                       rel=approx_rel)
 
+    def test_catalog_override(self):
+        """
+        Test the compact catalogue override functionality
+        """
+        reader = Reader(model="IFS", exp="test-tco79", source="short_override",
+                        loglevel=loglevel)
+        assert reader.esmcat.metadata['test-key'] == "test-value"  # from the default
+        assert reader.src_grid_name == "tco79-nn"  # overwritten key
+
     @pytest.fixture(
         params=[
             ("IFS", "test-tco79", "short", "r200", "tas"),
             ("FESOM", "test-pi", "original_2d", "r200", "sst"),
+            ("NEMO", "test-eORCA1", "long-2d", "r200", "sst")
         ]
     )
     def reader_arguments(self, request):

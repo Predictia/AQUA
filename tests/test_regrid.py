@@ -9,6 +9,7 @@ approx_rel = 1e-4
 @pytest.fixture(
     params=[
         ("IFS", "test-tco79", "short", "2t", 0),
+        ("IFS", "test-tco79", "short_nn", "2t", 0),
         ("IFS", "test-tco79", "long", "mtntrf", 0),
         ("ICON", "test-r2b0", "short", "2t", 0),
         ("ICON", "test-healpix", "short", "2t", 0),
@@ -48,7 +49,8 @@ class TestRegridder():
         """
         reader = Reader(model='FESOM', exp='test-pi', source='original_2d',
                         regrid='r100', rebuild=True, fix=False, loglevel=loglevel)
-        rgd = reader.retrieve(vars='sst', regrid=True)
+        data = reader.retrieve(var='sst')
+        rgd = reader.regrid(data)
 
         ratio = rgd['sst'].isnull().sum()/rgd['sst'].size  # land fraction
 
@@ -62,7 +64,8 @@ class TestRegridder():
         and areas/weights are reconstructed from the file itself"""
         reader = Reader(model='IFS', exp='test-tco79', source='long',
                         regrid='r100', rebuild=True, loglevel=loglevel)
-        rgd = reader.retrieve(vars='ttr', regrid=True)
+        data = reader.retrieve(var='ttr')
+        rgd = reader.regrid(data)
 
         assert len(rgd.lon) == 360
         assert len(rgd.lat) == 180
@@ -72,7 +75,9 @@ class TestRegridder():
         """Test Healpix and areas/weights are reconstructed from the file itself"""
         reader = Reader(model='ICON', exp='test-healpix', source='short',
                         regrid='r100', rebuild=True)
-        rgd = reader.retrieve(vars='t', regrid=True)
+        data = reader.retrieve(var='t')
+        rgd = reader.regrid(data)
+
         assert len(rgd.lon) == 360
         assert len(rgd.lat) == 180
         assert len(rgd.level_full) == 90
@@ -86,7 +91,8 @@ class TestRegridder():
         """
         reader = Reader(model='FESOM', exp='test-pi', source='original_3d',
                         regrid='r100', rebuild=True, fix=False, loglevel=loglevel)
-        rgd = reader.retrieve(vars='temp', regrid=True)
+        data = reader.retrieve(var='temp')
+        rgd = reader.regrid(data)
 
         ratio1 = rgd.temp.isel(nz1=0).isnull().sum()/rgd.temp.isel(nz1=0).size  # land fraction
         ratio2 = rgd.temp.isel(nz1=40).isnull().sum()/rgd.temp.isel(nz1=40).size  # land fraction
@@ -114,5 +120,30 @@ class TestRegridder():
         assert 0.27 <= ratio1 <= 0.30
         assert 0.35 <= ratio2 <= 0.39
     
+    def test_levels_and_regrid(self):
+        """
+        Test regridding selected levels.
+        """
+        reader = Reader(model='FESOM', exp='test-pi', source='original_3d',
+                        regrid='r100', loglevel=loglevel)
+        data = reader.retrieve()
 
+        val = data.aqua.regrid().isel(time=1, nz=40, nz1=[5, 40, 42]).wo.aqua.fldmean().values
+        assert val == pytest.approx(-4.81366779e-08)
+        val = data.isel(time=1, nz=40, nz1=[5, 40, 42]).aqua.regrid().wo.aqua.fldmean().values
+        assert val == pytest.approx(-4.81366779e-08)
+        val = data.isel(time=1, nz=40, nz1=[5, 40, 42]).wo.aqua.regrid().aqua.fldmean().values
+        assert val == pytest.approx(-4.81366779e-08)
+        val = data.isel(time=1, nz=40, nz1=[5, 40, 42]).aqua.regrid().ocpt.isel(nz1=2).aqua.fldmean().values 
+        assert val == pytest.approx(0.54845744)
+        val = data.aqua.regrid().isel(time=1, nz=40, nz1=[5, 40, 42]).ocpt.isel(nz1=2).aqua.fldmean().values
+        assert val == pytest.approx(0.54845744)
+        val = data.isel(time=1, nz=40, nz1=[5, 40, 42]).ocpt.aqua.regrid().isel(nz1=2).aqua.fldmean().values
+        assert val == pytest.approx(0.54845744)
+
+        # test reading specific levels for first vertical coordinate (nz1)
+        data = reader.retrieve(level=[45, 4525, 5025])
+        val = data.isel(time=1).aqua.regrid().ocpt.isel(nz1=2).aqua.fldmean().values
+        assert val == pytest.approx(0.54845744)
+        
 # missing test for ICON-Healpix

@@ -12,10 +12,10 @@ specific files must be created within the catalog of a specific machine. How to 
    :local:
    :depth: 1
 
-Files-based sources
+File-based sources
 ^^^^^^^^^^^^^^^^^^^
 
-Adding files-based sources in AQUA is done with default interface by ``intake``. 
+Adding file-based sources in AQUA is done with default interface by ``intake``. 
 Files supported can include NetCDF files - as the one described in the example below - or other formats as GRIB or Zarr. 
 The best way to explain the process is to follow the example of adding some fake dataset.
 
@@ -72,6 +72,9 @@ The most straightforward intake catalogue describing our dataset will look like 
             urlpath:
             - /data/path/1990.nc
             - /data/path/1991.nc
+        metadata:
+            source_grid_name: lon-lat
+            fixer_name: amazing_fixer
 
 Where we have specified the ``source`` name of the catalog entry. As for the ``exp`` case, we could have multiple sources for the same experiment. 
 Once this is defined, we can access our dataset from AQUA with the following command:
@@ -82,14 +85,21 @@ Once this is defined, we can access our dataset from AQUA with the following com
     reader = Reader(model="yearly_SST", exp="yearly_sst", source="annual")
     data = reader.retrieve()
 
-In the case is needed, you can add fixes to your dataset by following examples in the ``config/fixes/`` directory.
+Finally, the ``metadata`` entry contains optional additional information useful to define how to postprocess the data:
 
-FDB-based source
-^^^^^^^^^^^^^^^^
+    - ``source_grid_name``: the grid name defined in aqua-grids.yaml to be used for areas and regridding
+    - ``fixer_name``: the name of the fixer defined in the fixes folder
 
-FDB based sources are built on a specific interface built by AQUA.
-While the procedure of adding the catalog tree entries is the same, the main difference is on how the specific source is descrived.
-We report here an example and we later describe the different element.
+You can add fixes to your dataset by following examples in the ``config/fixes/`` directory.
+
+
+FDB-based sources
+^^^^^^^^^^^^^^^^^
+
+FDB based sources are built using a specific interface developed by AQUA.
+While the procedure of adding the catalog tree entries is the same,
+the main difference is on how the specific source is descrived.
+We report here an example and we later describe the different elements.
 
 .. code-block:: yaml
 
@@ -140,11 +150,16 @@ Some of the parameters are here described:
 .. option:: data_start_date
 
     This defines the starting date of the experiment.
-    It is mandatory to be set up because the FDB data is usually stored with steps not with dates and will be used internally for calculation.
+    It is mandatory to be set up because there is no easy way to get this information directly from the FDB.
+    In the case of the schema used in the operational experiments, which use the 'date' ``timestyle`` (see below), 
+    it is possible to set this parameter to 'auto'. In that case the date will be automatically determined from the FDB.
+    Please notice that, due to how the date information is retrieved in the 'auto' case,
+    the time of the last date wll always be '0000'. If there is more data available on the 
+    last day, please consider setting the date manually.
 
 .. option:: data_end_date
 
-    As above, it tells AQUA when to stop reading from the FDB.
+    As above, it tells AQUA when to stop reading from the FDB and it can be set to 'auto' too (only if ``timestyle`` is 'date').
 
 .. option:: aggregation
 
@@ -195,12 +210,18 @@ Some of the parameters are here described:
 
 .. option:: metadata
 
-    this includes supplementary very useful information to define the catalog
+    This includes important supplementary information:
 
     - ``fdb_path``: the path of the FDB configuration file (mandatory)
     - ``eccodes_path``: the path of the eccodes version used for the encoding/decoding of the FDB
     - ``variables``: a list of variables available in the fdb.
+    - ``source_grid_name``: the grid name defined in aqua-grids.yaml to be used for areas and regridding
+    - ``fixer_name``: the name of the fixer defined in the fixes folder
+    - ``levels``: for 3D FDB data with a `levelist` in the request, this is the list of physical levels 
+                  (e.g. [0.5, 10, 100, ...] meters while levelist contains [1, 2, 3, ...]).
 
+    If the ``levels`` key is defined, then retrieving 3D data is greatly accelerated, since only one level 
+    of each variable will actually have to be retrieved in order to define the Dataset.
 
 Regridding capabilities
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -267,9 +288,64 @@ As an example, we use the healpix grid for ICON and tco1279 for IFS:
 
 - **cellareas**, **cellarea_var** (if applicable): Optional path and variable name where to specify a file to retrieve the grid area cells when the grid shape is too complex for being automatically computed by CDO.
 
+- **regrid_method** (if applicable): Alternative CDO regridding method which is not the `ycon` default. To be used when grid corners are not available. Alterntives might be `bil`, `bic` or `nn`.
+
 Other simpler grids can be defined using the CDO syntax, so for example we have ``r100: r360x180``. Further CDO compatible grids can be of course defined in this way. 
 
 A standard `lon-lat` grid is defined for basic interpolation and can be used for most of the regular cases, as long as the ``space_coord`` are ``lon`` and ``lat``.
+
+
+Compact catalogues with YAML override
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In order to avoid having to write the same catalogue entry for each source,
+in AQUA we can use the YAML override functionality also for the intake catalogues.
+This allows to write the full rquest information only for a first 
+base catalogue source and then define the following ones as copies of the first,
+overriding only the keys that are different.
+
+For example, let's imagine that we have a first source called ``hourly-native``
+that is defined as:
+
+.. code-block:: yaml
+
+    sources: 
+    hourly-native: &base-default
+        description: hourly data on native grid TCo1279 (about 10km).
+        args: &args-default
+        request: &request-default
+            class: d1
+            resolution: high
+            [ ... other request parameters ... ]
+        data_start_date: 19900101T0000
+        data_end_date: 19941231T2300
+        aggregation: D  
+        [ ... other keys ... ]
+        metadata: &metadata-default
+            fdb_path: [ ... some path to the FDB ... ]
+            eccodes_path: [ ... some path to the eccodes ... ]
+            [ ... other keys ... ]
+
+We can then define a second source as a copy of the first one,
+specifying only what is different:
+
+.. code-block:: yaml
+
+    hourly-r025:
+        <<: *base-default
+        description: hourly 2D atmospheric data on regular r025 grid (1440x721).
+        args:
+            <<: *args-default
+            request:
+                <<: *request-default
+                resolution: standard
+        metadata:
+            <<: *metadata-default
+            fdb_path: [ ... some different path to the FDB ... ]
+
+This second source will have the same keys as the first one, except for
+the ones that are explicitly overridden.
+
 
 DE_340 source syntax convention
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -280,29 +356,30 @@ taken to try to homogenize the definition of experiments and of sources. We deci
 Models (`model` key)
 --------------------
 
-This will be simply one of the four models used in the project: IFS, NEMO, FESOM and ICON. 
-We will not merge atmospheric and oceanic models which have not the same grid (so only ICON will be represented as a single model)
+This will be simply one of the three coupled models used in the project: IFS-NEMO, IFS-FESOM and ICON. 
+Since version v0.5.2 we created coupled models catalog entries, though only on Lumi. Analysing specific atmosphere-only or oceanic-only runs will still be possible.
 
 Experiments (`exp` key)
 -----------------------
 
-Considering that we have strict set of experiments that must be produced, we will follow this 4-string convention:
+Considering that we have strict set of experiments that must be produced, we will follow this 3-string convention:
 
 1. **Experiment kind**: historical, control, sspXXX
 2. **Starting year**: 1950, 1990, etc...
-3. **Oceanic model**: nemo, fesom, icon (this is required since IFS is run with both configurations)
-4. **Extra info** (optional): any information that might be important to define an experiment, as dev, test, the expid of the simulation, or anything else that can help for defining the experiment.
+3. **Extra info** (optional): any information that might be important to define an experiment, as dev, test, the expid of the simulation, or anything else that can help for defining the experiment.
 
-Examples are `historical-1990-fesom-dev` or `control-1950-nemo-dev`. We plan to incorporate info on the expid in the metadata, so that we can potentially use it as an alias.
+Examples are `historical-1990-dev` or `control-1950-dev`. We plan to incorporate info on the expid in the metadata, so that we can potentially use it as an alias.
 
 Sources (`source` key)
 ----------------------
 
-For the sources, we will need to uniform the different requirements of grids and temporal resolution. Sometimes we use native sometimes original, sometimes r100 sometimes 1deg. Do we want to use the 2d/3d key every time? This is confusing. Some options might be...
+For the sources, we decide to uniform the different requirements of grids and temporal resolution. 
 
-1. **Time resolution**: monthly, daily, 6hourly, hourly, etc.
-2. **Space resolution**: native, 1deg, 025deg, r100, etc... For some oceanic model we could add the horizontal grid so native-elem or native-gridT could be an option). Similarly, healpix can be healpix-0 or healpix-6 in the case we want to specify the zoom level. 
-3. **Extra info**: 2d or 3d. Not mandatory, but to be used when confusion might arise.
+0. **Domain**: Oceanic sources will have a `oce` prepended to all their sources
+1. **Time resolution**: `monthly`, `daily`, `6hourly`, `hourly`, etc.
+2. **Space resolution**: `native`, `1deg`, `025deg`, `r100`, etc... For some oceanic model we could add the horizontal grid so `native-elem` or `native-gridT`` could be an option. Similarly, if multiple healpix are present, they can be `healpix-0` or `healpix-6` in the case we want to specify the zoom level. 
+3. **Extra info**: `2d` or `3d`. Not mandatory, but to be used when confusion might arise.
+
 
 
 
