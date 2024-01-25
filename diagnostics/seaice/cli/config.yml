@@ -11,7 +11,7 @@ models:
     exp: osi-450
     source: nh-monthly
     regrid: null
-    variable: avg_siconc
+    var: siconc
     timespan: null
 # Please specify the path to the directory where the outputs should be saved.
 # If output directory/folder does not exist, it will be created.

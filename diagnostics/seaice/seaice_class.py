@@ -385,8 +385,14 @@ class SeaIceConcentration:
 
             # Instantiate reader
             try:
+                print(model)
+                print(exp)
+                print(source)
+                print(regrid)
+                print(var)
                 reader = Reader(model=model, exp=exp, source=source,
                                 regrid=regrid, loglevel=self.loglevel)
+
             except Exception as e:
                 self.logger.error("An exception occurred while instantiating reader: %s", e)
                 raise NoDataError("Error while instantiating reader")
