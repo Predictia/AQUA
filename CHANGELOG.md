@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version.
 
+- Teleconnection can now take a time range as input and ylim in the index plot function (#799)
 - LRA to use `auto` final time and `exclude_incomplete` (#791)
 - Hotfix for v0.12.0 of the GSV_interface related to valid_time (#788)
 - Global time series adapted to new data governance (#785)
