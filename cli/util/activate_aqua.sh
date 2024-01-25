@@ -1,5 +1,6 @@
-source logger.sh
-source get_machine.sh
+script_dir=$(dirname "${BASH_SOURCE[0]}")
+source $script_dir/logger.sh
+source $script_dir/get_machine.sh
 
 lumi_version=23.03
 # Function to load environment on LUMI

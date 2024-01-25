@@ -1,4 +1,5 @@
-source logger.sh
+script_dir=$(dirname "${BASH_SOURCE[0]}")
+source $script_dir/logger.sh
 
 function get_machine() {
     # Determine the directory of the current script
