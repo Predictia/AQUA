@@ -45,12 +45,12 @@ def data_process_by_type(**kwargs):
         anomaly_ref = anomaly_ref.lower().replace(" ", "").replace("_", "")
         if not standardise:
             if anomaly_ref in ['tmean', "meantime", "timemean"]:
-                cmap = "PuOr"
+                cmap = "coolwarm" #"PuOr"
                 for var in list(data.data_vars.keys()):
                     process_data[var] = data[var] - data[var].mean(dim='time')
                 type = "anomaly wrt temporal mean"
             elif anomaly_ref in ['t0', "intialtime", "firsttime"]:
-                cmap = "PuOr"
+                cmap = "coolwarm" #"PuOr"
                 for var in list(data.data_vars.keys()):
                     process_data[var] = data[var] - data[var].isel(time=0)
                 type = "anomaly wrt initial time"
@@ -60,7 +60,7 @@ def data_process_by_type(**kwargs):
             logger.info(f"Data processed for {type}")
         if standardise:
             if anomaly_ref in ['t0', "intialtime", "firsttime"]:
-                cmap = "PuOr"
+                cmap = "coolwarm" #"PuOr"
                 for var in list(data.data_vars.keys()):
                     var_data = data[var] - data[var].isel(time=0)
                     var_data.attrs['units'] = 'Stand. Units'
@@ -68,7 +68,7 @@ def data_process_by_type(**kwargs):
                     process_data[var] = var_data / var_data.std(dim="time")
                 type = "Std. anomaly wrt initial time"
             elif anomaly_ref in ['tmean', "meantime", "timemean"]:
-                cmap = "PuOr"
+                cmap = "coolwarm" #"PuOr"
                 for var in list(data.data_vars.keys()):
                     var_data = data[var] - data[var].mean(dim='time')
                     var_data.attrs['units'] = 'Stand. Units'
@@ -631,7 +631,27 @@ def time_series_multilevs(o3d_request, anomaly: bool = False,
     plt.show()
     return
 
+def time_series_multilevs_parallel(o3d_request):
+    import concurrent.futures
+    logger.info("Evaluating time series multilevels")
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = [
+            executor.submit(
+                time_series_multilevs, o3d_request, anomaly, standardise, anomaly_ref, customise_level, levels
+            )
+            for anomaly, standardise, anomaly_ref, customise_level, levels in [
+                (False, False, None, False, list),
+                (True, False, "tmean", False, list),
+                (True, False, "t0", False, list),
+                (True, True, "tmean", False, list),
+                (True, True, "t0", False, list)
+            ]
+        ]
 
+    # Wait for all tasks to complete
+    concurrent.futures.wait(futures)
+    logger.info("Evaluating time series multilevels Completed")
+    
 def linregress_3D(y_array):
     """
     Computes the linear regression against the temporal dimension of a 3D array formatted in time, latitude, and longitude.

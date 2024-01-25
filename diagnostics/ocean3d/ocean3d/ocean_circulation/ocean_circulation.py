@@ -313,17 +313,16 @@ def plot_stratification(o3d_request,time=None):
 
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(mod_data,
-             region, latS, latN, lonW, lonE, output_dir,
-             plot_name=f"stratification_{time}_clim")
+             region, latS, latN, lonW, lonE, output_dir, plot_name=f"stratification_{time}_clim")
         filename = f"{model}_{exp}_{source}_{filename}"
         
     legend_list = []
     if time in ["Yearly"]:
         start_year = mod_data_list[0].time[0].data
-        end_year = mod_data_list[0].time[0].data
+        end_year = mod_data_list[0].time[-1].data
     else:
         start_year = mod_data_list[0].time[0].dt.year.data
-        end_year = mod_data_list[0].time[0].dt.year.data
+        end_year = mod_data_list[0].time[-1].dt.year.data
 
     for i, var in zip(range(len(axs)), ["ocpt", "so", "rho"]):
         axs[i].set_ylim((4500, 0))
@@ -378,6 +377,15 @@ def plot_stratification(o3d_request,time=None):
     #plt.show()
     return
 
+def plot_stratification_parallel(o3d_request):
+    import concurrent.futures
+    logger.info("Starting plot_stratification in parallel")
+    time_list = [time for time in range(13, 18)]
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        executor.map(plot_stratification, [o3d_request] * len(time_list), time_list)
+    logger.info(" plot_stratification completed")
+     
+    return
 
 def compute_mld_cont(rho):
     """To compute the mixed layer depth from density fields in continous levels
@@ -461,7 +469,7 @@ def data_for_plot_spatial_mld_clim(data, region=None, time=None,
 
 
 def plot_spatial_mld_clim(o3d_request, time=None,
-                          overlap=False):
+                          overlap=True):
     """
     Plots the climatology of mixed layer depth in the NH as computed with de Boyer Montegut (2004)'s criteria in
     an observational dataset and a model dataset, allowing the user to select the month the climatology is computed
@@ -578,4 +586,14 @@ def plot_spatial_mld_clim(o3d_request, time=None,
             "Figure and data used for this plot are saved here: %s", output_path)
 
     #plt.show()
+    return
+
+def plot_spatial_mld_clim_parallel(o3d_request):
+    import concurrent.futures
+    logger.info("Starting plot_spatial_mld_clim in parallel")
+    time_list = [time for time in range(13, 18)]
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        executor.map(plot_spatial_mld_clim, [o3d_request] * len(time_list), time_list)
+    logger.info(" plot_spatial_mld_clim completed")
+     
     return

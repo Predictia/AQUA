@@ -192,6 +192,7 @@ class hovmoller_lev_time_plot:
         fig_dir = plot_info['fig_dir']
         output_path = plot_info['output_path']
         
+        logger.info("start plottiing")
         filename = f"{self.model}_{self.exp}_{self.source}_{filename}"
         
         fig, (axs) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
@@ -242,6 +243,71 @@ class hovmoller_lev_time_plot:
     
         return 
     
+    def single_plot(self, key):
+        
+        plot_info = self.plot_info[key]
+        data = plot_info['data']
+        ocptlevs = plot_info['ocptlevs']
+        solevs = plot_info['solevs']
+        cmap = plot_info['cmap']
+        region_title = plot_info['region_title']
+        type = plot_info['type']
+        filename = plot_info['filename']
+        data_dir = plot_info['data_dir']
+        fig_dir = plot_info['fig_dir']
+        output_path = plot_info['output_path']
+        
+        filename = f"{self.model}_{self.exp}_{self.source}_{filename}"
+        
+        fig, (axs) = plt.subplots(nrows=5, ncols=2, figsize=(14, 25))
+        
+        fig.suptitle(f"Spatially averaged {region_title} T,S {type}", fontsize=22)
+        
+        cs1 = axs[0,0].contourf(data.time, data.lev, data.ocpt.transpose(),
+                            levels=ocptlevs, cmap=cmap, extend='both')
+        
+        cbar_ax = fig.add_axes([0.13, 0.1, 0.35, 0.05])
+        fig.colorbar(cs1, cax=cbar_ax, orientation='vertical', label=f'Potential temperature in {data.ocpt.attrs["units"]}')
+
+        cs2 = axs[0,1].contourf(data.time, data.lev, data.so.transpose(),
+                            levels=solevs, cmap=cmap, extend='both')
+        cbar_ax = fig.add_axes([0.54, 0.1, 0.35, 0.05])
+        fig.colorbar(cs2, cax=cbar_ax, orientation='vertical', label=f'Salinity in {data.so.attrs["units"]}')
+
+        # if self.output:
+            # obs_clim.to_netcdf(f'{data_dir}/{filename}_Rho.nc')
+
+        axs[0,0].invert_yaxis()
+        axs[0,1].invert_yaxis()
+
+        axs[0,0].set_ylim((max(data.lev).data, 0))
+        axs[0,1].set_ylim((max(data.lev).data, 0))
+
+        axs[0,0].set_title("Temperature", fontsize=15)
+        axs[0,0].set_ylabel("Depth (in m)", fontsize=12)
+        axs[0,0].set_xlabel("Time", fontsize=12)
+        axs[0,0].set_xticklabels(axs[0,0].get_xticklabels(), rotation=30)
+        axs[0,1].set_xticklabels(axs[0,0].get_xticklabels(), rotation=30)
+        # max_num_ticks = 10  # Adjust this value to control the number of ticks
+        # from matplotlib.ticker import MaxNLocator
+        # locator = MaxNLocator(integer=True, prune='both', nbins=max_num_ticks)
+        # axs[0].xaxis.set_major_locator(locator)
+        # axs[1].xaxis.set_major_locator(locator)
+
+        axs[0,1].set_title("Salinity", fontsize=15)
+        axs[0,1].set_xlabel("Time", fontsize=12)
+        axs[0,1].set_yticklabels([])
+
+        plt.subplots_adjust(bottom=0.3, top=0.85, wspace=0.2, hspace=0.5)
+
+        if self.output:
+            plt.savefig(f"{fig_dir}/{filename}.pdf")
+            write_data(f'{data_dir}/{filename}.nc', data)
+            logger.info(
+                "Figure and data used for this plot are saved here: %s", output_path)
+    
+        return
+    
     def plot(self):
 
         self.data_for_hovmoller_lev_time_plot()
@@ -252,7 +318,30 @@ class hovmoller_lev_time_plot:
         for key, value in self.plot_info.items():
             if key not in [1,2,3]:
                 self.prepare_plot(key)
+                # self.single_plot(key)
+                
+        return
+
+    def plot_paralell(self):
+
+        self.data_for_hovmoller_lev_time_plot()
         
+        # Create subplots for temperature and salinity plots
+        logger.info("Hovmoller plotting in paralell process")
+        
+        import concurrent.futures
+        import matplotlib
+        # matplotlib.use('Agg')
+        # for key, value in self.plot_info.items():
+        #     if key not in [1,2,3]:
+        #         self.prepare_plot(key)
+        #         # self.single_plot(key)
+                
+        keys_to_parallelize = [key for key in self.plot_info.keys() if key not in [1, 2, 3]]
+        with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
+            executor.map(self.prepare_plot, keys_to_parallelize)
+        
+        logger.info("Hovmoller plotting in completed")
         
         return
 
