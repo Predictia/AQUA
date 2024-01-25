@@ -33,12 +33,11 @@ class OPAgenerator():
 
     def __init__(self,
                  model=None, exp=None, source=None, zoom=None,
-                 var=None, vars=None, frequency=None,
+                 var=None, frequency=None,
                  checkpoint=True, stream_step=5,
                  outdir=None, tmpdir=None, configdir=None,
                  loglevel=None, overwrite=False, definitive=False,
                  nproc=1):
-
         """
         Initialize the LRA_Generator class
 
@@ -47,7 +46,7 @@ class OPAgenerator():
             exp (string):            The experiment name from the catalog
             source (string):         The sourceid name from the catalog
             zoom (int):              Healpix level of zoom
-            var (str, list):         Variable(s) to be processed,vars in a synonim
+            var (str, list):         Variable(s) to be processed
             frequency (string):      The target frequency for averaging the OPA
             checkpoint (bool, opt):  Whether OPA should use or not checkpointing
             stream_step (int, opt):  How many days OPA should load at once
@@ -55,7 +54,7 @@ class OPAgenerator():
             tmpdir (string):         Where to store temporary files,
                                      default is None.
                                      Necessary for dask.distributed
-            configdir (string):      Configuration directory where the catalog 
+            configdir (string):      Configuration directory where the catalog
                                      are found
             loglevel (string, opt):  Logging level
             overwrite (bool, opt):   True to overwrite existing files in LRA,
@@ -103,11 +102,8 @@ class OPAgenerator():
         self.machine = Configurer.machine
 
         # Initialize variable(s)
-        self.var = None
-        if vars:
-            self.var = vars
-        else:
-            self.var = var
+        self.var = var
+
         if not self.var:
             raise KeyError('Please specify variable string or list.')
         self.logger.warning('Variable(s) to be processed: %s', self.var)
@@ -149,7 +145,7 @@ class OPAgenerator():
 
         # Initialize the reader
         self.reader = Reader(model=self.model, exp=self.exp,
-                             source=self.source, zoom=self.zoom, 
+                             source=self.source, zoom=self.zoom,
                              configdir=self.configdir,
                              loglevel=self.loglevel)
 
@@ -164,7 +160,7 @@ class OPAgenerator():
         data = self.reader.retrieve(var=self.var)
         if not isinstance(data, xr.Dataset):
             data = next(data)
-        
+
         time_diff = np.diff(data.time.values).astype('timedelta64[m]')
         self.timedelta = time_diff[0].astype(int)
         self.logger.info('Timedelta is %s minutes', str(self.timedelta))
@@ -175,17 +171,17 @@ class OPAgenerator():
         """
 
         self.opa_dict = {
-                         "stat": "mean",
-                         #"percentile_list": None,
-                         #"thresh_exceed" : None,
-                         "stat_freq": self.frequency,
-                         "output_freq": "monthly",
-                         "time_step": self.timedelta,
-                         "variable": var,
-                         "save": True,
-                         "checkpoint": self.checkpoint,
-                         "save_filepath": self.outdir,
-                         "checkpoint_filepath": self.tmpdir
+            "stat": "mean",
+            # "percentile_list": None,
+            # "thresh_exceed" : None,
+            "stat_freq": self.frequency,
+            "output_freq": "monthly",
+            "time_step": self.timedelta,
+            "variable": var,
+            "save": True,
+            "checkpoint": self.checkpoint,
+            "save_filepath": self.outdir,
+            "checkpoint_filepath": self.tmpdir
         }
 
         return Opa(self.opa_dict)
@@ -204,33 +200,34 @@ class OPAgenerator():
             self.logger.warning('Initializing the OPA')
             opa_mean = self._configure_opa(variable)
 
-             # get info on the checkpoint file
+            # get info on the checkpoint file
             if self.checkpoint:
                 self.checkpoint_file = opa_mean.checkpoint_file
-                # HACK: solve the problem with one-pass @ git+https://earth.bsc.es/gitlab/digital-twins/de_340/one_pass.git@3b90576652a8510171225af2de8d86fde3b315ff
+                # HACK: solve the problem with one-pass @
+                # git+https://earth.bsc.es/gitlab/digital-twins/de_340/one_pass.git@3b90576652a8510171225af2de8d86fde3b315ff
                 opa_mean.checkpoint_file_zarr = opa_mean.checkpoint_file + ".zarr"
 
             # self.checkpoint_file = opa_mean.checkpoint_file
             # self.remove_checkpoint()
             print(vars(opa_mean))
 
-            if not gsv: 
+            if not gsv:
                 self.logger.warning('Initializing the streaming generator...')
                 self.reader.reset_stream()
-                data_gen = self.reader.retrieve(streaming_generator=True,
+                data_gen = self.reader.retrieve(stream_generator=True,
                                                 stream_step=self.stream_step,
                                                 stream_unit='days',
                                                 var=self.var)
-            else: 
+            else:
                 self.logger.warning('Initializing the FDB access...')
                 data_gen = self.reader.retrieve(startdate=start, enddate=end, var=self.var)
-            
+
             for data in data_gen:
                 self.logger.info(f"start_date: {data.time[0].values} stop_date: {data.time[-1].values}")
-                               
+
                 if self.definitive:
-                    mydata = data[variable]#.load()
-                    #print(mydata)
+                    mydata = data[variable]  # .load()
+                    # print(mydata)
                     opa_mean.compute(mydata)
                     if os.path.exists(self.checkpoint_file):
                         file_size = os.path.getsize(self.checkpoint_file)
@@ -275,7 +272,7 @@ class OPAgenerator():
 
         # find the catalog of my experiment
         catalogfile = os.path.join(self.configdir, 'machines', self.machine,
-                                   'catalog', self.model, self.exp+'.yaml')
+                                   'catalog', self.model, self.exp + '.yaml')
 
         # load, add the block and close
         cat_file = load_yaml(catalogfile)
@@ -307,19 +304,11 @@ class OPAgenerator():
 
         # find the catalog of my experiment
         catalogfile = os.path.join(self.configdir, 'machines', self.machine,
-                                   'catalog', self.model, self.exp+'.yaml')
+                                   'catalog', self.model, self.exp + '.yaml')
         cat_file = load_yaml(catalogfile)
         if self.entry_name in cat_file['sources']:
             del cat_file['sources'][self.entry_name]
         dump_yaml(outfile=catalogfile, cfg=cat_file)
-
-        # find the regrid of my experiment
-        regridfile = os.path.join(self.configdir, 'machines', self.machine,
-                                  'regrid.yaml')
-        cat_file = load_yaml(regridfile)
-        if self.entry_name in cat_file['sources'][self.model][self.exp]:
-            del cat_file['sources'][self.model][self.exp][self.entry_name]
-        dump_yaml(outfile=regridfile, cfg=cat_file)
 
     def _remove_checkpoint(self):
         """Be sure that the checkpoint is removed"""
@@ -373,7 +362,6 @@ class OPAgenerator():
 
 
 def format_size(size):
-
     """Trivial function for formatting file size"""
     power = 2**10
     n = 0

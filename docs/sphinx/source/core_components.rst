@@ -73,6 +73,14 @@ Now we can read the actual data with the ``retrieve`` method.
 
 The reader returns an xarray.Dataset with raw ICON data on the original grid.
 
+If some information about the data is needed, it is possible to use the ``info`` method of the ``Reader`` class.
+
+.. code-block:: python
+
+    reader.info()
+
+This will print to screen some information about the data, including the grid, fixes, regrid setup and FDB details if available.
+
 
 Interpolation and Regridding
 ----------------------------
@@ -83,18 +91,21 @@ operates sparse matrix computation based on externally-computed weights.
 
 The idea of the regridder is first to generate the weights for the interpolation and then to use them for each regridding operation. 
 The reader generates the regridding weights automatically (with CDO) if not already existent and stored
-in a directory specified in the ``config/machine/<machine-name>/regrid.yaml`` file.
+in a directory specified in the ``config/machine/<machine-name>/catalog.yaml`` file.
 A list of predefined target grids (only regular lon-lat for now) is available in the ``config/aqua-grids.yaml`` file.
 For example, "r100" is a regular grid at 1° resolution.
 
 In other words, weights are computed externally by CDO (an operation that needs to be done only once) and 
 then stored on the machine so that further operations are considerably fast. 
+
 Such an approach has two main advantages:
+
 1. All operations are done in memory so that no I/O is required, and the operations are faster than with CDO
-2. Operations can be easily parallelized with Dask, bringing further speedup. 
+2. Operations can be easily parallelized with Dask, bringing further speedup.
 
 In the long term, it will be possible to support also other interpolation software,
-such as `ESMF <https://earthsystemmodeling.org/>`_ or `MIR <https://github.com/ecmwf/mir>`_. 
+such as `ESMF <https://earthsystemmodeling.org/>`_ or `MIR <https://github.com/ecmwf/mir>`_.
+
 Let's see a practical example.
 We instantiate a reader for ICON data specifying that we will want to interpolate to a 1° grid. 
 As mentioned, if the weights file does not exist in our collection, it will be created automatically.
@@ -104,10 +115,10 @@ As mentioned, if the weights file does not exist in our collection, it will be c
     reader = Reader(model="ICON", exp="ngc2009", source="atm_2d_ml_R02B09", regrid="r100")
     data = reader.retrieve()
 
-Notice that these data still need to be regridded. You could ask to regrid them directly by specifying
-the argument ``regrid=True`` to the ``retrieve`` method. 
-Please be warned that this will take longer without a selection.
-It is usually more efficient to load the data, select it, and then regrid it.
+.. note::
+    Notice that these data still need to be regridded. You could ask to regrid it to the destination grid which we chose when we instantiated the reader.
+    Please be warned that this will take longer without a selection.
+    It is usually more efficient to load the data, select it, and then regrid it.
 
 Now we regrid part of the data (the temperature of the first 100 frames):
 
@@ -158,13 +169,13 @@ It is also possible to apply a regional section to the domain before performing 
     It can work also on unstructured grids, but information on coordinate must be available. 
 
 Input data may not be available at the desired time frequency. It is possible to perform time averaging at a given
-frequency by specifying a frequency in the reader definition and then using the ``timmean`` method. 
+frequency by using the ``timmean`` method. 
 
 .. code-block:: python
 
-    reader = Reader(model="IFS", exp="tco2559-ng5", source="ICMGG_atm2d", freq='daily')
+    reader = Reader(model="IFS", exp="tco2559-ng5", source="ICMGG_atm2d")
     data = reader.retrieve()
-    daily = reader.timmean(data)
+    daily = reader.timmean(data, freq='daily')
 
 Data have now been averaged at the desired daily timescale.
 If you want to avoid to have incomplete average over your time period (for example, be sure that all the months are complete before doing the time mean)
@@ -182,17 +193,21 @@ fixing variable or coordinate names and performing unit conversions.
 The general idea is to convert data from different models to a uniform file format
 with the same variable names and units. The default format is GRIB2.
 
-The fixing is done by default (``apply_unit_fix=False`` to switch it off) when we initialize the reader, 
-using the instructions in the ``config/fixes`` folder. Each model has its own YAML file that specify the fixes, and a ``default.yaml``
-file is used for common unit corrections.
+The fixing is done by default when we initialize the reader, 
+using the instructions in the ``config/fixes`` folder. Each model has its own YAML file that specify the fixes.
+Fixes can be specified in two different ways:
+- Using the ``family`` definitions, to be then provided as a metadata in the catalog. This represents fixes that have a common nickname which can be used in multiple sources when defining the catalog. There is the possibility of specifing a `parent`
+ fix so that a fix can be re-used with minor correction, merging small change to a larger family
+- Using the source-based definition. Each experiment/source can have its own specific fix, or alternatively a ``default.yaml`` that can be used in the case of necessity. Please note that this is the older AQUA implementation and will be deprecated in favour of the new `family` approach.
+A ``defalt.yaml`` is used for common unit corrections. 
 
 The fixer performs a range of operations on data:
 
 - adopt a common 'coordinate data model' (default is the CDS data model): names of coordinates and dimensions (lon, lat, etc.),
   coordinate units and direction, name (and meaning) of the time dimension. 
-- derive new variables. In particular, it derives from accumulated variables like ``tp`` (in mm), the equivalent mean-rate variables
-  (like ``tprate``, paramid 172228; in mm/s).
-  The fixer can identify these derived variables by their Short Names (ECMWF and WMO eccodes tables are used).
+- Changing variable name, by using ``source`` key, deriving the correct metadata from GRIB tables. The fixer can identify these derived variables by their ShortNames and ParamID (ECMWF and WMO eccodes tables are used).
+- Derive new variables executing trivial operations as multiplication, addition, etc, by using the ``derived`` key. In particular, it derives from accumulated variables like ``tp`` (in mm), the equivalent mean-rate variables
+  (like ``tprate``, paramid 172228; in mm/s). 
 - using the ``metpy.units`` module, it is capable of guessing some basic conversions.
   In particular, if a density is missing, it will assume that it is the density of water and will take it into account.
   If there is an extra time unit, it will assume that division by the timestep is needed. 
@@ -218,36 +233,47 @@ three different fixing strategies:
 - ``default``: for this specific source, roll back to default fixes.
   This might be necessary if a default fix exists for a specific experiment and it should not be used in a specific source.
 
+.. warning ::
+    Recursive fixes (i.e. fixes of fixes) cannot be implemented.
+
 Streaming simulation
 --------------------
 The reader includes the ability to simulate data streaming to retrieve chunks of data of a specific time length.
-The user can specify the length of the chunk, the data units (days, weeks, months, years), and the starting date.
+To activate the streaming mode the user should specify the argument `streaming=True` in the Reader initialization.
+The user can also choose the length of the data chunk with the ``aggregation`` keyword (in pandas notation "D", "M", "Y", or "daily", "monthly" etc. or "days", "months" etc.).
+The default is ``S`` (step), i.e. single saved timesteps are read at each iteration.
+The user can also specify the desired initial and final dates with the keywords `startdate` and `enddate`.
 If, for example, we want to stream the data every three days from '2020-05-01', we need to call:
 
 .. code-block:: python
 
-    reader = Reader(model="IFS", exp="tco2559-ng5", source="ICMGG_atm2d")
-    data = reader.retrieve(streaming=True, stream_step=3, stream_unit='days',
-                           stream_startdate = '2020-05-01')
+    reader = Reader(model="IFS", exp= "tco2559-ng5", source="ICMGG_atm2d", streaming=True, aggregation = '3D', startdate = '2020-05-01')    
+    data = reader.retrieve()
 
-If the unit parameter is not specified, the data is streamed, keeping the original time resolution of input data. 
-If the starting date parameter is not specified, the data stream will start from the first date of the input file.
-
-If the ``retrieve`` method in streaming mode is called multiple times with the same parameters, 
+If the ``retrieve`` method in streaming mode is called multiple times, 
 it will return the data in chunks until all of the data has been streamed.
 The function will automatically determine the appropriate start and end points for each chunk based on
 the internal state of the streaming process.
 If we want to reset the state of the streaming process, we can call the ``reset_stream`` method.
 
-Another possibility to deal with data streaming is to call the ``stream_generator`` method of the class ``Reader``. 
-This can be done from the retrieve method through the argument ``streaming_generator = True``:
+Another possibility to deal with data streaming (which we actually recommend)
+is to use the argument ``stream_generator=True`` in the Reader initialization:
 
 .. code-block:: python
 
-    data_gen = reader.retrieve(streaming_generator=True, stream_step=3, stream_unit = 'months')
+    reader = Reader(model="IFS", exp= "tco2559-ng5", source="ICMGG_atm2d", stream_generator = 'True', aggregation = 'monthly')
+    data_gen = reader.retrieve()
+    
+`data_gen` is now a generator object that yields the requested one-month-long chunks of data.
+We can do operations with them by iterating on the generator object like
 
-``data_gen`` is now a generator object that yields the requested three month-chunks of data. 
-We can do operations with them by iterating on the generator object.
+.. code-block:: python
+
+    for data in data_gen:
+        # Do something with the data
+
+Please notice that when accessing FDB sources and streaming mode is desired (instead of direct xarrayay dask access), we recommend to set ``stream_generator=True``,
+since the FDB interface can provide directly a generator if desired.
 
 Parallel Processing
 -------------------
@@ -292,8 +318,9 @@ The magic behind this is performed by an intake driver for FDB which has been sp
 Please notice that in the case of FDB access specifying the variable is compulsory, but a list can be provided. 
 If not specified, the default variable defined in the catalogue is used.
 
-**In general we recommend to use the default xarray (dask) dataset output**, since this also supports ``dask.distributed`` multiprocessing.
-For example you could create a ``LocalCluster`` and its client with:
+.. warning::
+    In general we recommend to use the default xarray (dask) dataset output, since this also supports ``dask.distributed`` multiprocessing.
+    For example you could create a ``LocalCluster`` and its client with:
 
 .. code-block:: python
 
@@ -304,7 +331,7 @@ For example you could create a ``LocalCluster`` and its client with:
 
 This will enormously accelerate any computation on the xarray.
 
-An optional keyword, which in general we do **not** recommend to specify for dask access, is ``aggregatio``,
+An optional keyword, which in general we do **not** recommend to specify for dask access, is ``aggregation``,
 which specifies the chunk size for dask access.
 Values could be "D", "M", "Y" etc. (in pandas notation) to specify daily, monthly and yearly aggregation.
 It is best to use the default, which is already specified in the catalogue for each data source.
@@ -316,7 +343,7 @@ the aggregation (i.e. chunk size).
 Iterator access
 ~~~~~~~~~~~~~~~
 
-In alternative it is also possible to ask the reader to return an *iterator/generator* object passing the ``streaming_generator=True`` 
+In alternative it is also possible to ask the reader to return an *iterator/generator* object passing the ``stream_generator=True`` 
 keyword to the ``retrieve()`` method.
 In that case the next block of data can be read from the iterator with ``next()`` as follows:
 
@@ -325,7 +352,7 @@ In that case the next block of data can be read from the iterator with ``next()`
     reader = Reader(model="IFS", exp="fdb-tco399", source="fdb-long", aggregation="D",
                     regrid="r025")
     data = reader.retrieve(startdate='20200120', enddate='20200413', var='ci',
-                           streaming_generator=True)
+                           stream_generator=True)
     dd = next(data)
 
 or with a loop iterating over ``data``. The result of these operations is in turn a regular xarray.Dataset containg the data.
@@ -337,20 +364,77 @@ The default is ``S`` (step), i.e. single saved timesteps are read at each iterat
 Please notice that the resulting object obtained at each iteration is not a lazy dask array, but is instead entirely loaded into memory.
 Please consider memory usage in choosing an appropriate value for the ``aggregation`` keyword.
 
-Buffer access
-~~~~~~~~~~~~~
+Level selection and regridding
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A final option is 'buffering' (*this is actually superseded by the dask access and may be entirely be removed in future releases*).
-In this case it is possible to store the results of the iterator access into a temporary directory (i.e. to buffer them).
-Of course, you will pay the price of additional disk traffic and disk storage.
-The ``buffer`` keyword should specify the location of a directory with enough space to create large temporary directories.
+When reading 3D data it is possible to specify already during `retrieve()` which levels to select using the `level` keyword.
+The levels are specified in the same units as they are stored in the archive (for example in hPa for atmospheric IFS data, but an index for NEMO data in the FDB archive).
+
+In the case of FDB data this presents the great advantage that a significantly reduced request will be read from the FDB 
+(by default all levels would be read for each timestep even if later a `sel()` or `isel()` selection is performed on the XArray).
+For non-FDB sources the reader simply uses the `sel()` method to select the desired levels.
+
+When reading 3D data the reader also adds an additional coordinates with prefix `idx_`
+and suffix the names of vertical dimensions to the Dataset. These represent the indices 
+of the (possibly selected) levels in the original archive.
+This hidden index helps the regridder to choose the appropriate weights for each level even if a level
+selection has been performed.
+
+This means that when regridding 3D data the regridding can be performed first on a full dataset and then
+levels are selected or vice versa. In both cases the regridding will be performed using the correct weights.
+By default in xarray when a single vertical level is selected the vertical dimension is dropped, but
+the regridder is still able to deal with this situation using the information in the hidden index.
+
+Please avoid performing regridding on datasets in which single levels have been selected for multiple
+3D variables using different vertical dimensions or on datasets containing also 2D data,
+because in such cases it may not be possible to reconstruct which vertical dimension
+each variable was supposed to be using. 
+In these cases it is better to first select a variable, then select levels and finally regrid. 
+The regridder will issue a warning if it detects such a situation.
+An alternative is to maintain the vertical dimension when selecting a single level by specifying a list with one element,
+for example using `isel(nz1=[40])` instead of `isel(nz1=40)`.
+If level selection was performed at the `retrieve()` stage this is not a problem,
+since in that case the vertical level information is preserved by producing 3D variables
+with a single vertical level.
+
+Accessor
+~~~~~~~~
+
+AQUA also provides a special 'aqua' accessor to Xarray which allows to call most functions and methods of the reader
+class as if they were methods of an Xarray DataArray or Dataset.
+Reader methods like `reader.regrid()` or functions like `plot_single_map()` can now also be accessed by appending
+the suffix `aqua`to a DataArray or Dataset, followed by the function of interest, like in `data.aqua.regrid()`
+
+This means that instead of writing:
 
 .. code-block:: python
+    reader.fldmean(reader.timmean(data.tcc, freq="Y"))
 
-    reader = Reader(model="IFS", exp="fdb-tco399", source="fdb-long", aggregation="D", regrid="r025",
-                    buffer="/scratch/jost/aqua/buffer", loglevel="INFO")
-    data = reader.retrieve(startdate='20200201', enddate='20200301', var='ci')
+we can write
 
-The result will now be a regular dask xarray Dataset, not an iterator.
-In theory the temporary directory will be erased automatically if the program terminates in an orderly fashion. This is not always the case with jupyter notebooks, 
-so you should monitor your buffer directory and do manual housekeeping.
+.. code-block:: python
+    data.tcc.aqua.timmean(freq="Y").aqua.fldmean()
+
+Please notice that the accessor always assumes that the Reader instance to be used is either
+the one with which a Dataset was created or, for new derived objects and for *DataArrays in the Datasets*,
+the last instantiated Reader or the last use of the `retrieve()` method.
+This means that if more than one reader instance is used (for example to compare different datasets)
+we recommend not to use the accessor.
+
+As an alternative the Reader class contains a special `set_default()` method which sets that reader
+as an accessor default in the following. The accessor itself also has a `set_default()` method
+(accepting a reader instance as an argument) which sets the default and returns the same object.
+Usage examples when multiple readers are used:
+
+.. code-block:: python
+    from aqua import Reader
+    reader1=Reader(model="IFS", exp="test-tco79", source="short", regrid="r100")  # the default is now reader1
+    reader2=Reader(model="IFS", exp="test-tco79", source="short", regrid="r200")  # the default is now reader2
+    data1 = reader1.retrieve()  # the default is now reader1 
+    data2 = reader2.retrieve()  # the default is now reader2
+    reader1.set_default()  # the default is now reader1 
+    data1r = data1.aqua.regrid()
+    data2r = data2.aqua.regrid()  # data2 was created by retrieve(), so it remembers its default reader
+    data2r = data2['2t'].aqua.set_default(reader2).aqua.regrid()  # the default is set to reader2 before using a method
+
+

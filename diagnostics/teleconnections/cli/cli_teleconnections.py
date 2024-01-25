@@ -12,8 +12,8 @@ from aqua import __version__ as aquaversion
 from aqua.util import load_yaml, get_arg
 from aqua.exceptions import NoDataError, NotEnoughDataError
 from aqua.logger import log_configure
+from aqua.graphics import plot_single_map
 from teleconnections import __version__ as telecversion
-from teleconnections.plots import plot_single_map
 from teleconnections.tc_class import Teleconnection
 
 
@@ -42,32 +42,36 @@ def parse_arguments(cli_args):
                         required=False)
     parser.add_argument('--outputdir', type=str, help='output directory',
                         required=False)
+    parser.add_argument('--interface', type=str, help='interface to use',
+                        required=False)
 
     return parser.parse_args(cli_args)
 
 
 if __name__ == '__main__':
 
+    args = parse_arguments(sys.argv[1:])
+    loglevel = get_arg(args, 'loglevel', 'WARNING')
+    logger = log_configure(log_name='Teleconnections CLI', log_level=loglevel)
+
+    logger.info(f'Running AQUA v{aquaversion} Teleconnections diagnostic v{telecversion}')
+
     # change the current directory to the one of the CLI so that relative path works
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
     if os.getcwd() != dname:
         os.chdir(dname)
-        print(f'Moving from current directory to {dname} to run!')
-
-    print(f'Running AQUA v{aquaversion} Teleconnections diagnostic v{telecversion}')
-    args = parse_arguments(sys.argv[1:])
+        logger.info(f'Moving from current directory to {dname} to run!')
 
     # Read configuration file
     file = get_arg(args, 'config', 'cli_config_atm.yaml')
-    print('Reading configuration yaml file: {}'.format(file))
+    logger.info('Reading configuration yaml file: {}'.format(file))
     config = load_yaml(file)
-
-    loglevel = get_arg(args, 'loglevel', 'WARNING')
-    logger = log_configure(log_name='Teleconnections CLI', log_level=loglevel)
 
     # if ref we're running the analysis against a reference
     ref = get_arg(args, 'ref', False)
+    if ref:
+        logger.debug('Running against a reference')
 
     # if dry we're not saving any file, debug mode
     dry = get_arg(args, 'dry', False)
@@ -91,6 +95,9 @@ if __name__ == '__main__':
 
     configdir = config['configdir']
     logger.debug('configdir: %s', configdir)
+
+    interface = get_arg(args, 'interface', config['interface'])
+    logger.debug('Interface name: %s', interface)
 
     # Turning on/off the teleconnections
     # the try/except is used to avoid KeyError if the teleconnection is not
@@ -157,6 +164,7 @@ if __name__ == '__main__':
                                     outputfig=os.path.join(outputpdf,
                                                            telec),
                                     savefig=savefig, savefile=savefile,
+                                    interface=interface,
                                     loglevel=loglevel)
                 tc.retrieve()
             except NoDataError:
@@ -167,8 +175,8 @@ if __name__ == '__main__':
             try:
                 tc.evaluate_index()
                 if full_year:
-                    reg_full = tc.evaluate_correlation()
-                    cor_full = tc.evaluate_regression()
+                    reg_full = tc.evaluate_regression()
+                    cor_full = tc.evaluate_correlation()
             except NotEnoughDataError:
                 logger.error('Not enough data available for %s teleconnection',
                              telec)
@@ -204,7 +212,11 @@ if __name__ == '__main__':
                 maps = []
                 titles = []
                 if telec == 'NAO':
-                    cbar_label = ['msl [hPa]', 'Pearson correlation']
+                    # TODO: units are Pa since msl is in Pa
+                    #       but we should convert to hPa for readability
+                    #       see issue #575
+                    label1 = tc.var + ' [Pa]'
+                    cbar_label = [label1, 'Pearson correlation']
                     transform_first = False
                     # We duplicate maps if we create more plots
                     # for different teleconnections
@@ -213,7 +225,8 @@ if __name__ == '__main__':
                         maps = [reg_full, cor_full]
                         titles = map_names
                 elif telec == 'ENSO':
-                    cbar_label = ['sst [K]', 'Pearson correlation']
+                    label1 = tc.var + ' [K]'
+                    cbar_label = [label1, 'Pearson correlation']
                     transform_first = True
                     if full_year:
                         map_names = ['regression', 'correlation']
@@ -232,22 +245,32 @@ if __name__ == '__main__':
                 logger.debug('map_names: %s', map_names)
 
                 for i, data_map in enumerate(maps):
+                    # Check if there is a correlation map
+                    # if this is the case, we plot with vmin=-1 and vmax=1
+                    if map_names[i].startswith('correlation'):
+                        logger.debug('Setting vmin=-1 and vmax=1')
+                        vmin = -1
+                        vmax = 1
+                    else:  # otherwise we evaluate vmin and vmax
+                        vmin = None
+                        vmax = None
                     try:
                         plot_single_map(data=data_map,
-                                        save=True,
+                                        save=True, sym=True,
                                         cbar_label=cbar_label[i],
                                         outputdir=tc.outputfig,
                                         filename=tc.filename + '_{}'.format(map_names[i]),
                                         title='{} {} {} {}'.format(model, exp,
                                                                    telec, titles[i]),
                                         transform_first=transform_first,
+                                        vmin=vmin, vmax=vmax,
                                         loglevel=loglevel)
                     except Exception as err:
                         logger.error('Error plotting %s %s %s %s: %s',
                                      model, exp, telec, map_names[i], err)
                         logger.info('Trying without contour')
                         try:
-                            plot_single_map(data=data_map,
+                            plot_single_map(data=data_map, sym=True,
                                             save=True, contour=False,
                                             cbar_label=cbar_label[i],
                                             outputdir=tc.outputfig,
@@ -255,6 +278,7 @@ if __name__ == '__main__':
                                             title='{} {} {} {}'.format(model, exp,
                                                                        telec, titles[i]),
                                             transform_first=transform_first,
+                                            vmin=vmin, vmax=vmax,
                                             loglevel=loglevel)
                         except Exception as err2:
                             logger.error('Error plotting %s %s %s %s: %s',

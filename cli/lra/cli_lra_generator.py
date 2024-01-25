@@ -6,13 +6,24 @@ Make use of aqua.LRA_Generator class to perform the regridding.
 Functionality can be controlled through CLI options and
 a configuration yaml file.
 '''
-import sys
-import gsv
-print(gsv.__version__)
 
+import sys
 import argparse
 from aqua import LRAgenerator
 from aqua.util import load_yaml, get_arg
+from aqua import __version__ as version
+
+# to check if GSV is available and return the version
+try:
+    import gsv
+    print('GSV version is: ' + gsv.__version__)
+except RuntimeError:
+    print("GSV not available. FDB5 binary library not present on system.")
+except KeyError:
+    print("GSV not available. Environment variables not correctly set.")
+
+print('AQUA version is: ' + version)
+
 
 def parse_arguments(arguments):
     """
@@ -39,7 +50,6 @@ def parse_arguments(arguments):
 if __name__ == '__main__':
 
     args = parse_arguments(sys.argv[1:])
-    
     file = get_arg(args, 'config', 'lra_config.yaml')
     print('Reading configuration yaml file..')
 
@@ -49,12 +59,7 @@ if __name__ == '__main__':
     outdir = config['target']['outdir']
     tmpdir = config['target']['tmpdir']
     configdir = config['configdir']
-    loglevel= config['loglevel']
-   
-    if config['target']['aggregation']:
-        aggregation = config['target']['aggregation']
-    else:
-        aggregation = None
+    loglevel = config['loglevel']
 
     definitive = get_arg(args, 'definitive', False)
     overwrite = get_arg(args, 'overwrite', False)
@@ -69,20 +74,24 @@ if __name__ == '__main__':
 
                     # get the zoom level
                     zoom_level = config['catalog'][model][exp][source].get('zoom', None)
-                                    
+
                     # init the LRA
                     lra = LRAgenerator(model=model, exp=exp, source=source, zoom=zoom_level,
-                                        var=varname, resolution=resolution,
-                                        frequency=frequency, fix=fix,
-                                        outdir=outdir, tmpdir=tmpdir, configdir=configdir,
-                                        nproc=workers, loglevel=loglevel, aggregation=aggregation,
-                                        definitive=definitive, overwrite=overwrite)
-                    
+                                       var=varname, resolution=resolution,
+                                       frequency=frequency, fix=fix,
+                                       outdir=outdir, tmpdir=tmpdir, configdir=configdir,
+                                       nproc=workers, loglevel=loglevel,
+                                       definitive=definitive, overwrite=overwrite,
+                                       exclude_incomplete=True)
+
                     # check that your LRA is not already there (it will not work in streaming mode)
                     lra.check_integrity(varname)
 
+                    # retrieve and generate
                     lra.retrieve()
                     lra.generate_lra()
-                    lra.create_catalog_entry()
+                    
+        # create the catalog once the loop is over
+        lra.create_catalog_entry()
 
     print('LRA run completed. Have yourself a beer!')
