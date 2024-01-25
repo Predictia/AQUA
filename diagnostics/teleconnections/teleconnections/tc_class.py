@@ -379,12 +379,12 @@ class Teleconnection():
 
             index_plot(indx=self.index, save=self.savefig,
                        outputdir=self.outputfig, filename=filename,
-                       loglevel=self.loglevel, step=step, title=title,
+                       loglevel=self.loglevel, step=step,
                        ylabel=ylabel, **kwargs)
             self.logger.info("Index plot saved to %s/%s", self.outputfig, filename)
         else:
             index_plot(indx=self.index, save=self.savefig,
-                       loglevel=self.loglevel, step=step, title=title,
+                       loglevel=self.loglevel, step=step,
                        ylabel=ylabel, **kwargs)
 
     def _load_namelist(self, configdir=None, interface=None):
