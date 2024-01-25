@@ -26,14 +26,14 @@ Pull the docker image from the docker hub using the generated token:
 
 .. code-block:: bash
 
-   singularity pull --docker-login docker://ghcr.io/destine-climate-dt/aqua:0.6
+   singularity pull --docker-login docker://ghcr.io/destine-climate-dt/aqua:0.6.2
 
 This will require you to enter your username and token generated above.
-The above command will create a file called ``aqua_0.6.sif`` in the current directory.
+The above command will create a file called ``aqua_0.6.2.sif`` in the current directory.
 
 .. note::
    If you want to use a different version of AQUA, you can change the tag in the above command.
-   For example, to use version 0.4, you can use ``aqua:0.4``.
+   For example, to use version 0.4, you can use ``aqua:0.5``.
 
 .. note::
    If in your machine is installed docker instead of singularity, you can pull the image with docker,
@@ -178,7 +178,7 @@ You can customize it according to your needs.
    #SBATCH --error=aqua_slurm.err
    #SBATCH -p dev-g    # Change the partition
 
-   AQUA_container=/project/project_465000454/containers/aqua/aqua-v0.6.sif # Change it to your container
+   AQUA_container=/project/project_465000454/containers/aqua/aqua-v0.6.2.sif # Change it to your container
    FDB5_CONFIG_FILE=/scratch/project_465000454/igonzalez/fdb-long/config.yaml  # Change it to your simulation
    GSV_WEIGHTS_PATH=/scratch/project_465000454/igonzalez/gsv_weights/
    GRID_DEFINITION_PATH=/scratch/project_465000454/igonzalez/grid_definitions
