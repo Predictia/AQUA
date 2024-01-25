@@ -52,7 +52,7 @@ def parse_arguments(args):
     parser.add_argument('--all-regions', action='store_true',
                         help='Compute sea ice extent for all regions')
     parser.add_argument('--loglevel', '-l', type=str, default='WARNING',
-                        help='Logging level [INFO, WARNING, DEBUG] (default: WARNING)')
+                        help='Logging level (default: WARNING)')
 
     # These arguments override the configuration file if provided.
     parser.add_argument('--model', type=str, help='Model name')
