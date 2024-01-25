@@ -65,6 +65,14 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
     except KeyError:
         raise NoDataError(f"The variable {var_name} is not present in the dataset. Please try again.")
 
+    if var_name == 'tprate':
+        logger.warning("Adjusting tprate to be in mm/day")
+        var1 = var1 * 86400
+        var2 = var2 * 86400
+        logger.warning("Changing units attribute to 'mm/day'")
+        var1.attrs['units'] = 'mm/day'
+        var2.attrs['units'] = 'mm/day'
+
     if start_date1 or end_date1:
         logger.debug(f"start_date1: {start_date1}")
         logger.debug(f"end_date1: {end_date1}")
@@ -79,11 +87,11 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
     else:
         start_date2 = str(var2["time.year"][0].values) + '-' + str(var2["time.month"][0].values) + '-' + str(var2["time.day"][0].values)
         end_date2 = str(var2["time.year"][-1].values) + '-' + str(var2["time.month"][-1].values) + '-' + str(var2["time.day"][-1].values)
-    
+
     # Load in memory to speed up the calculation
     logger.warning("Loading data into memory to speed up the calculation...")
     var1 = var1.load()
-    
+
     # Check if pre-computed climatology is provided, otherwise compute it
     if dataset2_precomputed is None:
         # Compute climatology
@@ -92,14 +100,14 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
     else:
         logger.debug("Precomputed climatology found")
         if isinstance(dataset2_precomputed, xr.Dataset):
-          var2_climatology = dataset2_precomputed[var_name]
+            var2_climatology = dataset2_precomputed[var_name]
         elif isinstance(dataset2_precomputed, xr.DataArray):
-          var2_climatology = dataset2_precomputed
+            var2_climatology = dataset2_precomputed
         else:
-          logger.error("Error in precomputer climatology, recomputing")
-          # Compute climatology
-          var2 = var2.load()
-          var2_climatology = var2.groupby('time.month').mean(dim='time')
+            logger.error("Error in precomputer climatology, recomputing")
+            # Compute climatology
+            var2 = var2.load()
+            var2_climatology = var2.groupby('time.month').mean(dim='time')
 
     var1_climatology = var1.groupby('time.month').mean(dim='time')
 
@@ -169,6 +177,12 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
         vmin = -vmax
     logger.debug(f"vmin: {vmin}, vmax: {vmax}")
     levels = np.linspace(vmin, vmax, 12)
+
+    # HACK for tprate:
+    if var_name == 'tprate':
+        vmin = -12
+        vmax = 12
+        logger.warning(f"Setting manually vmin and vmax to {vmin} and {vmax} for tprate variable.")
 
     for i, (result, season) in enumerate(zip(results, season_ranges.keys())):
         ax = fig.add_subplot(gs[i], projection=projection)
@@ -299,7 +313,7 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None,
         start_date2 = str(dataset2["time.year"][0].values) + '-' + str(dataset2["time.month"][0].values) + '-' + str(dataset2["time.day"][0].values)
         end_date2 = str(dataset2["time.year"][-1].values) + '-' + str(dataset2["time.month"][-1].values) + '-' + str(dataset2["time.day"][-1].values)
     logger.debug(f"Dataset2 time range: {start_date2} to {end_date2}")
-        
+ 
     # Check if pre-computed climatology is provided, otherwise compute it
     if dataset2_precomputed is None:
         # Compute climatology
@@ -315,7 +329,6 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None,
                 raise NoDataError(f"The variable {var_name} is not present in the dataset. Please try again.")
         elif isinstance(dataset2_precomputed, xr.DataArray):
             var2_climatology = dataset2_precomputed
-        
 
     # Calculate the bias between dataset1 and dataset2
     try:
