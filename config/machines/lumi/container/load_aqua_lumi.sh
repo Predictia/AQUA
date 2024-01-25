@@ -2,16 +2,15 @@
 
 script_dir=$(dirname "${BASH_SOURCE[0]}")
 source $script_dir/../../../../cli/util/logger.sh
-# Global log level
-# 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
-LOG_LEVEL=1
+setup_log_level 3 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
 
 AQUA_container="/project/project_465000454/containers/aqua/aqua-v0.5.2-beta.sif"
 FDB5_CONFIG_FILE="/scratch/project_465000454/igonzalez/fdb-long/config.yaml"
 GSV_WEIGHTS_PATH="/scratch/project_465000454/igonzalez/gsv_weights/"
 GRID_DEFINITION_PATH="/scratch/project_465000454/igonzalez/grid_definitions"
 
-read -p "Do you want to use your local AQUA (y/n): " user_defined_aqua
+log_message $next_level_msg_type "Do you want to use your local AQUA (y/n): "
+read user_defined_aqua
 
 if [[ "$user_defined_aqua" = "yes" || "$user_defined_aqua" = "y" || "$user_defined_aqua" = "Y" ]]; then
     script_dir=$(cd "$(dirname "$0")" && pwd)
@@ -19,7 +18,10 @@ if [[ "$user_defined_aqua" = "yes" || "$user_defined_aqua" = "y" || "$user_defin
     AQUA_path=$(echo "$script_dir" | awk -F'/AQUA' '{print ($2 ? $1 "/AQUA" : "")}')
     if [ -z "$AQUA_path" ]; then
         log_message ERROR "Not able to find the local AQUA Repository"
-        read -p "Please provide the AQUA path: " AQUA_path
+        
+        log_message $next_level_msg_type "Please provide the AQUA path: "
+        read AQUA_path
+        
         branch_name=$(git -C "$AQUA_path" rev-parse --abbrev-ref HEAD)
         log_message INFO "Current branch: $branch_name"
         last_commit=$(git -C "$AQUA_path" log -1 --pretty=format:"%h %an: %s")
