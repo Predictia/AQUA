@@ -3,27 +3,27 @@ source $script_dir/logger.sh
 source $script_dir/get_machine.sh
 
 lumi_version=23.03
-# Function to load environment on LUMI
-function load_environment_AQUA() {
-    # Load env modules on LUMI
-    module purge
-    module use LUMI/$lumi_version
-}
-
 # Function to activate aqua
-function activate_aqua() {
+function install_aqua() {
     machine=$(get_machine)
     log_message INFO "Machine Name: $machine"
 
     # if machine is lumi use modules
     if [ $machine == "lumi" ]; then
-        $(load_environment_AQUA)
-        # get username
-        username=$USER
-        log_message INFO "username $USER"
-        export PATH="/users/$username/mambaforge/aqua/bin:$PATH"
-        log_message INFO "path $PATH"
-        log_message DEBUG "AQUA successfully imported on LUMI"
+        # clean up environment
+        module --force purge
+        log_message INFO "Environment has been cleaned up."
+
+        # load modules
+        module load LUMI/$lumi_version
+        module load lumi-container-wrapper
+        log_message INFO "Modules have been loaded."
+
+        
+        # install AQUA framework and diagnostics
+        conda-containerize new --mamba --prefix "${INSTALLATION_PATH}" "${AQUA}/config/machines/lumi/installation/environment_lumi_common.yml"
+        conda-containerize update "${INSTALLATION_PATH}" --post-install "${AQUA}/config/machines/lumi/installation/pip_lumi_common.txt"
+        log_message INFO "AQUA framework and diagnostics have been installed."
     else
         #elif [ $machine == "levante" ]; then
         # find mamba/conda (to be refined)
