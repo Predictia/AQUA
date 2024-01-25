@@ -3,7 +3,6 @@ Module including time utilities for AQUA
 """
 
 import math
-import re
 import pandas as pd
 import xarray as xr
 from pandas.tseries.frequencies import to_offset
@@ -15,6 +14,8 @@ def frequency_string_to_pandas(freq):
     Convert a string from the AQUA convention to
     the usual pandas frequency standard
     """
+
+    logger = log_configure('WARNING', 'frequency_string_to_pandas')
 
     trans = {
         'hourly': 'h',
@@ -37,6 +38,10 @@ def frequency_string_to_pandas(freq):
     }
 
     new_freq = trans.get(freq, freq)
+
+    if freq in ['M', 'ME', 'Y', 'YE']:
+        logger.warning('You are using a pandas frequency pointing at the end of a period, this can behave unexpectedly if you have subdaily data')
+
 
     return new_freq
 
@@ -97,7 +102,7 @@ def check_chunk_completeness(xdataset, resample_frequency='1D', loglevel='WARNIN
     fixed resample_frequency.
 
     Args:
-        xdataset: An xarray dataset
+        xdataset: The original dataset before averagin
         resample_frequency: the frequency on which we are planning to resample, based on pandas frequency
 
     Raise:
@@ -114,11 +119,15 @@ def check_chunk_completeness(xdataset, resample_frequency='1D', loglevel='WARNIN
 
     # convert offset
     pandas_period = to_offset(resample_frequency)
-    
+
     normalized_dates = xdataset.time.to_index().to_period(pandas_period).to_timestamp()
     chunks = pd.date_range(start=normalized_dates[0],
                            end=normalized_dates[-1],
                            freq=resample_frequency)
+
+    logger.info('%s chunks from %s to %s at %s frequency to be analysed...', 
+                len(chunks), chunks[0], 
+                chunks[-1], resample_frequency)
 
     # if no chunks, no averages
     if len(chunks) == 0:
@@ -144,7 +153,7 @@ def check_chunk_completeness(xdataset, resample_frequency='1D', loglevel='WARNIN
             check_completeness.append(False)
 
     # build the binary mask
-    taxis = xdataset.time.resample(time=pandas_period).mean()
+    taxis = xdataset.time.resample(time=resample_frequency).mean()
     if sum(check_completeness) == 0:
         logger.warning('Not enough data to compute any average on %s period, returning empty array', resample_frequency)
 
