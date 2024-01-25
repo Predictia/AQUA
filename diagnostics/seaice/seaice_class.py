@@ -135,6 +135,7 @@ class SeaIceExtent:
             try:
                 reader = Reader(model=model, exp=exp, source=source,
                                 regrid=regrid, loglevel=self.loglevel)
+                tmp = reader.retrieve()
             except Exception as e:
                 self.logger.error("An exception occurred while instantiating reader: %s", e)
                 raise NoDataError("Error while instantiating reader")
@@ -393,6 +394,8 @@ class SeaIceConcentration:
                 reader = Reader(model=model, exp=exp, source=source,
                                 regrid=regrid, loglevel=self.loglevel)
 
+                tmp = reader.retrieve()
+                print(tmp.keys)
             except Exception as e:
                 self.logger.error("An exception occurred while instantiating reader: %s", e)
                 raise NoDataError("Error while instantiating reader")
