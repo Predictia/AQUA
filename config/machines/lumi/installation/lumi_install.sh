@@ -9,7 +9,7 @@ set -e
 
 script_dir=$(dirname "${BASH_SOURCE[0]}")
 source $script_dir/../../../../cli/util/logger.sh
-source $script_dir/../../../../cli/util/get_machine.sh
+source $script_dir/../../../../cli/util/install_aqua.sh
 # Global log level
 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
 LOG_LEVEL=1
@@ -72,30 +72,12 @@ log_message DEBUG "Paths containing '$word_to_remove' have been removed from \$P
 
 #####################################################################
 
-#machine=$(get_machine)
 # change machine name in config file
 sed -i "/^machine:/c\\machine: ${machine}" "${AQUA}/config/$configfile"
 log_message DEBUG "Machine name in config file has been set to ${machine}"
 
 sed -i "/^  lumi:/c\\  lumi: ${INSTALLATION_PATH}/bin/cdo" "${AQUA}/config/$configfile"
 log_message DEBUG "CDO in config file now points to ${INSTALLATION_PATH}/bin/cdo"
-
-install_aqua() {
-  # clean up environment
-  module --force purge
-  log_message INFO "Environment has been cleaned up."
-
-  # load modules
-  module load LUMI/22.08
-  module load lumi-container-wrapper
-  log_message INFO "Modules have been loaded."
-
-  
-  # install AQUA framework and diagnostics
-  conda-containerize new --mamba --prefix "${INSTALLATION_PATH}" "${AQUA}/config/machines/lumi/installation/environment_lumi_common.yml"
-  conda-containerize update "${INSTALLATION_PATH}" --post-install "${AQUA}/config/machines/lumi/installation/pip_lumi_common.txt"
-  log_message INFO "AQUA framework and diagnostics have been installed."
-}
 
 # if INSTALLATION_PATH does not exist, create it
 if [[ ! -d "${INSTALLATION_PATH}" ]]; then
