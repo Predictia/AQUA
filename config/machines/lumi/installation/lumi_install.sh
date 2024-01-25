@@ -8,8 +8,8 @@
 set -e
 
 script_dir=$(dirname "${BASH_SOURCE[0]}")
-source $script_dir/../../../../util/logger.sh
-source $script_dir/../../../../util/get_machine.sh
+source $script_dir/../../../../cli/util/logger.sh
+source $script_dir/../../../../cli/util/get_machine.sh
 # Global log level
 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
 LOG_LEVEL=1
