@@ -87,6 +87,7 @@ def plot_timeseries(
     resample=None,
     regrid=None,
     plot_era5=False,
+    annual=False,
     ylim={},
     reader_kw={},
     plot_kw={},
@@ -107,6 +108,7 @@ def plot_timeseries(
         resample (str): Optional resample rate (e.g. "M").
         regrid (str): Optional regrid resolution. Default is None.
         plot_era5 (bool): Include ERA5 reference data.
+        annual (bool): Plot annual mean.
         ylim (dict): Keyword arguments passed to `set_ylim()`.
         reader_kw (dict): Additional keyword arguments passed to the `aqua.Reader`.
         plot_kw (dict): Additional keyword arguments passed to the plotting function.
@@ -153,6 +155,10 @@ def plot_timeseries(
         logger.debug(f"Resampling data to {resample}")
         data = reader.timmean(data=data, freq=resample)
 
+        if resample == 'Y' and annual:
+            logger.debug("Asked for annual mean, but resample is already annual. Skipping.")
+            annual = False
+
     if regrid:
         logger.debug(f"Regridding data to {regrid}")
         data = reader.regrid(data)
@@ -164,6 +170,13 @@ def plot_timeseries(
 
     data.plot(**plot_kw, ax=ax)
     ax.set_title(f'Globally averaged {variable}')
+
+    if annual:
+        data_annual = reader.timmean(data=data, freq='Y')
+        if "label" not in plot_kw:
+            logger.debug(f"Using {model}-{exp} annual mean as label")
+            plot_kw["label"] = f"{model}-{exp} annual mean"
+        data_annual.plot(**plot_kw, ax=ax, linestyle='--')
 
     if outfile is not None:
         logger.debug(f"Saving data to {outfile}")
@@ -184,10 +197,15 @@ def plot_timeseries(
                 eradata - erastd.sel(month=eradata["time.month"]),
                 eradata + erastd.sel(month=eradata["time.month"]),
                 facecolor="grey",
-                alpha=0.3678,
+                alpha=0.35,
                 color="grey",
-                label="ERA5",
+                label="ERA5 std"
             )
+            eradata.plot(ax=ax, color="k", lw=0.5, label="ERA5")
+
+            if annual:
+                eradata_annual = reader.timmean(data=eradata, freq='Y')
+                eradata_annual.plot(ax=ax, color="k", lw=0.5, linestyle='--', label="ERA5 annual mean")
 
     ax.legend()
     ax.set_ylim(**ylim)
