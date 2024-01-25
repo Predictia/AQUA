@@ -109,29 +109,22 @@ class Ocean3DCLI:
         return
     
     def diag_list(self, o3d_request):
-        # self.logger.debug("Evaluating Hovmoller plots")
          
-        # hovmoller_plot = hovmoller_lev_time_plot(o3d_request)
-        # hovmoller_plot.plot_paralell()
+        hovmoller_plot = hovmoller_lev_time_plot(o3d_request)
+        hovmoller_plot.plot_paralell()
 
-        # time_series_multilevs_parallel(o3d_request)
+        time_series_multilevs_parallel(o3d_request)
         
-        # self.logger.debug("Evaluating multilevel_t_s_trend_plot")
-        # multilevel_t_s_trend_plot(o3d_request,
-        #                         customise_level=False, levels=None)
+        self.logger.debug("Evaluating multilevel_t_s_trend_plot")
+        multilevel_t_s_trend_plot(o3d_request,
+                                customise_level=False, levels=None)
 
-        # self.logger.debug("Evaluating zonal_mean_trend_plot")
-        # zonal_mean_trend_plot(o3d_request)
+        self.logger.debug("Evaluating zonal_mean_trend_plot")
+        zonal_mean_trend_plot(o3d_request)
 
         plot_stratification_parallel(o3d_request)
         plot_spatial_mld_clim_parallel(o3d_request)
-        # for time in range(13, 18):  # 1 to 12 is the months, then each number directs the seasonals and the yearly climatology
-            # self.logger.debug("Evaluating plot_stratification, time: %s", time)
-            # plot_stratification(o3d_request,
-            #                     time=time)
-            # plot_spatial_mld_clim(o3d_request,
-            #                       time = time, overlap= True)
-        
+
         
     def ocean3d_diags(self, region=None,
                   latS: float = None,
