@@ -16,7 +16,7 @@ from aqua.reader import Reader
 from aqua.util import create_folder, generate_random_string
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import ConfigPath, file_is_complete
-from aqua.lra_generator.lra_util import check_correct_ifs_fluxes
+#from aqua.lra_generator.lra_util import check_correct_ifs_fluxes
 
 
 class LRAgenerator():
@@ -127,7 +127,7 @@ class LRAgenerator():
 
         self.frequency = frequency
         if not self.frequency:
-            self.logger.info('Frequency not specified, streaming mode')
+            self.logger.info('Frequency not specified, no time averagin will be performed.')
 
         # option for time encoding, defined once for all
         self.time_encoding = {
@@ -276,7 +276,7 @@ class LRAgenerator():
             self.logger.info('Removing temporary directory %s', self.tmpdir)
             os.removedirs(self.tmpdir)
 
-    def _concat_var(self, var, year):
+    def _concat_var_year(self, var, year):
         """
         To reduce the amount of files concatenate together all the files
         from the same year
@@ -405,7 +405,7 @@ class LRAgenerator():
                     self.logger.error('Something has gone wrong in %s!', outfile)
 
             if self.definitive and month == 12:
-                self._concat_var(var, year)
+                self._concat_var_year(var, year)
 
             self.logger.info('Processing this chunk took {:.4f} seconds'.format(time() - t_beg))
             t_beg = time()
@@ -421,13 +421,13 @@ class LRAgenerator():
         self.logger.info('Processing variable %s...', var)
         temp_data = self.data[var]
 
-        # Old version pre-HACK
-        #if self.frequency:
-        #    temp_data = self.reader.timmean(temp_data, freq=self.frequency)
+        if self.frequency:
+            temp_data = self.reader.timmean(temp_data, freq=self.frequency,
+                                            exclude_incomplete=self.exclude_incomplete)
 
         # regrid
-        #temp_data = self.reader.regrid(temp_data)
-        #temp_data = self._remove_regridded(temp_data)
+        temp_data = self.reader.regrid(temp_data)
+        temp_data = self._remove_regridded(temp_data)
 
         # Splitting data into yearly files
         years = set(temp_data.time.dt.year.values)
@@ -435,6 +435,8 @@ class LRAgenerator():
 
             self.logger.info('Processing year %s...', str(year))
             yearfile = self.get_filename(var, year)
+
+            # checking if file is there and is complete
             filecheck = file_is_complete(yearfile, loglevel=self.loglevel)
             if filecheck:
                 if not self.overwrite:
@@ -443,6 +445,7 @@ class LRAgenerator():
                 else:
                     self.logger.warning('Yearly file %s already exists, overwriting as requested...', yearfile)
             year_data = temp_data.sel(time=temp_data.time.dt.year == year)
+
             # Splitting data into monthly files
             months = set(year_data.time.dt.month.values)
             for month in months:
@@ -459,16 +462,15 @@ class LRAgenerator():
                         self.logger.warning('Monthly file %s already exists, overwriting as requested...', outfile)
 
                 month_data = year_data.sel(time=year_data.time.dt.month == month)
-                # HACK: check for ifs wrong fluxes only
-                if len(month_data.time)>1:
-                    month_data = check_correct_ifs_fluxes(month_data, loglevel=self.loglevel)
 
-                # HACK: move the regrid and frequency here
-                if self.frequency:
-                    month_data = self.reader.timmean(month_data, freq=self.frequency, 
-                                                     exclude_incomplete=self.exclude_incomplete)
-                month_data = self.reader.regrid(month_data)
-                month_data = self._remove_regridded(month_data)
+                # HACK: check for ifs wrong fluxes only
+                #if len(month_data.time)>1:
+                #    month_data = check_correct_ifs_fluxes(month_data, loglevel=self.loglevel)
+                #if month_data.isnull().all():
+                #    self.logger.warning('All the records are null for month %s, skipping this...', month)
+                #    continue
+                #month_data = self.reader.regrid(month_data)
+                #month_data = self._remove_regridded(month_data)
 
                 self.logger.debug(month_data.mean().values)
                 self.logger.debug(month_data)
@@ -485,7 +487,7 @@ class LRAgenerator():
                 del month_data
             del year_data
             if self.definitive:
-                self._concat_var(var, year)
+                self._concat_var_year(var, year)
         del temp_data
 
     def write_chunk(self, data, outfile):
