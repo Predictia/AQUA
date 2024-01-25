@@ -60,6 +60,7 @@ def plot_single_map(data: xr.DataArray,
         nxticks (int, optional):     Number of x ticks. Defaults to 7.
         nyticks (int, optional):     Number of y ticks. Defaults to 7.
         cyclic_lon (bool, optional): If True, add cyclic longitude.
+        ylim (tuple, optional):      Limits of the y axis. Defaults to None.
 
     Raises:
         ValueError: If data is not a DataArray.
@@ -84,6 +85,11 @@ def plot_single_map(data: xr.DataArray,
     logger.debug("Setting figsize to %s", figsize)
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(111, projection=proj)
+
+    ylim = kwargs.get('ylim', None)
+    if ylim:
+        logger.debug("Setting ylim to %s", ylim)
+        ax.set_ylim(ylim)
 
     # Evaluate vmin and vmax if not given
     if vmin is None or vmax is None:
