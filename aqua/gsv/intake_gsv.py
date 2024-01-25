@@ -309,6 +309,10 @@ class GSVSource(base.DataSource):
         dtype = self._schema.dtype
 
         self.itime = self._da.dims.index("time")
+
+        if 'valid_time' in self._da.coords:  # temporary hack because valid_time is inconsistent anyway
+            self._da = self._da.drop('valid_time')
+
         coords = self._da.coords.copy()
         coords['time'] = self.timeaxis
 
