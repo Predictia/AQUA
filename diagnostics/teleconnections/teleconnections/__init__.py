@@ -20,6 +20,7 @@ __all__ = ['station_based_index', 'regional_mean_index',
 
 # Changelog
 # 0.3.1: startdate and enddate are now options when initializing the class
+#        Maps improvements
 # 0.3.0: Interface to adapt to different standard of variable names
 # 0.2.3: Single map plot function is now in AQUA framework
 # 0.2.2: Added season selection to index_plot
