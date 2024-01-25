@@ -196,8 +196,7 @@ with the same variable names and units. The default format is GRIB2.
 The fixing is done by default when we initialize the reader, 
 using the instructions in the ``config/fixes`` folder. Each model has its own YAML file that specify the fixes.
 Fixes can be specified in two different ways:
-- Using the ``family`` definitions, to be then provided as a metadata in the catalog. This represents fixes that have a common nickname which can be used in multiple sources when defining the catalog. There is the possibility of specifing a `parent`
- fix so that a fix can be re-used with minor correction, merging small change to a larger family
+- Using the ``family`` definitions, to be then provided as a metadata in the catalog. This represents fixes that have a common nickname which can be used in multiple sources when defining the catalog. There is the possibility of specifing a `parent` fix so that a fix can be re-used with minor correction, merging small change to a larger family.
 - Using the source-based definition. Each experiment/source can have its own specific fix, or alternatively a ``default.yaml`` that can be used in the case of necessity. Please note that this is the older AQUA implementation and will be deprecated in favour of the new `family` approach.
 A ``defalt.yaml`` is used for common unit corrections. 
 
@@ -408,11 +407,13 @@ the suffix `aqua`to a DataArray or Dataset, followed by the function of interest
 This means that instead of writing:
 
 .. code-block:: python
+
     reader.fldmean(reader.timmean(data.tcc, freq="Y"))
 
 we can write
 
 .. code-block:: python
+
     data.tcc.aqua.timmean(freq="Y").aqua.fldmean()
 
 Please notice that the accessor always assumes that the Reader instance to be used is either
@@ -427,6 +428,7 @@ as an accessor default in the following. The accessor itself also has a `set_def
 Usage examples when multiple readers are used:
 
 .. code-block:: python
+
     from aqua import Reader
     reader1=Reader(model="IFS", exp="test-tco79", source="short", regrid="r100")  # the default is now reader1
     reader2=Reader(model="IFS", exp="test-tco79", source="short", regrid="r200")  # the default is now reader2
