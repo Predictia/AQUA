@@ -6,6 +6,15 @@ from aqua import Reader
 from aqua.exceptions import NoDataError
 from aqua.util import load_yaml, create_folder
 from aqua.logger import log_configure
+import numpy as np
+
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+from   cartopy.util import add_cyclic_point
+import sys
+sys.path.insert(0, '..')
+from colInterpolatOr import *
+from matplotlib.colors import LinearSegmentedColormap
 
 
 class SeaIceExtent:
@@ -289,12 +298,12 @@ class SeaIceExtent:
 
 
 
-class SeaIceThickness:
+class SeaIceConcentration:
     def __init__(self, config, loglevel: str = 'WARNING',
             outputdir=None):
         
         """
-        The SeaIceThickness constructor.
+        The SeaIceConcentration constructor.
 
         Args:
             config (str or dict):   If str, the path to the yaml file
@@ -303,7 +312,7 @@ class SeaIceThickness:
             loglevel (str):     The log level
                                 Default: WARNING
         Returns:
-            A SeaIceThickness object.
+            A SeaIceConcentration object.
 
         """
          
@@ -329,82 +338,132 @@ class SeaIceThickness:
 
     
     def configure(self, config=None):
-        pass
+        """Sets the list of setupts
+        """
+        if config is None:
+            raise ValueError("No configuration provided")
+
+        try:
+            self.mySetups = config['models']
+
+            self.nModels  = len(self.mySetups)
+        except KeyError:
+            raise NoDataError("No models specified in configuration")
+
     def run(self):
-        self.plotThickness()
-    def plotThickness(self):
+        """
+        The run diagnostic method.
 
-        model    = "IFS-NEMO"
-        exp      = "control-1950-dev"
-        source   = "lra-r100-monthly"
-        regrid   = None
+        The method produces as output a figure with the winter and summer spatial
+        distributions of sea ice concentration averaged in time (Arctic and Antarctic)
 
-        loglevel = "WARNING"
-        print("HELLO000")
-        reader = Reader(model=model, exp=exp, source=source,
-                                regrid=regrid, loglevel=loglevel)
+        """
 
-        print("HELLO")
-        data = reader.retrieve(regrid = regrid)
-        lat = data.coords["lat"]
-        lon = data.coords["lon"]
-        lon1D = lon.values
-        lat1D = lat.values
+        self.plotConcentration()
 
-        lon2D, lat2D = np.meshgrid(lon1D, lat1D)
-        month_diagnostic = 3 # Classical (non-Pythonic) convention
-        start_year = 2020
-        end_year   = 2023
-        monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    def plotConcentration(self):
 
-        maskTime = (data['time.month'] == month_diagnostic) & \
-                (data['time.year'] >= start_year)        & \
-                (data['time.year'] <= end_year)
-
-        dataThick = data.sithick.where(maskTime, drop=True).mean("time").values
-
-        # Create a polar stereographic projection
-        projection = ccrs.Stereographic(central_longitude=180.0, central_latitude=90.0)
+        # NH plots
         projection = ccrs.NearsidePerspective(central_longitude=0.0, central_latitude=90.0, satellite_height=35785831, false_easting=0, false_northing=0, globe=None)
 
+        fig1, ax1 = plt.subplots(self.nModels, subplot_kw={'projection': projection},figsize=(13, 3 * self.nModels))
 
-        # Create color sequence for sic
-        masterColors = [[0.0, 0.0, 0.2],[0.0, 0.8, 0.8], [0.0, 0.1, 0.0],[0.0, 0.0, 0.4],]
-        masterColors = [[0.0, 0.0, 0.2],[0.0, 0.5, 0.5],[0.0, 0.5, 0.0], [1.0, 0.5, 0.0], [0.5, 0.0, 0.0] ]
+        for jSetup, setup in enumerate(self.mySetups):
+            print(" " + str(jSetup))
+            # Acquiring the setup
+            self.logger.debug("Setup: " + str(setup))
+            model = setup["model"]
+            exp = setup["exp"]
+            # We use get because the reader can try to take
+            # automatically the first source available
+            source = setup.get("source", None)
+            regrid = setup.get("regrid", None)
+            var = setup.get("var", "avg_siconc")
+            timespan = setup.get("timespan", None)
 
-        listCol = list()
-        for m in masterColors:
-            alpha = 0.80
-            tmp = colInterpolatOr([m, [mm + alpha * (1 - mm) for mm in m]], 5)
-            listCol += tmp
+            self.logger.info(f"Retrieving data for {model} {exp} {source}")
 
-        myCM = LinearSegmentedColormap.from_list('myCM', listCol, N = len(listCol))
+            # Instantiate reader
+            try:
+                reader = Reader(model=model, exp=exp, source=source,
+                                regrid=regrid, loglevel=self.loglevel)
+            except Exception as e:
+                self.logger.error("An exception occurred while instantiating reader: %s", e)
+                raise NoDataError("Error while instantiating reader")
 
-        # Create a figure and axis with the specified projection
-        fig, ax = plt.subplots(subplot_kw={'projection': projection}, figsize=(8, 8))
+            try:
+                data = reader.retrieve(var=var)
+            except KeyError:
+                self.logger.error("Variable %s not found in dataset", var)
+                raise NoDataError("Variable not found in dataset")
+            if timespan is None:
+                # if timespan is set to None, retrieve the timespan
+                # from the data directly
+                self.logger.warning("Using timespan based on data availability")
+                timespan = [np.datetime_as_string(data.time[0].values, unit='D'),
+                                                     np.datetime_as_string(data.time[-1].values, unit='D')]
+            if regrid:
+                self.logger.info("Regridding data")
+                data = reader.regrid(data)
+
+            areacello = reader.grid_area
+            try:
+                lat = data.coords["lat"]
+                lon = data.coords["lon"]
+            except KeyError:
+                raise NoDataError("No lat/lon coordinates found in dataset")
+
+            # Important: recenter the lon in the conventional 0-360 range
+            lon = (lon + 360) % 360
+            lon.attrs["units"] = "degrees"
+
+            label = setup["model"] + " " + setup["exp"] + " " + setup["source"]
+            
+            lon1D = lon.values
+            lat1D = lat.values
+
+            lon2D, lat2D = np.meshgrid(lon1D, lat1D)
+            month_diagnostic = 3 # Classical (non-Pythonic) convention
+            monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+            self.logger.warning("WARNING: TO BE IMPLEMENTED: SUB SELECT BASED ON TIME SPAN")
+            maskTime = (data['time.month'] == month_diagnostic)
+
+            dataPlot = data.avg_siconc.where(maskTime, drop=True).mean("time").values
+
+            # Create a polar stereographic projection
+            projection = ccrs.Stereographic(central_longitude=180.0, central_latitude=90.0)
+            projection = ccrs.NearsidePerspective(central_longitude=0.0, central_latitude=90.0, satellite_height=35785831, false_easting=0, false_northing=0, globe=None)
 
 
-        # Add cyclic points to avoid a white Greenwich meridian
-        varShow, lon1DCyclic = add_cyclic_point(dataThick, coord = lon1D, axis = 1)
+            # Create color sequence for sic
+            #sourceColors = [[0.1, 0.45, 0.2], [0.4, 0.8, 0.2]]
+            sourceColors = [[0.0, 0.0, 0.2], [0.0, 0.0, 0.0],[0.5, 0.5, 0.5], [0.6, 0.6, 0.6], [0.7, 0.7, 0.7], [0.8, 0.8, 0.8], [0.9, 0.9, 0.9],[1.0, 1.0, 1.0]]
+            myCM = LinearSegmentedColormap.from_list('myCM', sourceColors, N = 15)
 
-        # Plot the field data using contourf
-        levels = np.arange(0.0, 5.05, 0.2)
-        levelsShow = np.arange(0.0, np.max(levels), 1.0)
-        contour = ax.contourf(lon1DCyclic, lat1D, varShow, levels = levels, transform=ccrs.PlateCarree(), cmap=myCM)
+            # Create a figure and axis with the specified projection
+
+            # Add cyclic points to avoid a white Greenwich meridian
+            varShow, lon1DCyclic = add_cyclic_point(dataPlot, coord = lon1D, axis = 1)
+
+            # Plot the field data using contourf
+            levels = np.arange(0.0, 1.05, 0.05)
+            levelsShow = np.arange(0.0, np.max(levels), 0.1)
+            contour = ax1[jSetup].contourf(lon1DCyclic, lat1D, varShow, levels = levels, transform=ccrs.PlateCarree(), cmap=myCM)
 
 
-        # Add coastlines and gridlines
-        ax.coastlines()
-        #ax.gridlines()
-        ax.add_feature(cfeature.LAND, edgecolor='k')
+            # Add coastlines and gridlines
+            ax1[jSetup].coastlines()
+            #ax.gridlines()
+            ax1[jSetup].add_feature(cfeature.LAND, edgecolor='k')
 
-        # Add colorbar
-        cbar = plt.colorbar(contour, ax=ax, orientation='vertical', pad=0.05)
-        cbar.set_label('meters')
-        cbar.set_ticks(levelsShow)
+            # Add colorbar
+            cbar = plt.colorbar(contour, ax=ax1[jSetup], orientation='vertical', pad=0.05)
+            cbar.set_label('fractional')
+            cbar.set_ticks(levelsShow)
 
-        # Set title
-        ax.set_title(monthNames[month_diagnostic - 1] + ' sea ice thickness (' + str(start_year) + "-" + str(end_year) + ' average) \n ' + str(model) + "-" + str(exp) + "-" + str(source))
+            # Set title
+            ax1[jSetup].set_title(monthNames[month_diagnostic - 1] + ' sea ice concentration ' + '(average over ' + " - ".join(timespan) + ")" + '\n ' + str(model) + "-" + str(exp) + "-" + str(source))
 
-        fig.savefig("./test.pdf") 
+        fig1.savefig("./test.pdf") 
         
