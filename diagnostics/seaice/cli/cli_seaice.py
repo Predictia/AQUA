@@ -31,7 +31,7 @@ script_dir = dname
 sys.path.insert(0, "../..")
 
 # Local module imports.
-from seaice import SeaIceExtent, SeaIceThickness
+from seaice import SeaIceExtent, SeaIceConcentration
 
 
 def parse_arguments(args):
@@ -109,7 +109,7 @@ if __name__ == '__main__':
     # Initialize the object
     #analyzer = SeaIceExtent(config=config, outputdir=outputdir,
     #                        loglevel=loglevel)
-    analyzer = SeaIceThickness(config=config, outputdir=outputdir,
+    analyzer = SeaIceConcentration(config=config, outputdir=outputdir,
                             loglevel=loglevel)
 
     # Execute the analyzer.
