@@ -758,6 +758,9 @@ class Reader(FixerMixin, RegridMixin):
         else:
             self.logger.warning('A single timestep is available, is this correct?')
             self.orig_freq = 'Unknown'
+            if exclude_incomplete:
+                self.logger.warning('Disabling exclude incomplete since it cannot work if we have a single tstep!')
+                exclude_incomplete = False
 
     
         try:
@@ -771,12 +774,8 @@ class Reader(FixerMixin, RegridMixin):
         out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
 
         if exclude_incomplete:
-            #if len(data.time)>1:
             boolean_mask = check_chunk_completeness(data, resample_frequency=resample_freq)
             out = out.where(boolean_mask, drop=True)
-            #else:
-            #    self.logger.warning('A single timestep is available, is this correct?')
-            #    out[:] = float('nan')
 
         # check time is correct
         if np.any(np.isnat(out.time)):
