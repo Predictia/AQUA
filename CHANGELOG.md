@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version.
 
+- Teleconnection can now take a time range as input (#799)
 - Global time series adapted to new data governance (#785)
 - AtmoGlobalMean diagnostic improvements and adaptation to new data governance (#745 #789)
 - Seaince diagnostic adapted to new data governance (#790)
