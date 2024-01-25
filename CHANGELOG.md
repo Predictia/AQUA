@@ -14,7 +14,7 @@ Complete list:
 - LRA to use `auto` final time and `exclude_incomplete` (#791)
 - Hotfix for v0.12.0 of the GSV_interface related to valid_time (#788)
 - Global time series adapted to new data governance (#785)
-- AtmoGlobalMean diagnostic improvements and adaptation to new data governance (#745 #789)
+- AtmoGlobalMean diagnostic improvements and adaptation to new data governance (#745 #789 #807)
 - Sea-ice diagnostic adapted to new data governance (#790)
 - Implement a fix setting to NaN the data of the first step in each month (for IFS historical-1990) (#776)
 
