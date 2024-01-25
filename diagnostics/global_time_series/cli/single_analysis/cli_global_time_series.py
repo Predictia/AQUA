@@ -176,6 +176,7 @@ if __name__ == '__main__':
             try:
                 plot_timeseries(model=model, exp=exp, source=source, variable=var,
                                 resample=resample, plot_era5=plot_era5,
+                                annual=annual,
                                 ylim=ylim, plot_kw=plot_kw, ax=ax,
                                 reader_kw=reader_kw, outfile=filename_nc,
                                 loglevel=loglevel)
@@ -219,6 +220,7 @@ if __name__ == '__main__':
                 ylim = plot_options.get("ylim", {})
                 reader_kw = plot_options.get("reader_kw", {})
                 savefig = plot_options.get("savefig", True)
+                annual = plot_options.get("annual", False)
             else:  # default
                 plot_kw = config["timeseries_plot_params"]["default"].get("plot_kw", None)
                 plot_era5 = config["timeseries_plot_params"]["default"].get("plot_era5", False)
@@ -226,6 +228,7 @@ if __name__ == '__main__':
                 ylim = config["timeseries_plot_params"]["default"].get("ylim", {})
                 reader_kw = config["timeseries_plot_params"]["default"].get("reader_kw", {})
                 savefig = config["timeseries_plot_params"]["default"].get("savefig", True)
+                annual = config["timeseries_plot_params"]["default"].get("annual", False)
 
             # Generating the image
             fig, ax = plt.subplots()
@@ -233,6 +236,7 @@ if __name__ == '__main__':
             try:
                 plot_timeseries(model=model, exp=exp, source=source, variable=var,
                                 resample=resample, plot_era5=plot_era5,
+                                annual=annual,
                                 ylim=ylim, plot_kw=plot_kw, ax=ax,
                                 reader_kw=reader_kw, outfile=filename_nc,
                                 loglevel=loglevel, formula=True)
