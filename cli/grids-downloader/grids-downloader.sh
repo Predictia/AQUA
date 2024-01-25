@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+script_dir=$(dirname "${BASH_SOURCE[0]}")
+source $script_dir/../util/logger.sh
+setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
+
 # This script downloads the grids from the Swift server of DKRZ
 # and stores them in the specified output directory.
 # The user can specify the models to download by removing objects from the
@@ -35,24 +39,13 @@ outputdir="/pfs/lustrep3/projappl/project_465000454/data/AQUA/grids"
 # for Levante
 #outputdir="/work/bb1153/b382075/aqua/grids"
 
-# Define colors for echo output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m' # No Color
-
-colored_echo() {
-  local color=$1
-  shift
-  echo -e "${color}$@${NC}"
-}
-
-colored_echo $GREEN "Creating output directory $outputdir"
+log_message INFO "Creating output directory $outputdir"
 mkdir -p $outputdir
 
 # Download grids
 for model in "${models[@]}"
 do
-    colored_echo $GREEN "Downloading grid for $model"
+    log_message INFO "Downloading grid for $model"
 
     # Hardcoded path to the grids on the Swift server
 
@@ -115,12 +108,12 @@ do
     wget -O $outputdir/$model.tar.gz $path
 
     # Unpack the grid
-    colored_echo $GREEN "Unpacking grid for $model"
+    log_message INFO "Unpacking grid for $model"
     tar -xzf $outputdir/$model.tar.gz -C $outputdir
 
     # Remove the tar.gz file
-    colored_echo $GREEN "Removing tar.gz file for $model"
+    log_message INFO "Removing tar.gz file for $model"
     rm -f $outputdir/$model.tar.gz
 done
 
-colored_echo $GREEN "Download complete"
+log_message INFO "Download complete"
