@@ -1,10 +1,7 @@
 #!/bin/bash
 script_dir=$(dirname "${BASH_SOURCE[0]}")
 source $script_dir/../util/logger.sh
-source $script_dir/../util/get_machine.sh
-# Global log level
-# 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
-LOG_LEVEL=2
+setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
 
 # User defined variables
 # ---------------------------------------------------
@@ -200,7 +197,15 @@ else
   aqua=$AQUA
 fi
 
-machine=$(get_machine)
+# set the correct machine in the config file
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  # Mac OSX
+  sed -i '' "/^machine:/c\\
+machine: $machine" "$aqua/config/config-aqua.yaml"
+else
+  # Linux
+  sed -i "/^machine:/c\\machine: $machine" "$aqua/config/config-aqua.yaml"
+fi
 log_message INFO "Machine set to $machine in the config file"
 
 # Create output directory if it does not exist
