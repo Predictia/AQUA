@@ -204,14 +204,20 @@ def plot_timeseries(
             enddate = data.time[-1].values.astype(str)
         logger.debug(f"Plotting reference data from {startdate} to {enddate}")
 
-        eradata, erastd = get_reference_data(
-            variable, formula=formula,
-            resample=resample, regrid=regrid,
-            startdate=startdate, enddate=enddate,
-            std_startdate=std_startdate, std_enddate=std_enddate,
-            loglevel=loglevel
-        )
-        if eradata is not None:
+        try:
+            eradata, erastd = get_reference_data(
+                variable, formula=formula,
+                resample=resample, regrid=regrid,
+                startdate=startdate, enddate=enddate,
+                std_startdate=std_startdate, std_enddate=std_enddate,
+                loglevel=loglevel
+            )
+        except NoObservationError as e:
+            logger.warning(f"Warning: {e}")
+            logger.warning("Skipping reference data.")
+            eradata = None
+
+        if eradata:
             eradata.compute()
             erastd.compute()
             ax.fill_between(
