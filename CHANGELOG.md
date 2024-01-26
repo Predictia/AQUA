@@ -10,6 +10,7 @@ Unreleased in the current development version.
 ## [v0.6.2]
 
 Complete list:
+- Global time series plot annual and monthly timeseries together, improved Gregory plot (#811)
 - Teleconnection can now take a time range as input and ylim in the index plot function (#799)
 - LRA to use `auto` final time and `exclude_incomplete` (#791)
 - Hotfix for v0.12.0 of the GSV_interface related to valid_time (#788)
