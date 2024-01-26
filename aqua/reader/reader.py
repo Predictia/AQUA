@@ -786,13 +786,14 @@ class Reader(FixerMixin, RegridMixin):
         # if not center_time as the first timestamp of each month/day according to the sampling frequency
         # if center_time as the middle timestamp of each month/day according to the sampling frequency
         # TODO: extend it to other frequencies
-        if center_time and resample_freq == 'Y':
-            self.logger.debug("Setting time to the middle of the year")
-            offset = pd.DateOffset(months=6) # TODO: expand it to other frequencies
-            out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp() + offset
-        elif center_time and resample_freq != 'Y':
-            self.logger.error("center_time is not implemented for frequencies different from yearly. Setting it to False")
-            out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
+        if center_time:
+            if resample_freq == 'Y' or resample_freq == '1Y':
+                self.logger.debug("Setting time to the middle of the year")
+                offset = pd.DateOffset(months=6) # TODO: expand it to other frequencies
+                out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp() + offset
+            else:
+                self.logger.error("center_time is not implemented yet for frequency %s", resample_freq)
+                out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
         else:
             self.logger.debug("Setting time to the beginning of the year")
             out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
