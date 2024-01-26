@@ -12,7 +12,7 @@ __all__ = [
 
 
 def get_reference_data(varname, formula=False, model='ERA5', exp='era5', source='monthly',
-                       startdate="1991-01-01", enddate="2020-12-31",
+                       startdate=None, enddate=None,
                        std_startdate="1991-01-01", std_enddate="2020-12-31",
                        resample=None, regrid=None, loglevel='WARNING'):
     """
@@ -25,8 +25,8 @@ def get_reference_data(varname, formula=False, model='ERA5', exp='era5', source=
         model (str, opt): Model ID. Default is ERA5.
         exp (str, opt): Experiment ID. Default is era5.
         source (str, opt): Source ID. Default is monthly.
-        startdate (str, opt): Start date. Default is "1991-01-01".
-        enddate (str, opt): End date. Default is "2020-12-31".
+        startdate (str, opt): Start date. Default is None.
+        enddate (str, opt): End date. Default is None.
         std_startdate (str, opt): Start date for standard deviation. Default is "1991-01-01".
         std_enddate (str, opt): End date for standard deviation. Default is "2020-12-31".
         resample (str, opt): Resample rate (e.g. "M"). Default is None.
@@ -54,6 +54,7 @@ def get_reference_data(varname, formula=False, model='ERA5', exp='era5', source=
         data = reader.retrieve(var=varname)
 
     # Standard deviation evaluation
+    logger.info(f"Computing standard deviation from {std_startdate} to {std_enddate}")
     if formula:
         std = reader.fldmean(eval_formula(varname, data.sel(time=slice(std_startdate, std_enddate)))).groupby("time.month").std()
     else:
@@ -90,8 +91,12 @@ def plot_timeseries(
     formula=False,
     resample=None,
     regrid=None,
-    plot_era5=False,
-    annual=False,
+    plot_era5=True,
+    annual=True,
+    startdate=None,
+    enddate=None,
+    std_startdate="1991-01-01",
+    std_enddate="2020-12-31",
     ylim={},
     reader_kw={},
     plot_kw={},
@@ -102,6 +107,8 @@ def plot_timeseries(
 ):
     """
     Plot a time series of the global mean value of a given variable.
+    By default all the time series are plotted, the annual mean is plotted as dashed line
+    and the standard deviation is computed for the period 1991-2020.
 
     Parameters:
         model (str): Model ID.
@@ -111,8 +118,12 @@ def plot_timeseries(
         formula (bool): (Optional) If True, try to derive the variable from other variables.
         resample (str): Optional resample rate (e.g. "M").
         regrid (str): Optional regrid resolution. Default is None.
-        plot_era5 (bool): Include ERA5 reference data.
-        annual (bool): Plot annual mean.
+        plot_era5 (bool): Include ERA5 reference data. Default is True.
+        annual (bool): Plot annual mean. Default is True.
+        startdate (str): Start date. Default is None.
+        enddate (str): End date. Default is None.
+        std_startdate (str): Start date for standard deviation. Default is "1991-01-01".
+        std_enddate (str): End date for standard deviation. Default is "2020-12-31".
         ylim (dict): Keyword arguments passed to `set_ylim()`.
         reader_kw (dict): Additional keyword arguments passed to the `aqua.Reader`.
         plot_kw (dict): Additional keyword arguments passed to the plotting function.
@@ -124,13 +135,13 @@ def plot_timeseries(
         NotEnoughDataError: if there are not enough data to plot.
         NoDataError: if the variable is not found.
     """
-
     logger = log_configure(loglevel, 'Plot timeseries')
     if ax is None:
         ax = plt.gca()
 
     try:
-        reader = Reader(model, exp, source, regrid=regrid, **reader_kw, loglevel=loglevel)
+        reader = Reader(model, exp, source, regrid=regrid, startdate=startdate, enddate=enddate,
+                        **reader_kw, loglevel=loglevel)
     except Exception as e:
         logger.error(f"Error: {e}")
         raise NoDataError(f"Could not retrieve data for {model} {exp} {source}. No plot will be drawn.") from e
@@ -169,28 +180,37 @@ def plot_timeseries(
 
     # If no label in plot_kw, use {model}-{exp}
     if "label" not in plot_kw:
-        logger.debug(f"Using {model}-{exp} as label")
-        plot_kw["label"] = f"{model}-{exp}"
+        logger.debug(f"Using {model} {exp} as label")
+        plot_kw["label"] = f"{model} {exp} monthly mean"
 
     data.plot(**plot_kw, ax=ax)
     ax.set_title(f'Globally averaged {variable}')
 
     if annual:
-        data_annual = reader.timmean(data=data, freq='Y')
+        data_annual = reader.timmean(data=data, freq='Y', center_time=True)
         if "label" not in plot_kw:
-            logger.debug(f"Using {model}-{exp} annual mean as label")
-            plot_kw["label"] = f"{model}-{exp} annual mean"
+            logger.debug(f"Using {model} {exp} annual mean as label")
+            plot_kw["label"] = f"{model} {exp} annual mean"
         data_annual.plot(**plot_kw, ax=ax, linestyle='--')
 
     if outfile is not None:
+        # TODO: save also annual mean, std, etc.
         logger.debug(f"Saving data to {outfile}")
         data.to_netcdf(outfile)
 
     if plot_era5:
+        # Getting start and end date from data if not given
+        if startdate is None:
+            startdate = data.time[0].values.astype(str)
+        if enddate is None:
+            enddate = data.time[-1].values.astype(str)
+        logger.debug(f"Plotting reference data from {startdate} to {enddate}")
+
         eradata, erastd = get_reference_data(
             variable, formula=formula,
-            sel={"time": slice(data.time.min(), data.time.max())},
             resample=resample, regrid=regrid,
+            startdate=startdate, enddate=enddate,
+            std_startdate=std_startdate, std_enddate=std_enddate,
             loglevel=loglevel
         )
         if eradata is not None:
@@ -203,15 +223,21 @@ def plot_timeseries(
                 facecolor="grey",
                 alpha=0.35,
                 color="grey",
-                label="ERA5 std"
+                label="ERA5"
             )
-            eradata.plot(ax=ax, color="k", lw=0.5, label="ERA5")
+            eradata.plot(ax=ax, color="k", lw=0.5, label="ERA5 monthly mean")
 
             if annual:
-                eradata_annual = reader.timmean(data=eradata, freq='Y')
+                eradata_annual = reader.timmean(data=eradata, freq='Y', center_time=True)
                 eradata_annual.plot(ax=ax, color="k", lw=0.5, linestyle='--', label="ERA5 annual mean")
 
-    ax.legend()
+    # Shrink current axis by 20%
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+
+    # Put a legend to the right of the current axis
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
     ax.set_ylim(**ylim)
     ax.grid(axis="x", color="k")
     ax.spines["right"].set_visible(False)
