@@ -1,6 +1,6 @@
 # Global log level
 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
-LOG_LEVEL=2
+LOG_LEVEL=0
 
 # Function to log messages with colored output
 function log_message() {
@@ -41,4 +41,27 @@ function log_message() {
         fi
         echo -e "${color}$(date '+%Y-%m-%d %H:%M:%S'): $message${no_color}"
     fi
+}
+
+# Define a function to get message type based on log level
+function get_msg_type_for_level() {
+    local level=$1
+    case $level in
+        1) echo "DEBUG" ;;
+        2) echo "INFO" ;;
+        3) echo "WARNING" ;;
+        4) echo "ERROR" ;;
+        5) echo "CRITICAL" ;;
+        *) echo "INFO" ;;  # Default to INFO if level is out of range
+    esac
+}
+
+function update_next_level_msg_type() {
+    next_level_msg_type=$(get_msg_type_for_level $((LOG_LEVEL + 1)))
+}
+
+function setup_log_level() {
+    local level=$1
+    LOG_LEVEL=${level:-0}  # Default to 0 if no argument is provided
+    update_next_level_msg_type
 }
