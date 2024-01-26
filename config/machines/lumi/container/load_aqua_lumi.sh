@@ -3,8 +3,7 @@
 script_dir=$(dirname "${BASH_SOURCE[0]}")
 source $script_dir/../../../../cli/util/logger.sh
 setup_log_level 3 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
-
-AQUA_container="/project/project_465000454/containers/aqua/aqua-v0.5.2-beta.sif"
+AQUA_container="/project/project_465000454/containers/aqua/aqua-v0.6.2.sif"
 FDB5_CONFIG_FILE="/scratch/project_465000454/igonzalez/fdb-long/config.yaml"
 GSV_WEIGHTS_PATH="/scratch/project_465000454/igonzalez/gsv_weights/"
 GRID_DEFINITION_PATH="/scratch/project_465000454/igonzalez/grid_definitions"
