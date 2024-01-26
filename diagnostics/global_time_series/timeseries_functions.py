@@ -180,17 +180,15 @@ def plot_timeseries(
 
     # If no label in plot_kw, use {model}-{exp}
     if "label" not in plot_kw:
-        logger.debug(f"Using {model} {exp} as label")
+        logger.debug(f"Using {model} {exp} monthly as label")
         plot_kw["label"] = f"{model} {exp} monthly mean"
 
     data.plot(**plot_kw, ax=ax)
-    ax.set_title(f'Globally averaged {variable}')
 
     if annual:
         data_annual = reader.timmean(data=data, freq='Y', center_time=True)
-        if "label" not in plot_kw:
-            logger.debug(f"Using {model} {exp} annual mean as label")
-            plot_kw["label"] = f"{model} {exp} annual mean"
+        logger.debug(f"Using {model} {exp} annual mean as label")
+        plot_kw["label"] = f"{model} {exp} annual mean"
         data_annual.plot(**plot_kw, ax=ax, linestyle='--')
 
     if outfile is not None:
@@ -222,8 +220,7 @@ def plot_timeseries(
                 eradata + erastd.sel(month=eradata["time.month"]),
                 facecolor="grey",
                 alpha=0.35,
-                color="grey",
-                label="ERA5"
+                color="grey"
             )
             eradata.plot(ax=ax, color="k", lw=0.5, label="ERA5 monthly mean")
 
@@ -231,12 +228,8 @@ def plot_timeseries(
                 eradata_annual = reader.timmean(data=eradata, freq='Y', center_time=True)
                 eradata_annual.plot(ax=ax, color="k", lw=0.5, linestyle='--', label="ERA5 annual mean")
 
-    # Shrink current axis by 20%
-    box = ax.get_position()
-    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-
-    # Put a legend to the right of the current axis
-    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    ax.set_title(f'Globally averaged {variable}')
+    ax.legend(loc='upper right', fontsize='small')
 
     ax.set_ylim(**ylim)
     ax.grid(axis="x", color="k")
