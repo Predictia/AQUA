@@ -12,7 +12,9 @@ __all__ = [
 
 
 def get_reference_data(varname, formula=False, model='ERA5', exp='era5', source='monthly',
-                       sel=None, resample=None, regrid=None, loglevel='WARNING'):
+                       startdate="1991-01-01", enddate="2020-12-31",
+                       std_startdate="1991-01-01", std_enddate="2020-12-31",
+                       resample=None, regrid=None, loglevel='WARNING'):
     """
     Get reference data for a given variable.
     Default is ERA5 monthly data.
@@ -23,7 +25,10 @@ def get_reference_data(varname, formula=False, model='ERA5', exp='era5', source=
         model (str, opt): Model ID. Default is ERA5.
         exp (str, opt): Experiment ID. Default is era5.
         source (str, opt): Source ID. Default is monthly.
-        sel (dict, opt): Selection dictionary. Default is None.
+        startdate (str, opt): Start date. Default is "1991-01-01".
+        enddate (str, opt): End date. Default is "2020-12-31".
+        std_startdate (str, opt): Start date for standard deviation. Default is "1991-01-01".
+        std_enddate (str, opt): End date for standard deviation. Default is "2020-12-31".
         resample (str, opt): Resample rate (e.g. "M"). Default is None.
         regrid (str, opt): Regrid resolution. Default is None.
         loglevel (str, opt): Logging level. Default is WARNING.
@@ -36,11 +41,10 @@ def get_reference_data(varname, formula=False, model='ERA5', exp='era5', source=
     """
     logger = log_configure(loglevel, 'get_reference_data')
 
-    logger.debug(f"Reference data: {model}-{exp}-{source}")
+    logger.debug(f"Reference data: {model} {exp} {source}")
 
-    try:
-        reader = Reader(model=model, exp=exp, source=source, regrid=regrid,
-                        loglevel=loglevel)
+    try:  # Retrieving the entire timespan since we need two periods for standard deviation and time series
+        reader = Reader(model=model, exp=exp, source=source, regrid=regrid, loglevel=loglevel)
     except Exception as e:
         raise NoObservationError("Could not retrieve reference data. No plot will be drawn.") from e
 
@@ -49,15 +53,16 @@ def get_reference_data(varname, formula=False, model='ERA5', exp='era5', source=
     else:
         data = reader.retrieve(var=varname)
 
-    # Selecting 1991-2020 data as default for the standard deviation
+    # Standard deviation evaluation
     if formula:
-        std = reader.fldmean(eval_formula(varname, data.sel(time=slice("1991", "2020"))).groupby("time.month").std())
+        std = reader.fldmean(eval_formula(varname, data.sel(time=slice(std_startdate, std_enddate)))).groupby("time.month").std()
     else:
-        std = reader.fldmean(data.sel(time=slice("1991", "2020")).groupby("time.month").std())
+        std = reader.fldmean(data.sel(time=slice(std_startdate, std_enddate))).groupby("time.month").std()
 
-    if sel:
-        logger.debug(f"Selecting {sel}")
-        data = data.sel(sel)
+    if startdate is not None and enddate is not None:
+        data = data.sel(time=slice(startdate, enddate))
+    else:
+        logger.info("No start and end date given. Retrieving all data.")
 
     if resample:
         logger.debug(f"Resampling reference data to {resample}")
