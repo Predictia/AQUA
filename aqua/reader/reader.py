@@ -9,6 +9,9 @@ import intake
 import intake_esm
 
 import xarray as xr
+import pandas as pd
+import datetime
+from dateutil.relativedelta import relativedelta
 
 # from metpy.units import units, DimensionalityError
 import numpy as np
@@ -560,7 +563,7 @@ class Reader(FixerMixin, RegridMixin):
             data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
 
         return data
-    
+
     def _index_and_level(self, data, level=None):
         """
         Add a helper idx_3d coordinate to the data and select levels if provided
@@ -722,20 +725,22 @@ class Reader(FixerMixin, RegridMixin):
 
         return out
 
-    def timmean(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
+    def timmean(self, data, freq=None, exclude_incomplete=False,
+                time_bounds=False, center_time=False):
         """Call the timmean function returning container or iterator"""
         if isinstance(data, types.GeneratorType):
-            return self._timmeangen(data, freq, exclude_incomplete, time_bounds)
+            return self._timmeangen(data, freq, exclude_incomplete, time_bounds, center_time)
         else:
-            return self._timmean(data, freq, exclude_incomplete, time_bounds)
+            return self._timmean(data, freq, exclude_incomplete, time_bounds, center_time)
 
     def _timmeangen(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
         for ds in data:
             yield self._timmean(ds, freq, exclude_incomplete, time_bounds)
 
-    def _timmean(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
+    def _timmean(self, data, freq=None, exclude_incomplete=False,
+                 time_bounds=False, center_time=False):
         """
-        Perform daily and monthly averaging
+        Perform daily, monthly and yearly averaging.
 
         Arguments:
             data (xr.Dataset):  the input xarray.Dataset
@@ -743,7 +748,9 @@ class Reader(FixerMixin, RegridMixin):
                                 Valid values are monthly, daily, yearly. Defaults to None.
             exclude_incomplete (bool):  Check if averages is done on complete chunks, and remove from the output
                                         chunks which have not all the expected records.
-            time_bound (bool):  option to create the time bounds
+            time_bound (bool):  option to create the time bounds.
+            center_time (bool): option to center the time coordinate to the middle of the averaging period.
+
         Returns:
             A xarray.Dataset containing the time averaged data.
         """
@@ -751,7 +758,7 @@ class Reader(FixerMixin, RegridMixin):
         resample_freq = frequency_string_to_pandas(freq)
 
         # get original frequency (for history)
-        if len(data.time)>1:
+        if len(data.time) > 1:
             orig_freq = data['time'].values[1]-data['time'].values[0]
             # Convert time difference to hours
             self.orig_freq = np.timedelta64(orig_freq, 'ns') / np.timedelta64(1, 'h')
@@ -762,7 +769,6 @@ class Reader(FixerMixin, RegridMixin):
                 self.logger.warning('Disabling exclude incomplete since it cannot work if we have a single tstep!')
                 exclude_incomplete = False
 
-    
         try:
             # resample
             self.logger.info('Resampling to %s frequency...', str(resample_freq))
@@ -771,7 +777,12 @@ class Reader(FixerMixin, RegridMixin):
             raise ValueError('Cant find a frequency to resample, aborting!') from exc
 
         # set time as the first timestamp of each month/day according to the sampling frequency
-        out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
+        if center_time and resample_freq == 'Y':
+            self.logger.warning("Testing center_time for yearly resampling, this is a hack!")
+            offset = pd.DateOffset(months=6)
+            out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp() + offset
+        else:
+            out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
 
         if exclude_incomplete:
             boolean_mask = check_chunk_completeness(data, resample_frequency=resample_freq)
