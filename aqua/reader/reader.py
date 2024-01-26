@@ -9,6 +9,9 @@ import intake
 import intake_esm
 
 import xarray as xr
+import pandas as pd
+import datetime
+from dateutil.relativedelta import relativedelta
 
 # from metpy.units import units, DimensionalityError
 import numpy as np
@@ -560,7 +563,7 @@ class Reader(FixerMixin, RegridMixin):
             data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
 
         return data
-    
+
     def _index_and_level(self, data, level=None):
         """
         Add a helper idx_3d coordinate to the data and select levels if provided
@@ -722,36 +725,46 @@ class Reader(FixerMixin, RegridMixin):
 
         return out
 
-    def timmean(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
-        """Call the timmean function returning container or iterator"""
-        if isinstance(data, types.GeneratorType):
-            return self._timmeangen(data, freq, exclude_incomplete, time_bounds)
-        else:
-            return self._timmean(data, freq, exclude_incomplete, time_bounds)
-
-    def _timmeangen(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
-        for ds in data:
-            yield self._timmean(ds, freq, exclude_incomplete, time_bounds)
-
-    def _timmean(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
+    def timmean(self, data, freq=None, exclude_incomplete=False,
+                time_bounds=False, center_time=False):
         """
-        Perform daily and monthly averaging
-
+        Perform daily, monthly and yearly averaging.
+        Wrapper for _timmean function, which is called differently if data is a generator or not.
+        
         Arguments:
             data (xr.Dataset):  the input xarray.Dataset
             freq (str):         the frequency of the time averaging.
                                 Valid values are monthly, daily, yearly. Defaults to None.
             exclude_incomplete (bool):  Check if averages is done on complete chunks, and remove from the output
                                         chunks which have not all the expected records.
-            time_bound (bool):  option to create the time bounds
+            time_bound (bool):  option to create the time bounds.
+            center_time (bool): option to center the time coordinate to the middle of the averaging period.
+            
         Returns:
             A xarray.Dataset containing the time averaged data.
         """
+        if isinstance(data, types.GeneratorType):
+            return self._timmeangen(data, freq=freq, exclude_incomplete=exclude_incomplete,
+                                    time_bounds=time_bounds, center_time=center_time)
+        else:
+            return self._timmean(data, freq=freq, exclude_incomplete=exclude_incomplete,
+                                 time_bounds=time_bounds, center_time=center_time)
 
+    def _timmeangen(self, data, **kwargs):
+        """Call the timmean function for iterators"""
+        for ds in data:
+            yield self._timmean(ds, **kwargs)
+
+    def _timmean(self, data, freq=None, exclude_incomplete=False,
+                 time_bounds=False, center_time=False):
+        """
+        Perform daily, monthly and yearly averaging.
+        See timmean for more details.
+        """
         resample_freq = frequency_string_to_pandas(freq)
 
-        # get original frequency (for history)
-        if len(data.time)>1:
+        # Get original frequency (for history)
+        if len(data.time) > 1:
             orig_freq = data['time'].values[1]-data['time'].values[0]
             # Convert time difference to hours
             self.orig_freq = np.timedelta64(orig_freq, 'ns') / np.timedelta64(1, 'h')
@@ -762,28 +775,40 @@ class Reader(FixerMixin, RegridMixin):
                 self.logger.warning('Disabling exclude incomplete since it cannot work if we have a single tstep!')
                 exclude_incomplete = False
 
-    
         try:
-            # resample
+            # Resample to the desired frequency
             self.logger.info('Resampling to %s frequency...', str(resample_freq))
             out = data.resample(time=resample_freq).mean()
         except ValueError as exc:
             raise ValueError('Cant find a frequency to resample, aborting!') from exc
 
-        # set time as the first timestamp of each month/day according to the sampling frequency
-        out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
+        # Set time:
+        # if not center_time as the first timestamp of each month/day according to the sampling frequency
+        # if center_time as the middle timestamp of each month/day according to the sampling frequency
+        # TODO: extend it to other frequencies
+        if center_time:
+            if resample_freq == 'Y' or resample_freq == '1Y':
+                self.logger.debug("Setting time to the middle of the year")
+                offset = pd.DateOffset(months=6) # TODO: expand it to other frequencies
+                out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp() + offset
+            else:
+                self.logger.error("center_time is not implemented yet for frequency %s", resample_freq)
+                out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
+        else:
+            self.logger.debug("Setting time to the beginning of the year")
+            out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
 
         if exclude_incomplete:
             boolean_mask = check_chunk_completeness(data, resample_frequency=resample_freq)
             out = out.where(boolean_mask, drop=True)
 
-        # check time is correct
+        # Check time is correct
         if np.any(np.isnat(out.time)):
             raise ValueError('Resampling cannot produce output for all frequency step, is your input data correct?')
 
         out = log_history(out, f"resampled from frequency {self.orig_freq} h to frequency {resample_freq} by AQUA timmean")
 
-        # add a variable to create time_bounds
+        # Add a variable to create time_bounds
         if time_bounds:
             resampled = data.time.resample(time=resample_freq)
             time_bnds = xr.concat([resampled.min(), resampled.max()], dim='bnds').transpose()
