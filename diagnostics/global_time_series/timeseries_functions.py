@@ -56,7 +56,8 @@ def get_reference_data(varname, formula=False, model='ERA5', exp='era5', source=
     # Standard deviation evaluation
     logger.info(f"Computing standard deviation from {std_startdate} to {std_enddate}")
     if formula:
-        std = reader.fldmean(eval_formula(varname, data.sel(time=slice(std_startdate, std_enddate)))).groupby("time.month").std()
+        std = reader.fldmean(eval_formula(varname,
+                                          data.sel(time=slice(std_startdate, std_enddate)))).groupby("time.month").std()
     else:
         std = reader.fldmean(data.sel(time=slice(std_startdate, std_enddate))).groupby("time.month").std()
 
@@ -212,12 +213,13 @@ def plot_timeseries(
                 std_startdate=std_startdate, std_enddate=std_enddate,
                 loglevel=loglevel
             )
+            logger.debug("Reference data retrieved.")
         except NoObservationError as e:
             logger.warning(f"Warning: {e}")
             logger.warning("Skipping reference data.")
             eradata = None
 
-        if eradata:
+        if eradata is not None:
             eradata.compute()
             erastd.compute()
             ax.fill_between(
