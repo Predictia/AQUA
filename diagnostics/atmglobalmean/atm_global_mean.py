@@ -25,7 +25,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
                   start_date2=None, end_date2=None,
                   outputdir=None, outputfig=None,
                   dataset2_precomputed=None,
-                  loglevel='WARNING'):
+                  loglevel='WARNING', **kwargs):
     '''
     Plot the seasonal bias maps between two datasets for specific variable and time ranges.
 
@@ -46,6 +46,11 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
         outputfig (str): The directory to save the output figures.
         dataset2_precomputed (xarray.Dataset or None): Pre-computed climatology for dataset2.
         loglevel (str): The desired level of logging.
+
+    Keyword Args:
+        nlevels (int): The number of levels for the colorbar. Default is 12.
+        vmin (float): The minimum value for the colorbar. Default is None.
+        vmax (float): The maximum value for the colorbar. Default is None.
 
     Raises:
         ValueError: If an invalid statistic is provided.
@@ -171,18 +176,13 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
     # Create a list to store the plotted objects
     cnplots = []
 
-    vmin, vmax = evaluate_colorbar_limits(results)
-    if vmin*vmax < 0:  # we want the colorbar to be symmetric
-        vmax = max(abs(vmin), abs(vmax))
-        vmin = -vmax
+    # Set the colorbar limits
+    vmin, vmax = evaluate_colorbar_limits(results, sym=True)
+    nlevels = kwargs.get('nlevels', 12)
+    vmin = kwargs.get('vmin', vmin)
+    vmax = kwargs.get('vmax', vmax)
     logger.debug(f"vmin: {vmin}, vmax: {vmax}")
-    levels = np.linspace(vmin, vmax, 12)
-
-    # HACK for tprate:
-    if var_name == 'tprate':
-        vmin = -12
-        vmax = 12
-        logger.warning(f"Setting manually vmin and vmax to {vmin} and {vmax} for tprate variable.")
+    levels = np.linspace(vmin, vmax, nlevels)
 
     for i, (result, season) in enumerate(zip(results, season_ranges.keys())):
         ax = fig.add_subplot(gs[i], projection=projection)
@@ -222,6 +222,8 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
     cbar_ax = fig.add_axes([0.25, 0.05, 0.5, 0.02])  # Adjust the position and size of the colorbar
     cbar = fig.colorbar(cnplots[0], cax=cbar_ax, orientation='horizontal')
     cbar.set_label(f'Bias [{var2.units}]')
+
+    cbar.set_ticks(np.linspace(vmin, vmax, nlevels + 1))
 
     # Set the overall figure title
     if plev:
@@ -270,7 +272,8 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None,
                           start_date2=None, end_date2=None,
                           model_label1=None, model_label2=None,
                           outputdir=None, outputfig=None,
-                          dataset2_precomputed=None, loglevel='WARNING'):
+                          dataset2_precomputed=None, loglevel='WARNING',
+                          **kwargs):
     """
     Compare two datasets and plot the zonal bias for a selected model time range with respect to the second dataset.
 
@@ -313,7 +316,7 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None,
         start_date2 = str(dataset2["time.year"][0].values) + '-' + str(dataset2["time.month"][0].values) + '-' + str(dataset2["time.day"][0].values)
         end_date2 = str(dataset2["time.year"][-1].values) + '-' + str(dataset2["time.month"][-1].values) + '-' + str(dataset2["time.day"][-1].values)
     logger.debug(f"Dataset2 time range: {start_date2} to {end_date2}")
- 
+
     # Check if pre-computed climatology is provided, otherwise compute it
     if dataset2_precomputed is None:
         # Compute climatology
@@ -336,6 +339,8 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None,
     except KeyError:
         raise NoDataError(f"The variable {var_name} is not present in the dataset. Please try again.")
 
+    nlevels = kwargs.get('nlevels', 18)
+
     if 'plev' in bias.dims:
         # Load in memory to speed up the calculation
         logger.warning("Loading data into memory to speed up the calculation...")
@@ -355,7 +360,7 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None,
             vmax = max(abs(vmin), abs(vmax))
             vmin = -vmax
         logger.debug(f"vmin: {vmin}, vmax: {vmax}")
-        levels = np.linspace(vmin, vmax, 18)
+        levels = np.linspace(vmin, vmax, nlevels)
 
         # Create the plot
         fig, ax = plt.subplots(figsize=(10, 8))
@@ -370,6 +375,8 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None,
         # Add colorbar
         cbar = fig.colorbar(cax)
         cbar.set_label(f'{var_name} [{dataset1[var_name].units}]')
+
+        cbar.set_ticks(np.linspace(vmin, vmax, nlevels + 1))
 
         if outputdir:
             create_folder(folder=str(outputdir), loglevel=loglevel)
@@ -418,8 +425,14 @@ def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=N
         var_data = dataset[var_name].sel(time=slice(start_date, end_date)).mean(dim='time')
     else:
         var_data = dataset[var_name].mean(dim='time')
-        start_date = str(dataset["time.year"][0].values) +'-'+str(dataset["time.month"][0].values)+'-'+str(dataset["time.day"][0].values)
-        end_date = str(dataset["time.year"][-1].values) +'-'+str(dataset["time.month"][-1].values)+'-'+str(dataset["time.day"][-1].values)
+        start_date = str(dataset["time.year"][0].values) + '-' + str(dataset["time.month"][0].values) + '-' + str(dataset["time.day"][0].values)
+        end_date = str(dataset["time.year"][-1].values) + '-' + str(dataset["time.month"][-1].values) + '-' + str(dataset["time.day"][-1].values)
+
+    if var_name == 'tprate':
+        logger.warning("Adjusting tprate to be in mm/day")
+        var_data = var_data * 86400
+        logger.warning("Changing units attribute to 'mm/day'")
+        var_data.attrs['units'] = 'mm/day'
 
     # Calculate statistics
     if 'plev' in var_data.dims:
@@ -446,6 +459,12 @@ def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=N
     ax = plt.axes(projection=ccrs.PlateCarree())
     cmap = 'RdBu_r'  # Choose a colormap (reversed)
     levels = np.linspace(var_min, var_max, num=21)
+
+    if var_name == 'avg_tos':
+        # TODO: need to meshgrid the lat and lon and set transform_first=True in contourf
+        #       in order to be able to plot it
+        logger.error(f"Cannot plot {var_name} variable.")
+
     im = ax.contourf(var_data.lon, var_data.lat, var_data.values, cmap=cmap, transform=ccrs.PlateCarree(),
                      levels=levels, extend='both')
     # Set plot title and axis labels

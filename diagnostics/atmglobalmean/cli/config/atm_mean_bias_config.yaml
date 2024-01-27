@@ -24,3 +24,23 @@ loglevel: 'warning'
 
 path:
   path_to_output: "/projappl/project_465000454/nurissom/aqua_output/IFS-NEMO/historical-1990/atmglobalmean/"
+
+# Here you can specify the colorbar limits for each variable
+# If you don't specify them, the colorbar limits will be automatically calculated
+# based on the data.
+seasonal_bias:
+  2t:
+    vmin: -10
+    vmax: 10
+  avg_tos:
+    vmin: -10
+    vmax: 10
+  msl:
+    vmin: -1000
+    vmax: 1000
+  mtnlwrf:
+    vmin: -40
+    vmax: 40
+  tprate:
+    vmin: -8
+    vmax: 8

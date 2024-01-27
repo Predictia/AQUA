@@ -135,6 +135,13 @@ if __name__ == '__main__':
     if seasonal_bias_bool:
         for var_name in variables_no_plev:
             logger.info(f"Running seasonal bias diagnostic for {var_name}...")
+
+            # Getting variable specific attributes
+            var_attributes = config['seasonal_bias'][var_name]
+            vmin = var_attributes.get('vmin', None)
+            vmax = var_attributes.get('vmax', None)
+            logger.debug(f"var: {var_name}, vmin: {vmin}, vmax: {vmax}")
+
             try:
                 seasonal_bias(dataset1=data, dataset2=data_obs,
                               var_name=var_name, plev=plev, statistic=statistic,
@@ -142,6 +149,7 @@ if __name__ == '__main__':
                               start_date1=start_date1, end_date1=end_date1,
                               start_date2=start_date2, end_date2=end_date2,
                               outputdir=outputdir, outputfig=outputfig,
+                              vmin=vmin, vmax=vmax,
                               loglevel=loglevel)
             except Exception as e:
                 logger.error(f"An unexpected error occurred: {e}")
