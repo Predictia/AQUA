@@ -26,12 +26,41 @@ def parse_arguments(args):
                         required=False)
     parser.add_argument('--outputdir', type=str, help='output directory',
                         required=False)
-
+    parser.add_argument('--nproc', type=int, required=False,
+                        help='the number of processes to run in parallel',
+                        default=4)
     return parser.parse_args(args)
+
+
+def validate_arguments(args):
+    """
+    Validate the types of command line arguments.
+
+    Args:
+        args: Parsed arguments from argparse.
+
+    Raises:
+        TypeError: If any argument is not of the expected type.
+    """
+    if args.config and not isinstance(args.config, str):
+        raise TypeError("Config file path must be a string.")
+    if args.loglevel and not isinstance(args.loglevel, str):
+        raise TypeError("Log level must be a string.")
+    if args.model and not isinstance(args.model, str):
+        raise TypeError("Model name must be a string.")
+    if args.exp and not isinstance(args.exp, str):
+        raise TypeError("Experiment name must be a string.")
+    if args.source and not isinstance(args.source, str):
+        raise TypeError("Source name must be a string.")
+    if args.outputdir and not isinstance(args.outputdir, str):
+        raise TypeError("Output directory must be a string.")
+    if args.nproc and not isinstance(args.nproc, int):
+        raise TypeError("The number of processes (nproc) must be an integer.")
 
 
 if __name__ == '__main__':
     args = parse_arguments(sys.argv[1:])
+    validate_arguments(args)
 
     # change the current directory to the one of the CLI so that relative path works
     abspath = os.path.abspath(__file__)
@@ -65,6 +94,8 @@ if __name__ == '__main__':
     exp = get_arg(args, 'exp', config['data']['exp'])
     source = get_arg(args, 'source', config['data']['source'])
     logger.debug(f"Accessing {model} {exp} {source} data")
+
+    nproc = get_arg(args, 'nproc', config['compute_resources']['nproc'])
 
     freq = config['data']['freq']
     regrid = config['data']['regrid']
@@ -106,7 +137,7 @@ if __name__ == '__main__':
 
     diag = Tropical_Rainfall(trop_lat=trop_lat, num_of_bins=num_of_bins,
                              first_edge=first_edge, width_of_bin=width_of_bin, loglevel=loglevel)
-    reader = Reader(model=model, exp=exp, source=source, loglevel=loglevel, regrid=regrid)
+    reader = Reader(model=model, exp=exp, source=source, loglevel=loglevel, regrid=regrid, nproc=nproc)
     full_dataset = reader.retrieve(var=model_variable)
 
     test_sample = full_dataset.isel(time=slice(1, 11))
