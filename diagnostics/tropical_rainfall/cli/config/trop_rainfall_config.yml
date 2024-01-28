@@ -1,35 +1,46 @@
 data:
-  model:  "ICON"
-  exp:    "ngc3028" 
-  source: "lra-r100-monthly"
+  model:  "ICON"          # Name of the climate model used
+  exp:    "ngc2009"       # Experiment identifier
+  source: "lra-r100-monthly"  # Data source, specifying resolution and frequency
+  freq:   "M"             # Frequency of data, 'M' stands for Monthly
+  regrid: "r100"          # Regridding option to apply
+  s_year:  null           # Start year for analysis, 'null' means it will be set dynamically
+  f_year:  null           # Final year for analysis, 'null' means it will be set dynamically
+
+machine: levante          # The machine/environment where the analysis is run
 
 class_attributes:
-  trop_lat:    15
-  num_of_bins: 1000
-  first_edge:   0
-  width_of_bin: 1
-  model_variable: 'tprate'
-  new_unit:       'mm/day'
-  loglevel:       'WARNING'
+  trop_lat:    15         # Tropical latitude boundary for analysis
+  num_of_bins: 5000       # Number of bins for histogram generation
+  first_edge:   0         # Starting edge value for the histogram bins
+  width_of_bin: 0.05      # Width of each bin in the histogram, in mm/day
+  model_variable: 'tprate'  # Model variable to be analyzed
+  new_unit:       'mm/day'   # Unit for the model variable
+  loglevel:       'WARNING'  # Logging level for the output messages
 
 plot:
-  color: 'tab:green'
-  figsize: 1
-  legend: '_Hidden'
-  xmax: 100
-  loc: 'upper right'
-  pdf_format: True
+  color: 'tab:green'      # Color for the plot
+  figsize: 1              # Figure size for the plot
+  legend: '_Hidden'       # Legend configuration for the plot
+  xmax: 100               # Max value for the x-axis in the plot
+  loc: 'upper right'      # Location of the legend/annotation in the plot
+  pdf_format: True        # Whether to save plots in PDF format
 
 path:
-  path_to_output: "/work/bb1153/b382267/tropical_rainfall_cicle3/"
+  levante: "/work/bb1153/b382267/tropical_rainfall_cicle3/cli_test/"  # File path for Levante machine
+  lumi: "/users/nazarova/work/output/cli_test/"
 
-slurm:
-  waiting_time: 60
-  n_cores: 1
-  n_memory: "10 GB"
-  walltime: '02:30:00'
-  jobs: 1
-  machine: 'levante'
-  queue: 'compute'
-  
-
+compute_resources:
+  resubmit: False         # Whether to automatically resubmit the job if it fails
+  run_on_sunday: False    # Restrict job execution to Sundays only
+  nproc: 16               # Number of processors to use for the job
+  nodes: 1                # Number of compute nodes required for the job
+  walltime: '08:00:00'    # Maximum wall-clock time allocated for the job
+  memory: 0               # Memory allocation for the job, 0 for default
+  lumi_version: 23.03     # Specific version of LUMI to use
+  account:                # Account details for billing and access
+    lumi: 'project_465000454'
+    levante: 'bb1153'
+  partition:              # Partition settings for different machines
+    lumi: 'small'
+    levante: 'compute'
