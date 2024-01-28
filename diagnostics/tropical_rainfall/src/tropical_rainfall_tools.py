@@ -1,5 +1,6 @@
 import re
 import os
+import math
 import seaborn as sns
 import numpy as np
 import pandas as pd
@@ -10,6 +11,17 @@ from aqua.logger import log_configure
 import yaml
 
 full_path_to_config = '../tropical_rainfall/config-tropical-rainfall.yml'
+
+regrid_dict = {
+    'r250': {'deg': 2.5},
+    'r200': {'deg': 2.0},
+    'r100': {'deg': 1.0},
+    'r050': {'deg': 0.5},
+    'r025': {'deg': 0.25},
+    'r020': {'deg': 0.2},
+    'r010': {'deg': 0.1},
+    'r005': {'deg': 0.05}
+}
 
 
 class ToolsClass:
@@ -580,6 +592,59 @@ class ToolsClass:
             timestep = dataset.time[1] - dataset.time[0]
             if timestep >= 28 and timestep <= 31:
                 return 'M'
+
+    def check_need_for_time_averaging(self, dataset, target_freq):
+        """
+        Check if the dataset needs to be time-averaged.
+
+        Args:
+            dataset: The dataset to check. This should be an object that the `time_interpreter`
+                     method of `ToolsClass` can handle.
+            target_freq (str): The target frequency to check against (e.g., 'monthly').
+
+        Returns:
+            bool: True if time averaging is needed, False otherwise.
+
+        """
+        original_freq = self.time_interpreter(dataset)
+        if original_freq == target_freq:
+            self.logger.warning('The original dataset does not need to be time-averaged.')
+            return False
+        else:
+            self.logger.warning('The original dataset needs to be time-averaged.')
+            return True
+
+    def check_need_for_regridding(self, dataset, regrid, tolerance=0.01):
+        """
+        Check if the xarray dataset needs to be regridded.
+
+        Args:
+            dataset (xarray.Dataset): The dataset to check.
+            regrid (str): The regrid key to check against (e.g., 'r200').
+            tolerance (float): The tolerance for comparison in degrees.
+
+        Returns:
+            bool: True if regridding is needed, False otherwise.
+
+        """
+        if 'lat' in dataset.dims and 'lon' in dataset.dims:
+            # Assuming the dataset is 2D, calculate the difference in degrees between adjacent latitude and longitude points
+            del_lon = abs(dataset.lon[1].values - dataset.lon[0].values)
+            del_lat = abs(dataset.lat[1].values - dataset.lat[0].values)
+
+            # Check if both latitude and longitude differences are within the tolerance of the desired regrid resolution
+            if math.isclose(del_lon, regrid_dict[regrid]['deg'], abs_tol=tolerance) and \
+               math.isclose(del_lat, regrid_dict[regrid]['deg'], abs_tol=tolerance):
+                self.logger.warning('The original dataset does not need to be regridded as it already' +
+                                    'has the necessary spatial resolution.')
+                return False
+            else:
+                self.logger.warning('The original dataset needs to be regridded.')
+                return True
+        else:
+            self.logger.warning('The original dataset does not contain latitude and longitude coordinates,' +
+                                'and needs to be regridded.')
+            return True
 
     def convert_24hour_to_12hour_clock(self, data, ind):
         """ Function to convert 24 hour clock to 12 hour clock
