@@ -110,8 +110,17 @@ if __name__ == '__main__':
     full_dataset = reader.retrieve(var=model_variable)
 
     test_sample = full_dataset.isel(time=slice(1, 11))
-    regrid_bool = ToolsClass().check_need_for_regridding(test_sample, regrid)
-    freq_bool = ToolsClass().check_need_for_time_averaging(test_sample, freq)
+    tools = ToolsClass()
+
+    if isinstance(regrid, str):
+        regrid_bool = tools.check_need_for_regridding(test_sample, regrid)
+    else:
+        regrid_bool = False
+
+    if isinstance(freq, str):
+        freq_bool = tools.check_need_for_time_averaging(test_sample, freq)
+    else:
+        freq_bool = False
 
     first_year_in_dataset = full_dataset['time.year'][0].values
     last_year_in_dataset = full_dataset['time.year'][-1].values
