@@ -10,6 +10,7 @@ Unreleased in the current development version.
 ## [v0.6.2]
 
 Complete list:
+- Global time series can add annual std and now default uncertainty is 1 std (#817)
 - Global time series plot annual and monthly timeseries together, improved Gregory plot (#809)
 - Teleconnection can now take a time range as input and ylim in the index plot function (#799)
 - LRA to use `auto` final time and `exclude_incomplete` (#791)
