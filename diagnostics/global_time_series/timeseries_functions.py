@@ -127,6 +127,8 @@ def plot_timeseries(
     enddate=None,
     std_startdate="1991-01-01",
     std_enddate="2020-12-31",
+    monthly_std=True,
+    annual_std=True,
     ylim={},
     reader_kw={},
     plot_kw={},
@@ -154,6 +156,8 @@ def plot_timeseries(
         enddate (str): End date. Default is None.
         std_startdate (str): Start date for standard deviation. Default is "1991-01-01".
         std_enddate (str): End date for standard deviation. Default is "2020-12-31".
+        monthly_std (bool): Plot monthly standard deviation. Default is True.
+        annual_std (bool): Plot annual standard deviation. Default is True.
         ylim (dict): Keyword arguments passed to `set_ylim()`.
         reader_kw (dict): Additional keyword arguments passed to the `aqua.Reader`.
         plot_kw (dict): Additional keyword arguments passed to the plotting function.
@@ -168,6 +172,10 @@ def plot_timeseries(
     logger = log_configure(loglevel, 'Plot timeseries')
     if ax is None:
         ax = plt.gca()
+
+    if not annual and annual_std:
+        logger.warning("Warning: annual standard deviation is not possible without annual mean. Skipping.")
+        annual_std = False
 
     try:
         reader = Reader(model, exp, source, regrid=regrid, startdate=startdate, enddate=enddate,
@@ -255,33 +263,37 @@ def plot_timeseries(
         if eradata is not None:
             # Compute reference data
             eradata.compute()
-            erastd.compute()
+            if monthly_std:
+                erastd.compute()
             if annual:
                 eradata_annual.compute()
-                erastd_annual.compute()
+                if annual_std:
+                    erastd_annual.compute()
 
-            ax.fill_between(
-                eradata.time,
-                eradata - erastd.sel(month=eradata["time.month"]),
-                eradata + erastd.sel(month=eradata["time.month"]),
-                facecolor="grey",
-                alpha=0.35,
-                color="grey"
-            )
+            if monthly_std:
+                ax.fill_between(
+                    eradata.time,
+                    eradata - 2.*erastd.sel(month=eradata["time.month"]),
+                    eradata + 2.*erastd.sel(month=eradata["time.month"]),
+                    facecolor="grey",
+                    alpha=0.35,
+                    color="grey"
+                )
             eradata.plot(ax=ax, color="k", lw=0.5, label="ERA5 monthly mean")
 
             if annual:
                 eradata_annual = reader.timmean(data=eradata, freq='Y', center_time=True)
                 eradata_annual.plot(ax=ax, color="k", lw=0.5, linestyle='--', label="ERA5 annual mean")
-                ax.fill_between(
-                    eradata_annual.time,
-                    eradata_annual - erastd_annual,
-                    eradata_annual + erastd_annual,
-                    facecolor="lightgrey",
-                    alpha=0.25,
-                    color="lightgrey",
-                    linestyle='--'
-                )
+                if annual_std:
+                    ax.fill_between(
+                        eradata_annual.time,
+                        eradata_annual - 2.*erastd_annual,
+                        eradata_annual + 2.*erastd_annual,
+                        facecolor="lightgrey",
+                        alpha=0.25,
+                        color="lightgrey",
+                        linestyle='--'
+                    )
 
     ax.set_title(f'Globally averaged {variable}')
     ax.legend(loc='upper right', fontsize='small')
