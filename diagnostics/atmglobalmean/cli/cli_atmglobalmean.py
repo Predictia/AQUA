@@ -26,14 +26,13 @@ def parse_arguments(args):
     parser.add_argument('--loglevel', '-l', type=str, help='loglevel',
                         required=False)
     parser.add_argument('--start_date1', type=str, help='start date for dataset1',
-                       required=False)
+                        required=False)
     parser.add_argument('--end_date1', type=str, help='end date for dataset1',
-                       required=False)
+                        required=False)
     parser.add_argument('--start_date2', type=str, help='start date for dataset2',
-                       required=False)
+                        required=False)
     parser.add_argument('--end_date2', type=str, help='end date for dataset2',
-                       required=False)
-
+                        required=False)
 
     return parser.parse_args(args)
 
@@ -63,7 +62,7 @@ if __name__ == '__main__':
 
     # Aquiring arguments and configuration
     args = parse_arguments(sys.argv[1:])
-    file = get_arg(args, 'config', 'config/atm_mean_bias_config.yml')
+    file = get_arg(args, 'config', 'config/atm_mean_bias_config.yaml')
     print('Reading configuration yaml file..')
     config = load_yaml(file)
 
@@ -75,7 +74,7 @@ if __name__ == '__main__':
     model = get_arg(args, 'model', config['data']['model'])
     exp = get_arg(args, 'exp', config['data']['exp'])
     source = get_arg(args, 'source', config['data']['source'])
-    
+
     # Acquiring start and end dates for dataset1 and dataset2
     start_date1 = get_arg(args, 'start_date1', None)
     end_date1 = get_arg(args, 'end_date1', None)
@@ -136,6 +135,13 @@ if __name__ == '__main__':
     if seasonal_bias_bool:
         for var_name in variables_no_plev:
             logger.info(f"Running seasonal bias diagnostic for {var_name}...")
+
+            # Getting variable specific attributes
+            var_attributes = config['seasonal_bias'][var_name]
+            vmin = var_attributes.get('vmin', None)
+            vmax = var_attributes.get('vmax', None)
+            logger.debug(f"var: {var_name}, vmin: {vmin}, vmax: {vmax}")
+
             try:
                 seasonal_bias(dataset1=data, dataset2=data_obs,
                               var_name=var_name, plev=plev, statistic=statistic,
@@ -143,10 +149,11 @@ if __name__ == '__main__':
                               start_date1=start_date1, end_date1=end_date1,
                               start_date2=start_date2, end_date2=end_date2,
                               outputdir=outputdir, outputfig=outputfig,
+                              vmin=vmin, vmax=vmax,
                               loglevel=loglevel)
             except Exception as e:
                 logger.error(f"An unexpected error occurred: {e}")
-    
+
     if compare_datasets_plev_bool:
         for var_name in variables_with_plev:
             logger.info(f"Running compare datasets plev diagnostic for {var_name}...")
