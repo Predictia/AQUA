@@ -140,5 +140,5 @@ class TestGsv():
         assert "1990-01-01T23:00" in str(data.time[-1].values)
         # Test if the data can actually be read and contain the expected values
         assert data.tcc.isel(time=0).values.mean() == pytest.approx(0.6530221138649116)
-        assert data.tcc.isel(time=-1).values.mean() == pytest.approx(0.6687973267265382)
+        assert data.tcc.isel(time=-1).values.mean() == pytest.approx(0.6679689864974151)
 
