@@ -10,12 +10,17 @@ import matplotlib.gridspec as gridspec
 from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
 import pandas as pd
 import datetime
+import warnings
 from aqua.exceptions import NoDataError
-from aqua.util import create_folder, add_cyclic_lon, evaluate_colorbar_limits
+from aqua.util import create_folder, add_cyclic_lon
+from aqua.util import evaluate_colorbar_limits, ticks_round
 from aqua.logger import log_configure
 
 # set default options for xarray
 xr.set_options(keep_attrs=True)
+
+# turn off warnings
+warnings.filterwarnings("ignore")
 
 
 def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
@@ -223,7 +228,11 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
     cbar = fig.colorbar(cnplots[0], cax=cbar_ax, orientation='horizontal')
     cbar.set_label(f'Bias [{var2.units}]')
 
-    cbar.set_ticks(np.linspace(vmin, vmax, nlevels + 1))
+    # We want the ticks aligned to the levels and with a reasonable number of decimal places
+    cbarticks = np.linspace(vmin, vmax, nlevels)
+    cbarticks = ticks_round(cbarticks)
+    logger.debug(f"cbarticks: {cbarticks}")
+    cbar.set_ticks(cbarticks)
 
     # Set the overall figure title
     if plev:
