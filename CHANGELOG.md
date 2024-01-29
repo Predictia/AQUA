@@ -5,7 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
-Unreleased in the current development version.
+Unreleased in the current development version:
+- Setting last date for NaN fix for IFS-NEMO to 1999-10-01 (#819)
 
 ## [v0.6.2]
 
