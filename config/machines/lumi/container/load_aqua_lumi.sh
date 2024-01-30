@@ -31,7 +31,7 @@ elif [[ "$user_defined_aqua" = "no" || "$user_defined_aqua" = "n" || "$user_defi
     export AQUA="/app/AQUA"
     log_message INFO "Selecting the AQUA of the container."
 else 
-    log_message WARNING "Enter 'yes' or 'no' for user_defined_aqua"
+    log_message CRITICAL "Enter 'yes' or 'no' for user_defined_aqua"
     exit 1
 fi
 
