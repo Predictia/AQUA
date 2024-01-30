@@ -7,8 +7,18 @@
 
 set -e
 
-script_dir=$(dirname "${BASH_SOURCE[0]}")
-source $script_dir/../../../../cli/util/logger.sh
+# Check if AQUA is set and the file exists
+if [[ -z "$AQUA" ]]; then
+    echo -e "\033[0;31mError: The AQUA environment variable is not defined, or the file does not exist."
+    echo -e "Please define the AQUA environment variable with the path to your 'AQUA' directory."
+    echo -e "For example: export AQUA=/path/to/aqua\033[0m"
+    exit 1  # Exit with status 1 to indicate an error
+else
+    source "$AQUA/cli/util/logger.sh"
+    log_message INFO "Sourcing logger.sh from: $AQUA/cli/util/logger.sh"
+    # Your subsequent commands here
+fi
+
 setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
 #####################################################################
 # Begin of user input
@@ -19,15 +29,6 @@ MAMBADIR="$HOME/mambaforge" #check if $HOME does not exist
 load_aqua_file="$HOME/load_aqua.sh" #check if $HOME does not exist
 # End of user input
 #####################################################################
-
-# define AQUA path
-if [[ -z "${AQUA}" ]]; then
-  #export AQUA="/users/${user}/AQUA"
-  export AQUA=$(realpath $(dirname "$0")"/../../../..")
-  log_message INFO "AQUA path has been set to ${AQUA}"
-else
-  log_message INFO "AQUA path is already defined as ${AQUA}"
-fi
 
 # define installation path
 export INSTALLATION_PATH="$MAMBADIR/aqua_common"

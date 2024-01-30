@@ -1,8 +1,17 @@
 #!/bin/bash
 set -e
 
-script_dir=$(dirname "${BASH_SOURCE[0]}")
-source $script_dir/../util/logger.sh
+# Check if AQUA is set and the file exists
+if [[ -z "$AQUA" ]]; then
+    echo -e "\033[0;31mError: The AQUA environment variable is not defined, or the file does not exist."
+    echo -e "Please define the AQUA environment variable with the path to your 'AQUA' directory."
+    echo -e "For example: export AQUA=/path/to/aqua\033[0m"
+    exit 1  # Exit with status 1 to indicate an error
+else
+    source "$AQUA/cli/util/logger.sh"
+    log_message INFO "Sourcing logger.sh from: $AQUA/cli/util/logger.sh"
+    # Your subsequent commands here
+fi
 setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
 
 # This script downloads the grids from the Swift server of DKRZ

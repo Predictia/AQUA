@@ -1,8 +1,17 @@
 #!/bin/bash
 
-script_dir=$(dirname "${BASH_SOURCE[0]}")
-source $script_dir/../../../../cli/util/logger.sh
-setup_log_level 3 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
+# Check if AQUA is set and the file exists
+if [[ -z "$AQUA" ]]; then
+    echo -e "\033[0;31mError: The AQUA environment variable is not defined, or the file does not exist."
+    echo -e "Please define the AQUA environment variable with the path to your 'AQUA' directory."
+    echo -e "For example: export AQUA=/path/to/aqua\033[0m"
+    exit 1  # Exit with status 1 to indicate an error
+else
+    source "$AQUA/cli/util/logger.sh"
+    log_message INFO "Sourcing logger.sh from: $AQUA/cli/util/logger.sh"
+    # Your subsequent commands here
+fi
+setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
 AQUA_container="/project/project_465000454/containers/aqua/aqua-v0.6.2.sif"
 FDB5_CONFIG_FILE="/scratch/project_465000454/igonzalez/fdb-long/config.yaml"
 GSV_WEIGHTS_PATH="/scratch/project_465000454/igonzalez/gsv_weights/"
@@ -12,36 +21,21 @@ log_message $next_level_msg_type "Do you want to use your local AQUA (y/n): "
 read user_defined_aqua
 
 if [[ "$user_defined_aqua" = "yes" || "$user_defined_aqua" = "y" || "$user_defined_aqua" = "Y" ]]; then
-    script_dir=$(cd "$(dirname "$0")" && pwd)
-    # AQUA_path=$(echo "$script_dir" | grep -oP '.*?AQUA' | head -n 1)
-    AQUA_path=$(echo "$script_dir" | awk -F'/AQUA' '{print ($2 ? $1 "/AQUA" : "")}')
-    if [ -z "$AQUA_path" ]; then
-        log_message ERROR "Not able to find the local AQUA Repository"
-        
-        log_message $next_level_msg_type "Please provide the AQUA path: "
-        read AQUA_path
-        
-        branch_name=$(git -C "$AQUA_path" rev-parse --abbrev-ref HEAD)
-        log_message INFO "Current branch: $branch_name"
-        last_commit=$(git -C "$AQUA_path" log -1 --pretty=format:"%h %an: %s")
-        log_message INFO "Last commit: $last_commit"
-    else
-        log_message INFO "Selecting this AQUA path for the container: $AQUA_path"
-        branch_name=$(git -C "$AQUA_path" rev-parse --abbrev-ref HEAD)
-        log_message INFO "Current branch: $branch_name"
-        last_commit=$(git -C "$AQUA_path" log -1 --pretty=format:"%h %an: %s")
-        log_message INFO "Last commit: $last_commit"
-    fi
+    # Check if AQUA is set and the file exists 
+    log_message INFO "Selecting this AQUA path for the container: $AQUA"
+    branch_name=$(git -C "$AQUA" rev-parse --abbrev-ref HEAD)
+    log_message INFO "Current branch: $branch_name"
+    last_commit=$(git -C "$AQUA" log -1 --pretty=format:"%h %an: %s")
+    log_message INFO "Last commit: $last_commit"
 elif [[ "$user_defined_aqua" = "no" || "$user_defined_aqua" = "n" || "$user_defined_aqua" = "N" ]]; then
-    log_message INFO "Selecting the AQUA of the container"
-    AQUA_path="/app/AQUA"
+    export AQUA="/app/AQUA"
+    log_message INFO "Selecting the AQUA of the container."
 else 
-    log_message ERROR "Enter 'yes' or 'no' for user_defined_aqua"
+    log_message WARNING "Enter 'yes' or 'no' for user_defined_aqua"
     exit 1
 fi
 
-log_message INFO "\033[1mPerfect! Now it's time to ride with AQUA ⛵\033[0m"
-
+log_message INFO "Perfect! Now it's time to ride with AQUA ⛵"
 
 
 singularity shell \
@@ -51,8 +45,8 @@ singularity shell \
     --env GRID_DEFINITION_PATH=$GRID_DEFINITION_PATH \
     --env PYTHONPATH=/opt/conda/lib/python3.10/site-packages \
     --env ESMFMKFILE=/opt/conda/lib/esmf.mk \
-    --env PYTHONPATH=$AQUA_path \
-    --env AQUA=$AQUA_path \
+    --env PYTHONPATH=$AQUA \
+    --env AQUA=$AQUA \
     --bind /pfs/lustrep3/ \
     --bind /projappl/ \
     --bind /project \
