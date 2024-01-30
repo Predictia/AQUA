@@ -4,8 +4,8 @@ dataset:
   #exp: "tco2559-ng5-cycle3"
   #exp: "tco1279-orca025-cycle3"
   exp: "historical-1990"
-  source2d: "hourly-native-atm2d" #"2D_1h_native"
-  source3d: "hourly-native-atm3d" #"3D_1h_native"
+  source2d: "hourly-hpz7-atm2d" #"2D_1h_native"
+  source3d: "hourly-hpz7-atm3d" #"3D_1h_native"
 
 # folders for regridded data, temprorary and stored high res data
 paths: 
@@ -15,15 +15,15 @@ paths:
 
 # log level
 setup:
-  loglevel: 'INFO'
+  loglevel: 'WARNING'
 
 # grid on which operate
 grids:
   lowgrid: 'r100'
-  highgrid: 'r025'
+  highgrid: 'r100'
 
 # variables to stored 
-varlist: ['msl', "10u", "10v", "tprate"]
+varlist: ['msl'] #, '10u', '10v', 'tprate']
 
 # temporal definition (YYYY-MM-DD)
 time: 
@@ -32,7 +32,7 @@ time:
   frequency: '6h'
 
 stream:
-  streamstep: "10D" # n of days for streaming (check reader args options, IMPORTANT: must be specified in days, "D")
+  streamstep: "3D" # n of days for streaming (check reader args options, IMPORTANT: must be specified in days, "D")
 
 # detect nodes options
 detect:
@@ -40,6 +40,10 @@ detect:
 
 # stich nodes options
 stitch:
-  n_days_freq: 30 # run stitch nodes (tracks computation) and save tracks every n days
+  n_days_freq: 4 # run stitch nodes (tracks computation) and save tracks every n days
   n_days_ext: 2  # n of days to extend time boundaries not to miss tracks which may start/end before/after the chosen n of days
 
+# path to orography in case file (in case var is not found in the catalogue)
+orography:
+  file_path: "/scratch/project_465000454/maxness/a0cl/rundir/tco1279l137/a0cl/hres/cray.craympich/lum-g.cray.sp/h24.N60.T448xt7xh1+ioT16xt7xh0.nextgems_6h.i16r0w16.eORCA12_Z75.a0cl_ASThread_17061070944742_1_1-5887433/01-OriginalGrid/01-Hourly/"
+  file_name: "multio-nid007775-125837-SFC-1Hourly-RegularLL-standardres.grib"
