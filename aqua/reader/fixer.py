@@ -655,18 +655,19 @@ class FixerMixin():
 
         coords_fix = self.fixes.get("coords", None)
 
-        coords = list(coords_fix.keys())
-        self.logger.debug("Coordinates to be checked: %s", coords)
+        if coords_fix:
+            coords = list(coords_fix.keys())
+            self.logger.debug("Coordinates to be checked: %s", coords)
 
-        for coord in coords:
-            src_coord = coords_fix[coord].get("source", None)
+            for coord in coords:
+                src_coord = coords_fix[coord].get("source", None)
 
-            if src_coord and src_coord in data.coords:
-                data = data.rename({src_coord: coord})
-                self.logger.debug("Coordinate %s renamed to %s", src_coord, coord)
-                log_history(data[coord], f"Coordinate {src_coord} renamed to {coord} by fixer")
-            else:
-                self.logger.warning("Coordinate %s not found", coord)
+                if src_coord and src_coord in data.coords:
+                    data = data.rename({src_coord: coord})
+                    self.logger.debug("Coordinate %s renamed to %s", src_coord, coord)
+                    log_history(data[coord], f"Coordinate {src_coord} renamed to {coord} by fixer")
+                else:
+                    self.logger.warning("Coordinate %s not found", coord)
 
         return data
 
