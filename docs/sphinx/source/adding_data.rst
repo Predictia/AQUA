@@ -120,8 +120,8 @@ We report here an example and we later describe the different elements.
                 data_start_date: 19500101T0000
                 data_end_date: 19591231T2300
                 aggregation: D  # Default aggregation / chunk size
-                savefreq: H  # at what frequency are data saved
-                timestep: H  # base timestep for step timestyle
+                savefreq: h  # at what frequency are data saved
+                timestep: h  # base timestep for step timestyle
                 timestyle: step  # variable date or variable step
             description: hourly data on native grid TCo1279 (about 10km). Contains tprate(260048),
             2t(167), 10u(165), 10v(166), 100u(228246), 100v(228247), sr(173), blh(159),
@@ -188,7 +188,7 @@ Some of the parameters are here described:
 
 .. option:: savefreq
 
-    Savefreq, indicated as ``M`` for monthly or ``H`` for hourly, signifies the actual frequency at which data are available in this stream. 
+    Savefreq, indicated as ``M`` for monthly or ``h`` for hourly, signifies the actual frequency at which data are available in this stream. 
 
     Combining this information with the timestep parameter allows us to anticipate data availability at specific steps, such as 744 and 1416 for monthly data.
 

@@ -767,7 +767,7 @@ class Reader(FixerMixin, RegridMixin):
         if len(data.time) > 1:
             orig_freq = data['time'].values[1]-data['time'].values[0]
             # Convert time difference to hours
-            self.orig_freq = np.timedelta64(orig_freq, 'ns') / np.timedelta64(1, 'h')
+            self.orig_freq = round(np.timedelta64(orig_freq, 'ns') / np.timedelta64(1, 'h'))
         else:
             self.logger.warning('A single timestep is available, is this correct?')
             self.orig_freq = 'Unknown'
@@ -786,6 +786,8 @@ class Reader(FixerMixin, RegridMixin):
         # if not center_time as the first timestamp of each month/day according to the sampling frequency
         # if center_time as the middle timestamp of each month/day according to the sampling frequency
         # TODO: extend it to other frequencies
+        # TEST: this is not necessary if we use MS and YS
+        # out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
         if center_time:
             if resample_freq == 'Y' or resample_freq == '1Y':
                 self.logger.debug("Setting time to the middle of the year")
@@ -793,20 +795,20 @@ class Reader(FixerMixin, RegridMixin):
                 out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp() + offset
             else:
                 self.logger.error("center_time is not implemented yet for frequency %s", resample_freq)
-                out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
-        else:
-            self.logger.debug("Setting time to the beginning of the year")
-            out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
 
         if exclude_incomplete:
-            boolean_mask = check_chunk_completeness(data, resample_frequency=resample_freq)
+         
+            self.logger.info('Checking if incomplete chunks has been produced...')
+            boolean_mask = check_chunk_completeness(data,
+                                                    resample_frequency=resample_freq, 
+                                                    loglevel=self.loglevel)
             out = out.where(boolean_mask, drop=True)
 
         # Check time is correct
         if np.any(np.isnat(out.time)):
             raise ValueError('Resampling cannot produce output for all frequency step, is your input data correct?')
 
-        out = log_history(out, f"resampled from frequency {self.orig_freq} h to frequency {resample_freq} by AQUA timmean")
+        out = log_history(out, f"resampled from frequency {self.orig_freq}h to frequency {freq} by AQUA timmean")
 
         # Add a variable to create time_bounds
         if time_bounds:
