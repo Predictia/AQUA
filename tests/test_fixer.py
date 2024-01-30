@@ -79,6 +79,15 @@ def test_fixer_ifs_names():
 
 
 @pytest.mark.aqua
+def test_fixer_ifs_coords():
+    """Check with fixer_name and coords block"""
+
+    reader = Reader(model="IFS", exp="test-tco79", source="short_masked-coord-test", loglevel=loglevel)
+    data = reader.retrieve()
+    assert 'timepippo' in data.coords
+
+
+@pytest.mark.aqua
 def test_fixer_fesom_names():
     """Check with fixer parent from fixer_name method"""
 

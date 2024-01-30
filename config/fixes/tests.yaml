@@ -7,6 +7,9 @@ fixer_name:
                 source: 2t
                 attributes: 
                     donald: 'duck'
+    
+    ifs-ci-coords:
+        data_model: ifs
         coords:
             timepippo:
                 source: time
