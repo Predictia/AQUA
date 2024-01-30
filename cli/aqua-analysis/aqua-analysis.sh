@@ -27,10 +27,6 @@ outputdir="./output"
 loglevel="WARNING" # DEBUG, INFO, WARNING, ERROR, CRITICAL
 machine="lumi" # will change the aqua config file
 
-# AQUA path, can be defined as $AQUA env variable
-# if not defined it will use the aqua path in the script
-aqua="/work/bb1153/b382267/AQUA"
-
 # ---------------------------------------
 # The max_threads variable serves as a mechanism to control the maximum number of threads
 # or parallel processes that can run simultaneously.
