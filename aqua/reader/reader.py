@@ -754,7 +754,7 @@ class Reader(FixerMixin, RegridMixin):
         if len(data.time)>1:
             orig_freq = data['time'].values[1]-data['time'].values[0]
             # Convert time difference to hours
-            self.orig_freq = np.timedelta64(orig_freq, 'ns') / np.timedelta64(1, 'h')
+            self.orig_freq = round(np.timedelta64(orig_freq, 'ns') / np.timedelta64(1, 'h'))
         else:
             self.logger.warning('A single timestep is available, is this correct?')
             self.orig_freq = 'Unknown'
@@ -762,26 +762,30 @@ class Reader(FixerMixin, RegridMixin):
                 self.logger.warning('Disabling exclude incomplete since it cannot work if we have a single tstep!')
                 exclude_incomplete = False
 
-    
         try:
             # resample
             self.logger.info('Resampling to %s frequency...', str(resample_freq))
             out = data.resample(time=resample_freq).mean()
         except ValueError as exc:
             raise ValueError('Cant find a frequency to resample, aborting!') from exc
-
+    
+        # TEST: no longer necessary if we use MS and YS
         # set time as the first timestamp of each month/day according to the sampling frequency
-        out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
+        # out['time'] = out['time'].to_index().to_period('M').to_timestamp().values
 
         if exclude_incomplete:
-            boolean_mask = check_chunk_completeness(data, resample_frequency=resample_freq)
+         
+            self.logger.info('Checking if incomplete chunks has been produced...')
+            boolean_mask = check_chunk_completeness(data,
+                                                    resample_frequency=resample_freq, 
+                                                    loglevel=self.loglevel)
             out = out.where(boolean_mask, drop=True)
 
         # check time is correct
         if np.any(np.isnat(out.time)):
             raise ValueError('Resampling cannot produce output for all frequency step, is your input data correct?')
 
-        out = log_history(out, f"resampled from frequency {self.orig_freq} h to frequency {resample_freq} by AQUA timmean")
+        out = log_history(out, f"resampled from frequency {self.orig_freq}h to frequency {freq} by AQUA timmean")
 
         # add a variable to create time_bounds
         if time_bounds:
