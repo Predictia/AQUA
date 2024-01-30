@@ -791,8 +791,9 @@ class Reader(FixerMixin, RegridMixin):
         if center_time:
             if resample_freq == 'YS':
                 self.logger.debug("Setting time to the middle of the year")
-                offset = pd.DateOffset(months=6) # TODO: expand it to other frequencies
-                out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp() + offset
+                offset = pd.DateOffset(months=6)  # TODO: expand it to other frequencies
+                rf = 'Y'  # otherwise TypeError: YS-JAN is not supported as period frequency
+                out['time'] = out['time'].to_index().to_period(rf).to_timestamp() + offset
             else:
                 self.logger.error("center_time is not implemented yet for frequency %s", resample_freq)
 

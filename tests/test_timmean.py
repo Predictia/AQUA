@@ -59,7 +59,7 @@ class TestTimmean():
         assert avg['ttr'].shape == (0, 9, 18)
         #with pytest.raises(ValueError, match=r'Cannot compute average on .* period, not enough data'):
         #    reader.timmean(data['ttr'], exclude_incomplete=True)
-    
+
     def test_timmean_yearly_center_time(self):
         """Timmean test for yearly aggregation with center_time=True"""
         reader = Reader(model="IFS", exp="test-tco79", source='long',
