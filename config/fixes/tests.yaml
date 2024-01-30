@@ -1,0 +1,12 @@
+# These are fixes that are used in the CI tests
+fixer_name:
+    ifs-ci-test:
+        data_model: ifs
+        vars:
+            2t:
+                source: 2t
+                attributes: 
+                    donald: 'duck'
+        coords:
+            timepippo:
+                source: time
