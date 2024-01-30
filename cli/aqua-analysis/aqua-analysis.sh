@@ -11,6 +11,7 @@ else
     # Your subsequent commands here
 fi
 setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
+aqua=$AQUA
 
 # User defined variables
 # ---------------------------------------------------
@@ -200,14 +201,6 @@ outputdir_oce="$outputdir/$model_oce/$exp"
 args_atm="--model $model_atm --exp $exp --source $source"
 args_oce="--model $model_oce --exp $exp --source $source"
 args="--model_atm $model_atm --model_oce $model_oce --exp $exp --source $source"
-
-# use $AQUA if defined otherwise use aqua
-if [[ -z "${AQUA}" ]]; then
-  log_message INFO "AQUA path is not defined, using user defined aqua in the script"
-else
-  log_message INFO "AQUA path is defined, using $AQUA"
-  aqua=$AQUA
-fi
 
 # set the correct machine in the config file
 if [[ "$OSTYPE" == "darwin"* ]]; then
