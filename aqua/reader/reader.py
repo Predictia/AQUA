@@ -800,7 +800,7 @@ class Reader(FixerMixin, RegridMixin):
 
             self.logger.info('Checking if incomplete chunks has been produced...')
             boolean_mask = check_chunk_completeness(data,
-                                                    resample_frequency=resample_freq, 
+                                                    resample_frequency=resample_freq,
                                                     loglevel=self.loglevel)
             out = out.where(boolean_mask, drop=True)
 
