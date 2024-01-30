@@ -730,7 +730,7 @@ class Reader(FixerMixin, RegridMixin):
         """
         Perform daily, monthly and yearly averaging.
         Wrapper for _timmean function, which is called differently if data is a generator or not.
-        
+
         Arguments:
             data (xr.Dataset):  the input xarray.Dataset
             freq (str):         the frequency of the time averaging.
@@ -739,7 +739,7 @@ class Reader(FixerMixin, RegridMixin):
                                         chunks which have not all the expected records.
             time_bound (bool):  option to create the time bounds.
             center_time (bool): option to center the time coordinate to the middle of the averaging period.
-            
+
         Returns:
             A xarray.Dataset containing the time averaged data.
         """
@@ -789,7 +789,7 @@ class Reader(FixerMixin, RegridMixin):
         # TEST: this is not necessary if we use MS and YS
         # out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
         if center_time:
-            if resample_freq == 'Y' or resample_freq == '1Y':
+            if resample_freq == 'YS':
                 self.logger.debug("Setting time to the middle of the year")
                 offset = pd.DateOffset(months=6) # TODO: expand it to other frequencies
                 out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp() + offset
@@ -797,7 +797,7 @@ class Reader(FixerMixin, RegridMixin):
                 self.logger.error("center_time is not implemented yet for frequency %s", resample_freq)
 
         if exclude_incomplete:
-         
+
             self.logger.info('Checking if incomplete chunks has been produced...')
             boolean_mask = check_chunk_completeness(data,
                                                     resample_frequency=resample_freq, 
