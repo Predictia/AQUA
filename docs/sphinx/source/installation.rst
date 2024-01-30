@@ -78,9 +78,9 @@ This installs the AQUA environment into a container, and then set up the correct
 
 .. warning ::
    
-   It is possible that, if you're recreating the environment, the code breaks while removing the folder ``~/mambaforge/aqua_common/bin``, complaining the resource is busy.
+   It is possible that, if you're recreating the environment, the code breaks while removing the folder ``~/mambaforge/aqua/bin``, complaining the resource is busy.
    In this case you may have some processes running in the background. 
-   You can check them with ``ps -ef | grep aqua_common`` and kill them manually if needed.
+   You can check them with ``ps -ef | grep aqua`` and kill them manually if needed.
 
 .. note ::
 

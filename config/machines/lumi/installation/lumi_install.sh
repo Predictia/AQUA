@@ -27,7 +27,7 @@ else
 fi
 
 # define installation path
-export INSTALLATION_PATH="$MAMBADIR/aqua_common"
+export INSTALLATION_PATH="$MAMBADIR/aqua"
 echo "Installation path has been set to ${INSTALLATION_PATH}"
 
 # Remove the installation path from the $PATH. 
@@ -84,8 +84,8 @@ install_aqua() {
 
   
   # install AQUA framework and diagnostics
-  conda-containerize new --mamba --prefix "${INSTALLATION_PATH}" "${AQUA}/config/machines/lumi/installation/environment_lumi_common.yml"
-  conda-containerize update "${INSTALLATION_PATH}" --post-install "${AQUA}/config/machines/lumi/installation/pip_lumi_common.txt"
+  conda-containerize new --mamba --prefix "${INSTALLATION_PATH}" "${AQUA}/config/machines/lumi/installation/environment_lumi.yml"
+  conda-containerize update "${INSTALLATION_PATH}" --post-install "${AQUA}/config/machines/lumi/installation/pip_lumi.txt"
   echo "AQUA framework and diagnostics have been installed."
 }
 
