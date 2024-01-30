@@ -75,6 +75,7 @@ def test_fixer_ifs_names():
     reader = Reader(model="IFS", exp="test-tco79", source="short_masked", loglevel=loglevel)
     data = reader.retrieve()
     assert data['2t'].attrs['donald'] == 'duck'
+    assert 'timepippo' in data.coords
 
 
 @pytest.mark.aqua
