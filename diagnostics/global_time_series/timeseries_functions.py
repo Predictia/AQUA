@@ -96,12 +96,16 @@ def get_reference_data(varname, formula=False, model='ERA5', exp='era5', source=
             data_mon = reader.fldmean(data[varname])
             std_mon = std_mon[varname]
 
+            logger.debug(f"Monthly std: {std_mon.values}")
+
         if annual:
             if formula:
                 data_annual = reader.timmean(data=eval_formula(varname, data), freq='Y', center_time=True)
             else:
                 data_annual = reader.timmean(data=data_mon, freq='Y', center_time=True)
                 std_annual = std_annual[varname]
+
+                logger.debug(f"Annual std: {std_annual.values}")
         else:
             data_annual = None
             std_annual = None
