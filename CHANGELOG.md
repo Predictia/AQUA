@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version.
 
 - Fixing new pandas timedelta: replacing H with h in all FDB catalog (#786)
+- Adding a run test label to trigger CI (#826)
 
 ## [v0.6.2]
 
