@@ -6,13 +6,13 @@
 # They can be overwritten by using the command line
 # arguments.
 # ---------------------------------------------------
-model_atm="IFS"
-model_oce="FESOM"
-exp="tco2559-ng5-cycle3"
+model_atm="IFS-NEMO"
+model_oce="IFS-NEMO"
+exp="historical-1990"
 source="lra-r100-monthly"
 outputdir="./output"
 loglevel="WARNING" # DEBUG, INFO, WARNING, ERROR, CRITICAL
-machine="levante" # will change the aqua config file
+machine="lumi" # will change the aqua config file
 
 # AQUA path, can be defined as $AQUA env variable
 # if not defined it will use the aqua path in the script
@@ -80,6 +80,8 @@ oce_extra_args["global_time_series"]="${oce_extra_args["global_time_series"]} \
 # Command line extra arguments for ecmean:
 # -c --config (ecmean config file)
 # -i --interface (custom interface file)
+atm_oce_extra_args["ecmean"]="${atm_oce_extra_args["ecmean"]} \
+--interface $aqua/diagnostics/ecmean/config/interface_AQUA_destine-v1.yml"
 # -------------------------------------------
 # Command line extra arguments for radiation:
 # --config (readiation config file)
@@ -94,6 +96,7 @@ oce_extra_args["global_time_series"]="${oce_extra_args["global_time_series"]} \
 # --dry, -d (dry run, if set it will run without producing plots)
 # --ref (if set it will analyze also the reference data, it is set
 #        by default)
+# --interface (custom interface file)
 # Concatenate the new part to the existing content
 atm_extra_args["teleconnections"]="${atm_extra_args["teleconnections"]} \
 --config cli_config_atm.yaml --ref"

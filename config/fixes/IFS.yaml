@@ -1,4 +1,91 @@
 fixer_name:
+    ifs-destine-v1:
+        data_model: ifs
+        deltat: 3600
+        # The nanfirst keys fix to NaN the first step of each month
+        # for cumulated variables of this experiment
+        # The fix is activated by specifying nanfirst_enddate
+        # The dates are exclusive (the first step is actually ok and will be kept)
+        nanfirst_startdate: 1990-01-01
+        nanfirst_enddate: 2020-01-01 
+        vars:
+            # Evaporation and snowfall
+            mer: # https://codes.ecmwf.int/grib/param-db/?id=235043
+                nanfirst: true
+                source: e
+                grib: true
+                src_units: m
+                #units: kg m**-2 s**-1
+            msr: # https://codes.ecmwf.int/grib/param-db/?id=235031
+                nanfirst: true
+                source: sf
+                grib: true
+                src_units: m
+                #units: kg m**-2 s**-1
+            # Latent and sensible heat
+            mslhf: # https://codes.ecmwf.int/grib/param-db/?id=235034
+                nanfirst: true
+                source: slhf
+                grib: true
+            msshf:
+                nanfirst: true
+                source: sshf
+                grib: true
+            # Surface fluxes
+            msnswrf:
+                nanfirst: true
+                source: ssr
+                grib: true
+            msnlwrf:
+                nanfirst: true
+                source: str
+                grib: true
+            msdwlwrf:
+                nanfirst: true
+                source: strd
+                grib: true
+            msdwswrf:
+                nanfirst: true
+                source: ssrd
+                grib: true
+            # TOA fluxes
+            mtnswrf:
+                nanfirst: true
+                source: tsr
+                grib: true
+            mtnlwrf:
+                nanfirst: true
+                source: ttr
+                grib: true
+            mtdwswrf:
+                nanfirst: true
+                source: tisr
+                grib: true      
+            # Wind stresses
+            metss: # https://codes.ecmwf.int/grib/param-db/?id=235041
+                source: ewss
+                grib: true
+            mntss: # https://codes.ecmwf.int/grib/param-db/?id=235042 
+                source: nsss
+                grib: true
+            # Runoffs
+            msror:  # https://codes.ecmwf.int/grib/param-db/?id=235020
+                nanfirst: true
+                source: sro
+                grib: true
+            mssror: # https://codes.ecmwf.int/grib/param-db/?id=235021
+                nanfirst: true
+                source: ssro
+                grib: true
+
+    ifs-destine-lowres-v1:
+        parent: ifs-destine-v1
+        vars:
+            tprate:
+                nanfirst: true
+                source: tp
+                grib: true
+
     ifs-default:
         data_model: ifs
         deltat: 3600

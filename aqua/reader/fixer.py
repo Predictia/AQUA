@@ -139,7 +139,7 @@ class FixerMixin():
                 fixes = self._merge_fixes(parent_fixes, fixes)
         else:
             self.logger.error("Fix names %s does not exist in %s.yaml file. Will try to use model default fixes!",
-                              self.fix_family, self.model)
+                              self.fixer_name, self.model)
             warn("The model default will be deprecated in the future in favour of a fixer_name structure default.",
                  DeprecationWarning, stacklevel=2)
 
@@ -283,6 +283,10 @@ class FixerMixin():
 
         self.deltat = self.fixes.get("deltat", 1.0)
         jump = self.fixes.get("jump", None)  # if to correct for a monthly accumulation jump
+        # Special feature to fix corrupted data in first step of each month
+
+        nanfirst_startdate = self.fixes.get("nanfirst_startdate", None)
+        nanfirst_enddate = self.fixes.get("nanfirst_enddate", None)
 
         fixd = {}  # variables dictionary for name change: only for source
         varlist = {}  # variable dictionary for name change
@@ -324,7 +328,7 @@ class FixerMixin():
                     if source != shortname:
                         fixd.update({f"{source}": f"{shortname}"})
 
-                    log_history(data[source], f"variable renamed {shortname} by fixer")
+                    log_history(data[source], f"Variable renamed {shortname} by fixer")
 
                 # 2. derived case: let's compute the formula it and create the new variable
                 formula = varfix.get("derived", None)
@@ -334,7 +338,7 @@ class FixerMixin():
                         data[source] = eval_formula(formula, data)
                         attributes.update({"derived": formula})
                         self.logger.debug("Derived %s from %s", var, formula)
-                        log_history(data[source], f"variable {var}, derived with {formula} by fixer")
+                        log_history(data[source], f"Variable {var}, derived with {formula} by fixer")
                     except KeyError:
                         # The variable could not be computed, let's skip it
                         if destvar is not None:
@@ -375,8 +379,8 @@ class FixerMixin():
                         tgt_units = self.fixes_dictionary["defaults"]["units"]["shortname"][tgt_units.replace('{',
                                                                                                               '').replace('}',
                                                                                                                           '')]
-                    self.logger.info("Converting %s: %s --> %s", var, data[source].units, tgt_units)
-                    log_history(data, f"Converting units of {var}: from {data[source].units} to {tgt_units}")
+                    self.logger.info("%s: converting units %s --> %s", var, data[source].units, tgt_units)
+                    log_history(data[source], f"Converting units of {var}: from {data[source].units} to {tgt_units}")
                     factor, offset = self.convert_units(data[source].units, tgt_units, var)
                     # self.logger.info('Factor: %s, offset: %s', factor, offset)
 
@@ -386,14 +390,18 @@ class FixerMixin():
                         data[source].attrs.update({"offset": offset})
                         self.logger.debug("Fixing %s to %s. Unit fix: factor=%f, offset=%f",
                                          source, var, factor, offset)
-                        log_history(data, f"Fixing {source} to {var}. Unit fix: factor={factor}, offset={offset}")
+                        log_history(data[source], f"Fixing {source} to {var}. Unit fix: factor={factor}, offset={offset}")
 
         # Only now rename everything
         data = data.rename(fixd)
 
-        # decumulate if necessary
+        # decumulate if necessary and fix first of month if necessary
         if vars_to_fix:
             data = self._wrapper_decumulate(data, vars_to_fix, varlist, keep_memory, jump)
+            if nanfirst_enddate:  # This is a temporary fix for IFS data, run ony if an end date is specified
+                data = self._wrapper_nanfirst(data, vars_to_fix, varlist,
+                                            startdate=nanfirst_startdate,
+                                            enddate=nanfirst_enddate)
 
         if apply_unit_fix:
             for var in data.data_vars:
@@ -407,7 +415,7 @@ class FixerMixin():
         if src_datamodel:
             data = self.change_coord_datamodel(data, src_datamodel, self.dst_datamodel)
             self.logger.info(f"coordinates adjusted to {src_datamodel} by AQUA fixer")
-            data=log_history(data, f"coordinates adjusted to {src_datamodel} by fixer")
+            data=log_history(data, f"Coordinates adjusted to {src_datamodel} by fixer")
 
         return data
 
@@ -463,9 +471,60 @@ class FixerMixin():
                         data[varname] = self.simple_decumulate(data[varname],
                                                                jump=jump,
                                                                keep_first=keep_first)
-                    log_history(data[varname], "variable decumulated by fixer")
+                    log_history(data[varname], f"Variable {varname} decumulated by fixer")
         if fkeep:
             self.previous_data = data1  # keep the last timestep for further decumulations
+
+        return data
+
+    def _wrapper_nanfirst(self, data, variables, varlist, startdate=None, enddate=None):
+        """
+        Wrapper function for settting to nan first step of each month.
+        This allows to fix an issue with IFS data where the first step of each month is corrupted.
+
+        Args:
+            Data: Xarray Dataset
+            variables: The fixes of the variables
+            varlist: the variable dictionary with the old and new names
+            startdate: date before which to fix the first timestep of each month (could be False)
+            enddate: date after which to fix the first timestep of each month (could be False)
+
+        Returns:
+            Dataset with data on first step of each month set to NaN
+        """
+
+        for var in variables:
+            fix = variables[var].get("nanfirst", False)
+            if fix:
+                varname = varlist[var]
+                if varname in data.variables:
+                    self.logger.debug("Setting first step of months before %s and after %s to NaN for variable %s",
+                                      enddate, startdate, varname)
+                    log_history(data[varname], f"Fixer set first step of months before {enddate} and after {startdate} to NaN")
+                    data[varname] = self.nanfirst(data[varname], startdate=startdate, enddate=enddate)
+
+        return data
+
+    def nanfirst(self, data, startdate=False, enddate=False):
+        """
+        Set to NaN the first step of each month before and/or after a given date for an xarray
+
+        Args:
+            data: Xarray DataArray
+            startdate: date before which to fix the first timestep of each month (defaults to False)
+            enddate: date after which to fix the first timestep of each month (defaults to False)
+
+        Returns:
+            DataArray in with data on first step of each month is set to NaN
+        """
+
+        first = data.time.groupby(data['time.year']*100+data['time.month']).first()
+        if enddate:
+            first = first.where(first < np.datetime64(str(enddate)), drop=True)
+        if startdate:
+            first = first.where(first > np.datetime64(str(startdate)), drop=True)
+        mask = data.time.isin(first)
+        data = data.where(~mask, np.nan)
 
         return data
 
@@ -791,7 +850,7 @@ class FixerMixin():
 
         # if units are not already updated and if a tgt_units exist
         if tgt_units and org_units != tgt_units:
-            self.logger.info("Applying unit fixes for %s ", data.name)
+            self.logger.debug("Applying unit fixes for %s ", data.name)
 
             # define an old units
             data.attrs.update({"src_units": org_units, "units_fixed": 1})
@@ -802,7 +861,7 @@ class FixerMixin():
                 data *= factor
             if offset != 0:
                 data += offset
-            log_history(data, f"units changed to {tgt_units} by fixer")
+            log_history(data, f"Units changed to {tgt_units} by fixer")
             data.attrs.pop('tgt_units', None)
 
     def normalize_units(self, src):
