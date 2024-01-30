@@ -10,7 +10,8 @@ import numpy as np
 from aqua import Reader
 from aqua.exceptions import NoObservationError
 from aqua.util import find_vert_coord
-
+import matplotlib.pyplot as plt
+from aqua.util import load_yaml, get_arg, create_folder
 
 warnings.filterwarnings("ignore")
 
@@ -526,6 +527,22 @@ def write_data(file_name, data):
     # Write the new xarray data to the NetCDF file
     data.to_netcdf(file_name)
     print(f"Data written to: {file_name}")
+    return
+
+def export_fig(output_dir, filename, type):
+    # Check if the file exists
+    output_dir = f"{output_dir}/{type}"
+    filename = f"{output_dir}/{filename}.{type}"
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)  
+
+    if os.path.exists(filename):
+        os.remove(filename)
+        print(f"Deleted existing file: {filename}")
+
+    plt.savefig(filename)
+    print(f"Figure saved to: {filename}")
     return
 
 def split_ocean3d_req(self, o3d_request):

@@ -1,7 +1,9 @@
 
 from .tools import *
 from ocean3d import write_data
+from ocean3d import export_fig
 from ocean3d import split_ocean3d_req
+import matplotlib.pyplot as plt
 
 class hovmoller_lev_time_plot:
     def __init__(self, o3d_request):
@@ -240,11 +242,12 @@ class hovmoller_lev_time_plot:
             write_data(f'{data_dir}/{filename}.nc', data)
             logger.info(
                 "Figure and data used for this plot are saved here: %s", output_path)
-    
+        plt.close(fig)
         return 
     
-    def single_plot(self, key):
+    def loop_details(self, i, fig, axs):
         
+        key = i + 3
         plot_info = self.plot_info[key]
         data = plot_info['data']
         ocptlevs = plot_info['ocptlevs']
@@ -252,60 +255,76 @@ class hovmoller_lev_time_plot:
         cmap = plot_info['cmap']
         region_title = plot_info['region_title']
         type = plot_info['type']
-        filename = plot_info['filename']
-        data_dir = plot_info['data_dir']
-        fig_dir = plot_info['fig_dir']
-        output_path = plot_info['output_path']
-        
-        filename = f"{self.model}_{self.exp}_{self.source}_{filename}"
-        
-        fig, (axs) = plt.subplots(nrows=5, ncols=2, figsize=(14, 25))
-        
-        fig.suptitle(f"Spatially averaged {region_title} T,S {type}", fontsize=22)
-        
-        cs1 = axs[0,0].contourf(data.time, data.lev, data.ocpt.transpose(),
+        data_dir = plot_info["data_dir"]
+        filename = plot_info["filename"]
+
+        cs1_name = f'cs1_{i}'
+        vars()[cs1_name]  = axs[i,0].contourf(data.time, data.lev, data.ocpt.transpose(),
                             levels=ocptlevs, cmap=cmap, extend='both')
         
-        cbar_ax = fig.add_axes([0.13, 0.1, 0.35, 0.05])
-        fig.colorbar(cs1, cax=cbar_ax, orientation='vertical', label=f'Potential temperature in {data.ocpt.attrs["units"]}')
-
-        cs2 = axs[0,1].contourf(data.time, data.lev, data.so.transpose(),
+        cbar_ax = fig.add_axes([.47, 0.77 - i* 0.115, 0.028, 0.08])
+        
+        fig.colorbar(vars()[cs1_name], cax=cbar_ax, orientation='vertical', label=f'Potential temperature in {data.ocpt.attrs["units"]}')
+        
+        cs2_name = f'cs2_{i}'
+        vars()[cs2_name] = axs[i,1].contourf(data.time, data.lev, data.so.transpose(),
                             levels=solevs, cmap=cmap, extend='both')
-        cbar_ax = fig.add_axes([0.54, 0.1, 0.35, 0.05])
-        fig.colorbar(cs2, cax=cbar_ax, orientation='vertical', label=f'Salinity in {data.so.attrs["units"]}')
+        cbar_ax = fig.add_axes([.94,  0.77 - i* 0.115, 0.028, 0.08])
+        fig.colorbar(vars()[cs2_name], cax=cbar_ax, orientation='vertical', label=f'Salinity in {data.so.attrs["units"]}')
 
-        # if self.output:
-            # obs_clim.to_netcdf(f'{data_dir}/{filename}_Rho.nc')
+        axs[i,0].invert_yaxis()
+        axs[i,1].invert_yaxis()
+        axs[i,0].set_ylim((max(data.lev).data, 0))
+        axs[i,1].set_ylim((max(data.lev).data, 0))
+        
+        if i==0:
+            axs[i,0].set_title("Temperature", fontsize=15) 
+        axs[i,0].set_ylabel("Depth (in m)", fontsize=12)
+        if i==4:
+            axs[i,0].set_xlabel("Time", fontsize=12)
+            axs[i,1].set_xlabel("Time", fontsize=12) 
 
-        axs[0,0].invert_yaxis()
-        axs[0,1].invert_yaxis()
-
-        axs[0,0].set_ylim((max(data.lev).data, 0))
-        axs[0,1].set_ylim((max(data.lev).data, 0))
-
-        axs[0,0].set_title("Temperature", fontsize=15)
-        axs[0,0].set_ylabel("Depth (in m)", fontsize=12)
-        axs[0,0].set_xlabel("Time", fontsize=12)
-        axs[0,0].set_xticklabels(axs[0,0].get_xticklabels(), rotation=30)
-        axs[0,1].set_xticklabels(axs[0,0].get_xticklabels(), rotation=30)
+            axs[i,0].set_xticklabels(axs[i,0].get_xticklabels(), rotation=30)
+            axs[i,1].set_xticklabels(axs[i,0].get_xticklabels(), rotation=30)
+        else:
+            axs[i, 0].set_xticklabels([])
+            axs[i, 1].set_xticklabels([])
         # max_num_ticks = 10  # Adjust this value to control the number of ticks
         # from matplotlib.ticker import MaxNLocator
         # locator = MaxNLocator(integer=True, prune='both', nbins=max_num_ticks)
         # axs[0].xaxis.set_major_locator(locator)
         # axs[1].xaxis.set_major_locator(locator)
 
-        axs[0,1].set_title("Salinity", fontsize=15)
-        axs[0,1].set_xlabel("Time", fontsize=12)
-        axs[0,1].set_yticklabels([])
+        if i==0:
+            axs[i,1].set_title("Salinity", fontsize=15) 
+        axs[i,1].set_yticklabels([])
 
-        plt.subplots_adjust(bottom=0.3, top=0.85, wspace=0.2, hspace=0.5)
-
-        if self.output:
-            plt.savefig(f"{fig_dir}/{filename}.pdf")
-            write_data(f'{data_dir}/{filename}.nc', data)
-            logger.info(
-                "Figure and data used for this plot are saved here: %s", output_path)
+        #if self.output:
+        #    write_data(f'{data_dir}/{filename}.nc', data)
+        #    logger.info(
+        #        "data used for this plot are saved here:", f'{data_dir}/{filename}.nc')
     
+
+    def single_plot(self):
+        
+        self.data_for_hovmoller_lev_time_plot()
+
+        filename = f"{self.model}_{self.exp}_{self.source}_{self.region}_hovmoller_combined_plot"
+        
+        fig, (axs) = plt.subplots(nrows=5, ncols=2, figsize=(14, 25))
+        plt.subplots_adjust(bottom=0.3, top=0.85, wspace=0.5, hspace=0.5)
+        
+        self.loop_details(0, fig, axs)
+        self.loop_details(1, fig, axs)
+        self.loop_details(2, fig, axs)
+        self.loop_details(3, fig, axs)
+        self.loop_details(4, fig, axs)
+
+        fig.suptitle(f"Spatially averaged {self.region}", fontsize=22, y=0.9)
+        
+        if self.output:
+            export_fig(self.output_dir, filename , "jpg")
+
         return
     
     def plot(self):
@@ -318,9 +337,9 @@ class hovmoller_lev_time_plot:
         for key, value in self.plot_info.items():
             if key not in [1,2,3]:
                 self.prepare_plot(key)
-                # self.single_plot(key)
                 
         return
+
 
     def plot_paralell(self):
 
