@@ -10,8 +10,6 @@ import intake_esm
 
 import xarray as xr
 import pandas as pd
-import datetime
-from dateutil.relativedelta import relativedelta
 
 # from metpy.units import units, DimensionalityError
 import numpy as np
@@ -21,7 +19,7 @@ from aqua.util import load_yaml, load_multi_yaml
 from aqua.util import ConfigPath, area_selection
 from aqua.logger import log_configure, log_history
 from aqua.util import check_chunk_completeness, frequency_string_to_pandas
-from aqua.util import flip_lat_dir, find_vert_coord
+from aqua.util import flip_lat_dir, find_vert_coord, extract_literal_and_numeric
 import aqua.gsv
 
 from .streaming import Streaming
@@ -782,21 +780,6 @@ class Reader(FixerMixin, RegridMixin):
         except ValueError as exc:
             raise ValueError('Cant find a frequency to resample, aborting!') from exc
 
-        # Set time:
-        # if not center_time as the first timestamp of each month/day according to the sampling frequency
-        # if center_time as the middle timestamp of each month/day according to the sampling frequency
-        # TODO: extend it to other frequencies
-        # TEST: this is not necessary if we use MS and YS
-        # out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
-        if center_time:
-            if resample_freq == 'YS':
-                self.logger.debug("Setting time to the middle of the year")
-                offset = pd.DateOffset(months=6)  # TODO: expand it to other frequencies
-                rf = 'Y'  # otherwise TypeError: YS-JAN is not supported as period frequency
-                out['time'] = out['time'].to_index().to_period(rf).to_timestamp() + offset
-            else:
-                self.logger.error("center_time is not implemented yet for frequency %s", resample_freq)
-
         if exclude_incomplete:
 
             self.logger.info('Checking if incomplete chunks has been produced...')
@@ -804,6 +787,35 @@ class Reader(FixerMixin, RegridMixin):
                                                     resample_frequency=resample_freq,
                                                     loglevel=self.loglevel)
             out = out.where(boolean_mask, drop=True)
+
+        # Set time:
+        # if not center_time as the first timestamp of each month/day according to the sampling frequency
+        # if center_time as the middle timestamp of each month/day according to the sampling frequency
+        if center_time:
+            # decipher the frequency
+            literal, numeric = extract_literal_and_numeric(resample_freq) 
+            self.logger.debug('Frequency is %s with numeric part %s', literal, numeric)
+
+            # if we have monthly/yearly time windows we cannot use timedelta and need to do some tricky magic
+            if any(check in literal for check in ["YS", "MS", "M", "Y", "ME", "YE"]):
+                if 'YS' in resample_freq:
+                    offset = pd.DateOffset(months=6*numeric)
+                elif 'MS' in resample_freq:
+                    if numeric % 2 == 1:
+                        offset = pd.DateOffset(days=14, months=(numeric // 2))
+                    else:  
+                        offset = pd.DateOffset(month=(numeric // 2))
+                else:
+                    raise ValueError("center_time cannot be not implemented for end of the month frequency {resample_freq}")
+                self.logger.debug('Time offset for time centering will be %s', offset)
+                out["time"] = out.get_index("time") + offset
+            
+            # otherwise we can use timedelta (which works with fractions)
+            else:
+                offset = pd.Timedelta(numeric/2, literal)
+                self.logger.debug('Time offset for time centering will be %s', offset)
+                out['time'] =  out["time"] + offset
+
 
         # Check time is correct
         if np.any(np.isnat(out.time)):
