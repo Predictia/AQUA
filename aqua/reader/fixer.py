@@ -186,7 +186,7 @@ class FixerMixin():
         fixes = fix_exp.get(self.source, None)
         if fixes is None:
             self.logger.debug("No source-specific fixes available for model %s, experiment %s, source %s: checking for model default...",  # noqa: E501
-                             self.model, self.exp, self.source)
+                              self.model, self.exp, self.source)
             fixes = fix_exp.get('default', None)
             if fixes is None:
                 self.logger.debug("Nothing found! I will use with model default or family fixes...")
@@ -194,7 +194,7 @@ class FixerMixin():
                 self.logger.debug("Using experiment-specific default for model %s, experiment %s", self.model, self.exp)
         else:
             self.logger.debug("Source-specific fixes found for model %s, experiment %s, source %s",
-                             self.model, self.exp, self.source)
+                              self.model, self.exp, self.source)
 
         return fixes
 
@@ -389,7 +389,7 @@ class FixerMixin():
                         data[source].attrs.update({"factor": factor})
                         data[source].attrs.update({"offset": offset})
                         self.logger.debug("Fixing %s to %s. Unit fix: factor=%f, offset=%f",
-                                         source, var, factor, offset)
+                                          source, var, factor, offset)
                         log_history(data[source], f"Fixing {source} to {var}. Unit fix: factor={factor}, offset={offset}")
 
         # Only now rename everything
@@ -400,8 +400,8 @@ class FixerMixin():
             data = self._wrapper_decumulate(data, vars_to_fix, varlist, keep_memory, jump)
             if nanfirst_enddate:  # This is a temporary fix for IFS data, run ony if an end date is specified
                 data = self._wrapper_nanfirst(data, vars_to_fix, varlist,
-                                            startdate=nanfirst_startdate,
-                                            enddate=nanfirst_enddate)
+                                              startdate=nanfirst_startdate,
+                                              enddate=nanfirst_enddate)
 
         if apply_unit_fix:
             for var in data.data_vars:
@@ -415,7 +415,10 @@ class FixerMixin():
         if src_datamodel:
             data = self.change_coord_datamodel(data, src_datamodel, self.dst_datamodel)
             self.logger.info(f"coordinates adjusted to {src_datamodel} by AQUA fixer")
-            data=log_history(data, f"Coordinates adjusted to {src_datamodel} by fixer")
+            data = log_history(data, f"Coordinates adjusted to {src_datamodel} by fixer")
+
+        # Extra coordinate handling
+        data = self._fix_coord(data)
 
         return data
 
@@ -537,7 +540,7 @@ class FixerMixin():
         fixer_tgt_units = varfix.get("units", None)
         if fixer_tgt_units:
             self.logger.debug('Variable %s: Overriding target units "%s" with "%s"',
-                             var, tgt_units, fixer_tgt_units)
+                              var, tgt_units, fixer_tgt_units)
             return fixer_tgt_units
         else:
             return tgt_units
@@ -552,11 +555,11 @@ class FixerMixin():
         if fixer_src_units:
             if "units" in data[source].attrs:
                 self.logger.debug('Variable %s: Overriding source units "%s" with "%s"',
-                                 var, data[source].units, fixer_src_units)
+                                  var, data[source].units, fixer_src_units)
                 data[source].attrs.update({"units": fixer_src_units})
             else:
                 self.logger.debug('Variable %s: Setting missing source units to "%s"',
-                                 var, fixer_src_units)
+                                  var, fixer_src_units)
                 data[source].attrs["units"] = fixer_src_units
 
         return data
@@ -635,6 +638,38 @@ class FixerMixin():
                 area = self.change_coord_datamodel(area, src_datamodel, self.dst_datamodel)
 
             return area
+
+    def _fix_coord(self, data: xr.Dataset):
+        """
+        Other than the data_model we can apply other fixes to the coordinates
+        reading them from the fixes file, in the coords section.
+
+        Arguments:
+            data (xr.Dataset):  input dataset to process
+
+        Returns:
+            The processed input dataset
+        """
+        if self.fixes is None:
+            return data
+
+        coords_fix = self.fixes.get("coords", None)
+
+        if coords_fix:
+            coords = list(coords_fix.keys())
+            self.logger.debug("Coordinates to be checked: %s", coords)
+
+            for coord in coords:
+                src_coord = coords_fix[coord].get("source", None)
+
+                if src_coord and src_coord in data.coords:
+                    data = data.rename({src_coord: coord})
+                    self.logger.debug("Coordinate %s renamed to %s", src_coord, coord)
+                    log_history(data[coord], f"Coordinate {src_coord} renamed to {coord} by fixer")
+                else:
+                    self.logger.warning("Coordinate %s not found", coord)
+
+        return data
 
     def get_fixer_varname(self, var):
         """

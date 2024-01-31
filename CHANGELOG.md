@@ -7,9 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version.
 
-- Added `center_time` option in the `timmean()` method to save the time coordinate in the middle of the time interval,
-  working only for yearly time aggregation (#811)
+- Added `center_time` option in the `timmean()` method to save the time coordinate in the middle of the time interval (#811)
+- Fixer to rename coordinates available (#822)
 - Fixing new pandas timedelta: replacing H with h in all FDB catalog (#786)
+- Adding a run test label to trigger CI (#826)
 
 ## [v0.6.2]
 
