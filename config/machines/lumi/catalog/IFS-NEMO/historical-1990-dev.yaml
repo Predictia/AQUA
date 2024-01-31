@@ -15,8 +15,8 @@ sources:
       data_start_date: 19900101T0000
       data_end_date: 19901231T2300
       aggregation: D  # Default aggregation / chunk size
-      savefreq: H  # at what frequency are data saved
-      timestep: H  # base timestep for step timestyle
+      savefreq: h  # at what frequency are data saved
+      timestep: h  # base timestep for step timestyle
       timestyle: step  # variable date or variable step
     description: hourly data on native grid TCo1279 (about 10km). Contains tprate(260048),
       2t(167), 10u(165), 10v(166), 100u(228246), 100v(228247), sr(173), blh(159),
@@ -44,8 +44,8 @@ sources:
       data_start_date: 19900101T0000
       data_end_date: 19901231T2300
       aggregation: D  # Default aggregation / chunk size
-      savefreq: H  # at what frequency are data saved
-      timestep: H  # base timestep for step timestyle
+      savefreq: h  # at what frequency are data saved
+      timestep: h  # base timestep for step timestyle
       timestyle: step  # variable date or variable step
     description: hourly data on r100 grid. Contains tprate(260048), sf(144), 2t(167),
       10u(165), 10v(166), blh(159), sshf(146), slhf(147), ssrd(169), ssr(176), strd(175),
@@ -76,8 +76,8 @@ sources:
       data_start_date: 19900101T0000
       data_end_date: 19991231T1800
       aggregation: D  # Default aggregation / chunk size
-      timestep: H  # What one step means
-      savefreq: 6H
+      timestep: h  # What one step means
+      savefreq: 6h
       timestyle: step
     description: 6hourly data on r100 grid. Contains z(129).
     driver: gsv
@@ -104,7 +104,7 @@ sources:
       data_end_date: '19901201'
       aggregation: Y  # Default aggregation / chunk size
       savefreq: M
-      timestep: H
+      timestep: h
       timestyle: step
       timeshift: true    # shift time of resulting xarray by this amount
     description: monthly data on r100 grid. Contains tprate(260048), 2t(167), tcc(164),
@@ -135,7 +135,7 @@ sources:
       data_end_date: '19901201'
       aggregation: M  # Default aggregation / chunk size
       savefreq: M
-      timestep: H
+      timestep: h
       timestyle: step
       timeshift: true    # shift time of resulting xarray by this amount
     description: monthly data on r100 grid. Contains u(131), v(132), t(130), r(157), q(133).
