@@ -143,9 +143,10 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         # get fixes dictionary and find them
         self.fix = fix  # fix activation flag
         self.fixer_name = self.esmcat.metadata.get('fixer_name', None)
-        
+
         # case to disable automatic fix
         if self.fixer_name is False:
+            self.logger.warning('A False flag is specified in fixer_name metadata, disabling fix!')
             self.fix = False
         
         if self.fix:
@@ -1054,8 +1055,8 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         if self.fix:
             print("Data fixing is active:")
-            if "fix_family" in metadata.keys():
-                print("  Fix family is %s" % metadata["fix_family"])
+            if "fixer_name" in metadata.keys():
+                print("  Fixer name is %s" % metadata["fixer_name"])
             else:
                 # TODO: to be removed when all the catalogues are updated
                 print("  Fixes: %s" % self.fixes)
