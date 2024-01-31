@@ -27,6 +27,7 @@ class TCs(DetectNodes, StitchNodes):
                  startdate=None, enddate=None,
                  stream_step=1, stream_unit='days', stream_startdate=None,
                  loglevel='INFO',
+                 orography=False,
                  nproc=1):
         """
         Constructor method that initializes the class attributes based on the
@@ -73,6 +74,9 @@ class TCs(DetectNodes, StitchNodes):
             self.frequency = tdict['time']['frequency']
             self.startdate = tdict['time']['startdate']
             self.enddate = tdict['time']['enddate']
+            self.orography=orography
+            if self.orography:
+                self.orography_file = tdict['orography']['file_path'] + tdict['orography']['file_name']
         else:
             if paths is None:
                 raise ValueError('Without paths defined you cannot go anywhere!')
@@ -123,8 +127,6 @@ class TCs(DetectNodes, StitchNodes):
             None
         """
         
-        
-        
         # do this to remove the last letter from streamstep! e.g. tdict['stream']['streamstep'] is defined as "10D" but we want only the value 10!
         numbers = [int(i) for i in tdict['stream']['streamstep'] if i.isdigit()]
         streamstep_n=int(''.join(map(str, numbers)))
@@ -139,9 +141,9 @@ class TCs(DetectNodes, StitchNodes):
         self.detect_nodes_zoomin()
 
         # parameters for stitch nodes (to save tracks of selected variables in netcdf)
-        n_days_stitch = tdict['stitch']['n_days_freq'] + \
-            2*tdict['stitch']['n_days_ext']
-        last_run_stitch = pd.Timestamp(self.startdate)
+        n_days_stitch = pd.to_datetime(tdict['stitch']['n_days_freq'] + \
+            2*tdict['stitch']['n_days_ext'])
+        last_run_stitch =  pd.to_datetime(self.startdate)
 
 
         # loop to simulate streaming
@@ -150,41 +152,48 @@ class TCs(DetectNodes, StitchNodes):
             self.data_retrieve()
             self.logger.warning(
                 "New streaming from %s to %s", pd.Timestamp(self.stream_startdate).strftime('%Y%m%dT%H'), pd.Timestamp(self.stream_enddate).strftime('%Y%m%dT%H'))
-            timecheck = (self.data2d.time.values >
-                         np.datetime64(tdict['time']['enddate']))
-
-            if timecheck.any():
-                self.stream_enddate = self.data2d.time.values[np.where(timecheck)[
-                    0][0]-1]
+            timecheck = (pd.to_datetime(self.data2d.time.values[-1]) > pd.to_datetime(tdict['time']['enddate']))
+            print("last time values od data 2d is: ", pd.to_datetime(self.data2d.time.values[-1]))
+            print ("timecheck: ", timecheck)
+            # if last date/time of the streaming chunk is after enddate take enddate as last date
+            # problem: in data 2d the output is hourly! we need 6 h
+            if timecheck:
+                #self.stream_enddate = self.data2d.time.values[np.where(timecheck)[0][0]-1]
+                self.stream_enddate = pd.to_datetime(self.data2d.time.values[-1])
                 self.logger.warning(
                     'Modifying the last stream date %s', self.stream_enddate)
 
             # call to Tempest DetectNodes
             self.detect_nodes_zoomin()
 
-            if timecheck.any():
+            if timecheck:
+                print("break the loop!")
                 break
 
             # add one hour since time ends at 23
-            dayspassed = (self.stream_enddate + np.timedelta64(1,
-                          'h') - last_run_stitch) / np.timedelta64(1, 'D')
+            dayspassed = pd.to_datetime((self.stream_enddate + np.timedelta64(1,
+                          'h') - last_run_stitch) / np.timedelta64(1, 'D'))
+            
+            print("dayspassed: ", dayspassed)
 
+            # ERROR: IT SEEMS IT DOES NOT ENTER THIS LOOP
             # call Tempest StitchNodes every n_days_freq days time period and save TCs tracks in a netcdf file
             if dayspassed >= n_days_stitch:
                 end_run_stitch = last_run_stitch + \
-                    np.timedelta64(tdict['stitch']['n_days_freq'], 'D')
+                    pd.to_datetime(tdict['stitch']['n_days_freq'])
                 self.logger.warning(
                     'Running stitch nodes from %s to %s', last_run_stitch, end_run_stitch)
                 self.stitch_nodes_zoomin(startdate=last_run_stitch, enddate=end_run_stitch,
-                                         n_days_freq=tdict['stitch']['n_days_freq'], n_days_ext=tdict['stitch']['n_days_ext'])
+                                         n_days_freq=pd.to_datetime(tdict['stitch']['n_days_freq']), n_days_ext=pd.to_datetime(tdict['stitch']['n_days_ext']))
                 last_run_stitch = copy.deepcopy(end_run_stitch)
-
+                
+        # ERROR: END RUN STITCH IS EQUAL TO END STREAM DATE!!
         # end of the loop for the last chunk of data
         end_run_stitch = np.datetime64(tdict['time']['enddate'])
         self.logger.warning(
             'Running stitch nodes from %s to %s', last_run_stitch, end_run_stitch)
-        self.stitch_nodes_zoomin(startdate=pd.Timestamp(last_run_stitch), enddate=pd.Timestamp(end_run_stitch),
-                                 n_days_freq=tdict['stitch']['n_days_freq'], n_days_ext=tdict['stitch']['n_days_ext'])
+        self.stitch_nodes_zoomin(startdate=last_run_stitch, enddate=end_run_stitch,
+                                 n_days_freq=pd.to_datetime(tdict['stitch']['n_days_freq']), n_days_ext=pd.to_datetime(tdict['stitch']['n_days_ext']))
 
     def catalog_init(self):
         """
@@ -265,6 +274,16 @@ class TCs(DetectNodes, StitchNodes):
         if self.streaming:
             self.stream_enddate = self.data2d.time[-1].values
             self.stream_startdate = self.data2d.time[0].values
+            
+        #if orography is provided in a file access it without reader
+            
+        if self.orography:
+            self.logger.info("orography retrieved from file")
+            self.orog = xr.open_dataset(self.orography_file)
+            #rename var for detect nodes
+            self.orog = self.orog.rename({'z': 'zs'})
+
+
 
     def store_fullres_field(self, xfield, nodes):
         """
