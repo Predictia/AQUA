@@ -152,8 +152,6 @@ class FixerMixin():
         Return:
             dict with merged fixes
         """
-        print(base)
-        print(specific)
         final = base
         for item in base.keys():
             if item == 'vars':
