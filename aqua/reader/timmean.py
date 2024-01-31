@@ -118,7 +118,7 @@ class TimmeanMixin():
                 else:  
                     offset = pd.DateOffset(month=(numeric // 2))
             else:
-                self.logging.error("center_time cannot be not implemented for end of the frequency %s", resample_freq)
+                self.logger.error("center_time cannot be not implemented for end of the frequency %s", resample_freq)
                 return avg_data
             self.logger.debug('Time offset (DateOffset) for time centering will be %s', offset)
             avg_data["time"] = avg_data.get_index("time") + offset
