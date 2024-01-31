@@ -7,8 +7,14 @@ fixer_name:
         # The fix is activated by specifying nanfirst_enddate
         # The dates are exclusive (the first step is actually ok and will be kept)
         nanfirst_startdate: 1990-01-01
-        nanfirst_enddate: 2020-01-01 
+        nanfirst_enddate: 2020-01-01
+        delete: [tprate]
         vars:
+            # Derive precipitation from TP and drop tprate
+            mtpr: # https://codes.ecmwf.int/grib/param-db/235055
+                nanfirst: true
+                source: tp
+                grib: true
             # Evaporation and snowfall
             mer: # https://codes.ecmwf.int/grib/param-db/?id=235043
                 nanfirst: true
@@ -76,14 +82,6 @@ fixer_name:
             mssror: # https://codes.ecmwf.int/grib/param-db/?id=235021
                 nanfirst: true
                 source: ssro
-                grib: true
-
-    ifs-destine-lowres-v1:
-        parent: ifs-destine-v1
-        vars:
-            tprate:
-                nanfirst: true
-                source: tp
                 grib: true
 
     ifs-default:
