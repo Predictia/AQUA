@@ -7,12 +7,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version.
 
+- Added `center_time` option in the `timmean()` method to save the time coordinate in the middle of the time interval and create a Timmean module and related TimmeanMixin class (#811)
+- Fixer to rename coordinates available (#822)
 - Fixing new pandas timedelta: replacing H with h in all FDB catalog (#786)
 - Change environment name from `aqua_common` to `aqua`(#805)
+- Adding a run test label to trigger CI (#826)
 
 ## [v0.6.2]
 
 Complete list:
+- Global time series plot annual and monthly timeseries together, improved Gregory plot (#809)
 - Teleconnection can now take a time range as input and ylim in the index plot function (#799)
 - LRA to use `auto` final time and `exclude_incomplete` (#791)
 - Hotfix for v0.12.0 of the GSV_interface related to valid_time (#788)
