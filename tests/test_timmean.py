@@ -69,6 +69,15 @@ class TestTimmean():
         assert avg['ttr'].shape == (1, 9, 18) # 1 year was computed
         assert avg['ttr'].time[0].values == np.datetime64('2020-07-01T00:00:00.000000000')
 
+    def test_timmean_daily_center_time(self):
+        """Timmean test for daily aggregation with center_time=True and exclude_incomplete=True"""
+        reader = Reader(model="IFS", exp="test-tco79", source='long',
+                        loglevel=loglevel)
+        data = reader.retrieve(var='2t')
+        avg = reader.timmean(data, freq='daily', center_time=True, exclude_incomplete=True)
+        assert avg['2t'].shape == (197, 9, 18)
+        assert avg['2t'].time[1].values == np.datetime64('2020-01-21T12:00:00.000000000')
+
     def test_timmean_pandas(self):
         """Timmean test for weekly aggregation based on pandas labels"""
         reader = Reader(model="IFS", exp="test-tco79", source='long',
