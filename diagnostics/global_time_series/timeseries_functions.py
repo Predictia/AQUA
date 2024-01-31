@@ -171,7 +171,7 @@ def plot_timeseries(
         logger.debug(f"Resampling data to {resample}")
         data = reader.timmean(data=data, freq=resample)
 
-        if resample == 'Y' and annual:
+        if resample == 'YS' and annual:
             logger.debug("Asked for annual mean, but resample is already annual. Skipping.")
             annual = False
 
@@ -187,7 +187,7 @@ def plot_timeseries(
     data.plot(**plot_kw, ax=ax)
 
     if annual:
-        data_annual = reader.timmean(data=data, freq='Y', center_time=True)
+        data_annual = reader.timmean(data=data, freq='YS', center_time=True)
         logger.debug(f"Using {model} {exp} annual mean as label")
         plot_kw["label"] = f"{model} {exp} annual mean"
         data_annual.plot(**plot_kw, ax=ax, linestyle='--')
@@ -233,7 +233,7 @@ def plot_timeseries(
             eradata.plot(ax=ax, color="k", lw=0.5, label="ERA5 monthly mean")
 
             if annual:
-                eradata_annual = reader.timmean(data=eradata, freq='Y', center_time=True)
+                eradata_annual = reader.timmean(data=eradata, freq='YS', center_time=True)
                 eradata_annual.plot(ax=ax, color="k", lw=0.5, linestyle='--', label="ERA5 annual mean")
 
     ax.set_title(f'Globally averaged {variable}')

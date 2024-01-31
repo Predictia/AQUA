@@ -80,7 +80,7 @@ def create_filename(outputdir=None, plotname=None, type=None,
     filename += f"_{model}_{exp}_{source}"
     filename += f"_{plotname}"
 
-    if resample == 'Y':
+    if resample == 'YS':
         filename += "_annual"
 
     if type == "pdf":

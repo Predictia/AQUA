@@ -60,7 +60,7 @@ def plot_gregory(model, exp, source,
         raise NoDataError(f"Could not retrieve data for {model}-{exp}. No plot will be drawn.") from e
 
     # Preparing data for annual mean
-    data = reader.timmean(data=data, freq='Y')
+    data = reader.timmean(data=data, freq='YS')
 
     if len(data.time) < 2:
         raise NotEnoughDataError("There are not enough data to proceed with annual Gregory plot.")
