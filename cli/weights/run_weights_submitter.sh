@@ -3,18 +3,26 @@
 
 set -e # Exit immediately if a command exits with a non-zero status.
 
-# Determine the directory of the current script
-script_dir=$(dirname "${BASH_SOURCE[0]}")
-
-# Load function to log messages with colored output
-source $script_dir/logging.sh
+# Check if AQUA is set and the file exists
+if [[ -z "$AQUA" ]]; then
+    echo -e "\033[0;31mError: The AQUA environment variable is not defined."
+    echo -e "\x1b[38;2;255;165;0mPlease define the AQUA environment variable with the path to your 'AQUA' directory."
+    echo -e "For example: export AQUA=/path/to/aqua\033[0m"
+    exit 1  # Exit with status 1 to indicate an error
+else
+    source "$AQUA/cli/util/logger.sh"
+    log_message INFO "Sourcing logger.sh from: $AQUA/cli/util/logger.sh"
+    # Your subsequent commands here
+fi
+setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
+aqua=$AQUA
 
 # Read and log the machine name from the YAML configuration file
 log_message "Reading machine name from YAML"
 machine=$(python -c "
 try:
     import yaml
-    with open('$script_dir/../../config/config-aqua.yaml') as f:
+    with open('$AQUA/config/config-aqua.yaml') as f:
         config = yaml.safe_load(f)
         print(config['machine'])
 except Exception as e:
@@ -30,7 +38,7 @@ log_message INFO "Machine Name: $machine"
 read -r nproc nodes walltime memory lumi_version account partition run_on_sunday < <(python -c "
 try:
     import yaml
-    with open('$script_dir/config/weights_config.yml') as f:
+    with open('$AQUA/cli/weights/config/weights_config.yml') as f:
         config = yaml.safe_load(f)['compute_resources']
         print(config['nproc'], config['nodes'], config['walltime'], config['memory'], config['lumi_version'], \
         config['account']['$machine'], config['partition']['$machine'], config['run_on_sunday'])
@@ -58,7 +66,6 @@ if [ $machine == "levante" ]; then
     # find mamba/conda (to be refined)
     whereconda=$(which mamba | rev | cut -f 3-10 -d"/" | rev)
     source $whereconda/etc/profile.d/conda.sh
-    conda init
     # activate conda environment
     conda activate aqua_common
 fi
@@ -86,7 +93,7 @@ if [ "$machine" == 'levante' ] || [ "$machine" == 'lumi' ]; then
 #SBATCH --mem=$memory
 
 # Load function to log messages with colored output
-source $script_dir/logging.sh
+source "$AQUA/cli/util/logger.sh"
 
 log_message INFO 'Hello from SLURM job!'
 log_message INFO "Number of processes (nproc): $nproc"
@@ -103,9 +110,9 @@ if [ $machine == "lumi" ]; then
     username=$USER
     export PATH="/users/$username/mambaforge/aqua/bin:$PATH"
 fi
-/usr/bin/env python3 "$script_dir/generate_weights.py" --nproc=$nproc
+/usr/bin/env python3 "$AQUA/cli/weights/generate_weights.py" --nproc=$nproc
 EOL
 
 else
-    /usr/bin/env python3 "$script_dir/generate_weights.py" --nproc=$nproc
+    /usr/bin/env python3 "$AQUA/cli/weights/generate_weights.py" --nproc=$nproc
 fi
