@@ -235,6 +235,21 @@ three different fixing strategies:
 .. warning ::
     Recursive fixes (i.e. fixes of fixes) cannot be implemented.
 
+Fixing: Data model and coordinate names
+---------------------------------------
+
+The fixer can adopt a common 'coordinate data model' (default is the CDS data model as described in the previous section).
+If this data model is not appropriate for a specific source, it is possible to specify a different one in the catalogue.
+If the data model coordinate treatment is not enough to fix the coordinates, it is possible to specify a custom fix in the catalogue.
+For example, if the longitude coordinate is called ``longitude`` instead of ``lon``, it is possible to specify a fix like:
+
+.. code-block:: yaml
+
+    lon:
+        source: longitude
+
+This will rename the coordinate to ``lon``. The block has to be specified in the ``coords`` section of the fixer file.
+
 Streaming simulation
 --------------------
 The reader includes the ability to simulate data streaming to retrieve chunks of data of a specific time length.

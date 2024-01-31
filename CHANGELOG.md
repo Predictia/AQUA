@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version.
 
+- Fixer to rename coordinates available (#822)
 - Fixing new pandas timedelta: replacing H with h in all FDB catalog (#786)
 - Adding a run test label to trigger CI (#826)
 
