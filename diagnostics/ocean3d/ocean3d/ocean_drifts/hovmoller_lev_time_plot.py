@@ -247,7 +247,7 @@ class hovmoller_lev_time_plot:
     
     def loop_details(self, i, fig, axs):
         
-        key = i + 3
+        key = i + 4
         plot_info = self.plot_info[key]
         data = plot_info['data']
         ocptlevs = plot_info['ocptlevs']
@@ -262,7 +262,7 @@ class hovmoller_lev_time_plot:
         vars()[cs1_name]  = axs[i,0].contourf(data.time, data.lev, data.ocpt.transpose(),
                             levels=ocptlevs, cmap=cmap, extend='both')
         
-        cbar_ax = fig.add_axes([.47, 0.77 - i* 0.115, 0.028, 0.08])
+        cbar_ax = fig.add_axes([.47, 0.77 - i* 0.117, 0.028, 0.08])
         
         fig.colorbar(vars()[cs1_name], cax=cbar_ax, orientation='vertical', label=f'Potential temperature in {data.ocpt.attrs["units"]}')
         
@@ -271,15 +271,18 @@ class hovmoller_lev_time_plot:
                             levels=solevs, cmap=cmap, extend='both')
         cbar_ax = fig.add_axes([.94,  0.77 - i* 0.115, 0.028, 0.08])
         fig.colorbar(vars()[cs2_name], cax=cbar_ax, orientation='vertical', label=f'Salinity in {data.so.attrs["units"]}')
+        
 
         axs[i,0].invert_yaxis()
         axs[i,1].invert_yaxis()
         axs[i,0].set_ylim((max(data.lev).data, 0))
         axs[i,1].set_ylim((max(data.lev).data, 0))
         
+
         if i==0:
-            axs[i,0].set_title("Temperature", fontsize=15) 
-        axs[i,0].set_ylabel("Depth (in m)", fontsize=12)
+            axs[i,1].set_title("Salinity", fontsize=20) 
+            axs[i,0].set_title("Temperature", fontsize=20) 
+        axs[i,0].set_ylabel(f"Depth (in {data.lev.units})", fontsize=12)
         if i==4:
             axs[i,0].set_xlabel("Time", fontsize=12)
             axs[i,1].set_xlabel("Time", fontsize=12) 
@@ -295,9 +298,9 @@ class hovmoller_lev_time_plot:
         # axs[0].xaxis.set_major_locator(locator)
         # axs[1].xaxis.set_major_locator(locator)
 
-        if i==0:
-            axs[i,1].set_title("Salinity", fontsize=15) 
         axs[i,1].set_yticklabels([])
+
+        axs[i, 0].text(-0.35, 0.2, type.replace("wrt", "\nwrt\n"), fontsize=15, color='green', rotation=90, transform=axs[i, 0].transAxes, ha='center')
 
         #if self.output:
         #    write_data(f'{data_dir}/{filename}.nc', data)
@@ -320,8 +323,8 @@ class hovmoller_lev_time_plot:
         self.loop_details(3, fig, axs)
         self.loop_details(4, fig, axs)
 
-        fig.suptitle(f"Spatially averaged {self.region}", fontsize=22, y=0.9)
-        
+        fig.suptitle(f"Spatially averaged {self.region}", fontsize=25, y=0.9)
+
         if self.output:
             export_fig(self.output_dir, filename , "jpg")
 
