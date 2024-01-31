@@ -807,13 +807,13 @@ class Reader(FixerMixin, RegridMixin):
                         offset = pd.DateOffset(month=(numeric // 2))
                 else:
                     raise ValueError("center_time cannot be not implemented for end of the month frequency {resample_freq}")
-                self.logger.debug('Time offset for time centering will be %s', offset)
+                self.logger.debug('Time offset (DateOffset) for time centering will be %s', offset)
                 out["time"] = out.get_index("time") + offset
             
             # otherwise we can use timedelta (which works with fractions)
             else:
                 offset = pd.Timedelta(numeric/2, literal)
-                self.logger.debug('Time offset for time centering will be %s', offset)
+                self.logger.debug('Time offset (Timedelta) for time centering will be %s', offset)
                 out['time'] =  out["time"] + offset
 
 
