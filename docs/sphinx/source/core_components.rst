@@ -180,6 +180,8 @@ frequency by using the ``timmean`` method.
 Data have now been averaged at the desired daily timescale.
 If you want to avoid to have incomplete average over your time period (for example, be sure that all the months are complete before doing the time mean)
 it is possible to activate the ``exclude_incomplete=True`` flag which will remove averaged chunks which are not complete. 
+If you want to center the time mean on the time period, you can activate the ``center_time=True`` flag.
+This is at the moment only available yearly averages.
 
 ..  note ::
     The ``time_bounds`` boolean flag can be activated to build time bounds in a similar way to CMOR standard.
@@ -234,6 +236,21 @@ three different fixing strategies:
 
 .. warning ::
     Recursive fixes (i.e. fixes of fixes) cannot be implemented.
+
+Fixing: Data model and coordinate names
+---------------------------------------
+
+The fixer can adopt a common 'coordinate data model' (default is the CDS data model as described in the previous section).
+If this data model is not appropriate for a specific source, it is possible to specify a different one in the catalogue.
+If the data model coordinate treatment is not enough to fix the coordinates, it is possible to specify a custom fix in the catalogue.
+For example, if the longitude coordinate is called ``longitude`` instead of ``lon``, it is possible to specify a fix like:
+
+.. code-block:: yaml
+
+    lon:
+        source: longitude
+
+This will rename the coordinate to ``lon``. The block has to be specified in the ``coords`` section of the fixer file.
 
 Streaming simulation
 --------------------
