@@ -103,6 +103,7 @@ class DetectNodes():
                     # in case orography is retrieved from file add it to create file for tempest
             if self.orography:
                 self.logger.info("orography added to detect nodes input file")
+                #self.orog=self.orog.isel(time=0)
                 outfield = xr.merge([outfield, self.orog])
             
         else:

@@ -9,9 +9,9 @@ dataset:
 
 # folders for regridded data, temprorary and stored high res data
 paths: 
-  tmpdir: '/scratch/project_465000454/tc_test/fulldir'
-  fulldir: '/scratch/project_465000454/tc_test/fulldir'
-  plotdir: "/scratch/project_465000454/tc_test/Figures/"
+  tmpdir: '/scratch/project_465000454/pghinassi/tc_test/tmpdir'
+  fulldir: '/scratch/project_465000454/pghinassi/tc_test/fulldir'
+  plotdir: "/scratch/project_465000454/pghinassi/tc_test/Figures/"
 
 # log level
 setup:
@@ -45,5 +45,5 @@ stitch:
 
 # path to orography in case file (in case var is not found in the catalogue)
 orography:
-  file_path: "/scratch/project_465000454/maxness/a0cl/rundir/tco1279l137/a0cl/hres/cray.craympich/lum-g.cray.sp/h24.N60.T448xt7xh1+ioT16xt7xh0.nextgems_6h.i16r0w16.eORCA12_Z75.a0cl_ASThread_17061070944742_1_1-5887433/01-OriginalGrid/01-Hourly/"
-  file_name: "multio-nid007775-125837-SFC-1Hourly-RegularLL-standardres.grib"
+  file_path: "/users/pghinass/orography/IFS-NEMO/historical-1990/"
+  file_name: "orography_r100.nc"
