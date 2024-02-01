@@ -213,28 +213,6 @@ class MainClass:
                 if 'lon' in i:
                     coord_lon = i
         return coord_lat, coord_lon
-
-    def is_convertible(self, unit):
-        """
-        Checks if the unit is compatible for conversion.
-
-        Args:
-            unit (str): The unit to be checked.
-
-        Returns:
-            bool: True if the unit is compatible, False otherwise.
-        """
-        # Define the units supported by convert_length and convert_time methods
-        length_units = {'m', 'cm', 'mm', 'in', 'ft'}
-        time_units = {'year', 'month', 'day', 'hr', 'min', 's', 'ms'}
-
-        # Split the unit string to check for length and time units
-        unit_parts = unit.split(' ')
-        is_length_convertible = any(part in length_units for part in unit_parts)
-        is_time_convertible = any(part in time_units for part in unit_parts)
-
-        # Return True if the unit contains both a length and a time component
-        return is_length_convertible and is_time_convertible
     
     def precipitation_rate_units_converter(self, data: Union[xr.Dataset, float, int, np.ndarray],
                                            model_variable: Optional[str] = 'tprate', old_unit: Optional[str] = None,
@@ -251,30 +229,33 @@ class MainClass:
         Returns:
             xarray.Dataset: The Dataset with converted units.
         """
+        self.class_attributes_update(model_variable=model_variable, new_unit=new_unit)
+        try:
+            data = data[self.model_variable]
+        except (TypeError, KeyError):
+            pass
+        if 'xarray' in str(type(data)) and 'units' in data.attrs:
+            if data.units == self.new_unit:
+                return data
+
+        if old_unit is not None:
+            from_mass_unit, from_space_unit, from_time_unit = self.tools.unit_splitter(old_unit)
+        elif not isinstance(data, (float, int, np.ndarray)) and old_unit is None:
+            from_mass_unit, from_space_unit, from_time_unit = self.tools.unit_splitter(data.units)
+            old_unit = data.units
+        _,   to_space_unit,   to_time_unit = self.tools.unit_splitter(self.new_unit)
+
+        length_units = {'m', 'cm', 'mm', 'in', 'ft'}
+        time_units = {'year', 'month', 'day', 'hr', 'min', 's', 'ms'}
+
         # Validate the compatibility of units for conversion
-        if old_unit and not self.is_convertible(old_unit):
-            self.logger.warning(f"Cannot convert from {old_unit}. Incompatible unit for precipitation rate conversion.")
+        if from_space_unit not in length_units or from_time_unit not in time_units:
+            self.logger.warning(f"Cannot convert from {from_space_unit} {from_time_unit}. Incompatible unit for precipitation rate conversion.")
             return data
-        elif new_unit and not self.is_convertible(new_unit):
+        elif to_space_unit not in length_units or to_time_unit not in time_units:
             self.logger.warning(f"Cannot convert to {new_unit}. Incompatible unit for precipitation rate conversion.")
             return data
         else:
-            self.class_attributes_update(model_variable=model_variable, new_unit=new_unit)
-            try:
-                data = data[self.model_variable]
-            except (TypeError, KeyError):
-                pass
-            if 'xarray' in str(type(data)) and 'units' in data.attrs:
-                if data.units == self.new_unit:
-                    return data
-
-            if old_unit is not None:
-                from_mass_unit, from_space_unit, from_time_unit = self.tools.unit_splitter(old_unit)
-            elif not isinstance(data, (float, int, np.ndarray)) and old_unit is None:
-                from_mass_unit, from_space_unit, from_time_unit = self.tools.unit_splitter(data.units)
-                old_unit = data.units
-            _,   to_space_unit,   to_time_unit = self.tools.unit_splitter(self.new_unit)
-
             if old_unit == 'kg m**-2 s**-1':
                 data = 0.001 * data
                 data = self.tools.convert_length(data,   from_space_unit, to_space_unit)
