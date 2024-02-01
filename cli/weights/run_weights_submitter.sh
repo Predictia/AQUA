@@ -67,7 +67,7 @@ if [ $machine == "levante" ]; then
     whereconda=$(which mamba | rev | cut -f 3-10 -d"/" | rev)
     source $whereconda/etc/profile.d/conda.sh
     # activate conda environment
-    conda activate aqua_common
+    conda activate aqua
 fi
 # Function to load environment on LUMI
 function load_environment_AQUA() {
