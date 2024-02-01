@@ -20,7 +20,7 @@ from ocean3d.ocean_circulation.ocean_circulation import plot_stratification_para
 # from ocean3d import plot_spatial_mld_clim
 from ocean3d.ocean_circulation.ocean_circulation import plot_spatial_mld_clim_parallel
 
-from ocean3d import hovmoller_lev_time_plot
+from ocean3d import hovmoller_plot
 # from ocean3d import time_series_multilevs
 from ocean3d.ocean_drifts.tools import time_series_multilevs_parallel
 from ocean3d import multilevel_t_s_trend_plot
@@ -34,7 +34,6 @@ class Ocean3DCLI:
     def __init__(self, args):
         self.args = args
         self.loglevel = {}
-        self.logger = log_configure(log_name='Ocean3D CLI', log_level='WARNING')  # Initialize the logger
         self.config = {}
         self.data = {}
     def get_arg(self, arg, default):
@@ -87,11 +86,13 @@ class Ocean3DCLI:
         model = self.config["model"]
         exp = self.config["exp"]
         source = self.config["source"]
-        self.logger.info(f"Reader selecting for model={model}, exp={exp}, source={source}")
+        self.logger.debug(f"Reader selecting for model={model}, exp={exp}, source={source}")
         
         reader = Reader(model=model, exp=exp, source=source,
                         fix=True, loglevel=self.loglevel)
         data = reader.retrieve()
+        
+        self.logger.info(f"data retrieved for model={model}, exp={exp}, source={source}")
         # data=data.rename_dims({"time_counter":"time"})
         # data=data.rename_dims({"deptht":"lev"})
         # data=data.rename_vars({"toce_mean":"ocpt"})
@@ -101,6 +102,7 @@ class Ocean3DCLI:
         
         data = check_variable_name(data)
         if self.config["time_selection"] == True:
+            
             self.data["catalog_data"] = time_slicing(data,self.config["start_year"],
                                                      self.config["end_year"])
         else:
@@ -110,8 +112,8 @@ class Ocean3DCLI:
     
     def diag_list(self, o3d_request):
          
-        hovmoller_plot = hovmoller_lev_time_plot(o3d_request)
-        hovmoller_plot.plot_paralell()
+        hovmoller_plot_init = hovmoller_plot(o3d_request)
+        hovmoller_plot_init.single_plot()
 
         time_series_multilevs_parallel(o3d_request)
         
@@ -144,7 +146,8 @@ class Ocean3DCLI:
             "lonW":lonW,
             "lonE":lonE,
             "output":True,
-            "output_dir":self.config["outputdir"]
+            "output_dir":self.config["outputdir"],
+            "loglevel": self.loglevel
         }
         
         self.diag_list(o3d_request)
@@ -155,7 +158,7 @@ class Ocean3DCLI:
 
     def custom_region_diag(self):
         if self.config["custom_region"] != None:
-            self.logger.info("Analysing custom regions")
+            self.logger.debug("Analysing custom regions")
             custom_regions = self.config["custom_region"] ### add fix if not present
             custom_region_dict = {}
             for custom_region in custom_regions:
@@ -176,7 +179,7 @@ class Ocean3DCLI:
         if self.config["predefined_regions"]:
             predefined_regions = self.config["predefined_regions"] ### add fix if not present
             for predefined_region in predefined_regions:
-                self.logger.info("Analysing predefined regions")
+                self.logger.debug("Analysing predefined regions")
                 self.logger.debug("predefined_region: %s", predefined_region)
                 self.ocean3d_diags(region=predefined_region)
 
@@ -190,13 +193,13 @@ class Ocean3DCLI:
         dname = os.path.dirname(abspath)
         if os.getcwd() != dname:
             os.chdir(dname)
-            self.logger.info(f'Moving from current directory to {dname} to run!')
+            self.logger.debug(f'Moving from current directory to {dname} to run!')
 
         self.logger.info("Running ocean3d diagnostic...")
 
         # Read configuration file
         file = self.get_arg('config', 'config.yaml')
-        self.logger.info('Reading configuration yaml file..')
+        self.logger.debug('Reading configuration yaml file..')
 
         self.ocean3d_config_process(file)
         

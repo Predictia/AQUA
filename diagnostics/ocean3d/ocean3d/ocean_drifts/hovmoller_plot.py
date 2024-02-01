@@ -4,22 +4,13 @@ from ocean3d import write_data
 from ocean3d import export_fig
 from ocean3d import split_ocean3d_req
 import matplotlib.pyplot as plt
+from aqua.logger import log_configure
 
-class hovmoller_lev_time_plot:
+
+class hovmoller_plot:
     def __init__(self, o3d_request):
         
         self = split_ocean3d_req(self,o3d_request)
-        # self.data = o3d_request.get('data')
-        # self.model = o3d_request.get('model')
-        # self.exp = o3d_request.get('exp')
-        # self.source = o3d_request.get('source')
-        # self.region = o3d_request.get('region', None)
-        # self.latS = o3d_request.get('latS', None)
-        # self.latN = o3d_request.get('latN', None)
-        # self.lonW = o3d_request.get('lonW', None)
-        # self.lonE = o3d_request.get('lonE', None)
-        # self.output = o3d_request.get('output')
-        # self.output_dir = o3d_request.get('output_dir')
         
     def data_process_by_type(self, **kwargs):
         """
@@ -36,6 +27,8 @@ class hovmoller_lev_time_plot:
             type (str): Type of preprocessing approach applied
             cmap (str): Colormap to be used for the plot.
         """
+        logger = log_configure(self.loglevel, 'data_process_by_type')
+        
         data = kwargs["data"]
         anomaly = kwargs["anomaly"]
         anomaly_ref = kwargs["anomaly_ref"]
@@ -61,7 +54,7 @@ class hovmoller_lev_time_plot:
                 else:
                     raise ValueError(
                         "Select proper value of anomaly_ref: t0 or tmean, when anomaly = True ")
-                logger.info(f"Data processed for {type}")
+                logger.debug(f"Data processed for {type}")
             if standardise:
                 if anomaly_ref in ['t0', "intialtime", "firsttime"]:
                     cmap = "PuOr"
@@ -82,12 +75,12 @@ class hovmoller_lev_time_plot:
                 else:
                     raise ValueError(
                         "Select proper value of type: t0 or tmean, when anomaly = True ")
-                logger.info(
+                logger.debug(
                     f"Data processed for {type}")
 
         else:
             cmap = 'jet'
-            logger.info("Data processed for Full values as anomaly = False")
+            logger.debug("Data processed for Full values as anomaly = False")
             type = "Full values"
 
             process_data = data
@@ -95,6 +88,7 @@ class hovmoller_lev_time_plot:
         return process_data, type, cmap
 
     def define_lev_values(self, data_proc):
+        logger = log_configure(self.loglevel, 'define_lev_values')
         # data_proc = args[1]["data_proc"]
         # To center the colorscale around zero when we plot temperature anomalies
         ocptmin = round(np.nanmin(data_proc.ocpt.values), 2)
@@ -131,6 +125,7 @@ class hovmoller_lev_time_plot:
                     
                     
     def data_for_hovmoller_lev_time_plot(self):
+        logger = log_configure(self.loglevel, 'data_for_hovmoller_lev_time_plot')
         data = self.data
         region = self.region
         latS = self.latS
@@ -140,24 +135,24 @@ class hovmoller_lev_time_plot:
         output_dir = self.output_dir
         self.plot_info = {}
         
-        data = weighted_area_mean(data, region, latS, latN, lonW, lonE)
+        data = weighted_area_mean(data, region, latS, latN, lonW, lonE, loglevel=self.loglevel)
         
         counter = 1
         for anomaly in [False,True]:
             for standardise in [False,True]:
                 for anomaly_ref in ["t0","tmean"]:
                     data_proc, type, cmap = data_process_by_type(
-                        data=data, anomaly=anomaly, standardise=standardise, anomaly_ref=anomaly_ref)
+                        data=data, anomaly=anomaly, standardise=standardise, anomaly_ref=anomaly_ref, loglevel=self.loglevel)
                     key = counter
                     
-                    region_title = custom_region(region=region, latS=latS, latN=latN, lonW=lonW, lonE=lonE)
+                    region_title = custom_region(region=region, latS=latS, latN=latN, lonW=lonW, lonE=lonE, loglevel=self.loglevel)
 
                     if self.output:
                         # if standardise:
                         #     type = f"{type} standardised"
                         plot_name = f'hovmoller_plot_{type.replace(" ","_")}'
                         output_path, fig_dir, data_dir, filename = dir_creation(data_proc,
-                            region, latS, latN, lonW, lonE, output_dir, plot_name = plot_name)
+                            region, latS, latN, lonW, lonE, output_dir, plot_name = plot_name, loglevel=self.loglevel)
 
                     # ocptlevs, solevs =self.define_lev_values(data_proc)
                     ocptlevs, solevs = 20, 20
@@ -181,6 +176,7 @@ class hovmoller_lev_time_plot:
         return 
     
     def prepare_plot(self,key):
+        logger = log_configure(self.loglevel, 'data_for_hovmoller_lev_time_plot')
         
         plot_info = self.plot_info[key]
         data = plot_info['data']
@@ -194,7 +190,7 @@ class hovmoller_lev_time_plot:
         fig_dir = plot_info['fig_dir']
         output_path = plot_info['output_path']
         
-        logger.info("start plottiing")
+        logger.debug("start plottiing")
         filename = f"{self.model}_{self.exp}_{self.source}_{filename}"
         
         fig, (axs) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
@@ -240,12 +236,13 @@ class hovmoller_lev_time_plot:
         if self.output:
             plt.savefig(f"{fig_dir}/{filename}.pdf")
             write_data(f'{data_dir}/{filename}.nc', data)
-            logger.info(
+            logger.debug(
                 "Figure and data used for this plot are saved here: %s", output_path)
         plt.close(fig)
         return 
     
     def loop_details(self, i, fig, axs):
+        logger = log_configure(self.loglevel, 'loop_details')
         
         key = i + 4
         plot_info = self.plot_info[key]
@@ -269,7 +266,7 @@ class hovmoller_lev_time_plot:
         cs2_name = f'cs2_{i}'
         vars()[cs2_name] = axs[i,1].contourf(data.time, data.lev, data.so.transpose(),
                             levels=solevs, cmap=cmap, extend='both')
-        cbar_ax = fig.add_axes([.94,  0.77 - i* 0.115, 0.028, 0.08])
+        cbar_ax = fig.add_axes([.94,  0.77 - i* 0.117, 0.028, 0.08])
         fig.colorbar(vars()[cs2_name], cax=cbar_ax, orientation='vertical', label=f'Salinity in {data.so.attrs["units"]}')
         
 
@@ -300,15 +297,14 @@ class hovmoller_lev_time_plot:
 
         axs[i,1].set_yticklabels([])
 
-        axs[i, 0].text(-0.35, 0.2, type.replace("wrt", "\nwrt\n"), fontsize=15, color='green', rotation=90, transform=axs[i, 0].transAxes, ha='center')
+        axs[i, 0].text(-0.35, 0.2, type.replace("wrt", "\nwrt\n"), fontsize=15, color='dimgray', rotation=90, transform=axs[i, 0].transAxes, ha='center')
 
-        #if self.output:
-        #    write_data(f'{data_dir}/{filename}.nc', data)
-        #    logger.info(
-        #        "data used for this plot are saved here:", f'{data_dir}/{filename}.nc')
+        if self.output:
+            write_data(f'{data_dir}/{filename}.nc', data)
     
 
     def single_plot(self):
+        logger = log_configure(self.loglevel, 'single_plot')
         
         self.data_for_hovmoller_lev_time_plot()
 
@@ -331,6 +327,7 @@ class hovmoller_lev_time_plot:
         return
     
     def plot(self):
+        logger = log_configure(self.loglevel, 'plot')
 
         self.data_for_hovmoller_lev_time_plot()
         
@@ -345,6 +342,7 @@ class hovmoller_lev_time_plot:
 
 
     def plot_paralell(self):
+        logger = log_configure(self.loglevel, 'plot_paralell')
 
         self.data_for_hovmoller_lev_time_plot()
         

@@ -1,7 +1,7 @@
 """Ocean3D module"""
 
 from .ocean_util import * #check_variable_name, time_slicing
-from .ocean_drifts import hovmoller_lev_time_plot , time_series_multilevs, multilevel_t_s_trend_plot, zonal_mean_trend_plot
+from .ocean_drifts import hovmoller_plot , time_series_multilevs, multilevel_t_s_trend_plot, zonal_mean_trend_plot
 from .ocean_circulation.ocean_circulation import plot_stratification, plot_spatial_mld_clim
 # Optional but recommended
 __version__ = '0.0.3'

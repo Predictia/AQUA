@@ -4,23 +4,22 @@ Common Ocean modules
 
 import os
 import warnings
-import logging
 import xarray as xr
 import numpy as np
+import logging
 from aqua import Reader
 from aqua.exceptions import NoObservationError
 from aqua.util import find_vert_coord
 import matplotlib.pyplot as plt
 from aqua.util import load_yaml, get_arg, create_folder
+from aqua.logger import log_configure
 
-warnings.filterwarnings("ignore")
-
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+#logging.basicConfig(level=logging.INFO,
+#                    format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
     
-def kelvin_to_celsius(data, variable_name):
+def kelvin_to_celsius(data, variable_name, loglevel= "WARNING"):
     """
     Convert temperature in Kelvin to degrees Celsius for a specific variable in an xarray dataset.
 
@@ -31,14 +30,18 @@ def kelvin_to_celsius(data, variable_name):
     Returns:
     - xarray.Dataset: The modified xarray dataset with the specified variable converted to degrees Celsius.
     """
+    logger = log_configure(loglevel, 'Unit')
+    
     # Check if the variable exists in the dataset
     if data.ocpt.attrs['units']== 'K':
+        logger.warning("The unit of Pot. Temperature is Kelvin. Converting to degC")
         # Convert Kelvin to Celsius: Celsius = Kelvin - 273.15
         data[variable_name] -= 273.15
         data.ocpt.attrs['units']= 'degC'
     return data
 
-def check_variable_name(data):
+def check_variable_name(data, loglevel= "WARNING"):
+    logger = log_configure(loglevel, 'Check Variables')
     vars= list(data.variables)
     required_vars= []
     var_list= ["SO","so","thetao","THETAO","avg_SO","avg_so","avg_thetao","avg_THETAO",
@@ -47,31 +50,32 @@ def check_variable_name(data):
         if var in var_list:
             required_vars.append(var)
     if required_vars is not []:
-        logger.info(f"This are the varibles {required_vars} available for the diags in the catalogue.")
+        logger.debug(f"This are the varibles {required_vars} available for the diags in the catalogue.")
         data = data[required_vars]
-        logger.info("Selected this variables")
+        logger.debug("Selected this variables")
         for var in required_vars:
             if 'so' in var.lower() or 'soce' in var.lower():
                 data = data.rename({var: "so"})
-                logger.info(f"renaming {var} as so")
+                logger.debug(f"renaming {var} as so")
             if 'thetao' in var.lower() or 'toce' in var.lower():
                 data = data.rename({var: "ocpt"})
-                logger.info(f"renaming {var} as ocpt")
+                logger.debug(f"renaming {var} as ocpt")
         data = kelvin_to_celsius(data, "ocpt")
     else:
-        logger.info("Required variable avg_so and avg_thetao is not available in the catalogue")
+        raise ValueError("Required variable avg_so and avg_thetao is not available in the catalogue")
     
 
     vertical_coord = find_vert_coord(data)[0]
     data = data.rename({vertical_coord: "lev"})
     return data
 
-def time_slicing(data, start_year, end_year):
+def time_slicing(data, start_year, end_year, loglevel= "WARNING"):
+    logger = log_configure(loglevel, 'time_slicing')
     data = data.sel(time=slice(str(start_year),str(end_year)))
-    logger.info(f"Selected the data for the range of {start_year} and {end_year}")
+    logger.debug(f"Selected the data for the range of {start_year} and {end_year}")
     return data
 
-def predefined_regions(region):
+def predefined_regions(region, loglevel= "WARNING"):
     """
     Get the predefined latitude and longitude boundaries for a given region.
 
@@ -93,6 +97,7 @@ def predefined_regions(region):
     - 'Arctic Ocean'
     - 'Southern Ocean'
     """
+    logger = log_configure(loglevel, 'predefined_regions')
     region = region.lower().replace(" ", "").replace("_", "")
     if region in ["indianocean", "indian ocean"]:
         latN, latS, lonW, lonE = 30.0, -30.0, 30, 110.0
@@ -166,7 +171,7 @@ def predefined_regions(region):
     return latS, latN, lonW, lonE
 
 
-def convert_longitudes(data):
+def convert_longitudes(data, loglevel= "WARNING"):
     """
     Convert longitudes in a given dataset to the range of -180 to 180 degrees.
 
@@ -177,6 +182,7 @@ def convert_longitudes(data):
         DataArray: Dataset with converted longitudes.
 
     """
+    logger = log_configure(loglevel, 'predefined_regions')
     # Adjust longitudes to the range of -180 to 180 degrees
     data = data.assign_coords(lon=(((data["lon"] + 180) % 360) - 180))
 
@@ -187,7 +193,7 @@ def convert_longitudes(data):
 
 
 def area_selection(data, region=None, latS: float = None, latN: float = None,
-                   lonW: float = None, lonE: float = None):
+                   lonW: float = None, lonE: float = None, loglevel= "WARNING"):
     """
     Compute the weighted area mean of data within the specified latitude and longitude bounds.
 
@@ -220,7 +226,7 @@ def area_selection(data, region=None, latS: float = None, latN: float = None,
         latS, latN, lonW, lonE = predefined_regions(region)
     if lonW < 0 or lonE < 0:
         data = convert_longitudes(data)
-    logger.info(
+    logger.debug(
         "Selected for this region (latitude %s to %s, longitude %s to %s)", latS, latN, lonW, lonE)
     # Perform data slicing based on the specified or predefined latitude and longitude boundaries
     data = data.sel(lat=slice(latS, latN), lon=slice(lonW, lonE))
@@ -229,7 +235,7 @@ def area_selection(data, region=None, latS: float = None, latN: float = None,
 
 
 def weighted_zonal_mean(data, region=None, latS: float = None, latN: float = None,
-                        lonW: float = None, lonE: float = None):
+                        lonW: float = None, lonE: float = None, loglevel= "WARNING"):
     """
     Compute the weighted zonal mean of data within the specified latitude and longitude bounds.
 
@@ -249,6 +255,7 @@ def weighted_zonal_mean(data, region=None, latS: float = None, latN: float = Non
     Returns:
         xarray.Dataset: Weighted zonal mean of the input data.
     """
+    logger = log_configure(loglevel, 'predefined_regions')
     data = area_selection(data, region, latS,
                           latN, lonW, lonE)
 
@@ -258,7 +265,7 @@ def weighted_zonal_mean(data, region=None, latS: float = None, latN: float = Non
 
 
 def weighted_area_mean(data, region=None, latS: float = None, latN: float = None,
-                       lonW: float = None, lonE: float = None):
+                       lonW: float = None, lonE: float = None, loglevel= "WARNING"):
     """
     Compute the weighted area mean of data within the specified latitude and longitude bounds.
 
@@ -278,6 +285,7 @@ def weighted_area_mean(data, region=None, latS: float = None, latN: float = None
     Returns:
         xarray.Dataset: Weighted area mean of the input data.
     """
+    logger = log_configure(loglevel, 'weighted_area_mean')
     data = area_selection(data, region, latS,
                           latN, lonW, lonE)
     weighted_data = data.weighted(np.cos(np.deg2rad(data.lat)))
@@ -286,7 +294,8 @@ def weighted_area_mean(data, region=None, latS: float = None, latN: float = None
 
 
 def custom_region(region=None, latS: float = None, latN: float = None,
-                  lonW: float = None, lonE: float = None):
+                  lonW: float = None, lonE: float = None, loglevel= "WARNING"):
+    logger = log_configure(loglevel, 'custom_region')
     if region in [None, "custom"]:
         region_name = f"Region ({latS}:{latN} Lat, {lonW}:{lonE} Lon)"
     else:
@@ -294,7 +303,7 @@ def custom_region(region=None, latS: float = None, latN: float = None,
     return region_name
 
 
-def split_time_equally(data):
+def split_time_equally(data, loglevel= "WARNING"):
     """
     Splits the input data into two halves based on time dimension, or returns the original data if it has only one time step.
 
@@ -304,6 +313,7 @@ def split_time_equally(data):
     Returns:
         list: A list containing the original data and the two halves of the data.
     """
+    logger = log_configure(loglevel, 'split_time_equally')
     date_len = len(data.time)
     data_1 = None
     data_2 = None
@@ -320,7 +330,7 @@ def split_time_equally(data):
     return [data, data_1, data_2]
 
 
-def load_obs_data(model='EN4', exp='en4', source='monthly'):
+def load_obs_data(model='EN4', exp='en4', source='monthly', loglevel= "WARNING"):
     """
     Load observational data for ocean temperature and salinity.
 
@@ -332,6 +342,7 @@ def load_obs_data(model='EN4', exp='en4', source='monthly'):
     Returns:
         xarray.Dataset: Observational data containing ocean temperature and salinity.
     """
+    logger = log_configure(loglevel, 'load_obs_data')
     try:
         reader = Reader(model, exp, source)
     except KeyError:
@@ -342,11 +353,11 @@ def load_obs_data(model='EN4', exp='en4', source='monthly'):
     # We standardise the name for the vertical dimension
     den4 = den4.rename({"depth": "lev"})
     den4 = den4[["ocpt", "so"]].resample(time="MS").mean()
-    logger.info("loaded %s data", model)
+    logger.debug("loaded %s data", model)
     return den4
 
 
-def crop_obs_overlap_time(mod_data, obs_data):
+def crop_obs_overlap_time(mod_data, obs_data, loglevel= "WARNING"):
     """
     Crop the observational data to the overlapping time period with the model data.
 
@@ -357,18 +368,19 @@ def crop_obs_overlap_time(mod_data, obs_data):
     Returns:
         xarray.Dataset: Observational data cropped to the overlapping time period with the model data.
     """
+    logger = log_configure(loglevel, 'crop_obs_overlap_time')
     mod_data_time = mod_data.time
     obs_data_time = obs_data.time
     common_time = xr.DataArray(np.intersect1d(
         mod_data_time, obs_data_time), dims='time')
     if len(common_time) > 0:
         obs_data = obs_data.sel(time=common_time)
-        logger.info(
+        logger.debug(
             "selected the overlaped time of the obs data compare to the model")
     return obs_data
 
 
-def data_time_selection(data, time):
+def data_time_selection(data, time, loglevel= "WARNING"):
     """
     Selects the data based on the specified time period.
 
@@ -379,6 +391,7 @@ def data_time_selection(data, time):
     Returns:
         xarray.Dataset: Data for the selected time period.
     """
+    logger = log_configure(loglevel, 'data_time_selection')
     if not isinstance(time, int):
         time = time.lower()
     if time in ["jan", "january", "1", 1]:
@@ -441,11 +454,11 @@ def data_time_selection(data, time):
     else:
         raise ValueError("""Invalid month input. Please provide a valid name. Among this:
                          Yearly, 3M, Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec, JJA, FMA, DJF, SON """)
-    logger.info("data selected for %s climatology", time)
+    logger.debug("data selected for %s climatology", time)
     return data, time
 
 
-def compare_arrays(mod_data, obs_data):
+def compare_arrays(mod_data, obs_data, loglevel= "WARNING"):
     """
     Compares the time scale of model data and observed data and selects the overlapping time periods.
 
@@ -457,25 +470,26 @@ def compare_arrays(mod_data, obs_data):
         list: List of model data arrays with overlapping time periods.
         obs_data_selected (xarray.Dataset): Observed data for the overlapping time periods.
     """
+    logger = log_configure(loglevel, 'compare_arrays')
     if (obs_data.time == mod_data.time).all() and (len(mod_data.time) == len(obs_data.time)):
         mod_data_list = [mod_data]
         obs_data_selected = obs_data
-        logger.info("obs data and model data time scale fully matched")
+        logger.debug("obs data and model data time scale fully matched")
     elif (obs_data.time == mod_data.time).any():
         mod_data_ov = mod_data.sel(time=obs_data.time)
         mod_data_list = [mod_data_ov, mod_data]
         obs_data_selected = obs_data
-        logger.info("Model and Obs data time partly matched")
+        logger.debug("Model and Obs data time partly matched")
     else:
         mod_data_list = split_time_equally(mod_data)
         obs_data_selected = None
-        logger.info("Model data time is not avaiable for the obs data")
+        logger.debug("Model data time is not avaiable for the obs data")
 
     return mod_data_list, obs_data_selected
 
 
 def dir_creation(data, region=None,  latS: float = None, latN: float = None, lonW: float = None,
-                 lonE: float = None, output_dir=None, plot_name=None):
+                 lonE: float = None, output_dir=None, plot_name=None, loglevel= "WARNING"):
     """
     Creates the directory structure for saving the output data and figures.
 
@@ -492,6 +506,7 @@ def dir_creation(data, region=None,  latS: float = None, latN: float = None, lon
     Returns:
         tuple: Output path, figure directory path, data directory path, and filename.
     """
+    logger = log_configure(loglevel, 'dir_creation')
     # current_time = f'{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
 
     if "model" in data.attrs and "exp" in data.attrs and "source" in data.attrs:
@@ -517,19 +532,21 @@ def dir_creation(data, region=None,  latS: float = None, latN: float = None, lon
     return output_dir, fig_dir, data_dir, filename
 
 
-def write_data(file_name, data):
+def write_data(file_name, data, loglevel= "INFO"):
+    logger = log_configure(loglevel, 'write_data')
     # Check if the file exists
     if os.path.exists(file_name):
         # If it exists, delete it
         os.remove(file_name)
-        print(f"Deleted existing file: {file_name}")
+        logger.debug(f"Deleted existing file: {file_name}")
 
     # Write the new xarray data to the NetCDF file
     data.to_netcdf(file_name)
-    print(f"Data written to: {file_name}")
+    logger.debug(f"Data written to: {file_name}")
     return
 
-def export_fig(output_dir, filename, type):
+def export_fig(output_dir, filename, type, loglevel= "INFO"):
+    logger = log_configure(loglevel, 'export_fig')
     # Check if the file exists
     output_dir = f"{output_dir}/{type}"
     filename = f"{output_dir}/{filename}.{type}"
@@ -539,13 +556,14 @@ def export_fig(output_dir, filename, type):
 
     if os.path.exists(filename):
         os.remove(filename)
-        print(f"Deleted existing file: {filename}")
+        logger.debug(f"Deleted existing file: {filename}")
 
     plt.savefig(filename)
-    print(f"Figure saved to: {filename}")
+    logger.info(f"Figure saved to: {output_dir}")
     return
 
-def split_ocean3d_req(self, o3d_request):
+def split_ocean3d_req(self, o3d_request, loglevel= "WARNING"):
+    logger = log_configure(loglevel, 'split_ocean3d_req')
     self.data = o3d_request.get('data')
     self.model = o3d_request.get('model')
     self.exp = o3d_request.get('exp')
@@ -557,5 +575,5 @@ def split_ocean3d_req(self, o3d_request):
     self.lonE = o3d_request.get('lonE', None)
     self.output = o3d_request.get('output')
     self.output_dir = o3d_request.get('output_dir')
-    
+    self.loglevel= o3d_request.get('loglevel',"WARNING")
     return self

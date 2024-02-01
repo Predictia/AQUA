@@ -3,7 +3,6 @@ Ocean Circulation module
 """
 
 import warnings
-import logging
 import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
@@ -16,15 +15,9 @@ from ocean3d import compare_arrays
 from ocean3d import dir_creation
 from ocean3d import custom_region
 from ocean3d import write_data
+from aqua.logger import log_configure
 
-warnings.filterwarnings("ignore")
-
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
-
-def convert_so(so):
+def convert_so(so, loglevel= "WARNING"):
     """
     Convert practical salinity to absolute.
 
@@ -45,10 +38,11 @@ def convert_so(so):
     http://www.teos-10.org/pubs/gsw/pdf/SA_from_SP.pdf
 
     """
+    logger = log_configure(loglevel, 'convert_so')
     return so / 0.99530670233846
 
 
-def convert_ocpt(absso, ocpt):
+def convert_ocpt(absso, ocpt, loglevel= "WARNING"):
     """
     convert potential temperature to conservative temperature
 
@@ -69,6 +63,7 @@ def convert_ocpt(absso, ocpt):
     http://www.teos-10.org/pubs/gsw/html/gsw_CT_from_pt.html
 
     """
+    logger = log_configure(loglevel, 'convert_ocpt')
     x = np.sqrt(0.0248826675584615*absso)
     y = ocpt*0.025e0
     enthalpy = 61.01362420681071e0 + y*(168776.46138048015e0 +
@@ -91,7 +86,7 @@ def convert_ocpt(absso, ocpt):
     return enthalpy/3991.86795711963
 
 
-def compute_rho(absso, bigocpt, ref_pressure):
+def compute_rho(absso, bigocpt, ref_pressure, loglevel= "WARNING"):
     """
     Computes the potential density in-situ.
 
@@ -114,6 +109,7 @@ def compute_rho(absso, bigocpt, ref_pressure):
     https://github.com/fabien-roquet/polyTEOS/blob/36b9aef6cd2755823b5d3a7349cfe64a6823a73e/polyTEOS10.py#L57
 
     """
+    logger = log_configure(loglevel, 'compute_rho')
     # reduced variables
     SAu = 40.*35.16504/35.
     CTu = 40.
@@ -204,7 +200,7 @@ def compute_rho(absso, bigocpt, ref_pressure):
     return r + r0
 
 
-def convert_variables(data):
+def convert_variables(data, loglevel= "WARNING"):
     """
     Convert variables in the given dataset to absolute salinity,
     conservative temperature, and potential density.
@@ -222,17 +218,18 @@ def convert_variables(data):
         and potential density (rho) at reference pressure 0 dbar.
 
     """
+    logger = log_configure(loglevel, 'convert_variables')
     converted_data = xr.Dataset()
 
     # Convert practical salinity to absolute salinity
     absso = convert_so(data.so)
-    logger.info("Practical salinity converted to absolute salinity")
+    logger.debug("Practical salinity converted to absolute salinity")
     # Convert potential temperature to conservative temperature
     ocpt = convert_ocpt(absso, data.ocpt)
-    logger.info("Potential temperature converted to conservative temperature")
+    logger.debug("Potential temperature converted to conservative temperature")
     # Compute potential density in-situ at reference pressure 0 dbar
     rho = compute_rho(absso, ocpt, 0)
-    logger.info(
+    logger.debug(
         "Calculated potential density in-situ at reference pressure 0 dbar ")
     # Merge the converted variables into a new dataset
     converted_data = converted_data.merge(
@@ -242,7 +239,7 @@ def convert_variables(data):
 
 
 def prepare_data_for_stratification_plot(data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None,
-                                         lonE: float = None):
+                                         lonE: float = None, loglevel= "WARNING"):
     """
     Prepare data for plotting stratification profiles.
 
@@ -258,6 +255,7 @@ def prepare_data_for_stratification_plot(data, region=None, time=None, latS: flo
     Returns:
         xarray.Dataset: Prepared data for plotting stratification profiles.
     """
+    logger = log_configure(loglevel, 'prepare_data_for_stratification_plot')
     data = weighted_area_mean(data, region, latS, latN, lonW, lonE)
     data = convert_variables(data)
     data_rho = data["rho"] - 1000
@@ -266,7 +264,7 @@ def prepare_data_for_stratification_plot(data, region=None, time=None, latS: flo
     return data, time
 
 
-def plot_stratification(o3d_request,time=None):
+def plot_stratification(o3d_request,time=None, loglevel= "WARNING"):
     """
     Create a stratification plot showing the mean state temperature, salinity, and density profiles.
 
@@ -284,6 +282,7 @@ def plot_stratification(o3d_request,time=None):
     Returns:
         None
     """
+    logger = log_configure(loglevel, 'plot_stratification')
     mod_data = o3d_request.get('data')
     model = o3d_request.get('model')
     exp = o3d_request.get('exp')
@@ -320,6 +319,7 @@ def plot_stratification(o3d_request,time=None):
     if time in ["Yearly"]:
         start_year = mod_data_list[0].time[0].data
         end_year = mod_data_list[0].time[-1].data
+        logger.debug(end_year)
     else:
         start_year = mod_data_list[0].time[0].dt.year.data
         end_year = mod_data_list[0].time[-1].dt.year.data
@@ -374,11 +374,14 @@ def plot_stratification(o3d_request,time=None):
         plt.savefig(f"{fig_dir}/{filename}.pdf")
         logger.info(
             "Figure and data used in the plot, saved here : %s", output_path)
-    #plt.show()
     return
 
-def plot_stratification_parallel(o3d_request):
+def plot_stratification_parallel(o3d_request, loglevel= "WARNING"):
+    logger = log_configure(loglevel, 'plot_stratification_parallel')
     import concurrent.futures
+    import threading
+    lock = threading.Lock()
+    
     logger.info("Starting plot_stratification in parallel")
     time_list = [time for time in range(13, 18)]
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -387,7 +390,7 @@ def plot_stratification_parallel(o3d_request):
      
     return
 
-def compute_mld_cont(rho):
+def compute_mld_cont(rho, loglevel= "WARNING"):
     """To compute the mixed layer depth from density fields in continous levels
     using the same criteria as in de Boyer and Montegut (2004). The continuous distribution of MLD
     values is achieved by performing an interpolation between the first level that exceeds the
@@ -404,6 +407,7 @@ def compute_mld_cont(rho):
     -------
     mld: xarray.DataArray, dims of time, space
     """
+    logger = log_configure(loglevel, 'compute_mld_cont')
     # Here we identify the first level to represent the surfac
     surf_dens = rho.isel(lev=slice(0, 1)).mean("lev")
 
@@ -443,7 +447,7 @@ def compute_mld_cont(rho):
 
 def data_for_plot_spatial_mld_clim(data, region=None, time=None,
                                    latS: float = None, latN: float = None,
-                                   lonW: float = None, lonE: float = None):
+                                   lonW: float = None, lonE: float = None, loglevel= "WARNING"):
     """
     Extracts and prepares data for plotting spatial mean mixed layer depth (MLD) climatology.
 
@@ -460,6 +464,7 @@ def data_for_plot_spatial_mld_clim(data, region=None, time=None,
         xarray.Dataset: Processed data suitable for plotting spatial MLD climatology.
 
     """
+    logger = log_configure(loglevel, 'data_for_plot_spatial_mld_clim')
 
     data = area_selection(data, region, latS, latN, lonW, lonE)
     data = convert_variables(data)
@@ -469,7 +474,7 @@ def data_for_plot_spatial_mld_clim(data, region=None, time=None,
 
 
 def plot_spatial_mld_clim(o3d_request, time=None,
-                          overlap=True):
+                          overlap=True, loglevel= "WARNING"):
     """
     Plots the climatology of mixed layer depth in the NH as computed with de Boyer Montegut (2004)'s criteria in
     an observational dataset and a model dataset, allowing the user to select the month the climatology is computed
@@ -487,6 +492,7 @@ def plot_spatial_mld_clim(o3d_request, time=None,
     None
 
     """
+    logger = log_configure(loglevel, 'plot_spatial_mld_clim')
     mod_data = o3d_request.get('data')
     model = o3d_request.get('model')
     exp = o3d_request.get('exp')
@@ -539,7 +545,9 @@ def plot_spatial_mld_clim(o3d_request, time=None,
 
     clev1 = 0.0
     # We round up to next hundreth
-    clev2 = max(np.max(mod_clim), np.max(obs_clim))
+    # clev2 = max(np.max(mod_clim), np.max(obs_clim))
+    clev2 = np.max(obs_clim)
+    
     # print(clev2)
     if clev2 < 200:
         inc = 10
@@ -564,9 +572,6 @@ def plot_spatial_mld_clim(o3d_request, time=None,
     fig.colorbar(cs1, location="bottom", label='Mixed layer depth (in m)')
 
     filename = f"{model}_{exp}_{source}_{filename}"
-    if output:
-        mod_clim.to_netcdf(f'{data_dir}/{filename}_Rho.nc')
-        obs_clim.to_netcdf(f'{data_dir}/{filename}_Rho.nc')
 
     axs[0].set_title(f"Model climatology {myr1}-{myr2}", fontsize=18)
     axs[0].set_ylabel("Latitude", fontsize=14)
@@ -584,16 +589,42 @@ def plot_spatial_mld_clim(o3d_request, time=None,
         plt.savefig(f"{fig_dir}/{filename}.pdf")
         logger.info(
             "Figure and data used for this plot are saved here: %s", output_path)
+        mod_clim.to_netcdf(f'{data_dir}/{filename}_Rho.nc')
+        obs_clim.to_netcdf(f'{data_dir}/{filename}_Rho.nc')
 
+    plt.close(fig)
     #plt.show()
     return
 
-def plot_spatial_mld_clim_parallel(o3d_request):
+def plot_spatial_mld_clim_parallel(o3d_request, loglevel= "WARNING"):
+    logger = log_configure(loglevel, 'plot_spatial_mld_clim_parallel')
     import concurrent.futures
+    import threading
     logger.info("Starting plot_spatial_mld_clim in parallel")
     time_list = [time for time in range(13, 18)]
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        executor.map(plot_spatial_mld_clim, [o3d_request] * len(time_list), time_list)
-    logger.info(" plot_spatial_mld_clim completed")
+    for time in time_list:
+        plot_spatial_mld_clim(o3d_request, time= time)
+        
+    # with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+    #     executor.map(plot_spatial_mld_clim, [o3d_request] * len(time_list), time_list)
+    # logger.info(" plot_spatial_mld_clim completed")
      
     return
+
+
+
+# def plot_spatial_mld_clim_parallel(o3d_request, max_workers=None, loglevel= "WARNING"):
+#    logger = log_configure(loglevel, 'plot_spatial_mld_clim_parallel')
+#     import concurrent.futures
+#     logger.info("Starting plot_spatial_mld_clim in parallel")
+#     time_list = [time for time in range(13, 18)]
+
+#     with concurrent.futures.ProcessPoolExecutor(max_workers=1) as executor:
+#         # Submit the tasks
+#         futures = [executor.submit(plot_spatial_mld_clim, o3d_request, time) for time in time_list]
+
+#         # Wait for all tasks to complete
+#         concurrent.futures.wait(futures)
+
+#     logger.info("plot_spatial_mld_clim completed")
+#     return
