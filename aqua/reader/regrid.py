@@ -279,18 +279,25 @@ class RegridMixin():
         aggregation = self.aggregation
         fix = self.fix
         streaming = self.streaming
+        startdate = self.startdate
+        enddate = self.enddate
         self.fix = False
         self.aggregation = None
         self.streaming = False
+        self.startdate = None
+        self.enddate = None
         data = self.retrieve(sample=True, history=False, *args, **kwargs)
         self.aggregation = aggregation
         self.fix = fix
         self.streaming = streaming
+        self.startdate = startdate
+        self.enddate = enddate
 
         if isinstance(data, types.GeneratorType):
             data = next(data)
 
-        vars = [var for var in data.data_vars if not var.endswith("_bnds")]
+        vars = [var for var in data.data_vars if
+                not var.endswith("_bnds") and not var.startswith("bounds") and not var.endswith("_bounds")]
         data = data[[vars[0]]]
 
         return data
@@ -300,7 +307,7 @@ class RegridMixin():
         Given a set of default space and vertical dimensions, 
         find the one present in the data and return them
 
-        Args: 
+        Args:
             space_coord (str or list): horizontal dimension already defined. If None, autosearch enabled.
             vert_coord (str or list): vertical dimension already defined. If None, autosearch enabled.
             default_horizontal_dims (list): default dimensions for the horizontal search

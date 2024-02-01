@@ -18,7 +18,7 @@ DEFAULT_GSV_PARAMS = {'request': {
     'param': '130',
     'levtype': 'pl',
     'levelist': '300'
-}, 'data_start_date': '20080101T1200', 'data_end_date': '20080101T1200', 'timestep': 'H', 'timestyle': 'date'}
+}, 'data_start_date': '20080101T1200', 'data_end_date': '20080101T1200', 'timestep': 'h', 'timestyle': 'date'}
 
 loglevel = 'DEBUG'
 
@@ -42,7 +42,7 @@ class TestGsv():
     def test_gsv_constructor(self) -> None:
         """Simplest test, to check that we can create it correctly."""
         print(DEFAULT_GSV_PARAMS['request'])
-        source = GSVSource(DEFAULT_GSV_PARAMS['request'], "20080101", "20080101", timestep="H",
+        source = GSVSource(DEFAULT_GSV_PARAMS['request'], "20080101", "20080101", timestep="h",
                            aggregation="S", var='167', metadata=None)
         assert source is not None
 
@@ -60,7 +60,7 @@ class TestGsv():
         'step': '0'
         },
         'data_start_date': '20080101T1200', 'data_end_date': '20080101T1200',
-        'timestep': 'H', 'timestyle': 'date', 'var': 130}], indirect=True)
+        'timestep': 'h', 'timestyle': 'date', 'var': 130}], indirect=True)
     def test_gsv_read_chunked(self, gsv: GSVSource) -> None:
         """Test that the ``GSVSource`` is able to read data from FDB."""
         data = gsv.read_chunked()

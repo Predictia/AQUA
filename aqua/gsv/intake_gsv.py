@@ -41,7 +41,7 @@ class GSVSource(base.DataSource):
     timeaxis = None  # Used for dask access
 
     def __init__(self, request, data_start_date, data_end_date, timestyle="date",
-                 aggregation="S", savefreq="H", timestep="H", timeshift=None,
+                 aggregation="S", savefreq="h", timestep="h", timeshift=None,
                  startdate=None, enddate=None, var=None, metadata=None, level=None,
                  loglevel='WARNING', **kwargs):
         """
