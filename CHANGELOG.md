@@ -14,6 +14,7 @@ Unreleased in the current development version.
 - Fixing new pandas timedelta: replacing H with h in all FDB catalog (#786)
 - Change environment name from `aqua_common` to `aqua`(#805)
 - Adding a run test label to trigger CI (#826)
+- Introduced a new CLI Python script to efficiently pre-compute grid weights and cell areas for multiple catalogue sources (#627)
 
 ## [v0.6.2]
 
