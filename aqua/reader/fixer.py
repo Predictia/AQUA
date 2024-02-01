@@ -159,12 +159,11 @@ class FixerMixin():
             dict with merged fixes
         """
         final = base
-        for item in base.keys():
+        for item in specific.keys():
             if item == 'vars':
                 final[item] = {**base[item], **specific[item]}
             else:
-                if item in specific:
-                    final[item] = specific[item]
+                final[item] = specific[item]
 
         return final
 
