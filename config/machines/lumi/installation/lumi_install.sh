@@ -31,7 +31,7 @@ load_aqua_file="$HOME/load_aqua.sh" #check if $HOME does not exist
 #####################################################################
 
 # define installation path
-export INSTALLATION_PATH="$MAMBADIR/aqua_common"
+export INSTALLATION_PATH="$MAMBADIR/aqua"
 log_message INFO "Installation path has been set to ${INSTALLATION_PATH}"
 
 # Remove the installation path from the $PATH. 
@@ -87,9 +87,10 @@ install_aqua() {
   log_message INFO "Modules have been loaded."
   
   # install AQUA framework and diagnostics
-  conda-containerize new --mamba --prefix "${INSTALLATION_PATH}" "${AQUA}/config/machines/lumi/installation/environment_lumi_common.yml"
-  conda-containerize update "${INSTALLATION_PATH}" --post-install "${AQUA}/config/machines/lumi/installation/pip_lumi_common.txt"
+  conda-containerize new --mamba --prefix "${INSTALLATION_PATH}" "${AQUA}/config/machines/lumi/installation/environment_lumi.yml"
+  conda-containerize update "${INSTALLATION_PATH}" --post-install "${AQUA}/config/machines/lumi/installation/pip_lumi.txt"
   log_message INFO "AQUA framework and diagnostics have been installed."
+
 }
 
 # if INSTALLATION_PATH does not exist, create it

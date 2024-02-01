@@ -12,6 +12,7 @@ Unreleased in the current development version.
 - Added `center_time` option in the `timmean()` method to save the time coordinate in the middle of the time interval and create a Timmean module and related TimmeanMixin class (#811)
 - Fixer to rename coordinates available (#822)
 - Fixing new pandas timedelta: replacing H with h in all FDB catalog (#786)
+- Change environment name from `aqua_common` to `aqua`(#805)
 - Adding a run test label to trigger CI (#826)
 
 ## [v0.6.2]
