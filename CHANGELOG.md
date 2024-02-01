@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version.
 
+- `retrieve_plain()` method now set off startdate and enddate (#829)
 - Complete restructure of fixer to make use of `fixer_name`: set a default and a `False` (#746)
 - Added `center_time` option in the `timmean()` method to save the time coordinate in the middle of the time interval and create a Timmean module and related TimmeanMixin class (#811)
 - Fixer to rename coordinates available (#822)
