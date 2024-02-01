@@ -15,6 +15,7 @@ def get_reference_data(varname, formula=False, model='ERA5', exp='era5', source=
                        startdate=None, enddate=None,
                        std_startdate="1991-01-01", std_enddate="2020-12-31",
                        resample=None, annual=True,
+                       monthly_std=True, annual_std=True,
                        regrid=None, loglevel='WARNING'):
     """
     Get reference data for a given variable.
@@ -32,6 +33,8 @@ def get_reference_data(varname, formula=False, model='ERA5', exp='era5', source=
         std_enddate (str, opt): End date for standard deviation. Default is "2020-12-31".
         resample (str, opt): Resample rate (e.g. "M"). Default is None.
         annual (bool, opt): Compute annual mean. Default is True.
+        monthly_std (bool, opt): Compute monthly standard deviation. Default is True.
+        annual_std (bool, opt): Compute annual standard deviation. Default is True.
         regrid (str, opt): Regrid resolution. Default is None.
         loglevel (str, opt): Logging level. Default is WARNING.
 
@@ -60,23 +63,30 @@ def get_reference_data(varname, formula=False, model='ERA5', exp='era5', source=
     # Standard deviation evaluation
     logger.info(f"Computing standard deviation from {std_startdate} to {std_enddate}")
     if formula:
-        std_mon = reader.fldmean(eval_formula(varname,
-                                              data.sel(time=slice(std_startdate,
-                                                                  std_enddate)))).groupby("time.month").std()
-        if annual:
+        if monthly_std:
+            logger.debug(f"Computing monthly std for a formula {varname}")
+            std_mon = reader.fldmean(eval_formula(varname,
+                                                data.sel(time=slice(std_startdate,
+                                                                    std_enddate)))).groupby("time.month").std()
+        if annual and annual_std:
+            logger.debug(f"Computing annual std for a formula {varname}")
             std_annual = reader.timmean(data.sel(time=slice(std_startdate, std_enddate)),
-                                        freq='Y', center_time=True)
+                                        freq='YS', center_time=True)
             std_annual = reader.fldmean(eval_formula(varname, std_annual)).std()
     else:
-        std_mon = reader.fldmean(data.sel(time=slice(std_startdate,
-                                                     std_enddate))).groupby("time.month").std()
+        if monthly_std:
+            logger.debug(f"Computing monthly std for a variable {varname}")
+            std_mon = reader.fldmean(data.sel(time=slice(std_startdate,
+                                                        std_enddate))).groupby("time.month").std()
 
-        if annual:
+        if annual and annual_std:
+            logger.debug(f"Computing annual std for a variable {varname}")
             std_annual = reader.timmean(data.sel(time=slice(std_startdate, std_enddate)),
-                                        freq='Y', center_time=True)
+                                        freq='YS', center_time=True)
             std_annual = reader.fldmean(std_annual).std()
 
     if startdate is not None and enddate is not None:
+        logger.debug(f"Selecting reference data from {startdate} to {enddate}")
         data = data.sel(time=slice(startdate, enddate))
     else:
         logger.info("No start and end date given. Retrieving all data.")
@@ -92,19 +102,33 @@ def get_reference_data(varname, formula=False, model='ERA5', exp='era5', source=
     try:
         if formula:
             data_mon = reader.fldmean(eval_formula(varname, data))
+            if not monthly_std:
+                std_mon = None
         else:  # Variable
             data_mon = reader.fldmean(data[varname])
-            std_mon = std_mon[varname]
+            if monthly_std:
+                std_mon = std_mon[varname]
+            else:
+                std_mon = None
 
+        if monthly_std:
             logger.debug(f"Monthly std: {std_mon.values}")
 
         if annual:
             if formula:
-                data_annual = reader.timmean(data=eval_formula(varname, data), freq='Y', center_time=True)
+                logger.debug(f"Computing annual mean for a formula {varname}")
+                data_annual = reader.timmean(data=eval_formula(varname, data), freq='YS', center_time=True)
+                if not annual_std:
+                    std_annual = None
             else:
-                data_annual = reader.timmean(data=data_mon, freq='Y', center_time=True)
-                std_annual = std_annual[varname]
+                logger.debug(f"Computing annual mean for a variable {varname}")
+                data_annual = reader.timmean(data=data_mon, freq='YS', center_time=True)
+                if annual_std:
+                    std_annual = std_annual[varname]
+                else:
+                    std_annual = None
 
+            if annual_std:
                 logger.debug(f"Annual std: {std_annual.values}")
         else:
             data_annual = None
@@ -228,6 +252,7 @@ def plot_timeseries(
     data.plot(**plot_kw, ax=ax)
 
     if annual:
+        logger.debug(f"Computing annual mean for {model} {exp}")
         data_annual = reader.timmean(data=data, freq='YS', center_time=True)
         logger.debug(f"Using {model} {exp} annual mean as label")
         plot_kw["label"] = f"{model} {exp} annual mean"
@@ -256,6 +281,8 @@ def plot_timeseries(
                                                                                 enddate=enddate,
                                                                                 std_startdate=std_startdate,
                                                                                 std_enddate=std_enddate,
+                                                                                monthly_std=monthly_std,
+                                                                                annual_std=annual_std,
                                                                                 loglevel=loglevel
                                                                                 )
             logger.debug("Reference data retrieved.")
@@ -286,7 +313,6 @@ def plot_timeseries(
             eradata.plot(ax=ax, color="k", lw=0.5, label="ERA5 monthly mean")
 
             if annual:
-                eradata_annual = reader.timmean(data=eradata, freq='YS', center_time=True)
                 eradata_annual.plot(ax=ax, color="k", lw=0.5, linestyle='--', label="ERA5 annual mean")
                 if annual_std:
                     ax.fill_between(
