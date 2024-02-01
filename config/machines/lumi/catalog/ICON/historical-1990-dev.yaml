@@ -10,7 +10,7 @@ sources:
       data_start_date: 19900101T0100
       data_end_date: 19951231T2300
       aggregation: D  # Default aggregation / chunk size
-      savefreq: H
+      savefreq: h
       timestyle: date
       #timeshift: Yes    # shift time of resulting xarray by this amount
     description: ICON historical development run refactored into a simpler FDB
