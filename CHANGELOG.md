@@ -7,11 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version.
 
+## [v0.6.3]
+
+Complete list:
 - `retrieve_plain()` method now set off startdate and enddate (#829)
-- Complete restructure of fixer to make use of `fixer_name`: set a default and a `False` (#746)
+- Complete restructure of fixer to make use of `fixer_name`: set a default for each model and a `False` to disable it (#746)
 - Added `center_time` option in the `timmean()` method to save the time coordinate in the middle of the time interval and create a Timmean module and related TimmeanMixin class (#811)
 - Fixer to rename coordinates available (#822)
-- Fixing new pandas timedelta: replacing H with h in all FDB catalog (#786)
+- Fixing new pandas timedelta definition: replacing H with h in all FDB catalog (#786)
 - Change environment name from `aqua_common` to `aqua`(#805)
 - Adding a run test label to trigger CI (#826)
 - Refactoreding tropical_rainfall diagnostic to improve organization and maintainability, introducing nested classes (#814)
@@ -283,7 +286,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.2...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.3...HEAD
+[v0.6.3]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.1...v0.6.2
 [v0.6.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.1...v0.6.2
 [v0.6.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6...v0.6.1
 [v0.6]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.5.2-beta...v0.6
