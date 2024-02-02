@@ -14,6 +14,7 @@ Unreleased in the current development version.
 - Fixing new pandas timedelta: replacing H with h in all FDB catalog (#786)
 - Change environment name from `aqua_common` to `aqua`(#805)
 - Adding a run test label to trigger CI (#826)
+- Refactoreding tropical_rainfall diagnostic to improve organization and maintainability, introducing nested classes (#814)
 
 ## [v0.6.2]
 
