@@ -3,14 +3,14 @@ import matplotlib.pyplot as plt
 from aqua import Reader
 from aqua.logger import log_configure
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
-from .reference_data import get_reference_gregory
+from .reference_data import get_reference_ts_gregory, get_reference_toa_gregory
 
 
 def plot_gregory(model, exp, source,
                  reader_kw={}, plot_kw={},
                  regrid=None, freq=None,
                  ts_name='2t', toa_name=['mtnlwrf', 'mtnswrf'],
-                 ref=True, ref_kw={},
+                 ref=True, ts_kw={}, toa_kw={},
                  loglevel='WARNING', **kwargs):
     """Plot global mean SST against net radiation at TOA.
 
@@ -25,7 +25,8 @@ def plot_gregory(model, exp, source,
         ts (str): variable name for 2m temperature, default is '2t'.
         toa (list): list of variable names for net radiation at TOA, default is ['mtnlwrf', 'mtnswrf'].
         ref (bool): If True, reference data is plotted. Default is True.
-        ref_kw (dict): Additional keyword arguments passed to the `get_reference_gregory` function.
+        ts_kw (dict): Additional keyword arguments passed to the `get_reference_ts_gregory` function.
+        toa_kw (dict): Additional keyword arguments passed to the `get_reference_toa_gregory` function.
         loglevel (str): Logging level. Default is WARNING.
 
     Raises:
@@ -73,9 +74,9 @@ def plot_gregory(model, exp, source,
     toa_annual = reader.fldmean(data[toa_name[0]] + data[toa_name[1]]).values
 
     if ref:
-        logger.debug("Retrieving reference data")
         try:
-            ref_data = get_reference_gregory(**ref_kw, loglevel=loglevel)
+            ref_ts_mean, ref_ts_std = get_reference_ts_gregory(**ts_kw, loglevel=loglevel)
+            ref_toa_mean, ref_toa_std = get_reference_toa_gregory(**toa_kw, loglevel=loglevel)
         except NoObservationError as e:
             logger.debug(f"Error: {e}")
             logger.error("No reference data available. No reference plot will be drawn.")
@@ -94,6 +95,7 @@ def plot_gregory(model, exp, source,
     ax1.legend()  # Add legend
 
     # Plot annual data
+    ax2.set_ylim(-1.5, 1.5) # W/m^2
     ax2.axhline(0, color="k", lw=0.7)
     ax2.plot(ts_annual, toa_annual, marker=".", color="#000066", lw=1.1, label="Annual Mean")
     ax2.plot(ts_annual[0], toa_annual[0], marker=">", color="tab:green")
@@ -103,44 +105,46 @@ def plot_gregory(model, exp, source,
     ax2.text(ts_annual[-1], toa_annual[-1], str(data.time.dt.year[-1].values), fontsize=8, ha='right')
     ax2.set_xlabel("2m temperature [C]")
     ax2.grid(True)  # Add grid in the background
-    ax2.legend()  # Add legend
 
     if ref:
-        ts_mean = ref_data['ts']['mean']
-        ts_std = ref_data['ts']['std']
-        toa_mean = ref_data['toa']['mean']
-        toa_std = ref_data['toa']['std']
         # Convert to Celsius
         logger.debug("Converting reference data to Celsius")
-        ts_mean -= 273.15
-        logger.debug(f"Reference data: ts_mean={ts_mean}, ts_std={ts_std}, toa_mean={toa_mean}, toa_std={toa_std}")
+        ref_ts_mean -= 273.15
+        logger.debug(f"Reference data: ts_mean={ref_ts_mean}, ts_std={ref_ts_std}")
+        logger.debug(f"Reference data: toa_mean={ref_toa_mean}, toa_std={ref_toa_std}")
 
         # Fill with a horizontal band between the mean and the mean +/- 2 sigma of TOA
-        ax2.axhspan(toa_mean - 2 * toa_std, toa_mean + 2 * toa_std, color="lightgreen", alpha=0.3)
+        ax2.axhspan(ref_toa_mean - 2 * ref_toa_std, ref_toa_mean + 2 * ref_toa_std,
+                    color="lightgreen", alpha=0.3, label=r"2$\sigma$ band")
         # Fill with a vertical band between the mean and the mean +/- 2 sigma of 2m temperature
-        ax2.axvspan(ts_mean - 2 * ts_std, ts_mean + 2 * ts_std, color="lightgreen", alpha=0.3)
+        ax2.axvspan(ref_ts_mean - 2 * ref_ts_std, ref_ts_mean + 2 * ref_ts_std,
+                    color="lightgreen", alpha=0.3)
 
+    ax2.legend()  # Add legend
     plt.tight_layout()  # Adjust spacing between subplots
 
     # Add model and experiment to title
     title = "Gregory plot"
-    title += f"{model} {exp}"
+    title += f" {model} {exp}"
     title += f" ({data.time.dt.year[0].values}-{data.time.dt.year[-1].values})"
 
     if ref:
-        try:
-            model_ts = ref_kw['ts_ref']['model']
-            model_toa = ref_kw['toa_ref']['model']
-            if model_ts == model_toa:
-                title += f"\nReference: {model_ts}"
-            else:
-                title += f"\nReference: {model_ts} and {model_toa}"
-            try:
-                title += f" {ref_kw['startdate']}-{ref_kw['enddate']}"
-            except KeyError:
-                pass
-        except KeyError:
-            pass
+        model_ts = ts_kw.get('model', 'ERA5')
+        model_toa = toa_kw.get('model', 'CERES')
+        if model_ts == model_toa:
+            title += f"\nReference: {model_ts}"
+            start_ts = ts_kw.get('startdate', '1980')
+            end_ts = ts_kw.get('enddate', '2010')
+            title += f" {start_ts}-{end_ts}"
+        else: # Different models for 2m temperature and Net radiation TOA
+            title += f"\nReference: {model_ts} for 2m temperature"
+            start_ts = ts_kw.get('startdate', '1980')
+            end_ts = ts_kw.get('enddate', '2010')
+            title += f" {start_ts}-{end_ts}"
+            title += f" and {model_toa} for Net radiation TOA"
+            start_toa = toa_kw.get('startdate', '2001')
+            end_toa = toa_kw.get('enddate', '2020')
+            title += f" {start_toa}-{end_toa}"
 
     plt.subplots_adjust(top=0.85)
     fig.suptitle(title)
