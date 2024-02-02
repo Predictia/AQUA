@@ -99,7 +99,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
         end_date2 = str(var2["time.year"][-1].values) + '-' + str(var2["time.month"][-1].values) + '-' + str(var2["time.day"][-1].values)
 
     # Load in memory to speed up the calculation
-    logger.warning("Loading data into memory to speed up the calculation...")
+    logger.info("Loading data into memory to speed up the calculation...")
     var1 = var1.load()
 
     # Check if pre-computed climatology is provided, otherwise compute it
@@ -352,7 +352,7 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None,
 
     if 'plev' in bias.dims:
         # Load in memory to speed up the calculation
-        logger.warning("Loading data into memory to speed up the calculation...")
+        logger.info("Loading data into memory to speed up the calculation...")
         bias = bias.load()
 
         # Get the pressure levels and coordinate values
