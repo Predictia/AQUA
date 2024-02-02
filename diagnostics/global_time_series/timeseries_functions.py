@@ -66,8 +66,8 @@ def get_reference_data(varname, formula=False, model='ERA5', exp='era5', source=
         if monthly_std:
             logger.debug(f"Computing monthly std for a formula {varname}")
             std_mon = reader.fldmean(eval_formula(varname,
-                                                data.sel(time=slice(std_startdate,
-                                                                    std_enddate)))).groupby("time.month").std()
+                                                  data.sel(time=slice(std_startdate,
+                                                                      std_enddate)))).groupby("time.month").std()
         if annual and annual_std:
             logger.debug(f"Computing annual std for a formula {varname}")
             std_annual = reader.timmean(data.sel(time=slice(std_startdate, std_enddate)),
@@ -77,7 +77,7 @@ def get_reference_data(varname, formula=False, model='ERA5', exp='era5', source=
         if monthly_std:
             logger.debug(f"Computing monthly std for a variable {varname}")
             std_mon = reader.fldmean(data.sel(time=slice(std_startdate,
-                                                        std_enddate))).groupby("time.month").std()
+                                                         std_enddate))).groupby("time.month").std()
 
         if annual and annual_std:
             logger.debug(f"Computing annual std for a variable {varname}")

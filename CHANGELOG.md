@@ -10,7 +10,7 @@ Unreleased in the current development version.
 ## [v0.6.3]
 
 Complete list:
-- Global time series can add annual std and now default uncertainty is 2 std (#830)
+- Timeseries: can add annual std and now default uncertainty is 2 std (#830)
 - `retrieve_plain()` method now set off startdate and enddate (#829)
 - Complete restructure of fixer to make use of `fixer_name`: set a default for each model and a `False` to disable it (#746)
 - Added `center_time` option in the `timmean()` method to save the time coordinate in the middle of the time interval and create a Timmean module and related TimmeanMixin class (#811)
@@ -18,9 +18,9 @@ Complete list:
 - Fixing new pandas timedelta definition: replacing H with h in all FDB catalog (#786)
 - Change environment name from `aqua_common` to `aqua`(#805)
 - Adding a run test label to trigger CI (#826)
-- Introduced a new CLI Python script to efficiently pre-compute grid weights and cell areas for multiple catalogue sources (#627)
-- Refactoring tropical_rainfall diagnostic to improve organization and maintainability, introducing nested classes (#814)
+- Tropical_rainfall: improve organization and maintainability, introducing nested classes (#814)
 - Revisiting CERES fixes (#833)
+- Timeseries: add bands for observation in Gregory plots (#837)
 
 ## [v0.6.2]
 
