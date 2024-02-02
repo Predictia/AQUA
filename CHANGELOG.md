@@ -10,6 +10,7 @@ Unreleased in the current development version.
 ## [v0.6.3]
 
 Complete list:
+- Global time series can add annual std and now default uncertainty is 2 std (#830)
 - `retrieve_plain()` method now set off startdate and enddate (#829)
 - Complete restructure of fixer to make use of `fixer_name`: set a default for each model and a `False` to disable it (#746)
 - Added `center_time` option in the `timmean()` method to save the time coordinate in the middle of the time interval and create a Timmean module and related TimmeanMixin class (#811)
