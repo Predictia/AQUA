@@ -125,7 +125,7 @@ class SeaIceExtent:
             # automatically the first source available
             source = setup.get("source", None)
             regrid = setup.get("regrid", None)
-            var = setup.get("var", None)
+            var = setup.get("var", 'ci')
             # NOTE: this is not implemented yet
             timespan = setup.get("timespan", None)
 
@@ -140,16 +140,11 @@ class SeaIceExtent:
                 self.logger.error("An exception occurred while instantiating reader: %s", e)
                 raise NoDataError("Error while instantiating reader")
 
-            if var:
-                try:
-                    data = reader.retrieve(var=var)
-                except KeyError:
-                    self.logger.error("Variable %s not found in dataset",
-                                      var)
-                    data = reader.retrieve()
-            else:  # retrieve all variables
-                self.logger.info("Retrieving all variables")
-                data = reader.retrieve()
+            try:
+                data = reader.retrieve(var=var)
+            except KeyError:
+                self.logger.error("Variable %s not found in dataset", var)
+                raise NoDataError("Variable not found in dataset")
 
             if timespan:
                 # TODO: implement timespan
@@ -158,10 +153,6 @@ class SeaIceExtent:
             if regrid:
                 self.logger.info("Regridding data")
                 data = reader.regrid(data)
-
-            # HACK: this should be done with the fixer
-            if model == "OSI-SAF":
-                data = data.rename({"siconc": "ci"})
 
             areacello = reader.grid_area
             try:
@@ -176,8 +167,8 @@ class SeaIceExtent:
 
             # Create mask based on threshold
             try:
-                ci_mask = data.ci.where((data.ci > self.thresholdSeaIceExtent) &
-                                        (data.ci < 1.0))
+                ci_mask = data[var].where((data[var] > self.thresholdSeaIceExtent) &
+                                          (data[var] < 1.0))
             except Exception:
                 raise NoDataError("No sea ice concentration data found in dataset")
 
@@ -364,115 +355,121 @@ class SeaIceConcentration:
 
     def plotConcentration(self):
 
-        # NH plots
-        projection = ccrs.NearsidePerspective(central_longitude=0.0, central_latitude=90.0, satellite_height=35785831, false_easting=0, false_northing=0, globe=None)
 
-        fig1, ax1 = plt.subplots(self.nModels, subplot_kw={'projection': projection},figsize=(13, 3 * self.nModels))
 
-        for jSetup, setup in enumerate(self.mySetups):
-            print(" " + str(jSetup))
-            # Acquiring the setup
-            self.logger.debug("Setup: " + str(setup))
-            model = setup["model"]
-            exp = setup["exp"]
-            # We use get because the reader can try to take
-            # automatically the first source available
-            source = setup.get("source", None)
-            regrid = setup.get("regrid", None)
-            var = setup.get("var", "avg_siconc")
-            timespan = setup.get("timespan", None)
+        # One figure per projection (impossible to instantiate a figure with different central_latitude
 
-            self.logger.info(f"Retrieving data for {model} {exp} {source}")
+        for jHemi, hemi in enumerate(["nh", "sh"]):
+            if hemi == "nh":
+                central_latitude = 90
+            else:
+                central_latitude = -90
 
-            # Instantiate reader
-            try:
-                print(model)
-                print(exp)
-                print(source)
-                print(regrid)
-                print(var)
-                reader = Reader(model=model, exp=exp, source=source,
+            projection = ccrs.Orthographic(central_longitude=0.0, central_latitude=central_latitude)
+
+            fig1, ax1 = plt.subplots(nrows = 1, ncols = self.nModels, subplot_kw={'projection': projection}, figsize=(5 * self.nModels, 5))
+
+            if self.nModels == 1:
+                ax1 = [ax1]
+            else:
+                ax1 = ax1.flatten()
+
+            for jSetup, setup in enumerate(self.mySetups):
+                # Acquiring the setup
+                self.logger.debug("Setup: " + str(setup))
+                model = setup["model"]
+                exp = setup["exp"]
+                # We use get because the reader can try to take
+                # automatically the first source available
+                source = setup.get("source", None)
+                regrid = setup.get("regrid", None)
+                var = setup.get("var", "avg_siconc")
+                timespan = setup.get("timespan", None)
+
+                self.logger.info(f"Retrieving data for {model} {exp} {source}")
+
+                # Instantiate reader
+                try:
+                    reader = Reader(model=model, exp=exp, source=source,
                                 regrid=regrid, loglevel=self.loglevel)
 
-                tmp = reader.retrieve()
-                print(tmp.keys)
-            except Exception as e:
-                self.logger.error("An exception occurred while instantiating reader: %s", e)
-                raise NoDataError("Error while instantiating reader")
+                    tmp = reader.retrieve()
+                except Exception as e:
+                    self.logger.error("An exception occurred while instantiating reader: %s", e)
+                    raise NoDataError("Error while instantiating reader")
 
-            try:
-                data = reader.retrieve(var=var)
-            except KeyError:
-                self.logger.error("Variable %s not found in dataset", var)
-                raise NoDataError("Variable not found in dataset")
-            if timespan is None:
-                # if timespan is set to None, retrieve the timespan
-                # from the data directly
-                self.logger.warning("Using timespan based on data availability")
-                timespan = [np.datetime_as_string(data.time[0].values, unit='D'),
+                try:
+                    data= reader.retrieve(var=var)
+                except KeyError:
+                    self.logger.error("Variable %s not found in dataset", var)
+                    raise NoDataError("Variable not found in dataset")
+                if timespan is None:
+                    # if timespan is set to None, retrieve the timespan
+                    # from the data directly
+                    self.logger.warning("Using timespan based on data availability")
+                    timespan = [np.datetime_as_string(data.time[0].values, unit='D'),
                                                      np.datetime_as_string(data.time[-1].values, unit='D')]
-            if regrid:
-                self.logger.info("Regridding data")
-                data = reader.regrid(data)
+                if regrid:
+                    self.logger.info("Regridding data")
+                    data = reader.regrid(data)
 
-            areacello = reader.grid_area
-            try:
-                lat = data.coords["lat"]
-                lon = data.coords["lon"]
-            except KeyError:
-                raise NoDataError("No lat/lon coordinates found in dataset")
+                try:
+                    lat = data.coords["lat"]
+                    lon = data.coords["lon"]
+                except KeyError:
+                    raise NoDataError("No lat/lon coordinates found in dataset")
 
-            # Important: recenter the lon in the conventional 0-360 range
-            lon = (lon + 360) % 360
-            lon.attrs["units"] = "degrees"
+                # Important: recenter the lon in the conventional 0-360 range
+                lon = (lon + 360) % 360
+                lon.attrs["units"] = "degrees"
 
-            label = setup["model"] + " " + setup["exp"] + " " + setup["source"]
+                label = setup["model"] + " " + setup["exp"] + " " + setup["source"]
             
-            lon1D = lon.values
-            lat1D = lat.values
 
-            lon2D, lat2D = np.meshgrid(lon1D, lat1D)
-            month_diagnostic = 3 # Classical (non-Pythonic) convention
-            monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+                if len(lon.shape) == 1: # If we are using a regular grid, we need to meshgrid it
+                    lon2D, lat2D = np.meshgrid(lon, lat)
+                else:
+                    lon2D, lat2D = lon, lat
 
-            self.logger.warning("WARNING: TO BE IMPLEMENTED: SUB SELECT BASED ON TIME SPAN")
-            maskTime = (data['time.month'] == month_diagnostic)
+                month_diagnostic = 3 # Classical (non-Pythonic) convention
+                monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
-            dataPlot = data.avg_siconc.where(maskTime, drop=True).mean("time").values
+                self.logger.warning("WARNING: TO BE IMPLEMENTED: SUB SELECT BASED ON TIME SPAN")
+                maskTime = (data['time.month'] == month_diagnostic)
 
-            # Create a polar stereographic projection
-            projection = ccrs.Stereographic(central_longitude=180.0, central_latitude=90.0)
-            projection = ccrs.NearsidePerspective(central_longitude=0.0, central_latitude=90.0, satellite_height=35785831, false_easting=0, false_northing=0, globe=None)
+                dataPlot = data[var].where(maskTime, drop=True).mean("time").values
+
+                # Create color sequence for sic
+                sourceColors = [[0.0, 0.0, 0.2], [0.0, 0.0, 0.0],[0.5, 0.5, 0.5], [0.6, 0.6, 0.6], [0.7, 0.7, 0.7], [0.8, 0.8, 0.8], [0.9, 0.9, 0.9],[1.0, 1.0, 1.0]]
+                myCM = LinearSegmentedColormap.from_list('myCM', sourceColors, N = 15)
+
+                # Create a figure and axis with the specified projection
+
+                # Add cyclic points to avoid a white Greenwich meridian
+                #varShow, lon1DCyclic = add_cyclic_point(dataPlot, coord = lon1D, axis = 1)
+
+                # Plot the field data using contourf
+                levels = np.arange(0.0, 1.05, 0.05)
+                levelsShow = np.arange(0.0, np.max(levels), 0.1)
+
+                contour = ax1[jSetup].pcolormesh(lon, lat, dataPlot,  \
+                          transform=ccrs.PlateCarree(), cmap = myCM
+                          )
 
 
-            # Create color sequence for sic
-            #sourceColors = [[0.1, 0.45, 0.2], [0.4, 0.8, 0.2]]
-            sourceColors = [[0.0, 0.0, 0.2], [0.0, 0.0, 0.0],[0.5, 0.5, 0.5], [0.6, 0.6, 0.6], [0.7, 0.7, 0.7], [0.8, 0.8, 0.8], [0.9, 0.9, 0.9],[1.0, 1.0, 1.0]]
-            myCM = LinearSegmentedColormap.from_list('myCM', sourceColors, N = 15)
+                # Add coastlines and gridlines
+                ax1[jSetup].coastlines()
+                #ax.gridlines()
+                ax1[jSetup].add_feature(cfeature.LAND, edgecolor='k')
 
-            # Create a figure and axis with the specified projection
+                # Add colorbar
+                cbar = plt.colorbar(contour, ax=ax1[jSetup], orientation='vertical', pad=0.05)
+                cbar.set_label('fractional')
+                cbar.set_ticks(levelsShow)
 
-            # Add cyclic points to avoid a white Greenwich meridian
-            varShow, lon1DCyclic = add_cyclic_point(dataPlot, coord = lon1D, axis = 1)
+                # Set title
+                ax1[jSetup].set_title(str(model) + "-" + str(exp) + "-" + str(source)  + '\n(average over ' + " - ".join(timespan) + ")")
 
-            # Plot the field data using contourf
-            levels = np.arange(0.0, 1.05, 0.05)
-            levelsShow = np.arange(0.0, np.max(levels), 0.1)
-            contour = ax1[jSetup].contourf(lon1DCyclic, lat1D, varShow, levels = levels, transform=ccrs.PlateCarree(), cmap=myCM)
-
-
-            # Add coastlines and gridlines
-            ax1[jSetup].coastlines()
-            #ax.gridlines()
-            ax1[jSetup].add_feature(cfeature.LAND, edgecolor='k')
-
-            # Add colorbar
-            cbar = plt.colorbar(contour, ax=ax1[jSetup], orientation='vertical', pad=0.05)
-            cbar.set_label('fractional')
-            cbar.set_ticks(levelsShow)
-
-            # Set title
-            ax1[jSetup].set_title(monthNames[month_diagnostic - 1] + ' sea ice concentration ' + '(average over ' + " - ".join(timespan) + ")" + '\n ' + str(model) + "-" + str(exp) + "-" + str(source))
-
-        fig1.savefig("./test.pdf") 
+            fig1.suptitle(monthNames[month_diagnostic - 1] + ' sea ice concentration ')
+            fig1.savefig("./maps_" + hemi + ".pdf") 
         
