@@ -15,6 +15,7 @@ Unreleased in the current development version.
 - Change environment name from `aqua_common` to `aqua`(#805)
 - Adding a run test label to trigger CI (#826)
 - Introduced a new CLI Python script to efficiently pre-compute grid weights and cell areas for multiple catalogue sources (#627)
+- Refactoring tropical_rainfall diagnostic to improve organization and maintainability, introducing nested classes (#814)
 
 ## [v0.6.2]
 
