@@ -13,7 +13,7 @@ if [[ -z "$AQUA" ]]; then
     echo -e "\033[0;31mWarning: We are assuming AQUA is installed in your HOME, i.e. $HOME/AQUA"
     echo -e "\x1b[38;2;255;165;0mAlternatively, define the AQUA environment variable with the path to your 'AQUA' directory."
     echo -e "For example: export AQUA=/path/to/aqua\033[0m"
-    AQUA=$HOME/AQUA
+    export AQUA=$HOME/AQUA
 fi
 
 if [[ ! -d  $AQUA ]] ; then
