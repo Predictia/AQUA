@@ -26,7 +26,7 @@ def parse_arguments(args):
     """
     # Initial setup for configuration file parsing
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    default_config_file = os.path.join(script_dir, 'config', 'weights_config.yml')
+    default_config_file = os.path.join(script_dir, 'weights_config.yml')
     temp_parser = argparse.ArgumentParser(add_help=False)
     temp_parser.add_argument('--config', type=str, default=default_config_file)
     args, remaining_argv = temp_parser.parse_known_args()

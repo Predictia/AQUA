@@ -1,3 +1,5 @@
+# Configuration file for weights generation
+# if no model, exp or source is specified all the available in the catalog will be processed
 data:
   models: []            # List of models to be used
   experiments: []       # List of experiments
