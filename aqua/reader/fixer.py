@@ -139,7 +139,7 @@ class FixerMixin():
             self.logger.info('No specific fix found, will call the default fix %s', default_fixer_name)
             fixes = self.fixes_dictionary["fixer_name"].get(default_fixer_name)
             if fixes is None:
-                self.logger.error("The requested deafult fixer name %s does not exist in fixes files", default_fixer_name)
+                self.logger.warning("The requested default fixer name %s does not exist in fixes files", default_fixer_name)
                 return None
             else:
                 self.logger.info("Fix names %s found in fixes files", default_fixer_name)
@@ -407,9 +407,6 @@ class FixerMixin():
                                           source, var, factor, offset)
                         log_history(data[source], f"Fixing {source} to {var}. Unit fix: factor={factor}, offset={offset}")
 
-        # remove variables following the fixes request
-        data = self._delete_variables(data)
-
         # Only now rename everything
         data = data.rename(fixd)
 
@@ -424,6 +421,9 @@ class FixerMixin():
         if apply_unit_fix:
             for var in data.data_vars:
                 self.apply_unit_fix(data[var])
+
+        # remove variables following the fixes request
+        data = self._delete_variables(data)
 
         # Fix coordinates according to a given data model
         src_datamodel = self.fixes.get("data_model", src_datamodel)
