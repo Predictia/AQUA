@@ -99,3 +99,53 @@ def plot_gregory(model, exp, source,
     fig.suptitle(title)
 
     return fig
+
+
+def get_reference_gregory(ts_name='2t', toa_name=['mtnlwrf', 'mtnswrf'],
+                          ts_ref={'model': 'ERA5', 'exp': 'era5', 'source': 'monthly'},
+                          toa_ref={'model': 'ERA5', 'exp': 'era5', 'source': 'monthly'},
+                          startdate='1980-01-01', enddate='2010-12-31', loglevel='WARNING'):
+    """Retrieve reference data for Gregory plot.
+
+    Parameters:
+        ts_name (str): variable name for 2m temperature, default is '2t'.
+        toa_name (list): list of variable names for net radiation at TOA, default is ['mtnlwrf', 'mtnswrf'].
+        ts_ref (dict): dictionary with model, exp and source for 2m temperature, default is {'model': 'ERA5', 'exp': 'era5', 'source': 'monthly'}.
+        toa_ref (dict): dictionary with model, exp and source for net radiation at TOA, default is {'model': 'ERA5', 'exp': 'era5', 'source': 'monthly'}.
+        startdate (str): start date for reference data, default is '1980-01-01'.
+        enddate (str): end date for reference data, default is '2010-12-31'.
+
+    Returns:
+        dict: dictionary with 2m temperature and net radiation at TOA for reference data.
+              A center value is given together with the standard deviation for the selected period.
+    """
+    logger = log_configure(loglevel, 'get_reference_gregory')
+
+    # Retrieve and evaluate ts:
+    reader_ts = Reader(ts_ref['model'], ts_ref['exp'], ts_ref['source'],
+                       startdate=startdate, enddate=enddate, loglevel=loglevel)
+    data_ts = reader_ts.retrieve(var=ts_name)
+    data_ts = data_ts[ts_name]
+    data_ts = reader_ts.timmean(data_ts, freq='YS')
+    data_ts = reader_ts.fldmean(data_ts)
+
+    logger.debug("Evaluating 2m temperature")
+
+    ts_std = data_ts.std().values
+    ts_mean = data_ts.mean().values
+
+    # Retrieve and evaluate toa:
+    reader_toa = Reader(toa_ref['model'], toa_ref['exp'], toa_ref['source'],
+                        startdate=startdate, enddate=enddate, loglevel=loglevel)
+    data_toa = reader_toa.retrieve(var=toa_name)
+    data_toa = data_toa[toa_name[0]] + data_toa[toa_name[1]]
+    data_toa = reader_toa.timmean(data_toa, freq='YS')
+    data_toa = reader_toa.fldmean(data_toa)
+
+    logger.debug("Evaluating net radiation at TOA")
+
+    toa_std = data_toa.std().values
+    toa_mean = data_toa.mean().values
+
+    return {'ts': {'mean': ts_mean, 'std': ts_std},
+            'toa': {'mean': toa_mean, 'std': toa_std}}
