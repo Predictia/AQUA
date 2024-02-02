@@ -86,6 +86,7 @@ def plot_gregory(model, exp, source,
 
     # Plot monthly data
     ax1.axhline(0, color="k")
+    ax1.set_ylim(-12., 12.)  # W/m^2
     ax1.plot(ts, toa, marker=".", **plot_kw, label="Monthly Mean", lw=0.5, alpha=0.8)
     ax1.plot(ts[0], toa[0], marker=">", color="tab:green", label="First Time-step")
     ax1.plot(ts[-1], toa[-1], marker="<", color="tab:red", label="Last Time-step")
@@ -95,7 +96,7 @@ def plot_gregory(model, exp, source,
     ax1.legend()  # Add legend
 
     # Plot annual data
-    ax2.set_ylim(-1.5, 1.5) # W/m^2
+    ax2.set_ylim(-1.5, 1.5)  # W/m^2
     ax2.axhline(0, color="k", lw=0.7)
     ax2.plot(ts_annual, toa_annual, marker=".", color="#000066", lw=1.1, label="Annual Mean")
     ax2.plot(ts_annual[0], toa_annual[0], marker=">", color="tab:green")
@@ -136,7 +137,7 @@ def plot_gregory(model, exp, source,
             start_ts = ts_kw.get('startdate', '1980')
             end_ts = ts_kw.get('enddate', '2010')
             title += f" {start_ts}-{end_ts}"
-        else: # Different models for 2m temperature and Net radiation TOA
+        else:  # Different models for 2m temperature and Net radiation TOA
             title += f"\nReference: {model_ts} for 2m temperature"
             start_ts = ts_kw.get('startdate', '1980')
             end_ts = ts_kw.get('enddate', '2010')
