@@ -113,11 +113,11 @@ def plot_gregory(model, exp, source,
         logger.debug(f"Reference data: ts_mean={ref_ts_mean}, ts_std={ref_ts_std}")
         logger.debug(f"Reference data: toa_mean={ref_toa_mean}, toa_std={ref_toa_std}")
 
-        # Fill with a horizontal band between the mean and the mean +/- 2 sigma of TOA
-        ax2.axhspan(ref_toa_mean - 2 * ref_toa_std, ref_toa_mean + 2 * ref_toa_std,
-                    color="lightgreen", alpha=0.3, label=r"2$\sigma$ band")
+        # Fill with a horizontal band between the mean and the mean +/- sigma of TOA
+        ax2.axhspan(ref_toa_mean - ref_toa_std, ref_toa_mean + ref_toa_std,
+                    color="lightgreen", alpha=0.3, label=r"$\sigma$ band")
         # Fill with a vertical band between the mean and the mean +/- 2 sigma of 2m temperature
-        ax2.axvspan(ref_ts_mean - 2 * ref_ts_std, ref_ts_mean + 2 * ref_ts_std,
+        ax2.axvspan(ref_ts_mean - ref_ts_std, ref_ts_mean + ref_ts_std,
                     color="lightgreen", alpha=0.3)
 
     ax2.legend()  # Add legend
