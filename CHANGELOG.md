@@ -17,6 +17,7 @@ Unreleased in the current development version.
 - Adding a run test label to trigger CI (#826)
 - Introduced a new CLI Python script to efficiently pre-compute grid weights and cell areas for multiple catalogue sources (#627)
 - Refactoring tropical_rainfall diagnostic to improve organization and maintainability, introducing nested classes (#814)
+- Revisiting CERES fixes (#833)
 
 ## [v0.6.2]
 
