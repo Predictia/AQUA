@@ -129,7 +129,7 @@ class SeaIceExtent:
             regrid = setup.get("regrid", None)
             var = setup.get("var", 'avg_siconc')
             timespan = setup.get("timespan", None)
-       
+
             self.logger.info(f"Retrieving data for {model} {exp} {source}")
 
             # Instantiate reader
@@ -233,12 +233,11 @@ class SeaIceExtent:
         Method to produce figures plotting seaice extent.
         """
 
-
         # First figure: raw time series (useful to check any possible suspicious
         # data that could contaminate statistics like averages: fig1
 
         # Second figure: seasonal cycles (useful for evaluation): fig2
-        monthsNumeric = range(1, 12 + 1) # Numeric months
+        monthsNumeric = range(1, 12 + 1)  # Numeric months
         monthsNames = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"]
 
         fig1, ax1 = plt.subplots(self.nRegions, figsize=(13, 3 * self.nRegions))
@@ -253,10 +252,10 @@ class SeaIceExtent:
                 extent = self.myExtents[js][jr]
 
                 # Monthly cycle
-                extentCycle = np.array([extent.sel(time = extent['time.month'] == m).mean(dim = 'time').values for m in monthsNumeric])
+                extentCycle = np.array([extent.sel(time=extent['time.month'] == m).mean(dim='time').values for m in monthsNumeric])
 
                 # One standard deviation of the temporal variability
-                extentStd   = np.array([extent.sel(time = extent['time.month'] == m).std(dim = 'time').values for m in monthsNumeric])
+                extentStd = np.array([extent.sel(time=extent['time.month'] == m).std(dim='time').values for m in monthsNumeric])
 
                 # Don't plot osisaf nh in the south and conversely
                 if (setup["model"] == "OSI-SAF" and setup["source"] == "nh-monthly" and
@@ -266,19 +265,20 @@ class SeaIceExtent:
                     self.logger.debug("Not plotting osisaf nh in the south and conversely")
                     pass
                 else:
-                    ax1[jr].plot(extent.time, extent, label=label, color = color_plot)
-                    ax2[jr].plot(monthsNumeric, extentCycle, label = label, lw = 3, color = color_plot)
+                    ax1[jr].plot(extent.time, extent, label=label, color=color_plot)
+                    ax2[jr].plot(monthsNumeric, extentCycle, label=label, lw=3, color=color_plot)
 
                     # Plot ribbon of uncertainty
                     if setup["model"] == "OSI-SAF":
                         for mult in np.arange(2, 0.1, -0.1):
-                            ax2[jr].fill_between(monthsNumeric, extentCycle - mult * extentStd, extentCycle + mult * extentStd, alpha = 0.05, zorder = 0, color = color_plot, lw = 0)
+                            ax2[jr].fill_between(monthsNumeric, extentCycle - mult * extentStd, extentCycle + mult * extentStd,
+                                                 alpha=0.05, zorder=0, color=color_plot, lw=0)
 
                 ax1[jr].set_title("Sea ice extent: region " + region)
 
                 ax1[jr].legend(fontsize=6, ncols=6, loc="best")
                 ax1[jr].set_ylabel(extent.units)
-                #ax1[jr].set_ylim(bottom = 0, top = None)
+                # ax1[jr].set_ylim(bottom = 0, top = None)
                 ax1[jr].grid()
                 ax1[jr].set_axisbelow(True)
                 fig1.tight_layout()
@@ -289,7 +289,7 @@ class SeaIceExtent:
                 # Ticks
                 ax2[jr].set_xticks(monthsNumeric)
                 ax2[jr].set_xticklabels(monthsNames)
-                #ax2[jr].set_ylim(bottom = 0, top = None)
+                # ax2[jr].set_ylim(bottom = 0, top = None)
                 ax2[jr].grid()
                 ax2[jr].set_axisbelow(True)
 
