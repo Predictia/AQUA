@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version.
 
+- Hotfix to set `intake==0.7.0` as default (#841)
 - Timeseries: can add annual std and now default uncertainty is 2 std (#830)
 - `retrieve_plain()` method now set off startdate and enddate (#829)
 - Complete restructure of fixer to make use of `fixer_name`: set a default and a `False` (#746)
