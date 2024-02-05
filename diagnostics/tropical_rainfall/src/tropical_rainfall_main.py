@@ -213,7 +213,7 @@ class MainClass:
                 if 'lon' in i:
                     coord_lon = i
         return coord_lat, coord_lon
-
+    
     def precipitation_rate_units_converter(self, data: Union[xr.Dataset, float, int, np.ndarray],
                                            model_variable: Optional[str] = 'tprate', old_unit: Optional[str] = None,
                                            new_unit: Optional[str] = 'm s**-1') -> xr.Dataset:
@@ -245,27 +245,38 @@ class MainClass:
             old_unit = data.units
         _,   to_space_unit,   to_time_unit = self.tools.unit_splitter(self.new_unit)
 
-        if old_unit == 'kg m**-2 s**-1':
-            data = 0.001 * data
-            data = self.tools.convert_length(data,   from_space_unit, to_space_unit)
-            data = self.tools.convert_time(data,     from_time_unit,  to_time_unit)
-        elif from_mass_unit is None and self.new_unit == 'kg m**-2 s**-1':
-            data = self.tools.convert_length(data,   from_space_unit, 'm')
-            data = self.tools.convert_time(data,     from_time_unit,  's')
-            data = 1000 * data
+        length_units = {'m', 'cm', 'mm', 'in', 'ft'}
+        time_units = {'year', 'month', 'day', 'hr', 'min', 's', 'ms'}
+
+        # Validate the compatibility of units for conversion
+        if from_space_unit not in length_units or from_time_unit not in time_units:
+            self.logger.warning(f"Cannot convert from {from_space_unit} {from_time_unit}. Incompatible unit for precipitation rate conversion.")
+            return data
+        elif to_space_unit not in length_units or to_time_unit not in time_units:
+            self.logger.warning(f"Cannot convert to {new_unit}. Incompatible unit for precipitation rate conversion.")
+            return data
         else:
-            data = self.tools.convert_length(data,   from_space_unit, to_space_unit)
-            data = self.tools.convert_time(data,     from_time_unit,  to_time_unit)
-        if 'xarray' in str(type(data)):
-            data.attrs['units'] = self.new_unit
-            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            history_update = str(current_time)+' the units of precipitation are converted from ' + \
-                str(data.units) + ' to ' + str(self.new_unit) + ';\n '
-            if 'history' not in data.attrs:
-                data.attrs['history'] = ' '
-            history_attr = data.attrs['history'] + history_update
-            data.attrs['history'] = history_attr
-        return data
+            if old_unit == 'kg m**-2 s**-1':
+                data = 0.001 * data
+                data = self.tools.convert_length(data,   from_space_unit, to_space_unit)
+                data = self.tools.convert_time(data,     from_time_unit,  to_time_unit)
+            elif from_mass_unit is None and self.new_unit == 'kg m**-2 s**-1':
+                data = self.tools.convert_length(data,   from_space_unit, 'm')
+                data = self.tools.convert_time(data,     from_time_unit,  's')
+                data = 1000 * data
+            else:
+                data = self.tools.convert_length(data,   from_space_unit, to_space_unit)
+                data = self.tools.convert_time(data,     from_time_unit,  to_time_unit)
+            if 'xarray' in str(type(data)):
+                data.attrs['units'] = self.new_unit
+                current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                history_update = str(current_time)+' the units of precipitation are converted from ' + \
+                    str(data.units) + ' to ' + str(self.new_unit) + ';\n '
+                if 'history' not in data.attrs:
+                    data.attrs['history'] = ' '
+                history_attr = data.attrs['history'] + history_update
+                data.attrs['history'] = history_attr
+            return data 
 
     def latitude_band(self, data: xr.Dataset, trop_lat: Optional[Union[int, float]] = None) -> xr.Dataset:
         """

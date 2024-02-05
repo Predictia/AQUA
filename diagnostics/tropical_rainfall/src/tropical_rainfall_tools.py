@@ -474,7 +474,7 @@ class ToolsClass:
             except ValueError:
                 mass_unit = None
                 space_unit = filtered_unit[0]
-                time_unit = 'day'
+                time_unit = None #'day'
         return mass_unit, space_unit, time_unit
 
     def _utc_to_local(self, utc_time: int, longitude: float) -> int:
