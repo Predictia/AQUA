@@ -126,24 +126,24 @@ class TCs(DetectNodes, StitchNodes):
         Returns:
             None
         """
-        
+
         # do this to remove the last letter from streamstep! e.g. tdict['stream']['streamstep'] is defined as "10D" but we want only the value 10!
         numbers = [int(i) for i in tdict['stream']['streamstep'] if i.isdigit()]
-        streamstep_n=int(''.join(map(str, numbers)))
-        
+        streamstep_n = int(''.join(map(str, numbers)))
+
         # Check if the character after the number is 'D'
         # if not expressed as "D", raise value error, since we need days for the time loop!
         if tdict['stream']['streamstep'][len(numbers)] != 'D':
             raise ValueError("Critical error! Stream step must be specified in days as 'D' in the config file!")
-
+        
         # retrieve the data and call detect nodes on the first chunk of data
         self.data_retrieve()
         self.detect_nodes_zoomin()
 
         # parameters for stitch nodes (to save tracks of selected variables in netcdf)
-        n_days_stitch = pd.to_datetime(tdict['stitch']['n_days_freq'] + \
-            2*tdict['stitch']['n_days_ext'])
-        last_run_stitch =  pd.to_datetime(self.startdate)
+        n_days_stitch = tdict['stitch']['n_days_freq'] + \
+            2*tdict['stitch']['n_days_ext']
+        last_run_stitch = self.stream_startdate
 
 
         # loop to simulate streaming
@@ -151,15 +151,11 @@ class TCs(DetectNodes, StitchNodes):
             print("entered the loop")
             self.data_retrieve()
             self.logger.warning(
-                "New streaming from %s to %s", pd.Timestamp(self.stream_startdate).strftime('%Y%m%dT%H'), pd.Timestamp(self.stream_enddate).strftime('%Y%m%dT%H'))
-            timecheck = (pd.to_datetime(self.data2d.time.values[-1]) > pd.to_datetime(tdict['time']['enddate']))
-            print("last time values od data 2d is: ", pd.to_datetime(self.data2d.time.values[-1]))
-            print ("timecheck: ", timecheck)
-            # if last date/time of the streaming chunk is after enddate take enddate as last date
-            # problem: in data 2d the output is hourly! we need 6 h
+                "New streaming from %s to %s", pd.to_datetime(self.stream_startdate), pd.to_datetime(self.stream_enddate))
+            timecheck = (self.data2d.time.values[-1] > pd.to_datetime(tdict['time']['enddate']))
+
             if timecheck:
-                #self.stream_enddate = self.data2d.time.values[np.where(timecheck)[0][0]-1]
-                self.stream_enddate = pd.to_datetime(self.data2d.time.values[-1])
+                self.stream_enddate = self.data2d.time.values[-1]
                 self.logger.warning(
                     'Modifying the last stream date %s', self.stream_enddate)
 
@@ -167,33 +163,30 @@ class TCs(DetectNodes, StitchNodes):
             self.detect_nodes_zoomin()
 
             if timecheck:
-                print("break the loop!")
+                print("breaking the loop")
                 break
 
             # add one hour since time ends at 23
-            dayspassed = pd.to_datetime((self.stream_enddate + np.timedelta64(1,
-                          'h') - last_run_stitch) / np.timedelta64(1, 'D'))
-            
-            print("dayspassed: ", dayspassed)
-
-            # ERROR: IT SEEMS IT DOES NOT ENTER THIS LOOP
+            dayspassed = (np.datetime64(self.stream_enddate) + np.timedelta64(1, 'h') - np.datetime64(last_run_stitch)) / np.timedelta64(1, 'D')
+            print (dayspassed)
             # call Tempest StitchNodes every n_days_freq days time period and save TCs tracks in a netcdf file
+
             if dayspassed >= n_days_stitch:
-                end_run_stitch = last_run_stitch + \
-                    pd.to_datetime(tdict['stitch']['n_days_freq'])
+                end_run_stitch = np.datetime64(last_run_stitch) + \
+                    np.timedelta64(tdict['stitch']['n_days_freq'], 'D')
                 self.logger.warning(
-                    'Running stitch nodes from %s to %s', last_run_stitch, end_run_stitch)
-                self.stitch_nodes_zoomin(startdate=last_run_stitch, enddate=end_run_stitch,
-                                         n_days_freq=pd.to_datetime(tdict['stitch']['n_days_freq']), n_days_ext=pd.to_datetime(tdict['stitch']['n_days_ext']))
+                    'DAYSPASSED LOOP Running stitch nodes from %s to %s', pd.to_datetime(last_run_stitch), pd.to_datetime(end_run_stitch))
+                self.stitch_nodes_zoomin(startdate=pd.to_datetime(last_run_stitch), enddate=pd.to_datetime(end_run_stitch),
+                                         n_days_freq=tdict['stitch']['n_days_freq'], n_days_ext=tdict['stitch']['n_days_ext'])
                 last_run_stitch = copy.deepcopy(end_run_stitch)
-                
-        # ERROR: END RUN STITCH IS EQUAL TO END STREAM DATE!!
+
         # end of the loop for the last chunk of data
+
         end_run_stitch = np.datetime64(tdict['time']['enddate'])
         self.logger.warning(
-            'Running stitch nodes from %s to %s', last_run_stitch, end_run_stitch)
-        self.stitch_nodes_zoomin(startdate=last_run_stitch, enddate=end_run_stitch,
-                                 n_days_freq=pd.to_datetime(tdict['stitch']['n_days_freq']), n_days_ext=pd.to_datetime(tdict['stitch']['n_days_ext']))
+            'LAST CHUNK Running stitch nodes from %s to %s',  pd.to_datetime(np.datetime64(last_run_stitch)), pd.to_datetime(end_run_stitch))
+        self.stitch_nodes_zoomin(startdate=pd.to_datetime(last_run_stitch), enddate=pd.to_datetime(end_run_stitch),
+                                 n_days_freq=tdict['stitch']['n_days_freq'], n_days_ext=tdict['stitch']['n_days_ext'])
 
     def catalog_init(self):
         """
@@ -212,7 +205,7 @@ class TCs(DetectNodes, StitchNodes):
 
         if self.streaming:
             self.logger.warning(
-                'Initialised streaming for %s %s starting on %s', self.stream_step, self.stream_units, self.stream_startdate)
+                'Initialised streaming for %s %s starting on %s', self.stream_step, self.stream_units, pd.to_datetime(self.stream_startdate))
         if self.model in 'IFS':
             self.varlist2d = ['msl', '10u', '10v', 'z']
             self.reader2d = Reader(model=self.model, exp=self.exp, source=self.source2d,

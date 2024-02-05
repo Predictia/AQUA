@@ -28,21 +28,22 @@ class StitchNodes():
             None
         """
 
+
         self.set_time_window(n_days_freq=n_days_freq, n_days_ext=n_days_ext)
 
         # periods specifies you want 1 block from startdate to enddate
         for block in pd.date_range(start=startdate, end=enddate, periods=1):
             tic = time()
             dates_freq, dates_ext = self.time_window(block)
-            self.logger.warning(
-                f'running stitch nodes from {block.strftime("%Y%m%d")}-{dates_ext[-1].strftime("%Y%m%d")}')
+            self.logger.info(
+                f'running stitch nodes from {block.strftime("%Y-%m-%d")}-{enddate.strftime("%Y-%m-%d")}')
             self.prepare_stitch_nodes(block, dates_freq, dates_ext)
             self.run_stitch_nodes(maxgap='6h')
             self.reorder_tracks()
             self.store_stitch_nodes(block, dates_freq)
             toc = time()
             self.logger.info(
-                'DetectNodes done in {:.4f} seconds'.format(toc - tic))
+                'StitchNodes done in {:.4f} seconds'.format(toc - tic))
 
     def set_time_window(self, n_days_freq=30, n_days_ext=10):
         """
@@ -125,7 +126,7 @@ class StitchNodes():
             None
         """
 
-        self.logger.warning('Running stitch nodes...')
+        self.logger.info('Running stitch nodes...')
         full_nodes = os.path.join(self.paths['tmpdir'], 'full_nodes.txt')
         if os.path.exists(full_nodes):
             os.remove(full_nodes)
@@ -140,14 +141,15 @@ class StitchNodes():
             stitch_string = f'StitchNodes --in {full_nodes} --out {self.track_file} --in_fmt lon,lat,slp,wind,zs --range 8.0 --mintime {mintime} ' \
                 f'--maxgap {maxgap} --threshold wind,>=,10.0,10;lat,<=,50.0,10;lat,>=,-50.0,10;zs,<=,1500.0,10'
             self.logger.info(stitch_string)
-            subprocess.run(stitch_string.split(), stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+            subprocess.run(stitch_string.split())#, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
             
         # if the orography is found run stitch nodes accordingly
         else:
-            stitch_string = f'StitchNodes --in {full_nodes} --out {self.track_file} --in_fmt lon,lat,slp,wind,zs --range 8.0 --mintime {mintime} ' \
-                f'--maxgap {maxgap} --threshold wind,>=,10.0,10;lat,<=,50.0,10;lat,>=,-50.0,10;'
+            print("stitchnodes: no oro")
+            stitch_string = f'StitchNodes --in {full_nodes} --out {self.track_file} --in_fmt lon,lat,slp,wind --range 8.0 --mintime {mintime} ' \
+                f'--maxgap {maxgap} --threshold wind,>=,10.0,10;lat,<=,50.0,10;lat,>=,-50.0,10'
             self.logger.info(stitch_string)
-            subprocess.run(stitch_string.split(), stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+            subprocess.run(stitch_string.split())#, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
         
         self.logger.warning(f'Tracked into {self.track_file}!')
 
@@ -161,8 +163,8 @@ class StitchNodes():
         Returns:
             Python dictionary with date lon lat of TCs centres after StitchNodes has been run
         """
-        # if the orography is found do the parsing of the txt file in the usual way
-        if 'z' in self.lowres2d.data_vars:
+        # if the orography is found run stitch nodes accordingly
+        if 'z' in self.lowres2d.data_vars or self.orography:
             with open(self.track_file) as file:
                 lines = file.read().splitlines()
                 parts_list = [line.split("\t")
