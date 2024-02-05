@@ -26,7 +26,7 @@ approx_rel = 1e-4
 
 @pytest.mark.tropical_rainfall
 @pytest.fixture
-def reader():
+def retrieved_dataarray():
     if os.getenv('INPUT_ARG') is None:
         data = Reader(model="IFS", exp="test-tco79", source="long")
         retrieved = data.retrieve()
@@ -68,9 +68,9 @@ def test_module_import():
 
 
 @pytest.fixture
-def data_size(reader):
+def data_size(retrieved_dataarray):
     """ Return total size of Dataset"""
-    data = reader
+    data = retrieved_dataarray
     if 'DataArray' in str(type(data)):
         size = data.size
     elif 'Dataset' in str(type(data)):
@@ -112,10 +112,10 @@ def test_attribute_type():
 
 
 @pytest.fixture
-def histogram_output(reader):
+def histogram_output(retrieved_dataarray):
     """ Histogram output fixture
     """
-    data = reader
+    data = retrieved_dataarray
     if 'tprate' in data.name:
         diag = Tropical_Rainfall(
             num_of_bins=1000, first_edge=0, width_of_bin=1 - 1*10**(-6), loglevel='debug')
@@ -210,10 +210,10 @@ def test_hist_figure_load_to_memory(histogram_output):
 
 
 @pytest.mark.tropical_rainfall
-def test_lazy_mode_calculation(reader):
+def test_lazy_mode_calculation(retrieved_dataarray):
     """ Testing the lazy mode of the calculation
     """
-    data = reader
+    data = retrieved_dataarray
     diag = Tropical_Rainfall(
         num_of_bins=1000, first_edge=0, width_of_bin=1 - 1*10**(-6))
     hist_lazy = diag.histogram_lowres(data, lazy=True)
@@ -274,10 +274,10 @@ def test_coordinates_of_histogram(histogram_output):
 
 
 @pytest.mark.tropical_rainfall
-def test_latitude_band(reader):
+def test_latitude_band(retrieved_dataarray):
     """ Testing the latitude band
     """
-    data = reader
+    data = retrieved_dataarray
     max_lat_value = max(data.lat.values[0], data.lat.values[-1])
     diag = Tropical_Rainfall(trop_lat=10)
     data_trop = diag.main.latitude_band(data)
@@ -309,10 +309,10 @@ def test_histogram_merge(histogram_output):
 
 
 @pytest.mark.tropical_rainfall
-def test_units_converter(reader):
+def test_units_converter(retrieved_dataarray):
     """ Testing convertation of units"""
 
-    data = reader
+    data = retrieved_dataarray
     diag = Tropical_Rainfall()
 
     old_units = data.units
