@@ -322,7 +322,7 @@ class hovmoller_plot:
         fig.suptitle(f"Spatially averaged {self.region}", fontsize=25, y=0.9)
 
         if self.output:
-            export_fig(self.output_dir, filename , "jpg")
+            export_fig(self.output_dir, filename , "pdf")
 
         return
     

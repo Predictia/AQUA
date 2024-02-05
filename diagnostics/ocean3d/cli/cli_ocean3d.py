@@ -185,7 +185,7 @@ class Ocean3DCLI:
 
     def run_diagnostic(self):
 
-        self.loglevel = self.get_arg('loglevel', 'WARNING')
+        self.loglevel = self.get_arg('loglevel', 'INFO')
         self.logger = log_configure(log_name='Ocean3D CLI', log_level= self.loglevel)
 
         # Change the current directory to the one of the CLI so that relative paths work

@@ -558,7 +558,7 @@ def export_fig(output_dir, filename, type, loglevel= "INFO"):
         os.remove(filename)
         logger.debug(f"Deleted existing file: {filename}")
 
-    plt.savefig(filename)
+    plt.savefig(filename, bbox_inches='tight')
     logger.info(f"Figure saved to: {output_dir}")
     return
 
