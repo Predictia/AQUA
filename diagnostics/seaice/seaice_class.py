@@ -116,7 +116,7 @@ class SeaIceExtent:
             # automatically the first source available
             source = setup.get("source", None)
             regrid = setup.get("regrid", None)
-            var = setup.get("var", None)
+            var = setup.get("var", 'ci')
             # NOTE: this is not implemented yet
             timespan = setup.get("timespan", None)
 
@@ -130,16 +130,11 @@ class SeaIceExtent:
                 self.logger.error("An exception occurred while instantiating reader: %s", e)
                 raise NoDataError("Error while instantiating reader")
 
-            if var:
-                try:
-                    data = reader.retrieve(var=var)
-                except KeyError:
-                    self.logger.error("Variable %s not found in dataset",
-                                      var)
-                    data = reader.retrieve()
-            else:  # retrieve all variables
-                self.logger.info("Retrieving all variables")
-                data = reader.retrieve()
+            try:
+                data = reader.retrieve(var=var)
+            except KeyError:
+                self.logger.error("Variable %s not found in dataset", var)
+                raise NoDataError("Variable not found in dataset")
 
             if timespan:
                 # TODO: implement timespan
@@ -148,10 +143,6 @@ class SeaIceExtent:
             if regrid:
                 self.logger.info("Regridding data")
                 data = reader.regrid(data)
-
-            # HACK: this should be done with the fixer
-            if model == "OSI-SAF":
-                data = data.rename({"siconc": "ci"})
 
             areacello = reader.grid_area
             try:
@@ -166,8 +157,8 @@ class SeaIceExtent:
 
             # Create mask based on threshold
             try:
-                ci_mask = data.ci.where((data.ci > self.thresholdSeaIceExtent) &
-                                        (data.ci < 1.0))
+                ci_mask = data[var].where((data[var] > self.thresholdSeaIceExtent) &
+                                          (data[var] < 1.0))
             except Exception:
                 raise NoDataError("No sea ice concentration data found in dataset")
 

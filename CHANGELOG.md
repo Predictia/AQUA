@@ -7,6 +7,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version.
 
+- Timeseries: can add annual std and now default uncertainty is 2 std (#830)
+- `retrieve_plain()` method now set off startdate and enddate (#829)
+- Complete restructure of fixer to make use of `fixer_name`: set a default and a `False` (#746)
+- Added `center_time` option in the `timmean()` method to save the time coordinate in the middle of the time interval and create a Timmean module and related TimmeanMixin class (#811)
+- Fixer to rename coordinates available (#822)
+- Fixing new pandas timedelta: replacing H with h in all FDB catalog (#786)
+- Change environment name from `aqua_common` to `aqua`(#805)
+- Adding a run test label to trigger CI (#826)
+- Tropical_rainfall: improve organization and maintainability, introducing nested classes (#814)
+- Revisiting CERES fixes (#833)
+- Timeseries: add bands for observation in Gregory plots (#837)
+
+## [v0.6.2]
+
+Complete list:
+- Global time series plot annual and monthly timeseries together, improved Gregory plot (#809)
+- Teleconnection can now take a time range as input and ylim in the index plot function (#799)
+- LRA to use `auto` final time and `exclude_incomplete` (#791)
+- Hotfix for v0.12.0 of the GSV_interface related to valid_time (#788)
+- Global time series adapted to new data governance (#785)
+- AtmoGlobalMean diagnostic improvements and adaptation to new data governance (#745 #789 #807 #812)
+- Sea-ice diagnostic adapted to new data governance (#790)
+- Implement a fix setting to NaN the data of the first step in each month (for IFS historical-1990) (#776)
+
 ## [v0.6.1]
 
 Complete list:
@@ -262,7 +286,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.1...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.2...HEAD
+[v0.6.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.1...v0.6.2
 [v0.6.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6...v0.6.1
 [v0.6]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.5.2-beta...v0.6
 [v0.5.2-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.5.2-alpha...v0.5.2-beta
