@@ -5,11 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
-Unreleased in the current development version.
+Unreleased in the current development version:
 
 ## [v0.6.3]
 
 Complete list:
+- Setting last date for NaN fix for IFS-NEMO/IFS-FESOM to 1999-10-01 and cleaner merge of parent fixes (#819)
 - Hotfix to set `intake==0.7.0` as default (#841)
 - Timeseries: can add annual std and now default uncertainty is 2 std (#830)
 - `retrieve_plain()` method now set off startdate and enddate (#829)
