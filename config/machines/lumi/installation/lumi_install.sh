@@ -9,12 +9,19 @@ set -e
 
 # Check if AQUA is set and the file exists
 if [[ -z "$AQUA" ]]; then
-    echo -e "\033[0;31mError: The AQUA environment variable is not defined."
-    echo -e "\x1b[38;2;255;165;0mPlease define the AQUA environment variable with the path to your 'AQUA' directory."
+    echo -e "\033[0;31mWarning: The AQUA environment variable is not defined."
+    echo -e "\033[0;31mWarning: We are assuming AQUA is installed in your HOME, i.e. $HOME/AQUA"
+    echo -e "\x1b[38;2;255;165;0mAlternatively, define the AQUA environment variable with the path to your 'AQUA' directory."
     echo -e "For example: export AQUA=/path/to/aqua\033[0m"
+    export AQUA=$HOME/AQUA
+fi
+
+if [[ ! -d  $AQUA ]] ; then
+    echo -e "\033[0;31mWarning: I cannot find AQUA, exiting..."
     exit 1  # Exit with status 1 to indicate an error
 else
     source "$AQUA/cli/util/logger.sh"
+    log_message INFO "AQUA found in $AQUA"
     log_message INFO "Sourcing logger.sh from: $AQUA/cli/util/logger.sh"
     # Your subsequent commands here
 fi
