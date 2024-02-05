@@ -26,10 +26,10 @@ Pull the docker image from the docker hub using the generated token:
 
 .. code-block:: bash
 
-   singularity pull --docker-login docker://ghcr.io/destine-climate-dt/aqua:0.6.2
+   singularity pull --docker-login docker://ghcr.io/destine-climate-dt/aqua:0.6.3
 
 This will require you to enter your username and token generated above.
-The above command will create a file called ``aqua_0.6.2.sif`` in the current directory.
+The above command will create a file called ``aqua_0.6.3.sif`` in the current directory.
 
 .. note::
    If you want to use a different version of AQUA, you can change the tag in the above command.

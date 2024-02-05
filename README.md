@@ -6,7 +6,7 @@ The Application for Quality assessment and Uncertainity quAntification (AQUA) is
 - Support for various data formats, such as NetCDF, GRIB, HDF or FDB;
 - Robust and fast regridding functionality;
 - Averaging and aggregation tools for temporal and spatial analyses;
-- Modular design for easy integration of new diagnostics.
+- Modular design for easy integration of new diagnostics. 
 
 ## Installation
 
