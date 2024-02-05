@@ -10,23 +10,21 @@ Welcome to AQUA's documentation!
    :maxdepth: 4
 
    introduction
-   installation
-   configuration
    getting_started
    core_components
-   diagnostics/index
-   lra
+   catalogue_reader
+   regridder
+   fixer
+   diagnostics
    adding_data
-   tests
-   slurm
-   graphics
-   aqua_container
+   lra
+   container
    examples_tutorials
+   advanced_topics
    api_reference
-   troubleshooting_faq
+   faq
    contributing
    references_acknowledgments
-
 
 Indices and tables
 ==================
