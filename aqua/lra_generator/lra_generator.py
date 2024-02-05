@@ -13,7 +13,7 @@ from dask.distributed import Client, LocalCluster, progress
 from dask.diagnostics import ProgressBar
 from aqua.logger import log_configure, log_history
 from aqua.reader import Reader
-from aqua.util import create_folder, generate_random_string
+from aqua.util import create_folder, generate_random_string, move_tmp_files
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import ConfigPath, file_is_complete
 #from aqua.lra_generator.lra_util import check_correct_ifs_fluxes
@@ -150,6 +150,7 @@ class LRAgenerator():
             self.outdir = os.path.join(self.outdir, self.frequency)
 
         create_folder(self.outdir, loglevel=self.loglevel)
+        create_folder(self.tmpdir, loglevel=self.loglevel)
 
         # Initialize variables used by methods
         self.data = None
@@ -198,11 +199,14 @@ class LRAgenerator():
 
         else:  # Only one variable
             self._write_var(self.var)
+                
+        self.logger.info('Move tmp files to output directory')
+        move_tmp_files(self.tmpdir, self.outdir)
             
         # Cleaning
         self.data.close()
         self._close_dask()
-        # self._remove_tmpdir()
+        self._remove_tmpdir()
 
         self.logger.info('Finished generating LRA data.')
 
@@ -302,8 +306,8 @@ class LRAgenerator():
     def get_filename(self, var, year=None, month=None):
         """Create output filenames"""
 
-        filename = os.path.join(self.outdir,
-                                f'{var}_{self.exp}_{self.resolution}_{self.frequency}_*.nc')
+        filename = os.path.join(self.tmpdir,
+                                f'{var}_{self.exp}_{self.resolution}_{self.frequency}_*_tmp.nc')
         if (year is not None) and (month is None):
             filename = filename.replace("*", str(year))
         if (year is not None) and (month is not None):
