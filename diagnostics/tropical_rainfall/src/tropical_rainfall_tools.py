@@ -43,11 +43,11 @@ class ToolsClass:
         Retrieves the machine information from the ConfigPath instance.
 
         Returns:
-        str: The machine information retrieved from the ConfigPath object.
+            str: The machine information retrieved from the ConfigPath object.
 
         Raises:
-        SomeException: If the ConfigPath object is not properly initialized or if there is an issue with
-                       retrieving the machine information.
+            SomeException: If the ConfigPath object is not properly initialized or if there is an issue with
+                        retrieving the machine information.
         """
         return ConfigPath().machine
 
