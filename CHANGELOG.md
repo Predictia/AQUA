@@ -10,6 +10,7 @@ Unreleased in the current development version.
 ## [v0.6.3]
 
 Complete list:
+- Hotfix to set `intake==0.7.0` as default (#841)
 - Timeseries: can add annual std and now default uncertainty is 2 std (#830)
 - `retrieve_plain()` method now set off startdate and enddate (#829)
 - Complete restructure of fixer to make use of `fixer_name`: set a default for each model and a `False` to disable it (#746)
