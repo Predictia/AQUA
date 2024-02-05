@@ -5,7 +5,104 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
-Unreleased is the current development version.
+Unreleased in the current development version.
+
+- Timeseries: can add annual std and now default uncertainty is 2 std (#830)
+- `retrieve_plain()` method now set off startdate and enddate (#829)
+- Complete restructure of fixer to make use of `fixer_name`: set a default and a `False` (#746)
+- Added `center_time` option in the `timmean()` method to save the time coordinate in the middle of the time interval and create a Timmean module and related TimmeanMixin class (#811)
+- Fixer to rename coordinates available (#822)
+- Fixing new pandas timedelta: replacing H with h in all FDB catalog (#786)
+- Change environment name from `aqua_common` to `aqua`(#805)
+- Adding a run test label to trigger CI (#826)
+- Tropical_rainfall: improve organization and maintainability, introducing nested classes (#814)
+- Revisiting CERES fixes (#833)
+- Timeseries: add bands for observation in Gregory plots (#837)
+
+## [v0.6.2]
+
+Complete list:
+- Global time series plot annual and monthly timeseries together, improved Gregory plot (#809)
+- Teleconnection can now take a time range as input and ylim in the index plot function (#799)
+- LRA to use `auto` final time and `exclude_incomplete` (#791)
+- Hotfix for v0.12.0 of the GSV_interface related to valid_time (#788)
+- Global time series adapted to new data governance (#785)
+- AtmoGlobalMean diagnostic improvements and adaptation to new data governance (#745 #789 #807 #812)
+- Sea-ice diagnostic adapted to new data governance (#790)
+- Implement a fix setting to NaN the data of the first step in each month (for IFS historical-1990) (#776)
+
+## [v0.6.1]
+
+Complete list:
+- Teleconnection improvement to accept different variable names for ENSO (avg_tos instead of sst) (#778)
+- ERA5 fixes compatible with new data governance (#772)
+- Update the LRA generator (removing aggregation and improving) filecheck and fix entries for historical-1990-dev-lowres (#772)
+- Updates of ECmean to work with production experiments (#773, #780)
+- Automatic data start and end dates for FDB sources (#762)
+
+## [v0.6]
+
+Main changes are:
+1. Inclusion in the catalog of the historical-1990 production simulations from IFS-NEMO and IFS-FESOM.
+2. New fixes that targets the DestinE updated Data Governance
+
+- IFS-FESOM historical-1990-dev-lowres with new data governance added to the catalogue (#770)
+- AtmoGlobalMean diagnostic improvements (#722)
+- Teleconnections diagnostic improvements (#722)
+- Read only one level for retrieving 3D array metadata, select single level for retrieve (#713)
+- IFS-FESOM historical-1990-dev-lowres with new data governance added to the catalogue
+- Fix mismatch between var argument and variables specified in catalogue for FDB (#761)
+- Compact catalogues using yaml override syntax (#752)
+- Fix loading source grid file before smmregrid weight generation (#756)
+
+## [v0.5.2-beta]
+
+Complete list:
+-  A new fdb container is used to generate the correct AQUA container
+
+## [v0.5.2-alpha]
+
+Main changes are:
+1. Coupled models IFS-NEMO and IFS-FESOM are now supported
+2. Accessor to use functions and reader methods as if they were methods of xarray objects, see [notebook](https://github.com/DestinE-Climate-DT/AQUA/blob/main/notebooks/reader/accessor.ipynb)
+3. Preliminary provenance information is now available in the history attribute of the output files
+4. AQUA analysis wrapper is parallelized
+5. A levelist can be provided in FDB sources, this will greatly speed up the data retrieve
+
+Complete list:
+- Fix reading only one sample variable and avoid _bnds variables (#743)
+- Allow correct masked regridding after level selection. Add level selection also for not-FDB sources (#741)
+- Read only one level for retrieving 3D array metadata, select specific levels for FDB retrieve (#713)
+- Defining catalog entry for coupled models IFS-NEMO and IFS-FESOM (#720)
+- Change fixer_name to fixer_name (#703)
+- Reorganization of logging calls (#700)
+- Accessor to use functions and reader methods as if they were methods of xarray objects (#716)
+- Suggestions are printed if a model/exp/source is not found while inspecting the catalogue (#721)
+- Improvements in the single map plot function (#717)
+- Minor metadata fixes (logger newline and keep "GRIB_" in attrs) (#715)
+- LRA fix now correctly aggregating monthly data to yearly when a full year is available (#696)
+- History update and refinement creating preliminary provenance information (plus AQUA emoji!) (#676)
+- OPA lra compatible with no regrid.yaml (#692)
+- Introducing fixer definitions not model/exp/source dependents to be specified at the metadata level (#681)
+- AQUA analysis wrapper is parallelized and output folder is restructured (#684, #725)
+
+## [v0.5.1]
+
+Main changes are:
+1. A new `Reader` method `info()` is available to print the catalogue information
+2. Grids are now stored online and a tool to deploy them on the `cli` folder is available
+
+Complete list:
+- Fix attributes of DataArrays read from FDB (#686)
+- Reader.info() method to print the catalogue information (#683)
+- Simpler reader init() by reorganizing the calls to areas and regrid weights configuration and loading (#682)
+- Optional autosearch for vert_coord (#682)
+- plot_single_map adapted to different coordinate names and bugfixes (#680)
+- Sea ice volume datasets for the Northern Hemisphere (PIOMAS) and the Southern Hemisphere (GIOMAS) (#598)
+- Possibility of defining the regrid method from the grid definition (#678)
+- Grids stored online and tool to deploy them on cli folder (#675)
+- Global time series diagnostic improvements (#637)
+- Teleconnections diagnostic improvements (#672)
 
 ## [v0.5]
 
@@ -15,7 +112,7 @@ Main changes are:
 3. CLI wrapper is available to run all diagnostics in a single call
 4. Refactoring of the streaming emulator with equal treatment for FDB or file sources
 
-Complete list
+Complete list:
 - Controlling the loglevel of the GSV interface (#665)
 - Fix wrong fdb source (#657)
 - Adding sample files and tests for NEMO 2D and 3D grids (#652)
@@ -189,12 +286,18 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/oloapinivad/AQUA/compare/v0.5...HEAD
-[v0.5]: https://github.com/oloapinivad/AQUA/compare/v0.4...v0.5
-[v0.4]: https://github.com/oloapinivad/AQUA/compare/v0.3...v0.4
-[v0.3]: https://github.com/oloapinivad/AQUA/compare/v0.2.1...v0.3
-[v0.2.1]: https://github.com/oloapinivad/AQUA/compare/v0.2...v0.2.1
-[v0.2]: https://github.com/oloapinivad/AQUA/compare/v0.2-beta...v0.2
-[v0.2-beta]: https://github.com/oloapinivad/AQUA/compare/v0.2-alpha...v0.2-beta
-[v0.2-alpha]: https://github.com/oloapinivad/AQUA/compare/v0.1-beta...v0.2-alpha
-[v0.1-beta]: https://github.com/oloapinivad/AQUA/compare/v0.1-alpha...v0.1-beta
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.2...HEAD
+[v0.6.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.1...v0.6.2
+[v0.6.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6...v0.6.1
+[v0.6]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.5.2-beta...v0.6
+[v0.5.2-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.5.2-alpha...v0.5.2-beta
+[v0.5.2-alpha]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.5.1...v0.5.2-alpha
+[v0.5.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.5...v0.5.1
+[v0.5]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.4...v0.5
+[v0.4]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.3...v0.4
+[v0.3]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.2.1...v0.3
+[v0.2.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.2...v0.2.1
+[v0.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.2-beta...v0.2
+[v0.2-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.2-alpha...v0.2-beta
+[v0.2-alpha]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.1-beta...v0.2-alpha
+[v0.1-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.1-alpha...v0.1-beta
