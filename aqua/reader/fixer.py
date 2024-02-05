@@ -359,7 +359,7 @@ class FixerMixin():
                             # issue an error if you are asking that specific variable!
                             self.logger.error('Requested derived variable %s cannot be computed, is it available?', shortname)
                         else:
-                            self.logger.warning('%s is defined in the fixes but cannot be computed, is it available?',
+                            self.logger.info('%s is defined in the fixes but cannot be computed, is it available?',
                                                 shortname)
                         continue
 
