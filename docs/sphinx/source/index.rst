@@ -10,6 +10,7 @@ Welcome to AQUA's documentation!
    :maxdepth: 4
 
    introduction
+   installation
    getting_started
    core_components
    catalogue_reader
