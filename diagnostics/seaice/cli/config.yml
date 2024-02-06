@@ -11,13 +11,13 @@ models:
     exp: osi-450
     source: nh-monthly
     regrid: null
-    variable: avg_siconc
+    var: avg_siconc
     timespan: null
   - model: OSI-SAF
     exp: osi-450
     source: sh-monthly
     regrid: null
-    variable: avg_siconc
+    var: avg_siconc
     timespan: null
 
 regions: # If this block is missing all regions will be evaluated

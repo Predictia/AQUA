@@ -127,7 +127,8 @@ class SeaIceExtent:
             # automatically the first source available
             source = setup.get("source", None)
             regrid = setup.get("regrid", None)
-            var = setup.get("var", 'avg_siconc')
+            var = setup.get("var", 'ci')
+            # NOTE: this is not implemented yet
             timespan = setup.get("timespan", None)
        
             self.logger.info(f"Retrieving data for {model} {exp} {source}")
