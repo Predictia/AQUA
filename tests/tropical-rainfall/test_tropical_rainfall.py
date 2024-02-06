@@ -13,9 +13,6 @@ from aqua import Reader
 from aqua.util import create_folder
 
 import os
-import sys
-path_to_diagnostic = './diagnostics/'
-sys.path.insert(1, path_to_diagnostic)
 try:
     from tropical_rainfall import Tropical_Rainfall
 except ModuleNotFoundError:
@@ -117,11 +114,9 @@ def histogram_output(retrieved_dataarray):
     """
     data = retrieved_dataarray
     if 'tprate' in data.name:
-        diag = Tropical_Rainfall(
-            num_of_bins=1000, first_edge=0, width_of_bin=1 - 1*10**(-6), loglevel='debug')
+        diag = Tropical_Rainfall(num_of_bins=1000, first_edge=0, width_of_bin=1 - 1*10**(-6), loglevel='debug')
     elif '2t' in data.name:
-        diag = Tropical_Rainfall(
-            num_of_bins=1000, first_edge=0, width_of_bin=0.5, loglevel='debug')
+        diag = Tropical_Rainfall(num_of_bins=1000, first_edge=0, width_of_bin=0.5, loglevel='debug')
     hist = diag.histogram(data, trop_lat=90)
     return hist
 
@@ -158,31 +153,25 @@ def test_histogram_pdf(histogram_output):
 def test_histogram_load_to_memory(histogram_output):
     """ Testing the histogram load to memory
     """
-    path_to_histogram = str(path_to_diagnostic)+"/test_output/histograms/"
-    create_folder(folder=str(path_to_diagnostic) +
-                  "/test_output/",               loglevel='WARNING')
-    create_folder(folder=str(path_to_diagnostic) +
-                  "/test_output/histograms/",    loglevel='WARNING')
+    diag = Tropical_Rainfall()
+
+    path_to_histogram = diag.path_to_netcdf+"/test_output/histograms/"
+    create_folder(folder=path_to_histogram, loglevel='WARNING')
 
     # Cleaning the repository with histograms before new test
-    histogram_list = [f for f in listdir(
-        path_to_histogram) if isfile(join(path_to_histogram, f))]
-    histograms_list_full_path = [str(
-        path_to_histogram)+str(histogram_list[i]) for i in range(0, len(histogram_list))]
+    histogram_list = [f for f in listdir(path_to_histogram) if isfile(join(path_to_histogram, f))]
+    histograms_list_full_path = [str(path_to_histogram)+str(histogram_list[i]) for i in range(0, len(histogram_list))]
     for i in range(0, len(histograms_list_full_path)):
         remove(histograms_list_full_path[i])
+
     hist = histogram_output
-    diag = Tropical_Rainfall()
-    diag.main.dataset_to_netcdf(
-        dataset=hist, path_to_netcdf=path_to_histogram, name_of_file='test_hist_saving')
-    files = [f for f in listdir(path_to_histogram)
-             if isfile(join(path_to_histogram, f))]
+    diag.main.dataset_to_netcdf(dataset=hist, path_to_netcdf=path_to_histogram, name_of_file='test_hist_saving')
+    files = [f for f in listdir(path_to_histogram) if isfile(join(path_to_histogram, f))]
     assert 'test_hist_saving' in files[0]
 
     time_band = hist.counts.attrs['time_band']
     try:
-        re_time_band = re.split(":", re.split(", ", time_band)[0])[
-            0]+'_' + re.split(":", re.split(", ", time_band)[1])[0] in files[0]
+        re_time_band = re.split(":", re.split(", ", time_band)[0])[0]+'_' + re.split(":", re.split(", ", time_band)[1])[0] in files[0]
     except IndexError:
         re_time_band = re.split(":", time_band)[0]
     assert re_time_band in time_band
@@ -192,19 +181,18 @@ def test_histogram_load_to_memory(histogram_output):
 def test_hist_figure_load_to_memory(histogram_output):
     """ Testing the saving of the figure with histogram
     """
-    create_folder(folder=str(path_to_diagnostic) +
-                  "/test_output/plots/", loglevel='WARNING')
-    path_to_pdf = str(path_to_diagnostic) + "/test_output/plots/"
+    diag = Tropical_Rainfall()
+
+    path_to_pdf = diag.path_to_pdf+"/test_output/plots/"
+    create_folder(folder=path_to_pdf, loglevel='WARNING')
+
     # Cleaning the repository with plots before new test
-    figure_list = [f for f in listdir(
-        path_to_pdf) if isfile(join(path_to_pdf, f))]
-    figure_list_full_path = [str(path_to_pdf)+str(figure_list[i])
-                             for i in range(0, len(figure_list))]
+    figure_list = [f for f in listdir(path_to_pdf) if isfile(join(path_to_pdf, f))]
+    figure_list_full_path = [str(path_to_pdf)+str(figure_list[i]) for i in range(0, len(figure_list))]
     for i in range(0, len(figure_list_full_path)):
         remove(figure_list_full_path[i])
 
     hist = histogram_output
-    diag = Tropical_Rainfall()
     diag.histogram_plot(hist, path_to_pdf=path_to_pdf, name_of_file='test_hist_fig_saving')
     assert 'test_hist_fig_saving' in listdir(path_to_pdf)[0]
 
@@ -214,8 +202,7 @@ def test_lazy_mode_calculation(retrieved_dataarray):
     """ Testing the lazy mode of the calculation
     """
     data = retrieved_dataarray
-    diag = Tropical_Rainfall(
-        num_of_bins=1000, first_edge=0, width_of_bin=1 - 1*10**(-6))
+    diag = Tropical_Rainfall(num_of_bins=1000, first_edge=0, width_of_bin=1 - 1*10**(-6))
     hist_lazy = diag.histogram_lowres(data, lazy=True)
     assert 'frequency' not in hist_lazy.attrs
     assert 'pdf' not in hist_lazy.variables
@@ -281,8 +268,7 @@ def test_latitude_band(retrieved_dataarray):
     max_lat_value = max(data.lat.values[0], data.lat.values[-1])
     diag = Tropical_Rainfall(trop_lat=10)
     data_trop = diag.main.latitude_band(data)
-    assert max_lat_value > max(
-        data_trop.lat.values[0], data_trop.lat.values[-1])
+    assert max_lat_value > max(data_trop.lat.values[0], data_trop.lat.values[-1])
     assert 10 > data_trop.lat.values[-1]
 
 
@@ -298,12 +284,10 @@ def test_histogram_merge(histogram_output):
 
     diag = Tropical_Rainfall()
 
-    path_to_histogram = str(path_to_diagnostic)+"/test_output/histograms/"
-    diag.main.dataset_to_netcdf(
-        dataset=hist_2, path_to_netcdf=path_to_histogram, name_of_file='test_merge')
+    path_to_histogram = diag.path_to_netcdf+"/test_output/histograms/"
+    diag.main.dataset_to_netcdf(dataset=hist_2, path_to_netcdf=path_to_histogram, name_of_file='test_merge')
 
-    hist_merged = diag.merge_two_datasets(
-        dataset_1=hist_1, dataset_2=hist_2)
+    hist_merged = diag.merge_two_datasets(dataset_1=hist_1, dataset_2=hist_2)
     counts_merged = sum(hist_merged.counts.values)
     assert counts_merged == (counts_1 + counts_2)
 
@@ -319,34 +303,28 @@ def test_units_converter(retrieved_dataarray):
 
     if 'tprate' in data.name:
         old_mean_value = float(data.mean().values)
-        data = diag.precipitation_rate_units_converter(
-            data, new_unit=old_units)
+        data = diag.precipitation_rate_units_converter(data, new_unit=old_units)
         new_mean_value = float(data.mean().values)
 
         assert old_mean_value == new_mean_value
 
-        data = diag.precipitation_rate_units_converter(
-            data, new_unit='cm s**-1')
+        data = diag.precipitation_rate_units_converter(data, new_unit='cm s**-1')
         mean_value_cmpersec = float(data.mean().values)
-        data = diag.precipitation_rate_units_converter(
-            data, new_unit='mm s**-1')
+        data = diag.precipitation_rate_units_converter(data, new_unit='mm s**-1')
         mean_value_mmpersec = float(data.mean().values)
 
         assert abs(mean_value_mmpersec/mean_value_cmpersec - 10) < 1e-3
         assert data.units == 'mm s**-1'
 
-        data = diag.precipitation_rate_units_converter(
-            data, new_unit='m min**-1')
+        data = diag.precipitation_rate_units_converter(data, new_unit='m min**-1')
         mean_value_mpermin = float(data.mean().values)
-        data = diag.precipitation_rate_units_converter(
-            data, new_unit='m day**-1')
+        data = diag.precipitation_rate_units_converter(data, new_unit='m day**-1')
         mean_value_mperday = float(data.mean().values)
 
         assert abs(mean_value_mperday/mean_value_mpermin - 24*60) < 1e-3
         assert data.units == 'm day**-1'
 
-        data = diag.precipitation_rate_units_converter(
-            data, new_unit='m year**-1')
+        data = diag.precipitation_rate_units_converter(data, new_unit='m year**-1')
         mean_value_mperyear = float(data.mean().values)
 
         assert abs(mean_value_mperday/mean_value_mperyear - 0.00273973) < 1e-3
