@@ -88,7 +88,10 @@ class SeaIceExtent:
             self.mySetups = config['models']
 
             # Attribute a color for plotting
-            reserveColorList = ["#354C3C", "#6A1D2F", "#9B461F", "#DEA450"]
+            reserveColorList = ["#1898e0", "#00b2ed", "#00bb62", \
+               "#8bcd45", "#dbe622", "#f9c410", \
+               "#f89e13", "#fb4c27", "#fb4865", \
+               "#d24493", "#8f57bf", "#645ccc",]
             js = 0
             for s in self.mySetups:
                 if s["model"] == "OSI-SAF":
@@ -270,9 +273,9 @@ class SeaIceExtent:
 
                     # Plot ribbon of uncertainty
                     if setup["model"] == "OSI-SAF":
-                        for mult in np.arange(2, 0.1, -0.1):
-                            ax2[jr].fill_between(monthsNumeric, extentCycle - mult * extentStd, extentCycle + mult * extentStd,
-                                                 alpha=0.05, zorder=0, color=color_plot, lw=0)
+                        mult = 2.0
+                        ax2[jr].fill_between(monthsNumeric, extentCycle - mult * extentStd, extentCycle + mult * extentStd,
+                                                 alpha=0.5, zorder=0, color=color_plot, lw=0)
 
                 ax1[jr].set_title("Sea ice extent: region " + region)
 
