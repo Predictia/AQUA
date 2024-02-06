@@ -9,6 +9,8 @@ from typing import Union
 from aqua.util import ConfigPath
 from aqua.logger import log_configure
 import yaml
+from os import listdir
+from os.path import isfile, join
 
 full_path_to_config = '../tropical_rainfall/config-tropical-rainfall.yml'
 
@@ -211,6 +213,34 @@ class ToolsClass:
         except FileNotFoundError:
             raise FileNotFoundError(
                 "The specified dataset file was not found.")
+
+    def select_files_by_year_and_month_range(self, path_to_histograms: str, start_year: int, end_year: int, start_month: int = None,
+                                             end_month: int = None) -> list:
+        """
+        Select files within a specific year and optional month range from a given directory.
+
+        Args:
+            path_to_histograms (str): Directory path containing the histogram files.
+            start_year (int): Start year of the range (inclusive).
+            end_year (int): End year of the range (inclusive).
+            start_month (int, optional): Start month of the range (inclusive). Defaults to None.
+            end_month (int, optional): End month of the range (inclusive). Defaults to None.
+
+        Returns:
+            list: A list of file paths matching the specified year and month range.
+        """
+        files = [join(path_to_histograms, f) for f in listdir(path_to_histograms) if isfile(join(path_to_histograms, f))]
+
+        selected_files = []
+        for file_path in files:
+            # Extract the year and month from the filename
+            date_match = re.search(r'_r010_(\d{4})-(\d{2})-', file_path)
+            if date_match:
+                year, month = map(int, date_match.groups())
+                # Check if the year and optionally month falls within the specified range
+                if start_year <= year <= end_year and (not start_month or start_month <= month <= (end_month or start_month)):
+                    selected_files.append(file_path)
+        return selected_files
 
     def zoom_in_data(self, trop_lat: float = None,
                      pacific_ocean: bool = False, atlantic_ocean: bool = False, indian_ocean: bool = False,
