@@ -98,13 +98,14 @@ class DetectNodes():
                 
             lowres3d = self.reader3d.regrid(
                 self.data3d.sel(time=timestep, plev=[30000, 50000]))
-            
+
             outfield = xr.merge([self.lowres2d, lowres3d])
-                    # in case orography is retrieved from file add it to create file for tempest
+
             if self.orography:
-                self.logger.info("orography added to detect nodes input file")
-                #self.orog=self.orog.isel(time=0)
-                outfield = xr.merge([outfield, self.orog])
+                self.logger.info("Orography added to detect nodes input file")
+                orog_first_timestep = self.orog.isel(time=0)
+                orog_first_timestep['time'] = outfield['time']
+                outfield = outfield.combine_first(orog_first_timestep)
             
         else:
             raise KeyError(f'Atmospheric model {self.model} not supported')

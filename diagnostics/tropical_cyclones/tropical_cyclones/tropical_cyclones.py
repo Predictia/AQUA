@@ -148,7 +148,6 @@ class TCs(DetectNodes, StitchNodes):
 
         # loop to simulate streaming
         while len(np.unique(self.data2d.time.dt.day)) == streamstep_n:
-            print("entered the loop")
             self.data_retrieve()
             self.logger.warning(
                 "New streaming from %s to %s", pd.to_datetime(self.stream_startdate), pd.to_datetime(self.stream_enddate))
@@ -163,19 +162,19 @@ class TCs(DetectNodes, StitchNodes):
             self.detect_nodes_zoomin()
 
             if timecheck:
-                print("breaking the loop")
+                self.logger.debug("Last chunk of data: breaking the loop")
                 break
 
             # add one hour since time ends at 23
             dayspassed = (np.datetime64(self.stream_enddate) + np.timedelta64(1, 'h') - np.datetime64(last_run_stitch)) / np.timedelta64(1, 'D')
-            print (dayspassed)
+
             # call Tempest StitchNodes every n_days_freq days time period and save TCs tracks in a netcdf file
 
             if dayspassed >= n_days_stitch:
                 end_run_stitch = np.datetime64(last_run_stitch) + \
                     np.timedelta64(tdict['stitch']['n_days_freq'], 'D')
                 self.logger.warning(
-                    'DAYSPASSED LOOP Running stitch nodes from %s to %s', pd.to_datetime(last_run_stitch), pd.to_datetime(end_run_stitch))
+                    'Running stitch nodes from %s to %s', pd.to_datetime(last_run_stitch), pd.to_datetime(end_run_stitch))
                 self.stitch_nodes_zoomin(startdate=pd.to_datetime(last_run_stitch), enddate=pd.to_datetime(end_run_stitch),
                                          n_days_freq=tdict['stitch']['n_days_freq'], n_days_ext=tdict['stitch']['n_days_ext'])
                 last_run_stitch = copy.deepcopy(end_run_stitch)
@@ -184,7 +183,7 @@ class TCs(DetectNodes, StitchNodes):
 
         end_run_stitch = np.datetime64(tdict['time']['enddate'])
         self.logger.warning(
-            'LAST CHUNK Running stitch nodes from %s to %s',  pd.to_datetime(np.datetime64(last_run_stitch)), pd.to_datetime(end_run_stitch))
+            'Running stitch nodes from %s to %s',  pd.to_datetime(np.datetime64(last_run_stitch)), pd.to_datetime(end_run_stitch))
         self.stitch_nodes_zoomin(startdate=pd.to_datetime(last_run_stitch), enddate=pd.to_datetime(end_run_stitch),
                                  n_days_freq=tdict['stitch']['n_days_freq'], n_days_ext=tdict['stitch']['n_days_ext'])
 
