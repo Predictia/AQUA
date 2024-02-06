@@ -21,8 +21,9 @@ from ocean3d.ocean_circulation.ocean_circulation import plot_stratification_para
 from ocean3d.ocean_circulation.ocean_circulation import plot_spatial_mld_clim_parallel
 
 from ocean3d import hovmoller_plot
+from ocean3d import time_series
 # from ocean3d import time_series_multilevs
-from ocean3d.ocean_drifts.tools import time_series_multilevs_parallel
+# from ocean3d.ocean_drifts.tools import time_series_multilevs_parallel
 from ocean3d import multilevel_t_s_trend_plot
 from ocean3d import zonal_mean_trend_plot
 
@@ -86,7 +87,7 @@ class Ocean3DCLI:
         model = self.config["model"]
         exp = self.config["exp"]
         source = self.config["source"]
-        self.logger.debug(f"Reader selecting for model={model}, exp={exp}, source={source}")
+        self.logger.info(f"Reader selecting for model={model}, exp={exp}, source={source}")
         
         reader = Reader(model=model, exp=exp, source=source,
                         fix=True, loglevel=self.loglevel)
@@ -111,17 +112,19 @@ class Ocean3DCLI:
         return
     
     def diag_list(self, o3d_request):
-         
+        self.logger.info("Evaluating Hovmoller plot")
         hovmoller_plot_init = hovmoller_plot(o3d_request)
-        hovmoller_plot_init.single_plot()
-
-        time_series_multilevs_parallel(o3d_request)
+        hovmoller_plot_init.plot()
         
-        self.logger.debug("Evaluating multilevel_t_s_trend_plot")
+        self.logger.info("Evaluating Time series plot")
+        time_series_plot= time_series(o3d_request)
+        time_series_plot.plot()
+        
+        self.logger.info("Evaluating multilevel_t_s_trend_plot")
         multilevel_t_s_trend_plot(o3d_request,
                                 customise_level=False, levels=None)
 
-        self.logger.debug("Evaluating zonal_mean_trend_plot")
+        self.logger.info("Evaluating zonal_mean_trend_plot")
         zonal_mean_trend_plot(o3d_request)
 
         plot_stratification_parallel(o3d_request)
@@ -149,8 +152,9 @@ class Ocean3DCLI:
             "output_dir":self.config["outputdir"],
             "loglevel": self.loglevel
         }
-        
+        self.logger.info(f"running the diags for {region}")
         self.diag_list(o3d_request)
+        self.logger.info(f"Finished the diags for {region}")
         
         return
 
@@ -193,13 +197,13 @@ class Ocean3DCLI:
         dname = os.path.dirname(abspath)
         if os.getcwd() != dname:
             os.chdir(dname)
-            self.logger.debug(f'Moving from current directory to {dname} to run!')
+            self.logger.info(f'Moving from current directory to {dname} to run!')
 
         self.logger.info("Running ocean3d diagnostic...")
 
         # Read configuration file
         file = self.get_arg('config', 'config.yaml')
-        self.logger.debug('Reading configuration yaml file..')
+        self.logger.info('Reading configuration yaml file..')
 
         self.ocean3d_config_process(file)
         

@@ -2,15 +2,11 @@ model: IFS-NEMO
 exp: historical-1990
 source: lra-r100-monthly
 
-# model: NEMO 
-# exp: nemo-test-data
-# source: nemo-spinup-exp-5744567
-
 outputdir: ./output
 
-time_selection : False
+time_selection : False # keep it True, if you want to activate time selection
 start_year : 1991
-end_year : 1991
+end_year : 1998
 
 predefined_regions:
   - Indian Ocean
