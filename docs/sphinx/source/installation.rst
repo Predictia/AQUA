@@ -80,11 +80,17 @@ based on `container-wrapper <https://docs.lumi-supercomputer.eu/software/install
 
 First, clone the AQUA repository from GitHub as described in the previous section.
 
+For simpler installation, it is recommended to define a ``$AQUA`` environment variable that points to the AQUA directory:
+
+.. code-block:: bash
+
+    export AQUA=/path/to/AQUA
+
 Then, navigate to the AQUA directory and specifically in the ``cli/lumi-install`` directory:
 
 .. code-block:: bash
 
-    cd AQUA/cli/lumi-install
+    cd $AQUA/cli/lumi-install
 
 Run the installation script:
 
