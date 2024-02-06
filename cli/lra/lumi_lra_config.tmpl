@@ -2,6 +2,7 @@
 target:
   resolution: r100
   frequency: monthly
+  aggregation: all
   outdir: <OUTDIR>
   tmpdir: <TMPDIR>
 
@@ -20,7 +21,7 @@ catalog:
          vars: ['avg_tos', 'avg_sithick', 'avg_siconc', 'avg_sos']
       daily-hpz7-oce3d:
          vars: ['avg_thetao', 'avg_so']
-    # historical-1990-dev-lowres:
+             # historical-1990-dev-lowres:
     #   hourly-native-atm2d:
     #     vars: ['tprate', '2t', 'skt', 'tcc', 'sd', 'tciw', 'tclw', 'mer', 'msr', 'mslhf', 'msshf',
     #      'msnswrf', 'msnlwrf', 'msdwlwrf', 'msdwswrf', 'mtnswrf', 'mtnlwrf', 'mtdwswrf']
@@ -40,7 +41,7 @@ catalog:
     #     vars: ['avg_tos', 'avg_siconc', 'avg_sos']
     #   #oce-monthly-healpix-3d:
     #   #  vars: ['avg_theatao', 'avg_so']
-  # IFS:
+   IFS-NEMO:
   #   historical-1990-devcon:
   #     monthly-1deg-2d:
   #       vars: ['msl', 'tcc', 'lcc', 'hcc', 'mcc', 'sd', 'tciw', 'tclw']
@@ -48,9 +49,9 @@ catalog:
   #       vars: ['q', 't', 'u', 'v']
   #     hourly-1deg:
   #        vars: ['msdtrf', 'mtsfr', 'iews', 'inss', 'mslhfl', 'msshfl', 'msnsrf', 'msntrf', 'erate', 'tprate', '2t', 'mtntrf', 'mtnsrf', 'msdsrf']
-  #   control-1950-devcon:
-  #     monthly-1deg-2d:
-  #       vars: ['msl', 'tcc', 'lcc', 'hcc', 'mcc', 'sd', 'tciw', 'tclw']
+     control-1950-dev:
+       monthly-1deg-2d:
+         vars: ['msl']
   #     monthly-1deg-3d:
   #       vars: ['q', 't', 'u', 'v']
   #     hourly-1deg:
