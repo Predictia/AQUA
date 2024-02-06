@@ -10,7 +10,8 @@ from aqua.util import ConfigPath
 from aqua.logger import log_configure
 import yaml
 
-full_path_to_config = '../tropical_rainfall/config-tropical-rainfall.yml'
+from importlib import resources
+full_path_to_config = resources.files("tropical_rainfall") / "config-tropical-rainfall.yml"
 
 regrid_dict = {
     'r250': {'deg': 2.5},
