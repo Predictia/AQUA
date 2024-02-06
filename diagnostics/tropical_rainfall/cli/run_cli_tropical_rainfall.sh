@@ -37,7 +37,7 @@ import sys
 try:
     machine = '$machine'
     script_dir = '$aqua'
-    with open('$script_dir/config/trop_rainfall_config.yml') as f:
+    with open('$script_dir/trop_rainfall_config.yml') as f:
         config = yaml.safe_load(f)['compute_resources']
         print(config['nproc'], config['nodes'], config['walltime'], config['memory'], config['lumi_version'],
               config['account'][machine], config['partition'][machine], config['run_on_sunday'])
