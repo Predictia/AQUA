@@ -1,0 +1,98 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tropical_rainfall"
+version = "0.0.1"
+description = "A Python package for analyzing tropical rainfall data."
+readme = {file = "README.md", content-type = "text/markdown"}
+authors = [{ name = "Natalia Nazarova", email = "natalia.nazarova@polito.it" }]
+keywords = ["climate", "meteorology", "rainfall", "data-analysis"]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Atmospheric Science"
+]
+license = {text = "MIT License"}
+dependencies = [
+    "cartopy",
+    "cfgrib",
+    "dask",
+    "dask_jobqueue",
+    "docker",
+    "gribscan",
+    "ecCodes",
+    "pandas",
+    "intake==0.7.0",
+    "intake-esm",
+    "intake-xarray",
+    "jinja2",
+    "matplotlib",
+    "metpy",
+    "numpy",
+    "pydantic<2.5.3", # NOTE: pydantic 2.5.3 has a bug that breaks tests
+    "pyYAML",
+    "ruamel.yaml",
+    "smmregrid",
+    "sparse",
+    "xarray",
+    "pyfdb@git+https://github.com/ecmwf/pyfdb.git@master",
+    "gsv@git+https://oauth2:NrMi_dshtmNeaWy9F3sz@earth.bsc.es/gitlab/digital-twins/de_340/gsv_interface.git@v0.14.0"
+]
+
+[project.optional-dependencies]
+notebooks = ["ipykernel", "healpy"]
+tests = ["pytest", "pytest-cov", "coverage[toml]", "pandoc", "pycobertura"]
+docs = ["sphinx", "sphinx-rtd-theme"]
+pip_deps = [
+    "fast-histogram", "boost_histogram", "dask_histogram", "sparse",
+    "dask_jobqueue", "docker", "gribscan", "smmregrid", "pyfdb", "gsv_interface"
+]
+
+[tool.setuptools.package-data]
+platforms = ["any"]
+tropical_rainfall = ["config-tropical-rainfall.yml"]
+
+[tool.setuptools.dynamic]
+version = { attr = "tropical_rainfall.__version__" }
+
+[tool.pytest.ini_options]
+addopts = "-v --cov=tropical_rainfall --cov-config=.coveragerc"
+testpaths = ["tests"]
+markers = [
+    "slow: tests which are slow",
+    "data: tests which require data downloading"
+]
+
+# Coverage configuration
+[tool.coverage.run]
+branch = true
+command_line = '-m pytest tests'
+source = ["tropical_rainfall"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+show_missing = true
+ignore_errors = true
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "def __str__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "if typing.TYPE_CHECKING:"
+]
+
+[tool.coverage.html]
+show_contexts = true
+directory = "coverage/html"
+
+[tool.setuptools.packages]
+find={}
