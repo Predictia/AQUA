@@ -81,7 +81,7 @@ if __name__ == '__main__':
     else:
         print("Modules imported successfully.")
 
-    file = get_arg(args, 'config', 'config/trop_rainfall_config.yml')
+    file = get_arg(args, 'config', 'trop_rainfall_config.yml')
     print('Reading configuration yaml file..')
     config = load_yaml(file)
 
