@@ -6,6 +6,17 @@ Advanced Topics
 Adding a new machine
 --------------------
 
+Creation on the catalogue
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Download of grids
+^^^^^^^^^^^^^^^^^
+
+Grids used in AQUA are stored and available on Swift storage, powered by DKRZ.
+A command line tool is available to download the grids from Swift on your machine.
+
+Please refer to the section :ref:`grids-downloader` for more details.
+
 .. _FDB_dask:
 Dask access to FDB or GSV
 --------------------------

@@ -21,6 +21,7 @@ Welcome to AQUA's documentation!
    lra
    container
    examples_tutorials
+   cli
    advanced_topics
    api_reference
    faq
