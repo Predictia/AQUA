@@ -76,13 +76,13 @@ This will return a ``Reader`` object that can be used to access the data.
 The ``retrieve()`` method will return an ``xarray.Dataset`` to be used for further processing.
 
 .. note::
-    The basic call enables fixer, area and time average functionalities, but no regridding.
+    The basic call enables fixer, area and time average functionalities, but no regridding or streaming.
 
-If some information about the data is needed, it is possible to use the ``info`` method of the ``Reader`` class.
+If some information about the data is needed, it is possible to use the ``info()`` method of the ``Reader`` class.
 
-.. code-block:: python
-
-    reader.info()
+.. warning::
+    Every ``Reader`` instance brings information about the grids and fixes of the retrieved data.
+    If you're retrieving data from many sources, please instantiate a new ``Reader`` for each source.
 
 Dask and Iterator access
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -112,7 +112,8 @@ operates sparse matrix computation based on externally-computed weights.
 Basic usage
 ^^^^^^^^^^^
 
-When the ``Reader`` is called, if regrid functionalities are needed, the target grid has to be specified.
+When the ``Reader`` is called, if regrid functionalities are needed, the target grid has to be specified
+during the class initialization:
 
 .. code-block:: python
 
@@ -122,8 +123,8 @@ When the ``Reader`` is called, if regrid functionalities are needed, the target 
     data_r = reader.regrid(data)
 
 This will return an ``xarray.Dataset`` with the data lazily regridded to the target grid.
-We can then use the ``data_r`` object for further processing and only the needed data
-will be loaded in memory when necessary.
+We can then use the ``data_r`` object for further processing and the data
+will be loaded in memory only when necessary, allowing for further subsetting and processing.
 
 Concept
 ^^^^^^^
@@ -138,6 +139,18 @@ For example, ``r100`` is a regular grid at 1° resolution.
 .. note::
     If you're using AQUA on a shared machine, please check if the regridding weights
     are already available.
+
+In other words, weights are computed externally by CDO (an operation that needs to be done only once) and 
+then stored on the machine so that further operations are considerably fast. 
+
+Such an approach has two main advantages:
+
+1. All operations are done in memory so that no I/O is required, and the operations are faster than with CDO
+2. Operations can be easily parallelized with Dask, bringing further speedup.
+
+.. note::
+    In the long term, it will be possible to support also other interpolation software,
+    such as `ESMF <https://earthsystemmodeling.org/>`_ or `MIR <https://github.com/ecmwf/mir>`_.
 
 Vertical interpolation
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -156,20 +169,112 @@ Users can also change the unit of the vertical coordinate.
     field = reader.regrid(data['u'][0:5,:,:])
     interp = reader.vertinterp(field, [830, 835], units = 'hPa', method = 'linear')
 
+.. _fixer:
 Fixer functionalities
 ---------------------
 
+The need of comparing different datasets or observations is very common when evaluating climate models.
+However, datasets may have different conventions, units, and even different names for the same variable.
+AQUA provides a fixer tool to standardize the data and make them comparable.
+
+The general idea is to convert data from different models to a uniform file format
+with the same variable names and units. The default format is **GRIB2**.
+
+The fixing is done by default when we initialize the ``Reader`` class, 
+using the instructions in the ``config/fixes`` folder.
+
+The ``config/fixes`` folder contains fixes in YAML files.
+A new fix can be added to the folder and the filename can be freely chosen.
+By default, fixes files with the name of the model or the name of the DestinE project are provided.
+
+Fixes can be specified in two different ways:
+
+- Using the ``fixer_name`` definitions, to be then provided as a metadata in the catalog.
+  This represents fixes that have a common nickname which can be used in multiple sources when defining the catalog.
+  There is the possibility of specifing a `parent` fix so that a fix can be re-used with minor correction, merging small change to a larger family.
+- Using the source-based definition.
+  Each source can have its own specific fix, or alternatively a ``default.yaml`` that can be used in the case of necessity.
+  Please note that this is the older AQUA implementation and will be deprecated in favour of the new `family` approach.
+
+.. note::
+    A ``default.yaml`` is used for common unit corrections if no specific fix is provided.
+    If no ``fixer_name`` is provided and ``fix`` is set to ``True``, the code will look for a
+    ``fixer_name`` called ``<MODEL_NAME>-default``.
+
+Concept
+^^^^^^^
+
+The fixer performs a range of operations on data:
+
+- adopts a common **coordinate data model** (default is the CDS data model): names of coordinates and dimensions (lon, lat, etc.),
+  coordinate units and direction, name (and meaning) of the time dimension. (See :ref:`coord-fix` for more details)
+- changes variables name deriving the correct metadata from GRIB tables.
+  The fixer can identify these derived variables by their ShortNames and ParamID (ECMWF and WMO eccodes tables are used).
+- derives new variables executing trivial operations as multiplication, addition, etc. (See :ref:`metadata-fix` for more details)
+  In particular, it derives from accumulated variables like ``tp`` (in mm), the equivalent mean-rate variables
+  (like ``mtpr``). (See :ref:`metadata-fix` for more details)
+- using the ``metpy.units`` module, it is capable of guessing some basic conversions.
+  In particular, if a density is missing, it will assume that it is the density of water and will take it into account.
+  If there is an extra time unit, it will assume that division by the timestep is needed. 
+
+
+.. _metadata-fix:
 Metadata Correction
 ^^^^^^^^^^^^^^^^^^^^
 
-Data Model and Coordinate Correction
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. _coord-fix:
+Data Model and Coordinates Correction
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Time Aggrigation
+Time Aggregation
 ----------------
+
+Input data may not be available at the desired time frequency. It is possible to perform time averaging at a given
+frequency by using the ``timmean`` method. 
+
+.. code-block:: python
+
+    reader = Reader(model="IFS", exp="tco2559-ng5", source="ICMGG_atm2d")
+    data = reader.retrieve()
+    daily = reader.timmean(data, freq='daily')
+
+Data have now been averaged at the desired daily timescale.
+If you want to avoid to have incomplete average over your time period (for example, be sure that all the months are complete before doing the time mean)
+it is possible to activate the ``exclude_incomplete=True`` flag which will remove averaged chunks which are not complete. 
+If you want to center the time mean on the time period, you can activate the ``center_time=True`` flag.
+This is at the moment only available yearly averages.
+
+..  note ::
+    The ``time_bounds`` boolean flag can be activated to build time bounds in a similar way to CMOR standard.
+    By default, ``time_bounds`` is set to False.
 
 Spatial Averaging
 -----------------
+
+When we instantiate the ``Reader`` object, grid areas for the source files are computed if not already available. 
+After this, we can use them for spatial averaging using the ``fldmean()`` method, obtaining time series of global (field) averages.
+For example, if we run the following commands:
+
+.. code-block:: python
+
+    tprate = data.tprate
+    global_mean = reader.fldmean(tprate)
+
+we get a time series of the global average ``tprate``.
+
+It is also possible to apply a regional section to the domain before performing the averaging:
+
+.. code-block:: python
+
+    tprate = data.tprate
+    global_mean = reader.fldmean(tprate, lon_limits=[-50, 50], lat_limits=[-10,20])
+
+.. warning ::
+    In order to apply an area selection the data Xarray must include ``lon`` and ``lat`` as coordinates.
+    It can work also on unstructured grids, but information on coordinates must be available.
+    If the dataset does not include these coordinates, this can be achieved with the fixer
+    described in the :ref:`fixer` section.
+
 
 Streaming of data
 -----------------
