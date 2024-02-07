@@ -12,7 +12,8 @@ from aqua import __version__ as project_version
 project = "AQUA"
 copyright = "2024, Climate DT Team"
 author = "Climate DT Team"
-version = 'v'+str(project_version)
+version_num = str(project_version)
+version = 'v'+version_num
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
