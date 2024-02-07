@@ -15,15 +15,15 @@ Download the container image
 Pull the container image from the docker hub using a personal access token (PAT) generated from GitHub.
 If you don't have a PAT, :ref:`pat`.
 
-.. code-block:: bash
+.. parsed-literal:: bash
 
-    singularity pull --docker-login docker://ghcr.io/destine-climate-dt/aqua:0.6.3
+    singularity pull --docker-login docker://ghcr.io/destine-climate-dt/aqua:|version|
 
 or
 
-.. code-block:: bash
+.. parsed-literal::
 
-    docker pull ghcr.io/destine-climate-dt/aqua:0.6.3
+    docker pull ghcr.io/destine-climate-dt/aqua:|version|
 
 This will require you to enter your username and PAT.
 The above command will create a file called ``aqua_0.6.3.sif`` in the current directory.
@@ -37,9 +37,9 @@ Load the container
 
 The container can be loaded using the following command:
 
-.. code-block:: bash
+.. parsed-literal:: 
 
-   singularity shell aqua_0.6.3.sif
+   singularity shell aqua_|version|.sif
 
 or analogue for Docker.
 
