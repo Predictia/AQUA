@@ -71,6 +71,7 @@ you can install the dependencies with the following command:
 
 Replace ``<environment_name>`` with the name of the existing environment if this is different from ``aqua``.
 
+.. _installation-lumi:
 Installation on LUMI HPC
 ------------------------
 
