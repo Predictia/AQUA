@@ -10,7 +10,6 @@ from scipy.stats import t as statt
 from ocean3d import weighted_area_mean
 from ocean3d import area_selection
 from ocean3d import weighted_zonal_mean
-from ocean3d import logger
 from ocean3d import dir_creation
 from ocean3d import custom_region
 from ocean3d import write_data
@@ -103,16 +102,16 @@ def zonal_mean_trend_plot(o3d_request, loglevel= "WARNING"):
         region (str, optional):
             Region name.
 
-        latS (float, optional):
+        lat_s (float, optional):
             Southern latitude bound for the region.
 
-        latN (float, optional):
+        lat_n (float, optional):
             Northern latitude bound for the region.
 
-        lonW (float, optional):
+        lon_w (float, optional):
             Western longitude bound for the region.
 
-        lonE (float, optional):
+        lon_e (float, optional):
             Eastern longitude bound for the region.
 
         output (bool, optional):
@@ -130,10 +129,10 @@ def zonal_mean_trend_plot(o3d_request, loglevel= "WARNING"):
     exp = o3d_request.get('exp')
     source = o3d_request.get('source')
     region = o3d_request.get('region', None)
-    latS = o3d_request.get('latS', None)
-    latN = o3d_request.get('latN', None)
-    lonW = o3d_request.get('lonW', None)
-    lonE = o3d_request.get('lonE', None)
+    lat_s = o3d_request.get('lat_s', None)
+    lat_n = o3d_request.get('lat_n', None)
+    lon_w = o3d_request.get('lon_w', None)
+    lon_e = o3d_request.get('lon_e', None)
     output = o3d_request.get('output')
     output_dir = o3d_request.get('output_dir')
     
@@ -141,15 +140,15 @@ def zonal_mean_trend_plot(o3d_request, loglevel= "WARNING"):
     TS_3dtrend_data.attrs = data.attrs
     data = TS_3dtrend_data
 
-    data = weighted_zonal_mean(data, region, latS, latN, lonW, lonE)
+    data = weighted_zonal_mean(data, region, lat_s, lat_n, lon_w, lon_e)
 
     fig, (axs) = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
 
     data.ocpt.plot.contourf(levels=20, ax=axs[0])
     axs[0].set_ylim((5500, 0))
 
-    region_title = custom_region(region=region, latS=latS, latN=latN,
-                                 lonW=lonW, lonE=lonE)
+    region_title = custom_region(region=region, lat_s=lat_s, lat_n=lat_n,
+                                 lon_w=lon_w, lon_e=lon_e)
 
     fig.suptitle(
         f"Zonally-averaged long-term trends in the {region_title}", fontsize=20)
@@ -170,7 +169,7 @@ def zonal_mean_trend_plot(o3d_request, loglevel= "WARNING"):
 
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(data,
-            region, latS, latN, lonW, lonE, output_dir, plot_name="zonal_mean_trend")
+            region, lat_s, lat_n, lon_w, lon_e, output_dir, plot_name="zonal_mean_trend")
         filename = f"{model}_{exp}_{source}_{filename}"
         write_data(f'{data_dir}/{filename}.nc',data)
         plt.savefig(f"{fig_dir}/{filename}.pdf")
@@ -182,7 +181,7 @@ def zonal_mean_trend_plot(o3d_request, loglevel= "WARNING"):
     return
 
 
-def reg_mean(data, region=None, latS=None, latN=None, lonW=None, lonE=None, loglevel= "WARNING"):
+def reg_mean(data, region=None, lat_s=None, lat_n=None, lon_w=None, lon_e=None, loglevel= "WARNING"):
     """
     Computes the weighted box mean for some predefined or customized region
 
@@ -191,145 +190,22 @@ def reg_mean(data, region=None, latS=None, latN=None, lonW=None, lonE=None, logl
 
         region (str, optional): Predefined region name. If provided, latitude and longitude bounds will be fetched from predefined regions.
 
-        latS (float, optional): Southern latitude bound. Required if region is not provided or None.
+        lat_s (float, optional): Southern latitude bound. Required if region is not provided or None.
 
-        latN (float, optional): Northern latitude bound. Required if region is not provided or None.
+        lat_n (float, optional): Northern latitude bound. Required if region is not provided or None.
 
-        lonW (float, optional): Western longitude bound. Required if region is not provided or None.
+        lon_w (float, optional): Western longitude bound. Required if region is not provided or None.
 
-        lonE (float, optional): Eastern longitude bound. Required if region is not provided or None.
+        lon_e (float, optional): Eastern longitude bound. Required if region is not provided or None.
 
     Returns:
         xarray.Dataset: Standardised anomaly with respect to the initial time step of the input data.
     """
     logger = log_configure(loglevel, 'split_ocean3d_req')
-    data = weighted_area_mean(data, region, latS, latN, lonW, lonE)
+    data = weighted_area_mean(data, region, lat_s, lat_n, lon_w, lon_e)
 
     return data
 
-
-
-def time_series_multilevs(o3d_request, anomaly: bool = False,
-                          standardise: bool = False, anomaly_ref=None,
-                          customise_level=False, levels=None, loglevel= "WARNING"):
-    """
-    Create time series plots of global temperature and salinity at selected levels.
-
-    Parameters:
-        data (DataArray): Input data containing temperature (ocpt) and salinity (so).
-        region (str): Region name. (Optional)
-        anomaly (bool): To decide whether to compute anomalies. Default is False.
-        standardise (bool): To decide whether to standardise the anomalies. Default is False.
-        anomaly_ref (str): Reference for computing the anomaly (t0=first time step, tmean=whole temporal period; only valid if anomaly is True)
-        customise_level (bool): Whether to use custom levels or predefined levels.
-        levels (list): List of levels to plot. Ignored if customise_level is False.
-        latS (float): Southern latitude bound. (Optional)
-        latN (float): Northern latitude bound. (Optional)
-        lonW (float): Western longitude bound. (Optional)
-        lonE (float): Eastern longitude bound. (Optional)
-        output (bool): Whether to save the plot and data. Default is True.
-        output_dir (str): Directory to save the plot and data. (Optional)
-
-    Returns:
-        None
-    """
-    logger = log_configure(loglevel, 'time_series_multilevs')
-    data = o3d_request.get('data')
-    model = o3d_request.get('model')
-    exp = o3d_request.get('exp')
-    source = o3d_request.get('source')
-    region = o3d_request.get('region', None)
-    latS = o3d_request.get('latS', None)
-    latN = o3d_request.get('latN', None)
-    lonW = o3d_request.get('lonW', None)
-    lonE = o3d_request.get('lonE', None)
-    output = o3d_request.get('output')
-    output_dir = o3d_request.get('output_dir')
-    
-    
-    
-    data = weighted_area_mean(data, region, latS, latN, lonW, lonE)
-    data, type, cmap = data_process_by_type(
-                        data=data, anomaly=anomaly, standardise=standardise, anomaly_ref=anomaly_ref)
-
-    logger.info("Time series plot is in process")
-
-    # Create subplots for temperature and salinity time series plots
-    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(16, 5))
-    region_title = custom_region(region=region, latS=latS, latN=latN, lonW=lonW, lonE=lonE)
-
-    fig.suptitle(f"Spatially averaged {region_title} T,S {type}", fontsize=20)
-
-    # Define the levels at which to plot the time series
-    if customise_level:
-        if levels is None:
-            raise ValueError(
-                "Custom levels are selected, but levels are not provided.")
-    else:
-        levels = [0, 100, 500, 1000, 2000, 3000, 4000, 5000]
-
-    # Iterate over the levels and plot the time series for each level
-    for level in levels:
-        if level != 0:
-            # Select the data at the specified level
-            data_level = data.sel(lev=slice(None, level)).isel(lev=-1)
-        else:
-            # Select the data at the surface level (0)
-            data_level = data.isel(lev=0)
-        # Plot the temperature time series
-        data_level.ocpt.plot.line(
-            ax=axs[0], label=f"{round(int(data_level.lev.data), -2)}")
-
-        # Plot the salinity time series
-        data_level.so.plot.line(
-            ax=axs[1], label=f"{round(int(data_level.lev.data), -2)}")
-    if output:
-        output_path, fig_dir, data_dir, filename = dir_creation(data,
-            region, latS, latN, lonW, lonE, output_dir, plot_name=f'time_series_{type.replace(" ","_").replace(".","")}')
-        filename = f"{model}_{exp}_{source}_{filename}"
-
-
-    tunits = data_level.ocpt.attrs['units']
-    sunits = data_level.so.attrs['units']
-    axs[0].set_title("Temperature", fontsize=15)
-    axs[0].set_ylabel(f"Potential Temperature (in {tunits})", fontsize=12)
-    axs[0].set_xlabel("Time", fontsize=12)
-    axs[1].set_title("Salinity", fontsize=15)
-    axs[1].set_ylabel(f"Salinity (in {sunits})", fontsize=12)
-    axs[1].set_xlabel("Time (in years)", fontsize=12)
-    axs[1].legend(loc='right')
-    # axs[1].set_yticklabels([])
-    plt.subplots_adjust(bottom=0.3, top=0.85, wspace=0.2)
-
-    if output:
-        write_data(f'{data_dir}/{filename}.nc', data)
-        plt.savefig(f"{fig_dir}/{filename}.pdf")
-        logger.info(
-            " Figure and data used in the plot, saved here : %s", output_path)
-    plt.show()
-    return
-
-def time_series_multilevs_parallel(o3d_request, loglevel= "WARNING"):
-    logger = log_configure(loglevel, 'time_series_multilevs_parallel')
-    import concurrent.futures
-    logger.info("Evaluating time series multilevels")
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [
-            executor.submit(
-                time_series_multilevs, o3d_request, anomaly, standardise, anomaly_ref, customise_level, levels
-            )
-            for anomaly, standardise, anomaly_ref, customise_level, levels in [
-                (False, False, None, False, list),
-                (True, False, "tmean", False, list),
-                (True, False, "t0", False, list),
-                (True, True, "tmean", False, list),
-                (True, True, "t0", False, list)
-            ]
-        ]
-
-    # Wait for all tasks to complete
-    concurrent.futures.wait(futures)
-    logger.info("Evaluating time series multilevels Completed")
     
 def linregress_3D(y_array, loglevel= "WARNING"):
     """
@@ -523,10 +399,10 @@ def multilevel_t_s_trend_plot(o3d_request, customise_level=False, levels=None, l
         region (str): Region name. (Optional)
         customise_level (bool): Whether to use custom levels or predefined levels.
         levels (list): List of levels to plot. Ignored if customise_level is False.
-        latS (float): Southern latitude bound. (Optional)
-        latN (float): Northern latitude bound. (Optional)
-        lonW (float): Western longitude bound. (Optional)
-        lonE (float): Eastern longitude bound. (Optional)
+        lat_s (float): Southern latitude bound. (Optional)
+        lat_n (float): Northern latitude bound. (Optional)
+        lon_w (float): Western longitude bound. (Optional)
+        lon_e (float): Eastern longitude bound. (Optional)
         output (bool): Whether to save the plot and data. Default is True.
         output_dir (str): Output directory to save the plot and data. (Optional)
 
@@ -539,14 +415,14 @@ def multilevel_t_s_trend_plot(o3d_request, customise_level=False, levels=None, l
     exp = o3d_request.get('exp')
     source = o3d_request.get('source')
     region = o3d_request.get('region', None)
-    latS = o3d_request.get('latS', None)
-    latN = o3d_request.get('latN', None)
-    lonW = o3d_request.get('lonW', None)
-    lonE = o3d_request.get('lonE', None)
+    lat_s = o3d_request.get('lat_s', None)
+    lat_n = o3d_request.get('lat_n', None)
+    lon_w = o3d_request.get('lon_w', None)
+    lon_e = o3d_request.get('lon_e', None)
     output = o3d_request.get('output')
     output_dir = o3d_request.get('output_dir')
     
-    data = area_selection(data, region, latS, latN, lonW, lonE)
+    data = area_selection(data, region, lat_s, lat_n, lon_w, lon_e)
     TS_trend_data = TS_3dtrend(data)
     TS_trend_data.attrs = data.attrs
     data = TS_trend_data
@@ -587,7 +463,7 @@ def multilevel_t_s_trend_plot(o3d_request, customise_level=False, levels=None, l
             axs[levs, 1].set_xticklabels([])
         axs[levs, 1].set_facecolor('grey')
         # axs[levs, 1].set_aspect('equal', adjustable='box')
-    region_title = custom_region(region=region, latS=latS, latN=latN, lonW=lonW, lonE=lonE)
+    region_title = custom_region(region=region, lat_s=lat_s, lat_n=lat_n, lon_w=lon_w, lon_e=lon_e)
 
     plt.suptitle(
         f'Linear Trends of T,S at different depths in the {region_title}', fontsize=24)
@@ -595,7 +471,7 @@ def multilevel_t_s_trend_plot(o3d_request, customise_level=False, levels=None, l
     axs[0, 1].set_title("Salinity", fontsize=18)
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(data,
-            region, latS, latN, lonW, lonE, output_dir, plot_name="multilevel_t_s_trend")
+            region, lat_s, lat_n, lon_w, lon_e, output_dir, plot_name="multilevel_t_s_trend")
         filename = f"{model}_{exp}_{source}_{filename}"
         write_data(f'{data_dir}/{filename}.nc',data.interp(lev=levels[levs]))
         plt.savefig(f"{fig_dir}/{filename}.pdf")

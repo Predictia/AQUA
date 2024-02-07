@@ -132,10 +132,10 @@ class Ocean3DCLI:
 
         
     def ocean3d_diags(self, region=None,
-                  latS: float = None,
-                  latN: float = None,
-                  lonW: float = None,
-                  lonE: float = None,
+                  lon_s: float = None,
+                  lon_n: float = None,
+                  lon_w: float = None,
+                  lon_e: float = None,
                   ):
         
         o3d_request={
@@ -144,10 +144,10 @@ class Ocean3DCLI:
             "source":self.config["source"],
             "data":self.data["catalog_data"],
             "region":region,
-            "latS":latS,
-            "latN":latN,
-            "lonW":lonW,
-            "lonE":lonE,
+            "lon_s":lon_s,
+            "lon_n":lon_n,
+            "lon_w":lon_w,
+            "lon_e":lon_e,
             "output":True,
             "output_dir":self.config["outputdir"],
             "loglevel": self.loglevel
@@ -168,16 +168,16 @@ class Ocean3DCLI:
             for custom_region in custom_regions:
                 for coord in custom_region:
                     custom_region_dict.update(coord)
-                lonE = custom_region_dict["lonE"]
-                lonW = custom_region_dict["lonW"]
-                latS = custom_region_dict["latS"]
-                latN = custom_region_dict["latN"]
+                lon_e = custom_region_dict["lon_e"]
+                lon_w = custom_region_dict["lon_w"]
+                lon_s = custom_region_dict["lon_s"]
+                lon_n = custom_region_dict["lon_n"]
 
-                self.logger.debug("lonE: %s, lonW: %s, latS: %s, latN: %s",
-                             lonE, lonW, latS, latN)
+                self.logger.debug("lon_e: %s, lon_w: %s, lon_s: %s, lon_n: %s",
+                             lon_e, lon_w, lon_s, lon_n)
 
-                self.ocean3d_diags(region=None, latS=latS,
-                                   latN=latN, lonW=lonW, lonE=lonE)
+                self.ocean3d_diags(region=None, lon_s=lon_s,
+                                   lon_n=lon_n, lon_w=lon_w, lon_e=lon_e)
 
     def predefined_region_diag(self):
         if self.config["predefined_regions"]:

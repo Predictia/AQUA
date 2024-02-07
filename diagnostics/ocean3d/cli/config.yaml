@@ -4,9 +4,9 @@ source: lra-r100-monthly
 
 outputdir: ./output
 
-time_selection : False # keep it True, if you want to activate time selection
+time_selection : True # keep it True, if you want to activate time selection
 start_year : 1991
-end_year : 1998
+end_year : 1991
 
 predefined_regions:
   - Indian Ocean
@@ -17,6 +17,6 @@ predefined_regions:
   - Labrador Sea
 
 # custom_region:
-#   - [latS: -30, latN: 30, lonW: 100, lonE: 300]
-  # - [latS: 0, latN: 30, lonW: 100, lonE: 150]
+#   - [lat_s: -30, lat_n: 30, lon_w: 100, lon_e: 300]
+  # - [lat_s: 0, lat_n: 30, lon_w: 100, lon_e: 150]
 

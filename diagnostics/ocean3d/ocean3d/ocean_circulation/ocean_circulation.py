@@ -238,8 +238,8 @@ def convert_variables(data, loglevel= "WARNING"):
     return converted_data
 
 
-def prepare_data_for_stratification_plot(data, region=None, time=None, latS: float = None, latN: float = None, lonW: float = None,
-                                         lonE: float = None, loglevel= "WARNING"):
+def prepare_data_for_stratification_plot(data, region=None, time=None, lat_s: float = None, lat_n: float = None, lon_w: float = None,
+                                         lon_e: float = None, loglevel= "WARNING"):
     """
     Prepare data for plotting stratification profiles.
 
@@ -247,16 +247,16 @@ def prepare_data_for_stratification_plot(data, region=None, time=None, latS: flo
         data (xarray.Dataset): Input data containing temperature (ocpt) and salinity (so).
         region (str, optional): Region name.
         time (str or list, optional): Time period to select. Can be a single date or a list of start and end dates.
-        latS (float, optional): Southern latitude bound. Required if region is not provided or None.
-        latN (float, optional): Northern latitude bound. Required if region is not provided or None.
-        lonW (float, optional): Western longitude bound. Required if region is not provided or None.
-        lonE (float, optional): Eastern longitude bound. Required if region is not provided or None.
+        lat_s (float, optional): Southern latitude bound. Required if region is not provided or None.
+        lat_n (float, optional): Northern latitude bound. Required if region is not provided or None.
+        lon_w (float, optional): Western longitude bound. Required if region is not provided or None.
+        lon_e (float, optional): Eastern longitude bound. Required if region is not provided or None.
 
     Returns:
         xarray.Dataset: Prepared data for plotting stratification profiles.
     """
     logger = log_configure(loglevel, 'prepare_data_for_stratification_plot')
-    data = weighted_area_mean(data, region, latS, latN, lonW, lonE)
+    data = weighted_area_mean(data, region, lat_s, lat_n, lon_w, lon_e)
     data = convert_variables(data)
     data_rho = data["rho"] - 1000
     data["rho"] = data_rho
@@ -272,10 +272,10 @@ def plot_stratification(o3d_request,time=None, loglevel= "WARNING"):
         mod_data (xarray.Dataset): Model data.
         region (str): Region name.
         time (str): Time selection for data (e.g., 'yearly', '3M', 'Jan', 'Feb', etc.).
-        latS (float): Southern latitude bound.
-        latN (float): Northern latitude bound.
-        lonW (float): Western longitude bound.
-        lonE (float): Eastern longitude bound.
+        lat_s (float): Southern latitude bound.
+        lat_n (float): Northern latitude bound.
+        lon_w (float): Western longitude bound.
+        lon_e (float): Eastern longitude bound.
         output (bool): Flag indicating whether to save the output.
         output_dir (str): Directory path for saving the output.
 
@@ -288,10 +288,10 @@ def plot_stratification(o3d_request,time=None, loglevel= "WARNING"):
     exp = o3d_request.get('exp')
     source = o3d_request.get('source')
     region = o3d_request.get('region', None)
-    latS = o3d_request.get('latS', None)
-    latN = o3d_request.get('latN', None)
-    lonW = o3d_request.get('lonW', None)
-    lonE = o3d_request.get('lonE', None)
+    lat_s = o3d_request.get('lat_s', None)
+    lat_n = o3d_request.get('lat_n', None)
+    lon_w = o3d_request.get('lon_w', None)
+    lon_e = o3d_request.get('lon_e', None)
     output = o3d_request.get('output')
     output_dir = o3d_request.get('output_dir')
     
@@ -299,9 +299,9 @@ def plot_stratification(o3d_request,time=None, loglevel= "WARNING"):
     obs_data = crop_obs_overlap_time(mod_data, obs_data)
 
     obs_data, time = prepare_data_for_stratification_plot(
-        obs_data, region, time, latS, latN, lonW, lonE)
+        obs_data, region, time, lat_s, lat_n, lon_w, lon_e)
     mod_data, time = prepare_data_for_stratification_plot(
-        mod_data, region, time, latS, latN, lonW, lonE)
+        mod_data, region, time, lat_s, lat_n, lon_w, lon_e)
     mod_data_list, obs_data = compare_arrays(mod_data, obs_data)
 
     mod_data_list = list(
@@ -312,7 +312,7 @@ def plot_stratification(o3d_request,time=None, loglevel= "WARNING"):
 
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(mod_data,
-             region, latS, latN, lonW, lonE, output_dir, plot_name=f"stratification_{time}_clim")
+             region, lat_s, lat_n, lon_w, lon_e, output_dir, plot_name=f"stratification_{time}_clim")
         filename = f"{model}_{exp}_{source}_{filename}"
         
     legend_list = []
@@ -350,7 +350,7 @@ def plot_stratification(o3d_request,time=None, loglevel= "WARNING"):
             if output:
                 write_data(f'{data_dir}/{filename}_{legend_info.replace(" ","_")}.nc',data_3)
 
-    region_title = custom_region(region=region, latS=latS, latN=latN, lonW=lonW, lonE=lonE)
+    region_title = custom_region(region=region, lat_s=lat_s, lat_n=lat_n, lon_w=lon_w, lon_e=lon_e)
 
     fig.suptitle(
         f"Climatological {time.upper()} T, S and rho0 stratification in {region_title}", fontsize=20)
@@ -446,8 +446,8 @@ def compute_mld_cont(rho, loglevel= "WARNING"):
 
 
 def data_for_plot_spatial_mld_clim(data, region=None, time=None,
-                                   latS: float = None, latN: float = None,
-                                   lonW: float = None, lonE: float = None, loglevel= "WARNING"):
+                                   lat_s: float = None, lat_n: float = None,
+                                   lon_w: float = None, lon_e: float = None, loglevel= "WARNING"):
     """
     Extracts and prepares data for plotting spatial mean mixed layer depth (MLD) climatology.
 
@@ -455,10 +455,10 @@ def data_for_plot_spatial_mld_clim(data, region=None, time=None,
     - data (pandas.DataFrame): Input data containing relevant variables.
     - region (str or None): Optional region to subset the data (e.g., 'North Atlantic').
     - time (str or None): Optional time period to select from the data (e.g., '2010-2020').
-    - latS (float or None): Southernmost latitude of the region (default: None).
-    - latN (float or None): Northernmost latitude of the region (default: None).
-    - lonW (float or None): Westernmost longitude of the region (default: None).
-    - lonE (float or None): Easternmost longitude of the region (default: None).
+    - lat_s (float or None): Southernmost latitude of the region (default: None).
+    - lat_n (float or None): Northernmost latitude of the region (default: None).
+    - lon_w (float or None): Westernmost longitude of the region (default: None).
+    - lon_e (float or None): Easternmost longitude of the region (default: None).
 
     - Returns:
         xarray.Dataset: Processed data suitable for plotting spatial MLD climatology.
@@ -466,7 +466,7 @@ def data_for_plot_spatial_mld_clim(data, region=None, time=None,
     """
     logger = log_configure(loglevel, 'data_for_plot_spatial_mld_clim')
 
-    data = area_selection(data, region, latS, latN, lonW, lonE)
+    data = area_selection(data, region, lat_s, lat_n, lon_w, lon_e)
     data = convert_variables(data)
     data = compute_mld_cont(data)
     data, time = data_time_selection(data, time)
@@ -498,10 +498,10 @@ def plot_spatial_mld_clim(o3d_request, time=None,
     exp = o3d_request.get('exp')
     source = o3d_request.get('source')
     region = o3d_request.get('region', None)
-    latS = o3d_request.get('latS', None)
-    latN = o3d_request.get('latN', None)
-    lonW = o3d_request.get('lonW', None)
-    lonE = o3d_request.get('lonE', None)
+    lat_s = o3d_request.get('lat_s', None)
+    lat_n = o3d_request.get('lat_n', None)
+    lon_w = o3d_request.get('lon_w', None)
+    lon_e = o3d_request.get('lon_e', None)
     output = o3d_request.get('output')
     output_dir = o3d_request.get('output_dir')
     
@@ -512,9 +512,9 @@ def plot_spatial_mld_clim(o3d_request, time=None,
         mod_data = crop_obs_overlap_time(obs_data, mod_data)
 
     mod_clim, time = data_for_plot_spatial_mld_clim(mod_data, region, time,
-                                                    latS, latN, lonW, lonE)  # To select the month and compute its climatology
+                                                    lat_s, lat_n, lon_w, lon_e)  # To select the month and compute its climatology
     obs_clim, time = data_for_plot_spatial_mld_clim(obs_data, region, time,
-                                                    latS, latN, lonW, lonE)  # To select the month and compute its climatology
+                                                    lat_s, lat_n, lon_w, lon_e)  # To select the month and compute its climatology
     # obs_data=crop_obs_overlap_time(mod_data, obs_data)
 
     # We identify the first year used in the climatology
@@ -532,12 +532,12 @@ def plot_spatial_mld_clim(o3d_request, time=None,
  
     if output:
         output_path, fig_dir, data_dir, filename = dir_creation(mod_data,
-             region, latS, latN, lonW, lonE, output_dir, plot_name=f"spatial_MLD_{time}")
+             region, lat_s, lat_n, lon_w, lon_e, output_dir, plot_name=f"spatial_MLD_{time}")
 
     logger.info("Spatial MLD plot is in process")
     fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(20, 6.5))
 
-    region_title = custom_region(region=region, latS=latS, latN=latN, lonW=lonW, lonE=lonE)
+    region_title = custom_region(region=region, lat_s=lat_s, lat_n=lat_n, lon_w=lon_w, lon_e=lon_e)
 
     fig.suptitle(
         f'Climatology of {time.upper()} mixed layer depth in {region_title}', fontsize=20)

@@ -50,14 +50,14 @@ class hovmoller_plot:
         logger = log_configure(self.loglevel, 'data_for_hovmoller_lev_time_plot')
         data = self.data
         region = self.region
-        latS = self.latS
-        latN = self.latN
-        lonW = self.lonW
-        lonE = self.lonE
+        lat_s = self.lat_s
+        lat_n = self.lat_n
+        lon_w = self.lon_w
+        lon_e = self.lon_e
         output_dir = self.output_dir
         self.plot_info = {}
         
-        data = weighted_area_mean(data, region, latS, latN, lonW, lonE, loglevel=self.loglevel)
+        data = weighted_area_mean(data, region, lat_s, lat_n, lon_w, lon_e, loglevel=self.loglevel)
         
         counter = 1
         for anomaly in [False,True]:
@@ -67,14 +67,14 @@ class hovmoller_plot:
                         data=data, anomaly=anomaly, standardise=standardise, anomaly_ref=anomaly_ref, loglevel=self.loglevel)
                     key = counter
                     
-                    region_title = custom_region(region=region, latS=latS, latN=latN, lonW=lonW, lonE=lonE, loglevel=self.loglevel)
+                    region_title = custom_region(region=region, lat_s=lat_s, lat_n=lat_n, lon_w=lon_w, lon_e=lon_e, loglevel=self.loglevel)
 
                     if self.output:
                         # if standardise:
                         #     type = f"{type} standardised"
                         plot_name = f'hovmoller_plot_{type.replace(" ","_")}'
                         output_path, fig_dir, data_dir, filename = dir_creation(data_proc,
-                            region, latS, latN, lonW, lonE, output_dir, plot_name = plot_name, loglevel=self.loglevel)
+                            region, lat_s, lat_n, lon_w, lon_e, output_dir, plot_name = plot_name, loglevel=self.loglevel)
 
                     # ocptlevs, solevs =self.define_lev_values(data_proc)
                     ocptlevs, solevs = 20, 20
