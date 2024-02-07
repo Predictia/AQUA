@@ -13,7 +13,7 @@ Welcome to AQUA's documentation!
    installation
    getting_started
    core_components
-   diagnostics
+   diagnostics/index
    adding_data
    lra
    container
