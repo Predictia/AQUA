@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+- Warning options in the `__init__` AQUA file (#852)
+
 ## [v0.6.3]
 
 Complete list:
