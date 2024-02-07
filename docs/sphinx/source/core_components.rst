@@ -214,6 +214,11 @@ If you need to develop your own, fixes can be specified in two different ways:
     If no ``fixer_name`` is provided and ``fix`` is set to ``True``, the code will look for a
     ``fixer_name`` called ``<MODEL_NAME>-default``.
 
+Please note that the ``default.yaml`` is reserved to define a few of useful tools:
+- the default ``data_model``(See :ref:`coord-fix`).
+- the list of units that should be added to the default MetPy unit list. 
+- A series of nicknames (``shortname``) for units to be replaced in the fixes yaml file.
+
 Concept
 ^^^^^^^
 
@@ -235,11 +240,19 @@ The fixer performs a range of operations on data:
 Fix structure
 ^^^^^^^^^^^^^
 
-Here we show an example of a fixer file:
+Here we show an example of a fixer file, including all the possible options:
 
 .. code-block:: yaml
 
     fixer_name:
+        documentation-mother: 
+            data_model: ifs
+            delete: 
+                - bad_variable
+            vars:
+                mtpr:
+                    source: tp
+                    grib: true
         documentation-fix:
             parent: documentation-to-merge
             data_model: ifs
@@ -277,7 +290,8 @@ different sections of the fixer file.
 - **documentation-fix**: This is the name of the fixer.
   It is used to identify the fixer and will be used in the entry metadata
   to specify which fixer to use. (See :ref:`add-data` for more details)
-- **parent**: a source ``fixer_name`` with which the current fixes have to be merged.
+- **parent**: a source ``fixer_name`` with which the current fixes have to be merged. 
+  In the above example, the ``documentation-fix`` will extend the ``documentation-mother`` fix integrating it. 
 - **data_model**: the name of the data model for coordinates. (See :ref:`coord-fix`).
 - **coords**: extra coordinates handling if data model is not flexible enough.
   (See :ref:`coord-fix`).
@@ -291,25 +305,38 @@ different sections of the fixer file.
       The additional ``jump`` parameter specifies the period of cumulation.
       Only months are supported at the moment, implying that fluxes are reset at the beginning of each month.
 - **vars**: this is the main fixer block, described in detail on the following section :ref:`metadata-fix`.
+- **delete**: a list of variable or coordinates that the users want to remove from the output Dataset
 
 .. _metadata-fix:
 Metadata Correction
 ^^^^^^^^^^^^^^^^^^^^
 
-The **vars** block in the ``fixer_name`` is a list of variables that need
-metadata correction.
-This can be specified with all the available variables that a model can output.
-The Reader will then apply fixes only to variables that are found in the specific
-dataset, promoting the creation of a generic ``fixer_name`` that can be applied to every new
-simulation more than a pletora of small specific fixes.
+The **vars** block in the ``fixer_name`` represent a list of variables that need
+metadata correction: this covers units, names, grib codes, and any other metadata.
+In addition, also new variables can be computed from pre-existing variables.
 
-The section :ref:`fix-structure` provides an exhaustive list of cases.
-It is possible to rename a variable according to GRIB standards, letting eccodes
-handle the units and metadata modification or it is possible to write a
-custom variable, with custom metadata and units override, as shown in the section above.
+The above-reported section :ref:`fix-structure` provides an exhaustive list of cases. 
+In order to create a fix for a specific variable, two approaches are possibile:
+
+- **source**: it will modify an existent variable changing its name (e.g from ``tp`` to ``mtpr``)
+- **derived**: it will create a new variable, which can also be obtained with basic operations between
+  multiple variables (e.g. getting ``mtntrf2`` from ``ttr`` + ``tsr``). 
 
 .. warning ::
-    Recursive fixes (i.e. fixes of fixes) cannot be implemented.
+    Please note that only basic operation (sum, division, subtraction and multiplication) are allowed in the ``derived`` block
+
+Then, extra keys can be then specified for `each` variable to allow for further fine tuning:
+
+- **grib**: if set ``True``, the fixer will look for GRIB ShortName associated with the new variable and 
+  will retrieve the associated metadata.
+- **src_units**: override the source unit in case of specific issues (e.g. units which cannot be processed by MetPy).
+- **units**: override the target unit.
+- **decumulate**: if set to ``True``, activate the decumulation of the variables
+- **attributes**: with this key, it is possible to define a dictionary of attributes to be modified. 
+  Please refer to the above example to see the possible implementation. 
+
+.. warning ::
+    Recursive fixes (i.e. fixes of fixes) cannot be implemented. For example, it is not possibile to derive a variable from a derived variable
 
 .. _coord-fix:
 Data Model and Coordinates Correction
@@ -353,11 +380,10 @@ Data have now been averaged at the desired daily timescale.
 
 Some extra options are available:
 
-- ``exclude_incomplete=True``: this flaf will remove averaged chunks which are not complete
-  (for example, be sure that all the months are complete before doing the time mean).
-- ``center_time=True``: this flag will center the time mean on the time period.
-  At the moment available only for monthly and yearly time aggregation.
-- ``time_bounds=True``: this flag can be activated to build time bounds in a similar way to CMOR standard.
+- ``exclude_incomplete=True``: this flag will remove averaged chunks which are not complete
+  (for example, verify  that all the record from each month are available before doing the time mean).
+- ``center_time=True``: this flag will center the time coordinate on the mean time window.
+- ``time_bounds=True``: this flag can be activated to build time bounds in a similar way to CMOR-like standard.
 
 Spatial Averaging
 -----------------
@@ -437,7 +463,7 @@ Basic usage
 To activate the streaming mode the user should specify the argument ``streaming=True``
 in the Reader initialization.
 The user can also choose the length of the data chunk with the ``aggregation`` keyword
-(in pandas notation ``D``, ``M``, ``Y``, or ``daily``, ``monthly`` etc. or ``days``, ``months`` etc.).
+(e.g. in pandas notation, or with aliases as ``daily``, ``monthly`` etc. or ``days``, ``months`` etc.).
 The default is ``S`` (step), i.e. single saved timesteps are read at each iteration.
 The user can also specify the desired initial and final dates with the keywords ``startdate`` and ``enddate``.
 
