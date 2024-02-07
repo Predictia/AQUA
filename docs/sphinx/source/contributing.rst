@@ -30,20 +30,25 @@ Contributing Code
 
 To contribute code to AQUA, follow these general steps:
 
-1. Fork the AQUA repository on GitHub.
-2. Clone the forked repository to your local machine.
-3. Create a new branch for your feature or bugfix (e.g., `git checkout -b my-feature`).
-4. Make your changes passes tests.
-5. Commit your changes and push them to your forked repository.
-6. Create a pull request on the AQUA repository, describing your changes and referencing any related issues.
+1. If you don't already have it, ask the development team to grant yo access to the AQUA repository.
+2. Create an issue in the github repository to discuss your proposed changes.
+3. Clone the repository to your local machine.
+4. Create a new branch for your feature or bugfix (e.g., `git checkout -b my-feature`).
+5. Commit your changes
+6. When ready, push your branch to the github repository.
+7. Create a pull request in the AQUA repository, describing your changes and referencing any related issues.
+8. In the pull request on GitHub, you can run tests by adding the `run tests` label to the pull request.
+   This will trigger the CI/CD pipeline to run the tests. Please do this only if needed, as the github action hours are limited.
+9. Add a line to the `CHANGELOG.md` file in the `Unreleased` section, describing your changes.
+10. Once your pull request is approved, it will be merged into the main branch by the development team. 
+   **Please do not merge your own pull requests!**
 
 Please note that all contributed codes must be licensed under the same terms as AQUA.
-
 
 Documentation and Tutorials
 ---------------------------
 
 We also welcome contributions to the AQUA documentation and tutorials.
 If you have suggestions for improvements, want to help maintain the documentation, or have ideas for new tutorials,
-please create an issue on the GitHub repository or submit a pull request with your proposed changes.
+please create an issue on the GitHub repository and/or submit a pull request with your proposed changes.
 
