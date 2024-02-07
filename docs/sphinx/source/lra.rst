@@ -3,18 +3,17 @@ Low Resolution Archive
 
 
 The creation and the usage of the Low Resolution Archive (LRA) is a key concept of AQUA framework to simplify
-the analysis of extreme high resolution data. Indeed, many diagnostics included within AQUA does not need extremely
+the analysis of extreme high resolution data. Indeed, many diagnostics included within AQUA do not need extremely
 high-resolution high-frequency data, and they can assess the model behaviour with daily or monthly data at 
 relatively coarse resolution. Therefore LRA represents an intermediate layer of data reduction that can be used 
 for simpler and fast analysis which can be valuable for climate model assessment. 
-
 
 Basic Concepts
 --------------
 
 The LRA is basically a wrapper of the functionalities included in AQUA, combining the regridding, fixing
 and time averaging capabilities. A specific class ``LRAgenerator`` has been developed, using ``dask`` in order to exploit parallel
-computations, and can be investigated in a the `LRA generator notebook <https://github.com/oloapinivad/AQUA/blob/main/notebooks/lra_generator/lra_generator.ipynb>`_
+computations, and can be investigated in a the `LRA generator notebook <https://github.com/oloapinivad/AQUA/blob/main/notebooks/lra_generator/lra_generator.ipynb>`_.
 
 Access to the LRA
 -----------------
@@ -92,7 +91,7 @@ A basic example usage can thus be:
     Keep in mind that this script is ideally submitted via batch to a HPC node, 
     so that a template for SLURM is also available in the same directory (``lra-submitter.tmpl``). 
     Be aware that although the computation is split among different months, the memory consumption of loading very big data
-    is a limiting factor, so that unless you have very fat node it is unlikely you can use more than 16 nodes
+    is a limiting factor, so that unless you have very fat node it is unlikely you can use more than 16 workers.
 
 At the end of the generation, a new entry for the LRA is added to the catalog structure, 
 so that you will be able to access the exactly as shown above.
