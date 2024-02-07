@@ -170,7 +170,7 @@ sources:
       fdb_path: 
         /pfs/lustrep3/scratch/project_465000454/sbeyer/rundir/tco1279l137/i2hm/hres/cray.craympich/lum-g.cray.sp/h72.N32.T240xt7xh1+ioT8xt7xh0.nextgems_6h.i32r0w32.htco1279-lessnodes-wmio-5994874/fdb/HEALPix_grids/etc/fdb/config.yaml
       #variables: [263004]
-      variables: [263000, 263001, 263003, 263004,
+      variables: [263000, 263001, 263002, 263003, 263004,
         263100, 263101, 263124]
       source_grid_name: fesom-hpz7-nested
 
@@ -221,7 +221,7 @@ sources:
       <<: *metadata-default
       fdb_path: 
         /pfs/lustrep3/scratch/project_465000454/sbeyer/rundir/tco1279l137/i2hm/hres/cray.craympich/lum-g.cray.sp/h72.N32.T240xt7xh1+ioT8xt7xh0.nextgems_6h.i32r0w32.htco1279-lessnodes-wmio-5994874/fdb/HEALPix_grids/etc/fdb/config.yaml
-      variables: [263000, 263001, 263003, 263004,
+      variables: [263000, 263001, 263002, 263003, 263004, 
         263100, 263101, 263124]
       source_grid_name: fesom-hpz9-nested
 
