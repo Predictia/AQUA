@@ -71,9 +71,6 @@ Follow these steps:
    ``write:packages`` for the GitHub Container Registry.
 5. Click "Generate token" at the bottom of the page.
 
-Store the PAT
-^^^^^^^^^^^^^
-
 You can store the token as an environment variable:
 
 .. code-block:: bash
