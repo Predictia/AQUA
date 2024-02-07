@@ -6,8 +6,69 @@ Advanced Topics
 Adding a new machine
 --------------------
 
-Creation on the catalogue
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Change the machine name
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Let's assume that the new machine to configure is called ``new_machine``.
+The first step is to change the machine name in the ``config-aqua.yaml`` file,
+which is located in the ``$AQUA/config`` directory.
+
+.. code-block:: yaml
+
+    machine: new_machine
+
+Creation of the catalogue folder
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Then to add a new machine to the AQUA catalogue we need to create a
+new folder that will contain the configuration files for the new machine.
+
+The folder should be created in the ``config`` directory.
+
+.. code-block:: bash
+
+    cd aqua/config
+    mkdir new_machine
+
+This will contain the ``catalog.yaml`` file, which is the main file for the machine configuration.
+
+.. code-block:: yaml
+
+    paths:
+        grids: /path/to/aqua/data/grids
+        weights: /path/to/aqua/data/weights
+        areas: /path/to/aqua/data/areas
+
+    sources:
+        my-model:
+            description: New model for a new machine
+            driver: yaml_file_cat
+            args:
+                path: "{{CATALOG_DIR}}/catalog/my-model/main.yaml"
+
+In this example we're adding just one model, called ``my-model``.
+
+Populating the catalogue
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Let's assume that the new machine has a new model called ``my-model`` defined before.
+Let's create a new experiment with a new source for this model.
+
+The file ``main.yaml`` should be created in the ``catalog/my-model`` directory.
+This file will contain the informations about the experiments for the new model.
+
+.. code-block:: yaml
+
+    sources:
+        my-exp:
+            description: my first experiment for my-model
+            driver: yaml_file_cat
+            args:
+                path: "{{CATALOG_DIR}}/my-exp.yaml"
+
+Finally we can create the file ``my-exp.yaml`` in the same directory.
+This is the file that will describe all the sources for the new experiment.
+More informations about how to add them can be found in the :ref:`add-data` section.
 
 Download of grids
 ^^^^^^^^^^^^^^^^^
