@@ -191,10 +191,11 @@ Fixes can be specified in two different ways:
 
 - Using the ``fixer_name`` definitions, to be then provided as a metadata in the catalog.
   This represents fixes that have a common nickname which can be used in multiple sources when defining the catalog.
-  There is the possibility of specifing a `parent` fix so that a fix can be re-used with minor correction, merging small change to a larger family.
+  There is the possibility of specifing a `parent` fix so that a fix can be re-used with minor correction,
+  merging small change to a larger ``fixer_name``.
 - Using the source-based definition.
   Each source can have its own specific fix, or alternatively a ``default.yaml`` that can be used in the case of necessity.
-  Please note that this is the older AQUA implementation and will be deprecated in favour of the new `family` approach.
+  Please note that this is the older AQUA implementation and will be deprecated in favour of the new approach described above.
 
 .. note::
     A ``default.yaml`` is used for common unit corrections if no specific fix is provided.
@@ -212,19 +213,115 @@ The fixer performs a range of operations on data:
   The fixer can identify these derived variables by their ShortNames and ParamID (ECMWF and WMO eccodes tables are used).
 - derives new variables executing trivial operations as multiplication, addition, etc. (See :ref:`metadata-fix` for more details)
   In particular, it derives from accumulated variables like ``tp`` (in mm), the equivalent mean-rate variables
-  (like ``mtpr``). (See :ref:`metadata-fix` for more details)
+  (like ``mtpr`` in kg m-2 s-1). (See :ref:`metadata-fix` for more details)
 - using the ``metpy.units`` module, it is capable of guessing some basic conversions.
   In particular, if a density is missing, it will assume that it is the density of water and will take it into account.
   If there is an extra time unit, it will assume that division by the timestep is needed. 
 
+.. _fix-structure:
+Fix structure
+^^^^^^^^^^^^^
+
+Here we show an example of a fixer file:
+
+.. code-block:: yaml
+
+    fixer_name:
+        documentation-fix:
+            method: replace
+            data_model: ifs
+            coords:
+                time:
+                    source: time-to-rename
+            deltat: 3600 # Decumulation info
+            jump: month
+            vars:
+                2t:
+                    source: 2t
+                    attributes: # new attribute
+                        donald: 'duck'
+                mtntrf: # Auto unit conversion from eccodes
+                    derived: ttr
+                    grib: true
+                    decumulate: true     
+                2t_increased: # Simple formula
+                    derived: 2t+1.0
+                    grib: true
+                # example of derived variable, should be double the normal amount
+                mtntrf2:
+                    derived: ttr+ttr
+                    src_units: J m-2 # Overruling source units
+                    decumulate: true  # Test decumulation
+                    units: "{radiation_flux}" # overruling units
+                    attributes:
+                        # assigning a long_name
+                        long_name: Mean top net thermal radiation flux doubled
+                        paramId: '999179' # assigning an (invented) paramId
+
+We put together many different fixes, but let's take a look at the 
+different sections of the fixer file.
+
+- **documentation-fix**: This is the name of the fixer.
+  It is used to identify the fixer and will be used in the entry metadata
+  to specify which fixer to use. (See :ref:`add-data` for more details)
+- **method**: This is the method used to fix the data.
+  Available methods are:
+    - **replace**: use the fixes overriding the default ones ``<MODEL_NAME>-default``.
+      If you do not specify anything, this is the basic behaviour.
+    - **merge**: merge the fixes with the default ones, with priority for the former.
+      It can be used if the most of fixes from default are good,
+      but something different in the specific source is required.
+- **data_model**: the name of the data model for coordinates. (See :ref:`coord-fix`).
+- **coords**: extra coordinate handling if data model is not flexible enough.
+  (See :ref:`coord-fix`).
+- **decumulation**: ``deltat`` and ``jump`` are defined to instruct the Reader
+  decumulator about how to treat variables if we set ``decumulate: true``
+- **vars**: this is the main fixer block, described in detail on the following section :ref:`metadata-fix`.
 
 .. _metadata-fix:
 Metadata Correction
 ^^^^^^^^^^^^^^^^^^^^
 
+The **vars** block in the ``fixer_name`` is a list of variables that need
+metadata correction.
+This can be specified with all the available variables that a model can output.
+The Reader will then apply fixes only to variables that are found in the specific
+dataset, promoting the creation of a generic ``fixer_name`` that can be applied to every new
+simulation more than a pletora of small specific fixes.
+
+The section :ref:`fix-structure` provides an exhaustive list of cases.
+It is possible to rename a variable according to GRIB2 standard, letting eccodes
+handle the units and metadata modification or it is possible to write a
+custom variable, with custom metadata and units override, as shown in the section above.
+
+.. warning ::
+    Recursive fixes (i.e. fixes of fixes) cannot be implemented.
+
 .. _coord-fix:
 Data Model and Coordinates Correction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The fixer can adopt a common *coordinate data model*
+(default is the CDS data model).
+If this data model is not appropriate for a specific source,
+it is possible to specify a different one in the catalogue.
+
+If the data model coordinate treatment is not enough to fix the coordinates,
+it is possible to specify a custom fix in the catalogue in the **coords** block
+as shown in section :ref:`fix-structure`.
+For example, if the longitude coordinate is called ``longitude`` instead of ``lon``,
+it is possible to specify a fix like:
+
+.. code-block:: yaml
+
+    lon:
+        source: longitude
+
+This will rename the coordinate to ``lon``.
+
+.. note::
+    When possible, prefer a **data model** treatment of coordinates and use the **coords**
+    block as second option.
 
 Time Aggregation
 ----------------
@@ -239,14 +336,14 @@ frequency by using the ``timmean`` method.
     daily = reader.timmean(data, freq='daily')
 
 Data have now been averaged at the desired daily timescale.
-If you want to avoid to have incomplete average over your time period (for example, be sure that all the months are complete before doing the time mean)
-it is possible to activate the ``exclude_incomplete=True`` flag which will remove averaged chunks which are not complete. 
-If you want to center the time mean on the time period, you can activate the ``center_time=True`` flag.
-This is at the moment only available yearly averages.
 
-..  note ::
-    The ``time_bounds`` boolean flag can be activated to build time bounds in a similar way to CMOR standard.
-    By default, ``time_bounds`` is set to False.
+Some extra options are available:
+
+- ``exclude_incomplete=True``: this flaf will remove averaged chunks which are not complete
+  (for example, be sure that all the months are complete before doing the time mean).
+- ``center_time=True``: this flag will center the time mean on the time period.
+  At the moment available only for monthly and yearly time aggregation.
+- ``time_bounds=True``: this flag can be activated to build time bounds in a similar way to CMOR standard.
 
 Spatial Averaging
 -----------------
@@ -275,16 +372,177 @@ It is also possible to apply a regional section to the domain before performing 
     If the dataset does not include these coordinates, this can be achieved with the fixer
     described in the :ref:`fixer` section.
 
+.. _time-selection:
+Time selection
+--------------
 
+Even if slicing your data after the ``retrieve()`` method is an easy task,
+being able to perform a time selecetion during the Reader initialization
+can speed up your code, having less metadata to explore.
+For this reason ``startdate`` and ``enddate`` options are available both
+during the Reader initialization and the ``retrieve()`` method to subselect
+immediatly only a chunck of data.
+
+.. note::
+    If you're streaming data check the section :ref:`streaming` to have an
+    overview of the behaviour of the Reader with these options.
+
+.. _lev-selection:
+Level selection
+---------------
+
+Similarly to :ref:`time-selection`, level selection is a trivial operation,
+but when dealing with high-resolution 3D datasets, only ask for the
+required levels can speed up the retrieve process.
+
+When reading 3D data it is possible to specify already during ``retrieve()``
+which levels to select using the ``level`` keyword.
+The levels are specified in the same units as they are stored in the archive
+(for example in hPa for atmospheric IFS data,
+but an index for NEMO data in the FDB archive).
+
+.. note::
+    In the case of FDB data this presents the great advantage that a significantly reduced request will be read from the FDB 
+    (by default all levels would be read for each timestep even if later a ``sel()`` or ``isel()`` selection
+    is performed on the XArray).
+
+.. warning::
+    If you're dealing with level selection and regridding, please take a look at 
+    the section :ref:`lev-selection-regrid`.
+
+.. _streaming:
 Streaming of data
 -----------------
+
+The Reader class includes the ability to simulate data streaming to retrieve chunks
+of data of a specific time length.
+
+Basic usage
+^^^^^^^^^^^
+
+To activate the streaming mode the user should specify the argument ``streaming=True``
+in the Reader initialization.
+The user can also choose the length of the data chunk with the ``aggregation`` keyword
+(in pandas notation ``D``, ``M``, ``Y``, or ``daily``, ``monthly`` etc. or ``days``, ``months`` etc.).
+The default is ``S`` (step), i.e. single saved timesteps are read at each iteration.
+The user can also specify the desired initial and final dates with the keywords ``startdate`` and ``enddate``.
+
+If, for example, we want to stream the data every three days from ``'2020-05-01'``, we need to call:
+
+.. code-block:: python
+
+    reader = Reader(model="IFS", exp= "tco2559-ng5", source="ICMGG_atm2d",
+                    streaming=True, aggregation = '3D', startdate = '2020-05-01')    
+    data = reader.retrieve()
+
+The data available with the first retrieve will be only 3 days of the available times.
+The ``retrieve()`` method can then be called multiple times,
+returning a new chunk of 3 days of data, until all data are streamed.
+The function will automatically determine the appropriate start and end points for each chunk based on
+the internal state of the streaming process.
+
+If we want to reset the state of the streaming process, we can call the ``reset_stream()`` method.
+
+Iterator streaming
+^^^^^^^^^^^^^^^^^^
+
+Another possibility to deal with data streaming is to use the argument
+``stream_generator=True`` in the Reader initialization:
+
+.. code-block:: python
+
+    reader = Reader(model="IFS", exp= "tco2559-ng5", source="ICMGG_atm2d",
+                    stream_generator = 'True', aggregation = 'monthly')
+    data_gen = reader.retrieve()
+    
+``data_gen`` is now a generator object that yields the requested one-month-long chunks of data
+(See :ref:`iterators` for more info).
+We can do operations with them by iterating on the generator object like:
+
+.. code-block:: python
+
+    for data in data_gen:
+        # Do something with the data
 
 .. _accessors:
 Accessors
 ---------
 
+AQUA also provides a special ``aqua`` accessor to Xarray which allows
+to call most functions and methods of the reader
+class as if they were methods of a DataArray or Dataset.
+
+Basic usage
+^^^^^^^^^^^
+
+Reader methods like ``reader.regrid()`` or functions like ``plot_single_map()``
+can now also be accessed by appending the suffix ``aqua`` to a
+DataArray or Dataset, followed by the function of interest,
+like in ``data.aqua.regrid()``.
+
+This means that instead of writing:
+
+.. code-block:: python
+
+    reader.fldmean(reader.timmean(data.tcc, freq="Y"))
+
+we can write:
+
+.. code-block:: python
+
+    data.tcc.aqua.timmean(freq="Y").aqua.fldmean()
+
+.. note::
+    The accessor always assumes that the Reader instance to be used is either
+    the one with which a Dataset was created or, for new derived objects and for **DataArrays of a Datasets**,
+    the last instantiated Reader or the last use of the ``retrieve()`` method.
+    This means that if more than one reader instance is used (for example to compare different datasets)
+    we recommend not to use the accessor.
+
+Usage with multiple Reader instances
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+As an alternative the Reader class contains a special ``set_default()`` method which sets that reader
+as an accessor default in the following.
+The accessor itself also has a ``set_default()`` method
+(accepting a reader instance as an argument) which sets the default and returns the same object.
+
+Usage examples when multiple readers are used:
+
+.. code-block:: python
+
+    from aqua import Reader
+    reader1=Reader(model="IFS", exp="test-tco79", source="short", regrid="r100")  # the default is now reader1
+    reader2=Reader(model="IFS", exp="test-tco79", source="short", regrid="r200")  # the default is now reader2
+    data1 = reader1.retrieve()  # the default is now reader1 
+    data2 = reader2.retrieve()  # the default is now reader2
+    reader1.set_default()  # the default is now reader1 
+    data1r = data1.aqua.regrid()
+    data2r = data2.aqua.regrid()  # data2 was created by retrieve(), so it remembers its default reader
+    data2r = data2['2t'].aqua.set_default(reader2).aqua.regrid()  # the default is set to reader2 before using a method
+
 Parallel Processing
 -------------------
+
+Since most of the objects in AQUA are based on ``xarray``, you can use parallel processing capabilities provided by 
+``xarray`` through integration with ``dask`` to speed up the execution of data processing tasks.
+
+For example, if you are working with AQUA interactively
+in a Jupyter Notebook, you can start a dask cluster to parallelize your computations.
+
+.. code-block:: python
+
+    from dask.distributed import Client
+    import dask
+    dask.config.config.get('distributed').get('dashboard').update({'link':'{JUPYTERHUB_SERVICE_PREFIX}/proxy/{port}/status'})
+
+    client = Client(n_workers=40, threads_per_worker=1, memory_limit='5GB')
+    client
+
+The above code will start a dask cluster with 40 workers and one thread per worker.
+
+AQUA also provides a simple way to move the computation done by dask to a compute node on your HPC system.
+The description of this feature is provided in the section :ref:`slurm`.
 
 Graphic tools
 -------------
