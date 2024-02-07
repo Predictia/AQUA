@@ -1,3 +1,0 @@
-.. _`catalogue`:
-Catalogue
-=========
