@@ -9,12 +9,12 @@ If you use AQUA in your research or publications, please cite the package using 
 .. code-block:: bibtex
 
    @software{AQUA,
-     author       = {Paolo Davini, Jost von Hardenberg et al.},
+     author       = {Matteo Nurisso, Silvia Caprioli, Natalia Nazarova, Paolog Ghinassi, Paolo Davini, Jost von Hardenberg et al.},
      title        = {AQUA: A Python Framework for High-Resolution Climate Model Diagnostics},
-     year         = {20XX},
+     year         = {2024},
      publisher    = {GitHub},
      journal      = {GitHub Repository},
-     howpublished = {\url{https://github.com/oloapinivad/AQUA/tree/main}},
+     howpublished = {\url{https://github.com/DestinE-ClimateDT/AQUA/tree/main}},
    }
 
 Acknowledgments
