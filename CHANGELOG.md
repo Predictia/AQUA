@@ -23,7 +23,6 @@ Complete list:
 - Tropical_rainfall: improve organization and maintainability, introducing nested classes (#814)
 - Revisiting CERES fixes (#833)
 - Timeseries: add bands for observation in Gregory plots (#837)
-- Sea ice: add uncertainty and improve color scheme
 
 ## [v0.6.2]
 
