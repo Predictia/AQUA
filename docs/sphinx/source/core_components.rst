@@ -37,7 +37,8 @@ specifically an ``xarray.Dataset``, where only the metadata are loaded in memory
     large sets of numerous NetCDF files are easy to read, but they may require
     to open a large amount of data to be able to check all the metadata.
     We then suggest, if low performance is experienced, to use the Zarr format
-    on top of the NetCDF format, to significantly improve the performance of the data access.
+    on top of the NetCDF format, to `significantly improve the performance <https://ui.adsabs.harvard.edu/abs/2021AGUFMIN15A..08P/abstract>`_
+    of the data access.
 
 Catalogue Exploration
 ^^^^^^^^^^^^^^^^^^^^^
@@ -60,6 +61,9 @@ will return experiments available in the catalogue for model CERES.
     The ``inspect_catalogue()`` and the ``Reader`` are based on the machine and AQUA path configuration.
     If you don't find a source you're expecting, please check these are correctly set (see :ref:`getting_started`).
 
+If you want to have a complete overview of the sources available in the catalogue, you can use the ``catalogue()`` function.
+This will return a list of all the sources available in the catalogue, listed by model and experiment.
+
 Reader basic usage
 ^^^^^^^^^^^^^^^^^^
 
@@ -77,6 +81,7 @@ The ``retrieve()`` method will return an ``xarray.Dataset`` to be used for furth
 
 .. note::
     The basic call enables fixer, area and time average functionalities, but no regridding or streaming.
+    To have a complete overview of the available options, please check the :doc:`api_reference`.
 
 If some information about the data is needed, it is possible to use the ``info()`` method of the ``Reader`` class.
 
@@ -607,3 +612,11 @@ In the following example we plot an sst map from the first timestep of ERA5 rean
 
     plot_single_map(sst_plot, title="Example of a custom title", filename="example",
                     outputdir=".", format="png", dpi=300, save=True)
+
+This will produce the following plot:
+
+.. figure:: figures/single_map_example.png
+    :align: center
+    :width: 100%
+
+    Example of the above code.
