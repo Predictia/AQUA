@@ -28,6 +28,8 @@ We'd love to hear from you if you have an idea for a new feature or enhancement 
 Contributing Code
 -----------------
 
+We welcome contributions to the AQUA codebase, both to the framework and to the diagnostics.
+
 To contribute code to AQUA, follow these general steps:
 
 1. If you don't already have it, ask the development team to grant you access to the AQUA repository.
@@ -45,6 +47,8 @@ To contribute code to AQUA, follow these general steps:
 .. warning::
    Please do not merge pull requests into the main branch yourself and never, ever, commit any
    changes directly to the main branch!
+
+A more detailed guide on these steps can be found in the `CONTRIBUTING.md <https://github.com/DestinE-Climate-DT/AQUA/blob/main/CONTRIBUTING.md>`_ file in the AQUA repository root folder.
 
 Please note that all contributed codes must be licensed under the same terms as AQUA.
 
