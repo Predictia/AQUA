@@ -15,7 +15,7 @@ Download the container image
 Pull the container image from the docker hub using a personal access token (PAT) generated from GitHub.
 If you don't have a PAT, :ref:`pat`.
 
-.. parsed-literal:: bash
+.. parsed-literal::
 
     singularity pull --docker-login docker://ghcr.io/destine-climate-dt/aqua:|version|
 
@@ -26,7 +26,7 @@ or
     docker pull ghcr.io/destine-climate-dt/aqua:|version|
 
 This will require you to enter your username and PAT.
-The above command will create a file called ``aqua_0.6.3.sif`` in the current directory.
+The above command will create a file called aqua\_\ |version|\.sif in the current directory.
 
 .. note::
    If you want to use a different version of AQUA, you can change the tag in the above command.
