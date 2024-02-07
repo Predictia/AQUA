@@ -102,6 +102,12 @@ Run the installation script:
 This installs the AQUA environment into a container, and then set up the correct modules
 via a ``load_aqua.sh`` script that is generated and then called from the ``.bash_profile``.
 
+.. warning::
+   
+   It is possible that, if you're recreating the environment, the code breaks while removing the folder ``~/mambaforge/aqua/bin``, complaining the resource is busy.
+   In this case you may have some processes running in the background. 
+   You can check them with ``ps -ef | grep aqua`` and kill them manually if needed.
+
 .. note ::
     The installation script is designed to be run on the LUMI cluster, and it may require some adjustments to be run on other systems
     that use the container-wrapper tool. Please refer to the documentation of the container-wrapper tool for more information.
