@@ -328,15 +328,15 @@ In order to create a fix for a specific variable, two approaches are possibile:
 Then, extra keys can be then specified for `each` variable to allow for further fine tuning:
 
 - **grib**: if set ``True``, the fixer will look for GRIB ShortName associated with the new variable and 
-  will retrieve the associated metadata
-- **src_units**: change the source unit in case of specific issues (e.g. units which cannot be processed by MetPy )
-- **units**: change the target unit
+  will retrieve the associated metadata.
+- **src_units**: override the source unit in case of specific issues (e.g. units which cannot be processed by MetPy).
+- **units**: override the target unit.
 - **decumulate**: if set to ``True``, activate the decumulation of the variables
 - **attributes**: with this key, it is possible to define a dictionary of attributes to be modified. 
-  Please refer to the above exampl to see the possible implementation. 
+  Please refer to the above example to see the possible implementation. 
 
 .. warning ::
-    Recursive fixes (i.e. fixes of fixes) cannot be implemented.
+    Recursive fixes (i.e. fixes of fixes) cannot be implemented. For example, it is not possibile to derive a variable from a derived variable
 
 .. _coord-fix:
 Data Model and Coordinates Correction
@@ -380,11 +380,10 @@ Data have now been averaged at the desired daily timescale.
 
 Some extra options are available:
 
-- ``exclude_incomplete=True``: this flaf will remove averaged chunks which are not complete
-  (for example, be sure that all the months are complete before doing the time mean).
-- ``center_time=True``: this flag will center the time mean on the time period.
-  At the moment available only for monthly and yearly time aggregation.
-- ``time_bounds=True``: this flag can be activated to build time bounds in a similar way to CMOR standard.
+- ``exclude_incomplete=True``: this flag will remove averaged chunks which are not complete
+  (for example, verify  that all the record from each month are available before doing the time mean).
+- ``center_time=True``: this flag will center the time coordinate on the mean time window.
+- ``time_bounds=True``: this flag can be activated to build time bounds in a similar way to CMOR-like standard.
 
 Spatial Averaging
 -----------------
@@ -464,7 +463,7 @@ Basic usage
 To activate the streaming mode the user should specify the argument ``streaming=True``
 in the Reader initialization.
 The user can also choose the length of the data chunk with the ``aggregation`` keyword
-(in pandas notation ``D``, ``M``, ``Y``, or ``daily``, ``monthly`` etc. or ``days``, ``months`` etc.).
+(e.g. in pandas notation, or with aliases as ``daily``, ``monthly`` etc. or ``days``, ``months`` etc.).
 The default is ``S`` (step), i.e. single saved timesteps are read at each iteration.
 The user can also specify the desired initial and final dates with the keywords ``startdate`` and ``enddate``.
 
