@@ -46,7 +46,7 @@ your `.bashrc` or `.bash_profile` file:
     export AQUA=/path/to/aqua
 
 This will allow you to use the AQUA package from any location on the system and will make
-clear for the code where to find the AQUA catalogue (see :ref:`catalogue`).
+clear for the code where to find the AQUA catalogue.
 
 Set up the configuration file
 -----------------------------
@@ -64,6 +64,23 @@ The configuration file is used to specify the following parameters:
   Refer to :ref:`add-data` for more information.
 - **cdo**: location of the CDO executable. By default this option is not needed, since CDO is required in the ``environment.yml`` file
   and provided by conda.
+
+The configuration folder has this structure:
+
+.. code-block:: text
+
+    ├── config
+    │   ├── data_models
+    │   ├── fixes
+    │   └── machines
+    │       ├── lumi
+    │       │   ├── catalog 
+    │       │   ├── catalog.yaml
+    │       │   └── regrid.yaml
+    │       ├── levante
+    │       └── ...
+    ├── aqua-grids.yaml
+    ├── config-aqua.yaml
 
 Set up Jupyter kernel
 ---------------------

@@ -232,7 +232,6 @@ specify the queue's name as an argument of the function:
 	The exclusive argument **does not** automatically provide us the maximum available memory,
     number of cores, and walltime.
 
-
 The function ``slurm.job()`` has an argument ``max_resources_per_node``, False by default.
 If we set the argument to ``max_resources_per_node=True``, the number of cores, memory,
 and walltime will equal the maximum available for the choosen node.
