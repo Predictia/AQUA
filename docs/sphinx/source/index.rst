@@ -13,9 +13,6 @@ Welcome to AQUA's documentation!
    installation
    getting_started
    core_components
-   catalogue_reader
-   regridder
-   fixer
    diagnostics
    adding_data
    lra

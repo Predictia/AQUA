@@ -81,7 +81,7 @@ The ``retrieve()`` method will return an ``xarray.Dataset`` to be used for furth
 If some information about the data is needed, it is possible to use the ``info()`` method of the ``Reader`` class.
 
 .. warning::
-    Every ``Reader`` instance brings information about the grids and fixes of the retrieved data.
+    Every ``Reader`` instance carries information about the grids and fixes of the retrieved data.
     If you're retrieving data from many sources, please instantiate a new ``Reader`` for each source.
 
 Dask and Iterator access
@@ -92,14 +92,15 @@ make the data available for processing.
 This is the standard behaviour of the ``Reader`` class, where ``xarray`` and ``dask``
 capabilities are used to retrieve the data.
 
-However, the ``Reader`` class is also able to allow a streaming of data, 
+This allows to fully process also large datasets using dask lazy and parallel processing capabilities.
+However, for specific testing or development needs,
+the ``Reader`` class is also able to allow a streaming of data, 
 where the data are loaded in chunks and processed step by step.
-
 Please check the :ref:`iterators` section for more details.
 
 .. note::
     Dask access to data is available also for FDB data.
-    Since a specific intake driver has been developed, if you're adding FDB sources,
+    Since a specific intake driver has been developed, if you're adding new FDB sources to the catalogue,
     we suggest to read the :ref:`FDB_dask` section.
 
 Regrid and interpolation capabilities
@@ -107,7 +108,7 @@ Regrid and interpolation capabilities
 
 AQUA provides functions to interpolate and regrid data to match the spatial resolution of different datasets. 
 AQUA regridding functionalities are based on the external tool `smmregrid <https://github.com/jhardenberg/smmregrid>`_ which 
-operates sparse matrix computation based on externally-computed weights.
+operates sparse matrix computation based on pre-computed weights.
 
 Basic usage
 ^^^^^^^^^^^
@@ -134,11 +135,13 @@ then to use them for each regridding operation.
 The reader generates the regridding weights automatically (with CDO) if not already
 existent and stored in a directory specified in the ``config/machine/<machine-name>/catalog.yaml`` file.
 A list of predefined target grids (only regular lon-lat for now) is available in the ``config/aqua-grids.yaml`` file.
-For example, ``r100`` is a regular grid at 1° resolution.
+For example, ``r100`` is a regular grid at 1° resolution, ``r005`` at 0.05°, etc.
 
 .. note::
-    If you're using AQUA on a shared machine, please check if the regridding weights
-    are already available.
+    The currently defined target grids follow the convention that for example a 1° grid (``r100``) has 360x180 points centered 
+    in latitude between 89.5 and -89.5 degrees. Notice that an alternative grid definition with 360x181 points,
+    centered between 90 and -90 degrees is sometimes used in the field. If you need sucha a grid please add an additional definition
+    to the ``config/aqua-grids.yaml`` file with a different grid name (for example ``r100a``).
 
 In other words, weights are computed externally by CDO (an operation that needs to be done only once) and 
 then stored on the machine so that further operations are considerably fast. 
@@ -149,13 +152,17 @@ Such an approach has two main advantages:
 2. Operations can be easily parallelized with Dask, bringing further speedup.
 
 .. note::
-    In the long term, it will be possible to support also other interpolation software,
+    If you're using AQUA on a shared machine, please check if the regridding weights
+    are already available.
+
+.. note::
+    In the long term, it will be possible to support also pre-computed weights from other interpolation software,
     such as `ESMF <https://earthsystemmodeling.org/>`_ or `MIR <https://github.com/ecmwf/mir>`_.
 
 Vertical interpolation
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Aside from the horizontal interpolation, AQUA offers also the possibility to perform
+Aside from the horizontal regridding, AQUA offers also the possibility to perform
 a simple linear vertical interpolation building  on the capabilities of Xarray.
 This is done with the ``vertinterp`` method of the ``Reader`` class.
 This can of course be use in the combination of the ``regrid`` method so that it is possible to operate 
@@ -164,10 +171,10 @@ Users can also change the unit of the vertical coordinate.
 
 .. code-block:: python
 
-    reader = Reader(model="IFS", exp="tco2559-ng5", regrid = 'r100', source="ICMU_atm3d")
+    reader = Reader(model="IFS", exp="tco2559-ng5", source="ICMU_atm3d", regrid='r100')
     data = reader.retrieve()
-    field = reader.regrid(data['u'][0:5,:,:])
-    interp = reader.vertinterp(field, [830, 835], units = 'hPa', method = 'linear')
+    field = data['u'].isel(time=slice(0,5)).aqua.regrid()
+    interp = field.aqua.vertinterp(levels=[830, 835], units='hPa', method='linear')
 
 .. _fixer:
 Fixer functionalities
@@ -178,7 +185,8 @@ However, datasets may have different conventions, units, and even different name
 AQUA provides a fixer tool to standardize the data and make them comparable.
 
 The general idea is to convert data from different models to a uniform file format
-with the same variable names and units. The default format is **GRIB2**.
+with the same variable names and units.
+The default convention for metadata (for example variable ShortNames) is **GRIB**.
 
 The fixing is done by default when we initialize the ``Reader`` class, 
 using the instructions in the ``config/fixes`` folder.
@@ -187,18 +195,22 @@ The ``config/fixes`` folder contains fixes in YAML files.
 A new fix can be added to the folder and the filename can be freely chosen.
 By default, fixes files with the name of the model or the name of the DestinE project are provided.
 
-Fixes can be specified in two different ways:
+If you need to develop your own, fixes can be specified in two different ways:
 
-- Using the ``fixer_name`` definitions, to be then provided as a metadata in the catalog.
-  This represents fixes that have a common nickname which can be used in multiple sources when defining the catalog.
-  There is the possibility of specifing a `parent` fix so that a fix can be re-used with minor correction,
-  merging small change to a larger ``fixer_name``.
+- Using the ``fixer_name`` definitions, to be then provided as a metadata in the catalogue entry.
+  This represents fixes that have a common nickname which can be used in multiple sources when defining the catalogue.
+  There is the possibility of specifing a **parent** fix so that a fix can be re-used with minor corrections,
+  merging small changes to a larger ``fixer_name``.
 - Using the source-based definition.
-  Each source can have its own specific fix, or alternatively a ``default.yaml`` that can be used in the case of necessity.
-  Please note that this is the older AQUA implementation and will be deprecated in favour of the new approach described above.
+  Each source can have its own specific fixes.
+  These are used only if a ``fixer_name`` is not specified for the source.
+
+.. warning::  
+    Please note that the source-based definition is the older AQUA implementation and will be deprecated
+    in favour of the new approach described above.
+    We strongly suggest to use the new approach for new fixes.
 
 .. note::
-    A ``default.yaml`` is used for common unit corrections if no specific fix is provided.
     If no ``fixer_name`` is provided and ``fix`` is set to ``True``, the code will look for a
     ``fixer_name`` called ``<MODEL_NAME>-default``.
 
@@ -207,9 +219,10 @@ Concept
 
 The fixer performs a range of operations on data:
 
-- adopts a common **coordinate data model** (default is the CDS data model): names of coordinates and dimensions (lon, lat, etc.),
+- adopts a **common data model** for coordinates (default is the CDS common data model):
+  names of coordinates and dimensions (lon, lat, etc.),
   coordinate units and direction, name (and meaning) of the time dimension. (See :ref:`coord-fix` for more details)
-- changes variables name deriving the correct metadata from GRIB tables.
+- changes variable names deriving the correct metadata from GRIB tables if required.
   The fixer can identify these derived variables by their ShortNames and ParamID (ECMWF and WMO eccodes tables are used).
 - derives new variables executing trivial operations as multiplication, addition, etc. (See :ref:`metadata-fix` for more details)
   In particular, it derives from accumulated variables like ``tp`` (in mm), the equivalent mean-rate variables
@@ -228,7 +241,7 @@ Here we show an example of a fixer file:
 
     fixer_name:
         documentation-fix:
-            method: replace
+            parent: documentation-to-merge
             data_model: ifs
             coords:
                 time:
@@ -264,18 +277,19 @@ different sections of the fixer file.
 - **documentation-fix**: This is the name of the fixer.
   It is used to identify the fixer and will be used in the entry metadata
   to specify which fixer to use. (See :ref:`add-data` for more details)
-- **method**: This is the method used to fix the data.
-  Available methods are:
-    - **replace**: use the fixes overriding the default ones ``<MODEL_NAME>-default``.
-      If you do not specify anything, this is the basic behaviour.
-    - **merge**: merge the fixes with the default ones, with priority for the former.
-      It can be used if the most of fixes from default are good,
-      but something different in the specific source is required.
+- **parent**: a source ``fixer_name`` with which the current fixes have to be merged.
 - **data_model**: the name of the data model for coordinates. (See :ref:`coord-fix`).
-- **coords**: extra coordinate handling if data model is not flexible enough.
+- **coords**: extra coordinates handling if data model is not flexible enough.
   (See :ref:`coord-fix`).
-- **decumulation**: ``deltat`` and ``jump`` are defined to instruct the Reader
-  decumulator about how to treat variables if we set ``decumulate: true``
+- **decumulation**: 
+    - If only ``deltat`` is specified, all the variables that are considered flux variables
+      will be divided by the ``deltat``. This is done automatically based on target and source units.
+    - If additionally ``decumulate: true`` is specified for a specific variable,
+      a time derivative of the variable will be computed.
+      This is tipically done for cumulated fluxes for the IFS model, that are cumulated on a period longer
+      than the output saving frequency.
+      The additional ``jump`` parameter specifies the period of cumulation.
+      Only months are supported at the moment, implying that fluxes are reset at the beginning of each month.
 - **vars**: this is the main fixer block, described in detail on the following section :ref:`metadata-fix`.
 
 .. _metadata-fix:
@@ -290,7 +304,7 @@ dataset, promoting the creation of a generic ``fixer_name`` that can be applied 
 simulation more than a pletora of small specific fixes.
 
 The section :ref:`fix-structure` provides an exhaustive list of cases.
-It is possible to rename a variable according to GRIB2 standard, letting eccodes
+It is possible to rename a variable according to GRIB standards, letting eccodes
 handle the units and metadata modification or it is possible to write a
 custom variable, with custom metadata and units override, as shown in the section above.
 

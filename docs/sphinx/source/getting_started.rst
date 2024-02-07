@@ -48,8 +48,8 @@ your `.bashrc` or `.bash_profile` file:
 This will allow you to use the AQUA package from any location on the system and will make
 clear for the code where to find the AQUA catalogue (see :ref:`catalogue`).
 
-Set up configuration file
--------------------------
+Set up the configuration file
+-----------------------------
 
 A configuration file is available to specify the parameters for the AQUA package.
 This is a YAML file located in `config/config-aqua.yaml`.
@@ -62,7 +62,8 @@ The configuration file is used to specify the following parameters:
 - **reader**: this block contains catalogue and fixes location. These paths are intended to be
   inside the AQUA repository, so that these paths should not be changed if not necessary.
   Refer to :ref:`add-data` for more information.
-- **cdo**: location of the CDO executable. By default this option is not needed, as CDO is required in the ``environment.yml`` file.
+- **cdo**: location of the CDO executable. By default this option is not needed, since CDO is required in the ``environment.yml`` file
+  and provided by conda.
 
 Set up Jupyter kernel
 ---------------------
@@ -120,12 +121,14 @@ We now retrieve the data.
 
     data = reader.retrieve()
 
-We're asking for the data to be retrieved, but only metadata are loaded into memory.
+We are asking for the data to be retrieved and a xarray object is returned,
+so that only metadata are loaded into memory.
 This allows us to retrieve blindly the data, without worrying about the size of the data.
 We can then, in the development stage, explore the data and see what we have.
 In a production environment instead, AQUA can be used to retrieve only variables and time ranges of interest.
 
-Data are now available as an xarray object, specifically a `xarray.Dataset`, even in the case we asked for a single variable.
+.. note::
+  Data are retrieved as an xarray object, specifically a ``xarray.Dataset``, even in the case we asked for a single variable.
 
 We can now interpolate the data to a 1°x1° grid and plot a timestep of it, all with AQUA tools.
 
@@ -147,12 +150,12 @@ This function has been used as accessor but can also be called as a standalone f
 See :ref:`accessors` for more information.
 
 We can now calculate the mean global temperature time series on the original grid.
-We will then go back to use the original data, without regridding it,
+We will then go back to use the original data, without regridding them,
 to show area evaluation capabilities of AQUA.
 
 .. code-block:: python
 
-    global_mean = reader.fldmean(data['2t'][100:200, :])
+    global_mean = reader.fldmean(data['2t'].isel(time=slice(100,200)))
     global_mean.plot()
 
 We obtain as image:

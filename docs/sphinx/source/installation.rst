@@ -71,10 +71,10 @@ you can install the dependencies with the following command:
 
 Replace ``<environment_name>`` with the name of the existing environment if this is different from ``aqua``.
 
-Installation on LUMI cluster
-----------------------------
+Installation on LUMI HPC
+------------------------
 
-LUMI is the main cluster of the DestinE-Climate-DT project, and it is the main platform for the development of AQUA.
+LUMI is currently the main HPC of the DestinE-Climate-DT project, and it is the main platform for the development of AQUA.
 The Lustre filesystem does not support the use of conda environments, so another approach has been developed to install on LUMI,
 based on `container-wrapper <https://docs.lumi-supercomputer.eu/software/installing/container-wrapper/>`_.
 
@@ -110,8 +110,8 @@ via a ``load_aqua.sh`` script that is generated and then called from the ``.bash
     It wraps the conda installation in a container, allowing to load LUMI modules and run from command line or batch jobs the AQUA code.
     Different LUMI module loading or setups may lead to different results, but it's the most flexible way to develop AQUA on LUMI.
 
-Installation and use of AQUA container
---------------------------------------
+Installation and use of the AQUA container
+------------------------------------------
 
 In order to use AQUA in complicate workflows or in a production environment, it is recommended to use the AQUA container.
 The AQUA container is a Docker container that contains the AQUA package and all its dependencies.
@@ -119,5 +119,6 @@ The AQUA container is a Docker container that contains the AQUA package and all 
 Please refer to the :ref:`container` section for more information on how to deploy and how to use the AQUA container.
 
 .. note ::
-    If you're working on the LUMI cluster, an AQUA container is already available and can be used to run AQUA.
-    Please refer to the :ref:`container` section for tools specifically developed for LUMI.
+    If you're working on LUMI HPC, a compact script is available to load the AQUA container,
+    mounting the necessary folders and creating the necessary environment variables.
+    Please refer to the :ref:`container` section.
