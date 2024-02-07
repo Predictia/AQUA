@@ -5,46 +5,46 @@ Container
 Every new version of AQUA generates a new container available
 `here <https://github.com/DestinE-Climate-DT/AQUA/pkgs/container/aqua>`_.
 
-Using Singularity or Docker, you can quickly load the AQUA environment on platforms like LUMI, MareNostrum, or Levante. 
-
-This guide explains how to use the AQUA environment using the container, with a focus on LUMI and Singularity software.
-However, the same instructions apply to other platforms and Docker.
+Using `Singularity <https://docs.sylabs.io/guides/latest/user-guide/>`_ or
+`Docker <https://docs.docker.com/>`_, you can quickly download the container and
+load the AQUA environment on any platform.
 
 Download the container image
 ----------------------------
 
-Pull the docker image from the docker hub using the generated token:
+Pull the container image from the docker hub using a personal access token (PAT) generated from GitHub.
+If you don't have a PAT, :ref:`pat`.
 
 .. code-block:: bash
 
-   singularity pull --docker-login docker://ghcr.io/destine-climate-dt/aqua:0.6.2
+    singularity pull --docker-login docker://ghcr.io/destine-climate-dt/aqua:0.6.3
 
-This will require you to enter your username and token generated above.
-The above command will create a file called ``aqua_0.6.2.sif`` in the current directory.
+or
+
+.. code-block:: bash
+
+    docker pull ghcr.io/destine-climate-dt/aqua:0.6.3
+
+This will require you to enter your username and PAT.
+The above command will create a file called ``aqua_0.6.3.sif`` in the current directory.
 
 .. note::
    If you want to use a different version of AQUA, you can change the tag in the above command.
-   For example, to use version 0.4, you can use ``aqua:0.5``.
+   For example, to use version 0.5, you can use ``aqua:0.5``.
 
-.. note::
-   If in your machine is installed docker instead of singularity, you can pull the image with docker,
-   just by replacing ``singularity pull`` with ``docker pull``.
+Load the container
+------------------
 
-Store the token
----------------
-
-You can store the token as an environment variable:
+The container can be loaded using the following command:
 
 .. code-block:: bash
 
-   export SINGULARITY_DOCKER_USERNAME=mygithubusername
-   export SINGULARITY_DOCKER_PASSWORD=generatedtoken
+   singularity shell aqua_0.6.3.sif
 
-This will allow you to pull the image without having to enter your username and token every time.
-It can be particularly useful if you want to use the image in a batch job.
+or analogue for Docker.
 
-Load AQUA Environment into the Shell
--------------------------------------
+Anyway, you may want to bind some folders to the container to access your data and scripts or
+to define some environment variables.
 
 The AQUA repository contains a script to load the AQUA container (updated to the last release) with singularity on LUMI.
 This contains also bindings to the commonly used folders on LUMI but it can be easily adapted to other platforms.
@@ -212,10 +212,25 @@ Generate a Personal Access Token (PAT)
 --------------------------------------
 
 You need to generate a Personal Access Token from GitHub to authenticate your access to the GitHub Container Registry.
+
 Follow these steps:
 
 1. Go to your GitHub account settings.
 2. Click on "Developer settings" in the left sidebar at the bottom of the list.
 3. Under "Personal access tokens," click on the "Token (classic)" tab and then "Generate new token" on the top right.
-4. Give the token a name, and make sure to select the appropriate scopes. You'll need at least ``read:packages`` and ``write:packages`` for the GitHub Container Registry.
+4. Give the token a name, and make sure to select the appropriate scopes. You'll need at least ``read:packages`` and
+   ``write:packages`` for the GitHub Container Registry.
 5. Click "Generate token" at the bottom of the page.
+
+Store the PAT
+^^^^^^^^^^^^^
+
+You can store the token as an environment variable:
+
+.. code-block:: bash
+
+   export SINGULARITY_DOCKER_USERNAME=mygithubusername
+   export SINGULARITY_DOCKER_PASSWORD=generatedtoken
+
+This will allow you to pull the image without having to enter your username and token every time.
+It can be particularly useful if you want to use the image in a batch job.
