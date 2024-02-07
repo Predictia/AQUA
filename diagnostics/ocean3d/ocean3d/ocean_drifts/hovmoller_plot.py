@@ -1,4 +1,4 @@
-../ocean3d/ocean_drifts/__init__.pyfrom .tools import *
+from .tools import *
 from ocean3d import write_data
 from ocean3d import export_fig
 from ocean3d import split_ocean3d_req
