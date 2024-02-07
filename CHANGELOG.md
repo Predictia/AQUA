@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 - Refactor of the documentation (#842)
+- The drop warning in `aqua/gsv/intake_gsv.py` (#844)
 
 ## [v0.6.3]
 
