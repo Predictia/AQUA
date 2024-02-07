@@ -37,7 +37,8 @@ specifically an ``xarray.Dataset``, where only the metadata are loaded in memory
     large sets of numerous NetCDF files are easy to read, but they may require
     to open a large amount of data to be able to check all the metadata.
     We then suggest, if low performance is experienced, to use the Zarr format
-    on top of the NetCDF format, to significantly improve the performance of the data access.
+    on top of the NetCDF format, to `significantly improve the performance <https://ui.adsabs.harvard.edu/abs/2021AGUFMIN15A..08P/abstract>`_
+    of the data access.
 
 Catalogue Exploration
 ^^^^^^^^^^^^^^^^^^^^^
@@ -60,6 +61,9 @@ will return experiments available in the catalogue for model CERES.
     The ``inspect_catalogue()`` and the ``Reader`` are based on the machine and AQUA path configuration.
     If you don't find a source you're expecting, please check these are correctly set (see :ref:`getting_started`).
 
+If you want to have a complete overview of the sources available in the catalogue, you can use the ``catalogue()`` function.
+This will return a list of all the sources available in the catalogue, listed by model and experiment.
+
 Reader basic usage
 ^^^^^^^^^^^^^^^^^^
 
@@ -77,6 +81,7 @@ The ``retrieve()`` method will return an ``xarray.Dataset`` to be used for furth
 
 .. note::
     The basic call enables fixer, area and time average functionalities, but no regridding or streaming.
+    To have a complete overview of the available options, please check the :doc:`api_reference`.
 
 If some information about the data is needed, it is possible to use the ``info()`` method of the ``Reader`` class.
 
@@ -586,3 +591,32 @@ The description of this feature is provided in the section :ref:`slurm`.
 
 Graphic tools
 -------------
+
+The aqua.graphics module provides a simple function to easily plot a map of a variable.
+A function called ``plot_single_map`` is provided with many options to customize the plot.
+
+The function takes as input an xarray.DataArray, with a single timestep to be selected
+before calling the function. The function will then plot the map of the variable and,
+if no other option is provided, will adapt colorbar, title and labels to the attributes
+of the input DataArray.
+
+In the following example we plot an sst map from the first timestep of ERA5 reanalysis:
+
+.. code-block:: python
+    
+    from aqua import Reader, plot_single_map
+
+    reader = Reader(model='ERA5', exp='era5', source='monthly')
+    sst = reader.retrieve(var=["sst"])
+    sst_plot = sst["sst"].isel(time=0)
+
+    plot_single_map(sst_plot, title="Example of a custom title", filename="example",
+                    outputdir=".", format="png", dpi=300, save=True)
+
+This will produce the following plot:
+
+.. figure:: figures/single_map_example.png
+    :align: center
+    :width: 100%
+
+    Example of the above code.
