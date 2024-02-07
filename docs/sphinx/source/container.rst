@@ -39,7 +39,7 @@ The container can be loaded using the following command:
 
 .. parsed-literal:: 
 
-   singularity shell aqua_|version|.sif
+   singularity shell aqua\_\ |version|\.sif
 
 or analogue for Docker.
 
