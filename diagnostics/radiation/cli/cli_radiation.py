@@ -97,7 +97,7 @@ if __name__ == '__main__':
         sys.exit(0)
     try:
         # Call the method to retrieve CERES data
-        ceres = process_ceres_data(exp=exp_ceres, source=source_ceres)
+        ceres = process_ceres_data(exp=exp_ceres, source=source_ceres, fix=True)
         era5 = process_model_data(model='ERA5', exp=exp_era5, source=source_era5, fix=True)
     except Exception as e:
         logger.warning(f"No observation data found: {e}")
@@ -114,7 +114,7 @@ if __name__ == '__main__':
             logger.error(f"An unexpected error occurred: {e}")
 
     if bias_maps_bool:
-        for var in ['mtntrf', 'mtnsrf', 'tnr']:
+        for var in ['mtnlwrf', 'mtnswrf', 'tnr']:
             try:
                 plot_mean_bias(model=model_data, var=var, ceres=ceres, outputdir=outputdir, outputfig=outputfig)
                 logger.info(
@@ -134,7 +134,7 @@ if __name__ == '__main__':
 
     if time_series_bool:
         try:
-            plot_model_comparison_timeseries(models=model_data, ceres=ceres, outputdir=outputdir, outputfig=outputfig)
+            plot_model_comparison_timeseries(models=model_data, ceres=ceres, outputdir=outputdir, outputfig=outputfig, ylim=15)
             logger.info(
                 "The time series bias plot with various models and CERES was created and saved.")
         except Exception as e:

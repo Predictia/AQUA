@@ -21,7 +21,7 @@ from aqua.logger import log_configure
 loglevel: str = 'WARNING'
 logger = log_configure(log_level=loglevel, log_name='Radiation')
 
-def process_ceres_data(exp=None, source=None):
+def process_ceres_data(exp=None, source=None, fix=None):
     """
     Function to extract CERES data for further analyis + create global means
 
@@ -42,10 +42,13 @@ def process_ceres_data(exp=None, source=None):
     """
 
     # reader_ceres_toa
-    reader = Reader(model='CERES', exp=exp, source=source, regrid='r100')
+    if fix is None:
+        reader = Reader(model='CERES', exp=exp, source=source, regrid='r100', fix=None)
+    else:
+        reader = Reader(model='CERES', exp=exp, source=source, regrid='r100', fix=True) 
     data = reader.retrieve()
-    data['tnr'] = data['mtntrf'] + data['mtnsrf']
-    ceres = reader.regrid(data[['tnr', 'mtntrf', 'mtnsrf']])
+    data['tnr'] = data['mtnlwrf'] + data['mtnswrf']
+    ceres = reader.regrid(data[['tnr', 'mtnlwrf', 'mtnswrf']])
 
     starting_year = str(ceres["time.year"][0].values) if len(ceres.sel(time=str(ceres["time.year"][0].values)).time) == 12 \
                     else str(ceres["time.year"][0].values + 1)
@@ -101,8 +104,8 @@ def process_model_data(model=None, exp=None, source=None, fix=None):
     else: 
         reader = Reader(model=model, exp=exp, source=source,
                     regrid='r100', fix = True)
-    data = reader.retrieve(var=['2t','mtntrf', 'mtnsrf'])
-    data['tnr'] = data['mtntrf'] + data['mtnsrf']
+    data = reader.retrieve(var=['2t','mtnlwrf','mtnswrf'])
+    data['tnr'] = data['mtnlwrf'] + data['mtnswrf']
     gm = reader.fldmean(data)
 
     dictionary = {
@@ -226,7 +229,7 @@ def gregory_plot(obs_data=None, models=None, obs_time_range=None, model_labels=N
 
 def boxplot_model_data(datasets=None, model_names=None, outputdir=None, outputfig=None, year=None, fontsize=14): 
     """
-    Create a boxplot with various models and CERES data. Variables 'mtntrf' and 'mtnsrf' are plotted to show imbalances.
+    Create a boxplot with various models and CERES data. Variables 'mtnlwrf' and 'mtnswrf' are plotted to show imbalances.
     The default mean for CERES data is calculated over the entire time range.
 
     Args:
@@ -238,7 +241,7 @@ def boxplot_model_data(datasets=None, model_names=None, outputdir=None, outputfi
         fontsize (int, optional): Font size for labels and legends in the plot. Default is 14.
 
     Returns:
-        A boxplot showing the uncertainty of global mean radiation variables ('mtntrf' and 'mtnsrf') for different models and CERES data.
+        A boxplot showing the uncertainty of global mean radiation variables ('mtnlwrf' and 'mtnswrf') for different models and CERES data.
     """
     # Set a seaborn color palette
     sns.set_palette("pastel")
@@ -249,32 +252,32 @@ def boxplot_model_data(datasets=None, model_names=None, outputdir=None, outputfi
     model_names = [dataset["model"] + ' ' + dataset["exp"] + ' ' + dataset["source"] for dataset in datasets] if model_names is None else model_names
 
     for i in range(0, len(datasets)):
-        # Extract values for 'mtntrf' and 'mtnsrf' from each dataset
+        # Extract values for 'mtnlwrf' and 'mtnswrf' from each dataset
         if year is not None:
             # Select data for the specified year if 'gm' key exists
             if 'gm' in datasets[i]:
                 dataset_year = datasets[i]['gm'].sel(time=str(year))
-                mtntrf_values = -dataset_year["mtntrf"].values.flatten()
-                mtnsrf_values = dataset_year["mtnsrf"].values.flatten()
+                mtnlwrf_values = -dataset_year["mtnlwrf"].values.flatten()
+                mtnswrf_values = dataset_year["mtnswrf"].values.flatten()
             else:
                 # Handle the case where 'gm' key is not present in the dictionary
-                mtntrf_values = []
-                mtnsrf_values = []
+                mtnlwrf_values = []
+                mtnswrf_values = []
         else:
             # Use the entire dataset if 'gm' key exists
             if 'gm' in datasets[i]:
-                mtntrf_values = -datasets[i]['gm']["mtntrf"].values.flatten()
-                mtnsrf_values = datasets[i]['gm']["mtnsrf"].values.flatten()
+                mtnlwrf_values = -datasets[i]['gm']["mtnlwrf"].values.flatten()
+                mtnswrf_values = datasets[i]['gm']["mtnswrf"].values.flatten()
             else:
-                mtntrf_values = []
-                mtnsrf_values = []
+                mtnlwrf_values = []
+                mtnswrf_values = []
 
         # Update the boxplot_data dictionary
-        boxplot_data['Variables'].extend(['mtntrf'] * len(mtntrf_values))
-        boxplot_data['Variables'].extend(['mtnsrf'] * len(mtnsrf_values))
-        boxplot_data['Values'].extend(mtntrf_values)
-        boxplot_data['Values'].extend(mtnsrf_values)
-        boxplot_data['Datasets'].extend([model_names[i]] * (len(mtntrf_values) + len(mtnsrf_values)))
+        boxplot_data['Variables'].extend(['mtnlwrf'] * len(mtnlwrf_values))
+        boxplot_data['Variables'].extend(['mtnswrf'] * len(mtnswrf_values))
+        boxplot_data['Values'].extend(mtnlwrf_values)
+        boxplot_data['Values'].extend(mtnswrf_values)
+        boxplot_data['Datasets'].extend([model_names[i]] * (len(mtnlwrf_values) + len(mtnswrf_values)))
 
     # Create a DataFrame from the boxplot_data dictionary
     boxplot_df = pd.DataFrame(boxplot_data)
@@ -303,14 +306,14 @@ def boxplot_model_data(datasets=None, model_names=None, outputdir=None, outputfi
         create_folder(folder=str(outputdir), loglevel='WARNING')
         # Save the data to a NetCDF file
         output_data = xr.Dataset(boxplot_data) 
-        filename = f"{outputdir}/boxplot_mtntrf_mtnsrf_{'_'.join(model_names).replace(' ', '_').lower()}.nc"
+        filename = f"{outputdir}/boxplot_mtnlwrf_mtnswrf_{'_'.join(model_names).replace(' ', '_').lower()}.nc"
         output_data.to_netcdf(filename)
         logger.info(f"Data has been saved to {outputdir}.")
 
     if outputfig is not None:
         create_folder(folder=str(outputfig), loglevel='WARNING')
         
-        filename = f"{outputfig}/boxplot_mtntrf_mtnsrf_{'_'.join(model_names).replace(' ', '_').lower()}.pdf"
+        filename = f"{outputfig}/boxplot_mtnlwrf_mtnswrf_{'_'.join(model_names).replace(' ', '_').lower()}.pdf"
         plt.savefig(filename, dpi=300, format='pdf', bbox_inches="tight")
         logger.info(f"Plot has been saved to {outputfig}.")
     else:
@@ -377,8 +380,8 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, o
         tnr_diff = []
         # Iterate through the years
         for year in years:
-            ttr_diff.append(model["gm"].mtntrf.sel(time=str(year))- ceres['clim_gm'].mtntrf.values)
-            tsr_diff.append(model["gm"].mtnsrf.sel(time=str(year))- ceres['clim_gm'].mtnsrf.values)
+            ttr_diff.append(model["gm"].mtnlwrf.sel(time=str(year))- ceres['clim_gm'].mtnlwrf.values)
+            tsr_diff.append(model["gm"].mtnswrf.sel(time=str(year))- ceres['clim_gm'].mtnswrf.values)
             tnr_diff.append(model["gm"].tnr.sel(time=str(year)) - ceres['clim_gm'].tnr.values)
         # Concatenate the data along the 'time' dimension
         ttr_diff = xr.concat(ttr_diff, dim='time')
@@ -401,14 +404,14 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, o
         shading_data = xr.concat(shading_data_list, dim='time')
         long_time = np.append(shading_data['time'], shading_data['time'][::-1])
 
-    axes[0].fill(long_time, np.append(shading_data['mtntrf'].min(dim='ensemble'), shading_data['mtntrf'].max(dim='ensemble')[::-1]), 
+    axes[0].fill(long_time, np.append(shading_data['mtnlwrf'].min(dim='ensemble'), shading_data['mtnlwrf'].max(dim='ensemble')[::-1]), 
                  color='lightgrey', alpha=0.6, label='ceres individual years', zorder=0)
     axes[0].set_title('LW', fontsize=16)
     axes[0].set_xticklabels([])
     axes[0].set_xlabel('')
     axes[0].legend(loc="upper left", frameon=False, fontsize='medium', ncol=3)
 
-    axes[1].fill(long_time, np.append(shading_data['mtnsrf'].min(dim='ensemble'), shading_data['mtnsrf'].max(dim='ensemble')[::-1]),
+    axes[1].fill(long_time, np.append(shading_data['mtnswrf'].min(dim='ensemble'), shading_data['mtnswrf'].max(dim='ensemble')[::-1]),
                  color='lightgrey', alpha=0.6, label='ceres individual years', zorder=0)
     axes[1].set_title('SW', fontsize=16)
     axes[1].set_xticklabels([])
@@ -424,7 +427,6 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None, o
         axes[i].plot(xlim , [0, 0], color='black', linestyle=':')
         axes[i].set_ylim([-ylim, ylim])
 
-    #plt.suptitle('Global mean TOA radiation bias relative to CERES climatology - nextGEMS Cycle 3', fontsize=18)
     plt.suptitle('Global mean TOA radiation bias relative to CERES climatology', fontsize=18)
     
     plt.tight_layout()
@@ -456,7 +458,7 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
 
     Args:
         model (xarray.Dataset): The model TOA radiation data.
-        var (str): The variable to plot (e.g., 'mtnsrf', 'mtntrf', 'tnr').
+        var (str): The variable to plot (e.g., 'mtnswrf', 'mtnlwrf', 'tnr').
         model_label (str): The label for the model.
         ceres (float): The CERES TOA radiation climatology.
         start_year (str): The start year of the time range for the model data.
