@@ -14,9 +14,6 @@ from metpy.units import units
 from aqua.util import eval_formula, get_eccodes_attr, find_lat_dir, check_direction
 from aqua.logger import log_history
 
-# Set the warning filter to always display DeprecationWarning
-# warnings.simplefilter('always', DeprecationWarning)
-
 
 class FixerMixin():
     """Fixer mixin for the Reader class"""
