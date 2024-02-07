@@ -41,7 +41,10 @@ To contribute code to AQUA, follow these general steps:
    This will trigger the CI/CD pipeline to run the tests. Please do this only if needed, as the github action hours are limited.
 9. Add a line to the `CHANGELOG.md` file in the `Unreleased` section, describing your changes.
 10. Once your pull request is approved, it will be merged into the main branch by the development team. 
-   **Please do not merge your own pull requests!**
+
+.. warning::
+   Please do not merge pull requests into the main branch yourself and never, ever, commit any
+   changes directly to the main branch!
 
 Please note that all contributed codes must be licensed under the same terms as AQUA.
 
