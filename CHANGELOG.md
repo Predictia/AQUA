@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+- Bugfix of the `aqua-analysis` wrapper, now can work teleconnections on atmospheric and oceanic variables (#859)
 - Radiation: adaptation to new data governance and many improvements (#727)
 - Seaice: Sea ice extent has now seasonal cycle (#797)
 - Fixing the paths in `cli/lumi-install/lumi_install.sh` (#856).
