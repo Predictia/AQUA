@@ -4,6 +4,7 @@ import logging
 import types
 import datetime
 import xarray as xr
+import warnings
 
 
 def log_configure(log_level=None, log_name=None):
@@ -36,6 +37,14 @@ def log_configure(log_level=None, log_name=None):
 
     # avoid duplication/propagation of loggers
     logger.propagate = False
+
+    #if log_level in ['DEBUG','INFO']:
+    #    logger.debug('Enabling Future and Deprecation Warning...')
+    #    warnings.filterwarnings("always", category=DeprecationWarning)
+    #    warnings.filterwarnings("always", category=FutureWarning)
+    #else:
+    #    warnings.filterwarnings("ignore", category=DeprecationWarning)
+    #    warnings.filterwarnings("ignore", category=FutureWarning)
 
     # cannot use BasicConfig for specific loggers
     logger.setLevel(log_level)
