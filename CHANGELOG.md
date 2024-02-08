@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+- Seaice: Sea ice extent has now seasonal cycle (#797)
+
 ## [v0.6.3]
 
 Complete list:
