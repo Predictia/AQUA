@@ -2,8 +2,9 @@
 
 import pandas as pd
 import numpy as np
-from aqua.logger import log_configure
+#from aqua.logger import log_configure
 from aqua.util import frequency_string_to_pandas
+from aqua.util import extract_literal_and_numeric
 
 
 class Streaming():
@@ -38,7 +39,7 @@ class Streaming():
         """
 
         # define the internal logger
-        self.logger = log_configure(log_level=loglevel, log_name='Streaming')
+        # self.logger = log_configure(log_level=loglevel, log_name='Streaming')
         self.startdate = startdate
         self.enddate = enddate
         self.aggregation = aggregation
@@ -76,9 +77,11 @@ class Streaming():
         else:
             tim = data.time
 
-        if 'S' in aggregation:
-            nsteps = np.maximum(int('0' + aggregation.upper().split("S")[0]), 1)  # this allows also "S" for "1S"
-            timr = pd.Series(tim).groupby(by=(np.arange(0, len(tim)) // nsteps))
+        literal, numeric = extract_literal_and_numeric(aggregation)        
+
+        if literal == 'S':
+            #nsteps = np.maximum(int('0' + numeric), 1)  # this allows also "S" for "1S"
+            timr = pd.Series(tim).groupby(by=(np.arange(0, len(tim)) // numeric))
         else:
             timr = tim.resample(time=aggregation)
 

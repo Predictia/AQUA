@@ -9,7 +9,7 @@ from .tc_class import Teleconnection
 from .tools import TeleconnectionsConfig
 from .tools import wgt_area_mean
 
-__version__ = '0.2.3'
+__version__ = '0.3.1'
 
 __all__ = ['station_based_index', 'regional_mean_index',
            'mjo_hovmoller',
@@ -22,6 +22,9 @@ __all__ = ['station_based_index', 'regional_mean_index',
 
 
 # Changelog
+# 0.3.1: startdate and enddate are now options when initializing the class
+#        Maps improvements
+# 0.3.0: Interface to adapt to different standard of variable names
 # 0.2.3: Single map plot function is now in AQUA framework
 # 0.2.2: Added season selection to index_plot
 # 0.2.1: Performance improvements
