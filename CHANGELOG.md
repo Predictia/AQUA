@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+- Fixing the paths in `cli/lumi-install/lumi_install.sh` (#856).
 - Refactor of the documentation (#842)
 - The drop warning in `aqua/gsv/intake_gsv.py` (#844)
 
