@@ -1,10 +1,6 @@
-# data:
-#   model:  "IFS"
-#   exp:    "tco2559-ng5-cycle3" 
-#   source: "lra-r100-monthly"
 data:
   model: "IFS-NEMO"
-  exp: "historical-1990-dev-lowres"
+  exp: "historical-1990"
   source: "lra-r100-monthly"
 
   exp_ceres:   "ebaf-toa41"
@@ -22,5 +18,4 @@ diagnostic_attributes:
 loglevel: 'warning'
 
 path:
-  #path_to_output: "/work/bb1153/b382257/AQUA/diagnostics/radiation/cli/config/"
-  path_to_output: "/scratch/project_465000454/susayed/aqua_output/radiation/"
+  path_to_output: "./"
