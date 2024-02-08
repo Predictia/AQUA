@@ -1,20 +1,11 @@
-import os
 import xarray as xr
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import calendar
-import dask
-import dask.array as da
-from dask.diagnostics import ProgressBar
-import time
-from cdo import Cdo
-from scipy.stats import ttest_ind
 import cartopy.crs as ccrs
 from matplotlib.legend_handler import HandlerTuple
 from aqua import Reader
-import matplotlib.gridspec as gridspec
 from aqua.util import create_folder, add_cyclic_lon
 from aqua.logger import log_configure
 
