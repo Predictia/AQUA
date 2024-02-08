@@ -90,24 +90,25 @@ if __name__ == '__main__':
     gregory_bool = config['diagnostic_attributes']['gregory']
     time_series_bool = config['diagnostic_attributes']['time_series']
     try:
-        model_data = process_model_data(model=model, exp=exp, source=source)
+        model_data = process_model_data(model=model, exp=exp, source=source, loglevel=loglevel)
     except Exception as e:
         logger.error(f"No model data found: {e}")
         logger.error("Radiation diagnostic is terminated.")
         sys.exit(0)
     try:
         # Call the method to retrieve CERES data
-        ceres = process_ceres_data(exp=exp_ceres, source=source_ceres, fix=True)
-        era5 = process_model_data(model='ERA5', exp=exp_era5, source=source_era5, fix=True)
+        ceres = process_ceres_data(exp=exp_ceres, source=source_ceres, fix=True, loglevel=loglevel)
+        era5 = process_model_data(model='ERA5', exp=exp_era5, source=source_era5,
+                                  fix=True, loglevel=loglevel)
     except Exception as e:
         logger.warning(f"No observation data found: {e}")
         logger.error("Radiation diagnostic is terminated.")
-        sys.exit(0) #remove @ and change loggers 
+        sys.exit(0)  # remove @ and change loggers
 
     if box_plot_bool:
         try:
             datasets = [ceres, model_data]
-            boxplot_model_data(datasets=datasets, outputdir=outputdir, outputfig=outputfig)
+            boxplot_model_data(datasets=datasets, outputdir=outputdir, outputfig=outputfig, loglevel=loglevel)
             logger.info("The boxplot with provided model and CERES was created and saved. Variables ttr and tsr are plotted to show imbalances.")
         except Exception as e:
             # Handle other exceptions
@@ -116,7 +117,8 @@ if __name__ == '__main__':
     if bias_maps_bool:
         for var in ['mtnlwrf', 'mtnswrf', 'tnr']:
             try:
-                plot_mean_bias(model=model_data, var=var, ceres=ceres, outputdir=outputdir, outputfig=outputfig)
+                plot_mean_bias(model=model_data, var=var, ceres=ceres,
+                               outputdir=outputdir, outputfig=outputfig, loglevel=loglevel)
                 logger.info(
                     f"The mean bias of the data over the specified time range is calculated, plotted, and saved for {var} variable.")
             except Exception as e:
@@ -125,7 +127,8 @@ if __name__ == '__main__':
 
     if gregory_bool:
         try:
-            gregory_plot(obs_data=era5, models=model_data, outputdir=outputdir, outputfig=outputfig)
+            gregory_plot(obs_data=era5, models=model_data,
+                         outputdir=outputdir, outputfig=outputfig, loglevel=loglevel)
             logger.info(
                 "Gregory Plot was created and saved with various models and an observational dataset.")
         except Exception as e:
@@ -134,7 +137,9 @@ if __name__ == '__main__':
 
     if time_series_bool:
         try:
-            plot_model_comparison_timeseries(models=model_data, ceres=ceres, outputdir=outputdir, outputfig=outputfig, ylim=15)
+            plot_model_comparison_timeseries(models=model_data, ceres=ceres,
+                                             outputdir=outputdir, outputfig=outputfig,
+                                             ylim=15, loglevel=loglevel)
             logger.info(
                 "The time series bias plot with various models and CERES was created and saved.")
         except Exception as e:
