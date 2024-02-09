@@ -9,6 +9,8 @@ Unreleased in the current development version:
 
 - Bugfix of the `aqua-analysis` wrapper, now can work teleconnections on atmospheric and oceanic variables 
 and the default path is an absolute one (#859, #862)
+- Ocean3D: many fixes and adaptations to new data governance (#776)
+- Bugfix of the `aqua-analysis` wrapper, now can work teleconnections on atmospheric and oceanic variables (#859)
 - Radiation: adaptation to new data governance and many improvements (#727)
 - Seaice: Sea ice extent has now seasonal cycle (#797)
 - Fixing the paths in `cli/lumi-install/lumi_install.sh` (#856).
