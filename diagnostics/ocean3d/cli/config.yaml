@@ -31,7 +31,7 @@ ocean_circulation: #specify region and climatology time
   regions:
     labrador sea : DJF
     irminger sea : DJF
-    # ross sea : JJA
+    ross sea : JJA
     # weddell Sea : JJA
     # gin sea : DJF
 
