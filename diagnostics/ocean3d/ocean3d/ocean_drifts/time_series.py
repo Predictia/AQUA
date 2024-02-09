@@ -147,7 +147,7 @@ class time_series:
         self.data_for_hovmoller_lev_time_plot()
 
         filename = f"{self.model}_{self.exp}_{self.source}_{self.region}_time_series"
-        
+        filename = filename.replace(" ", "_") 
         fig, (axs) = plt.subplots(nrows=5, ncols=2, figsize=(14, 25))
         plt.subplots_adjust(bottom=0.3, top=0.85, wspace=0.3, hspace=0.5)
         
