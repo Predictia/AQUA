@@ -23,8 +23,6 @@ from ocean3d import load_obs_data
 
 from ocean3d import hovmoller_plot
 from ocean3d import time_series
-# from ocean3d import time_series_multilevs
-# from ocean3d.ocean_drifts.tools import time_series_multilevs_parallel
 from ocean3d import multilevel_t_s_trend_plot
 from ocean3d import zonal_mean_trend_plot
 
@@ -115,9 +113,6 @@ class Ocean3DCLI:
             
         if self.config["compare_model"]:
             self.data["obs_data"] = load_obs_data(model='EN4', exp='en4', source='monthly')
-
-            # self.data["obs_data"] = load_obs_data().interp(lev=data.lev)
-        
         return
     
     def make_request(self,kwargs):
@@ -176,7 +171,7 @@ class Ocean3DCLI:
         o3d_request = self.make_request(kwargs)
         
         self.logger.info("Evaluating stratification")
-        # plot_stratification(o3d_request,time=time)
+        plot_stratification(o3d_request,time=time)
         self.logger.info("Evaluating Mixed layer depth")
         plot_spatial_mld_clim(o3d_request, time=time)
         
@@ -217,8 +212,8 @@ class Ocean3DCLI:
         self.ocean3d_config_process(file)
         
         self.data_retrieve()
-        # if self.config["ocean_drift"]:
-        #     self.ocean_drifts_diags()
+        if self.config["ocean_drift"]:
+            self.ocean_drifts_diags()
         if self.config["ocean_circulation"]:
             self.ocean_circulation_diags()
 
