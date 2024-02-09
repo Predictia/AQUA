@@ -367,7 +367,7 @@ def load_obs_data(model='EN4', exp='en4', source='monthly', loglevel= "WARNING")
     den4 = reader.retrieve()
     # We standardise the name for the vertical dimension
     den4 = den4.rename({"depth": "lev"})
-    ocean3d/ocean_circulation/ocean_circulation.py, "so"]].resample(time="MS").mean()
+    den4 = den4[["ocpt", "so"]].resample(time="MS").mean()
     logger.debug("loaded %s data", model)
     return den4
 
