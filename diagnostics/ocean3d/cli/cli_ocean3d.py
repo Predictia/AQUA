@@ -15,10 +15,11 @@ from aqua.util import load_yaml, get_arg, create_folder
 
 from ocean3d import check_variable_name
 from ocean3d import time_slicing
-# from ocean3d import plot_stratification
-from ocean3d.ocean_circulation.ocean_circulation import plot_stratification_parallel
-# from ocean3d import plot_spatial_mld_clim
-from ocean3d.ocean_circulation.ocean_circulation import plot_spatial_mld_clim_parallel
+from ocean3d import plot_stratification
+# from ocean3d.ocean_circulation.ocean_circulation import plot_stratification_parallel
+from ocean3d import plot_spatial_mld_clim
+# from ocean3d.ocean_circulation.ocean_circulation import plot_spatial_mld_clim_parallel
+from ocean3d import load_obs_data
 
 from ocean3d import hovmoller_plot
 from ocean3d import time_series
@@ -73,12 +74,16 @@ class Ocean3DCLI:
 
         self.config["custom_region"] = self.get_value_with_default(self.ocean3d_config_dict,
                                                 "custom_region", None)
-        self.config["predefined_regions"] = self.get_value_with_default(self.ocean3d_config_dict,
-                                                    "predefined_regions", [])
-        self.config["time_selection"] = self.get_value_with_default(self.ocean3d_config_dict,"time_selection", None)
-        if self.config["time_selection"] == True:
-            self.config["start_year"] = self.get_value_with_default(self.ocean3d_config_dict,"start_year", [])
-            self.config["end_year"] = self.get_value_with_default(self.ocean3d_config_dict,"end_year", [])
+        self.config["ocean_drift"] = self.get_value_with_default(self.ocean3d_config_dict,
+                                                    "ocean_drift", [])
+        self.config["ocean_circulation"] = self.get_value_with_default(self.ocean3d_config_dict,
+                                                    "ocean_circulation", [])
+        self.config["select_time"] = self.get_value_with_default(self.ocean3d_config_dict,"select_time", None)
+        if self.config["select_time"] == True:
+            time_range = self.get_value_with_default(self.ocean3d_config_dict,"time_range", [])
+            self.config["start_year"] = self.get_value_with_default(time_range,"start_year", [])
+            self.config["end_year"] = self.get_value_with_default(time_range,"end_year", [])
+        self.config["compare_model"] = self.get_value_with_default(self.ocean3d_config_dict,"compare_model_with_obs", None)
         
         # if self.ocean3d_config_dict['custom_region'] :
         #     self.config["custom_region"] = self.get_value_with_default(self.ocean3d_config_dict,"custom_region", [])
@@ -102,41 +107,26 @@ class Ocean3DCLI:
         # data=data[["ocpt","so"]]
         
         data = check_variable_name(data)
-        if self.config["time_selection"] == True:
-            
+        if self.config["select_time"] == True:
             self.data["catalog_data"] = time_slicing(data,self.config["start_year"],
                                                      self.config["end_year"])
         else:
             self.data["catalog_data"]= data
             
+        if self.config["compare_model"]:
+            self.data["obs_data"] = load_obs_data(model='EN4', exp='en4', source='monthly')
+
+            # self.data["obs_data"] = load_obs_data().interp(lev=data.lev)
+        
         return
     
-    def diag_list(self, o3d_request):
-        self.logger.info("Evaluating Hovmoller plot")
-        hovmoller_plot_init = hovmoller_plot(o3d_request)
-        hovmoller_plot_init.plot()
-        
-        self.logger.info("Evaluating Time series plot")
-        time_series_plot= time_series(o3d_request)
-        time_series_plot.plot()
-        
-        self.logger.info("Evaluating multilevel_t_s_trend_plot")
-        multilevel_t_s_trend_plot(o3d_request,
-                                customise_level=False, levels=None)
-
-        self.logger.info("Evaluating zonal_mean_trend_plot")
-        zonal_mean_trend_plot(o3d_request)
-
-        plot_stratification_parallel(o3d_request)
-        plot_spatial_mld_clim_parallel(o3d_request)
-
-        
-    def ocean3d_diags(self, region=None,
-                  lon_s: float = None,
-                  lon_n: float = None,
-                  lon_w: float = None,
-                  lon_e: float = None,
-                  ):
+    def make_request(self,kwargs):
+        loglevel = kwargs.get('loglevel',"WARNING")
+        region = kwargs.get("region", None)
+        lon_s = kwargs.get("lon_s", None)
+        lon_n = kwargs.get("lon_n", None)
+        lon_w = kwargs.get("lon_w", None)
+        lon_e = kwargs.get("lon_e", None)
         
         o3d_request={
             "model":self.config["model"],
@@ -151,41 +141,60 @@ class Ocean3DCLI:
             "output":True,
             "output_dir":self.config["outputdir"],
             "loglevel": self.loglevel
-        }
-        self.logger.info(f"running the diags for {region}")
-        self.diag_list(o3d_request)
-        self.logger.info(f"Finished the diags for {region}")
+            }
+        if self.config["compare_model"]:
+            o3d_request["obs_data"]= self.data["obs_data"]
         
+        return o3d_request
+
+    def ocean_drift_diag_list(self, **kwargs):
+        region = kwargs.get("region", None)
+        o3d_request = self.make_request(kwargs)
+        self.logger.info("Running the Ocean Drift diags for %s", region)
+        self.logger.info("Evaluating Hovmoller plot")
+        hovmoller_plot_init = hovmoller_plot(o3d_request)
+        hovmoller_plot_init.plot()
+        
+        self.logger.info("Evaluating time series plot")
+        time_series_plot= time_series(o3d_request)
+        time_series_plot.plot()
+        
+        self.logger.info("Evaluating multilevel trend")
+        multilevel_t_s_trend_plot(o3d_request,
+                                customise_level=False, levels=None)
+
+        self.logger.info("Evaluating zonal mean trend")
+        zonal_mean_trend_plot(o3d_request)
+        self.logger.info(f"Finished the diags for {region}")
+
+
+    def ocean_circulation_diag_list(self, **kwargs):
+        region = kwargs.get("region", None)
+        self.logger.info("Running the Ocean circulation diags for %s", region)
+
+        time= kwargs.get("time")
+        o3d_request = self.make_request(kwargs)
+        
+        self.logger.info("Evaluating stratification")
+        # plot_stratification(o3d_request,time=time)
+        self.logger.info("Evaluating Mixed layer depth")
+        plot_spatial_mld_clim(o3d_request, time=time)
+        
+    def ocean_drifts_diags(self):
+        if self.config["ocean_drift"]["regions"]:
+            regions = self.config["ocean_drift"]["regions"] ### add fix if not present
+            for region in regions:
+                self.logger.debug("Analysing predefined regions")
+                self.logger.debug("region: %s", region)
+                self.ocean_drift_diag_list(region = region)
         return
 
+    def ocean_circulation_diags(self):
+        if self.config["ocean_circulation"]["regions"]:
+            regions = self.config["ocean_circulation"]["regions"]
+            for region, clim_time in regions.items():
+                self.ocean_circulation_diag_list(region = region, time = clim_time)
         
-
-    def custom_region_diag(self):
-        if self.config["custom_region"] != None:
-            self.logger.debug("Analysing custom regions")
-            custom_regions = self.config["custom_region"] ### add fix if not present
-            custom_region_dict = {}
-            for custom_region in custom_regions:
-                for coord in custom_region:
-                    custom_region_dict.update(coord)
-                lon_e = custom_region_dict["lon_e"]
-                lon_w = custom_region_dict["lon_w"]
-                lon_s = custom_region_dict["lon_s"]
-                lon_n = custom_region_dict["lon_n"]
-
-                self.logger.debug("lon_e: %s, lon_w: %s, lon_s: %s, lon_n: %s",
-                             lon_e, lon_w, lon_s, lon_n)
-
-                self.ocean3d_diags(region=None, lon_s=lon_s,
-                                   lon_n=lon_n, lon_w=lon_w, lon_e=lon_e)
-
-    def predefined_region_diag(self):
-        if self.config["predefined_regions"]:
-            predefined_regions = self.config["predefined_regions"] ### add fix if not present
-            for predefined_region in predefined_regions:
-                self.logger.debug("Analysing predefined regions")
-                self.logger.debug("predefined_region: %s", predefined_region)
-                self.ocean3d_diags(region=predefined_region)
 
     def run_diagnostic(self):
 
@@ -208,9 +217,11 @@ class Ocean3DCLI:
         self.ocean3d_config_process(file)
         
         self.data_retrieve()
-        
-        self.custom_region_diag()
-        self.predefined_region_diag()
+        # if self.config["ocean_drift"]:
+        #     self.ocean_drifts_diags()
+        if self.config["ocean_circulation"]:
+            self.ocean_circulation_diags()
+
 
 
 def parse_arguments(args):

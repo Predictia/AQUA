@@ -287,6 +287,7 @@ def plot_stratification(o3d_request,time=None, loglevel= "WARNING"):
     model = o3d_request.get('model')
     exp = o3d_request.get('exp')
     source = o3d_request.get('source')
+    obs_data = o3d_request.get('obs_data')
     region = o3d_request.get('region', None)
     lat_s = o3d_request.get('lat_s', None)
     lat_n = o3d_request.get('lat_n', None)
@@ -295,7 +296,6 @@ def plot_stratification(o3d_request,time=None, loglevel= "WARNING"):
     output = o3d_request.get('output')
     output_dir = o3d_request.get('output_dir')
     
-    obs_data = load_obs_data().interp(lev=mod_data.lev)
     obs_data = crop_obs_overlap_time(mod_data, obs_data)
 
     obs_data, time = prepare_data_for_stratification_plot(
@@ -494,6 +494,7 @@ def plot_spatial_mld_clim(o3d_request, time=None,
     """
     logger = log_configure(loglevel, 'plot_spatial_mld_clim')
     mod_data = o3d_request.get('data')
+    obs_data = o3d_request.get('obs_data')
     model = o3d_request.get('model')
     exp = o3d_request.get('exp')
     source = o3d_request.get('source')
@@ -505,7 +506,6 @@ def plot_spatial_mld_clim(o3d_request, time=None,
     output = o3d_request.get('output')
     output_dir = o3d_request.get('output_dir')
     
-    obs_data = load_obs_data(model='EN4', exp='en4', source='monthly')
 
     if overlap:
         obs_data = crop_obs_overlap_time(mod_data, obs_data)

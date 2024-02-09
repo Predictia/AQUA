@@ -118,7 +118,7 @@ def predefined_regions(region, loglevel= "WARNING"):
     elif region in ["labradorginseas", "labrador+gin seas"]:
         lat_n, lat_s, lon_w, lon_e = 80.0, 50.0, -70.0, 20.0
     elif region in ["irmingersea", "irminger sea"]:
-        lat_n, lat_s, lon_w, lon_e = 60.0, 70.0, 316.0, 330.0
+        lat_n, lat_s, lon_w, lon_e = 70.0, 60.0, 316.0, 330.0
     elif region in ["globalocean", "global ocean"]:
         lat_n, lat_s, lon_w, lon_e = 90.0, -90.0, 0.0, 360.0
     elif region in ["atlanticocean", "atlantic ocean"]:
@@ -129,6 +129,8 @@ def predefined_regions(region, loglevel= "WARNING"):
         lat_n, lat_s, lon_w, lon_e = 90.0, 65.0, 0.0, 360.0
     elif region in ["southernocean", "southern ocean"]:
         lat_n, lat_s, lon_w, lon_e = -50.0, -80.0, 0.0, 360.0
+    elif region in ["ginsea", "gin sea"]:
+        lat_n, lat_s, lon_w, lon_e = 80, 70, -10, 20
     elif region in ["weddellsea", "weddell sea"]:
         lat_n, lat_s, lon_w, lon_e = -65.0, -80.0, 295.0, 350.0
     elif region in ["beringsea", "bering sea"]:
@@ -365,7 +367,7 @@ def load_obs_data(model='EN4', exp='en4', source='monthly', loglevel= "WARNING")
     den4 = reader.retrieve()
     # We standardise the name for the vertical dimension
     den4 = den4.rename({"depth": "lev"})
-    den4 = den4[["ocpt", "so"]].resample(time="MS").mean()
+    ocean3d/ocean_circulation/ocean_circulation.py, "so"]].resample(time="MS").mean()
     logger.debug("loaded %s data", model)
     return den4
 
