@@ -1,6 +1,9 @@
 import argparse
 import os
 import sys
+import warnings
+
+warnings.filterwarnings("ignore")
 
 AQUA = os.environ.get("AQUA")
 if AQUA is not None:
