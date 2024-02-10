@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from aqua.logger import log_configure
-from aqua.util import check_coordinates
+from .sci_util import check_coordinates
 
 
 def add_cyclic_lon(da: xr.DataArray):

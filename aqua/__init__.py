@@ -1,6 +1,6 @@
 """AQUA module"""
 from .docker import rundiag
-from .graphics import plot_single_map
+from .graphics import plot_single_map, plot_maps
 from .gribber import Gribber
 from .lra_generator import LRAgenerator
 from .reader import Reader, catalogue, Streaming, inspect_catalogue
@@ -10,7 +10,7 @@ from .accessor import AquaAccessor
 __version__ = '0.6.3'
 
 __all__ = ["rundiag",
-           "plot_single_map",
+           "plot_single_map", "plot_maps",
            "Gribber",
            "LRAgenerator",
            "Reader", "catalogue", "Streaming", "inspect_catalogue",

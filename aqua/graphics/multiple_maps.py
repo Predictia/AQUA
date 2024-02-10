@@ -19,7 +19,7 @@ from aqua.util import coord_names, evaluate_colorbar_limits
 from aqua.util import cbar_get_label, create_folder
 
 
-def maps_plot(maps: list = None,
+def plot_maps(maps: list = None,
               titles: list = None,
               contour=True,
               save=False, sym=False,
