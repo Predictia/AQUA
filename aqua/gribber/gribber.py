@@ -113,22 +113,14 @@ class Gribber():
 
         # Get gribtype and tgt_json from source
         if not self.search:
-            # Use the first found delimiter ('_' or '-') to split, defaulting to '_' if none found
-            delimiter = '_' if '_' in self.source else '-'
-            parts = self.source.split(delimiter)
-            
-            # Ensure there are enough parts to split into gribtype and tgt_json
-            if len(parts) >= 2:
-                self.gribtype, self.tgt_json = parts[0], parts[1]
-            else:
-                # Handle the case where the delimiter is not present or there's only one part
-                self.gribtype = self.source  # Or set to None or a default value
-                self.tgt_json = self.source  # Assumes the entire source is to be used for tgt_json if no delimiter is found
-            self.logger.info("json file will be named as %s.", self.tgt_json)
+            self.gribtype = self.source.split('_')[0]
+            self.tgt_json = self.source.split('_')[1]
+            self.logger.info("json file will be named as %s.",
+                             self.tgt_json)
         else:
             self.tgt_json = self.source
-            self.logger.info("json file will be named as %s.", self.source)
-
+            self.logger.info("json file will be named as %s.",
+                             self.source)
         self.indices = None
 
         # Get gribfiles wildcard from gribtype
