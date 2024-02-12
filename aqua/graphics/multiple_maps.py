@@ -1,11 +1,8 @@
 """
-Module to plot maps (regression, correlation, etc.)
+Module to plot multiple maps
 
 Functions:
-    maps_plot:          plot multiple maps
-    single_map_plot:    plot a single map
-    maps_diffs_plot:    plot multiple maps and as contours
-                        the differences previously computed
+    plot_maps:          plot multiple maps
 """
 import cartopy.crs as ccrs
 import cartopy.mpl.ticker as cticker
