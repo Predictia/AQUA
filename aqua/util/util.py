@@ -3,6 +3,7 @@
 import os
 import random
 import string
+import yaml
 import re
 import numpy as np
 import xarray as xr
@@ -124,3 +125,46 @@ def extract_literal_and_numeric(text):
     else:
         # If no match is found, return None or handle it accordingly
         return None, None
+
+def get_aqua_path():
+    """
+    Retrieves the directory path specified by the AQUA environment variable.
+    """
+    aqua_path = os.getenv('AQUA')
+    if aqua_path is None:
+        raise ValueError("The AQUA environment variable is not set.")
+    return aqua_path
+
+def get_machine():
+    """
+    Retrieves the machine configuration from a YAML file located in the directory
+    specified by the AQUA environment variable.
+    """
+    # Use the new function to get the config file path
+    aqua_path = get_aqua_path()
+    # Construct the path to the YAML file
+    config_file_path = os.path.join(aqua_path, 'config', 'config-aqua.yaml')
+
+    try:
+        # Attempt to open and read the YAML file
+        with open(config_file_path, 'r') as file:
+            config = yaml.safe_load(file)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"YAML file not found at path: {config_file_path}")
+
+    # Extract the machine configuration
+    try:
+        machine = config['machine']
+    except KeyError:
+        raise KeyError("'machine' key not found in the YAML configuration.")
+
+    return machine
+
+def username():
+    """
+    Retrieves the current user's username from the 'USER' environment variable.
+    """
+    user = os.getenv('USER')
+    if user is None:
+        raise EnvironmentError("The 'USER' environment variable is not set.")
+    return user 
