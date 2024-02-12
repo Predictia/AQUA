@@ -1,10 +1,10 @@
 """An intake driver for FDB/GSV access"""
 import os
 import datetime
-import sys
 import eccodes
 import xarray as xr
 import dask
+from ruamel.yaml import YAML
 from aqua.util.eccodes import init_get_eccodes_shortname
 from intake.source import base
 from .timeutil import check_dates, shift_time_dataset
@@ -41,7 +41,7 @@ class GSVSource(base.DataSource):
     timeaxis = None  # Used for dask access
 
     def __init__(self, request, data_start_date, data_end_date, timestyle="date",
-                 aggregation="S", savefreq="H", timestep="H", timeshift=None,
+                 aggregation="S", savefreq="h", timestep="h", timeshift=None,
                  startdate=None, enddate=None, var=None, metadata=None, level=None,
                  loglevel='WARNING', **kwargs):
         """
@@ -80,6 +80,10 @@ class GSVSource(base.DataSource):
             self.fdbpath = None
             self.eccodes_path = None
             self.levels = None
+
+        if data_start_date == 'auto' or data_end_date == 'auto':
+            self.logger.debug('Autoguessing of the FDB start and end date enabled.')
+            data_start_date, data_end_date = self.parse_fdb(self.fdbpath, data_start_date, data_end_date)
 
         if not startdate:
             startdate = data_start_date
@@ -305,6 +309,10 @@ class GSVSource(base.DataSource):
         dtype = self._schema.dtype
 
         self.itime = self._da.dims.index("time")
+
+        if 'valid_time' in self._da.coords:  # temporary hack because valid_time is inconsistent anyway
+            self._da = self._da.drop_vars('valid_time')
+
         coords = self._da.coords.copy()
         coords['time'] = self.timeaxis
 
@@ -340,7 +348,37 @@ class GSVSource(base.DataSource):
             if self.idx_3d:
                 ds = ds.assign_coords(idx_level=("level", self.idx_3d))
             yield ds
-            
+
+    
+    def parse_fdb(self, fdbpath, start_date, end_date):
+        """Parse the FDB config file and return the start and end dates of the data."""
+
+        if not fdbpath:
+            raise ValueError('Automatic dates requested but FDB path not specified in catalogue.')
+
+        yaml = YAML() 
+
+        with open(fdbpath, 'r') as file:
+            cfg = yaml.load(file)
+
+        root = cfg['spaces'][0]['roots'][0]['path']
+
+        file_list = os.listdir(root)
+        
+        datesel = [filename[-8:] for filename in file_list if (filename[-8:].isdigit() and len(filename[-8:])==8)]
+        datesel.sort()
+
+        if len(datesel) == 0:
+            raise ValueError('Auto date selection in catalogue but no valid dates found in FDB')
+        else:
+            if start_date == 'auto':
+                start_date = datesel[0] + 'T0000'
+            if end_date == 'auto':
+                end_date = datesel[-2] + 'T2300'
+            self.logger.info('Automatic FDB date range: %s - %s', start_date, end_date)
+
+        return start_date, end_date
+                
 # This function is repeated here in order not to create a cross dependency between GSVSource and AQUA
 def log_history(data, msg):
     """Elementary provenance logger in the history attribute"""
