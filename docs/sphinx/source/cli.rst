@@ -12,18 +12,76 @@ AQUA analysis wrapper
 A wrapper containing calls to all the state-of-the-art diagnostic available in AQUA
 is provided in the ``cli/aqua-analysis/`` folder.
 
-Basic usage:
+Basic usage
+^^^^^^^^^^^
 
 .. code-block:: bash
 
     bash aqua-analysis.sh
+
+Without any argument, the script will run all the diagnostics available in AQUA on an hard-coded dataset,
+with LUMI configuration and output directory in the ``cli/aqua-analysis/output`` folder.
+
+All the diagnostic logfiles will be saved in this main folder, while the diagnostics output will be saved in subfolders
+named after the diagnostic name.
+Inside each diagnostic folder, the output will be saved in a subfolder named with the filetype (e.g. ``pdf``, ``netcdf``).
+
+Additional options
+^^^^^^^^^^^^^^^^^^
+
+Some options are available to launch the script without having to modify the script itself,
+so that the script can be used in a batch job or in a workflow.
+
+.. option:: -a, --model_atm
+
+    The atmospheric model to use.
+
+.. option:: -o, --model_oce
+
+    The oceanic model to use.
+
+.. option:: -e, --exp
+
+    The experiment to use.
+
+.. option:: -s, source
+
+    The source to use.
+
+.. option:: -d, --outputdir
+
+    The output directory to use.
+    Default is ``$AQUA/cli/aqua-analysis/output``.
+    Prefer to use an absolute path.
+
+.. option:: -m, --machine
+
+    The machine to use.
+    Default is ``lumi``.
+
+.. option:: -l, --loglevel
+
+    The log level to use for the cli and the diagnostics.
+    Default is ``WARNING``.
+
+.. option:: -t, --threads
+
+    The number of threads to use for the cli and the diagnostics.
+    Default is ``0``, which means the number of threads is automatically set to the number of available cores.
+    Notice that the diagnostics are run in a single thread, which means that the parallelization
+    is used to run multiple diagnostics at the same time.
+
+.. note ::
+
+    By default the script will run all the state-of-the-art diagnostics available in AQUA.
+    It is possible to run only a subset of the diagnostics by modifying the script itself,
+    where arrays with atmospheric and oceanic diagnostics are defined.
 
 .. _fdb-catalog-generator:
 Catalog entry generator for FDB sources
 ---------------------------------------
 
 This tool, currently under development, will provide the generation of the FDB sources for the Climate DT project.
-
 
 .. _gribber:
 GRIB catalog generator

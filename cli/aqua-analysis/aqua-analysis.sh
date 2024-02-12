@@ -23,7 +23,7 @@ model_atm="IFS-NEMO"
 model_oce="IFS-NEMO"
 exp="historical-1990"
 source="lra-r100-monthly"
-outputdir="./output"
+outputdir="$AQUA/cli/aqua-analysis/output" # Prefer absolute paths, e.g., "/path/to/aqua/my/output"
 loglevel="WARNING" # DEBUG, INFO, WARNING, ERROR, CRITICAL
 machine="lumi" # will change the aqua config file
 
