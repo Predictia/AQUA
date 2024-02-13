@@ -7,7 +7,7 @@ from aqua.logger import log_configure
 from aqua.util import create_folder
 from aqua.util import add_cyclic_lon, evaluate_colorbar_limits
 from aqua.util import cbar_get_label, set_map_title
-from aqua.util import coord_names, set_ticks
+from aqua.util import coord_names, set_ticks, ticks_round
 
 
 def plot_single_map(data: xr.DataArray,
@@ -42,9 +42,6 @@ def plot_single_map(data: xr.DataArray,
         gridlines (bool, optional): If True, plot gridlines. Defaults to False.
         display (bool, optional):  If True, display the figure. Defaults to True.
         loglevel (str, optional):  Log level. Defaults to 'WARNING'.
-        ticks_rounding (int, optional):  Number of digits to round the ticks.
-                                         Defaults to 0 for full map, 1 if min-max < 10,
-                                         2 if min-max < 1.
 
     Keyword Args:
         title (str, optional):       Title of the figure. Defaults to None.
@@ -59,6 +56,10 @@ def plot_single_map(data: xr.DataArray,
         nxticks (int, optional):     Number of x ticks. Defaults to 7.
         nyticks (int, optional):     Number of y ticks. Defaults to 7.
         ticks_rounding (int, optional):  Number of digits to round the ticks.
+                                         Defaults to 0 for full map, 1 if min-max < 10,
+                                         2 if min-max < 1.
+        cbar_ticks_rounding (int, optional): Number of digits to round the colorbar ticks.
+                                            Default is no rounding.
         cyclic_lon (bool, optional): If True, add cyclic longitude.
 
     Raises:
@@ -148,11 +149,16 @@ def plot_single_map(data: xr.DataArray,
                         label=cbar_label)
 
     # Make tick of colorbar simmetric if sym=True
+    cbar_ticks_rounding = kwargs.get('cbar_ticks_rounding', None)
     if sym:
         logger.debug("Setting colorbar ticks to be symmetrical")
-        cbar.set_ticks(np.linspace(-vmax, vmax, nlevels + 1))
+        cbar_ticks = np.linspace(-vmax, vmax, nlevels + 1)
     else:
-        cbar.set_ticks(np.linspace(vmin, vmax, nlevels + 1))
+        cbar_ticks = np.linspace(vmin, vmax, nlevels + 1)
+    if cbar_ticks_rounding is not None:
+        logger.debug("Setting colorbar ticks rounding to %s", cbar_ticks_rounding)
+        cbar_ticks = ticks_round(cbar_ticks, cbar_ticks_rounding)
+    cbar.set_ticks(cbar_ticks)
 
     # Set x-y labels
     ax.set_xlabel('Longitude [deg]')
