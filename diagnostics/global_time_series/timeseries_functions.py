@@ -117,7 +117,7 @@ def get_reference_data(varname, formula=False, model='ERA5', exp='era5', source=
         if annual:
             if formula:
                 logger.debug(f"Computing annual mean for a formula {varname}")
-                data_annual = reader.timmean(data=eval_formula(varname, data), freq='YS',
+                data_annual = reader.timmean(data=data_mon, freq='YS',
                                              center_time=True, exclude_incomplete=True)
                 if not annual_std:
                     std_annual = None
