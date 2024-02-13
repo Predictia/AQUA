@@ -59,9 +59,6 @@ class DetectNodes():
         self.logger.info(f'Running readwrite_from_intake() for {timestep}')
 
         fileout = os.path.join(self.paths['tmpdir'], f'regrid_{timestep}.nc')
-        
-        # this assumes that only required 2D data has been retrieved
-        self.lowres2d = self.reader2d.regrid(self.data2d.sel(time=timestep))
 
         if self.model == 'IFS':
             

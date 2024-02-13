@@ -15,7 +15,7 @@ paths:
 
 # log level
 setup:
-  loglevel: 'WARNING'
+  loglevel: 'INFO'
 
 # grid on which operate
 grids:
