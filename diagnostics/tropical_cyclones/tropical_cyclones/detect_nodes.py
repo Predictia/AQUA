@@ -205,12 +205,3 @@ class DetectNodes():
             store_file = os.path.join(
                 self.paths['fulldir'], f'TC_fullres_{timestep}.nc')
             write_fullres_field(xfield, store_file, self.aquadask.dask)
-
-            # for var in self.var2store:
-
-            #     subselect = self.fullres[var].sel(time=timestep)
-            #     data = self.reader_fullres.regrid(subselect)
-            #     xfield = self.store_fullres_field(0, data, self.tempest_nodes)
-            #     self.logger.info(f'store_fullres_field for timestep {timestep}')
-            #     store_file = os.path.join(self.paths['fulldir'], f'TC_{var}_{timestep}.nc')
-            #     write_fullres_field(xfield, store_file)

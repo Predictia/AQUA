@@ -208,12 +208,12 @@ class TCs(DetectNodes, StitchNodes):
         if self.model in 'IFS':
             self.varlist2d = ['msl', '10u', '10v', 'z']
             self.reader2d = Reader(model=self.model, exp=self.exp, source=self.source2d,
-                                         regrid=self.highgrid,
+                                         regrid=self.lowgrid,
                                          streaming=self.streaming, aggregation=self.stream_step, loglevel=self.loglevel,
                                          startdate=self.startdate, enddate=self.enddate)
             self.varlist3d = ['z']
             self.reader3d = Reader(model=self.model, exp=self.exp, source=self.source3d,
-                                         regrid=self.highgrid,
+                                         regrid=self.lowgrid,
                                          streaming=self.streaming, aggregation=self.stream_step, loglevel=self.loglevel,
                                          startdate=self.startdate, enddate=self.enddate)
             self.reader_fullres = Reader(model=self.model, exp=self.exp, source=self.source2d,
@@ -224,12 +224,12 @@ class TCs(DetectNodes, StitchNodes):
         elif self.model in 'IFS-NEMO':
             self.varlist2d = ['msl', '10u', '10v']
             self.reader2d = Reader(model=self.model, exp=self.exp, source=self.source2d,
-                                         regrid=self.highgrid,
+                                         regrid=self.lowgrid,
                                          streaming=self.streaming, aggregation=self.stream_step, loglevel=self.loglevel,
                                          startdate=self.startdate, enddate=self.enddate)
             self.varlist3d = ['z']
             self.reader3d = Reader(model=self.model, exp=self.exp, source=self.source3d,
-                                         regrid=self.highgrid,
+                                         regrid=self.lowgrid,
                                          streaming=self.streaming, aggregation=self.stream_step, loglevel=self.loglevel,
                                          startdate=self.startdate, enddate=self.enddate)
             self.reader_fullres = Reader(model=self.model, exp=self.exp, source=self.source2d,
