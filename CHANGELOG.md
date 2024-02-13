@@ -16,7 +16,7 @@ and the default path is an absolute one (#859, #862)
 - Radiation: adaptation to new data governance and many improvements (#727)
 - Seaice: Sea ice extent has now seasonal cycle (#797)
 - Fixing the paths in `cli/lumi-install/lumi_install.sh` (#856).
-- Refactor of the documentation (#842)
+- Refactor of the documentation (#842, #871)
 - The drop warning in `aqua/gsv/intake_gsv.py` (#844)
 
 ## [v0.6.3]
