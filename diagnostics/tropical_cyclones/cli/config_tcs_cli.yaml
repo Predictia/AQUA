@@ -3,7 +3,7 @@ dataset:
   model: "IFS-NEMO"
   exp: "historical-1990"
   source2d: "hourly-hpz7-atm2d"
-  source3d: "hourly-hpz7-atm3d"
+  source3d: "hourly-hpz10-atm3d"
 
 # folders for regridded data, temprorary and stored high res data
 paths: 
@@ -13,7 +13,7 @@ paths:
 
 # log level
 setup:
-  loglevel: 'WARNING'
+  loglevel: 'INFO'
 
 # grid on which operate
 grids:
@@ -26,7 +26,7 @@ varlist: ['msl', '10u', '10v', 'tprate']
 # temporal definition (date format: YYYYMMDD)
 time: 
   startdate: '19900101'
-  enddate: '20200101'
+  enddate: '19980101'
   frequency: '6h'
 
 stream:
