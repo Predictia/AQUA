@@ -320,7 +320,7 @@ def plot_timeseries(
                         eradata_annual - 2.*erastd_annual,
                         eradata_annual + 2.*erastd_annual,
                         facecolor="lightgrey",
-                        alpha=0.25,
+                        alpha=0.3,
                         color="lightgrey",
                         linestyle='--'
                     )
