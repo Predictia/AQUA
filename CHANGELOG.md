@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+- Function to plot multiple maps is introduced as `plot_maps()` (#866)
 - Timeseries: formula bugfix and annual plot only for complete years (#876)
 - mtpr instead of tprate derived from tp (#828)
 - eccodes 2.34.0 does not accomodate for AQUA step approach, pin to <2.34.0 (#873)
