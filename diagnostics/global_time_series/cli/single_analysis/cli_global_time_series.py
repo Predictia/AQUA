@@ -308,6 +308,7 @@ if __name__ == '__main__':
             toa = config["gregory"]["toa"]
         except KeyError:
             toa = ['mtnlwrf', 'mtnswrf']
+        ref = config["gregory"].get("ref", True)
 
         # Creating the output filename
         filename_nc = create_filename(outputdir=outputdir,
@@ -320,7 +321,7 @@ if __name__ == '__main__':
         try:
             fig = plot_gregory(model=model, exp=exp, source=source,
                                reader_kw=reader_kw, plot_kw=plot_kw,
-                               outfile=filename_nc,
+                               outfile=filename_nc, ref=ref,
                                ts_name=ts, toa_name=toa,
                                regrid=regrid, freq=resample)
         except (NotEnoughDataError, NoDataError) as e:
