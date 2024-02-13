@@ -1041,7 +1041,8 @@ class MainClass:
                     dataset_2[variable].size_of_the_data
             return dataset_3
 
-    def merge_list_of_histograms(self, path_to_histograms: str = None, multi: int = None, seasons_bool: bool = False,
+    def merge_list_of_histograms(self, path_to_histograms: str = None, multi: int = None, start_year: int = None, end_year: int = None,
+                                 start_month: int = None, end_month: int = None, seasons_bool: bool = False,
                                  all: bool = False, test: bool = False, tqdm: bool = True) -> xr.Dataset:
         """
         Function to merge a list of histograms.
@@ -1049,6 +1050,10 @@ class MainClass:
         Args:
             path_to_histograms (str, optional): The path to the list of histograms. Defaults to None.
             multi (int, optional): The number of histograms to merge. Defaults to None.
+            start_year (int, optional): Start year of the range (inclusive). Defaults to None.
+            end_year (int, optional): End year of the range (inclusive). Defaults to None.
+            start_month (int, optional): Start month of the range (inclusive). Defaults to None.
+            end_month (int, optional): End month of the range (inclusive). Defaults to None.
             seasons_bool (bool, optional): If True, histograms will be merged based on seasonal categories. Defaults to False.
             all (bool, optional): If True, all histograms in the repository will be merged. Defaults to False.
             test (bool, optional): Whether to run the function in test mode. Defaults to False.
@@ -1057,10 +1062,9 @@ class MainClass:
         Returns:
             xarray.Dataset: The xarray.Dataset with the merged data.
         """
-
-        histogram_list = [f for f in listdir(
-            path_to_histograms) if isfile(join(path_to_histograms, f))]
-        histogram_list.sort()
+        
+        histograms_to_load = self.tools.select_files_by_year_and_month_range(path_to_histograms=path_to_histograms, start_year=start_year, end_year=end_year, 
+                                                                             start_month=start_month, end_month=end_month)
 
         if seasons_bool:
             histograms_to_load = [str(path_to_histograms) + str(histogram_list[i])
