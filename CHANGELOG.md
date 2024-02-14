@@ -7,6 +7,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+## [v0.7]
+
+Main changes are:
+
+1. Multiple updates to the diagnostics, both scientific and graphical, to work with more recent GSV data
+2. `mtpr` is now used instead of `tprate` for precipitation
+2. Documentation has been reorganized and integrated
+
+Complete list:
 - data_models src files are now in the aqua/data_models folder, with minor modifications (#884)
 - Warning options based on the `loglevel` (#852)
 - Timeseries: formula bugfix and annual plot only for complete years (#876)
@@ -306,7 +315,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.3...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7...HEAD
+[v0.7]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.3...v0.7
 [v0.6.3]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.2...v0.6.3
 [v0.6.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.1...v0.6.2
 [v0.6.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6...v0.6.1
