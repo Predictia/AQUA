@@ -645,7 +645,7 @@ class MainClass:
                                       model_variable=self.model_variable, trop_lat=self.trop_lat,
                                       s_time=self.s_time, f_time=self.f_time, s_year=self.s_year, f_year=self.f_year,
                                       s_month=None, f_month=None, dask_array=False, new_unit=self.new_unit)
-        data = data.dropna(dim='time')
+        #data = data.dropna(dim='time')
         size_of_the_data = self.tools.data_size(data)
 
         if self.new_unit is not None:
@@ -809,7 +809,8 @@ class MainClass:
             path_to_netcdf = path_to_netcdf + 'trop_rainfall_' + name_of_file + '.nc'
 
             dataset.to_netcdf(path=path_to_netcdf, mode='w')
-            self.logger.info("NetCDF is saved in the storage.")
+            self.logger.info(f"NetCDF is saved in the storage.")
+            self.logger.debug(f"The path to NetCDF is: {path_to_netcdf}.")
         else:
             self.logger.debug(
                 "The path to save the histogram needs to be provided.")
@@ -962,60 +963,8 @@ class MainClass:
                     if dataset_1.attrs[attribute] != dataset_2.attrs[attribute] and attribute not in 'time_band':
                         dataset_3.attrs[attribute] = str(dataset_1.attrs[attribute])+'; '+str(dataset_2.attrs[attribute])
                     elif attribute in 'time_band':
-                        dataset_3.attrs['time_band_history'] = str(dataset_1.attrs['time_band']) + ';\n ' \
-                            + str(dataset_2.attrs['time_band'])
-                        if dataset_1.attrs['time_band'].count(':') <= 2 and dataset_2.attrs['time_band'].count(':') <= 2:
-                            if np.datetime64(dataset_2.time_band) == np.datetime64(dataset_1.time_band):
-                                dataset_3.attrs['time_band'] = str(
-                                    dataset_1.attrs['time_band'])
-                            else:
-                                datetime_1 = np.datetime64(dataset_1.time_band)
-                                datetime_2 = np.datetime64(dataset_2.time_band)
-
-                                if datetime_2 > datetime_1:
-                                    timedelta = datetime_2 - datetime_1
-                                    dataset_1_sm = dataset_1
-                                    dataset_2_bg = dataset_2
-                                else:
-                                    timedelta = datetime_1 - datetime_2
-                                    dataset_1_sm = dataset_2
-                                    dataset_2_bg = dataset_1
-
-                                days = timedelta / np.timedelta64(1, 'D')
-                                if days < 1:
-                                    freq = timedelta / np.timedelta64(1, 'h')
-                                    freq_str = f"{freq}H"
-                                elif days == 1:
-                                    freq_str = "1D"
-                                elif 27 < days < 32:
-                                    freq_str = "1M"
-                                elif 364 < days < 367:
-                                    freq_str = "1Y"
-                                else:
-                                    freq_str = f"{days}D"
-                                time_band_str = f"{dataset_1_sm.attrs['time_band']}, {dataset_2_bg.attrs['time_band']}, \
-                                                   freq={freq_str}"
-                                dataset_3.attrs['time_band'] = time_band_str
-                        else:
-                            split_1 = dataset_1.time_band.split(',')
-                            split_2 = dataset_2.time_band.split(',')
-                            if split_1[2] == split_2[2]:
-                                date_1 = np.datetime64(split_1[0])
-                                date_2 = np.datetime64(split_2[0])
-                                time_1 = np.datetime64(split_1[1])
-                                time_2 = np.datetime64(split_2[1])
-
-                                if date_1 < date_2:
-                                    first_part = split_1[0]
-                                else:
-                                    first_part = split_2[0]
-
-                                if time_1 < time_2:
-                                    second_part = split_2[1]
-                                else:
-                                    second_part = split_1[1]
-
-                                dataset_3.attrs['time_band'] = f"{first_part},{second_part},{split_1[2]}"
+                        dataset_3.attrs['time_band_history'] = str(dataset_1.attrs[attribute])+'; '+str(dataset_2.attrs[attribute])
+                        dataset_3.attrs['time_band'] = self.tools.merge_time_bands(dataset_1, dataset_2)
                 except ValueError:
                     if dataset_1.attrs[attribute].all != dataset_2.attrs[attribute].all:
                         dataset_3.attrs[attribute] = str(dataset_1.attrs[attribute])+';\n '+str(dataset_2.attrs[attribute])
@@ -1039,6 +988,8 @@ class MainClass:
                                 dataset_1[variable].attrs[attribute])+';\n ' + str(dataset_2[variable].attrs[attribute])
                 dataset_3[variable].attrs['size_of_the_data'] = dataset_1[variable].size_of_the_data + \
                     dataset_2[variable].size_of_the_data
+            if self.loglevel=='debug':
+                self.tools.sanitize_attributes(dataset_3)
             return dataset_3
 
     def merge_list_of_histograms(self, path_to_histograms: str = None, multi: int = None, start_year: int = None, end_year: int = None,
@@ -1065,6 +1016,10 @@ class MainClass:
         
         histograms_to_load = self.tools.select_files_by_year_and_month_range(path_to_histograms=path_to_histograms, start_year=start_year, end_year=end_year, 
                                                                              start_month=start_month, end_month=end_month)
+
+        self.logger.debug(f"List of files to merge:")
+        for i in range(0, len(histograms_to_load)):
+            self.logger.debug(f"{histograms_to_load[i]}")
 
         if seasons_bool:
             histograms_to_load = [str(path_to_histograms) + str(histogram_list[i])

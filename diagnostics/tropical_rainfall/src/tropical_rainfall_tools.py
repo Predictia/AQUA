@@ -738,6 +738,70 @@ class ToolsClass:
         """
         return "/".join(string.split("/")[:-1]) + "/"
 
+    def parse_time_band(self, time_band):
+        """Parse the time_band string into start time, end time, and frequency."""
+        parts = time_band.split(', ')
+        start_time = np.datetime64(parts[0])
+        end_time = start_time  # Assume single time point initially
+        freq = None  # Default frequency is None
+
+        # If there's more than one part, it might include end time or frequency
+        if len(parts) > 1:
+            # Try to identify and set the frequency
+            if 'freq=' in parts[-1]:
+                freq = parts[-1].split('=')[1]
+                end_time = np.datetime64(parts[1]) if len(parts) == 3 else start_time
+            else:
+                end_time = np.datetime64(parts[1])
+
+        return start_time, end_time, freq
+
+    def determine_common_frequency(self, freq_1, freq_2):
+        """Determine the most granular common frequency between two frequencies."""
+        # For simplicity, let's assume the only possible frequencies are 'D', 'M', 'Y'
+        freq_order = {'D': 1, 'M': 2, 'Y': 3}
+        if freq_1 == freq_2:
+            return freq_1
+        elif not freq_1 or not freq_2:
+            # If one is None, return the other
+            return freq_1 or freq_2
+        else:
+            # Return the less granular frequency (e.g., 'M' is less granular than 'D')
+            return freq_1 if freq_order[freq_1] > freq_order[freq_2] else freq_2
+
+    def merge_time_bands(self, dataset_1, dataset_2):
+        """Merge time bands from two datasets, considering start, end times, and frequency."""
+        start_1, end_1, freq_1 = self.parse_time_band(dataset_1.attrs['time_band'])
+        start_2, end_2, freq_2 = self.parse_time_band(dataset_2.attrs['time_band'])
+
+        # Determine the earliest start and latest end times
+        start_min = min(start_1, start_2)
+        end_max = max(end_1, end_2)
+
+        # Determine the most granular common frequency
+        common_freq = self.determine_common_frequency(freq_1, freq_2)
+
+        # Construct the merged time_band attribute
+        merged_time_band = f"{start_min}"
+        if end_max > start_min:  # Add end time if it's a range
+            merged_time_band += f", {end_max}"
+        if common_freq:  # Add frequency if available
+            merged_time_band += f", freq={common_freq}"
+
+        return merged_time_band
+
+    def sanitize_attributes(self, ds, max_attr_length=500):
+        """
+        Sanitize dataset attributes by truncating long values.
+
+        Parameters:
+        - ds: The xarray dataset or data array to be sanitized.
+        - max_attr_length: Maximum length of attribute values to retain.
+        """
+        for attr, value in ds.attrs.items():
+            if len(str(value)) > max_attr_length:
+                ds.attrs[attr] = str(value)[:max_attr_length] + "... [truncated]"
+
     def new_time_coordinate(self, data, dummy_data, freq=None, time_length=None, factor=None):
         """ Function to create new time coordinate
 
