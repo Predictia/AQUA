@@ -28,11 +28,11 @@ def log_configure(log_level=None, log_name=None):
     # fix the log level
     log_level = _check_loglevel(log_level)
 
-    if not logger.handlers:
-        if log_level in ['DEBUG']:
+    if log_level in ['DEBUG']:
+        if not logger.handlers:
             logger.debug('Enabling Future and Deprecation Warning...')
-            warnings.filterwarnings("always", category=DeprecationWarning)
-            warnings.filterwarnings("always", category=FutureWarning)
+        warnings.filterwarnings("always", category=DeprecationWarning)
+        warnings.filterwarnings("always", category=FutureWarning)
     else:
         warnings.filterwarnings("ignore", category=DeprecationWarning)
         warnings.filterwarnings("ignore", category=FutureWarning)
@@ -41,8 +41,7 @@ def log_configure(log_level=None, log_name=None):
     if logger.handlers:
         if log_level != logging.getLevelName(logger.getEffectiveLevel()):
             logger.setLevel(log_level)
-            if not logger.handlers:
-                logger.debug('Updating the log_level to %s', log_level)
+            logger.debug('Updating the log_level to %s', log_level)
         return logger
 
     # avoid duplication/propagation of loggers
