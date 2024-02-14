@@ -82,25 +82,25 @@ Example plots
    :width: 600px
    :align: center
 
-   Figure1: Gregory Plot (temperature vs net radiation) of different models and ERA5 data.
+   Figure 1: Gregory Plot (temperature vs net radiation) of different models and ERA5 data.
    
 .. figure:: figures/timeseries_ifs-nemo_historical-1990_lra-r100-monthly-1.png
    :width: 600px
    :align: center
 
-   Figure2: Time series of model biases with respect to CERES data.   
+   Figure 2: Time series of model biases with respect to CERES data.   
 
 .. figure:: figures/boxplot_mtnlwrf_mtnswrf_ceres_ebaf-toa41_monthly_ifs-nemo_historical-1990_lra-r100-monthly-1.png
    :width: 600px
    :align: center
 
-   Figure3: Box plot to show the globally averaged incoming and outgoing TOA radiation.
+   Figure 3: Box plot to show the globally averaged incoming and outgoing TOA radiation.
 
-   .. figure:: figures/toa_mean_biases_tnr_ifs-nemo_historical-1990_lra-r100-monthly_1990_1998_ceres_ebaf-toa41_monthly-1.png
+.. figure:: figures/toa_mean_biases_tnr_ifs-nemo_historical-1990_lra-r100-monthly_1990_1998_ceres_ebaf-toa41_monthly-1.png
    :width: 600px
    :align: center
 
-   Figure4: Mean bias map of the net radiation with respect to CERES.
+   Figure 4: Mean bias map of the net radiation with respect to CERES.
    
    
 Available demo notebooks
