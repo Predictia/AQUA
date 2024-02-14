@@ -14,9 +14,6 @@ from aqua.util import eval_formula, get_eccodes_attr, find_lat_dir, check_direct
 from aqua.logger import log_history
 from aqua.data_models import translate_coords
 
-# Set the warning filter to always display DeprecationWarning
-warnings.simplefilter('always', DeprecationWarning)
-
 
 class FixerMixin():
     """Fixer mixin for the Reader class"""
