@@ -1013,68 +1013,66 @@ class MainClass:
         Returns:
             xarray.Dataset: The xarray.Dataset with the merged data.
         """
-        
-        histograms_to_load = self.tools.select_files_by_year_and_month_range(path_to_histograms=path_to_histograms, start_year=start_year, end_year=end_year, 
-                                                                             start_month=start_month, end_month=end_month)
-
-        self.logger.debug(f"List of files to merge:")
-        for i in range(0, len(histograms_to_load)):
-            self.logger.debug(f"{histograms_to_load[i]}")
 
         if seasons_bool:
-            histograms_to_load = [str(path_to_histograms) + str(histogram_list[i])
-                                  for i in range(0, len(histogram_list))]
+            seasons = {
+                "DJF": ([12, 1, 2], []),
+                "MAM": ([3, 4, 5], []),
+                "JJA": ([6, 7, 8], []),
+                "SON": ([9, 10, 11], [])
+            }
 
-            DJF = []
-            MAM = []
-            JJA = []
-            SON = []
+            # Assuming you have a way to select files for each season
+            for season, (months, _) in seasons.items():
+                # Populate the files list for each season
+                for month in months:
+                    # This is a placeholder for how you might select files; adjust according to your actual file selection method
+                    files_for_month = self.tools.select_files_by_year_and_month_range(
+                        path_to_histograms=path_to_histograms,
+                        start_year=start_year,
+                        end_year=end_year,
+                        start_month=month,
+                        end_month=month
+                    )
+                    seasons[season][1].extend(files_for_month)
 
-            progress_bar_template = "[{:<40}] {}%"
-            for i in range(0, len(histogram_list)):
-                if tqdm:
-                    ratio = i / len(histogram_list)
-                    progress = int(40 * ratio)
-                    print(progress_bar_template.format(
-                        "=" * progress, int(ratio * 100)), end="\r")
+            seasonal_datasets = []
+            season_names = []  # Keep track of the season names for labeling during concatenation
 
-                name_of_file = histogram_list[i]
-                re.split(r"[^0-9\s]", name_of_file)
-                splitted_name = list(
-                    filter(None, re.split(r"[^0-9\s]", name_of_file)))
-                syear, fyear = int(splitted_name[-8]), int(splitted_name[-4])
-                smonth, fmonth = int(splitted_name[-7]), int(splitted_name[-3])
+            for season, (_, files) in seasons.items():
+                seasonal_dataset = None
+                for file in files:
+                    if seasonal_dataset is None:
+                        seasonal_dataset = self.tools.open_dataset(path_to_netcdf=file)
+                    else:
+                        seasonal_dataset = self.merge_two_datasets(
+                            dataset_1=seasonal_dataset,
+                            dataset_2=self.tools.open_dataset(path_to_netcdf=file)
+                        )
+                if seasonal_dataset:
+                    seasonal_datasets.append(seasonal_dataset)
+                    season_names.append(season)
 
-                if syear == fyear:
-                    if fmonth - smonth == 1:
-                        if smonth in [12, 1, 2]:
-                            DJF.append(histograms_to_load[i])
-                        elif smonth in [3, 4, 5]:
-                            MAM.append(histograms_to_load[i])
-                        elif smonth in [6, 7, 8]:
-                            JJA.append(histograms_to_load[i])
-                        elif smonth in [9, 10, 11]:
-                            SON.append(histograms_to_load[i])
-            four_seasons = []
-            for hist_seasonal in [DJF, MAM, JJA, SON]:
-
-                if len(hist_seasonal) > 0:
-                    for i in range(0, len(hist_seasonal)):
-                        if i == 0:
-                            dataset = self.tools.open_dataset(
-                                path_to_netcdf=hist_seasonal[i])
-                        else:
-                            dataset = self.merge_two_datasets(dataset_1=dataset,
-                                                              dataset_2=self.tools.open_dataset(
-                                                                  path_to_netcdf=hist_seasonal[i]), test=test)
-                    four_seasons.append(dataset)
-            self.logger.info("Histograms are merged for each season.")
-            return four_seasons
+            # Concatenate all seasonal datasets into a single dataset
+            if seasonal_datasets:
+                combined_dataset = xr.concat(seasonal_datasets, dim='season')
+                combined_dataset = combined_dataset.assign_coords(season=('season', season_names))  # Correctly assign season names
+                return combined_dataset
+            else:
+                self.logger.info("No data available for merging.")
+                return None
         else:
+            histogram_list = self.tools.select_files_by_year_and_month_range(path_to_histograms=path_to_histograms, start_year=start_year, end_year=end_year,
+                                                                             start_month=start_month, end_month=end_month)
+
+            self.logger.debug(f"List of files to merge:")
+            for i in range(0, len(histogram_list)):
+                self.logger.debug(f"{histogram_list[i]}")
+
             if all:
-                histograms_to_load = [str(path_to_histograms) + str(histogram_list[i]) for i in range(0, len(histogram_list))]
+                histograms_to_load = [histogram_list[i] for i in range(0, len(histogram_list))]
             elif multi is not None:
-                histograms_to_load = [str(path_to_histograms) + str(histogram_list[i]) for i in range(0, multi)]
+                histograms_to_load = [histogram_list[i] for i in range(0, multi)]
             if len(histograms_to_load) > 0:
                 for i in range(0, len(histograms_to_load)):
                     if i == 0:
