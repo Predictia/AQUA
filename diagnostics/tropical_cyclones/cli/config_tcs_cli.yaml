@@ -2,8 +2,8 @@
 dataset:
   model: "IFS-NEMO"
   exp: "historical-1990"
-  source2d: "hourly-hpz10-atm2d"
-  source3d: "hourly-hpz10-atm3d"
+  source2d: "hourly-hpz7-atm2d"
+  source3d: "hourly-hpz7-atm3d"
 
 # folders for regridded data, temprorary and stored high res data
 paths: 
@@ -13,7 +13,7 @@ paths:
 
 # log level
 setup:
-  loglevel: 'INFO'
+  loglevel: 'DEBUG'
 
 # grid on which operate
 grids:
@@ -30,7 +30,7 @@ time:
   frequency: '6h'
 
 stream:
-  streamstep: "10D" # n of days for streaming (check reader args options, IMPORTANT: must be specified in days, "D")
+  streamstep: "1D" # n of days for streaming (check reader args options, IMPORTANT: must be specified in days, "D")
 
 # detect nodes options
 detect:
