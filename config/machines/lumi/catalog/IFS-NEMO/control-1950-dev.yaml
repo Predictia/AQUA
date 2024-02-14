@@ -15,8 +15,8 @@ sources:
       data_start_date: 19500101T0000
       data_end_date: 19591231T2300
       aggregation: D  # Default aggregation / chunk size
-      savefreq: H  # at what frequency are data saved
-      timestep: H  # base timestep for step timestyle
+      savefreq: h  # at what frequency are data saved
+      timestep: h  # base timestep for step timestyle
       timestyle: step  # variable date or variable step
     description: hourly data on native grid TCo1279 (about 10km). Contains tprate(260048),
       2t(167), 10u(165), 10v(166), 100u(228246), 100v(228247), sr(173), blh(159),
@@ -44,8 +44,8 @@ sources:
       data_start_date: 19500101T0000
       data_end_date: 19591231T2300
       aggregation: D  # Default aggregation / chunk size
-      savefreq: H  # at what frequency are data saved
-      timestep: H  # base timestep for step timestyle
+      savefreq: h  # at what frequency are data saved
+      timestep: h  # base timestep for step timestyle
       timestyle: step  # variable date or variable step
     description: hourly data on r100 grid. Contains tprate(260048), sf(144), 2t(167),
       10u(165), blh(159), sshf(146), slhf(147), ssrd(169), ssr(176), strd(175),
@@ -76,8 +76,8 @@ sources:
       data_start_date: 19500101T0000
       data_end_date: 19591231T1800
       aggregation: D  # Default aggregation / chunk size
-      timestep: H  # What one step means
-      savefreq: 6H
+      timestep: h  # What one step means
+      savefreq: 6h
       timestyle: step
     description: 6hourly data on r100 grid. Contains z(129).
     driver: gsv
@@ -103,7 +103,7 @@ sources:
       data_start_date: '19500101'
       data_end_date: '19591201'
       aggregation: Y  # Default aggregation / chunk size
-      timestep: H
+      timestep: h
       savefreq: M
       timestyle: step
       timeshift: Yes    # shift time of resulting xarray by this amount
@@ -133,7 +133,7 @@ sources:
       data_start_date: '19500101'
       data_end_date: '19591201'
       aggregation: M  # Default aggregation / chunk size
-      timestep: H
+      timestep: h
       savefreq: M
       timestyle: step
       timeshift: Yes    # shift time of resulting xarray by this amount
