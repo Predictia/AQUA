@@ -22,12 +22,12 @@ make html
 
 # setup a fresh local aqua-web copy
 log_message INFO "Clone aqua-web"
-rm -rf aqua-web
-git clone git@github.com:DestinE-Climate-DT/aqua-web.git
+
+git clone git@github.com:DestinE-Climate-DT/aqua-web.git aqua-web$$
 
 # erase content and copy all new html files to content
 log_message INFO "Update docs"
-cd aqua-web
+cd aqua-web$$
 git rm -r content/documentation
 mkdir -p content/documentation
 cp -R ../build/html/* content/documentation/
@@ -37,11 +37,11 @@ log_message INFO "Commit and push"
 git add content/documentation
 commit_message="update docs $(date)"
 git commit -m "$commit_message"
-#git push
+git push
 
 ## cleanup
 log_message INFO "Clean up"
-#cd ..
-#rm -rf aqua-web
+cd ..
+rm -rf aqua-web$$
 #
 log_message INFO "Pushed new documentation to aqua-web"

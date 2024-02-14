@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Push analysis results  aqua-web
+# Push analysis results to aqua-web
 #
 # Check if AQUA is set
 if [[ -z "$AQUA" ]]; then
@@ -24,15 +24,14 @@ fi
 
 # setup a fresh local aqua-web copy
 log_message INFO "Clone aqua-web"
-rm -rf aqua-web
-git clone git@github.com:DestinE-Climate-DT/aqua-web.git
 
+git clone git@github.com:DestinE-Climate-DT/aqua-web.git aqua-web$$
 indir="$1/$2"
-dstdir="./aqua-web/content/pdf/$2"
+dstdir="./aqua-web$$/content/pdf/$2"
 
 # erase content and copy all files to content
 log_message INFO "Collect and update figures in content/pdf"
-cd aqua-web
+cd aqua-web$$
 git rm -r content/pdf
 cd ..
 mkdir -p $dstdir
@@ -42,16 +41,16 @@ find $indir -name "*.pdf"  -exec cp {} $dstdir/ \;
 # commit and push
 log_message INFO "Commit and push"
 
-cd aqua-web
+cd aqua-web$$
 git add content/pdf
 commit_message="update pdfs $(date)"
 git commit -m "$commit_message"
 
-git push
+#git push
 
 ## cleanup
 log_message INFO "Clean up"
-cd ..
-rm -rf aqua-web
+#cd ..
+#rm -rf aqua-web$$
 #
 log_message INFO "Pushed new figures to aqua-web"
