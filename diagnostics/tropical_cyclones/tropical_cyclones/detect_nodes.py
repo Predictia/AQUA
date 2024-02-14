@@ -85,7 +85,7 @@ class DetectNodes():
         if self.model == 'IFS-NEMO':
 
             # this assumes that only required 2D data has been retrieved
-            self.lowres2d = self.reader2d.regrid(self.data2d.sel(time=timestep))
+            self.lowres2d = self.reader2d.regrid(self.data2d.sel(time=timestep)).load()
             
             # rename some variables to run DetectNodes command
             if '10u' in self.lowres2d.data_vars:
@@ -94,7 +94,7 @@ class DetectNodes():
                 self.lowres2d = self.lowres2d.rename({'10v': 'v10m'})
                 
             lowres3d = self.reader3d.regrid(
-                self.data3d.sel(time=timestep, plev=[30000, 50000]))
+                self.data3d.sel(time=timestep, plev=[30000, 50000])).load()
 
             outfield = xr.merge([self.lowres2d, lowres3d])
 
@@ -103,6 +103,8 @@ class DetectNodes():
                 orog_first_timestep = self.orog.isel(time=0)
                 orog_first_timestep['time'] = outfield['time']
                 outfield = outfield.combine_first(orog_first_timestep)
+                print(outfield)
+                print(outfield.time)
             
         else:
             raise KeyError(f'Atmospheric model {self.model} not supported')

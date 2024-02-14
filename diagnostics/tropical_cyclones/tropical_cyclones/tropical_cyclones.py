@@ -259,7 +259,7 @@ class TCs(DetectNodes, StitchNodes):
         # now retrieve 2d and 3d data needed
         else:
             self.data2d = self.reader2d.retrieve(var=self.varlist2d)
-            self.data3d = self.reader3d.retrieve(var=self.varlist3d)
+            self.data3d = self.reader3d.retrieve(var=self.varlist3d, level=[300, 500])
             self.fullres = self.reader_fullres.retrieve(var=self.var2store)
 
 
