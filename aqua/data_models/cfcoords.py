@@ -113,7 +113,7 @@ COORD_TRANSLATORS["longitude"] = functools.partial(
 
 
 def is_time(coord: xr.IndexVariable) -> bool:
-    return coord.attrs.get("standard_name") == "forecast_reference_time"
+    return coord.attrs.get("standard_name") == "time"
 
 
 TIME_CF_UNITS = "seconds since 1970-01-01T00:00:00+00:00"
