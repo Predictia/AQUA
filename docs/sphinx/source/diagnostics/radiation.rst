@@ -43,7 +43,9 @@ This data can be retrieved and processed from the Low Resolution Archive (LRA), 
 Example on how to load the datasets from the LRA:
 
 .. code-block:: python
-   ifs_nemo_historical_dev = process_model_data(model =  'IFS-NEMO' , exp = 'historical-1990-dev-lowres' , source = 'lra-r100-monthly', fix = True)
+
+   ifs_nemo_historical_dev = process_model_data(model='IFS-NEMO', exp='historical-1990',
+                                                source='lra-r100-monthly', fix = True)
 
 The returned data contains a dictionary containing the following information:
 
