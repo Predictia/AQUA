@@ -47,6 +47,7 @@ if __name__ == '__main__':
     # model setup
     resolution = config['target']['resolution']
     frequency = config['target']['frequency']
+    fixer_name = config['target']['fixer_name']
     outdir = config['target']['outdir']
     tmpdir = config['target']['tmpdir']
     opadir = config['target']['opadir']
@@ -74,7 +75,8 @@ if __name__ == '__main__':
 
                     # create the catalog entry
                     entry_name = opa_catalog_entry(datadir=opadir, model=model, source=source,
-                                                exp=exp, frequency=frequency, loglevel=loglevel)
+                                                exp=exp, frequency=frequency, 
+                                                fixer_name=fixer_name, loglevel=loglevel)
 
                     print(f'Netcdf files found in {opadir}: Launching LRA')
 
