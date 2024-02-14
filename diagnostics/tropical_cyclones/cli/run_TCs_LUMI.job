@@ -2,12 +2,12 @@
 
 #SBATCH -A project_465000454
 #SBATCH --cpus-per-task=1
-#SBATCH -n 32
-#SBATCH -t 0-00:30:00 #change the wallclock
+#SBATCH -n 512
+#SBATCH -t 2-00:00:00 #change the wallclock
 #SBATCH -J aqua_jupyter
 #SBATCH --output=/users/pghinass/AQUA/diagnostics/tropical_cyclones/slurm_jobs/TC_slurm_%j.out
 #SBATCH --error=/users/pghinass/AQUA/diagnostics/tropical_cyclones/slurm_jobs/TC_slurm_%j.err
-#SBATCH -p dev-g    #change the partition
+#SBATCH -p ju-standard-g    #change the partition
 
 set -e
 # directory of python script to execute
