@@ -173,8 +173,8 @@ Basic usage:
 
 
 .. _aqua_web:
-Automatich uploading of figures and documentation to aqua-web
--------------------------------------------------------------
+Automatic uploading of figures and documentation to aqua-web
+------------------------------------------------------------
 
 AQUA figures produced by the analysis can be uploaded to the [aqua-web](https://github.com/DestinE-Climate-DT/aqua-web)
 repository to publish them automatically on a dedicated website. The same site is used to host the documentation.
