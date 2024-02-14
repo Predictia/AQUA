@@ -1,9 +1,6 @@
 name: "Container build and publish"
 
-on: 
-  # push:
-  #   branches: [ devel/ubuntu-docker ]
-  # # workflow_dispatch
+on:
   release:
     types: [published]
   # push: # We remove this to create the container only when we create a release from browser (issue #490)
@@ -11,8 +8,7 @@ on:
   #     - v*
 
 env:
-  IMAGE_NAME_AQUA: aqua
-  IMAGE_NAME_FDB: ubuntu22.04-fdb-aqua
+  IMAGE_NAME: aqua
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,11 +20,11 @@ jobs:
         uses: actions/checkout@v4
       - name: "Log in to registry"
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }}  --password-stdin
-      - name: "build fdb container"
-        run: docker build --file dockerfiles/Dockerfile.ubuntu --tag $IMAGE_NAME_FDB --label "runnumber=${GITHUB_RUN_ID}" .
-      - name: "publish fdb container"
+      - name: "build container"
+        run: docker build --file dockerfiles/Dockerfile --tag $IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}" .
+      - name: "publish container"
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME_FDB
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
@@ -36,19 +32,5 @@ jobs:
           [ "$VERSION" == "main" ] && VERSION=latest
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
-          docker tag $IMAGE_NAME_FDB $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
-      - name: "build aqua container"
-        run: docker build --file dockerfiles/Dockerfile --tag $IMAGE_NAME_AQUA --label "runnumber=${GITHUB_RUN_ID}" .
-      - name: "publish aqua container"
-        run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME_AQUA
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-
-          [ "$VERSION" == "main" ] && VERSION=latest
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $IMAGE_NAME_AQUA $IMAGE_ID:$VERSION
+          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
