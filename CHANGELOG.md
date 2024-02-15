@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+- Fixed catalogue for historical-1990-dev-lowres source (#888)
+- data_models src files are now in the aqua/data_models folder, with minor modifications (#884)
+- Warning options based on the `loglevel` (#852)
 - Timeseries: formula bugfix and annual plot only for complete years (#876)
 - mtpr instead of tprate derived from tp (#828)
 - eccodes 2.34.0 does not accomodate for AQUA step approach, pin to <2.34.0 (#873)
