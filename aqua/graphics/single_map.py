@@ -1,3 +1,13 @@
+"""
+Module to plot a single map of a variable.
+Contains the following functions:
+
+    - plot_single_map: Plot a single map of a variable.
+    - plot_single_map_diff: Plot the difference of two variables as a map and add the data as a contour plot.
+
+Author: Matteo Nurisso
+Date: Feb 2024
+"""
 import cartopy.crs as ccrs
 import cartopy.mpl.ticker as cticker
 import matplotlib.pyplot as plt
