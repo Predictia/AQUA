@@ -58,7 +58,48 @@ def validate_arguments(args):
         raise TypeError("The number of processes (nproc) must be an integer.")
 
 
-if __name__ == '__main__':
+def load_configuration(file_path):
+    """Load and return the YAML configuration."""
+    print('Reading configuration YAML file..')
+    config = load_yaml(file_path)
+    return config
+
+def process_config_for_data(config, logger, args):
+    """Process data according to the specified configuration and arguments."""
+    model = get_arg(args, 'model', config['data']['model'])
+    exp = get_arg(args, 'exp', config['data']['exp'])
+    source = get_arg(args, 'source', config['data']['source'])
+    logger.debug(f"Accessing {model} {exp} {source} data")
+    freq = config['data']['freq']
+    regrid = config['data']['regrid']
+    s_year = config['data']['s_year']
+    f_year = config['data']['f_year']
+    s_month = config['data']['s_month']
+    f_month = config['data']['f_month']
+    return model, exp, source, freq, regrid, s_year, f_year, s_month, f_month
+
+def process_config_for_diagnostic(config, logger, args):
+    """Retrieves diagnostic-related settings from the configuration for further analysis."""
+    trop_lat = config['class_attributes']['trop_lat']
+    num_of_bins = config['class_attributes']['num_of_bins']
+    first_edge = config['class_attributes']['first_edge']
+    width_of_bin = config['class_attributes']['width_of_bin']
+    model_variable = config['class_attributes']['model_variable']
+    new_unit = config['class_attributes']['new_unit']
+    return trop_lat, num_of_bins, first_edge, width_of_bin, model_variable, new_unit
+
+def process_config_for_plot(config, logger, args):
+    """Extracts plotting configuration parameters from the provided configuration."""
+    color = config['plot']['color']
+    figsize = config['plot']['figsize']
+    legend = config['plot']['legend']
+    xmax = config['plot']['xmax']
+    loc = config['plot']['loc']
+    pdf_format = config['plot']['pdf_format']
+    return color, figsize, legend, xmax, loc, pdf_format
+
+def main():
+    """Main function to orchestrate the tropical rainfall CLI operations."""
     args = parse_arguments(sys.argv[1:])
     validate_arguments(args)
 
@@ -81,64 +122,31 @@ if __name__ == '__main__':
     else:
         print("Modules imported successfully.")
 
-    file = get_arg(args, 'config', 'trop_rainfall_config.yml')
-    print('Reading configuration yaml file..')
-    config = load_yaml(file)
+    config = load_configuration(get_arg(args, 'config', 'trop_rainfall_config.yml'))
+    loglevel = get_arg(args, 'loglevel', config['class_attributes']['loglevel'])
+    logger = log_configure(log_name="Trop. Rainfall CLI", log_level=loglevel)
 
-    loglevel = get_arg(
-        args, 'loglevel', config['class_attributes']['loglevel'])
-    logger = log_configure(log_name="Trop. Rainfall CLI",
-                           log_level=loglevel)
+    model, exp, source, freq, regrid, s_year, f_year, s_month, f_month = process_config_for_data(config, logger, args)
+    trop_lat, num_of_bins, first_edge, width_of_bin, model_variable, new_unit = process_config_for_diagnostic(config, logger, args)
+    color, figsize, legend, xmax, loc, pdf_format = process_config_for_plot(config, logger, args)
 
-    model = get_arg(args, 'model', config['data']['model'])
-    exp = get_arg(args, 'exp', config['data']['exp'])
-    source = get_arg(args, 'source', config['data']['source'])
-    logger.debug(f"Accessing {model} {exp} {source} data")
+    machine = config['machine']
+    logger.debug(f"The machine is {machine}")
+    path_to_output = get_arg(args, 'outputdir', config['path'][machine])
+    if path_to_output is not None:
+        path_to_netcdf = os.path.join(path_to_output, 'netcdf/'+model+'_'+exp+'_'+source+'/')
+        path_to_pdf = os.path.join(path_to_output, 'pdf/'+model+'_'+exp+'_'+source+'/')
+    name_of_netcdf = model+'_'+exp+'_'+source
+    name_of_pdf = model+'_'+exp+'_'+source
+    logger.debug(f"NetCDF folder: {path_to_netcdf}")
+    logger.debug(f"PDF folder: {path_to_pdf}")
+    plot_title = f"{model} {exp} {source} {regrid} {freq}"
 
     nproc = get_arg(args, 'nproc', config['compute_resources']['nproc'])
 
-    freq = config['data']['freq']
-    regrid = config['data']['regrid']
-    s_year = config['data']['s_year']
-    f_year = config['data']['f_year']
-    s_month = config['data']['s_month']
-    f_month = config['data']['f_month']
-
-    machine = config['machine']
-    logger.info(f"The machine is {machine}")
-
-    path_to_output = get_arg(
-        args, 'outputdir', config['path'][machine])
-
-    if path_to_output is not None:
-        path_to_netcdf = os.path.join(
-            path_to_output, 'netcdf/'+model+'_'+exp+'_'+source+'/')
-        path_to_pdf = os.path.join(
-            path_to_output, 'pdf/'+model+'_'+exp+'_'+source+'/')
-    name_of_netcdf = model+'_'+exp+'_'+source
-    name_of_pdf = model+'_'+exp+'_'+source
-
-    logger.debug(f"NetCDF folder: {path_to_netcdf}")
-    logger.debug(f"PDF folder: {path_to_pdf}")
-
-    trop_lat = config['class_attributes']['trop_lat']
-    num_of_bins = config['class_attributes']['num_of_bins']
-    first_edge = config['class_attributes']['first_edge']
-    width_of_bin = config['class_attributes']['width_of_bin']
-
-    model_variable = config['class_attributes']['model_variable']
-    new_unit = config['class_attributes']['new_unit']
-
-    color = config['plot']['color']
-    figsize = config['plot']['figsize']
-    legend = config['plot']['legend']
-    xmax = config['plot']['xmax']
-    plot_title = f"{model} {exp} {source} {regrid} {freq}"
-    loc = config['plot']['loc']
-    pdf_format = config['plot']['pdf_format']
-
     diag = Tropical_Rainfall(trop_lat=trop_lat, num_of_bins=num_of_bins,
                              first_edge=first_edge, width_of_bin=width_of_bin, loglevel=loglevel)
+
     reader = Reader(model=model, exp=exp, source=source, loglevel=loglevel, regrid=regrid, nproc=nproc)
     full_dataset = reader.retrieve(var=model_variable)
 
@@ -228,3 +236,7 @@ if __name__ == '__main__':
         # Handle other exceptions
         logger.error(f"An unexpected error occurred: {e}")
     logger.info("Tropical Rainfall Diagnostic is terminated.")
+
+
+if __name__ == '__main__':
+    main()
