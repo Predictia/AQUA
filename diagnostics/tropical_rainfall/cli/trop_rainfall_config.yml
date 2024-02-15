@@ -1,11 +1,13 @@
 data:
-  model:  "ERA5"          # Name of the climate model used
-  exp:    "era5"       # Experiment identifier
-  source: "monthly"  # Data source, specifying resolution and frequency
+  model:  "MSWEP"         # Name of the climate model used
+  exp:    "past"          # Experiment identifier
+  source: "monthly"       # Data source, specifying resolution and frequency
   freq:   "M"             # Frequency of data, 'M' stands for Monthly
   regrid: "r100"          # Regridding option to apply
-  s_year:  1980           # Start year for analysis, 'null' means it will be set dynamically
-  f_year:  2010           # Final year for analysis, 'null' means it will be set dynamically
+  s_year:  1999           # Start year for analysis, 'null' means it will be set dynamically
+  f_year:  1999           # Final year for analysis, 'null' means it will be set dynamically
+  s_month:  1             # Start month for analysis, 'null' means it will be set dynamically
+  f_month:  3             # Final month for analysis, 'null' means it will be set dynamically
 
 machine: levante          # The machine/environment where the analysis is run
 
@@ -13,30 +15,30 @@ class_attributes:
   trop_lat:    15         # Tropical latitude boundary for analysis
   num_of_bins: 5000       # Number of bins for histogram generation
   first_edge:   0         # Starting edge value for the histogram bins
-  width_of_bin: 0.05      # Width of each bin in the histogram, in mm/day
+  width_of_bin: 0.1       # Width of each bin in the histogram, in mm/day
   model_variable: 'tprate'  # Model variable to be analyzed
-  new_unit:       'mm/day'   # Unit for the model variable
-  loglevel:       'WARNING'  # Logging level for the output messages
+  new_unit:       'mm/day'  # Unit for the model variable
+  loglevel:       'debug'  # Logging level for the output messages
 
 plot:
   color: 'tab:green'      # Color for the plot
   figsize: 1              # Figure size for the plot
-  legend: '_Hidden'       # Legend configuration for the plot
-  xmax: 100               # Max value for the x-axis in the plot
+  legend: null            # Legend configuration for the plot
+  xmax: 50                # Max value for the x-axis in the plot
   loc: 'upper right'      # Location of the legend/annotation in the plot
   pdf_format: True        # Whether to save plots in PDF format
 
 path:
-  levante: "/work/bb1153/b382267/tropical_rainfall_cicle3/cli_test/"  # File path for Levante machine
-  lumi: "/users/nazarova/work/output/cli_test/"
+  levante: './'#"/work/bb1153/b382267/tropical_rainfall_cicle3/cli_test/"  # File path for Levante machine
+  lumi: './'#"/users/nazarova/work/output/cli_test/"
 
 compute_resources:
   resubmit: False         # Whether to automatically resubmit the job if it fails
   run_on_sunday: False    # Restrict job execution to Sundays only
-  nproc: 4                # Number of processors to use for the job
+  nproc: 16               # Number of processors to use for the job
   nodes: 1                # Number of compute nodes required for the job
-  walltime: '00:20:00'    # Maximum wall-clock time allocated for the job
-  memory: '100G'          # Memory allocation for the job, 0 for default
+  walltime: '06:20:00'    # Maximum wall-clock time allocated for the job
+  memory: '400G'          # Memory allocation for the job, 0 for default
   lumi_version: '23.03'   # Specific version of LUMI to use
   account:                # Account details for billing and access
     lumi: 'project_465000454'
