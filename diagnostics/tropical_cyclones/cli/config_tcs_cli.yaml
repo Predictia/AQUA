@@ -13,7 +13,7 @@ paths:
 
 # log level
 setup:
-  loglevel: 'DEBUG'
+  loglevel: 'WARNING'
 
 # grid on which operate
 grids:

@@ -103,8 +103,6 @@ class DetectNodes():
                 orog_first_timestep = self.orog.isel(time=0)
                 orog_first_timestep['time'] = outfield['time']
                 outfield = outfield.combine_first(orog_first_timestep)
-                print(outfield)
-                print(outfield.time)
             
         else:
             raise KeyError(f'Atmospheric model {self.model} not supported')
