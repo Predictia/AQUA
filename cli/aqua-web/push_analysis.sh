@@ -32,7 +32,7 @@ dstdir="./aqua-web$$/content/pdf/$2"
 # erase content and copy all files to content
 log_message INFO "Collect and update figures in content/pdf"
 cd aqua-web$$
-git rm -r content/pdf
+git rm -r content/pdf/$2
 cd ..
 mkdir -p $dstdir
 
@@ -42,15 +42,15 @@ find $indir -name "*.pdf"  -exec cp {} $dstdir/ \;
 log_message INFO "Commit and push"
 
 cd aqua-web$$
-git add content/pdf
+git add content/pdf/$2
 commit_message="update pdfs $(date)"
 git commit -m "$commit_message"
 
-#git push
+git push
 
 ## cleanup
 log_message INFO "Clean up"
-#cd ..
-#rm -rf aqua-web$$
+cd ..
+rm -rf aqua-web$$
 #
 log_message INFO "Pushed new figures to aqua-web"
