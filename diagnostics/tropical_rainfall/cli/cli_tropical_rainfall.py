@@ -70,24 +70,41 @@ def get_config_values(config: dict, section: str, *keys: str) -> tuple:
     """
     return tuple(config[section].get(key) for key in keys)
 
-def calculate_histogram_by_months(diag, config, logger, args):
+def get_config_and_log_values(config: dict, args, logger):
+    """
+    Extracts configuration and logging values from arguments and config dictionary.
+
+    Args:
+        config (dict): Configuration dictionary.
+        args (argparse.Namespace): Parsed command line arguments.
+        logger (Logger): Logger object for logging.
+
+    Returns:
+        tuple: Extracted values necessary for further processing.
+    """
     model = get_arg(args, 'model', config['data']['model'])
     exp = get_arg(args, 'exp', config['data']['exp'])
     source = get_arg(args, 'source', config['data']['source'])
-    
     loglevel = get_arg(args, 'loglevel', config['logger']['loglevel'])
-    
-    logger.debug(f"Accessing {model} {exp} {source} data")
-    
     nproc = get_arg(args, 'nproc', config['compute_resources']['nproc'])
     machine = config['machine']
-    logger.debug(f"The machine is {machine}")
     path_to_output = get_arg(args, 'outputdir', config['path'][machine])
+
     if path_to_output is not None:
-        path_to_netcdf = os.path.join(path_to_output, 'netcdf/'+model+'_'+exp+'_'+source+'/')
-    name_of_netcdf = model+'_'+exp+'_'+source
+        path_to_netcdf = os.path.join(path_to_output, f'netcdf/{model}_{exp}_{source}/')
+        path_to_pdf = os.path.join(path_to_output, f'pdf/{model}_{exp}_{source}/')
+    else:
+        path_to_netcdf = path_to_pdf = None
+
+    logger.debug(f"The machine is {machine}")
+    logger.debug(f"Accessing {model} {exp} {source} data")
     logger.debug(f"NetCDF folder: {path_to_netcdf}")
-    
+    logger.debug(f"PDF folder: {path_to_pdf}")
+    return model, exp, source, loglevel, nproc, machine, path_to_netcdf, path_to_pdf
+
+def calculate_histogram_by_months(diag=None, config=None, logger=None, args=None):
+    model, exp, source, loglevel, nproc, machine, path_to_netcdf, path_to_pdf = get_config_and_log_values(config, args, logger)
+
     freq, regrid, s_year, f_year, s_month, f_month = get_config_values(config, 'data', 'freq', 'regrid', 's_year', 'f_year',
                                                                        's_month', 'f_month')
     reader = Reader(model=model, exp=exp, source=source, loglevel=loglevel, regrid=regrid, nproc=nproc)
@@ -121,8 +138,6 @@ def calculate_histogram_by_months(diag, config, logger, args):
     s_month = 1 if s_month is None else s_month
     f_month = 12 if f_month is None else f_month
 
-    
-
     for year in range(s_year, f_year+1):
         data_per_year = full_dataset.sel(time=str(year))
         if data_per_year.time.size != 0:
@@ -148,13 +163,12 @@ def calculate_histogram_by_months(diag, config, logger, args):
                            "data. Check dataset time bounds and adjust your time selection parameters accordingly.")
 
     logger.info("The histograms are calculated and saved in storage.")
-    legend = f"{model} {exp} {source}"
-    return path_to_netcdf+f"{regrid}/{freq}/histograms/", legend
+    plot_title = f"{model} {exp} {source} {regrid} {freq}"
+    return path_to_netcdf+f"{regrid}/{freq}/histograms/",  plot_title
 
-def plot_histograms(diag, config, logger, args, path_to_histograms, legend):
-    model = get_arg(args, 'model', config['data']['model'])
-    exp = get_arg(args, 'exp', config['data']['exp'])
-    source = get_arg(args, 'source', config['data']['source'])
+def plot_histograms(diag=None, config=None, logger=None, args=None, path_to_histograms=None, plot_title=None):
+    model, exp, source, loglevel, nproc, machine, path_to_netcdf, path_to_pdf = get_config_and_log_values(config, args, logger)
+    legend = f"{model} {exp} {source}"
     
     freq, regrid, s_year, f_year, s_month, f_month = get_config_values(config, 'data', 'freq', 'regrid', 's_year', 'f_year',
                                                                        's_month', 'f_month')
@@ -164,14 +178,8 @@ def plot_histograms(diag, config, logger, args, path_to_histograms, legend):
                                                                                                   'model_variable', 'new_unit')
     color, figsize, xmax, loc, pdf_format = get_config_values(config, 'plot', 'color', 'figsize', 'xmax',
                                                                       'loc', 'pdf_format')
-    
-    machine = config['machine']
-    logger.debug(f"The machine is {machine}")
-    path_to_output = get_arg(args, 'outputdir', config['path'][machine])
-    if path_to_output is not None:
-        path_to_pdf = os.path.join(path_to_output, 'pdf/'+model+'_'+exp+'_'+source+'/')
     name_of_pdf = model+'_'+exp+'_'+source
-    logger.debug(f"PDF folder: {path_to_pdf}")
+    
 
     xmax = diag.num_of_bins*diag.width_of_bin if xmax is None else xmax
     logger.debug(f"xmax is : {xmax} {new_unit}.")
@@ -179,7 +187,6 @@ def plot_histograms(diag, config, logger, args, path_to_histograms, legend):
     hist_merged = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, all=True,
                                                 start_year=s_year, end_year=f_year, start_month=s_month, end_month=f_month)
     
-    plot_title = f"{model} {exp} {source} {regrid} {freq}"
     add = diag.histogram_plot(hist_merged, figsize=figsize, new_unit=new_unit,
                         legend=legend, color=color, xmax=xmax, plot_title=plot_title, loc=loc,
                         path_to_pdf=path_to_pdf, pdf_format=pdf_format, name_of_file=name_of_pdf)
@@ -239,8 +246,8 @@ def main():
     diag = Tropical_Rainfall(trop_lat=trop_lat, num_of_bins=num_of_bins,
                              first_edge=first_edge, width_of_bin=width_of_bin, loglevel=loglevel)
 
-    path_to_histograms, legend = calculate_histogram_by_months(diag, config, logger, args)
-    plot_histograms(diag, config, logger, args, path_to_histograms, legend)
+    path_to_histograms, plot_title = calculate_histogram_by_months(diag=diag, config=config, logger=logger, args=args)
+    plot_histograms(diag=diag, config=config, logger=logger, args=args, path_to_histograms=path_to_histograms, plot_title=plot_title)
 
 if __name__ == '__main__':
     main()
