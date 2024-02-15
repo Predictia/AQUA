@@ -5,6 +5,7 @@ AQUA command line tool to create an healpix grid from an oceanic file
 """
 import argparse
 import sys
+import os
 from cdo import Cdo
 from aqua import Reader
 from aqua.util import load_yaml, get_arg, create_folder
@@ -91,5 +92,8 @@ if __name__ == '__main__':
     logger.info('Setting grid %s', grid_name)
     logger.info('Saving data in %s', filename_tgt)
     cdo.setgrid(grid_name, input=filename, output=filename_tgt, options="-f nc4 -z zip")
+
+    logger.info('Removing temporary file %s', filename)
+    os.remove(filename)
 
     logger.info('Done')
