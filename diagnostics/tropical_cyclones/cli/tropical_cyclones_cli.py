@@ -5,8 +5,6 @@
 
 import argparse
 import sys
-import warnings
-
 
 from tropical_cyclones import TCs
 from aqua.util import load_yaml, get_arg
@@ -37,8 +35,6 @@ def parse_arguments(args):
     return parser.parse_args(args)
 
 if __name__ == '__main__':
-
-    warnings.filterwarnings('ignore')
 
     print('Running tropical cyclones diagnostic...')
 
