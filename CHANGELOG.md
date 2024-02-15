@@ -10,12 +10,12 @@ Unreleased in the current development version:
 ## [v0.7]
 
 Main changes are:
-
 1. Multiple updates to the diagnostics, both scientific and graphical, to work with more recent GSV data
 2. `mtpr` is now used instead of `tprate` for precipitation
 2. Documentation has been reorganized and integrated
 
 Complete list:
+- Fixed catalogue for historical-1990-dev-lowres source (#888)
 - data_models src files are now in the aqua/data_models folder, with minor modifications (#884)
 - Warning options based on the `loglevel` (#852)
 - Timeseries: formula bugfix and annual plot only for complete years (#876)
