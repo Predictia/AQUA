@@ -18,6 +18,7 @@ and the default path is an absolute one (#859, #862)
 - Fixing the paths in `cli/lumi-install/lumi_install.sh` (#856).
 - Refactor of the documentation (#842)
 - The drop warning in `aqua/gsv/intake_gsv.py` (#844)
+- Tropical cyclones diagnostic: working with new data governance (includes possibility to retrieve orography from file (#816)
 
 ## [v0.6.3]
 
