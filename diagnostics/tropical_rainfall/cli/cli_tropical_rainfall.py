@@ -64,39 +64,11 @@ def load_configuration(file_path):
     config = load_yaml(file_path)
     return config
 
-def process_config_for_data(config, logger, args):
-    """Process data according to the specified configuration and arguments."""
-    model = get_arg(args, 'model', config['data']['model'])
-    exp = get_arg(args, 'exp', config['data']['exp'])
-    source = get_arg(args, 'source', config['data']['source'])
-    logger.debug(f"Accessing {model} {exp} {source} data")
-    freq = config['data']['freq']
-    regrid = config['data']['regrid']
-    s_year = config['data']['s_year']
-    f_year = config['data']['f_year']
-    s_month = config['data']['s_month']
-    f_month = config['data']['f_month']
-    return model, exp, source, freq, regrid, s_year, f_year, s_month, f_month
-
-def process_config_for_diagnostic(config, logger, args):
-    """Retrieves diagnostic-related settings from the configuration for further analysis."""
-    trop_lat = config['class_attributes']['trop_lat']
-    num_of_bins = config['class_attributes']['num_of_bins']
-    first_edge = config['class_attributes']['first_edge']
-    width_of_bin = config['class_attributes']['width_of_bin']
-    model_variable = config['class_attributes']['model_variable']
-    new_unit = config['class_attributes']['new_unit']
-    return trop_lat, num_of_bins, first_edge, width_of_bin, model_variable, new_unit
-
-def process_config_for_plot(config, logger, args):
-    """Extracts plotting configuration parameters from the provided configuration."""
-    color = config['plot']['color']
-    figsize = config['plot']['figsize']
-    legend = config['plot']['legend']
-    xmax = config['plot']['xmax']
-    loc = config['plot']['loc']
-    pdf_format = config['plot']['pdf_format']
-    return color, figsize, legend, xmax, loc, pdf_format
+def get_config_values(config: dict, section: str, *keys: str) -> tuple:
+    """
+    Extract specified keys from a config section.
+    """
+    return tuple(config[section].get(key) for key in keys)
 
 def main():
     """Main function to orchestrate the tropical rainfall CLI operations."""
@@ -126,9 +98,19 @@ def main():
     loglevel = get_arg(args, 'loglevel', config['class_attributes']['loglevel'])
     logger = log_configure(log_name="Trop. Rainfall CLI", log_level=loglevel)
 
-    model, exp, source, freq, regrid, s_year, f_year, s_month, f_month = process_config_for_data(config, logger, args)
-    trop_lat, num_of_bins, first_edge, width_of_bin, model_variable, new_unit = process_config_for_diagnostic(config, logger, args)
-    color, figsize, legend, xmax, loc, pdf_format = process_config_for_plot(config, logger, args)
+    freq, regrid, s_year, f_year, s_month, f_month = get_config_values(config, 'data', 'freq', 'regrid', 's_year', 'f_year',
+                                                                       's_month', 'f_month')
+    trop_lat, num_of_bins, first_edge, width_of_bin, model_variable, new_unit = get_config_values(config, 'class_attributes',
+                                                                                                  'trop_lat', 'num_of_bins',
+                                                                                                  'first_edge', 'width_of_bin',
+                                                                                                  'model_variable', 'new_unit')
+    color, figsize, legend, xmax, loc, pdf_format = get_config_values(config, 'plot', 'color', 'figsize', 'legend', 'xmax',
+                                                                      'loc', 'pdf_format')
+
+    model = get_arg(args, 'model', config['data']['model'])
+    exp = get_arg(args, 'exp', config['data']['exp'])
+    source = get_arg(args, 'source', config['data']['source'])
+    logger.debug(f"Accessing {model} {exp} {source} data")
 
     machine = config['machine']
     logger.debug(f"The machine is {machine}")
