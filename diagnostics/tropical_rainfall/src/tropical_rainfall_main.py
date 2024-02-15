@@ -810,7 +810,7 @@ class MainClass:
 
             dataset.to_netcdf(path=path_to_netcdf, mode='w')
             self.logger.info(f"NetCDF is saved in the storage.")
-            self.logger.debug(f"The path to NetCDF is: {path_to_netcdf}.")
+            self.logger.debug(f"The path to NetCDF is: {path_to_netcdf}")
         else:
             self.logger.debug(
                 "The path to save the histogram needs to be provided.")
@@ -1062,25 +1062,32 @@ class MainClass:
                 self.logger.info("No data available for merging.")
                 return None
         else:
-            histogram_list = self.tools.select_files_by_year_and_month_range(path_to_histograms=path_to_histograms, start_year=start_year, end_year=end_year,
+            histograms_to_load = self.tools.select_files_by_year_and_month_range(path_to_histograms=path_to_histograms, start_year=start_year, end_year=end_year,
                                                                              start_month=start_month, end_month=end_month)
 
             self.logger.debug(f"List of files to merge:")
-            for i in range(0, len(histogram_list)):
-                self.logger.debug(f"{histogram_list[i]}")
+            for i in range(0, len(histograms_to_load)):
+                self.logger.debug(f"{histograms_to_load[i]}")
 
-            if all:
-                histograms_to_load = [histogram_list[i] for i in range(0, len(histogram_list))]
-            elif multi is not None:
-                histograms_to_load = [histogram_list[i] for i in range(0, multi)]
+            #if all:
+            #    histograms_to_load = [histogram_list[i] for i in range(0, len(histogram_list))]
+            #elif multi is not None:
+            #    histograms_to_load = [histogram_list[i] for i in range(0, multi)]
+            #else:
+            #    histograms_to_load = histogram_list
             if len(histograms_to_load) > 0:
                 for i in range(0, len(histograms_to_load)):
-                    if i == 0:
+                    #if i == 0:
+                    try:
                         dataset = self.tools.open_dataset(path_to_netcdf=histograms_to_load[i])
-                    else:
+                        #else:
                         dataset = self.merge_two_datasets(dataset_1=dataset,
                                                           dataset_2=self.tools.open_dataset(
                                                               path_to_netcdf=histograms_to_load[i]), test=test)
+                    except Exception as e:
+                        # Handle other exceptions
+                        logger.error(f"An unexpected error occurred: {e}")
+                        logger.error(f"The hisrogram path is : {histograms_to_load[i]}")
                 self.logger.info("Histograms are merged.")
                 return dataset
             else:
