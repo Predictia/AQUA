@@ -74,7 +74,7 @@ class MainClass:
             width_of_bin (Union[float, None], optional): The width of the bin. Defaults to None.
             bins (list, optional): The bins. Defaults to 0.
             new_unit (str, optional): The unit for the new data. Defaults to 'mm/day'.
-            model_variable (str, optional): The name of the model variable. Defaults to 'tprate'.
+            model_variable (str, optional): The name of the model variable. Defaults to 'mtpr'.
             path_to_netcdf (Union[str, None], optional): The path to the netCDF file. Defaults to None.
             path_to_pdf (Union[str, None], optional): The path to the PDF file. Defaults to None.
             loglevel (str, optional): The log level for logging. Defaults to 'WARNING'.
@@ -215,14 +215,14 @@ class MainClass:
         return coord_lat, coord_lon
     
     def precipitation_rate_units_converter(self, data: Union[xr.Dataset, float, int, np.ndarray],
-                                           model_variable: Optional[str] = 'tprate', old_unit: Optional[str] = None,
+                                           model_variable: Optional[str] = 'mtpr', old_unit: Optional[str] = None,
                                            new_unit: Optional[str] = 'm s**-1') -> xr.Dataset:
         """
         Function to convert the units of precipitation rate.
 
         Args:
             data (Union[xarray.Dataset, float, int, np.ndarray]): The Dataset or data array.
-            model_variable (str, optional): The name of the variable to be converted. Defaults to 'tprate'.
+            model_variable (str, optional): The name of the variable to be converted. Defaults to 'mtpr'.
             old_unit (str, optional): The old unit of the variable. Defaults to None.
             new_unit (str, optional): The new unit of the variable. Defaults to 'm s**-1'.
 
@@ -354,7 +354,7 @@ class MainClass:
 
         Args:
             data (xarray.Dataset): The input Dataset.
-            model_variable (str, optional): The variable of the Dataset. Defaults to 'tprate'.
+            model_variable (str, optional): The variable of the Dataset. Defaults to 'mtpr'.
             sort (bool, optional): The flag to sort the array. Defaults to False.
 
         Returns:
@@ -388,7 +388,7 @@ class MainClass:
             data (xarray.Dataset): The input Dataset.
             trop_lat (float, optional): The maximum and minimum tropical latitude values in the Dataset. Defaults to None.
             preprocess (bool, optional): If True, the function preprocesses the Dataset. Defaults to True.
-            model_variable (str, optional): The variable of the Dataset. Defaults to 'tprate'.
+            model_variable (str, optional): The variable of the Dataset. Defaults to 'mtpr'.
             s_time (Union[str, int, None], optional): The starting time value/index in the Dataset. Defaults to None.
             f_time (Union[str, int, None], optional): The final time value/index in the Dataset. Defaults to None.
             s_year (Union[int, None], optional): The starting year in the Dataset. Defaults to None.
@@ -448,7 +448,7 @@ class MainClass:
             data (xarray.Dataset):          The input Dataset.
             preprocess (bool, optional):    If True, preprocesses the Dataset.              Defaults to True.
             trop_lat (float, optional):     The maximum absolute value of tropical latitude in the Dataset. Defaults to 10.
-            model_variable (str, optional): The variable of interest in the Dataset.        Defaults to 'tprate'.
+            model_variable (str, optional): The variable of interest in the Dataset.        Defaults to 'mtpr'.
             weights (array-like, optional): The weights of the data.                        Defaults to None.
             data_with_global_attributes (xarray.Dataset, optional): The Dataset with global attributes. Defaults to None.
             s_time (str/int, optional):     The starting time value/index in the Dataset.   Defaults to None.
@@ -549,11 +549,11 @@ class MainClass:
             data_with_global_atributes = data_original
 
         if not lazy and create_xarray:
-            tprate_dataset = counts_per_bin.to_dataset(name="counts")
-            tprate_dataset.attrs = data_with_global_atributes.attrs
-            tprate_dataset = self.add_frequency_and_pdf(tprate_dataset=tprate_dataset, test=test)
+            mtpr_dataset = counts_per_bin.to_dataset(name="counts")
+            mtpr_dataset.attrs = data_with_global_atributes.attrs
+            mtpr_dataset = self.add_frequency_and_pdf(mtpr_dataset=mtpr_dataset, test=test)
 
-            mean_from_hist, mean_original, mean_modified = self.mean_from_histogram(hist=tprate_dataset,
+            mean_from_hist, mean_original, mean_modified = self.mean_from_histogram(hist=mtpr_dataset,
                                                                                     data=data_with_final_grid,
                                                                                     model_variable=self.model_variable,
                                                                                     trop_lat=self.trop_lat, positive=positive)
@@ -571,8 +571,8 @@ class MainClass:
                                     greater than the threshold. \n Increase the number of bins and decrease the width \
                                         of the bins.')
             for variable in (None, 'counts', 'frequency', 'pdf'):
-                tprate_dataset = self.grid_attributes(
-                    data=data_with_final_grid, tprate_dataset=tprate_dataset, variable=variable)
+                mtpr_dataset = self.grid_attributes(
+                    data=data_with_final_grid, mtpr_dataset=mtpr_dataset, variable=variable)
             if save:
                 if path_to_histogram is None and self.path_to_netcdf is not None:
                     path_to_histogram = self.path_to_netcdf+'histograms/'
@@ -580,13 +580,13 @@ class MainClass:
                     bins_info = str(bins[0])+'_'+str(bins[-1])+'_'+str(len(bins))
                     bins_info = bins_info.replace('.', '-')
                     self.dataset_to_netcdf(
-                        tprate_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file+'_histogram_'+bins_info)
-            return tprate_dataset
+                        mtpr_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file+'_histogram_'+bins_info)
+            return mtpr_dataset
         else:
-            tprate_dataset = counts_per_bin.to_dataset(name="counts")
-            tprate_dataset.attrs = data_with_global_atributes.attrs
-            counts_per_bin = self.grid_attributes(data=data_with_final_grid, tprate_dataset=tprate_dataset, variable='counts')
-            tprate_dataset = self.grid_attributes(data=data_with_final_grid, tprate_dataset=tprate_dataset)
+            mtpr_dataset = counts_per_bin.to_dataset(name="counts")
+            mtpr_dataset.attrs = data_with_global_atributes.attrs
+            counts_per_bin = self.grid_attributes(data=data_with_final_grid, mtpr_dataset=mtpr_dataset, variable='counts')
+            mtpr_dataset = self.grid_attributes(data=data_with_final_grid, mtpr_dataset=mtpr_dataset)
 
             if save:
                 if path_to_histogram is None and self.path_to_netcdf is not None:
@@ -594,7 +594,7 @@ class MainClass:
                 if path_to_histogram is not None and name_of_file is not None:
                     bins_info = str(bins[0])+'_'+str(bins[-1])+'_'+str(len(bins)-1)
                     bins_info = bins_info.replace('.', '-')
-                    self.dataset_to_netcdf(tprate_dataset, path_to_netcdf=path_to_histogram,
+                    self.dataset_to_netcdf(mtpr_dataset, path_to_netcdf=path_to_histogram,
                                            name_of_file=name_of_file+'_histogram_'+bins_info)
             return counts_per_bin
 
@@ -615,7 +615,7 @@ class MainClass:
             data (xarray.Dataset):          The input Dataset.
             preprocess (bool, optional):    If True, preprocesses the Dataset.              Defaults to True.
             trop_lat (float, optional):     The maximum absolute value of tropical latitude in the Dataset. Defaults to 10.
-            model_variable (str, optional): The variable of interest in the Dataset.        Defaults to 'tprate'.
+            model_variable (str, optional): The variable of interest in the Dataset.        Defaults to 'mtpr'.
             data_with_global_attributes (xarray.Dataset, optional): The Dataset with global attributes. Defaults to None.
             s_time (str/int, optional):     The starting time value/index in the Dataset.   Defaults to None.
             f_time (str/int, optional):     The final time value/index in the Dataset.      Defaults to None.
@@ -722,10 +722,10 @@ class MainClass:
         if data_with_global_atributes is None:
             data_with_global_atributes = data_original
 
-        tprate_dataset = counts_per_bin.to_dataset(name="counts")
-        tprate_dataset.attrs = data_with_global_atributes.attrs
-        tprate_dataset = self.add_frequency_and_pdf(
-            tprate_dataset=tprate_dataset, test=test)
+        mtpr_dataset = counts_per_bin.to_dataset(name="counts")
+        mtpr_dataset.attrs = data_with_global_atributes.attrs
+        mtpr_dataset = self.add_frequency_and_pdf(
+            mtpr_dataset=mtpr_dataset, test=test)
 
         if seasons_bool is not None:
             if seasons_bool:
@@ -735,12 +735,12 @@ class MainClass:
                 seasonal_or_monthly_labels = [
                     'J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'J']
             for i in range(0, len(seasons_or_months)):
-                tprate_dataset['counts'+seasonal_or_monthly_labels[i]
+                mtpr_dataset['counts'+seasonal_or_monthly_labels[i]
                                ] = hist_seasons_or_months[i]
-                tprate_dataset = self.add_frequency_and_pdf(
-                    tprate_dataset=tprate_dataset, test=test, label=seasonal_or_monthly_labels[i])
+                mtpr_dataset = self.add_frequency_and_pdf(
+                    mtpr_dataset=mtpr_dataset, test=test, label=seasonal_or_monthly_labels[i])
 
-        mean_from_hist, mean_original, mean_modified = self.mean_from_histogram(hist=tprate_dataset, data=data_with_final_grid,
+        mean_from_hist, mean_original, mean_modified = self.mean_from_histogram(hist=mtpr_dataset, data=data_with_final_grid,
                                                                                 model_variable=self.model_variable,
                                                                                 trop_lat=self.trop_lat, positive=positive)
         relative_discrepancy = (mean_original - mean_from_hist)*100/mean_original
@@ -756,18 +756,18 @@ class MainClass:
             self.logger.warning('The difference between the mean of the data and the mean of the histogram is greater \
                                 than the threshold. \n Increase the number of bins and decrease the width of the bins.')
         for variable in (None, 'counts', 'frequency', 'pdf'):
-            tprate_dataset = self.grid_attributes(
-                data=data_with_final_grid, tprate_dataset=tprate_dataset, variable=variable)
+            mtpr_dataset = self.grid_attributes(
+                data=data_with_final_grid, mtpr_dataset=mtpr_dataset, variable=variable)
             if variable is None:
-                tprate_dataset.attrs['units'] = tprate_dataset.counts.units
-                tprate_dataset.attrs['mean_of_original_data'] = float(mean_original)
-                tprate_dataset.attrs['mean_of_histogram'] = float(mean_from_hist)
-                tprate_dataset.attrs['relative_discrepancy'] = float(relative_discrepancy)
+                mtpr_dataset.attrs['units'] = mtpr_dataset.counts.units
+                mtpr_dataset.attrs['mean_of_original_data'] = float(mean_original)
+                mtpr_dataset.attrs['mean_of_histogram'] = float(mean_from_hist)
+                mtpr_dataset.attrs['relative_discrepancy'] = float(relative_discrepancy)
 
             else:
-                tprate_dataset[variable].attrs['mean_of_original_data'] = float(mean_original)
-                tprate_dataset[variable].attrs['mean_of_histogram'] = float(mean_from_hist)
-                tprate_dataset[variable].attrs['relative_discrepancy'] = float(relative_discrepancy)
+                mtpr_dataset[variable].attrs['mean_of_original_data'] = float(mean_original)
+                mtpr_dataset[variable].attrs['mean_of_histogram'] = float(mean_from_hist)
+                mtpr_dataset[variable].attrs['relative_discrepancy'] = float(relative_discrepancy)
         if save:
             if path_to_histogram is None and self.path_to_netcdf is not None:
                 path_to_histogram = self.path_to_netcdf+'histograms/'
@@ -776,9 +776,9 @@ class MainClass:
                 bins_info = str(bins[0])+'_'+str(bins[-1])+'_'+str(len(bins)-1)
                 bins_info = bins_info.replace('.', '-')
                 self.dataset_to_netcdf(
-                    tprate_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file+'_histogram_'+bins_info)
+                    mtpr_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file+'_histogram_'+bins_info)
 
-        return tprate_dataset
+        return mtpr_dataset
 
     def dataset_to_netcdf(self, dataset: Optional[xr.Dataset] = None, path_to_netcdf: Optional[str] = None,
                           name_of_file: Optional[str] = None) -> str:
@@ -816,7 +816,7 @@ class MainClass:
                 "The path to save the histogram needs to be provided.")
         return path_to_netcdf
 
-    def grid_attributes(self, data: Optional[xr.Dataset] = None, tprate_dataset: Optional[xr.Dataset] = None,
+    def grid_attributes(self, data: Optional[xr.Dataset] = None, mtpr_dataset: Optional[xr.Dataset] = None,
                         variable: Optional[str] = None) -> xr.Dataset:
         """
         Function to add the attributes with information about the space and time grid to the Dataset.
@@ -824,7 +824,7 @@ class MainClass:
         Args:
             data (xarray, optional):            The Dataset with a final time and space grif, for which calculations
                                                 were performed. Defaults to None.
-            tprate_dataset (xarray, optional):  Created Dataset by the diagnostics, which we would like to populate
+            mtpr_dataset (xarray, optional):  Created Dataset by the diagnostics, which we would like to populate
                                                 with attributes. Defaults to None.
             variable (str, optional):           The name of the Variable objects (not a physical variable) of the created
                                                 Dataset. Defaults to None.
@@ -875,33 +875,33 @@ class MainClass:
             history_update = str(current_time)+' histogram is calculated for time_band: ['+str(
                 time_band)+']; lat_band: ['+str(lat_band)+']; lon_band: ['+str(lon_band)+'];\n '
             try:
-                history_attr = tprate_dataset.attrs['history'] + history_update
-                tprate_dataset.attrs['history'] = history_attr
+                history_attr = mtpr_dataset.attrs['history'] + history_update
+                mtpr_dataset.attrs['history'] = history_attr
             except KeyError:
                 self.logger.debug(
                     "The obtained xarray.Dataset doesn't have global attributes. Consider adding global attributes \
                     manually to the dataset.")
                 pass
-            tprate_dataset.attrs['time_band'] = time_band
-            tprate_dataset.attrs['lat_band'] = lat_band
-            tprate_dataset.attrs['lon_band'] = lon_band
-            tprate_dataset.attrs['time_band_history'] = time_band
+            mtpr_dataset.attrs['time_band'] = time_band
+            mtpr_dataset.attrs['lat_band'] = lat_band
+            mtpr_dataset.attrs['lon_band'] = lon_band
+            mtpr_dataset.attrs['time_band_history'] = time_band
         else:
-            tprate_dataset[variable].attrs['time_band'] = time_band
-            tprate_dataset[variable].attrs['lat_band'] = lat_band
-            tprate_dataset[variable].attrs['lon_band'] = lon_band
-            tprate_dataset[variable].attrs['time_band_history'] = time_band
+            mtpr_dataset[variable].attrs['time_band'] = time_band
+            mtpr_dataset[variable].attrs['lat_band'] = lat_band
+            mtpr_dataset[variable].attrs['lon_band'] = lon_band
+            mtpr_dataset[variable].attrs['time_band_history'] = time_band
 
-        return tprate_dataset
+        return mtpr_dataset
 
-    def add_frequency_and_pdf(self, tprate_dataset: Optional[xr.Dataset] = None, path_to_histogram: Optional[str] = None,
+    def add_frequency_and_pdf(self, mtpr_dataset: Optional[xr.Dataset] = None, path_to_histogram: Optional[str] = None,
                               name_of_file: Optional[str] = None, test: Optional[bool] = False,
                               label: Optional[str] = None) -> xr.Dataset:
         """
         Function to convert the histogram to xarray.Dataset.
 
         Args:
-            tprate_dataset (xarray, optional):     The Dataset with the histogram. Defaults to None.
+            mtpr_dataset (xarray, optional):     The Dataset with the histogram. Defaults to None.
             path_to_histogram (str, optional):     The path to save the histogram. Defaults to None.
             name_of_file (str, optional):          The name of the file to save. Defaults to None.
             test (bool, optional):                 If True, performs a test. Defaults to False.
@@ -913,21 +913,21 @@ class MainClass:
         if path_to_histogram is None and self.path_to_netcdf is not None:
             path_to_histogram = self.path_to_netcdf+'histograms/'
 
-        hist_frequency = self.convert_counts_to_frequency(tprate_dataset.counts,  test=test)
-        tprate_dataset['frequency'] = hist_frequency
+        hist_frequency = self.convert_counts_to_frequency(mtpr_dataset.counts,  test=test)
+        mtpr_dataset['frequency'] = hist_frequency
 
-        hist_pdf = self.convert_counts_to_pdf(tprate_dataset.counts,  test=test)
-        tprate_dataset['pdf'] = hist_pdf
+        hist_pdf = self.convert_counts_to_pdf(mtpr_dataset.counts,  test=test)
+        mtpr_dataset['pdf'] = hist_pdf
 
-        hist_pdfP = self.convert_counts_to_pdfP(tprate_dataset.counts,  test=test)
-        tprate_dataset['pdfP'] = hist_pdfP
+        hist_pdfP = self.convert_counts_to_pdfP(mtpr_dataset.counts,  test=test)
+        mtpr_dataset['pdfP'] = hist_pdfP
 
         if label is not None:
-            hist_frequency = self.convert_counts_to_frequency(tprate_dataset['counts'+label],  test=test)
-            tprate_dataset['frequency'+label] = hist_frequency
+            hist_frequency = self.convert_counts_to_frequency(mtpr_dataset['counts'+label],  test=test)
+            mtpr_dataset['frequency'+label] = hist_frequency
 
-            hist_pdf = self.convert_counts_to_pdf(tprate_dataset['counts'+label],  test=test)
-            tprate_dataset['pdf'+label] = hist_pdf
+            hist_pdf = self.convert_counts_to_pdf(mtpr_dataset['counts'+label],  test=test)
+            mtpr_dataset['pdf'+label] = hist_pdf
         if path_to_histogram is not None and name_of_file is not None:
             if isinstance(self.bins, int):
                 bins = [self.first_edge + i *
@@ -937,8 +937,8 @@ class MainClass:
             bins_info = str(bins[0])+'_'+str(bins[-1])+'_'+str(len(bins)-1)
             bins_info = bins_info.replace('.', '-')
             self.dataset_to_netcdf(
-                dataset=tprate_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file+'_histogram_'+bins_info)
-        return tprate_dataset
+                dataset=mtpr_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file+'_histogram_'+bins_info)
+        return mtpr_dataset
 
     def merge_two_datasets(self, dataset_1: xr.Dataset = None, dataset_2: xr.Dataset = None,
                            test: bool = False) -> xr.Dataset:
@@ -1332,7 +1332,7 @@ class MainClass:
 
         Args:
             data (xarray.Dataset): The Dataset.
-            model_variable (str, optional): The variable of the Dataset. Defaults to 'tprate'.
+            model_variable (str, optional): The variable of the Dataset. Defaults to 'mtpr'.
             trop_lat (float, optional): The maximum and minimal tropical latitude values in Dataset. Defaults to None.
             coord (str, optional): The coordinate of the Dataset. Defaults to 'time'.
             s_time (str, optional): The starting time of the Dataset. Defaults to None.
@@ -1386,7 +1386,7 @@ class MainClass:
 
         Args:
             data (xarray.Dataset): The Dataset.
-            model_variable (str, optional): The variable of the Dataset. Defaults to 'tprate'.
+            model_variable (str, optional): The variable of the Dataset. Defaults to 'mtpr'.
             trop_lat (float, optional): The maximum and minimal tropical latitude values in the Dataset. Defaults to None.
             coord (str, optional): The coordinate of the Dataset. Defaults to 'time'.
             s_time (str, optional): The starting time of the Dataset. Defaults to None.
@@ -1445,7 +1445,7 @@ class MainClass:
             data (xarray.Dataset): The Dataset.
             glob (bool, optional): If True, the value is calculated for all latitudes and longitudes. Defaults to False.
             preprocess (bool, optional): If True, the Dataset is preprocessed. Defaults to True.
-            model_variable (str, optional): The variable of the Dataset. Defaults to 'tprate'.
+            model_variable (str, optional): The variable of the Dataset. Defaults to 'mtpr'.
             coord (str, optional): The coordinate of the Dataset. Defaults to 'time'.
             trop_lat (float, optional): The maximumal and minimal tropical latitude values in the Dataset. Defaults to None.
             get_mean (bool, optional): The flag to calculate the mean of the variable. Defaults to True.
@@ -1505,16 +1505,16 @@ class MainClass:
         if seasons_bool:
             seasonal_average.attrs = data_with_final_grid.attrs
             seasonal_average = self.grid_attributes(
-                data=data_with_final_grid, tprate_dataset=seasonal_average)
+                data=data_with_final_grid, mtpr_dataset=seasonal_average)
             for variable in ('DJF', 'MAM', 'JJA', 'SON', 'Yearly'):
                 seasonal_average[variable].attrs = data_with_final_grid.attrs
                 seasonal_average = self.grid_attributes(
-                    data=data_with_final_grid, tprate_dataset=seasonal_average, variable=variable)
+                    data=data_with_final_grid, mtpr_dataset=seasonal_average, variable=variable)
             average_dataset = seasonal_average
         else:
             data_average.attrs = data_with_final_grid.attrs
             data_average = self.grid_attributes(
-                data=data_with_final_grid,      tprate_dataset=data_average)
+                data=data_with_final_grid,      mtpr_dataset=data_average)
             average_dataset = data_average
 
         if average_dataset.time_band == []:
@@ -1622,7 +1622,7 @@ class MainClass:
             data (xarray.DataArray): Data to be processed.
             preprocess (bool, optional): If True, the data will be preprocessed. Default is True.
             seasons_bool (bool, optional): If True, the data will be calculated for the seasons. Default is True.
-            model_variable (str, optional): Name of the model variable. Default is 'tprate'.
+            model_variable (str, optional): Name of the model variable. Default is 'mtpr'.
             trop_lat (float, optional): Latitude of the tropical region. Default is None.
             new_unit (str, optional): New unit of the data. Default is None.
 
@@ -1676,7 +1676,7 @@ class MainClass:
             data (xarray.DataArray):        Data to be calculated.
             preprocess (bool, optional):    If True, the data will be preprocessed.                 The default is True.
             seasons_bool (bool, optional):       If True, the data will be calculated for the seasons.   The default is True.
-            model_variable (str, optional): Name of the model variable.                             The default is 'tprate'.
+            model_variable (str, optional): Name of the model variable.                             The default is 'mtpr'.
             trop_lat (float, optional):     Latitude of the tropical region.                        The default is None.
             new_unit (str, optional):       New unit of the data.                                   The default is None.
             coord (str, optional):          Name of the coordinate.                                 The default is None.
@@ -1733,7 +1733,7 @@ class MainClass:
             preprocess (bool, optional):    If True, data is preprocessed.              Defaults to True.
             seasons_bool (bool, optional):  If True, data is plotted in seasons. If False, data is plotted in months.
                                             Defaults to True.
-            model_variable (str, optional): Name of the model variable.                 Defaults to 'tprate'.
+            model_variable (str, optional): Name of the model variable.                 Defaults to 'mtpr'.
             figsize (float, optional):      Size of the figure.                         Defaults to 1.
             trop_lat (float, optional):     Latitude band of the tropical region.       The default is None.
             new_unit (str, optional):       New unit of the data.                       The default is None.
@@ -1808,7 +1808,7 @@ class MainClass:
             preprocess (bool, optional):    If True, data is preprocessed.          Defaults to True.
             seasons_bool (bool, optional):  If True, data is plotted in seasons. If False, data is plotted in months.
                                             Defaults to True.
-            model_variable (str, optional): Name of the model variable.             Defaults to 'tprate'.
+            model_variable (str, optional): Name of the model variable.             Defaults to 'mtpr'.
             figsize (float, optional):      Size of the figure.                     Defaults to 1.
             trop_lat (float, optional):     Latitude of the tropical region.        Defaults to None.
             plot_title (str, optional):     Title of the plot.                      Defaults to None.
@@ -2143,11 +2143,11 @@ class MainClass:
 
             seasonal_095level.attrs = SON.attrs
             seasonal_095level = self.grid_attributes(
-                data=SON, tprate_dataset=seasonal_095level)
+                data=SON, mtpr_dataset=seasonal_095level)
             for variable in ('DJF', 'MAM', 'JJA', 'SON', 'Yearly'):
                 seasonal_095level[variable].attrs = SON.attrs
                 seasonal_095level = self.grid_attributes(
-                    data=SON, tprate_dataset=seasonal_095level, variable=variable)
+                    data=SON, mtpr_dataset=seasonal_095level, variable=variable)
 
         if seasonal_095level.time_band == []:
             raise Exception('Time band is empty')
@@ -2223,14 +2223,14 @@ class MainClass:
         # Create an xarray DataArray for utc_data
         local_data_array = xr.DataArray(local_data, dims=('time', 'lon'), coords={'time': data.time, 'lon': data.lon})
 
-        # Create a new dataset with tprate and utc_time
-        new_dataset = xr.Dataset({'tprate': data, 'local_time': local_data_array})
+        # Create a new dataset with mtpr and utc_time
+        new_dataset = xr.Dataset({'mtpr': data, 'local_time': local_data_array})
         new_dataset.attrs = data.attrs
 
-        # Calculate relative tprate and add to the dataset
-        mean_val = new_dataset['tprate'].mean()
-        new_dataset['tprate_relative'] = (new_dataset['tprate'] - mean_val) / mean_val
-        new_dataset['tprate_relative'].attrs = new_dataset.attrs
+        # Calculate relative mtpr and add to the dataset
+        mean_val = new_dataset['mtpr'].mean()
+        new_dataset['mtpr_relative'] = (new_dataset['mtpr'] - mean_val) / mean_val
+        new_dataset['mtpr_relative'].attrs = new_dataset.attrs
 
         # Save the dataset to NetCDF if paths are provided
         # if path_to_netcdf and name_of_file:

@@ -31,7 +31,7 @@ def retrieved_dataarray():
         data = Reader(model="IFS", exp="test-tco79", source="long")
         retrieved = data.retrieve()
         try:
-            retrieved_array = retrieved['tprate']*86400
+            retrieved_array = retrieved['mtpr']*86400
         except KeyError:
             retrieved_array = retrieved['2t']
         return retrieved_array.isel(time=slice(10, 11))
@@ -41,7 +41,7 @@ def retrieved_dataarray():
         data = Reader(model="ICON", exp="ngc2009", source="lra-r100-monthly")
         retrieved = data.retrieve()
         try:
-            retrieved_array = retrieved['tprate']*86400
+            retrieved_array = retrieved['mtpr']*86400
         except KeyError:
             retrieved_array = retrieved['2t']
         return retrieved_array.isel(time=slice(10, 11))
@@ -51,7 +51,7 @@ def retrieved_dataarray():
         data = Reader(model="IFS-NEMO", exp="historical-1990", source="lra-r100-monthly")
         retrieved = data.retrieve()
         try:
-            retrieved_array = retrieved['tprate']*86400
+            retrieved_array = retrieved['mtpr']*86400
         except KeyError:
             retrieved_array = retrieved['2t']
         return retrieved_array.isel(time=slice(10, 11))
@@ -116,7 +116,7 @@ def histogram_output(retrieved_dataarray):
     """ Histogram output fixture
     """
     data = retrieved_dataarray
-    if 'tprate' in data.name:
+    if 'mtpr' in data.name:
         diag = Tropical_Rainfall(
             num_of_bins=1000, first_edge=0, width_of_bin=1 - 1*10**(-6), loglevel='debug')
     elif '2t' in data.name:
@@ -317,7 +317,7 @@ def test_units_converter(retrieved_dataarray):
 
     old_units = data.units
 
-    if 'tprate' in data.name:
+    if 'mtpr' in data.name:
         old_mean_value = float(data.mean().values)
         data = diag.precipitation_rate_units_converter(
             data, new_unit=old_units)
