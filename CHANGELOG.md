@@ -7,6 +7,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+- Fixed catalogue for historical-1990-dev-lowres source (#888)
+- data_models src files are now in the aqua/data_models folder, with minor modifications (#884)
+- Warning options based on the `loglevel` (#852)
+- Timeseries: formula bugfix and annual plot only for complete years (#876)
+- mtpr instead of tprate derived from tp (#828)
+- eccodes 2.34.0 does not accomodate for AQUA step approach, pin to <2.34.0 (#873)
+- Bugfix of the `aqua-analysis` wrapper, now can work teleconnections on atmospheric and oceanic variables 
+and the default path is an absolute one (#859, #862)
+- Ocean3D: many fixes and adaptations to new data governance (#776)
+- Bugfix of the `aqua-analysis` wrapper, now can work teleconnections on atmospheric and oceanic variables (#859)
+- Radiation: adaptation to new data governance and many improvements (#727)
+- Seaice: Sea ice extent has now seasonal cycle (#797)
+- Fixing the paths in `cli/lumi-install/lumi_install.sh` (#856).
+- Refactor of the documentation (#842, #871)
+- The drop warning in `aqua/gsv/intake_gsv.py` (#844)
+
 ## [v0.6.3]
 
 Complete list:
