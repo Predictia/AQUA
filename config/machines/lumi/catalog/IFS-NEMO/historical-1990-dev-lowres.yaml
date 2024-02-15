@@ -40,7 +40,7 @@ sources:
     description: daily atmospheric 2D data on healpix zoom=5 grid
     args:
       aggregation: D
-      savefreq: H
+      savefreq: h
       <<: *args-default
       request:
         <<: *request-default
@@ -55,7 +55,7 @@ sources:
     description: daily atmospheric 2D data on regular 1 degree grid (multiIO)
     args:
       aggregation: D
-      savefreq: H
+      savefreq: h
       <<: *args-default
       request:
         <<: *request-default
@@ -89,7 +89,7 @@ sources:
     description: daily atmospheric 3D data on healpix zoom=5 grid
     args:
       aggregation: D
-      savefreq: H
+      savefreq: h
       <<: *args-default
       request:
         <<: *request-default
@@ -111,7 +111,7 @@ sources:
     description: daily atmospheric 3D data on regular 1 degree grid
     args:
       aggregation: D
-      savefreq: H
+      savefreq: h
       <<: *args-default
       request:
         <<: *request-default
