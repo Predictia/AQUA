@@ -15,6 +15,7 @@ Main changes are:
 2. Documentation has been reorganized and integrated
 
 Complete list:
+- Scripts for pushing figures and docs to aqua-web (#880)
 - Fixed catalogue for historical-1990-dev-lowres source (#888)
 - data_models src files are now in the aqua/data_models folder, with minor modifications (#884)
 - Warning options based on the `loglevel` (#852)
