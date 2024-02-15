@@ -202,10 +202,11 @@ def plot_single_map(data: xr.DataArray,
 def plot_single_map_diff(data: xr.DataArray,
                          data_ref: xr.DataArray,
                          save=False, display=True,
-                         outputdir='.', filename='maps.png',
+                         sym_contour=False, sym=True,
+                         outputdir='.', filename='map.png',
                          **kwargs):
     """
-    Plot the map and add the difference with a reference map
+    Plot the difference of data-data_ref as map and add the data
     as a contour plot.
 
     Args:
@@ -213,51 +214,55 @@ def plot_single_map_diff(data: xr.DataArray,
         data_ref (xr.DataArray):   Reference data to plot the difference.
         save (bool, optional):     If True, save the figure. Defaults to False.
         display (bool, optional):  If True, display the figure. Defaults to True.
+        sym_contour (bool, optional): If True, set the contour levels to be symmetrical.
+                                      Default to False
+        sym (bool, optional):      If True, set the colorbar for the diff to be symmetrical.
+                                   Default to True
         outputdir (str, optional): Output directory. Defaults to ".".
-        filename (str, optional):  Filename. Defaults to 'maps.png'.
         **kwargs:                  Keyword arguments for plot_single_map.
+                                   Check the docstring of plot_single_map.
 
     Raise:
-        ValueError: If data_ref is not a DataArray.
+        ValueError: If data or data_ref is not a DataArray.
     """
     loglevel = kwargs.get('loglevel', 'WARNING')
     logger = log_configure(loglevel, 'plot_single_map_diff')
 
-    if isinstance(data_ref, xr.DataArray) is False:
-        raise ValueError("data_ref must be a DataArray")
+    if isinstance(data_ref, xr.DataArray) is False or isinstance(data, xr.DataArray) is False:
+        raise ValueError("data and data_ref must be a DataArray")
 
     contour = kwargs.get('contour', True)
 
-    fig, ax = plot_single_map(data, return_fig=True,
-                              contour=contour,
-                              save=False, **kwargs)
-
-    logger.info("Plotting the difference with the reference map")
-
-    # Evaluate vmin and vmax of the contour
-    vmin_diff, vmax_diff = evaluate_colorbar_limits(maps=[data - data_ref],
-                                                    sym=kwargs.get('sym', False))
-
-    logger.debug("Setting difference vmin to %s, vmax to %s",
-                 vmin_diff, vmax_diff)
-
     # Plot the difference
     diff_map = data - data_ref
+
+    fig, ax = plot_single_map(diff_map, return_fig=True,
+                              contour=contour, sym=sym,
+                              save=False, **kwargs)
+
+    logger.info("Plotting the map as contour")
 
     cyclic_lon = kwargs.get('cyclic_lon', True)
     if cyclic_lon:
         logger.info("Adding cyclic longitude to the difference map")
         try:
-            diff_map = add_cyclic_lon(diff_map)
+            data = add_cyclic_lon(data)
         except Exception as e:
             logger.error("Cannot add cyclic longitude: %s", e)
             logger.warning("Cyclic longitude can be set to False with the cyclic_lon kwarg")
 
-    ds = diff_map.plot.contour(ax=ax,
-                               transform=ccrs.PlateCarree(),
-                               colors='k', levels=10,
-                               linewidths=0.5,
-                               vmin=vmin_diff, vmax=vmax_diff)
+    # Evaluate vmin and vmax of the contour
+    vmin_map, vmax_map = evaluate_colorbar_limits(maps=[data],
+                                                  sym=sym_contour)
+
+    logger.debug("Setting difference vmin to %s, vmax to %s",
+                 vmin_map, vmax_map)
+
+    ds = data.plot.contour(ax=ax,
+                           transform=ccrs.PlateCarree(),
+                           colors='k', levels=10,
+                           linewidths=0.5,
+                           vmin=vmin_map, vmax=vmax_map)
 
     ax.clabel(ds, fmt='%1.1f', fontsize=6, inline=True)
 
