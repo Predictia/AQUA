@@ -389,23 +389,23 @@ specifying only what is different:
 This second source will have the same keys as the first one, except for
 the ones that are explicitly overridden.
 
-Checking new data
------------------
+.. Checking new data
+.. -----------------
 
-Checking that all the details of the source and of the experiments are fine can be exhausting task,
-considering that several surces can be added to the same experiment. A good thing to do is to check that all 
-sources are correctly working and most important reader functionalities as regridding and spatial averaging are working
+.. Checking that all the details of the source and of the experiments are fine can be exhausting task,
+.. considering that several surces can be added to the same experiment. A good thing to do is to check that all 
+.. sources are correctly working and most important reader functionalities as regridding and spatial averaging are working
 
-We thus developed a basic function to run a check, `check_experiment()`, which can be simply called as:
+.. We thus developed a basic function to run a check, `check_experiment()`, which can be simply called as:
 
-.. code-block:: python
+.. .. code-block:: python
 
-    from aqua import check_experiment
+..     from aqua import check_experiment
 
-    check_experiment(model="IFS-NEMO", exp="awesome-exp")
+..     check_experiment(model="IFS-NEMO", exp="awesome-exp")
 
-This will open all the sources available and will regrid them. It can take a while and can be memory intensive, so it would be 
-safer to not launch it from notebook. 
+.. This will open all the sources available and will regrid them. It can take a while and can be memory intensive, so it would be 
+.. safer to not launch it from notebook. 
 
 
 DE_340 source syntax convention
