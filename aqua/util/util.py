@@ -3,6 +3,7 @@
 import os
 import random
 import string
+import yaml
 import re
 import numpy as np
 import xarray as xr
@@ -124,3 +125,12 @@ def extract_literal_and_numeric(text):
     else:
         # If no match is found, return None or handle it accordingly
         return None, None
+
+def username():
+    """
+    Retrieves the current user's username from the 'USER' environment variable.
+    """
+    user = os.getenv('USER')
+    if user is None:
+        raise EnvironmentError("The 'USER' environment variable is not set.")
+    return user 
