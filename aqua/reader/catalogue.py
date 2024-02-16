@@ -2,6 +2,7 @@
 
 import intake
 from aqua.util import ConfigPath
+from aqua import Reader
 
 
 def catalogue(verbose=True, configdir=None):
@@ -145,3 +146,21 @@ def is_in_cat(cat, model, exp, source):
             return model in cat.keys()
         except KeyError:
             return False
+
+def check_experiment(model, exp, loglevel='WARNING'):
+
+    """
+    Basic function to check if all the sources of a defined experiment
+    are accessible, can be regridder and averaged. To be run on a every new experiment
+    added to the catalog
+    """
+
+    for source in inspect_catalogue(model=model, exp=exp, verbose=False):
+        print(source)
+        reader = Reader(model=model, exp=exp, source=source, regrid='r100', loglevel=loglevel)
+        data = reader.retrieve()
+        myvar = list(data.data_vars)[0]
+        data[myvar].isel(time=slice(0,24)).aqua.fldmean().plot()
+        data[myvar].isel(time=-1).aqua.regrid().aqua.plot_single_map()
+
+    return "BRAVO! Your new experiment is fine!"
