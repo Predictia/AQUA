@@ -3,6 +3,7 @@
 import os
 import random
 import string
+import yaml
 import re
 import numpy as np
 import xarray as xr
@@ -181,3 +182,13 @@ def add_pdf_metadata(filename: str,
     with open(filename, 'wb') as f:
         pdf_writer.write(f)
         f.close()
+
+
+def username():
+    """
+    Retrieves the current user's username from the 'USER' environment variable.
+    """
+    user = os.getenv('USER')
+    if user is None:
+        raise EnvironmentError("The 'USER' environment variable is not set.")
+    return user 
