@@ -47,7 +47,7 @@ sources:
         resolution: standard
     metadata:
       <<: *metadata-default
-      fdb_path: /projappl/project_465000454/experiments/a0gg/config.yaml
+      fdb_path: /projappl/project_465000454/experiments/a0gg/fdb/config.yaml
       source_grid_name: hpz5-nested
 
   hourly-r100-atm2d:
@@ -103,7 +103,7 @@ sources:
       levels: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600, 700,
         850, 925, 1000]
       variables: [129, 130, 131, 132, 133, 157]
-      fdb_path: /projappl/project_465000454/experiments/a0gg/config.yaml
+      fdb_path: /projappl/project_465000454/experiments/a0gg/fdb/config.yaml
       source_grid_name: hpz5-nested
 
   hourly-r100-atm3d:
@@ -162,7 +162,7 @@ sources:
       <<: *metadata-default
       variables: [263022, 263100, 263101, 263124, 263001, 263021, 263000, 263004,
         263003]
-      fdb_path: /projappl/project_465000454/experiments/a0gg/config.yaml
+      fdb_path: /projappl/project_465000454/experiments/a0gg/fdb/config.yaml
       source_grid_name: nemo-hpz5-nested
 
 
