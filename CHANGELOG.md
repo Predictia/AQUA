@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+- Experiments `a0gg` and `a0jp` added to the IFS-NEMO catalog, and removal of `historical-1990-dev-lowres` (#889)
+- Function `check_experiment()` introduced to verify the consistency of the new experiment added to the catalog (#889)
 - Scripts for pushing figures and docs to aqua-web (#880)
 - Fixed catalogue for historical-1990-dev-lowres source (#888, #895)
 - data_models src files are now in the aqua/data_models folder, with minor modifications (#884)
