@@ -44,6 +44,7 @@ dependencies = [
     "metpy",
     "numpy",
     "pydantic<2.5.3", # NOTE: pydantic 2.5.3 has a bug that breaks tests
+    "pypdf",
     "pyYAML",
     "ruamel.yaml",
     "smmregrid",
