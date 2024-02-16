@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
-
+- Updated notebooks to ensure consistency across different machines by using observational datasets, and included a demo of aqua components for Lumi (#868)
 - Scripts for pushing figures and docs to aqua-web (#880)
 - Fixed catalogue for historical-1990-dev-lowres source (#888, #895)
 - data_models src files are now in the aqua/data_models folder, with minor modifications (#884)
@@ -23,6 +23,7 @@ and the default path is an absolute one (#859, #862)
 - Fixing the paths in `cli/lumi-install/lumi_install.sh` (#856).
 - Refactor of the documentation (#842, #871)
 - The drop warning in `aqua/gsv/intake_gsv.py` (#844)
+- Tropical cyclones diagnostic: working with new data governance (includes possibility to retrieve orography from file (#816)
 
 ## [v0.6.3]
 
