@@ -179,7 +179,7 @@ def get_reference_timeseries(var, formula=False,
                 data_mon = reader.fldmean(eval_formula(var, data_mon))
             else:
                 data_mon = reader.fldmean(data_mon)
-            data_mon = data_mon[var]
+                data_mon = data_mon[var]
         else:
             data_mon = None
 
@@ -190,7 +190,7 @@ def get_reference_timeseries(var, formula=False,
                 data_mon_std = reader.fldmean(eval_formula(var, data_mon_std)).groupby("time.month").std()
             else:
                 data_mon_std = reader.fldmean(data_mon_std).groupby("time.month").std()
-            data_mon_std = data_mon_std[var]
+                data_mon_std = data_mon_std[var]
         else:
             data_mon_std = None
     else:
@@ -208,7 +208,7 @@ def get_reference_timeseries(var, formula=False,
                 data_ann = reader.fldmean(eval_formula(var, data_ann))
             else:
                 data_ann = reader.fldmean(data_ann)
-            data_ann = data_ann[var]
+                data_ann = data_ann[var]
         else:
             data_ann = None
 
@@ -218,7 +218,7 @@ def get_reference_timeseries(var, formula=False,
                 data_ann_std = reader.fldmean(eval_formula(var, data_ann_std)).std()
             else:
                 data_ann_std = reader.fldmean(data_ann_std).std()
-            data_ann_std = data_ann_std[var]
+                data_ann_std = data_ann_std[var]
         else:
             data_ann_std = None
     else:

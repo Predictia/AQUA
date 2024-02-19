@@ -167,20 +167,21 @@ class Timeseries():
                             data = eval_formula(self.var, data)
                         else:
                             data = reader.retrieve(var=self.var)
+                            data = data[self.var]
                     except Exception as e:
                         self.logger.debug(f"Error while retrieving: {e}")
                         raise NoDataError(f'No data found for {model} {exp} {source}') from e
 
                     if self.startdate is None:
                         if startdate is None:
-                            startdate = data[self.var].time[0].values
+                            startdate = data.time[0].values
                         else:
-                            startdate = min(startdate, data[self.var].time[0].values)
+                            startdate = min(startdate, data.time[0].values)
                     if self.enddate is None:
                         if enddate is None:
-                            enddate = data[self.var].time[-1].values
+                            enddate = data.time[-1].values
                         else:
-                            enddate = max(enddate, data[self.var].time[-1].values)
+                            enddate = max(enddate, data.time[-1].values)
 
                     if self.monthly:
                         if 'monthly' in source or 'mon' in source:
@@ -190,7 +191,7 @@ class Timeseries():
                             data_mon = reader.timmean(data, freq='MS', exclude_incomplete=True)
                         data_mon = reader.fldmean(data_mon)
                         self.logger.info("Monthly data retrieved")
-                        self.data_mon.append(data_mon[self.var])
+                        self.data_mon.append(data_mon)
 
                     if self.annual:
                         data_ann = reader.timmean(data, freq='YS',
@@ -198,7 +199,7 @@ class Timeseries():
                                                   center_time=True)
                         data_ann = reader.fldmean(data_ann)
                         self.logger.info("Annual data retrieved")
-                        self.data_annual.append(data_ann[self.var])
+                        self.data_annual.append(data_ann)
 
         if self.startdate is None:
             self.logger.debug(f"Start date: {startdate}")
