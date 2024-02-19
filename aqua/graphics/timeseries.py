@@ -59,22 +59,22 @@ def plot_timeseries(monthly_data=None,
             ann_data.plot(ax=ax, label=label, color=color, linestyle='--')
 
     if ref_monthly_data is not None:
-        ref_monthly_data.plot(ax=ax, label=ref_label + ' monthly', color='grey')
+        ref_monthly_data.plot(ax=ax, label=ref_label + ' monthly', color='black', lw=0.6)
         if std_monthly_data is not None:
             std_monthly_data.compute()
             ax.fill_between(ref_monthly_data.time,
                             ref_monthly_data - 2.*std_monthly_data.sel(month=ref_monthly_data["time.month"]),
                             ref_monthly_data + 2.*std_monthly_data.sel(month=ref_monthly_data["time.month"]),
-                            facecolor='grey', alpha=0.3)
+                            facecolor='grey', alpha=0.25)
 
     if ref_annual_data is not None:
-        ref_annual_data.plot(ax=ax, label=ref_label + ' annual', color='black', linestyle='--')
+        ref_annual_data.plot(ax=ax, label=ref_label + ' annual', color='black', linestyle='--', lw=0.6)
         if std_annual_data is not None:
             std_annual_data.compute()
             ax.fill_between(ref_annual_data.time,
                             ref_annual_data - 2.*std_annual_data,
                             ref_annual_data + 2.*std_annual_data,
-                            facecolor='black', alpha=0.3)
+                            facecolor='black', alpha=0.2)
 
     ax.legend(fontsize='small')
 

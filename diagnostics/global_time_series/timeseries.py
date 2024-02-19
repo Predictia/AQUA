@@ -277,13 +277,13 @@ class Timeseries():
 
         for model in self.models:
             for exp in self.exps:
-                for source in self.sources:
+                for i, source in enumerate(self.sources):
                     outfile = f'timeseries_{self.var}_{model}_{exp}_{source}.nc'
                     self.logger.debug(f"Saving data to {outdir}/{outfile}")
                     if self.monthly:
-                        self.data_mon.to_netcdf(os.path.join(outdir, outfile))
+                        self.data_mon[i].to_netcdf(os.path.join(outdir, outfile))
                     if self.annual:
-                        self.data_annual.to_netcdf(os.path.join(outdir, outfile))
+                        self.data_annual[i].to_netcdf(os.path.join(outdir, outfile))
 
         if self.plot_ref:
             outfile = f'timeseries_{self.var}_ref.nc'
