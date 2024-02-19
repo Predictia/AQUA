@@ -225,7 +225,7 @@ class Timeseries():
             except KeyError:
                 ref_label = 'Reference'
 
-        title = f'{self.var} timeseries - {self.startdate} to {self.enddate}'
+        title = f'{self.var} timeseries'
 
         fig, ax = plot_timeseries(monthly_data=self.data_mon,
                                   annual_data=self.data_annual,
