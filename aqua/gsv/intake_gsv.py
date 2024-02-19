@@ -252,7 +252,7 @@ class GSVSource(base.DataSource):
             request["param"] = self._var
 
         if self.fdbhome:  #if fdbhome is provided, use it, since we are creating a new gsv
-            os.environ["FDB5_HOME"] = self.fdbhome
+            os.environ["FDB_HOME"] = self.fdbhome
         if self.fdbpath:  # if fdbpath provided, use it, since we are creating a new gsv
             os.environ["FDB5_CONFIG_FILE"] = self.fdbpath
 
