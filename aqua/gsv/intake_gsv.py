@@ -73,7 +73,8 @@ class GSVSource(base.DataSource):
             raise ImportError(gsv_error_cause)
 
         if metadata:
-            self.fdbpath = metadata.get('fdb_path', None)
+            self.fdbhome = metadata.get('fdb_home', None)
+            self.fdbpath = metadata.get('fdb_home', None)
             self.eccodes_path = metadata.get('eccodes_path', None)
             self.levels =  metadata.get('levels', None)
         else:
@@ -250,6 +251,8 @@ class GSVSource(base.DataSource):
         else:
             request["param"] = self._var
 
+        if self.fdbhome:  #if fdbhome is provided, use it, since we are creating a new gsv
+            os.environ["FDB5_HOME"] = self.fdbhome
         if self.fdbpath:  # if fdbpath provided, use it, since we are creating a new gsv
             os.environ["FDB5_CONFIG_FILE"] = self.fdbpath
 
