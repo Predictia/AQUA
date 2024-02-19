@@ -1,6 +1,6 @@
 import jinja2
 import os
-from aqua.util import load_yaml
+from aqua.util import ConfigPath, load_yaml, dump_yaml
 
 definitions = load_yaml('config.tmpl')
 
@@ -39,10 +39,32 @@ templateEnv = jinja2.Environment(loader=templateLoader, trim_blocks=True, lstrip
 template = templateEnv.get_template('ifs-nemo-catalog.j2')
 outputText = template.render(definitions)
 
-# create the new post file
-output_dir = f"../../config/machines/lumi/catalog/{definitions['model']}"
+
+#create output file in model folder
+configurer = ConfigPath()
+catalog_path, fixer_folder, config_file = configurer.get_reader_filenames()
+
+output_dir = os.path.join(os.path.dirname(catalog_path), 'catalog', definitions['model'])
 output_filename = f"{definitions['exp']}.yaml"
 output_path = os.path.join(output_dir, output_filename)
 
-with open(output_path, "w", encoding='utf8') as fh:
-    fh.write(outputText)
+with open(output_path, "w", encoding='utf8') as output_file:
+    output_file.write(outputText)
+
+print(f"File '{output_filename}' has been created in '{output_dir}'.")
+
+#update main.yaml
+main_yaml_path = os.path.join(output_dir, 'main.yaml')
+
+main_yaml = load_yaml(main_yaml_path)
+main_yaml['sources'][definitions['exp']] = {
+    'description': definitions['description'],
+    'driver': 'yaml_file_cat',
+    'args': {
+        'path': f"{{{{CATALOG_DIR}}}}/{definitions['exp']}.yaml"
+    }
+}
+
+dump_yaml(main_yaml_path, main_yaml)
+
+print(f"'exp' entry in 'main.yaml' has been updated in '{output_dir}'.")
