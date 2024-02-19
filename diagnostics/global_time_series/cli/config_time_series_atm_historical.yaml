@@ -19,7 +19,7 @@ timeseries: ['2t', 'mtpr', 'mer', 'msl',
              'mtnlwrf', #Mean top net long-wave radiation flux
              'mtnswrf' #Mean top net short-wave radiation flux
              ]
-timeseries_fomulae: ['mtnlwrf+mtnswrf']
+timeseries_formulae: ['mtnlwrf+mtnswrf']
 
 gregory:
   ts: '2t'

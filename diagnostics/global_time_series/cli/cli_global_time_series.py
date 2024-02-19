@@ -3,15 +3,15 @@
 Command-line interface for global time series diagnostic.
 
 This CLI allows to plot timeseries of a set of variables
-defined in a yaml configuration file for a single experiment
-and gregory plot.
+defined in a yaml configuration file for a single or multiple
+experiments and gregory plot.
 """
 import argparse
 import os
 import sys
 import matplotlib.pyplot as plt
 
-from aqua.util import load_yaml, get_arg, create_folder
+from aqua.util import load_yaml, get_arg
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from aqua.logger import log_configure
 
@@ -27,7 +27,7 @@ def parse_arguments(args):
     parser.add_argument("--loglevel", "-l", type=str,
                         required=False, help="loglevel")
 
-    # These will override the ones in the config file if provided
+    # These will override the first one in the config file if provided
     parser.add_argument("--model", type=str,
                         required=False, help="model name")
     parser.add_argument("--exp", type=str,
@@ -40,240 +40,173 @@ def parse_arguments(args):
     return parser.parse_args(args)
 
 
-def create_filename(outputdir=None, plotname=None, type=None,
-                    model=None, exp=None, source=None, resample=None):
-    """
-    Create a filename for the plots
+def get_plot_options(config: dict = None,
+                     var: str = None):
+    """"
+    Get plot options from the configuration file.
+    Specific var options will override the default ones.
 
     Args:
-        outputdir (str): output directory
-        plotname (str): plot name
-        type (str): type of output file (pdf or nc)
-        model (str): model name
-        exp (str): experiment name
-        source (str): source name
-        resample (str): resample frequency
+        config: dictionary with the configuration file
+        var: variable name
 
     Returns:
-        filename (str): filename
-
-    Raises:
-        ValueError: if no output directory is provided
-        ValueError: if no plotname is provided
-        ValueError: if type is not pdf or nc
-    """
-    if outputdir is None:
-        print("No output directory provided, using current directory.")
-        outputdir = "."
-
-    if plotname is None:
-        raise ValueError("No plotname provided.")
-
-    if type != "pdf" and type != "nc":
-        raise ValueError("Type must be pdf or nc.")
-
-    diagnostic = "global_time_series"
-    filename = f"{diagnostic}"
-    filename += f"_{model}_{exp}_{source}"
-    filename += f"_{plotname}"
-
-    if resample == 'YS':
-        filename += "_annual"
-
-    if type == "pdf":
-        filename += ".pdf"
-    elif type == "nc":
-        filename += ".nc"
-
-    return filename
-
-
-def get_plot_options(config, var):
-    """
-    Get the plot options for a variable
-
-    Args:
-        config (dict): configuration dictionary
-        var (str): variable name
-
-    Returns:
-        plot_options (dict): plot options
+        plot options
     """
     plot_options = config["timeseries_plot_params"].get(var)
     if plot_options:
-        plot_kw = plot_options.get("plot_kw", None)
-        plot_era5 = plot_options.get("plot_era5", False)
-        resample = plot_options.get("resample", "M")
-        ylim = plot_options.get("ylim", {})
-        reader_kw = plot_options.get("reader_kw", {})
-        savefig = plot_options.get("savefig", True)
+        monthly = plot_options.get("monthly", True)
         annual = plot_options.get("annual", True)
+        regrid = plot_options.get("regrid", False)
+        plot_ref = plot_options.get("plot_ref", True)
+        plot_ref_kw = plot_options.get("plot_ref_kw", {'model': 'ERA5',
+                                                       'exp': 'era5',
+                                                       'source': 'monthly'})
         startdate = plot_options.get("startdate", None)
         enddate = plot_options.get("enddate", None)
-        std_startdate = plot_options.get("std_startdate", "1991-01-01")
-        std_enddate = plot_options.get("std_enddate", "2020-12-31")
         monthly_std = plot_options.get("monthly_std", True)
         annual_std = plot_options.get("annual_std", True)
-    else:  # default
-        plot_kw = config["timeseries_plot_params"]["default"].get("plot_kw", None)
-        plot_era5 = config["timeseries_plot_params"]["default"].get("plot_era5", False)
-        resample = config["timeseries_plot_params"]["default"].get("resample", "M")
-        ylim = config["timeseries_plot_params"]["default"].get("ylim", {})
-        reader_kw = config["timeseries_plot_params"]["default"].get("reader_kw", {})
-        savefig = config["timeseries_plot_params"]["default"].get("savefig", True)
+        std_startdate = plot_options.get("std_startdate", None)
+        std_enddate = plot_options.get("std_enddate", None)
+        plot_kw = plot_options.get("plot_kw", {})
+    else:
+        monthly = config["timeseries_plot_params"]["default"].get("monthly", True)
         annual = config["timeseries_plot_params"]["default"].get("annual", True)
+        regrid = config["timeseries_plot_params"]["default"].get("regrid", False)
+        plot_ref = config["timeseries_plot_params"]["default"].get("plot_ref", True)
+        plot_ref_kw = config["timeseries_plot_params"]["default"].get("plot_ref_kw", {'model': 'ERA5',
+                                                                                      'exp': 'era5',
+                                                                                      'source': 'monthly'})
         startdate = config["timeseries_plot_params"]["default"].get("startdate", None)
         enddate = config["timeseries_plot_params"]["default"].get("enddate", None)
-        std_startdate = config["timeseries_plot_params"]["default"].get("std_startdate", "1991-01-01")
-        std_enddate = config["timeseries_plot_params"]["default"].get("std_enddate", "2020-12-31")
         monthly_std = config["timeseries_plot_params"]["default"].get("monthly_std", True)
         annual_std = config["timeseries_plot_params"]["default"].get("annual_std", True)
-
-    return plot_kw, plot_era5, resample, ylim, reader_kw, savefig, annual,\
-           startdate, enddate, std_startdate, std_enddate, monthly_std, annual_std
+        std_startdate = config["timeseries_plot_params"]["default"].get("std_startdate", None)
+        std_enddate = config["timeseries_plot_params"]["default"].get("std_enddate", None)
+        plot_kw = config["timeseries_plot_params"]["default"].get("plot_kw", {})
+    return monthly, annual, regrid, plot_ref, plot_ref_kw, startdate, enddate, \
+        monthly_std, annual_std, std_startdate, std_enddate, plot_kw
 
 
 if __name__ == '__main__':
 
     args = parse_arguments(sys.argv[1:])
 
-    # Loglevel settings
-    loglevel = get_arg(args, 'loglevel', 'WARNING')
+    loglevel = get_arg(args, "loglevel", "WARNING")
+    logger = log_configure(loglevel, 'CLI Global Time Series')
+    logger.info("Running Global Time Series diagnostic")
 
-    logger = log_configure(log_level=loglevel,
-                           log_name='CLI Global Time Series')
-
-    logger.info('Running global time series diagnostic...')
-
-    # we change the current directory to the one of the CLI
-    # so that relative path works
+    # Moving to the current directory so that relative paths work
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
     if os.getcwd() != dname:
         os.chdir(dname)
-        logger.info(f'Moving from current directory to {dname} to run!')
+        logger.info(f"Changing directory to {dname}")
 
-    # import the functions from the diagnostic now that
-    # we are in the right directory
-    sys.path.insert(0, "../../../")
-    from global_time_series import plot_timeseries, plot_gregory
+    # Import diagnostic module
+    sys.path.insert(0, "../../")
+    from global_time_series import plot_gregory, Timeseries
 
-    # Read configuration file
-    file = get_arg(args, 'config', 'config_time_series_atm.yaml')
-    logger.info(f"Reading configuration yaml file: {file}")
+    # Load configuration file
+    file = get_arg(args, "config", "config_time_series_atm.yaml")
+    logger.info(f"Reading configuration file {file}")
     config = load_yaml(file)
 
-    model = get_arg(args, 'model', config['model'])
-    exp = get_arg(args, 'exp', config['exp'])
-    source = get_arg(args, 'source', config['source'])
+    models = config['models']
+    models[0]['model'] = get_arg(args, 'model', models[0]['model'])
+    models[0]['exp'] = get_arg(args, 'exp', models[0]['exp'])
+    models[0]['source'] = get_arg(args, 'source', models[0]['source'])
 
-    outputdir = get_arg(args, 'outputdir', config['outputdir'])
+    logger.debug("Analyzing models:")
+    models_list = []
+    exp_list = []
+    source_list = []
 
-    logger.debug(f"model: {model}")
-    logger.debug(f"exp: {exp}")
-    logger.debug(f"source: {source}")
-    logger.debug(f"outputdir: {outputdir}")
+    for model in models:
+        logger.debug(f"  - {model['model']} {model['exp']} {model['source']}")
+        models_list.append(model['model'])
+        exp_list.append(model['exp'])
+        source_list.append(model['source'])
 
-    outputdir_nc = os.path.join(outputdir, "netcdf")
-    create_folder(folder=outputdir_nc, loglevel=loglevel)
-    outputdir_pdf = os.path.join(outputdir, "pdf")
-    create_folder(folder=outputdir_pdf, loglevel=loglevel)
+    outputdir = get_arg(args, "outputdir", config["outputdir"])
 
     if "timeseries" in config:
         logger.info("Plotting timeseries")
 
         for var in config["timeseries"]:
-            logger.info(f"Plotting {var}")
+            logger.info(f"Plotting {var} time series")
+            monthly, annual, regrid, plot_ref, plot_ref_kw, startdate, \
+                enddate, monthly_std, annual_std, std_startdate, std_enddate, \
+                plot_kw = get_plot_options(config, var)
 
-            # Creating the output filename
-            filename_nc = create_filename(outputdir=outputdir,
-                                          plotname=var, type="nc",
-                                          model=model, exp=exp,
-                                          source=source)
-            filename_nc = os.path.join(outputdir_nc, filename_nc)
-            logger.info(f"Output file: {filename_nc}")
-
-            # Reading the configuration file
-            plot_kw, plot_era5, resample, ylim, reader_kw, savefig, annual,\
-            startdate, enddate, std_startdate, std_enddate, monthly_std, annual_std = get_plot_options(config, var)
-
-            # Generating the image
-            fig, ax = plt.subplots(figsize=(10, 6))
-
+            ts = Timeseries(var=var,
+                            formula=False,
+                            models=models_list,
+                            exps=exp_list,
+                            sources=source_list,
+                            monthly=monthly,
+                            annual=annual,
+                            regrid=regrid,
+                            plot_ref=plot_ref,
+                            plot_ref_kw=plot_ref_kw,
+                            startdate=startdate,
+                            enddate=enddate,
+                            monthly_std=monthly_std,
+                            annual_std=annual_std,
+                            std_startdate=std_startdate,
+                            std_enddate=std_enddate,
+                            plot_kw=plot_kw,
+                            outdir=outputdir,
+                            loglevel=loglevel)
             try:
-                plot_timeseries(model=model, exp=exp, source=source, variable=var,
-                                resample=resample, plot_era5=plot_era5,
-                                annual=annual, startdate=startdate,
-                                enddate=enddate, std_startdate=std_startdate,
-                                std_enddate=std_enddate,
-                                monthly_std=monthly_std, annual_std=annual_std,
-                                ylim=ylim, plot_kw=plot_kw, ax=ax,
-                                reader_kw=reader_kw, outfile=filename_nc,
-                                loglevel=loglevel)
-            except (NotEnoughDataError, NoDataError, NoObservationError) as e:
-                logger.error(f"Error: {e}")
-                continue
+                ts.run()
+            except NotEnoughDataError as e:
+                logger.warning(f"Skipping {var} time series plot: {e}")
+            except NoDataError as e:
+                logger.warning(f"Skipping {var} time series plot: {e}")
+            except NoObservationError as e:
+                logger.warning(f"Skipping {var} time series plot: {e}")
             except Exception as e:
-                logger.error(f"Error: {e}")
-                logger.error("This is a bug, please report it.")
-                continue
+                logger.error(f"Error plotting {var} time series: {e}")
 
-            if savefig:
-                filename_pdf = create_filename(outputdir=outputdir,
-                                               plotname=var, type="pdf",
-                                               model=model, exp=exp,
-                                               source=source)
-                filename_pdf = os.path.join(outputdir_pdf, filename_pdf)
-                logger.info(f"Output file: {filename_pdf}")
-                fig.savefig(filename_pdf)
+    if "timeseries_formulae" in config:
+        logger.info("Plotting timeseries formular")
 
-    if "timeseries_fomulae" in config:
-        logger.info("Plotting timeseries formulae")
+        for var in config["timeseries_formulae"]:
+            logger.info(f"Plotting {var} time series")
+            monthly, annual, regrid, plot_ref, plot_ref_kw, startdate, \
+                enddate, monthly_std, annual_std, std_startdate, std_enddate, \
+                plot_kw = get_plot_options(config, var)
 
-        for var in config["timeseries_fomulae"]:
-            logger.info(f"Plotting {var}")
-
-            # Creating the output filename
-            filename_nc = create_filename(outputdir=outputdir,
-                                          plotname=var, type="nc",
-                                          model=model, exp=exp,
-                                          source=source)
-            filename_nc = os.path.join(outputdir_nc, filename_nc)
-            logger.info(f"Output file: {filename_nc}")
-
-            # Reading the configuration file
-            plot_kw, plot_era5, resample, ylim, reader_kw, savefig, annual,\
-            startdate, enddate, std_startdate, std_enddate, monthly_std, annual_std = get_plot_options(config, var)
-
-            # Generating the image
-            fig, ax = plt.subplots(figsize=(10, 6))
-
+            ts = Timeseries(var=var,
+                            formula=True,
+                            models=models_list,
+                            exps=exp_list,
+                            sources=source_list,
+                            monthly=monthly,
+                            annual=annual,
+                            regrid=regrid,
+                            plot_ref=plot_ref,
+                            plot_ref_kw=plot_ref_kw,
+                            startdate=startdate,
+                            enddate=enddate,
+                            monthly_std=monthly_std,
+                            annual_std=annual_std,
+                            std_startdate=std_startdate,
+                            std_enddate=std_enddate,
+                            plot_kw=plot_kw,
+                            outdir=outputdir,
+                            loglevel=loglevel)
             try:
-                plot_timeseries(model=model, exp=exp, source=source, variable=var,
-                                resample=resample, plot_era5=plot_era5,
-                                annual=annual, startdate=startdate,
-                                enddate=enddate, std_startdate=std_startdate,
-                                std_enddate=std_enddate,
-                                monthly_std=monthly_std, annual_std=annual_std,
-                                ylim=ylim, plot_kw=plot_kw, ax=ax,
-                                reader_kw=reader_kw, outfile=filename_nc,
-                                loglevel=loglevel, formula=True)
-            except (NotEnoughDataError, NoDataError, NoObservationError) as e:
-                logger.error(f"Error: {e}")
-                continue
+                ts.run()
+            except NotEnoughDataError as e:
+                logger.warning(f"Skipping {var} time series plot: {e}")
+            except NoDataError as e:
+                logger.warning(f"Skipping {var} time series plot: {e}")
+            except NoObservationError as e:
+                logger.warning(f"Skipping {var} time series plot: {e}")
             except Exception as e:
-                logger.error(f"Error: {e}")
-                logger.error("This is a bug, please report it.")
-                continue
-
-            if savefig:
-                filename_pdf = create_filename(outputdir=outputdir,
-                                               plotname=var, type="pdf",
-                                               model=model, exp=exp,
-                                               source=source)
-                filename_pdf = os.path.join(outputdir_pdf, filename_pdf)
-                logger.info(f"Output file: {filename_pdf}")
-                fig.savefig(filename_pdf)
+                logger.error(f"Error plotting {var} time series: {e}")
 
     if "gregory" in config:
         logger.info("Plotting gregory plot")
@@ -310,33 +243,29 @@ if __name__ == '__main__':
             toa = ['mtnlwrf', 'mtnswrf']
         ref = config["gregory"].get("ref", True)
 
-        # Creating the output filename
-        filename_nc = create_filename(outputdir=outputdir,
-                                      plotname="gregory", type="nc",
-                                      model=model, exp=exp,
-                                      source=source, resample=resample)
-        filename_nc = os.path.join(outputdir_nc, filename_nc)
-        logger.info(f"Output file: {filename_nc}")
-
-        try:
-            fig = plot_gregory(model=model, exp=exp, source=source,
-                               reader_kw=reader_kw, plot_kw=plot_kw,
-                               outfile=filename_nc, ref=ref,
-                               ts_name=ts, toa_name=toa,
-                               regrid=regrid, freq=resample)
-        except (NotEnoughDataError, NoDataError) as e:
-            logger.error(f"Error: {e}")
-        except Exception as e:
-            logger.error(f"Error: {e}")
-            logger.error("This is a bug, please report it.")
+        for model in models:
+            try:
+                fig = plot_gregory(model=model['model'],
+                                   exp=model['exp'],
+                                   source=model['source'],
+                                   reader_kw=reader_kw,
+                                   plot_kw=plot_kw,
+                                   outfile=os.path.join(outputdir,
+                                                        f"timeseries-gregory-{model['model']}-{model['exp']}.nc"),
+                                   ref=ref, ts_name=ts, toa_name=toa,
+                                   regrid=regrid, freq=resample)
+            except (NotEnoughDataError, NoDataError) as e:
+                logger.error(f"Error: {e}")
+            except Exception as e:
+                logger.error(f"Error: {e}")
+                logger.error("This is a bug, please report it.")
 
         if "savefig" in config["gregory"]:
-            filename_pdf = create_filename(outputdir=outputdir,
-                                           plotname="gregory", type="pdf",
-                                           model=model, exp=exp,
-                                           source=source, resample=resample)
-            filename_pdf = os.path.join(outputdir_pdf, filename_pdf)
-            logger.info(f"Output file: {filename_pdf}")
-            fig.savefig(filename_pdf)
+            filename_pdf = 'timeseries_gregory'
+            for model in models:
+                filename_pdf += f"_{model['model']}_{model['exp']}"
+            filename_pdf += '.pdf'
+
+            fig.savefig(os.path.join(outputdir, 'pdf', filename_pdf))
 
     logger.info("Analysis completed.")
