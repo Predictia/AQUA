@@ -74,7 +74,7 @@ class GSVSource(base.DataSource):
 
         if metadata:
             self.fdbhome = metadata.get('fdb_home', None)
-            self.fdbpath = metadata.get('fdb_home', None)
+            self.fdbpath = metadata.get('fdb_path', None)
             self.eccodes_path = metadata.get('eccodes_path', None)
             self.levels =  metadata.get('levels', None)
         else:
