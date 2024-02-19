@@ -82,16 +82,15 @@ class Timeseries():
         self.regrid = regrid
 
         self.plot_ref = plot_ref
-        if self.plot_ref:
-            self.ref_mon = None
-            self.ref_mon_std = None
-            self.ref_ann = None
-            self.ref_ann_std = None
-            self.plot_ref_kw = plot_ref_kw
-            self.monthly_std = monthly_std
-            self.annual_std = annual_std
-            self.std_startdate = std_startdate
-            self.std_enddate = std_enddate
+        self.ref_mon = None
+        self.ref_mon_std = None
+        self.ref_ann = None
+        self.ref_ann_std = None
+        self.plot_ref_kw = plot_ref_kw
+        self.monthly_std = monthly_std
+        self.annual_std = annual_std
+        self.std_startdate = std_startdate
+        self.std_enddate = std_enddate
 
         self.startdate = startdate
         self.enddate = enddate
@@ -143,63 +142,59 @@ class Timeseries():
         of xarray.DataArray
         """
         self.logger.debug('Retrieving data')
-        if self.monthly:
-            self.data_mon = []
-        if self.annual:
-            self.data_annual = []
+        self.data_mon = []
+        self.data_annual = []
 
         if self.startdate is None:
             startdate = None
         if self.enddate is None:
             enddate = None
 
-        for model in self.models:
-            for exp in self.exps:
-                for source in self.sources:
-                    self.logger.info(f'Retrieving data for {model} {exp} {source}')
-                    try:
-                        reader = Reader(model=model, exp=exp, source=source,
-                                        startdate=self.startdate, enddate=self.enddate,
-                                        regrid=self.regrid, loglevel=self.loglevel)
-                        if self.formula:
-                            data = reader.retrieve()
-                            self.logger.debug(f"Evaluating formula for {self.var}")
-                            data = eval_formula(self.var, data)
-                        else:
-                            data = reader.retrieve(var=self.var)
-                            data = data[self.var]
-                    except Exception as e:
-                        self.logger.debug(f"Error while retrieving: {e}")
-                        raise NoDataError(f'No data found for {model} {exp} {source}') from e
+        for i, model in enumerate(self.models):
+            self.logger.info(f'Retrieving data for {model} {self.exps[i]} {self.sources[i]}')
+            try:
+                reader = Reader(model=model, exp=self.exps[i], source=self.sources[i],
+                                startdate=self.startdate, enddate=self.enddate,
+                                regrid=self.regrid, loglevel=self.loglevel)
+                if self.formula:
+                    data = reader.retrieve()
+                    self.logger.debug(f"Evaluating formula for {self.var}")
+                    data = eval_formula(self.var, data)
+                else:
+                    data = reader.retrieve(var=self.var)
+                    data = data[self.var]
+            except Exception as e:
+                self.logger.debug(f"Error while retrieving: {e}")
+                self.logger.warning(f"No data found for {model} {self.exps[i]} {self.sources[i]}")
 
-                    if self.startdate is None:
-                        if startdate is None:
-                            startdate = data.time[0].values
-                        else:
-                            startdate = min(startdate, data.time[0].values)
-                    if self.enddate is None:
-                        if enddate is None:
-                            enddate = data.time[-1].values
-                        else:
-                            enddate = max(enddate, data.time[-1].values)
+            if self.startdate is None:
+                if startdate is None:
+                    startdate = data.time[0].values
+                else:
+                    startdate = min(startdate, data.time[0].values)
+            if self.enddate is None:
+                if enddate is None:
+                    enddate = data.time[-1].values
+                else:
+                    enddate = max(enddate, data.time[-1].values)
 
-                    if self.monthly:
-                        if 'monthly' in source or 'mon' in source:
-                            self.logger.debug(f"No monthly resample needed for {model} {exp} {source}")
-                            data_mon = data
-                        else:
-                            data_mon = reader.timmean(data, freq='MS', exclude_incomplete=True)
-                        data_mon = reader.fldmean(data_mon)
-                        self.logger.info("Monthly data retrieved")
-                        self.data_mon.append(data_mon)
+            if self.monthly:
+                if 'monthly' in self.sources[i] or 'mon' in self.sources[i]:
+                    self.logger.debug(f"No monthly resample needed for {model} {self.exps[i]} {self.sources[i]}")
+                    data_mon = data
+                else:
+                    data_mon = reader.timmean(data, freq='MS', exclude_incomplete=True)
+                data_mon = reader.fldmean(data_mon)
+                self.logger.info("Monthly data retrieved")
+                self.data_mon.append(data_mon)
 
-                    if self.annual:
-                        data_ann = reader.timmean(data, freq='YS',
-                                                  exclude_incomplete=True,
-                                                  center_time=True)
-                        data_ann = reader.fldmean(data_ann)
-                        self.logger.info("Annual data retrieved")
-                        self.data_annual.append(data_ann)
+            if self.annual:
+                data_ann = reader.timmean(data, freq='YS',
+                                          exclude_incomplete=True,
+                                          center_time=True)
+                data_ann = reader.fldmean(data_ann)
+                self.logger.info("Annual data retrieved")
+                self.data_annual.append(data_ann)
 
         if self.startdate is None:
             self.logger.debug(f"Start date: {startdate}")
@@ -208,6 +203,9 @@ class Timeseries():
             self.enddate = enddate
             self.logger.debug(f"End date: {enddate}")
 
+        if self.data_mon == [] and self.data_annual == []:
+            raise NoDataError("No data found")
+
     def plot(self):
         """
         Call an external function using the data to plot
@@ -215,10 +213,8 @@ class Timeseries():
         self.logger.info("Plotting the timeseries")
 
         data_labels = []
-        for model in self.models:
-            for exp in self.exps:
-                for source in self.sources:
-                    data_labels.append(f'{model} {exp}')
+        for i, model in enumerate(self.models):
+            data_labels.append(f'{model} {self.exps[i]}')
 
         if self.plot_ref:
             try:
@@ -244,10 +240,8 @@ class Timeseries():
         create_folder(outfig, self.loglevel)
         if self.outfile is None:
             self.outfile = f'timeseries_{self.var}'
-            for model in self.models:
-                for exp in self.exps:
-                    for source in self.sources:
-                        self.outfile += f'_{model}_{exp}_{source}'
+            for i, model in enumerate(self.models):
+                self.outfile += f'_{model}_{self.exps[i]}_'
             if self.plot_ref:
                 self.outfile += f'_{ref_label}'
             self.outfile += '.pdf'
@@ -256,10 +250,8 @@ class Timeseries():
 
         description = f"Time series of the global mean of {self.var}"
         description += f" from {self.startdate} to {self.enddate}"
-        for model in self.models:
-            for exp in self.exps:
-                for source in self.sources:
-                    description += f" for {model} {exp} {source},"
+        for i, model in enumerate(self.models):
+            description += f" for {model} {self.exps[i]}"
         if self.plot_ref:
             description += f" with {ref_label} as reference,"
             description += f" std evaluated from {self.std_startdate} to {self.std_enddate}"
@@ -276,15 +268,13 @@ class Timeseries():
         outdir = os.path.join(self.outdir, 'netcdf')
         create_folder(outdir, self.loglevel)
 
-        for model in self.models:
-            for exp in self.exps:
-                for i, source in enumerate(self.sources):
-                    outfile = f'timeseries_{self.var}_{model}_{exp}_{source}.nc'
-                    self.logger.debug(f"Saving data to {outdir}/{outfile}")
-                    if self.monthly:
-                        self.data_mon[i].to_netcdf(os.path.join(outdir, outfile))
-                    if self.annual:
-                        self.data_annual[i].to_netcdf(os.path.join(outdir, outfile))
+        for i, model in enumerate(self.models):
+            outfile = f'timeseries_{self.var}_{model}_{self.exps[i]}.nc'
+            self.logger.debug(f"Saving data to {outdir}/{outfile}")
+            if self.monthly:
+                self.data_mon[i].to_netcdf(os.path.join(outdir, outfile))
+            if self.annual:
+                self.data_annual[i].to_netcdf(os.path.join(outdir, outfile))
 
         if self.plot_ref:
             outfile = f'timeseries_{self.var}_ref.nc'

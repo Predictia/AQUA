@@ -18,5 +18,5 @@ timeseries_plot_params:
 # add it here.
   default:
     plot_ref: True
-    std_startdate: null
-    std_enddate: null
+    std_startdate: '1980-01-01'
+    std_enddate: '2010-01-01'
