@@ -217,7 +217,7 @@ class Timeseries():
         for model in self.models:
             for exp in self.exps:
                 for source in self.sources:
-                    data_labels.append(f'{model} {exp} {source}')
+                    data_labels.append(f'{model} {exp}')
 
         if self.plot_ref:
             try:
@@ -238,7 +238,7 @@ class Timeseries():
                                   title=title)
 
         # Save to outdir/pdf/filename
-        outfig = os.join(self.outdir, 'pdf')
+        outfig = os.path.join(self.outdir, 'pdf')
         self.logger.debug(f"Saving figure to {outfig}")
         create_folder(outfig, self.loglevel)
         if self.outfile is None:

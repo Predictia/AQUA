@@ -76,7 +76,7 @@ def plot_timeseries(monthly_data=None,
                             ref_annual_data + 2.*std_annual_data,
                             facecolor='black', alpha=0.3)
 
-    ax.legend()
+    ax.legend(loc='upper right', fontsize='small')
 
     title = kwargs.get('title', None)
     if title:
