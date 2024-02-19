@@ -1,10 +1,16 @@
+import os
+
 import matplotlib.pyplot as plt
+import xarray as xr
 from aqua import Reader
 from aqua.logger import log_configure
-from aqua.exceptions import NotEnoughDataError, NoObservationError, NoDataError
-from aqua.util import eval_formula
+from aqua.exceptions import NoObservationError, NoDataError
+from aqua.util import eval_formula, create_folder, add_pdf_metadata
+from aqua.graphics import plot_timeseries
 
 from .reference_data import get_reference_timeseries
+
+xr.set_options(keep_attrs=True)
 
 
 class Timeseries():
@@ -28,7 +34,7 @@ class Timeseries():
                  monthly_std=True, annual_std=True,
                  std_startdate=None, std_enddate=None,
                  plot_kw={'ylim': {}},
-                 outdir=None,
+                 outdir='./',
                  outfile=None,
                  loglevel='WARNING'):
         """
@@ -102,6 +108,7 @@ class Timeseries():
         self.retrieve_data()
         self.retrieve_ref()
         self.plot()
+        self.save_netcdf()
 
     def retrieve_ref(self):
         """
@@ -204,4 +211,91 @@ class Timeseries():
         """
         Call an external function using the data to plot
         """
-        self.logger.info("Here I'm going to plot the data")
+        self.logger.info("Plotting the timeseries")
+
+        data_labels = []
+        for model in self.models:
+            for exp in self.exps:
+                for source in self.sources:
+                    data_labels.append(f'{model} {exp} {source}')
+
+        if self.plot_ref:
+            try:
+                ref_label = self.plot_ref_kw['model']
+            except KeyError:
+                ref_label = 'Reference'
+
+        title = f'{self.var} timeseries - {self.startdate} to {self.enddate}'
+
+        fig, ax = plot_timeseries(monthly_data=self.data_mon,
+                                  annual_data=self.data_annual,
+                                  ref_monthly_data=self.ref_mon,
+                                  ref_annual_data=self.ref_ann,
+                                  std_monthly_data=self.ref_mon_std,
+                                  std_annual_data=self.ref_ann_std,
+                                  ref_label=ref_label,
+                                  data_labels=data_labels,
+                                  title=title)
+
+        # Save to outdir/pdf/filename
+        outfig = os.join(self.outdir, 'pdf')
+        self.logger.debug(f"Saving figure to {outfig}")
+        create_folder(outfig, self.loglevel)
+        if self.outfile is None:
+            self.outfile = f'timeseries_{self.var}'
+            for model in self.models:
+                for exp in self.exps:
+                    for source in self.sources:
+                        self.outfile += f'_{model}_{exp}_{source}'
+            if self.plot_ref:
+                self.outfile += f'_{ref_label}'
+            self.outfile += '.pdf'
+        self.logger.debug(f"Outfile: {self.outfile}")
+        fig.savefig(os.path.join(outfig, self.outfile))
+
+        description = f"Time series of the global mean of {self.var}"
+        description += f" from {self.startdate} to {self.enddate}"
+        for model in self.models:
+            for exp in self.exps:
+                for source in self.sources:
+                    description += f" for {model} {exp} {source},"
+        if self.plot_ref:
+            description += f" with {ref_label} as reference,"
+            description += f" std evaluated from {self.std_startdate} to {self.std_enddate}"
+        add_pdf_metadata(filename=os.path.join(outfig, self.outfile),
+                         metadata_value=description)
+
+    def save_netcdf(self):
+        """
+        Save the data to a netcdf file.
+        Every model-exp-source combination is saved in a separate file.
+        Reference data is saved in a separate file.
+        Std data is saved in a separate file.
+        """
+        outdir = os.path.join(self.outdir, 'netcdf')
+        create_folder(outdir, self.loglevel)
+
+        for model in self.models:
+            for exp in self.exps:
+                for source in self.sources:
+                    outfile = f'timeseries_{self.var}_{model}_{exp}_{source}.nc'
+                    self.logger.debug(f"Saving data to {outdir}/{outfile}")
+                    if self.monthly:
+                        self.data_mon.to_netcdf(os.path.join(outdir, outfile))
+                    if self.annual:
+                        self.data_annual.to_netcdf(os.path.join(outdir, outfile))
+
+        if self.plot_ref:
+            outfile = f'timeseries_{self.var}_ref.nc'
+            self.logger.debug(f"Saving reference data to {outdir}/{outfile}")
+            if self.monthly:
+                self.ref_mon.to_netcdf(os.path.join(outdir, outfile))
+            if self.annual:
+                self.ref_ann.to_netcdf(os.path.join(outdir, outfile))
+
+            outfile = f'timeseries_{self.var}_std.nc'
+            self.logger.debug(f"Saving std data to {outdir}/{outfile}")
+            if self.monthly:
+                self.ref_mon_std.to_netcdf(os.path.join(outdir, outfile))
+            if self.annual:
+                self.ref_ann_std.to_netcdf(os.path.join(outdir, outfile))
