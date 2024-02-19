@@ -364,7 +364,10 @@ class GSVSource(base.DataSource):
         with open(fdbpath, 'r') as file:
             cfg = yaml.load(file)
 
-        root = cfg['spaces'][0]['roots'][0]['path']
+        if 'fdbs' in cfg:
+            root = cfg['fdbs'][0]['spaces'][0]['roots'][0]['path']
+        else:
+            root = cfg['spaces'][0]['roots'][0]['path']
 
         file_list = os.listdir(root)
         
