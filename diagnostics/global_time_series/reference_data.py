@@ -110,7 +110,7 @@ def get_reference_toa_gregory(toa_name=['mtnlwrf', 'mtnswrf'],
 def get_reference_timeseries(var, formula=False,
                              model='ERA5', exp='era5', source='monthly',
                              startdate=None, enddate=None,
-                             std_startdate="1991-01-01", std_enddate="2020-12-31",
+                             std_startdate=None, std_enddate=None,
                              regrid=None,
                              monthly=True, annual=True,
                              monthly_std=True, annual_std=True,
@@ -130,9 +130,9 @@ def get_reference_timeseries(var, formula=False,
         startdate (str, opt): Start date. Default is None.
         enddate (str, opt): End date. Default is None.
         std_startdate (str, opt): Start date for standard deviation.
-                                  Default is "1991-01-01".
+                                  Default is None.
         std_enddate (str, opt): End date for standard deviation.
-                                Default is "2020-12-31".
+                                Default is None.
         regrid (str, opt): Regrid resolution. Default is None.
         monthly (str, opt): Resample to monthly. Default is None.
         annual (bool, opt): Resample to annual. Default is True.

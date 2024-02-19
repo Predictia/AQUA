@@ -1,10 +1,10 @@
 from .gregory import plot_gregory
-from .timeseries_functions import plot_timeseries
+from .timeseries import Timeseries
 
 __version__ = "0.0.5"
 
 __all__ = ["plot_gregory",
-           "plot_timeseries"]
+           "Timeseries"]
 
 # Changelog:
 
