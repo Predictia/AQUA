@@ -236,7 +236,7 @@ class LRAgenerator():
                 },
             },
             'metadata': {
-                'source_grid_name': 'lon-lat'
+                'source_grid_name': 'lon-lat',
             }
         }
 
@@ -464,7 +464,7 @@ class LRAgenerator():
         temp_data = self._remove_regridded(temp_data)
 
         # Splitting data into yearly files
-        years = set(temp_data.time.dt.year.values)
+        years = sorted(set(temp_data.time.dt.year.values))
         for year in years:
 
             self.logger.info('Processing year %s...', str(year))
@@ -481,7 +481,7 @@ class LRAgenerator():
             year_data = temp_data.sel(time=temp_data.time.dt.year == year)
 
             # Splitting data into monthly files
-            months = set(year_data.time.dt.month.values)
+            months = sorted(set(year_data.time.dt.month.values))
             for month in months:
                 self.logger.info('Processing month %s...', str(month))
                 outfile = self.get_filename(var, year, month)

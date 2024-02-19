@@ -19,6 +19,9 @@ grids:
   lon-lat:
     vert_coord: ["2d"]
     space_coord: [lon, lat]
+  lon-lat-depth:
+    vert_coord: ["depth"]
+    space_coord: [lon, lat]
 
   # target regrid
   r005: r7200x3600
