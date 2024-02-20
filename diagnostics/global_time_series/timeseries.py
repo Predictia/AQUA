@@ -1,4 +1,5 @@
 import os
+import gc
 
 import matplotlib.pyplot as plt
 import xarray as xr
@@ -108,6 +109,7 @@ class Timeseries():
         self.retrieve_ref()
         self.plot()
         self.save_netcdf()
+        self.cleanup()
 
     def retrieve_ref(self):
         """
@@ -195,6 +197,11 @@ class Timeseries():
                 data_ann = reader.fldmean(data_ann)
                 self.logger.info("Annual data retrieved")
                 self.data_annual.append(data_ann)
+
+            # Clean up
+            del reader
+            del data
+            gc.collect()
 
         if self.startdate is None:
             self.logger.debug(f"Start date: {startdate}")
@@ -290,3 +297,17 @@ class Timeseries():
                 self.ref_mon_std.to_netcdf(os.path.join(outdir, outfile))
             if self.annual:
                 self.ref_ann_std.to_netcdf(os.path.join(outdir, outfile))
+
+    def cleanup(self):
+        """
+        Clean up
+        """
+        self.logger.debug("Cleaning up")
+        del self.data_mon
+        del self.data_annual
+        del self.ref_mon
+        del self.ref_mon_std
+        del self.ref_ann
+        del self.ref_ann_std
+        gc.collect()
+        self.logger.debug("Cleaned up")
