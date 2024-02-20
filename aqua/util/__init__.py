@@ -8,7 +8,7 @@ from .graphics import coord_names, ticks_round
 from .sci_util import area_selection, check_coordinates
 from .util import generate_random_string, get_arg, create_folder
 from .util import file_is_complete, find_vert_coord
-from .util import extract_literal_and_numeric, add_pdf_metadata, username
+from .util import extract_literal_and_numeric, add_pdf_metadata, username, move_tmp_files
 from .yaml import load_yaml, dump_yaml, load_multi_yaml, eval_formula
 from .time import check_chunk_completeness, frequency_string_to_pandas
 from .coord import flip_lat_dir, find_lat_dir, check_direction
