@@ -117,6 +117,7 @@ class MTPR_CLI:
         path_to_output = get_arg(args, 'outputdir', config['path'][machine])
         self.logger = log_configure(log_name="Trop. Rainfall CLI", log_level=self.loglevel)
         
+        self.rebuild_output = config['rebuild_output']
         if path_to_output is not None:
             self.path_to_netcdf = os.path.join(path_to_output, f'netcdf/{self.model}_{self.exp}_{self.source}/')
             self.path_to_pdf = os.path.join(path_to_output, f'pdf/{self.model}_{self.exp}_{self.source}/')
@@ -126,7 +127,6 @@ class MTPR_CLI:
         self.reader = Reader(model=self.model, exp=self.exp, source=self.source, loglevel=self.loglevel, regrid=self.regrid, nproc=nproc)
         self.diag = Tropical_Rainfall(trop_lat=self.trop_lat, num_of_bins=self.num_of_bins, first_edge=self.first_edge, 
                                       width_of_bin=self.width_of_bin, loglevel=self.loglevel)
-        self.tools = ToolsClass(loglevel=self.loglevel)
         
     def need_regrid_timmean(self, full_dataset):
         """Determines whether regridding or time averaging is needed for a dataset."""
@@ -134,14 +134,21 @@ class MTPR_CLI:
         # Check for the need of regridding
         regrid_bool = False
         if isinstance(self.regrid, str):
-            regrid_bool = self.tools.check_need_for_regridding(test_sample, self.regrid)
+            regrid_bool = self.diag.tools.check_need_for_regridding(test_sample, self.regrid)
         # Check for the need of time averaging
         freq_bool = False
         if isinstance(self.freq, str):
-            freq_bool = self.tools.check_need_for_time_averaging(test_sample, self.freq)
+            freq_bool = self.diag.tools.check_need_for_time_averaging(test_sample, self.freq)
         return regrid_bool, freq_bool
         
     def calculate_histogram_by_months(self):
+        """
+        Calculates and saves histograms for each month within a specified year range. This function checks if histograms
+        already exist in the specified output directory and decides whether to rebuild them based on the `rebuild_output` flag.
+        It leverages the dataset to generate histograms by selecting data for each month, regridding and calculating the time mean
+        if necessary, and then saves the histogram files in the designated path. This process is logged, and any years not present
+        in the dataset are flagged with a warning.
+        """
         full_dataset = self.reader.retrieve(var=self.model_variable)
         regrid_bool, freq_bool = self.need_regrid_timmean(full_dataset)
         
@@ -153,21 +160,33 @@ class MTPR_CLI:
             data_per_year = full_dataset.sel(time=str(year))
             if data_per_year.time.size != 0:
                 for x in range(s_month, f_month+1):
-                    try:
-                        data = data_per_year.sel(time=str(year)+'-'+str(x))
-                        if freq_bool:
-                            data = self.reader.timmean(data, freq=self.freq)
-                        if regrid_bool:
-                            data = self.reader.regrid(data)
-                        self.diag.histogram(data, model_variable=self.model_variable,
-                                    path_to_histogram=self.path_to_netcdf+f"{self.regrid}/{self.freq}/histograms/",
-                                    threshold = 30, name_of_file=f"{self.regrid}_{self.freq}")
-                        self.logger.debug(f"The path to file is: {self.path_to_netcdf}{self.regrid}/{self.freq}/histograms/.")
-                    except KeyError:
-                        pass
-                    except Exception as e:
-                            # Handle other exceptions
-                            self.logger.error(f"An unexpected error occurred: {e}")
+                    path_to_output = self.path_to_netcdf+f"{self.regrid}/{self.freq}/histograms/"
+                    # Check if a file that meets all specified criteria already exists in the output directory
+                    # and if the flag to rebuild the output is True
+                    if self.rebuild_output and self.diag.tools.find_files_with_keys(folder_path=path_to_output,
+                                                    keys=[str(year), str(x), self.model, self.exp, self.source, self.regrid, self.freq]):
+                        # If such a file exists and rebuilding is requested, the specific action to remove the file should be called here
+                        self.diag.tools.remove_file_if_exists_with_keys(folder_path=path_to_output,
+                                                    keys=[str(year), str(x), self.model, self.exp, self.source, self.regrid, self.freq])
+                    # If no file meeting the criteria exists, or if rebuilding is not requested
+                    elif not self.diag.tools.find_files_with_keys(folder_path=path_to_output,
+                                                                  keys=[str(year), str(x), self.model, self.exp, self.source]):
+                        # Placeholder for the actions to be taken when no matching file is found
+                        try:
+                            data = data_per_year.sel(time=str(year)+'-'+str(x))
+                            if freq_bool:
+                                data = self.reader.timmean(data, freq=self.freq)
+                            if regrid_bool:
+                                data = self.reader.regrid(data)
+                            self.diag.histogram(data, model_variable=self.model_variable,
+                                        path_to_histogram=self.path_to_netcdf+f"{self.regrid}/{self.freq}/histograms/",
+                                        threshold = 30, name_of_file=f"{self.regrid}_{self.freq}")
+                            self.logger.debug(f"The path to file is: {self.path_to_netcdf}{self.regrid}/{self.freq}/histograms/.")
+                        except KeyError:
+                            pass
+                        except Exception as e:
+                                # Handle other exceptions
+                                self.logger.error(f"An unexpected error occurred: {e}")
                     self.logger.debug(f"Current Status: {x}/{f_month} months processed in year {year}.")
             else:
                 self.logger.warning("The specified year is not present in the dataset. " +
@@ -177,6 +196,13 @@ class MTPR_CLI:
         return None
 
     def plot_histograms(self):
+        """
+        Generates and saves histogram plots for the specified model, experiment, and source data over a defined period.
+        It constructs the plot titles and legends based on model, experiment, and source details, merges histograms
+        from specified paths, and plots them. Additionally, it attempts to plot comparative histograms using MSWEP
+        data if available. The function handles the absence of MSWEP data gracefully by logging an error. Plots are
+        saved to the specified PDF format in the provided path.
+        """
         plot_title = f"{self.model} {self.exp} {self.source} {self.regrid} {self.freq}"
         legend = f"{self.model} {self.exp} {self.source}"
         name_of_pdf =f"{self.model}_{self.exp}_{self.source}"

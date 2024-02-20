@@ -10,7 +10,7 @@ from aqua.util import ConfigPath
 from aqua.logger import log_configure
 import yaml
 from os import listdir
-from os.path import isfile, join
+from os.path import isfile, join, isdir
 
 full_path_to_config = '../tropical_rainfall/config-tropical-rainfall.yml'
 
@@ -27,6 +27,7 @@ regrid_dict = {
 
 
 class ToolsClass:
+
     def __init__(self, loglevel: str = 'WARNING'):
         """
         Initialize the class.
@@ -214,7 +215,8 @@ class ToolsClass:
             raise FileNotFoundError(
                 "The specified dataset file was not found.")
 
-    def select_files_by_year_and_month_range(self, path_to_histograms: str, start_year: int = None, end_year: int = None, start_month: int = None, end_month: int = None) -> list:
+    def select_files_by_year_and_month_range(self, path_to_histograms: str, start_year: int = None, end_year: int = None,
+                                             start_month: int = None, end_month: int = None) -> list:
         """
         Select files within a specific year and optional month range from a given directory. 
         If no year range is provided, return all files sorted alphabetically.
@@ -247,6 +249,47 @@ class ToolsClass:
                 elif start_year is None and end_year is None:
                     selected_files.append(file_path)
         return selected_files
+
+    def find_files_with_keys(self, folder_path: str = None, keys: list = None):
+        """
+        Searches a specified folder for any file names that contain all the provided keys.
+
+        Parameters:
+            folder_path (str): The path to the folder where the search for files will be conducted. If None, the current directory is assumed.
+            keys (list of str): A list of string keys that must all be present in a file name for it to satisfy the search criteria.
+
+        Returns:
+            bool: True if at least one file meeting all specified criteria is found, False otherwise.
+        """
+        files = [join(folder_path, f) for f in listdir(folder_path) if isfile(join(folder_path, f)) or isdir(join(folder_path, f))]
+        files.sort()
+        keys = [str(key) for key in keys]
+        for filename in files:
+            if all(key in filename for key in keys):
+                self.logger.warning(f"A file meeting all specified criteria ({', '.join(keys)}) exists. Skipping calculations.")
+                return True
+        return False
+
+    def remove_file_if_exists_with_keys(self, folder_path: str, keys: list):
+        """
+        Searches for and removes the first file in the specified folder that contains all the provided keys in its name.
+
+        Parameters:
+            folder_path (str): The path to the folder where to search for and remove the file.
+            keys (list of str): A list of string keys that must all be present in the file name for it to be removed.
+
+        Returns:
+            bool: True if a file was found and removed, False otherwise.
+        """
+        files = [join(folder_path, f) for f in listdir(folder_path) if isfile(join(folder_path, f)) or isdir(join(folder_path, f))]
+        files.sort()
+        keys = [str(key) for key in keys]
+        for filename in files:
+            if all(key in filename for key in keys):
+                os.remove(filename)
+                self.logger.warning(f"Removed file {filename} that met all specified criteria: {', '.join(keys)}.")
+                return True
+        return False
 
     def zoom_in_data(self, trop_lat: float = None,
                      pacific_ocean: bool = False, atlantic_ocean: bool = False, indian_ocean: bool = False,

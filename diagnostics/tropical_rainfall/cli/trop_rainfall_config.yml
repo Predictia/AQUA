@@ -1,13 +1,13 @@
 data:
   model:  "MSWEP"         # Name of the climate model used
   exp:    "past"          # Experiment identifier
-  source: "monthly"       # Data source, specifying resolution and frequency
-  freq:   "M"             # Frequency of data, 'M' stands for Monthly
-  regrid: "r100"          # Regridding option to apply
-  s_year:  1999           # Start year for analysis, 'null' means it will be set dynamically
-  f_year:  1999           # Final year for analysis, 'null' means it will be set dynamically
-  s_month:  1             # Start month for analysis, 'null' means it will be set dynamically
-  f_month:  3             # Final month for analysis, 'null' means it will be set dynamically
+  source: "3hourly"       # Data source, specifying resolution and frequency
+  freq:   "3H"            # Frequency of data, 'M' stands for Monthly
+  regrid: "r250"          # Regridding option to apply
+  s_year:  null           # Start year for analysis, 'null' means it will be set dynamically
+  f_year:  null           # Final year for analysis, 'null' means it will be set dynamically
+  s_month: null           # Start month for analysis, 'null' means it will be set dynamically
+  f_month: null           # Final month for analysis, 'null' means it will be set dynamically
 
 machine: levante          # The machine/environment where the analysis is run
 
@@ -17,20 +17,21 @@ class_attributes:
   first_edge:   0         # Starting edge value for the histogram bins
   width_of_bin: 0.1       # Width of each bin in the histogram, in mm/day
   model_variable: 'mtpr'  # Model variable to be analyzed
-  new_unit:       'mm/day'  # Unit for the model variable
+  new_unit:       'mm/day' # Unit for the model variable
+
+logger:
   loglevel:       'debug'  # Logging level for the output messages
 
 plot:
   color: 'tab:green'      # Color for the plot
   figsize: 1              # Figure size for the plot
-  legend: null            # Legend configuration for the plot
   xmax: 50                # Max value for the x-axis in the plot
   loc: 'upper right'      # Location of the legend/annotation in the plot
   pdf_format: True        # Whether to save plots in PDF format
 
 path:
-  levante: './'#"/work/bb1153/b382267/tropical_rainfall_cicle3/cli_test/"  # File path for Levante machine
-  lumi: './'#"/users/nazarova/work/output/cli_test/"
+  levante: "/work/bb1153/b382267/tropical_rainfall_cicle3/cli_test/"  # File path for Levante machine
+  lumi: "/users/nazarova/work/output/cli_test/"
 
 compute_resources:
   resubmit: False         # Whether to automatically resubmit the job if it fails
