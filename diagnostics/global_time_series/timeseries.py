@@ -263,7 +263,11 @@ class Timeseries():
             description += f" for {model} {self.exps[i]}"
         if self.plot_ref:
             description += f" with {ref_label} as reference,"
-            description += f" std evaluated from {self.std_startdate} to {self.std_enddate}"
+            sd_format = self.startdate.astype('datetime64[s]').astype('O')
+            sd_format = sd_format.strftime('%Y-%m-%d')
+            ed_format = self.enddate.astype('datetime64[s]').astype('O')
+            ed_format = ed_format.strftime('%Y-%m-%d')
+            description += f" std evaluated from {sd_format} to {ed_format}"
         add_pdf_metadata(filename=os.path.join(outfig, self.outfile),
                          metadata_value=description)
 
@@ -280,9 +284,9 @@ class Timeseries():
         for i, model in enumerate(self.models):
             outfile = f'global_time_series_timeseries_{self.var}_{model}_{self.exps[i]}.nc'
             self.logger.debug(f"Saving data to {outdir}/{outfile}")
-            if self.monthly is not None:
+            if self.monthly is True:
                 self.data_mon[i].to_netcdf(os.path.join(outdir, outfile))
-            if self.annual is not None:
+            if self.annual is True:
                 self.data_annual[i].to_netcdf(os.path.join(outdir, outfile))
 
         if self.plot_ref:
