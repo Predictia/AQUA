@@ -9,7 +9,6 @@ experiments and gregory plot.
 import argparse
 import os
 import sys
-import matplotlib.pyplot as plt
 
 from aqua.util import load_yaml, get_arg
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
@@ -105,7 +104,7 @@ if __name__ == '__main__':
 
     # Import diagnostic module
     sys.path.insert(0, "../../")
-    from global_time_series import plot_gregory, Timeseries
+    from global_time_series import Timeseries, GregoryPlot
 
     # Load configuration file
     file = get_arg(args, "config", "config_time_series_atm.yaml")
@@ -211,61 +210,35 @@ if __name__ == '__main__':
     if "gregory" in config:
         logger.info("Plotting gregory plot")
 
-        # Generating the image
-        fig = plt.figure()
+        config_gregory = config["gregory"]
+
+        ts_name = config_gregory.get("ts", "2t")
+        toa_name = config_gregory.get("toa", ["mtnlwrf", "mtnswrf"])
+        monthly = config_gregory.get("monthly", True)
+        annual = config_gregory.get("annual", True)
+        ref = config_gregory.get("ref", True)
+        regrid = config_gregory.get("regrid", None)
+
+        gp = GregoryPlot(models=models_list,
+                         exps=exp_list,
+                         sources=source_list,
+                         monthly=monthly,
+                         annual=annual,
+                         ref=ref,
+                         ts_name=ts_name,
+                         toa_name=toa_name,
+                         outdir=outputdir,
+                         regrid=regrid,
+                         loglevel=loglevel)
 
         try:
-            plot_kw = config["gregory"]["plot_kw"]
-        except KeyError:
-            plot_kw = {}
-        try:
-            resample = config["gregory"]["resample"]
-        except KeyError:
-            logger.warning("No resample rate provided, using monthly.")
-            resample = "M"
-        try:
-            reader_kw = config["gregory"]["reader_kw"]
-        except KeyError:
-            reader_kw = {}
-        try:
-            regrid = config["gregory"]["regrid"]
-        except KeyError:
-            logger.warning("No regrid provided, using raw data")
-            regrid = None
-        # Dictionary for Gregory plot
-        try:
-            ts = config["gregory"]["ts"]
-        except KeyError:
-            ts = '2t'
-        try:
-            toa = config["gregory"]["toa"]
-        except KeyError:
-            toa = ['mtnlwrf', 'mtnswrf']
-        ref = config["gregory"].get("ref", True)
-
-        for model in models:
-            try:
-                fig = plot_gregory(model=model['model'],
-                                   exp=model['exp'],
-                                   source=model['source'],
-                                   reader_kw=reader_kw,
-                                   plot_kw=plot_kw,
-                                   outfile=os.path.join(outputdir,
-                                                        f"timeseries-gregory-{model['model']}-{model['exp']}.nc"),
-                                   ref=ref, ts_name=ts, toa_name=toa,
-                                   regrid=regrid, freq=resample)
-            except (NotEnoughDataError, NoDataError) as e:
-                logger.error(f"Error: {e}")
-            except Exception as e:
-                logger.error(f"Error: {e}")
-                logger.error("This is a bug, please report it.")
-
-        if "savefig" in config["gregory"]:
-            filename_pdf = 'timeseries_gregory'
-            for model in models:
-                filename_pdf += f"_{model['model']}_{model['exp']}"
-            filename_pdf += '.pdf'
-
-            fig.savefig(os.path.join(outputdir, 'pdf', filename_pdf))
-
+            gp.run()
+        except NotEnoughDataError as e:
+            logger.warning(f"Skipping gregory plot: {e}")
+        except NoDataError as e:
+            logger.warning(f"Skipping gregory plot: {e}")
+        except NoObservationError as e:
+            logger.warning(f"Skipping gregory plot: {e}")
+        except Exception as e:
+            logger.error(f"Error plotting gregory plot: {e}")
     logger.info("Analysis completed.")

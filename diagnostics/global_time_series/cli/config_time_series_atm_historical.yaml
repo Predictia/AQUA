@@ -24,8 +24,8 @@ timeseries_formulae: ['mtnlwrf+mtnswrf']
 gregory:
   ts: '2t'
   toa: ['mtnlwrf', 'mtnswrf']
-  resample: null
-  savefig: True
+  monthly: True
+  annual: True
 
 timeseries_plot_params:
 # These are options that specify how the data is plotted
