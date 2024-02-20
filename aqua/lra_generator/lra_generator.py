@@ -17,6 +17,7 @@ from aqua.reader import Reader
 from aqua.util import create_folder, generate_random_string, move_tmp_files
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import ConfigPath, file_is_complete
+import shutil
 #from aqua.lra_generator.lra_util import check_correct_ifs_fluxes
 
 
@@ -211,7 +212,7 @@ class LRAgenerator():
         # Cleaning
         self.data.close()
         self._close_dask()
-        #self._remove_tmpdir()
+        self._remove_tmpdir()
 
         self.logger.info('Finished generating LRA data.')
 
@@ -283,7 +284,7 @@ class LRAgenerator():
         """
         if self.dask:  # self.nproc > 1
             self.logger.info('Removing temporary directory %s', self.tmpdir)
-            os.removedirs(self.tmpdir)
+            shutil.rmtree(self.tmpdir)
 
     def _concat_var_years(self, var, aggregation='all'):
         """
@@ -295,13 +296,21 @@ class LRAgenerator():
         """
 
         if aggregation=='all':
-            infiles = [os.path.join(self.tmpdir, filename) for filename in os.listdir(self.tmpdir)]
+            infiles = os.path.join(self.tmpdir, f'{var}_{self.exp}_{self.resolution}_{self.frequency}_??????_tmp.nc')
             outfile = os.path.join(self.tmpdir, f'{var}_{self.exp}_{self.resolution}_{self.frequency}_tmp.nc')
-            xfield = xr.open_mfdataset(infiles)
-            xfield.to_netcdf(outfile)
-            self.logger.info(f"All files for variable {var} concatenated and saved in {outfile}")
-            # clean of monthly files
-            [os.remove(infile) for infile in infiles]
+            if infiles:
+                xfield = xr.open_mfdataset(infiles)
+                # clean older file
+                if os.path.exists(outfile):
+                    os.remove(outfile)
+
+                xfield.to_netcdf(outfile)
+                self.logger.info(f"All files for variable {var} concatenated and saved in {outfile}")
+               
+                # clean of monthly files
+                for infile in glob.glob(infiles):
+                    self.logger.info('Cleaning %s...', infile)
+                    os.remove(infile)
 
 
         else:

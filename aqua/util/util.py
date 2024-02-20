@@ -197,17 +197,18 @@ def username():
 
 def move_tmp_files(tmp_directory, output_directory):
     """
-    Move temporary files from the tmp directory to the output directory,
+    Move temporary NetCDF files from the tmp directory to the output directory,
     changing their name by removing "_tmp" suffix. 
     """
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
 
     for tmp_file in os.listdir(tmp_directory):
-        if "_tmp" in tmp_file:
-            new_file_name = tmp_file.replace("_tmp", "")
-        else:
-            new_file_name = tmp_file
-        tmp_file_path = os.path.join(tmp_directory, tmp_file)
-        new_file_path = os.path.join(output_directory, new_file_name)
-        shutil.move(tmp_file_path, new_file_path)
+        if tmp_file.endswith(".nc"):
+            if "_tmp" in tmp_file:
+                new_file_name = tmp_file.replace("_tmp", "")
+            else:
+                new_file_name = tmp_file
+            tmp_file_path = os.path.join(tmp_directory, tmp_file)
+            new_file_path = os.path.join(output_directory, new_file_name)
+            shutil.move(tmp_file_path, new_file_path)
