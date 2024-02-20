@@ -85,7 +85,7 @@ def adjust_year_range_based_on_dataset(full_dataset, start_year=None, final_year
 
     return start_year, final_year
      
-class MTPR_CLI:
+class Tropical_Rainfall_CLI:
     def __init__(self, config, args):
         self.freq = config['data']['freq']
         self.regrid = config['data']['regrid']
@@ -179,9 +179,9 @@ class MTPR_CLI:
                             if regrid_bool:
                                 data = self.reader.regrid(data)
                             self.diag.histogram(data, model_variable=self.model_variable,
-                                        path_to_histogram=self.path_to_netcdf+f"{self.regrid}/{self.freq}/histograms/",
+                                        path_to_histogram=path_to_output,
                                         threshold = 30, name_of_file=f"{self.regrid}_{self.freq}")
-                            self.logger.debug(f"The path to file is: {self.path_to_netcdf}{self.regrid}/{self.freq}/histograms/.")
+                            self.logger.debug(f"The path to file is: {path_to_output}")
                         except KeyError:
                             pass
                         except Exception as e:
@@ -224,7 +224,8 @@ class MTPR_CLI:
                             f"and frequency '{self.freq}' does not exist. Histograms for the "
                             "desired resolution and frequency have not been computed yet.")
         else:
-            obs_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path, all=True, start_year=self.s_year, end_year=self.f_year,
+            obs_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path, all=True,
+                                                            start_year=self.s_year, end_year=self.f_year,
                                                         start_month=self.s_month, end_month=self.f_month)
             self.logger.info(f"The MSWEP data with resolution '{self.regrid}' and frequency '{self.freq}' are prepared for comparison.")
 
@@ -233,7 +234,7 @@ class MTPR_CLI:
                                 legend=f"MSWEP", xmax=self.xmax,  loc=self.loc, plot_title=plot_title,
                                 path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
         self.logger.info("The histograms are plotted and saved in storage.")
-        
+
 def main():
     """Main function to orchestrate the tropical rainfall CLI operations."""
     args = parse_arguments(sys.argv[1:])
@@ -241,9 +242,9 @@ def main():
     
     config = load_configuration(get_arg(args, 'config', 'trop_rainfall_config.yml'))
     
-    mtpr_cli = MTPR_CLI(config, args)
-    mtpr_cli.calculate_histogram_by_months()
-    mtpr_cli.plot_histograms()
+    trop_rainfall_cli = Tropical_Rainfall_CLI(config, args)
+    trop_rainfall_cli.calculate_histogram_by_months()
+    trop_rainfall_cli.plot_histograms()
 
 if __name__ == '__main__':
     main()

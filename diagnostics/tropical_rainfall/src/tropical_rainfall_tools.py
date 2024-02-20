@@ -10,7 +10,7 @@ from aqua.util import ConfigPath
 from aqua.logger import log_configure
 import yaml
 from os import listdir
-from os.path import isfile, join, isdir
+from os.path import isfile, join, exists, isdir
 
 full_path_to_config = '../tropical_rainfall/config-tropical-rainfall.yml'
 
@@ -261,6 +261,11 @@ class ToolsClass:
         Returns:
             bool: True if at least one file meeting all specified criteria is found, False otherwise.
         """
+        # Check if the folder path exists
+        if folder_path is None or not exists(folder_path):
+            self.logger.warning(f"Folder path '{folder_path}' does not exist yet or was not provided.")
+            return False
+
         files = [join(folder_path, f) for f in listdir(folder_path) if isfile(join(folder_path, f)) or isdir(join(folder_path, f))]
         files.sort()
         keys = [str(key) for key in keys]
@@ -281,6 +286,11 @@ class ToolsClass:
         Returns:
             bool: True if a file was found and removed, False otherwise.
         """
+         # Check if the folder path exists
+        if folder_path is None or not exists(folder_path):
+            self.logger.warning(f"Folder path '{folder_path}' does not exist yet or was not provided.")
+            return False
+
         files = [join(folder_path, f) for f in listdir(folder_path) if isfile(join(folder_path, f)) or isdir(join(folder_path, f))]
         files.sort()
         keys = [str(key) for key in keys]
