@@ -243,7 +243,7 @@ def main():
     args = parse_arguments(sys.argv[1:])
     validate_arguments(args)
     
-    config = load_configuration(get_arg(args, 'config', 'trop_rainfall_config.yml'))
+    config = load_configuration(get_arg(args, 'config', 'cli_config_trop_rainfall.yml'))
     
     trop_rainfall_cli = Tropical_Rainfall_CLI(config, args)
     trop_rainfall_cli.calculate_histogram_by_months()
