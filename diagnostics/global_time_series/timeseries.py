@@ -61,7 +61,6 @@ class Timeseries():
             ax (matplotlib.Axes): (Optional) axes to plot in.
         """
         self.loglevel = loglevel
-
         self.logger = log_configure(log_level=self.loglevel, log_name='Timeseries')
 
         self.var = var
@@ -71,6 +70,8 @@ class Timeseries():
         self.exps = exps
         self.sources = sources
 
+        if self.models is None or self.exps is None:
+            raise NoDataError("No model or exp provided")
         if isinstance(self.models, str):
             self.models = [self.models]
         if isinstance(self.exps, str):
@@ -299,9 +300,7 @@ class Timeseries():
                 self.ref_ann_std.to_netcdf(os.path.join(outdir, outfile))
 
     def cleanup(self):
-        """
-        Clean up
-        """
+        """Clean up"""
         self.logger.debug("Cleaning up")
         del self.data_mon
         del self.data_annual
