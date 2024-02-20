@@ -231,4 +231,14 @@ if __name__ == '__main__':
                          regrid=regrid,
                          loglevel=loglevel)
 
+        try:
+            gp.run()
+        except NotEnoughDataError as e:
+            logger.warning(f"Skipping gregory plot: {e}")
+        except NoDataError as e:
+            logger.warning(f"Skipping gregory plot: {e}")
+        except NoObservationError as e:
+            logger.warning(f"Skipping gregory plot: {e}")
+        except Exception as e:
+            logger.error(f"Error plotting gregory plot: {e}")
     logger.info("Analysis completed.")
