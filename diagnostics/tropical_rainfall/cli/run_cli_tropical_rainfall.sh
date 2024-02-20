@@ -37,7 +37,7 @@ import sys
 try:
     machine = '$machine'
     script_dir = '$aqua'
-    with open('$script_dir/trop_rainfall_config.yml') as f:
+    with open('$script_dir/cli_config_trop_rainfall.yml') as f:
         config = yaml.safe_load(f)['compute_resources']
         print(config['nproc'], config['nodes'], config['walltime'], config['memory'], config['lumi_version'],
               config['account'][machine], config['partition'][machine], config['run_on_sunday'])
@@ -48,7 +48,7 @@ except Exception as e:
 
 # Check if the compute resources were read correctly
 if [ -z "$nproc" ]; then
-    echo "Failed to read compute resources from trop_rainfall_config.yml."
+    echo "Failed to read compute resources from cli_config_trop_rainfall.yml."
     exit 1
 fi
 

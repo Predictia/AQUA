@@ -1077,21 +1077,19 @@ class MainClass:
             #    histograms_to_load = histogram_list
             if len(histograms_to_load) > 0:
                 for i in range(0, len(histograms_to_load)):
-                    #if i == 0:
                     try:
                         dataset = self.tools.open_dataset(path_to_netcdf=histograms_to_load[i])
-                        #else:
                         dataset = self.merge_two_datasets(dataset_1=dataset,
                                                           dataset_2=self.tools.open_dataset(
                                                               path_to_netcdf=histograms_to_load[i]), test=test)
                     except Exception as e:
                         # Handle other exceptions
-                        logger.error(f"An unexpected error occurred: {e}")
-                        logger.error(f"The hisrogram path is : {histograms_to_load[i]}")
-                self.logger.info("Histograms are merged.")
+                        self.logger.error(f"An unexpected error occurred: {e}")
+                        self.logger.error(f"The hisrogram path is : {histograms_to_load[i]}")
+                self.logger.debug("Histograms are merged.")
                 return dataset
             else:
-                raise NameError('The specified repository is empty.')
+                self.logger.warning(f"The specified repository {histograms_to_load} is empty.")
 
     def convert_counts_to_frequency(self, data: xr.Dataset, test: bool = False) -> xr.DataArray:
         """

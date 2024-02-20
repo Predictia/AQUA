@@ -1,9 +1,9 @@
 data:
   model:  "MSWEP"         # Name of the climate model used
   exp:    "past"          # Experiment identifier
-  source: "3hourly"       # Data source, specifying resolution and frequency
-  freq:   "3H"            # Frequency of data, 'M' stands for Monthly
-  regrid: "r250"          # Regridding option to apply
+  source: "monthly"       # Data source, specifying resolution and frequency
+  freq:   "M"             # Frequency of data, 'M' stands for Monthly
+  regrid: "r100"          # Regridding option to apply
   s_year:  null           # Start year for analysis, 'null' means it will be set dynamically
   f_year:  null           # Final year for analysis, 'null' means it will be set dynamically
   s_month: null           # Start month for analysis, 'null' means it will be set dynamically
@@ -22,7 +22,7 @@ class_attributes:
 rebuild_output: False
 
 logger:
-  loglevel:       'debug'  # Logging level for the output messages
+  loglevel: 'WARNING'     # Logging level for the output messages
 
 plot:
   color: 'tab:green'      # Color for the plot
@@ -35,8 +35,8 @@ output:
   levante: "/work/bb1153/b382267/tropical_rainfall_cicle3/cli_test/"  # File path for Levante machine
   lumi: "/users/nazarova/work/output/cli_test/"
 mswep:
-  levante: "/work/bb1153/b382267/tropical_rainfall_cicle3/cli_test/"  # File path for Levante machine
-  lumi: "."
+  levante: "/work/bb1153/b382267/observations/MSWEP/"  # File path for Levante machine
+  lumi: "/users/nazarova/work/observations/MSWEP/"
 
 compute_resources:
   resubmit: False         # Whether to automatically resubmit the job if it fails
