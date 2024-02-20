@@ -248,7 +248,7 @@ class Timeseries():
         if self.outfile is None:
             self.outfile = f'timeseries_{self.var}'
             for i, model in enumerate(self.models):
-                self.outfile += f'_{model}_{self.exps[i]}_'
+                self.outfile += f'_{model}_{self.exps[i]}'
             if self.plot_ref:
                 self.outfile += f'_{ref_label}'
             self.outfile += '.pdf'
