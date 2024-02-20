@@ -228,6 +228,8 @@ class Timeseries():
                 ref_label = self.plot_ref_kw['model']
             except KeyError:
                 ref_label = 'Reference'
+        else:
+            ref_label = None
 
         title = f'{self.var} timeseries'
 

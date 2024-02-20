@@ -139,7 +139,7 @@ if __name__ == '__main__':
                 plot_kw = get_plot_options(config, var)
 
             ts = Timeseries(var=var,
-                            
+                            formula=False,
                             models=models_list,
                             exps=exp_list,
                             sources=source_list,
@@ -241,7 +241,7 @@ if __name__ == '__main__':
             logger.warning(f"Skipping gregory plot: {e}")
         except Exception as e:
             logger.error(f"Error plotting gregory plot: {e}")
-    
+
     if "seasonal_cycle" in config:
         logger.info("Plotting seasonal cycle")
 
