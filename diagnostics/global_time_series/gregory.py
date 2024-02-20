@@ -197,6 +197,9 @@ class GregoryPlot():
                 if self.data_ts_mon[i] is not None and self.data_toa_mon[i] is not None:
                     ax1.plot(self.data_ts_mon[i], self.data_toa_mon[i], marker=".",
                              label=f"{model} {self.exps[i]}", color=color_list[i])
+
+            for i, model in enumerate(self.models):  # Last so that legend is at the end
+                if self.data_ts_mon[i] is not None and self.data_toa_mon[i] is not None:
                     if i == 0:
                         label_b = "First Time-step"
                         label_e = "Last Time-step"
