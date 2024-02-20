@@ -23,8 +23,7 @@ class GregoryPlot():
                  monthly=True, annual=True,
                  regrid=None,
                  ts_name='2t', toa_name=['mtnlwrf', 'mtnswrf'],
-                 ref=True, ts_kw={}, toa_kw={},
-                 outdir='./', outfile=None,
+                 ref=True, outdir='./', outfile=None,
                  loglevel='WARNING'):
         """
         Args:
@@ -43,8 +42,6 @@ class GregoryPlot():
             ref (bool): If True, reference data is plotted.
                         Default is True. Reference data are ERA5 for 2m temperature
                         and CERES for net radiation at TOA.
-            ts_kw (dict): Additional keyword arguments passed to the `get_reference_ts_gregory` function.
-            toa_kw (dict): Additional keyword arguments passed to the `get_reference_toa_gregory` function.
             outdir (str): Output directory. Default is './'.
             outfile (str): Output file name. Default is None.
             loglevel (str): Logging level. Default is WARNING.
@@ -74,8 +71,6 @@ class GregoryPlot():
         self.toa_name = toa_name
         self.retrieve_list = [self.ts_name] + self.toa_name
         self.logger.debug(f"Retrieving {self.retrieve_list}")
-        self.ts_kw = ts_kw
-        self.toa_kw = toa_kw
 
         self.outdir = outdir
         self.outfile = outfile
@@ -160,9 +155,9 @@ class GregoryPlot():
         if self.ref:
             self.logger.debug("Retrieving reference data")
             try:
-                ref_ts_mean, ref_ts_std = get_reference_ts_gregory(**self.ts_kw,
+                ref_ts_mean, ref_ts_std = get_reference_ts_gregory(ts_name=self.ts_name,
                                                                    loglevel=self.loglevel)
-                ref_toa_mean, ref_toa_std = get_reference_toa_gregory(**self.toa_kw,
+                ref_toa_mean, ref_toa_std = get_reference_toa_gregory(toa_name=self.toa_name,
                                                                       loglevel=self.loglevel)
             except NoObservationError as e:
                 self.logger.debug(f"Error: {e}")
