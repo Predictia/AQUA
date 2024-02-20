@@ -35,9 +35,7 @@ timeseries_plot_params:
 # add it here.
   default:
     plot_ref: True
-    resample: null
-    monthly: False
-
+    monthly: True
     annual: True
     std_startdate: '1980-01-01'
     std_enddate: '2010-01-01'
