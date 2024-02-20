@@ -246,7 +246,7 @@ class Timeseries():
         self.logger.debug(f"Saving figure to {outfig}")
         create_folder(outfig, self.loglevel)
         if self.outfile is None:
-            self.outfile = f'timeseries_{self.var}'
+            self.outfile = f'global_time_series_{self.var}'
             for i, model in enumerate(self.models):
                 self.outfile += f'_{model}_{self.exps[i]}'
             if self.plot_ref:
@@ -276,7 +276,7 @@ class Timeseries():
         create_folder(outdir, self.loglevel)
 
         for i, model in enumerate(self.models):
-            outfile = f'timeseries_{self.var}_{model}_{self.exps[i]}.nc'
+            outfile = f'global_time_series_{self.var}_{model}_{self.exps[i]}.nc'
             self.logger.debug(f"Saving data to {outdir}/{outfile}")
             if self.monthly is not None:
                 self.data_mon[i].to_netcdf(os.path.join(outdir, outfile))
@@ -284,7 +284,7 @@ class Timeseries():
                 self.data_annual[i].to_netcdf(os.path.join(outdir, outfile))
 
         if self.plot_ref:
-            outfile = f'timeseries_{self.var}_ref.nc'
+            outfile = f'global_time_series_{self.var}_ref.nc'
             self.logger.debug(f"Saving reference data to {outdir}/{outfile}")
             if self.monthly_std:
                 self.ref_mon.to_netcdf(os.path.join(outdir, outfile))
@@ -292,7 +292,7 @@ class Timeseries():
                 self.logger.debug(f"Saving annual data to {outdir}/{outfile}")
                 self.ref_ann.to_netcdf(os.path.join(outdir, outfile))
 
-            outfile = f'timeseries_{self.var}_std.nc'
+            outfile = f'global_time_series_{self.var}_std.nc'
             self.logger.debug(f"Saving std data to {outdir}/{outfile}")
             if self.monthly_std:
                 self.ref_mon_std.to_netcdf(os.path.join(outdir, outfile))

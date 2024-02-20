@@ -108,7 +108,7 @@ class SeasonalCycle(Timeseries):
         self.logger.debug(f"Saving figure to {outfig}")
         create_folder(outfig, self.loglevel)
         if self.outfile is None:
-            self.outfile = f'timeseries_seasonalcycle_{self.var}'
+            self.outfile = f'global_time_series_seasonalcycle_{self.var}'
             for i, model in enumerate(self.models):
                 self.outfile += f'_{model}_{self.exps[i]}'
             if self.plot_ref:
