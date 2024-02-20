@@ -104,8 +104,8 @@ class GregoryPlot():
                 reader = Reader(model=model, exp=self.exps[i], source=self.sources[i],
                                 regrid=self.regrid, loglevel=self.loglevel)
                 data = reader.retrieve(var=self.retrieve_list)
-                ts = reader.fldmean(data[self.ts_name]).values - 273.15
-                toa = reader.fldmean(data[self.toa_name[0]] + data[self.toa_name[1]]).values
+                ts = reader.fldmean(data[self.ts_name]) - 273.15
+                toa = reader.fldmean(data[self.toa_name[0]] + data[self.toa_name[1]])
             except Exception as e:
                 self.logger.error(f"Error: {e}")
                 raise NoDataError(f"Could not retrieve data for {model}-{self.exps[i]}. No plot will be drawn.") from e
@@ -121,7 +121,7 @@ class GregoryPlot():
                                                  exclude_incomplete=True)
                     data_toa_mon = reader.timmean(data=toa, freq='MS',
                                                   exclude_incomplete=True)
-                if len(data_ts_mon.time) < 2 or len(data_toa_mon.time) < 2:
+                if len(data_ts_mon) < 2 or len(data_toa_mon) < 2:
                     self.logger.warning(f"Not enough data for {model} {self.exps[i]}. No monthly data will be plotted.")
                     self.data_ts_mon[i] = None
                     self.data_toa_mon[i] = None
@@ -135,7 +135,7 @@ class GregoryPlot():
                                                 exclude_incomplete=True)
                 data_toa_annual = reader.timmean(data=toa, freq='YS',
                                                  exclude_incomplete=True)
-                if len(data_ts_annual.time) < 2 or len(data_toa_annual.time) < 2:
+                if len(data_ts_annual) < 2 or len(data_toa_annual) < 2:
                     self.logger.warning(f"Not enough data for {model} {self.exps[i]}. No annual data will be plotted.")
                     self.data_ts_annual[i] = None
                     self.data_toa_annual[i] = None
@@ -144,12 +144,16 @@ class GregoryPlot():
                     self.data_toa_annual[i] = data_toa_annual
 
             # Clean up
-            del data, ts, toa, data_ts_mon, data_toa_mon
-            del data_ts_annual, data_toa_annual, reader
+            del data, ts, toa, reader
+            if self.monthly:
+                del data_ts_mon, data_toa_mon
+            if self.annual:
+                del data_ts_annual, data_toa_annual
             gc.collect()
 
-        if self.data_ts_mon.count(None) == len(self.models) and self.data_ts_annual.count(None) == len(self.models):
-            raise NoDataError("No data to plot.")
+        # Check at least one dataset has been retrieved
+        if all([d is None for d in self.data_ts_mon]) and all([d is None for d in self.data_ts_annual]):
+            raise NotEnoughDataError("Not enough data available. No plot will be drawn.")
 
     def retrieve_ref(self):
         """Retrieve reference data."""
@@ -164,7 +168,7 @@ class GregoryPlot():
                 self.logger.debug(f"Error: {e}")
                 self.logger.error("No reference data available. No reference plot will be drawn.")
                 self.ref = False
-            self.ref_ts_mean = ref_ts_mean
+            self.ref_ts_mean = ref_ts_mean - 273.15
             self.ref_ts_std = ref_ts_std
             self.ref_toa_mean = ref_toa_mean
             self.ref_toa_std = ref_toa_std
@@ -192,7 +196,7 @@ class GregoryPlot():
             ax1.set_xlabel("2m temperature [C]")
             ax1.set_ylabel(r"Net radiation TOA [$\rm Wm^{-2}$]")
             ax1.grid(True)
-            ax1.title("Monthly Mean")
+            ax1.set_title("Monthly Mean")
 
             for i, model in enumerate(self.models):
                 if self.data_ts_mon[i] is not None and self.data_toa_mon[i] is not None:
@@ -218,7 +222,7 @@ class GregoryPlot():
             if ax1 is None:
                 ax2.set_ylabel(r"Net radiation TOA [$\rm Wm^{-2}$]")
             ax2.grid(True)
-            ax2.title("Annual Mean")
+            ax2.set_title("Annual Mean")
 
             for i, model in enumerate(self.models):
                 if self.data_ts_annual[i] is not None and self.data_toa_annual[i] is not None:
@@ -261,6 +265,7 @@ class GregoryPlot():
                 self.outfile += "_ref_ERA5_CERES"
             self.outfile += '.pdf'
         self.logger.debug(f"Output file: {self.outfile}")
+        fig.savefig(os.path.join(outfig, self.outfile))
 
         description = "Gregory plot"
         for i, model in enumerate(self.models):
