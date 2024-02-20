@@ -79,7 +79,7 @@ def adjust_year_range_based_on_dataset(full_dataset, start_year=None, final_year
 
     # Adjust start_year based on the dataset's range or user input
     start_year = first_year_in_dataset if start_year is None else max(start_year, first_year_in_dataset)
-    
+
     # Adjust final_year based on the dataset's range or user input
     final_year = last_year_in_dataset if final_year is None else min(final_year, last_year_in_dataset)
 
@@ -106,15 +106,18 @@ class Tropical_Rainfall_CLI:
         self.xmax = config['plot']['xmax']
         self.loc = config['plot']['loc'] 
         self.pdf_format = config['plot']['pdf_format']
-        
+
         self.model = get_arg(args, 'model', config['data']['model'])
         self.exp = get_arg(args, 'exp', config['data']['exp'])
         self.source = get_arg(args, 'source', config['data']['source'])
         self.loglevel = get_arg(args, 'loglevel', config['logger']['loglevel'])
-        
+
         nproc = get_arg(args, 'nproc', config['compute_resources']['nproc'])
         machine = config['machine']
-        path_to_output = get_arg(args, 'outputdir', config['path'][machine])
+        path_to_output = get_arg(args, 'outputdir', config['output'][machine])
+
+        self.mswep = config['mswep'][machine]
+
         self.logger = log_configure(log_name="Trop. Rainfall CLI", log_level=self.loglevel)
         
         self.rebuild_output = config['rebuild_output']
@@ -217,7 +220,7 @@ class Tropical_Rainfall_CLI:
                             path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
 
         
-        mswep_folder_path = f'/work/bb1153/b382267/observations/MSWEP/{self.regrid}/{self.freq}'
+        mswep_folder_path = f'{self.mswep}{self.regrid}/{self.freq}'
         # Check if the folder exists
         if not os.path.exists(mswep_folder_path):
             self.logger.error(f"Error: The folder for MSWEP data with resolution '{self.regrid}' "

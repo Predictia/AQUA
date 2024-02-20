@@ -19,6 +19,8 @@ class_attributes:
   model_variable: 'mtpr'  # Model variable to be analyzed
   new_unit:       'mm/day' # Unit for the model variable
 
+rebuild_output: False
+
 logger:
   loglevel:       'debug'  # Logging level for the output messages
 
@@ -29,9 +31,12 @@ plot:
   loc: 'upper right'      # Location of the legend/annotation in the plot
   pdf_format: True        # Whether to save plots in PDF format
 
-path:
+output:
   levante: "/work/bb1153/b382267/tropical_rainfall_cicle3/cli_test/"  # File path for Levante machine
   lumi: "/users/nazarova/work/output/cli_test/"
+mswep:
+  levante: "/work/bb1153/b382267/tropical_rainfall_cicle3/cli_test/"  # File path for Levante machine
+  lumi: "."
 
 compute_resources:
   resubmit: False         # Whether to automatically resubmit the job if it fails
