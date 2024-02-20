@@ -66,7 +66,7 @@ class PlottingClass:
         self.number_of_bar_ticks = number_of_bar_ticks
         self.loglevel = loglevel
         self.logger = log_configure(self.loglevel, 'Plot. Func.')
-        self.tools = ToolsClass()
+        self.tools = ToolsClass(self.loglevel)
 
     def class_attributes_update(self, pdf_format: Optional[bool] = None, figsize: Optional[float] = None,
                                 linewidth: Optional[float] = None, fontsize: Optional[int] = None,
