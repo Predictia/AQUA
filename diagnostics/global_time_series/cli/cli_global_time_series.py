@@ -104,7 +104,7 @@ if __name__ == '__main__':
 
     # Import diagnostic module
     sys.path.insert(0, "../../")
-    from global_time_series import Timeseries, GregoryPlot
+    from global_time_series import Timeseries, GregoryPlot, SeasonalCycle
 
     # Load configuration file
     file = get_arg(args, "config", "config_time_series_atm.yaml")
@@ -139,7 +139,7 @@ if __name__ == '__main__':
                 plot_kw = get_plot_options(config, var)
 
             ts = Timeseries(var=var,
-                            formula=False,
+                            
                             models=models_list,
                             exps=exp_list,
                             sources=source_list,
@@ -241,4 +241,39 @@ if __name__ == '__main__':
             logger.warning(f"Skipping gregory plot: {e}")
         except Exception as e:
             logger.error(f"Error plotting gregory plot: {e}")
+    
+    if "seasonal_cycle" in config:
+        logger.info("Plotting seasonal cycle")
+
+        for var in config["seasonal_cycle"]:
+            logger.info(f"Plotting {var} seasonal cycle")
+            monthly, annual, regrid, plot_ref, plot_ref_kw, startdate, \
+                enddate, monthly_std, annual_std, std_startdate, std_enddate, \
+                plot_kw = get_plot_options(config, var)
+
+            sc = SeasonalCycle(var=var,
+                               formula=False,
+                               models=models_list,
+                               exps=exp_list,
+                               sources=source_list,
+                               regrid=regrid,
+                               plot_ref=plot_ref,
+                               plot_ref_kw=plot_ref_kw,
+                               startdate=startdate,
+                               enddate=enddate,
+                               std_startdate=std_startdate,
+                               std_enddate=std_enddate,
+                               plot_kw=plot_kw,
+                               outdir=outputdir,
+                               loglevel=loglevel)
+            try:
+                sc.run()
+            except NotEnoughDataError as e:
+                logger.warning(f"Skipping {var} seasonal cycle plot: {e}")
+            except NoDataError as e:
+                logger.warning(f"Skipping {var} seasonal cycle plot: {e}")
+            except NoObservationError as e:
+                logger.warning(f"Skipping {var} seasonal cycle plot: {e}")
+            except Exception as e:
+                logger.error(f"Error plotting {var} seasonal cycle: {e}")
     logger.info("Analysis completed.")
