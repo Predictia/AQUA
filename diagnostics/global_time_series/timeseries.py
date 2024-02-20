@@ -1,7 +1,6 @@
 import os
 import gc
 
-import matplotlib.pyplot as plt
 import xarray as xr
 from aqua import Reader
 from aqua.logger import log_configure
@@ -287,26 +286,31 @@ class Timeseries():
         if self.plot_ref:
             outfile = f'timeseries_{self.var}_ref.nc'
             self.logger.debug(f"Saving reference data to {outdir}/{outfile}")
-            if self.monthly is not None:
+            if self.monthly_std:
                 self.ref_mon.to_netcdf(os.path.join(outdir, outfile))
-            if self.annual is not None:
+            if self.annual_std:
+                self.logger.debug(f"Saving annual data to {outdir}/{outfile}")
                 self.ref_ann.to_netcdf(os.path.join(outdir, outfile))
 
             outfile = f'timeseries_{self.var}_std.nc'
             self.logger.debug(f"Saving std data to {outdir}/{outfile}")
-            if self.monthly is not None:
+            if self.monthly_std:
                 self.ref_mon_std.to_netcdf(os.path.join(outdir, outfile))
-            if self.annual is not None:
+            if self.annual_std:
                 self.ref_ann_std.to_netcdf(os.path.join(outdir, outfile))
 
     def cleanup(self):
         """Clean up"""
         self.logger.debug("Cleaning up")
-        del self.data_mon
-        del self.data_annual
-        del self.ref_mon
-        del self.ref_mon_std
-        del self.ref_ann
-        del self.ref_ann_std
+        if self.monthly:
+            del self.data_mon
+            if self.plot_ref:
+                del self.ref_mon
+                del self.ref_mon_std
+        if self.annual:
+            del self.data_annual
+            if self.plot_ref:
+                del self.ref_ann
+                del self.ref_ann_std
         gc.collect()
         self.logger.debug("Cleaned up")
