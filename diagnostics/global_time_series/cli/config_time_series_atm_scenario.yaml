@@ -3,11 +3,11 @@
 # --model, --exp, --source, --outputdir
 models:
   - model: 'IFS-NEMO'
-    exp: 'a0gg'
-    source: 'hourly-r100-atm2d'
+    exp: 'historical-1990'
+    source: 'lra-r100-monthly'
   - model: 'IFS-NEMO'
-    exp: 'a0fe'
-    source: 'hourly-r100-atm2d'
+    exp: 'ssp370'
+    source: 'lra-r100-monthly'
 
 outputdir: "./IFS-NEMO/scenario/"
 
@@ -29,9 +29,9 @@ timeseries_plot_params:
 # add it here.
   default:
     plot_ref: True
-    resample: null
     annual: True
-    monthly: False
+    monthly: True
+    annual_std: True
     monthly_std: False
     std_startdate: '1990-01-01'
     std_enddate: '2020-01-01'
