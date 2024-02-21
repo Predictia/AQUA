@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 - Added graphics function to plot data and difference between two datasets on the same map (#892)
+- Timeseries: seasonal cycle is available for the global timeseries (#912)
+- Timeseries: refactory of Gregory plot as a class, comparison with multiple models and observations (#910)
+- Add IFS-NEMO ssp370 scenario (#906)
+- Timeseries: complete refactory of the timeseries as a class, comparison with multiple models and observations (#907)
+- Plot timeseries is now a framework function (#907)
 
 ## [v0.7]
 
