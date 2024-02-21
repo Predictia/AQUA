@@ -577,8 +577,7 @@ class MainClass:
                 if path_to_histogram is None and self.path_to_netcdf is not None:
                     path_to_histogram = self.path_to_netcdf+'histograms/'
                 if path_to_histogram is not None and name_of_file is not None:
-                    bins_info = str(bins[0])+'_'+str(bins[-1])+'_'+str(len(bins))
-                    bins_info = bins_info.replace('.', '-')
+                    bins_info = self.get_bins_info()
                     self.dataset_to_netcdf(
                         mtpr_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file+'_histogram_'+bins_info)
             return mtpr_dataset
@@ -592,8 +591,7 @@ class MainClass:
                 if path_to_histogram is None and self.path_to_netcdf is not None:
                     path_to_histogram = self.path_to_netcdf + 'histograms/'
                 if path_to_histogram is not None and name_of_file is not None:
-                    bins_info = str(bins[0])+'_'+str(bins[-1])+'_'+str(len(bins)-1)
-                    bins_info = bins_info.replace('.', '-')
+                    bins_info = self.get_bins_info()
                     self.dataset_to_netcdf(mtpr_dataset, path_to_netcdf=path_to_histogram,
                                            name_of_file=name_of_file+'_histogram_'+bins_info)
             return counts_per_bin
@@ -773,8 +771,7 @@ class MainClass:
                 path_to_histogram = self.path_to_netcdf+'histograms/'
 
             if path_to_histogram is not None and name_of_file is not None:
-                bins_info = str(bins[0])+'_'+str(bins[-1])+'_'+str(len(bins)-1)
-                bins_info = bins_info.replace('.', '-')
+                bins_info = self.get_bins_info()
                 self.dataset_to_netcdf(
                     mtpr_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file+'_histogram_'+bins_info)
 
@@ -929,13 +926,7 @@ class MainClass:
             hist_pdf = self.convert_counts_to_pdf(mtpr_dataset['counts'+label],  test=test)
             mtpr_dataset['pdf'+label] = hist_pdf
         if path_to_histogram is not None and name_of_file is not None:
-            if isinstance(self.bins, int):
-                bins = [self.first_edge + i *
-                        self.width_of_bin for i in range(0, self.num_of_bins+1)]
-            else:
-                bins = self.bins
-            bins_info = str(bins[0])+'_'+str(bins[-1])+'_'+str(len(bins)-1)
-            bins_info = bins_info.replace('.', '-')
+            bins_info = self.get_bins_info()
             self.dataset_to_netcdf(
                 dataset=mtpr_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file+'_histogram_'+bins_info)
         return mtpr_dataset
