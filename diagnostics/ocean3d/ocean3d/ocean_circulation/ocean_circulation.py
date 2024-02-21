@@ -592,8 +592,7 @@ def plot_spatial_mld_clim(o3d_request, time=None,
         mod_clim.to_netcdf(f'{data_dir}/{filename}_Rho.nc')
         obs_clim.to_netcdf(f'{data_dir}/{filename}_Rho.nc')
 
-    plt.close(fig)
-    #plt.show()
+    plt.show()
     return
 
 def plot_spatial_mld_clim_parallel(o3d_request, loglevel= "WARNING"):

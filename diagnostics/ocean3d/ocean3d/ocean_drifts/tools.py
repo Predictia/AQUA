@@ -444,8 +444,10 @@ def multilevel_t_s_trend_plot(o3d_request, customise_level=False, levels=None, l
     for levs in range(len(levels)):
 
         data["ocpt"].interp(lev=levels[levs]).plot.contourf(
+            cmap="coolwarm",
             ax=axs[levs, 0], levels=18)
         data["so"].interp(lev=levels[levs]).plot.contourf(
+            cmap="coolwarm",
             ax=axs[levs, 1], levels=18)
 
         axs[levs, 0].set_ylabel("Latitude (in deg North)", fontsize=9)
