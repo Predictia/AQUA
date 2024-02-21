@@ -105,20 +105,28 @@ To run a Jupyter Notebook using the container, follow these steps.
 
 .. code-block:: bash
 
-   jupyter-lab --no-browser
+   node=$(hostname -s)
+   port=$(shuf -i8000-9999 -n1)
+   jupyter-lab --no-browser --port=${port} --ip=${node}
 
-This will provide a server URL like: ``http://localhost:<port>/lab?token=random_token`` (e.g. ``http://nid007521:8839/lab?token=random_value``)
+This will provide a server URL like: ``http://nodeurl:<port>/lab?token=random_token`` (e.g. ``http://nid007521:8839/lab?token=random_value``)
 
 - If you wish to open Jupyter Lab in your browser, execute the following command in a separate terminal,
   replacing "lumi" with your SSH hostname:
 
 .. code-block:: bash
 
-   ssh -L <port>:localhost:<port> lumi
+   ssh -L <port>:nodeurl:<port> lumi
 
 (e.g. ``ssh -L 8839:nid007521:8839 lumi``)
 
 - Open the Jupyter Lab URL in your browser. It will launch Jupyter Lab. Choose the **Python 3 (ipykernel)** kernel for the AQUA environment.
+
+.. note::
+    Using the load_container_lumi.sh script will launch the Jupyter Lab server on the node where the script is executed.
+    You may want to use a computational node to run the Jupyter Lab server, especially if you are running a large notebook.
+    This can be achieved by requiring a computational node and then running the Jupyter Lab server on that node or 
+    by using the Slurm script to run the Jupyter Lab server (you can find an example in the Slurm script itself).
 
 Running Jupyter Notebook within VSCode
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
