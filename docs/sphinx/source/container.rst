@@ -107,7 +107,7 @@ To run a Jupyter Notebook using the container, follow these steps.
 
    jupyter-lab --no-browser
 
-This will provide a server URL like: ``http://localhost:<port>/lab?token=random_token``
+This will provide a server URL like: ``http://localhost:<port>/lab?token=random_token`` (e.g. ``http://nid007521:8839/lab?token=random_value``)
 
 - If you wish to open Jupyter Lab in your browser, execute the following command in a separate terminal,
   replacing "lumi" with your SSH hostname:
@@ -115,6 +115,8 @@ This will provide a server URL like: ``http://localhost:<port>/lab?token=random_
 .. code-block:: bash
 
    ssh -L <port>:localhost:<port> lumi
+
+(e.g. ``ssh -L 8839:nid007521:8839 lumi``)
 
 - Open the Jupyter Lab URL in your browser. It will launch Jupyter Lab. Choose the **Python 3 (ipykernel)** kernel for the AQUA environment.
 
