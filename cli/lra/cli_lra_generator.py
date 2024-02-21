@@ -27,7 +27,7 @@ print('AQUA version is: ' + version)
 
 def parse_arguments(arguments):
     """
-    Parse command line arguments
+    Parse command line arguments for the LRA CLI
     """
 
     parser = argparse.ArgumentParser(description='AQUA LRA generator')

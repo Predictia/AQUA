@@ -22,7 +22,7 @@ def generate_random_string(length):
 
 def to_list(arg):
 
-    """Support function to convert a string to list"""
+    """Support function to ensure conversion of a variable to list"""
 
     if isinstance(arg, str):
         arg = [arg]
