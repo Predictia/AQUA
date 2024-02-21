@@ -271,7 +271,8 @@ class ToolsClass:
         keys = [str(key) for key in keys]
         for filename in files:
             if all(key in filename for key in keys):
-                self.logger.warning(f"A file meeting all specified criteria ({', '.join(keys)}) exists. Skipping calculations.")
+                self.logger.debug(f"A file {filename} meeting all specified criteria ({', '.join(keys)}) exists")
+                self.logger.warning(f"A file {filename} exists. Skipping calculations.")
                 return True
         return False
 
