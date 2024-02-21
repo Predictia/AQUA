@@ -3,10 +3,10 @@
 # --model, --exp, --source, --outputdir
 models:
   - model: 'IFS-NEMO'
-    exp: 'historical-1990'
+    exp: 'ssp370'
     source: 'lra-r100-monthly'
   - model: 'IFS-NEMO'
-    exp: 'ssp370'
+    exp: 'historical-1990'
     source: 'lra-r100-monthly'
 
 outputdir: "./IFS-NEMO/scenario/"
