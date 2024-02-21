@@ -5,9 +5,9 @@ from aqua.util import load_yaml, get_arg
 from aqua import Reader
 from aqua.logger import log_configure
 
-aqua_path = os.getenv('AQUA')  # This will return None if 'AQUA' is not set
-sys.path.insert(0, os.path.join(aqua_path, 'diagnostics'))
 from tropical_rainfall import Tropical_Rainfall
+aqua_path = os.getenv('AQUA')  # This will return None if 'AQUA' is not set
+
 
 def parse_arguments(args):
     """Parse command line arguments"""
