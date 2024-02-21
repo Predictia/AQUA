@@ -49,7 +49,7 @@ singularity exec \
 # e.g. http://nid007521:8839/lab?token=random_value
 
 # In a separate terminal run this :
-# ssh -L port_number:node_number:port_number lumi_user@@lumi.csc.fi (e.g.: ssh -L 8839:nid007521:8839 lumi_user@lumi.csc.fi)
+# ssh -L port_number:node_number:port_number lumi_user@lumi.csc.fi (e.g.: ssh -L 8839:nid007521:8839 lumi_user@lumi.csc.fi)
 # and open the URL in your browser, it will open jupyter-lab.
 
 # If you face any issue, ask in the mattermost AQUA channel.
