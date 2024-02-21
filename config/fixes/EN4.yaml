@@ -1,11 +1,11 @@
 fixer_name:  
   EN4-default:
-    data_model: cf
+    data_model: false
     vars:
-      ocpt:
+      avg_thetao:
         source: thetao 
         grib: true
-      so:
+      avg_so:
         src_units: psu
         source: so
         grib: true
