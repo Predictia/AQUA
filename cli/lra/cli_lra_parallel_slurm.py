@@ -29,7 +29,7 @@ def submit_sbatch(model, exp, source, varname, yaml_file,
     # Construct basic sbatch command
     sbatch_cmd = [
         'sbatch',
-        '--partition=' + config.get('partition', 'ju-standard'),
+        '--partition=' + config.get('partition', 'ju-strategic'),
         '--job-name=' + config.get('job_name', 'lra-generator_' + job_name),
         '--output=' + config.get('output', 'log/log-lra_' + job_name + '_%j.out'),
         '--error=' + config.get('error', 'log/log-lra_' + job_name + '_%j.err'),
