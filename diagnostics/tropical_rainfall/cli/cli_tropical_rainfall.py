@@ -1,12 +1,12 @@
 import sys
-sys.path.append('../')
-from src.tropical_rainfall_tools import ToolsClass
 import os
 import argparse
 from aqua.util import load_yaml, get_arg
 from aqua import Reader
 from aqua.logger import log_configure
-sys.path.insert(0, '../../')
+
+aqua_path = os.getenv('AQUA')  # This will return None if 'AQUA' is not set
+sys.path.insert(0, os.path.join(aqua_path, 'diagnostics'))
 from tropical_rainfall import Tropical_Rainfall
 
 def parse_arguments(args):
@@ -243,7 +243,8 @@ def main():
     args = parse_arguments(sys.argv[1:])
     validate_arguments(args)
     
-    config = load_configuration(get_arg(args, 'config', 'cli_config_trop_rainfall.yml'))
+    config = load_configuration(get_arg(args, 'config',
+                                        f'{aqua_path}/diagnostics/tropical_rainfall/cli/cli_config_trop_rainfall.yml'))
     
     trop_rainfall_cli = Tropical_Rainfall_CLI(config, args)
     trop_rainfall_cli.calculate_histogram_by_months()
