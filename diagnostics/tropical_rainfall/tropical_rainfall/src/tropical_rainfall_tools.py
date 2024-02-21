@@ -9,6 +9,8 @@ from typing import Union
 from aqua.util import ConfigPath
 from aqua.logger import log_configure
 import yaml
+from os import listdir
+from os.path import isfile, join, exists, isdir
 
 from importlib import resources
 full_path_to_config = resources.files("tropical_rainfall") / "config-tropical-rainfall.yml"
@@ -26,6 +28,7 @@ regrid_dict = {
 
 
 class ToolsClass:
+
     def __init__(self, loglevel: str = 'WARNING'):
         """
         Initialize the class.
@@ -212,6 +215,93 @@ class ToolsClass:
         except FileNotFoundError:
             raise FileNotFoundError(
                 "The specified dataset file was not found.")
+
+    def select_files_by_year_and_month_range(self, path_to_histograms: str, start_year: int = None, end_year: int = None,
+                                             start_month: int = None, end_month: int = None) -> list:
+        """
+        Select files within a specific year and optional month range from a given directory.
+        If no year range is provided, return all files sorted alphabetically.
+
+        Args:
+            path_to_histograms (str): Directory path containing the histogram files.
+            start_year (int, optional): Start year of the range (inclusive). Defaults to None.
+            end_year (int, optional): End year of the range (inclusive). Defaults to None.
+            start_month (int, optional): Start month of the range (inclusive). Defaults to None.
+            end_month (int, optional): End month of the range (inclusive). Defaults to None.
+
+        Returns:
+            list: A list of file paths matching the specified year and month range or all files if no year range is specified.
+        """
+        files = [join(path_to_histograms, f) for f in listdir(path_to_histograms) if isfile(join(path_to_histograms, f))]
+        files.sort()
+        if start_year is None and end_year is None:
+            # If no year range is provided, return all files sorted alphabetically
+            return files
+
+        selected_files = []
+        for file_path in files:
+            # Extract the year and month from the filename
+            date_match = re.search(r'(\d{4})-(\d{2})-\d{2}T', file_path)
+            if date_match:
+                year, month = map(int, date_match.groups())
+                # Check if the year and optionally month falls within the specified range
+                if (start_year is None or start_year <= year) and (end_year is None or year <= end_year) and (not start_month or start_month <= month <= (end_month or 12)):
+                    selected_files.append(file_path)
+                elif start_year is None and end_year is None:
+                    selected_files.append(file_path)
+        return selected_files
+
+    def find_files_with_keys(self, folder_path: str = None, keys: list = None):
+        """
+        Searches a specified folder for any file names that contain all the provided keys.
+
+        Parameters:
+            folder_path (str): The path to the folder where the search for files will be conducted. If None, the current directory is assumed.
+            keys (list of str): A list of string keys that must all be present in a file name for it to satisfy the search criteria.
+
+        Returns:
+            bool: True if at least one file meeting all specified criteria is found, False otherwise.
+        """
+        # Check if the folder path exists
+        if folder_path is None or not exists(folder_path):
+            self.logger.warning(f"Folder path '{folder_path}' does not exist yet or was not provided.")
+            return False
+
+        files = [join(folder_path, f) for f in listdir(folder_path) if isfile(join(folder_path, f)) or isdir(join(folder_path, f))]
+        files.sort()
+        keys = [str(key) for key in keys]
+        for filename in files:
+            if all(key in filename for key in keys):
+                self.logger.debug(f"A file {filename} meeting all specified criteria ({', '.join(keys)}) exists")
+                self.logger.warning(f"A file {filename} exists. Skipping calculations.")
+                return True
+        return False
+
+    def remove_file_if_exists_with_keys(self, folder_path: str, keys: list):
+        """
+        Searches for and removes the first file in the specified folder that contains all the provided keys in its name.
+
+        Parameters:
+            folder_path (str): The path to the folder where to search for and remove the file.
+            keys (list of str): A list of string keys that must all be present in the file name for it to be removed.
+
+        Returns:
+            bool: True if a file was found and removed, False otherwise.
+        """
+         # Check if the folder path exists
+        if folder_path is None or not exists(folder_path):
+            self.logger.warning(f"Folder path '{folder_path}' does not exist yet or was not provided.")
+            return False
+
+        files = [join(folder_path, f) for f in listdir(folder_path) if isfile(join(folder_path, f)) or isdir(join(folder_path, f))]
+        files.sort()
+        keys = [str(key) for key in keys]
+        for filename in files:
+            if all(key in filename for key in keys):
+                os.remove(filename)
+                self.logger.warning(f"Removed file {filename} that met all specified criteria: {', '.join(keys)}.")
+                return True
+        return False
 
     def zoom_in_data(self, trop_lat: float = None,
                      pacific_ocean: bool = False, atlantic_ocean: bool = False, indian_ocean: bool = False,
@@ -702,6 +792,70 @@ class ToolsClass:
         Extracts the directory path from a string.
         """
         return "/".join(string.split("/")[:-1]) + "/"
+
+    def parse_time_band(self, time_band):
+        """Parse the time_band string into start time, end time, and frequency."""
+        parts = time_band.split(', ')
+        start_time = np.datetime64(parts[0])
+        end_time = start_time  # Assume single time point initially
+        freq = None  # Default frequency is None
+
+        # If there's more than one part, it might include end time or frequency
+        if len(parts) > 1:
+            # Try to identify and set the frequency
+            if 'freq=' in parts[-1]:
+                freq = parts[-1].split('=')[1]
+                end_time = np.datetime64(parts[1]) if len(parts) == 3 else start_time
+            else:
+                end_time = np.datetime64(parts[1])
+
+        return start_time, end_time, freq
+
+    def determine_common_frequency(self, freq_1, freq_2):
+        """Determine the most granular common frequency between two frequencies."""
+        # For simplicity, let's assume the only possible frequencies are 'D', 'M', 'Y'
+        freq_order = {'D': 1, 'M': 2, 'Y': 3}
+        if freq_1 == freq_2:
+            return freq_1
+        elif not freq_1 or not freq_2:
+            # If one is None, return the other
+            return freq_1 or freq_2
+        else:
+            # Return the less granular frequency (e.g., 'M' is less granular than 'D')
+            return freq_1 if freq_order[freq_1] > freq_order[freq_2] else freq_2
+
+    def merge_time_bands(self, dataset_1, dataset_2):
+        """Merge time bands from two datasets, considering start, end times, and frequency."""
+        start_1, end_1, freq_1 = self.parse_time_band(dataset_1.attrs['time_band'])
+        start_2, end_2, freq_2 = self.parse_time_band(dataset_2.attrs['time_band'])
+
+        # Determine the earliest start and latest end times
+        start_min = min(start_1, start_2)
+        end_max = max(end_1, end_2)
+
+        # Determine the most granular common frequency
+        common_freq = self.determine_common_frequency(freq_1, freq_2)
+
+        # Construct the merged time_band attribute
+        merged_time_band = f"{start_min}"
+        if end_max > start_min:  # Add end time if it's a range
+            merged_time_band += f", {end_max}"
+        if common_freq:  # Add frequency if available
+            merged_time_band += f", freq={common_freq}"
+
+        return merged_time_band
+
+    def sanitize_attributes(self, ds, max_attr_length=500):
+        """
+        Sanitize dataset attributes by truncating long values.
+
+        Parameters:
+        - ds: The xarray dataset or data array to be sanitized.
+        - max_attr_length: Maximum length of attribute values to retain.
+        """
+        for attr, value in ds.attrs.items():
+            if len(str(value)) > max_attr_length:
+                ds.attrs[attr] = str(value)[:max_attr_length] + "... [truncated]"
 
     def new_time_coordinate(self, data, dummy_data, freq=None, time_length=None, factor=None):
         """ Function to create new time coordinate

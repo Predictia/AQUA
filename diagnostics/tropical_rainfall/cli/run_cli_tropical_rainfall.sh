@@ -37,7 +37,7 @@ import sys
 try:
     machine = '$machine'
     script_dir = '$aqua'
-    with open('$script_dir/config/trop_rainfall_config.yml') as f:
+    with open('$script_dir/cli_config_trop_rainfall.yml') as f:
         config = yaml.safe_load(f)['compute_resources']
         print(config['nproc'], config['nodes'], config['walltime'], config['memory'], config['lumi_version'],
               config['account'][machine], config['partition'][machine], config['run_on_sunday'])
@@ -48,7 +48,7 @@ except Exception as e:
 
 # Check if the compute resources were read correctly
 if [ -z "$nproc" ]; then
-    echo "Failed to read compute resources from trop_rainfall_config.yml."
+    echo "Failed to read compute resources from cli_config_trop_rainfall.yml."
     exit 1
 fi
 
@@ -70,15 +70,8 @@ if [ $machine == "levante" ]; then
     source $whereconda/etc/profile.d/conda.sh
     conda init
     # activate conda environment
-    conda activate aqua_common
+    conda activate aqua
 fi
-# Function to load environment on LUMI
-function load_environment_AQUA() {
-        # Load env modules on LUMI
-    module purge
-    module use LUMI/$lumi_version
-}
-
 # Submitting the SLURM job
 echo "Submitting the SLURM job"
 if [ "$machine" == 'levante' ] || [ "$machine" == 'lumi' ]; then
@@ -87,9 +80,9 @@ if [ "$machine" == 'levante' ] || [ "$machine" == 'lumi' ]; then
 #!/bin/bash
 #SBATCH --account=$account
 #SBATCH --partition=$partition
-#SBATCH --job-name=weights
-#SBATCH --output=weights_%j.out
-#SBATCH --error=weights_%j.log
+#SBATCH --job-name=cli
+#SBATCH --output=cli_%j.out
+#SBATCH --error=cli_%j.log
 #SBATCH --nodes=$nodes
 #SBATCH --ntasks-per-node=$nproc
 #SBATCH --time=$walltime
@@ -105,14 +98,14 @@ echo "Partition: $partition"
 
 # if machine is lumi use modules
 if [ $machine == "lumi" ]; then
-    load_environment_AQUA
-    # get username
-    username=$USER
-    export PATH="/users/$username/mambaforge/aqua/bin:$PATH"
+    source $HOME/.bash_profile
+    source $HOME/.bashrc
 fi
+cd $AQUA/diagnostics/tropical_rainfall/cli
 /usr/bin/env python3 "$script_dir/cli_tropical_rainfall.py" --nproc=$nproc
 EOL
 
 else
+    cd $AQUA/diagnostics/tropical_rainfall/cli
     /usr/bin/env python3 "$script_dir/cli_tropical_rainfall.py" --nproc=$nproc
 fi
