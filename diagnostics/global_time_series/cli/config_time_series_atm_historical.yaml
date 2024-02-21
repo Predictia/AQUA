@@ -56,20 +56,3 @@ timeseries_plot_params:
   #   resample: "M"
   #   savefig: True
   #   ylim: [-10, 10]
-  lcc: # no ERA5 yet
-    plot_kw:
-      color: "tab:blue"
-    plot_ref: False
-    resample: null
-    savefig: True
-    annual: True
-  mcc: # no ERA5 yet
-    plot_ref: False
-    resample: null
-    savefig: True
-    annual: True
-  hcc: # no ERA5 yet
-    plot_ref: False
-    resample: null
-    savefig: True
-    annual: True
