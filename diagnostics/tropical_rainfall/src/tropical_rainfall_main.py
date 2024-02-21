@@ -940,6 +940,22 @@ class MainClass:
                 dataset=mtpr_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file+'_histogram_'+bins_info)
         return mtpr_dataset
 
+    def get_bins_info(self) -> str:
+        """
+        Constructs a string with information about the bins.
+
+        Returns:
+            str: A string representing the bins' first value, last value, and the count of bins - 1,
+                 with periods replaced by dashes.
+        """
+        if isinstance(self.bins, int):
+            # Dynamically generate bin edges if bins is an integer
+            bins = [self.first_edge + i * self.width_of_bin for i in range(self.num_of_bins + 1)]
+        else:
+            bins = self.bins
+        bins_info = f"{bins[0]}_{bins[-1]}_{len(bins)-1}".replace('.', '-')
+        return bins_info
+
     def merge_two_datasets(self, dataset_1: xr.Dataset = None, dataset_2: xr.Dataset = None,
                            test: bool = False) -> xr.Dataset:
         """

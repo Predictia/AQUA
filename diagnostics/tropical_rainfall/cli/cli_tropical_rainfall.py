@@ -164,17 +164,17 @@ class Tropical_Rainfall_CLI:
             if data_per_year.time.size != 0:
                 for x in range(s_month, f_month+1):
                     path_to_output = self.path_to_netcdf+f"{self.regrid}/{self.freq}/histograms/"
-                    # Check if a file that meets all specified criteria already exists in the output directory
-                    # and if the flag to rebuild the output is True
-                    if self.rebuild_output and self.diag.tools.find_files_with_keys(folder_path=path_to_output,
-                                                    keys=[str(year), str(x), self.model, self.exp, self.source, self.regrid, self.freq]):
-                        # If such a file exists and rebuilding is requested, the specific action to remove the file should be called here
-                        self.diag.tools.remove_file_if_exists_with_keys(folder_path=path_to_output,
-                                                    keys=[str(year), str(x), self.model, self.exp, self.source, self.regrid, self.freq])
-                    # If no file meeting the criteria exists, or if rebuilding is not requested
-                    elif not self.diag.tools.find_files_with_keys(folder_path=path_to_output,
-                                                                  keys=[str(year), str(x), self.model, self.exp, self.source]):
-                        # Placeholder for the actions to be taken when no matching file is found
+
+                    bins_info = self.diag.get_bins_info()
+                    keys = [f"{bins_info}_{year}-{x:02}", self.model, self.exp, self.source, self.regrid, self.freq]
+                    self.logger.debug(f"The keys are: {keys}")
+
+                    # Check for file existence based on keys and decide on rebuilding
+                    if self.rebuild_output and self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys):
+                        self.logger.info("Rebuilding output...")
+                        self.diag.tools.remove_file_if_exists_with_keys(folder_path=path_to_output, keys=keys)
+                    elif not self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys):
+                        self.logger.info("No existing output. Proceeding with data processing...")
                         try:
                             data = data_per_year.sel(time=str(year)+'-'+str(x))
                             if freq_bool:
