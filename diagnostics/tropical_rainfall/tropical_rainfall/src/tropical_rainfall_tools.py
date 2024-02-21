@@ -12,7 +12,8 @@ import yaml
 from os import listdir
 from os.path import isfile, join, exists, isdir
 
-full_path_to_config = '../tropical_rainfall/config-tropical-rainfall.yml'
+from importlib import resources
+full_path_to_config = resources.files("tropical_rainfall") / "config-tropical-rainfall.yml"
 
 regrid_dict = {
     'r250': {'deg': 2.5},
@@ -218,7 +219,7 @@ class ToolsClass:
     def select_files_by_year_and_month_range(self, path_to_histograms: str, start_year: int = None, end_year: int = None,
                                              start_month: int = None, end_month: int = None) -> list:
         """
-        Select files within a specific year and optional month range from a given directory. 
+        Select files within a specific year and optional month range from a given directory.
         If no year range is provided, return all files sorted alphabetically.
 
         Args:

@@ -5,9 +5,9 @@ from aqua.util import load_yaml, get_arg
 from aqua import Reader
 from aqua.logger import log_configure
 
-aqua_path = os.getenv('AQUA')  # This will return None if 'AQUA' is not set
-sys.path.insert(0, os.path.join(aqua_path, 'diagnostics'))
 from tropical_rainfall import Tropical_Rainfall
+aqua_path = os.getenv('AQUA')  # This will return None if 'AQUA' is not set
+
 
 def parse_arguments(args):
     """Parse command line arguments"""
@@ -84,7 +84,7 @@ def adjust_year_range_based_on_dataset(full_dataset, start_year=None, final_year
     final_year = last_year_in_dataset if final_year is None else min(final_year, last_year_in_dataset)
 
     return start_year, final_year
-     
+
 class Tropical_Rainfall_CLI:
     def __init__(self, config, args):
         self.freq = config['data']['freq']
@@ -93,18 +93,18 @@ class Tropical_Rainfall_CLI:
         self.f_year = config['data']['f_year']
         self.s_month = config['data']['s_month']
         self.f_month = config['data']['f_month']
-        
+
         self.trop_lat = config['class_attributes']['trop_lat']
         self.num_of_bins = config['class_attributes']['num_of_bins']
         self.first_edge = config['class_attributes']['first_edge']
         self.width_of_bin = config['class_attributes']['width_of_bin']
         self.model_variable = config['class_attributes']['model_variable']
         self.new_unit = config['class_attributes']['new_unit']
-        
+
         self.color  = config['plot']['color']
         self.figsize = config['plot']['figsize']
         self.xmax = config['plot']['xmax']
-        self.loc = config['plot']['loc'] 
+        self.loc = config['plot']['loc']
         self.pdf_format = config['plot']['pdf_format']
 
         self.model = get_arg(args, 'model', config['data']['model'])
@@ -119,18 +119,18 @@ class Tropical_Rainfall_CLI:
         self.mswep = config['mswep'][machine]
 
         self.logger = log_configure(log_name="Trop. Rainfall CLI", log_level=self.loglevel)
-        
+
         self.rebuild_output = config['rebuild_output']
         if path_to_output is not None:
             self.path_to_netcdf = os.path.join(path_to_output, f'netcdf/{self.model}_{self.exp}_{self.source}/')
             self.path_to_pdf = os.path.join(path_to_output, f'pdf/{self.model}_{self.exp}_{self.source}/')
         else:
             self.path_to_netcdf = self.path_to_pdf = None
-        
+
         self.reader = Reader(model=self.model, exp=self.exp, source=self.source, loglevel=self.loglevel, regrid=self.regrid, nproc=nproc)
-        self.diag = Tropical_Rainfall(trop_lat=self.trop_lat, num_of_bins=self.num_of_bins, first_edge=self.first_edge, 
+        self.diag = Tropical_Rainfall(trop_lat=self.trop_lat, num_of_bins=self.num_of_bins, first_edge=self.first_edge,
                                       width_of_bin=self.width_of_bin, loglevel=self.loglevel)
-        
+
     def need_regrid_timmean(self, full_dataset):
         """Determines whether regridding or time averaging is needed for a dataset."""
         test_sample = full_dataset.isel(time=slice(1, 5))
@@ -143,7 +143,7 @@ class Tropical_Rainfall_CLI:
         if isinstance(self.freq, str):
             freq_bool = self.diag.tools.check_need_for_time_averaging(test_sample, self.freq)
         return regrid_bool, freq_bool
-        
+
     def calculate_histogram_by_months(self):
         """
         Calculates and saves histograms for each month within a specified year range. This function checks if histograms
@@ -154,7 +154,7 @@ class Tropical_Rainfall_CLI:
         """
         full_dataset = self.reader.retrieve(var=self.model_variable)
         regrid_bool, freq_bool = self.need_regrid_timmean(full_dataset)
-        
+
         s_year, f_year = adjust_year_range_based_on_dataset(full_dataset, start_year=self.s_year, final_year=self.f_year)
         s_month = 1 if self.s_month is None else self.s_month
         f_month = 12 if self.f_month is None else self.f_month
@@ -209,17 +209,16 @@ class Tropical_Rainfall_CLI:
         plot_title = f"{self.model} {self.exp} {self.source} {self.regrid} {self.freq}"
         legend = f"{self.model} {self.exp} {self.source}"
         name_of_pdf =f"{self.model}_{self.exp}_{self.source}"
-        
+
         self.logger.debug(f"The path to file is: {self.path_to_netcdf}{self.regrid}/{self.freq}/histograms/.")
         hist_merged = self.diag.merge_list_of_histograms(path_to_histograms=self.path_to_netcdf+f"{self.regrid}/{self.freq}/histograms/",
                                                     all=True, start_year=self.s_year, end_year=self.f_year,
                                                     start_month=self.s_month, end_month=self.f_month)
-        
+
         add = self.diag.histogram_plot(hist_merged, figsize=self.figsize, new_unit=self.new_unit,
                             legend=legend, color=self.color, xmax=self.xmax, plot_title=plot_title, loc=self.loc,
                             path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
 
-        
         mswep_folder_path = f'{self.mswep}{self.regrid}/{self.freq}'
         # Check if the folder exists
         if not os.path.exists(mswep_folder_path):
@@ -242,10 +241,10 @@ def main():
     """Main function to orchestrate the tropical rainfall CLI operations."""
     args = parse_arguments(sys.argv[1:])
     validate_arguments(args)
-    
+
     config = load_configuration(get_arg(args, 'config',
                                         f'{aqua_path}/diagnostics/tropical_rainfall/cli/cli_config_trop_rainfall.yml'))
-    
+
     trop_rainfall_cli = Tropical_Rainfall_CLI(config, args)
     trop_rainfall_cli.calculate_histogram_by_months()
     trop_rainfall_cli.plot_histograms()
