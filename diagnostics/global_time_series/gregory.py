@@ -256,7 +256,7 @@ class GregoryPlot():
         self.logger.debug(f"Saving figure to {outfig}")
         create_folder(outfig, self.loglevel)
         if self.outfile is None:
-            self.outfile = 'timeseries_gregory_plot'
+            self.outfile = 'global_time_series_gregory_plot'
             for i, model in enumerate(self.models):
                 self.outfile += f"_{model}_{self.exps[i]}"
             if self.ref:
