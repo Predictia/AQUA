@@ -29,14 +29,14 @@ def submit_sbatch(model, exp, source, varname, yaml_file,
     # Construct basic sbatch command
     sbatch_cmd = [
         'sbatch',
-        '--partition=' + config.get('partition', 'small'),
+        '--partition=' + config.get('partition', 'ju-standard'),
         '--job-name=' + config.get('job_name', 'lra-generator_' + job_name),
         '--output=' + config.get('output', 'log/log-lra_' + job_name + '_%j.out'),
         '--error=' + config.get('error', 'log/log-lra_' + job_name + '_%j.err'),
         '--account=' + config.get('account', 'project_465000454'),
         '--nodes=' + str(config.get('nodes', 1)),
         '--ntasks-per-node=' + str(config.get('ntasks_per_node', workers)),
-        '--time=' + config.get('time', '00:30:00')
+        '--time=' + config.get('time', '02:00:00')
         #'--mem=' + config.get('mem', '256G')
     ]
 
