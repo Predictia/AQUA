@@ -10,7 +10,7 @@ a configuration yaml file.
 import sys
 import argparse
 from aqua import LRAgenerator
-from aqua.util import load_yaml, get_arg
+from aqua.util import load_yaml, get_arg, to_list
 from aqua import __version__ as version
 
 # to check if GSV is available and return the version
@@ -75,13 +75,13 @@ if __name__ == '__main__':
     workers = get_arg(args, 'workers', 1)
     loglevel = get_arg(args, 'loglevel', loglevel)
     
-    models = get_arg(args, 'model', config['catalog'].keys())
+    models = to_list(get_arg(args, 'model', config['catalog'].keys()))
     for model in models:
-        exps =  get_arg(args, 'exp', config['catalog'][model].keys())
+        exps =  to_list(get_arg(args, 'exp', config['catalog'][model].keys()))
         for exp in exps:
-            sources =  get_arg(args, 'source', config['catalog'][model][exp].keys())
+            sources =  to_list(get_arg(args, 'source', config['catalog'][model][exp].keys()))
             for source in sources:
-                varnames = get_arg(args, 'var', config['catalog'][model][exp][source]['vars'])
+                varnames = to_list(get_arg(args, 'var', config['catalog'][model][exp][source]['vars']))
                 for varname in varnames:
 
                     # get the zoom level
