@@ -323,11 +323,8 @@ class LRAgenerator():
                 infiles = []
 
                 for year in range(year_start, year_end+1):  
-                    filename_pattern = f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}([0-1][0-9])_tmp.nc'     
-                    for filename in os.listdir(self.tmpdir):
-                        if re.match(filename_pattern, filename):
-                            file_path = os.path.join(self.tmpdir, filename)
-                            infiles.append(file_path)
+                    infile = os.path.join(self.tmpdir, f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}??_tmp.nc')
+                    infiles.extend(glob.glob(infile))
             
                 if infiles:
                     if year_start == year_end:
