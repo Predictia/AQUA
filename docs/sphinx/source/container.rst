@@ -2,15 +2,17 @@
 Container
 =========
 
-Every new version of AQUA generates a new container available
+Every new version of AQUA generates a new container, which is available on the GitHub Container Registry.
+
+Download the container image
+----------------------------
+
+The container is available
 `here <https://github.com/DestinE-Climate-DT/AQUA/pkgs/container/aqua>`_.
 
 Using `Singularity <https://docs.sylabs.io/guides/latest/user-guide/>`_ or
 `Docker <https://docs.docker.com/>`_, you can quickly download the container and
 load the AQUA environment on any platform.
-
-Download the container image
-----------------------------
 
 Pull the container image from the docker hub using a personal access token (PAT) generated from GitHub.
 If you don't have a PAT, :ref:`pat`.
