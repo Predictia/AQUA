@@ -103,7 +103,6 @@ if __name__ == '__main__':
         logger.info(f"Changing directory to {dname}")
 
     # Import diagnostic module
-    sys.path.insert(0, "../../")
     from global_time_series import Timeseries, GregoryPlot, SeasonalCycle
 
     # Load configuration file
