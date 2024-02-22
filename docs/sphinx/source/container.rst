@@ -39,12 +39,9 @@ The container can be loaded using the following command:
 
 .. parsed-literal:: 
 
-   singularity shell aqua\_\ |version|\.sif
+   singularity shell --cleanenv aqua\_\ |version|\.sif
 
 or analogue for Docker.
-
-.. note::
-   If you encounter issues with the container, make sure you did a ``module purge`` before loading the container.
 
 Anyway, you may want to bind some folders to the container to access your data and scripts or
 to define some environment variables.
@@ -57,7 +54,7 @@ The scripts are located in the ``cli/lumi-container`` folder.
   This is the most common script to use the AQUA container on LUMI on production environment.
 - **slurm_job_container.sh**: A template for a Slurm script to use the AQUA container on LUMI.
   This is useful to run batch jobs on LUMI using the AQUA container, but it can be easily adapted to
-  any platform using Slurm.
+  any platform using Slurm. By default it opens a Jupyter Lab server on the computational node.
 
 .. _pat:
 Generate a Personal Access Token (PAT)
