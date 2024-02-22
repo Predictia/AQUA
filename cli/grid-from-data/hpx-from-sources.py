@@ -31,7 +31,7 @@ if __name__ == '__main__':
     loglevel = get_arg(args, 'loglevel', 'WARNING')
     logger = log_configure(log_level=loglevel, log_name='hpx-from-nemo')
 
-    file = get_arg(args, 'config', 'config-hpx-nemo.yaml')
+    file = get_arg(args, 'config', 'config-hpx-fesom.yaml')
     logger.info('Reading configuration from %s', file)
     config = load_yaml(file)
 
