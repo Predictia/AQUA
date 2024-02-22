@@ -32,7 +32,7 @@ sources:
         allowed: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
         description: realization member
         type: str
-        default: 1
+        default: '1'
     metadata: &metadata-default
       fdb_path: 
         /project/project_465000454/experiments/a0hy/fdb/REGULARLL_grids/etc/fdb/config.yaml

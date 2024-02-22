@@ -136,12 +136,11 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         # check that you defined zoom in a correct way
         self.zoom = None #self._check_zoom(zoom)
-        
+
         if self.zoom:
             self.esmcat = self.cat[self.model][self.exp][self.source](zoom=self.zoom, **kwargs)
         else:
             self.esmcat = self.cat[self.model][self.exp][self.source](**kwargs)
-            print(self.esmcat)
 
         # get fixes dictionary and find them
         self.fix = fix  # fix activation flag
@@ -497,7 +496,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         else:
             # If we are retrieving from fdb we have to specify the var
             if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
-
+                
                 metadata = self.esmcat.metadata
                 if metadata:
                     loadvar = metadata.get('variables')
@@ -951,6 +950,8 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         Returns:
             An xarray.Dataset or an iterator over datasets
         """
+
+        print(esmcat)
 
         if level and not isinstance(level, list):
             level = [level]
