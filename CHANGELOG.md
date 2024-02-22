@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+- Tropical rainfall: refactory and improvements (#814)
+- Tropical rainfall: pyproject file added (#850)
 - LRA cli for parallel SLURM submission (#909)
 - Timeseries: seasonal cycle is available for the global timeseries (#912)
 - Timeseries: refactory of Gregory plot as a class, comparison with multiple models and observations (#910)
@@ -41,7 +43,7 @@ and the default path is an absolute one (#859, #862)
 - Fixing the paths in `cli/lumi-install/lumi_install.sh` (#856).
 - Refactor of the documentation (#842, #871)
 - The drop warning in `aqua/gsv/intake_gsv.py` (#844)
-- Tropical cyclones diagnostic: working with new data governance (includes possibility to retrieve orography from file (#816)
+- Tropical cyclones diagnostic: working with new data governance (includes possibility to retrieve orography from file) (#816)
 
 ## [v0.6.3]
 
