@@ -40,4 +40,4 @@ platforms = [
 find = {}
 
 [tool.setuptools.dynamic]
-version = {attr = "teleconnections.__version__"}
+version = {attr = "global_time_series.__version__"}
