@@ -34,7 +34,7 @@ class LRAgenerator():
     def __init__(self,
                  model=None, exp=None, source=None, zoom=None,
                  var=None, configdir=None,
-                 resolution=None, frequency=None, fix=True, 
+                 resolution=None, frequency=None, fix=True,
                  outdir=None, tmpdir=None, nproc=1,
                  loglevel=None, overwrite=False, definitive=False,
                  exclude_incomplete=False):
@@ -357,7 +357,6 @@ class LRAgenerator():
             del data.attrs['regridded']
         return data
 
-    
     def _write_var_generator(self, var):
         """
         Write a variable to file using the GSV generator
@@ -497,7 +496,6 @@ class LRAgenerator():
             if self.definitive:
                 self._concat_var_year(var, year)
         del temp_data
-    
 
     def write_chunk(self, data, outfile):
         """Write a single chunk of data - Xarray Dataset - to a specific file
