@@ -1,7 +1,7 @@
 "Module defining a new aqua accessor to extend xarray"
 
-import aqua
 import xarray as xr
+import aqua
 
 # For now not distinguishing between dataarray and dataset methods
 @xr.register_dataset_accessor("aqua")

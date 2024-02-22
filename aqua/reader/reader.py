@@ -941,14 +941,16 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         elif isinstance(data, xr.Dataset):
             selected_vars = [da for da in data.data_vars if dim in data[da].coords]
-            final = data[selected_vars].map(self._detrend, data=data, dim=dim, 
-                                            degree=degree, skipna=skipna)
+            final = data[selected_vars].map(self._detrend, keep_attrs=True, 
+                                            dim=dim, degree=degree, skipna=skipna)
         else:
             raise ValueError('This is not an xarray object!')
 
         final = log_history(final, f"Detrended with polynominal of order {degree} along {dim} dimension")
 
-        final.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
+        # This links the dataset accessor to this instance of the Reader class
+        final.aqua.set_default(self)  
+        
 
         return final
 
