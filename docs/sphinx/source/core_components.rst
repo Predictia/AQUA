@@ -395,7 +395,7 @@ Detrending
 ----------
 
 For some analysis, removing from the data a linear trend can be helpful to highlight the internal variability.
-The ``detrend`` method can be used as a high-level wrapper of xarray functionalities to achieve this global
+The ``detrend`` method can be used as a high-level wrapper of xarray functionalities to achieve this goal.
 
 .. code-block:: python
 
