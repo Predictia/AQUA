@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
-## [v0.7.1-beta]
+## [v0.7.1]
 
 Main changes are:
 1. Complete update of the timeseries diagnostic
@@ -334,8 +334,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.1-beta...HEAD
-[v0.7.1-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7...v0.7.1-beta
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.1...HEAD
+[v0.7.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7...v0.7.1
 [v0.7]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.3...v0.7
 [v0.6.3]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.2...v0.6.3
 [v0.6.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.1...v0.6.2
