@@ -3,7 +3,7 @@
 FROM mambaorg/micromamba:1.5.6 as micromamba
 
 # -----------------------------------------------------------------------------
-FROM ghcr.io/destine-climate-dt/fdb:5.11.93-ubuntu as fdb
+FROM ghcr.io/destine-climate-dt/ubuntu22.04-fdb-aqua:ubuntu-docker as fdb
 
 # We switch to mamba user later, root for now just to create the user.
 USER root
@@ -53,7 +53,7 @@ COPY --chown=$MAMBA_USER:$MAMBA_USER . AQUA
 # but easier to use base in the container to avoid having
 # to activate or install kernels):
 RUN micromamba install -y -n base -c conda-forge gcc git vim jupyterlab && \
-    micromamba install -y -n base -f AQUA/environment-common.yml
+    micromamba install -y -n base -f AQUA/environment.yml
 
 EXPOSE 8888
 

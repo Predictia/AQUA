@@ -5,14 +5,72 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
-Unreleased in the current development version.
+Unreleased in the current development version:
 
+- LRA cli for parallel SLURM submission (#909)
+- Timeseries: seasonal cycle is available for the global timeseries (#912)
+- Timeseries: refactory of Gregory plot as a class, comparison with multiple models and observations (#910)
+- Add IFS-NEMO ssp370 scenario (#906)
+- Timeseries: complete refactory of the timeseries as a class, comparison with multiple models and observations (#907)
+- Plot timeseries is now a framework function (#907)
+
+## [v0.7]
+
+Main changes are:
+1. Multiple updates to the diagnostics, both scientific and graphical, to work with more recent GSV data
+2. `mtpr` is now used instead of `tprate` for precipitation
+2. Documentation has been reorganized and integrated
+
+Complete list:
+- New utility `add_pdf_metadata` to add metadata to a pdf file (#898)
+- Experiments `a0gg` and `a0jp` added to the IFS-NEMO catalog, and removal of `historical-1990-dev-lowres` (#889)
+- Updated notebooks to ensure consistency across different machines by using observational datasets, and included a demo of aqua components for Lumi (#868)
+- Scripts for pushing figures and docs to aqua-web (#880)
+- Fixed catalogue for historical-1990-dev-lowres source (#888, #895)
+- data_models src files are now in the aqua/data_models folder, with minor modifications (#884)
+- Warning options based on the `loglevel` (#852)
+- Timeseries: formula bugfix and annual plot only for complete years (#876)
+- mtpr instead of tprate derived from tp (#828)
+- eccodes 2.34.0 does not accomodate for AQUA step approach, pin to <2.34.0 (#873)
+- Bugfix of the `aqua-analysis` wrapper, now can work teleconnections on atmospheric and oceanic variables 
+and the default path is an absolute one (#859, #862)
+- Ocean3D: many fixes and adaptations to new data governance (#776)
+- Bugfix of the `aqua-analysis` wrapper, now can work teleconnections on atmospheric and oceanic variables (#859)
+- Radiation: adaptation to new data governance and many improvements (#727)
+- Seaice: Sea ice extent has now seasonal cycle (#797)
+- Fixing the paths in `cli/lumi-install/lumi_install.sh` (#856).
+- Refactor of the documentation (#842, #871)
+- The drop warning in `aqua/gsv/intake_gsv.py` (#844)
+- Tropical cyclones diagnostic: working with new data governance (includes possibility to retrieve orography from file (#816)
+
+## [v0.6.3]
+
+Complete list:
+- Setting last date for NaN fix for IFS-NEMO/IFS-FESOM to 1999-10-01 and cleaner merge of parent fixes (#819)
+- Hotfix to set `intake==0.7.0` as default (#841)
+- Timeseries: can add annual std and now default uncertainty is 2 std (#830)
+- `retrieve_plain()` method now set off startdate and enddate (#829)
+- Complete restructure of fixer to make use of `fixer_name`: set a default for each model and a `False` to disable it (#746)
+- Added `center_time` option in the `timmean()` method to save the time coordinate in the middle of the time interval and create a Timmean module and related TimmeanMixin class (#811)
+- Fixer to rename coordinates available (#822)
+- Fixing new pandas timedelta definition: replacing H with h in all FDB catalog (#786)
+- Change environment name from `aqua_common` to `aqua`(#805)
+- Adding a run test label to trigger CI (#826)
+- Tropical_rainfall: improve organization and maintainability, introducing nested classes (#814)
+- Revisiting CERES fixes (#833)
+- Timeseries: add bands for observation in Gregory plots (#837)
+
+## [v0.6.2]
+
+Complete list:
+- Global time series plot annual and monthly timeseries together, improved Gregory plot (#809)
+- Teleconnection can now take a time range as input and ylim in the index plot function (#799)
 - LRA to use `auto` final time and `exclude_incomplete` (#791)
 - Hotfix for v0.12.0 of the GSV_interface related to valid_time (#788)
 - Global time series adapted to new data governance (#785)
-- AtmoGlobalMean diagnostic improvements and adaptation to new data governance (#745 #789)
-- Seaince diagnostic adapted to new data governance (#790)
-- Implement a fix setting to NaN the data of the first step in each month (for historical-1990) (#776)
+- AtmoGlobalMean diagnostic improvements and adaptation to new data governance (#745 #789 #807 #812)
+- Sea-ice diagnostic adapted to new data governance (#790)
+- Implement a fix setting to NaN the data of the first step in each month (for IFS historical-1990) (#776)
 
 ## [v0.6.1]
 
@@ -269,7 +327,10 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.1...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7...HEAD
+[v0.7]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.3...v0.7
+[v0.6.3]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.2...v0.6.3
+[v0.6.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.1...v0.6.2
 [v0.6.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6...v0.6.1
 [v0.6]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.5.2-beta...v0.6
 [v0.5.2-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.5.2-alpha...v0.5.2-beta

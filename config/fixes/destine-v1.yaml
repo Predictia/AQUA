@@ -13,13 +13,25 @@ fixer_name:
                 source: E
                 src_units: m/day
                 units: kg m**-2 s**-1
-            tprate: 
+            mtpr: 
                 grib: true
                 source: TP
                 src_units: m/day
             tcc: 
                 grib: true 
                 source: TCC
+                units: frac
+            lcc: 
+                grib: true 
+                source: LCC
+                units: frac
+            mcc: 
+                grib: true 
+                source: MCC
+                units: frac
+            hcc: 
+                grib: true 
+                source: HCC
                 units: frac
             avg_tos:
                 grib: true
