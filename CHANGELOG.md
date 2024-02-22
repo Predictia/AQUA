@@ -13,7 +13,10 @@ Main changes are:
 1. Complete update of the timeseries diagnostic
 2. LRA cli for parallel SLURM submission
 3. Scenarios for IFS-NEMO available in the catalogue
+4. Tropical rainfall numerous updates
 
+- Implemented `pyproject.toml` for tropical_rainfall diagnostic (#850).
+- Updating CLi for tropical_rainfall diagnostic (#815)
 - LRA cli for parallel SLURM submission (#909)
 - Timeseries: seasonal cycle is available for the global timeseries (#912)
 - Timeseries: refactory of Gregory plot as a class, comparison with multiple models and observations (#910)
