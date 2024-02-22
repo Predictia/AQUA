@@ -8,7 +8,7 @@ name = "global_time_series"
 dynamic = ["version"]
 authors = [
     {name = "Nurisso Matteo", email = "m.nurisso@isac.cnr.it"},
-    {name = "Lukas Kluft, email = "lukas.kluft@mpimet.mpg.de"}
+    {name = "Lukas Kluft", email = "lukas.kluft@mpimet.mpg.de"}
 ]
 description = "Global time series diagnostic"
 readme = "README.md"
