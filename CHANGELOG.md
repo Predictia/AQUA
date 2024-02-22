@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+- Implemented `pyproject.toml` for global_time_series diagnostic (#920).
 - Implemented `pyproject.toml` for tropical_rainfall diagnostic (#850).
 - Updating CLi for tropical_rainfall diagnostic (#815)
 - LRA cli for parallel SLURM submission (#909)
