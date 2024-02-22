@@ -57,12 +57,3 @@ timeseries_plot_params:
   #   resample: "M"
   #   savefig: True
   #   ylim: [-10, 10]
-  lcc: # no ERA5 yet
-    plot_era5: False
-    annual: True
-  mcc: # no ERA5 yet
-    plot_ref: False
-    annual: True
-  hcc: # no ERA5 yet
-    plot_ref: False
-    annual: True
