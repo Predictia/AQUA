@@ -7,8 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
-- Tropical rainfall: refactory and improvements (#814)
-- Tropical rainfall: pyproject file added (#850)
+## [v0.7.1-beta]
+
+Main changes are:
+1. Complete update of the timeseries diagnostic
+2. LRA cli for parallel SLURM submission
+3. Scenarios for IFS-NEMO available in the catalogue
+
 - LRA cli for parallel SLURM submission (#909)
 - Timeseries: seasonal cycle is available for the global timeseries (#912)
 - Timeseries: refactory of Gregory plot as a class, comparison with multiple models and observations (#910)
@@ -329,7 +334,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.1-beta...HEAD
+[v0.7.1-beta]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7...v0.7.1-beta
 [v0.7]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.3...v0.7
 [v0.6.3]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.2...v0.6.3
 [v0.6.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.1...v0.6.2
