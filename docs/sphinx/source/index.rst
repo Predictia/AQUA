@@ -21,7 +21,7 @@ Welcome to AQUA's documentation!
    cli
    advanced_topics
    api_reference
-   troubleshooting_faq
+   troubleshooting_faq/index
    contributing
    references_acknowledgments
 
