@@ -19,6 +19,11 @@ sources:
     driver: yaml_file_cat
     args:
       path: '{{CATALOG_DIR}}/a0gg.yaml'
+  a0hy:
+    description: FDB IFS/NEMO development tco79-eORCA1 historical+scenario 1990-2020 run
+    driver: yaml_file_cat
+    args:
+      path: '{{CATALOG_DIR}}/a0hy.yaml'
   a0jp:
     description: FDB IFS/NEMO development tco79-eORCA1 scenario 2020-2050 run
     driver: yaml_file_cat
