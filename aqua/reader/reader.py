@@ -918,6 +918,54 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         return final
 
+    def detrend(self, data, dim="time", degree=1, skipna=True):
+        """
+        A basic detrending routine based on polyfit and polyval xarray functions
+        within AQUA. Given an xarray object, will provide the detrended timeseries,
+        by default working along time coordinate
+        If it is a Dataset, only variables with the required
+        coordinate will be detrended.
+
+        Args:
+            data (DataArray, Dataset): your dataset
+            dim (str): The dimension along which apply detrending
+            degree (str, optional): The degree of the polinominal fit. Default is 1, i.e. linear detrend
+            skinpna (bool, optional): skip or not the NaN
+
+        Return
+            A detrended DataArray or a Dataset 
+        """
+
+        if isinstance(data, xr.DataArray):
+            final = self._detrend(data=data, dim=dim, degree=degree, skipna=skipna)
+
+        elif isinstance(data, xr.Dataset):
+            selected_vars = [da for da in data.data_vars if dim in data[da].coords]
+            final = data[selected_vars].map(self._detrend, data=data, dim=dim, 
+                                            degree=degree, skipna=skipna)
+        else:
+            raise ValueError('This is not an xarray object!')
+
+        final = log_history(final, f"Detrended with polynominal of order {degree} along {dim} dimension")
+
+        final.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
+
+        return final
+
+    def _detrend(self, data, dim="time", degree=1, skipna=True):
+        """
+        Detrend a DataArray along a single dimension.
+        """
+
+        # calculate polynomial coefficients
+        p = data.polyfit(dim=dim, deg=degree, skipna=skipna)
+
+        # evaluate trend
+        fit = xr.polyval(data[dim], p.polyfit_coefficients)
+        
+        # remove the trend
+        return data - fit
+
     def reader_esm(self, esmcat, var):
         """Reads intake-esm entry. Returns a dataset."""
         cdf_kwargs = esmcat.metadata.get('cdf_kwargs', {"chunks": {"time": 1}})

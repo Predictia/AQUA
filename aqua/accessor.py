@@ -49,6 +49,10 @@ class AquaAccessor:
         """A basic vertical interpolation."""
         return self.instance.vertinterp(self._obj, **kwargs)
     
+    def detrend(self, **kwargs):
+        """A basic detrending."""
+        return self.instance.detrend(self._obj, **kwargs)
+    
     def stream(self, **kwargs):
         """Stream the dataset."""
         return self.instance.stream(self._obj, **kwargs)
