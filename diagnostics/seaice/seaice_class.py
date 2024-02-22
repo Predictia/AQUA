@@ -311,8 +311,8 @@ class SeaIceExtent:
             fig2.tight_layout()
             create_folder(self.outputdir, loglevel=self.loglevel)
 
-            for fmt in ["png", "pdf"]:
-                outputfig = os.path.join(self.outputdir, "pdf", str(fmt))
+            for fmt in ["pdf"]:
+                outputfig = self.outputdir + "/" + fmt
                 create_folder(outputfig, loglevel=self.loglevel)
                 fig1Name = "SeaIceExtent_" + "all_models" + "." + fmt
                 fig2Name = "SeaIceExtentCycle_" + "all_models" + "." + fmt
@@ -529,5 +529,5 @@ class SeaIceConcentration:
                 ax1[jSetup].set_title(str(model) + "-" + str(exp) + "-" + str(source)  + '\n(average over ' + " - ".join(timespan) + ")")
 
             fig1.suptitle(monthNames[month_diagnostic - 1] + ' sea ice concentration ')
-            fig1.savefig("./maps_" + hemi + ".pdf") 
+            fig1.savefig(self.outputdir + "./maps_" + hemi + ".pdf") 
         
