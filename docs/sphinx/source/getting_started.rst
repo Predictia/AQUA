@@ -98,8 +98,10 @@ Activate the environment and register the kernel with the following command:
 
 .. warning::
 
-    If you are using a container and you want to use a Jupyter notebook, you need to
-    follow some additional steps. Please refer to the :ref:`container` section for more information.
+    On lumi you cannot use mamba or conda to install the environment, so that this step is not possible.
+    Please refer to the :ref:`container` section if you are working from a container
+    or the :ref:`installation` section for more information on how to install AQUA
+    specifically on lumi.
 
 Example use case
 ----------------
