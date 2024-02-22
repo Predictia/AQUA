@@ -111,6 +111,9 @@ via a ``load_aqua.sh`` script that is generated and then called from the ``.bash
     It wraps the conda installation in a container, allowing to load LUMI modules and run from command line or batch jobs the AQUA code.
     Different LUMI module loading or setups may lead to different results, but it's the most flexible way to develop AQUA on LUMI.
 
+.. note ::
+    If you encounter any issues with the installation script, please refer to the :ref:`faq` section.
+
 Installation and use of the AQUA container
 ------------------------------------------
 

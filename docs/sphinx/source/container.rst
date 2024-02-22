@@ -43,6 +43,9 @@ The container can be loaded using the following command:
 
 or analogue for Docker.
 
+.. note::
+   If you encounter issues with the container, make sure you did a ``module purge`` before loading the container.
+
 Anyway, you may want to bind some folders to the container to access your data and scripts or
 to define some environment variables.
 
