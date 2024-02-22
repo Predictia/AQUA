@@ -136,8 +136,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         # check that you defined zoom in a correct way
         self.zoom = None #self._check_zoom(zoom)
-        print(kwargs)
-
+        
         if self.zoom:
             self.esmcat = self.cat[self.model][self.exp][self.source](zoom=self.zoom, **kwargs)
         else:
