@@ -15,8 +15,6 @@ FDB5_CONFIG_FILE=/scratch/project_465000454/igonzalez/fdb-long/config.yaml
 GSV_WEIGHTS_PATH=/scratch/project_465000454/igonzalez/gsv_weights/
 GRID_DEFINITION_PATH=/scratch/project_465000454/igonzalez/grid_definitions
 
-module purge
-
 # singularity shell can be an option depending on the requirement
 singularity exec \
     --cleanenv \

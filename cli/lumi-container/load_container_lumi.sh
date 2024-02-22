@@ -37,9 +37,6 @@ fi
 
 log_message INFO "Perfect! Now it's time to ride with AQUA ⛵"
 
-log_message INFO "Cleaning the environment"
-module purge
-
 singularity shell \
     --cleanenv \
     --env FDB5_CONFIG_FILE=$FDB5_CONFIG_FILE \
