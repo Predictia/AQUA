@@ -135,12 +135,14 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
                                            source, name="catalog")
 
         # check that you defined zoom in a correct way
-        self.zoom = self._check_zoom(zoom)
+        self.zoom = None #self._check_zoom(zoom)
+        print(kwargs)
 
         if self.zoom:
             self.esmcat = self.cat[self.model][self.exp][self.source](zoom=self.zoom, **kwargs)
         else:
             self.esmcat = self.cat[self.model][self.exp][self.source](**kwargs)
+            print(self.esmcat)
 
         # get fixes dictionary and find them
         self.fix = fix  # fix activation flag
