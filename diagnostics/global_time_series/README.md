@@ -1,25 +1,23 @@
-# Atmospheric global mean time series
+# Global mean time series
 
 Main authors:
 - Lukas Kluft (MPI, lukas.kluft@mpimet.mpg.de)
+- Matteo Nurisso (CNR, m.nurisso@isac.crn.it)
 
 ## Description
 
-This diagnostic computes and plots various (atmospheric) global mean time series.
+This diagnostic computes and plots various global mean time series and Gregory-like
+plot of radiation imbalance to diagnose model drift.
 
 ## Table of Contents
 
-* [Installation Instructions](#installation-instructions)
-
-  - [Installation on Levante](#installation-on-levante)
-
-  - [Installation on Lumi](#installation-on-lumi)
-
-* [Data requirements](#data-requirements)
-
-* [Examples](#examples)
-
-* [Contributing](#contributing)
+- [Global mean time series](#global-mean-time-series)
+  - [Description](#description)
+  - [Table of Contents](#table-of-contents)
+  - [Installation Instructions](#installation-instructions)
+  - [Data requirements](#data-requirements)
+  - [Examples](#examples)
+  - [Contributing](#contributing)
 
 ## Installation Instructions
 
@@ -28,9 +26,9 @@ common python environment provided by the AQUA framework.
 
 ## Data requirements
 
-The diagnostic reads various model runs (NextGEMS Cycle 3 at the moment) to
-compute and plot global mean time series. In addition, the time series can be
-extended to inclued ERA5 reanalysis data as reference.
+The diagnostic reads various model runs to compute and plot global mean time series.
+In addition, the time series can be
+extended to inclued any dataset as reference.
 
 ## Examples
 
@@ -42,4 +40,4 @@ The **notebook/** folder contains the following notebooks:
 
 ## Contributing
 
-This diagnostic is maintained by Lukas Kluft (@lkluft).
+This diagnostic is maintained by Lukas Kluft (@lkluft) and Matteo Nurisso (@mnurisso).
