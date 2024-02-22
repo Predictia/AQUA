@@ -4,12 +4,21 @@ Troubleshooting and FAQ
 
 This section answers frequently asked questions and addresses common issues that users may encounter when working with AQUA.
 
+List of questions
+-----------------
+
+- :ref:`faq_installation`
+- :ref:`faq_plot_single_map`
+- :ref:`faq_cite`
+
+.. _faq_installation:
 **Q: I am getting an error when trying to install AQUA on LUMI, what can I do?**
 
 It is possible that, if you're recreating the environment, the code breaks while removing the folder ``~/mambaforge/aqua/bin``, complaining the resource is busy.
 In this case you may have some processes running in the background. 
 You can check them with ``ps -ef | grep aqua | grep $USER``. and kill them manually if needed.
 
+.. _faq_plot_single_map:
 **Q: I am getting TypeError: 'GeometryCollection' object is not subscriptable when using the ``plot_single_map`` function. What can I do?**
 
 Cartopy and Matplotlib can generate some issue, expecially when plotting masked data.
@@ -19,6 +28,7 @@ This will transform the data to the target projection before plotting the contou
 Alternatively, you can try to set the ``contour`` arg to ``False`` and enable the pcolor plot,
 which may solve the issue as well.
 
+.. _faq_cite:
 **Q: How do I cite AQUA in my research or publications?**
 
 A: When using AQUA for research purposes, please cite the package 
