@@ -13,6 +13,7 @@ Unreleased in the current development version:
 - Add IFS-NEMO ssp370 scenario (#906)
 - Timeseries: complete refactory of the timeseries as a class, comparison with multiple models and observations (#907)
 - Plot timeseries is now a framework function (#907)
+- SSH: technical improvements including removal of hardcoded loglevel and timespan definition.
 
 ## [v0.7]
 
