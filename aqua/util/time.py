@@ -94,8 +94,6 @@ def _generate_expected_time_series(start_date, frequency, time_period):
     return time_series
 
 
-
-
 def check_chunk_completeness(xdataset, resample_frequency='1D', loglevel='WARNING'):
     """Support function for timmean().
     Verify that all the chunks available in a dataset are complete given a
@@ -160,3 +158,12 @@ def check_chunk_completeness(xdataset, resample_frequency='1D', loglevel='WARNIN
     boolean_mask = xr.DataArray(check_completeness, dims=('time',), coords={'time': taxis.time})
 
     return boolean_mask
+
+
+def time_to_string(time=None):
+    """Convert a time object to a string in the format YYYY-MM-DD"""
+    if time is None:
+        raise ValueError('time_to_string() requires a time argument')
+    else:
+        time = time.astype('datetime64[s]').astype('O')
+        return time.strftime('%Y-%m-%d')

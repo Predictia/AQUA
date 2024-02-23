@@ -6,7 +6,7 @@ import gc
 
 from matplotlib import pyplot as plt
 from aqua.graphics import plot_seasonalcycle
-from aqua.util import create_folder, add_pdf_metadata
+from aqua.util import create_folder, add_pdf_metadata, time_to_string
 from aqua.logger import log_configure
 
 from .timeseries import Timeseries
@@ -118,16 +118,12 @@ class SeasonalCycle(Timeseries):
         fig.savefig(os.path.join(outfig, self.outfile))
 
         description = f"Seasonal cycle of the global mean of {self.var}"
-        description += f" from {self.startdate} to {self.enddate}"
+        description += f" from {time_to_string(self.startdate)} to {time_to_string(self.enddate)}"
         for i, model in enumerate(self.models):
             description += f" for {model} {self.exps[i]}"
         if self.plot_ref:
             description += f" with {ref_label} as reference,"
-            sd_format = self.startdate.astype('datetime64[s]').astype('O')
-            sd_format = sd_format.strftime('%Y-%m-%d')
-            ed_format = self.enddate.astype('datetime64[s]').astype('O')
-            ed_format = ed_format.strftime('%Y-%m-%d')
-            description += f" std evaluated from {sd_format} to {ed_format}"
+            description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}"
         add_pdf_metadata(filename=os.path.join(outfig, self.outfile),
                          metadata_value=description)
 
