@@ -214,6 +214,7 @@ def plot_single_map_diff(data: xr.DataArray,
                          save=False, display=True,
                          sym_contour=False, sym=True,
                          outputdir='.', filename='map.png',
+                         title=None, loglevel='WARNING',
                          **kwargs):
     """
     Plot the difference of data-data_ref as map and add the data
@@ -229,13 +230,15 @@ def plot_single_map_diff(data: xr.DataArray,
         sym (bool, optional):      If True, set the colorbar for the diff to be symmetrical.
                                    Default to True
         outputdir (str, optional): Output directory. Defaults to ".".
+        filename (str, optional):  Filename. Defaults to 'map.png'.
+        title (str, optional):     Title of the figure. Defaults to None.
+        loglevel (str, optional):  Log level. Defaults to 'WARNING'.
         **kwargs:                  Keyword arguments for plot_single_map.
                                    Check the docstring of plot_single_map.
 
     Raise:
         ValueError: If data or data_ref is not a DataArray.
     """
-    loglevel = kwargs.get('loglevel', 'WARNING')
     logger = log_configure(loglevel, 'plot_single_map_diff')
 
     if isinstance(data_ref, xr.DataArray) is False or isinstance(data, xr.DataArray) is False:
@@ -248,7 +251,8 @@ def plot_single_map_diff(data: xr.DataArray,
 
     fig, ax = plot_single_map(diff_map, return_fig=True,
                               contour=contour, sym=sym,
-                              save=False, **kwargs)
+                              save=False, loglevel=loglevel,
+                              **kwargs)
 
     logger.info("Plotting the map as contour")
 
@@ -275,6 +279,10 @@ def plot_single_map_diff(data: xr.DataArray,
                            vmin=vmin_map, vmax=vmax_map)
 
     ax.clabel(ds, fmt='%1.1f', fontsize=6, inline=True)
+
+    if title:
+        logger.debug("Setting title to %s", title)
+        ax.set_title(title)
 
     if save:
         logger.debug("Saving figure to %s", outputdir)
