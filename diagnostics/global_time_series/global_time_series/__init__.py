@@ -2,7 +2,7 @@ from .gregory import GregoryPlot
 from .seasonalcycle import SeasonalCycle
 from .timeseries import Timeseries
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = ["GregoryPlot",
            "SeasonalCycle",
@@ -10,6 +10,7 @@ __all__ = ["GregoryPlot",
 
 # Changelog:
 
+# 0.3.0: pyproject.toml added
 # 0.2.0: Seasonal cycle as a class
 # 0.1.1: Gregory plot as a class
 # 0.1.0: complete refactory of the timeseries as a class
