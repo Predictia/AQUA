@@ -9,6 +9,7 @@ from time import time
 import glob
 import dask
 import xarray as xr
+import numpy as np
 import pandas as pd
 from dask.distributed import Client, LocalCluster, progress
 from dask.diagnostics import ProgressBar
@@ -133,9 +134,12 @@ class LRAgenerator():
 
         # option for time encoding, defined once for all
         self.time_encoding = {
-            'units': 'days since 1970-01-01',
+            'units': 'days since 1850-01-01 00:00:00',
             'calendar': 'standard',
-            'dtype': 'float64'
+            'dtype': 'float64',
+            'zlib' : True,
+            'complevel': 4,
+            '_FillValue': np.nan
         }
 
         self.fix = fix
@@ -279,9 +283,8 @@ class LRAgenerator():
         """
         Remove temporary directory
         """
-        if self.dask:  # self.nproc > 1
-            self.logger.info('Removing temporary directory %s', self.tmpdir)
-            shutil.rmtree(self.tmpdir)
+        self.logger.info('Removing temporary directory %s', self.tmpdir)
+        shutil.rmtree(self.tmpdir)
 
     def _concat_var_year(self, var, year):
         """
@@ -289,13 +292,13 @@ class LRAgenerator():
         from the same year
         """
 
-        infiles = os.path.join(self.outdir,
-                               f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}??.nc')
+        infiles = os.path.join(self.tmpdir,
+                               f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}??_tmp.nc')
         if len(glob.glob(infiles)) == 12:
             xfield = xr.open_mfdataset(infiles)
             self.logger.info('Creating a single file for %s, year %s...', var, str(year))
-            outfile = os.path.join(self.outdir,
-                                   f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}.nc')
+            outfile = os.path.join(self.tmpdir,
+                                   f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}_tmp.nc')
             # clean older file
             if os.path.exists(outfile):
                 os.remove(outfile)
