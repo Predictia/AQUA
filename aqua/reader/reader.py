@@ -35,8 +35,8 @@ default_space_dims = ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude',
 # default vertical dimension
 default_vertical_dims = ['nz1', 'nz', 'level', 'height']
 
-# parameters which will affect the weights
-default_weight_parameters = ['zoom']
+# parameters which will affect the weights and areas name
+default_weights_areas_parameters = ['zoom']
 
 # set default options for xarray
 xr.set_options(keep_attrs=True)
@@ -269,11 +269,12 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
                                                                                  method=self.regrid_method,
                                                                                  targetgrid=self.dst_grid_name,
                                                                                  level=levname)
-            # add the zoom level in the template file
-            if 'zoom' in self.kwargs:
-                template_file = re.sub(r'\.nc',
-                                       '_z' + str(self.kwargs['zoom']) + r'\g<0>',
-                                       template_file)
+            # add the kwargs naming in the template file
+            for parameter in default_weights_areas_parameters:
+                if parameter in self.kwargs:
+                    template_file = re.sub(r'\.nc',
+                                        '_' + parameter + str(self.kwargs[parameter]) + r'\g<0>',
+                                        template_file)
 
             self.weightsfile.update({vc: os.path.join(
                 cfg_regrid["paths"]["weights"],
@@ -428,11 +429,12 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             template_file = cfg_regrid["areas"]["template_default"].format(model=self.model,
                                                                            exp=self.exp,
                                                                            source=self.source)
-        # add the zoom level in the template file
-        if 'zoom' in self.kwargs:
-            template_file = re.sub(r'\.nc',
-                                   '_z' + str(self.kwargs['zoom']) + r'\g<0>',
-                                   template_file)
+        # add the kwargs naming in the template file
+        for parameter in default_weights_areas_parameters:
+            if parameter in self.kwargs:
+                template_file = re.sub(r'\.nc',
+                                    '_' + parameter + str(self.kwargs[parameter]) + r'\g<0>',
+                                    template_file)
 
         self.src_areafile = os.path.join(
             cfg_regrid["paths"]["areas"],
