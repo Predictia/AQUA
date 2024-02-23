@@ -21,7 +21,7 @@ from aqua.util import ConfigPath, create_folder
 from teleconnections.index import station_based_index, regional_mean_anomalies
 from teleconnections.plots import index_plot
 from teleconnections.statistics import reg_evaluation, cor_evaluation
-from teleconnections.tools import TeleconnectionsConfig
+from teleconnections.tools import TeleconnectionsConfig, set_filename
 
 
 class Teleconnection():
@@ -97,7 +97,7 @@ class Teleconnection():
         self.freq = freq
         if self.freq is None:
             self.logger.info('No time aggregation will be performed, be sure that the data is '
-                                'already at the desired frequency')
+                             'already at the desired frequency')
         self.logger.debug("Frequency: %s", self.freq)
 
         self.zoom = zoom
@@ -239,7 +239,8 @@ class Teleconnection():
         if self.model == 'ICON':
             try:
                 self.index = self.index.isel(depth_full=0)
-            except ValueError:
+            except ValueError as e:
+                self.logger.debug(f"Depth_full dimension not found, skipping: {e}")
                 self.index = self.index
 
         self.logger.info('Index evaluated')
@@ -247,7 +248,8 @@ class Teleconnection():
             raise ValueError('It was not possible to calculate the index')
 
         if self.savefile:
-            file = self.outputdir + '/' + self.filename + '_index.nc'
+            filename = set_filename(self.filename, 'index')
+            file = self.outputdir + '/' + filename + '.nc'
             self.index.to_netcdf(file)
             self.logger.info('Index saved to %s', file)
 
@@ -291,16 +293,19 @@ class Teleconnection():
 
         if self.savefile:
             if var:
-                file = self.outputdir + '/' + self.filename
-                file += '_regression_'
+                add = 'regression'
                 if season:
-                    file += season + '_'
-                file += var + '.nc'
+                    add += '_' + season
+                add += '_' + var
+                filename = set_filename(self.filename, add)
+                file = self.outputdir + '/' + filename
+                file += '.nc'
             else:
-                file = self.outputdir + '/' + self.filename
-                file += '_regression_'
+                add = 'regression'
                 if season:
-                    file += season
+                    add += '_' + season
+                filename = set_filename(self.filename, add)
+                file = self.outputdir + '/' + filename
                 file += '.nc'
             reg.to_netcdf(file)
             self.logger.info("Regression saved to %s", file)
@@ -338,17 +343,20 @@ class Teleconnection():
         cor = cor_evaluation(indx=self.index, data=data, dim=dim, season=season)
 
         if self.savefile:
+            add = 'correlation'
             if var:
-                file = self.outputdir + '/' + self.filename
-                file += '_correlation_'
+                add += '_' + var
                 if season:
-                    file += season + '_'
-                file += var + '.nc'
+                    add += '_' + season
+                filename = set_filename(self.filename, add)
+                file = self.outputdir + '/' + filename
+                file += '.nc'
             else:
-                file = self.outputdir + '/' + self.filename
-                file += '_correlation_'
+                add = 'correlation'
                 if season:
-                    file += season
+                    add += '_' + season
+                filename = set_filename(self.filename, add)
+                file = self.outputdir + '/' + filename
                 file += '.nc'
             cor.to_netcdf(file)
             self.logger.info("Correlation saved to %s", file)
@@ -375,7 +383,8 @@ class Teleconnection():
         ylabel = self.telecname + ' index'
 
         if self.savefig:
-            filename = self.filename + '_index.pdf'
+            filename = set_filename(self.filename, 'index')
+            filename += '.pdf'
 
             index_plot(indx=self.index, save=self.savefig,
                        outputdir=self.outputfig, filename=filename,
@@ -453,8 +462,8 @@ class Teleconnection():
         """
         if filename is None:
             self.logger.info('No filename specified, using the default name')
-            filename = 'teleconnections_' + self.model + '_' + self.exp + '_'\
-                       + self.source + '_' + self.telecname
+            filename = 'teleconnections_' + self.telecname + '_' + self.model + '_' + self.exp + '_'\
+                       + self.source
         self.filename = filename
         self.logger.debug("Output filename: %s", self.filename)
 
