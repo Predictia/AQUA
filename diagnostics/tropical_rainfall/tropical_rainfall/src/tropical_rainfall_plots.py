@@ -66,7 +66,7 @@ class PlottingClass:
         self.number_of_bar_ticks = number_of_bar_ticks
         self.loglevel = loglevel
         self.logger = log_configure(self.loglevel, 'Plot. Func.')
-        self.tools = ToolsClass()
+        self.tools = ToolsClass(self.loglevel)
 
     def class_attributes_update(self, pdf_format: Optional[bool] = None, figsize: Optional[float] = None,
                                 linewidth: Optional[float] = None, fontsize: Optional[int] = None,
@@ -144,6 +144,7 @@ class PlottingClass:
             path_to_pdf = path_to_pdf.replace('.pdf', '.png')
             plt.savefig(path_to_pdf, bbox_inches="tight", pad_inches=1,
                         transparent=True, facecolor="w", edgecolor='w', orientation='landscape')
+        self.logger.debug(f"The path to plot is: {path_to_pdf}")
 
     def histogram_plot(self, x: Union[np.ndarray, List[float]], data: Union[np.ndarray, List[float]],
                        positive: bool = True, xlabel: str = '', ylabel: str = '',
@@ -580,7 +581,7 @@ class PlottingClass:
             lonmax (int, optional): Maximum longitude. Defaults to 181.
             latmin (int, optional): Minimum latitude. Defaults to -90.
             latmax (int, optional): Maximum latitude. Defaults to 91.
-            model_variable (str, optional): Model variable for the plot. Defaults to 'tprate'.
+            model_variable (str, optional): Model variable for the plot. Defaults to 'mtpr'.
             figsize (float, optional): Figure size. Defaults to 1.
             number_of_bar_ticks (int, optional): Number of ticks. Defaults to 6.
             cbarlabel (str, optional): Colorbar label. Defaults to ''.
@@ -714,23 +715,23 @@ class PlottingClass:
 
         utc_time = data['utc_time']
         if relative:
-            tprate = data['tprate_relative']
+            mtpr = data['mtpr_relative']
         else:
-            tprate = data[self.model_variable]
+            mtpr = data[self.model_variable]
         try:
             units = data.units
         except AttributeError:
-            units = data.tprate.units
+            units = data.mtpr.units
 
-        plt.plot(utc_time, tprate, color=color,  label=legend,  linestyle=self.linestyle)
+        plt.plot(utc_time, mtpr, color=color,  label=legend,  linestyle=self.linestyle)
         if plot_title is None:
             if relative:
                 plt.suptitle(
                     'Relative Value of Daily Precipitation Variability', fontsize=self.fontsize+1)
-                plt.ylabel('tprate variability, '+units,  fontsize=self.fontsize-2)
+                plt.ylabel('mtpr variability, '+units,  fontsize=self.fontsize-2)
             else:
                 plt.suptitle('Daily Precipitation Variability', fontsize=self.fontsize+1)
-                plt.ylabel('relative tprate',  fontsize=self.fontsize-2)
+                plt.ylabel('relative mtpr',  fontsize=self.fontsize-2)
         else:
             plt.suptitle(plot_title, fontsize=self.fontsize+3)
 
