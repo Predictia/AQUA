@@ -90,13 +90,13 @@ class Teleconnection():
 
         self.regrid = regrid
         if self.regrid is None:
-            self.logger.warning('No regrid will be performed, be sure that the data is '
+            self.logger.info('No regrid will be performed, be sure that the data is '
                                 'already at low resolution')
         self.logger.debug("Regrid resolution: %s", self.regrid)
 
         self.freq = freq
         if self.freq is None:
-            self.logger.warning('No time aggregation will be performed, be sure that the data is '
+            self.logger.info('No time aggregation will be performed, be sure that the data is '
                                 'already at the desired frequency')
         self.logger.debug("Frequency: %s", self.freq)
 
@@ -214,7 +214,7 @@ class Teleconnection():
             self.logger.info('Rebuilding index')
 
         if self.data is None:
-            self.logger.warning('No retrieve has been performed, trying to retrieve')
+            self.logger.info('No retrieve has been performed, trying to retrieve')
             self.retrieve()
 
         # Check that data have at least 2 years:
