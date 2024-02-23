@@ -124,6 +124,7 @@ class SeasonalCycle(Timeseries):
         if self.plot_ref:
             description += f" with {ref_label} as reference,"
             description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}"
+        self.logger.debug(f"Description: {description}")
         add_pdf_metadata(filename=os.path.join(outfig, self.outfile),
                          metadata_value=description)
 

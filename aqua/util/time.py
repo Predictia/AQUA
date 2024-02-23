@@ -4,6 +4,7 @@ Module including time utilities for AQUA
 
 import math
 import pandas as pd
+import numpy as np
 import xarray as xr
 from pandas.tseries.frequencies import to_offset
 from aqua.logger import log_configure
@@ -161,9 +162,23 @@ def check_chunk_completeness(xdataset, resample_frequency='1D', loglevel='WARNIN
 
 
 def time_to_string(time=None):
-    """Convert a time object to a string in the format YYYY-MM-DD"""
+    """Convert a time object to a string in the format YYYY-MM-DD
+
+    Args:
+        time: a time object, either a string or a datetime64 object
+
+    Returns:
+        A string in the format YYYY-MM-DD
+
+    Raises:
+        ValueError if time is None
+    """
     if time is None:
         raise ValueError('time_to_string() requires a time argument')
     else:
-        time = time.astype('datetime64[s]').astype('O')
-        return time.strftime('%Y-%m-%d')
+        try:
+            time_str = time.astype('datetime64[s]').astype('O')
+            time_str = time_str.strftime('%Y-%m-%d')
+        except AttributeError:
+            time_str = time
+        return time_str
