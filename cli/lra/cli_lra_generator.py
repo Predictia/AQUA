@@ -10,7 +10,8 @@ a configuration yaml file.
 import sys
 import argparse
 from aqua import LRAgenerator
-from aqua.util import load_yaml, get_arg
+from aqua.util import load_yaml, get_arg, to_list
+from aqua import __version__ as version
 
 # to check if GSV is available and return the version
 try:
@@ -21,10 +22,12 @@ except RuntimeError:
 except KeyError:
     print("GSV not available. Environment variables not correctly set.")
 
+print('AQUA version is: ' + version)
+
 
 def parse_arguments(arguments):
     """
-    Parse command line arguments
+    Parse command line arguments for the LRA CLI
     """
 
     parser = argparse.ArgumentParser(description='AQUA LRA generator')
@@ -40,6 +43,14 @@ def parse_arguments(arguments):
                         help='overwrite existing output')
     parser.add_argument('-l', '--loglevel', type=str,
                         help='log level [default: WARNING]')
+    parser.add_argument('-m', '--model', type=str,
+                        help='model to be processed. Use with coherence with --exp')
+    parser.add_argument('-e', '--exp', type=str,
+                        help='experiment to be processed. Use with coherence with --exp and --model')
+    parser.add_argument('-s', '--source', type=str,
+                        help='source to be processed. Use with coherence with --exp and --var')
+    parser.add_argument('-v', '--var', type=str,
+                        help='var to be processed. Use with coherence with --source')
 
     return parser.parse_args(arguments)
 
@@ -58,21 +69,20 @@ if __name__ == '__main__':
     configdir = config['configdir']
     loglevel = config['loglevel']
 
-    if config['target']['aggregation']:
-        aggregation = config['target']['aggregation']
-    else:
-        aggregation = None
-
     definitive = get_arg(args, 'definitive', False)
     overwrite = get_arg(args, 'overwrite', False)
     fix = get_arg(args, 'fix', True)
     workers = get_arg(args, 'workers', 1)
     loglevel = get_arg(args, 'loglevel', loglevel)
-
-    for model in config['catalog'].keys():
-        for exp in config['catalog'][model].keys():
-            for source in config['catalog'][model][exp].keys():
-                for varname in config['catalog'][model][exp][source]['vars']:
+    
+    models = to_list(get_arg(args, 'model', config['catalog'].keys()))
+    for model in models:
+        exps =  to_list(get_arg(args, 'exp', config['catalog'][model].keys()))
+        for exp in exps:
+            sources =  to_list(get_arg(args, 'source', config['catalog'][model][exp].keys()))
+            for source in sources:
+                varnames = to_list(get_arg(args, 'var', config['catalog'][model][exp][source]['vars']))
+                for varname in varnames:
 
                     # get the zoom level
                     zoom_level = config['catalog'][model][exp][source].get('zoom', None)
@@ -82,8 +92,9 @@ if __name__ == '__main__':
                                        var=varname, resolution=resolution,
                                        frequency=frequency, fix=fix,
                                        outdir=outdir, tmpdir=tmpdir, configdir=configdir,
-                                       nproc=workers, loglevel=loglevel, aggregation=aggregation,
-                                       definitive=definitive, overwrite=overwrite)
+                                       nproc=workers, loglevel=loglevel,
+                                       definitive=definitive, overwrite=overwrite,
+                                       exclude_incomplete=True)
 
                     # check that your LRA is not already there (it will not work in streaming mode)
                     lra.check_integrity(varname)
@@ -92,7 +103,7 @@ if __name__ == '__main__':
                     lra.retrieve()
                     lra.generate_lra()
                     
-                # create the catalog once the loop is over
-                lra.create_catalog_entry()
+        # create the catalog once the loop is over
+        lra.create_catalog_entry()
 
     print('LRA run completed. Have yourself a beer!')
