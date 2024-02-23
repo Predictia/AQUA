@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from aqua.logger import log_configure
 
 
-def index_plot(indx, save=False, outputdir='./', filename='index.png',
+def index_plot(indx, save=False, outputdir='./', filename='index.pdf',
                step=False, loglevel='WARNING', **kwargs):
     """
     Index plot together with a black line at indx=0.
@@ -69,15 +69,15 @@ def index_plot(indx, save=False, outputdir='./', filename='index.png',
         logger.warning('Steps are not filled if a change in sign occurs')
 
         ax.fill_between(indx.time, indx.values, where=indx.values >= 0,
-                         step="pre", alpha=0.6, color='red')
+                        step="pre", alpha=0.6, color='red')
         ax.fill_between(indx.time, indx.values, where=indx.values < 0,
-                         step="pre", alpha=0.6, color='blue')
+                        step="pre", alpha=0.6, color='blue')
         indx.plot.step(ax=ax, color='black', alpha=0.8)
     else:
         ax.fill_between(indx.time, indx.values, where=indx.values >= 0,
-                         alpha=0.6, color='red', interpolate=True)
+                        alpha=0.6, color='red', interpolate=True)
         ax.fill_between(indx.time, indx.values, where=indx.values < 0,
-                         alpha=0.6, color='blue', interpolate=True)
+                        alpha=0.6, color='blue', interpolate=True)
         indx.plot(ax=ax, color='black', alpha=0.8)
 
     ax.hlines(y=0, xmin=min(indx['time']), xmax=max(indx['time']),
@@ -109,7 +109,7 @@ def index_plot(indx, save=False, outputdir='./', filename='index.png',
 def indexes_plot(indx1: xr.DataArray, indx2: xr.DataArray,
                  titles: list = None,
                  title: str = None,
-                 save=False, outputdir='./', filename='indexes.png',
+                 save=False, outputdir='./', filename='indexes.pdf',
                  loglevel='WARNING', **kwargs):
     """
     Use the plot_index function to plot two indexes in two
@@ -164,6 +164,8 @@ def indexes_plot(indx1: xr.DataArray, indx2: xr.DataArray,
 
     if title is not None:
         fig.suptitle(title)
+
+    fig.tight_layout()
 
     if save:
         filepath = os.path.join(outputdir, filename)
