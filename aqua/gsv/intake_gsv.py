@@ -302,6 +302,11 @@ class GSVSource(base.DataSource):
         newshape = list(shape)
         newshape[self.itime] = self.chk_size[i]
         return dask.array.from_delayed(ds, newshape, dtype)
+    
+    def get_request(self):
+        """Return to users the FDB default request"""
+
+        return self._request
 
     def to_dask(self):
         """Return a dask xarray dataset for this data source"""

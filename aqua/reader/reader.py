@@ -951,26 +951,26 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             An xarray.Dataset or an iterator over datasets
         """
 
-        print(esmcat)
+        request = esmcat.get_request()
 
         if level and not isinstance(level, list):
             level = [level]
 
         if dask:
             if self.aggregation:
-                data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
+                data = esmcat(request=request, startdate=startdate, enddate=enddate, var=var, level=level,
                               aggregation=self.aggregation,
                               logging=True, loglevel=self.loglevel).to_dask()
             else:
-                data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
+                data = esmcat(request=request, startdate=startdate, enddate=enddate, var=var, level=level,
                               logging=True, loglevel=self.loglevel).to_dask()
         else:
             if self.aggregation:
-                data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
+                data = esmcat(request=request, startdate=startdate, enddate=enddate, var=var, level=level,
                               aggregation=self.aggregation,
                               logging=True, loglevel=self.loglevel).read_chunked()
             else:
-                data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
+                data = esmcat(request=request, startdate=startdate, enddate=enddate, var=var, level=level,
                               logging=True, loglevel=self.loglevel).read_chunked()
 
         return data
