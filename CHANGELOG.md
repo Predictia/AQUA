@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 - Added graphics function to plot data and difference between two datasets on the same map (#892)
+- Implemented `pyproject.toml` for tropical_rainfall diagnostic (#850).
+- Updating CLi for tropical_rainfall diagnostic (#815)
 - LRA cli for parallel SLURM submission (#909)
 - Timeseries: seasonal cycle is available for the global timeseries (#912)
 - Timeseries: refactory of Gregory plot as a class, comparison with multiple models and observations (#910)
