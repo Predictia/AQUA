@@ -39,6 +39,10 @@ seasonal_cycle: ['2t', 'mtpr', 'mer', 'msl',
 gregory:
   ts: '2t'
   toa: ['mtnlwrf', 'mtnswrf']
+  ts_std_start: '1990-01-01'
+  ts_std_end: '2020-01-01'
+  toa_std_start: '2001-01-01'
+  toa_std_end: '2020-01-01'
   monthly: True
   annual: True
 

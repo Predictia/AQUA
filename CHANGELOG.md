@@ -9,6 +9,10 @@ Unreleased in the current development version:
 
 - Add kwargs parsing of reader arguments, passing them to intake to substitute parameters (#757)
 - Remove `zoom` and use kwargs instead (#757)
+- Added graphics function to plot data and difference between two datasets on the same map (#892)
+- Implemented `pyproject.toml` for global_time_series diagnostic (#920).
+- Implemented `pyproject.toml` for tropical_rainfall diagnostic (#850).
+- Updating CLi for tropical_rainfall diagnostic (#815)
 - LRA cli for parallel SLURM submission (#909)
 - Timeseries: seasonal cycle is available for the global timeseries (#912)
 - Timeseries: refactory of Gregory plot as a class, comparison with multiple models and observations (#910)
