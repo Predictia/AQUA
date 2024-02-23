@@ -10,7 +10,7 @@ import sys
 import gc
 
 from aqua import __version__ as aquaversion
-from aqua.util import load_yaml, get_arg
+from aqua.util import load_yaml, get_arg, add_pdf_metadata
 from aqua.exceptions import NoDataError, NotEnoughDataError
 from aqua.logger import log_configure
 from aqua.graphics import plot_single_map, plot_single_map_diff
@@ -195,6 +195,9 @@ if __name__ == '__main__':
                     logger.error('Not enough data available for %s teleconnection',
                                  telec)
                     continue
+            else:
+                ref_reg_full = None
+                ref_cor_full = None
 
             if seasons:
                 ref_reg_season = []
@@ -211,9 +214,18 @@ if __name__ == '__main__':
                         logger.error('Not enough data available for %s teleconnection',
                                      telec)
                         continue
+            else:
+                ref_reg_season = None
+                ref_cor_season = None
 
             del tc
             gc.collect()
+        else:
+            ref_index = None
+            ref_reg_full = None
+            ref_cor_full = None
+            ref_reg_season = None
+            ref_cor_season = None
 
         # Model evaluation
         logger.debug('Models to be evaluated: %s', models)
@@ -269,6 +281,9 @@ if __name__ == '__main__':
                     logger.error('Not enough data available for %s teleconnection',
                                  telec)
                     continue
+            else:
+                reg_full = None
+                cor_full = None
 
             if seasons:
                 reg_season = []
@@ -285,21 +300,27 @@ if __name__ == '__main__':
                         logger.error('Not enough data available for %s teleconnection',
                                      telec)
                         continue
+            else:
+                reg_season = None
+                cor_season = None
 
             if savefig:
                 if ref:  # Plot against the reference model
                     title = '{} index'.format(telec)
                     titles = ['{} index for {} {}'.format(telec, model, exp),
                               '{} index for {}'.format(telec, model_ref)]
+                    description = '{} index plot for {} {} and {}'.format(telec, model, exp, model_ref)
                     # Index plots
                     try:
                         filename = set_filename(filename=tc.filename, fig_type='indexes')
                         filename += '.pdf'
                         indexes_plot(indx1=tc.index, indx2=ref_index,
-                                     titles=[model, model_ref],
+                                     titles=titles,
                                      save=True, outputdir=tc.outputfig,
                                      filename=filename,
                                      loglevel=loglevel)
+                        add_pdf_metadata(filename=os.path.join(tc.outputfig, filename),
+                                         metadata_value=description)
                     except Exception as e:
                         logger.error('Error plotting %s index: %s', telec, e)
 
@@ -320,6 +341,9 @@ if __name__ == '__main__':
                                                                                             ref_cor_full_year=ref_cor_full,
                                                                                             ref_reg_season=ref_reg_season,
                                                                                             ref_cor_season=ref_cor_season)
+                    logger.debug('map_names: %s', map_names)
+                    logger.debug('titles: %s', titles)
+                    logger.debug('descriptions: %s', descriptions)
                     for i, data_map in enumerate(maps):
                         vmin = -1
                         vmax = 1
@@ -327,6 +351,7 @@ if __name__ == '__main__':
                             plot_single_map_diff(data=data_map,
                                                  data_ref=ref_maps[i],
                                                  save=True, sym=True,
+                                                 sym_contour=True,
                                                  cbar_label=cbar_labels[i],
                                                  outputdir=tc.outputfig,
                                                  filename=map_names[i],
@@ -342,6 +367,7 @@ if __name__ == '__main__':
                                 plot_single_map_diff(data=data_map,
                                                      data_ref=ref_maps[i],
                                                      save=True, sym=True,
+                                                     sym_contour=True,
                                                      cbar_label=cbar_labels[i],
                                                      outputdir=tc.outputfig,
                                                      filename=map_names[i],
@@ -352,8 +378,13 @@ if __name__ == '__main__':
                             except Exception as err2:
                                 logger.error('Error plotting %s %s %s: %s',
                                              model, exp, map_names[i], err2)
+                        try:
+                            add_pdf_metadata(filename=os.path.join(tc.outputfig, map_names[i]),
+                                             metadata_value=descriptions[i])
+                        except FileNotFoundError as e:
+                            logger.error('Error adding metadata to %s: %s', map_names[i], e)
 
-                    # Regression plot       
+                    # Regression plot
                     map_names, maps, ref_maps, titles, descriptions, cbar_labels = set_figs(telec=telec,
                                                                                             model=mod,
                                                                                             exp=exp,
@@ -370,6 +401,9 @@ if __name__ == '__main__':
                                                                                             ref_cor_full_year=ref_cor_full,
                                                                                             ref_reg_season=ref_reg_season,
                                                                                             ref_cor_season=ref_cor_season)
+                    logger.debug('map_names: %s', map_names)
+                    logger.debug('titles: %s', titles)
+                    logger.debug('descriptions: %s', descriptions)
                     for i, data_map in enumerate(maps):
                         try:
                             plot_single_map_diff(data=data_map,
@@ -398,6 +432,11 @@ if __name__ == '__main__':
                             except Exception as err2:
                                 logger.error('Error plotting %s %s %s: %s',
                                              model, exp, map_names[i], err2)
+                        try:
+                            add_pdf_metadata(filename=os.path.join(tc.outputfig, map_names[i]),
+                                             metadata_value=descriptions[i])
+                        except FileNotFoundError as e:
+                            logger.error('Error adding metadata to %s: %s', map_names[i], e)
                 else:  # Individual plots
                     # Index plot
                     try:
@@ -418,6 +457,9 @@ if __name__ == '__main__':
                                                                               cor_full=cor_full,
                                                                               reg_season=reg_season,
                                                                               cor_season=cor_season)
+                    logger.debug('map_names: %s', map_names)
+                    logger.debug('titles: %s', titles)
+                    logger.debug('descriptions: %s', descriptions)
                     for i, data_map in enumerate(maps):
                         vmin = -1
                         vmax = 1
@@ -448,6 +490,11 @@ if __name__ == '__main__':
                             except Exception as err2:
                                 logger.error('Error plotting %s %s %s: %s',
                                              model, exp, map_names[i], err2)
+                        try:
+                            add_pdf_metadata(filename=os.path.join(tc.outputfig, map_names[i]),
+                                             metadata_value=descriptions[i])
+                        except FileNotFoundError as e:
+                            logger.error('Error adding metadata to %s: %s', map_names[i], e)
                     # Regression plot
                     map_names, maps, ref_maps, titles, cbar_labels = set_figs(telec=telec,
                                                                               model=mod,
@@ -460,6 +507,9 @@ if __name__ == '__main__':
                                                                               cor_full=cor_full,
                                                                               reg_season=reg_season,
                                                                               cor_season=cor_season)
+                    logger.debug('map_names: %s', map_names)
+                    logger.debug('titles: %s', titles)
+                    logger.debug('descriptions: %s', descriptions)
                     for i, data_map in enumerate(maps):
                         try:
                             plot_single_map(data=data_map,
@@ -486,5 +536,10 @@ if __name__ == '__main__':
                             except Exception as err2:
                                 logger.error('Error plotting %s %s %s: %s',
                                              model, exp, map_names[i], err2)
+                        try:
+                            add_pdf_metadata(filename=os.path.join(tc.outputfig, map_names[i]),
+                                             metadata_value=descriptions[i])
+                        except FileNotFoundError as e:
+                            logger.error('Error adding metadata to %s: %s', map_names[i], e)
 
     logger.info('Teleconnections diagnostic finished.')
