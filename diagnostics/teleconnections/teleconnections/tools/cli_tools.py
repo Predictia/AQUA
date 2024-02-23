@@ -93,7 +93,7 @@ def set_figs(telec=None, model=None, exp=None, ref=False,
             # Regressions
             if full_year:
                 # Converting map to hPa
-                reg_full = reg_full * 100
+                reg_full = reg_full / 100
                 maps.append(reg_full)
                 filename_def = set_filename(filename, "regression")
                 title = f'NAO {model} {exp} regression map (msl)'
@@ -116,7 +116,7 @@ def set_figs(telec=None, model=None, exp=None, ref=False,
             if seasons:
                 for i, season in enumerate(seasons):
                     # Converting map to hPa
-                    reg_season[i] = reg_season[i] * 100
+                    reg_season[i] = reg_season[i] / 100
                     maps.append(reg_season[i])
                     filename_def = set_filename(filename, f"regression_{season}")
                     title = f'NAO {model} {exp} regression map (msl) for {season}'
