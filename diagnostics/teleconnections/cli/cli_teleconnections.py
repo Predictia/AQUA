@@ -441,22 +441,20 @@ if __name__ == '__main__':
                     # Index plot
                     try:
                         tc.plot_index()
-                        del tc
-                        gc.collect()
                     except Exception as e:
                         logger.error('Error plotting %s index: %s', telec, e)
                     # Correlation plot
-                    map_names, maps, ref_maps, titles, cbar_labels = set_figs(telec=telec,
-                                                                              model=mod,
-                                                                              exp=exp,
-                                                                              filename=tc.filename,
-                                                                              cor=True, reg=False,
-                                                                              full_year=full_year,
-                                                                              seasons=seasons,
-                                                                              reg_full=reg_full,
-                                                                              cor_full=cor_full,
-                                                                              reg_season=reg_season,
-                                                                              cor_season=cor_season)
+                    map_names, maps, ref_maps, titles, descriptions, cbar_labels = set_figs(telec=telec,
+                                                                                            model=mod,
+                                                                                            exp=exp,
+                                                                                            filename=tc.filename,
+                                                                                            cor=True, reg=False,
+                                                                                            full_year=full_year,
+                                                                                            seasons=seasons,
+                                                                                            reg_full=reg_full,
+                                                                                            cor_full=cor_full,
+                                                                                            reg_season=reg_season,
+                                                                                            cor_season=cor_season)
                     logger.debug('map_names: %s', map_names)
                     logger.debug('titles: %s', titles)
                     logger.debug('descriptions: %s', descriptions)
@@ -496,17 +494,17 @@ if __name__ == '__main__':
                         except FileNotFoundError as e:
                             logger.error('Error adding metadata to %s: %s', map_names[i], e)
                     # Regression plot
-                    map_names, maps, ref_maps, titles, cbar_labels = set_figs(telec=telec,
-                                                                              model=mod,
-                                                                              exp=exp,
-                                                                              filename=tc.filename,
-                                                                              cor=False, reg=True,
-                                                                              full_year=full_year,
-                                                                              seasons=seasons,
-                                                                              reg_full=reg_full,
-                                                                              cor_full=cor_full,
-                                                                              reg_season=reg_season,
-                                                                              cor_season=cor_season)
+                    map_names, maps, ref_maps, titles, descriptions, cbar_labels = set_figs(telec=telec,
+                                                                                            model=mod,
+                                                                                            exp=exp,
+                                                                                            filename=tc.filename,
+                                                                                            cor=False, reg=True,
+                                                                                            full_year=full_year,
+                                                                                            seasons=seasons,
+                                                                                            reg_full=reg_full,
+                                                                                            cor_full=cor_full,
+                                                                                            reg_season=reg_season,
+                                                                                            cor_season=cor_season)
                     logger.debug('map_names: %s', map_names)
                     logger.debug('titles: %s', titles)
                     logger.debug('descriptions: %s', descriptions)

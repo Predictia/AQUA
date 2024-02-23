@@ -186,7 +186,10 @@ def plot_single_map(data: xr.DataArray,
         create_folder(outputdir, loglevel=loglevel)
         filename = kwargs.get('filename', 'map')
         plot_format = kwargs.get('format', 'pdf')
-        filename = f"{filename}.{plot_format}"
+        if filename.endswith(plot_format):
+            logger.debug("Format already set in the filename")
+        else:
+            filename = f"{filename}.{plot_format}"
         logger.debug("Setting filename to %s", filename)
 
         logger.info("Saving figure as %s/%s", outputdir, filename)
