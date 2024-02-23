@@ -19,10 +19,9 @@ models:
     exp: 'historical-1990'
     source: 'lra-r100-monthly'
 
-# Reference are analyzed if --ref is passed to the script
-# This can be a list of models if needed.
+# Reference is analyzed if --ref is passed to the script
 # The same extra keyword arguments as for the models can be used.
-references:
+reference:
   - model: 'ERA5'
     exp: 'era5'
     source: 'monthly'
