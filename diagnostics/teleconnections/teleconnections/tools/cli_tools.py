@@ -95,20 +95,20 @@ def set_figs(telec=None, model=None, exp=None, ref=False,
                 # Converting map to hPa
                 reg_full = reg_full * 100
                 maps.append(reg_full)
-                filename = set_filename(filename, "regression")
+                filename_def = set_filename(filename, "regression")
                 title = f'NAO {model} {exp} regression map (msl)'
                 description = f'NAO {model} {exp} regression map (msl)'
 
                 if ref:
                     title += f' compared to {ref}'
-                    filename += f'_{ref}'
+                    filename_def += f'_{ref}'
                     description += f' compared to {ref}'
                     description += '\nThe contour lines are the model regression map and the filled contour map is the difference between the model and the reference regression map' # noqa
                     ref_maps.append(ref_reg_full_year)
                 else:
                     description += '\nThe contour plot is the model regression map.'
-                filename += '.pdf'
-                map_names.append(filename)
+                filename_def += '.pdf'
+                map_names.append(filename_def)
                 titles.append(title)
                 descriptions.append(description)
                 cbar_labels.append('msl [hPa]')
@@ -118,20 +118,20 @@ def set_figs(telec=None, model=None, exp=None, ref=False,
                     # Converting map to hPa
                     reg_season[i] = reg_season[i] * 100
                     maps.append(reg_season[i])
-                    filename = set_filename(filename, f"regression_{season}")
+                    filename_def = set_filename(filename, f"regression_{season}")
                     title = f'NAO {model} {exp} regression map (msl) for {season}'
                     description = f'NAO {model} {exp} regression map (msl) for {season}'
 
                     if ref:
                         title += f' compared to {ref}'
-                        filename += f'_{ref}'
+                        filename_def += f'_{ref}'
                         description += f' compared to {ref}'
                         description += '\nThe contour lines are the model regression map and the filled contour map is the difference between the model and the reference regression map' # noqa
                         ref_maps.append(ref_reg_season[i])
                     else:
                         description += '\nThe contour plot is the model regression map.'
-                    filename += '.pdf'
-                    map_names.append(filename)
+                    filename_def += '.pdf'
+                    map_names.append(filename_def)
                     titles.append(title)
                     descriptions.append(description)
                     cbar_labels.append('msl [hPa]')
@@ -146,14 +146,14 @@ def set_figs(telec=None, model=None, exp=None, ref=False,
 
                 if ref:
                     title += f' compared to {ref}'
-                    filename += f'_{ref}'
+                    filename_def += f'_{ref}'
                     description += f' compared to {ref}'
                     description += '\nThe contour lines are the model correlation map and the filled contour map is the difference between the model and the reference correlation map'
                     ref_maps.append(ref_cor_full_year)
                 else:
                     description += '\nThe contour plot is the model correlation map.'
-                filename += '.pdf'
-                map_names.append(filename)
+                filename_def += '.pdf'
+                map_names.append(filename_def)
                 titles.append(title)
                 descriptions.append(description)
                 cbar_labels.append('Pearson correlation coefficient')
@@ -161,20 +161,20 @@ def set_figs(telec=None, model=None, exp=None, ref=False,
             if seasons:
                 for i, season in enumerate(seasons):
                     maps.append(cor_season[i])
-                    filename = set_filename(filename, f"correlation_{season}")
+                    filename_def = set_filename(filename, f"correlation_{season}")
                     title = f'NAO {model} {exp} correlation map (msl) for {season}'
                     description = f'NAO {model} {exp} correlation map (msl) for {season}'
 
                     if ref:
                         title += f' compared to {ref}'
-                        filename += f'_{ref}'
+                        filename_def += f'_{ref}'
                         description += f' compared to {ref}'
                         description += '\nThe contour lines are the model correlation map and the filled contour map is the difference between the model and the reference correlation map'
                         ref_maps.append(ref_cor_season[i])
                     else:
                         description += '\nThe contour plot is the model correlation map.'
-                    filename += '.pdf'
-                    map_names.append(filename)
+                    filename_def += '.pdf'
+                    map_names.append(filename_def)
                     titles.append(title)
                     descriptions.append(description)
                     cbar_labels.append('Pearson correlation coefficient')
@@ -184,20 +184,20 @@ def set_figs(telec=None, model=None, exp=None, ref=False,
             # Regressions
             if full_year:
                 maps.append(reg_full)
-                filename = set_filename(filename, "regression")
+                filename_def = set_filename(filename, "regression")
                 title = f'ENSO {model} {exp} regression map (msl)'
                 description = f'ENSO {model} {exp} regression map (msl)'
 
                 if ref:
                     title += f' compared to {ref}'
-                    filename += f'_{ref}'
+                    filename_def += f'_{ref}'
                     description += f' compared to {ref}'
                     description += '\nThe contour lines are the model regression map and the filled contour map is the difference between the model and the reference regression map'
                     ref_maps.append(ref_reg_full_year)
                 else:
                     description += '\nThe contour plot is the model regression map.'
-                filename += '.pdf'
-                map_names.append(filename)
+                filename_def += '.pdf'
+                map_names.append(filename_def)
                 titles.append(title)
                 descriptions.append(description)
                 cbar_labels.append('avg_tos [K]')
@@ -205,20 +205,20 @@ def set_figs(telec=None, model=None, exp=None, ref=False,
             if seasons:
                 for i, season in enumerate(seasons):
                     maps.append(reg_season[i])
-                    filename = set_filename(filename, f"regression_{season}")
+                    filename_def = set_filename(filename, f"regression_{season}")
                     title = f'ENSO {model} {exp} regression map (msl) for {season}'
                     description = f'ENSO {model} {exp} regression map (msl) for {season}'
 
                     if ref:
                         title += f' compared to {ref}'
-                        filename += f'_{ref}'
+                        filename_def += f'_{ref}'
                         description += f' compared to {ref}'
                         description += '\nThe contour lines are the model regression map and the filled contour map is the difference between the model and the reference regression map'
                         ref_maps.append(ref_reg_season[i])
                     else:
                         description += '\nThe contour plot is the model regression map.'
-                    filename += '.pdf'
-                    map_names.append(filename)
+                    filename_def += '.pdf'
+                    map_names.append(filename_def)
                     titles.append(title)
                     descriptions.append(description)
                     cbar_labels.append('avg_tos [K]')
@@ -227,20 +227,20 @@ def set_figs(telec=None, model=None, exp=None, ref=False,
         if cor:
             if full_year:
                 maps.append(cor_full)
-                filename = set_filename(filename, "correlation")
+                filename_def = set_filename(filename, "correlation")
                 title = f'ENSO {model} {exp} correlation map (msl)'
                 description = f'ENSO {model} {exp} correlation map (msl)'
 
                 if ref:
                     title += f' compared to {ref}'
-                    filename += f'_{ref}'
+                    filename_def += f'_{ref}'
                     description += f' compared to {ref}'
                     description += '\nThe contour lines are the model correlation map and the filled contour map is the difference between the model and the reference correlation map'
                     ref_maps.append(ref_cor_full_year)
                 else:
                     description += '\nThe contour plot is the model correlation map.'
-                filename += '.pdf'
-                map_names.append(filename)
+                filename_def += '.pdf'
+                map_names.append(filename_def)
                 titles.append(title)
                 descriptions.append(description)
                 cbar_labels.append('Pearson correlation coefficient')
@@ -248,20 +248,20 @@ def set_figs(telec=None, model=None, exp=None, ref=False,
             if seasons:
                 for i, season in enumerate(seasons):
                     maps.append(cor_season[i])
-                    filename = set_filename(filename, f"correlation_{season}")
+                    filename_def = set_filename(filename, f"correlation_{season}")
                     title = f'ENSO {model} {exp} correlation map (msl) for {season}'
                     description = f'ENSO {model} {exp} correlation map (msl) for {season}'
 
                     if ref:
                         title += f' compared to {ref}'
-                        filename += f'_{ref}'
+                        filename_def += f'_{ref}'
                         description += f' compared to {ref}'
                         description += '\nThe contour lines are the model correlation map and the filled contour map is the difference between the model and the reference correlation map'
                         ref_maps.append(ref_cor_season[i])
                     else:
                         description += '\nThe contour plot is the model correlation map.'
-                    filename += '.pdf'
-                    map_names.append(filename)
+                    filename_def += '.pdf'
+                    map_names.append(filename_def)
                     titles.append(title)
                     descriptions.append(description)
                     cbar_labels.append('Pearson correlation coefficient')

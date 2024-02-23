@@ -170,6 +170,6 @@ def indexes_plot(indx1: xr.DataArray, indx2: xr.DataArray,
     if save:
         filepath = os.path.join(outputdir, filename)
         fig.savefig(filepath)
-        logger.debug("Fig saved in %s", filepath)
+        logger.info("Fig saved in %s", filepath)
 
     return fig, axs
