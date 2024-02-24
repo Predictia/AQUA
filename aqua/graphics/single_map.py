@@ -149,7 +149,7 @@ def plot_single_map(data: xr.DataArray,
                         wspace=0.1, hspace=0.5)
 
     # Add a colorbar axis at the bottom of the graph
-    cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.02])
+    cbar_ax = fig.add_axes([0.1, 0.15, 0.8, 0.02])
 
     cbar_label = cbar_get_label(data,
                                 cbar_label=kwargs.get('cbar_label', None),
@@ -162,9 +162,10 @@ def plot_single_map(data: xr.DataArray,
     # Make tick of colorbar simmetric if sym=True
     if sym:
         logger.debug("Setting colorbar ticks to be symmetrical")
-        cbar.set_ticks(np.linspace(-vmax, vmax, nlevels + 1))
+        bar_ticks = np.linspace(-vmax, vmax, nlevels + 1)
     else:
-        cbar.set_ticks(np.linspace(vmin, vmax, nlevels + 1))
+        bar_ticks = np.linspace(vmin, vmax, nlevels + 1)
+    cbar.set_ticks(bar_ticks)
 
     # Set x-y labels
     ax.set_xlabel('Longitude [deg]')
