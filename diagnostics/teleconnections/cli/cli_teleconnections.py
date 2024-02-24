@@ -466,7 +466,7 @@ if __name__ == '__main__':
                         vmax = 1
                         try:
                             plot_single_map(data=data_map,
-                                            save=True, sym=True,
+                                            save=True, sym=False,
                                             cbar_label=cbar_labels[i],
                                             outputdir=tc.outputfig,
                                             filename=map_names[i],
@@ -480,7 +480,7 @@ if __name__ == '__main__':
                             logger.info('Trying with transform_first=True')
                             try:
                                 plot_single_map(data=data_map,
-                                                save=True, sym=True,
+                                                save=True, sym=False,
                                                 cbar_label=cbar_labels[i],
                                                 outputdir=tc.outputfig,
                                                 filename=map_names[i],
