@@ -313,7 +313,8 @@ if __name__ == '__main__':
                     logger.debug('Description: %s', description)
                     # Index plots
                     try:
-                        filename = set_filename(filename=tc.filename, fig_type='indexes')
+                        filename = set_filename(filename=tc.filename, fig_type='index')
+                        filename += '_{}'.format(model_ref)
                         filename += '.pdf'
                         indexes_plot(indx1=tc.index, indx2=ref_index,
                                      titles=titles,
@@ -358,8 +359,8 @@ if __name__ == '__main__':
                                                  filename=map_names[i],
                                                  title=titles[i],
                                                  transform_first=False,
-                                                 vmin_map=vmin, vmax_map=vmax,
-                                                 vmin=vmin, vmax=vmax,
+                                                 vmin_contour=vmin, vmax_contour=vmax,
+                                                 vmin_fill=vmin, vmax_fill=vmax,
                                                  loglevel=loglevel)
                         except Exception as err:
                             logger.warning('Error plotting %s %s %s: %s',
@@ -375,8 +376,8 @@ if __name__ == '__main__':
                                                      filename=map_names[i],
                                                      title=titles[i],
                                                      transform_first=True,
-                                                     vmin_map=vmin, vmax_map=vmax,
-                                                     vmin=vmin, vmax=vmax,
+                                                     vmin_contour=vmin, vmax_contour=vmax,
+                                                     vmin_fill=vmin, vmax_fill=vmax,
                                                      loglevel=loglevel)
                             except Exception as err2:
                                 logger.error('Error plotting %s %s %s: %s',
