@@ -130,9 +130,9 @@ class Teleconnection():
         if self.savefile or self.savefig:
             self._filename(filename)
             if self.savefile:
-                self.logger.info("Saving file to %s/%s", outputdir, filename)
+                self.logger.info("Saving file to %s/%s", outputdir, self.filename)
             if self.savefig:
-                self.logger.info("Saving figures to %s/%s", outputfig, filename)
+                self.logger.info("Saving figures to %s/%s", outputfig, self.filename)
 
         # Data empty at the beginning
         self.data = None
