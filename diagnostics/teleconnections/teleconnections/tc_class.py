@@ -214,7 +214,7 @@ class Teleconnection():
         if self.index is not None and not rebuild:
             self.logger.warning('Index already calculated, skipping')
             return
-        elif self.index is None and not rebuild:
+        elif self.index is None and not rebuild and self.savefile:
             self._check_index_file()
 
         if rebuild and self.index is not None:
