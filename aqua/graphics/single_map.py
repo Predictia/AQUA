@@ -214,6 +214,7 @@ def plot_single_map(data: xr.DataArray,
 
 def plot_single_map_diff(data: xr.DataArray,
                          data_ref: xr.DataArray,
+                         vmin_map=None, vmax_map=None,
                          save=False, display=True,
                          sym_contour=False, sym=True,
                          outputdir='.', filename='map.png',
@@ -226,6 +227,8 @@ def plot_single_map_diff(data: xr.DataArray,
     Args:
         data (xr.DataArray):       Data to plot.
         data_ref (xr.DataArray):   Reference data to plot the difference.
+        vmin_map (float, optional): Minimum value for the difference colorbar.
+        vmax_map (float, optional): Maximum value for the difference colorbar.
         save (bool, optional):     If True, save the figure. Defaults to False.
         display (bool, optional):  If True, display the figure. Defaults to True.
         sym_contour (bool, optional): If True, set the contour levels to be symmetrical.
@@ -269,8 +272,14 @@ def plot_single_map_diff(data: xr.DataArray,
             logger.warning("Cyclic longitude can be set to False with the cyclic_lon kwarg")
 
     # Evaluate vmin and vmax of the contour
-    vmin_map, vmax_map = evaluate_colorbar_limits(maps=[data],
-                                                  sym=sym_contour)
+    if vmin_map is None or vmax_map is None:
+        vmin_map, vmax_map = evaluate_colorbar_limits(maps=[data],
+                                                      sym=sym_contour)
+    else:
+        if sym_contour:
+            logger.warning("sym_contour=True, vmin_map and vmax_map given will be ignored")
+            vmin_map, vmax_map = evaluate_colorbar_limits(maps=[data],
+                                                          sym=sym_contour)
 
     logger.debug("Setting difference vmin to %s, vmax to %s",
                  vmin_map, vmax_map)
