@@ -310,6 +310,7 @@ if __name__ == '__main__':
                     titles = ['{} index for {} {}'.format(telec, model, exp),
                               '{} index for {}'.format(telec, model_ref)]
                     description = '{} index plot for {} {} and {}'.format(telec, model, exp, model_ref)
+                    logger.debug('Description: %s', description)
                     # Index plots
                     try:
                         filename = set_filename(filename=tc.filename, fig_type='indexes')
@@ -326,7 +327,7 @@ if __name__ == '__main__':
 
                     # Correlation plot
                     map_names, maps, ref_maps, titles, descriptions, cbar_labels = set_figs(telec=telec,
-                                                                                            model=mod,
+                                                                                            model=model,
                                                                                             exp=exp,
                                                                                             ref=model_ref,
                                                                                             filename=tc.filename,
@@ -350,13 +351,14 @@ if __name__ == '__main__':
                         try:
                             plot_single_map_diff(data=data_map,
                                                  data_ref=ref_maps[i],
-                                                 save=True, sym=True,
-                                                 sym_contour=True,
+                                                 save=True,
+                                                 sym=False, sym_contour=False,
                                                  cbar_label=cbar_labels[i],
                                                  outputdir=tc.outputfig,
                                                  filename=map_names[i],
                                                  title=titles[i],
                                                  transform_first=False,
+                                                 vmin_map=vmin, vmax_map=vmax,
                                                  vmin=vmin, vmax=vmax,
                                                  loglevel=loglevel)
                         except Exception as err:
@@ -366,13 +368,14 @@ if __name__ == '__main__':
                             try:
                                 plot_single_map_diff(data=data_map,
                                                      data_ref=ref_maps[i],
-                                                     save=True, sym=True,
-                                                     sym_contour=True,
+                                                     save=True,
+                                                     sym=False, sym_contour=False,
                                                      cbar_label=cbar_labels[i],
                                                      outputdir=tc.outputfig,
                                                      filename=map_names[i],
                                                      title=titles[i],
                                                      transform_first=True,
+                                                     vmin_map=vmin, vmax_map=vmax,
                                                      vmin=vmin, vmax=vmax,
                                                      loglevel=loglevel)
                             except Exception as err2:
@@ -386,7 +389,7 @@ if __name__ == '__main__':
 
                     # Regression plot
                     map_names, maps, ref_maps, titles, descriptions, cbar_labels = set_figs(telec=telec,
-                                                                                            model=mod,
+                                                                                            model=model,
                                                                                             exp=exp,
                                                                                             ref=model_ref,
                                                                                             filename=tc.filename,
@@ -445,7 +448,7 @@ if __name__ == '__main__':
                         logger.error('Error plotting %s index: %s', telec, e)
                     # Correlation plot
                     map_names, maps, ref_maps, titles, descriptions, cbar_labels = set_figs(telec=telec,
-                                                                                            model=mod,
+                                                                                            model=model,
                                                                                             exp=exp,
                                                                                             filename=tc.filename,
                                                                                             cor=True, reg=False,
@@ -495,7 +498,7 @@ if __name__ == '__main__':
                             logger.error('Error adding metadata to %s: %s', map_names[i], e)
                     # Regression plot
                     map_names, maps, ref_maps, titles, descriptions, cbar_labels = set_figs(telec=telec,
-                                                                                            model=mod,
+                                                                                            model=model,
                                                                                             exp=exp,
                                                                                             filename=tc.filename,
                                                                                             cor=False, reg=True,
