@@ -13,6 +13,8 @@ Available teleconnections:
     - ENSO
 """
 import os
+import xarray as xr
+import pandas as pd
 
 from aqua.exceptions import NoDataError, NotEnoughDataError
 from aqua.logger import log_configure
@@ -205,17 +207,22 @@ class Teleconnection():
         Raises:
             ValueError: If the index is not calculated correctly.
         """
+        if self.data is None and self.index is None:
+            self.logger.info('No retrieve has been performed, trying to retrieve')
+            self.retrieve()
 
         if self.index is not None and not rebuild:
             self.logger.warning('Index already calculated, skipping')
             return
+        elif self.index is None and not rebuild:
+            self._check_index_file()
 
         if rebuild and self.index is not None:
             self.logger.info('Rebuilding index')
+            self.index = None
 
-        if self.data is None:
-            self.logger.info('No retrieve has been performed, trying to retrieve')
-            self.retrieve()
+        if self.index is not None:
+            return
 
         # Check that data have at least 2 years:
         if len(self.data[self.var].time) < 24:
@@ -563,3 +570,59 @@ class Teleconnection():
                 return data, dim
 
         return data, dim
+
+    def _check_index_file(self):
+        """Check if the index file is already present."""
+        self.logger.debug("Checking if index has been calculated in a previous session")
+        filename = set_filename(self.filename, 'index')
+        file = self.outputdir + '/' + filename + '.nc'
+        if os.path.isfile(file):
+            self.logger.info('Index found in %s', file)
+            self.index = xr.open_mfdataset(file)
+            if isinstance(self.index, xr.Dataset):
+                try:
+                    self.index = self.index['index']
+                except KeyError:
+                    self.logger.warning("Index not found in the file, rebuilding")
+                    self.index = None
+                    return
+            else:
+                self.logger.warning("Index is not a Dataset, skipping")
+                self.index = None
+                return
+
+            # Checking if the index has the correct time span
+            self._check_index_time()
+
+    def _check_index_time(self):
+        """Check if the index has the correct time span."""
+        index_start = self.index.time[0].values
+        index_end = self.index.time[-1].values
+
+        self.logger.debug(f"Index has time span {index_start} - {index_end}")
+
+        data_start = self.startdate if self.startdate is not None else self.data[self.var].time[0].values
+        data_end = self.enddate if self.enddate is not None else self.data[self.var].time[-1].values
+
+        self.logger.debug(f"Selected time span: {data_start} - {data_end}")
+
+        # Adapt the data time span since the first and last month are dropped in the index evaluation
+        # formula adapted to a generic months_window
+        data_start = data_start + pd.DateOffset(months=(self.months_window-1)/2)
+        data_end = data_end - pd.DateOffset(months=(self.months_window-1)/2)
+
+        if index_start > data_start:
+            self.logger.info("Index start date after the start date of the data, "
+                             "rebuilding the index")
+            self.index = None
+            return
+        if index_end < data_end:
+            self.logger.info("Index end date before the end date of the data, "
+                             "rebuilding the index")
+            self.index = None
+            return
+
+        if index_start < data_start or index_end > data_end:
+            self.logger.debug("Index has a compatible time span, but it is not the same as the data")
+            self.index = self.index.sel(time=slice(data_start, data_end))
+        self.logger.info("Index has the correct time span, skipping the evaluation")
