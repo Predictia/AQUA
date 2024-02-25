@@ -611,18 +611,10 @@ class Teleconnection():
         data_start = data_start + pd.DateOffset(months=(self.months_window-1)/2)
         data_end = data_end - pd.DateOffset(months=(self.months_window-1)/2)
 
-        if index_start > data_start:
-            self.logger.info("Index start date after the start date of the data, "
-                             "rebuilding the index")
+        if index_start == data_start and index_end == data_end:
+            self.logger.info("Index has the correct time span, skipping the evaluation")
+            return
+        else:
+            self.logger.debug("Index has a different time span, rebuilding the index")
             self.index = None
             return
-        if index_end < data_end:
-            self.logger.info("Index end date before the end date of the data, "
-                             "rebuilding the index")
-            self.index = None
-            return
-
-        if index_start < data_start or index_end > data_end:
-            self.logger.debug("Index has a compatible time span, but it is not the same as the data")
-            self.index = self.index.sel(time=slice(data_start, data_end))
-        self.logger.info("Index has the correct time span, skipping the evaluation")
