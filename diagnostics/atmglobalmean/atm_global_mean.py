@@ -248,7 +248,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
         create_folder(folder=str(outputdir), loglevel='WARNING')
         # Write the data into a NetCDF file
         data_directory = outputdir
-        data_filename = f"Seasonal_Bias_Data_{var_name}_{statistic}_{model_label1}_{start_date1}_{end_date1}_{model_label2}_{start_date2}_{end_date2}.nc"
+        data_filename = f"atmglobalmean.seasonal_bias.{var_name}.{statistic}.{model_label1}.{model_label2}.nc"
         data_path = os.path.join(data_directory, data_filename)
 
         data_array = xr.concat(results, dim='season')
@@ -265,7 +265,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
     if outputfig:
         create_folder(folder=str(outputfig), loglevel='WARNING')
         # Save the figure
-        filename = f"{outputfig}Seasonal_Bias_Plot_{var_name}_{statistic}_{model_label1}_{start_date1}_{end_date1}_{model_label2}_{start_date2}_{end_date2}.pdf"
+        filename = f"{outputfig}/atmglobalmean.seasonal_bias.{var_name}.{statistic}.{model_label1}.{model_label2}.pdf"
         plt.savefig(filename, dpi=300, format='pdf')
         logger.info(f"The seasonal bias plots have been saved to {outputfig} for {var_name} variable.")
     else:
@@ -390,14 +390,14 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None,
         if outputdir:
             create_folder(folder=str(outputdir), loglevel=loglevel)
             # Save the data into a NetCDF file
-            filename = f"{outputdir}/Vertical_bias_{var_name}_{model_label1}_{start_date1}_{end_date1}_{model_label2}_{start_date2}_{end_date2}.nc"
+            filename = f"{outputdir}/atmglobalmean.vertical_bias.{var_name}.{model_label1}.{model_label2}.nc"
             mean_bias.to_netcdf(filename)
             logger.info(f"The zonal bias for a selected models has been saved to {outputdir} for {var_name} variable.")
 
         if outputfig:
             create_folder(folder=str(outputfig), loglevel=loglevel)
             # Save the plot as a PDF file
-            filename = f"Vertical_biases_{var_name}_{model_label1}_{start_date1}_{end_date1}_{model_label2}_{start_date2}_{end_date2}.pdf"
+            filename = f"atmglobalmean.vertical_bias.{var_name}.{model_label1}.{model_label2}.pdf"
             output_path = os.path.join(outputfig, filename)
             plt.savefig(output_path, dpi=300, format='pdf')
             logger.info(f"The zonal bias plot for a selected models have been saved to {outputfig} for {var_name} variable.")
@@ -497,7 +497,7 @@ def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=N
     if outputdir is not None:
         create_folder(folder=str(outputdir), loglevel='WARNING')
         # Save the data into a NetCDF file
-        data_filename = f"Statistics_Data_{var_name}_{model_label}_{start_date}_{end_date}.nc"
+        data_filename = f"atmglobalmean.statistics_maps.{var_name}.{model_label}.nc"
         data_path = os.path.join(outputdir, data_filename)
 
         data_array = var_data.to_dataset(name=var_name)
@@ -510,7 +510,7 @@ def plot_map_with_stats(dataset=None, var_name=None, start_date=None, end_date=N
     if outputfig is not None:
         create_folder(folder=str(outputfig), loglevel='WARNING')
         # Save the plot as a PDF file
-        filename = f"Statistics_maps_{var_name}_{model_label}_{start_date}_{end_date}.pdf"
+        filename = f"atmglobalmean.statistics_maps.{var_name}.{model_label}.pdf"
         output_path = os.path.join(outputfig, filename)
         plt.savefig(output_path, dpi=300, format='pdf')
         logger.info(f"Plot a map of {var_name} variable have been saved to {outputfig}.")
