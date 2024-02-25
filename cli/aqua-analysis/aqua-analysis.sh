@@ -289,3 +289,12 @@ done
 # Wait for all background processes to finish
 wait
 log_message INFO "Finished all diagnostics"
+
+# Remove dates from EC-mean filenames
+if [[ "${atm_oce_diagnostics[@]}" =~ "ecmean" ]]; then
+  for file in $outputdir_atm/ecmean/*/*_????_????.pdf
+  do
+    echo mv -- "$file" "${file%_*_*}.pdf"
+  done
+fi
+log_message INFO "Final fixes done"
