@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+- Teleconnections: capability to find index file if already present (#926)
 - Added graphics function to plot data and difference between two datasets on the same map (#892)
 - Implemented `pyproject.toml` for global_time_series diagnostic (#920).
 - Implemented `pyproject.toml` for tropical_rainfall diagnostic (#850).

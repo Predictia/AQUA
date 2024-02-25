@@ -31,13 +31,7 @@ reference:
 # Structure of the output directory:
 # outputdir
 # ├── pdf
-# │   ├── NAO
-# │   ├── ENSO
-# │   └── ...
-# ├── netcdf
-# |   ├── NAO
-# |   ├── ENSO
-# |   └── ...
+# └── netcdf
 outputdir: './output' # common output directory for figures and netcdf files
 
 # Configdir for the teleconnections
