@@ -25,11 +25,11 @@ def kelvin_to_celsius(data, variable_name, loglevel= "WARNING"):
     """
     logger = log_configure(loglevel, 'Unit')
     # Check if the variable exists in the dataset
-    if data.ocpt.attrs['units']== 'K':
+    if data.avg_thetao.attrs['units']== 'K' or 'kelvin':
         logger.warning("The unit of Pot. Temperature is Kelvin. Converting to degC")
         # Convert Kelvin to Celsius: Celsius = Kelvin - 273.15
         data[variable_name] -= 273.15
-        data.ocpt.attrs['units']= 'degC'
+        data.avg_thetao.attrs['units']= 'degC'
     return data
 
 def check_variable_name(data, loglevel= "WARNING"):
@@ -46,7 +46,7 @@ def check_variable_name(data, loglevel= "WARNING"):
     logger = log_configure(loglevel, 'Check Variables')
     vars = list(data.variables)
     required_vars= []
-    var_list= ["SO","so","thetao","THETAO","avg_SO","avg_so","avg_thetao","avg_THETAO",
+    var_list= ["SO","avg_so","thetao","THETAO","avg_SO","avg_so","avg_thetao","avg_THETAO",
                "toce_mean","soce_mean"]
     for var in vars:
         if var in var_list:
@@ -56,17 +56,17 @@ def check_variable_name(data, loglevel= "WARNING"):
         data = data[required_vars]
         logger.debug("Selected this variables")
         for var in required_vars:
-            if 'so' in var.lower() or 'soce' in var.lower():
-                data = data.rename({var: "so"})
-                logger.debug("renaming %s as so", var)
+            if 'avg_so' in var.lower() or 'soce' in var.lower():
+                data = data.rename({var: "avg_so"})
+                logger.debug("renaming %s as avg_so", var)
             if 'thetao' in var.lower() or 'toce' in var.lower():
-                data = data.rename({var: "ocpt"})
-                logger.debug("renaming %s as ocpt", var)
-        data = kelvin_to_celsius(data, "ocpt")
+                data = data.rename({var: "avg_thetao"})
+                logger.debug("renaming %s as avg_thetao", var)
     else:
         raise ValueError("Required variable avg_so and avg_thetao is not available in the catalogue")
     vertical_coord = find_vert_coord(data)[0]
     data = data.rename({vertical_coord: "lev"})
+    data = kelvin_to_celsius(data, "avg_thetao")
     return data
 
 def time_slicing(data, start_year, end_year, loglevel= "WARNING"):
@@ -296,8 +296,10 @@ def load_obs_data(model='EN4', exp='en4', source='monthly', loglevel= "WARNING")
 
     den4 = reader.retrieve()
     # We standardise the name for the vertical dimension
-    den4 = den4.rename({"depth": "lev"})
-    den4 = den4[["ocpt", "so"]].resample(time="MS").mean()
+    den4 = den4.rename({find_vert_coord(den4)[0]: "lev"}).resample(time="MS").mean()
+    # den4 = check_variable_name(den4).resample(time="MS").mean()
+    # den4 = den4[["avg_thetao", "avg_so"]].resample(time="MS").mean()
+    
     logger.debug("loaded %s data", model)
     return den4
 
@@ -454,20 +456,13 @@ def dir_creation(data, region=None,  lat_s: float = None, lat_n: float = None, l
     logger = log_configure(loglevel, 'dir_creation')
     # current_time = f'{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
 
-    if "model" in data.attrs and "exp" in data.attrs and "source" in data.attrs:
-        model = data.attrs["model"]
-        exp = data.attrs["exp"]
-        source = data.attrs["source"]
-        filename = f"ocean3d_{model}_{exp}_{source}_"
-    else:
-        filename = f"ocean3d_"
     if output_dir is None:
         raise ValueError("Please provide the outut_dir when output = True")
     if region in [None, "custom", "Custom"]:
         region = "custom"
-        filename = filename + f"{plot_name}_{region.replace(' ', '_').lower()}_lat_{lat_s}_{lat_n}_lon_{lon_w}_{lon_e}"
+        filename =  f"lat_{lat_s}_{lat_n}_lon_{lon_w}_{lon_e}_{plot_name}"
     else:
-        filename = filename + f"{plot_name}_{region.replace(' ', '_').lower()}"
+        filename =  f"{region.replace(' ', '_')}_{plot_name}"
 
     # output_path = f"{output_dir}/"
     fig_dir = f"{output_dir}/pdf"
