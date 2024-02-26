@@ -149,8 +149,8 @@ class time_series:
 
         filename = f"{self.model}_{self.exp}_{self.source}_{self.region}_time_series"
         filename = filename.replace(" ", "_") 
-        fig, (axs) = plt.subplots(nrows=5, ncols=2, figsize=(14, 25))
-        plt.subplots_adjust(bottom=0.3, top=0.85, wspace=0.3, hspace=0.5)
+        fig, (axs) = plt.subplots(nrows=3, ncols=2, figsize=(14, 20))
+        plt.subplots_adjust(bottom=0.3, top=0.85, wspace=0.5, hspace=0.5)
         
         self.loop_details(0, fig, axs)
         self.loop_details(1, fig, axs)
