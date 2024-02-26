@@ -89,14 +89,19 @@ class SeasonalCycle(Timeseries):
         self.logger.info("Extracting the seasonal cycle")
 
         self.cycle = len(self.models) * [None]
+        description_timerange = []
 
         for i, model in enumerate(self.models):
             self.logger.info(f"Processing {model} {self.exps[i]}")
+
+            # We save here the time range of the data before compressing it to monthly means
+            description_timerange.append(f" from {time_to_string(self.data_mon[i].time.values[0])} to {time_to_string(self.data_mon[i].time.values[-1])}") # noqa: E501
 
             # Extract the seasonal cycle
             self.cycle[i] = self.data_mon[i].groupby('time.month').mean('time')
 
         self.cycle_ref = self.ref_mon.groupby('time.month').mean('time')
+        self.description_timerange = description_timerange
 
     def plot(self):
         """Plot the seasonal cycle."""
@@ -144,9 +149,9 @@ class SeasonalCycle(Timeseries):
         fig.savefig(os.path.join(outfig, self.outfile))
 
         description = f"Seasonal cycle of the global mean of {self.var}"
-        description += f" from {time_to_string(self.startdate)} to {time_to_string(self.enddate)}"
         for i, model in enumerate(self.models):
             description += f" for {model} {self.exps[i]}"
+            description += self.description_timerange[i]
         if self.plot_ref:
             description += f" with {ref_label} as reference,"
             description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}"
