@@ -15,6 +15,9 @@ Main changes are:
 3. SSP370 production scenario for IFS-NEMO available in the catalogue
 4. Tropical rainfall numerous updates
 
+- Teleconnections: comparison with obs is done automatically in diagnostic CLI (#924)
+- Teleconnections: capability to find index file if already present (#926)
+- Timeseries: save flag introduced to save to enable/disable saving of the timeseries (#934)
 - Improve the automatic parsing of date range according to schema from fdb (#928)
 - Updated output filenames for atmglobalmean diagnostic (#921)
 - Added graphics function to plot data and difference between two datasets on the same map (#892)
