@@ -93,15 +93,18 @@ class Ocean3DCLI:
         
         self.logger.info(f"data retrieved for model={model}, exp={exp}, source={source}")
         
-        data = check_variable_name(data)
         if self.config["select_time"] == True:
-            self.data["catalog_data"] = reader.retrieve(startdate=self.config["start_year"],
-                                                        enddate=self.config["end_year"])
+            self.data["catalog_data"] = reader.retrieve(startdate= str(self.config["start_year"]),
+                                                        enddate= str(self.config["end_year"]))
         else:
             self.data["catalog_data"] = reader.retrieve()
             
+        self.data["catalog_data"] = check_variable_name(self.data["catalog_data"])
+        
         if self.config["compare_model"]:
             self.data["obs_data"] = load_obs_data(model='EN4', exp='en4', source='monthly')
+        self.data["obs_data"] = check_variable_name(self.data["obs_data"])
+        
         return
     
     def make_request(self,kwargs):
