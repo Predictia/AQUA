@@ -122,6 +122,17 @@ fixer_name:
                 grib: true
                 derived: TP*24
                 src_units: m/day
+    ERA5-hourly:
+        # daily data are done as an average from hourly data, need to multiply by 24 for fluxes
+        delete:
+            - TSR
+            - TTR
+        method: merge
+        vars:
+            mtpr:
+                grib: true
+                derived: TP*24
+                src_units: m/day
     ERA5-fdb:
         method: replace
         deltat: 86400
