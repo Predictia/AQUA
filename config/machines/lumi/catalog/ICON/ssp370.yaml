@@ -71,7 +71,7 @@ sources:
       <<: *metadata-default
       variables: [263000, 263001, 263003, 263004, 263009,
         263124]
-      source_grid_name: nemo-hpz10-nested
+      source_grid_name: icon-hpz10-nested
     
   daily-hpz10-oce3d:
     <<: *base-default
@@ -100,4 +100,4 @@ sources:
             2465.5, 2640.3, 2824.7, 3018.8, 3222.4, 3435.3, 3657.2, 3887.7,
             4126.2, 4372.1, 4624.5, 4882.6, 5145.4, 5411.8, 5680.7, 5950.8]
       variables: [263500, 263501, 263505, 263506, 263507]
-      source_grid_name: nemo-hpz10-nested-3d
+      source_grid_name: icon-hpz10-nested-3d
