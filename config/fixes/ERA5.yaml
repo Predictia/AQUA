@@ -5,6 +5,10 @@ fixer_name:
             2t: 
                 grib: true
                 source: T2M
+            ci: 
+                grib: true
+                source: CI
+                units: frac
             msl:
                 grib: true
                 source: MSL
@@ -17,6 +21,18 @@ fixer_name:
                 grib: true
                 source: TP
                 src_units: m/day
+            lcc: 
+                grib: true 
+                source: LCC
+                units: frac
+            mcc:
+                grib: true 
+                source: MCC
+                units: frac
+            hcc:
+                grib: true 
+                source: HCC
+                units: frac
             tcc: 
                 grib: true 
                 source: TCC
