@@ -21,6 +21,18 @@ fixer_name:
                 grib: true 
                 source: TCC
                 units: frac
+            lcc: 
+                grib: true 
+                source: LCC
+                units: frac
+            mcc: 
+                grib: true 
+                source: MCC
+                units: frac
+            hcc: 
+                grib: true 
+                source: HCC
+                units: frac
             avg_tos:
                 grib: true
                 source: SSTK
