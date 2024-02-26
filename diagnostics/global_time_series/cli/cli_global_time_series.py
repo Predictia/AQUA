@@ -283,4 +283,4 @@ if __name__ == '__main__':
                 logger.warning(f"Skipping {var} seasonal cycle plot: {e}")
             except Exception as e:
                 logger.error(f"Error plotting {var} seasonal cycle: {e}")
-    logger.info("Analysis completed.")
+    logger.info("Global Time Series is terminated.")

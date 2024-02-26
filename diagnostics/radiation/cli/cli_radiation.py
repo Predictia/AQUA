@@ -1,31 +1,9 @@
 # All necessary import for a cli diagnostic
 import sys
-try:
-    import os
-    import argparse
-    from aqua.util import load_yaml, get_arg
-    from aqua.logger import log_configure
-
-    # Setting the path to this directory
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-    if os.getcwd() != dname:
-        os.chdir(dname)
-        print(f'Moving from current directory to {dname} to run!')
-    sys.path.insert(0, '../../')
-    from radiation import process_ceres_data, process_model_data
-    from radiation import boxplot_model_data, plot_mean_bias, gregory_plot, plot_model_comparison_timeseries
-except ImportError as import_error:
-    # Handle ImportError
-    print(f"ImportError occurred: {import_error}")
-    sys.exit(0)
-except Exception as custom_error:
-    # Handle other custom exceptions if needed
-    print(f"CustomError occurred: {custom_error}")
-    sys.exit(0)
-else:
-    # Code to run if the import was successful (optional)
-    print("Modules imported successfully.")
+import os
+import argparse
+from aqua.util import load_yaml, get_arg
+from aqua.logger import log_configure
 
 
 def parse_arguments(args):
@@ -51,24 +29,35 @@ def parse_arguments(args):
 
 if __name__ == '__main__':
 
-    print('Running Radiation Budget Diagnostic ...')
+    loglevel = get_arg(args, 'loglevel', 'WARNING')
+    logger = log_configure(log_level=loglevel, log_name='Radiation CLI')
+
+    # Setting the path to this directory
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    if os.getcwd() != dname:
+        os.chdir(dname)
+        logger.info(f'Moving from current directory to {dname} to run!')
+    sys.path.insert(0, '../../')
+    try:
+        from radiation import process_ceres_data, process_model_data
+        from radiation import boxplot_model_data, plot_mean_bias, gregory_plot, plot_model_comparison_timeseries
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        sys.exit(0)
+
+    logger.info('Running Radiation Budget Diagnostic ...')
     args = parse_arguments(sys.argv[1:])
 
     file = get_arg(args, 'config', 'config/radiation_config.yml')
-    print('Reading configuration yaml file..')
+    logger.info('Reading configuration yaml file..')
     config = load_yaml(file)
-
-    # Configure logging
-    loglevel = get_arg(args, 'loglevel', config['loglevel'])
-    logger = log_configure(log_level=loglevel, log_name='Radiation CLI')
 
     model = get_arg(args, 'model', config['data']['model'])
     exp = get_arg(args, 'exp', config['data']['exp'])
     source = get_arg(args, 'source', config['data']['source'])
 
-    logger.debug(f"model: {model}")
-    logger.debug(f"exp: {exp}")
-    logger.debug(f"source: {source}")
+    logger.debug(f"model: {model}, exp: {exp}, source: {source}")
 
     exp_ceres = config['data']['exp_ceres']
     source_ceres = config['data']['source_ceres']
