@@ -619,5 +619,3 @@ This will produce the following plot:
 .. figure:: figures/single_map_example.png
     :align: center
     :width: 100%
-
-    Example of the above code.
