@@ -11,22 +11,21 @@ import intake_esm
 import xarray as xr
 
 # from metpy.units import units, DimensionalityError
-import numpy as np
+
 import smmregrid as rg
 
 from aqua.util import load_yaml, load_multi_yaml
 from aqua.util import ConfigPath, area_selection
 from aqua.logger import log_configure, log_history
-from aqua.util import check_chunk_completeness, frequency_string_to_pandas
 from aqua.util import flip_lat_dir, find_vert_coord
 import aqua.gsv
 
 from .streaming import Streaming
 from .fixer import FixerMixin
 from .regrid import RegridMixin
+from .timmean import TimmeanMixin
 from .reader_utils import check_catalog_source, group_shared_dims, set_attrs
 from .reader_utils import configure_masked_fields
-
 
 # default spatial dimensions and vertical coordinates
 default_space_dims = ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude',
@@ -36,12 +35,10 @@ default_space_dims = ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude',
 # default vertical dimension
 default_vertical_dims = ['nz1', 'nz', 'level', 'height']
 
-
 # set default options for xarray
 xr.set_options(keep_attrs=True)
 
-
-class Reader(FixerMixin, RegridMixin):
+class Reader(FixerMixin, RegridMixin, TimmeanMixin):
     """General reader for NextGEMS data."""
 
     instance = None  # Used to store the latest instance of the class
@@ -145,10 +142,14 @@ class Reader(FixerMixin, RegridMixin):
 
         # get fixes dictionary and find them
         self.fix = fix  # fix activation flag
+        self.fixer_name = self.esmcat.metadata.get('fixer_name', None)
+
+        # case to disable automatic fix
+        if self.fixer_name is False:
+            self.logger.warning('A False flag is specified in fixer_name metadata, disabling fix!')
+            self.fix = False
+        
         if self.fix:
-            self.fixer_name = self.esmcat.metadata.get('fixer_name')
-            if self.fixer_name is not None:
-                self.logger.info('Fix names in metadata is %s', self.fixer_name)
             self.fixes_dictionary = load_multi_yaml(self.fixer_folder, loglevel=self.loglevel)
             self.fixes = self.find_fixes()  # find fixes for this model/exp/source
             self.dst_datamodel = datamodel
@@ -175,6 +176,8 @@ class Reader(FixerMixin, RegridMixin):
             self.src_grid_name = self.esmcat.metadata.get('source_grid_name')
             if self.src_grid_name is not None:
                 self.logger.info('Grid metadata is %s', self.src_grid_name)
+            else: 
+                self.logger.warning('Grid metadata is not defined. Regridding capabilities might not work.')
             self.dst_grid_name = regrid
 
             # configure all the required elements
@@ -307,7 +310,7 @@ class Reader(FixerMixin, RegridMixin):
         """
 
         if self.src_grid_name not in cfg_regrid['grids']:
-            raise KeyError(f'Source grid {self.src_grid_name} does exist in aqua-grid.yaml!')
+            raise KeyError(f'Source grid {self.src_grid_name} does not exist in aqua-grid.yaml!')
 
         source_grid = cfg_regrid['grids'][self.src_grid_name]
 
@@ -496,16 +499,23 @@ class Reader(FixerMixin, RegridMixin):
         else:
             # If we are retrieving from fdb we have to specify the var
             if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
+
                 metadata = self.esmcat.metadata
                 if metadata:
-                    var = metadata.get('variables')
-                if not var:
-                    var = [self.esmcat._request['param']]  # retrieve var from catalogue
-                if sample:
-                    var = [var[0]]
+                    loadvar = metadata.get('variables')
+                    
+                    if loadvar is None:
+                        loadvar = [self.esmcat._request['param']]  # retrieve var from catalogue
+        
+                    if not isinstance(loadvar, list):
+                        loadvar = [loadvar]
 
-                self.logger.debug("FDB source, setting default variables to %s", var)
-                loadvar = self.get_fixer_varname(var) if self.fix else var
+                    if sample:
+                        #self.logger.debug("FDB source sample reading, selecting only one variable")
+                        loadvar = [loadvar[0]]
+
+                    self.logger.debug("FDB source: loading variables as %s", loadvar)
+
             else:
                 loadvar = None
 
@@ -556,7 +566,7 @@ class Reader(FixerMixin, RegridMixin):
             data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
 
         return data
-    
+
     def _index_and_level(self, data, level=None):
         """
         Add a helper idx_3d coordinate to the data and select levels if provided
@@ -718,73 +728,6 @@ class Reader(FixerMixin, RegridMixin):
 
         return out
 
-    def timmean(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
-        """Call the timmean function returning container or iterator"""
-        if isinstance(data, types.GeneratorType):
-            return self._timmeangen(data, freq, exclude_incomplete, time_bounds)
-        else:
-            return self._timmean(data, freq, exclude_incomplete, time_bounds)
-
-    def _timmeangen(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
-        for ds in data:
-            yield self._timmean(ds, freq, exclude_incomplete, time_bounds)
-
-    def _timmean(self, data, freq=None, exclude_incomplete=False, time_bounds=False):
-        """
-        Perform daily and monthly averaging
-
-        Arguments:
-            data (xr.Dataset):  the input xarray.Dataset
-            freq (str):         the frequency of the time averaging.
-                                Valid values are monthly, daily, yearly. Defaults to None.
-            exclude_incomplete (bool):  Check if averages is done on complete chunks, and remove from the output
-                                        chunks which have not all the expected records.
-            time_bound (bool):  option to create the time bounds
-        Returns:
-            A xarray.Dataset containing the time averaged data.
-        """
-
-        resample_freq = frequency_string_to_pandas(freq)
-
-        # get original frequency (for history)
-        orig_freq = data['time'].values[1]-data['time'].values[0]
-        # Convert time difference to hours
-        self.orig_freq = np.timedelta64(orig_freq, 'ns') / np.timedelta64(1, 'h')
-
-        try:
-            # resample
-            self.logger.info('Resampling to %s frequency...', str(resample_freq))
-            out = data.resample(time=resample_freq).mean()
-        except ValueError as exc:
-            raise ValueError('Cant find a frequency to resample, aborting!') from exc
-
-        # set time as the first timestamp of each month/day according to the sampling frequency
-        out['time'] = out['time'].to_index().to_period(resample_freq).to_timestamp().values
-
-        if exclude_incomplete:
-            boolean_mask = check_chunk_completeness(data, resample_frequency=resample_freq)
-            out = out.where(boolean_mask, drop=True)
-
-        # check time is correct
-        if np.any(np.isnat(out.time)):
-            raise ValueError('Resampling cannot produce output for all frequency step, is your input data correct?')
-
-        out = log_history(out, f"resampled from frequency {self.orig_freq} h to frequency {resample_freq} by AQUA timmean")
-
-        # add a variable to create time_bounds
-        if time_bounds:
-            resampled = data.time.resample(time=resample_freq)
-            time_bnds = xr.concat([resampled.min(), resampled.max()], dim='bnds').transpose()
-            time_bnds['time'] = out.time
-            time_bnds.name = 'time_bnds'
-            out = xr.merge([out, time_bnds])
-            if np.any(np.isnat(out.time_bnds)):
-                raise ValueError('Resampling cannot produce output for all time_bnds step!')
-            log_history(out, "time_bnds added by by AQUA timmean")
-
-        out.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
-
-        return out
 
     def _check_if_regridded(self, data):
         """
@@ -1117,8 +1060,8 @@ class Reader(FixerMixin, RegridMixin):
 
         if self.fix:
             print("Data fixing is active:")
-            if "fix_family" in metadata.keys():
-                print("  Fix family is %s" % metadata["fix_family"])
+            if "fixer_name" in metadata.keys():
+                print("  Fixer name is %s" % metadata["fixer_name"])
             else:
                 # TODO: to be removed when all the catalogues are updated
                 print("  Fixes: %s" % self.fixes)
