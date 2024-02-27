@@ -226,6 +226,7 @@ class sshVariability():
 
     @staticmethod
     def create_output_directory(config):
+        aqua_logger = logger.log_configure(log_level=config['log_level'], log_name=config['log_name'])
         # Check if the output_directory key exists in the config dictionary
         if 'output_directory' in config:
             output_directory = config['output_directory']
