@@ -10,7 +10,14 @@ Unreleased in the current development version:
 - Tropical Rainfall: Implemented `pyproject.toml` (#850).
 - Tropical Rainfall: Updating CLI  (#815)
 - LRA: CLI for parallel SLURM submission (#909)
+- Teleconnections: comparison with obs is done automatically in diagnostic CLI (#924)
+- Teleconnections: capability to find index file if already present (#926)
+- Timeseries: save flag introduced to save to enable/disable saving of the timeseries (#934)
+- Timeseries: Implemented `pyproject.toml` (#920).
 - Timeseries: seasonal cycle is available for the global timeseries (#912)
+- Improve the automatic parsing of date range according to schema from fdb (#928)
+- Updated output filenames for atmglobalmean diagnostic (#921)
+- Added graphics function to plot data and difference between two datasets on the same map (#892)
 - Timeseries: refactory of Gregory plot as a class, comparison with multiple models and observations (#910)
 - Add IFS-NEMO ssp370 scenario (#906)
 - Timeseries: complete refactory of the timeseries as a class, comparison with multiple models and observations (#907)
