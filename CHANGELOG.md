@@ -9,6 +9,11 @@ Unreleased in the current development version:
 
 - Add kwargs parsing of reader arguments, passing them to intake to substitute parameters (#757)
 - Remove `zoom` and use kwargs instead (#757)
+- Teleconnections: comparison with obs is done automatically in diagnostic CLI (#924)
+- Teleconnections: capability to find index file if already present (#926)
+- Timeseries: save flag introduced to save to enable/disable saving of the timeseries (#934)
+- Improve the automatic parsing of date range according to schema from fdb (#928)
+- Updated output filenames for atmglobalmean diagnostic (#921)
 - Added graphics function to plot data and difference between two datasets on the same map (#892)
 - Implemented `pyproject.toml` for global_time_series diagnostic (#920).
 - Implemented `pyproject.toml` for tropical_rainfall diagnostic (#850).
