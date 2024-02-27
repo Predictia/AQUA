@@ -42,7 +42,7 @@ sources:
     description: hourly 3D atmospheric data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      aggregation: 6H
+      aggregation: H
       request:
         <<: *request-default
         param: 129
