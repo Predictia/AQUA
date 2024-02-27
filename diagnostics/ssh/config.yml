@@ -1,21 +1,20 @@
-#enter the logger details here
 log_level: DEBUG
 log_name: ssh_logger
-
-#opt True if complete timespan is required to be used - seperate for data and models
 check_complete_timespan_data: False
 check_complete_timespan_models: False
+difference_plots: True
 
 # Models for which sea surface height (SSH) variability is to be evaluated.
 models:
-  - name: ICON
-    experiment: ngc3028
-    source: P1D
+  - name: IFS-NEMO
+    experiment: historical-1990
+    source: daily-r025-oce2d
     regrid: r025
-    variable: zos
+    variable: avg_zos
     zoom: 7
     #timespan: ['2020-01-20', '2020-12-31']
-    timespan: ['2020-01-21', '2020-06-22']
+    timespan: ['1990-01-21', '1990-06-22']
+
   # - name: ICON
   #   experiment: ngc3026
   #   source: P1D
@@ -36,11 +35,11 @@ base_model:
   { name: AVISO,
     experiment: ssh-L4,
     source: daily,
-    regrid: r005
+    regrid: r025
   }
 
 # ONLY FOR ICON: Flags for northern and southern boundaries to mask out specific latitudes.
-# As AVISO does not have data under the dea ice, which ICON does, to make the datasets comparable - SSH under sea ice for ICON can be masked out.
+# As AVISO does not have data under the sea ice, which ICON does, to make the datasets comparable - SSH under sea ice for ICON can be masked out.
 mask_northern_boundary: true
 mask_southern_boundary: true
 northern_boundary_latitude: 70
@@ -57,9 +56,9 @@ subplot_options:
     scale_max: 0.4,
     cmap: viridis
   } 
-
+  
 # Please specify the path to the directory where the outputs should be saved. If output directory/ folder does not exist, another directory called output will be created in your current working directory.
-output_directory: /work/ab0995/a270238/work/AQUA/diagnostics/ssh_jal/out.
+output_directory: /projappl/project_465000454/sunnyjal/AQUA/diagnostics/ssh/output/
 
 
 # This is the current dask configuration which works for the inputs above. It could be adjusted based on the system this application is run.
