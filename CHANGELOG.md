@@ -7,9 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
-- Implemented `pyproject.toml` for tropical_rainfall diagnostic (#850).
-- Updating CLi for tropical_rainfall diagnostic (#815)
-- LRA cli for parallel SLURM submission (#909)
+- Tropical Rainfall: Implemented `pyproject.toml` (#850).
+- Tropical Rainfall: Updating CLI  (#815)
+- LRA: CLI for parallel SLURM submission (#909)
 - Timeseries: seasonal cycle is available for the global timeseries (#912)
 - Timeseries: refactory of Gregory plot as a class, comparison with multiple models and observations (#910)
 - Add IFS-NEMO ssp370 scenario (#906)
@@ -128,7 +128,6 @@ Complete list:
 - History update and refinement creating preliminary provenance information (plus AQUA emoji!) (#676)
 - OPA lra compatible with no regrid.yaml (#692)
 - Introducing fixer definitions not model/exp/source dependents to be specified at the metadata level (#681)
-- AQUA analysis wrapper is parallelized (#684)
 - AQUA analysis wrapper is parallelized and output folder is restructured (#684, #725)
 ## [v0.5.1]
 
