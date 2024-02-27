@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+- Renaming the `tprate` variable into `mtpr` in all fixes (#944)
 - Teleconnections: comparison with obs is done automatically in diagnostic CLI (#924)
 - Teleconnections: capability to find index file if already present (#926)
 - Timeseries: save flag introduced to save to enable/disable saving of the timeseries (#934)
