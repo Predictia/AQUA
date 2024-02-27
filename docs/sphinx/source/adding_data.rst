@@ -1,4 +1,5 @@
 .. _add-data:
+
 Adding new data
 ===============
 
@@ -15,6 +16,7 @@ How to create a new source and add new data is documented in the next sections.
   ``regrid.yaml``. 
 
 .. _file-based-sources:
+
 File-based sources
 ------------------
 
@@ -111,6 +113,7 @@ You can add fixes to your dataset by following examples in the ``config/fixes/``
     `intake-xarray <https://intake-xarray.readthedocs.io/en/latest/>`_ documentation.
 
 .. _FDB-based-sources:
+
 FDB-based sources
 -----------------
 
