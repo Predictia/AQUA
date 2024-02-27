@@ -23,6 +23,7 @@ Unreleased in the current development version:
 - Timeseries: complete refactory of the timeseries as a class, comparison with multiple models and observations (#907)
 - Plot timeseries is now a framework function (#907)
 - SSH: technical improvements including removal of hardcoded loglevel and timespan definition.
+- SSH: ready with new data governance and option to plot difference plots added.
 
 ## [v0.7]
 
