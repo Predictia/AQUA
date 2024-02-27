@@ -101,6 +101,8 @@ Run the installation script:
 
 This installs the AQUA environment into a container, and then set up the correct modules
 via a ``load_aqua.sh`` script that is generated and then called from the ``.bash_profile``.
+The script will actually ask the user if they wish to include ``load_aqua.sh`` in ``.bash_profile`` at the end of the installation.
+If you do not agree, you will need to call ``load_aqua.sh`` manually every time you want to use AQUA.
 
 .. note ::
     The installation script is designed to be run on the LUMI cluster, and it may require some adjustments to be run on other systems
