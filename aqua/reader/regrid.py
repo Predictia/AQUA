@@ -6,6 +6,7 @@ import types
 import subprocess
 import tempfile
 import xarray as xr
+import numpy as np
 
 import smmregrid as rg
 
@@ -80,8 +81,8 @@ class RegridMixin():
         grid_area.to_netcdf(areafile)
         self.logger.warning("Success!")
 
-    def _weights_generation_time(self, regrid=None, vert_coord=None, dims=None, grid_size=None, nproc=None,
-                                 warning_precision=None):
+    def _weights_generation_time(self, regrid=None, vert_coord=None, dims=None, original_grid_size=None,
+                                 new_grid_size=None, nproc=None, warning_precision=None):
         """
         Helper function to estimate the time required for generating regridding weights.
 
@@ -108,44 +109,22 @@ class RegridMixin():
             
         warning_threshold = 0
 
-        grid_2d = {
-            'r005': {'index': 11},
-            'r010': {'index': 7},
-            'r020': {'index': 5},
-            'r025': {'index': 4},
-            'r050': {'index': 3},
-            'r100': {'index': 2},
-            'r200': {'index': 1},
-            'r250': {'index': 0},
-        }
-        
-        coefficient_vert_mapping = {
-            "depth": 1.2 / ((nproc)**(1/2)),
-            "level": 1,
-            #Can't test the coefficient for the 'nz' and 'nz1' coordinate due to the lack of datasets.
-            "nz": 1.9,
-            "nz1": 11,
-        }
-        coefficient_space_mapping = {
-            ('lat', 'lon'): 2.25,
-            ('latitude', 'longitude'): 2.25,
-            ('value',): 6,
-            ('elem',): 4,
-            ('node',): 2,
-            ('nod2',): 2,
-            ('cell',): 8,
-            ('ncells',): 8,
-        }
+        self.logger.debug(f'The original and new grid sizes {original_grid_size}, {new_grid_size}.')
 
-        coefficient_space = coefficient_space_mapping.get(dims, -1)
-        coefficient_vertical = self._guess_vert_coord_size(_vert_coord) * coefficient_vert_mapping.get(_vert_coord, 1)
-        self.logger.debug(f'The coefficients are {coefficient_vertical}, {coefficient_space}.')
-
-        time_r250 = grid_size * coefficient_vertical * coefficient_space * 10**(-6)
-        self.logger.debug(f"The grid_size is {grid_size}.")
-        regrid_data = grid_2d.get(regrid, {'index': 0})
+        vert_factor = max(self._guess_vert_coord_size(_vert_coord)/nproc, 1)
         
-        expected_time = time_r250 * (1.2)**(regrid_data['index'])
+        full_horizontal_size = original_grid_size * new_grid_size
+        
+        #ints_per_L1 = 8 * nproc #depends on architecture
+        float_per_L1 = 2 * nproc # depends on architecture, double precision?
+        # instructions per second, assumption
+        IPS = 1
+        # cloock speed depends on architecture
+        cloock_speed = 3.5 * 10**9 #Hz
+        # operations per second
+        OPS = cloock_speed * IPS * nproc
+        
+        expected_time =  (full_horizontal_size * vert_factor) / (OPS * float_per_L1)
         self.logger.error(f"The expected time is {expected_time} seconds.")
     
 
@@ -166,7 +145,7 @@ class RegridMixin():
             self.logger.warning(f'Time to generate the weights will take approximately {formatted_time}.')
 
     def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, method='ycon', regrid=None, extra=None, zoom=None, vert_coord=None,
-                           dims=None, grid_size=None, nproc=None, warning_precision=None):
+                           dims=None, original_grid_size=None, new_grid_size=None, nproc=None, warning_precision=None):
         """
         Helper function to produce weights file.
 
@@ -191,9 +170,15 @@ class RegridMixin():
 
         if vert_coord == "2d" or vert_coord == "2dm":  # if 2d we need to pass None to smmregrid
             vert_coord = None
-            
-        self._weights_generation_time(regrid=regrid, vert_coord=vert_coord, dims=dims, grid_size=grid_size, nproc=nproc,
-                                      warning_precision=warning_precision)
+        
+        self.logger.error(f"target grid is {cfg_regrid['grids'][regrid]}")
+
+        width, height = map(int, cfg_regrid['grids'][regrid][1:].split('x'))
+        new_grid_size = width * height
+        self.logger.error(f"new grid size is is {new_grid_size}")
+        
+        self._weights_generation_time(regrid=regrid, vert_coord=vert_coord, dims=dims, original_grid_size=original_grid_size,
+                                      new_grid_size=new_grid_size, nproc=nproc, warning_precision=warning_precision)
 
         # hack to  pass a correct list of all options
         src_extra = source_grid.get("extra", [])
@@ -210,7 +195,7 @@ class RegridMixin():
 
         sgrid.load()  # load the data to avoid problems with dask in smmregrid
         sgrid = sgrid.compute()  # for some reason both lines are needed 
-
+        
         weights = rg.cdo_generate_weights(source_grid=sgrid,
                                           target_grid=cfg_regrid["grids"][regrid],
                                           method=method,
