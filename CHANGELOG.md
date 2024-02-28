@@ -9,6 +9,7 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - GSV pin to 1.0.0 (#950)
+- Adding ICON production simulations (#925)
 
 AQUA diagnostic complete list:
 - Atmosferic Global Mean: added mean bias for the entire year in seasonal bias function (#947)
