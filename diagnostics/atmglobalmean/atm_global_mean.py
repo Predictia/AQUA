@@ -172,15 +172,11 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
     # Create a cartopy projection
     projection = ccrs.PlateCarree()
     
-    num_rows = 3  
-    num_cols = 2
-
-    # Plot the bias maps for each season
-    fig = plt.figure(figsize=(15, 14))
-    gs = gridspec.GridSpec(num_rows, num_cols, figure=fig)
-
     # Create a list to store the plotted objects
     cnplots = []
+    
+    num_rows = 3  
+    num_cols = 2
 
     # Set the colorbar limits
     vmin, vmax = evaluate_colorbar_limits(results, sym=True)
@@ -189,72 +185,19 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
     vmax = kwargs.get('vmax', vmax) if kwargs.get('vmax', vmax) is not None else vmax
     logger.debug(f"vmin: {vmin}, vmax: {vmax}")
     levels = np.linspace(vmin, vmax, nlevels)
+    
+    # Plot the bias maps for each season
+    fig = plt.figure(figsize=(15, 15))  
+    gs = gridspec.GridSpec(num_rows, num_cols, figure=fig)
 
-    # Plot the DJF and MAM in the first subplot
-    for i, (result, season) in enumerate(zip(results[:2], season_ranges.keys())):
-        ax = fig.add_subplot(gs[0, i], projection=projection)  # First row
-        # Add coastlines to the plot
-        ax.coastlines()
-        # Add other cartographic features (optional)
-        ax.add_feature(cfeature.LAND, facecolor='lightgray')
-        ax.add_feature(cfeature.OCEAN, facecolor='lightblue')
-        # Set latitude and longitude tick labels
-        ax.set_xticks(np.arange(-180, 181, 60), crs=projection)
-        ax.set_yticks(np.arange(-90, 91, 30), crs=projection)
-        ax.xaxis.set_major_formatter(LongitudeFormatter())
-        ax.yaxis.set_major_formatter(LatitudeFormatter())
-
-        # Plot the bias data using the corresponding cnplot object
-        try:
-            result = add_cyclic_lon(result)
-        except Exception as e:
-            logger.debug(f"Error: {e}")
-            logger.warning(f"Cannot add cyclic longitude for {var_name} variable.")
-            continue
-
-        cnplot = result.plot.contourf(ax=ax, cmap='RdBu_r', levels=levels, extend='both',
-                                    add_colorbar=False)
-        cnplots.append(cnplot)
-
-        ax.set_title(f'{season}')
-        ax.set_xlabel('Longitude')
-        ax.set_ylabel('Latitude')
-
-    # Plot the SON and JJA in the second subplot
-    for i, (result, season) in enumerate(zip(results[2:], season_ranges.keys())):
-        ax = fig.add_subplot(gs[1, i], projection=projection)  # Second row
-        # Add coastlines to the plot
-        ax.coastlines()
-        # Add other cartographic features (optional)
-        ax.add_feature(cfeature.LAND, facecolor='lightgray')
-        ax.add_feature(cfeature.OCEAN, facecolor='lightblue')
-        # Set latitude and longitude tick labels
-        ax.set_xticks(np.arange(-180, 181, 60), crs=projection)
-        ax.set_yticks(np.arange(-90, 91, 30), crs=projection)
-        ax.xaxis.set_major_formatter(LongitudeFormatter())
-        ax.yaxis.set_major_formatter(LatitudeFormatter())
-
-        # Plot the bias data using the corresponding cnplot object
-        try:
-            result = add_cyclic_lon(result)
-        except Exception as e:
-            logger.debug(f"Error: {e}")
-            logger.warning(f"Cannot add cyclic longitude for {var_name} variable.")
-            continue
-
-        cnplot = result.plot.contourf(ax=ax, cmap='RdBu_r', levels=levels, extend='both',
-                                    add_colorbar=False)
-        cnplots.append(cnplot)
-
-        ax.set_title(f'{season}')
-        ax.set_xlabel('Longitude')
-        ax.set_ylabel('Latitude')
-
-    # Plot the whole time range mean bias in the third row
-    ax = fig.add_subplot(gs[2, :], projection=projection)
+    # Plot the whole time range mean bias in the first row
+    ax = fig.add_subplot(gs[0, :], projection=projection) 
+    # Add coastlines to the plot
     ax.coastlines()
+    # Add other cartographic features (optional)
     ax.add_feature(cfeature.LAND, facecolor='lightgray')
     ax.add_feature(cfeature.OCEAN, facecolor='lightblue')
+    # Set latitude and longitude tick labels
     ax.set_xticks(np.arange(-180, 181, 60), crs=projection)
     ax.set_yticks(np.arange(-90, 91, 30), crs=projection)
     ax.xaxis.set_major_formatter(LongitudeFormatter())
@@ -271,9 +214,69 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
                                                     add_colorbar=False)
         cnplots.append(cnplot)
 
-    ax.set_title("Whole Time Range Mean Bias")
+    ax.set_title("Climatological Bias")
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
+
+    # Plot the DJF and MAM in the second subplot
+    for i, (result, season) in enumerate(zip(results[:2], season_ranges.keys())):
+        ax = fig.add_subplot(gs[1, i], projection=projection)
+        # Add coastlines to the plot
+        ax.coastlines()
+        # Add other cartographic features (optional)
+        ax.add_feature(cfeature.LAND, facecolor='lightgray')
+        ax.add_feature(cfeature.OCEAN, facecolor='lightblue')
+        # Set latitude and longitude tick labels
+        ax.set_xticks(np.arange(-180, 181, 60), crs=projection)
+        ax.set_yticks(np.arange(-90, 91, 30), crs=projection)
+        ax.xaxis.set_major_formatter(LongitudeFormatter())
+        ax.yaxis.set_major_formatter(LatitudeFormatter())
+
+        # Plot the bias data using the corresponding cnplot object
+        try:
+            result = add_cyclic_lon(result)
+        except Exception as e:
+            logger.debug(f"Error: {e}")
+            logger.warning(f"Cannot add cyclic longitude for {var_name} variable.")
+            continue
+
+        cnplot = result.plot.contourf(ax=ax, cmap='RdBu_r', levels=levels, extend='both',
+                                    add_colorbar=False)
+        cnplots.append(cnplot)
+
+        ax.set_title(f'{season}')
+        ax.set_xlabel('Longitude')
+        ax.set_ylabel('Latitude')
+
+    # Plot the SON and JJA in the third subplot
+    for i, (result, season) in enumerate(zip(results[2:], season_ranges.keys())):
+        ax = fig.add_subplot(gs[2, i], projection=projection)  # Third row
+        # Add coastlines to the plot
+        ax.coastlines()
+        # Add other cartographic features (optional)
+        ax.add_feature(cfeature.LAND, facecolor='lightgray')
+        ax.add_feature(cfeature.OCEAN, facecolor='lightblue')
+        # Set latitude and longitude tick labels
+        ax.set_xticks(np.arange(-180, 181, 60), crs=projection)
+        ax.set_yticks(np.arange(-90, 91, 30), crs=projection)
+        ax.xaxis.set_major_formatter(LongitudeFormatter())
+        ax.yaxis.set_major_formatter(LatitudeFormatter())
+
+        # Plot the bias data using the corresponding cnplot object
+        try:
+            result = add_cyclic_lon(result)
+        except Exception as e:
+            logger.debug(f"Error: {e}")
+            logger.warning(f"Cannot add cyclic longitude for {var_name} variable.")
+            continue
+
+        cnplot = result.plot.contourf(ax=ax, cmap='RdBu_r', levels=levels, extend='both',
+                                    add_colorbar=False)
+        cnplots.append(cnplot)
+
+        ax.set_title(f'{season}')
+        ax.set_xlabel('Longitude')
+        ax.set_ylabel('Latitude')
 
     # Add a colorbar
     cbar_ax = fig.add_axes([0.25, 0.02, 0.5, 0.02])  # Adjust the position and size of the colorbar
