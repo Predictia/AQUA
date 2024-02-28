@@ -7,6 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+## [v0.7.1]
+
+Main changes are:
+1. Complete update of the timeseries diagnostic
+2. LRA CLI for parallel SLURM submission
+3. SSP370 production scenario for IFS-NEMO available in the catalogue
+4. Tropical rainfall numerous updates
+
 - Teleconnections: comparison with obs is done automatically in diagnostic CLI (#924)
 - Teleconnections: capability to find index file if already present (#926)
 - Timeseries: save flag introduced to save to enable/disable saving of the timeseries (#934)
@@ -15,8 +23,8 @@ Unreleased in the current development version:
 - Added graphics function to plot data and difference between two datasets on the same map (#892)
 - Implemented `pyproject.toml` for global_time_series diagnostic (#920).
 - Implemented `pyproject.toml` for tropical_rainfall diagnostic (#850).
-- Updating CLi for tropical_rainfall diagnostic (#815)
-- LRA cli for parallel SLURM submission (#909)
+- Updating CLI for tropical_rainfall diagnostic (#815)
+- LRA CLI for parallel SLURM submission (#909)
 - Timeseries: seasonal cycle is available for the global timeseries (#912)
 - Timeseries: refactory of Gregory plot as a class, comparison with multiple models and observations (#910)
 - Add IFS-NEMO ssp370 scenario (#906)
@@ -50,7 +58,7 @@ and the default path is an absolute one (#859, #862)
 - Fixing the paths in `cli/lumi-install/lumi_install.sh` (#856).
 - Refactor of the documentation (#842, #871)
 - The drop warning in `aqua/gsv/intake_gsv.py` (#844)
-- Tropical cyclones diagnostic: working with new data governance (includes possibility to retrieve orography from file (#816)
+- Tropical cyclones diagnostic: working with new data governance (includes possibility to retrieve orography from file) (#816)
 
 ## [v0.6.3]
 
@@ -336,7 +344,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.1...HEAD
+[v0.7.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7...v0.7.1
 [v0.7]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.3...v0.7
 [v0.6.3]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.2...v0.6.3
 [v0.6.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.1...v0.6.2
