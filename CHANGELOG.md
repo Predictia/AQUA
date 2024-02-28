@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+- Atmosferic Global Mean: added mean bias for the entire year in seasonal bias function (#947)
 - Improve the automatic parsing of date range according to schema from fdb (#928)
 - Updated output filenames for atmglobalmean diagnostic (#921)
 - Added graphics function to plot data and difference between two datasets on the same map (#892)
