@@ -13,23 +13,25 @@ Main changes are:
 1. Complete update of the timeseries diagnostic
 2. LRA CLI for parallel SLURM submission
 3. SSP370 production scenario for IFS-NEMO available in the catalogue
-4. Tropical rainfall numerous updates
 
+AQUA core complete list:
+- Plot timeseries is now a framework function (#907)
+- Improve the automatic parsing of date range according to schema from fdb (#928)
+- LRA CLI for parallel SLURM submission (#909)
+- Added graphics function to plot data and difference between two datasets on the same map (#892)
+- Add IFS-NEMO ssp370 scenario (#906)
+
+AQUA diagnostics complete list:
 - Teleconnections: comparison with obs is done automatically in diagnostic CLI (#924)
 - Teleconnections: capability to find index file if already present (#926)
+- AtmGlobalMean: Updated output filenames (#921)
+- Tropical Rainfall: Implemented `pyproject.toml` and updated CLI (#850, #815)
+- Timeseries: Implemented `pyproject.toml`  (#920)
 - Timeseries: save flag introduced to save to enable/disable saving of the timeseries (#934)
-- Improve the automatic parsing of date range according to schema from fdb (#928)
-- Updated output filenames for atmglobalmean diagnostic (#921)
-- Added graphics function to plot data and difference between two datasets on the same map (#892)
-- Implemented `pyproject.toml` for global_time_series diagnostic (#920).
-- Implemented `pyproject.toml` for tropical_rainfall diagnostic (#850).
-- Updating CLI for tropical_rainfall diagnostic (#815)
-- LRA CLI for parallel SLURM submission (#909)
 - Timeseries: seasonal cycle is available for the global timeseries (#912)
 - Timeseries: refactory of Gregory plot as a class, comparison with multiple models and observations (#910)
-- Add IFS-NEMO ssp370 scenario (#906)
 - Timeseries: complete refactory of the timeseries as a class, comparison with multiple models and observations (#907)
-- Plot timeseries is now a framework function (#907)
+
 
 ## [v0.7]
 
