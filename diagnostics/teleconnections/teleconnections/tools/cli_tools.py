@@ -189,8 +189,8 @@ def set_figs(telec=None, model=None, exp=None, ref=False,
             if full_year:
                 maps.append(reg_full)
                 filename_def = set_filename(filename, "regression")
-                title = f'ENSO {model} {exp} regression map (msl)'
-                description = f'ENSO {model} {exp} regression map (msl)'
+                title = f'ENSO {model} {exp} regression map (avg_tos)'
+                description = f'ENSO {model} {exp} regression map (avg_tos)'
 
                 if ref:
                     title += f' compared to {ref}'
@@ -210,8 +210,8 @@ def set_figs(telec=None, model=None, exp=None, ref=False,
                 for i, season in enumerate(seasons):
                     maps.append(reg_season[i])
                     filename_def = set_filename(filename, f"regression_{season}")
-                    title = f'ENSO {model} {exp} regression map (msl) for {season}'
-                    description = f'ENSO {model} {exp} regression map (msl) for {season}'
+                    title = f'ENSO {model} {exp} regression map (avg_tos) for {season}'
+                    description = f'ENSO {model} {exp} regression map (avg_tos) for {season}'
 
                     if ref:
                         title += f' compared to {ref}'
@@ -232,8 +232,8 @@ def set_figs(telec=None, model=None, exp=None, ref=False,
             if full_year:
                 maps.append(cor_full)
                 filename_def = set_filename(filename, "correlation")
-                title = f'ENSO {model} {exp} correlation map (msl)'
-                description = f'ENSO {model} {exp} correlation map (msl)'
+                title = f'ENSO {model} {exp} correlation map (avg_tos)'
+                description = f'ENSO {model} {exp} correlation map (avg_tos)'
 
                 if ref:
                     title += f' compared to {ref}'
@@ -253,8 +253,8 @@ def set_figs(telec=None, model=None, exp=None, ref=False,
                 for i, season in enumerate(seasons):
                     maps.append(cor_season[i])
                     filename_def = set_filename(filename, f"correlation_{season}")
-                    title = f'ENSO {model} {exp} correlation map (msl) for {season}'
-                    description = f'ENSO {model} {exp} correlation map (msl) for {season}'
+                    title = f'ENSO {model} {exp} correlation map (avg_tos) for {season}'
+                    description = f'ENSO {model} {exp} correlation map (avg_tos) for {season}'
 
                     if ref:
                         title += f' compared to {ref}'
