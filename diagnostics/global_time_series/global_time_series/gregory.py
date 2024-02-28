@@ -302,7 +302,7 @@ class GregoryPlot():
             description += f" {model} {self.exps[i]}"
         if self.ref:
             description += f" with reference data ERA5 for 2m temperature from {self.ts_std_start} to {self.ts_std_end}"
-            description += f"and CERES for net radiation at TOA from {self.toa_std_start} to {self.toa_std_end}"
+            description += f" and CERES for net radiation at TOA from {self.toa_std_start} to {self.toa_std_end}."
         self.logger.debug(f"Description: {description}")
         add_pdf_metadata(filename=os.path.join(outfig, self.outfile),
                          metadata_value=description)
