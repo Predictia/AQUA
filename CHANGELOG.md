@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- GSV pin to 1.0.0 (#950)
 - Adding ICON production simulations (#925)
 
 AQUA diagnostic complete list:
