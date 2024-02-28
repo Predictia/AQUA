@@ -41,7 +41,7 @@ sources:
     description: hourly 3D atmospheric data on native grid Tco2559 (about 5km).
     args:
       <<: *args-default
-      aggregation: 6H
+      aggregation: 6h
       request:
         <<: *request-default
         param: 131
@@ -75,7 +75,7 @@ sources:
     description: hourly 3D atmospheric data on healpix grid (zoom=7, h128).
     args:
       <<: *args-default
-      aggregation: 6H
+      aggregation: 6h
       request:
         <<: *request-default
         resolution: standard
@@ -111,7 +111,7 @@ sources:
     description: hourly 3D atmospheric data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      aggregation: 6H
+      aggregation: 6h
       request:
         <<: *request-default
         resolution: high
@@ -147,7 +147,7 @@ sources:
     description: hourly 3D atmospheric data on regular r025 grid (1440x721).
     args:
       <<: *args-default
-      aggregation: 6H
+      aggregation: 6h
       request:
         <<: *request-default
         resolution: standard
@@ -169,7 +169,7 @@ sources:
     description: daily 2D oceanic data on native grid eORCA12.
     args:
       <<: *args-default
-      aggregation: M
+      aggregation: ME
       savefreq: D
       request:
         <<: *request-default
@@ -232,7 +232,7 @@ sources:
     description: daily 2D oceanic data on regular r025 grid (1440x721).
     args:
       <<: *args-default
-      aggregation: M
+      aggregation: ME
       savefreq: D
       request:
         <<: *request-default
@@ -294,7 +294,7 @@ sources:
     description: daily 2D oceanic data on healpix grid (zoom=7, h128).
     args:
       <<: *args-default
-      aggregation: M
+      aggregation: ME
       savefreq: D
       request:
         <<: *request-default
@@ -314,7 +314,7 @@ sources:
     description: daily 2D oceanic data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      aggregation: M
+      aggregation: ME
       savefreq: D
       request:
         <<: *request-default
