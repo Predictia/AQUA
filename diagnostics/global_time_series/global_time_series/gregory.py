@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import xarray as xr
 from aqua import Reader
 from aqua.logger import log_configure
-from aqua.util import create_folder, add_pdf_metadata
+from aqua.util import create_folder, add_pdf_metadata, time_to_string
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from .reference_data import get_reference_ts_gregory, get_reference_toa_gregory
 
@@ -23,7 +23,10 @@ class GregoryPlot():
                  monthly=True, annual=True,
                  regrid=None,
                  ts_name='2t', toa_name=['mtnlwrf', 'mtnswrf'],
-                 ref=True, outdir='./', outfile=None,
+                 ts_std_start='1980-01-01', ts_std_end='2010-12-31',
+                 toa_std_start='2001-01-01', toa_std_end='2020-12-31',
+                 ref=True, save=True,
+                 outdir='./', outfile=None,
                  loglevel='WARNING'):
         """
         Args:
@@ -39,9 +42,18 @@ class GregoryPlot():
             ts (str): variable name for 2m temperature, default is '2t'.
             toa (list): list of variable names for net radiation at TOA,
                         default is ['mtnlwrf', 'mtnswrf'].
+            ts_std_start (str): Start date for standard deviation calculation for 2m temperature.
+                                Default is '1980-01-01'.
+            ts_std_end (str): End date for standard deviation calculation for 2m temperature.
+                                Default is '2010-12-31'.
+            toa_std_start (str): Start date for standard deviation calculation for net radiation at TOA.
+                                Default is '2001-01-01'.
+            toa_std_end (str): End date for standard deviation calculation for net radiation at TOA.
+                                Default is '2020-12-31'.
             ref (bool): If True, reference data is plotted.
                         Default is True. Reference data are ERA5 for 2m temperature
                         and CERES for net radiation at TOA.
+            save (bool): If True, save the figure. Default is True.
             outdir (str): Output directory. Default is './'.
             outfile (str): Output file name. Default is None.
             loglevel (str): Logging level. Default is WARNING.
@@ -70,8 +82,17 @@ class GregoryPlot():
         self.ts_name = ts_name
         self.toa_name = toa_name
         self.retrieve_list = [self.ts_name] + self.toa_name
-        self.logger.debug(f"Retrieving {self.retrieve_list}")
+        self.ts_std_start = ts_std_start
+        self.ts_std_end = ts_std_end
+        self.toa_std_start = toa_std_start
+        self.toa_std_end = toa_std_end
+        self.logger.debug(f"Retrieving {self.retrieve_list}, for standard deviation calculation: "
+                          f"2m temperature from {time_to_string(self.ts_std_start)} to {time_to_string(self.ts_std_end)}, "
+                          f"net radiation at TOA from {time_to_string(self.toa_std_start)} to {time_to_string(self.toa_std_end)}")
 
+        self.save = save
+        if self.save is False:
+            self.logger.info("No output file will be saved.")
         self.outdir = outdir
         self.outfile = outfile
 
@@ -82,7 +103,8 @@ class GregoryPlot():
         self.retrieve_data()
         self.retrieve_ref()
         self.plot()
-        self.save_netcdf()
+        if self.save:
+            self.save_netcdf()
         self.cleanup()
 
     def retrieve_data(self):
@@ -156,8 +178,12 @@ class GregoryPlot():
             self.logger.debug("Retrieving reference data")
             try:
                 ref_ts_mean, ref_ts_std = get_reference_ts_gregory(ts_name=self.ts_name,
+                                                                   startdate=self.ts_std_start,
+                                                                   enddate=self.ts_std_end,
                                                                    loglevel=self.loglevel)
                 ref_toa_mean, ref_toa_std = get_reference_toa_gregory(toa_name=self.toa_name,
+                                                                      startdate=self.toa_std_start,
+                                                                      enddate=self.toa_std_end,
                                                                       loglevel=self.loglevel)
             except NoObservationError as e:
                 self.logger.debug(f"Error: {e}")
@@ -251,6 +277,12 @@ class GregoryPlot():
 
             ax2.legend()
 
+        if self.save:
+            self.save_pdf(fig)
+
+    def save_pdf(self, fig):
+        """Save the figure to a pdf file."""
+        self.logger.info("Saving figure to pdf")
         # Save to outdir/pdf/filename
         outfig = os.path.join(self.outdir, 'pdf')
         self.logger.debug(f"Saving figure to {outfig}")
@@ -269,7 +301,9 @@ class GregoryPlot():
         for i, model in enumerate(self.models):
             description += f" {model} {self.exps[i]}"
         if self.ref:
-            description += " with reference data ERA5 for 2m temperature and CERES for net radiation at TOA"
+            description += f" with reference data ERA5 for 2m temperature from {self.ts_std_start} to {self.ts_std_end}"
+            description += f"and CERES for net radiation at TOA from {self.toa_std_start} to {self.toa_std_end}"
+        self.logger.debug(f"Description: {description}")
         add_pdf_metadata(filename=os.path.join(outfig, self.outfile),
                          metadata_value=description)
 
