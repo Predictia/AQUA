@@ -138,7 +138,7 @@ class LRAgenerator():
             'calendar': 'standard',
             'dtype': 'float64',
             'zlib' : True,
-            'complevel': 4,
+            'complevel': 1,
             '_FillValue': np.nan
         }
 
