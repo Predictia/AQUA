@@ -37,12 +37,13 @@ def submit_sbatch(model, exp, source, varname, yaml_file,
         '--account=' + config.get('account', 'project_465000454'),
         '--nodes=' + str(config.get('nodes', 1)),
         '--ntasks-per-node=' + str(config.get('ntasks_per_node', workers)),
-        '--time=' + config.get('time', '12:00:00')
+        '--time=' + config.get('time', '04:00:00'),
+        '--priority=low',
         #'--mem=' + config.get('mem', '256G')
     ]
 
     if dependency is not None:
-        sbatch_cmd.append('--dependency=afterok:'+ str(dependency))
+        sbatch_cmd.append('--dependency=afterany:'+ str(dependency))
 
     # Add script command
     sbatch_cmd.append('./cli_lra_generator.py')
@@ -113,7 +114,7 @@ if __name__ == '__main__':
             for source in config['catalog'][model][exp].keys():
                 varnames = config['catalog'][model][exp][source]['vars']
                 for varname in varnames:
-                    if (COUNT % int(parallel)) == 0:
+                    if (COUNT % int(parallel)) == 0 and COUNT != 0:
                         print('Updating parent job to' + jobid)
                         PARENT_JOB = str(jobid)
                     COUNT = COUNT + 1
