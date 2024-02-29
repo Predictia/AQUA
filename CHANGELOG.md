@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Minimum date fixer feature / ICON net fluxes fix (#958)
 - GSV pin to 1.0.0 (#950)
 - Adding ICON production simulations (#925)
 - Renaming of EC-mean output figures in cli push tool for aqua-web (#930)
