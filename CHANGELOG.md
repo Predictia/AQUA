@@ -7,7 +7,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
-
 AQUA core complete list:
 - GSV pin to 1.0.0 (#950)
 - Adding ICON production simulations (#925)
@@ -155,6 +154,7 @@ Complete list:
 - OPA lra compatible with no regrid.yaml (#692)
 - Introducing fixer definitions not model/exp/source dependents to be specified at the metadata level (#681)
 - AQUA analysis wrapper is parallelized and output folder is restructured (#684, #725)
+
 ## [v0.5.1]
 
 Main changes are:
