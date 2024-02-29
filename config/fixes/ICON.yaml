@@ -45,12 +45,13 @@ fixer_name:
             mtnswrf:
                 source: tsr
                 grib: true
+                mindate: 1991-03-01T00:00
             mtnlwrf:
                 source: ttr
                 grib: true
             mtdwswrf:
                 source: tisr
-                grib: true      
+                grib: true    
             # Wind stresses
             # ICON use different variables that should not be decumulated
             metss: # https://codes.ecmwf.int/grib/param-db/?id=235041
