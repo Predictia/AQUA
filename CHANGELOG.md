@@ -13,6 +13,8 @@ AQUA core complete list:
 - Renaming of EC-mean output figures in cli push tool for aqua-web (#930)
 
 AQUA diagnostic complete list:
+- SSH: technical improvements including removal of hardcoded loglevel and timespan definition. (#677)
+- SSH: ready with new data governance and option to plot difference plots added. (#677)
 - Atmosferic Global Mean: added mean bias for the entire year in seasonal bias function (#947)
 
 ## [v0.7.1]
@@ -39,7 +41,6 @@ AQUA diagnostics complete list:
 - Timeseries: seasonal cycle is available for the global timeseries (#912)
 - Timeseries: refactory of Gregory plot as a class, comparison with multiple models and observations (#910)
 - Timeseries: complete refactory of the timeseries as a class, comparison with multiple models and observations (#907)
-
 
 ## [v0.7]
 
