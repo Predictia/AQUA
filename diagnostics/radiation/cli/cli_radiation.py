@@ -29,6 +29,7 @@ def parse_arguments(args):
 
 if __name__ == '__main__':
 
+    args = parse_arguments(sys.argv[1:])
     loglevel = get_arg(args, 'loglevel', 'WARNING')
     logger = log_configure(log_level=loglevel, log_name='Radiation CLI')
 
@@ -47,7 +48,6 @@ if __name__ == '__main__':
         sys.exit(0)
 
     logger.info('Running Radiation Budget Diagnostic ...')
-    args = parse_arguments(sys.argv[1:])
 
     file = get_arg(args, 'config', 'config/radiation_config.yml')
     logger.info('Reading configuration yaml file..')
