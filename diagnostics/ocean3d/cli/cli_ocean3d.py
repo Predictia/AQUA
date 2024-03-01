@@ -2,14 +2,6 @@ import argparse
 import os
 import sys
 
-AQUA = os.environ.get("AQUA")
-if AQUA is not None:
-    ocean3d_path = os.path.join(AQUA, 'diagnostics/ocean3d')
-    sys.path.insert(0, ocean3d_path)
-    print(f"Attached Ocean3d from this path {ocean3d_path}")
-else:
-    print("AQUA environment variable is not defined. Going to use default ocean3d package!")
-
 from aqua import Reader
 from aqua.util import load_yaml
 
