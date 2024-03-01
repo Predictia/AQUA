@@ -93,7 +93,6 @@ fixer_name:
             - STRD
             - TSR
             - TTR
-        method: merge
         vars:
             mslhfl:
                 src_units: J m**-2 day**-1
