@@ -19,9 +19,6 @@ class_attributes:
 
 rebuild_output: False
 
-logger:
-  loglevel: 'WARNING'     # Logging level for the output messages
-
 plot:
   color: 'tab:green'      # Color for the plot
   figsize: 1              # Figure size for the plot

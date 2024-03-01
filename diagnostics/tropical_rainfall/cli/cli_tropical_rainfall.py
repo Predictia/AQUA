@@ -92,6 +92,7 @@ def adjust_year_range_based_on_dataset(full_dataset, start_year=None, final_year
 
     return start_year, final_year
 
+
 class Tropical_Rainfall_CLI:
     def __init__(self, config, args):
         self.s_year = config['data']['s_year']
@@ -106,7 +107,7 @@ class Tropical_Rainfall_CLI:
         self.model_variable = config['class_attributes']['model_variable']
         self.new_unit = config['class_attributes']['new_unit']
 
-        self.color  = config['plot']['color']
+        self.color = config['plot']['color']
         self.figsize = config['plot']['figsize']
         self.xmax = config['plot']['xmax']
         self.loc = config['plot']['loc']
@@ -242,6 +243,8 @@ class Tropical_Rainfall_CLI:
                                 legend=f"MSWEP", xmax=self.xmax,  loc=self.loc, plot_title=plot_title,
                                 path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
         self.logger.info("The histograms are plotted and saved in storage.")
+        self.logger.info("The Tropical Rainfall diagnostic is terminated.")
+
 
 def main():
     """Main function to orchestrate the tropical rainfall CLI operations."""
@@ -254,6 +257,7 @@ def main():
     trop_rainfall_cli = Tropical_Rainfall_CLI(config, args)
     trop_rainfall_cli.calculate_histogram_by_months()
     trop_rainfall_cli.plot_histograms()
+
 
 if __name__ == '__main__':
     main()
