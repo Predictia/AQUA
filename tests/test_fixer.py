@@ -60,6 +60,24 @@ def test_fixer_ifs_long():
 
 
 @pytest.mark.aqua
+def test_fixer_ifs_long_mindate():
+    """Test fixing with a minimum date functionality"""
+
+    reader = Reader(model="IFS", exp="test-tco79", source="long-mindate",
+                    fix=True, loglevel=loglevel)
+    data = reader.retrieve(var='2t')
+
+    data1 = data['2t'].sel(time="2020-07-31T00:00")[1,1]
+    data2 = data['2t'].sel(time="2020-08-01T00:00")[1,1]
+
+    # assert if data1 is NaN
+    assert data1.isna().values
+    
+    # assert if data2 is NOT NaN
+    assert not data2.isna().values
+
+
+@pytest.mark.aqua
 def test_fixer_ifs_short():
     """Check alternative fix with replace method"""
 
