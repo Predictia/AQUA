@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+- LRA file handling improvements (#849)
 AQUA core complete list:
 - Updating fixer for ERA5 monthly and hourly data on Levante (#937)
 - GSV pin to 1.0.0 (#950)
