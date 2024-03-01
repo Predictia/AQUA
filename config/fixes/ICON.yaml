@@ -124,7 +124,7 @@ fixer_name:
             msshfl:
                 source: hfss
                 grib: true
-            tprate:
+            mtpr:
                 source: pr
                 grib: true
                 src_units: kg m**-2 s**-1

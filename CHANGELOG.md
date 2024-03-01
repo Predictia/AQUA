@@ -13,6 +13,7 @@ AQUA core complete list:
 - Adding ICON production simulations (#925)
 - LRA CLI for parallel SLURM submission support a max number of concurrent jobs (#955)
 - Renaming of EC-mean output figures in cli push tool for aqua-web (#930)
+- Renaming the `tprate` variable into `mtpr` in all fixes (#944)
 
 AQUA diagnostic complete list:
 - SSH: technical improvements including removal of hardcoded loglevel and timespan definition. (#677)
