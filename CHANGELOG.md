@@ -8,10 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+
 - Minimum date fixer feature / ICON net fluxes fix (#958)
+- Updating fixer for ERA5 monthly and hourly data on Levante (#937)
 - GSV pin to 1.0.0 (#950)
 - Adding ICON production simulations (#925)
+- LRA CLI for parallel SLURM submission support a max number of concurrent jobs (#955)
 - Renaming of EC-mean output figures in cli push tool for aqua-web (#930)
+- Renaming the `tprate` variable into `mtpr` in all fixes (#944)
 
 AQUA diagnostic complete list:
 - SSH: technical improvements including removal of hardcoded loglevel and timespan definition. (#677)
