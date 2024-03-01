@@ -391,6 +391,28 @@ Some extra options are available:
 - ``center_time=True``: this flag will center the time coordinate on the mean time window.
 - ``time_bounds=True``: this flag can be activated to build time bounds in a similar way to CMOR-like standard.
 
+Detrending
+----------
+
+For some analysis, removing from the data a linear trend can be helpful to highlight the internal variability.
+The ``detrend`` method can be used as a high-level wrapper of xarray functionalities to achieve this goal.
+
+.. code-block:: python
+
+    reader = Reader(model="IFS", exp="tco2559-ng5", source="ICMGG_atm2d")
+    data = reader.retrieve()
+    daily = reader.detrend(data['2t'], dim='time')
+
+In this way, linear trend is removed from each grid point of the original dataset along the time dimension. 
+Other dimension can be targeted too, although with limited physical meaning. 
+Of course, it can be used in collaboration with temporal and spatial averaging. Higher order polynominial fits are available too.
+
+Some options includes:
+
+- ``degree``: this will define with an integer the order of the polynominial fit. Default is 1, i.e. linear Detrending
+- ``skipna==True``: removing the NaN from the fit. Default is True. 
+
+
 Spatial Averaging
 -----------------
 
