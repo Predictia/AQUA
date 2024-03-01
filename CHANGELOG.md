@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+
+- Minimum date fixer feature / ICON net fluxes fix (#958)
 - Unified logging for all diagnostics (#931)
 - A ``detrend()`` method is added to the Reader class (#919)
 - LRA file handling improvements (#849)

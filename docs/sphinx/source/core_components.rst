@@ -285,6 +285,7 @@ Here we show an example of a fixer file, including all the possible options:
                     src_units: J m-2 # Overruling source units
                     decumulate: true  # Test decumulation
                     units: "{radiation_flux}" # overruling units
+                    mindate: 1990-09-01T00:00 # setting to NaN all data before this date
                     attributes:
                         # assigning a long_name
                         long_name: Mean top net thermal radiation flux doubled
@@ -340,6 +341,8 @@ Then, extra keys can be then specified for `each` variable to allow for further 
 - **decumulate**: if set to ``True``, activate the decumulation of the variables
 - **attributes**: with this key, it is possible to define a dictionary of attributes to be modified. 
   Please refer to the above example to see the possible implementation. 
+- **mindate**: used to set to NaN all data before a specified date. 
+  This is useful when dealing with data that are not available for the whole period of interest or which are partially wrong.
 
 .. warning ::
     Recursive fixes (i.e. fixes of fixes) cannot be implemented. For example, it is not possibile to derive a variable from a derived variable
