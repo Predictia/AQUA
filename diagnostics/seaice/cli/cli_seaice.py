@@ -52,25 +52,25 @@ if __name__ == '__main__':
     # Since the module is in the parent directory of this script, we calculate the script's directory
     # and then move one level up.
     # change the current directory to the one of the CLI so that relative path works
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-
-    if os.getcwd() != dname:
-        os.chdir(dname)
-        print(f'Moving from current directory to {dname} to run!')
-
-    script_dir = dname
-    sys.path.insert(0, "../..")
-
-    # Local module imports.
-    from seaice import SeaIceExtent
-
     # Parse the provided command line arguments.
     args = parse_arguments(sys.argv[1:])
 
     # Configure the logger.
     loglevel = get_arg(args, 'loglevel', 'WARNING')
     logger = log_configure(log_name="SeaIce CLI", log_level=loglevel)
+
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+
+    if os.getcwd() != dname:
+        os.chdir(dname)
+        logger.info(f'Moving from current directory to {dname} to run!')
+
+    script_dir = dname
+    sys.path.insert(0, "../..")
+
+    # Local module imports.
+    from seaice import SeaIceExtent
 
     logger.info("Running sea ice diagnostic...")
 
