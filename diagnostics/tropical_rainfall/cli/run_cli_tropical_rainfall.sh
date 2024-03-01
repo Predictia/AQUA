@@ -3,17 +3,13 @@
 
 set -e # Exit immediately if a command exits with a non-zero status.
 
-# Determine the directory of the current script
-script_dir=$(dirname "${BASH_SOURCE[0]}")
-aqua="$script_dir/../../.."
-
 # Read the machine name from the config-aqua.yaml file
 machine=$(python -c "
 import yaml
 import sys
 
 try:
-    with open('$aqua/config/config-aqua.yaml') as f:
+    with open('$AQUA/config/config-aqua.yaml') as f:
         config = yaml.safe_load(f)
         print(config['machine'])
 except Exception as e:
@@ -36,8 +32,7 @@ import sys
 
 try:
     machine = '$machine'
-    script_dir = '$aqua'
-    with open('$script_dir/cli_config_trop_rainfall.yml') as f:
+    with open('$AQUA/diagnostics/tropical_rainfall/cli/cli_config_trop_rainfall.yml') as f:
         config = yaml.safe_load(f)['compute_resources']
         print(config['nproc'], config['nodes'], config['walltime'], config['memory'], config['lumi_version'],
               config['account'][machine], config['partition'][machine], config['run_on_sunday'])
@@ -102,10 +97,10 @@ if [ $machine == "lumi" ]; then
     source $HOME/.bashrc
 fi
 cd $AQUA/diagnostics/tropical_rainfall/cli
-/usr/bin/env python3 "$script_dir/cli_tropical_rainfall.py" --nproc=$nproc
+/usr/bin/env python3 cli_tropical_rainfall.py --nproc=$nproc
 EOL
 
 else
     cd $AQUA/diagnostics/tropical_rainfall/cli
-    /usr/bin/env python3 "$script_dir/cli_tropical_rainfall.py" --nproc=$nproc
+    /usr/bin/env python3 cli_tropical_rainfall.py --nproc=$nproc
 fi
