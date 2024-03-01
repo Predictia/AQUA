@@ -73,7 +73,7 @@ def test_fixer_ifs_long_mindate():
 
     assert np.isnan(data1.values)
     assert not np.isnan(data2.values)
-    assert 'mindata' in data['2t'].attrs
+    assert 'mindate' in data['2t'].attrs
     assert data['2t'].attrs['mindate'] == '2020-08-01T00:00'
 
 
