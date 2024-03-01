@@ -163,11 +163,11 @@ class Tropical_Rainfall_CLI:
         full_dataset = self.reader.retrieve(var=self.model_variable)
         regrid_bool, freq_bool = self.need_regrid_timmean(full_dataset)
 
-        s_year, f_year = adjust_year_range_based_on_dataset(full_dataset, start_year=self.s_year, final_year=self.f_year)
+        self.s_year, self.f_year = adjust_year_range_based_on_dataset(full_dataset, start_year=self.s_year, final_year=self.f_year)
         s_month = 1 if self.s_month is None else self.s_month
         f_month = 12 if self.f_month is None else self.f_month
 
-        for year in range(s_year, f_year+1):
+        for year in range(self.s_year, self.f_year+1):
             data_per_year = full_dataset.sel(time=str(year))
             if data_per_year.time.size != 0:
                 for x in range(s_month, f_month+1):
@@ -214,7 +214,7 @@ class Tropical_Rainfall_CLI:
         data if available. The function handles the absence of MSWEP data gracefully by logging an error. Plots are
         saved to the specified PDF format in the provided path.
         """
-        plot_title = f"{self.model} {self.exp} {self.source} {self.regrid} {self.freq}"
+        plot_title = f"Grid: {self.regrid}, frequency: {self.freq}"
         legend = f"{self.model} {self.exp} {self.source}"
         name_of_pdf =f"{self.model}_{self.exp}_{self.source}"
 
@@ -227,7 +227,7 @@ class Tropical_Rainfall_CLI:
                             legend=legend, color=self.color, xmax=self.xmax, plot_title=plot_title, loc=self.loc,
                             path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
 
-        mswep_folder_path = f'{self.mswep}{self.regrid}/{self.freq}'
+        mswep_folder_path = os.path.join(self.mswep, self.regrid, self.freq)
         # Check if the folder exists
         if not os.path.exists(mswep_folder_path):
             self.logger.error(f"Error: The folder for MSWEP data with resolution '{self.regrid}' "
@@ -235,7 +235,7 @@ class Tropical_Rainfall_CLI:
                             "desired resolution and frequency have not been computed yet.")
         else:
             obs_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path, all=True,
-                                                            start_year=self.s_year, end_year=self.f_year,
+                                                            start_year=self.s_year-5, end_year=self.f_year+5,
                                                         start_month=self.s_month, end_month=self.f_month)
             self.logger.info(f"The MSWEP data with resolution '{self.regrid}' and frequency '{self.freq}' are prepared for comparison.")
 
