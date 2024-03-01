@@ -289,3 +289,4 @@ done
 # Wait for all background processes to finish
 wait
 log_message INFO "Finished all diagnostics"
+
