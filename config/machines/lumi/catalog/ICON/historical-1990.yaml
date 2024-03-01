@@ -41,7 +41,7 @@ sources:
     description: hourly 3D atmospheric data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      aggregation: H
+      aggregation: 6h
       request:
         <<: *request-default
         param: 129
@@ -60,7 +60,7 @@ sources:
     description: daily 2D oceanic data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      aggregation: M
+      aggregation: ME
       savefreq: D
       request:
         <<: *request-default

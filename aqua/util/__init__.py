@@ -8,7 +8,7 @@ from .graphics import coord_names, ticks_round
 from .sci_util import area_selection, check_coordinates
 from .util import generate_random_string, get_arg, create_folder, to_list
 from .util import file_is_complete, find_vert_coord
-from .util import extract_literal_and_numeric, add_pdf_metadata, username
+from .util import extract_literal_and_numeric, add_pdf_metadata, username, move_tmp_files
 from .yaml import load_yaml, dump_yaml, load_multi_yaml, eval_formula
 from .time import check_chunk_completeness, frequency_string_to_pandas
 from .time import time_to_string
@@ -19,7 +19,7 @@ __all__ = ['ConfigPath',
            'add_cyclic_lon', 'plot_box', 'minmax_maps',
            'evaluate_colorbar_limits', 'cbar_get_label', 'set_map_title',
            'coord_names', 'ticks_round',
-           'area_selection', 'check_coordinates', 'find_vert_coord', 'extract_literal_and_numeric',
+           'area_selection', 'check_coordinates', 'find_vert_coord', 'extract_literal_and_numeric', 'move_tmp_files',
            'add_pdf_metadata', 'username',
            'generate_random_string', 'get_arg', 'create_folder', 'to_list', 'file_is_complete',
            'load_yaml', 'dump_yaml', 'load_multi_yaml', 'eval_formula',
