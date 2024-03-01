@@ -2,6 +2,7 @@
 
 import pytest
 from aqua import Reader
+import numpy as np
 
 loglevel = 'DEBUG'
 
@@ -70,11 +71,10 @@ def test_fixer_ifs_long_mindate():
     data1 = data['2t'].sel(time="2020-07-31T00:00")[1,1]
     data2 = data['2t'].sel(time="2020-08-01T00:00")[1,1]
 
-    # assert if data1 is NaN
-    assert data1.isna().values
-    
-    # assert if data2 is NOT NaN
-    assert not data2.isna().values
+    assert np.isnan(data1.values)
+    assert not np.isnan(data2.values)
+    assert 'mindata' in data['2t'].attrs
+    assert data['2t'].attrs['mindate'] == '2020-08-01T00:00'
 
 
 @pytest.mark.aqua
