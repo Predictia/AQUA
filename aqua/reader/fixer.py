@@ -407,6 +407,7 @@ class FixerMixin():
                 mindate = varfix.get("mindate", None)
                 if mindate:
                     data[source] = data[source].where(data.time >= np.datetime64(str(mindate)), np.nan)
+                    data[source].attrs.update({"mindate": mindate})
                     self.logger.debug("Steps before %s set to NaN for variable %s", str(mindate), var)
 
         # Only now rename everything
