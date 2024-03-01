@@ -61,7 +61,6 @@ def validate_arguments(args):
 
 def load_configuration(file_path):
     """Load and return the YAML configuration."""
-    print('Reading configuration YAML file..')
     config = load_yaml(file_path)
     return config
 
@@ -85,6 +84,7 @@ def adjust_year_range_based_on_dataset(full_dataset, start_year=None, final_year
 
     return start_year, final_year
 
+
 class Tropical_Rainfall_CLI:
     def __init__(self, config, args):
         self.freq = config['data']['freq']
@@ -101,7 +101,7 @@ class Tropical_Rainfall_CLI:
         self.model_variable = config['class_attributes']['model_variable']
         self.new_unit = config['class_attributes']['new_unit']
 
-        self.color  = config['plot']['color']
+        self.color = config['plot']['color']
         self.figsize = config['plot']['figsize']
         self.xmax = config['plot']['xmax']
         self.loc = config['plot']['loc']
@@ -110,7 +110,7 @@ class Tropical_Rainfall_CLI:
         self.model = get_arg(args, 'model', config['data']['model'])
         self.exp = get_arg(args, 'exp', config['data']['exp'])
         self.source = get_arg(args, 'source', config['data']['source'])
-        self.loglevel = get_arg(args, 'loglevel', config['logger']['loglevel'])
+        self.loglevel = get_arg(args, 'loglevel', 'WARNING')
 
         nproc = get_arg(args, 'nproc', config['compute_resources']['nproc'])
         machine = config['machine']
@@ -228,7 +228,7 @@ class Tropical_Rainfall_CLI:
         else:
             obs_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path, all=True,
                                                             start_year=self.s_year, end_year=self.f_year,
-                                                        start_month=self.s_month, end_month=self.f_month)
+                                                            start_month=self.s_month, end_month=self.f_month)
             self.logger.info(f"The MSWEP data with resolution '{self.regrid}' and frequency '{self.freq}' are prepared for comparison.")
 
             self.diag.histogram_plot(hist_merged, figsize=self.figsize, new_unit=self.new_unit, add=add,
@@ -236,6 +236,8 @@ class Tropical_Rainfall_CLI:
                                 legend=f"MSWEP", xmax=self.xmax,  loc=self.loc, plot_title=plot_title,
                                 path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
         self.logger.info("The histograms are plotted and saved in storage.")
+        self.logger.info("The Tropical Rainfall diagnostic is terminated.")
+
 
 def main():
     """Main function to orchestrate the tropical rainfall CLI operations."""
@@ -248,6 +250,7 @@ def main():
     trop_rainfall_cli = Tropical_Rainfall_CLI(config, args)
     trop_rainfall_cli.calculate_histogram_by_months()
     trop_rainfall_cli.plot_histograms()
+
 
 if __name__ == '__main__':
     main()
