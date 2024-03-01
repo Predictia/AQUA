@@ -10,6 +10,7 @@ Unreleased in the current development version:
 AQUA core complete list:
 
 - Minimum date fixer feature / ICON net fluxes fix (#958)
+- LRA file handling improvements (#849)
 - Updating fixer for ERA5 monthly and hourly data on Levante (#937)
 - GSV pin to 1.0.0 (#950)
 - Adding ICON production simulations (#925)

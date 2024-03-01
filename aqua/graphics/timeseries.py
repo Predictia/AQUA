@@ -113,6 +113,7 @@ def plot_seasonalcycle(data=None,
                        std_data=None,
                        data_labels: list = None,
                        ref_label: str = None,
+                       grid=True,
                        loglevel: str = 'WARNING',
                        **kwargs):
     """
@@ -124,6 +125,7 @@ def plot_seasonalcycle(data=None,
         std_data (xr.DataArray): standard deviation of the reference data
         data_labels (list of str): labels for the data
         ref_label (str): label for the reference data
+        grid (bool): if True, plot grid
         loglevel (str): logging level
 
     Keyword Arguments:
@@ -134,7 +136,7 @@ def plot_seasonalcycle(data=None,
         fig, ax (tuple): tuple containing the figure and axis objects
     """
     logger = log_configure(loglevel, 'PlotSeasonalCycle')
-    fig_size = kwargs.get('figsize', (10, 5))
+    fig_size = kwargs.get('figsize', (6, 4))
     fig, ax = plt.subplots(1, 1, figsize=fig_size)
 
     monthsNumeric = range(1, 12 + 1)  # Numeric months
@@ -149,25 +151,29 @@ def plot_seasonalcycle(data=None,
             color = color_list[i]
             try:
                 mon_data = data[i]
-                mon_data.plot(ax=ax, label=data_labels[i], color=color)
+                mon_data.plot(ax=ax, label=data_labels[i], color=color, lw=3)
             except Exception as e:
                 logger.debug(f"Error plotting data: {e}")
 
     if ref_data is not None:
         try:
-            ref_data.plot(ax=ax, label=ref_label, color='black', lw=0.6)
+            ref_data.plot(ax=ax, label=ref_label, color='black', lw=3)
             if std_data is not None:
                 std_data.compute()
                 ax.fill_between(ref_data.month,
                                 ref_data - 2.*std_data,
                                 ref_data + 2.*std_data,
-                                facecolor='grey', alpha=0.25)
+                                facecolor='grey', alpha=0.5)
         except Exception as e:
             logger.debug(f"Error plotting std data: {e}")
 
     ax.legend(fontsize='small')
     ax.set_xticks(monthsNumeric)
     ax.set_xticklabels(monthsNames)
+    ax.set_axisbelow(True)
+
+    if grid:
+        ax.grid()
 
     title = kwargs.get('title', None)
     if title is not None:
