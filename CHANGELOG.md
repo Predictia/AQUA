@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Updating fixer for ERA5 monthly and hourly data on Levante (#937)
 - GSV pin to 1.0.0 (#950)
 - Adding ICON production simulations (#925)
 - LRA CLI for parallel SLURM submission support a max number of concurrent jobs (#955)
