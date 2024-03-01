@@ -13,6 +13,7 @@ AQUA core complete list:
 - Renaming of EC-mean output figures in cli push tool for aqua-web (#930)
 
 AQUA diagnostic complete list:
+- Timeseries: Grergory plot TOA limits are dynamically chosen (#959)
 - SSH: technical improvements including removal of hardcoded loglevel and timespan definition. (#677)
 - SSH: ready with new data governance and option to plot difference plots added. (#677)
 - Atmosferic Global Mean: added mean bias for the entire year in seasonal bias function (#947)
