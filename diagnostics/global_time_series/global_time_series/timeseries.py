@@ -10,6 +10,7 @@ from aqua.util import add_pdf_metadata, time_to_string
 from aqua.graphics import plot_timeseries
 
 from .reference_data import get_reference_timeseries
+from .util import loop_seasonalcycle
 
 xr.set_options(keep_attrs=True)
 
@@ -96,6 +97,7 @@ class Timeseries():
         self.annual_std = annual_std
         self.std_startdate = std_startdate
         self.std_enddate = std_enddate
+        self.expanding_ref_range = False
 
         self.startdate = startdate
         self.enddate = enddate
@@ -136,6 +138,7 @@ class Timeseries():
                                              monthly_std=self.monthly_std,
                                              annual_std=self.annual_std,
                                              loglevel=self.loglevel)
+                self.check_ref_range()
             except NoObservationError:
                 self.plot_ref = False
                 self.logger.warning('Reference data not found, skipping reference data')
@@ -208,11 +211,11 @@ class Timeseries():
             gc.collect()
 
         if self.startdate is None:
-            self.logger.debug(f"Start date: {startdate}")
             self.startdate = startdate
+            self.logger.debug(f"Start date: {self.startdate}")
         if self.enddate is None:
             self.enddate = enddate
-            self.logger.debug(f"End date: {enddate}")
+            self.logger.debug(f"End date: {self.enddate}")
 
         if self.data_mon == [] and self.data_annual == []:
             raise NoDataError("No data found")
@@ -281,6 +284,8 @@ class Timeseries():
             description += f" with {ref_label} as reference,"
             description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}"
         description += "."
+        if self.expanding_ref_range:
+            description += " The reference range has been expanded with a seasonal cycle or a band to match the model data."
         self.logger.debug(f"Description: {description}")
         add_pdf_metadata(filename=os.path.join(outfig, self.outfile),
                          metadata_value=description)
@@ -334,3 +339,59 @@ class Timeseries():
                 del self.ref_ann_std
         gc.collect()
         self.logger.debug("Cleaned up")
+
+    def check_ref_range(self):
+        """
+        If the reference data don't cover the same range as the model data,
+        a seasonal cycle or a band of the reference data is added to the plot.
+        """
+        self.logger.debug("Checking reference range")
+
+        if self.monthly:
+            startdate = self.ref_mon.time[0].values
+            enddate = self.ref_mon.time[-1].values
+
+            if startdate > self.startdate or enddate < self.enddate:
+                self.logger.info("Expanding reference range with a seasonal cycle")
+                self.expanding_ref_range = True
+
+                if startdate > self.startdate:
+                    self.logger.debug("Adding a seasonal cycle to the start of the reference data")
+                    ref_mon_loop = loop_seasonalcycle(data=self.ref_mon,
+                                                      startdate=self.startdate,
+                                                      enddate=startdate,
+                                                      freq='MS')
+                    self.ref_mon = xr.concat([ref_mon_loop, self.ref_mon], dim='time')
+
+                if enddate < self.enddate:
+                    self.logger.debug("Adding a seasonal cycle to the end of the reference data")
+                    ref_mon_loop = loop_seasonalcycle(data=self.ref_mon,
+                                                      startdate=enddate,
+                                                      enddate=self.enddate,
+                                                      freq='MS')
+                    self.ref_mon = xr.concat([self.ref_mon, ref_mon_loop], dim='time')
+
+        if self.annual:
+            startdate = self.ref_ann.time[0].values
+            enddate = self.ref_ann.time[-1].values
+            self.logger.debug(f"Reference data time range: {startdate} to {enddate}")
+
+            if startdate > self.startdate or enddate < self.enddate:
+                self.logger.info("Expanding reference range with a band of the reference data")
+                self.expanding_ref_range = True
+
+                if startdate > self.startdate:
+                    self.logger.debug("Adding a band to the start of the reference data")
+                    ref_ann_loop = loop_seasonalcycle(data=self.ref_ann,
+                                                      startdate=self.startdate,
+                                                      enddate=startdate,
+                                                      freq='YS')
+                    self.ref_ann = xr.concat([ref_ann_loop, self.ref_ann], dim='time')
+
+                if enddate < self.enddate:
+                    self.logger.debug("Adding a band to the end of the reference data")
+                    ref_ann_loop = loop_seasonalcycle(data=self.ref_ann,
+                                                      startdate=enddate,
+                                                      enddate=self.enddate,
+                                                      freq='YS')
+                    self.ref_ann = xr.concat([self.ref_ann, ref_ann_loop], dim='time')
