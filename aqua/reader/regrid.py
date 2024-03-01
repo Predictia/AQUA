@@ -82,7 +82,7 @@ class RegridMixin():
         self.logger.warning("Success!")
 
     def _weights_generation_time(self, regrid=None, vert_coord=None, dims=None, original_grid_size=None,
-                                 new_grid_size=None, nproc=None, warning_precision=None):
+                                 new_grid_size=None, nproc=None):
         """
         Helper function to estimate the time required for generating regridding weights.
 
@@ -93,7 +93,6 @@ class RegridMixin():
             dims (tuple of str, optional): Tuple specifying the dimensions involved in the regridding process. Defaults to None.
             grid_size (int, optional): Size of the grid being used. Defaults to None.
             nproc (int, optional): Number of processors to be used in the computation. Defaults to None.
-            warning_precision (str, optional): Desired precision for the warning message ('hours', 'minutes', 'seconds').
 
         Returns:
             None: This function does not return a value but logs the estimated time for weight generation.
@@ -109,20 +108,17 @@ class RegridMixin():
             
         warning_threshold = 0
 
-        self.logger.debug(f'The original and new grid sizes {original_grid_size}, {new_grid_size}.')
-
         vert_factor = max(self._guess_vert_coord_size(_vert_coord)/nproc, 1)
         
         full_horizontal_size = original_grid_size * new_grid_size
         
-        #ints_per_L1 = 8 * nproc #depends on architecture
-        float_per_L1 = 2 * nproc # depends on architecture, double precision?
+        float_per_L1 = 2 #* nproc # depends on architecture, double precision?
         # instructions per second, assumption
         IPS = 1
         # cloock speed depends on architecture
         cloock_speed = 3.5 * 10**9 #Hz
         # operations per second
-        OPS = cloock_speed * IPS * nproc
+        OPS = cloock_speed * IPS #* nproc
         
         expected_time =  (full_horizontal_size * vert_factor) / (OPS * float_per_L1)
         self.logger.error(f"The expected time is {expected_time} seconds.")
@@ -130,22 +126,13 @@ class RegridMixin():
 
         total_seconds = int(expected_time)
         if expected_time > warning_threshold:
-            if warning_precision=='hours':
-                hours = round(total_seconds / 3600)
-                formatted_time = f'{hours} hours'
-            elif warning_precision=='minutes':
-                hours, remainder = divmod(int(expected_time), 3600)
-                minutes = round((total_seconds % 3600) / 60)
-                formatted_time = f'{hours} hours, {minutes} minutes'
-            else:
-                hours, remainder = divmod(int(expected_time), 3600)
-                minutes, seconds = divmod(remainder, 60)
-                seconds = round(total_seconds % 60)
-                formatted_time = f'{hours} hours, {minutes} minutes, and {seconds} seconds'
+            hours, remainder = divmod(int(expected_time), 3600)
+            minutes = round((total_seconds % 3600) / 60)
+            formatted_time = f'{hours} hours, {minutes} minutes'
             self.logger.warning(f'Time to generate the weights will take approximately {formatted_time}.')
 
     def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, method='ycon', regrid=None, extra=None, zoom=None, vert_coord=None,
-                           dims=None, original_grid_size=None, new_grid_size=None, nproc=None, warning_precision=None):
+                           dims=None, original_grid_size=None, new_grid_size=None, nproc=None):
         """
         Helper function to produce weights file.
 
@@ -158,7 +145,6 @@ class RegridMixin():
             zoom (int, optional): The zoom level for the grid (for HealPix grids). Defaults to None.
             vert_coord (str, optional): The vertical coordinate to use for weight generation. Defaults to None.
             method (str, optional): The interpolation method to be used (see CDO manual). Defaults to 'ycon'.
-            warning_precision (str, optional): Desired precision for the warning message ('hours', 'minutes', 'seconds').
         Returns:
             None
         """
@@ -170,15 +156,12 @@ class RegridMixin():
 
         if vert_coord == "2d" or vert_coord == "2dm":  # if 2d we need to pass None to smmregrid
             vert_coord = None
-        
-        self.logger.error(f"target grid is {cfg_regrid['grids'][regrid]}")
 
         width, height = map(int, cfg_regrid['grids'][regrid][1:].split('x'))
         new_grid_size = width * height
-        self.logger.error(f"new grid size is is {new_grid_size}")
         
         self._weights_generation_time(regrid=regrid, vert_coord=vert_coord, dims=dims, original_grid_size=original_grid_size,
-                                      new_grid_size=new_grid_size, nproc=nproc, warning_precision=warning_precision)
+                                      new_grid_size=new_grid_size, nproc=nproc)
 
         # hack to  pass a correct list of all options
         src_extra = source_grid.get("extra", [])
