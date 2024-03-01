@@ -16,23 +16,6 @@ from aqua.logger import log_configure
 from aqua.util import get_arg, load_yaml
 from aqua.exceptions import NoDataError
 
-# Add the directory containing the `seaice` module to the Python path.
-# Since the module is in the parent directory of this script, we calculate the script's directory
-# and then move one level up.
-# change the current directory to the one of the CLI so that relative path works
-abspath = os.path.abspath(__file__)
-dname = os.path.dirname(abspath)
-
-if os.getcwd() != dname:
-    os.chdir(dname)
-    print(f'Moving from current directory to {dname} to run!')
-
-script_dir = dname
-sys.path.insert(0, "../..")
-
-# Local module imports.
-from seaice import SeaIceExtent
-
 
 def parse_arguments(args):
     """
@@ -65,14 +48,31 @@ def parse_arguments(args):
 
 
 if __name__ == '__main__':
-    print("Running sea ice diagnostic...")
-
+    # Add the directory containing the `seaice` module to the Python path.
+    # Since the module is in the parent directory of this script, we calculate the script's directory
+    # and then move one level up.
+    # change the current directory to the one of the CLI so that relative path works
     # Parse the provided command line arguments.
     args = parse_arguments(sys.argv[1:])
 
     # Configure the logger.
     loglevel = get_arg(args, 'loglevel', 'WARNING')
     logger = log_configure(log_name="SeaIce CLI", log_level=loglevel)
+
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+
+    if os.getcwd() != dname:
+        os.chdir(dname)
+        logger.info(f'Moving from current directory to {dname} to run!')
+
+    script_dir = dname
+    sys.path.insert(0, "../..")
+
+    # Local module imports.
+    from seaice import SeaIceExtent
+
+    logger.info("Running sea ice diagnostic...")
 
     # Outputdir
     outputdir = get_arg(args, 'outputdir', None)
@@ -87,9 +87,9 @@ if __name__ == '__main__':
 
     # Override configurations with CLI arguments if provided.
     config['models'][0]['model'] = get_arg(args, 'model',
-                                          config['models'][0]['model'])
+                                           config['models'][0]['model'])
     config['models'][0]['exp'] = get_arg(args, 'exp',
-                                                config['models'][0]['exp'])
+                                         config['models'][0]['exp'])
     config['models'][0]['source'] = get_arg(args, 'source',
                                             config['models'][0]['source'])
     config['models'][0]['regrid'] = get_arg(args, 'regrid',
@@ -122,4 +122,4 @@ if __name__ == '__main__':
         logger.warning("Please report this error to the developers. Exiting...")
         sys.exit(0)
 
-    logger.info("sea ice diagnostic completed!")
+    logger.info("sea ice diagnostic terminated!")
