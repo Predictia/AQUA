@@ -10,6 +10,7 @@ Unreleased in the current development version:
 AQUA core complete list:
 - GSV pin to 1.0.0 (#950)
 - Adding ICON production simulations (#925)
+- LRA CLI for parallel SLURM submission support a max number of concurrent jobs (#955)
 - Renaming of EC-mean output figures in cli push tool for aqua-web (#930)
 
 AQUA diagnostic complete list:
