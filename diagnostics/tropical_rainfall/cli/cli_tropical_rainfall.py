@@ -25,6 +25,10 @@ def parse_arguments(args):
                         required=False)
     parser.add_argument('--source', type=str, help='source name',
                         required=False)
+    parser.add_argument('--regrid', type=str, help='regrid value',
+                        required=False)
+    parser.add_argument('--freq', type=str, help='frequency',
+                        required=False)
     parser.add_argument('--outputdir', type=str, help='output directory',
                         required=False)
     parser.add_argument('--nproc', type=int, required=False,
@@ -53,6 +57,10 @@ def validate_arguments(args):
         raise TypeError("Experiment name must be a string.")
     if args.source and not isinstance(args.source, str):
         raise TypeError("Source name must be a string.")
+    if args.regrid and not isinstance(args.regrid, str):
+        raise TypeError("Regrid value must be a string.")
+    if args.freq and not isinstance(args.freq, str):
+        raise TypeError("Frequency value must be a string.")
     if args.outputdir and not isinstance(args.outputdir, str):
         raise TypeError("Output directory must be a string.")
     if args.nproc and not isinstance(args.nproc, int):
@@ -87,8 +95,6 @@ def adjust_year_range_based_on_dataset(full_dataset, start_year=None, final_year
 
 class Tropical_Rainfall_CLI:
     def __init__(self, config, args):
-        self.freq = config['data']['freq']
-        self.regrid = config['data']['regrid']
         self.s_year = config['data']['s_year']
         self.f_year = config['data']['f_year']
         self.s_month = config['data']['s_month']
@@ -110,6 +116,8 @@ class Tropical_Rainfall_CLI:
         self.model = get_arg(args, 'model', config['data']['model'])
         self.exp = get_arg(args, 'exp', config['data']['exp'])
         self.source = get_arg(args, 'source', config['data']['source'])
+        self.freq = get_arg(args, 'freq', config['data']['freq'])
+        self.regrid = get_arg(args, 'regrid', config['data']['regrid'])
         self.loglevel = get_arg(args, 'loglevel', config['logger']['loglevel'])
 
         nproc = get_arg(args, 'nproc', config['compute_resources']['nproc'])
