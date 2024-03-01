@@ -69,7 +69,6 @@ def validate_arguments(args):
 
 def load_configuration(file_path):
     """Load and return the YAML configuration."""
-    print('Reading configuration YAML file..')
     config = load_yaml(file_path)
     return config
 
@@ -130,8 +129,8 @@ class Tropical_Rainfall_CLI:
 
         self.rebuild_output = config['rebuild_output']
         if path_to_output is not None:
-            self.path_to_netcdf = os.path.join(path_to_output, f'netcdf/{self.model}_{self.exp}_{self.source}/')
-            self.path_to_pdf = os.path.join(path_to_output, f'pdf/{self.model}_{self.exp}_{self.source}/')
+            self.path_to_netcdf = os.path.join(path_to_output, f'netcdf/{self.model}_{self.exp}/')
+            self.path_to_pdf = os.path.join(path_to_output, f'pdf/{self.model}_{self.exp}/')
         else:
             self.path_to_netcdf = self.path_to_pdf = None
 
@@ -174,8 +173,7 @@ class Tropical_Rainfall_CLI:
                     path_to_output = self.path_to_netcdf+f"{self.regrid}/{self.freq}/histograms/"
 
                     bins_info = self.diag.get_bins_info()
-                    keys = [f"{bins_info}_{year}-{x:02}", self.model, self.exp, self.source, self.regrid, self.freq]
-                    self.logger.debug(f"The keys are: {keys}")
+                    keys = [f"{bins_info}_{year}-{x:02}", self.model, self.exp, self.regrid, self.freq]
 
                     # Check for file existence based on keys and decide on rebuilding
                     if self.rebuild_output and self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys):
@@ -215,8 +213,8 @@ class Tropical_Rainfall_CLI:
         saved to the specified PDF format in the provided path.
         """
         plot_title = f"Grid: {self.regrid}, frequency: {self.freq}"
-        legend = f"{self.model} {self.exp} {self.source}"
-        name_of_pdf =f"{self.model}_{self.exp}_{self.source}"
+        legend = f"{self.model} {self.exp}"
+        name_of_pdf =f"{self.model}_{self.exp}"
 
         self.logger.debug(f"The path to file is: {self.path_to_netcdf}{self.regrid}/{self.freq}/histograms/.")
         hist_merged = self.diag.merge_list_of_histograms(path_to_histograms=self.path_to_netcdf+f"{self.regrid}/{self.freq}/histograms/",
