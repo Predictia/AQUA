@@ -9,9 +9,18 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - A ``detrend()`` method is added to the Reader class (#919)
+- LRA file handling improvements (#849)
+- Updating fixer for ERA5 monthly and hourly data on Levante (#937)
+- GSV pin to 1.0.0 (#950)
+- Adding ICON production simulations (#925)
+- LRA CLI for parallel SLURM submission support a max number of concurrent jobs (#955)
+- Renaming of EC-mean output figures in cli push tool for aqua-web (#930)
+- Renaming the `tprate` variable into `mtpr` in all fixes (#944)
 
 AQUA diagnostic complete list:
-- Atmospheric Global Mean: added mean bias for the entire year in seasonal bias function (#947)
+- SSH: technical improvements including removal of hardcoded loglevel and timespan definition. (#677)
+- SSH: ready with new data governance and option to plot difference plots added. (#677)
+- Atmosferic Global Mean: added mean bias for the entire year in seasonal bias function (#947)
 
 ## [v0.7.1]
 
@@ -37,7 +46,6 @@ AQUA diagnostics complete list:
 - Timeseries: seasonal cycle is available for the global timeseries (#912)
 - Timeseries: refactory of Gregory plot as a class, comparison with multiple models and observations (#910)
 - Timeseries: complete refactory of the timeseries as a class, comparison with multiple models and observations (#907)
-
 
 ## [v0.7]
 
