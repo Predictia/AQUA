@@ -8,8 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
-
 - Minimum date fixer feature / ICON net fluxes fix (#958)
+- A ``detrend()`` method is added to the Reader class (#919)
 - LRA file handling improvements (#849)
 - Updating fixer for ERA5 monthly and hourly data on Levante (#937)
 - GSV pin to 1.0.0 (#950)
@@ -19,6 +19,7 @@ AQUA core complete list:
 - Renaming the `tprate` variable into `mtpr` in all fixes (#944)
 
 AQUA diagnostic complete list:
+- Timeseries: Grergory plot TOA limits are dynamically chosen (#959)
 - SSH: technical improvements including removal of hardcoded loglevel and timespan definition. (#677)
 - SSH: ready with new data governance and option to plot difference plots added. (#677)
 - Atmosferic Global Mean: added mean bias for the entire year in seasonal bias function (#947)
