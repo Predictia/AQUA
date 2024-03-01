@@ -1,15 +1,13 @@
 data:
   model:  "MSWEP"         # Name of the climate model used
   exp:    "past"          # Experiment identifier
-  source: "monthly"       # Data source, specifying resolution and frequency
-  freq:   "M"             # Frequency of data, 'M' stands for Monthly
-  regrid: "r100"          # Regridding option to apply
+  source: "3hourly"       # Data source, specifying resolution and frequency
+  freq:   "3H"            # Frequency of data, 'M' stands for Monthly
+  regrid: "r010"          # Regridding option to apply
   s_year:  null           # Start year for analysis, 'null' means it will be set dynamically
   f_year:  null           # Final year for analysis, 'null' means it will be set dynamically
   s_month: null           # Start month for analysis, 'null' means it will be set dynamically
   f_month: null           # Final month for analysis, 'null' means it will be set dynamically
-
-machine: levante          # The machine/environment where the analysis is run
 
 class_attributes:
   trop_lat:    15         # Tropical latitude boundary for analysis
@@ -24,9 +22,11 @@ rebuild_output: False
 plot:
   color: 'tab:green'      # Color for the plot
   figsize: 1              # Figure size for the plot
-  xmax: 50                # Max value for the x-axis in the plot
+  xmax: null                # Max value for the x-axis in the plot
   loc: 'upper right'      # Location of the legend/annotation in the plot
   pdf_format: True        # Whether to save plots in PDF format
+
+machine: lumi          # The machine/environment where the analysis is run
 
 output:
   levante: "/work/bb1153/b382267/tropical_rainfall_cicle3/cli_test/"  # File path for Levante machine
