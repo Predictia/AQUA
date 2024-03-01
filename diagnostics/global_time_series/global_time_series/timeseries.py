@@ -211,9 +211,11 @@ class Timeseries():
             gc.collect()
 
         if self.startdate is None:
+            startdate = time_to_string(startdate)
             self.startdate = startdate
             self.logger.debug(f"Start date: {self.startdate}")
         if self.enddate is None:
+            enddate = time_to_string(enddate)
             self.enddate = enddate
             self.logger.debug(f"End date: {self.enddate}")
 
@@ -348,8 +350,11 @@ class Timeseries():
         self.logger.debug("Checking reference range")
 
         if self.monthly:
-            startdate = self.ref_mon.time[0].values
-            enddate = self.ref_mon.time[-1].values
+            exp_startdate, exp_enddate = self._expand_ref_range(freq='monthly')
+            self.logger.info(f"Monthly reference std time range for expansion evaluation: {exp_startdate} to {exp_enddate}")
+
+            startdate, enddate = self._expand_ref_range(freq='monthly', range_eval=True)
+            self.logger.info(f"Monthly reference data time available {startdate} to {enddate}")
 
             if startdate > self.startdate or enddate < self.enddate:
                 self.logger.info("Expanding reference range with a seasonal cycle")
@@ -371,10 +376,14 @@ class Timeseries():
                                                       freq='MS')
                     self.ref_mon = xr.concat([self.ref_mon, ref_mon_loop], dim='time')
 
+            self.ref_mon = self.ref_mon.sel(time=slice(self.startdate, self.enddate))
+
         if self.annual:
-            startdate = self.ref_ann.time[0].values
-            enddate = self.ref_ann.time[-1].values
-            self.logger.debug(f"Reference data time range: {startdate} to {enddate}")
+            exp_startdate, exp_enddate = self._expand_ref_range(freq='annual')
+            self.logger.info(f"Annual reference std time range for expansion evaluation: {exp_startdate} to {exp_enddate}")
+
+            startdate, enddate = self._expand_ref_range(freq='annual', range_eval=True)
+            self.logger.info(f"Annual reference data time available {startdate} to {enddate}")
 
             if startdate > self.startdate or enddate < self.enddate:
                 self.logger.info("Expanding reference range with a band of the reference data")
@@ -395,3 +404,36 @@ class Timeseries():
                                                       enddate=self.enddate,
                                                       freq='YS')
                     self.ref_ann = xr.concat([self.ref_ann, ref_ann_loop], dim='time')
+
+            self.ref_ann = self.ref_ann.sel(time=slice(self.startdate, self.enddate))
+
+    def _expand_ref_range(self, freq='monthly', range_eval=False):
+        """Evaluate range for statistics to expand the reference range
+
+        Args:
+            freq (str): Frequency of the data. Default is 'monthly'.
+            range_eval (bool): Evaluate the range also if std is provided. Default is False.
+
+        Returns:
+            startdate and enddate (str): Start and end date of the reference range.
+        """
+        startdate = self.std_startdate
+        enddate = self.std_enddate
+
+        if startdate is None or enddate is None or range_eval:
+            self.logger.debug("No std reference range provided, using data retrieved range")
+            if freq == 'monthly':
+                startdate = self.ref_mon.time[0].values
+                startdate = time_to_string(startdate)
+                enddate = self.ref_mon.time[-1].values
+                enddate = time_to_string(enddate)
+            elif freq == 'annual':
+                if self.annual:
+                    startdate = self.ref_ann.time[0].values
+                    startdate = time_to_string(startdate)
+                    enddate = self.ref_ann.time[-1].values
+                    enddate = time_to_string(enddate)
+            else:
+                raise ValueError(f"Unknown frequency: {freq}")
+
+        return startdate, enddate
