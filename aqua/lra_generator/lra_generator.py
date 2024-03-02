@@ -321,7 +321,7 @@ class LRAgenerator():
             filename = os.path.join(self.outdir, filestring)    
 
         if (year is not None) and (month is None):
-            filestring = filename.replace("*", str(year))
+            filename = filename.replace("*", str(year))
         if (year is not None) and (month is not None):
             filename = filename.replace("*", str(year) + str(month).zfill(2))
 
