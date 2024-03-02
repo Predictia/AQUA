@@ -1,4 +1,5 @@
 .. _cli:
+
 Command Line Interface tools
 ============================
 
@@ -6,6 +7,7 @@ This sections describes the series of Command Line Interface (CLI) tools current
 It includes software with a variety of goals, which are mostly made for advanced usage. 
 
 .. _aqua_analysis:
+
 AQUA analysis wrapper
 ---------------------
 
@@ -78,12 +80,14 @@ so that the script can be used in a batch job or in a workflow.
     where arrays with atmospheric and oceanic diagnostics are defined.
 
 .. _fdb-catalog-generator:
+
 Catalog entry generator for FDB sources
 ---------------------------------------
 
 This tool, currently under development, will provide the generation of the FDB sources for the Climate DT project.
 
 .. _gribber:
+
 GRIB catalog generator
 ----------------------
 
@@ -96,6 +100,7 @@ A script in the ``cli/gribber`` folder is available.
 
 
 .. _grids-from-data:
+
 Generation of grid from data
 ----------------------------
 
@@ -116,6 +121,7 @@ Basic usage:
     ./hpx-from-source.py -c config-hpx-nemo.yaml -l INFO
 
 .. _grids-downloader:
+
 Grids downloader
 ----------------
 
@@ -143,6 +149,7 @@ LUMI conda installation
 Includes the script for the installation of conda environment on LUMI: please refer to :ref:`installation-lumi`
 
 .. _orca:
+
 ORCA grid generator
 -------------------
 
@@ -156,6 +163,7 @@ Basic usage:
     ./orca_bounds_new.py mesh_mask.nc orcefile.nc
 
 .. _weights:
+
 Weights generator
 -----------------
 
@@ -173,6 +181,7 @@ Basic usage:
 
 
 .. _aqua_web:
+
 Automatic uploading of figures and documentation to aqua-web
 ------------------------------------------------------------
 

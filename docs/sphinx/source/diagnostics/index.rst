@@ -1,4 +1,5 @@
 .. _diagnostics:
+
 Diagnostics
 ===========
 

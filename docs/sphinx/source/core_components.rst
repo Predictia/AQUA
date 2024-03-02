@@ -182,6 +182,7 @@ Users can also change the unit of the vertical coordinate.
     interp = field.aqua.vertinterp(levels=[830, 835], units='hPa', method='linear')
 
 .. _fixer:
+
 Fixer functionalities
 ---------------------
 
@@ -243,6 +244,7 @@ The fixer performs a range of operations on data:
   If there is an extra time unit, it will assume that division by the timestep is needed. 
 
 .. _fix-structure:
+
 Fix structure
 ^^^^^^^^^^^^^
 
@@ -315,6 +317,7 @@ different sections of the fixer file.
 - **delete**: a list of variable or coordinates that the users want to remove from the output Dataset
 
 .. _metadata-fix:
+
 Metadata Correction
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -348,6 +351,7 @@ Then, extra keys can be then specified for `each` variable to allow for further 
     Recursive fixes (i.e. fixes of fixes) cannot be implemented. For example, it is not possibile to derive a variable from a derived variable
 
 .. _coord-fix:
+
 Data Model and Coordinates Correction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -444,6 +448,7 @@ It is also possible to apply a regional section to the domain before performing 
     described in the :ref:`fixer` section.
 
 .. _time-selection:
+
 Time selection
 --------------
 
@@ -459,6 +464,7 @@ immediatly only a chunck of data.
     overview of the behaviour of the Reader with these options.
 
 .. _lev-selection:
+
 Level selection
 ---------------
 
@@ -482,6 +488,7 @@ but an index for NEMO data in the FDB archive).
     the section :ref:`lev-selection-regrid`.
 
 .. _streaming:
+
 Streaming of data
 -----------------
 
@@ -536,6 +543,7 @@ We can do operations with them by iterating on the generator object like:
         # Do something with the data
 
 .. _accessors:
+
 Accessors
 ---------
 

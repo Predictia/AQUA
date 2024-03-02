@@ -1,4 +1,5 @@
 .. _faq_installation:
+
 I am getting an error when trying to install AQUA on LUMI
 =========================================================
 
