@@ -3,19 +3,22 @@ LRA class for glob
 """
 
 import os
+import re
 import types
 from time import time
 import glob
 import dask
 import xarray as xr
+import numpy as np
 import pandas as pd
 from dask.distributed import Client, LocalCluster, progress
 from dask.diagnostics import ProgressBar
 from aqua.logger import log_configure, log_history
 from aqua.reader import Reader
-from aqua.util import create_folder, generate_random_string
+from aqua.util import create_folder, generate_random_string, move_tmp_files
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import ConfigPath, file_is_complete
+import shutil
 #from aqua.lra_generator.lra_util import check_correct_ifs_fluxes
 
 
@@ -131,9 +134,12 @@ class LRAgenerator():
 
         # option for time encoding, defined once for all
         self.time_encoding = {
-            'units': 'days since 1970-01-01',
+            'units': 'days since 1850-01-01 00:00:00',
             'calendar': 'standard',
-            'dtype': 'float64'
+            'dtype': 'float64',
+            'zlib' : True,
+            'complevel': 1,
+            '_FillValue': np.nan
         }
 
         self.fix = fix
@@ -150,6 +156,7 @@ class LRAgenerator():
             self.outdir = os.path.join(self.outdir, self.frequency)
 
         create_folder(self.outdir, loglevel=self.loglevel)
+        create_folder(self.tmpdir, loglevel=self.loglevel)
 
         # Initialize variables used by methods
         self.data = None
@@ -198,11 +205,14 @@ class LRAgenerator():
 
         else:  # Only one variable
             self._write_var(self.var)
+                
+        self.logger.info('Move tmp files to output directory')
+        move_tmp_files(self.tmpdir, self.outdir)
             
         # Cleaning
         self.data.close()
         self._close_dask()
-        # self._remove_tmpdir()
+        self._remove_tmpdir()
 
         self.logger.info('Finished generating LRA data.')
 
@@ -227,7 +237,7 @@ class LRAgenerator():
                 },
             },
             'metadata': {
-                'source_grid_name': 'lon-lat'
+                'source_grid_name': 'lon-lat',
             }
         }
 
@@ -241,7 +251,8 @@ class LRAgenerator():
             self.logger.info('Catalog entry for %s %s %s exists, updating the urlpath only...',
                              self.model, self.exp, entry_name)
             cat_file['sources'][entry_name]['args']['urlpath'] = urlpath
-        cat_file['sources'][entry_name] = block_cat
+        else:
+            cat_file['sources'][entry_name] = block_cat
         dump_yaml(outfile=catalogfile, cfg=cat_file)
 
     def _set_dask(self):
@@ -272,9 +283,8 @@ class LRAgenerator():
         """
         Remove temporary directory
         """
-        if self.dask:  # self.nproc > 1
-            self.logger.info('Removing temporary directory %s', self.tmpdir)
-            os.removedirs(self.tmpdir)
+        self.logger.info('Removing temporary directory %s', self.tmpdir)
+        shutil.rmtree(self.tmpdir)
 
     def _concat_var_year(self, var, year):
         """
@@ -282,13 +292,13 @@ class LRAgenerator():
         from the same year
         """
 
-        infiles = os.path.join(self.outdir,
-                               f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}??.nc')
+        infiles = os.path.join(self.tmpdir,
+                               f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}??_tmp.nc')
         if len(glob.glob(infiles)) == 12:
             xfield = xr.open_mfdataset(infiles)
             self.logger.info('Creating a single file for %s, year %s...', var, str(year))
-            outfile = os.path.join(self.outdir,
-                                   f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}.nc')
+            outfile = os.path.join(self.tmpdir,
+                                   f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}_tmp.nc')
             # clean older file
             if os.path.exists(outfile):
                 os.remove(outfile)
@@ -299,11 +309,12 @@ class LRAgenerator():
                 self.logger.info('Cleaning %s...', infile)
                 os.remove(infile)
 
+
     def get_filename(self, var, year=None, month=None):
         """Create output filenames"""
 
-        filename = os.path.join(self.outdir,
-                                f'{var}_{self.exp}_{self.resolution}_{self.frequency}_*.nc')
+        filename = os.path.join(self.tmpdir,
+                                f'{var}_{self.exp}_{self.resolution}_{self.frequency}_*_tmp.nc')
         if (year is not None) and (month is None):
             filename = filename.replace("*", str(year))
         if (year is not None) and (month is not None):
@@ -430,7 +441,7 @@ class LRAgenerator():
         temp_data = self._remove_regridded(temp_data)
 
         # Splitting data into yearly files
-        years = set(temp_data.time.dt.year.values)
+        years = sorted(set(temp_data.time.dt.year.values))
         for year in years:
 
             self.logger.info('Processing year %s...', str(year))
@@ -447,7 +458,7 @@ class LRAgenerator():
             year_data = temp_data.sel(time=temp_data.time.dt.year == year)
 
             # Splitting data into monthly files
-            months = set(year_data.time.dt.month.values)
+            months = sorted(set(year_data.time.dt.month.values))
             for month in months:
                 self.logger.info('Processing month %s...', str(month))
                 outfile = self.get_filename(var, year, month)

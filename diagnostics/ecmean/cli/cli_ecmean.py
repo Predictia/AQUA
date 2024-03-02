@@ -66,21 +66,19 @@ def reader_data(model, exp, source, keep_vars):
 
 if __name__ == '__main__':
 
+    args = parse_arguments(sys.argv[1:])
+    loglevel = get_arg(args, 'loglevel', 'WARNING')
+    logger = log_configure(log_level=loglevel, log_name='PI')
+
     # change the current directory to the one of the CLI so that relative path works
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
     if os.getcwd() != dname:
         os.chdir(dname)
-        print(f'Moving from current directory to {dname} to run!')
+        logger.info(f'Moving from current directory to {dname} to run!')
 
-    args = parse_arguments(sys.argv[1:])
     file = get_arg(args, 'config', 'config_ecmean_cli.yaml')
-
     configfile = load_yaml(file)
-    loglevel = configfile['setup']['loglevel']
-    loglevel = get_arg(args, 'loglevel', loglevel)
-    logger = log_configure(log_level=loglevel, log_name='PI')
-
     logger.info(f'Running AQUA v{aquaversion} Performance Indices diagnostic with ECmean4 v{eceversion}')
 
     # setting options from configuration files
@@ -146,4 +144,4 @@ if __name__ == '__main__':
                             interface=interface, loglevel=loglevel,
                             outputdir=outputdir, xdataset=data)
 
-    logger.info('AQUA ECmean4 Performance diagnostic run completed. Go outside and live your life!')
+    logger.info('AQUA ECmean4 Performance diagnostic is terminated. Go outside and live your life!')
