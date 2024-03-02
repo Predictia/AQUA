@@ -7,7 +7,7 @@ if [[ -z "$AQUA" ]]; then
     exit 1  # Exit with status 1 to indicate an error
 else
     source "${AQUA}/cli/util/logger.sh"
-    log_message INFO "Sourcing logger.sh from: ${AQUA}cli/util/logger.sh"
+    log_message INFO "Sourcing logger.sh from: ${AQUA}/cli/util/logger.sh"
     # Your subsequent commands here
 fi
 setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
@@ -23,7 +23,7 @@ model_atm="IFS-NEMO"
 model_oce="IFS-NEMO"
 exp="historical-1990"
 source="lra-r100-monthly"
-outputdir="${AQUA}cli/aqua-analysis/output" # Prefer absolute paths, e.g., "/path/to/aqua/my/output"
+outputdir="${AQUA}/cli/aqua-analysis/output" # Prefer absolute paths, e.g., "/path/to/aqua/my/output"
 loglevel="WARNING" # DEBUG, INFO, WARNING, ERROR, CRITICAL
 machine="lumi" # will change the aqua config file
 
@@ -84,15 +84,15 @@ done
 # --config (config file)
 # Concatenate the new part to the existing content
 atm_extra_args["global_time_series"]="${atm_extra_args["global_time_series"]} \
---config ${aqua}diagnostics/global_time_series/cli/config_time_series_atm.yaml"
+--config ${aqua}/diagnostics/global_time_series/cli/config_time_series_atm.yaml"
 oce_extra_args["global_time_series"]="${oce_extra_args["global_time_series"]} \
---config ${aqua}diagnostics/global_time_series/cli/config_time_series_oce.yaml"
+--config ${aqua}/diagnostics/global_time_series/cli/config_time_series_oce.yaml"
 # ----------------------------------------
 # Command line extra arguments for ecmean:
 # -c --config (ecmean config file)
 # -i --interface (custom interface file)
 atm_oce_extra_args["ecmean"]="${atm_oce_extra_args["ecmean"]} \
---interface ${aqua}diagnostics/ecmean/config/interface_AQUA_destine-v1.yml"
+--interface ${aqua}/diagnostics/ecmean/config/interface_AQUA_destine-v1.yml"
 # -------------------------------------------
 # Command line extra arguments for radiation:
 # --config (readiation config file)
@@ -203,10 +203,10 @@ args="--model_atm $model_atm --model_oce $model_oce --exp $exp --source $source"
 if [[ "$OSTYPE" == "darwin"* ]]; then
   # Mac OSX
   sed -i '' "/^machine:/c\\
-machine: $machine" "${aqua}config/config-aqua.yaml"
+machine: $machine" "${aqua}/config/config-aqua.yaml"
 else
   # Linux
-  sed -i "/^machine:/c\\machine: $machine" "${aqua}config/config-aqua.yaml"
+  sed -i "/^machine:/c\\machine: $machine" "${aqua}/config/config-aqua.yaml"
 fi
 log_message INFO "Machine set to $machine in the config file"
 
@@ -218,7 +218,7 @@ mkdir -p "$outputdir_oce"
 cd $AQUA
 if [ "$run_dummy" = true ] ; then
   log_message INFO "Running setup checker"
-  scriptpy="${aqua}diagnostics/dummy/cli/cli_dummy.py"
+  scriptpy="${aqua}/diagnostics/dummy/cli/cli_dummy.py"
   python $scriptpy $args -l $loglevel > "$outputdir_atm/setup_checker.log" 2>&1
   
   # Store the error code of the dummy script
@@ -261,18 +261,18 @@ for diagnostic in "${all_diagnostics[@]}"; do
   fi
 
   if [[ "${atm_diagnostics[@]}" =~ "$diagnostic" ]]; then
-    python "${aqua}diagnostics/${script_path[$diagnostic]}" $args_atm ${atm_extra_args[$diagnostic]} \
+    python "${aqua}/diagnostics/${script_path[$diagnostic]}" $args_atm ${atm_extra_args[$diagnostic]} \
     -l $loglevel --outputdir $outputdir_atm/$diagnostic > "$outputdir_atm/atm_$diagnostic.log" 2>&1 &
     # Remove diagnostic from atm_diagnostics array
     atm_diagnostics=(${atm_diagnostics[@]/$diagnostic})
   elif [[ "${oce_diagnostics[@]}" =~ "$diagnostic" ]]; then
-    python "${aqua}diagnostics/${script_path[$diagnostic]}" $args_oce ${oce_extra_args[$diagnostic]} \
+    python "${aqua}/diagnostics/${script_path[$diagnostic]}" $args_oce ${oce_extra_args[$diagnostic]} \
     -l $loglevel --outputdir $outputdir_oce/$diagnostic > "$outputdir_oce/oce_$diagnostic.log" 2>&1 &
     # Remove diagnostic from oce_diagnostics array
     oce_diagnostics=(${oce_diagnostics[@]/$diagnostic})
   elif [[ "${atm_oce_diagnostics[@]}" =~ "$diagnostic" ]]; then
     # NOTE: atm_oce diagnostics are run in the atmospheric output directory
-    python "${aqua}diagnostics/${script_path[$diagnostic]}" $args ${atm_oce_extra_args[$diagnostic]} \
+    python "${aqua}/diagnostics/${script_path[$diagnostic]}" $args ${atm_oce_extra_args[$diagnostic]} \
     -l $loglevel --outputdir $outputdir_atm/$diagnostic > "$outputdir_atm/$diagnostic.log" 2>&1 &
     # Remove diagnostic from atm_oce_diagnostics array
     atm_oce_diagnostics=(${atm_oce_diagnostics[@]/$diagnostic})
