@@ -26,12 +26,9 @@ def parse_arguments(args):
     """
     parser = argparse.ArgumentParser(description='sea ice CLI')
 
-    # Define the default path for the configuration file.
-    default_config_path = os.path.join(script_dir, 'config.yml')
-
     # Arguments for the CLI.
-    parser.add_argument('--config', type=str, default=default_config_path,
-                        help=f'yaml configuration file (default: {default_config_path})')
+    parser.add_argument('--config', type=str, default='config.yml',
+                        help=f'yaml configuration file (default: config.yml)')
     parser.add_argument('--all-regions', action='store_true',
                         help='Compute sea ice extent for all regions')
     parser.add_argument('--loglevel', '-l', type=str, default='WARNING',
@@ -66,7 +63,6 @@ if __name__ == '__main__':
         os.chdir(dname)
         logger.info(f'Moving from current directory to {dname} to run!')
 
-    script_dir = dname
     sys.path.insert(0, "../..")
 
     # Local module imports.
