@@ -7,6 +7,7 @@ import re
 import types
 from time import time
 import glob
+import shutil
 import dask
 import xarray as xr
 import numpy as np
@@ -18,7 +19,7 @@ from aqua.reader import Reader
 from aqua.util import create_folder, generate_random_string, move_tmp_files
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import ConfigPath, file_is_complete
-import shutil
+
 #from aqua.lra_generator.lra_util import check_correct_ifs_fluxes
 
 
@@ -293,12 +294,12 @@ class LRAgenerator():
         """
 
         infiles = os.path.join(self.tmpdir,
-                               f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}??_tmp.nc')
+                               f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}??.nc')
         if len(glob.glob(infiles)) == 12:
             xfield = xr.open_mfdataset(infiles)
             self.logger.info('Creating a single file for %s, year %s...', var, str(year))
             outfile = os.path.join(self.tmpdir,
-                                   f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}_tmp.nc')
+                                   f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}.nc')
             # clean older file
             if os.path.exists(outfile):
                 os.remove(outfile)
@@ -314,7 +315,7 @@ class LRAgenerator():
         """Create output filenames"""
 
         filename = os.path.join(self.tmpdir,
-                                f'{var}_{self.exp}_{self.resolution}_{self.frequency}_*_tmp.nc')
+                                f'{var}_{self.exp}_{self.resolution}_{self.frequency}_*.nc')
         if (year is not None) and (month is None):
             filename = filename.replace("*", str(year))
         if (year is not None) and (month is not None):

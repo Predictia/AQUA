@@ -4,7 +4,6 @@ import os
 import shutil
 import random
 import string
-import yaml
 import re
 import numpy as np
 import xarray as xr
