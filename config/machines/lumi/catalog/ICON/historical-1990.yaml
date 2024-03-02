@@ -34,7 +34,7 @@ sources:
         177, 178, 179, 140101, 140102, 130, 151, 165, 166, 167, 168]
         # 260074 surface pressure is available but is not readable yet
       source_grid_name: hpz10-nested
-      fixer_name: icon-destine-v1
+      fixer_name: icon-destine-v1-hist
 
   hourly-hpz10-atm3d:
     <<: *base-default
