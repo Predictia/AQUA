@@ -15,9 +15,10 @@ from dask.distributed import Client, LocalCluster, progress
 from dask.diagnostics import ProgressBar
 from aqua.logger import log_configure, log_history
 from aqua.reader import Reader
-from aqua.util import create_folder, generate_random_string, move_tmp_files
+from aqua.util import create_folder, generate_random_string
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import ConfigPath, file_is_complete
+from aqua.lra_generator.lra_util import move_tmp_files
 
 #from aqua.lra_generator.lra_util import check_correct_ifs_fluxes
 
