@@ -37,7 +37,7 @@ def submit_sbatch(model, exp, source, varname, yaml_file,
         '--account=' + config.get('account', 'project_465000454'),
         '--nodes=' + str(config.get('nodes', 1)),
         '--ntasks-per-node=' + str(config.get('ntasks_per_node', workers)),
-        '--time=' + config.get('time', '04:00:00')
+        '--time=' + config.get('time', '08:00:00')
         #'--priority=low',
         #'--mem=' + config.get('mem', '256G')
     ]

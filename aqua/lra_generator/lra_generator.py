@@ -311,13 +311,17 @@ class LRAgenerator():
                 os.remove(infile)
 
 
-    def get_filename(self, var, year=None, month=None):
+    def get_filename(self, var, year=None, month=None, tmp=False):
         """Create output filenames"""
 
-        filename = os.path.join(self.tmpdir,
-                                f'{var}_{self.exp}_{self.resolution}_{self.frequency}_*.nc')
+        filestring = f'{var}_{self.exp}_{self.resolution}_{self.frequency}_*.nc'
+        if tmp:
+            filename = os.path.join(self.tmpdir, filestring)      
+        else: 
+            filename = os.path.join(self.outdir, filestring)    
+
         if (year is not None) and (month is None):
-            filename = filename.replace("*", str(year))
+            filestring = filename.replace("*", str(year))
         if (year is not None) and (month is not None):
             filename = filename.replace("*", str(year) + str(month).zfill(2))
 
@@ -385,7 +389,7 @@ class LRAgenerator():
             year = temp_data.time.dt.year.values[0]
             month = temp_data.time.dt.month.values[0]
 
-            yearfile = self.get_filename(var, year)
+            yearfile = self.get_filename(var, year = year)
             filecheck = file_is_complete(yearfile, loglevel=self.loglevel)
             if filecheck:
                 if not self.overwrite:
@@ -395,7 +399,7 @@ class LRAgenerator():
                     self.logger.warning('Yearly file %s already exists, overwriting as requested...', yearfile)
 
             self.logger.info('Processing year %s month %s...', str(year), str(month))
-            outfile = self.get_filename(var, year, month)
+            outfile = self.get_filename(var, year = year, month = month)
 
             # checking if file is there and is complete
             filecheck = file_is_complete(outfile, loglevel=self.loglevel)
@@ -446,7 +450,7 @@ class LRAgenerator():
         for year in years:
 
             self.logger.info('Processing year %s...', str(year))
-            yearfile = self.get_filename(var, year)
+            yearfile = self.get_filename(var, year = year)
 
             # checking if file is there and is complete
             filecheck = file_is_complete(yearfile, loglevel=self.loglevel)
@@ -462,7 +466,7 @@ class LRAgenerator():
             months = sorted(set(year_data.time.dt.month.values))
             for month in months:
                 self.logger.info('Processing month %s...', str(month))
-                outfile = self.get_filename(var, year, month)
+                outfile = self.get_filename(var, year = year, month = month)
 
                 # checking if file is there and is complete
                 filecheck = file_is_complete(outfile, loglevel=self.loglevel)
@@ -489,13 +493,14 @@ class LRAgenerator():
 
                 # real writing
                 if self.definitive:
-                    self.write_chunk(month_data, outfile)
+                    tmpfile = self.get_filename(var, year = year, month = month, tmp = True)
+                    self.write_chunk(month_data, tmpfile)
 
                     # check everything is correct
-                    filecheck = file_is_complete(outfile, loglevel=self.loglevel)
+                    filecheck = file_is_complete(tmpfile, loglevel=self.loglevel)
                     # we can later add a retry
                     if not filecheck:
-                        self.logger.error('Something has gone wrong in %s!', outfile)
+                        self.logger.error('Something has gone wrong in %s!', tmpfile)
                 del month_data
             del year_data
             if self.definitive:
