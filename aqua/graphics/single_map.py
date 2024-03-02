@@ -259,6 +259,9 @@ def plot_single_map_diff(data: xr.DataArray,
     # Plot the difference
     diff_map = data - data_ref
 
+    return_main_fig = kwargs.get('return_fig', False)
+    del kwargs['return_fig'] # Remove the return_fig kwarg from the kwargs
+
     fig, ax = plot_single_map(diff_map, return_fig=True,
                               contour=contour, sym=sym,
                               save=False, loglevel=loglevel,
@@ -325,8 +328,7 @@ def plot_single_map_diff(data: xr.DataArray,
         logger.debug("Display is set to False, closing figure")
         plt.close(fig)
 
-    return_fig = kwargs.get('return_fig', False)
-    if return_fig:
+    if return_main_fig:
         return fig, ax
 
 
