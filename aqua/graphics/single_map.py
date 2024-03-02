@@ -9,6 +9,7 @@ Author: Matteo Nurisso
 Date: Feb 2024
 """
 import cartopy.crs as ccrs
+import cartopy.mpl.ticker as cticker
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
