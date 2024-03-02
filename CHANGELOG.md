@@ -9,6 +9,7 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 
+- Added documentation for `plot_timeseries`, `plot_seasonalcycle` and `plot_single_map_diff` (#975)
 - Minimum date fixer feature / ICON net fluxes fix (#958)
 - Unified logging for all diagnostics (#931)
 - A ``detrend()`` method is added to the Reader class (#919)
