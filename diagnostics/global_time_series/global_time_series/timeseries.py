@@ -119,8 +119,14 @@ class Timeseries():
             self.save_netcdf()
         self.cleanup()
 
-    def retrieve_ref(self):
-        """Retrieve reference data"""
+    def retrieve_ref(self, extend=True):
+        """Retrieve reference data
+        If the reference data don't cover the same range as the model data,
+        a seasonal cycle or a band of the reference data is added to the plot.
+
+        Args:
+            extend (bool): Extend the reference range. Default is True.
+        """
         if self.plot_ref:
             self.logger.debug('Retrieving reference data')
             try:
@@ -138,7 +144,8 @@ class Timeseries():
                                              monthly_std=self.monthly_std,
                                              annual_std=self.annual_std,
                                              loglevel=self.loglevel)
-                self.check_ref_range()
+                if extend:  # We introduce the possibility to avoid this for seasonal cycle
+                    self.check_ref_range()
             except NoObservationError:
                 self.plot_ref = False
                 self.logger.warning('Reference data not found, skipping reference data')
