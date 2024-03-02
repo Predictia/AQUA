@@ -618,8 +618,12 @@ The description of this feature is provided in the section :ref:`slurm`.
 Graphic tools
 -------------
 
-The aqua.graphics module provides a simple function to easily plot a map of a variable.
-A function called ``plot_single_map`` is provided with many options to customize the plot.
+The *aqua.graphics* module provides a set of simple functions to easily plot the result of analysis done within AQUA.
+
+Single map
+^^^^^^^^^^
+
+A function called ``plot_single_map()`` is provided with many options to customize the plot.
 
 The function takes as input an xarray.DataArray, with a single timestep to be selected
 before calling the function. The function will then plot the map of the variable and,
@@ -644,3 +648,69 @@ This will produce the following plot:
 .. figure:: figures/single_map_example.png
     :align: center
     :width: 100%
+
+Single map with differences
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A function called ``plot_single_map_diff()`` is provided with many options to customize the plot.
+
+The function is built as an expansion of the ``plot_single_map()`` function, so that arguments and options are similar.
+The function takes as input two xarray.DataArray, with a single timestep.
+
+The function will plot as colormap or contour filled map the difference between the two input DataArray (the first one minus the second one).
+Additionally a contour line map is plotted with the first input DataArray, to show the original data.
+
+.. figure:: figures/teleconnections_ENSO_correlation_IFS-NEMO_ssp370_lra-r100-monthly_ERA5.png
+    :align: center
+    :width: 100%
+
+    Example of a ``plot_single_map_diff()`` output done with the :ref:`teleconnections`.
+    The map shows the correlation for the ENSO teleconnection between IFS-NEMO scenario run and ERA5 reanalysis.
+
+Time series
+^^^^^^^^^^^
+
+A function called ``plot_timeseries()`` is provided with many options to customize the plot.
+The function is built to plot time series of a single variable,
+with the possibility to plot multiple lines for different models and a special line for a reference dataset.
+The reference dataset can have a representation of the uncertainty over time.
+
+By default the function is built to be able to plot monthly and yearly time series, as required by the :ref:`global_mean_timeseries` diagnostic.
+
+The function takes as data input:
+
+- **monthly_data**: a (list of) xarray.DataArray, each one representing the monthly time series of a model.
+- **annual_data**: a (list of) xarray.DataArray, each one representing the annual time series of a model.
+- **ref_monthly_data**: a xarray.DataArray representing the monthly time series of the reference dataset.
+- **ref_annual_data**: a xarray.DataArray representing the annual time series of the reference dataset.
+- **std_monthly_data**: a xarray.DataArray representing the monthly values of the standard deviation of the reference dataset.
+- **std_annual_data**: a xarray.DataArray representing the annual values of the standard deviation of the reference dataset.
+
+The function will automatically plot what is available, so it is possible to plot only monthly or only yearly time series, with or without a reference dataset.
+
+.. figure:: figures/timeseries_example_plot.png
+    :align: center
+    :width: 100%
+
+    Example of a ``plot_timeseries()`` output done with the :ref:`global_mean_timeseries`.
+    The plot shows the global mean 2 meters temperature time series for the IFS-NEMO scenario and the ERA5 reference dataset.
+
+Seasonal cycle
+^^^^^^^^^^^^^^
+
+A function called ``plot_seasonalcycle()`` is provided with many options to customize the plot.
+
+The function takes as data input:
+
+- **data**: a xarray.DataArray representing the seasonal cycle of a variable.
+- **ref_data**: a xarray.DataArray representing the seasonal cycle of the reference dataset.
+- **std_data**: a xarray.DataArray representing the standard deviation of the seasonal cycle of the reference dataset.
+
+The function will automatically plot what is available, so it is possible to plot only the seasonal cycle, with or without a reference dataset.
+
+.. figure:: figures/seasonalcycle_example_plot.png
+    :align: center
+    :width: 100%
+
+    Example of a ``plot_seasonalcycle()`` output done with the :ref:`global_mean_timeseries`.
+    The plot shows the seasonal cycle of the 2 meters temperature for the IFS-NEMO scenario and the ERA5 reference dataset.
