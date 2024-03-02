@@ -14,7 +14,7 @@ import numpy as np
 import xarray as xr
 
 from aqua.logger import log_configure
-from aqua.util import create_folder
+from aqua.util import create_folder, check_coordinates
 from aqua.util import add_cyclic_lon, evaluate_colorbar_limits
 from aqua.util import cbar_get_label, set_map_title
 from aqua.util import coord_names, set_ticks, ticks_round
