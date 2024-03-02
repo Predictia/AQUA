@@ -79,7 +79,7 @@ class SeasonalCycle(Timeseries):
     def run(self):
         """Run the seasonal cycle extraction."""
         self.retrieve_data()
-        self.retrieve_ref()
+        self.retrieve_ref(extend=False)
         self.seasonal_cycle()
         self.plot()
         self.cleanup()

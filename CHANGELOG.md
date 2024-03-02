@@ -21,6 +21,7 @@ AQUA core complete list:
 - Renaming the `tprate` variable into `mtpr` in all fixes (#944)
 
 AQUA diagnostic complete list:
+- Timeseries: seasonal cycle is added if reference data are not available in some timespan (#974)
 - Tropical rainfall: Removing unnecessary printing during the CLI, optimazing the CLi for low and high-resolution data (#963)
 - Timeseries: Grergory plot TOA limits are dynamically chosen (#959)
 - SSH: technical improvements including removal of hardcoded loglevel and timespan definition. (#677)
