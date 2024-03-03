@@ -70,16 +70,24 @@ class SeasonalCycle(Timeseries):
         self.logger.info("SeasonalCycle class initialized")
 
         self.retrieve_data = super().retrieve_data
-        self.retrieve_ref = super().retrieve_ref
         self.clean_timeseries = super().cleanup
-
         if plot_ref:
             self.cycle_ref = None
+
+    def retrieve_ref(self):
+        """
+        Retrieve the reference data.
+        Overwrite the method in the parent class.
+        """
+        super(SeasonalCycle, self).retrieve_ref(extend=False)
+        self.logger.debug(f"Time range of the reference data: {self.ref_mon.time.values[0]} to {self.ref_mon.time.values[-1]}")
+        self.ref_mon = self.ref_mon.sel(time=slice(self.std_startdate, self.std_enddate))
+        self.logger.debug(f"Time range of the reference data after slicing: {self.ref_mon.time.values[0]} to {self.ref_mon.time.values[-1]}")
 
     def run(self):
         """Run the seasonal cycle extraction."""
         self.retrieve_data()
-        self.retrieve_ref(extend=False)
+        self.retrieve_ref()
         self.seasonal_cycle()
         self.plot()
         self.cleanup()
