@@ -3,10 +3,10 @@ LRA class for glob
 """
 
 import os
-import re
 import types
 from time import time
 import glob
+import shutil
 import dask
 import xarray as xr
 import numpy as np
@@ -15,10 +15,11 @@ from dask.distributed import Client, LocalCluster, progress
 from dask.diagnostics import ProgressBar
 from aqua.logger import log_configure, log_history
 from aqua.reader import Reader
-from aqua.util import create_folder, generate_random_string, move_tmp_files
+from aqua.util import create_folder, generate_random_string
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import ConfigPath, file_is_complete
-import shutil
+from aqua.lra_generator.lra_util import move_tmp_files
+
 #from aqua.lra_generator.lra_util import check_correct_ifs_fluxes
 
 
@@ -292,13 +293,15 @@ class LRAgenerator():
         from the same year
         """
 
-        infiles = os.path.join(self.tmpdir,
-                               f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}??_tmp.nc')
+        #infiles = os.path.join(self.outdir,
+        #                       f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}??.nc')
+        infiles = self.get_filename(var, year, month = '??')
         if len(glob.glob(infiles)) == 12:
             xfield = xr.open_mfdataset(infiles)
             self.logger.info('Creating a single file for %s, year %s...', var, str(year))
-            outfile = os.path.join(self.tmpdir,
-                                   f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}_tmp.nc')
+            outfile = self.get_filename(var, year)
+            #outfile = os.path.join(self.tmpdir,
+            #                       f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}.nc')
             # clean older file
             if os.path.exists(outfile):
                 os.remove(outfile)
@@ -310,11 +313,15 @@ class LRAgenerator():
                 os.remove(infile)
 
 
-    def get_filename(self, var, year=None, month=None):
+    def get_filename(self, var, year=None, month=None, tmp=False):
         """Create output filenames"""
 
-        filename = os.path.join(self.tmpdir,
-                                f'{var}_{self.exp}_{self.resolution}_{self.frequency}_*_tmp.nc')
+        filestring = f'{var}_{self.exp}_{self.resolution}_{self.frequency}_*.nc'
+        if tmp:
+            filename = os.path.join(self.tmpdir, filestring)
+        else:
+            filename = os.path.join(self.outdir, filestring)
+
         if (year is not None) and (month is None):
             filename = filename.replace("*", str(year))
         if (year is not None) and (month is not None):
@@ -344,7 +351,7 @@ class LRAgenerator():
         t_beg = time()
 
         if isinstance(self.data, types.GeneratorType):
-            self._write_var_generator(var)
+            raise ValueError('Generator no longer supported by AQUA LRA.')
         else:
             #if not self.check:
             self._write_var_catalog(var)
@@ -361,65 +368,65 @@ class LRAgenerator():
             del data.attrs['regridded']
         return data
 
-    def _write_var_generator(self, var):
-        """
-        Write a variable to file using the GSV generator
-        """
+    # def _write_var_generator(self, var):
+    #     """
+    #     Write a variable to file using the GSV generator
+    #     """
 
-        # supplementary retrieve tu use the generator
-        self.data = self.reader.retrieve(var=var, startdate=self.last_record)
-        self.logger.info('Looping on generator data...')
-        t_beg = time()
-        for data in self.data:
+    #     # supplementary retrieve tu use the generator
+    #     self.data = self.reader.retrieve(var=var, startdate=self.last_record)
+    #     self.logger.info('Looping on generator data...')
+    #     t_beg = time()
+    #     for data in self.data:
 
-            temp_data = data[var]
-            self.logger.info('Generator returned data from %s to %s', temp_data.time[0].values, temp_data.time[-1].values)
+    #         temp_data = data[var]
+    #         self.logger.info('Generator returned data from %s to %s', temp_data.time[0].values, temp_data.time[-1].values)
 
-            if self.frequency:
-                temp_data = self.reader.timmean(temp_data)
-            temp_data = self.reader.regrid(temp_data)
+    #         if self.frequency:
+    #             temp_data = self.reader.timmean(temp_data)
+    #         temp_data = self.reader.regrid(temp_data)
 
-            temp_data = self._remove_regridded(temp_data)
+    #         temp_data = self._remove_regridded(temp_data)
 
-            year = temp_data.time.dt.year.values[0]
-            month = temp_data.time.dt.month.values[0]
+    #         year = temp_data.time.dt.year.values[0]
+    #         month = temp_data.time.dt.month.values[0]
 
-            yearfile = self.get_filename(var, year)
-            filecheck = file_is_complete(yearfile, loglevel=self.loglevel)
-            if filecheck:
-                if not self.overwrite:
-                    self.logger.info('Yearly file %s already exists, skipping...', yearfile)
-                    continue
-                else:
-                    self.logger.warning('Yearly file %s already exists, overwriting as requested...', yearfile)
+    #         yearfile = self.get_filename(var, year = year)
+    #         filecheck = file_is_complete(yearfile, loglevel=self.loglevel)
+    #         if filecheck:
+    #             if not self.overwrite:
+    #                 self.logger.info('Yearly file %s already exists, skipping...', yearfile)
+    #                 continue
+    #             else:
+    #                 self.logger.warning('Yearly file %s already exists, overwriting as requested...', yearfile)
 
-            self.logger.info('Processing year %s month %s...', str(year), str(month))
-            outfile = self.get_filename(var, year, month)
+    #         self.logger.info('Processing year %s month %s...', str(year), str(month))
+    #         outfile = self.get_filename(var, year = year, month = month)
 
-            # checking if file is there and is complete
-            filecheck = file_is_complete(outfile, loglevel=self.loglevel)
-            if filecheck:
-                if not self.overwrite:
-                    self.logger.info('Monthly file %s already exists, skipping...', outfile)
-                    continue
-                else:
-                    self.logger.warning('Monthly file %s already exists, overwriting as requested...', outfile)
+    #         # checking if file is there and is complete
+    #         filecheck = file_is_complete(outfile, loglevel=self.loglevel)
+    #         if filecheck:
+    #             if not self.overwrite:
+    #                 self.logger.info('Monthly file %s already exists, skipping...', outfile)
+    #                 continue
+    #             else:
+    #                 self.logger.warning('Monthly file %s already exists, overwriting as requested...', outfile)
             
-            # real writing
-            if self.definitive:
-                self.write_chunk(temp_data, outfile)
+    #         # real writing
+    #         if self.definitive:
+    #             self.write_chunk(temp_data, outfile)
 
-                # check everything is correct
-                filecheck = file_is_complete(outfile, loglevel=self.loglevel)
-                # we can later add a retry
-                if not filecheck:
-                    self.logger.error('Something has gone wrong in %s!', outfile)
+    #             # check everything is correct
+    #             filecheck = file_is_complete(outfile, loglevel=self.loglevel)
+    #             # we can later add a retry
+    #             if not filecheck:
+    #                 self.logger.error('Something has gone wrong in %s!', outfile)
 
-            if self.definitive and month == 12:
-                self._concat_var_year(var, year)
+    #         if self.definitive and month == 12:
+    #             self._concat_var_year(var, year)
 
-            self.logger.info('Processing this chunk took {:.4f} seconds'.format(time() - t_beg))
-            t_beg = time()
+    #         self.logger.info('Processing this chunk took {:.4f} seconds'.format(time() - t_beg))
+    #         t_beg = time()
 
     def _write_var_catalog(self, var):
         """
@@ -445,7 +452,7 @@ class LRAgenerator():
         for year in years:
 
             self.logger.info('Processing year %s...', str(year))
-            yearfile = self.get_filename(var, year)
+            yearfile = self.get_filename(var, year = year)
 
             # checking if file is there and is complete
             filecheck = file_is_complete(yearfile, loglevel=self.loglevel)
@@ -461,7 +468,7 @@ class LRAgenerator():
             months = sorted(set(year_data.time.dt.month.values))
             for month in months:
                 self.logger.info('Processing month %s...', str(month))
-                outfile = self.get_filename(var, year, month)
+                outfile = self.get_filename(var, year = year, month = month)
 
                 # checking if file is there and is complete
                 filecheck = file_is_complete(outfile, loglevel=self.loglevel)
@@ -488,13 +495,15 @@ class LRAgenerator():
 
                 # real writing
                 if self.definitive:
-                    self.write_chunk(month_data, outfile)
+                    tmpfile = self.get_filename(var, year = year, month = month, tmp = True)
+                    self.write_chunk(month_data, tmpfile)
 
                     # check everything is correct
-                    filecheck = file_is_complete(outfile, loglevel=self.loglevel)
+                    filecheck = file_is_complete(tmpfile, loglevel=self.loglevel)
                     # we can later add a retry
                     if not filecheck:
-                        self.logger.error('Something has gone wrong in %s!', outfile)
+                        self.logger.error('Something has gone wrong in %s!', tmpfile)
+                    move_tmp_files(self.tmpdir, self.outdir)
                 del month_data
             del year_data
             if self.definitive:

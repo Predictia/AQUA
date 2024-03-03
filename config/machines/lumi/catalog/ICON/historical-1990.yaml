@@ -131,7 +131,7 @@ sources:
         4882.6, 5145.4, 5411.8, 5680.7, 5950.8]
       variables: [263507]
       source_grid_name: icon-hpz10-nested-3d
-  
+
   lra-r100-monthly:
     driver: netcdf
     description: LRA data monthly at r100
