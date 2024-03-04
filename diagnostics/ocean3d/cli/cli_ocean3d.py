@@ -180,6 +180,13 @@ class Ocean3DCLI:
         self.loglevel = self.get_arg('loglevel', 'WARNING')
         self.logger = log_configure(log_name='Ocean3D CLI', log_level=self.loglevel)
 
+        # Dask distributed cluster
+        nworkers = self.get_arg('nworkers', None)
+        if nworkers:
+            cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+            client = Client(cluster)
+            self.logger.info(f"Running with {nworkers} dask distributed workers.")
+
         # Change the current directory to the one of the CLI so that relative paths work
         abspath = os.path.abspath(__file__)
         dname = os.path.dirname(abspath)
@@ -230,12 +237,4 @@ if __name__ == '__main__':
     args = parse_arguments(sys.argv[1:])
 
     ocean3d_cli = Ocean3DCLI(args)
-
-    # Dask distributed cluster
-    nworkers = ocean3d_cli.get_arg('nworkers', None)
-    if nworkers:
-        cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
-        client = Client(cluster)
-        logger.info(f"Running with {nworkers} dask distributed workers.")
-
     ocean3d_cli.run_diagnostic()
