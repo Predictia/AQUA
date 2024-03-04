@@ -36,7 +36,7 @@ def parse_arguments(args):
     parser.add_argument('--outputdir', type=str, help='output directory',
                         required=False)
     parser.add_argument('--nproc', type=int, required=False,
-                        help='the number of processes to run in parallel',
+                        help='the number of processes to use for weight generation',
                         default=4)
     return parser.parse_args(args)
 
@@ -131,6 +131,13 @@ class Tropical_Rainfall_CLI:
         self.mswep = config['mswep'][machine]
 
         self.logger = log_configure(log_name="Trop. Rainfall CLI", log_level=self.loglevel)
+
+        # Dask distributed cluster
+        nworkers = get_arg(args, 'nworkers', None)
+        if nworkers:
+            cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+            client = Client(cluster)
+            self.logger.info(f"Running with {nworkers} dask distributed workers.")
 
         self.rebuild_output = config['rebuild_output']
         if path_to_output is not None:
@@ -255,13 +262,6 @@ def main():
 
     args = parse_arguments(sys.argv[1:])
     validate_arguments(args)
-
-    # Dask distributed cluster
-    nworkers = get_arg(args, 'nworkers', None)
-    if nworkers:
-        cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
-        client = Client(cluster)
-        logger.info(f"Running with {nworkers} dask distributed workers.")
 
     config = load_configuration(get_arg(args, 'config',
                                         f'{aqua_path}/diagnostics/tropical_rainfall/cli/cli_config_trop_rainfall.yml'))
