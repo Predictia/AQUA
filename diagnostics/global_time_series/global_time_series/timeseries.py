@@ -247,17 +247,23 @@ class Timeseries():
         else:
             ref_label = None
 
-        title = f'{self.var} timeseries'
+        if self.formula is False or self.formula is None:
+            try:
+                title = self.data_mon[0].attrs['long_name'] + ' (' + self.data_mon[0].attrs['units'] + ') timeseries'
+            except KeyError:
+                title = f'{self.var} timeseries'
+        else:
+            title = f'{self.var} timeseries'
 
-        fig, ax = plot_timeseries(monthly_data=self.data_mon,
-                                  annual_data=self.data_annual,
-                                  ref_monthly_data=self.ref_mon,
-                                  ref_annual_data=self.ref_ann,
-                                  std_monthly_data=self.ref_mon_std,
-                                  std_annual_data=self.ref_ann_std,
-                                  ref_label=ref_label,
-                                  data_labels=data_labels,
-                                  title=title)
+        fig, _ = plot_timeseries(monthly_data=self.data_mon,
+                                 annual_data=self.data_annual,
+                                 ref_monthly_data=self.ref_mon,
+                                 ref_annual_data=self.ref_ann,
+                                 std_monthly_data=self.ref_mon_std,
+                                 std_annual_data=self.ref_ann_std,
+                                 ref_label=ref_label,
+                                 data_labels=data_labels,
+                                 title=title)
 
         if self.save:
             self.save_pdf(fig, ref_label)
