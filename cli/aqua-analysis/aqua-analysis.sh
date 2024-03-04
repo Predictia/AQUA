@@ -43,7 +43,7 @@ machine="lumi" # will change the aqua config file
 max_threads=-1  # Set to the desired maximum number of threads, or leave it as 0 for no limit
 
 # Define the array of atmospheric diagnostics, add more if needed or available
-atm_diagnostics=("tropical_rainfall" "global_time_series" "radiation" "teleconnections" "atmglobalmean")
+atm_diagnostics=("tropical_rainfall" "global_time_series" "seasonal_cycles" "radiation" "teleconnections" "atmglobalmean")
 # Define the array of oceanic diagnostics, add more if needed or available
 oce_diagnostics=("global_time_series" "teleconnections" "ocean3d" "seaice")
 # Define the array of diagnostics combining atmospheric and oceanic data, add more if needed or available
@@ -216,7 +216,8 @@ log_message INFO "Output directory: $outputdir"
 if [ $distributed -eq 1 ]; then
   log_message INFO "Running with distributed cluster"
   atm_extra_args["atmglobalmean"]="${atm_extra_args['atmglobalmean']} --nworkers 16"
-  atm_extra_args["global_time_series"]="${atm_extra_args['global_time_series']} --nworkers 32"
+  atm_extra_args["global_time_series"]="${atm_extra_args['global_time_series']} --nworkers 16"
+  atm_extra_args["seasonal_cycles"]="${atm_extra_args['seasonal_cycles']} --nworkers 16"
   atm_extra_args["radiation"]="${atm_extra_args['radiation']} --nworkers 8"
   atm_extra_args["teleconnections"]="${atm_extra_args['teleconnections']} --nworkers 8"
   atm_extra_args["tropical_rainfall"]="${atm_extra_args['tropical_rainfall']} --nworkers 16"
