@@ -140,7 +140,7 @@ done
 # Command line arguments
 # Define accepted log levels
 accepted_loglevels=("info" "debug" "error" "warning" "critical" "INFO" "DEBUG" "ERROR" "WARNING" "CRITICAL")
-distributed = False
+distributed=0
 
 # Parse command-line options
 while [[ $# -gt 0 ]]; do
@@ -170,7 +170,7 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     -p|--parallel)
-      distributed=True
+      distributed=1
       shift 1
       ;;
     -t|--threads)
@@ -204,7 +204,7 @@ log_message INFO "Machine: $machine"
 log_message INFO "Output directory: $outputdir"
 
 # Set extra arguments in distributed case
-if distributed; then
+if [ $distributed -eq 1 ]; then
   log_message INFO "Running with distributed cluster"
   atm_extra_args["atmglobalmean"]="${atm_extra_args['atmglobalmean']} --nworkers 16"
   atm_extra_args["global_time_series"]="${atm_extra_args['global_time_series']} --nworkers 32"
@@ -212,6 +212,7 @@ if distributed; then
   atm_extra_args["teleconnections"]="${atm_extra_args['teleconnections']} --nworkers 8"
   atm_extra_args["tropical_rainfall"]="${atm_extra_args['tropical_rainfall']} --nworkers 16"
   oce_extra_args["global_time_series"]="${oce_extra_args['global_time_series']} --nworkers 16"
+  oce_extra_args["ocean3d"]="${oce_extra_args['ocean3d']} --nworkers 4"
   oce_extra_args["seaice"]="${oce_extra_args['seaice']} --nworkers 8"
   oce_extra_args["teleconnections"]="${oce_extra_args['teleconnections']} --nworkers 8"
 fi
