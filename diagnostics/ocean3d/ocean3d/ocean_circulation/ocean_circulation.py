@@ -238,7 +238,7 @@ def convert_variables(data, loglevel= "WARNING"):
     # data = converted_data.merge(
     #     {"avg_thetao": avg_thetao, "avg_so": absso, "rho": rho})
 
-    return data
+    return data 
 
 
 def prepare_data_for_stratification_plot(data, region=None, time=None, lat_s: float = None, lat_n: float = None, lon_w: float = None,
