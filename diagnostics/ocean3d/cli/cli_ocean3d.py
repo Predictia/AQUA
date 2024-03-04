@@ -229,12 +229,13 @@ def parse_arguments(args):
 if __name__ == '__main__':
     args = parse_arguments(sys.argv[1:])
 
+    ocean3d_cli = Ocean3DCLI(args)
+
     # Dask distributed cluster
-    nworkers = get_arg(args, 'nworkers', None)
+    nworkers = ocean3d_cli.get_arg('nworkers', None)
     if nworkers:
         cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
         client = Client(cluster)
         logger.info(f"Running with {nworkers} dask distributed workers.")
-    
-    ocean3d_cli = Ocean3DCLI(args)
+
     ocean3d_cli.run_diagnostic()
