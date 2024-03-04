@@ -232,10 +232,13 @@ def convert_variables(data, loglevel= "WARNING"):
     logger.debug(
         "Calculated potential density in-situ at reference pressure 0 dbar ")
     # Merge the converted variables into a new dataset
-    converted_data = converted_data.merge(
-        {"avg_thetao": avg_thetao, "avg_so": absso, "rho": rho})
+    data["avg_thetao"] = avg_thetao
+    data["rho"] = rho
 
-    return converted_data
+    # data = converted_data.merge(
+    #     {"avg_thetao": avg_thetao, "avg_so": absso, "rho": rho})
+
+    return data
 
 
 def prepare_data_for_stratification_plot(data, region=None, time=None, lat_s: float = None, lat_n: float = None, lon_w: float = None,
@@ -345,6 +348,11 @@ def plot_stratification(o3d_request,time=None, loglevel= "WARNING"):
         if obs_data is not None:
             data_3 = obs_data[var].mean("time")
             axs[i].plot(data_3, data_3.lev, 'r-', linewidth=2.0)
+            if var == "avg_thetao":
+                axs[i].plot(obs_data["thetao_uncertainty"].mean("time"), data_3.lev, 'b-', linewidth=1.0)
+            if var == "avg_so":
+                axs[i].plot(obs_data["so_uncertainty"].mean("time"), data_3.lev, 'b-', linewidth=1.0)
+            
             legend_info = f"Obs {start_year}-{end_year}"
             legend_list.append(legend_info)
             if output:

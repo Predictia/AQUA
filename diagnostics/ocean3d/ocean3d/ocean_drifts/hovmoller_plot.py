@@ -58,7 +58,6 @@ class hovmoller_plot:
         self.plot_info = {}
         
         data = weighted_area_mean(data, region, lat_s, lat_n, lon_w, lon_e, loglevel=self.loglevel)
-        
         counter = 1
         for anomaly in [False,True]:
             for standardise in [False,True]:
@@ -112,6 +111,8 @@ class hovmoller_plot:
         data_dir = plot_info["data_dir"]
         filename = plot_info["filename"]
 
+        logger.debug("Plotting started for %s", type)
+        
         if type != "Full values":
             abs_max_avg_thetao = max(abs(np.nanmax(data.avg_thetao)), abs(np.nanmin(data.avg_thetao)))
             abs_max_so = max(abs(np.nanmax(data.avg_so)), abs(np.nanmin(data.avg_so)))
@@ -121,7 +122,6 @@ class hovmoller_plot:
         cs1_name = f'cs1_{i}'
         vars()[cs1_name]  = axs[i,0].contourf(data.time, data.lev, data.avg_thetao.transpose(),
                             levels=avg_thetaolevs, cmap=cmap, extend='both')
-        
         # cbar_ax = fig.add_axes([.47, 0.77 - i* 0.117, 0.028, 0.08])
         cbar_ax = fig.add_axes([.47, 0.743 - i* 0.21, 0.023, 0.1])
         
@@ -166,7 +166,8 @@ class hovmoller_plot:
 
         if self.output:
             write_data(f'{data_dir}/{filename}.nc', data)
-    
+        # raise Exception("Intentional debugger break")
+
 
     def plot(self):
         logger = log_configure(self.loglevel, 'single_plot')
@@ -184,6 +185,7 @@ class hovmoller_plot:
         self.loop_details(0, fig, axs)
         self.loop_details(1, fig, axs)
         self.loop_details(2, fig, axs)
+
         # # self.loop_details(3, fig, axs)
         # # self.loop_details(4, fig, axs)
 

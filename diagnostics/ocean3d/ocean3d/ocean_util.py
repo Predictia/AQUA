@@ -25,11 +25,11 @@ def kelvin_to_celsius(data, variable_name, loglevel= "WARNING"):
     """
     logger = log_configure(loglevel, 'Unit')
     # Check if the variable exists in the dataset
-    if data.avg_thetao.attrs['units']== 'K' or 'kelvin':
+    if data[variable_name].attrs['units']== 'K' or 'kelvin':
         logger.warning("The unit of Pot. Temperature is Kelvin. Converting to degC")
         # Convert Kelvin to Celsius: Celsius = Kelvin - 273.15
         data[variable_name] -= 273.15
-        data.avg_thetao.attrs['units']= 'degC'
+        data[variable_name].attrs['units']= 'degC'
     return data
 
 def check_variable_name(data, loglevel= "WARNING"):
@@ -53,7 +53,7 @@ def check_variable_name(data, loglevel= "WARNING"):
             required_vars.append(var)
     if required_vars != []:
         logger.debug("This are the variables %s available for the diags in the catalogue.", required_vars)
-        data = data[required_vars]
+        # data = data[required_vars]
         logger.debug("Selected this variables")
         for var in required_vars:
             if 'avg_so' in var.lower() or 'soce' in var.lower():
@@ -67,6 +67,8 @@ def check_variable_name(data, loglevel= "WARNING"):
     vertical_coord = find_vert_coord(data)[0]
     data = data.rename({vertical_coord: "lev"})
     data = kelvin_to_celsius(data, "avg_thetao")
+    # if "thetao_uncertainty" in data:
+    #     data = kelvin_to_celsius(data, "thetao_uncertainty")
     return data
 
 def time_slicing(data, start_year, end_year, loglevel= "WARNING"):
