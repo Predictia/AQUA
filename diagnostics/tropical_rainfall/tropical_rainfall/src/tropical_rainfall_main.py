@@ -10,30 +10,17 @@ from os.path import isfile, join
 from datetime import datetime
 import numpy as np
 import xarray as xr
-# import pytz
 from typing import Union, Tuple, Optional, Any, List
-
-# from itertools import groupby
-# from statistics import mean
 
 import matplotlib.pyplot as plt
 import matplotlib.figure as figure
-# import matplotlib.colors as colors
-# from matplotlib.gridspec import GridSpec
-# import seaborn as sns
 
 import dask.array as da
 import dask_histogram as dh  # pip
-# import dask_histogram.boost as dhb
-# import dask
 import fast_histogram
 
 from aqua.util import create_folder
 from aqua.logger import log_configure
-
-# import cartopy.crs as ccrs
-# import cartopy.mpl.ticker as cticker
-# from cartopy.util import add_cyclic_point
 
 from .tropical_rainfall_tools import ToolsClass
 from .tropical_rainfall_plots import PlottingClass

@@ -285,6 +285,7 @@ Here we show an example of a fixer file, including all the possible options:
                     src_units: J m-2 # Overruling source units
                     decumulate: true  # Test decumulation
                     units: "{radiation_flux}" # overruling units
+                    mindate: 1990-09-01T00:00 # setting to NaN all data before this date
                     attributes:
                         # assigning a long_name
                         long_name: Mean top net thermal radiation flux doubled
@@ -340,6 +341,8 @@ Then, extra keys can be then specified for `each` variable to allow for further 
 - **decumulate**: if set to ``True``, activate the decumulation of the variables
 - **attributes**: with this key, it is possible to define a dictionary of attributes to be modified. 
   Please refer to the above example to see the possible implementation. 
+- **mindate**: used to set to NaN all data before a specified date. 
+  This is useful when dealing with data that are not available for the whole period of interest or which are partially wrong.
 
 .. warning ::
     Recursive fixes (i.e. fixes of fixes) cannot be implemented. For example, it is not possibile to derive a variable from a derived variable
@@ -390,6 +393,28 @@ Some extra options are available:
   (for example, verify  that all the record from each month are available before doing the time mean).
 - ``center_time=True``: this flag will center the time coordinate on the mean time window.
 - ``time_bounds=True``: this flag can be activated to build time bounds in a similar way to CMOR-like standard.
+
+Detrending
+----------
+
+For some analysis, removing from the data a linear trend can be helpful to highlight the internal variability.
+The ``detrend`` method can be used as a high-level wrapper of xarray functionalities to achieve this goal.
+
+.. code-block:: python
+
+    reader = Reader(model="IFS", exp="tco2559-ng5", source="ICMGG_atm2d")
+    data = reader.retrieve()
+    daily = reader.detrend(data['2t'], dim='time')
+
+In this way, linear trend is removed from each grid point of the original dataset along the time dimension. 
+Other dimension can be targeted too, although with limited physical meaning. 
+Of course, it can be used in collaboration with temporal and spatial averaging. Higher order polynominial fits are available too.
+
+Some options includes:
+
+- ``degree``: this will define with an integer the order of the polynominial fit. Default is 1, i.e. linear Detrending
+- ``skipna==True``: removing the NaN from the fit. Default is True. 
+
 
 Spatial Averaging
 -----------------
