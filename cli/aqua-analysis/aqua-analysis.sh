@@ -116,6 +116,12 @@ oce_extra_args["teleconnections"]="${oce_extra_args["teleconnections"]} \
 # Concatenate the new part to the existing content
 atm_extra_args["tropical_rainfall"]="--regrid=r100 --freq=M"
 # End of user defined variables
+# ---------------------------------------------------
+# Command line extra arguments for seasonal_cycles:
+# It's still under time_series folder
+# --config (seasonal cycles config file)
+atm_extra_args["seasonal_cycles"]="${atm_extra_args["seasonal_cycles"]} \
+--config ${aqua}/diagnostics/global_time_series/cli/config_seasonal_cycles_atm.yaml"
 # -----------------------------
 
 # Trap Ctrl-C to clean up and kill the entire process group
@@ -128,6 +134,9 @@ declare -A script_path
 for diagnostic in ${all_diagnostics[@]}; do
   script_path["$diagnostic"]="$diagnostic/cli/cli_$diagnostic.py"
 done
+
+# Set the path if it is not standard
+script_path["seasonal_cycles"]="global_time_series/cli/cli_global_time_series.py"
 
 # Command line arguments
 # Define accepted log levels
@@ -251,12 +260,15 @@ for diagnostic in "${all_diagnostics[@]}"; do
 
   if [[ "${atm_diagnostics[@]}" =~ "$diagnostic" ]]; then
     log_message DEBUG "Atmospheric diagnostic: $diagnostic"
+    log_message DEBUG "Script path: ${script_path[$diagnostic]}"
     log_message DEBUG "Arguments: $args_atm ${atm_extra_args[$diagnostic]} -l $loglevel --outputdir $outputdir_atm/$diagnostic"
   elif [[ "${oce_diagnostics[@]}" =~ "$diagnostic" ]]; then
     log_message DEBUG "Oceanic diagnostic: $diagnostic"
+    log_message DEBUG "Script path: ${script_path[$diagnostic]}"
     log_message DEBUG "Arguments: $args_oce ${oce_extra_args[$diagnostic]} -l $loglevel --outputdir $outputdir_oce/$diagnostic"
   elif [[ "${atm_oce_diagnostics[@]}" =~ "$diagnostic" ]]; then
     log_message DEBUG "Atmospheric and oceanic diagnostic: $diagnostic"
+    log_message DEBUG "Script path: ${script_path[$diagnostic]}"
     log_message DEBUG "Arguments: $args ${atm_oce_extra_args[$diagnostic]} -l $loglevel --outputdir $outputdir_atm/$diagnostic"
   fi
 
