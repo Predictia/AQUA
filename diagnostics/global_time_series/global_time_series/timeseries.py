@@ -316,28 +316,45 @@ class Timeseries():
         create_folder(outdir, self.loglevel)
 
         for i, model in enumerate(self.models):
-            outfile = f'global_time_series_timeseries_{self.var}_{model}_{self.exps[i]}.nc'
-            self.logger.debug(f"Saving data to {outdir}/{outfile}")
-            if self.monthly is True:
-                self.data_mon[i].to_netcdf(os.path.join(outdir, outfile))
-            if self.annual is True:
-                self.data_annual[i].to_netcdf(os.path.join(outdir, outfile))
+            outfile = f'global_time_series_timeseries_{self.var}_{model}_{self.exps[i]}'
+            try:
+                if self.monthly is True:
+                    outfile += '_mon.nc'
+                    self.logger.debug(f"Saving monthly data to {outdir}/{outfile}")
+                    self.data_mon[i].to_netcdf(os.path.join(outdir, outfile))
+                if self.annual is True:
+                    outfile += '_ann.nc'
+                    self.logger.debug(f"Saving annual data to {outdir}/{outfile}")
+                    self.data_annual[i].to_netcdf(os.path.join(outdir, outfile))
+            except Exception as e:
+                self.logger.error(f"Error while saving netcdf {outdir}/{outfile}: {e}")
 
         if self.plot_ref:
-            outfile = f'global_time_series_timeseries{self.var}_ref.nc'
-            self.logger.debug(f"Saving reference data to {outdir}/{outfile}")
-            if self.monthly_std:
-                self.ref_mon.to_netcdf(os.path.join(outdir, outfile))
-            if self.annual_std:
-                self.logger.debug(f"Saving annual data to {outdir}/{outfile}")
-                self.ref_ann.to_netcdf(os.path.join(outdir, outfile))
+            outfile = f'global_time_series_timeseries_{self.var}_{self.plot_ref_kw["model"]}_{self.plot_ref_kw["exp"]}'
+            try:
+                if self.monthly:
+                    outfile += '_mon_std.nc'
+                    self.logger.debug(f"Saving monthly data to {outdir}/{outfile}")
+                    self.ref_mon.to_netcdf(os.path.join(outdir, outfile))
+                if self.annual:
+                    outfile += '_ann_std.nc'
+                    self.logger.debug(f"Saving annual data to {outdir}/{outfile}")
+                    self.ref_ann.to_netcdf(os.path.join(outdir, outfile))
+            except Exception as e:
+                self.logger.error(f"Error while saving netcdf {outdir}/{outfile}: {e}")
 
-            outfile = f'global_time_series_timeseries{self.var}_std.nc'
-            self.logger.debug(f"Saving std data to {outdir}/{outfile}")
-            if self.monthly_std:
-                self.ref_mon_std.to_netcdf(os.path.join(outdir, outfile))
-            if self.annual_std:
-                self.ref_ann_std.to_netcdf(os.path.join(outdir, outfile))
+            outfile = f'global_time_series_timeseries_{self.var}_{self.plot_ref_kw["model"]}_{self.plot_ref_kw["exp"]}_std'
+            try:
+                if self.monthly_std:
+                    outfile += '_mon.nc'
+                    self.logger.debug(f"Saving monthly std to {outdir}/{outfile}")
+                    self.ref_mon_std.to_netcdf(os.path.join(outdir, outfile))
+                if self.annual_std:
+                    outfile += '_ann.nc'
+                    self.logger.debug(f"Saving annual std to {outdir}/{outfile}")
+                    self.ref_ann_std.to_netcdf(os.path.join(outdir, outfile))
+            except Exception as e:
+                self.logger.error(f"Error while saving netcdf {outdir}/{outfile}: {e}")
 
     def cleanup(self):
         """Clean up"""
