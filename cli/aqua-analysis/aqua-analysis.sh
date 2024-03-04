@@ -83,14 +83,6 @@ done
 # Command line extra arguments for global_time_series:
 # --config (config file)
 # Concatenate the new part to the existing content
-atm_extra_args["atmglobalmean"]=" --nworkers 16"
-atm_extra_args["global_time_series"]=" --nworkers 32"
-atm_extra_args["radiation"]=" --nworkers 8"
-atm_extra_args["teleconnections"]=" --nworkers 8"
-atm_extra_args["tropical_rainfall"]=" --nworkers 16"
-oce_extra_args["global_time_series"]=" --nworkers 16"
-oce_extra_args["seaice"]=" --nworkers 8"
-oce_extra_args["teleconnections"]=" --nworkers 8"
 
 # Define the array of atmospheric diagnostics, add more if needed or available
 atm_diagnostics=("tropical_rainfall" "global_time_series" "radiation" "teleconnections" "atmglobalmean")
@@ -148,6 +140,7 @@ done
 # Command line arguments
 # Define accepted log levels
 accepted_loglevels=("info" "debug" "error" "warning" "critical" "INFO" "DEBUG" "ERROR" "WARNING" "CRITICAL")
+distributed = False
 
 # Parse command-line options
 while [[ $# -gt 0 ]]; do
@@ -175,6 +168,10 @@ while [[ $# -gt 0 ]]; do
     -m|--machine)
       machine="$2"
       shift 2
+      ;;
+    -p|--parallel)
+      distributed=True
+      shift 1
       ;;
     -t|--threads)
       max_threads="$2"
@@ -205,6 +202,19 @@ log_message INFO "Experiment: $exp"
 log_message INFO "Source: $source"
 log_message INFO "Machine: $machine"
 log_message INFO "Output directory: $outputdir"
+
+# Set extra arguments in distributed case
+if distributed; then
+  log_message INFO "Running with distributed cluster"
+  atm_extra_args["atmglobalmean"]="${atm_extra_args['atmglobalmean']} --nworkers 16"
+  atm_extra_args["global_time_series"]="${atm_extra_args['global_time_series']} --nworkers 32"
+  atm_extra_args["radiation"]="${atm_extra_args['radiation']} --nworkers 8"
+  atm_extra_args["teleconnections"]="${atm_extra_args['teleconnections']} --nworkers 8"
+  atm_extra_args["tropical_rainfall"]="${atm_extra_args['tropical_rainfall']} --nworkers 16"
+  oce_extra_args["global_time_series"]="${oce_extra_args['global_time_series']} --nworkers 16"
+  oce_extra_args["seaice"]="${oce_extra_args['seaice']} --nworkers 8"
+  oce_extra_args["teleconnections"]="${oce_extra_args['teleconnections']} --nworkers 8"
+fi
 
 # Define the outputdir for ocanic and atmospheric diagnostics
 outputdir_atm="$outputdir/$model_atm/$exp"
