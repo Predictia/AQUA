@@ -101,6 +101,7 @@ sources:
   teleconnections:
     metadata:
       source_grid_name: lon-lat
+      fixer_name: ci-teleconnections
     args:
       chunks:
         time: 1
