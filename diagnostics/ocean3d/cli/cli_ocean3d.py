@@ -2,6 +2,8 @@ import argparse
 import os
 import sys
 
+from dask.distributed import Client, LocalCluster
+
 from aqua import Reader
 from aqua.util import load_yaml
 
@@ -209,6 +211,8 @@ def parse_arguments(args):
 
     parser.add_argument('--config', type=str,
                         help='yaml configuration file')
+    parser.add_argument('-n', '--nworkers', type=int,
+                        help='number of dask distributed workers')
     parser.add_argument('-l', '--loglevel', type=str,
                         help='log level [default: WARNING]')
 
@@ -225,5 +229,12 @@ def parse_arguments(args):
 if __name__ == '__main__':
     args = parse_arguments(sys.argv[1:])
 
+    # Dask distributed cluster
+    nworkers = get_arg(args, 'nworkers', None)
+    if nworkers:
+        cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+        client = Client(cluster)
+        logger.info(f"Running with {nworkers} dask distributed workers.")
+    
     ocean3d_cli = Ocean3DCLI(args)
     ocean3d_cli.run_diagnostic()
