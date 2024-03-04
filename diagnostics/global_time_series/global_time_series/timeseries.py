@@ -93,8 +93,8 @@ class Timeseries():
         self.ref_ann = None
         self.ref_ann_std = None
         self.plot_ref_kw = plot_ref_kw
-        self.monthly_std = monthly_std
-        self.annual_std = annual_std
+        self.monthly_std = monthly_std if monthly else False
+        self.annual_std = annual_std if annual else False
         self.std_startdate = std_startdate
         self.std_enddate = std_enddate
         self.expanding_ref_range = False
