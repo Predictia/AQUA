@@ -83,6 +83,22 @@ done
 # Command line extra arguments for global_time_series:
 # --config (config file)
 # Concatenate the new part to the existing content
+atm_extra_args["atmglobalmean"]=" --nworkers 16"
+atm_extra_args["global_time_series"]=" --nworkers 32"
+atm_extra_args["radiation"]=" --nworkers 8"
+atm_extra_args["teleconnections"]=" --nworkers 8"
+atm_extra_args["tropical_rainfall"]=" --nworkers 16"
+oce_extra_args["global_time_series"]=" --nworkers 16"
+oce_extra_args["seaice"]=" --nworkers 8"
+oce_extra_args["teleconnections"]=" --nworkers 8"
+
+# Define the array of atmospheric diagnostics, add more if needed or available
+atm_diagnostics=("tropical_rainfall" "global_time_series" "radiation" "teleconnections" "atmglobalmean")
+# Define the array of oceanic diagnostics, add more if needed or available
+oce_diagnostics=("global_time_series" "teleconnections" "ocean3d" "seaice")
+# Define the array of diagnostics combining atmospheric and oceanic data, add more if needed or available
+atm_oce_diagnostics=("ecmean")
+
 atm_extra_args["global_time_series"]="${atm_extra_args["global_time_series"]} \
 --config ${aqua}/diagnostics/global_time_series/cli/config_time_series_atm.yaml"
 oce_extra_args["global_time_series"]="${oce_extra_args["global_time_series"]} \

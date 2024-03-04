@@ -1,6 +1,9 @@
 import sys
 import os
 import argparse
+
+from dask.distributed import Client, LocalCluster
+
 from aqua.util import load_yaml, get_arg
 from aqua import Reader
 from aqua.logger import log_configure
@@ -17,7 +20,8 @@ def parse_arguments(args):
                         help='yaml configuration file')
     parser.add_argument('-l', '--loglevel', type=str,
                         help='log level [default: WARNING]')
-
+    parser.add_argument('-n', '--nworkers', type=int,
+                        help='number of dask distributed workers')
     # This arguments will override the configuration file if provided
     parser.add_argument('--model', type=str, help='model name',
                         required=False)
@@ -248,8 +252,16 @@ class Tropical_Rainfall_CLI:
 
 def main():
     """Main function to orchestrate the tropical rainfall CLI operations."""
+
     args = parse_arguments(sys.argv[1:])
     validate_arguments(args)
+
+    # Dask distributed cluster
+    nworkers = get_arg(args, 'nworkers', None)
+    if nworkers:
+        cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+        client = Client(cluster)
+        logger.info(f"Running with {nworkers} dask distributed workers.")
 
     config = load_configuration(get_arg(args, 'config',
                                         f'{aqua_path}/diagnostics/tropical_rainfall/cli/cli_config_trop_rainfall.yml'))
