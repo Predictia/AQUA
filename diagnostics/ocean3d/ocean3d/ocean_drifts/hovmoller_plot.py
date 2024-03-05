@@ -161,7 +161,7 @@ class hovmoller_plot:
         axs[i,1].set_yticklabels([])
 
         # adding type in the plot
-        axs[i, 0].text(-0.35, 0.4, type.replace("wrt", "\nwrt\n"), fontsize=15, color='dimgray', rotation=90, transform=axs[i, 0].transAxes, ha='center')
+        axs[i, 0].text(-0.35, 0.33, type.replace("wrt", "\nwrt\n"), fontsize=15, color='dimgray', rotation=90, transform=axs[i, 0].transAxes, ha='center')
 
         if self.output:
             write_data(f'{data_dir}/{filename}.nc', data)
