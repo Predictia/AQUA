@@ -237,6 +237,8 @@ if __name__ == '__main__':
             freq = mod.get('freq', None)
             zoom = mod.get('zoom', None)
             reference = mod.get('reference', False)
+            startdate = mod.get('startdate', None)
+            enddate = mod.get('enddate', None)
 
             logger.debug("setup: %s %s %s %s %s %s",
                          model, exp, source, regrid, freq, zoom)
@@ -250,6 +252,7 @@ if __name__ == '__main__':
                                     outputdir=outputnetcdf,
                                     outputfig=outputpdf,
                                     savefig=savefig, savefile=savefile,
+                                    startdate=startdate, enddate=enddate,
                                     interface=interface,
                                     loglevel=loglevel)
                 tc.retrieve()
