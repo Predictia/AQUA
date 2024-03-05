@@ -249,7 +249,12 @@ class Timeseries():
 
         if self.formula is False or self.formula is None:
             try:
-                title = self.data_mon[0].attrs['long_name'] + ' (' + self.data_mon[0].attrs['units'] + ') timeseries'
+                if self.monthly:
+                    title = self.data_mon[0].attrs['long_name'] + ' (' + self.data_mon[0].attrs['units'] + ') timeseries'
+                elif self.annual:
+                    title = self.data_annual[0].attrs['long_name'] + ' (' + self.data_annual[0].attrs['units'] + ') timeseries'
+                else:
+                    title = self.var + ' timeseries'
             except KeyError:
                 title = f'{self.var} timeseries'
         else:
