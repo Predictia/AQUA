@@ -45,7 +45,7 @@ max_threads=-1  # Set to the desired maximum number of threads, or leave it as 0
 # Define the array of atmospheric diagnostics, add more if needed or available
 atm_diagnostics=("tropical_rainfall" "global_time_series" "seasonal_cycles" "radiation" "teleconnections" "atmglobalmean")
 # Define the array of oceanic diagnostics, add more if needed or available
-oce_diagnostics=("global_time_series" "teleconnections" "ocean3d" "seaice")
+oce_diagnostics=("global_time_series" "teleconnections" "ocean3d_drift" "ocean3d_circulation" "seaice")
 # Define the array of diagnostics combining atmospheric and oceanic data, add more if needed or available
 atm_oce_diagnostics=("ecmean")
 
@@ -83,13 +83,6 @@ done
 # Command line extra arguments for global_time_series:
 # --config (config file)
 # Concatenate the new part to the existing content
-
-# Define the array of atmospheric diagnostics, add more if needed or available
-atm_diagnostics=("tropical_rainfall" "global_time_series" "radiation" "teleconnections" "atmglobalmean")
-# Define the array of oceanic diagnostics, add more if needed or available
-oce_diagnostics=("global_time_series" "teleconnections" "ocean3d" "seaice")
-# Define the array of diagnostics combining atmospheric and oceanic data, add more if needed or available
-atm_oce_diagnostics=("ecmean")
 
 atm_extra_args["global_time_series"]="${atm_extra_args["global_time_series"]} \
 --config ${aqua}/diagnostics/global_time_series/cli/config_time_series_atm.yaml"
@@ -145,6 +138,8 @@ done
 
 # Set the path if it is not standard
 script_path["seasonal_cycles"]="global_time_series/cli/cli_global_time_series.py"
+script_path["ocean3d_drift"]="ocean3d/cli/cli_ocean3d.py"
+script_path["ocean3d_circulation"]="ocean3d/cli/cli_ocean3d.py"
 
 # Command line arguments
 # Define accepted log levels
@@ -222,7 +217,8 @@ if [ $distributed -eq 1 ]; then
   atm_extra_args["teleconnections"]="${atm_extra_args['teleconnections']} --nworkers 8"
   atm_extra_args["tropical_rainfall"]="${atm_extra_args['tropical_rainfall']} --nworkers 16"
   oce_extra_args["global_time_series"]="${oce_extra_args['global_time_series']} --nworkers 16"
-  # oce_extra_args["ocean3d"]="${oce_extra_args['ocean3d']} --nworkers 4"
+  oce_extra_args["ocean3d_drift"]="${oce_extra_args['ocean3d_drift']} --nworkers 8"
+  oce_extra_args["ocean3d_circulations"]="${oce_extra_args['ocean3d_circulation']} --nworkers 8"
   oce_extra_args["seaice"]="${oce_extra_args['seaice']} --nworkers 8"
   oce_extra_args["teleconnections"]="${oce_extra_args['teleconnections']} --nworkers 8"
 fi
