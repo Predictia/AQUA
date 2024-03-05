@@ -120,30 +120,34 @@ class hovmoller_plot:
             solevs = np.linspace(-abs_max_so, abs_max_so, solevs)
         
         cs1_name = f'cs1_{i}'
+        axs[i, 0].set_yscale('log')
+        axs[i, 1].set_yscale('log')
         vars()[cs1_name]  = axs[i,0].contourf(data.time, data.lev, data.avg_thetao.transpose(),
                             levels=avg_thetaolevs, cmap=cmap, extend='both')
         # cbar_ax = fig.add_axes([.47, 0.77 - i* 0.117, 0.028, 0.08])
-        cbar_ax = fig.add_axes([.47, 0.743 - i* 0.21, 0.023, 0.1])
+        cbar_ax = fig.add_axes([.47, 0.73 - i* 0.2, 0.023, 0.1])
         
-        fig.colorbar(vars()[cs1_name], cax=cbar_ax, orientation='vertical', label=f'Potential temperature in {data.avg_thetao.attrs["units"]}')
+        # fig.colorbar(vars()[cs1_name], cax=cbar_ax, orientation='vertical', label=f'Potential temperature in {data.avg_thetao.attrs["units"]}')
+        fig.colorbar(vars()[cs1_name], cax=cbar_ax, orientation='vertical')
         
         cs2_name = f'cs2_{i}'
         vars()[cs2_name] = axs[i,1].contourf(data.time, data.lev, data.avg_so.transpose(),
                             levels=solevs, cmap=cmap, extend='both')
         # cbar_ax = fig.add_axes([.94,  0.77 - i* 0.117, 0.028, 0.08])
-        cbar_ax = fig.add_axes([.94,  0.743 - i* 0.21, 0.023, 0.1])
-        fig.colorbar(vars()[cs2_name], cax=cbar_ax, orientation='vertical', label=f'Salinity in {data.avg_so.attrs["units"]}')
+        cbar_ax = fig.add_axes([.91,  0.73 - i* 0.2, 0.023, 0.1])
+        # fig.colorbar(vars()[cs2_name], cax=cbar_ax, orientation='vertical', label=f'Salinity in {data.avg_so.attrs["units"]}')
+        fig.colorbar(vars()[cs2_name], cax=cbar_ax, orientation='vertical')
         
 
         axs[i,0].invert_yaxis()
         axs[i,1].invert_yaxis()
         axs[i,0].set_ylim((max(data.lev).data, 0))
         axs[i,1].set_ylim((max(data.lev).data, 0))
-        
-
+        avg_so_unit = data.avg_so.attrs["units"]
+        avg_thetao_unit = data.avg_thetao.attrs["units"]
         if i==0:
-            axs[i,1].set_title("Salinity", fontsize=20) 
-            axs[i,0].set_title("Temperature", fontsize=20) 
+            axs[i,1].set_title(f"Salinity (in {avg_so_unit})", fontsize=20) 
+            axs[i,0].set_title(f"Pot. Temperature (in {avg_thetao_unit})", fontsize=20) 
         axs[i,0].set_ylabel(f"Depth (in {data.lev.units})", fontsize=12)
         if i==2:
             axs[i,0].set_xlabel("Time", fontsize=12)
@@ -154,19 +158,13 @@ class hovmoller_plot:
         else:
             axs[i, 0].set_xticklabels([])
             axs[i, 1].set_xticklabels([])
-        # max_num_ticks = 10  # Adjust this value to control the number of ticks
-        # from matplotlib.ticker import MaxNLocator
-        # locator = MaxNLocator(integer=True, prune='both', nbins=max_num_ticks)
-        # axs[0].xaxis.set_major_locator(locator)
-        # axs[1].xaxis.set_major_locator(locator)
-
         axs[i,1].set_yticklabels([])
 
-        axs[i, 0].text(-0.35, 0.2, type.replace("wrt", "\nwrt\n"), fontsize=15, color='dimgray', rotation=90, transform=axs[i, 0].transAxes, ha='center')
+        # adding type in the plot
+        axs[i, 0].text(-0.35, 0.4, type.replace("wrt", "\nwrt\n"), fontsize=15, color='dimgray', rotation=90, transform=axs[i, 0].transAxes, ha='center')
 
         if self.output:
             write_data(f'{data_dir}/{filename}.nc', data)
-        # raise Exception("Intentional debugger break")
 
 
     def plot(self):
@@ -180,14 +178,11 @@ class hovmoller_plot:
         
         # fig, (axs) = plt.subplots(nrows=5, ncols=2, figsize=(14, 25))
         fig, (axs) = plt.subplots(nrows=3, ncols=2, figsize=(14, 20))
-        plt.subplots_adjust(bottom=0.3, top=0.85, wspace=0.5, hspace=0.5)
+        plt.subplots_adjust(bottom=0.3, top=0.85, wspace=0.3, hspace=0.1)
         
         self.loop_details(0, fig, axs)
         self.loop_details(1, fig, axs)
         self.loop_details(2, fig, axs)
-
-        # # self.loop_details(3, fig, axs)
-        # # self.loop_details(4, fig, axs)
 
         fig.suptitle(f"Spatially averaged {self.region}", fontsize=25, y=0.9)
 
