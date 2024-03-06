@@ -82,7 +82,7 @@ class RegridMixin():
         self.logger.warning("Success!")
 
     def _weights_generation_time(self, regrid=None, vert_coord=None, dims=None, original_grid_size=None,
-                                 new_grid_size=None, nproc=None):
+                                 new_grid_size=None, nproc=None, vert_coord_size=None):
         """
         Helper function to estimate the time required for generating regridding weights.
 
@@ -97,30 +97,38 @@ class RegridMixin():
         Returns:
             None: This function does not return a value but logs the estimated time for weight generation.
         """
-        try:
-            _vert_coord = vert_coord.get('vert_coord', [])
-        except AttributeError:
-            _vert_coord = vert_coord
-        #Temporarily, the logger is set to the error level for simplier debugging.
-        self.logger.error(f'The vertical coordinat is {_vert_coord}.')
-        self.logger.error(f'The dims are {dims}.')
+        #try:
+        #    _vert_coord = vert_coord.get('vert_coord', [])
+        #except AttributeError:
+        #    _vert_coord = vert_coord
+        ##Temporarily, the logger is set to the error level for simplier debugging.
+        #self.logger.error(f'The vertical coordinat is {_vert_coord}.')
+        #self.logger.error(f'The dims are {dims}.')
 
             
-        warning_threshold = 0
+        warning_threshold = 60 # Print a warning only if the expected time exceeds the defined warning_threshold value
 
-        vert_factor = max(self._guess_vert_coord_size(_vert_coord)/nproc, 1)
+        #vert_factor = max(2 * vert_coord_size/nproc, 1)#max(self._guess_vert_coord_size(_vert_coord)/nproc, 1)
+        #self.logger.error(f"The vert factor  is {vert_factor}, {vert_coord_size}.") #{self._guess_vert_coord_size(_vert_coord)}.")
         
-        full_horizontal_size = original_grid_size * new_grid_size
         
-        float_per_L1 = 2 #* nproc # depends on architecture, double precision?
+        full_horizontal_size = original_grid_size + new_grid_size #original_grid_size * new_grid_size
+        
+        self.logger.error(f"Original vs new {original_grid_size}/{new_grid_size}.")
+        IPS_original = 0.00013  / max(vert_coord_size/(1.6), 1)
+        IPS_new = 0.000043 / max(vert_coord_size/(nproc+1), 1)# 0.000045
         # instructions per second, assumption
         IPS = 1
         # cloock speed depends on architecture
         cloock_speed = 3.5 * 10**9 #Hz
         # operations per second
-        OPS = cloock_speed * IPS #* nproc
+        OPS_original = cloock_speed * IPS_original #* nproc
+        OPS_new = cloock_speed * IPS_new #* nproc
         
-        expected_time =  (full_horizontal_size * vert_factor) / (OPS * float_per_L1)
+        #expected_time =  (full_horizontal_size * vert_factor) / (OPS * float_per_L1)
+        expected_time = (original_grid_size/OPS_original) + (new_grid_size /OPS_new) 
+        self.logger.error(f"The expected OROGINAL time is {(original_grid_size/OPS_original)} seconds.")
+        self.logger.error(f"The expected NEW time is {(new_grid_size /OPS_new)} seconds.")
         self.logger.error(f"The expected time is {expected_time} seconds.")
     
 
@@ -131,8 +139,8 @@ class RegridMixin():
             formatted_time = f'{hours} hours, {minutes} minutes'
             self.logger.warning(f'Time to generate the weights will take approximately {formatted_time}.')
 
-    def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, method='ycon', regrid=None, extra=None, zoom=None, vert_coord=None,
-                           dims=None, original_grid_size=None, new_grid_size=None, nproc=None):
+    def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, method='ycon', regrid=None, extra=None, 
+                           zoom=None, vert_coord=None, dims=None, original_grid_size=None, nproc=None):
         """
         Helper function to produce weights file.
 
@@ -151,6 +159,7 @@ class RegridMixin():
 
         sgrid = self._get_source_grid(source_grid, vert_coord, zoom)
 
+
         self.logger.warning("Weights file not found: %s", weightsfile)
         self.logger.warning("Attempting to generate it ...")
 
@@ -160,8 +169,24 @@ class RegridMixin():
         width, height = map(int, cfg_regrid['grids'][regrid][1:].split('x'))
         new_grid_size = width * height
         
+        self.logger.error(f"sgrid {sgrid.dims}")
+        
+        total_size = sgrid.sizes
+        total_elements = 1
+        for dim_size in total_size.values():
+            total_elements *= dim_size
+
+        # Assuming original_grid_size is a numeric value representing the size of the original grid
+        # and you want to calculate the ratio of total_elements to this original size
+        if original_grid_size > 0:  # Prevent division by zero
+            vert_coord_size = total_elements / original_grid_size
+        else:
+            vert_coord_size = 1
+
+        self.logger.error(f"Sizes {total_elements}, vert_coord_size: {vert_coord_size}.")
+
         self._weights_generation_time(regrid=regrid, vert_coord=vert_coord, dims=dims, original_grid_size=original_grid_size,
-                                      new_grid_size=new_grid_size, nproc=nproc)
+                                      new_grid_size=new_grid_size, vert_coord_size=vert_coord_size, nproc=nproc)
 
         # hack to  pass a correct list of all options
         src_extra = source_grid.get("extra", [])
