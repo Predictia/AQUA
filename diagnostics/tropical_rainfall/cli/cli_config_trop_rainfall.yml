@@ -22,7 +22,7 @@ rebuild_output: False
 plot:
   color: 'tab:green'      # Color for the plot
   figsize: 1              # Figure size for the plot
-  xmax: null                # Max value for the x-axis in the plot
+  xmax: null              # Max value for the x-axis in the plot
   loc: 'upper right'      # Location of the legend/annotation in the plot
   pdf_format: True        # Whether to save plots in PDF format
 
@@ -36,7 +36,8 @@ mswep:
   lumi: "/users/nazarova/work/observations/MSWEP/"
 
 logger:
-  loglevel: debug
+  diag_loglevel: debug
+  reader_loglevel: warning
 
 compute_resources:
   resubmit: False         # Whether to automatically resubmit the job if it fails
