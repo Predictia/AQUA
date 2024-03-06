@@ -8,6 +8,13 @@ target:
 configdir: '../../config/'
 loglevel: INFO
 
+slurm:
+  partition: small
+  username: padavini
+  account: project_465000454
+  time: 04:00:00
+  mem: 256GB
+
 catalog:
   IFS-NEMO:
     ssp370:
