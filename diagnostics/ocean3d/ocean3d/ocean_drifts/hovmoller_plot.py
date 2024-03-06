@@ -120,8 +120,8 @@ class hovmoller_plot:
             solevs = np.linspace(-abs_max_so, abs_max_so, solevs)
         
         cs1_name = f'cs1_{i}'
-        axs[i, 0].set_yscale('log')
-        axs[i, 1].set_yscale('log')
+        # axs[i, 0].set_yscale('log')
+        # axs[i, 1].set_yscale('log')
         vars()[cs1_name]  = axs[i,0].contourf(data.time, data.lev, data.avg_thetao.transpose(),
                             levels=avg_thetaolevs, cmap=cmap, extend='both')
         # cbar_ax = fig.add_axes([.47, 0.77 - i* 0.117, 0.028, 0.08])
@@ -184,10 +184,11 @@ class hovmoller_plot:
         self.loop_details(1, fig, axs)
         self.loop_details(2, fig, axs)
 
-        fig.suptitle(f"Spatially averaged {self.region}", fontsize=25, y=0.9)
+        title = f"Spatially averaged {self.region}"
+        fig.suptitle(title, fontsize=25, y=0.9)
 
         if self.output:
-            export_fig(self.output_dir, filename , "pdf")
+            export_fig(self.output_dir, filename , "pdf", metadata_value = title)
         logger.debug("Hovmoller plot completed")
 
         return

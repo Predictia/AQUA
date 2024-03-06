@@ -134,7 +134,7 @@ class time_series:
 
         # axs[i,1].set_yticklabels([])
 
-        axs[i, 0].text(-0.35, 0.2, type.replace("wrt", "\nwrt\n"), fontsize=15, color='dimgray', rotation=90, transform=axs[i, 0].transAxes, ha='center')
+        axs[i, 0].text(-0.35, 0.3, type.replace("wrt", "\nwrt\n"), fontsize=15, color='dimgray', rotation=90, transform=axs[i, 0].transAxes, ha='center')
 
         if self.output:
             write_data(f'{data_dir}/{filename}.nc', data)
@@ -150,7 +150,7 @@ class time_series:
         filename = f"{self.model}_{self.exp}_{self.source}_{self.region}_time_series"
         filename = filename.replace(" ", "_") 
         fig, (axs) = plt.subplots(nrows=3, ncols=2, figsize=(14, 20))
-        plt.subplots_adjust(bottom=0.3, top=0.85, wspace=0.5, hspace=0.5)
+        plt.subplots_adjust(bottom=0.3, top=0.85, wspace=0.3, hspace=0.1)
         
         self.loop_details(0, fig, axs)
         self.loop_details(1, fig, axs)
@@ -158,10 +158,12 @@ class time_series:
         # self.loop_details(3, fig, axs)
         # self.loop_details(4, fig, axs)
 
-        fig.suptitle(f"Time Series of {self.region}", fontsize=25, y=0.9)
+        title = f"Time Series of {self.region}"
+        fig.suptitle(title, fontsize=25, y=0.9)
 
         if self.output:
-            export_fig(self.output_dir, filename , "pdf")
+            export_fig(self.output_dir, filename , "pdf",
+                        metadata_value = title)
         
         logger.debug("Time series plot completed")
         return

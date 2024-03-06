@@ -7,9 +7,10 @@ import xarray as xr
 import numpy as np
 from aqua import Reader
 from aqua.exceptions import NoObservationError
-from aqua.util import find_vert_coord, load_yaml
+from aqua.util import find_vert_coord, load_yaml, add_pdf_metadata
 import matplotlib.pyplot as plt
 from aqua.logger import log_configure
+
 
 def kelvin_to_celsius(data, variable_name, loglevel= "WARNING"):
     """
@@ -497,7 +498,8 @@ def write_data(file_name, data, loglevel= "INFO"):
     data.to_netcdf(file_name)
     logger.debug("Data written to: %s", file_name)
 
-def export_fig(output_dir, filename, type, loglevel= "INFO"):
+def export_fig(output_dir, filename, type, metadata_value: str = None,
+                metadata_name: str = '/Description', loglevel: str = "WARNING"):
     """
     Export a matplotlib figure to a specified output directory and file format.
 
@@ -520,6 +522,9 @@ def export_fig(output_dir, filename, type, loglevel= "INFO"):
         os.remove(filename)
         logger.debug("Deleted existing file: %s", filename)
     plt.savefig(filename, bbox_inches='tight')
+
+    if type == "pdf":
+        add_pdf_metadata(filename, metadata_value, loglevel = loglevel)
     logger.info("Figure saved to: %s", output_dir)
 
 def split_ocean3d_req(self, o3d_request, loglevel= "WARNING"):
