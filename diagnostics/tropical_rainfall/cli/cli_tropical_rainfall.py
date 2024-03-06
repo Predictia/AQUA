@@ -1,6 +1,7 @@
 import sys
 import os
 import argparse
+import pandas as pd
 from aqua.util import load_yaml, get_arg
 from aqua import Reader
 from aqua.logger import log_configure
@@ -118,7 +119,8 @@ class Tropical_Rainfall_CLI:
         self.source = get_arg(args, 'source', config['data']['source'])
         self.freq = get_arg(args, 'freq', config['data']['freq'])
         self.regrid = get_arg(args, 'regrid', config['data']['regrid'])
-        self.loglevel = get_arg(args, 'loglevel', config['logger']['loglevel'])
+        self.loglevel = get_arg(args, 'loglevel', config['logger']['diag_loglevel'])
+        reader_loglevel = get_arg(args, 'loglevel', config['logger']['reader_loglevel'])
 
         nproc = get_arg(args, 'nproc', config['compute_resources']['nproc'])
         machine = config['machine']
@@ -135,7 +137,8 @@ class Tropical_Rainfall_CLI:
         else:
             self.path_to_netcdf = self.path_to_pdf = None
 
-        self.reader = Reader(model=self.model, exp=self.exp, source=self.source, loglevel=self.loglevel, regrid=self.regrid, nproc=nproc)
+        self.reader = Reader(model=self.model, exp=self.exp, source=self.source, loglevel=reader_loglevel, regrid=self.regrid,
+                             nproc=nproc)
         self.diag = Tropical_Rainfall(trop_lat=self.trop_lat, num_of_bins=self.num_of_bins, first_edge=self.first_edge,
                                       width_of_bin=self.width_of_bin, loglevel=self.loglevel)
 
@@ -189,8 +192,8 @@ class Tropical_Rainfall_CLI:
                             if regrid_bool:
                                 data = self.reader.regrid(data)
                             self.diag.histogram(data, model_variable=self.model_variable,
-                                        path_to_histogram=path_to_output,
-                                        threshold = 30, name_of_file=f"{self.regrid}_{self.freq}")
+                                                path_to_histogram=path_to_output,
+                                                threshold = 30, name_of_file=f"{self.regrid}_{self.freq}")
                             self.logger.debug(f"The path to file is: {path_to_output}")
                         except KeyError:
                             pass
@@ -215,16 +218,16 @@ class Tropical_Rainfall_CLI:
         """
         plot_title = f"Grid: {self.regrid}, frequency: {self.freq}"
         legend = f"{self.model} {self.exp}"
-        name_of_pdf =f"{self.model}_{self.exp}"
+        name_of_pdf = f"{self.model}_{self.exp}"
 
         self.logger.debug(f"The path to file is: {self.path_to_netcdf}{self.regrid}/{self.freq}/histograms/.")
         hist_merged = self.diag.merge_list_of_histograms(path_to_histograms=self.path_to_netcdf+f"{self.regrid}/{self.freq}/histograms/",
-                                                    all=True, start_year=self.s_year, end_year=self.f_year,
-                                                    start_month=self.s_month, end_month=self.f_month)
+                                                         all=True, start_year=self.s_year, end_year=self.f_year,
+                                                         start_month=self.s_month, end_month=self.f_month)
 
         add = self.diag.histogram_plot(hist_merged, figsize=self.figsize, new_unit=self.new_unit,
-                            legend=legend, color=self.color, xmax=self.xmax, plot_title=plot_title, loc=self.loc,
-                            path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
+                                       legend=legend, color=self.color, xmax=self.xmax, plot_title=plot_title, loc=self.loc,
+                                       path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
 
         mswep_folder_path = os.path.join(self.mswep, self.regrid, self.freq)
         # Check if the folder exists
@@ -235,16 +238,75 @@ class Tropical_Rainfall_CLI:
         else:
             obs_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path, all=True,
                                                             start_year=self.s_year-5, end_year=self.f_year+5,
-                                                        start_month=self.s_month, end_month=self.f_month)
+                                                            start_month=self.s_month, end_month=self.f_month)
             self.logger.info(f"The MSWEP data with resolution '{self.regrid}' and frequency '{self.freq}' are prepared for comparison.")
 
             self.diag.histogram_plot(hist_merged, figsize=self.figsize, new_unit=self.new_unit, add=add,
-                                linewidth=2*self.diag.plots.linewidth, linestyle='--', color='tab:red',
-                                legend=f"MSWEP", xmax=self.xmax,  loc=self.loc, plot_title=plot_title,
-                                path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
+                                     linewidth=2*self.diag.plots.linewidth, linestyle='--', color='tab:red',
+                                     legend=f"MSWEP", xmax=self.xmax,  loc=self.loc, plot_title=plot_title,
+                                     path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
         self.logger.info("The histograms are plotted and saved in storage.")
         self.logger.info("The Tropical Rainfall diagnostic is terminated.")
+        
+    def daily_variability(self):
+        """
+        Evaluates the daily variability of the dataset based on the specified model variable and frequency.
+        This method specifically processes datasets with an hourly frequency ('h' or 'H') by slicing the first
+        and last weeks of data within the defined start and final year and month range. It supports optional
+        regridding of the data for these periods. The method adds localized time information to the sliced
+        datasets and saves this information for further diagnostic analysis.
+        """
+        if 'h' in self.freq.lower():
+            self.logger.debug("Contains 'h' or 'H'")
+            full_dataset = self.reader.retrieve(var=self.model_variable)
+            regrid_bool, freq_bool = self.need_regrid_timmean(full_dataset)
+            self.s_year, self.f_year = adjust_year_range_based_on_dataset(full_dataset, start_year=self.s_year,
+                                                                          final_year=self.f_year)
 
+            # Ensure months are defined
+            s_month = 1 if self.s_month is None else self.s_month
+            f_month = 12 if self.f_month is None else self.f_month
+
+            days=1
+
+            # Define the start and end dates for selection
+            start_date = pd.Timestamp(year=self.s_year, month=s_month, day=1)
+            end_date = start_date + pd.Timedelta(days=days)
+            # Slice the dataset for the first week
+            first_week_data = full_dataset.sel(time=slice(start_date, end_date))
+            
+            last_date = pd.to_datetime(full_dataset['time'].max().values)
+            f_month = min(last_date.month, f_month)
+            end_date = pd.Timestamp(year=self.f_year, month=f_month, day=1) + pd.offsets.MonthEnd(1)
+            # Calculate the start date for the last week by subtracting 6 days from the end_date
+            start_date_last_week = end_date - pd.Timedelta(days=days)
+            # Now select the last week of data
+            last_week_data = full_dataset.sel(time=slice(start_date_last_week, end_date))
+            
+            if regrid_bool:
+                first_week_data = self.reader.regrid(first_week_data)
+                last_week_data = self.reader.regrid(last_week_data)
+            self.diag.add_localtime(first_week_data, name_of_file="first_week")
+            self.diag.add_localtime(last_week_data, name_of_file="last_week")
+        else:
+            self.logger.warning("Data seems to be not hourly. Therefore, cli would not [rovide the plor of daily variability")
+            
+    def plot_daily_variability(self):
+        legend = f"{self.model} {self.exp}"
+        name_of_pdf =f"{self.model}_{self.exp}"
+        path_to_output = f"{self.diag.path_to_netcdf}daily_variability/"
+        
+        keys=["daily_variability", "first_week"]
+        filename = self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys, get_path=True)
+        add = self.diag.daily_variability_plot(path_to_netcdf=filename, legend=legend+' first_week', color='tab:red',
+                                               path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, 
+                                               name_of_file=name_of_pdf)
+        
+        keys=["daily_variability", "last_week"]
+        filename = self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys, get_path=True)
+        add = self.diag.daily_variability_plot(path_to_netcdf=filename, legend=legend+' last_week', color='tab:green', add=add,
+                                               linestyle='--', path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format,
+                                               name_of_file=name_of_pdf)
 
 def main():
     """Main function to orchestrate the tropical rainfall CLI operations."""
@@ -257,6 +319,9 @@ def main():
     trop_rainfall_cli = Tropical_Rainfall_CLI(config, args)
     trop_rainfall_cli.calculate_histogram_by_months()
     trop_rainfall_cli.plot_histograms()
+    trop_rainfall_cli.daily_variability()
+    trop_rainfall_cli.plot_daily_variability()
+    
 
 
 if __name__ == '__main__':
