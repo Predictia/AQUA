@@ -593,7 +593,8 @@ class MainClass:
                   width_of_bin: Optional[float] = None, bins: Union[int, List[float]] = 0,
                   path_to_histogram: Optional[str] = None, name_of_file: Optional[str] = None,
                   positive: bool = True, new_unit: Optional[str] = None, threshold: int = 2,
-                  test: bool = False, seasons_bool: Optional[bool] = None) -> Union[xr.Dataset, np.ndarray]:
+                  test: bool = False, seasons_bool: Optional[bool] = None,
+                  rebuild: bool = False) -> Union[xr.Dataset, np.ndarray]:
         """
         Function to calculate a histogram of the high-resolution Dataset.
 
@@ -761,7 +762,8 @@ class MainClass:
             if path_to_histogram is not None and name_of_file is not None:
                 bins_info = self.get_bins_info()
                 self.dataset_to_netcdf(
-                    mtpr_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file+'_histogram_'+bins_info)
+                    mtpr_dataset, path_to_netcdf=path_to_histogram, name_of_file=name_of_file+'_histogram_'+bins_info,
+                    rebuild=rebuild)
 
         return mtpr_dataset
 
