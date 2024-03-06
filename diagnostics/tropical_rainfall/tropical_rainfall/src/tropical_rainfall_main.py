@@ -5,6 +5,7 @@
 """
 
 import re
+import os
 from os import listdir
 from os.path import isfile, join
 from datetime import datetime
@@ -764,7 +765,7 @@ class MainClass:
 
         return mtpr_dataset
 
-    def dataset_to_netcdf(self, dataset: Optional[xr.Dataset] = None, path_to_netcdf: Optional[str] = None,
+    def dataset_to_netcdf(self, dataset: Optional[xr.Dataset] = None, path_to_netcdf: Optional[str] = None, rebuild: bool = False,
                           name_of_file: Optional[str] = None) -> str:
         """
         Function to save the histogram.
@@ -792,9 +793,25 @@ class MainClass:
                 name_of_file = name_of_file + '_' + re.split(":", time_band)[0]
             path_to_netcdf = path_to_netcdf + 'trop_rainfall_' + name_of_file + '.nc'
 
-            dataset.to_netcdf(path=path_to_netcdf, mode='w')
-            self.logger.info(f"NetCDF is saved in the storage.")
-            self.logger.debug(f"The path to NetCDF is: {path_to_netcdf}")
+            if os.path.exists(path_to_netcdf):
+                self.logger.info(f"File {path_to_netcdf} already exists. Set `rebuild=True` if you want to update it.")
+                if rebuild:
+                    try:
+                        # Attempt to remove the file (make sure you have permissions)
+                        self.logger.warning(f"Removing existing file: {path_to_netcdf}.")
+                        os.remove(path_to_netcdf)
+                    except PermissionError:
+                        self.logger.error(f"Permission denied when attempting to remove {path_to_netcdf}. Check file permissions.")
+                        return  # Exiting the function or handling the error accordingly
+
+                    # Proceed to save the new NetCDF file after successfully removing the old one
+                    dataset.to_netcdf(path=path_to_netcdf, mode='w')
+                    self.logger.info(f"Updated NetCDF file saved at {path_to_netcdf}")
+                # No need for the else block here to repeat the log message about setting rebuild=True
+            else:
+                # If the file doesn't exist, simply save the new one
+                dataset.to_netcdf(path=path_to_netcdf, mode='w')
+                self.logger.info(f"NetCDF file saved at {path_to_netcdf}")
         else:
             self.logger.debug(
                 "The path to save the histogram needs to be provided.")
@@ -2149,10 +2166,10 @@ class MainClass:
         else:
             return seasonal_095level
 
-    def add_localtime_DataAaray(self, data, model_variable: str = None, space_grid_factor: int = None,
-                                time_length: int = None, trop_lat: float = None, new_unit: str = None,
-                                path_to_netcdf: str = None, name_of_file: str = None,
-                                tqdm_enabled: bool = True) -> Union[xr.Dataset, None]:
+    def add_localtime(self, data, model_variable: str = None, space_grid_factor: int = None,
+                      time_length: int = None, trop_lat: float = None, new_unit: str = None,
+                      path_to_netcdf: str = None, name_of_file: str = None, rebuild: bool = False,
+                      tqdm_enabled: bool = True) -> Union[xr.Dataset, None]:
         """
         Add a new dataset with local time based on the provided data.
 
@@ -2183,7 +2200,8 @@ class MainClass:
             pass
 
         # Extract latitude range and calculate mean
-        data = data.sel(lat=slice(-self.trop_lat, self.trop_lat)).mean('lat')
+        data_final_grid = data.sel(lat=slice(-self.trop_lat, self.trop_lat))
+        data = data_final_grid.mean('lat')
 
         # Slice time dimension if specified
         if time_length is not None:
@@ -2208,8 +2226,8 @@ class MainClass:
 
                 utc_time = data.time[time_ind]
                 longitude = data.lon[lon_ind].values - 180
-                utc_datetime = float(utc_time['time.hour'].values + utc_time['time.minute'].values / 60)
-                local_element = self.tools._utc_to_local(longitude=longitude, utc_time=utc_datetime)
+                local_time = float(utc_time['time.hour'].values + utc_time['time.minute'].values / 60)
+                local_element = self.tools.get_local_time_decimal(longitude=longitude, utc_decimal_hour=local_time)
                 local_data[time_ind].append(local_element)
 
         # Create an xarray DataArray for utc_data
@@ -2218,16 +2236,18 @@ class MainClass:
         # Create a new dataset with mtpr and utc_time
         new_dataset = xr.Dataset({'mtpr': data, 'local_time': local_data_array})
         new_dataset.attrs = data.attrs
-
+        new_dataset = self.grid_attributes(data=data_final_grid, mtpr_dataset=new_dataset)
         # Calculate relative mtpr and add to the dataset
         mean_val = new_dataset['mtpr'].mean()
         new_dataset['mtpr_relative'] = (new_dataset['mtpr'] - mean_val) / mean_val
         new_dataset['mtpr_relative'].attrs = new_dataset.attrs
 
-        # Save the dataset to NetCDF if paths are provided
-        # if path_to_netcdf and name_of_file:
-        #   self.dataset_to_netcdf(new_dataset, path_to_netcdf=path_to_netcdf, name_of_file=name_of_file)
-        # else:
+        if path_to_netcdf is None and self.path_to_netcdf is not None:
+                path_to_netcdf = self.path_to_netcdf+'daily_variability/'
+        
+        if name_of_file is not None:
+            self.dataset_to_netcdf(
+                new_dataset, path_to_netcdf=path_to_netcdf, name_of_file=name_of_file+'_daily_variability', rebuild=rebuild)
         return new_dataset
 
     def daily_variability_plot(self, ymax: int = 12, trop_lat: float = None, relative: bool = True, save: bool = True,
