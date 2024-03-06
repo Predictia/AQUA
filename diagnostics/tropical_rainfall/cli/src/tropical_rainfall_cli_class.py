@@ -79,7 +79,8 @@ class Tropical_Rainfall_CLI:
         full_dataset = self.reader.retrieve(var=self.model_variable)
         regrid_bool, freq_bool = self.need_regrid_timmean(full_dataset)
 
-        self.s_year, self.f_year = adjust_year_range_based_on_dataset(full_dataset, start_year=self.s_year, final_year=self.f_year)
+        self.s_year, self.f_year = adjust_year_range_based_on_dataset(full_dataset, start_year=self.s_year,
+                                                                      final_year=self.f_year)
         s_month = 1 if self.s_month is None else self.s_month
         f_month = 12 if self.f_month is None else self.f_month
 
@@ -121,6 +122,46 @@ class Tropical_Rainfall_CLI:
         self.logger.info("The histograms are calculated and saved in storage.")
         return None
 
+    def process_histograms(self, pdf_flag, plot_color='tab:red', linestyle='--'):
+        """
+        Processes histogram data by merging histograms from specified paths, plotting the merged histograms,
+        and checking for the existence of a specific folder path for additional data comparison. Logs relevant
+        information, errors, and successful completions
+        """
+        plot_title = f"Grid: {self.regrid}, frequency: {self.freq}"
+        legend = f"{self.model} {self.exp}"
+        name_of_pdf = f"{self.model}_{self.exp}"
+        
+        self.logger.debug(f"The path to file is: {self.path_to_netcdf}{self.regrid}/{self.freq}/histograms/.")
+
+        hist_path = f"{self.path_to_netcdf}{self.regrid}/{self.freq}/histograms/"
+        hist_merged = self.diag.merge_list_of_histograms(path_to_histograms=hist_path,
+                                                        all=True, start_year=self.s_year, end_year=self.f_year,
+                                                        start_month=self.s_month, end_month=self.f_month)
+
+        add = self.diag.histogram_plot(hist_merged, figsize=self.figsize, new_unit=self.new_unit, pdf=pdf_flag,
+                                    legend=legend, color=self.color, xmax=self.xmax, plot_title=plot_title, loc=self.loc,
+                                    path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
+
+        mswep_folder_path = os.path.join(self.mswep, self.regrid, self.freq)
+        if not os.path.exists(mswep_folder_path):
+            self.logger.error(f"Error: The folder for MSWEP data with resolution '{self.regrid}' "
+                            f"and frequency '{self.freq}' does not exist. Histograms for the "
+                            "desired resolution and frequency have not been computed yet.")
+            return
+
+        obs_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path, all=True,
+                                                        start_year=self.s_year-5, end_year=self.f_year+5,
+                                                        start_month=self.s_month, end_month=self.f_month)
+        self.logger.info(f"The MSWEP data with resolution '{self.regrid}' and frequency '{self.freq}' are prepared for comparison.")
+
+        self.diag.histogram_plot(obs_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
+                                linewidth=2*self.diag.plots.linewidth, linestyle=linestyle, color=plot_color,
+                                legend="MSWEP", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
+                                path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
+
+        self.logger.info("The histograms are plotted and saved in storage.")
+    
     def plot_histograms(self):
         """
         Generates and saves histogram plots for the specified model, experiment, and source data over a defined period.
@@ -129,36 +170,11 @@ class Tropical_Rainfall_CLI:
         data if available. The function handles the absence of MSWEP data gracefully by logging an error. Plots are
         saved to the specified PDF format in the provided path.
         """
-        plot_title = f"Grid: {self.regrid}, frequency: {self.freq}"
-        legend = f"{self.model} {self.exp}"
-        name_of_pdf = f"{self.model}_{self.exp}"
-
-        self.logger.debug(f"The path to file is: {self.path_to_netcdf}{self.regrid}/{self.freq}/histograms/.")
-        hist_merged = self.diag.merge_list_of_histograms(path_to_histograms=self.path_to_netcdf+f"{self.regrid}/{self.freq}/histograms/",
-                                                         all=True, start_year=self.s_year, end_year=self.f_year,
-                                                         start_month=self.s_month, end_month=self.f_month)
-
-        add = self.diag.histogram_plot(hist_merged, figsize=self.figsize, new_unit=self.new_unit,
-                                       legend=legend, color=self.color, xmax=self.xmax, plot_title=plot_title, loc=self.loc,
-                                       path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
-
-        mswep_folder_path = os.path.join(self.mswep, self.regrid, self.freq)
-        # Check if the folder exists
-        if not os.path.exists(mswep_folder_path):
-            self.logger.error(f"Error: The folder for MSWEP data with resolution '{self.regrid}' "
-                            f"and frequency '{self.freq}' does not exist. Histograms for the "
-                            "desired resolution and frequency have not been computed yet.")
-        else:
-            obs_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path, all=True,
-                                                            start_year=self.s_year-5, end_year=self.f_year+5,
-                                                            start_month=self.s_month, end_month=self.f_month)
-            self.logger.info(f"The MSWEP data with resolution '{self.regrid}' and frequency '{self.freq}' are prepared for comparison.")
-
-            self.diag.histogram_plot(hist_merged, figsize=self.figsize, new_unit=self.new_unit, add=add,
-                                     linewidth=2*self.diag.plots.linewidth, linestyle='--', color='tab:red',
-                                     legend=f"MSWEP", xmax=self.xmax,  loc=self.loc, plot_title=plot_title,
-                                     path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
-        self.logger.info("The histograms are plotted and saved in storage.")
+        pdf = True  # Set your PDF flag as needed
+        self.process_histograms(pdf_flag=pdf)
+        pdfP = True  # Set your PDF flag as needed
+        self.process_histograms(pdf_flag=pdfP)
+        
         self.logger.info("The Tropical Rainfall diagnostic is terminated.")
         
     def daily_variability(self):
@@ -199,24 +215,28 @@ class Tropical_Rainfall_CLI:
             if regrid_bool:
                 first_week_data = self.reader.regrid(first_week_data)
                 last_week_data = self.reader.regrid(last_week_data)
-            self.diag.add_localtime(first_week_data, name_of_file="first_week")
+            self.diag.add_localtime(first_week_data, name_of_file="first_week", rebuild=self.rebuild_output)
             self.diag.add_localtime(last_week_data, name_of_file="last_week")
         else:
-            self.logger.warning("Data seems to be not hourly. Therefore, cli would not [rovide the plor of daily variability")
+            self.logger.warning("Data appears to be not in hourly intervals. The CLI will not provide the netcdf of daily variability.")
             
     def plot_daily_variability(self):
-        legend = f"{self.model} {self.exp}"
-        name_of_pdf =f"{self.model}_{self.exp}"
-        path_to_output = f"{self.diag.path_to_netcdf}daily_variability/"
-        
-        keys=["daily_variability", "first_week"]
-        filename = self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys, get_path=True)
-        add = self.diag.daily_variability_plot(path_to_netcdf=filename, legend=legend+' first_week', color='tab:red',
-                                               path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, 
-                                               name_of_file=name_of_pdf)
-        
-        keys=["daily_variability", "last_week"]
-        filename = self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys, get_path=True)
-        add = self.diag.daily_variability_plot(path_to_netcdf=filename, legend=legend+' last_week', color='tab:green', add=add,
-                                               linestyle='--', path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format,
-                                               name_of_file=name_of_pdf)
+        if 'h' in self.freq.lower():
+            self.logger.debug("Contains 'h' or 'H'")
+            legend = f"{self.model} {self.exp}"
+            name_of_pdf =f"{self.model}_{self.exp}"
+            path_to_output = f"{self.diag.path_to_netcdf}daily_variability/"
+            
+            keys=["daily_variability", "first_week"]
+            filename = self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys, get_path=True)
+            add = self.diag.daily_variability_plot(path_to_netcdf=filename, legend=legend+' first_week', color='tab:red',
+                                                path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, 
+                                                name_of_file=name_of_pdf)
+            
+            keys=["daily_variability", "last_week"]
+            filename = self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys, get_path=True)
+            add = self.diag.daily_variability_plot(path_to_netcdf=filename, legend=legend+' last_week', color='tab:green', add=add,
+                                                linestyle='--', path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format,
+                                                name_of_file=name_of_pdf)
+        else:
+            self.logger.warning("Data appears to be not in hourly intervals. The CLI will not provide the plot of daily variability.")
