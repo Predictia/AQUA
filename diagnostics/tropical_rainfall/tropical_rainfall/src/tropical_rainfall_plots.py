@@ -710,35 +710,47 @@ class PlottingClass:
         elif add is not None:
             fig, ax = add
 
-        utc_time = data['utc_time']
+        grouped = data.groupby('local_time')
+        mean_per_hour = grouped.mean()
+        
+        data['local_time'].values = data['local_time'].astype(int).values
+        grouped_smooth = data.groupby('local_time')
+        mean_per_hour_smooth = grouped_smooth.mean()
+        
+        utc_time = mean_per_hour['local_time']
+        utc_time_smooth = mean_per_hour_smooth['local_time']
         if relative:
-            mtpr = data['mtpr_relative']
+            mtpr = mean_per_hour['mtpr_relative']
+            mtpr_smooth = mean_per_hour_smooth['mtpr_relative']
         else:
-            mtpr = data[self.model_variable]
+            mtpr = mean_per_hour[self.model_variable]
+            mtpr_smooth = mean_per_hour_smooth[self.model_variable]
         try:
-            units = data.units
+            units = mean_per_hour.units
         except AttributeError:
-            units = data.mtpr.units
+            units = mean_per_hour.mtpr.units
 
-        plt.plot(utc_time, mtpr, color=color,  label=legend,  linestyle=self.linestyle)
+        plt.plot(utc_time, mtpr, color=color, linestyle=self.linestyle, alpha=0.25)
+        plt.plot(utc_time_smooth, mtpr_smooth, color=color, label=legend, linestyle=self.linestyle,
+                 linewidth=1*self.linewidth)
         if plot_title is None:
             if relative:
                 plt.suptitle(
                     'Relative Value of Daily Precipitation Variability', fontsize=self.fontsize+1)
-                plt.ylabel('mtpr variability, '+units,  fontsize=self.fontsize-2)
+                plt.ylabel('mtpr variability, '+units, fontsize=self.fontsize-2)
             else:
                 plt.suptitle('Daily Precipitation Variability', fontsize=self.fontsize+1)
-                plt.ylabel('relative mtpr',  fontsize=self.fontsize-2)
+                plt.ylabel('relative mtpr', fontsize=self.fontsize-2)
         else:
             plt.suptitle(plot_title, fontsize=self.fontsize+3)
 
         plt.grid(True)
-
+        plt.xlim([0-0.2,24+0.2])
         plt.xlabel('Local time', fontsize=self.fontsize-2)
 
         if legend != '_Hidden':
             plt.legend(loc=loc,
-                       fontsize=self.fontsize-2,    ncol=2)
+                       fontsize=self.fontsize-2, ncol=2)
 
         if save and isinstance(path_to_pdf, str):
             self.savefig(path_to_pdf, self.pdf_format)
