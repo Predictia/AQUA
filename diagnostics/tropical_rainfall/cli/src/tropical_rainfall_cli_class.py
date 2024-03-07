@@ -122,40 +122,18 @@ class Tropical_Rainfall_CLI:
         self.logger.info("The histograms are calculated and saved in storage.")
         return None
 
-    def process_histograms(self, pdf_flag, pdfP_flag, plot_color='tab:red', linestyle='-'):
+    def process_histograms(self, pdf_flag, pdfP_flag, model_merged, obs_merged, plot_color='tab:red', linestyle='-'):
         """
-        Processes histogram data by merging histograms from specified paths, plotting the merged histograms,
-        and checking for the existence of a specific folder path for additional data comparison. Logs relevant
-        information, errors, and successful completions
+        Generates and saves histograms for model and observational data, with options for PDF and PDF*P plots.
         """
         plot_title = f"Grid: {self.regrid}, frequency: {self.freq}"
         legend = f"{self.model} {self.exp}"
         name_of_pdf = f"{self.model}_{self.exp}"
-        
-        self.logger.debug(f"The path to file is: {self.path_to_netcdf}{self.regrid}/{self.freq}/histograms/.")
-
-        hist_path = f"{self.path_to_netcdf}{self.regrid}/{self.freq}/histograms/"
-        hist_merged = self.diag.merge_list_of_histograms(path_to_histograms=hist_path,
-                                                        all=True, start_year=self.s_year, end_year=self.f_year,
-                                                        start_month=self.s_month, end_month=self.f_month)
-
-        add = self.diag.histogram_plot(hist_merged, figsize=self.figsize, new_unit=self.new_unit, pdf=pdf_flag,
+       
+        add = self.diag.histogram_plot(model_merged, figsize=self.figsize, new_unit=self.new_unit, pdf=pdf_flag,
                                        pdfP=pdfP_flag, legend=legend, color=self.color, xmax=self.xmax,
                                        plot_title=plot_title, loc=self.loc, path_to_pdf=self.path_to_pdf,
                                        pdf_format=self.pdf_format, name_of_file=name_of_pdf)
-
-        mswep_folder_path = os.path.join(self.mswep, self.regrid, self.freq)
-        self.logger.info(f"The path to MSWEP data is  {mswep_folder_path}")
-        if not os.path.exists(mswep_folder_path):
-            self.logger.error(f"Error: The folder for MSWEP data with resolution '{self.regrid}' "
-                            f"and frequency '{self.freq}' does not exist. Histograms for the "
-                            "desired resolution and frequency have not been computed yet.")
-            return
-        obs_interval = 1
-        obs_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path, all=True,
-                                                        start_year=self.s_year-obs_interval, end_year=self.f_year+obs_interval,
-                                                        start_month=self.s_month, end_month=self.f_month)
-        self.logger.info(f"The MSWEP data with resolution '{self.regrid}' and frequency '{self.freq}' are prepared for comparison.")
 
         self.diag.histogram_plot(obs_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
                                  pdfP=pdfP_flag, linewidth=self.diag.plots.linewidth, linestyle=linestyle, color=plot_color,
@@ -167,15 +145,37 @@ class Tropical_Rainfall_CLI:
     def plot_histograms(self):
         """
         Generates and saves histogram plots for the specified model, experiment, and source data over a defined period.
-        It constructs the plot titles and legends based on model, experiment, and source details, merges histograms
-        from specified paths, and plots them. Additionally, it attempts to plot comparative histograms using MSWEP
-        data if available. The function handles the absence of MSWEP data gracefully by logging an error. Plots are
-        saved to the specified PDF format in the provided path.
+        The function constructs plot titles and legends based on model, experiment, and source details. It merges 
+        histograms from specified paths and plots them, including comparative histograms with MSWEP data when available. 
+        The absence of MSWEP data is handled gracefully with an error log.
         """
+        self.logger.debug(f"The path to file is: {self.path_to_netcdf}{self.regrid}/{self.freq}/histograms/.")
+
+        hist_path = f"{self.path_to_netcdf}{self.regrid}/{self.freq}/histograms/"
+        model_merged = self.diag.merge_list_of_histograms(path_to_histograms=hist_path,
+                                                        start_year=self.s_year, end_year=self.f_year,
+                                                        start_month=self.s_month, end_month=self.f_month)
+
+        if self.s_month is None and self.f_month is None:
+            mswep_folder_path = os.path.join(self.mswep, self.regrid, self.freq, 'yearly_grouped')
+        else:
+            mswep_folder_path = os.path.join(self.mswep, self.regrid, self.freq, 'monthly_grouped')
+        self.logger.info(f"The path to MSWEP data is  {mswep_folder_path}")
+        if not os.path.exists(mswep_folder_path):
+            self.logger.error(f"Error: The folder for MSWEP data with resolution '{self.regrid}' "
+                            f"and frequency '{self.freq}' does not exist. Histograms for the "
+                            "desired resolution and frequency have not been computed yet.")
+            return
+        obs_interval = 1
+        obs_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path,
+                                                        start_year=self.s_year-obs_interval, end_year=self.f_year+obs_interval,
+                                                        start_month=self.s_month, end_month=self.f_month)
+        self.logger.info(f"The MSWEP data with resolution '{self.regrid}' and frequency '{self.freq}' are prepared for comparison.")
+        
         pdf, pdfP = True, False # Set your PDF flag as needed
-        self.process_histograms(pdf_flag=pdf, pdfP_flag=pdfP)
+        self.process_histograms(pdf_flag=pdf, pdfP_flag=pdfP, model_merged=model_merged, obs_merged=obs_merged)
         pdf, pdfP = False, True  # Set your PDF flag as needed
-        self.process_histograms(pdf_flag=pdfP, pdfP_flag=pdfP)
+        self.process_histograms(pdf_flag=pdfP, pdfP_flag=pdfP, model_merged=model_merged, obs_merged=obs_merged)
         
         self.logger.info("The Tropical Rainfall diagnostic is terminated.")
         
