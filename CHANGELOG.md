@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Adding expected time calculation for weight generation (#701)
 - Fix LRA souyrces to allow incomplete times for different vars (#994)
 - Distributed dask option for diagnostic CLIs and wrapper (#981)
 - Added documentation for `plot_timeseries`, `plot_seasonalcycle` and `plot_single_map_diff` (#975)
