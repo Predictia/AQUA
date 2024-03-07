@@ -235,9 +235,12 @@ class PlottingClass:
 
         if xmax is not None:
             plt.xlim([0, xmax])
-
-        if save and isinstance(path_to_pdf, str):
-            self.savefig(path_to_pdf, self.pdf_format)
+        if not any([child.get_visible() for child in ax.get_children()]):
+            self.logger.error("The plot is empty. Skipping saving the plot.")
+            return
+        else:
+            if save and isinstance(path_to_pdf, str):
+                self.savefig(path_to_pdf, self.pdf_format)
         return {fig, ax}
 
     def plot_of_average(self, data: Union[list, xr.DataArray] = None, trop_lat: Optional[float] = None, ylabel: str = '',
@@ -745,6 +748,7 @@ class PlottingClass:
             plt.suptitle(plot_title, fontsize=self.fontsize+3)
 
         plt.grid(True)
+        plt.ylim([-2,5])
         plt.xlim([0-0.2,24+0.2])
         plt.xlabel('Local time', fontsize=self.fontsize-2)
 

@@ -1253,7 +1253,7 @@ class MainClass:
 
     def histogram_plot(self, data: xr.Dataset, new_unit: str = None, pdfP: bool = False, positive: bool = True,
                        save: bool = True, weights: np.ndarray = None, frequency: bool = False, pdf: bool = True,
-                       smooth: bool = True, step: bool = False, color_map: bool = False, linestyle: str = None,
+                       smooth: bool = False, step: bool = True, color_map: bool = False, linestyle: str = None,
                        ylogscale: bool = True, xlogscale: bool = False, color: str = 'tab:blue', figsize: float = None,
                        legend: str = '_Hidden', plot_title: str = None, loc: str = 'upper right', model_variable: str = None,
                        add: tuple = None, fig: object = None, path_to_pdf: str = None, name_of_file: str = '',
@@ -2316,7 +2316,7 @@ class MainClass:
             data.attrs['units'] = self.new_unit
 
         if isinstance(path_to_pdf, str) and name_of_file is not None:
-            path_to_pdf = path_to_pdf + 'trop_rainfall_' + name_of_file + '_dailyvar.pdf'
+            path_to_pdf = path_to_pdf + 'tropical_rainfall_' + name_of_file + '_daily_variability.pdf'
 
         return self.plots.daily_variability_plot(data, ymax=y_lim_max, relative=relative, save=save,
                                                  legend=legend, figsize=figsize, linestyle=linestyle, color=color,

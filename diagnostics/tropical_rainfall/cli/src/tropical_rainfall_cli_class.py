@@ -136,7 +136,7 @@ class Tropical_Rainfall_CLI:
                                        pdf_format=self.pdf_format, name_of_file=name_of_pdf)
 
         self.diag.histogram_plot(obs_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
-                                 pdfP=pdfP_flag, linewidth=self.diag.plots.linewidth, linestyle=linestyle, color=plot_color,
+                                 pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color=plot_color,
                                  legend="MSWEP", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
                                  path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
 
@@ -198,7 +198,7 @@ class Tropical_Rainfall_CLI:
             s_month = 1 if self.s_month is None else self.s_month
             f_month = 12 if self.f_month is None else self.f_month
 
-            days=1
+            days=5
 
             # Define the start and end dates for selection
             start_date = pd.Timestamp(year=self.s_year, month=s_month, day=1)

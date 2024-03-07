@@ -276,7 +276,7 @@ class ToolsClass:
             if all(key in filename for key in keys):
                 self.logger.debug(f"A file {filename} meeting all specified criteria ({', '.join(keys)}) exists")
                 if get_path:
-                    self.logger.info(f"Reutrning the full path of the file {filename}")
+                    self.logger.info(f"Returning the full path of the file {filename}")
                     return filename
                 else:
                     self.logger.warning(f"A file {filename} exists. Skipping calculations.")

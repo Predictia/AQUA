@@ -30,8 +30,8 @@ plot_attributes:
   figsize: 1
   linewidth: 2
   fontsize: 14
-  smooth: True
-  step: False
+  smooth: False
+  step: True
   color_map: False
   cmap: 'coolwarm'
   linestyle: '-'
