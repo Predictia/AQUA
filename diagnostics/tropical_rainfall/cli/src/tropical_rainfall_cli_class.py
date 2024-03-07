@@ -122,7 +122,7 @@ class Tropical_Rainfall_CLI:
         self.logger.info("The histograms are calculated and saved in storage.")
         return None
 
-    def process_histograms(self, pdf_flag, plot_color='tab:red', linestyle='--'):
+    def process_histograms(self, pdf_flag, pdfP_flag, plot_color='tab:red', linestyle='-'):
         """
         Processes histogram data by merging histograms from specified paths, plotting the merged histograms,
         and checking for the existence of a specific folder path for additional data comparison. Logs relevant
@@ -140,10 +140,12 @@ class Tropical_Rainfall_CLI:
                                                         start_month=self.s_month, end_month=self.f_month)
 
         add = self.diag.histogram_plot(hist_merged, figsize=self.figsize, new_unit=self.new_unit, pdf=pdf_flag,
-                                    legend=legend, color=self.color, xmax=self.xmax, plot_title=plot_title, loc=self.loc,
-                                    path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
+                                       pdfP=pdfP_flag, legend=legend, color=self.color, xmax=self.xmax,
+                                       plot_title=plot_title, loc=self.loc, path_to_pdf=self.path_to_pdf,
+                                       pdf_format=self.pdf_format, name_of_file=name_of_pdf)
 
         mswep_folder_path = os.path.join(self.mswep, self.regrid, self.freq)
+        self.logger.info(f"The path to MSWEP data is  {mswep_folder_path}")
         if not os.path.exists(mswep_folder_path):
             self.logger.error(f"Error: The folder for MSWEP data with resolution '{self.regrid}' "
                             f"and frequency '{self.freq}' does not exist. Histograms for the "
@@ -156,9 +158,9 @@ class Tropical_Rainfall_CLI:
         self.logger.info(f"The MSWEP data with resolution '{self.regrid}' and frequency '{self.freq}' are prepared for comparison.")
 
         self.diag.histogram_plot(obs_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
-                                linewidth=2*self.diag.plots.linewidth, linestyle=linestyle, color=plot_color,
-                                legend="MSWEP", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
-                                path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
+                                 pdfP=pdfP_flag, linewidth=self.diag.plots.linewidth, linestyle=linestyle, color=plot_color,
+                                 legend="MSWEP", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
+                                 path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
 
         self.logger.info("The histograms are plotted and saved in storage.")
     
@@ -170,10 +172,10 @@ class Tropical_Rainfall_CLI:
         data if available. The function handles the absence of MSWEP data gracefully by logging an error. Plots are
         saved to the specified PDF format in the provided path.
         """
-        pdf = True  # Set your PDF flag as needed
-        self.process_histograms(pdf_flag=pdf)
-        pdfP = True  # Set your PDF flag as needed
-        self.process_histograms(pdf_flag=pdfP)
+        pdf, pdfP = True, False # Set your PDF flag as needed
+        self.process_histograms(pdf_flag=pdf, pdfP_flag=pdfP)
+        pdf, pdfP = False, True  # Set your PDF flag as needed
+        self.process_histograms(pdf_flag=pdfP, pdfP_flag=pdfP)
         
         self.logger.info("The Tropical Rainfall diagnostic is terminated.")
         
