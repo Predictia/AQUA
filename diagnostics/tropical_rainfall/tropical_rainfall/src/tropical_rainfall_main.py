@@ -1301,12 +1301,16 @@ class MainClass:
             data = data['counts']
         if not pdf and not frequency and not pdfP:
             pass
+            self.logger.debug("Generating a histogram to visualize the counts...")
         elif pdf and not frequency and not pdfP:
             data = self.convert_counts_to_pdf(data,  test=test)
+            self.logger.debug("Generating a histogram to visualize the PDF...")
         elif not pdf and frequency and not pdfP:
             data = self.convert_counts_to_frequency(data,  test=test)
+            self.logger.debug("Generating a histogram to visualize the frequency...")
         elif pdfP:
             data = self.convert_counts_to_pdfP(data,  test=test)
+            self.logger.debug("Generating a histogram to visualize the PDFP...")
 
         x = data.center_of_bin.values
 
@@ -1317,15 +1321,19 @@ class MainClass:
 
         if pdf and not frequency and not pdfP:
             ylabel = 'PDF'
+            _name = '_PDF_histogram'
         elif not pdf and frequency and not pdfP:
             ylabel = 'Frequency'
+            _name = '_frequency_histogram'
         elif not frequency and not pdfP and not pdf:
             ylabel = 'Counts'
+            _name = '_counts_histogram'
         elif pdfP:
             ylabel = 'PDF * P'
+            _name = '_PDFP_histogram'
 
         if isinstance(path_to_pdf, str) and name_of_file is not None:
-            path_to_pdf = path_to_pdf + 'trop_rainfall_' + name_of_file + '_histogram.pdf'
+            path_to_pdf = path_to_pdf + 'trop_rainfall_' + name_of_file + _name + '.pdf'
 
         return self.plots.histogram_plot(x=x, data=data, positive=positive, xlabel=xlabel, ylabel=ylabel,
                                          weights=weights, smooth=smooth, step=step, color_map=color_map,
