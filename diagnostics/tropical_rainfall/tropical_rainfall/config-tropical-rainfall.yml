@@ -28,7 +28,7 @@ time_frame:
 plot_attributes:
   pdf_format: True
   figsize: 1
-  linewidth: 3
+  linewidth: 2
   fontsize: 14
   smooth: True
   step: False
