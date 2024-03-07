@@ -108,9 +108,9 @@ if __name__ == '__main__':
 
     if box_plot_bool:
         try:
-            datasets = [ceres, model_data]
+            datasets = [era5, ceres, model_data]
             boxplot_model_data(datasets=datasets, outputdir=outputdir, outputfig=outputfig, loglevel=loglevel)
-            logger.info("The boxplot with provided model and CERES was created and saved. Variables ttr and tsr are plotted to show imbalances.")
+            logger.info("The boxplot with provided model and CERES+ERA5 was created and saved. Variables ttr and tsr are plotted to show imbalances.")
         except Exception as e:
             # Handle other exceptions
             logger.error(f"An unexpected error occurred: {e}")
