@@ -141,7 +141,7 @@ class PlottingClass:
             path_to_pdf = path_to_pdf.replace('.pdf', '.png')
             plt.savefig(path_to_pdf, bbox_inches="tight", pad_inches=1,
                         transparent=True, facecolor="w", edgecolor='w', orientation='landscape')
-        self.logger.debug(f"The path to plot is: {path_to_pdf}")
+        self.logger.info(f"The path to plot is: {path_to_pdf}")
 
     def histogram_plot(self, x: Union[np.ndarray, List[float]], data: Union[np.ndarray, List[float]],
                        positive: bool = True, xlabel: str = '', ylabel: str = '',
