@@ -10,7 +10,7 @@ from scipy.stats import t as statt
 from ocean3d import weighted_area_mean
 from ocean3d import area_selection
 from ocean3d import weighted_zonal_mean
-from ocean3d import dir_creation
+from ocean3d import file_naming
 from ocean3d import custom_region
 from ocean3d import write_data
 from ocean3d import export_fig
@@ -169,13 +169,9 @@ def zonal_mean_trend_plot(o3d_request, loglevel= "WARNING"):
     axs[1].set_facecolor('grey')
 
     if output:
-        output_path, fig_dir, data_dir, filename = dir_creation(data,
-            region, lat_s, lat_n, lon_w, lon_e, output_dir, plot_name="zonal_mean_trend")
-        filename = f"{model}_{exp}_{source}_{filename}"
-        write_data(f'{data_dir}/{filename}.nc',data)
-        export_fig(fig_dir, filename , "pdf", metadata_value = title, loglevel= loglevel)
-        logger.info(
-            "Figure and data used for this plot are saved here: %s", output_path)
+        filename = file_naming(region, lat_s, lat_n, lon_w, lon_e, plot_name=f"{model}-{exp}-{source}_zonal_mean_trend")
+        write_data(output_dir,filename, data)
+        export_fig(output_dir, filename , "pdf", metadata_value = title, loglevel= loglevel)
 
     # plt.show()
 
@@ -491,14 +487,8 @@ def multilevel_t_s_trend_plot(o3d_request, customise_level=False, levels=None, l
     axs[0, 0].set_title("Temperature", fontsize=18)
     axs[0, 1].set_title("Salinity", fontsize=18)
     if output:
-        output_path, fig_dir, data_dir, filename = dir_creation(data,
-            region, lat_s, lat_n, lon_w, lon_e, output_dir, plot_name="multilevel_t_s_trend")
-        filename = f"{model}_{exp}_{source}_{filename}"
-        write_data(f'{data_dir}/{filename}.nc',data.interp(lev=levels[levs]))
-        export_fig(fig_dir, filename , "pdf", metadata_value = title, loglevel= loglevel)
-        logger.info(
-            "Figure and data used for this plot are saved here: %s", output_path)
-
-    #plt.show()
+        filename = file_naming(region, lat_s, lat_n, lon_w, lon_e, plot_name=f"{model}-{exp}-{source}_multilevel_t_s_trend")
+        write_data(output_dir,filename, data.interp(lev=levels[levs]))
+        export_fig(output_dir, filename , "pdf", metadata_value = title, loglevel= loglevel)
 
     return
