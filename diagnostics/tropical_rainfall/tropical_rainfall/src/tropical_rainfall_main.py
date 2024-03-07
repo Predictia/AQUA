@@ -792,7 +792,11 @@ class MainClass:
                 name_of_file = name_of_file + '_' + re.split(":", re.split(", ", time_band)[0])[0] + '_' + \
                     re.split(":", re.split(", ", time_band)[1])[0] + '_' + re.split("=", re.split(", ", time_band)[2])[1]
             except IndexError:
-                name_of_file = name_of_file + '_' + re.split(":", time_band)[0]
+                try:
+                    name_of_file = name_of_file + '_' + re.split(":", re.split(", ", time_band)[0])[0] + '_' + \
+                        re.split(":", re.split(", ", time_band)[1])[0]
+                except IndexError:
+                    name_of_file = name_of_file + '_' + re.split(":", time_band)[0]
             path_to_netcdf = path_to_netcdf + 'trop_rainfall_' + name_of_file + '.nc'
 
             if os.path.exists(path_to_netcdf):
