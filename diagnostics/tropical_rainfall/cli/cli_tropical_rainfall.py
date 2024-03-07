@@ -7,6 +7,7 @@ from src.tropical_rainfall_cli_class import Tropical_Rainfall_CLI
 
 def main():
     """Main function to orchestrate the tropical rainfall CLI operations."""
+
     args = parse_arguments(sys.argv[1:])
     validate_arguments(args)
 

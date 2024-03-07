@@ -120,15 +120,21 @@ class SeasonalCycle(Timeseries):
 
         ref_label = f"{self.plot_ref_kw['model']}"
 
-        title = f"Seasonal cycle of {self.var}"
+        if self.formula is False or self.formula is None:
+            try:
+                title = self.data_mon[0].attrs['long_name'] + ' (' + self.data_mon[0].attrs['units'] + ') timeseries'
+            except KeyError:
+                title = f'{self.var} timeseries'
+        else:
+            title = f'{self.var} timeseries'
 
-        fig, ax = plot_seasonalcycle(data=self.cycle,
-                                     ref_data=self.cycle_ref,
-                                     std_data=self.ref_mon_std,
-                                     data_labels=labels,
-                                     ref_label=ref_label,
-                                     loglevel=self.loglevel,
-                                     title=title)
+        fig, _ = plot_seasonalcycle(data=self.cycle,
+                                    ref_data=self.cycle_ref,
+                                    std_data=self.ref_mon_std,
+                                    data_labels=labels,
+                                    ref_label=ref_label,
+                                    loglevel=self.loglevel,
+                                    title=title)
 
         if self.save:
             self.save_seasonal_pdf(fig, ref_label)

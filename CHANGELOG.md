@@ -8,7 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
-
+- Fix LRA souyrces to allow incomplete times for different vars (#994)
+- Distributed dask option for diagnostic CLIs and wrapper (#981)
 - Added documentation for `plot_timeseries`, `plot_seasonalcycle` and `plot_single_map_diff` (#975)
 - Minimum date fixer feature / ICON net fluxes fix (#958)
 - Unified logging for all diagnostics (#931)
@@ -22,6 +23,7 @@ AQUA core complete list:
 - Renaming the `tprate` variable into `mtpr` in all fixes (#944)
 
 AQUA diagnostic complete list:
+- Timeseries: seasonal cycle runs as a separate cli in aqua-analysis for performance speed-up (#982)
 - Timeseries: seasonal cycle is added if reference data are not available in some timespan (#974)
 - Tropical rainfall: Removing unnecessary printing during the CLI, optimazing the CLi for low and high-resolution data (#963)
 - Timeseries: Grergory plot TOA limits are dynamically chosen (#959)
