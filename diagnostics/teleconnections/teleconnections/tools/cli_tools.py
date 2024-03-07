@@ -129,8 +129,8 @@ def set_figs(telec=None, model=None, exp=None, ref=False,
                     if ref:
                         title += f' compared to {ref}'
                         filename_def += f'_{ref}'
-                        description += f' compared to {ref}'
-                        description += '\nThe contour lines are the model regression map and the filled contour map is the difference between the model and the reference regression map' # noqa
+                        description += f' compared to {ref}.'
+                        description += '\nThe contour lines are the model regression map and the filled contour map is the difference between the model and the reference regression map.' # noqa
                         ref_maps.append(ref_reg_season[i])
                     else:
                         description += '\nThe contour plot is the model regression map.'
@@ -151,8 +151,8 @@ def set_figs(telec=None, model=None, exp=None, ref=False,
                 if ref:
                     title += f' compared to {ref}'
                     filename_def += f'_{ref}'
-                    description += f' compared to {ref}'
-                    description += '\nThe contour lines are the model correlation map and the filled contour map is the difference between the model and the reference correlation map'
+                    description += f' compared to {ref}.'
+                    description += '\nThe contour lines are the model correlation map and the filled contour map is the difference between the model and the reference correlation map.' # noqa
                     ref_maps.append(ref_cor_full_year)
                 else:
                     description += '\nThe contour plot is the model correlation map.'
@@ -172,8 +172,8 @@ def set_figs(telec=None, model=None, exp=None, ref=False,
                     if ref:
                         title += f' compared to {ref}'
                         filename_def += f'_{ref}'
-                        description += f' compared to {ref}'
-                        description += '\nThe contour lines are the model correlation map and the filled contour map is the difference between the model and the reference correlation map'
+                        description += f' compared to {ref}.'
+                        description += '\nThe contour lines are the model correlation map and the filled contour map is the difference between the model and the reference correlation map.' # noqa
                         ref_maps.append(ref_cor_season[i])
                     else:
                         description += '\nThe contour plot is the model correlation map.'
@@ -189,14 +189,14 @@ def set_figs(telec=None, model=None, exp=None, ref=False,
             if full_year:
                 maps.append(reg_full)
                 filename_def = set_filename(filename, "regression")
-                title = f'ENSO {model} {exp} regression map (msl)'
-                description = f'ENSO {model} {exp} regression map (msl)'
+                title = f'ENSO {model} {exp} regression map (avg_tos)'
+                description = f'ENSO {model} {exp} regression map (avg_tos)'
 
                 if ref:
                     title += f' compared to {ref}'
                     filename_def += f'_{ref}'
-                    description += f' compared to {ref}'
-                    description += '\nThe contour lines are the model regression map and the filled contour map is the difference between the model and the reference regression map'
+                    description += f' compared to {ref}.'
+                    description += '\nThe contour lines are the model regression map and the filled contour map is the difference between the model and the reference regression map.' # noqa
                     ref_maps.append(ref_reg_full_year)
                 else:
                     description += '\nThe contour plot is the model regression map.'
@@ -210,14 +210,14 @@ def set_figs(telec=None, model=None, exp=None, ref=False,
                 for i, season in enumerate(seasons):
                     maps.append(reg_season[i])
                     filename_def = set_filename(filename, f"regression_{season}")
-                    title = f'ENSO {model} {exp} regression map (msl) for {season}'
-                    description = f'ENSO {model} {exp} regression map (msl) for {season}'
+                    title = f'ENSO {model} {exp} regression map (avg_tos) for {season}'
+                    description = f'ENSO {model} {exp} regression map (avg_tos) for {season}'
 
                     if ref:
                         title += f' compared to {ref}'
                         filename_def += f'_{ref}'
-                        description += f' compared to {ref}'
-                        description += '\nThe contour lines are the model regression map and the filled contour map is the difference between the model and the reference regression map'
+                        description += f' compared to {ref}.'
+                        description += '\nThe contour lines are the model regression map and the filled contour map is the difference between the model and the reference regression map.' # noqa
                         ref_maps.append(ref_reg_season[i])
                     else:
                         description += '\nThe contour plot is the model regression map.'
@@ -232,14 +232,14 @@ def set_figs(telec=None, model=None, exp=None, ref=False,
             if full_year:
                 maps.append(cor_full)
                 filename_def = set_filename(filename, "correlation")
-                title = f'ENSO {model} {exp} correlation map (msl)'
-                description = f'ENSO {model} {exp} correlation map (msl)'
+                title = f'ENSO {model} {exp} correlation map (avg_tos)'
+                description = f'ENSO {model} {exp} correlation map (avg_tos)'
 
                 if ref:
                     title += f' compared to {ref}'
                     filename_def += f'_{ref}'
                     description += f' compared to {ref}'
-                    description += '\nThe contour lines are the model correlation map and the filled contour map is the difference between the model and the reference correlation map'
+                    description += '\nThe contour lines are the model correlation map and the filled contour map is the difference between the model and the reference correlation map.' # noqa
                     ref_maps.append(ref_cor_full_year)
                 else:
                     description += '\nThe contour plot is the model correlation map.'
@@ -253,14 +253,14 @@ def set_figs(telec=None, model=None, exp=None, ref=False,
                 for i, season in enumerate(seasons):
                     maps.append(cor_season[i])
                     filename_def = set_filename(filename, f"correlation_{season}")
-                    title = f'ENSO {model} {exp} correlation map (msl) for {season}'
-                    description = f'ENSO {model} {exp} correlation map (msl) for {season}'
+                    title = f'ENSO {model} {exp} correlation map (avg_tos) for {season}'
+                    description = f'ENSO {model} {exp} correlation map (avg_tos) for {season}'
 
                     if ref:
                         title += f' compared to {ref}'
                         filename_def += f'_{ref}'
-                        description += f' compared to {ref}'
-                        description += '\nThe contour lines are the model correlation map and the filled contour map is the difference between the model and the reference correlation map'
+                        description += f' compared to {ref}.'
+                        description += '\nThe contour lines are the model correlation map and the filled contour map is the difference between the model and the reference correlation map.' # noqa
                         ref_maps.append(ref_cor_season[i])
                     else:
                         description += '\nThe contour plot is the model correlation map.'

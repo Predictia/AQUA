@@ -153,6 +153,7 @@ def get_reference_timeseries(var, formula=False,
     start_retrieve, end_retrieve = _start_end_dates(startdate=startdate, enddate=enddate,
                                                     start_std=std_startdate, end_std=std_enddate)
     logger.debug(f"Retrieve data from {start_retrieve} to {end_retrieve}")
+    logger.debug(f"Retrieve std from {std_startdate} to {std_enddate}")
 
     try:  # Retrieving the entire timespan since we need two periods for standard deviation and time series
         reader = Reader(model=model, exp=exp, source=source, regrid=regrid,
@@ -174,7 +175,7 @@ def get_reference_timeseries(var, formula=False,
             data = reader.timmean(data=data, freq='MS', exclude_incomplete=True)
 
         if monthly:
-            data_mon = data.sel(time=slice(startdate, enddate))
+            data_mon = data.sel(time=slice(start_retrieve, end_retrieve))
             if formula:
                 data_mon = reader.fldmean(eval_formula(var, data_mon))
             else:
@@ -203,7 +204,7 @@ def get_reference_timeseries(var, formula=False,
                               exclude_incomplete=True,
                               center_time=True)
         if annual:
-            data_ann = data.sel(time=slice(startdate, enddate))
+            data_ann = data.sel(time=slice(start_retrieve, end_retrieve))
             if formula:
                 data_ann = reader.fldmean(eval_formula(var, data_ann))
             else:
