@@ -815,8 +815,7 @@ class MainClass:
                 dataset.to_netcdf(path=path_to_netcdf, mode='w')
                 self.logger.info(f"NetCDF file saved at {path_to_netcdf}")
         else:
-            self.logger.debug(
-                "The path to save the histogram needs to be provided.")
+            self.logger.debug("The path to save the histogram needs to be provided.")
         return path_to_netcdf
 
     def grid_attributes(self, data: Optional[xr.Dataset] = None, mtpr_dataset: Optional[xr.Dataset] = None,
@@ -1005,26 +1004,25 @@ class MainClass:
                 self.tools.sanitize_attributes(dataset_3)
             return dataset_3
 
-    def merge_list_of_histograms(self, path_to_histograms: str = None, multi: int = None, start_year: int = None, end_year: int = None,
-                                 start_month: int = None, end_month: int = None, seasons_bool: bool = False,
-                                 all: bool = False, test: bool = False, tqdm: bool = True) -> xr.Dataset:
+    def merge_list_of_histograms(self, path_to_histograms: str = None, start_year: int = None, end_year: int = None,
+                             start_month: int = None, end_month: int = None, seasons_bool: bool = False,
+                             test: bool = False, tqdm: bool = True) -> xr.Dataset:
         """
-        Function to merge a list of histograms.
-
+        Function to merge a list of histograms based on specified criteria. It supports merging by seasonal 
+        categories or specific year and month ranges.
+        
         Args:
-            path_to_histograms (str, optional): The path to the list of histograms. Defaults to None.
-            multi (int, optional): The number of histograms to merge. Defaults to None.
-            start_year (int, optional): Start year of the range (inclusive). Defaults to None.
-            end_year (int, optional): End year of the range (inclusive). Defaults to None.
-            start_month (int, optional): Start month of the range (inclusive). Defaults to None.
-            end_month (int, optional): End month of the range (inclusive). Defaults to None.
-            seasons_bool (bool, optional): If True, histograms will be merged based on seasonal categories. Defaults to False.
-            all (bool, optional): If True, all histograms in the repository will be merged. Defaults to False.
-            test (bool, optional): Whether to run the function in test mode. Defaults to False.
-            tqdm (bool, optional): If True, displays a progress bar during merging. Defaults to True.
-
+            path_to_histograms (str, optional): Path to the list of histograms.
+            start_year (int, optional): Start year of the range (inclusive).
+            end_year (int, optional): End year of the range (inclusive).
+            start_month (int, optional): Start month of the range (inclusive).
+            end_month (int, optional): End month of the range (inclusive).
+            seasons_bool (bool, optional): True to merge based on seasonal categories.
+            test (bool, optional): Runs function in test mode.
+            tqdm (bool, optional): Displays a progress bar during merging.
+        
         Returns:
-            xarray.Dataset: The xarray.Dataset with the merged data.
+            xr.Dataset: Merged xarray Dataset.
         """
 
         if seasons_bool:
@@ -1082,27 +1080,27 @@ class MainClass:
             for i in range(0, len(histograms_to_load)):
                 self.logger.debug(f"{histograms_to_load[i]}")
 
-            #if all:
-            #    histograms_to_load = [histogram_list[i] for i in range(0, len(histogram_list))]
-            #elif multi is not None:
-            #    histograms_to_load = [histogram_list[i] for i in range(0, multi)]
-            #else:
-            #    histograms_to_load = histogram_list
             if len(histograms_to_load) > 0:
-                for i in range(0, len(histograms_to_load)):
-                    try:
-                        dataset = self.tools.open_dataset(path_to_netcdf=histograms_to_load[i])
-                        dataset = self.merge_two_datasets(dataset_1=dataset,
-                                                          dataset_2=self.tools.open_dataset(
-                                                              path_to_netcdf=histograms_to_load[i]), test=test)
-                    except Exception as e:
-                        # Handle other exceptions
-                        self.logger.error(f"An unexpected error occurred: {e}")
-                        self.logger.error(f"The hisrogram path is : {histograms_to_load[i]}")
-                self.logger.debug("Histograms are merged.")
-                return dataset
+                progress_bar_template = "[{:<40}] {}%"
+                try:
+                    # Initialize the merged dataset with the first histogram
+                    merged_dataset = self.tools.open_dataset(path_to_netcdf=histograms_to_load[0])
+                    
+                    # Loop through the rest of the histograms and merge them one by one
+                    for i in range(1, len(histograms_to_load)):
+                        if tqdm:
+                            ratio = i / len(histograms_to_load)
+                            progress = int(40 * ratio)
+                            print(progress_bar_template.format("=" * progress, int(ratio * 100)), end="\r")
+                        
+                        self.logger.debug(f"Merging histogram: {histograms_to_load[i]}")
+                        next_dataset = self.tools.open_dataset(path_to_netcdf=histograms_to_load[i])
+                        merged_dataset = self.merge_two_datasets(dataset_1=merged_dataset, dataset_2=next_dataset)
+                    return merged_dataset
+                except Exception as e:
+                    self.logger.error(f"An unexpected error occurred while merging histograms: {e}") 
             else:
-                self.logger.warning(f"The specified repository {histograms_to_load} is empty.")
+                self.logger.error("No histograms to load and merge.")
 
     def convert_counts_to_frequency(self, data: xr.Dataset, test: bool = False) -> xr.DataArray:
         """
