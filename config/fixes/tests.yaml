@@ -42,3 +42,11 @@ fixer_name:
         coords:
             timepippo:
                 source: time
+    
+    ci-teleconnections:
+        data_model: false
+        delete:
+            - valid_time
+            - surface
+            - step
+            - number

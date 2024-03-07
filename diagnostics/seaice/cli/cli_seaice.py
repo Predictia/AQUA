@@ -11,11 +11,12 @@ import argparse
 import os
 import sys
 
+from dask.distributed import Client, LocalCluster
+
 # Imports related to the aqua package, which is installed and available globally.
 from aqua.logger import log_configure
 from aqua.util import get_arg, load_yaml
 from aqua.exceptions import NoDataError
-
 
 def parse_arguments(args):
     """
@@ -26,12 +27,11 @@ def parse_arguments(args):
     """
     parser = argparse.ArgumentParser(description='sea ice CLI')
 
-    # Define the default path for the configuration file.
-    default_config_path = os.path.join(script_dir, 'config.yml')
-
     # Arguments for the CLI.
-    parser.add_argument('--config', type=str, default=default_config_path,
-                        help=f'yaml configuration file (default: {default_config_path})')
+    parser.add_argument('--config', type=str, default='config.yml',
+                        help=f'yaml configuration file (default: config.yml)')
+    parser.add_argument('-n', '--nworkers', type=int,
+                        help='number of dask distributed workers')
     parser.add_argument('--all-regions', action='store_true',
                         help='Compute sea ice extent for all regions')
     parser.add_argument('--loglevel', '-l', type=str, default='WARNING',
@@ -53,6 +53,7 @@ if __name__ == '__main__':
     # and then move one level up.
     # change the current directory to the one of the CLI so that relative path works
     # Parse the provided command line arguments.
+
     args = parse_arguments(sys.argv[1:])
 
     # Configure the logger.
@@ -66,13 +67,19 @@ if __name__ == '__main__':
         os.chdir(dname)
         logger.info(f'Moving from current directory to {dname} to run!')
 
-    script_dir = dname
     sys.path.insert(0, "../..")
 
     # Local module imports.
     from seaice import SeaIceExtent
 
     logger.info("Running sea ice diagnostic...")
+
+    # Dask distributed cluster
+    nworkers = get_arg(args, 'nworkers', None)
+    if nworkers:
+        cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+        client = Client(cluster)
+        logger.info(f"Running with {nworkers} dask distributed workers.")
 
     # Outputdir
     outputdir = get_arg(args, 'outputdir', None)

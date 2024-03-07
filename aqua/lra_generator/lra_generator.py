@@ -236,7 +236,8 @@ class LRAgenerator():
                 'urlpath': urlpath,
                 'chunks': {},
                 'xarray_kwargs': {
-                    'decode_times': True
+                    'decode_times': True,
+                    'combine': 'by_coords'
                 },
             },
             'metadata': {

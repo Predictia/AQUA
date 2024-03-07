@@ -35,6 +35,9 @@ mswep:
   levante: "/work/bb1153/b382267/observations/MSWEP/"  # File path for Levante machine
   lumi: "/users/nazarova/work/observations/MSWEP/"
 
+logger:
+  loglevel: debug
+
 compute_resources:
   resubmit: False         # Whether to automatically resubmit the job if it fails
   run_on_sunday: False    # Restrict job execution to Sundays only
