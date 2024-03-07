@@ -98,7 +98,7 @@ class Tropical_Rainfall_CLI:
                         self.logger.info("Rebuilding output...")
                         self.diag.tools.remove_file_if_exists_with_keys(folder_path=path_to_output, keys=keys)
                     elif not self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys):
-                        self.logger.info("No existing output. Proceeding with data processing...")
+                        self.logger.debug("No existing output. Proceeding with data processing...")
                         try:
                             data = data_per_year.sel(time=str(year)+'-'+str(x))
                             if freq_bool:
@@ -149,9 +149,9 @@ class Tropical_Rainfall_CLI:
                             f"and frequency '{self.freq}' does not exist. Histograms for the "
                             "desired resolution and frequency have not been computed yet.")
             return
-
+        obs_interval = 1
         obs_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path, all=True,
-                                                        start_year=self.s_year-5, end_year=self.f_year+5,
+                                                        start_year=self.s_year-obs_interval, end_year=self.f_year+obs_interval,
                                                         start_month=self.s_month, end_month=self.f_month)
         self.logger.info(f"The MSWEP data with resolution '{self.regrid}' and frequency '{self.freq}' are prepared for comparison.")
 
