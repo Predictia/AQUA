@@ -233,19 +233,17 @@ class GSVSource(base.DataSource):
             else:
                 request["date"] = f"{dds}/to/{dde}"
                 request["time"] = f"{tts}/to/{tte}"
-            s0 = None
-            s1 = None
+
         elif self.timestyle == "step":  # style is 'step'
             request["date"] = self.data_startdate
             request["time"] = self.data_starttime
-
             s0 = self.chk_start_idx[i]
             s1 = self.chk_end_idx[i]
-
             if s0 == s1 or first:
                 request["step"] = f'{s0}'
             else:
                 request["step"] = f'{s0}/to/{s1}'
+
         elif self.timestyle == "yearmonth": #style is 'yearmonth'
             yys, mms = date2yyyymm(self.chk_start_date[i])
             yye, mme = date2yyyymm(self.chk_end_date[i])
@@ -255,8 +253,6 @@ class GSVSource(base.DataSource):
             else:
                 request["year"] = f"{yys}/to/{yye}"
                 request["month"] = f"{mms}/to/{mme}"
-            s0 = None
-            s1 = None
             # HACK: step is required by the code, but not needed by GSV
             #for key in ["date", "step", "time"]:
             #    if key in request:
@@ -400,6 +396,9 @@ class GSVSource(base.DataSource):
         req = self._request
 
         # This assumes a fixed schema and that all keys are present
+        if self.timestyle == 'yearmonth':
+            raise ValueError('Auto date selection not supported for timestyle=yearmonth. Please specify start and end date!')
+        
         file_mask = f"{req['class']}:{req['dataset']}:{req['activity']}:{req['experiment']}:{req['generation']}:{req['model']}:{req['realization']}:{req['expver']}:{req['stream']}:*"
         file_list = glob.glob(os.path.join(root, file_mask))
         
