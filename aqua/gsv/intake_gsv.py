@@ -9,7 +9,7 @@ from ruamel.yaml import YAML
 from aqua.util.eccodes import init_get_eccodes_shortname
 from intake.source import base
 from .timeutil import check_dates, shift_time_dataset
-from .timeutil import split_date, make_timeaxis, date2str, add_offset
+from .timeutil import split_date, make_timeaxis, date2str, date2yyyymm, add_offset
 from aqua.logger import log_configure, _check_loglevel
 
 # Test if FDB5 binary library is available
@@ -234,7 +234,7 @@ class GSVSource(base.DataSource):
                 request["time"] = f"{tts}/to/{tte}"
             s0 = None
             s1 = None
-        else:  # style is 'step'
+        elif self.timestyle == "step":  # style is 'step'
             request["date"] = self.data_startdate
             request["time"] = self.data_starttime
 
@@ -245,6 +245,21 @@ class GSVSource(base.DataSource):
                 request["step"] = f'{s0}'
             else:
                 request["step"] = f'{s0}/to/{s1}'
+        elif self.timestyle == "yearmonth": #style is 'yearmonth'
+            yys, mms = date2yyyymm(self.chk_start_date[i])
+            yye, mme = date2yyyymm(self.chk_end_date[i])
+            if ((yys == yye) and (mms == mme)) or first:
+                request["year"] = f"{yys}"
+                request["month"] = f"{mms}"     
+            else:
+                request["year"] = f"{yys}/to/{yye}"
+                request["month"] = f"{mms}/to/{mme}"
+            s0 = None
+            s1 = None
+            for key in ["date", "step", "time"]:
+                    del request[key]
+        else:
+            raise ValueError(f'Timestyle {self.timestyle} not supported')
 
         if onelevel:  # limit to one single level
             request["levelist"] = request["levelist"][0]
