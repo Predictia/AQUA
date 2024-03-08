@@ -9,6 +9,7 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Introducing a `yearmonth` timestyle to access FDB data on monthly average (#1001)
+- Adding expected time calculation for weight generation (#701)
 
 AQUA diagnostics complete list:
 
