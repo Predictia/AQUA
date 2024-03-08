@@ -86,6 +86,9 @@ class GSVSource(base.DataSource):
             self.eccodes_path = None
             self.levels = None
 
+        # set the timestyle
+        self.timestyle = timestyle
+
         if data_start_date == 'auto' or data_end_date == 'auto':
             self.logger.debug('Autoguessing of the FDB start and end date enabled.')
             data_start_date, data_end_date = self.parse_fdb(data_start_date, data_end_date)
@@ -95,7 +98,6 @@ class GSVSource(base.DataSource):
         if not enddate:
             enddate = data_end_date
 
-        self.timestyle = timestyle
 
         if self.timestyle != "yearmonth":
             offset = int(request["step"])  # optional initial offset for steps (in timesteps)
