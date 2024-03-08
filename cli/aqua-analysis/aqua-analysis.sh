@@ -124,6 +124,12 @@ atm_extra_args["tropical_rainfall"]="--regrid=r100 --freq=M"
 atm_extra_args["seasonal_cycles"]="${atm_extra_args["seasonal_cycles"]} \
 --config ${aqua}/diagnostics/global_time_series/cli/config_seasonal_cycles_atm.yaml"
 # -----------------------------
+# Command line extra arguments for ocean3d:
+#
+atm_extra_args["ocean3d_circulation"]="${atm_extra_args["ocean3d_circulation"]} \
+--config ${aqua}/diagnostics/ocean3d/cli/config.circulation.yaml"
+atm_extra_args["ocean3d_drift"]="${atm_extra_args["ocean3d_drift"]} \
+--config ${aqua}/diagnostics/ocean3d/cli/config.drift.yaml"
 
 # Trap Ctrl-C to clean up and kill the entire process group
 trap 'kill 0' SIGINT
