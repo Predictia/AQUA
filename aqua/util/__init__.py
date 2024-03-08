@@ -13,6 +13,7 @@ from .yaml import load_yaml, dump_yaml, load_multi_yaml, eval_formula
 from .time import check_chunk_completeness, frequency_string_to_pandas
 from .time import time_to_string
 from .coord import flip_lat_dir, find_lat_dir, check_direction
+from .output_namer import OutputNamer
 
 __all__ = ['ConfigPath',
            'read_eccodes_dic', 'read_eccodes_def', 'get_eccodes_attr',
@@ -24,5 +25,5 @@ __all__ = ['ConfigPath',
            'generate_random_string', 'get_arg', 'create_folder', 'to_list', 'file_is_complete',
            'load_yaml', 'dump_yaml', 'load_multi_yaml', 'eval_formula',
            'check_chunk_completeness', 'frequency_string_to_pandas',
-           'time_to_string',
+           'time_to_string', 'OutputNamer',
            'flip_lat_dir', 'find_lat_dir', 'check_direction']
