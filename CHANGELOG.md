@@ -19,7 +19,7 @@ AQUA core complete list:
 - Updating fixer for ERA5 monthly and hourly data on Levante (#937)
 - GSV pin to 1.0.0 (#950)
 - Adding ICON production simulations (#925)
-- LRA CLI for parallel SLURM submission support a max number of concurrent jobs (#955)
+- LRA CLI for parallel SLURM submission support a max number of concurrent jobs and avoid same job to run (#955, #990)
 - Renaming of EC-mean output figures in cli push tool for aqua-web (#930)
 - Renaming the `tprate` variable into `mtpr` in all fixes (#944)
 
