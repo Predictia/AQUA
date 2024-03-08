@@ -95,12 +95,13 @@ class GSVSource(base.DataSource):
         if not enddate:
             enddate = data_end_date
 
-        offset = int(request["step"])  # optional initial offset for steps (in timesteps)
-
-        # special for 6h: set offset startdate if needed
-        startdate = add_offset(data_start_date, startdate, offset, timestep)
-
         self.timestyle = timestyle
+
+        if self.timestyle != "yearmonth":
+            offset = int(request["step"])  # optional initial offset for steps (in timesteps)
+
+            # special for 6h: set offset startdate if needed
+            startdate = add_offset(data_start_date, startdate, offset, timestep)
 
         if aggregation.upper() == "S":  # special case: 'aggegation at single saved level
             aggregation = savefreq
@@ -257,9 +258,9 @@ class GSVSource(base.DataSource):
             s0 = None
             s1 = None
             # HACK: step is required by the code, but not needed by GSV
-            for key in ["date", "step", "time"]:
-                if key in request:
-                    del request[key]
+            #for key in ["date", "step", "time"]:
+            #    if key in request:
+            #        del request[key]
         else:
             raise ValueError(f'Timestyle {self.timestyle} not supported')
 

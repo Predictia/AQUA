@@ -18,14 +18,12 @@ sources:
         time: '0000'
         param: 228
         levtype: sfc
-        step: 0
       data_start_date: 19900101T0000
       data_end_date: 20191231T2300
       aggregation: YS  # Default aggregation / chunk size
       savefreq: MS  # at what frequency are data saved
       timestep: MS  # base timestep for step timestyle
       timestyle: yearmonth  # variable date or variable step
-      #timeshift: Y
     description: monthly atmospheric 2D data on regular 1 degree grid (MultIO)
     driver: gsv
     parameters:
