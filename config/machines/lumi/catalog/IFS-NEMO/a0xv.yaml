@@ -13,7 +13,8 @@ sources:
         expver: a0xv
         type: fc
         stream: clmn
-        date: 19900101
+        year: 1990
+        month: 1
         time: '0000'
         param: 228
         levtype: sfc

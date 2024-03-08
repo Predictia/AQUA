@@ -256,7 +256,9 @@ class GSVSource(base.DataSource):
                 request["month"] = f"{mms}/to/{mme}"
             s0 = None
             s1 = None
+            # HACK: step is required by the code, but not needed by GSV
             for key in ["date", "step", "time"]:
+                if key in request:
                     del request[key]
         else:
             raise ValueError(f'Timestyle {self.timestyle} not supported')
