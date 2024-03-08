@@ -2,6 +2,9 @@
 import sys
 import os
 import argparse
+
+from dask.distributed import Client, LocalCluster
+
 from aqua.util import load_yaml, get_arg
 from aqua.logger import log_configure
 
@@ -12,6 +15,8 @@ def parse_arguments(args):
     parser = argparse.ArgumentParser(description='Radiation Budget Diagnostic CLI')
     parser.add_argument('-c', '--config', type=str,
                         help='yaml configuration file')
+    parser.add_argument('-n', '--nworkers', type=int,
+                        help='number of dask distributed workers')
     # This arguments will override the configuration file if provided
     parser.add_argument('--model', type=str, help='model name',
                         required=False)
@@ -48,6 +53,13 @@ if __name__ == '__main__':
         sys.exit(0)
 
     logger.info('Running Radiation Budget Diagnostic ...')
+
+    # Dask distributed cluster
+    nworkers = get_arg(args, 'nworkers', None)
+    if nworkers:
+        cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+        client = Client(cluster)
+        logger.info(f"Running with {nworkers} dask distributed workers.")
 
     file = get_arg(args, 'config', 'config/radiation_config.yml')
     logger.info('Reading configuration yaml file..')
@@ -96,9 +108,9 @@ if __name__ == '__main__':
 
     if box_plot_bool:
         try:
-            datasets = [ceres, model_data]
+            datasets = [era5, ceres, model_data]
             boxplot_model_data(datasets=datasets, outputdir=outputdir, outputfig=outputfig, loglevel=loglevel)
-            logger.info("The boxplot with provided model and CERES was created and saved. Variables ttr and tsr are plotted to show imbalances.")
+            logger.info("The boxplot with provided model and CERES+ERA5 was created and saved. Variables ttr and tsr are plotted to show imbalances.")
         except Exception as e:
             # Handle other exceptions
             logger.error(f"An unexpected error occurred: {e}")
