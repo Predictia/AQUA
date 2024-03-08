@@ -3,6 +3,7 @@ import pandas as pd
 from aqua.util import get_arg
 from aqua import Reader
 from aqua.logger import log_configure
+from dask.distributed import Client, LocalCluster
 from tropical_rainfall import Tropical_Rainfall
 from .tropical_rainfall_utils import adjust_year_range_based_on_dataset
 
@@ -42,6 +43,14 @@ class Tropical_Rainfall_CLI:
         self.mswep = config['mswep'][machine]
 
         self.logger = log_configure(log_name="Trop. Rainfall CLI", log_level=self.loglevel)
+
+        # Dask distributed cluster
+        nworkers = get_arg(args, 'nworkers', None)
+        if nworkers:
+            cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+            client = Client(cluster)
+            self.logger.info(f"Running with {nworkers} dask distributed workers.")
+
 
         self.rebuild_output = config['rebuild_output']
         if path_to_output is not None:
@@ -129,7 +138,11 @@ class Tropical_Rainfall_CLI:
         plot_title = f"Grid: {self.regrid}, frequency: {self.freq}"
         legend = f"{self.model} {self.exp}"
         name_of_pdf = f"{self.model}_{self.exp}"
-       
+        
+        if 'm' in self.freq.lower() or 'y' in self.freq.lower():
+            self.logger.debug("Contains 'M' or 'Y'. Setting xmax to 50 mm/day.")
+            self.diag.xmax = 50
+
         add = self.diag.histogram_plot(model_merged, figsize=self.figsize, new_unit=self.new_unit, pdf=pdf_flag,
                                        pdfP=pdfP_flag, legend=legend, color=self.color, xmax=self.xmax,
                                        plot_title=plot_title, loc=self.loc, path_to_pdf=self.path_to_pdf,
@@ -150,7 +163,6 @@ class Tropical_Rainfall_CLI:
         The absence of MSWEP data is handled gracefully with an error log.
         """
         self.logger.debug(f"The path to file is: {self.path_to_netcdf}{self.regrid}/{self.freq}/histograms/.")
-
         hist_path = f"{self.path_to_netcdf}{self.regrid}/{self.freq}/histograms/"
         model_merged = self.diag.merge_list_of_histograms(path_to_histograms=hist_path,
                                                         start_year=self.s_year, end_year=self.f_year,

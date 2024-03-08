@@ -1,7 +1,6 @@
 import argparse
 from aqua.util import load_yaml
 
-
 def parse_arguments(args):
     """Parse command line arguments"""
 
@@ -10,7 +9,8 @@ def parse_arguments(args):
                         help='yaml configuration file')
     parser.add_argument('-l', '--loglevel', type=str,
                         help='log level [default: WARNING]')
-
+    parser.add_argument('-n', '--nworkers', type=int,
+                        help='number of dask distributed workers')
     # This arguments will override the configuration file if provided
     parser.add_argument('--model', type=str, help='model name',
                         required=False)
