@@ -122,11 +122,11 @@ class SeasonalCycle(Timeseries):
 
         if self.formula is False or self.formula is None:
             try:
-                title = self.data_mon[0].attrs['long_name'] + ' (' + self.data_mon[0].attrs['units'] + ') timeseries'
+                title = self.data_mon[0].attrs['long_name'] + ' (' + self.data_mon[0].attrs['units'] + ') seasonal cycle'
             except KeyError:
-                title = f'{self.var} timeseries'
+                title = f'{self.var} seasonal cycle'
         else:
-            title = f'{self.var} timeseries'
+            title = f'{self.var} seasonal cycle'
 
         fig, _ = plot_seasonalcycle(data=self.cycle,
                                     ref_data=self.cycle_ref,
