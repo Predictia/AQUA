@@ -283,7 +283,10 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
                 self._make_weights_file(self.weightsfile[vc], source_grid,
                                         cfg_regrid, regrid=self.dst_grid_name,
                                         vert_coord=vc, extra=[],
-                                        zoom=self.zoom, method=self.regrid_method)
+                                        zoom=self.zoom, method=self.regrid_method,
+                                        original_grid_size=self.grid_area.size,
+                                        nproc = self.nproc)
+
 
             self.weights.update({vc: xr.open_mfdataset(self.weightsfile[vc])})
             vc2 = None if vc == "2d" or vc == "2dm" else vc
