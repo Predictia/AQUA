@@ -338,12 +338,21 @@ def plot_stratification(o3d_request,time=None, loglevel= "WARNING"):
             write_data(output_dir, new_filename, data_1)
 
         if len(mod_data_list) > 1:
+            if time in ["Yearly"]:
+                start_year_data_2 = mod_data_list[1].time[0].data
+                end_year_data_2 = mod_data_list[1].time[-1].data
+                logger.debug(end_year)
+            else:
+                start_year_data_2 = mod_data_list[1].time[0].dt.year.data
+                end_year_data_2 = mod_data_list[1].time[-1].dt.year.data
+            
             data_2 = mod_data_list[1][var].mean("time")
             axs[i].plot(data_2, data_2.lev, 'b-', linewidth=2.0)
-            legend_info = f"Model {start_year}-{end_year}"
-            legend_list.append(legend_info)
+
+            legend_info_data_2 = f"Model {start_year_data_2}-{end_year_data_2}"
+            legend_list.append(legend_info_data_2)
             if output:
-                new_filename = f"{filename}_{legend_info.replace(' ', '_')}"
+                new_filename = f"{filename}_{legend_info_data_2.replace(' ', '_')}"
                 write_data(output_dir, new_filename, data_2)
 
         if obs_data is not None:
@@ -365,6 +374,8 @@ def plot_stratification(o3d_request,time=None, loglevel= "WARNING"):
 
     title = f"Climatological {time.upper()} T, S and rho0 stratification in {region_title}"
     fig.suptitle(title, fontsize=20)
+    axs[0].legend(legend_list, loc='best')
+    
     axs[0].set_title("Temperature Profile", fontsize=16)
     axs[0].set_ylabel("Depth (m)", fontsize=15)
     axs[0].set_xlabel("Temperature (°C)", fontsize=12)
@@ -379,7 +390,6 @@ def plot_stratification(o3d_request,time=None, loglevel= "WARNING"):
     # axs[2].set_ylabel("", fontsize=0)
     axs[2].set_yticklabels([])
 
-    axs[0].legend(legend_list, loc='best')
 
     if output:
         export_fig(output_dir, filename , "pdf", metadata_value = title, loglevel= loglevel)
