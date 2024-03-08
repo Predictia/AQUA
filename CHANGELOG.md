@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
-- Fix LRA souyrces to allow incomplete times for different vars (#994)
+- Fix LRA sources to allow incomplete times for different vars (#994)
 - Distributed dask option for diagnostic CLIs and wrapper (#981)
 - Added documentation for `plot_timeseries`, `plot_seasonalcycle` and `plot_single_map_diff` (#975)
 - Minimum date fixer feature / ICON net fluxes fix (#958)
@@ -18,7 +18,7 @@ AQUA core complete list:
 - Updating fixer for ERA5 monthly and hourly data on Levante (#937)
 - GSV pin to 1.0.0 (#950)
 - Adding ICON production simulations (#925)
-- LRA CLI for parallel SLURM submission support a max number of concurrent jobs (#955)
+- LRA CLI for parallel SLURM submission support a max number of concurrent jobs and avoid same job to run (#955, #990)
 - Renaming of EC-mean output figures in cli push tool for aqua-web (#930)
 - Renaming the `tprate` variable into `mtpr` in all fixes (#944)
 
