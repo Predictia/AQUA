@@ -9,7 +9,6 @@ from typing import Union
 from aqua.util import ConfigPath
 from aqua.logger import log_configure
 import yaml
-#from os import listdir
 from os.path import isfile, join, exists, isdir
 
 from importlib import resources
@@ -299,7 +298,7 @@ class ToolsClass:
             self.logger.warning(f"Folder path '{folder_path}' does not exist yet or was not provided.")
             return False
 
-        files = [join(folder_path, f) for f in listdir(folder_path) if isfile(join(folder_path, f)) or isdir(join(folder_path, f))]
+        files = [join(folder_path, f) for f in os.listdir(folder_path) if isfile(join(folder_path, f)) or isdir(join(folder_path, f))]
         files.sort()
         keys = [str(key) for key in keys]
         for filename in files:
