@@ -91,6 +91,8 @@ class GSVSource(base.DataSource):
 
         if data_start_date == 'auto' or data_end_date == 'auto':
             self.logger.debug('Autoguessing of the FDB start and end date enabled.')
+            if self.timestyle == 'yearmonth':
+                raise ValueError('Auto date selection not supported for timestyle=yearmonth. Please specify start and end date!')
             data_start_date, data_end_date = self.parse_fdb(data_start_date, data_end_date)
 
         if not startdate:
@@ -398,10 +400,6 @@ class GSVSource(base.DataSource):
             root = cfg['spaces'][0]['roots'][0]['path']
 
         req = self._request
-
-        # This assumes a fixed schema and that all keys are present
-        if self.timestyle == 'yearmonth':
-            raise ValueError('Auto date selection not supported for timestyle=yearmonth. Please specify start and end date!')
         
         file_mask = f"{req['class']}:{req['dataset']}:{req['activity']}:{req['experiment']}:{req['generation']}:{req['model']}:{req['realization']}:{req['expver']}:{req['stream']}:*"
         file_list = glob.glob(os.path.join(root, file_mask))
