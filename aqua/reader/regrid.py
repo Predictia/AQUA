@@ -10,7 +10,6 @@ import numpy as np
 
 import smmregrid as rg
 
-import time
 
 class RegridMixin():
     """Regridding mixin for the Reader class"""
@@ -178,8 +177,6 @@ class RegridMixin():
         else:
             extra = []
         extra = extra + src_extra
-        #The clock needs to be removed after proper debugging, or the logger level should be changed.
-        t_1 = time.time()
 
         sgrid.load()  # load the data to avoid problems with dask in smmregrid
         sgrid = sgrid.compute()  # for some reason both lines are needed 
@@ -194,8 +191,6 @@ class RegridMixin():
                                           vert_coord=vert_coord,
                                           nproc=self.nproc)
         weights.to_netcdf(weightsfile)
-        t_2 = time.time()
-        self.logger.debug(f"The actual time is {t_2 -t_1} seconds.")
         self.logger.warning("Success!")
 
     def _get_source_grid(self, source_grid, vert_coord, zoom):
@@ -411,29 +406,6 @@ class RegridMixin():
             self.logger.info('vert_coord deduced from the source are %s', vert_coord)
 
         return space_coord, vert_coord
-
-    def _guess_vert_coord_size(self, vert_coord):
-        """
-        Guesses the size of the vertical coordinate from the data. If vert_coord is None,
-        it attempts to determine vert_coord from the data using default_vertical_dims.
-
-        Args:
-            vert_coord (str or list): Predefined vertical dimension. If None, autosearch is enabled.
-            default_vertical_dims (list): List of default dimensions for vertical search.
-
-        Returns:
-            int: Size of the vertical coordinate. Returns 1 if vert_coord is not found.
-        """
-        data = None
-        data = self._retrieve_plain(startdate=None)
-
-        if vert_coord:
-            vert_coord_size = data[vert_coord].size
-        else:
-            vert_coord_size = 1
-        self.logger.debug('The size of vert_coord is %s', vert_coord_size)
-        return vert_coord_size
-
 
 
 def _rename_dims(data, dim_list):
