@@ -218,7 +218,7 @@ class GSVSource(base.DataSource):
         Args:
             i (int): partition number
             var (string, optional): single variable to retrieve. Defaults to using those set at init
-            first (bool, optional): read only the first step (used for schema retrieval
+            first (bool, optional): read only the first step (used for schema retrieval)
             onelevel (bool, optional): read only one level. Defaults to False.
         Returns:
             An xarray.DataSet
@@ -249,11 +249,13 @@ class GSVSource(base.DataSource):
         elif self.timestyle == "yearmonth": #style is 'yearmonth'
             yys, mms = date2yyyymm(self.chk_start_date[i])
             yye, mme = date2yyyymm(self.chk_end_date[i])
-            if ((yys == yye) and (mms == mme)) or first:
+            if ((yys == yye) or first):
                 request["year"] = f"{yys}"
-                request["month"] = f"{mms}"     
             else:
                 request["year"] = f"{yys}/to/{yye}"
+            if ((mms == mme) or first):
+                request["month"] = f"{mms}"     
+            else:
                 request["month"] = f"{mms}/to/{mme}"
             # HACK: step is required by the code, but not needed by GSV
             #for key in ["date", "step", "time"]:
