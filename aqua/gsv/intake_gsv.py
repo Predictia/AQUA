@@ -56,9 +56,10 @@ class GSVSource(base.DataSource):
             data_start_date (str): Start date of the available data.
             data_end_date (str): End date of the available data.
             timestyle (str, optional): Time style. Defaults to "date".
-            aggregation (str, optional): Time aggregation level.
+            aggregation (str, optional): Time chunking.
                                          Can be one of S (step), 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y.
                                          Defaults to "S".
+            chunking_vertical (int, optional): Number of vertical levels to be used for vertical chunking. Defaults to None.
             timestep (str, optional): Time step. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y.
                                       Defaults to "H".
             startdate (str, optional): Start date for request. Defaults to None.
