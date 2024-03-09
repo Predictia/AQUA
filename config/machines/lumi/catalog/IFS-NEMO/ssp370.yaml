@@ -111,7 +111,8 @@ sources:
     description: hourly 3D atmospheric data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      aggregation: 6h
+      aggregation: D
+      chunking_vertical: 5
       request:
         <<: *request-default
         resolution: high
