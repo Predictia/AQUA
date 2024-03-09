@@ -128,6 +128,18 @@ class TestGsv():
         # can read second level
         assert data.t.isel(plev=1).mean().values == pytest.approx(274.79095), "Field values incorrect"
 
+    def test_reader_3d_chunks(self) -> None:
+        """Testing 3D access with vertical chunking"""
+
+        reader = Reader(model="IFS", exp="test-fdb", source="fdb-levels-chunks", loglevel=loglevel)
+        data = reader.retrieve()
+
+        # can read second level
+        assert data.t.isel(plev=1).mean().values == pytest.approx(274.79095), "Field values incorrect"
+
+        data = reader.retrieve(level=[900, 800])  # Read only two levels
+        assert data.t.isel(plev=1).mean().values == pytest.approx(271.2092), "Field values incorrect"
+
     def test_reader_auto(self) -> None:
         """
         Reading from a datasource using new operational schema and auto dates

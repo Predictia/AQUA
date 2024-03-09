@@ -54,8 +54,8 @@ sources:
       fdb_path: /app/config.yaml
       source_grid_name: lon-lat
 
-  fdb-levels:
-    args:
+  fdb-levels: &base-default
+    args: &args-default
       request:
         domain: g
         stream: oper
@@ -79,6 +79,13 @@ sources:
       fdb_path: /app/config.yaml
       source_grid_name: lon-lat
       levels: [999.99, 899.99, 799.99]
+
+  fdb-levels-chunks:
+    <<: *base-default
+    args:
+      <<: *args-default
+      aggregation: h
+      chunking_vertical: 1
 
   fdb-nolevels:
     args:
