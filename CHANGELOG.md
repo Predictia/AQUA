@@ -9,6 +9,7 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Adding expected time calculation for weight generation (#701)
+- Vertical chunking for GSV intake access (#1003)
 
 AQUA diagnostics complete list:
 
