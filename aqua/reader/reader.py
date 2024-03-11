@@ -1020,9 +1020,13 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
                 data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
                               logging=True, loglevel=self.loglevel).to_dask()
         else:
-            if self.chunks:
+            if self.aggregation:  # covers special case: if GSV source and stream_generator then aggregation overrides chunks if specified
+                chunks = self.aggregation
+            else:
+                chunks = self.chunks
+            if chunks:
                 data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
-                              chunks=self.chunks,
+                              chunks=chunks,
                               logging=True, loglevel=self.loglevel).read_chunked()
             else:
                 data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
