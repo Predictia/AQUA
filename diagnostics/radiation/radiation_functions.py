@@ -339,8 +339,9 @@ def boxplot_model_data(datasets=None, model_names=None, outputdir=None, outputfi
     else:
         plt.title("Global mean radiation for different models", fontsize=fontsize + 2)
 
+    model_names_with_dates = [f"{name} ({pd.to_datetime(dataset['data']['time'].values).min().strftime('%d-%m-%Y')} to {pd.to_datetime(dataset['data']['time'].values).max().strftime('%d-%m-%Y')})" for name, dataset in zip(model_names, datasets)]
     handles, labels = ax.get_legend_handles_labels()
-    ax.legend(handles, model_names, loc='center left', bbox_to_anchor=(1, 0.5), title='Datasets', fontsize=fontsize - 2)
+    ax.legend(handles, model_names_with_dates, loc='center left', bbox_to_anchor=(1, 0.5), title='Datasets', fontsize=fontsize - 2)
 
     if outputdir is not None:
         create_folder(folder=str(outputdir), loglevel='WARNING')
@@ -434,7 +435,7 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None,
         # Plot the data for the current model
         ttr_diff.plot(ax=axes[0], color=linecolors[i], label=linelabels[i], x='time')
         tsr_diff.plot(ax=axes[1], color=linecolors[i], label=linelabels[i], x='time')
-        ttr_diff.plot(ax=axes[2], color=linecolors[i], label=linelabels[i], x='time')
+        tnr_diff.plot(ax=axes[2], color=linecolors[i], label=linelabels[i], x='time')
 
     samples_tmp = []
     for year in range(int(ceres["data"]["time.year"][0].values), int(ceres["data"]["time.year"][-1].values)-1):
@@ -466,6 +467,8 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None,
     axes[2].fill(long_time, np.append(shading_data['tnr'].min(dim='ensemble'), shading_data['tnr'].max(dim='ensemble')[::-1]),
                  color='lightgrey', alpha=0.6, label='ceres individual years', zorder=0)
     axes[2].set_title('net', fontsize=16)
+    axes[2].set_xticklabels([])
+    axes[2].set_xlabel('')
 
     for i in range(3):
         axes[i].set_ylabel('$W/m^2$')
