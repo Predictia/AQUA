@@ -179,7 +179,7 @@ fixer_name:
                 source: strd
                 grib: true
                 decumulate: true
-            msnlwrf:
+            mtnswrf:
                 source: tsr
                 grib: true
                 decumulate: true

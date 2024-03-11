@@ -58,7 +58,7 @@ fixer_name:
                     valid_min: -500
                     valid_max: 0
                     positive: down  
-            mtnlwrf: 
+            mtnswrf: 
                 derived: solar_mon-toa_sw_all_mon
                 grib: true
                 attributes:
