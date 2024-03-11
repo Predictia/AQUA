@@ -20,5 +20,4 @@ sources:
     args:
       path: '{{CATALOG_DIR}}/a0w1.yaml'
 
-
   
