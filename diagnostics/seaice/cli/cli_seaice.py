@@ -33,7 +33,7 @@ script_dir = dname
 sys.path.insert(0, "../..")
 
 # Local module imports.
-from seaice import SeaIceExtent, SeaIceConcentration
+from seaice import SeaIceExtent, SeaIceVolume, SeaIceConcentration, SeaIceThickness
 
 
 def parse_arguments(args):
@@ -131,9 +131,46 @@ if __name__ == '__main__':
 
     outputdir = config['output_directory']
 
-    # Initialize the object
-    #analyzer = SeaIceExtent(config=config, outputdir=outputdir,
-    #                        loglevel=loglevel)
+    # Initialize the object SeaIceExtent
+    analyzer = SeaIceExtent(config=config, outputdir=outputdir,
+                            loglevel=loglevel)
+
+    # Execute the analyzer.
+    try:
+        analyzer.run()
+    except NoDataError as e:
+        logger.debug(f"Error: {e}")
+        logger.error("No data found for the given configuration. Exiting...")
+        sys.exit(0)
+    except Exception as e:
+        logger.error(f"An error occurred while running the analyzer: {e}")
+        logger.warning("Please report this error to the developers. Exiting...")
+        sys.exit(0)
+
+    logger.info("sea ice diagnostic Extent terminated!")
+
+
+    # Initialize the object SeaIceVolume
+    analyzer = SeaIceVolume(config=config, outputdir=outputdir,
+                            loglevel=loglevel)
+
+    # Execute the analyzer.
+    try:
+        analyzer.run()
+    except NoDataError as e:
+        logger.debug(f"Error: {e}")
+        logger.error("No data found for the given configuration. Exiting...")
+        sys.exit(0)
+    except Exception as e:
+        logger.error(f"An error occurred while running the analyzer: {e}")
+        logger.warning("Please report this error to the developers. Exiting...")
+        sys.exit(0)
+
+    logger.info("sea ice diagnostic Volume terminated!")
+
+
+
+    # Initialize the object SeaIceConcentration
     analyzer = SeaIceConcentration(config=config, outputdir=outputdir,
                             loglevel=loglevel)
 
@@ -149,4 +186,23 @@ if __name__ == '__main__':
         logger.warning("Please report this error to the developers. Exiting...")
         sys.exit(0)
 
-    logger.info("sea ice diagnostic terminated!")
+    logger.info("sea ice diagnostic Concentration terminated!")
+
+ 
+    # Initialize the object SeaIceThickness
+    analyzer = SeaIceThickness(config=config, outputdir=outputdir,
+                            loglevel=loglevel)
+
+    # Execute the analyzer.
+    try:
+        analyzer.run()
+    except NoDataError as e:
+        logger.debug(f"Error: {e}")
+        logger.error("No data found for the given configuration. Exiting...")
+        sys.exit(0)
+    except Exception as e:
+        logger.error(f"An error occurred while running the analyzer: {e}")
+        logger.warning("Please report this error to the developers. Exiting...")
+        sys.exit(0)
+
+    logger.info("sea ice diagnostic Thickness terminated!")   

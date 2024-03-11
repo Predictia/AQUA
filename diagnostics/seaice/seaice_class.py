@@ -347,6 +347,9 @@ class SeaIceExtent:
                     dataset.to_netcdf(filename)
 
 
+class SeaIceVolume:
+    pass
+
 
 class SeaIceConcentration:
     def __init__(self, config, loglevel: str = 'WARNING',
@@ -530,4 +533,8 @@ class SeaIceConcentration:
 
             fig1.suptitle(monthNames[month_diagnostic - 1] + ' sea ice concentration ')
             fig1.savefig("./maps_" + hemi + ".pdf") 
+
+
+class SeaIceThickness:
+    pass
         
