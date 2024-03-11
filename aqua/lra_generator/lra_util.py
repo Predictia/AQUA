@@ -1,13 +1,16 @@
 """Utility module for LRA/OPA"""
 
 import os
+import shutil
+import numpy as np
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import ConfigPath
 from aqua.logger import log_configure
-import numpy as np
 
 
-def opa_catalog_entry(datadir, model, exp, source, frequency='monthly',
+
+def opa_catalog_entry(datadir, model, exp, source, 
+                      fixer_name=False, frequency='monthly',
                       loglevel='WARNING'):
     """
     Create an entry in the AQUA catalog based on the presence of output from OPA in datadir
@@ -18,6 +21,7 @@ def opa_catalog_entry(datadir, model, exp, source, frequency='monthly',
         model (str): name of the model
         exp (str): name of the experiment
         source (str): name of the origin source
+        fixer_name (str): fix to be used when reading the opa. Default is False
         frequency (str, opt): frequency of the data, default is 'monthly'
         loglevel (str, opt): logging level, default is 'WARNING'
 
@@ -66,12 +70,14 @@ def opa_catalog_entry(datadir, model, exp, source, frequency='monthly',
             'urlpath': os.path.join(datadir, f'*{frequency}_mean.nc'),
             'chunks': {},
             'xarray_kwargs': {
-                'decode_times': True
+                'decode_times': True,
+                'combine': 'by_coords'
             }
         },
         'description': description,
         'metadata': {
             'source_grid_name': 'lon-lat',
+            'fixer_name': fixer_name
         }
     }
 
@@ -114,3 +120,21 @@ def check_correct_ifs_fluxes(xfield, threshold=100, loglevel='WARNING'):
         xfield.loc[{'time': xfield.time.values[0]}] = np.nan
 
     return xfield
+
+def move_tmp_files(tmp_directory, output_directory):
+    """
+    Move temporary NetCDF files from the tmp directory to the output directory,
+    changing their name by removing "_tmp" suffix. 
+    """
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
+
+    for tmp_file in os.listdir(tmp_directory):
+        if tmp_file.endswith(".nc"):
+            if "_tmp" in tmp_file:
+                new_file_name = tmp_file.replace("_tmp", "")
+            else:
+                new_file_name = tmp_file
+            tmp_file_path = os.path.join(tmp_directory, tmp_file)
+            new_file_path = os.path.join(output_directory, new_file_name)
+            shutil.move(tmp_file_path, new_file_path)

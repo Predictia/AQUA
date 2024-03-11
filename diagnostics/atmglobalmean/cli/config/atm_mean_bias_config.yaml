@@ -8,19 +8,17 @@ data:
   source_obs: "monthly"
 
 diagnostic_attributes:
-  variables_no_plev: ['2t', 'msl', 'tprate', 'mtnlwrf', 'avg_tos']
+  variables_no_plev: ['mtpr', '2t', 'msl', 'mtpr', 'mtnlwrf', 'avg_tos']
   variables_with_plev: ['t', 'u', 'v', 'q']
   plev: null # You can specify a pressure level here
   statistic: "mean" # Valid options are: 'mean', 'max', 'min', 'diff', and 'std'.
   seasonal_bias: True
   compare_datasets_plev: True
   plot_map_with_stats: True
-  start_date1: "1990-01-01"
-  end_date1: "1998-11-01"
-  start_date2: "1980-01-01" # Centered around IFS-NEMO historical-1990
-  end_date2: "2010-12-31"
-
-loglevel: 'warning'
+    #start_date1: "1990-01-01"
+    #end_date1: "1998-11-01"
+  start_date2: "1990-01-01" # Centered around IFS-NEMO historical-1990
+  end_date2: "2020-12-31"
 
 path:
   path_to_output: "/projappl/project_465000454/nurissom/aqua_output/IFS-NEMO/historical-1990/atmglobalmean/"
@@ -41,6 +39,6 @@ seasonal_bias:
   mtnlwrf:
     vmin: -40
     vmax: 40
-  tprate:
+  mtpr:
     vmin: -8
     vmax: 8

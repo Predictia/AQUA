@@ -3,11 +3,13 @@
 __pycache__/
 .ipynb_checkpoints
 *.egg-info
+*.DS_Store
 
 # logfiles
 *.err
 *.out
 *.bal
+*.log
 
 # documentation
 docs/sphinx/build/*
