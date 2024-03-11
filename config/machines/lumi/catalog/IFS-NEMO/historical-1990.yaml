@@ -19,10 +19,10 @@ sources:
         levtype: sfc
         step: 0
       data_start_date: 19900101T0000
-      data_end_date: 19971231T2300
+      data_end_date: auto
       aggregation: D  # Default aggregation / chunk size
-      savefreq: H  # at what frequency are data saved
-      timestep: H  # base timestep for step timestyle
+      savefreq: h  # at what frequency are data saved
+      timestep: h  # base timestep for step timestyle
       timestyle: date  # variable date or variable step
     description: hourly data on native grid TCo1279 (about 10km).
     driver: gsv
@@ -33,7 +33,7 @@ sources:
         187, 188, 235, 260048, 8, 9, 144, 146, 147, 169, 175, 176, 177, 178, 179,
         180, 181, 182, 212, 228]
       source_grid_name: tco1279
-      fixer_name: ifs-destine-v1
+      fixer_name: ifs-nemo-destine-v1-nan
 
   hourly-native-atm3d:
     <<: *base-default
@@ -416,5 +416,6 @@ sources:
       chunks: {}
       xarray_kwargs:
         decode_times: true
+        combine: 'by_coords'
     metadata:
       source_grid_name: lon-lat

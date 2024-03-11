@@ -2,6 +2,7 @@
 
 import pytest
 from aqua import Reader
+import numpy as np
 
 loglevel = 'DEBUG'
 
@@ -60,6 +61,23 @@ def test_fixer_ifs_long():
 
 
 @pytest.mark.aqua
+def test_fixer_ifs_long_mindate():
+    """Test fixing with a minimum date functionality"""
+
+    reader = Reader(model="IFS", exp="test-tco79", source="long-mindate",
+                    fix=True, loglevel=loglevel)
+    data = reader.retrieve(var='2t')
+
+    data1 = data['2t'].sel(time="2020-07-31T00:00")[1,1]
+    data2 = data['2t'].sel(time="2020-08-01T00:00")[1,1]
+
+    assert np.isnan(data1.values)
+    assert not np.isnan(data2.values)
+    assert 'mindate' in data['2t'].attrs
+    assert data['2t'].attrs['mindate'] == '2020-08-01T00:00'
+
+
+@pytest.mark.aqua
 def test_fixer_ifs_short():
     """Check alternative fix with replace method"""
 
@@ -75,6 +93,30 @@ def test_fixer_ifs_names():
     reader = Reader(model="IFS", exp="test-tco79", source="short_masked", loglevel=loglevel)
     data = reader.retrieve()
     assert data['2t'].attrs['donald'] == 'duck'
+
+@pytest.mark.aqua
+def test_fixer_ifs_disable():
+    """Check with fixer_name: False method"""
+
+    reader = Reader(model="IFS", exp="test-tco79", source="short_disable_fix", loglevel=loglevel)
+    assert reader.fix == False
+
+@pytest.mark.aqua
+def test_fixer_ifs_default_fix():
+    """Check with fixer_name with roll back on model default"""
+
+    reader = Reader(model="IFS", exp="test-tco79", source="long_default_fix", loglevel=loglevel)
+    data = reader.retrieve()
+    assert data['mtntrf'].attrs['paramId'] == '172179'
+    
+
+@pytest.mark.aqua
+def test_fixer_ifs_coords():
+    """Check with fixer_name and coords block"""
+
+    reader = Reader(model="IFS", exp="test-tco79", source="short_masked-coord-test", loglevel=loglevel)
+    data = reader.retrieve()
+    assert 'timepippo' in data.coords
 
 
 @pytest.mark.aqua

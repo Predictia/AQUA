@@ -13,6 +13,8 @@ Available teleconnections:
     - ENSO
 """
 import os
+import xarray as xr
+import pandas as pd
 
 from aqua.exceptions import NoDataError, NotEnoughDataError
 from aqua.logger import log_configure
@@ -21,7 +23,7 @@ from aqua.util import ConfigPath, create_folder
 from teleconnections.index import station_based_index, regional_mean_anomalies
 from teleconnections.plots import index_plot
 from teleconnections.statistics import reg_evaluation, cor_evaluation
-from teleconnections.tools import TeleconnectionsConfig
+from teleconnections.tools import TeleconnectionsConfig, set_filename
 
 
 class Teleconnection():
@@ -36,6 +38,7 @@ class Teleconnection():
                  savefig=False, outputfig=None,
                  savefile=False, outputdir=None,
                  filename=None,
+                 startdate=None, enddate=None,
                  months_window: int = 3, loglevel: str = 'WARNING'):
         """
         Args:
@@ -57,6 +60,10 @@ class Teleconnection():
             outputdir (str, optional):      Output directory for files.
                                             If None, the current directory is used.
             filename (str, optional):       Output filename.
+            startdate (str, optional):     Start date for the data.
+                                            Format: YYYY-MM-DD. Defaults to None.
+            enddate (str, optional):        End date for the data.
+                                            Format: YYYY-MM-DD. Defaults to None.
             months_window (int, optional):  Months window for teleconnection
                                             index. Defaults to 3.
             loglevel (str, optional):       Log level. Defaults to 'WARNING'.
@@ -75,6 +82,9 @@ class Teleconnection():
         self.exp = exp
         self.source = source
 
+        self.startdate = startdate
+        self.enddate = enddate
+
         # Load AQUA config and check that the data is available
         self.machine = None
         self.aquaconfigdir = aquaconfigdir
@@ -82,14 +92,14 @@ class Teleconnection():
 
         self.regrid = regrid
         if self.regrid is None:
-            self.logger.warning('No regrid will be performed, be sure that the data is '
+            self.logger.info('No regrid will be performed, be sure that the data is '
                                 'already at low resolution')
         self.logger.debug("Regrid resolution: %s", self.regrid)
 
         self.freq = freq
         if self.freq is None:
-            self.logger.warning('No time aggregation will be performed, be sure that the data is '
-                                'already at the desired frequency')
+            self.logger.info('No time aggregation will be performed, be sure that the data is '
+                             'already at the desired frequency')
         self.logger.debug("Frequency: %s", self.freq)
 
         self.zoom = zoom
@@ -122,9 +132,9 @@ class Teleconnection():
         if self.savefile or self.savefig:
             self._filename(filename)
             if self.savefile:
-                self.logger.info("Saving file to %s/%s", outputdir, filename)
+                self.logger.info("Saving file to %s/%s", outputdir, self.filename)
             if self.savefig:
-                self.logger.info("Saving figures to %s/%s", outputfig, filename)
+                self.logger.info("Saving figures to %s/%s", outputfig, self.filename)
 
         # Data empty at the beginning
         self.data = None
@@ -135,9 +145,9 @@ class Teleconnection():
         # but **kwargs are passed to it so that it can be used to pass
         # arguments to the reader if needed
         if self.zoom:
-            self._reader(zoom=self.zoom)
+            self._reader(zoom=self.zoom, startdate=self.startdate, enddate=self.enddate)
         else:
-            self._reader()
+            self._reader(startdate=self.startdate, enddate=self.enddate)
 
     def retrieve(self, var=None, **kwargs):
         """Retrieve teleconnection data with the AQUA reader.
@@ -161,11 +171,13 @@ class Teleconnection():
             try:
                 self.data = self.reader.retrieve(var=self.var, **kwargs)
             except (ValueError, KeyError) as e:
+                self.logger.debug(f"Error: {e}")
                 raise NoDataError("Variable {} not found".format(self.var)) from e
         else:
             try:
                 data = self.reader.retrieve(var=var, **kwargs)
             except (ValueError, KeyError) as e:
+                self.logger.debug(f"Error: {e}")
                 raise NoDataError('Variable {} not found'.format(var)) from e
         self.logger.info('Data retrieved')
 
@@ -197,17 +209,22 @@ class Teleconnection():
         Raises:
             ValueError: If the index is not calculated correctly.
         """
+        if self.data is None and self.index is None:
+            self.logger.info('No retrieve has been performed, trying to retrieve')
+            self.retrieve()
 
         if self.index is not None and not rebuild:
             self.logger.warning('Index already calculated, skipping')
             return
+        elif self.index is None and not rebuild and self.savefile:
+            self._check_index_file()
 
         if rebuild and self.index is not None:
             self.logger.info('Rebuilding index')
+            self.index = None
 
-        if self.data is None:
-            self.logger.warning('No retrieve has been performed, trying to retrieve')
-            self.retrieve()
+        if self.index is not None:
+            return
 
         # Check that data have at least 2 years:
         if len(self.data[self.var].time) < 24:
@@ -231,7 +248,8 @@ class Teleconnection():
         if self.model == 'ICON':
             try:
                 self.index = self.index.isel(depth_full=0)
-            except ValueError:
+            except ValueError as e:
+                self.logger.debug(f"Depth_full dimension not found, skipping: {e}")
                 self.index = self.index
 
         self.logger.info('Index evaluated')
@@ -239,7 +257,8 @@ class Teleconnection():
             raise ValueError('It was not possible to calculate the index')
 
         if self.savefile:
-            file = self.outputdir + '/' + self.filename + '_index.nc'
+            filename = set_filename(self.filename, 'index')
+            file = self.outputdir + '/' + filename + '.nc'
             self.index.to_netcdf(file)
             self.logger.info('Index saved to %s', file)
 
@@ -283,16 +302,19 @@ class Teleconnection():
 
         if self.savefile:
             if var:
-                file = self.outputdir + '/' + self.filename
-                file += '_regression_'
+                add = 'regression'
                 if season:
-                    file += season + '_'
-                file += var + '.nc'
+                    add += '_' + season
+                add += '_' + var
+                filename = set_filename(self.filename, add)
+                file = self.outputdir + '/' + filename
+                file += '.nc'
             else:
-                file = self.outputdir + '/' + self.filename
-                file += '_regression_'
+                add = 'regression'
                 if season:
-                    file += season
+                    add += '_' + season
+                filename = set_filename(self.filename, add)
+                file = self.outputdir + '/' + filename
                 file += '.nc'
             reg.to_netcdf(file)
             self.logger.info("Regression saved to %s", file)
@@ -330,17 +352,20 @@ class Teleconnection():
         cor = cor_evaluation(indx=self.index, data=data, dim=dim, season=season)
 
         if self.savefile:
+            add = 'correlation'
             if var:
-                file = self.outputdir + '/' + self.filename
-                file += '_correlation_'
+                add += '_' + var
                 if season:
-                    file += season + '_'
-                file += var + '.nc'
+                    add += '_' + season
+                filename = set_filename(self.filename, add)
+                file = self.outputdir + '/' + filename
+                file += '.nc'
             else:
-                file = self.outputdir + '/' + self.filename
-                file += '_correlation_'
+                add = 'correlation'
                 if season:
-                    file += season
+                    add += '_' + season
+                filename = set_filename(self.filename, add)
+                file = self.outputdir + '/' + filename
                 file += '.nc'
             cor.to_netcdf(file)
             self.logger.info("Correlation saved to %s", file)
@@ -367,16 +392,17 @@ class Teleconnection():
         ylabel = self.telecname + ' index'
 
         if self.savefig:
-            filename = self.filename + '_index.pdf'
+            filename = set_filename(self.filename, 'index')
+            filename += '.pdf'
 
             index_plot(indx=self.index, save=self.savefig,
                        outputdir=self.outputfig, filename=filename,
-                       loglevel=self.loglevel, step=step, title=title,
+                       loglevel=self.loglevel, step=step,
                        ylabel=ylabel, **kwargs)
             self.logger.info("Index plot saved to %s/%s", self.outputfig, filename)
         else:
             index_plot(indx=self.index, save=self.savefig,
-                       loglevel=self.loglevel, step=step, title=title,
+                       loglevel=self.loglevel, step=step,
                        ylabel=ylabel, **kwargs)
 
     def _load_namelist(self, configdir=None, interface=None):
@@ -445,8 +471,8 @@ class Teleconnection():
         """
         if filename is None:
             self.logger.info('No filename specified, using the default name')
-            filename = 'teleconnections_' + self.model + '_' + self.exp + '_'\
-                       + self.source + '_' + self.telecname
+            filename = 'teleconnections_' + self.telecname + '_' + self.model + '_' + self.exp + '_'\
+                       + self.source
         self.filename = filename
         self.logger.debug("Output filename: %s", self.filename)
 
@@ -546,3 +572,51 @@ class Teleconnection():
                 return data, dim
 
         return data, dim
+
+    def _check_index_file(self):
+        """Check if the index file is already present."""
+        self.logger.debug("Checking if index has been calculated in a previous session")
+        filename = set_filename(self.filename, 'index')
+        file = self.outputdir + '/' + filename + '.nc'
+        if os.path.isfile(file):
+            self.logger.info('Index found in %s', file)
+            self.index = xr.open_mfdataset(file)
+            if isinstance(self.index, xr.Dataset):
+                try:
+                    self.index = self.index['index']
+                except KeyError:
+                    self.logger.warning("Index not found in the file, rebuilding")
+                    self.index = None
+                    return
+            else:
+                self.logger.warning("Index is not a Dataset, skipping")
+                self.index = None
+                return
+
+            # Checking if the index has the correct time span
+            self._check_index_time()
+
+    def _check_index_time(self):
+        """Check if the index has the correct time span."""
+        index_start = self.index.time[0].values
+        index_end = self.index.time[-1].values
+
+        self.logger.debug(f"Index has time span {index_start} - {index_end}")
+
+        data_start = self.startdate if self.startdate is not None else self.data[self.var].time[0].values
+        data_end = self.enddate if self.enddate is not None else self.data[self.var].time[-1].values
+
+        self.logger.debug(f"Selected time span: {data_start} - {data_end}")
+
+        # Adapt the data time span since the first and last month are dropped in the index evaluation
+        # formula adapted to a generic months_window
+        data_start = data_start + pd.DateOffset(months=(self.months_window-1)/2)
+        data_end = data_end - pd.DateOffset(months=(self.months_window-1)/2)
+
+        if index_start == data_start and index_end == data_end:
+            self.logger.info("Index has the correct time span, skipping the evaluation")
+            return
+        else:
+            self.logger.debug("Index has a different time span, rebuilding the index")
+            self.index = None
+            return

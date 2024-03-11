@@ -1,4 +1,17 @@
 #!/bin/bash
+# Check if AQUA is set and the file exists
+if [[ -z "$AQUA" ]]; then
+    echo -e "\033[0;31mError: The AQUA environment variable is not defined."
+    echo -e "\x1b[38;2;255;165;0mPlease define the AQUA environment variable with the path to your 'AQUA' directory."
+    echo -e "For example: export AQUA=/path/to/aqua\033[0m"
+    exit 1  # Exit with status 1 to indicate an error
+else
+    source "${AQUA}/cli/util/logger.sh"
+    log_message INFO "Sourcing logger.sh from: ${AQUA}/cli/util/logger.sh"
+    # Your subsequent commands here
+fi
+setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
+aqua=$AQUA
 
 # User defined variables
 # ---------------------------------------------------
@@ -10,13 +23,9 @@ model_atm="IFS-NEMO"
 model_oce="IFS-NEMO"
 exp="historical-1990"
 source="lra-r100-monthly"
-outputdir="./output"
+outputdir="${AQUA}/cli/aqua-analysis/output" # Prefer absolute paths, e.g., "/path/to/aqua/my/output"
 loglevel="WARNING" # DEBUG, INFO, WARNING, ERROR, CRITICAL
 machine="lumi" # will change the aqua config file
-
-# AQUA path, can be defined as $AQUA env variable
-# if not defined it will use the aqua path in the script
-aqua="/work/bb1153/b382267/AQUA"
 
 # ---------------------------------------
 # The max_threads variable serves as a mechanism to control the maximum number of threads
@@ -34,14 +43,16 @@ aqua="/work/bb1153/b382267/AQUA"
 max_threads=-1  # Set to the desired maximum number of threads, or leave it as 0 for no limit
 
 # Define the array of atmospheric diagnostics, add more if needed or available
-atm_diagnostics=("tropical_rainfall" "global_time_series" "radiation" "teleconnections" "atmglobalmean")
+atm_diagnostics=("tropical_rainfall" "global_time_series" "seasonal_cycles" "radiation" "teleconnections" "atmglobalmean")
 # Define the array of oceanic diagnostics, add more if needed or available
-oce_diagnostics=("global_time_series" "teleconnections" "ocean3d" "seaice")
+oce_diagnostics=("global_time_series" "teleconnections" "ocean3d_drift" "ocean3d_circulation" "seaice")
 # Define the array of diagnostics combining atmospheric and oceanic data, add more if needed or available
 atm_oce_diagnostics=("ecmean")
 
 # Combine all diagnostics into a single array
 all_diagnostics=("${atm_diagnostics[@]}" "${oce_diagnostics[@]}" "${atm_oce_diagnostics[@]}")
+
+log_message DEBUG "Running diagnostics: ${all_diagnostics[@]}"
 
 run_dummy=true
 
@@ -72,16 +83,17 @@ done
 # Command line extra arguments for global_time_series:
 # --config (config file)
 # Concatenate the new part to the existing content
+
 atm_extra_args["global_time_series"]="${atm_extra_args["global_time_series"]} \
---config $aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_atm.yaml"
+--config ${aqua}/diagnostics/global_time_series/cli/config_time_series_atm.yaml"
 oce_extra_args["global_time_series"]="${oce_extra_args["global_time_series"]} \
---config $aqua/diagnostics/global_time_series/cli/single_analysis/config_time_series_oce.yaml"
+--config ${aqua}/diagnostics/global_time_series/cli/config_time_series_oce.yaml"
 # ----------------------------------------
 # Command line extra arguments for ecmean:
 # -c --config (ecmean config file)
 # -i --interface (custom interface file)
 atm_oce_extra_args["ecmean"]="${atm_oce_extra_args["ecmean"]} \
---interface $aqua/diagnostics/ecmean/config/interface_AQUA_destine-v1.yml"
+--interface ${aqua}/diagnostics/ecmean/config/interface_AQUA_destine-v1.yml"
 # -------------------------------------------
 # Command line extra arguments for radiation:
 # --config (readiation config file)
@@ -102,7 +114,15 @@ atm_extra_args["teleconnections"]="${atm_extra_args["teleconnections"]} \
 --config cli_config_atm.yaml --ref"
 oce_extra_args["teleconnections"]="${oce_extra_args["teleconnections"]} \
 --config cli_config_oce.yaml --ref"
+# Concatenate the new part to the existing content
+atm_extra_args["tropical_rainfall"]="--regrid=r100 --freq=M"
 # End of user defined variables
+# ---------------------------------------------------
+# Command line extra arguments for seasonal_cycles:
+# It's still under time_series folder
+# --config (seasonal cycles config file)
+atm_extra_args["seasonal_cycles"]="${atm_extra_args["seasonal_cycles"]} \
+--config ${aqua}/diagnostics/global_time_series/cli/config_seasonal_cycles_atm.yaml"
 # -----------------------------
 
 # Trap Ctrl-C to clean up and kill the entire process group
@@ -116,23 +136,15 @@ for diagnostic in ${all_diagnostics[@]}; do
   script_path["$diagnostic"]="$diagnostic/cli/cli_$diagnostic.py"
 done
 
-# Set specific value for "global_time_series"
-script_path["global_time_series"]="global_time_series/cli/single_analysis/cli_global_time_series.py"
-
-# Define colors for echo output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m' # No Color
-
-colored_echo() {
-  local color=$1
-  shift
-  echo -e "${color}$@${NC}"
-}
+# Set the path if it is not standard
+script_path["seasonal_cycles"]="global_time_series/cli/cli_global_time_series.py"
+script_path["ocean3d_drift"]="ocean3d/cli/cli_ocean3d.py"
+script_path["ocean3d_circulation"]="ocean3d/cli/cli_ocean3d.py"
 
 # Command line arguments
 # Define accepted log levels
 accepted_loglevels=("info" "debug" "error" "warning" "critical" "INFO" "DEBUG" "ERROR" "WARNING" "CRITICAL")
+distributed=0
 
 # Parse command-line options
 while [[ $# -gt 0 ]]; do
@@ -161,6 +173,10 @@ while [[ $# -gt 0 ]]; do
       machine="$2"
       shift 2
       ;;
+    -p|--parallel)
+      distributed=1
+      shift 1
+      ;;
     -t|--threads)
       max_threads="$2"
       shift 2
@@ -170,7 +186,7 @@ while [[ $# -gt 0 ]]; do
       if [[ " ${accepted_loglevels[@]} " =~ " $2 " ]]; then
         loglevel="$2"
       else
-        colored_echo $RED "Invalid log level. Accepted values are: ${accepted_loglevels[@]}"
+        log_message ERROR "Invalid log level. Accepted values are: ${accepted_loglevels[@]}"
         # Setting loglevel to WARNING
         loglevel="WARNING"
       fi
@@ -183,13 +199,30 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-colored_echo $GREEN "Setting loglevel to $loglevel"
-colored_echo $GREEN "Atmospheric model: $model_atm"
-colored_echo $GREEN "Oceanic model: $model_oce"
-colored_echo $GREEN "Experiment: $exp"
-colored_echo $GREEN "Source: $source"
-colored_echo $GREEN "Machine: $machine"
-colored_echo $GREEN "Output directory: $outputdir"
+log_message INFO "Setting loglevel to $loglevel"
+log_message INFO "Atmospheric model: $model_atm"
+log_message INFO "Oceanic model: $model_oce"
+log_message INFO "Experiment: $exp"
+log_message INFO "Source: $source"
+log_message INFO "Machine: $machine"
+log_message INFO "Output directory: $outputdir"
+
+# Set extra arguments in distributed case
+if [ $distributed -eq 1 ]; then
+  log_message INFO "Running with distributed cluster"
+  atm_extra_args["atmglobalmean"]="${atm_extra_args['atmglobalmean']} --nworkers 16"
+  atm_extra_args["global_time_series"]="${atm_extra_args['global_time_series']} --nworkers 16"
+  atm_extra_args["seasonal_cycles"]="${atm_extra_args['seasonal_cycles']} --nworkers 16"
+  atm_extra_args["radiation"]="${atm_extra_args['radiation']} --nworkers 8"
+  atm_extra_args["teleconnections"]="${atm_extra_args['teleconnections']} --nworkers 8"
+  atm_extra_args["tropical_rainfall"]="${atm_extra_args['tropical_rainfall']} --nworkers 16"
+  oce_extra_args["global_time_series"]="${oce_extra_args['global_time_series']} --nworkers 8"
+  oce_extra_args["ocean3d_drift"]="${oce_extra_args['ocean3d_drift']} --nworkers 8"
+  oce_extra_args["ocean3d_circulations"]="${oce_extra_args['ocean3d_circulation']} --nworkers 20"
+  oce_extra_args["seaice"]="${oce_extra_args['seaice']} --nworkers 4"
+  oce_extra_args["teleconnections"]="${oce_extra_args['teleconnections']} --nworkers 4"
+  atm_oce_extra_args["ecmean"]="${atm_oce_extra_args['ecmean']} --nworkers 4"
+fi
 
 # Define the outputdir for ocanic and atmospheric diagnostics
 outputdir_atm="$outputdir/$model_atm/$exp"
@@ -200,33 +233,26 @@ args_atm="--model $model_atm --exp $exp --source $source"
 args_oce="--model $model_oce --exp $exp --source $source"
 args="--model_atm $model_atm --model_oce $model_oce --exp $exp --source $source"
 
-# use $AQUA if defined otherwise use aqua
-if [[ -z "${AQUA}" ]]; then
-  colored_echo $GREEN "AQUA path is not defined, using user defined aqua in the script"
-else
-  colored_echo $GREEN "AQUA path is defined, using $AQUA"
-  aqua=$AQUA
-fi
-
 # set the correct machine in the config file
 if [[ "$OSTYPE" == "darwin"* ]]; then
   # Mac OSX
   sed -i '' "/^machine:/c\\
-machine: $machine" "$aqua/config/config-aqua.yaml"
+machine: $machine" "${aqua}/config/config-aqua.yaml"
 else
   # Linux
-  sed -i "/^machine:/c\\machine: $machine" "$aqua/config/config-aqua.yaml"
+  sed -i "/^machine:/c\\machine: $machine" "${aqua}/config/config-aqua.yaml"
 fi
-colored_echo $GREEN "Machine set to $machine in the config file"
+log_message INFO "Machine set to $machine in the config file"
 
 # Create output directory if it does not exist
-colored_echo $GREEN "Creating output directory $outputdir"
+log_message INFO "Creating output directory $outputdir"
 mkdir -p "$outputdir_atm"
 mkdir -p "$outputdir_oce"
 
+cd $AQUA
 if [ "$run_dummy" = true ] ; then
-  colored_echo $GREEN "Running setup checker"
-  scriptpy="$aqua/diagnostics/dummy/cli/cli_dummy.py"
+  log_message INFO "Running setup checker"
+  scriptpy="${aqua}/diagnostics/dummy/cli/cli_dummy.py"
   python $scriptpy $args -l $loglevel > "$outputdir_atm/setup_checker.log" 2>&1
   
   # Store the error code of the dummy script
@@ -235,19 +261,19 @@ if [ "$run_dummy" = true ] ; then
   # exit if dummy fails in finding both atmospheric and oceanic model
   if [ $dummy_error -ne 0 ]; then
     if [ $dummy_error -eq 1 ]; then # if error code is 1, then the setup checker failed
-      colored_echo $RED "Setup checker failed, exiting"
+      log_message CRITICAL "Setup checker failed, exiting"
       exit 1
     fi
     # if error code is 2 or 3, then the setup checker
     # passed but there are some warnings
     if [ $dummy_error -eq 2 ]; then
-      colored_echo $RED "Atmospheric model is not found, it will be skipped"
+      log_message ERROR "Atmospheric model is not found, it will be skipped"
     fi
     if [ $dummy_error -eq 3 ]; then
-      colored_echo $RED "Oceanic model is not found, it will be skipped"
+      log_message ERROR "Oceanic model is not found, it will be skipped"
     fi
   fi
-  colored_echo $GREEN "Finished setup checker"
+  log_message INFO "Finished setup checker"
   # copy the setup checker log to the oceanic output directory to be available for the oceanic diagnostics
   cp "$outputdir_atm/setup_checker.log" "$outputdir_oce/setup_checker.log"
 fi
@@ -255,18 +281,38 @@ fi
 thread_count=0
 # Run diagnostics in parallel
 for diagnostic in "${all_diagnostics[@]}"; do
-  colored_echo $GREEN "Running $diagnostic"
+  log_message INFO "Running $diagnostic"
 
   if [[ "${atm_diagnostics[@]}" =~ "$diagnostic" ]]; then
-    python "$aqua/diagnostics/${script_path[$diagnostic]}" $args_atm ${atm_extra_args[$diagnostic]} \
-    -l $loglevel --outputdir $outputdir_atm/$diagnostic > "$outputdir_atm/$diagnostic.log" 2>&1 &
+    log_message DEBUG "Atmospheric diagnostic: $diagnostic"
+    log_message DEBUG "Script path: ${script_path[$diagnostic]}"
+    log_message DEBUG "Arguments: $args_atm ${atm_extra_args[$diagnostic]} -l $loglevel --outputdir $outputdir_atm/$diagnostic"
   elif [[ "${oce_diagnostics[@]}" =~ "$diagnostic" ]]; then
-    python "$aqua/diagnostics/${script_path[$diagnostic]}" $args_oce ${oce_extra_args[$diagnostic]} \
-    -l $loglevel --outputdir $outputdir_oce/$diagnostic > "$outputdir_oce/$diagnostic.log" 2>&1 &
+    log_message DEBUG "Oceanic diagnostic: $diagnostic"
+    log_message DEBUG "Script path: ${script_path[$diagnostic]}"
+    log_message DEBUG "Arguments: $args_oce ${oce_extra_args[$diagnostic]} -l $loglevel --outputdir $outputdir_oce/$diagnostic"
+  elif [[ "${atm_oce_diagnostics[@]}" =~ "$diagnostic" ]]; then
+    log_message DEBUG "Atmospheric and oceanic diagnostic: $diagnostic"
+    log_message DEBUG "Script path: ${script_path[$diagnostic]}"
+    log_message DEBUG "Arguments: $args ${atm_oce_extra_args[$diagnostic]} -l $loglevel --outputdir $outputdir_atm/$diagnostic"
+  fi
+
+  if [[ "${atm_diagnostics[@]}" =~ "$diagnostic" ]]; then
+    python "${aqua}/diagnostics/${script_path[$diagnostic]}" $args_atm ${atm_extra_args[$diagnostic]} \
+    -l $loglevel --outputdir $outputdir_atm/$diagnostic > "$outputdir_atm/atm_$diagnostic.log" 2>&1 &
+    # Remove diagnostic from atm_diagnostics array
+    atm_diagnostics=(${atm_diagnostics[@]/$diagnostic})
+  elif [[ "${oce_diagnostics[@]}" =~ "$diagnostic" ]]; then
+    python "${aqua}/diagnostics/${script_path[$diagnostic]}" $args_oce ${oce_extra_args[$diagnostic]} \
+    -l $loglevel --outputdir $outputdir_oce/$diagnostic > "$outputdir_oce/oce_$diagnostic.log" 2>&1 &
+    # Remove diagnostic from oce_diagnostics array
+    oce_diagnostics=(${oce_diagnostics[@]/$diagnostic})
   elif [[ "${atm_oce_diagnostics[@]}" =~ "$diagnostic" ]]; then
     # NOTE: atm_oce diagnostics are run in the atmospheric output directory
-    python "$aqua/diagnostics/${script_path[$diagnostic]}" $args ${atm_oce_extra_args[$diagnostic]} \
+    python "${aqua}/diagnostics/${script_path[$diagnostic]}" $args ${atm_oce_extra_args[$diagnostic]} \
     -l $loglevel --outputdir $outputdir_atm/$diagnostic > "$outputdir_atm/$diagnostic.log" 2>&1 &
+    # Remove diagnostic from atm_oce_diagnostics array
+    atm_oce_diagnostics=(${atm_oce_diagnostics[@]/$diagnostic})
   fi
   if [ $max_threads -gt 0 ]; then
     ((thread_count++))
@@ -282,4 +328,5 @@ for diagnostic in "${all_diagnostics[@]}"; do
 done
 # Wait for all background processes to finish
 wait
-colored_echo $GREEN "Finished all diagnostics"
+log_message INFO "Finished all diagnostics"
+

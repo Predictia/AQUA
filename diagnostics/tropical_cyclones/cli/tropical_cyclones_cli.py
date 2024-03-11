@@ -10,6 +10,7 @@ from tropical_cyclones import TCs
 from aqua.util import load_yaml, get_arg
 from aqua.logger import log_configure
 
+
 def parse_arguments(args):
     """Parse command line arguments"""
 
@@ -34,25 +35,21 @@ def parse_arguments(args):
 
     return parser.parse_args(args)
 
+
 if __name__ == '__main__':
-
-    print('Running tropical cyclones diagnostic...')
-
     args = parse_arguments(sys.argv[1:])
 
-    # Read configuration file
+    # logger setup
+    loglevel = get_arg(args, 'loglevel', 'WARNING')
+    logger = log_configure(log_level=loglevel, log_name='TC')
+    logger.info('Running tropical cyclones diagnostic...')
 
+    # Read configuration file
     file = get_arg(args, 'config', 'config_tcs_cli.yaml')
-    print('Reading tcs configuration yaml file %s', file)
+    logger.info('Reading tcs configuration yaml file %s', file)
     config = load_yaml(file)
 
-    # logger setup (via config or clommand line)
-
-    loglevel = get_arg(args, 'loglevel', config['setup']['loglevel'])
-    logger = log_configure(log_level=loglevel, log_name='TC')
-
     # override config args in case they are passed from command line
-
     model = get_arg(args, 'model', config['dataset']['model'])
     exp = get_arg(args, 'exp', config['dataset']['exp'])
     source2d = get_arg(args, 'source2d', config['dataset']['source2d'])
@@ -61,11 +58,12 @@ if __name__ == '__main__':
 
     # initialise tropical class with streaming options
     tropical = TCs(tdict=config, streaming=True,
-                   model=model, exp=exp, source2d=source2d, source3d=source3d,
                    stream_step=config['stream']['streamstep'],
                    stream_startdate=config['time']['startdate'],
-                   paths=paths,
-                   loglevel=loglevel,
+                   paths=config['paths'],
+                   loglevel=config['setup']['loglevel'],
+                   orography=True,
                    nproc=1)
 
+    # finally run the wrapper function
     tropical.loop_streaming(config)
