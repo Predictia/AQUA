@@ -339,17 +339,20 @@ class RegridMixin():
         """
 
         aggregation = self.aggregation
+        chunking = self.chunking
         fix = self.fix
         streaming = self.streaming
         startdate = self.startdate
         enddate = self.enddate
         self.fix = False
         self.aggregation = None
+        self.chunking = None
         self.streaming = False
         self.startdate = None
         self.enddate = None
         data = self.retrieve(sample=True, history=False, *args, **kwargs)
         self.aggregation = aggregation
+        self.chunking = chunking
         self.fix = fix
         self.streaming = streaming
         self.startdate = startdate

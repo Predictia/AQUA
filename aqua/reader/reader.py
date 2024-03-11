@@ -48,7 +48,8 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
                  areas=True, datamodel=None,
                  streaming=False, stream_generator=False,
                  startdate=None, enddate=None,
-                 rebuild=False, loglevel=None, nproc=4, aggregation=None):
+                 rebuild=False, loglevel=None, nproc=4,
+                 aggregation=None, chunking=None):
         """
         Initializes the Reader class, which uses the catalog
         `config/config.yaml` to identify the required data.
@@ -73,9 +74,14 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             loglevel (str, optional): Level of logging according to logging module.
                                       Defaults to log_level_default of loglevel().
             nproc (int,optional): Number of processes to use for weights generation. Defaults to 4.
-            aggregation (str, optional): aggregation/chunking to be used for GSV access (e.g. D, M, Y).
-                                         Defaults to None (using default from catalogue, recommended).
-
+            aggregation (str, optional): the streaming frequency in pandas style (1M, 7D etc. or 'monthly', 'daily' etc.)
+            chunking (str or dict, optional): chunking to be used for GSV access.
+                                              Defaults to None (using default from catalogue, recommended).
+                                              If it is a string time chunking is assumed.
+                                              If it is a dictionary the keys 'time' and 'vertical' are looked for.
+                                              Time chunking can be one of S (step), 10M, 15M, 30M, h, 1h, 3h, 6h, D, 5D, W, M, Y.
+                                              Vertical chunking is expressed as the number of vertical levels to be used.
+                                              
         Returns:
             Reader: A `Reader` class object.
         """
@@ -93,6 +99,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         self.vert_coord = None
         self.deltat = 1
         self.aggregation = aggregation
+        self.chunking = chunking
 
         self.grid_area = None
         self.src_grid_area = None
@@ -1005,17 +1012,17 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             level = [level]
 
         if dask:
-            if self.aggregation:
+            if self.chunking:  # if the chunking option is specified override that from the catalogue
                 data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
-                              aggregation=self.aggregation,
+                              chunking=self.chunking,
                               logging=True, loglevel=self.loglevel).to_dask()
             else:
                 data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
                               logging=True, loglevel=self.loglevel).to_dask()
         else:
-            if self.aggregation:
+            if self.chunking:
                 data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
-                              aggregation=self.aggregation,
+                              chunking=self.chunking,
                               logging=True, loglevel=self.loglevel).read_chunked()
             else:
                 data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,

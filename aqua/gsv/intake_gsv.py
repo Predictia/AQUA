@@ -44,7 +44,7 @@ class GSVSource(base.DataSource):
     timeaxis = None  # Used for dask access
 
     def __init__(self, request, data_start_date, data_end_date, timestyle="date",
-                 aggregation="S", chunking_vertical=None, savefreq="h", timestep="h", timeshift=None,
+                 chunking="S", chunking_vertical=None, savefreq="h", timestep="h", timeshift=None,
                  startdate=None, enddate=None, var=None, metadata=None, level=None,
                  loglevel='WARNING', **kwargs):
         """
@@ -56,12 +56,15 @@ class GSVSource(base.DataSource):
             data_start_date (str): Start date of the available data.
             data_end_date (str): End date of the available data.
             timestyle (str, optional): Time style. Defaults to "date".
-            aggregation (str, optional): Time chunking.
-                                         Can be one of S (step), 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y.
-                                         Defaults to "S".
-            chunking_vertical (int, optional): Number of vertical levels to be used for vertical chunking. Defaults to None.
-            timestep (str, optional): Time step. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y.
-                                      Defaults to "H".
+            chunking (str or dict, optional): Time and vertical chunking.
+                                        If a string is provided, it is assumed to be time chunking.
+                                        If it is a dictionary the keys 'time' and 'vertical' are looked for.
+                                        Time chunking can be one of S (step), 10M, 15M, 30M, h, 1h, 3h, 6h, D, 5D, W, M, Y.
+                                        Defaults to "S".
+                                        Vertical chunking is expressed as the number of vertical levels to be used.
+                                        Defaults to None (no vertical chunking).
+            timestep (str, optional): Time step. Can be one of 10M, 15M, 30M, 1h, h, 3h, 6h, D, 5D, W, M, Y.
+                                      Defaults to "h".
             startdate (str, optional): Start date for request. Defaults to None.
             enddate (str, optional): End date for request. Defaults to None.
             var (str, optional): Variable ID. Defaults to those in the catalogue.
@@ -105,8 +108,15 @@ class GSVSource(base.DataSource):
 
         self.timestyle = timestyle
 
-        if aggregation.upper() == "S":  # special case: 'aggegation at single saved level
-            aggregation = savefreq
+        if isinstance(chunking, dict):
+            chunking_time = chunking.get('time', 'S')
+            chunking_vertical = chunking.get('vertical', None)
+        else:
+            chunking_time = chunking
+            chunking_vertical = None
+
+        if chunking_time.upper() == "S":  # special case: time chunking is single saved frame
+            chunking_time = savefreq
 
         self.timeshift = timeshift
         self.itime = 0  # position of time dim
@@ -156,7 +166,7 @@ class GSVSource(base.DataSource):
          self.chk_start_date, self.chk_end_idx,
          self.chk_end_date, self.chk_size) = make_timeaxis(self.data_start_date, self.startdate, self.enddate,
                                                            shiftmonth=self.timeshift, timestep=timestep,
-                                                           savefreq=savefreq, chunkfreq=aggregation)
+                                                           savefreq=savefreq, chunkfreq=chunking_time)
 
         self._npartitions = len(self.chk_start_date)
 

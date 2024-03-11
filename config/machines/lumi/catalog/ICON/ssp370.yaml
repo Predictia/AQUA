@@ -20,7 +20,7 @@ sources:
         step: 0
       data_start_date: 20200101T0000
       data_end_date: auto
-      aggregation: D  # Default aggregation / chunk size
+      chunking: D  # Default time chunk size
       savefreq: h  # at what frequency are data saved
       timestep: h  # base timestep for step timestyle
       timestyle: date  # variable date or variable step
@@ -40,7 +40,7 @@ sources:
     description: hourly 3D atmospheric data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      aggregation: 6h
+      chunking: 6h
       request:
         <<: *request-default
         param: 129
@@ -59,7 +59,7 @@ sources:
     description: daily 2D oceanic data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      aggregation: ME
+      chunking: ME
       savefreq: D
       request:
         <<: *request-default
@@ -78,7 +78,7 @@ sources:
     args:
       <<: *args-default
       data_start_date: 20200401T0000
-      aggregation: D
+      chunking: D
       savefreq: D
       request:
         <<: *request-default
@@ -108,7 +108,7 @@ sources:
     args:
       <<: *args-default
       data_start_date: 20200401T0000
-      aggregation: D
+      chunking: D
       savefreq: D
       request:
         <<: *request-default

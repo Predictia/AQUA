@@ -20,7 +20,7 @@ sources:
         step: 0
       data_start_date: 20200101T0000
       data_end_date: auto
-      aggregation: D  # Default aggregation / chunk size
+      chunking: D  # Default time chunk size
       savefreq: h  # at what frequency are data saved
       timestep: h  # base timestep for step timestyle
       timestyle: date  # variable date or variable step
@@ -41,7 +41,7 @@ sources:
     description: hourly 3D atmospheric data on native grid Tco2559 (about 5km).
     args:
       <<: *args-default
-      aggregation: 6h
+      chunking: 6h
       request:
         <<: *request-default
         param: 131
@@ -75,7 +75,7 @@ sources:
     description: hourly 3D atmospheric data on healpix grid (zoom=7, h128).
     args:
       <<: *args-default
-      aggregation: 6h
+      chunking: 6h
       request:
         <<: *request-default
         resolution: standard
@@ -111,8 +111,9 @@ sources:
     description: hourly 3D atmospheric data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      aggregation: D
-      chunking_vertical: 5
+      chunking:
+        time: D
+        vertical: 5
       request:
         <<: *request-default
         resolution: high
@@ -148,7 +149,7 @@ sources:
     description: hourly 3D atmospheric data on regular r025 grid (1440x721).
     args:
       <<: *args-default
-      aggregation: 6h
+      chunking: 6h
       request:
         <<: *request-default
         resolution: standard
@@ -170,7 +171,7 @@ sources:
     description: daily 2D oceanic data on native grid eORCA12.
     args:
       <<: *args-default
-      aggregation: ME
+      chunking: ME
       savefreq: D
       request:
         <<: *request-default
@@ -190,7 +191,7 @@ sources:
     description: daily 3D oceanic data on native grid eORCA12.
     args:
       <<: *args-default
-      aggregation: D
+      chunking: D
       savefreq: D
       request:
         <<: *request-default
@@ -233,7 +234,7 @@ sources:
     description: daily 2D oceanic data on regular r025 grid (1440x721).
     args:
       <<: *args-default
-      aggregation: ME
+      chunking: ME
       savefreq: D
       request:
         <<: *request-default
@@ -253,7 +254,7 @@ sources:
     description: daily 3D oceanic data on regular r025 grid (1440x721).
     args:
       <<: *args-default
-      aggregation: D
+      chunking: D
       savefreq: D
       request:
         <<: *request-default
@@ -295,7 +296,7 @@ sources:
     description: daily 2D oceanic data on healpix grid (zoom=7, h128).
     args:
       <<: *args-default
-      aggregation: ME
+      chunking: ME
       savefreq: D
       request:
         <<: *request-default
@@ -315,7 +316,7 @@ sources:
     description: daily 2D oceanic data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      aggregation: ME
+      chunking: ME
       savefreq: D
       request:
         <<: *request-default
@@ -335,7 +336,7 @@ sources:
     description: daily 3D oceanic data on healpix grid (zoom=7, h128).
     args:
       <<: *args-default
-      aggregation: D
+      chunking: D
       savefreq: D
       request:
         <<: *request-default
@@ -377,7 +378,7 @@ sources:
     description: daily 3D oceanic data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      aggregation: D
+      chunking: D
       savefreq: D
       request:
         <<: *request-default

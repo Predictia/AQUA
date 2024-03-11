@@ -43,7 +43,7 @@ class TestGsv():
         """Simplest test, to check that we can create it correctly."""
         print(DEFAULT_GSV_PARAMS['request'])
         source = GSVSource(DEFAULT_GSV_PARAMS['request'], "20080101", "20080101", timestep="h",
-                           aggregation="S", var='167', metadata=None)
+                           chunking="S", var='167', metadata=None)
         assert source is not None
 
     @pytest.mark.parametrize('gsv', [{'request': {
@@ -72,7 +72,7 @@ class TestGsv():
     def test_reader(self) -> None:
         """Simple test, to check that catalog access works and reads correctly"""
 
-        reader = Reader(model="IFS", exp="test-fdb", source="fdb", aggregation="D",
+        reader = Reader(model="IFS", exp="test-fdb", source="fdb", chunking="D",
                         stream_generator=True, loglevel=loglevel)
         data = reader.retrieve(startdate='20080101T1200', enddate='20080101T1200', var='t')
         assert isinstance(data, types.GeneratorType), 'Reader does not return iterator'
