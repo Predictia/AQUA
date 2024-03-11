@@ -415,6 +415,56 @@ the ones that are explicitly overridden.
 .. safer to not launch it from notebook. 
 
 
+Intake capabilities and kwargs data access
+------------------------------------------
+
+Intake ships a template replacement capabilities based on Jinja2 which is able to "compress" multiple sources. 
+This is combined by the capacity of AQUA of elaborating extra arguments which goes beyond the classical model-exp-source hierarchy
+For example, we could assume we have a FDB source as the one above. However, this sources is made by multiple ensemble
+members, and we want to described this in the catalog. This is something intake can easily handle with the Jinja `{{ }}`` syntax.
+
+
+.. code-block:: yaml
+
+    sources:
+        hourly-native:
+            args:
+                request:
+                    domain: g
+                    class: rd
+                    expver: a06x
+                    realization: {{ realization }}
+
+                    ...
+                   
+                driver: gsv
+                parameters:
+                    realization:
+                        allowed: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+                        description: realization member
+                        type: str
+                        default: '1'
+
+This can be later accessed via the reader providing an extra argument, or kwargs in python jargon, which define the realization
+
+.. code-block:: python
+
+    reader = Reader(model="IFS", exp="control-1950-devcon", source="hourly-native", realization=5)
+    data = reader.retrieve(var='2t')
+
+This will load the realizaiton number 5 of my experiment above. Of course, if we do not specify the realization in the `Reader()`
+call a default will be provided, so in the case above the number 1 will be loaded. 
+
+This capacity can be tuned to multiple features according to source characteristics, and will be further expaned in the future.
+
+.. warning::
+
+    Some kwargs might have an impact on the resolution of the data, and consequently on the grid file name and format. An example is the `zoom` key used for some ICON data. 
+    In this case, AQUA will modify the file templates accordingly. If this modication is required or not can be controlled through the
+    variable ``default_weights_areas_parameters`` in the reader.py module. This is a test feature and will be expanded in the future. 
+
+
+
 DE_340 source syntax convention
 -------------------------------
 
