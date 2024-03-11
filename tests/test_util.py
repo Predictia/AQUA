@@ -26,6 +26,7 @@ def test_extract_literal_and_numeric(test_text):
 class TestFileIsComplete:
     """The File is Complete testing class"""
 
+
     @pytest.fixture
     def sample_netcdf(self, tmp_path):
         """Create a sample Dataset and its file"""
@@ -42,31 +43,19 @@ class TestFileIsComplete:
         result = file_is_complete(sample_netcdf)
         assert result is True
 
-    def test_file_is_complete_invalid_with_mindate(self, tmp_path):
+    @pytest.mark.parametrize("mindate,expected_result", [("2023-12-31", False), ("2025-01-01", True)])
+    def test_file_is_complete_with_mindate(self, tmp_path, mindate, expected_result):
         filename = tmp_path / "sample_netcdf.nc"
         data = xr.DataArray(np.random.rand(3, 4, 5), dims=("time", "lat", "lon"))
         time_values = [datetime.datetime(2024, 1, 1) + datetime.timedelta(days=i) for i in range(3)]
         data = data.assign_coords(time=time_values)
         data.name = "sample_data"
-        data[:,:,:] = np.nan 
+        data[:,:,:] = np.nan
         dataset = xr.Dataset({"sample_data": data})
-        dataset["sample_data"].attrs["mindate"] = "2023-12-31"
+        dataset["sample_data"].attrs["mindate"] = mindate
         dataset.to_netcdf(filename)
         result = file_is_complete(filename, loglevel='info')
-        assert result is False
-
-    def test_file_is_complete_valid_with_mindate(self, tmp_path):
-        filename = tmp_path / "sample_netcdf.nc"
-        data = xr.DataArray(np.random.rand(3, 4, 5), dims=("time", "lat", "lon"))
-        time_values = [datetime.datetime(2024, 1, 1) + datetime.timedelta(days=i) for i in range(3)]
-        data = data.assign_coords(time=time_values)
-        data.name = "sample_data"
-        data[:,:,:] = np.nan 
-        dataset = xr.Dataset({"sample_data": data})
-        dataset["sample_data"].attrs["mindate"] = "2025-01-01"
-        dataset.to_netcdf(filename)
-        result = file_is_complete(filename, loglevel='info')
-        assert result is True
+        assert result == expected_result
 
     def test_file_is_complete_nonexistent_file(self, tmp_path):
         non_existent_file = tmp_path / "non_existent.nc"
