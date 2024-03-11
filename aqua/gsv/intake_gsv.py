@@ -44,7 +44,7 @@ class GSVSource(base.DataSource):
     timeaxis = None  # Used for dask access
 
     def __init__(self, request, data_start_date, data_end_date, timestyle="date",
-                 chunking="S", chunking_vertical=None, savefreq="h", timestep="h", timeshift=None,
+                 chunks="S", savefreq="h", timestep="h", timeshift=None,
                  startdate=None, enddate=None, var=None, metadata=None, level=None,
                  loglevel='WARNING', **kwargs):
         """
@@ -56,7 +56,7 @@ class GSVSource(base.DataSource):
             data_start_date (str): Start date of the available data.
             data_end_date (str): End date of the available data.
             timestyle (str, optional): Time style. Defaults to "date".
-            chunking (str or dict, optional): Time and vertical chunking.
+            chunks (str or dict, optional): Time and vertical chunking.
                                         If a string is provided, it is assumed to be time chunking.
                                         If it is a dictionary the keys 'time' and 'vertical' are looked for.
                                         Time chunking can be one of S (step), 10M, 15M, 30M, h, 1h, 3h, 6h, D, 5D, W, M, Y.
@@ -108,11 +108,11 @@ class GSVSource(base.DataSource):
 
         self.timestyle = timestyle
 
-        if isinstance(chunking, dict):
-            chunking_time = chunking.get('time', 'S')
-            chunking_vertical = chunking.get('vertical', None)
+        if isinstance(chunks, dict):
+            chunking_time = chunks.get('time', 'S')
+            chunking_vertical = chunks.get('vertical', None)
         else:
-            chunking_time = chunking
+            chunking_time = chunks
             chunking_vertical = None
 
         if chunking_time.upper() == "S":  # special case: time chunking is single saved frame

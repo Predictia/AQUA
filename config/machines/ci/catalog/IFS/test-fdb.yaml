@@ -15,7 +15,7 @@ sources:
         step: 0
       data_start_date: "20080101T1200"
       data_end_date: "20080101T1200"
-      chunking: h
+      chunks: h
       timestep: h
       timestyle: date
     description: test FDB archive
@@ -45,7 +45,7 @@ sources:
         step: 0
       data_start_date: auto
       data_end_date: auto
-      chunking: h
+      chunks: h
       timestep: h
       timestyle: date
     description: test FDB archive using new schema and auto dates
@@ -70,7 +70,7 @@ sources:
         step: 0
       data_start_date: "20080101T1200"
       data_end_date: "20080101T1200"
-      chunking: h
+      chunks: h
       timestep: h
       timestyle: date
     description: test FDB archive
@@ -84,7 +84,7 @@ sources:
     <<: *base-default
     args:
       <<: *args-default
-      chunking:
+      chunks:
         time: h
         vertical: 1
 
@@ -104,7 +104,7 @@ sources:
         step: 0
       data_start_date: "20080101T1200"
       data_end_date: "20080101T1200"
-      chunking: h
+      chunks: h
       timestep: h
       timestyle: date
     description: test FDB archive

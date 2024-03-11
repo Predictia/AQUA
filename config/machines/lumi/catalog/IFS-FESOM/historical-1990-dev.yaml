@@ -15,7 +15,7 @@ sources:
         step: 0
       data_start_date: 19900101T0000
       data_end_date: 19900131T2300
-      chunking: D  # Default time chunk size
+      chunks: D  # Default time chunk size
       savefreq: h  # at what frequency are data saved
       timestep: h  # base timestep for step timestyle
       timestyle: step  # variable date or variable step
@@ -44,7 +44,7 @@ sources:
         step: 0
       data_start_date: 19900101T0000
       data_end_date: 19900131T2300
-      chunking: D  # Default time chunk size
+      chunks: D  # Default time chunk size
       savefreq: h  # at what frequency are data saved
       timestep: h  # base timestep for step timestyle
       timestyle: step  # variable date or variable step
@@ -76,7 +76,7 @@ sources:
         step: 6  # First available step
       data_start_date: 19900101T0000
       data_end_date: 19900131T1800
-      chunking: D  # Default time chunk size
+      chunks: D  # Default time chunk size
       timestep: h  # What one step means
       savefreq: 6h
       timestyle: step
@@ -103,7 +103,7 @@ sources:
         step: 0
       data_start_date: '19900101'
       data_end_date: '19900101'
-      chunking: Y  # Default time chunk size
+      chunks: Y  # Default time chunk size
       savefreq: M
       timestep: h
       timestyle: step
@@ -134,7 +134,7 @@ sources:
         step: 0
       data_start_date: '19900101'
       data_end_date: '19900101'
-      chunking: M  # Default time chunk size
+      chunks: M  # Default time chunk size
       savefreq: M
       timestep: h
       timestyle: step
