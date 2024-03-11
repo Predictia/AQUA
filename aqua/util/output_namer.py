@@ -39,18 +39,19 @@ class OutputNamer:
             self.diagnostic_product = diagnostic_product
             self.logger.debug(f"Diagnostic product updated to: {diagnostic_product}")
 
-    def generate_name(self, diagnostic_product=None, var=None, model_2=None, exp_2=None, time_range=None, area=None, suffix='nc'):
+    def generate_name(self, diagnostic_product=None, var=None, model_2=None, exp_2=None, time_range=None, area=None, suffix='nc', **kwargs):
         """
-        Generate a filename based on provided parameters.
+        Generate a filename based on provided parameters and additional user-defined keywords.
 
         Parameters:
             diagnostic_product (str, optional): Product of the diagnostic analysis.
             var (str, optional): Variable of interest.
             model_2 (str, optional): The second model, for comparative studies.
             exp_2 (str, optional): The experiment associated with the second model.
-            time_range (str, optional): The time range for the data.
+            time_range (str, optiosnal): The time range for the data.
             area (str, optional): The geographical area covered by the data.
             suffix (str, optional): The file extension/suffix indicating file type.
+            **kwargs: Arbitrary keyword arguments provided by the user for additional customization.
 
         Returns:
             str: A string representing the generated filename.
@@ -62,47 +63,62 @@ class OutputNamer:
             self.logger.error(msg)
             raise ValueError(msg)
 
+        # Convert kwargs to a sorted list of strings to ensure consistent ordering
+        additional_parts = [f"{key}_{value}" for key, value in sorted(kwargs.items())]
+
         parts = [part for part in [self.diagnostic, self.diagnostic_product, var, self.model, self.exp, model_2, exp_2, area, time_range] if part]
+        parts.extend(additional_parts)  # Add the additional_parts to the main parts list
         parts.append(suffix)
 
         filename = '.'.join(parts)
-        self.logger.debug(f"Generated filename: {filename}")
+        self.logger.debug(f"Generated filename with kwargs: {filename}")
         return filename
 
-    def save_nc(self, path=None, diagnostic_product=None, var=None, model_2=None, exp_2=None, time_range=None, area=None):
+
+    def save_nc(self, path=None, diagnostic_product=None, var=None, model_2=None, exp_2=None, time_range=None, area=None, **kwargs):
         """
-        Simulate saving a netCDF file to the provided path.
+        Simulate saving a netCDF file to the provided path, with support for additional filename keywords.
 
         Parameters:
             path (str, optional): The path where the netCDF file will be saved.
-            Additional parameters are passed to generate_name.
+            diagnostic_product (str, optional): Product of the diagnostic analysis.
+            var (str, optional): Variable of interest.
+            model_2 (str, optional): The second model, for comparative studies.
+            exp_2 (str, optional): The experiment associated with the second model.
+            time_range (str, optional): The time range for the data.
+            area (str, optional): The geographical area covered by the data.
+            **kwargs: Additional keyword arguments for more flexible filename customization.
 
         Returns:
             str: The full path to where the netCDF file would be simulated to save.
         """
         if path is None:
             path = self.default_path
-        filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_range, area, suffix='nc')
+        filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_range, area, suffix='nc', **kwargs)
         full_path = f"{path}/{filename}"
         self.logger.info(f"Simulated saving netCDF file at: {full_path}")
         return full_path
 
-    def save_pdf(self, path=None, diagnostic_product=None, var=None, model_2=None, exp_2=None, time_range=None, area=None):
+    def save_pdf(self, path=None, diagnostic_product=None, var=None, model_2=None, exp_2=None, time_range=None, area=None, **kwargs):
         """
-        Simulate saving a PDF file to the provided path.
+        Simulate saving a PDF file to the provided path, with support for additional filename keywords.
 
         Parameters:
             path (str, optional): The path where the PDF file will be saved.
-            Additional parameters are passed to generate_name.
+            diagnostic_product (str, optional): Product of the diagnostic analysis.
+            var (str, optional): Variable of interest.
+            model_2 (str, optional): The second model, for comparative studies.
+            exp_2 (str, optional): The experiment associated with the second model.
+            time_range (str, optional): The time range for the data.
+            area (str, optional): The geographical area covered by the data.
+            **kwargs: Additional keyword arguments for more flexible filename customization.
 
         Returns:
             str: The full path to where the PDF file would be simulated to save.
         """
         if path is None:
             path = self.default_path
-        filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_range, area, suffix='pdf')
+        filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_range, area, suffix='pdf', **kwargs)
         full_path = f"{path}/{filename}"
         self.logger.info(f"Simulated saving PDF file at: {full_path}")
         return full_path
-
-
