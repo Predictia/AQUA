@@ -215,22 +215,22 @@ fixer_name:
             tcwv:
                 source: prw
                 grib: true
-            msdtrf:
+            msdwlwrf:
                 source: rlds
                 grib: true
-            msntrf:
+            msnlwrf:
                 derived: rlds-rlus
                 grib: true
-            mtntrf:
+            mtnlwrf:
                 derived: -rlut
                 grib: true
-            msdsrf:
+            msdwswrf:
                 source: rsds
                 grib: true
-            msnsrf:
+            msnswrf:
                 derived: rsds-rsus
                 grib: true
-            mtnsrf:
+            mtnswrf:
                 derived: rsdt-rsut
                 grib: true
             ocpt:
