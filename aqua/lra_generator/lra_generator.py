@@ -11,7 +11,7 @@ import dask
 import xarray as xr
 import numpy as np
 import pandas as pd
-from dask.distributed import Client, LocalCluster, progress
+from dask.distributed import Client, LocalCluster, progress, performance_report
 from dask.diagnostics import ProgressBar
 from aqua.logger import log_configure, log_history
 from aqua.reader import Reader
@@ -39,6 +39,7 @@ class LRAgenerator():
                  resolution=None, frequency=None, fix=True,
                  outdir=None, tmpdir=None, nproc=1,
                  loglevel=None, overwrite=False, definitive=False,
+                 performance_reporting=False,
                  exclude_incomplete=False):
         """
         Initialize the LRA_Generator class
@@ -142,6 +143,9 @@ class LRAgenerator():
             'complevel': 1,
             '_FillValue': np.nan
         }
+
+        # add the performance report
+        self.performance_reporting = performance_reporting
 
         self.fix = fix
         self.logger.info('Fixing data: %s', self.fix)
@@ -450,6 +454,8 @@ class LRAgenerator():
 
         # Splitting data into yearly files
         years = sorted(set(temp_data.time.dt.year.values))
+        if self.performance_reporting:
+            years = [years[0]]
         for year in years:
 
             self.logger.info('Processing year %s...', str(year))
@@ -467,6 +473,8 @@ class LRAgenerator():
 
             # Splitting data into monthly files
             months = sorted(set(year_data.time.dt.month.values))
+            if self.performance_reporting:
+                months = [months[0]]
             for month in months:
                 self.logger.info('Processing month %s...', str(month))
                 outfile = self.get_filename(var, year = year, month = month)
@@ -534,9 +542,16 @@ class LRAgenerator():
                                    compute=False)
 
         if self.dask:
-            w_job = write_job.persist()
-            progress(w_job)
-            del w_job
+            if self.performance_reporting:
+                with performance_report(filename=f"dask-{outfile}.html"):
+                    w_job = write_job.persist()
+                    progress(w_job)
+                    del w_job
+            else:
+                w_job = write_job.persist()
+                progress(w_job)
+                del w_job
+                
         else:
             with ProgressBar():
                 write_job.compute()
