@@ -14,7 +14,7 @@ try:
         print(f'Moving from current directory to {dname} to run!')
     sys.path.insert(0, '../../')
     from radiation import process_ceres_data, process_model_data
-    from radiation import boxplot_model_data, plot_mean_bias, gregory_plot, plot_model_comparison_timeseries
+    from radiation import boxplot_model_data, plot_mean_bias, plot_model_comparison_timeseries
 except ImportError as import_error:
     # Handle ImportError
     print(f"ImportError occurred: {import_error}")
@@ -87,7 +87,6 @@ if __name__ == '__main__':
 
     box_plot_bool = config['diagnostic_attributes']['box_plot']
     bias_maps_bool = config['diagnostic_attributes']['bias_maps']
-    gregory_bool = config['diagnostic_attributes']['gregory']
     time_series_bool = config['diagnostic_attributes']['time_series']
     try:
         model_data = process_model_data(model=model, exp=exp, source=source, loglevel=loglevel)
@@ -124,16 +123,6 @@ if __name__ == '__main__':
             except Exception as e:
                 # Handle other exceptions
                 logger.error(f"An unexpected error occurred: {e}")
-
-    if gregory_bool:
-        try:
-            gregory_plot(obs_data=era5, models=model_data,
-                         outputdir=outputdir, outputfig=outputfig, loglevel=loglevel)
-            logger.info(
-                "Gregory Plot was created and saved with various models and an observational dataset.")
-        except Exception as e:
-            # Handle other exceptions
-            logger.error(f"An unexpected error occurred: {e}")
 
     if time_series_bool:
         try:
