@@ -263,55 +263,6 @@ def linregress_3D(y_array, loglevel= "WARNING"):
     return n, slope, intercept, p_val, r_square, rmse
 
 
-def lintrend_2D(y_array, loglevel= "WARNING"):
-    """
-    Simplified version of linregress_3D that computes the trends in a 3D array formated in time, latitude and longitude coordinates
-
-    It outputs the trends in xarray format
-
-    Parameters
-    ----------
-    data : y_array.Dataset
-
-    Dataset containing a single 3D field with time, latitude and longitude as coordinates
-
-
-    Returns
-    -------
-    n,slope,intercept,p_val,r_square,rmse
-
-    """
-    logger = log_configure(loglevel, 'lintrend_2D')
-
-    x_array = np.empty(y_array.shape)
-    for i in range(y_array.shape[0]):
-        # This would be fine if time series is not too long. Or we can use i+yr (e.g. 2019).
-        x_array[i, :, :] = i+1
-    x_array[np.isnan(y_array)] = np.nan
-    # Compute the number of non-nan over each (lon,lat) grid box.
-    n = np.sum(~np.isnan(x_array), axis=0)
-    # Compute mean and standard deviation of time series of x_array and y_array over each (lon,lat) grid box.
-    x_mean = np.nanmean(x_array, axis=0)
-    y_mean = np.nanmean(y_array, axis=0)
-    x_std = np.nanstd(x_array, axis=0)
-    # y_std = np.nanstd(y_array, axis=0)
-    # Compute co-variance between time series of x_array and y_array over each (lon,lat) grid box.
-    cov = np.nansum((x_array-x_mean)*(y_array-y_mean), axis=0)/n
-    # Compute slope between time series of x_array and y_array over each (lon,lat) grid box.
-    trend = cov/(x_std**2)
-
-    # Do further filteration if needed (e.g. We stipulate at least 3 data records are needed to do regression analysis) and return values
-    n = n*1.0  # convert n from integer to float to enable later use of np.nan
-    n[n < 3] = np.nan
-    trend[np.isnan(n)] = np.nan
-
-    # trend=xr.DataArray(trend,coords={"lat": y_array.lat,"lon": y_array.lon},name=str(y_array.name),dims=["lat","lon"])
-    trend = xr.DataArray(trend, coords={
-                         "lat": y_array.lat, "lon": y_array.lon}, name=f"{y_array.name} trends", dims=["lat", "lon"])
-    trend.attrs['units'] = f"{y_array.units}/year"
-
-    # data.avg_thetao.attrs['units'] = 'Standardised Units'
-    return trend
 
 
 def lintrend_3D(y_array, loglevel= "WARNING"):
