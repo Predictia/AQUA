@@ -340,10 +340,11 @@ def lintrend_3D(y_array, loglevel= "WARNING"):
 
     # Create a Dask array 'x_array' with the same shape as 'y_array'
     x_array = da.empty_like(y_array)
-
+    time_indices = y_array["time"]
     # Fill 'x_array' with values representing time indices
-    for i in range(y_array.shape[0]):
+    for i in range(len(y_array["time"])):
         x_array[i, :, :, :] = i + 1
+
 
     # Replace NaNs in 'x_array' with NaNs
     x_array = da.where(da.isnan(y_array), np.nan, x_array)
@@ -355,12 +356,13 @@ def lintrend_3D(y_array, loglevel= "WARNING"):
     x_mean = da.nanmean(x_array, axis=0)
     y_mean = da.nanmean(y_array, axis=0)
     x_std = da.nanstd(x_array, axis=0)
+    x_var = da.nanvar(x_array, axis=0)
 
     # Compute covariance between time series of 'x_array' and 'y_array' over each (lon,lat) grid box
-    cov = da.nansum((x_array - x_mean) * (y_array - y_mean), axis=0) / n
+    cov = da.nansum((x_array - x_mean) * (y_array - y_mean), axis=0) / (n-1)
 
     # Compute slope between time series of 'x_array' and 'y_array' over each (lon,lat) grid box
-    trend = cov / (x_std ** 2)
+    trend = cov / (x_var)
 
     # Do further filtration if needed (e.g., stipulate at least 3 data records are needed to do regression analysis)
     n = n.astype(float)  # Convert 'n' from integer to float to enable later use of NaN
