@@ -39,16 +39,19 @@ class OutputNamer:
             self.diagnostic_product = diagnostic_product
             self.logger.debug(f"Diagnostic product updated to: {diagnostic_product}")
 
-    def generate_name(self, diagnostic_product=None, var=None, model_2=None, exp_2=None, time_range=None, area=None, suffix='nc', **kwargs):
+    def generate_name(self, diagnostic_product=None, var=None, model_2=None, exp_2=None, time_s=None, time_f=None,
+                      time_precision='ymd', area=None, suffix='nc', **kwargs):
         """
-        Generate a filename based on provided parameters and additional user-defined keywords.
+        Generate a filename based on provided parameters and additional user-defined keywords, including precise time intervals.
 
         Parameters:
             diagnostic_product (str, optional): Product of the diagnostic analysis.
             var (str, optional): Variable of interest.
             model_2 (str, optional): The second model, for comparative studies.
             exp_2 (str, optional): The experiment associated with the second model.
-            time_range (str, optiosnal): The time range for the data.
+            time_s (str, optional): The start time for the data, in format consistent with time_precision.
+            time_f (str, optional): The finish (end) time for the data, in format consistent with time_precision.
+            time_precision (str, optional): Precision for time representation ('y', 'ym', 'ymd', 'ymdh', etc.).
             area (str, optional): The geographical area covered by the data.
             suffix (str, optional): The file extension/suffix indicating file type.
             **kwargs: Arbitrary keyword arguments provided by the user for additional customization.
@@ -63,21 +66,34 @@ class OutputNamer:
             self.logger.error(msg)
             raise ValueError(msg)
 
-        # Convert kwargs to a sorted list of strings to ensure consistent ordering
+        # Handle time formatting based on the specified precision
+        time_parts = []
+        if time_s and time_f:
+            # Example format adjustment, you may need to implement your logic based on time_precision
+            if time_precision == 'y':
+                time_parts = [time_s[:4], time_f[:4]]
+            elif time_precision == 'ym':
+                time_parts = [time_s[:7].replace('-', ''), time_f[:7].replace('-', '')]
+            elif time_precision == 'ymd':
+                time_parts = [time_s.replace('-', ''), time_f.replace('-', '')]
+            # Add more conditions for different time_precisions if needed
+
         additional_parts = [f"{key}_{value}" for key, value in sorted(kwargs.items())]
 
-        parts = [part for part in [self.diagnostic, self.diagnostic_product, var, self.model, self.exp, model_2, exp_2, area, time_range] if part]
+        parts = [part for part in [self.diagnostic, self.diagnostic_product, var, self.model, self.exp, model_2, exp_2, area] if part]
+        parts.extend(time_parts)  # Add the time_parts to the main parts list
         parts.extend(additional_parts)  # Add the additional_parts to the main parts list
         parts.append(suffix)
 
         filename = '.'.join(parts)
-        self.logger.debug(f"Generated filename with kwargs: {filename}")
+        self.logger.debug(f"Generated filename with time precision and kwargs: {filename}")
         return filename
 
 
-    def save_nc(self, path=None, diagnostic_product=None, var=None, model_2=None, exp_2=None, time_range=None, area=None, **kwargs):
+    def save_nc(self, path=None, diagnostic_product=None, var=None, model_2=None, exp_2=None, time_s=None, time_f=None,
+                time_precision='ymd', area=None, **kwargs):
         """
-        Simulate saving a netCDF file to the provided path, with support for additional filename keywords.
+        Simulate saving a netCDF file to the provided path, with support for additional filename keywords and precise time intervals.
 
         Parameters:
             path (str, optional): The path where the netCDF file will be saved.
@@ -85,7 +101,9 @@ class OutputNamer:
             var (str, optional): Variable of interest.
             model_2 (str, optional): The second model, for comparative studies.
             exp_2 (str, optional): The experiment associated with the second model.
-            time_range (str, optional): The time range for the data.
+            time_s (str, optional): The start time for the data, in format consistent with time_precision.
+            time_f (str, optional): The finish (end) time for the data, in format consistent with time_precision.
+            time_precision (str, optional): Precision for time representation ('y', 'ym', 'ymd', 'ymdh', etc.).
             area (str, optional): The geographical area covered by the data.
             **kwargs: Additional keyword arguments for more flexible filename customization.
 
@@ -94,14 +112,16 @@ class OutputNamer:
         """
         if path is None:
             path = self.default_path
-        filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_range, area, suffix='nc', **kwargs)
+        # Generate the filename with the new time parameters and precision
+        filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_s, time_f, time_precision, area, suffix='nc', **kwargs)
         full_path = f"{path}/{filename}"
         self.logger.info(f"Simulated saving netCDF file at: {full_path}")
         return full_path
 
-    def save_pdf(self, path=None, diagnostic_product=None, var=None, model_2=None, exp_2=None, time_range=None, area=None, **kwargs):
+    def save_pdf(self, path=None, diagnostic_product=None, var=None, model_2=None, exp_2=None, time_s=None, time_f=None,
+                 time_precision='ymd', area=None, **kwargs):
         """
-        Simulate saving a PDF file to the provided path, with support for additional filename keywords.
+        Simulate saving a PDF file to the provided path, with support for additional filename keywords and precise time intervals.
 
         Parameters:
             path (str, optional): The path where the PDF file will be saved.
@@ -109,7 +129,9 @@ class OutputNamer:
             var (str, optional): Variable of interest.
             model_2 (str, optional): The second model, for comparative studies.
             exp_2 (str, optional): The experiment associated with the second model.
-            time_range (str, optional): The time range for the data.
+            time_s (str, optional): The start time for the data, in format consistent with time_precision.
+            time_f (str, optional): The finish (end) time for the data, in format consistent with time_precision.
+            time_precision (str, optional): Precision for time representation ('y', 'ym', 'ymd', 'ymdh', etc.).
             area (str, optional): The geographical area covered by the data.
             **kwargs: Additional keyword arguments for more flexible filename customization.
 
@@ -118,7 +140,9 @@ class OutputNamer:
         """
         if path is None:
             path = self.default_path
-        filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_range, area, suffix='pdf', **kwargs)
+        # Generate the filename with the new time parameters and precision
+        filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_s, time_f, time_precision, area, suffix='pdf', **kwargs)
         full_path = f"{path}/{filename}"
         self.logger.info(f"Simulated saving PDF file at: {full_path}")
         return full_path
+
