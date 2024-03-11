@@ -543,7 +543,8 @@ class LRAgenerator():
 
         if self.dask:
             if self.performance_reporting:
-                with performance_report(filename=f"dask-{outfile}.html"):
+                filename = f"dask-{self.model}-{self.exp}-{self.source}-{self.nproc}.html"
+                with performance_report(filename=filename):
                     w_job = write_job.persist()
                     progress(w_job)
                     del w_job
