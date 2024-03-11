@@ -171,11 +171,13 @@ class Teleconnection():
             try:
                 self.data = self.reader.retrieve(var=self.var, **kwargs)
             except (ValueError, KeyError) as e:
+                self.logger.debug(f"Error: {e}")
                 raise NoDataError("Variable {} not found".format(self.var)) from e
         else:
             try:
                 data = self.reader.retrieve(var=var, **kwargs)
             except (ValueError, KeyError) as e:
+                self.logger.debug(f"Error: {e}")
                 raise NoDataError('Variable {} not found'.format(var)) from e
         self.logger.info('Data retrieved')
 

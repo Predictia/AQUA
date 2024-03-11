@@ -1,4 +1,5 @@
 .. _container:
+
 Container
 =========
 
@@ -59,6 +60,7 @@ The scripts are located in the ``cli/lumi-container`` folder.
   any platform using Slurm. By default it opens a Jupyter Lab server on the computational node.
 
 .. _pat:
+
 Generate a Personal Access Token (PAT)
 --------------------------------------
 
@@ -84,6 +86,7 @@ This will allow you to pull the image without having to enter your username and 
 It can be particularly useful if you want to use the image in a batch job.
 
 .. _advanced-container:
+
 Advanced Topics
 ---------------
 

@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import xarray as xr
 from aqua import Reader
 from aqua.logger import log_configure
-from aqua.util import create_folder, add_pdf_metadata, time_to_string
+from aqua.util import create_folder, add_pdf_metadata
+from aqua.util import time_to_string, evaluate_colorbar_limits
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from .reference_data import get_reference_ts_gregory, get_reference_toa_gregory
 
@@ -213,11 +214,16 @@ class GregoryPlot():
 
         if self.monthly:
             ax1.axhline(0, color="k")
-            ax1.set_ylim(-12., 12.)
             ax1.set_xlabel("2m temperature [C]")
             ax1.set_ylabel(r"Net radiation TOA [$\rm Wm^{-2}$]")
             ax1.grid(True)
             ax1.set_title("Monthly Mean")
+
+            toa_min, toa_max = evaluate_colorbar_limits(self.data_toa_mon, sym=False)
+            toa_min = min(toa_min, -12.)
+            toa_max = max(toa_max, 12.)
+            ax1.set_ylim(toa_min, toa_max)
+            self.logger.debug(f"Monthly y-axis limits: {toa_min} to {toa_max}")
 
             for i, model in enumerate(self.models):
                 if self.data_ts_mon[i] is not None and self.data_toa_mon[i] is not None:
@@ -240,13 +246,18 @@ class GregoryPlot():
             ax1.legend()
 
         if self.annual:
-            ax2.set_ylim(-2, 2)
             ax2.axhline(0, color="k", lw=0.7)
             ax2.set_xlabel("2m temperature [C]")
             if ax1 is None:
                 ax2.set_ylabel(r"Net radiation TOA [$\rm Wm^{-2}$]")
             ax2.grid(True)
             ax2.set_title("Annual Mean")
+
+            toa_min, toa_max = evaluate_colorbar_limits(self.data_toa_annual, sym=False)
+            toa_min = min(toa_min, -2.)
+            toa_max = max(toa_max, 2.)
+            ax2.set_ylim(toa_min, toa_max)
+            self.logger.debug(f"Annual y-axis limits: {toa_min} to {toa_max}")
 
             for i, model in enumerate(self.models):
                 if self.data_ts_annual[i] is not None and self.data_toa_annual[i] is not None:

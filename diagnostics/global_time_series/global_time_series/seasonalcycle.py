@@ -70,11 +70,19 @@ class SeasonalCycle(Timeseries):
         self.logger.info("SeasonalCycle class initialized")
 
         self.retrieve_data = super().retrieve_data
-        self.retrieve_ref = super().retrieve_ref
         self.clean_timeseries = super().cleanup
-
         if plot_ref:
             self.cycle_ref = None
+
+    def retrieve_ref(self):
+        """
+        Retrieve the reference data.
+        Overwrite the method in the parent class.
+        """
+        super(SeasonalCycle, self).retrieve_ref(extend=False)
+        self.logger.debug(f"Time range of the reference data: {self.ref_mon.time.values[0]} to {self.ref_mon.time.values[-1]}")
+        self.ref_mon = self.ref_mon.sel(time=slice(self.std_startdate, self.std_enddate))
+        self.logger.debug(f"Time range of the reference data after slicing: {self.ref_mon.time.values[0]} to {self.ref_mon.time.values[-1]}")
 
     def run(self):
         """Run the seasonal cycle extraction."""
@@ -112,15 +120,21 @@ class SeasonalCycle(Timeseries):
 
         ref_label = f"{self.plot_ref_kw['model']}"
 
-        title = f"Seasonal cycle of {self.var}"
+        if self.formula is False or self.formula is None:
+            try:
+                title = self.data_mon[0].attrs['long_name'] + ' (' + self.data_mon[0].attrs['units'] + ') seasonal cycle'
+            except KeyError:
+                title = f'{self.var} seasonal cycle'
+        else:
+            title = f'{self.var} seasonal cycle'
 
-        fig, ax = plot_seasonalcycle(data=self.cycle,
-                                     ref_data=self.cycle_ref,
-                                     std_data=self.ref_mon_std,
-                                     data_labels=labels,
-                                     ref_label=ref_label,
-                                     loglevel=self.loglevel,
-                                     title=title)
+        fig, _ = plot_seasonalcycle(data=self.cycle,
+                                    ref_data=self.cycle_ref,
+                                    std_data=self.ref_mon_std,
+                                    data_labels=labels,
+                                    ref_label=ref_label,
+                                    loglevel=self.loglevel,
+                                    title=title)
 
         if self.save:
             self.save_seasonal_pdf(fig, ref_label)
@@ -154,7 +168,10 @@ class SeasonalCycle(Timeseries):
             description += self.description_timerange[i]
         if self.plot_ref:
             description += f" with {ref_label} as reference,"
-            description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}"
+            try:
+                description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}"  # noqa: E501
+            except ValueError:
+                description += f" std evaluated from {time_to_string(self.ref_mon.time.values[0])} to {time_to_string(self.ref_mon.time.values[-1])}"  # noqa: E501
         description += "."
         self.logger.debug(f"Description: {description}")
         add_pdf_metadata(filename=os.path.join(outfig, self.outfile),
