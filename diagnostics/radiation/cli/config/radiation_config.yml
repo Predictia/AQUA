@@ -14,7 +14,5 @@ diagnostic_attributes:
   bias_maps: True
   time_series: True
 
-loglevel: 'warning'
-
 path:
   path_to_output: "./"

@@ -1,8 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
-# import boost_histogram as bh  # pip
 from matplotlib.gridspec import GridSpec
-# import seaborn as sns
 from typing import Union, Tuple, Optional, List  # Any
 
 from aqua.util import create_folder
@@ -14,7 +12,6 @@ import cartopy.mpl.ticker as cticker
 from cartopy.util import add_cyclic_point
 
 from matplotlib.ticker import StrMethodFormatter
-# import matplotlib.colors as mcolors
 
 import numpy as np
 import xarray as xr

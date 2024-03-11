@@ -1,6 +1,9 @@
 import sys
 import os
 import argparse
+
+from dask.distributed import Client, LocalCluster
+
 from aqua.util import load_yaml, get_arg
 from aqua import Reader
 from aqua.logger import log_configure
@@ -17,7 +20,8 @@ def parse_arguments(args):
                         help='yaml configuration file')
     parser.add_argument('-l', '--loglevel', type=str,
                         help='log level [default: WARNING]')
-
+    parser.add_argument('-n', '--nworkers', type=int,
+                        help='number of dask distributed workers')
     # This arguments will override the configuration file if provided
     parser.add_argument('--model', type=str, help='model name',
                         required=False)
@@ -25,10 +29,14 @@ def parse_arguments(args):
                         required=False)
     parser.add_argument('--source', type=str, help='source name',
                         required=False)
+    parser.add_argument('--regrid', type=str, help='regrid value',
+                        required=False)
+    parser.add_argument('--freq', type=str, help='frequency',
+                        required=False)
     parser.add_argument('--outputdir', type=str, help='output directory',
                         required=False)
     parser.add_argument('--nproc', type=int, required=False,
-                        help='the number of processes to run in parallel',
+                        help='the number of processes to use for weight generation',
                         default=4)
     return parser.parse_args(args)
 
@@ -53,6 +61,10 @@ def validate_arguments(args):
         raise TypeError("Experiment name must be a string.")
     if args.source and not isinstance(args.source, str):
         raise TypeError("Source name must be a string.")
+    if args.regrid and not isinstance(args.regrid, str):
+        raise TypeError("Regrid value must be a string.")
+    if args.freq and not isinstance(args.freq, str):
+        raise TypeError("Frequency value must be a string.")
     if args.outputdir and not isinstance(args.outputdir, str):
         raise TypeError("Output directory must be a string.")
     if args.nproc and not isinstance(args.nproc, int):
@@ -61,7 +73,6 @@ def validate_arguments(args):
 
 def load_configuration(file_path):
     """Load and return the YAML configuration."""
-    print('Reading configuration YAML file..')
     config = load_yaml(file_path)
     return config
 
@@ -85,10 +96,9 @@ def adjust_year_range_based_on_dataset(full_dataset, start_year=None, final_year
 
     return start_year, final_year
 
+
 class Tropical_Rainfall_CLI:
     def __init__(self, config, args):
-        self.freq = config['data']['freq']
-        self.regrid = config['data']['regrid']
         self.s_year = config['data']['s_year']
         self.f_year = config['data']['f_year']
         self.s_month = config['data']['s_month']
@@ -101,7 +111,7 @@ class Tropical_Rainfall_CLI:
         self.model_variable = config['class_attributes']['model_variable']
         self.new_unit = config['class_attributes']['new_unit']
 
-        self.color  = config['plot']['color']
+        self.color = config['plot']['color']
         self.figsize = config['plot']['figsize']
         self.xmax = config['plot']['xmax']
         self.loc = config['plot']['loc']
@@ -110,6 +120,8 @@ class Tropical_Rainfall_CLI:
         self.model = get_arg(args, 'model', config['data']['model'])
         self.exp = get_arg(args, 'exp', config['data']['exp'])
         self.source = get_arg(args, 'source', config['data']['source'])
+        self.freq = get_arg(args, 'freq', config['data']['freq'])
+        self.regrid = get_arg(args, 'regrid', config['data']['regrid'])
         self.loglevel = get_arg(args, 'loglevel', config['logger']['loglevel'])
 
         nproc = get_arg(args, 'nproc', config['compute_resources']['nproc'])
@@ -120,10 +132,17 @@ class Tropical_Rainfall_CLI:
 
         self.logger = log_configure(log_name="Trop. Rainfall CLI", log_level=self.loglevel)
 
+        # Dask distributed cluster
+        nworkers = get_arg(args, 'nworkers', None)
+        if nworkers:
+            cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+            client = Client(cluster)
+            self.logger.info(f"Running with {nworkers} dask distributed workers.")
+
         self.rebuild_output = config['rebuild_output']
         if path_to_output is not None:
-            self.path_to_netcdf = os.path.join(path_to_output, f'netcdf/{self.model}_{self.exp}_{self.source}/')
-            self.path_to_pdf = os.path.join(path_to_output, f'pdf/{self.model}_{self.exp}_{self.source}/')
+            self.path_to_netcdf = os.path.join(path_to_output, f'netcdf/{self.model}_{self.exp}/')
+            self.path_to_pdf = os.path.join(path_to_output, f'pdf/{self.model}_{self.exp}/')
         else:
             self.path_to_netcdf = self.path_to_pdf = None
 
@@ -155,19 +174,18 @@ class Tropical_Rainfall_CLI:
         full_dataset = self.reader.retrieve(var=self.model_variable)
         regrid_bool, freq_bool = self.need_regrid_timmean(full_dataset)
 
-        s_year, f_year = adjust_year_range_based_on_dataset(full_dataset, start_year=self.s_year, final_year=self.f_year)
+        self.s_year, self.f_year = adjust_year_range_based_on_dataset(full_dataset, start_year=self.s_year, final_year=self.f_year)
         s_month = 1 if self.s_month is None else self.s_month
         f_month = 12 if self.f_month is None else self.f_month
 
-        for year in range(s_year, f_year+1):
+        for year in range(self.s_year, self.f_year+1):
             data_per_year = full_dataset.sel(time=str(year))
             if data_per_year.time.size != 0:
                 for x in range(s_month, f_month+1):
                     path_to_output = self.path_to_netcdf+f"{self.regrid}/{self.freq}/histograms/"
 
                     bins_info = self.diag.get_bins_info()
-                    keys = [f"{bins_info}_{year}-{x:02}", self.model, self.exp, self.source, self.regrid, self.freq]
-                    self.logger.debug(f"The keys are: {keys}")
+                    keys = [f"{bins_info}_{year}-{x:02}", self.model, self.exp, self.regrid, self.freq]
 
                     # Check for file existence based on keys and decide on rebuilding
                     if self.rebuild_output and self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys):
@@ -206,9 +224,9 @@ class Tropical_Rainfall_CLI:
         data if available. The function handles the absence of MSWEP data gracefully by logging an error. Plots are
         saved to the specified PDF format in the provided path.
         """
-        plot_title = f"{self.model} {self.exp} {self.source} {self.regrid} {self.freq}"
-        legend = f"{self.model} {self.exp} {self.source}"
-        name_of_pdf =f"{self.model}_{self.exp}_{self.source}"
+        plot_title = f"Grid: {self.regrid}, frequency: {self.freq}"
+        legend = f"{self.model} {self.exp}"
+        name_of_pdf =f"{self.model}_{self.exp}"
 
         self.logger.debug(f"The path to file is: {self.path_to_netcdf}{self.regrid}/{self.freq}/histograms/.")
         hist_merged = self.diag.merge_list_of_histograms(path_to_histograms=self.path_to_netcdf+f"{self.regrid}/{self.freq}/histograms/",
@@ -219,7 +237,7 @@ class Tropical_Rainfall_CLI:
                             legend=legend, color=self.color, xmax=self.xmax, plot_title=plot_title, loc=self.loc,
                             path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
 
-        mswep_folder_path = f'{self.mswep}{self.regrid}/{self.freq}'
+        mswep_folder_path = os.path.join(self.mswep, self.regrid, self.freq)
         # Check if the folder exists
         if not os.path.exists(mswep_folder_path):
             self.logger.error(f"Error: The folder for MSWEP data with resolution '{self.regrid}' "
@@ -227,7 +245,7 @@ class Tropical_Rainfall_CLI:
                             "desired resolution and frequency have not been computed yet.")
         else:
             obs_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path, all=True,
-                                                            start_year=self.s_year, end_year=self.f_year,
+                                                            start_year=self.s_year-5, end_year=self.f_year+5,
                                                         start_month=self.s_month, end_month=self.f_month)
             self.logger.info(f"The MSWEP data with resolution '{self.regrid}' and frequency '{self.freq}' are prepared for comparison.")
 
@@ -236,9 +254,12 @@ class Tropical_Rainfall_CLI:
                                 legend=f"MSWEP", xmax=self.xmax,  loc=self.loc, plot_title=plot_title,
                                 path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
         self.logger.info("The histograms are plotted and saved in storage.")
+        self.logger.info("The Tropical Rainfall diagnostic is terminated.")
+
 
 def main():
     """Main function to orchestrate the tropical rainfall CLI operations."""
+
     args = parse_arguments(sys.argv[1:])
     validate_arguments(args)
 
@@ -248,6 +269,7 @@ def main():
     trop_rainfall_cli = Tropical_Rainfall_CLI(config, args)
     trop_rainfall_cli.calculate_histogram_by_months()
     trop_rainfall_cli.plot_histograms()
+
 
 if __name__ == '__main__':
     main()

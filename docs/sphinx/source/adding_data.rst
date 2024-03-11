@@ -1,4 +1,5 @@
 .. _add-data:
+
 Adding new data
 ===============
 
@@ -11,10 +12,11 @@ How to create a new source and add new data is documented in the next sections.
   This can be done in two different way, by adding a standard entry in the form of files (:ref:`file-based-sources`)
   or by adding a source from the FDB (:ref:`FDB-based-sources`) with the specific AQUA FDB interface.
 - A set of pre-existing fixes can be applied to the data, or you can modify or create your own fixes (see :ref:`fixer`).
-- Finally, to exploit of the regridding functionalities, you will also need to configure the machine-dependent
+- Finally, to exploit the regridding functionalities, you will also need to configure the machine-dependent
   ``regrid.yaml``. 
 
 .. _file-based-sources:
+
 File-based sources
 ------------------
 
@@ -111,6 +113,7 @@ You can add fixes to your dataset by following examples in the ``config/fixes/``
     `intake-xarray <https://intake-xarray.readthedocs.io/en/latest/>`_ documentation.
 
 .. _FDB-based-sources:
+
 FDB-based sources
 -----------------
 
@@ -221,20 +224,24 @@ Some of the parameters are here described:
 
 .. option:: timestyle
 
-    The timestyle parameter can be set to either ``step`` or ``date``.
-    It determines how data is written in the FDB. 
+    The timestyle parameter can be set to either ``step``, ``date`` or ``yearmonth`` according to the FDB schema.
+    Indeed, it determines how the time axis data is written in the FDB. 
 
-    The recent examples have used ``step``, which involves specifying a fixed date (e.g., 19500101) and time (e.g., 0000)
-    in the request.
-    Time is then identified by the step in the request.
+    The above examples have used ``step``, which involves specifying a fixed ``date`` (e.g., 19500101) and ``time`` (e.g., 0000)
+    in the request. Time axis is then identified by the ``step`` in the request.
 
-    Alternatively, when timestyle is set to ``date``, you can directly specify both date and time in the request,
+    Alternatively, when timestyle is set to ``date``, you can directly specify both ``date`` and ``time`` in the request,
     and ``step`` is always set to 0.
+
+    Finally, when using the ``yearmonth`` timestyle you do not have to set neither time, step, and date in the request.
+    On the contrary, the ``year`` and ``month`` keys need to be specified. The FDB module will then build the corresponding
+    request. 
+
+    Please note that it is very important to know which timestyle has been used in the FDB before creating the request
 
 .. option:: timeshift
 
     Timeshift is a boolean parameter used exclusively for shifting the date of monthly data back by one month.
-    Without this shift, data for January would have a date like ``19500201T0000``.
 
     Implementing this correctly in a general case can be quite complex, so it was decided to implement only the monthly shift.
 

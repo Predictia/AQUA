@@ -11,10 +11,6 @@ from .src.tropical_rainfall_plots import PlottingClass
 from .src.tropical_rainfall_main import MainClass
 from .src.tropical_rainfall_meta import MetaClass
 
-
-print('Running tropical rainfall diagnostic...')
-
-print('Reading configuration yaml file..')
 from importlib import resources
 full_path_to_config = resources.files("tropical_rainfall") / "config-tropical-rainfall.yml"
 config = ToolsClass().get_config()
