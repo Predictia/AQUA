@@ -1,31 +1,13 @@
 # All necessary import for a cli diagnostic
 import sys
-try:
-    import os
-    import argparse
-    from aqua.util import load_yaml, get_arg
-    from aqua.logger import log_configure
+import os
+import argparse
 
-    # Setting the path to this directory
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-    if os.getcwd() != dname:
-        os.chdir(dname)
-        print(f'Moving from current directory to {dname} to run!')
-    sys.path.insert(0, '../../')
-    from radiation import process_ceres_data, process_model_data
-    from radiation import boxplot_model_data, plot_mean_bias, plot_model_comparison_timeseries
-except ImportError as import_error:
-    # Handle ImportError
-    print(f"ImportError occurred: {import_error}")
-    sys.exit(0)
-except Exception as custom_error:
-    # Handle other custom exceptions if needed
-    print(f"CustomError occurred: {custom_error}")
-    sys.exit(0)
-else:
-    # Code to run if the import was successful (optional)
-    print("Modules imported successfully.")
+from dask.distributed import Client, LocalCluster
+
+from aqua.util import load_yaml, get_arg
+from aqua.logger import log_configure
+
 
 
 def parse_arguments(args):
