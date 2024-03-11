@@ -116,7 +116,7 @@ def process_ceres_data(exp=None, source=None, fix=True, variable_names=None , le
     return dictionary
 
 
-def process_model_data(model=None, exp=None, source=None, fix=None, loglevel='WARNING'):
+def process_model_data(model=None, exp=None, source=None, fix=True, loglevel='WARNING'):
     """
     Function to extract Model output data for further analysis and create global means.
 
