@@ -274,7 +274,7 @@ fixer_name:
                 src_units: W/m2
                 source: strd
                 grib: true
-            msnlwrf:
+            mtnswrf:
                 src_units: W/m2
                 source: tsr
                 grib: true
