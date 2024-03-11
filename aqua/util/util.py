@@ -67,43 +67,121 @@ def create_folder(folder, loglevel="WARNING"):
 
 
 def file_is_complete(filename, loglevel='WARNING'):
-    """Basic check to see if file exists and that includes values which are not NaN
+    """
+    Basic check to see if file exists and that includes values
+    which are not NaN in its first variabiles
     Return a boolean that can be used as a flag for further operation
-    True means that we have to re-do the computation
-    A logger can be passed for correct logging properties"""
+    A logger can be passed for correct logging properties
+    
+    Args:
+        filename: a string with the filename
+        loglevel: the log level
+
+    Returns 
+        A boolean flag (True for file ok, False for file corrupted)
+    """
 
     logger = log_configure(loglevel, 'file_is_complete')
 
-    if os.path.isfile(filename):
-        logger.info('File %s is found...', filename)
-        try:
-            xfield = xr.open_dataset(filename)
-            if len(xfield.data_vars) == 0:
-                logger.error('File %s is empty! Recomputing...', filename)
-                check = False
-            else:
-                varname = list(xfield.data_vars)[0]
-                if xfield[varname].isnull().all():
-                    logger.error('File %s is full of NaN! Recomputing...', filename)
-                    check = False   
-                else:
-                    mydims = [dim for dim in xfield[varname].dims if dim != 'time']
-                    nan_count = np.isnan(xfield[varname]).sum(dim=mydims)
-                    check = all(value == nan_count[0] for value in nan_count)
-                    if check: 
-                        logger.info('File %s seems ok!', filename)
-                    else:
-                        logger.error('File %s has at least one time step with NaN! Recomputing...', filename)
-
-        # we have no clue which kind of exception might show up
-        except ValueError:
-            logger.error('Something wrong with file %s! Recomputing...', filename)
-            check = False
-    else:
+    # check file existence
+    if not os.path.isfile(filename):
         logger.info('File %s not found...', filename)
-        check = False
+        return False
 
-    return check
+    logger.info('File %s is found...', filename)
+
+    # check opening
+    try:
+        xfield = xr.open_dataset(filename)
+
+        # check variables
+        if len(xfield.data_vars) == 0:
+            logger.error('File %s has no variables!', filename)
+            return False
+        
+        # check on a single variable
+        varname = list(xfield.data_vars)[0]
+            
+        # all NaN case
+        if xfield[varname].isnull().all():
+
+            # case of a mindate
+            mindate = xfield[varname].attrs.get('mindate')
+            if mindate is not None:
+                logger.warning('NaN and mindate found: %s', mindate)
+                if xfield[varname].time.max() < np.datetime64(mindate):
+                    logger.info('File %s is full of NaN but it is ok according to mindate', filename)
+                    return True
+        
+                logger.error('File %s is full of NaN and not ok according to mindate', filename)
+                return False
+            
+            logger.error('File %s is empty or full of NaN! Recomputing...', filename)
+            return False
+
+        mydims = [dim for dim in xfield[varname].dims if dim != 'time']
+        nan_count = np.isnan(xfield[varname]).sum(dim=mydims)
+        # check if a record of NaN is found
+        if all(value == nan_count[0] for value in nan_count):
+            logger.info('File %s seems ok!', filename)
+            return True
+    
+        logger.error('File %s has at least one time step with NaN! Recomputing...', filename)
+        return False
+
+    except Exception as e:
+        logger.error('Something wrong with file %s! Recomputing... Error: %s', filename, e)
+        return False
+
+
+# def file_is_complete_old(filename, loglevel='WARNING'):
+#     """Basic check to see if file exists and that includes values which are not NaN
+#     Return a boolean that can be used as a flag for further operation
+#     True means that we have to re-do the computation
+#     A logger can be passed for correct logging properties"""
+
+#     logger = log_configure(loglevel, 'file_is_complete')
+
+#     if os.path.isfile(filename):
+#         logger.info('File %s is found...', filename)
+#         try:
+#             xfield = xr.open_dataset(filename)
+#             if len(xfield.data_vars) == 0:
+#                 logger.error('File %s is empty! Recomputing...', filename)
+#                 check = False
+#             else:
+#                 varname = list(xfield.data_vars)[0]
+#                 if xfield[varname].isnull().all():
+#                     mindate = xfield[varname].attrs.get('mindate')
+#                     if xfield[varname].attrs.get('mindate') is not None:
+#                         logger.info('NaN and mindate found: %s', mindate)
+#                         if xfield[varname].time.max() < np.datetime64(mindate):
+#                             logger.info('File %s is full of NaN but it is ok according to mindate', filename)
+#                             check = True
+#                         else:
+#                             logger.error('File %s is full of NaN and not ok according to mindate', filename)
+#                             check = False
+#                     else:
+#                         logger.error('File %s is full of NaN! Recomputing...', filename)
+#                         check = False
+#                 else:
+#                     mydims = [dim for dim in xfield[varname].dims if dim != 'time']
+#                     nan_count = np.isnan(xfield[varname]).sum(dim=mydims)
+#                     check = all(value == nan_count[0] for value in nan_count)
+#                     if check:
+#                         logger.info('File %s seems ok!', filename)
+#                     else:
+#                         logger.error('File %s has at least one time step with NaN! Recomputing...', filename)
+
+#         # we have no clue which kind of exception might show up
+#         except ValueError:
+#             logger.error('Something wrong with file %s! Recomputing...', filename)
+#             check = False
+#     else:
+#         logger.info('File %s not found...', filename)
+#         check = False
+
+#     return check
 
 
 def find_vert_coord(ds):

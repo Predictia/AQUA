@@ -1,6 +1,7 @@
 """Test for timmean method"""
 
 import pytest
+import datetime
 import xarray as xr
 import numpy as np
 from aqua.util import extract_literal_and_numeric, file_is_complete
@@ -27,13 +28,44 @@ class TestFileIsComplete:
 
     @pytest.fixture
     def sample_netcdf(self, tmp_path):
+        """Create a sample Dataset and its file"""
         filename = tmp_path / "sample_netcdf.nc"
         data = xr.DataArray(np.random.rand(3, 4, 5), dims=("time", "lat", "lon"))
-        data.to_netcdf(filename)
+        time_values = [datetime.datetime(2024, 1, 1) + datetime.timedelta(days=i) for i in range(3)]
+        data = data.assign_coords(time=time_values)
+        data.name = "sample_data"
+        dataset = xr.Dataset({"sample_data": data})
+        dataset.to_netcdf(filename)
         return filename
-
+    
     def test_file_is_complete_existing_file(self, sample_netcdf):
         result = file_is_complete(sample_netcdf)
+        assert result is True
+
+    def test_file_is_complete_invalid_with_mindate(self, tmp_path):
+        filename = tmp_path / "sample_netcdf.nc"
+        data = xr.DataArray(np.random.rand(3, 4, 5), dims=("time", "lat", "lon"))
+        time_values = [datetime.datetime(2024, 1, 1) + datetime.timedelta(days=i) for i in range(3)]
+        data = data.assign_coords(time=time_values)
+        data.name = "sample_data"
+        data[:,:,:] = np.nan 
+        dataset = xr.Dataset({"sample_data": data})
+        dataset["sample_data"].attrs["mindate"] = "2023-12-31"
+        dataset.to_netcdf(filename)
+        result = file_is_complete(filename, loglevel='info')
+        assert result is False
+
+    def test_file_is_complete_valid_with_mindate(self, tmp_path):
+        filename = tmp_path / "sample_netcdf.nc"
+        data = xr.DataArray(np.random.rand(3, 4, 5), dims=("time", "lat", "lon"))
+        time_values = [datetime.datetime(2024, 1, 1) + datetime.timedelta(days=i) for i in range(3)]
+        data = data.assign_coords(time=time_values)
+        data.name = "sample_data"
+        data[:,:,:] = np.nan 
+        dataset = xr.Dataset({"sample_data": data})
+        dataset["sample_data"].attrs["mindate"] = "2025-01-01"
+        dataset.to_netcdf(filename)
+        result = file_is_complete(filename, loglevel='info')
         assert result is True
 
     def test_file_is_complete_nonexistent_file(self, tmp_path):
@@ -70,3 +102,5 @@ class TestFileIsComplete:
         data.to_netcdf(valid_with_nan_file)
         result = file_is_complete(valid_with_nan_file)
         assert result is True
+
+
