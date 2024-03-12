@@ -44,13 +44,27 @@ class TestFileIsComplete:
         assert result is True
 
     @pytest.mark.parametrize("mindate,expected_result", [("2023-12-31", False), ("2025-01-01", True)])
-    def test_file_is_complete_with_mindate(self, tmp_path, mindate, expected_result):
+    def test_file_is_complete_full_nan_with_mindate(self, tmp_path, mindate, expected_result):
         filename = tmp_path / "sample_netcdf.nc"
         data = xr.DataArray(np.random.rand(3, 4, 5), dims=("time", "lat", "lon"))
         time_values = [datetime.datetime(2024, 1, 1) + datetime.timedelta(days=i) for i in range(3)]
         data = data.assign_coords(time=time_values)
         data.name = "sample_data"
         data[:,:,:] = np.nan
+        dataset = xr.Dataset({"sample_data": data})
+        dataset["sample_data"].attrs["mindate"] = mindate
+        dataset.to_netcdf(filename)
+        result = file_is_complete(filename, loglevel='info')
+        assert result == expected_result
+    
+    @pytest.mark.parametrize("mindate,expected_result", [("2023-12-31", False), ("2024-02-01", True)])
+    def test_file_is_complete_partial_nan_with_mindate(self, tmp_path, mindate, expected_result):
+        filename = tmp_path / "sample_netcdf.nc"
+        data = xr.DataArray(np.random.rand(3, 4, 5), dims=("time", "lat", "lon"))
+        time_values = [datetime.datetime(2024, 1, 1) + datetime.timedelta(days=i*40) for i in range(3)]
+        data = data.assign_coords(time=time_values)
+        data.name = "sample_data"
+        data[0,:,:] = np.nan
         dataset = xr.Dataset({"sample_data": data})
         dataset["sample_data"].attrs["mindate"] = mindate
         dataset.to_netcdf(filename)

@@ -119,14 +119,14 @@ def file_is_complete(filename, loglevel='WARNING'):
             logger.error('File %s is empty or full of NaN! Recomputing...', filename)
             return False
 
+        #some NaN case
         mydims = [dim for dim in xfield[varname].dims if dim != 'time']
         nan_count = np.isnan(xfield[varname]).sum(dim=mydims)
-        # check if all the records have the same NaN pattern
         if all(value == nan_count[0] for value in nan_count):
             logger.info('File %s seems ok!', filename)
             return True
 
-        # case of a mindate on longer files
+        # case of a mindate on some NaN
         mindate = xfield[varname].attrs.get('mindate')
         if mindate is not None:
             logger.warning('Some NaN and mindate found: %s', mindate)
