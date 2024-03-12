@@ -105,10 +105,10 @@ def file_is_complete(filename, loglevel='WARNING'):
         # all NaN case
         if xfield[varname].isnull().all():
 
-            # case of a mindate
+            # case of a mindate on all NaN single files
             mindate = xfield[varname].attrs.get('mindate')
             if mindate is not None:
-                logger.warning('NaN and mindate found: %s', mindate)
+                logger.warning('All NaN and mindate found: %s', mindate)
                 if xfield[varname].time.max() < np.datetime64(mindate):
                     logger.info('File %s is full of NaN but it is ok according to mindate', filename)
                     return True
@@ -121,10 +121,23 @@ def file_is_complete(filename, loglevel='WARNING'):
 
         mydims = [dim for dim in xfield[varname].dims if dim != 'time']
         nan_count = np.isnan(xfield[varname]).sum(dim=mydims)
-        # check if a record of NaN is found
+        # check if all the records have the same NaN pattern
         if all(value == nan_count[0] for value in nan_count):
             logger.info('File %s seems ok!', filename)
             return True
+
+        # case of a mindate on longer files
+        mindate = xfield[varname].attrs.get('mindate')
+        if mindate is not None:
+            logger.warning('Some NaN and mindate found: %s', mindate)
+            last_nan = xfield.time[np.where(nan_count == nan_count[0])].max()
+            if np.datetime64(mindate) > last_nan:
+                logger.info('File %s has some of NaN up to %s but it is ok according to mindate %s', 
+                            filename, last_nan.values, mindate)
+                return True
+            
+            logger.error('File %s has some NaN bit it is not ok according to mindate', filename)
+            return False
     
         logger.error('File %s has at least one time step with NaN! Recomputing...', filename)
         return False
