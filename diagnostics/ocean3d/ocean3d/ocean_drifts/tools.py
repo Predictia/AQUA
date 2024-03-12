@@ -324,8 +324,12 @@ def lintrend_3D(y_array, loglevel= "WARNING"):
     time_frequency = y_array["time"].to_index().inferred_freq
     if time_frequency=="MS":
         trend = trend*12
-    if time_frequency=="H" :
+    elif time_frequency=="H" :
         trend = trend*24*30*12
+    elif time_frequency=="Y":
+        trend = trend
+    else:
+        raise ValueError(f"The frequency: {time_frequency} of the data must be in Daily/Monthly/Yearly")
     
     trend.attrs['units'] = f"{y_array.units}/year"
     
