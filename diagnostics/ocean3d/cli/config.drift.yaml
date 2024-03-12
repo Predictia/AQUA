@@ -18,13 +18,4 @@ ocean_drift:
     - Arctic Ocean
     - Southern Ocean
 
-    
-ocean_circulation: #specify region and climatology time
-  regions:
-    Labrador Sea : DJF
-    Irminger Sea : DJF
-    Ross Sea : JJA
-    Weddell Sea : JJA
-    Gin Sea : DJF
-
 compare_model_with_obs: True
