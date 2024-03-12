@@ -223,7 +223,7 @@ if [ $distributed -eq 1 ]; then
   atm_extra_args["teleconnections"]="${atm_extra_args['teleconnections']} --nworkers 8"
   atm_extra_args["tropical_rainfall"]="${atm_extra_args['tropical_rainfall']} --nworkers 16"
   oce_extra_args["global_time_series"]="${oce_extra_args['global_time_series']} --nworkers 8"
-  oce_extra_args["ocean3d_drift"]="${oce_extra_args['ocean3d_drift']} --nworkers 20"
+  oce_extra_args["ocean3d_drift"]="${oce_extra_args['ocean3d_drift']} --nworkers 8"
   oce_extra_args["ocean3d_circulation"]="${oce_extra_args['ocean3d_circulation']} --nworkers 4"
   oce_extra_args["seaice"]="${oce_extra_args['seaice']} --nworkers 4"
   oce_extra_args["teleconnections"]="${oce_extra_args['teleconnections']} --nworkers 4"
