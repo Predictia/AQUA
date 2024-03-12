@@ -186,42 +186,38 @@ sources:
       variables: [263500, 263501, 263505, 263506, 263507]
       source_grid_name: fesom-hpz9-nested-3d
 
-#   hourly-native-atm2d:
-#     <<: *base-default
-#     description: hourly 2D atmospheric data on native grid TCo1279 (about 10km).
-#     args:
-#       <<: *args-default
-#       aggregation: 6H
-#       request:
-#         <<: *request-default
-# #        param: 131
-#         levtype: sfc
-#         resolution: high
-#     metadata:
-#       <<: *metadata-default
-#       fdb_path: /users/lrb_465000454_fdb/native/etc/fdb/config.yaml
-#       variables: [78, 79, 134, 137, 141, 148, 151, 159, 164, 165, 166, 167, 168, 186, 187, 188, 235, 260048]
-#       source_grid_name: tco1279
+  hourly-native-atm2d:
+    <<: *base-default
+    description: hourly 2D atmospheric data on native grid TCo1279 (about 10km).
+    args:
+      <<: *args-default
+      aggregation: 6H
+      request:
+        <<: *request-default
+        resolution: high
+    metadata:
+      <<: *metadata-default
+      fdb_path: /users/lrb_465000454_fdb/native/etc/fdb/config.yaml
+      variables: [78, 79, 134, 137, 141, 148, 151, 159, 164, 165, 166, 167, 168, 186, 187, 188, 235, 260048]
+      source_grid_name: tco1279
 
-
-#   hourly-native-atm3d:
-#     <<: *base-default
-#     description: hourly 3D atmospheric data on native grid TCo1279 (about 10km).
-#     args:
-#       <<: *args-default
-#       aggregation: 6H
-#       request:
-#         <<: *request-default
-# #        param: 131
-#         levtype: pl
-#         levelist: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600,
-#           700, 850, 925, 1000]
-#     metadata:
-#       <<: *metadata-default
-#       levels: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600, 700,
-#         850, 925, 1000]
-#       variables: [129, 130, 131, 132, 133, 135, 157, 246]
-#       source_grid_name: tco1279
+  hourly-native-atm3d:
+    <<: *base-default
+    description: hourly 3D atmospheric data on native grid TCo1279 (about 10km).
+    args:
+      <<: *args-default
+      aggregation: H
+      request:
+        <<: *request-default
+        levtype: pl
+        levelist: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600,
+          700, 850, 925, 1000]
+    metadata:
+      <<: *metadata-default
+      levels: [1, 5, 10, 20, 30, 50, 70, 100, 150, 200, 250, 300, 400, 500, 600, 700,
+        850, 925, 1000]
+      variables: [129, 130, 131, 132, 133, 135, 157, 246]
+      source_grid_name: tco1279
 
 
 # #
