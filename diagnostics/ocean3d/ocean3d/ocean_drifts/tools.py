@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import xarray as xr
 import numpy as np
+import dask.array as da
 from scipy.stats import t as statt
 from ocean3d import weighted_area_mean
 from ocean3d import area_selection
@@ -284,8 +285,6 @@ def lintrend_3D(y_array, loglevel= "WARNING"):
 
     """
     logger = log_configure(loglevel, 'lintrend_3D')
-    import dask.array as da
-    import numpy as np
 
     # Assuming 'y_array' is a Dask array, and 'yr' is defined somewhere as the starting year
 
@@ -310,7 +309,7 @@ def lintrend_3D(y_array, loglevel= "WARNING"):
     x_var = da.nanvar(x_array, axis=0)
 
     # Compute covariance between time series of 'x_array' and 'y_array' over each (lon,lat) grid box
-    cov = da.nansum((x_array - x_mean) * (y_array - y_mean), axis=0) / (n-1)
+    cov = da.nansum((x_array - x_mean) * (y_array - y_mean), axis=0) / n
 
     # Compute slope between time series of 'x_array' and 'y_array' over each (lon,lat) grid box
     trend = cov / (x_var)
@@ -321,7 +320,15 @@ def lintrend_3D(y_array, loglevel= "WARNING"):
     trend = da.where(da.isnan(n), np.nan, trend)
     trend = xr.DataArray(trend, coords={"lev": y_array.lev, "lat": y_array.lat,
                          "lon": y_array.lon}, name=f"{y_array.name} trends", dims=["lev", "lat", "lon"])
+
+    time_frequency = y_array["time"].to_index().inferred_freq
+    if time_frequency=="MS":
+        trend = trend*12
+    if time_frequency=="H" :
+        trend = trend*24*30*12
+    
     trend.attrs['units'] = f"{y_array.units}/year"
+    
 
     # data.avg_thetao.attrs['units'] = 'Standardised Units'
     return trend
