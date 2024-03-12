@@ -1,9 +1,4 @@
 sources:
-  fesom_trial:
-    description: FDB IFS/FESOM tco1279-ng5 historical 1990 run
-    driver: yaml_file_cat
-    args:
-      path: '{{CATALOG_DIR}}/fesom_trial.yaml'
   historical-1990:
     description: FDB IFS/FESOM tco1279-ng5 historical 1990 run
     driver: yaml_file_cat
