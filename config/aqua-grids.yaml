@@ -90,8 +90,6 @@ grids:
   icon-hpz10-nested-3d:
     path:
       level: $grids/HealPix/icon_hpz10_nested_oce_level.nc
-    space_coord: ["ncells"]
-    vert_coord: ["level"]
   
   # FESOM oceanic healpix
   fesom-hpz5-nested:
