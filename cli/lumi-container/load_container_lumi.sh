@@ -47,6 +47,7 @@ singularity shell \
     --env PYTHONPATH=$AQUA \
     --env AQUA=$AQUA \
     --bind /pfs/lustrep3/ \
+    --bind /users/lrb_465000454_fdb/ \
     --bind /projappl/ \
     --bind /project \
     --bind /scratch/ \
