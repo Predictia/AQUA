@@ -171,7 +171,7 @@ sources:
     description: daily 2D oceanic data on native grid eORCA12.
     args:
       <<: *args-default
-      chunks: ME
+      chunks: MS
       savefreq: D
       request:
         <<: *request-default
@@ -234,7 +234,7 @@ sources:
     description: daily 2D oceanic data on regular r025 grid (1440x721).
     args:
       <<: *args-default
-      chunks: ME
+      chunks: MS
       savefreq: D
       request:
         <<: *request-default
@@ -296,7 +296,7 @@ sources:
     description: daily 2D oceanic data on healpix grid (zoom=7, h128).
     args:
       <<: *args-default
-      chunks: ME
+      chunks: MS
       savefreq: D
       request:
         <<: *request-default
@@ -316,7 +316,7 @@ sources:
     description: daily 2D oceanic data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      chunks: ME
+      chunks: MS
       savefreq: D
       request:
         <<: *request-default

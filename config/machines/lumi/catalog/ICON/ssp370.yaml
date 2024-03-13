@@ -61,7 +61,7 @@ sources:
     description: daily 2D oceanic data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      chunks: ME
+      chunks: MS
       savefreq: D
       request:
         <<: *request-default
