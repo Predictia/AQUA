@@ -31,7 +31,7 @@ sources:
       fdb_path: /work/bm1235/b382776/cycle4/fdb/native/etc/fdb/config.yaml
       eccodes_path: /work/bb1153/b382075/aqua/eccodes/eccodes-2.32.6/definitions
       variables: [78, 79, 134, 137, 141, 148, 151, 159, 164, 165, 166, 167, 168, 186, 187, 188, 235, 260048, 8, 9, 144, 146, 147, 169, 175, 176, 177, 178, 179, 180, 181, 182, 212, 228]
-      source_grid_name: tco2559
+      source_grid_name: tco1279
       fixer_name: ifs-destine-v1
  
   hourly-native-atm3d:
