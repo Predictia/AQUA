@@ -203,6 +203,32 @@ fixer_name:
                 source: sro
                 grib: true
                 decumulate: true 
+            lcc:
+                source: lcc
+                grib: true
+                src_units: frac
+                units: frac
+            10u:
+                source: 10u
+                grib: true
+                src_units: m s-1
+                units: m s-1
+            10v:
+                source: 10v
+                grib: true
+                src_units: m s-1
+                units: m s-1
+            2d: 
+                source: 2d
+                grib: true
+                src_units: K
+                units: K
+            2t: 
+                source: 2t
+                grib: true
+                src_units: K
+                units: K
+
 
     ifs-control:
         parent: IFS-default

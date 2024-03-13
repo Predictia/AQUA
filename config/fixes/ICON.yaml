@@ -257,6 +257,39 @@ fixer_name:
                 source: v
                 grib: true
 
+            #fixes for NextGems data    
+            cfh_lnd: 
+                source: cfh_lnd
+                src_units: m s**-1
+                units: m s**-1 
+            conc: 
+                source: conc
+                src_units: "1"
+                units: "1"
+            heat_content_seaice: 
+                source: heat_content_seaice
+                src_units: J/m**2
+                units: J/m**2
+            heat_content_snow: 
+                source: heat_content_snow
+                src_units: J/m**2
+                units: J/m**2
+            heat_content_total: 
+                source: heat_content_total
+                src_units: J/m**2
+                units: J/m**2
+            hydro_canopy_cond_limited_box: 
+                source: hydro_canopy_cond_limited_box
+                src_units: m/s
+                units: m/s
+            prls:
+                source: prls
+                src_units: kg m**-2 s**-1
+                units: kg m**-2 s**-1
+
+
+            
+
     ICON-cycle3:
         parent: ICON-default
         vars:
