@@ -1010,7 +1010,7 @@ class MainClass:
 
     def merge_list_of_histograms(self, path_to_histograms: str = None, start_year: int = None, end_year: int = None,
                              start_month: int = None, end_month: int = None, seasons_bool: bool = False,
-                             test: bool = False, tqdm: bool = True) -> xr.Dataset:
+                             test: bool = False, tqdm: bool = False) -> xr.Dataset:
         """
         Function to merge a list of histograms based on specified criteria. It supports merging by seasonal 
         categories or specific year and month ranges.
@@ -2062,7 +2062,7 @@ class MainClass:
                                       model_variable: str = None, path_to_netcdf: str = None, name_of_file: str = None,
                                       trop_lat: float = None, value: float = 0.95, rel_error: float = 0.1,
                                       new_unit: str = None, lon_length: int = None, lat_length: int = None,
-                                      space_grid_factor: int = None, tqdm: bool = True):
+                                      space_grid_factor: int = None, tqdm: bool = False):
         """ Function to plot.
 
         Args:
@@ -2181,7 +2181,7 @@ class MainClass:
     def add_localtime(self, data, model_variable: str = None, space_grid_factor: int = None,
                       time_length: int = None, trop_lat: float = None, new_unit: str = None,
                       path_to_netcdf: str = None, name_of_file: str = None, rebuild: bool = False,
-                      tqdm_enabled: bool = True) -> Union[xr.Dataset, None]:
+                      tqdm_enabled: bool = False) -> Union[xr.Dataset, None]:
         """
         Add a new dataset with local time based on the provided data.
 
