@@ -24,6 +24,8 @@ def parse_arguments(args):
                         required=False)
     parser.add_argument('--outputdir', type=str, help='output directory',
                         required=False)
+    parser.add_argument('--xmax', type=int, help='maximum value on horizontal axe',
+                        required=False)
     parser.add_argument('--nproc', type=int, required=False,
                         help='the number of processes to run in parallel',
                         default=4)
@@ -55,6 +57,8 @@ def validate_arguments(args):
         raise TypeError("Frequency value must be a string.")
     if args.outputdir and not isinstance(args.outputdir, str):
         raise TypeError("Output directory must be a string.")
+    if args.xmax and not isinstance(args.xmax, int):
+        raise TypeError("Xmax must be an integer.")
     if args.nproc and not isinstance(args.nproc, int):
         raise TypeError("The number of processes (nproc) must be an integer.")
 
