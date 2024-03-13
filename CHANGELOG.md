@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Adding the IFS-FESOM storylines simulation (#848)
+- `file_is_complete()` accounts also for the mindate attribute (#1007)
+- Introducing a `yearmonth` timestyle to access FDB data on monthly average (#1001)
 - Adding expected time calculation for weight generation (#701)
 - Vertical chunking for GSV intake access (#1003)
 

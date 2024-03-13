@@ -147,7 +147,7 @@ sources:
       chunks: {}
       xarray_kwargs:
         decode_times: true
-        combine: 'by_coords'
+        combine: by_coords
 
     metadata:
       source_grid_name: lon-lat
