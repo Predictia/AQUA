@@ -40,7 +40,9 @@ sources:
     description: hourly 3D atmospheric data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      chunks: 6h
+      chunks:
+        time: 6h
+        vertical: 10
       request:
         <<: *request-default
         param: 129
@@ -78,7 +80,9 @@ sources:
     args:
       <<: *args-default
       data_start_date: 20200401T0000
-      chunks: D
+      chunks:
+        time: D
+        vertical: 5
       savefreq: D
       request:
         <<: *request-default
@@ -108,7 +112,9 @@ sources:
     args:
       <<: *args-default
       data_start_date: 20200401T0000
-      chunks: D
+      chunks:
+        time: D
+        vertical: 5
       savefreq: D
       request:
         <<: *request-default
@@ -130,6 +136,7 @@ sources:
         4624.5, 4882.6, 5145.4, 5411.8, 5680.7, 5950.8]
       variables: [263507]
       source_grid_name: icon-hpz10-nested-3d
+  
   lra-r100-monthly:
     driver: netcdf
     description: LRA data monthly at r100

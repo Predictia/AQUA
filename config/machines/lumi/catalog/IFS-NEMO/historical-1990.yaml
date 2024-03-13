@@ -108,7 +108,9 @@ sources:
     description: hourly 3D atmospheric data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      chunks: 6H
+      chunks:
+        time: 6h
+        vertical: 10
       request:
         <<: *request-default
         resolution: high
@@ -371,7 +373,9 @@ sources:
     description: daily 3D oceanic data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      chunks: D
+      chunks:
+        time: D
+        vertical: 5
       savefreq: D
       request:
         <<: *request-default
