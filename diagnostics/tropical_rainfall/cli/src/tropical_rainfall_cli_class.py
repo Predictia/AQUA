@@ -24,7 +24,6 @@ class Tropical_Rainfall_CLI:
 
         self.color = config['plot']['color']
         self.figsize = config['plot']['figsize']
-        self.xmax = config['plot']['xmax']
         self.loc = config['plot']['loc']
         self.pdf_format = config['plot']['pdf_format']
 
@@ -39,9 +38,13 @@ class Tropical_Rainfall_CLI:
         nproc = get_arg(args, 'nproc', config['compute_resources']['nproc'])
         machine = config['machine']
         path_to_output = get_arg(args, 'outputdir', config['output'][machine])
+        self.xmax = get_arg(args, 'xmax', config['plot']['xmax'])
 
         self.mswep = config['mswep'][machine]
-
+        self.mswep_s_year = config['mswep']['s_year']
+        self.mswep_f_year = config['mswep']['f_year']
+        self.mswep_auto = config['mswep']['auto']
+        
         self.logger = log_configure(log_name="Trop. Rainfall CLI", log_level=self.loglevel)
 
         # Dask distributed cluster
@@ -137,7 +140,7 @@ class Tropical_Rainfall_CLI:
         """
         plot_title = f"Grid: {self.regrid}, frequency: {self.freq}"
         legend = f"{self.model} {self.exp}"
-        name_of_pdf = f"{self.model}_{self.exp}"
+        name_of_pdf = f"{self.model}_{self.exp}_{self.regrid}_{self.freq}"
         
         if 'm' in self.freq.lower() or 'y' in self.freq.lower():
             self.logger.debug("Contains 'M' or 'Y'. Setting xmax to 50 mm/day.")
@@ -178,10 +181,15 @@ class Tropical_Rainfall_CLI:
                             f"and frequency '{self.freq}' does not exist. Histograms for the "
                             "desired resolution and frequency have not been computed yet.")
             return
-        obs_interval = 1
-        obs_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path,
-                                                        start_year=self.s_year-obs_interval, end_year=self.f_year+obs_interval,
-                                                        start_month=self.s_month, end_month=self.f_month)
+        if self.mswep_auto or (self.mswep_s_year is not None and self.mswep_f_year is not None):
+            obs_interval = 10
+            obs_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path,
+                                                            start_year=self.s_year-obs_interval, end_year=self.f_year+obs_interval,
+                                                            start_month=self.s_month, end_month=self.f_month)
+        else:
+            obs_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path,
+                                                            start_year=self.mswep_s_year, end_year=self.mswep_f_year,
+                                                            start_month=self.s_month, end_month=self.f_month)
         self.logger.info(f"The MSWEP data with resolution '{self.regrid}' and frequency '{self.freq}' are prepared for comparison.")
         
         pdf, pdfP = True, False # Set your PDF flag as needed
@@ -190,67 +198,3 @@ class Tropical_Rainfall_CLI:
         self.process_histograms(pdf_flag=pdfP, pdfP_flag=pdfP, model_merged=model_merged, obs_merged=obs_merged)
         
         self.logger.info("The Tropical Rainfall diagnostic is terminated.")
-        
-    def daily_variability(self):
-        """
-        Evaluates the daily variability of the dataset based on the specified model variable and frequency.
-        This method specifically processes datasets with an hourly frequency ('h' or 'H') by slicing the first
-        and last weeks of data within the defined start and final year and month range. It supports optional
-        regridding of the data for these periods. The method adds localized time information to the sliced
-        datasets and saves this information for further diagnostic analysis.
-        """
-        if 'h' in self.freq.lower():
-            self.logger.debug("Contains 'h' or 'H'")
-            full_dataset = self.reader.retrieve(var=self.model_variable)
-            regrid_bool, freq_bool = self.need_regrid_timmean(full_dataset)
-            self.s_year, self.f_year = adjust_year_range_based_on_dataset(full_dataset, start_year=self.s_year,
-                                                                          final_year=self.f_year)
-
-            # Ensure months are defined
-            s_month = 1 if self.s_month is None else self.s_month
-            f_month = 12 if self.f_month is None else self.f_month
-
-            days=5
-
-            # Define the start and end dates for selection
-            start_date = pd.Timestamp(year=self.s_year, month=s_month, day=1)
-            end_date = start_date + pd.Timedelta(days=days)
-            # Slice the dataset for the first week
-            first_week_data = full_dataset.sel(time=slice(start_date, end_date))
-            
-            last_date = pd.to_datetime(full_dataset['time'].max().values)
-            f_month = min(last_date.month, f_month)
-            end_date = pd.Timestamp(year=self.f_year, month=f_month, day=1) + pd.offsets.MonthEnd(1)
-            # Calculate the start date for the last week by subtracting 6 days from the end_date
-            start_date_last_week = end_date - pd.Timedelta(days=days)
-            # Now select the last week of data
-            last_week_data = full_dataset.sel(time=slice(start_date_last_week, end_date))
-            
-            if regrid_bool:
-                first_week_data = self.reader.regrid(first_week_data)
-                last_week_data = self.reader.regrid(last_week_data)
-            self.diag.add_localtime(first_week_data, name_of_file="first_week", rebuild=self.rebuild_output)
-            self.diag.add_localtime(last_week_data, name_of_file="last_week")
-        else:
-            self.logger.warning("Data appears to be not in hourly intervals. The CLI will not provide the netcdf of daily variability.")
-            
-    def plot_daily_variability(self):
-        if 'h' in self.freq.lower():
-            self.logger.debug("Contains 'h' or 'H'")
-            legend = f"{self.model} {self.exp}"
-            name_of_pdf =f"{self.model}_{self.exp}"
-            path_to_output = f"{self.diag.path_to_netcdf}daily_variability/"
-            
-            keys=["daily_variability", "first_week"]
-            filename = self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys, get_path=True)
-            add = self.diag.daily_variability_plot(path_to_netcdf=filename, legend=legend+' first_week', color='tab:red',
-                                                path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, 
-                                                name_of_file=name_of_pdf)
-            
-            keys=["daily_variability", "last_week"]
-            filename = self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys, get_path=True)
-            add = self.diag.daily_variability_plot(path_to_netcdf=filename, legend=legend+' last_week', color='tab:green', add=add,
-                                                linestyle='--', path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format,
-                                                name_of_file=name_of_pdf)
-        else:
-            self.logger.warning("Data appears to be not in hourly intervals. The CLI will not provide the plot of daily variability.")
