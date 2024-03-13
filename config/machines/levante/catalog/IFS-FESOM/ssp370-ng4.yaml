@@ -318,7 +318,7 @@ sources:
       fdb_path: /work/bm1235/b382776/cycle4/fdb2/healpix/etc/fdb/config.yaml
       source_grid_name: hpz7-nested
 
-hourly-hpz7-atm3d-fdb2:
+  hourly-hpz7-atm3d-fdb2:
     <<: *base-default
     description: hourly 3D atmospheric data on healpix grid (zoom=7, h128).
     args:
@@ -401,7 +401,7 @@ hourly-hpz7-atm3d-fdb2:
       fdb_path: /work/bm1235/b382776/cycle4/fdb3/healpix/etc/fdb/config.yaml
       source_grid_name: hpz7-nested
 
-hourly-hpz7-atm3d-fdb3:
+  hourly-hpz7-atm3d-fdb3:
     <<: *base-default
     description: hourly 3D atmospheric data on healpix grid (zoom=7, h128).
     args:
@@ -484,7 +484,7 @@ hourly-hpz7-atm3d-fdb3:
       fdb_path: /work/bm1235/b382776/cycle4/fdb4/healpix/etc/fdb/config.yaml
       source_grid_name: hpz7-nested
 
-hourly-hpz7-atm3d-fdb4:
+  hourly-hpz7-atm3d-fdb4:
     <<: *base-default
     description: hourly 3D atmospheric data on healpix grid (zoom=7, h128).
     args:
