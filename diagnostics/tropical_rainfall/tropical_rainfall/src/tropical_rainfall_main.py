@@ -1314,8 +1314,7 @@ class MainClass:
             data = self.convert_counts_to_pdfP(data,  test=test)
             self.logger.debug("Generating a histogram to visualize the PDFP...")
 
-        x = data.center_of_bin.values
-
+        x = self.precipitation_rate_units_converter(data.center_of_bin, new_unit=self.new_unit).values
         if self.new_unit is None:
             xlabel = self.model_variable+", ["+str(data.attrs['units'])+"]"
         else:
