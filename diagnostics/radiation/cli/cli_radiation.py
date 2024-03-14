@@ -86,6 +86,17 @@ if __name__ == '__main__':
         logger.error("Radiation diagnostic is terminated.")
         sys.exit(0)  # remove @ and change loggers
 
+    if bias_maps_bool:
+        for var in ['mtnlwrf', 'mtnswrf', 'tnr']:
+            try:
+                plot_mean_bias(model=model_data, var=var, ceres=ceres,
+                               outputdir=outputdir, outputfig=outputfig, loglevel=loglevel, statistics=True)
+                logger.info(
+                    f"The mean bias of the data over the specified time range is calculated, plotted, and saved for {var} variable.")
+            except Exception as e:
+                # Handle other exceptions
+                logger.error(f"An unexpected error occurred: {e}")
+    
     if box_plot_bool:
         try:
             datasets = [ceres, model_data]
@@ -94,17 +105,6 @@ if __name__ == '__main__':
         except Exception as e:
             # Handle other exceptions
             logger.error(f"An unexpected error occurred: {e}")
-
-    if bias_maps_bool:
-        for var in ['mtnlwrf', 'mtnswrf', 'tnr']:
-            try:
-                plot_mean_bias(model=model_data, var=var, ceres=ceres,
-                               outputdir=outputdir, outputfig=outputfig, loglevel=loglevel)
-                logger.info(
-                    f"The mean bias of the data over the specified time range is calculated, plotted, and saved for {var} variable.")
-            except Exception as e:
-                # Handle other exceptions
-                logger.error(f"An unexpected error occurred: {e}")
 
     if time_series_bool:
         try:
