@@ -105,7 +105,7 @@ fixer_name:
         deltat: 3600
         jump: month
         vars:
-            tprate:
+            mtpr:
                 source: tp
                 grib: true
                 decumulate: true
@@ -197,17 +197,17 @@ fixer_name:
                 decumulate: true 
 
     ifs-control:
-        parent: ifs-default
+        parent: IFS-default
         method: merge
         vars:
-            tprate:
+            mtpr:
                 source: tprate
     
     ifs-cycle3:
         # for this exp we have a lot of output from MultI/O, already decumulated and
         # averaged monthly, so default is without decumulation
         vars:
-            tprate:
+            mtpr:
                 src_units: m s**-1
                 source: tp
                 grib: true
@@ -282,51 +282,51 @@ models:
             hourly-1deg:
                 method: merge
                 vars:
-                    tprate:
+                    mtpr:
                         source: tprate
             hourly-native:
                 method: merge
                 vars:
-                    tprate:
+                    mtpr:
                         source: tprate
             monthly-1deg-2d:
                 method: merge
                 vars:
-                    tprate:
+                    mtpr:
                         source: tprate
 
         historical-1990-fesom-dev:
             hourly-1deg:
                 method: merge
                 vars:
-                    tprate:
+                    mtpr:
                         source: tprate
             hourly-native:
                 method: merge
                 vars:
-                    tprate:
+                    mtpr:
                         source: tprate
             monthly-1deg-2d:
                 method: merge
                 vars:
-                    tprate:
+                    mtpr:
                         source: tprate
 
         historical-1990-nemo-dev:
             hourly-1deg:
                 method: merge
                 vars:
-                    tprate:
+                    mtpr:
                         source: tprate
             hourly-native:
                 method: merge
                 vars:
-                    tprate:
+                    mtpr:
                         source: tprate
             monthly-1deg-2d:
                 method: merge
                 vars:
-                    tprate:
+                    mtpr:
                         source: tprate
 
         test-tco79:

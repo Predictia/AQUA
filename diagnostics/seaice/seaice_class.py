@@ -7,7 +7,7 @@ from aqua import Reader
 from aqua.exceptions import NoDataError
 from aqua.util import load_yaml, create_folder
 from aqua.logger import log_configure
-import numpy as np
+from aqua.graphics import plot_seasonalcycle
 
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
@@ -347,6 +347,9 @@ class SeaIceExtent:
                     dataset.to_netcdf(filename)
 
 
+class SeaIceVolume:
+    pass
+
 
 class SeaIceConcentration:
     def __init__(self, config, loglevel: str = 'WARNING',
@@ -530,4 +533,8 @@ class SeaIceConcentration:
 
             fig1.suptitle(monthNames[month_diagnostic - 1] + ' sea ice concentration ')
             fig1.savefig(self.outputdir + "./maps_" + hemi + ".pdf") 
+
+
+class SeaIceThickness:
+    pass
         

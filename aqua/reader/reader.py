@@ -283,7 +283,10 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
                 self._make_weights_file(self.weightsfile[vc], source_grid,
                                         cfg_regrid, regrid=self.dst_grid_name,
                                         vert_coord=vc, extra=[],
-                                        zoom=self.zoom, method=self.regrid_method)
+                                        zoom=self.zoom, method=self.regrid_method,
+                                        original_grid_size=self.grid_area.size,
+                                        nproc = self.nproc)
+
 
             self.weights.update({vc: xr.open_mfdataset(self.weightsfile[vc])})
             vc2 = None if vc == "2d" or vc == "2dm" else vc
@@ -653,7 +656,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
                         data[var] = data[var].expand_dims(dim=coord_exp, axis=1)
                     self.logger.debug(f"Expanding variables {expand_list} with vertical dimension {coord_exp}")
                     if len(idx) > 1:
-                        self.logger.warning(f"Found more than one idx_ coordinate for expanded variables, did you select slices of multiple vertical coordinates? Results may not be correct.")
+                        self.logger.warning("Found more than one idx_ coordinate for expanded variables, did you select slices of multiple vertical coordinates? Results may not be correct.")
 
             else:  # assume DataArray
                 if not list(set(data.dims) & set(self.vert_coord)):
@@ -917,6 +920,55 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         final = data.interp({vert_coord: levels}, method=method)
 
         return final
+
+    def detrend(self, data, dim="time", degree=1, skipna=True):
+        """
+        A basic detrending routine based on polyfit and polyval xarray functions
+        within AQUA. Given an xarray object, will provide the detrended timeseries,
+        by default working along time coordinate
+        If it is a Dataset, only variables with the required
+        coordinate will be detrended.
+
+        Args:
+            data (DataArray, Dataset): your dataset
+            dim (str): The dimension along which apply detrending
+            degree (str, optional): The degree of the polinominal fit. Default is 1, i.e. linear detrend
+            skinpna (bool, optional): skip or not the NaN
+
+        Return
+            A detrended DataArray or a Dataset 
+        """
+
+        if isinstance(data, xr.DataArray):
+            final = self._detrend(data=data, dim=dim, degree=degree, skipna=skipna)
+
+        elif isinstance(data, xr.Dataset):
+            selected_vars = [da for da in data.data_vars if dim in data[da].coords]
+            final = data[selected_vars].map(self._detrend, keep_attrs=True, 
+                                            dim=dim, degree=degree, skipna=skipna)
+        else:
+            raise ValueError('This is not an xarray object!')
+
+        final = log_history(final, f"Detrended with polynominal of order {degree} along {dim} dimension")
+
+        # This links the dataset accessor to this instance of the Reader class
+        final.aqua.set_default(self)
+
+        return final
+
+    def _detrend(self, data, dim="time", degree=1, skipna=True):
+        """
+        Detrend a DataArray along a single dimension.
+        Taken from https://ncar.github.io/esds/posts/2022/dask-debug-detrend/
+        According to the post, current implementation is not the most efficient one.
+        """
+
+        # calculate polynomial coefficients
+        p = data.polyfit(dim=dim, deg=degree, skipna=skipna)
+        # evaluate trend
+        fit = xr.polyval(data[dim], p.polyfit_coefficients)
+        # remove the trend
+        return data - fit
 
     def reader_esm(self, esmcat, var):
         """Reads intake-esm entry. Returns a dataset."""
