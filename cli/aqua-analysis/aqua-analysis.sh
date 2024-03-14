@@ -115,7 +115,7 @@ atm_extra_args["teleconnections"]="${atm_extra_args["teleconnections"]} \
 oce_extra_args["teleconnections"]="${oce_extra_args["teleconnections"]} \
 --config cli_config_oce.yaml --ref"
 # Concatenate the new part to the existing content
-atm_extra_args["tropical_rainfall"]="--regrid=r100 --freq=M"
+atm_extra_args["tropical_rainfall"]="--regrid=r100 --freq=M --xmax=75"
 # End of user defined variables
 # ---------------------------------------------------
 # Command line extra arguments for seasonal_cycles:
@@ -124,6 +124,12 @@ atm_extra_args["tropical_rainfall"]="--regrid=r100 --freq=M"
 atm_extra_args["seasonal_cycles"]="${atm_extra_args["seasonal_cycles"]} \
 --config ${aqua}/diagnostics/global_time_series/cli/config_seasonal_cycles_atm.yaml"
 # -----------------------------
+# Command line extra arguments for ocean3d:
+#
+oce_extra_args["ocean3d_circulation"]="${atm_extra_args["ocean3d_circulation"]} \
+--config ${aqua}/diagnostics/ocean3d/cli/config.circulation.yaml"
+oce_extra_args["ocean3d_drift"]="${atm_extra_args["ocean3d_drift"]} \
+--config ${aqua}/diagnostics/ocean3d/cli/config.drift.yaml"
 
 # Trap Ctrl-C to clean up and kill the entire process group
 trap 'kill 0' SIGINT
@@ -218,7 +224,7 @@ if [ $distributed -eq 1 ]; then
   atm_extra_args["tropical_rainfall"]="${atm_extra_args['tropical_rainfall']} --nworkers 16"
   oce_extra_args["global_time_series"]="${oce_extra_args['global_time_series']} --nworkers 8"
   oce_extra_args["ocean3d_drift"]="${oce_extra_args['ocean3d_drift']} --nworkers 8"
-  oce_extra_args["ocean3d_circulations"]="${oce_extra_args['ocean3d_circulation']} --nworkers 20"
+  oce_extra_args["ocean3d_circulation"]="${oce_extra_args['ocean3d_circulation']} --nworkers 4"
   oce_extra_args["seaice"]="${oce_extra_args['seaice']} --nworkers 4"
   oce_extra_args["teleconnections"]="${oce_extra_args['teleconnections']} --nworkers 4"
   atm_oce_extra_args["ecmean"]="${atm_oce_extra_args['ecmean']} --nworkers 4"
