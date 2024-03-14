@@ -41,6 +41,7 @@ AQUA core complete list:
 - Renaming the `tprate` variable into `mtpr` in all fixes (#944)
 
 AQUA diagnostic complete list:
+- Tropical rainfall: enhancements of plotting and performance, files path correction (#997)
 - Timeseries: seasonal cycle runs as a separate cli in aqua-analysis for performance speed-up (#982)
 - Timeseries: seasonal cycle is added if reference data are not available in some timespan (#974)
 - Tropical rainfall: Removing unnecessary printing during the CLI, optimazing the CLi for low and high-resolution data (#963)
