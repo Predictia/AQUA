@@ -147,134 +147,115 @@ class Tropical_Rainfall_CLI:
         self.logger.info("The histograms are calculated and saved in storage.")
         return None
 
-    def process_histograms(self, pdf_flag, pdfP_flag, model_merged, mswep_merged, imerg_merged, #era5_merged,
-                           linestyle='--'):
+    def get_merged_histogram_for_source(self, source_info, default_interval=10):
         """
-        Generates and saves histograms for model and observational data, with options for PDF and PDF*P plots.
+        Merges histogram data for a given source based on specified parameters or defaults.
         """
-        plot_title = f"Grid: {self.regrid}, frequency: {self.freq}"
-        legend = f"{self.model} {self.exp}"
-        name_of_pdf = f"{self.model}_{self.exp}_{self.regrid}_{self.freq}"
+        folder_name = 'yearly_grouped' if self.s_month is None and self.f_month is None else 'monthly_grouped'
+        folder_path = os.path.join(source_info['path'], self.regrid, self.freq, folder_name)
+        self.logger.info(f"The path to {source_info['name']} data is {folder_path}")
 
-        add = self.diag.histogram_plot(model_merged, figsize=self.figsize, new_unit=self.new_unit,
-                                       pdf=pdf_flag, pdfP=pdfP_flag, legend=legend, color=self.color, xmax=self.xmax,
-                                       linewidth=3, linestyle='-',
-                                       plot_title=plot_title, loc=self.loc, path_to_pdf=self.path_to_pdf,
-                                       pdf_format=self.pdf_format, name_of_file=name_of_pdf)
+        if not os.path.exists(folder_path):
+            self.logger.error(f"Error: The folder for {source_info['name']} data with resolution '{self.regrid}' "
+                              f"and frequency '{self.freq}' does not exist.")
+            return None
 
-        self.diag.histogram_plot(mswep_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
-                                 pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color='tab:red',
-                                 legend="MSWEP", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
-                                 path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
-        
-        self.diag.histogram_plot(imerg_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
-                                 pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color='tab:blue',
-                                 legend="IMERG", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
-                                 path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
-        
-        #self.diag.histogram_plot(era5_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
-        #                         pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color='tab:orange',
-        #                         legend="ERA5", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
-        #                         path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
+        start_year = self.s_year - default_interval if source_info.get('auto', False) else source_info.get('s_year', self.s_year)
+        end_year = self.f_year + default_interval if source_info.get('auto', False) else source_info.get('f_year', self.f_year)
 
-        self.logger.info("The histograms are plotted and saved in storage.")
-    
+        return self.diag.merge_list_of_histograms(
+            path_to_histograms=folder_path,
+            start_year=start_year, end_year=end_year,
+            start_month=self.s_month, end_month=self.f_month
+        )
+
     def plot_histograms(self):
         """
-        Generates and saves histogram plots for the specified model, experiment, and source data over a defined period.
-        The function constructs plot titles and legends based on model, experiment, and source details. It merges 
-        histograms from specified paths and plots them, including comparative histograms with MSWEP data when available. 
-        The absence of MSWEP data is handled gracefully with an error log.
+        Optimized method to handle the merging and plotting of histograms from multiple sources.
         """
-        self.logger.debug(f"The path to file is: {self.path_to_netcdf}{self.regrid}/{self.freq}/histograms/.")
         hist_path = f"{self.path_to_netcdf}histograms/"
         hist_buffer_path = f"{self.path_to_buffer}{self.regrid}/{self.freq}/histograms/"
         bins_info = self.diag.get_bins_info()
-        name_of_file = f"{self.model}_{self.exp}_{self.regrid}_{self.freq}"
+        model_merged = self.diag.merge_list_of_histograms(
+            path_to_histograms=hist_buffer_path,
+            start_year=self.s_year, end_year=self.f_year,
+            start_month=self.s_month, end_month=self.f_month,
+            flag=bins_info
+        )
+        self.diag.dataset_to_netcdf(model_merged, path_to_netcdf=hist_path, name_of_file=f'histogram_{self.model}_{self.exp}_{self.regrid}_{self.freq}')
+        
+        # Define source information for MSWEP, IMERG, ERA5
+        sources = [
+            {'name': 'MSWEP', 'path': self.mswep, 's_year': self.mswep_s_year, 'f_year': self.mswep_f_year, 'auto': self.mswep_auto},
+            {'name': 'IMERG', 'path': self.imerg, 's_year': self.imerg_s_year, 'f_year': self.imerg_f_year, 'auto': self.imerg_auto},
+            {'name': 'ERA5', 'path': self.era5, 's_year': self.era5_s_year, 'f_year': self.era5_f_year, 'auto': self.era5_auto}
+        ]
 
-        model_merged = self.diag.merge_list_of_histograms(path_to_histograms=hist_buffer_path,
-                                                        start_year=self.s_year, end_year=self.f_year,
-                                                        start_month=self.s_month, end_month=self.f_month,
-                                                        flag=bins_info)
-        self.diag.dataset_to_netcdf(model_merged, path_to_netcdf=hist_path, name_of_file='histogram_'+name_of_file)
-        
-        # MSWEP
-        if self.s_month is None and self.f_month is None:
-            mswep_folder_path = os.path.join(self.mswep, self.regrid, self.freq, 'yearly_grouped')
-        else:
-            mswep_folder_path = os.path.join(self.mswep, self.regrid, self.freq, 'monthly_grouped')
-        self.logger.info(f"The path to MSWEP data is  {mswep_folder_path}")
-        if not os.path.exists(mswep_folder_path):
-            self.logger.error(f"Error: The folder for MSWEP data with resolution '{self.regrid}' "
-                              f"and frequency '{self.freq}' does not exist. Histograms for the "
-                              "desired resolution and frequency have not been computed yet.")
-            return
-        if self.mswep_auto or (self.mswep_s_year is None and self.mswep_f_year is None):
-            obs_interval = 10
-            mswep_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path,
-                                                              start_year=self.s_year-obs_interval, end_year=self.f_year+obs_interval,
-                                                              start_month=self.s_month, end_month=self.f_month)
-        else:
-            mswep_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path,
-                                                              start_year=self.mswep_s_year, end_year=self.mswep_f_year,
-                                                              start_month=self.s_month, end_month=self.f_month)
-        self.diag.dataset_to_netcdf(mswep_merged, path_to_netcdf=hist_path, name_of_file=f"histogram_MSWEP_{self.regrid}_{self.freq}")
-        
-        
-        # IMERG
-        if self.s_month is None and self.f_month is None:
-            imerg_folder_path = os.path.join(self.imerg, self.regrid, self.freq, 'yearly_grouped')
-        else:
-            imerg_folder_path = os.path.join(self.imerg, self.regrid, self.freq, 'monthly_grouped')
-        self.logger.info(f"The path to IMERG data is  {imerg_folder_path}")
-        if not os.path.exists(imerg_folder_path):
-            self.logger.error(f"Error: The folder for IMERG data with resolution '{self.regrid}' "
-                              f"and frequency '{self.freq}' does not exist. Histograms for the "
-                              "desired resolution and frequency have not been computed yet.")
-            return
-        if self.imerg_auto or (self.imerg_s_year is None and self.imerg_f_year is None):
-            obs_interval = 10
-            imerg_merged = self.diag.merge_list_of_histograms(path_to_histograms=imerg_folder_path,
-                                                              start_year=self.s_year-obs_interval, end_year=self.f_year+obs_interval,
-                                                              start_month=self.s_month, end_month=self.f_month)
-        else:
-            imerg_merged = self.diag.merge_list_of_histograms(path_to_histograms=imerg_folder_path,
-                                                              start_year=self.imerg_s_year, end_year=self.imerg_f_year,
-                                                              start_month=self.s_month, end_month=self.f_month)
-        self.diag.dataset_to_netcdf(imerg_merged, path_to_netcdf=hist_path, name_of_file=f"histogram_IMERG_{self.regrid}_{self.freq}")
-        
-        self.logger.info(f"The IMERG data with resolution '{self.regrid}' and frequency '{self.freq}' are prepared for comparison.")
-        
-        
-        """ 
-        # ERA5
-        if self.s_month is None and self.f_month is None:
-            era5_folder_path = os.path.join(self.era5, self.regrid, self.freq, 'yearly_grouped')
-        else:
-            era5_folder_path = os.path.join(self.era5, self.regrid, self.freq, 'monthly_grouped')
-        self.logger.info(f"The path to ERA5 data is  {era5_folder_path}")
-        if not os.path.exists(era5_folder_path):
-            self.logger.error(f"Error: The folder for ERA5 data with resolution '{self.regrid}' "
-                              f"and frequency '{self.freq}' does not exist. Histograms for the "
-                              "desired resolution and frequency have not been computed yet.")
-            return
-        if self.era5_auto or (self.era5_s_year is None and self.era5_f_year is None):
-            obs_interval = 10
-            era5_merged = self.diag.merge_list_of_histograms(path_to_histograms=era5_folder_path,
-                                                              start_year=self.s_year-obs_interval, end_year=self.f_year+obs_interval,
-                                                              start_month=self.s_month, end_month=self.f_month)
-        else:
-            era5_merged = self.diag.merge_list_of_histograms(path_to_histograms=era5_folder_path,
-                                                              start_year=self.era5_s_year, end_year=self.era5_f_year,
-                                                              start_month=self.s_month, end_month=self.f_month)
-        self.diag.dataset_to_netcdf(era5_merged, path_to_netcdf=hist_path, name_of_file=f"histogram_ERA5_{self.regrid}_{self.freq}")
-        """
-        
-        pdf, pdfP = True, False # Set your PDF flag as needed
-        self.process_histograms(pdf_flag=pdf, pdfP_flag=pdfP, model_merged=model_merged, mswep_merged=mswep_merged,
-                                imerg_merged=imerg_merged) #, era5_merged=era5_merged)
-        pdf, pdfP = False, True  # Set your PDF flag as needed
-        self.process_histograms(pdf_flag=pdfP, pdfP_flag=pdfP, model_merged=model_merged, mswep_merged=mswep_merged,
-                                imerg_merged=imerg_merged) #, era5_merged=era5_merged)
-        
+        # Loop through each source and process
+        for source in sources:
+            merged_data = self.get_merged_histogram_for_source(source)
+            if merged_data is not None:
+                self.diag.dataset_to_netcdf(
+                    merged_data, path_to_netcdf=hist_path,
+                    name_of_file=f"histogram_{source['name']}_{self.regrid}_{self.freq}"
+                )
+
+        # Example call to process_histograms, set flags as necessary
+        pdf, pdfP = True, False
+        self.process_histograms(pdf_flag=pdf, pdfP_flag=pdfP, model_merged=model_merged,
+                                mswep_merged=self.get_merged_histogram_for_source(sources[0]),
+                                imerg_merged=self.get_merged_histogram_for_source(sources[1]),
+                                era5_merged=self.get_merged_histogram_for_source(sources[2]))
+
         self.logger.info("The Tropical Rainfall diagnostic is terminated.")
+        
+    def process_histograms(self, pdf_flag, pdfP_flag, model_merged=None, mswep_merged=None, 
+                       imerg_merged=None, era5_merged=None, linestyle='--'):
+        """
+        Generates and saves histograms for model and observational data, with options for PDF and PDF*P plots.
+        Allows for some datasets to be None, in which case those plots are skipped.
+        """
+        plot_title = f"Grid: {self.regrid}, frequency: {self.freq}"
+        legend_model = f"{self.model} {self.exp}"
+        name_of_pdf = f"{self.model}_{self.exp}_{self.regrid}_{self.freq}"
+
+        # Initial plot with model data if it exists
+        if model_merged is not None:
+            add = self.diag.histogram_plot(model_merged, figsize=self.figsize, new_unit=self.new_unit, pdf=pdf_flag,
+                                        pdfP=pdfP_flag, legend=legend_model, color=self.color, xmax=self.xmax,
+                                        plot_title=plot_title, loc=self.loc, path_to_pdf=self.path_to_pdf,
+                                        pdf_format=self.pdf_format, name_of_file=name_of_pdf)
+        else:
+            add = False  # Ensures that additional plots can be added to an existing plot if the model data is unavailable
+
+        # Subsequent plots for each dataset
+        if mswep_merged is not None:
+            self.diag.histogram_plot(mswep_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
+                                    pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color='tab:red',
+                                    legend="MSWEP", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
+                                    path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
+            self.logger.info("Plotting MSWEP data for comparison.")
+        else:
+            self.logger.warning("MSWEP data with a proper resolution is NOT found for comparison.")
+
+        if imerg_merged is not None:
+            self.diag.histogram_plot(imerg_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
+                                    pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color='tab:blue',
+                                    legend="IMERG", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
+                                    path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
+            self.logger.info("Plotting IMERG data for comparison.")
+        else:
+            self.logger.warning("IMERG data with a proper resolution is NOT found for comparison.")
+
+        if era5_merged is not None:
+            self.diag.histogram_plot(era5_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
+                                    pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color='tab:orange',
+                                    legend="ERA5", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
+                                    path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
+            
+            self.logger.info("Plotting ERA5 data for comparison.")
+        else:
+            self.logger.warning("ERA5 data with a proper resolution is NOT found for comparison.")
+        self.logger.info("Histogram plots (as available) have been generated and saved.")
+    
+    
