@@ -32,11 +32,29 @@ output:
   levante: "/work/bb1153/b382267/tropical_rainfall_cicle3/cli_test/"  # File path for Levante machine
   lumi: "/pfs/lustrep3/projappl/project_465000454/nazarova/output/cli_test/"
 
+buffer:
+  levante: "/scratch/b/b382267/cli_test/"
+  lumi: "/pfs/lustrep3/scratch/project_465000454/nazarova/cli_test/"
+
 mswep:
   levante: "/work/bb1153/b382267/observations/MSWEP/"  # File path for Levante machine
   lumi: "/pfs/lustrep3/projappl/project_465000454/nazarova/observations/MSWEP/"
   s_year:  1990           # Start year for analysis, 'null' means it will be set dynamically
   f_year:  2021           # Final year for analysis, 'null' means it will be set dynamically
+  auto: False             # will be set dynamically
+
+era5:
+  levante: "/work/bb1153/b382267/observations/ERA5/"  # File path for Levante machine
+  lumi: "/pfs/lustrep3/projappl/project_465000454/nazarova/observations/ERA5/"
+  s_year:  None           # Start year for analysis, 'null' means it will be set dynamically
+  f_year:  None           # Final year for analysis, 'null' means it will be set dynamically
+  auto: False             # will be set dynamically
+
+imerg:
+  levante: "/work/bb1153/b382267/observations/IMERG/"  # File path for Levante machine
+  lumi: "/pfs/lustrep3/projappl/project_465000454/nazarova/observations/IMERG/"
+  s_year:  2000           # Start year for analysis, 'null' means it will be set dynamically
+  f_year:  2023           # Final year for analysis, 'null' means it will be set dynamically
   auto: False             # will be set dynamically
 
 logger:
