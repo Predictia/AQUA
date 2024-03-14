@@ -38,13 +38,15 @@ class Tropical_Rainfall_CLI:
         nproc = get_arg(args, 'nproc', config['compute_resources']['nproc'])
         machine = config['machine']
         path_to_output = get_arg(args, 'outputdir', config['output'][machine])
+        path_to_buffer = get_arg(args, 'bufferdir', config['buffer'][machine])
+
         self.xmax = get_arg(args, 'xmax', config['plot']['xmax'])
 
         self.mswep = config['mswep'][machine]
         self.mswep_s_year = config['mswep']['s_year']
         self.mswep_f_year = config['mswep']['f_year']
         self.mswep_auto = config['mswep']['auto']
-        
+  
         self.logger = log_configure(log_name="Trop. Rainfall CLI", log_level=self.loglevel)
 
         # Dask distributed cluster
@@ -59,6 +61,7 @@ class Tropical_Rainfall_CLI:
         if path_to_output is not None:
             self.path_to_netcdf = os.path.join(path_to_output, f'netcdf/{self.model}_{self.exp}/')
             self.path_to_pdf = os.path.join(path_to_output, f'pdf/{self.model}_{self.exp}/')
+            self.path_to_buffer = os.path.join(path_to_buffer, f'netcdf/{self.model}_{self.exp}/')
         else:
             self.path_to_netcdf = self.path_to_pdf = None
 
@@ -100,7 +103,7 @@ class Tropical_Rainfall_CLI:
             data_per_year = full_dataset.sel(time=str(year))
             if data_per_year.time.size != 0:
                 for x in range(s_month, f_month+1):
-                    path_to_output = self.path_to_netcdf+f"{self.regrid}/{self.freq}/histograms/"
+                    path_to_output = self.path_to_buffer+f"{self.regrid}/{self.freq}/histograms/"
 
                     bins_info = self.diag.get_bins_info()
                     keys = [f"{bins_info}_{year}-{x:02}", self.model, self.exp, self.regrid, self.freq]
@@ -162,13 +165,17 @@ class Tropical_Rainfall_CLI:
         The absence of MSWEP data is handled gracefully with an error log.
         """
         self.logger.debug(f"The path to file is: {self.path_to_netcdf}{self.regrid}/{self.freq}/histograms/.")
-        hist_path = f"{self.path_to_netcdf}{self.regrid}/{self.freq}/histograms/"
+        hist_path = f"{self.path_to_netcdf}histograms/"
+        hist_buffer_path = f"{self.path_to_buffer}{self.regrid}/{self.freq}/histograms/"
         bins_info = self.diag.get_bins_info()
-        model_merged = self.diag.merge_list_of_histograms(path_to_histograms=hist_path,
+        name_of_file = f"{self.model}_{self.exp}_{self.regrid}_{self.freq}"
+
+        model_merged = self.diag.merge_list_of_histograms(path_to_histograms=hist_buffer_path,
                                                         start_year=self.s_year, end_year=self.f_year,
                                                         start_month=self.s_month, end_month=self.f_month,
                                                         flag=bins_info)
 
+        self.diag.dataset_to_netcdf(model_merged, path_to_netcdf=hist_path, name_of_file='histogram_'+name_of_file)
         if self.s_month is None and self.f_month is None:
             mswep_folder_path = os.path.join(self.mswep, self.regrid, self.freq, 'yearly_grouped')
         else:
@@ -188,6 +195,7 @@ class Tropical_Rainfall_CLI:
             obs_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path,
                                                             start_year=self.mswep_s_year, end_year=self.mswep_f_year,
                                                             start_month=self.s_month, end_month=self.f_month)
+        self.diag.dataset_to_netcdf(obs_merged, path_to_netcdf=hist_path, name_of_file=f"histogram_MSWEP_{self.regrid}_{self.freq}")
         self.logger.info(f"The MSWEP data with resolution '{self.regrid}' and frequency '{self.freq}' are prepared for comparison.")
         
         pdf, pdfP = True, False # Set your PDF flag as needed
