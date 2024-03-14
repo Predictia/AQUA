@@ -12,6 +12,7 @@ AQUA core complete list:
 - `file_is_complete()` accounts also for the mindate attribute (#1007)
 - Introducing a `yearmonth` timestyle to access FDB data on monthly average (#1001)
 - Adding expected time calculation for weight generation (#701)
+- Vertical chunking for GSV intake access (#1003)
 
 AQUA diagnostics complete list:
 
