@@ -115,7 +115,7 @@ atm_extra_args["teleconnections"]="${atm_extra_args["teleconnections"]} \
 oce_extra_args["teleconnections"]="${oce_extra_args["teleconnections"]} \
 --config cli_config_oce.yaml --ref"
 # Concatenate the new part to the existing content
-atm_extra_args["tropical_rainfall"]="--regrid=r100 --freq=M"
+atm_extra_args["tropical_rainfall"]="--regrid=r100 --freq=M --xmax=75"
 # End of user defined variables
 # ---------------------------------------------------
 # Command line extra arguments for seasonal_cycles:
