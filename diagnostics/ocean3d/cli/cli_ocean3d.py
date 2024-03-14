@@ -14,7 +14,7 @@ from ocean3d import load_obs_data
 
 from ocean3d import hovmoller_plot
 from ocean3d import time_series
-from ocean3d import multilevel_t_s_trend_plot
+from ocean3d import linear_trend
 from ocean3d import zonal_mean_trend_plot
 
 from aqua.logger import log_configure
@@ -141,8 +141,8 @@ class Ocean3DCLI:
         time_series_plot.plot()
 
         self.logger.info("Evaluating multilevel trend")
-        multilevel_t_s_trend_plot(o3d_request,
-                                  customise_level=False, levels=None)
+        trend = linear_trend(o3d_request)
+        trend.multilevel_t_s_trend_plot()
 
         self.logger.info("Evaluating zonal mean trend")
         zonal_mean_trend_plot(o3d_request)

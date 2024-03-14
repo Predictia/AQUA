@@ -534,7 +534,6 @@ def split_ocean3d_req(self, o3d_request, loglevel= "WARNING"):
     Returns:
         None
     """
-    logger = log_configure(loglevel, 'split_ocean3d_req')
     self.data = o3d_request.get('data')
     self.model = o3d_request.get('model')
     self.exp = o3d_request.get('exp')
@@ -544,7 +543,9 @@ def split_ocean3d_req(self, o3d_request, loglevel= "WARNING"):
     self.lat_n = o3d_request.get('lat_n', None)
     self.lon_w = o3d_request.get('lon_w', None)
     self.lon_e = o3d_request.get('lon_e', None)
+    self.customise_level = o3d_request.get('customise_level', None)
+    self.levels = o3d_request.get('levels', None)
     self.output = o3d_request.get('output')
-    self.output_dir = o3d_request.get('output_dir')
+    self.output_dir = o3d_request.get('output_dir', None)
     self.loglevel= o3d_request.get('loglevel',"WARNING")
     return self
