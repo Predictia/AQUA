@@ -126,7 +126,7 @@ You can follow the mamba installation process described in the previous section.
 The only issue regards the availability of the FDB5 binary library (``libfdb5.so``) since
 at the moment a specific module for levante seems not to be available.
 
-You can either compile your own copy and then make it available (download the source code from ``https://github.com/ecmwf/fdb``,
+You can either compile your own copy and then make it available (download the source code from ``https://github.com/ecmwf/fdb``),
 or you can use our precompiled version by setting
 
 .. code-block:: bash
