@@ -3,7 +3,6 @@
 import os
 import random
 import string
-import yaml
 import re
 import numpy as np
 import xarray as xr
@@ -198,4 +197,4 @@ def username():
     user = os.getenv('USER')
     if user is None:
         raise EnvironmentError("The 'USER' environment variable is not set.")
-    return user 
+    return user
