@@ -1010,7 +1010,7 @@ class MainClass:
 
     def merge_list_of_histograms(self, path_to_histograms: str = None, start_year: int = None, end_year: int = None,
                              start_month: int = None, end_month: int = None, seasons_bool: bool = False,
-                             test: bool = False, tqdm: bool = False) -> xr.Dataset:
+                             test: bool = False, tqdm: bool = False, flag: str = None) -> xr.Dataset:
         """
         Function to merge a list of histograms based on specified criteria. It supports merging by seasonal 
         categories or specific year and month ranges.
@@ -1024,6 +1024,7 @@ class MainClass:
             seasons_bool (bool, optional): True to merge based on seasonal categories.
             test (bool, optional): Runs function in test mode.
             tqdm (bool, optional): Displays a progress bar during merging.
+            flag (str, optional): A specific flag to look for in the filenames. Defaults to None.
         
         Returns:
             xr.Dataset: Merged xarray Dataset.
@@ -1047,7 +1048,8 @@ class MainClass:
                         start_year=start_year,
                         end_year=end_year,
                         start_month=month,
-                        end_month=month
+                        end_month=month,
+                        flag=flag
                     )
                     seasons[season][1].extend(files_for_month)
 
@@ -1077,8 +1079,10 @@ class MainClass:
                 self.logger.info("No data available for merging.")
                 return None
         else:
-            histograms_to_load = self.tools.select_files_by_year_and_month_range(path_to_histograms=path_to_histograms, start_year=start_year, end_year=end_year,
-                                                                             start_month=start_month, end_month=end_month)
+            histograms_to_load = self.tools.select_files_by_year_and_month_range(path_to_histograms=path_to_histograms,
+                                                                                 start_year=start_year, end_year=end_year,
+                                                                                 start_month=start_month, end_month=end_month,
+                                                                                 flag=flag)
 
             self.logger.debug(f"List of files to merge:")
             for i in range(0, len(histograms_to_load)):

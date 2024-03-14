@@ -141,10 +141,6 @@ class Tropical_Rainfall_CLI:
         plot_title = f"Grid: {self.regrid}, frequency: {self.freq}"
         legend = f"{self.model} {self.exp}"
         name_of_pdf = f"{self.model}_{self.exp}_{self.regrid}_{self.freq}"
-        
-        if 'm' in self.freq.lower() or 'y' in self.freq.lower():
-            self.logger.debug("Contains 'M' or 'Y'. Setting xmax to 50 mm/day.")
-            self.diag.xmax = 50
 
         add = self.diag.histogram_plot(model_merged, figsize=self.figsize, new_unit=self.new_unit, pdf=pdf_flag,
                                        pdfP=pdfP_flag, legend=legend, color=self.color, xmax=self.xmax,
@@ -167,9 +163,11 @@ class Tropical_Rainfall_CLI:
         """
         self.logger.debug(f"The path to file is: {self.path_to_netcdf}{self.regrid}/{self.freq}/histograms/.")
         hist_path = f"{self.path_to_netcdf}{self.regrid}/{self.freq}/histograms/"
+        bins_info = self.diag.get_bins_info()
         model_merged = self.diag.merge_list_of_histograms(path_to_histograms=hist_path,
                                                         start_year=self.s_year, end_year=self.f_year,
-                                                        start_month=self.s_month, end_month=self.f_month)
+                                                        start_month=self.s_month, end_month=self.f_month,
+                                                        flag=bins_info)
 
         if self.s_month is None and self.f_month is None:
             mswep_folder_path = os.path.join(self.mswep, self.regrid, self.freq, 'yearly_grouped')
@@ -181,7 +179,7 @@ class Tropical_Rainfall_CLI:
                             f"and frequency '{self.freq}' does not exist. Histograms for the "
                             "desired resolution and frequency have not been computed yet.")
             return
-        if self.mswep_auto or (self.mswep_s_year is not None and self.mswep_f_year is not None):
+        if self.mswep_auto or (self.mswep_s_year is None and self.mswep_f_year is None):
             obs_interval = 10
             obs_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path,
                                                             start_year=self.s_year-obs_interval, end_year=self.f_year+obs_interval,

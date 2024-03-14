@@ -216,10 +216,10 @@ class ToolsClass:
                 "The specified dataset file was not found.")
 
     def select_files_by_year_and_month_range(self, path_to_histograms: str, start_year: int = None, end_year: int = None,
-                                             start_month: int = None, end_month: int = None) -> list:
+                                             start_month: int = None, end_month: int = None, flag: str = None) -> list:
         """
-        Select files within a specific year and optional month range from a given directory.
-        If no year range is provided, return all files sorted alphabetically.
+        Select files within a specific year and optional month range from a given directory that also contain a certain flag in their filename.
+        If no year range is provided, return all files sorted alphabetically that match the flag condition.
 
         Args:
             path_to_histograms (str): Directory path containing the histogram files.
@@ -227,26 +227,33 @@ class ToolsClass:
             end_year (int, optional): End year of the range (inclusive). Defaults to None.
             start_month (int, optional): Start month of the range (inclusive). Defaults to None.
             end_month (int, optional): End month of the range (inclusive). Defaults to None.
+            flag (str, optional): A specific flag to look for in the filenames. Defaults to None.
 
         Returns:
-            list: A list of file paths matching the specified year and month range or all files if no year range is specified.
+            list: A list of file paths matching the specified year, month range, and flag or all files if no year range is specified and match the flag condition.
         """
         files = [join(path_to_histograms, f) for f in os.listdir(path_to_histograms) if isfile(join(path_to_histograms, f))]
         files.sort()
-        if start_year is None and end_year is None:
-            # If no year range is provided, return all files sorted alphabetically
+        if start_year is None and end_year is None and flag is None:
+            # If no year range and flag are provided, return all files sorted alphabetically
             return files
 
         selected_files = []
         for file_path in files:
             # Extract the year and month from the filename
             date_match = re.search(r'(\d{4})-(\d{2})-\d{2}T', file_path)
-            if date_match:
+            # Check if flag is present in the filename if a flag is specified
+            flag_present = flag is None or flag in file_path
+            if date_match and flag_present:
                 year, month = map(int, date_match.groups())
                 # Check if the year and optionally month falls within the specified range
-                if (start_year is None or start_year <= year) and (end_year is None or year <= end_year) and (not start_month or start_month <= month <= (end_month or 12)):
+                if ((start_year is None or start_year <= year) and 
+                    (end_year is None or year <= end_year) and 
+                    (not start_month or start_month <= month <= (end_month or 12))):
                     selected_files.append(file_path)
                 elif start_year is None and end_year is None:
+                    # This line seems to be redundant in the context of flag checking,
+                    # since it's already handled by the flag_present check.
                     selected_files.append(file_path)
         return selected_files
 
