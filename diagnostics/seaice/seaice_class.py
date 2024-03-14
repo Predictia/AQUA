@@ -532,7 +532,7 @@ class SeaIceConcentration:
                 ax1[jSetup].set_title(str(model) + "-" + str(exp) + "-" + str(source)  + '\n(average over ' + " - ".join(timespan) + ")")
 
             fig1.suptitle(monthNames[month_diagnostic - 1] + ' sea ice concentration ')
-            fig1.savefig(self.outputdir + "./maps_" + hemi + ".pdf") 
+            fig1.savefig(self.outputdir + "/maps_" + hemi + ".pdf") 
 
 
 class SeaIceThickness:

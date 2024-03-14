@@ -151,22 +151,22 @@ if __name__ == '__main__':
 
 
     # Initialize the object SeaIceVolume
-    analyzer = SeaIceVolume(config=config, outputdir=outputdir,
-                            loglevel=loglevel)
+    # analyzer = SeaIceVolume(config=config, outputdir=outputdir,
+    #                         loglevel=loglevel)
 
-    # Execute the analyzer.
-    try:
-        analyzer.run()
-    except NoDataError as e:
-        logger.debug(f"Error: {e}")
-        logger.error("No data found for the given configuration. Exiting...")
-        sys.exit(0)
-    except Exception as e:
-        logger.error(f"An error occurred while running the analyzer: {e}")
-        logger.warning("Please report this error to the developers. Exiting...")
-        sys.exit(0)
+    # # Execute the analyzer.
+    # try:
+    #     analyzer.run()
+    # except NoDataError as e:
+    #     logger.debug(f"Error: {e}")
+    #     logger.error("No data found for the given configuration. Exiting...")
+    #     sys.exit(0)
+    # except Exception as e:
+    #     logger.error(f"An error occurred while running the analyzer: {e}")
+    #     logger.warning("Please report this error to the developers. Exiting...")
+    #     sys.exit(0)
 
-    logger.info("sea ice diagnostic Volume terminated!")
+    # logger.info("sea ice diagnostic Volume terminated!")
 
 
 
@@ -190,19 +190,19 @@ if __name__ == '__main__':
 
  
     # Initialize the object SeaIceThickness
-    analyzer = SeaIceThickness(config=config, outputdir=outputdir,
-                            loglevel=loglevel)
+    # analyzer = SeaIceThickness(config=config, outputdir=outputdir,
+    #                         loglevel=loglevel)
 
-    # Execute the analyzer.
-    try:
-        analyzer.run()
-    except NoDataError as e:
-        logger.debug(f"Error: {e}")
-        logger.error("No data found for the given configuration. Exiting...")
-        sys.exit(0)
-    except Exception as e:
-        logger.error(f"An error occurred while running the analyzer: {e}")
-        logger.warning("Please report this error to the developers. Exiting...")
-        sys.exit(0)
+    # # Execute the analyzer.
+    # try:
+    #     analyzer.run()
+    # except NoDataError as e:
+    #     logger.debug(f"Error: {e}")
+    #     logger.error("No data found for the given configuration. Exiting...")
+    #     sys.exit(0)
+    # except Exception as e:
+    #     logger.error(f"An error occurred while running the analyzer: {e}")
+    #     logger.warning("Please report this error to the developers. Exiting...")
+    #     sys.exit(0)
 
-    logger.info("sea ice diagnostic Thickness terminated!")   
+    # logger.info("sea ice diagnostic Thickness terminated!")   
