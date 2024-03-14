@@ -46,6 +46,16 @@ class Tropical_Rainfall_CLI:
         self.mswep_s_year = config['mswep']['s_year']
         self.mswep_f_year = config['mswep']['f_year']
         self.mswep_auto = config['mswep']['auto']
+        
+        self.era5 = config['era5'][machine]
+        self.era5_s_year = config['era5']['s_year']
+        self.era5_f_year = config['era5']['f_year']
+        self.era5_auto = config['era5']['auto']
+        
+        self.imerg = config['imerg'][machine]
+        self.imerg_s_year = config['imerg']['s_year']
+        self.imerg_f_year = config['imerg']['f_year']
+        self.imerg_auto = config['imerg']['auto']
   
         self.logger = log_configure(log_name="Trop. Rainfall CLI", log_level=self.loglevel)
 
@@ -137,7 +147,8 @@ class Tropical_Rainfall_CLI:
         self.logger.info("The histograms are calculated and saved in storage.")
         return None
 
-    def process_histograms(self, pdf_flag, pdfP_flag, model_merged, obs_merged, plot_color='tab:red', linestyle='-'):
+    def process_histograms(self, pdf_flag, pdfP_flag, model_merged, mswep_merged, imerg_merged, #era5_merged,
+                           linestyle='--'):
         """
         Generates and saves histograms for model and observational data, with options for PDF and PDF*P plots.
         """
@@ -145,15 +156,26 @@ class Tropical_Rainfall_CLI:
         legend = f"{self.model} {self.exp}"
         name_of_pdf = f"{self.model}_{self.exp}_{self.regrid}_{self.freq}"
 
-        add = self.diag.histogram_plot(model_merged, figsize=self.figsize, new_unit=self.new_unit, pdf=pdf_flag,
-                                       pdfP=pdfP_flag, legend=legend, color=self.color, xmax=self.xmax,
+        add = self.diag.histogram_plot(model_merged, figsize=self.figsize, new_unit=self.new_unit,
+                                       pdf=pdf_flag, pdfP=pdfP_flag, legend=legend, color=self.color, xmax=self.xmax,
+                                       linewidth=3, linestyle='-',
                                        plot_title=plot_title, loc=self.loc, path_to_pdf=self.path_to_pdf,
                                        pdf_format=self.pdf_format, name_of_file=name_of_pdf)
 
-        self.diag.histogram_plot(obs_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
-                                 pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color=plot_color,
+        self.diag.histogram_plot(mswep_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
+                                 pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color='tab:red',
                                  legend="MSWEP", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
                                  path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
+        
+        self.diag.histogram_plot(imerg_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
+                                 pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color='tab:blue',
+                                 legend="IMERG", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
+                                 path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
+        
+        #self.diag.histogram_plot(era5_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
+        #                         pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color='tab:orange',
+        #                         legend="ERA5", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
+        #                         path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
 
         self.logger.info("The histograms are plotted and saved in storage.")
     
@@ -174,8 +196,9 @@ class Tropical_Rainfall_CLI:
                                                         start_year=self.s_year, end_year=self.f_year,
                                                         start_month=self.s_month, end_month=self.f_month,
                                                         flag=bins_info)
-
         self.diag.dataset_to_netcdf(model_merged, path_to_netcdf=hist_path, name_of_file='histogram_'+name_of_file)
+        
+        # MSWEP
         if self.s_month is None and self.f_month is None:
             mswep_folder_path = os.path.join(self.mswep, self.regrid, self.freq, 'yearly_grouped')
         else:
@@ -183,24 +206,75 @@ class Tropical_Rainfall_CLI:
         self.logger.info(f"The path to MSWEP data is  {mswep_folder_path}")
         if not os.path.exists(mswep_folder_path):
             self.logger.error(f"Error: The folder for MSWEP data with resolution '{self.regrid}' "
-                            f"and frequency '{self.freq}' does not exist. Histograms for the "
-                            "desired resolution and frequency have not been computed yet.")
+                              f"and frequency '{self.freq}' does not exist. Histograms for the "
+                              "desired resolution and frequency have not been computed yet.")
             return
         if self.mswep_auto or (self.mswep_s_year is None and self.mswep_f_year is None):
             obs_interval = 10
-            obs_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path,
-                                                            start_year=self.s_year-obs_interval, end_year=self.f_year+obs_interval,
-                                                            start_month=self.s_month, end_month=self.f_month)
+            mswep_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path,
+                                                              start_year=self.s_year-obs_interval, end_year=self.f_year+obs_interval,
+                                                              start_month=self.s_month, end_month=self.f_month)
         else:
-            obs_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path,
-                                                            start_year=self.mswep_s_year, end_year=self.mswep_f_year,
-                                                            start_month=self.s_month, end_month=self.f_month)
-        self.diag.dataset_to_netcdf(obs_merged, path_to_netcdf=hist_path, name_of_file=f"histogram_MSWEP_{self.regrid}_{self.freq}")
-        self.logger.info(f"The MSWEP data with resolution '{self.regrid}' and frequency '{self.freq}' are prepared for comparison.")
+            mswep_merged = self.diag.merge_list_of_histograms(path_to_histograms=mswep_folder_path,
+                                                              start_year=self.mswep_s_year, end_year=self.mswep_f_year,
+                                                              start_month=self.s_month, end_month=self.f_month)
+        self.diag.dataset_to_netcdf(mswep_merged, path_to_netcdf=hist_path, name_of_file=f"histogram_MSWEP_{self.regrid}_{self.freq}")
+        
+        
+        # IMERG
+        if self.s_month is None and self.f_month is None:
+            imerg_folder_path = os.path.join(self.imerg, self.regrid, self.freq, 'yearly_grouped')
+        else:
+            imerg_folder_path = os.path.join(self.imerg, self.regrid, self.freq, 'monthly_grouped')
+        self.logger.info(f"The path to IMERG data is  {imerg_folder_path}")
+        if not os.path.exists(imerg_folder_path):
+            self.logger.error(f"Error: The folder for IMERG data with resolution '{self.regrid}' "
+                              f"and frequency '{self.freq}' does not exist. Histograms for the "
+                              "desired resolution and frequency have not been computed yet.")
+            return
+        if self.imerg_auto or (self.imerg_s_year is None and self.imerg_f_year is None):
+            obs_interval = 10
+            imerg_merged = self.diag.merge_list_of_histograms(path_to_histograms=imerg_folder_path,
+                                                              start_year=self.s_year-obs_interval, end_year=self.f_year+obs_interval,
+                                                              start_month=self.s_month, end_month=self.f_month)
+        else:
+            imerg_merged = self.diag.merge_list_of_histograms(path_to_histograms=imerg_folder_path,
+                                                              start_year=self.imerg_s_year, end_year=self.imerg_f_year,
+                                                              start_month=self.s_month, end_month=self.f_month)
+        self.diag.dataset_to_netcdf(imerg_merged, path_to_netcdf=hist_path, name_of_file=f"histogram_IMERG_{self.regrid}_{self.freq}")
+        
+        self.logger.info(f"The IMERG data with resolution '{self.regrid}' and frequency '{self.freq}' are prepared for comparison.")
+        
+        
+        """ 
+        # ERA5
+        if self.s_month is None and self.f_month is None:
+            era5_folder_path = os.path.join(self.era5, self.regrid, self.freq, 'yearly_grouped')
+        else:
+            era5_folder_path = os.path.join(self.era5, self.regrid, self.freq, 'monthly_grouped')
+        self.logger.info(f"The path to ERA5 data is  {era5_folder_path}")
+        if not os.path.exists(era5_folder_path):
+            self.logger.error(f"Error: The folder for ERA5 data with resolution '{self.regrid}' "
+                              f"and frequency '{self.freq}' does not exist. Histograms for the "
+                              "desired resolution and frequency have not been computed yet.")
+            return
+        if self.era5_auto or (self.era5_s_year is None and self.era5_f_year is None):
+            obs_interval = 10
+            era5_merged = self.diag.merge_list_of_histograms(path_to_histograms=era5_folder_path,
+                                                              start_year=self.s_year-obs_interval, end_year=self.f_year+obs_interval,
+                                                              start_month=self.s_month, end_month=self.f_month)
+        else:
+            era5_merged = self.diag.merge_list_of_histograms(path_to_histograms=era5_folder_path,
+                                                              start_year=self.era5_s_year, end_year=self.era5_f_year,
+                                                              start_month=self.s_month, end_month=self.f_month)
+        self.diag.dataset_to_netcdf(era5_merged, path_to_netcdf=hist_path, name_of_file=f"histogram_ERA5_{self.regrid}_{self.freq}")
+        """
         
         pdf, pdfP = True, False # Set your PDF flag as needed
-        self.process_histograms(pdf_flag=pdf, pdfP_flag=pdfP, model_merged=model_merged, obs_merged=obs_merged)
+        self.process_histograms(pdf_flag=pdf, pdfP_flag=pdfP, model_merged=model_merged, mswep_merged=mswep_merged,
+                                imerg_merged=imerg_merged) #, era5_merged=era5_merged)
         pdf, pdfP = False, True  # Set your PDF flag as needed
-        self.process_histograms(pdf_flag=pdfP, pdfP_flag=pdfP, model_merged=model_merged, obs_merged=obs_merged)
+        self.process_histograms(pdf_flag=pdfP, pdfP_flag=pdfP, model_merged=model_merged, mswep_merged=mswep_merged,
+                                imerg_merged=imerg_merged) #, era5_merged=era5_merged)
         
         self.logger.info("The Tropical Rainfall diagnostic is terminated.")
