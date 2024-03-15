@@ -90,7 +90,7 @@ class TestMaps:
         plot_data2 = self.data["sst"].isel(time=1).aqua.regrid()
         fig, ax = plot_maps(maps=[plot_data,plot_data2],
                             save=True,
-                            figsize=(14, 4.5),
+                            figsize=(16, 6),
                             nlevels=5,
                             vmin=-2, vmax=30,
                             sym=False,
