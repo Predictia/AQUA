@@ -3,6 +3,7 @@ import pandas as pd
 from aqua.util import get_arg
 from aqua import Reader
 from aqua.logger import log_configure
+from aqua.util import add_pdf_metadata
 from dask.distributed import Client, LocalCluster
 from tropical_rainfall import Tropical_Rainfall
 from .tropical_rainfall_utils import adjust_year_range_based_on_dataset
@@ -219,44 +220,63 @@ class Tropical_Rainfall_CLI:
         plot_title = f"Grid: {self.regrid}, frequency: {self.freq}"
         legend_model = f"{self.model} {self.exp}"
         name_of_pdf = f"{self.model}_{self.exp}_{self.regrid}_{self.freq}"
+        if pdf_flag:
+            description = f"Comparison of the probability distribution function (PDF) for precipitation data from {self.model} {self.exp}, \
+                measured in {self.new_unit}, over the time range {model_merged.time_band}, against observations."
+        else:
+            description = f"Comparison of the probability distribution function (PDF) multiplied by probability (PDF*P) \
+                for precipitation data from {self.model} {self.exp}, measured in {self.new_unit}, \
+                    across the time range {model_merged.time_band}, with observations."
 
+        self.logger.debug('Description: %s', description)
+                    
         # Initial plot with model data if it exists
         if model_merged is not None:
-            add = self.diag.histogram_plot(model_merged, figsize=self.figsize, new_unit=self.new_unit, pdf=pdf_flag,
+            add, _path_to_pdf = self.diag.histogram_plot(model_merged, figsize=self.figsize, new_unit=self.new_unit, pdf=pdf_flag,
                                         pdfP=pdfP_flag, legend=legend_model, color=self.color, xmax=self.xmax,
                                         plot_title=plot_title, loc=self.loc, path_to_pdf=self.path_to_pdf,
                                         pdf_format=self.pdf_format, name_of_file=name_of_pdf, factor=self.factor)
+            
+            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description,
+                             old_metadata = True, loglevel = self.loglevel)
         else:
             add = False  # Ensures that additional plots can be added to an existing plot if the model data is unavailable
 
         # Subsequent plots for each dataset
         if mswep_merged is not None:
-            self.diag.histogram_plot(mswep_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
+            add, _path_to_pdf = self.diag.histogram_plot(mswep_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
                                     pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color='tab:red',
                                     legend="MSWEP", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
                                     path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf,
                                     factor=self.factor)
+            description = f"The time range of MSWEP is {mswep_merged.time_band}."
+            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description,
+                             old_metadata = True, loglevel = self.loglevel)
             self.logger.info("Plotting MSWEP data for comparison.")
         else:
             self.logger.warning("MSWEP data with a proper resolution is NOT found for comparison.")
 
         if imerg_merged is not None:
-            self.diag.histogram_plot(imerg_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
+            add, _path_to_pdf = self.diag.histogram_plot(imerg_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
                                     pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color='tab:blue',
                                     legend="IMERG", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
                                     path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf,
                                     factor=self.factor)
+            description = f"The time range of IMERG is {imerg_merged.time_band}."
+            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
             self.logger.info("Plotting IMERG data for comparison.")
         else:
             self.logger.warning("IMERG data with a proper resolution is NOT found for comparison.")
 
         if era5_merged is not None:
-            self.diag.histogram_plot(era5_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
+            add, _path_to_pdf = self.diag.histogram_plot(era5_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
                                     pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color='tab:orange',
                                     legend="ERA5", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
                                     path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf,
                                     factor=self.factor)
-            
+            description = f"The time range of ERA5 is {era5_merged.time_band}."
+            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description,
+                             old_metadata = True, loglevel = self.loglevel)
             self.logger.info("Plotting ERA5 data for comparison.")
         else:
             self.logger.warning("ERA5 data with a proper resolution is NOT found for comparison.")
