@@ -14,8 +14,8 @@ from ocean3d import load_obs_data
 
 from ocean3d import hovmoller_plot
 from ocean3d import time_series
-from ocean3d import linear_trend
-from ocean3d import zonal_mean_trend_plot
+from ocean3d import multilevel_trend
+from ocean3d import zonal_mean_trend
 
 from aqua.logger import log_configure
 
@@ -131,7 +131,8 @@ class Ocean3DCLI:
     def ocean_drift_diag_list(self, **kwargs):
         region = kwargs.get("region", None)
         o3d_request = self.make_request(kwargs)
-        self.logger.info("Running the Ocean Drift diags for %s", region)
+
+        self.logger.warning("Running the Ocean Drift diags for %s", region)
         self.logger.info("Evaluating Hovmoller plot")
         hovmoller_plot_init = hovmoller_plot(o3d_request)
         hovmoller_plot_init.plot()
@@ -145,12 +146,14 @@ class Ocean3DCLI:
         trend.multilevel_t_s_trend_plot()
 
         self.logger.info("Evaluating zonal mean trend")
-        zonal_mean_trend_plot(o3d_request)
-        self.logger.info(f"Finished the diags for {region}")
+        zonal_trend = zonal_mean_trend(o3d_request)
+        zonal_trend.plot()
+
+        self.logger.warning(f"Finished the diags for {region}")
 
     def ocean_circulation_diag_list(self, **kwargs):
         region = kwargs.get("region", None)
-        self.logger.info("Running the Ocean circulation diags for %s", region)
+        self.logger.warning("Running the Ocean circulation diags for %s", region)
 
         time = kwargs.get("time")
         o3d_request = self.make_request(kwargs)
@@ -159,6 +162,8 @@ class Ocean3DCLI:
         plot_stratification(o3d_request, time=time)
         self.logger.info("Evaluating Mixed layer depth")
         plot_spatial_mld_clim(o3d_request, time=time)
+        
+        self.logger.warning(f"Finished the diags for {region}")
 
     def ocean_drifts_diags(self):
         if self.config["ocean_drift"]["regions"]:
@@ -208,7 +213,7 @@ class Ocean3DCLI:
         if self.config["ocean_circulation"]:
             self.ocean_circulation_diags()
 
-        self.logger.info("Ocean3D diagnostic terminated!")
+        self.logger.warning("Ocean3D diagnostic terminated!")
 
 
 def parse_arguments(args):

@@ -1,3 +1,7 @@
+"""
+Calculating Trends
+"""
+
 from .tools import *
 from ocean3d import split_ocean3d_req
 
@@ -144,11 +148,11 @@ class TrendCalculator:
         return TS_3dtrend_data
 
 
-class linear_trend:
+class multilevel_trend:
     def __init__(self, o3d_request):
         split_ocean3d_req(self, o3d_request)
 
-    def multilevel_t_s_trend_plot(self):
+    def plot(self):
         data = self._select_data()
         TS_trend_data = self._calculate_trend_data(data)
         self._plot_multilevel_trend(TS_trend_data)
@@ -246,4 +250,64 @@ class linear_trend:
         filename = file_naming(self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e, plot_name=f"{self.model}-{self.exp}-{self.source}_multilevel_t_s_trend")
         write_data(self.output_dir, filename, data.interp(lev=self.levels[-1]))
         export_fig(self.output_dir, filename, "pdf", metadata_value=self.title, loglevel=self.loglevel)
+        return
+
+class zonal_mean_trend:
+    def __init__(self, o3d_request):
+        """
+        Initialize the ZonalMeanTrend object.
+
+        Parameters:
+            o3d_request: The request object containing the data.
+        """
+        split_ocean3d_req(self, o3d_request)
+
+    def plot(self):
+        """
+        Plot the zonal mean trends for temperature and salinity.
+
+        Returns:
+            None
+        """
+        # Compute the trend data
+        TS_trend_data = TrendCalculator.TS_3dtrend(self.data, loglevel=self.loglevel)
+        TS_trend_data.attrs = self.data.attrs
+        data = TS_trend_data
+
+        # Compute the weighted zonal mean
+        data = weighted_zonal_mean(data, self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e)
+
+        # Create the plot
+        fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(14, 5))
+
+        # Plot temperature
+        data.avg_thetao.plot.contourf(levels=20, ax=axs[0])
+        axs[0].set_ylim((5500, 0))
+        axs[0].set_title("Temperature", fontsize=14)
+        axs[0].set_ylabel("Depth (in m)", fontsize=9)
+        axs[0].set_xlabel("Latitude (in deg North)", fontsize=9)
+        axs[0].set_facecolor('grey')
+
+        # Plot salinity
+        data.avg_so.plot.contourf(levels=20, ax=axs[1])
+        axs[1].set_ylim((5500, 0))
+        axs[1].set_title("Salinity", fontsize=14)
+        axs[1].set_ylabel("Depth (in m)", fontsize=12)
+        axs[1].set_xlabel("Latitude (in deg North)", fontsize=12)
+        axs[1].set_facecolor('grey')
+
+        # Set the title
+        region_title = custom_region(region=self.region, lat_s=self.lat_s, lat_n=self.lat_n,
+                                     lon_w=self.lon_w, lon_e=self.lon_e)
+        title = f"Zonally-averaged long-term trends in the {region_title}"
+        fig.suptitle(title, fontsize=20)
+        plt.subplots_adjust(top=0.85)
+
+        # Save the plot if output is enabled
+        if self.output:
+            filename = file_naming(self.region, self.lat_s, self.lat_n, self.lon_w, self.lon_e,
+                                   plot_name=f"{self.model}-{self.exp}-{self.source}_zonal_mean_trend")
+            write_data(self.output_dir, filename, data)
+            export_fig(self.output_dir, filename, "pdf", metadata_value=title, loglevel=self.loglevel)
+
         return
