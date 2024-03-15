@@ -71,6 +71,9 @@ def plot_maps(maps: list = None,
 
     Raises:
         ValueError: if nothing to plot, i.e. maps is None or not a list of xarray.DataArray
+
+    Return:
+        fig, axs if more manipulations on the figure are needed
     """
     logger = log_configure(loglevel, 'Multiple maps')
 
@@ -243,3 +246,5 @@ def plot_maps(maps: list = None,
     if display is False:
         logger.debug("Display is set to False, closing figure")
         plt.close(fig)
+
+    return fig, axs
