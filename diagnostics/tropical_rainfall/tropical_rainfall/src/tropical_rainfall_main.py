@@ -1262,7 +1262,8 @@ class MainClass:
                        legend: str = '_Hidden', plot_title: str = None, loc: str = 'upper right', model_variable: str = None,
                        add: tuple = None, fig: object = None, path_to_pdf: str = None, name_of_file: str = '',
                        pdf_format: str = None, xmax: float = None, test: bool = False, linewidth: float = None,
-                       fontsize: float = None) -> (object, object):
+                       fontsize: float = None,
+                       factor=None) -> (object, object):
         """
         Function to generate a histogram figure based on the provided data.
 
@@ -1295,6 +1296,9 @@ class MainClass:
             test (bool, optional): Whether to run the test. Default is False.
             linewidth (float, optional): The width of the line. Default is None.
             fontsize (float, optional): The font size for the plot. Default is None.
+            factor (float or None): The factor by which to adjust bin widths. Values > 1 increase bin width, 
+                                    values < 1 decrease it. None leaves the bin width unchanged.
+
 
         Returns:
             A tuple (fig, ax) containing the figure and axes objects.
@@ -1304,6 +1308,7 @@ class MainClass:
         if path_to_pdf is None and self.path_to_pdf is not None:
             path_to_pdf = self.path_to_pdf
         if 'Dataset' in str(type(data)):
+            data = self.tools.adjust_bins(data, factor=factor)
             data = data['counts']
         if not pdf and not frequency and not pdfP:
             pass

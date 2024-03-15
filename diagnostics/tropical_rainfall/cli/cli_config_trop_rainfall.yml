@@ -20,6 +20,7 @@ class_attributes:
 rebuild_output: False
 
 plot:
+  factor: 20              # The factor by which to adjust bin widths
   color: 'tab:green'      # Color for the plot
   figsize: 1              # Figure size for the plot
   xmax: null              # Max value for the x-axis in the plot

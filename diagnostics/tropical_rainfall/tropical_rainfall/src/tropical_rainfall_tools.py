@@ -5,6 +5,7 @@ import seaborn as sns
 import numpy as np
 import pandas as pd
 import xarray as xr
+from datetime import datetime
 from typing import Union
 from aqua.util import ConfigPath
 from aqua.logger import log_configure
@@ -100,6 +101,68 @@ class ToolsClass:
             path_to_netcdf = None
         self.logger.info(f"NetCDF folder: {path_to_netcdf}")
         return path_to_netcdf
+
+    def adjust_bins(self, ds, factor):
+        """
+        Adjusts the histogram bins by a specified factor, recalculating the center of each bin based on the assumption
+        that the first bin center is (center_of_bin - 0.5 * width). If factor is None, the function returns a copy of the 
+        dataset unchanged.
+
+        Args:
+            ds (xarray.Dataset): The dataset containing the histogram.
+            factor (float or None): The factor by which to adjust bin widths. Values > 1 increase bin width, 
+                                    values < 1 decrease it. None leaves the bin width and counts unchanged.
+
+        Returns:
+            xarray.Dataset: A new dataset with adjusted 'counts' and possibly 'center_of_bin' if factor is not None.
+        """
+        if factor is None:
+            # If factor is None, return a copy of the original dataset
+            return ds.copy()
+
+        if factor <= 0:
+            raise ValueError("Factor must be positive.")
+
+        original_width = ds.width.values[0]  # Assuming uniform width for all bins
+        new_width = original_width * factor
+        original_centers = ds.center_of_bin.values
+        
+        # Calculate new bin centers based on the adjusted first bin center
+        new_centers = np.array([original_centers[0] - 0.5 * original_width + (0.5 * new_width) + i * new_width for i in range(len(original_centers))])
+
+        # If the factor is meant to decrease bin size, this might result in more bins than originally
+        if factor < 1:
+            additional_bins = int((original_centers[-1] - new_centers[-1]) / new_width)
+            for i in range(1, additional_bins + 1):
+                new_centers = np.append(new_centers, new_centers[-1] + new_width)
+        
+        # Linear interpolation for counts
+        new_counts = np.interp(new_centers, original_centers, ds.counts.values, left=0, right=0)
+
+        # Create the adjusted dataset
+        adjusted_ds = xr.Dataset({
+            'counts': ('center_of_bin', new_counts),
+        }, coords={
+            'center_of_bin': ('center_of_bin', new_centers),
+            'width': ('center_of_bin', np.full(len(new_centers), new_width)),
+        })
+
+        # Preserve global attributes
+        adjusted_ds.attrs = ds.attrs.copy()
+        adjusted_ds.counts.attrs = ds.counts.attrs.copy()
+        adjusted_ds.center_of_bin.attrs = ds.center_of_bin.attrs.copy()
+        
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        history_update = str(current_time)+f" the histogram bins adjusted by a specified factor {factor} ;\n "
+        if 'history' not in adjusted_ds.attrs:
+            adjusted_ds.attrs['history'] = ' '
+        history_attr = adjusted_ds.attrs['history'] + history_update
+        adjusted_ds.attrs['history'] = history_attr
+        
+        
+        return adjusted_ds
+
+
 
     def get_pdf_path(self, configname: str = full_path_to_config) -> tuple:
         """

@@ -26,6 +26,7 @@ class Tropical_Rainfall_CLI:
         self.figsize = config['plot']['figsize']
         self.loc = config['plot']['loc']
         self.pdf_format = config['plot']['pdf_format']
+        self.factor = config['plot']['factor']
 
         self.model = get_arg(args, 'model', config['data']['model'])
         self.exp = get_arg(args, 'exp', config['data']['exp'])
@@ -100,7 +101,7 @@ class Tropical_Rainfall_CLI:
         It leverages the dataset to generate histograms by selecting data for each month, regridding and calculating the time mean
         if necessary, and then saves the histogram files in the designated path. This process is logged, and any years not present
         in the dataset are flagged with a warning.
-        """
+        """   
         full_dataset = self.reader.retrieve(var=self.model_variable)
         regrid_bool, freq_bool = self.need_regrid_timmean(full_dataset)
 
@@ -224,7 +225,7 @@ class Tropical_Rainfall_CLI:
             add = self.diag.histogram_plot(model_merged, figsize=self.figsize, new_unit=self.new_unit, pdf=pdf_flag,
                                         pdfP=pdfP_flag, legend=legend_model, color=self.color, xmax=self.xmax,
                                         plot_title=plot_title, loc=self.loc, path_to_pdf=self.path_to_pdf,
-                                        pdf_format=self.pdf_format, name_of_file=name_of_pdf)
+                                        pdf_format=self.pdf_format, name_of_file=name_of_pdf, factor=self.factor)
         else:
             add = False  # Ensures that additional plots can be added to an existing plot if the model data is unavailable
 
@@ -233,7 +234,8 @@ class Tropical_Rainfall_CLI:
             self.diag.histogram_plot(mswep_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
                                     pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color='tab:red',
                                     legend="MSWEP", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
-                                    path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
+                                    path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf,
+                                    factor=self.factor)
             self.logger.info("Plotting MSWEP data for comparison.")
         else:
             self.logger.warning("MSWEP data with a proper resolution is NOT found for comparison.")
@@ -242,7 +244,8 @@ class Tropical_Rainfall_CLI:
             self.diag.histogram_plot(imerg_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
                                     pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color='tab:blue',
                                     legend="IMERG", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
-                                    path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
+                                    path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf,
+                                    factor=self.factor)
             self.logger.info("Plotting IMERG data for comparison.")
         else:
             self.logger.warning("IMERG data with a proper resolution is NOT found for comparison.")
@@ -251,7 +254,8 @@ class Tropical_Rainfall_CLI:
             self.diag.histogram_plot(era5_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
                                     pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color='tab:orange',
                                     legend="ERA5", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
-                                    path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf)
+                                    path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf,
+                                    factor=self.factor)
             
             self.logger.info("Plotting ERA5 data for comparison.")
         else:
