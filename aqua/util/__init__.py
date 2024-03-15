@@ -8,7 +8,7 @@ from .graphics import coord_names, ticks_round, set_ticks
 from .sci_util import area_selection, check_coordinates
 from .util import generate_random_string, get_arg, create_folder, to_list
 from .util import file_is_complete, find_vert_coord
-from .util import extract_literal_and_numeric, add_pdf_metadata, username, move_tmp_files
+from .util import extract_literal_and_numeric, add_pdf_metadata, username
 from .yaml import load_yaml, dump_yaml, load_multi_yaml, eval_formula
 from .time import check_chunk_completeness, frequency_string_to_pandas
 from .time import time_to_string
@@ -22,7 +22,7 @@ __all__ = ['ConfigPath',
            'area_selection', 'check_coordinates',
            'generate_random_string', 'get_arg', 'create_folder', 'to_list',
            'file_is_complete', 'find_vert_coord',
-           'extract_literal_and_numeric', 'add_pdf_metadata', 'username', 'move_tmp_files',
+           'extract_literal_and_numeric', 'add_pdf_metadata', 'username',
            'load_yaml', 'dump_yaml', 'load_multi_yaml', 'eval_formula',
            'check_chunk_completeness', 'frequency_string_to_pandas',
            'time_to_string',

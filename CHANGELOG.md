@@ -9,18 +9,42 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Function to plot multiple maps is introduced as `plot_maps()` (#866)
+- Adding the IFS-FESOM storylines simulation (#848)
+- `file_is_complete()` accounts also for the mindate attribute (#1007)
+- Introducing a `yearmonth` timestyle to access FDB data on monthly average (#1001)
+- Adding expected time calculation for weight generation (#701)
+- Vertical chunking for GSV intake access (#1003)
+
+AQUA diagnostics complete list:
+
+## [v0.7.2]
+
+Main changes are:
+1. `mtpr` is used for precipitation in all the catalogue entries
+2. LRA CLI support for parallel SLURM submission and other improvements
+3. ICON production simulations available in the catalogue
+4. `detrend()` method is available in the `Reader` class
+5. All the diagnostics have dask support in their CLI
+
+AQUA core complete list:
+- Fix LRA sources to allow incomplete times for different vars (#994)
+- Distributed dask option for diagnostic CLIs and wrapper (#981)
+- Added documentation for `plot_timeseries`, `plot_seasonalcycle` and `plot_single_map_diff` (#975)
 - Minimum date fixer feature / ICON net fluxes fix (#958)
 - Unified logging for all diagnostics (#931)
-- A ``detrend()`` method is added to the Reader class (#919)
-- LRA file handling improvements (#849)
+- A `detrend()` method is added to the Reader class (#919)
+- LRA file handling improvements (#849, #972)
 - Updating fixer for ERA5 monthly and hourly data on Levante (#937)
 - GSV pin to 1.0.0 (#950)
 - Adding ICON production simulations (#925)
-- LRA CLI for parallel SLURM submission support a max number of concurrent jobs (#955)
+- LRA CLI for parallel SLURM submission support a max number of concurrent jobs and avoid same job to run (#955, #990)
 - Renaming of EC-mean output figures in cli push tool for aqua-web (#930)
 - Renaming the `tprate` variable into `mtpr` in all fixes (#944)
 
 AQUA diagnostic complete list:
+- Tropical rainfall: enhancements of plotting and performance, files path correction (#997)
+- Timeseries: seasonal cycle runs as a separate cli in aqua-analysis for performance speed-up (#982)
+- Timeseries: seasonal cycle is added if reference data are not available in some timespan (#974)
 - Tropical rainfall: Removing unnecessary printing during the CLI, optimazing the CLi for low and high-resolution data (#963)
 - Timeseries: Grergory plot TOA limits are dynamically chosen (#959)
 - SSH: technical improvements including removal of hardcoded loglevel and timespan definition. (#677)
@@ -371,7 +395,9 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.2...HEAD
+[v0.7.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.1...v0.7.2
+[v0.7.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7...v0.7.1
 [v0.7]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.3...v0.7
 [v0.6.3]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.2...v0.6.3
 [v0.6.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.1...v0.6.2
