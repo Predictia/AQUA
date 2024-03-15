@@ -46,7 +46,7 @@ if __name__ == '__main__':
     sys.path.insert(0, '../../')
     try:
         from radiation import process_ceres_data, process_model_data
-        from radiation import boxplot_model_data, plot_mean_bias, gregory_plot, plot_model_comparison_timeseries
+        from radiation import boxplot_model_data, plot_mean_bias, plot_model_comparison_timeseries
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         sys.exit(0)
