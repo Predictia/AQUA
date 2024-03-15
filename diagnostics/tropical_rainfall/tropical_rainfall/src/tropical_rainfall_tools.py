@@ -11,6 +11,7 @@ from aqua.util import ConfigPath
 from aqua.logger import log_configure
 import yaml
 from os.path import isfile, join, exists, isdir
+from dateutil.relativedelta import relativedelta
 
 from importlib import resources
 full_path_to_config = resources.files("tropical_rainfall") / "config-tropical-rainfall.yml"
@@ -905,6 +906,44 @@ class ToolsClass:
             merged_time_band += f", freq={common_freq}"
 
         return merged_time_band
+
+    def parse_filename_to_datetime(self, filename):
+        """
+        Extracts datetimes from the filename, accommodating both single and range date formats.
+        """
+        pattern = r"(\d{4}-\d{2}-\d{2}T\d{2})_?(\d{4}-\d{2}-\d{2}T\d{2})?(?:_\d+H)?\.nc"
+        match = re.search(pattern, filename)
+        if match:
+            start_time_str, end_time_str = match.groups()
+            start_time = datetime.strptime(start_time_str, "%Y-%m-%dT%H")
+            end_time = datetime.strptime(end_time_str, "%Y-%m-%dT%H") if end_time_str else start_time
+            return start_time, end_time
+        else:
+            raise ValueError(f"Time information not found in filename: {filename}")
+
+    def check_time_continuity(self, filenames, freq='M'):
+        """
+        Checks if the time coordinate is continuous for the given filenames and frequency.
+        """
+        times = [self.parse_filename_to_datetime(filename) for filename in filenames]
+        times.sort(key=lambda x: x[0])  # Sort by start time
+        
+        for i in range(len(times) - 1):
+            current_start_time, current_end_time = times[i]
+            next_start_time, _ = times[i + 1]
+            
+            if freq == 'M':  # Monthly data
+                expected_next_start = current_end_time + relativedelta(months=+1)
+                # Adjust for the end of the month
+                expected_next_start = expected_next_start.replace(day=1, hour=0)
+            elif '3H' in freq:  # 3-hourly data
+                expected_next_start = current_end_time + relativedelta(hours=+3)
+            
+            if next_start_time != expected_next_start:
+                self.logger.error(f"Discontinuity found: Expected {expected_next_start}, got {next_start_time}")
+                return False
+            
+        return True
 
     def sanitize_attributes(self, ds, max_attr_length=500):
         """
