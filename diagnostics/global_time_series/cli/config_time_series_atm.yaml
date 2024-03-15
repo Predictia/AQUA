@@ -3,7 +3,7 @@
 # --model, --exp, --source, --outputdir
 models:
   - model: 'IFS-NEMO'
-    exp: 'historical-1990'
+    exp: 'ssp370'
     source: 'lra-r100-monthly'
 outputdir: "./"
 
@@ -24,8 +24,8 @@ timeseries_formulae: ['mtnlwrf+mtnswrf']
 gregory:
   ts: '2t'
   toa: ['mtnlwrf', 'mtnswrf']
-  resample: null
-  savefig: True
+  monthly: True
+  annual: True
 
 timeseries_plot_params:
 # These are options that specify how the data is plotted
@@ -37,8 +37,8 @@ timeseries_plot_params:
     plot_ref: True
     monthly: True
     annual: True
-    std_startdate: '1980-01-01'
-    std_enddate: '2010-01-01'
+    std_startdate: '1990-01-01'
+    std_enddate: '2020-12-31'
   # 2t:
   #   plot_kw:
   #     color: "tab:blue"
@@ -46,12 +46,3 @@ timeseries_plot_params:
   #   resample: "M"
   #   savefig: True
   #   ylim: [-10, 10]
-  lcc: # no ERA5 yet
-    plot_era5: False
-    annual: True
-  mcc: # no ERA5 yet
-    plot_ref: False
-    annual: True
-  hcc: # no ERA5 yet
-    plot_ref: False
-    annual: True
