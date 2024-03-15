@@ -312,17 +312,18 @@ grids:
 
   # OSI-SAF
   osi-saf-nh:
+    path: $grids/OSI-SAF/grid_osi-saf_nh.nc
     space_coord: ['xc', 'yc']
-    cellareas: $grids/OSI-SAF/grid_nh.nc
+    cellareas: $grids/OSI-SAF/cellarea_osi-saf_nh.nc
     cellarea_var: areacello
-    # mask: $grids/OSI-SAF/grid_nh.nc
-    # mask_var: sftof
+    regrid_method: 'bil'
+
   osi-saf-sh:
+    path: $grids/OSI-SAF/grid_osi-saf_sh.nc
     space_coord: ['xc', 'yc']
-    cellareas: $grids/OSI-SAF/grid_sh.nc
+    cellareas: $grids/OSI-SAF/cellarea_osi-saf_sh.nc
     cellarea_var: areacello
-    # mask: $grids/OSI-SAF/grid_sh.nc
-    # mask_var: sftof
+    regrid_method: 'bil'
 
   # WOA
   woa:
@@ -334,15 +335,13 @@ grids:
   # PSC
   psc-piomas:
     space_coord: ["x", "y"]
-    cellareas: $grids/PSC/grid_piomas.nc
+    cellareas: $grids/PSC/cellarea_piomas.nc
     cellarea_var: areacello
-    mask: $grids/PSC/grid_piomas.nc
-    mask_var: sftof
+    path: $grids/PSC/grid_piomas.nc
     regrid_method: 'bil'
   psc-giomas:
     space_coord: ["x", "y"]
-    cellareas: $grids/PSC/grid_giomas.nc
+    cellareas: $grids/PSC/cellarea_giomas.nc
     cellarea_var: areacello
-    mask: $grids/PSC/grid_giomas.nc
-    mask_var: sftof
+    path: $grids/PSC/grid_giomas.nc
     regrid_method: 'bil'
