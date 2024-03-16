@@ -337,11 +337,11 @@ grids:
     space_coord: ["x", "y"]
     cellareas: $grids/PSC/cellarea_piomas.nc
     cellarea_var: areacello
-    path: $grids/PSC/grid_piomas.nc
+    path: $grids/PSC/grid_piomas_new.nc
     regrid_method: 'bil'
   psc-giomas:
     space_coord: ["x", "y"]
     cellareas: $grids/PSC/cellarea_giomas.nc
     cellarea_var: areacello
-    path: $grids/PSC/grid_giomas.nc
+    path: $grids/PSC/grid_giomas_new.nc
     regrid_method: 'bil'
