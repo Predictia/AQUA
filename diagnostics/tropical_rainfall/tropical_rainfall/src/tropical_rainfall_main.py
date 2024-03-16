@@ -1083,7 +1083,11 @@ class MainClass:
                                                                                  start_year=start_year, end_year=end_year,
                                                                                  start_month=start_month, end_month=end_month,
                                                                                  flag=flag)
-
+            
+            self.tools.check_time_continuity(histograms_to_load)
+            self.tools.check_incomplete_months(histograms_to_load)
+            histograms_to_load = self.tools.check_and_remove_incomplete_months(histograms_to_load)
+            
             self.logger.debug(f"List of files to merge:")
             for i in range(0, len(histograms_to_load)):
                 self.logger.debug(f"{histograms_to_load[i]}")
