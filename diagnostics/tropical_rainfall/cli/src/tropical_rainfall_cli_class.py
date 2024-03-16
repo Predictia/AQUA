@@ -48,16 +48,23 @@ class Tropical_Rainfall_CLI:
         self.mswep_s_year = config['mswep']['s_year']
         self.mswep_f_year = config['mswep']['f_year']
         self.mswep_auto = config['mswep']['auto']
+        self.mswep_factor = config['mswep']['factor']
+        self.mswep_color = config['mswep']['color']
+        
         
         self.era5 = config['era5'][machine]
         self.era5_s_year = config['era5']['s_year']
         self.era5_f_year = config['era5']['f_year']
         self.era5_auto = config['era5']['auto']
+        self.era5_factor = config['era5']['factor']
+        self.era5_color = config['era5']['color']
         
         self.imerg = config['imerg'][machine]
         self.imerg_s_year = config['imerg']['s_year']
         self.imerg_f_year = config['imerg']['f_year']
         self.imerg_auto = config['imerg']['auto']
+        self.imerg_factor = config['imerg']['factor']
+        self.imerg_color = config['imerg']['color']
   
         self.logger = log_configure(log_name="Trop. Rainfall CLI", log_level=self.loglevel)
 
@@ -221,13 +228,17 @@ class Tropical_Rainfall_CLI:
         legend_model = f"{self.model} {self.exp}"
         name_of_pdf = f"{self.model}_{self.exp}_{self.regrid}_{self.freq}"
         if pdf_flag:
-            description = f"Comparison of the probability distribution function (PDF) for precipitation data from {self.model} {self.exp}, \
-                measured in {self.new_unit}, over the time range {model_merged.time_band}, against observations."
+            description = (
+                f"Comparison of the probability distribution function (PDF) for precipitation data "
+                f"from {self.model} {self.exp}, measured in {self.new_unit}, over the time range "
+                f"{model_merged.time_band}, against observations."
+            )
         else:
-            description = f"Comparison of the probability distribution function (PDF) multiplied by probability (PDF*P) \
-                for precipitation data from {self.model} {self.exp}, measured in {self.new_unit}, \
-                    across the time range {model_merged.time_band}, with observations."
-
+            description = (
+                f"Comparison of the probability distribution function (PDF) multiplied by probability "
+                f"(PDF*P) for precipitation data from {self.model} {self.exp}, measured in "
+                f"{self.new_unit}, across the time range {model_merged.time_band}, with observations."
+            )
         self.logger.debug('Description: %s', description)
                     
         # Initial plot with model data if it exists
@@ -237,49 +248,46 @@ class Tropical_Rainfall_CLI:
                                         plot_title=plot_title, loc=self.loc, path_to_pdf=self.path_to_pdf,
                                         pdf_format=self.pdf_format, name_of_file=name_of_pdf, factor=self.factor)
             
-            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description,
-                             old_metadata = True, loglevel = self.loglevel)
+            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
         else:
             add = False  # Ensures that additional plots can be added to an existing plot if the model data is unavailable
 
         # Subsequent plots for each dataset
         if mswep_merged is not None:
             add, _path_to_pdf = self.diag.histogram_plot(mswep_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
-                                    pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color='tab:red',
+                                    pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color=self.mswep_color,
                                     legend="MSWEP", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
                                     path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf,
-                                    factor=self.factor)
-            description = f"The time range of MSWEP is {mswep_merged.time_band}."
-            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description,
-                             old_metadata = True, loglevel = self.loglevel)
+                                    factor=self.mswep_factor)
+            description = description+f" The time range of MSWEP is {mswep_merged.time_band}."
+            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
             self.logger.info("Plotting MSWEP data for comparison.")
         else:
-            self.logger.warning("MSWEP data with a proper resolution is NOT found for comparison.")
+            self.logger.warning("MSWEP data with the necessary resolution is missing for comparison. Check the data source or adjust the resolution settings.")
 
         if imerg_merged is not None:
             add, _path_to_pdf = self.diag.histogram_plot(imerg_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
-                                    pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color='tab:blue',
+                                    pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color=self.imerg_color,
                                     legend="IMERG", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
                                     path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf,
-                                    factor=self.factor)
-            description = f"The time range of IMERG is {imerg_merged.time_band}."
+                                    factor=self.imerg_factor)
+            description = description+f" The time range of IMERG is {imerg_merged.time_band}."
             add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
             self.logger.info("Plotting IMERG data for comparison.")
         else:
-            self.logger.warning("IMERG data with a proper resolution is NOT found for comparison.")
+            self.logger.warning("IMERG data with the necessary resolution is missing for comparison. Check the data source or adjust the resolution settings.")
 
         if era5_merged is not None:
             add, _path_to_pdf = self.diag.histogram_plot(era5_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
-                                    pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color='tab:orange',
+                                    pdfP=pdfP_flag, linewidth=1, linestyle=linestyle, color=self.era5_color,
                                     legend="ERA5", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
                                     path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf,
-                                    factor=self.factor)
-            description = f"The time range of ERA5 is {era5_merged.time_band}."
-            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description,
-                             old_metadata = True, loglevel = self.loglevel)
+                                    factor=self.era5_factor)
+            description = description+f" The time range of ERA5 is {era5_merged.time_band}."
+            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
             self.logger.info("Plotting ERA5 data for comparison.")
         else:
-            self.logger.warning("ERA5 data with a proper resolution is NOT found for comparison.")
+            self.logger.warning("ERA5 data with the necessary resolution is missing for comparison. Check the data source or adjust the resolution settings.")
         self.logger.info("Histogram plots (as available) have been generated and saved.")
     
     
