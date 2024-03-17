@@ -111,6 +111,26 @@ grids:
     space_coord: ["ncells"]
     vert_coord: ["level"]
 
+  # IFS-FESOM NG4 grids (after 2022-05-01)
+  # Notice that these are different from those above 
+
+  fesom-levante-hpz7-nested:
+    space_coord: ["ncells"]
+    path: $grids/HealPix/fesom_levante_hpz7_nested_oce.nc
+  fesom-levante-hpz7-nested-3d:
+    path:
+      level: $grids/HealPix/fesom_levante_hpz7_nested_oce_level.nc
+    space_coord: ["ncells"]
+    vert_coord: ["level"]
+  fesom-levante-hpz9-nested:
+    space_coord: ["ncells"]
+    path: $grids/HealPix/fesom_levante_hpz9_nested_oce.nc
+  fesom-levante-hpz9-nested-3d:
+    path:
+      level: $grids/HealPix/fesom_levante_hpz9_nested_oce_level.nc
+    space_coord: ["ncells"]
+    vert_coord: ["level"]
+
 # ICON oceanic healpix
   icon-hpz10-nested:
     space_coord: ["ncells"]
