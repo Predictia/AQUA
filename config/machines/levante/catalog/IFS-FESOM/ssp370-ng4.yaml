@@ -145,7 +145,7 @@ sources:
       <<: *args-default
       aggregation: MS
       savefreq: D
-      data_start_date: 20210901T0000  # OCE data not available before 20210901
+      data_start_date: 20220501T0000  # OCE data not available before 20210901 and with wrong mask until 20220501 excluded
       request:
         <<: *request-default
         resolution: standard
@@ -164,7 +164,7 @@ sources:
       <<: *args-default
       aggregation: D
       savefreq: D
-      data_start_date: 20210901T0000  # OCE data not available before 20210901
+      data_start_date: 20220501T0000  # OCE data not available before 20210901 and with wrong mask until 20220501 excluded
       request:
         <<: *request-default
         resolution: standard
@@ -229,7 +229,7 @@ sources:
       <<: *args-default
       aggregation: MS
       savefreq: D
-      data_start_date: 20210901T0000
+      data_start_date: 20220501T0000  # OCE data not available before 20210901 and with wrong mask until 20220501 excluded
       request:
         <<: *request-default
         resolution: high
@@ -248,7 +248,7 @@ sources:
       <<: *args-default
       aggregation: D
       savefreq: D
-      data_start_date: 20210901T0000  # OCE data not available before 20210901
+      data_start_date: 20220501T0000  # OCE data not available before 20210901 and with wrong mask until 20220501 excluded
       request:
         <<: *request-default
         resolution: high
