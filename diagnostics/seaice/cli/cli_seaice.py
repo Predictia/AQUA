@@ -171,7 +171,7 @@ if __name__ == '__main__':
 
 
 # Initialize the object SeaIceConcentration
-analyzer = SeaIceConcentration(config="config_ExtentConcentration.yml", outputdir=outputdir,
+analyzer = SeaIceConcentration(config=config, outputdir=outputdir,
                         loglevel=loglevel)
 
 # Execute the analyzer.

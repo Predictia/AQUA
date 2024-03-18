@@ -10,13 +10,13 @@ models:
   - model: OSI-SAF
     exp: osi-450
     source: nh-monthly
-    regrid: null
+    regrid: r100
     variable: avg_siconc
     timespan: null
   - model: OSI-SAF
     exp: osi-450
     source: sh-monthly
-    regrid: null
+    regrid: r100
     variable: avg_siconc
     timespan: null
 # Please specify the path to the directory where the outputs should be saved.
