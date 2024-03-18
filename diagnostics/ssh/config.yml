@@ -2,18 +2,19 @@ log_level: DEBUG
 log_name: ssh_logger
 check_complete_timespan_data: False
 check_complete_timespan_models: False
+enter_aviso_dates_manually: False
 difference_plots: True
 
 # Models for which sea surface height (SSH) variability is to be evaluated.
 models:
   - name: IFS-NEMO
-    experiment: historical-1990
-    source: daily-r025-oce2d
-    regrid: r025
+    experiment: ssp370
+    source: daily-hpz10-oce2d
+    regrid: r005
     variable: avg_zos
-    zoom: 7
+    zoom: 10
     #timespan: ['2020-01-20', '2020-12-31']
-    timespan: ['1990-01-21', '1990-06-22']
+    timespan: ['1990-01-21', '2001-06-22']
 
   # - name: ICON
   #   experiment: ngc3026
@@ -35,7 +36,7 @@ base_model:
   { name: AVISO,
     experiment: ssh-L4,
     source: daily,
-    regrid: r025
+    regrid: r005
   }
 
 # ONLY FOR ICON: Flags for northern and southern boundaries to mask out specific latitudes.
@@ -46,7 +47,7 @@ northern_boundary_latitude: 70
 southern_boundary_latitude: -62
 
 # As default one timespan for all models will be set but this can be overwritten for each model by entering the timespan in the individual model configurations. This timespan will be applied to the AVISO observation data.
-timespan: {start: '2020-01-20', end: '2021-12-31'}
+timespan: {start: '1993-01-01', end: '2022-06-23'}
 #timespan: {start: '2020-01-21', end: '2021-07-22'}
 
 

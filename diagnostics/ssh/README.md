@@ -1,7 +1,7 @@
 # Sea Surface Height (SSH) Variability Diagnostics Application
 
 Main authors:
-- Tanvi Sharma (AWI, tanvi.sharma@awi.de)
+- Tanvi Sharma (AWI, tanvi.sharma@awi.de) and Jaleena Sunny (AWI, jaleena.sunny@awi.de)
 
 ## Description
 

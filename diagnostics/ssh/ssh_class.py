@@ -220,8 +220,6 @@ class sshVariability():
             fig.delaxes(axes[0])
             
         fig.tight_layout()
-        
-        
 
 
     @staticmethod
@@ -277,7 +275,7 @@ class sshVariability():
         # Save the figure as a PDF file. fig.savefig() or plt.savefig() should accomplish the same task of saving the figure to a file. (DPI = dots per inch)
         fig.savefig(output_file, dpi=200, format='png')
 
-    def run(self):
+    def run(self, nworkers=None,args=None):
         """
         Run the sshVariability.
         """
@@ -293,8 +291,15 @@ class sshVariability():
         # Comparing user timespan inputs across the models
         self.validate_time_ranges(config)
 
+        # If nworkers is not provided, use the value from the config
+        if nworkers is None:
+            nworkers = config.get('nworkers', None)
+
         # Initialize the Dask cluster
-        cluster = dd.LocalCluster(**config['dask_cluster'])
+        cluster_config = config['dask_cluster'].copy()
+        if nworkers is not None:
+            cluster_config['n_workers'] = nworkers
+        cluster = dd.LocalCluster(**cluster_config)
         client = dd.Client(cluster)
         # Get the Dask dashboard URL
         aqua_logger.info("Dask Dashboard URL: %s", client.dashboard_link)
@@ -308,53 +313,92 @@ class sshVariability():
         memory_text = f"Workers={worker_count}, Memory={total_memory}"
         aqua_logger.info(memory_text)
 
-        # Load AVISO data and get its time span
-        # idea: think in context of streaming data.
-        try:
-            reader = Reader(model=config['base_model']['name'], exp=config['base_model']
-                        ['experiment'], source=config['base_model']['source'],regrid=config['base_model']['regrid'], fix=True)
-        except:
-            raise NoObservationError("AVISO data not found.")
 
-        aviso_cat = reader.retrieve()
+        regrid_option = getattr(args, 'regrid', None) if args else None
+    
+        if regrid_option is None:
+            # Use the value from the config if args.regrid is not provided
+            regrid_option = config['base_model']['regrid']
+        reader = Reader(model=config['base_model']['name'], exp=config['base_model']['experiment'],
+                source=config['base_model']['source'], regrid=regrid_option, fix=True)
+    
+                #Assuming aviso_ssh_std_file_path contains the path to the "AVISO_ssh-L4_daily" file
+        aviso_ssh_std_file_path = os.path.join(config['output_directory'],"netcdf", "AVISO_ssh-L4_daily_std.nc")
+        print(aviso_ssh_std_file_path)
 
-        aviso_time_min = np.datetime64(aviso_cat.time.min().values)
-        aviso_time_max = np.datetime64(aviso_cat.time.max().values)
-        aqua_logger.info("AVISO data spans from %s to %s",
-                    aviso_time_min, aviso_time_max)
+        #taking the dates from the config file
+        manual_aviso_dates = config.get('enter_aviso_dates_manually', False)
+        # Check if the file exists
+        if not manual_aviso_dates and os.path.exists(aviso_ssh_std_file_path):
+            aqua_logger.info("aviso data already exists")
+            # Load the precomputed AVISO standard deviation
+            aviso_ssh_std = xr.open_dataarray(aviso_ssh_std_file_path)
+            print(aviso_ssh_std)
+            aviso_ssh_std_r = reader.regrid(aviso_ssh_std)
 
-        # Absolute dynamic topography, sea_surface_height_above_geoid
-        aviso_ssh = aviso_cat['adt']
-        #aviso_ssh = reader.regrid(aviso_ssh)
-
-        aqua_logger.info("Now computing std on AVISO ssh for the provided timespan")
-        # Get the user-defined timespan from the configuration
-        timespan_start = config['timespan']['start']
-        timespan_end = config['timespan']['end']
+            timespan_start = '1993-01-01'
+            timespan_end = '2022-06-23'
         
-        if config.get('check_complete_timespan_data', False):
-            timespan_start = aviso_time_min
-            timespan_end = aviso_time_max
-        else:
+            # Update the SSH data dictionary with the precomputed AVISO standard deviation
+            ssh_data_dict = {}
+            ssh_data_dict[f"{config['base_model']['name']}:{config['base_model']['experiment']} {timespan_start} to {timespan_end}"] = aviso_ssh_std_r
+        
+
+        else:   
+            #Load AVISO data and get its time span
+            #idea: think in context of streaming data.
+          #Get the value of regrid_option from args or config
+
+            try:
+                # regrid_option = args.regrid if args.regrid is not None else config['base_model']['regrid']  
+                reader = Reader(model=config['base_model']['name'], exp=config['base_model']['experiment'],
+                                source=config['base_model']['source'], regrid=regrid_option, fix=True)
+                regrid=regrid_option
+                print(regrid)
+            except:
+                raise NoObservationError("AVISO data not found.")
+    
+    
+            aviso_cat = reader.retrieve()
+    
+            aviso_time_min = np.datetime64(aviso_cat.time.min().values)
+            aviso_time_max = np.datetime64(aviso_cat.time.max().values)
+            aqua_logger.info("AVISO data spans from %s to %s",
+                        aviso_time_min, aviso_time_max)
+    
+            # Absolute dynamic topography, sea_surface_height_above_geoid
+            aviso_ssh = aviso_cat['adt']
+            #aviso_ssh = reader.regrid(aviso_ssh)
+    
+            aqua_logger.info("Now computing std on AVISO ssh for the provided timespan")
+            # Get the user-defined timespan from the configuration
+            timespan_start = config['timespan']['start']
+            timespan_end = config['timespan']['end']
             
-            if not check_time_span(config, aviso_ssh, timespan_start, timespan_end):
-                raise NotEnoughDataError("The time span is not within the range of time steps in the xarray object.")
-                sys.exit(0)
-
-        aqua_logger.info("Now computing std on AVISO ssh for the provided timespan")
-
-
-        aviso_ssh_std = aviso_ssh.sel(time=slice(
-            timespan_start, timespan_end)).std(axis=0).persist()
-        aviso_ssh_std_r = reader.regrid(aviso_ssh_std)
-        # saving the computation in output files
-        aqua_logger.info("computation for AVISO ssh complete, saving output file")
-        self.save_standard_deviation_to_file(self.create_output_directory(
-            config), "AVISO_ssh-L4_daily", aviso_ssh_std)
-
-        ssh_data_dict = {}
-        # ssh_data_dict[config['base_model']['name']] = aviso_ssh_std
-        ssh_data_dict[f"{config['base_model']['name']}:{config['base_model']['experiment']} {timespan_start} to {timespan_end}"] = aviso_ssh_std_r
+            if config.get('check_complete_timespan_data', False):
+                timespan_start = aviso_time_min
+                timespan_end = aviso_time_max
+            else:
+                
+                if not check_time_span(config, aviso_ssh, timespan_start, timespan_end):
+                    raise NotEnoughDataError("The time span is not within the range of time steps in the xarray object.")
+                    sys.exit(0)
+    
+            aqua_logger.info("Now computing std on AVISO ssh for the provided timespan")
+    
+    
+            aviso_ssh_std = aviso_ssh.sel(time=slice(
+                timespan_start, timespan_end)).std(axis=0).persist()
+            print(aviso_ssh_std)
+            aviso_ssh_std_r = reader.regrid(aviso_ssh_std)
+            # saving the computation in output files
+            aqua_logger.info("computation for AVISO ssh complete, saving output file")
+            self.save_standard_deviation_to_file(self.create_output_directory(
+                config), "AVISO_ssh-L4_daily", aviso_ssh_std)
+    
+            ssh_data_dict = {}
+            # ssh_data_dict[config['base_model']['name']] = aviso_ssh_std
+            ssh_data_dict[f"{config['base_model']['name']}:{config['base_model']['experiment']} {timespan_start} to {timespan_end}"] = aviso_ssh_std_r
 
         # Create a figure and axes for subplots
         fig, axes = plt.subplots(nrows=len(config['models'])+1, ncols=1, figsize=(
