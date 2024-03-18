@@ -4,21 +4,21 @@ models:
     exp: historical-1990
     source: lra-r100-monthly
     regrid: null
-    var: avg_siconc
+    var: avg_sithick
     timespan: null # can be of the format ['2020-01-20', '2024-12-31']
 # These are observational datasets
-  - model: OSI-SAF
-    exp: osi-450
-    source: nh-monthly
-    regrid: null
-    variable: avg_siconc
-    timespan: null
-  - model: OSI-SAF
-    exp: osi-450
-    source: sh-monthly
-    regrid: null
-    variable: avg_siconc
-    timespan: null
+#  - model: OSI-SAF
+#    exp: osi-450
+#    source: nh-monthly
+#    regrid: null
+#    variable: avg_siconc
+#    timespan: null
+#  - model: OSI-SAF
+#    exp: osi-450
+#    source: sh-monthly
+#    regrid: null
+#    variable: avg_siconc
+#    timespan: null
 # Please specify the path to the directory where the outputs should be saved.
 # If output directory/folder does not exist, it will be created.
 # This can be overwritten by the command line argument --outputdir
