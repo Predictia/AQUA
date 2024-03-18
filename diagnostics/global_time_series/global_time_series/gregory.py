@@ -172,6 +172,12 @@ class GregoryPlot():
         # Check at least one dataset has been retrieved
         if all([d is None for d in self.data_ts_mon]) and all([d is None for d in self.data_ts_annual]):
             raise NotEnoughDataError("Not enough data available. No plot will be drawn.")
+        elif all([d is None for d in self.data_ts_mon]):
+            self.monthly = False
+            self.logger.warning("No monthly data available. Monthly plot will not be drawn.")
+        elif all([d is None for d in self.data_ts_annual]):
+            self.annual = False
+            self.logger.warning("No annual data available. Annual plot will not be drawn.")
 
     def retrieve_ref(self):
         """Retrieve reference data."""
