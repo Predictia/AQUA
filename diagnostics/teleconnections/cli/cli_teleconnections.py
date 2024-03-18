@@ -9,6 +9,8 @@ import os
 import sys
 import gc
 
+from dask.distributed import Client, LocalCluster
+
 from aqua import __version__ as aquaversion
 from aqua.util import load_yaml, get_arg, add_pdf_metadata
 from aqua.exceptions import NoDataError, NotEnoughDataError
@@ -27,6 +29,8 @@ def parse_arguments(cli_args):
 
     parser.add_argument('-c', '--config', type=str,
                         help='yaml configuration file')
+    parser.add_argument('-n', '--nworkers', type=int,
+                        help='number of dask distributed workers')
     parser.add_argument('-d', '--dry', action='store_true',
                         required=False,
                         help='if True, run is dry, no files are written')
@@ -53,6 +57,9 @@ def parse_arguments(cli_args):
 
 if __name__ == '__main__':
 
+    cluster = LocalCluster(threads_per_worker=2, n_workers=8)  # Creates a local cluster with 4 workers
+    client = Client(cluster)
+
     args = parse_arguments(sys.argv[1:])
     loglevel = get_arg(args, 'loglevel', 'WARNING')
     logger = log_configure(log_name='Teleconnections CLI', log_level=loglevel)
@@ -67,6 +74,13 @@ if __name__ == '__main__':
     if os.getcwd() != dname:
         os.chdir(dname)
         logger.info(f'Moving from current directory to {dname} to run!')
+
+    # Dask distributed cluster
+    nworkers = get_arg(args, 'nworkers', None)
+    if nworkers:
+        cluster = LocalCluster(n_workers=nworkers, threads_per_worker=1)
+        client = Client(cluster)
+        logger.info(f"Running with {nworkers} dask distributed workers.")
 
     # Read configuration file
     file = get_arg(args, 'config', 'cli_config_atm.yaml')
@@ -237,6 +251,8 @@ if __name__ == '__main__':
             freq = mod.get('freq', None)
             zoom = mod.get('zoom', None)
             reference = mod.get('reference', False)
+            startdate = mod.get('startdate', None)
+            enddate = mod.get('enddate', None)
 
             logger.debug("setup: %s %s %s %s %s %s",
                          model, exp, source, regrid, freq, zoom)
@@ -250,6 +266,7 @@ if __name__ == '__main__':
                                     outputdir=outputnetcdf,
                                     outputfig=outputpdf,
                                     savefig=savefig, savefile=savefile,
+                                    startdate=startdate, enddate=enddate,
                                     interface=interface,
                                     loglevel=loglevel)
                 tc.retrieve()

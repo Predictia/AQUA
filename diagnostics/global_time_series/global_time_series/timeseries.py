@@ -10,6 +10,7 @@ from aqua.util import add_pdf_metadata, time_to_string
 from aqua.graphics import plot_timeseries
 
 from .reference_data import get_reference_timeseries
+from .util import loop_seasonalcycle
 
 xr.set_options(keep_attrs=True)
 
@@ -92,10 +93,11 @@ class Timeseries():
         self.ref_ann = None
         self.ref_ann_std = None
         self.plot_ref_kw = plot_ref_kw
-        self.monthly_std = monthly_std
-        self.annual_std = annual_std
+        self.monthly_std = monthly_std if monthly else False
+        self.annual_std = annual_std if annual else False
         self.std_startdate = std_startdate
         self.std_enddate = std_enddate
+        self.expanding_ref_range = False
 
         self.startdate = startdate
         self.enddate = enddate
@@ -117,8 +119,14 @@ class Timeseries():
             self.save_netcdf()
         self.cleanup()
 
-    def retrieve_ref(self):
-        """Retrieve reference data"""
+    def retrieve_ref(self, extend=True):
+        """Retrieve reference data
+        If the reference data don't cover the same range as the model data,
+        a seasonal cycle or a band of the reference data is added to the plot.
+
+        Args:
+            extend (bool): Extend the reference range. Default is True.
+        """
         if self.plot_ref:
             self.logger.debug('Retrieving reference data')
             try:
@@ -136,6 +144,8 @@ class Timeseries():
                                              monthly_std=self.monthly_std,
                                              annual_std=self.annual_std,
                                              loglevel=self.loglevel)
+                if extend:  # We introduce the possibility to avoid this for seasonal cycle
+                    self.check_ref_range()
             except NoObservationError:
                 self.plot_ref = False
                 self.logger.warning('Reference data not found, skipping reference data')
@@ -208,11 +218,13 @@ class Timeseries():
             gc.collect()
 
         if self.startdate is None:
-            self.logger.debug(f"Start date: {startdate}")
+            startdate = time_to_string(startdate)
             self.startdate = startdate
+            self.logger.debug(f"Start date: {self.startdate}")
         if self.enddate is None:
+            enddate = time_to_string(enddate)
             self.enddate = enddate
-            self.logger.debug(f"End date: {enddate}")
+            self.logger.debug(f"End date: {self.enddate}")
 
         if self.data_mon == [] and self.data_annual == []:
             raise NoDataError("No data found")
@@ -235,17 +247,28 @@ class Timeseries():
         else:
             ref_label = None
 
-        title = f'{self.var} timeseries'
+        if self.formula is False or self.formula is None:
+            try:
+                if self.monthly:
+                    title = self.data_mon[0].attrs['long_name'] + ' (' + self.data_mon[0].attrs['units'] + ') timeseries'
+                elif self.annual:
+                    title = self.data_annual[0].attrs['long_name'] + ' (' + self.data_annual[0].attrs['units'] + ') timeseries'
+                else:
+                    title = self.var + ' timeseries'
+            except KeyError:
+                title = f'{self.var} timeseries'
+        else:
+            title = f'{self.var} timeseries'
 
-        fig, ax = plot_timeseries(monthly_data=self.data_mon,
-                                  annual_data=self.data_annual,
-                                  ref_monthly_data=self.ref_mon,
-                                  ref_annual_data=self.ref_ann,
-                                  std_monthly_data=self.ref_mon_std,
-                                  std_annual_data=self.ref_ann_std,
-                                  ref_label=ref_label,
-                                  data_labels=data_labels,
-                                  title=title)
+        fig, _ = plot_timeseries(monthly_data=self.data_mon,
+                                 annual_data=self.data_annual,
+                                 ref_monthly_data=self.ref_mon,
+                                 ref_annual_data=self.ref_ann,
+                                 std_monthly_data=self.ref_mon_std,
+                                 std_annual_data=self.ref_ann_std,
+                                 ref_label=ref_label,
+                                 data_labels=data_labels,
+                                 title=title)
 
         if self.save:
             self.save_pdf(fig, ref_label)
@@ -280,6 +303,9 @@ class Timeseries():
         if self.plot_ref:
             description += f" with {ref_label} as reference,"
             description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}"
+        description += "."
+        if self.expanding_ref_range:
+            description += " The reference range has been expanded with a seasonal cycle or a band to match the model data."
         self.logger.debug(f"Description: {description}")
         add_pdf_metadata(filename=os.path.join(outfig, self.outfile),
                          metadata_value=description)
@@ -295,28 +321,45 @@ class Timeseries():
         create_folder(outdir, self.loglevel)
 
         for i, model in enumerate(self.models):
-            outfile = f'global_time_series_timeseries_{self.var}_{model}_{self.exps[i]}.nc'
-            self.logger.debug(f"Saving data to {outdir}/{outfile}")
-            if self.monthly is True:
-                self.data_mon[i].to_netcdf(os.path.join(outdir, outfile))
-            if self.annual is True:
-                self.data_annual[i].to_netcdf(os.path.join(outdir, outfile))
+            outfile = f'global_time_series_timeseries_{self.var}_{model}_{self.exps[i]}'
+            try:
+                if self.monthly is True:
+                    outfile += '_mon.nc'
+                    self.logger.debug(f"Saving monthly data to {outdir}/{outfile}")
+                    self.data_mon[i].to_netcdf(os.path.join(outdir, outfile))
+                if self.annual is True:
+                    outfile += '_ann.nc'
+                    self.logger.debug(f"Saving annual data to {outdir}/{outfile}")
+                    self.data_annual[i].to_netcdf(os.path.join(outdir, outfile))
+            except Exception as e:
+                self.logger.error(f"Error while saving netcdf {outdir}/{outfile}: {e}")
 
         if self.plot_ref:
-            outfile = f'global_time_series_timeseries{self.var}_ref.nc'
-            self.logger.debug(f"Saving reference data to {outdir}/{outfile}")
-            if self.monthly_std:
-                self.ref_mon.to_netcdf(os.path.join(outdir, outfile))
-            if self.annual_std:
-                self.logger.debug(f"Saving annual data to {outdir}/{outfile}")
-                self.ref_ann.to_netcdf(os.path.join(outdir, outfile))
+            outfile = f'global_time_series_timeseries_{self.var}_{self.plot_ref_kw["model"]}_{self.plot_ref_kw["exp"]}'
+            try:
+                if self.monthly:
+                    outfile += '_mon_std.nc'
+                    self.logger.debug(f"Saving monthly data to {outdir}/{outfile}")
+                    self.ref_mon.to_netcdf(os.path.join(outdir, outfile))
+                if self.annual:
+                    outfile += '_ann_std.nc'
+                    self.logger.debug(f"Saving annual data to {outdir}/{outfile}")
+                    self.ref_ann.to_netcdf(os.path.join(outdir, outfile))
+            except Exception as e:
+                self.logger.error(f"Error while saving netcdf {outdir}/{outfile}: {e}")
 
-            outfile = f'global_time_series_timeseries{self.var}_std.nc'
-            self.logger.debug(f"Saving std data to {outdir}/{outfile}")
-            if self.monthly_std:
-                self.ref_mon_std.to_netcdf(os.path.join(outdir, outfile))
-            if self.annual_std:
-                self.ref_ann_std.to_netcdf(os.path.join(outdir, outfile))
+            outfile = f'global_time_series_timeseries_{self.var}_{self.plot_ref_kw["model"]}_{self.plot_ref_kw["exp"]}_std'
+            try:
+                if self.monthly_std:
+                    outfile += '_mon.nc'
+                    self.logger.debug(f"Saving monthly std to {outdir}/{outfile}")
+                    self.ref_mon_std.to_netcdf(os.path.join(outdir, outfile))
+                if self.annual_std:
+                    outfile += '_ann.nc'
+                    self.logger.debug(f"Saving annual std to {outdir}/{outfile}")
+                    self.ref_ann_std.to_netcdf(os.path.join(outdir, outfile))
+            except Exception as e:
+                self.logger.error(f"Error while saving netcdf {outdir}/{outfile}: {e}")
 
     def cleanup(self):
         """Clean up"""
@@ -333,3 +376,99 @@ class Timeseries():
                 del self.ref_ann_std
         gc.collect()
         self.logger.debug("Cleaned up")
+
+    def check_ref_range(self):
+        """
+        If the reference data don't cover the same range as the model data,
+        a seasonal cycle or a band of the reference data is added to the plot.
+        """
+        self.logger.debug("Checking reference range")
+
+        if self.monthly:
+            exp_startdate, exp_enddate = self._expand_ref_range(freq='monthly')
+            self.logger.info(f"Monthly reference std time range for expansion evaluation: {exp_startdate} to {exp_enddate}")
+
+            startdate, enddate = self._expand_ref_range(freq='monthly', range_eval=True)
+            self.logger.info(f"Monthly reference data time available {startdate} to {enddate}")
+
+            if startdate > self.startdate or enddate < self.enddate:
+                self.logger.info("Expanding reference range with a seasonal cycle")
+                self.expanding_ref_range = True
+
+                if startdate > self.startdate:
+                    self.logger.debug("Adding a seasonal cycle to the start of the reference data")
+                    ref_mon_loop = loop_seasonalcycle(data=self.ref_mon,
+                                                      startdate=self.startdate,
+                                                      enddate=startdate,
+                                                      freq='MS')
+                    self.ref_mon = xr.concat([ref_mon_loop, self.ref_mon], dim='time')
+
+                if enddate < self.enddate:
+                    self.logger.debug("Adding a seasonal cycle to the end of the reference data")
+                    ref_mon_loop = loop_seasonalcycle(data=self.ref_mon,
+                                                      startdate=enddate,
+                                                      enddate=self.enddate,
+                                                      freq='MS')
+                    self.ref_mon = xr.concat([self.ref_mon, ref_mon_loop], dim='time')
+
+            self.ref_mon = self.ref_mon.sel(time=slice(self.startdate, self.enddate))
+
+        if self.annual:
+            exp_startdate, exp_enddate = self._expand_ref_range(freq='annual')
+            self.logger.info(f"Annual reference std time range for expansion evaluation: {exp_startdate} to {exp_enddate}")
+
+            startdate, enddate = self._expand_ref_range(freq='annual', range_eval=True)
+            self.logger.info(f"Annual reference data time available {startdate} to {enddate}")
+
+            if startdate > self.startdate or enddate < self.enddate:
+                self.logger.info("Expanding reference range with a band of the reference data")
+                self.expanding_ref_range = True
+
+                if startdate > self.startdate:
+                    self.logger.debug("Adding a band to the start of the reference data")
+                    ref_ann_loop = loop_seasonalcycle(data=self.ref_ann,
+                                                      startdate=self.startdate,
+                                                      enddate=startdate,
+                                                      freq='YS')
+                    self.ref_ann = xr.concat([ref_ann_loop, self.ref_ann], dim='time')
+
+                if enddate < self.enddate:
+                    self.logger.debug("Adding a band to the end of the reference data")
+                    ref_ann_loop = loop_seasonalcycle(data=self.ref_ann,
+                                                      startdate=enddate,
+                                                      enddate=self.enddate,
+                                                      freq='YS')
+                    self.ref_ann = xr.concat([self.ref_ann, ref_ann_loop], dim='time')
+
+            self.ref_ann = self.ref_ann.sel(time=slice(self.startdate, self.enddate))
+
+    def _expand_ref_range(self, freq='monthly', range_eval=False):
+        """Evaluate range for statistics to expand the reference range
+
+        Args:
+            freq (str): Frequency of the data. Default is 'monthly'.
+            range_eval (bool): Evaluate the range also if std is provided. Default is False.
+
+        Returns:
+            startdate and enddate (str): Start and end date of the reference range.
+        """
+        startdate = self.std_startdate
+        enddate = self.std_enddate
+
+        if startdate is None or enddate is None or range_eval:
+            self.logger.debug("No std reference range provided, using data retrieved range")
+            if freq == 'monthly':
+                startdate = self.ref_mon.time[0].values
+                startdate = time_to_string(startdate)
+                enddate = self.ref_mon.time[-1].values
+                enddate = time_to_string(enddate)
+            elif freq == 'annual':
+                if self.annual:
+                    startdate = self.ref_ann.time[0].values
+                    startdate = time_to_string(startdate)
+                    enddate = self.ref_ann.time[-1].values
+                    enddate = time_to_string(enddate)
+            else:
+                raise ValueError(f"Unknown frequency: {freq}")
+
+        return startdate, enddate
