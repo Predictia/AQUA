@@ -146,10 +146,10 @@ sources:
       <<: *args-default
       aggregation: MS
       savefreq: D
+      data_start_date: 20180701T0000
       request:
         <<: *request-default
         resolution: high
-        data_start_date: 20180701T0000
         levtype: o2d
     metadata:
       fdb_path: /users/lrb_465000454_fdb/etc/fdb/config.yaml
@@ -164,10 +164,10 @@ sources:
       <<: *args-default
       aggregation: D
       savefreq: D
+      data_start_date: 20180701T0000
       request:
         <<: *request-default
         resolution: high
-        data_start_date: 20180701T0000
         param: 263500
         levtype: o3d
         levelist: [
