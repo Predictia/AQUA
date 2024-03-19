@@ -497,13 +497,6 @@ class SeaIceConcentration:
                     else:
                         lon2D, lat2D = lon, lat
 
-
-                    self.logger.warning("WARNING: TO BE IMPLEMENTED: SUB SELECT BASED ON TIME SPAN")
-
-
-                
-
-
                     # Create color sequence for sic
                     sourceColors = [[0.0, 0.0, 0.2], [0.0, 0.0, 0.0],[0.5, 0.5, 0.5], [0.6, 0.6, 0.6], [0.7, 0.7, 0.7], [0.8, 0.8, 0.8], [0.9, 0.9, 0.9],[1.0, 1.0, 1.0]]
                     myCM = LinearSegmentedColormap.from_list('myCM', sourceColors, N = 15)
