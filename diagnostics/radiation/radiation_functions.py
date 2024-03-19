@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import matplotlib.dates as mdates
 import cartopy.crs as ccrs
 from matplotlib.legend_handler import HandlerTuple
 from aqua import Reader
@@ -355,6 +356,10 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None,
         axes[i].plot(xlim, [0, 0], color='black', linestyle=':')
         axes[i].set_ylim([-ylim, ylim])
 
+    for ax in axes:
+        ax.xaxis.set_major_locator(mdates.AutoDateLocator())
+        ax.xaxis.set_major_formatter(mdates.AutoDateFormatter(mdates.AutoDateLocator()))
+
     plt.suptitle('Global mean TOA radiation bias relative to CERES climatology', fontsize=18)
 
     plt.tight_layout()
@@ -364,11 +369,12 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None,
         # Save the data for each model to separate netCDF files
         for i, model in enumerate(models):
             model_name = linelabels[i].replace(' ', '_').lower()
-            start_date = str(model["data"]["time.year"][0].values) + '-' + str(model["data"]["time.month"][0].values) +\
-                '-'+str(model["data"]["time.day"][0].values)
-            end_date = str(model["data"]["time.year"][-1].values) + '-' + str(model["data"]["time.month"][-1].values) +\
-                '-'+str(model["data"]["time.day"][-1].values)
-            model["gm"].to_netcdf(f"{outputdir}timeseries_{model_name}_{start_date}_{end_date}.nc")
+            # start_date = str(model["data"]["time.year"][0].values) + '-' + str(model["data"]["time.month"][0].values) +\
+            #     '-'+str(model["data"]["time.day"][0].values)
+            # end_date = str(model["data"]["time.year"][-1].values) + '-' + str(model["data"]["time.month"][-1].values) +\
+            #     '-'+str(model["data"]["time.day"][-1].values)
+            #model["gm"].to_netcdf(f"{outputdir}timeseries_{model_name}_{start_date}_{end_date}.nc")
+            model["gm"].to_netcdf(f"{outputdir}timeseries_{model_name}.nc")
         logger.info(f"Data has been saved to {outputdir}.")
 
     if outputfig is not None:
@@ -550,14 +556,16 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
             create_folder(folder=str(outputdir), loglevel='WARNING')
             # Save the data to a netCDF file
             ceres_model_name = ceres["model"] + '_' + ceres["exp"] + '_' + ceres["source"]
-            filename = f"{outputdir}toa_mean_biases_{var}_{model_label}_{start_year}_{end_year}_{ceres_model_name}_seasons.pdf"
+            #filename = f"{outputdir}toa_mean_biases_{var}_{model_label}_{start_year}_{end_year}_{ceres_model_name}_seasons.pdf"
+            filename = f"{outputdir}toa_mean_biases_{var}_{model_label}_{ceres_model_name}_seasons.pdf"
             plt.savefig(filename, dpi=300, format='pdf', bbox_inches="tight")
             logger.info(f"Data has been saved to {outputdir}.")
 
         if outputfig is not None:
             create_folder(folder=str(outputfig), loglevel='WARNING')
             ceres_model_name = ceres["model"] + '_' + ceres["exp"] + '_' + ceres["source"]
-            filename = f"{outputfig}toa_mean_biases_{var}_{model_label}_{start_year}_{end_year}_{ceres_model_name}_seasons.pdf"
+            #filename = f"{outputfig}toa_mean_biases_{var}_{model_label}_{start_year}_{end_year}_{ceres_model_name}_seasons.pdf"
+            filename = f"{outputfig}toa_mean_biases_{var}_{model_label}_{ceres_model_name}_seasons.pdf"
             plt.savefig(filename, dpi=300, format='pdf', bbox_inches="tight")
             logger.info(f"Plot has been saved to {outputfig}.")
         else:
@@ -653,14 +661,16 @@ def plot_mean_bias(model=None, var=None, model_label=None, ceres=None, start_yea
             create_folder(folder=str(outputdir), loglevel='WARNING')
             # Save the data to a netCDF file
             ceres_model_name = ceres["model"]+'_'+ceres["exp"]+'_'+ceres["source"]
-            filename = f"{outputdir}toa_mean_biases_{var}_{model_label}_{start_year}_{end_year}_{ceres_model_name}.nc"
+            # filename = f"{outputdir}toa_mean_biases_{var}_{model_label}_{start_year}_{end_year}_{ceres_model_name}.nc"
+            filename = f"{outputdir}toa_mean_biases_{var}_{model_label}_{ceres_model_name}.nc"
             mean_bias.to_netcdf(filename)
             logger.info(f"Data has been saved to {outputdir}.")
 
         if outputfig is not None:
             create_folder(folder=str(outputfig), loglevel='WARNING')
             ceres_model_name = ceres["model"]+'_'+ceres["exp"]+'_'+ceres["source"]
-            filename = f"{outputfig}toa_mean_biases_{var}_{model_label}_{start_year}_{end_year}_{ceres_model_name}.pdf"
+            # filename = f"{outputfig}toa_mean_biases_{var}_{model_label}_{start_year}_{end_year}_{ceres_model_name}.pdf"
+            filename = f"{outputfig}toa_mean_biases_{var}_{model_label}_{ceres_model_name}.pdf"
             plt.savefig(filename, dpi=300, format='pdf', bbox_inches="tight")
             logger.info(f"Plot has been saved to {outputfig}.")
         else:
