@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+
+- Adding IFS_9-FESOM_5 NextGEMS4 simulation on levante (#1009)
 - Function to plot multiple maps is introduced as `plot_maps()` and documented (#866)
 - Adding the IFS-FESOM storylines simulation (#848)
 - `file_is_complete()` accounts also for the mindate attribute (#1007)
