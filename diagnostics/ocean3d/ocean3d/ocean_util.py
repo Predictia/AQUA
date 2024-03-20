@@ -307,27 +307,27 @@ def load_obs_data(model='EN4', exp='en4', source='monthly', loglevel= "WARNING")
     return den4
 
 
-def crop_obs_overlap_time(mod_data, obs_data, loglevel= "WARNING"):
+def crop_obs_overlap_time(data1, data2, loglevel= "WARNING"):
     """
     Crop the observational data to the overlapping time period with the model data.
 
     Parameters:
-        mod_data (xarray.Dataset): Model data.
-        obs_data (xarray.Dataset): Observational data.
+        data1 (xarray.Dataset): data1.
+        data2 (xarray.Dataset): data2.
 
     Returns:
         xarray.Dataset: Observational data cropped to the overlapping time period with the model data.
     """
     logger = log_configure(loglevel, 'crop_obs_overlap_time')
-    mod_data_time = mod_data.time
-    obs_data_time = obs_data.time
+    data1_time = data1.time
+    data2_time = data2.time
     common_time = xr.DataArray(np.intersect1d(
-        mod_data_time, obs_data_time), dims='time')
+        data1_time, data2_time), dims='time')
     if len(common_time) > 0:
-        obs_data = obs_data.sel(time=common_time)
+        data2 = data2.sel(time=common_time)
         logger.debug(
             "selected the overlaped time of the obs data compare to the model")
-    return obs_data
+    return data2
 
 
 def data_time_selection(data, time, loglevel= "WARNING"):

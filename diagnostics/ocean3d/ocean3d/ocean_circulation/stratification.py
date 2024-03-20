@@ -19,7 +19,7 @@ class stratification:
             filter(lambda value: value is not None, data_list))
         return data_list
 
-    def plot_stratification(self):
+    def plot(self):
         
         data_list = self.prepare_data_list()
 
