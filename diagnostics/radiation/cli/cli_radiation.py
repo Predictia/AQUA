@@ -128,7 +128,7 @@ if __name__ == '__main__':
         try:
             plot_model_comparison_timeseries(models=model_data, ceres=ceres,
                                              outputdir=outputdir, outputfig=outputfig,
-                                             ylim=15, loglevel=loglevel)
+                                             loglevel=loglevel)
             logger.info(
                 "The time series bias plot with various models and CERES was created and saved.")
         except Exception as e:

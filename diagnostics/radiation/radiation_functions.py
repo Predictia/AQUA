@@ -240,7 +240,7 @@ def boxplot_model_data(datasets=None, model_names=None, outputdir=None, outputfi
 
 
 def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None,
-                                     outputdir=None, outputfig=None, ylim=6.5, loglevel='WARNING'):
+                                     outputdir=None, outputfig=None, ylim=None, loglevel='WARNING'):
     """
     Create time series bias plot with various models and CERES, including the individual CERES years to show variabilities.
     Variables ttr, tsr, and tnr are plotted to show imbalances. Default mean for CERES data is the whole time range.
@@ -251,7 +251,7 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None,
         ceres (xarray.DataSet): The CERES data to be compared with the models.
         outputdir (str, optional): Directory where the output data will be saved. Default is None.
         outputfig (str, optional): Directory where the output figure will be saved. Default is None.
-        ylim (float, optional): The limit for the y-axis in the plot. Default is 6.5.
+        ylim (float, optional): The limit for the y-axis in the plot.
         loglevel (str, optional): The log level for the logger. Default is 'WARNING'.
 
     Returns:
@@ -260,10 +260,9 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None,
     logger = log_configure(log_level=loglevel, log_name='Plot Model Comparison Timeseries')
 
     fig, axes = plt.subplots(3, 1, figsize=(12, 8))
-    sns.set_style("darkgrid")
+    #sns.set_style("darkgrid")
     color_palette = sns.color_palette("Set1") 
     linecolors = color_palette.as_hex()
-    
 
     if models is None:
         raise ValueError("models cannot be None")
@@ -336,7 +335,7 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None,
     axes[0].set_xticklabels([])
     axes[0].set_xlabel('')
     axes[0].legend(loc="upper left", frameon=False, fontsize='medium', ncol=3)
-
+    
     axes[1].fill(long_time, np.append(shading_data['mtnswrf'].min(dim='ensemble'),
                                       shading_data['mtnswrf'].max(dim='ensemble')[::-1]),
                  color='lightgrey', alpha=0.6, label='ceres individual years', zorder=0)
@@ -350,15 +349,24 @@ def plot_model_comparison_timeseries(models=None, linelabels=None, ceres=None,
     axes[2].set_xticklabels([])
     axes[2].set_xlabel('')
 
+    if ylim is None:
+        max_bias = max(
+            max(abs(ttr_diff.max()), abs(ttr_diff.min()),
+                abs(tsr_diff.max()), abs(tsr_diff.min()),
+                abs(tnr_diff.max()), abs(tnr_diff.min()))
+            for model in models
+    )
+    ylim = max_bias * 1.1  # Add a buffer for better visualization
+    
     for i in range(3):
         axes[i].set_ylabel('$W/m^2$')
         axes[i].set_xlim(xlim)
         axes[i].plot(xlim, [0, 0], color='black', linestyle=':')
         axes[i].set_ylim([-ylim, ylim])
-
-    for ax in axes:
-        ax.xaxis.set_major_locator(mdates.AutoDateLocator())
-        ax.xaxis.set_major_formatter(mdates.AutoDateFormatter(mdates.AutoDateLocator()))
+        axes[i].xaxis.set_major_locator(mdates.YearLocator())
+        axes[i].xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+        axes[i].tick_params(axis='x', rotation=45)
+        axes[i].grid(False)
 
     plt.suptitle('Global mean TOA radiation bias relative to CERES climatology', fontsize=18)
 
