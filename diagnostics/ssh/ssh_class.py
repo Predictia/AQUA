@@ -14,7 +14,8 @@ from aqua import Reader, util, logger
 from datetime import datetime
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 import pandas as pd
-
+from aqua.util import area_selection
+from aqua import Reader, plot_single_map
 
 
 def check_time_span(config, ds, start, end):
@@ -221,6 +222,49 @@ class sshVariability():
             
         fig.tight_layout()
 
+    
+    @staticmethod
+    def region_selection(config, ssh_data_dict):
+
+        mask_northern_boundary = config.get("mask_northern_boundary", False)
+        mask_southern_boundary = config.get("mask_southern_boundary", False)
+        northern_boundary_latitude = config.get("northern_boundary_latitude", None)
+        southern_boundary_latitude = config.get("southern_boundary_latitude", None)
+
+        fig = plt.figure(figsize=(12, 8))  # Create the figure outside the loop
+        for i, (model_name, data) in enumerate(ssh_data_dict.items()):
+            # Apply masking if necessary
+            if "ICON" in model_name and mask_northern_boundary and northern_boundary_latitude:
+                data = data.where(data.lat < northern_boundary_latitude)
+            if "ICON" in model_name and mask_southern_boundary and southern_boundary_latitude:
+                data = data.where(data.lat > southern_boundary_latitude)
+        
+            lon_lim = config.get("region_selection_limits", {}).get("lon_lim")
+            lat_lim = config.get("region_selection_limits", {}).get("lat_lim")
+
+            ssh_sel = area_selection(data, lon=lon_lim, lat=lat_lim, drop=True)
+           
+            ax = fig.add_subplot(len(ssh_data_dict), 1, i + 1)
+            
+            if 'lon' in data.coords: 
+                contf = plot_single_map(ssh_sel, ax=ax, title=f"{config['region name']} - {model_name}", 
+                                  vmin=config["subplot_options"]["scale_min"], vmax=config["subplot_options"]["scale_max"], 
+                                  cmap=config["subplot_options"]["cmap"])
+            else:
+                contf = plot_single_map(ssh_sel, ax=ax, title=f"{config['region name']} - {model_name}", 
+                                  vmin=config["subplot_options"]["scale_min"], vmax=config["subplot_options"]["scale_max"], 
+                                  cmap=config["subplot_options"]["cmap"])              
+            
+            # Add a colorbar for each subplot
+            cbar = fig.colorbar(contf, ax=ax, orientation='vertical', shrink=0.9)
+            cbar.set_label('SSH Variability (mm)')
+        
+        # Save the figure after the loop
+        plt.savefig("region_selection_plots.png")
+        plt.close(fig)
+        plt.show()
+
+
 
     @staticmethod
     def create_output_directory(config):
@@ -310,6 +354,8 @@ class sshVariability():
         worker_count = len(workers)
         total_memory = format_bytes(
             sum(w["memory_limit"] for w in workers.values() if w["memory_limit"]))
+        # total_memory = format_bytes(
+        #     sum(config["dask_cluster"]["memory_limit"] for w in workers.values() if "memory_limit" in config["dask_cluster"]))
         memory_text = f"Workers={worker_count}, Memory={total_memory}"
         aqua_logger.info(memory_text)
 
@@ -330,7 +376,7 @@ class sshVariability():
         manual_aviso_dates = config.get('enter_aviso_dates_manually', False)
         # Check if the file exists
         if not manual_aviso_dates and os.path.exists(aviso_ssh_std_file_path):
-            aqua_logger.info("aviso data already exists")
+            aqua_logger.info("aviso data already exists from 1993-01-01 to 2022-06-23 ")
             # Load the precomputed AVISO standard deviation
             aviso_ssh_std = xr.open_dataarray(aviso_ssh_std_file_path)
             print(aviso_ssh_std)
@@ -480,20 +526,32 @@ class sshVariability():
         aqua_logger.info("visualizing the data in subplots")
         # self.visualize_subplots(config, ssh_data_list, fig, axes)
         self.visualize_subplots(config, ssh_data_dict, fig, axes)
-        
 
         aqua_logger.info("Saving plots as a PNG output file")
         # self.save_subplots_as_jpeg(config, "subplots_output.jpeg", fig)
         self.save_subplots_as_png(self.create_output_directory(
             config), "ssh_all_models_ssh-variablity.png", fig)
         
+        
+        
         if config.get('difference_plots', False):
             # Create a figure and axes for subplots
-            fig, axes = plt.subplots(nrows=len(config['models'])+1, ncols=1, figsize=(
+            fig_diff, axes = plt.subplots(nrows=len(config['models'])+1, ncols=1, figsize=(
                 12, 8), subplot_kw={'projection': ccrs.PlateCarree()})
             fig.suptitle("SSH Variability difference")
             aqua_logger.info("visualizing the difference data in subplots")
-            self.visualize_difference(config, ssh_data_dict, fig, axes)
+            self.visualize_difference(config, ssh_data_dict, fig_diff, axes)
+        
+            aqua_logger.info("Saving difference plots as a PNG output file")
+            # self.save_subplots_as_jpeg(config, "subplots_output.jpeg", fig)
+            self.save_subplots_as_png(self.create_output_directory(
+                config), "ssh_variablity_difference.png", fig_diff)
+
+        if config.get('region_selection', False):
+            # Create a figure and axes for subplots
+            aqua_logger.info("visualizing the selected region data and saving plots")
+            self.region_selection(config, ssh_data_dict)
+
 
         # Close the Dask client and cluster
         client.close()
