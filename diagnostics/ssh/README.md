@@ -27,4 +27,4 @@ The application will calculate the SSH standard deviation for AVISO and the othe
 The code produce both NetCDF files for storing output and figures. 
 - NetCDF files: The computed SSH standard deviation for each model is saved as separate files. 
 Output are stored on the original model grid. For unstructured grids, this data has been regridded using AQUA regridder for visualization only.
-- Figures: the subplots showing the SSH variability for each model are as a PDF.
+- Figures: the subplots showing the SSH variability for each model are as a PNG.
