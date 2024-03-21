@@ -34,4 +34,8 @@ Command Line Arguments:
   - Example: `--modeltime "2022-01-01" "2022-12-31"`
 * `--obstime`: Sets the observation time span. This takes two dates in the format "YYYY-MM-DD", "YYYY-MM-DD".
   - Example: `--obstime "2022-01-01" "2022-12-31"`
+* `--nworkers`: Sets the number of workers, dask
+  - Example: `--nworkers 4`
+* `--regrid`: Sets the required resolution
+  - Example: `--regrid r010`
 
