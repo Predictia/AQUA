@@ -86,8 +86,8 @@ def minmax_maps(maps: list):
         vmax (float): Maximum value of the colorbar.
     """
 
-    minmax = (min([map.min().values for map in maps]),
-              max([map.max().values for map in maps]))
+    minmax = (min([map.min().values for map in maps if map is not None]),
+              max([map.max().values for map in maps if map is not None]))
 
     vmin = minmax[0]
     vmax = minmax[1]
@@ -118,8 +118,8 @@ def evaluate_colorbar_limits(maps: list, sym: bool = True):
     if sym:
         vmin, vmax = minmax_maps(maps)
     else:
-        vmin = min([map.min().values for map in maps])
-        vmax = max([map.max().values for map in maps])
+        vmin = min([map.min().values for map in maps if map is not None])
+        vmax = max([map.max().values for map in maps if map is not None])
 
     return vmin, vmax
 
