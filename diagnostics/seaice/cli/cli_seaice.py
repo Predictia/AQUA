@@ -18,6 +18,9 @@ from aqua.logger import log_configure
 from aqua.util import get_arg, load_yaml
 from aqua.exceptions import NoDataError
 
+# Local module imports.
+from seaice import SeaIceExtent, SeaIceVolume, SeaIceConcentration, SeaIceThickness
+
 # Add the directory containing the `seaice` module to the Python path.
 # Since the module is in the parent directory of this script, we calculate the script's directory
 # and then move one level up.
@@ -31,9 +34,6 @@ if os.getcwd() != dname:
 
 script_dir = dname
 sys.path.insert(0, "../..")
-
-# Local module imports.
-from seaice import SeaIceExtent, SeaIceVolume, SeaIceConcentration, SeaIceThickness
 
 
 def parse_arguments(args):
