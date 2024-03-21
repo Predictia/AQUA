@@ -431,115 +431,123 @@ class SeaIceConcentration:
 
             for jSetup, setup in enumerate(self.mySetups):
 
+                # Acquiring the setup
+                self.logger.debug("Setup: " + str(setup))
+                model = setup["model"]
+                exp = setup["exp"]
+                # We use get because the reader can try to take
+                # automatically the first source available
+                source = setup.get("source", None)
+                regrid = setup.get("regrid", None)
+                var = setup.get("var", "avg_siconc")
+                timespan = setup.get("timespan", None)
 
-                fig1, ax1 = plt.subplots(nrows = 1, ncols = len(months_diagnostic), subplot_kw={'projection': projection}, figsize=(5 * len(months_diagnostic), 5))
+                self.logger.info(f"Retrieving data for {model} {exp} {source}")
+ 
+                # Load the data
+                # Instantiate reader
+                try:
+                    reader = Reader(model=model, exp=exp, source=source,
+                                    regrid=regrid, loglevel=self.loglevel)
 
-                for jMonth, month_diagnostic in enumerate(months_diagnostic):
+                    tmp = reader.retrieve()
+                except Exception as e:
+                    self.logger.error("An exception occurred while instantiating reader: %s", e)
+                    raise NoDataError("Error while instantiating reader")
 
-                    if len(months_diagnostic) == 1:
-                        ax1 = [ax1]
-                    else:
-                        ax1 = ax1.flatten()
+                try:
+                    data= reader.retrieve(var=var)
+                except KeyError:
+                    self.logger.error("Variable %s not found in dataset", var)
+                    raise NoDataError("Variable not found in dataset")
 
-                    # Acquiring the setup
-                    self.logger.debug("Setup: " + str(setup))
-                    model = setup["model"]
-                    exp = setup["exp"]
-                    # We use get because the reader can try to take
-                    # automatically the first source available
-                    source = setup.get("source", None)
-                    regrid = setup.get("regrid", None)
-                    var = setup.get("var", "avg_siconc")
-                    timespan = setup.get("timespan", None)
+                if regrid:
+                    self.logger.info("Regridding data")
+                    data = reader.regrid(data)
 
-                    self.logger.info(f"Retrieving data for {model} {exp} {source}")
+                try:
+                    lat = data.coords["lat"]
+                    lon = data.coords["lon"]
+                except KeyError:
+                    raise NoDataError("No lat/lon coordinates found in dataset")
 
-                    # Instantiate reader
-                    try:
-                        reader = Reader(model=model, exp=exp, source=source,
-                                 regrid=regrid, loglevel=self.loglevel)
+                # Important: recenter the lon in the conventional 0-360 range
+                lon = (lon + 360) % 360
+                lon.attrs["units"] = "degrees"
 
-                        tmp = reader.retrieve()
-                    except Exception as e:
-                        self.logger.error("An exception occurred while instantiating reader: %s", e)
-                        raise NoDataError("Error while instantiating reader")
+                label = setup["model"] + " " + setup["exp"] + " " + setup["source"]
 
-                    try:
-                        data= reader.retrieve(var=var)
-                    except KeyError:
-                        self.logger.error("Variable %s not found in dataset", var)
-                        raise NoDataError("Variable not found in dataset")
-                    if timespan is None:
-                        # if timespan is set to None, retrieve the timespan
-                        # from the data directly
-                        self.logger.warning("Using timespan based on data availability")
-                        timespan = [np.datetime_as_string(data.time[0].values, unit='D'),
-                                                     np.datetime_as_string(data.time[-1].values, unit='D')]
-                    if regrid:
-                        self.logger.info("Regridding data")
-                        data = reader.regrid(data)
+                if len(lon.shape) == 1: # If we are using a regular grid, we need to meshgrid it
+                    lon2D, lat2D = np.meshgrid(lon, lat)
+                else:
+                    lon2D, lat2D = lon, lat
 
-                    try:
-                        lat = data.coords["lat"]
-                        lon = data.coords["lon"]
-                    except KeyError:
-                        raise NoDataError("No lat/lon coordinates found in dataset")
+                if timespan is None:
+                    # if timespan is set to None, retrieve the timespan
+                    # from the data directly
+                    self.logger.warning("Using timespan based on data availability")
+                    timespan = [np.datetime_as_string(data.time[0].values, unit='D'),
+                                                         np.datetime_as_string(data.time[-1].values, unit='D')]
 
-                    # Important: recenter the lon in the conventional 0-360 range
-                    lon = (lon + 360) % 360
-                    lon.attrs["units"] = "degrees"
+                # Skip the plot if the data loaded is in the southern hemisphere (OSISAF separates hemispheres)
+                if (hemi == "nh" and source == "sh-monthly") or (hemi == "sh" and source == "nh-monthly"):
+                    pass
+                else:
 
-                    label = setup["model"] + " " + setup["exp"] + " " + setup["source"]
-            
-
-                    if len(lon.shape) == 1: # If we are using a regular grid, we need to meshgrid it
-                        lon2D, lat2D = np.meshgrid(lon, lat)
-                    else:
-                        lon2D, lat2D = lon, lat
-
-                    # Create color sequence for sic
-                    sourceColors = [[0.0, 0.0, 0.2], [0.0, 0.0, 0.0],[0.5, 0.5, 0.5], [0.6, 0.6, 0.6], [0.7, 0.7, 0.7], [0.8, 0.8, 0.8], [0.9, 0.9, 0.9],[1.0, 1.0, 1.0]]
-                    myCM = LinearSegmentedColormap.from_list('myCM', sourceColors, N = 15)
-
-                    # Create a figure and axis with the specified projection
-
-                    # Add cyclic points to avoid a white Greenwich meridian
-                    #varShow, lon1DCyclic = add_cyclic_point(dataPlot, coord = lon1D, axis = 1)
-
-                    # Plot the field data using contourf
-                    levels = np.arange(0.0, 1.05, 0.05)
-                    levelsShow = np.arange(0.0, np.max(levels), 0.1)
-
-                
-                    maskTime = (data['time.month'] == month_diagnostic)
-
-                    dataPlot = data[var].where(maskTime, drop=True).sel(time = slice(timespan[0], timespan[1])).mean("time").values
-
-                    contour = ax1[jMonth].pcolormesh(lon, lat, dataPlot,  \
-                            transform=ccrs.PlateCarree(), cmap = myCM
-                            )
-
-
-                    # Add coastlines and gridlines
-                    ax1[jMonth].coastlines()
-                    #ax.gridlines()
-                    ax1[jMonth].add_feature(cfeature.LAND, edgecolor='k')
-
-                    # Add colorbar
-                    cbar = plt.colorbar(contour, ax=ax1[jMonth], orientation='vertical', pad=0.05)
-                    cbar.set_label('fractional')
-                    cbar.set_ticks(levelsShow)
-
-                    # Set title
-                    ax1[jMonth].set_title(monthNames[month_diagnostic - 1] + ' sea ice concentration ')
-
-            for fmt in ["pdf"]:
-                outputfig = self.outputdir + "/" + fmt
-                create_folder(outputfig, loglevel=self.loglevel)
-                fig1.suptitle(str(model) + "-" + str(exp) + "-" + str(source)  + '\n(average over ' + " - ".join(timespan) + ")" )
-
-                figName = "seaice.concentration." + str(model) + "-" + str(exp) + "." + str(hemi) + ".pdf"
-                fig1.savefig(outputfig + "/" + str(model) + "-" + str(exp) + "-" + str(source) + "-" + hemi + ".pdf") 
+                    fig1, ax1 = plt.subplots(nrows = 1, ncols = len(months_diagnostic), subplot_kw={'projection': projection}, figsize=(5 * len(months_diagnostic), 5))
+    
+                    for jMonth, month_diagnostic in enumerate(months_diagnostic):
+    
+                        if len(months_diagnostic) == 1:
+                            ax1 = [ax1]
+                        else:
+                            ax1 = ax1.flatten()
+    
+    
+    
+                        # Create color sequence for sic
+                        sourceColors = [[0.0, 0.0, 0.2], [0.0, 0.0, 0.0],[0.5, 0.5, 0.5], [0.6, 0.6, 0.6], [0.7, 0.7, 0.7], [0.8, 0.8, 0.8], [0.9, 0.9, 0.9],[1.0, 1.0, 1.0]]
+                        myCM = LinearSegmentedColormap.from_list('myCM', sourceColors, N = 15)
+    
+                        # Create a figure and axis with the specified projection
+    
+                        # Add cyclic points to avoid a white Greenwich meridian
+                        #varShow, lon1DCyclic = add_cyclic_point(dataPlot, coord = lon1D, axis = 1)
+    
+                        # Plot the field data using contourf
+                        levels = np.arange(0.0, 1.05, 0.05)
+                        levelsShow = np.arange(0.0, np.max(levels), 0.1)
+    
+                    
+                        maskTime = (data['time.month'] == month_diagnostic)
+    
+                        dataPlot = data[var].where(maskTime, drop=True).sel(time = slice(timespan[0], timespan[1])).mean("time").values
+    
+                        contour = ax1[jMonth].pcolormesh(lon, lat, dataPlot,  \
+                                transform=ccrs.PlateCarree(), cmap = myCM
+                                )
+    
+    
+                        # Add coastlines and gridlines
+                        ax1[jMonth].coastlines()
+                        #ax.gridlines()
+                        ax1[jMonth].add_feature(cfeature.LAND, edgecolor='k')
+    
+                        # Add colorbar
+                        cbar = plt.colorbar(contour, ax=ax1[jMonth], orientation='vertical', pad=0.05)
+                        cbar.set_label('fractional')
+                        cbar.set_ticks(levelsShow)
+    
+                        # Set title
+                        ax1[jMonth].set_title(monthNames[month_diagnostic - 1] + ' sea ice concentration ')
+    
+                    for fmt in ["pdf"]:
+                        outputfig = self.outputdir + "/" + fmt
+                        create_folder(outputfig, loglevel=self.loglevel)
+                        fig1.suptitle(str(model) + "-" + str(exp) + "-" + str(source)  + '\n(average over ' + " - ".join(timespan) + ")" )
+    
+                        figName = "seaice.concentration." + str(model) + "-" + str(exp) + "." + str(hemi) + ".pdf"
+                        fig1.savefig(outputfig + "/" + str(model) + "-" + str(exp) + "-" + str(source) + "-" + hemi + ".pdf") 
 
 
 class SeaIceThickness:
