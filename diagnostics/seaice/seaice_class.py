@@ -533,8 +533,13 @@ class SeaIceConcentration:
                     # Set title
                     ax1[jMonth].set_title(monthNames[month_diagnostic - 1] + ' sea ice concentration ')
 
-            fig1.suptitle(str(model) + "-" + str(exp) + "-" + str(source)  + '\n(average over ' + " - ".join(timespan) + ")" )
-            fig1.savefig(self.outputdir + "/pdf/" + str(model) + "-" + str(exp) + "-" + str(source) + "-" + hemi + ".pdf") 
+            for fmt in ["pdf"]:
+                outputfig = self.outputdir + "/" + fmt
+                create_folder(outputfig, loglevel=self.loglevel)
+                fig1.suptitle(str(model) + "-" + str(exp) + "-" + str(source)  + '\n(average over ' + " - ".join(timespan) + ")" )
+
+                figName = "seaice.concentration." + str(model) + "-" + str(exp) + "." + str(hemi) + ".pdf"
+                fig1.savefig(outputfig + "/" + str(model) + "-" + str(exp) + "-" + str(source) + "-" + hemi + ".pdf") 
 
 
 class SeaIceThickness:

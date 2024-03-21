@@ -11,6 +11,8 @@ import argparse
 import os
 import sys
 
+sys.path.insert(0, "../..")
+
 from dask.distributed import Client, LocalCluster
 
 # Imports related to the aqua package, which is installed and available globally.
@@ -33,7 +35,6 @@ if os.getcwd() != dname:
     print(f'Moving from current directory to {dname} to run!')
 
 script_dir = dname
-sys.path.insert(0, "../..")
 
 
 def parse_arguments(args):
