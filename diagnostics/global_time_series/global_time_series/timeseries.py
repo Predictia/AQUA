@@ -268,17 +268,14 @@ class Timeseries():
         else:
             ref_label = None
 
-        if self.formula is False or self.formula is None:
-            try:
-                if self.monthly:
-                    title = self.data_mon[0].attrs['long_name'] + ' (' + self.data_mon[0].attrs['units'] + ') timeseries'
-                elif self.annual:
-                    title = self.data_annual[0].attrs['long_name'] + ' (' + self.data_annual[0].attrs['units'] + ') timeseries'
-                else:
-                    title = self.var + ' timeseries'
-            except KeyError:
-                title = f'{self.var} timeseries'
-        else:
+        try:
+            if self.monthly:
+                title = self.data_mon[0].attrs['long_name'] + ' (' + self.data_mon[0].attrs['units'] + ') timeseries'
+            elif self.annual:
+                title = self.data_annual[0].attrs['long_name'] + ' (' + self.data_annual[0].attrs['units'] + ') timeseries'
+            else:
+                title = self.var + ' timeseries'
+        except KeyError:
             title = f'{self.var} timeseries'
 
         fig, _ = plot_timeseries(monthly_data=self.data_mon,
