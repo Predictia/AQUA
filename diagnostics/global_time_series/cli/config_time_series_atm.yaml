@@ -8,17 +8,17 @@ models:
 outputdir: "./"
 
 # This is the list of variables that will be plotted as timeseries
-timeseries: ['2t', 'mtpr', 'mer', 'msl',
-             'tcc', 'lcc', 'mcc', 'hcc',
-             'mslhf', #Mean surface latent heat flux
-             'msshf', #Mean surface sensible heat flux
-             'msdwswrf', #Mean surface downward short-wave radiation flux
-             'msdwlwrf', #Mean surface downward long-wave radiation flux
-             'msnswrf', #Mean surface net short-wave radiation flux
-             'msnlwrf', #Mean surface net long-wave radiation flux
-             'mtnlwrf', #Mean top net long-wave radiation flux
-             'mtnswrf' #Mean top net short-wave radiation flux
-             ]
+# timeseries: ['2t', 'mtpr', 'mer', 'msl',
+#              'tcc', 'lcc', 'mcc', 'hcc',
+#              'mslhf', #Mean surface latent heat flux
+#              'msshf', #Mean surface sensible heat flux
+#              'msdwswrf', #Mean surface downward short-wave radiation flux
+#              'msdwlwrf', #Mean surface downward long-wave radiation flux
+#              'msnswrf', #Mean surface net short-wave radiation flux
+#              'msnlwrf', #Mean surface net long-wave radiation flux
+#              'mtnlwrf', #Mean top net long-wave radiation flux
+#              'mtnswrf' #Mean top net short-wave radiation flux
+#              ]
 timeseries_formulae: ['mtnlwrf+mtnswrf']
 
 gregory:
@@ -39,10 +39,5 @@ timeseries_plot_params:
     annual: True
     std_startdate: '1990-01-01'
     std_enddate: '2020-12-31'
-  # 2t:
-  #   plot_kw:
-  #     color: "tab:blue"
-  #   plot_era5: True
-  #   resample: "M"
-  #   savefig: True
-  #   ylim: [-10, 10]
+  mtnlwrf+mtnswrf:
+    longname: "Net top radiation" # This is to override title and ylabel

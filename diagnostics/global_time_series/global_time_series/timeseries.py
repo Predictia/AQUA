@@ -35,7 +35,7 @@ class Timeseries():
                  startdate=None, enddate=None,
                  monthly_std=True, annual_std=True,
                  std_startdate=None, std_enddate=None,
-                 plot_kw={'ylim': {}},
+                 plot_kw={'ylim': {}}, longname=None,
                  save=True,
                  outdir='./',
                  outfile=None,
@@ -59,6 +59,7 @@ class Timeseries():
             std_startdate (str): Start date for standard deviation. Default is "1991-01-01".
             std_enddate (str): End date for standard deviation. Default is "2020-12-31".
             plot_kw (dict): Additional keyword arguments passed to the plotting function.
+            longname (str): Long name of the variable. Default is None and logname attribute is used.
             save (bool): Save the figure. Default is True.
             outdir (str): Output directory. Default is "./".
             outfile (str): Output file name. Default is None.
@@ -103,6 +104,7 @@ class Timeseries():
         self.enddate = enddate
 
         self.plot_kw = plot_kw
+        self.longname = longname
 
         self.save = save
         if self.save is False:
@@ -146,6 +148,11 @@ class Timeseries():
                                              loglevel=self.loglevel)
                 if extend:  # We introduce the possibility to avoid this for seasonal cycle
                     self.check_ref_range()
+                if self.longname is not None:
+                    if self.ref_mon is not None:
+                        self.ref_mon.attrs['long_name'] = self.longname
+                    if self.ref_ann is not None:
+                        self.ref_ann.attrs['long_name'] = self.longname
             except NoObservationError:
                 self.plot_ref = False
                 self.logger.warning('Reference data not found, skipping reference data')
@@ -202,6 +209,9 @@ class Timeseries():
                     data_mon = reader.timmean(data, freq='MS', exclude_incomplete=True)
                 data_mon = reader.fldmean(data_mon)
                 self.logger.info("Monthly data retrieved")
+                if self.longname is not None:
+                    data_mon.attrs['long_name'] = self.longname
+                    self.logger.debug(f"Long name updated to: {self.longname}")
                 self.data_mon.append(data_mon)
 
             if self.annual:
@@ -210,6 +220,9 @@ class Timeseries():
                                           center_time=True)
                 data_ann = reader.fldmean(data_ann)
                 self.logger.info("Annual data retrieved")
+                if self.longname is not None:
+                    data_ann.attrs['long_name'] = self.longname
+                    self.logger.debug(f"Long name updated to: {self.longname}")
                 self.data_annual.append(data_ann)
 
             # Clean up

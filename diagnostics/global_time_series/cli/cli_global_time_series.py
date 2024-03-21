@@ -72,6 +72,7 @@ def get_plot_options(config: dict = None,
         std_startdate = plot_options.get("std_startdate", None)
         std_enddate = plot_options.get("std_enddate", None)
         plot_kw = plot_options.get("plot_kw", {})
+        longname = plot_options.get("longname", None)
     else:
         monthly = config["timeseries_plot_params"]["default"].get("monthly", True)
         annual = config["timeseries_plot_params"]["default"].get("annual", True)
@@ -87,8 +88,9 @@ def get_plot_options(config: dict = None,
         std_startdate = config["timeseries_plot_params"]["default"].get("std_startdate", None)
         std_enddate = config["timeseries_plot_params"]["default"].get("std_enddate", None)
         plot_kw = config["timeseries_plot_params"]["default"].get("plot_kw", {})
+        longname = None
     return monthly, annual, regrid, plot_ref, plot_ref_kw, startdate, enddate, \
-        monthly_std, annual_std, std_startdate, std_enddate, plot_kw
+        monthly_std, annual_std, std_startdate, std_enddate, plot_kw, longname
 
 
 if __name__ == '__main__':
@@ -146,7 +148,7 @@ if __name__ == '__main__':
             logger.info(f"Plotting {var} time series")
             monthly, annual, regrid, plot_ref, plot_ref_kw, startdate, \
                 enddate, monthly_std, annual_std, std_startdate, std_enddate, \
-                plot_kw = get_plot_options(config, var)
+                plot_kw, longname = get_plot_options(config, var)
 
             ts = Timeseries(var=var,
                             formula=False,
@@ -164,6 +166,7 @@ if __name__ == '__main__':
                             annual_std=annual_std,
                             std_startdate=std_startdate,
                             std_enddate=std_enddate,
+                            longname=longname,
                             plot_kw=plot_kw,
                             outdir=outputdir,
                             loglevel=loglevel)
@@ -185,7 +188,7 @@ if __name__ == '__main__':
             logger.info(f"Plotting {var} time series")
             monthly, annual, regrid, plot_ref, plot_ref_kw, startdate, \
                 enddate, monthly_std, annual_std, std_startdate, std_enddate, \
-                plot_kw = get_plot_options(config, var)
+                plot_kw, longname = get_plot_options(config, var)
 
             ts = Timeseries(var=var,
                             formula=True,
@@ -204,6 +207,7 @@ if __name__ == '__main__':
                             std_startdate=std_startdate,
                             std_enddate=std_enddate,
                             plot_kw=plot_kw,
+                            longname=longname,
                             outdir=outputdir,
                             loglevel=loglevel)
             try:
@@ -267,7 +271,7 @@ if __name__ == '__main__':
             logger.info(f"Plotting {var} seasonal cycle")
             monthly, annual, regrid, plot_ref, plot_ref_kw, startdate, \
                 enddate, monthly_std, annual_std, std_startdate, std_enddate, \
-                plot_kw = get_plot_options(config, var)
+                plot_kw, longname = get_plot_options(config, var)
 
             sc = SeasonalCycle(var=var,
                                formula=False,
