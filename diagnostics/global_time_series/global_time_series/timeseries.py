@@ -183,6 +183,8 @@ class Timeseries():
                     data = reader.retrieve()
                     self.logger.debug(f"Evaluating formula for {self.var}")
                     data = eval_formula(self.var, data)
+                    if data is None:
+                        self.logger.error(f"Formula evaluation failed for {model} {self.exps[i]} {self.sources[i]}")
                 else:
                     data = reader.retrieve(var=self.var)
                     data = data[self.var]
@@ -209,10 +211,13 @@ class Timeseries():
                     data_mon = reader.timmean(data, freq='MS', exclude_incomplete=True)
                 data_mon = reader.fldmean(data_mon)
                 self.logger.info("Monthly data retrieved")
-                if self.longname is not None:
-                    data_mon.attrs['long_name'] = self.longname
-                    self.logger.debug(f"Long name updated to: {self.longname}")
-                self.data_mon.append(data_mon)
+                if data_mon is not None:
+                    if self.longname is not None:
+                        data_mon.attrs['long_name'] = self.longname
+                        self.logger.debug(f"Long name updated to: {self.longname}")
+                    self.data_mon.append(data_mon)
+                else:
+                    self.logger.warning(f"No monthly data found for {model} {self.exps[i]} {self.sources[i]}")
 
             if self.annual:
                 data_ann = reader.timmean(data, freq='YS',
@@ -220,10 +225,13 @@ class Timeseries():
                                           center_time=True)
                 data_ann = reader.fldmean(data_ann)
                 self.logger.info("Annual data retrieved")
-                if self.longname is not None:
-                    data_ann.attrs['long_name'] = self.longname
-                    self.logger.debug(f"Long name updated to: {self.longname}")
-                self.data_annual.append(data_ann)
+                if data_ann is not None:
+                    if self.longname is not None:
+                        data_ann.attrs['long_name'] = self.longname
+                        self.logger.debug(f"Long name updated to: {self.longname}")
+                    self.data_annual.append(data_ann)
+                else:
+                    self.logger.warning(f"No annual data found for {model} {self.exps[i]} {self.sources[i]}")
 
             # Clean up
             del reader
