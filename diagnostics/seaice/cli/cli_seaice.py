@@ -4,7 +4,7 @@
 Sea ice Diagnostic CLI. Strongly Inspired from its SSH equivalent
 
 This script allows users to execute sea ice diagnostics using command-line arguments.
-By default, it will read configurations from 'config.yml' unless specified by the user.
+By default, it will read configurations from 'config.yaml' unless specified by the user.
 """
 
 import argparse
@@ -46,8 +46,8 @@ def parse_arguments(args):
     parser = argparse.ArgumentParser(description='sea ice CLI')
 
     # Arguments for the CLI.
-    parser.add_argument('--config', type=str, default='config.yml',
-                        help=f'yaml configuration file (default: config.yml)')
+    parser.add_argument('--config', type=str, default='config.yaml',
+                        help=f'yaml configuration file (default: config.yaml)')
     parser.add_argument('-n', '--nworkers', type=int,
                         help='number of dask distributed workers')
     parser.add_argument('--all-regions', action='store_true',
@@ -104,7 +104,7 @@ if __name__ == '__main__':
     logger.debug(f"Output directory: {outputdir}")
 
     # Read configuration file.
-    # We first load a config.yml file from the current directory,
+    # We first load a config.yaml file from the current directory,
     # then if present, we override the first model with the CLI arguments.
     logger.info('Reading configuration yaml file...')
     config = load_yaml(args.config)
@@ -190,7 +190,7 @@ logger.info("sea ice diagnostic Concentration terminated!")
 
  
 ## Initialize the object SeaIceThickness
-#analyzer = SeaIceThickness(config="config_VolumeThickness.yml", outputdir=outputdir,
+#analyzer = SeaIceThickness(config="config_VolumeThickness.yaml", outputdir=outputdir,
 #                         loglevel=loglevel)
 #
 ## Execute the analyzer.

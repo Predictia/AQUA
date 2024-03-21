@@ -45,7 +45,7 @@ class SeaIceExtent:
         self.logger = log_configure(self.loglevel, 'Seaice')
 
         if regions_definition_file is None:
-            regions_definition_file = os.path.dirname(os.path.abspath(__file__)) + "/regions_definition.yml"
+            regions_definition_file = os.path.dirname(os.path.abspath(__file__)) + "/regions_definition.yaml"
             self.logger.debug("Using default regions definition file %s",
                               regions_definition_file)
 
@@ -204,7 +204,7 @@ class SeaIceExtent:
                     )
                 except KeyError:
                     self.logger.info("Error: region not defined")
-                    print("Region " + region + " does not exist in regions_definition.yml")
+                    print("Region " + region + " does not exist in regions_definition.yaml")
                     raise KeyError("Region not defined")
 
                 # Dealing with regions straddling the 180° meridian
