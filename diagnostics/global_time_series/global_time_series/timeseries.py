@@ -315,7 +315,10 @@ class Timeseries():
             description += f" for {model} {self.exps[i]}"
         if self.plot_ref:
             description += f" with {ref_label} as reference,"
-            description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}"
+            if self.std_startdate is not None and self.std_enddate is not None:
+                description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}"
+            else:
+                description += " std evaluated from the full time range."
         description += "."
         if self.expanding_ref_range:
             description += " The reference range has been expanded with a seasonal cycle or a band to match the model data."
