@@ -166,7 +166,7 @@ class sshVariability():
         fig.tight_layout()
 
     @staticmethod
-    def visualize_difference(config, ssh_data_dict, fig, axes):
+    def visualize_difference(config, ssh_data_dict):
         """
         Visualize the difference in SSH variability data between each model and the AVISO model.
 
@@ -223,29 +223,30 @@ class sshVariability():
         fig.tight_layout()
 
     
-    @staticmethod
+    @staticmethod  
     def region_selection(config, ssh_data_dict):
-
+        
         mask_northern_boundary = config.get("mask_northern_boundary", False)
         mask_southern_boundary = config.get("mask_southern_boundary", False)
         northern_boundary_latitude = config.get("northern_boundary_latitude", None)
         southern_boundary_latitude = config.get("southern_boundary_latitude", None)
-
-        fig = plt.figure(figsize=(12, 8))  # Create the figure outside the loop
-        for i, (model_name, data) in enumerate(ssh_data_dict.items()):
+    
+        for i, (model_name, data) in enumerate(ssh_data_dict.items(), 1):  # Start subplot index from 1
+            fig = plt.figure(figsize=(12, 8))  # Create the figure inside the loop
+            
             # Apply masking if necessary
             if "ICON" in model_name and mask_northern_boundary and northern_boundary_latitude:
                 data = data.where(data.lat < northern_boundary_latitude)
             if "ICON" in model_name and mask_southern_boundary and southern_boundary_latitude:
                 data = data.where(data.lat > southern_boundary_latitude)
-        
+            
             lon_lim = config.get("region_selection_limits", {}).get("lon_lim")
             lat_lim = config.get("region_selection_limits", {}).get("lat_lim")
-
+    
             ssh_sel = area_selection(data, lon=lon_lim, lat=lat_lim, drop=True)
-           
-            ax = fig.add_subplot(len(ssh_data_dict), 1, i + 1)
-            
+                
+            ax = fig.add_subplot(len(ssh_data_dict), 1, i)  # Use the current value of i
+                
             if 'lon' in data.coords: 
                 contf = plot_single_map(ssh_sel, ax=ax, title=f"{config['region name']} - {model_name}", 
                                   vmin=config["subplot_options"]["scale_min"], vmax=config["subplot_options"]["scale_max"], 
@@ -254,15 +255,19 @@ class sshVariability():
                 contf = plot_single_map(ssh_sel, ax=ax, title=f"{config['region name']} - {model_name}", 
                                   vmin=config["subplot_options"]["scale_min"], vmax=config["subplot_options"]["scale_max"], 
                                   cmap=config["subplot_options"]["cmap"])              
-            
+                
             # Add a colorbar for each subplot
             cbar = fig.colorbar(contf, ax=ax, orientation='vertical', shrink=0.9)
             cbar.set_label('SSH Variability (mm)')
-        
-        # Save the figure after the loop
-        plt.savefig("region_selection_plots.png")
-        plt.close(fig)
-        plt.show()
+            
+            # Save the figure after each iteration
+            save_path = config.get("output_directory", "")  # Retrieve the save path from the config
+
+            # Inside your function where you save the figure
+            plt.savefig(f"{save_path}pdf/region_selection_plot_{i}.png")  
+            #plt.savefig(f"region_selection_plot_{i}.png")
+            plt.close(fig)
+
 
 
 
@@ -370,7 +375,6 @@ class sshVariability():
     
                 #Assuming aviso_ssh_std_file_path contains the path to the "AVISO_ssh-L4_daily" file
         aviso_ssh_std_file_path = os.path.join(config['output_directory'],"netcdf", "AVISO_ssh-L4_daily_std.nc")
-        print(aviso_ssh_std_file_path)
 
         #taking the dates from the config file
         manual_aviso_dates = config.get('enter_aviso_dates_manually', False)
@@ -379,7 +383,6 @@ class sshVariability():
             aqua_logger.info("aviso data already exists from 1993-01-01 to 2022-06-23 ")
             # Load the precomputed AVISO standard deviation
             aviso_ssh_std = xr.open_dataarray(aviso_ssh_std_file_path)
-            print(aviso_ssh_std)
             aviso_ssh_std_r = reader.regrid(aviso_ssh_std)
 
             timespan_start = '1993-01-01'
@@ -551,6 +554,7 @@ class sshVariability():
             # Create a figure and axes for subplots
             aqua_logger.info("visualizing the selected region data and saving plots")
             self.region_selection(config, ssh_data_dict)
+
 
 
         # Close the Dask client and cluster

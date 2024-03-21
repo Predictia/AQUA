@@ -8,29 +8,30 @@ region_selection: True
 
 # Models for which sea surface height (SSH) variability is to be evaluated.
 models:
-  - name: IFS-NEMO
-    experiment: historical-1990
+  - name: ICON
+    experiment: ssp370
     source: daily-hpz10-oce2d
     regrid: r005
     variable: avg_zos
     zoom: 10
-    #timespan: ['2020-01-20', '2020-12-31']
-    timespan: ['1990-01-01', '2001-12-31']
+    timespan: ['2020-01-20', '2025-05-30']
+# #    timespan: ['2020-01-01', '2020-12-31']
 
-  # - name: ICON
-  #   experiment: ngc3026
-  #   source: P1D
-  #   regrid: r100 #r005 is computationally demanding and takes over 2 hours.
-  #   variable: zos
+  # - name: IFS-NEMO
+  #   experiment: ssp370
+  #   source: daily-hpz10-oce2d
+  #   regrid: r005
+  #   variable: avg_zos
+  #   zoom: 10
+  #   timespan: ['2020-01-20', '2025-05-30']
+    
+  # - name: IFS-FESOM
+  #   experiment: story-2017-historical
+  #   source: hourly-hpz7-oce2d
+  #   regrid: r005
+  #   variable: avg_zos
   #   zoom: 7
-  #   timespan: ['2020-01-20', '2021-01-24']
-  # - name: FESOM
-  #   experiment: tco2559-ng5-cycle3
-  #   source: 2D_daily_native
-  #   regrid: r025
-  #   variable: zos
-  #   zoom:
-  #   timespan: ['2020-01-21', '2020-12-31']
+  #   timespan: ['2017-01-21', '2017-12-31']
 
 # This is the model against which other models are compared.
 base_model: 
@@ -54,7 +55,7 @@ timespan: {start: '1993-01-01', end: '1999-06-23'}
 region name : Agulhas
 region_selection_limits:
   lon_lim: [5, 50]
-  lat_lim: [-20, -50]
+  lat_lim: [-10, -50]
 
 
 # These are options to adjust subplots visualizations.
