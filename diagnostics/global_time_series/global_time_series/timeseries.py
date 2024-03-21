@@ -385,22 +385,6 @@ class Timeseries():
             except Exception as e:
                 self.logger.error(f"Error while saving netcdf {outdir}/{outfile}: {e}")
 
-    def cleanup(self):
-        """Clean up"""
-        self.logger.debug("Cleaning up")
-        if self.monthly:
-            del self.data_mon
-            if self.plot_ref:
-                del self.ref_mon
-                del self.ref_mon_std
-        if self.annual:
-            del self.data_annual
-            if self.plot_ref:
-                del self.ref_ann
-                del self.ref_ann_std
-        gc.collect()
-        self.logger.debug("Cleaned up")
-
     def check_ref_range(self):
         """
         If the reference data don't cover the same range as the model data,
@@ -496,3 +480,19 @@ class Timeseries():
                 raise ValueError(f"Unknown frequency: {freq}")
 
         return startdate, enddate
+
+    def cleanup(self):
+        """Clean up"""
+        self.logger.debug("Cleaning up")
+        if self.monthly:
+            del self.data_mon
+            if self.plot_ref:
+                del self.ref_mon
+                del self.ref_mon_std
+        if self.annual:
+            del self.data_annual
+            if self.plot_ref:
+                del self.ref_ann
+                del self.ref_ann_std
+        gc.collect()
+        self.logger.debug("Cleaned up")
