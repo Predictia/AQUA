@@ -10,10 +10,16 @@ Unreleased in the current development version:
 AQUA core complete list:
 - Add kwargs parsing of reader arguments, passing them to intake to substitute parameters (#757)
 - Remove `zoom` and use kwargs instead (#757)
+- Adding IFS_9-FESOM_5 NextGEMS4 simulation on levante (#1009)
+- Function to plot multiple maps is introduced as `plot_maps()` and documented (#866)
+- Adding the IFS-FESOM storylines simulation (#848)
+- `file_is_complete()` accounts also for the mindate attribute (#1007)
 - Introducing a `yearmonth` timestyle to access FDB data on monthly average (#1001)
 - Adding expected time calculation for weight generation (#701)
+- Vertical chunking for GSV intake access (#1003)
 
 AQUA diagnostics complete list:
+- Timeseries: Various bugfix and improvements for cli and formula (#1013, #1016, #1022)
 
 ## [v0.7.2]
 
@@ -40,6 +46,7 @@ AQUA core complete list:
 - Renaming the `tprate` variable into `mtpr` in all fixes (#944)
 
 AQUA diagnostic complete list:
+- Tropical rainfall: enhancements of plotting and performance, files path correction (#997)
 - Timeseries: seasonal cycle runs as a separate cli in aqua-analysis for performance speed-up (#982)
 - Timeseries: seasonal cycle is added if reference data are not available in some timespan (#974)
 - Tropical rainfall: Removing unnecessary printing during the CLI, optimazing the CLi for low and high-resolution data (#963)

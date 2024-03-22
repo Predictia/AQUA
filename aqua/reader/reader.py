@@ -51,7 +51,8 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
                  areas=True, datamodel=None,
                  streaming=False, stream_generator=False,
                  startdate=None, enddate=None,
-                 rebuild=False, loglevel=None, nproc=4, aggregation=None,
+                 rebuild=False, loglevel=None, nproc=4,
+                 aggregation=None, chunks=None,
                  **kwargs):
         """
         Initializes the Reader class, which uses the catalog
@@ -78,6 +79,12 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             nproc (int,optional): Number of processes to use for weights generation. Defaults to 4.
             aggregation (str, optional): aggregation/chunking to be used for GSV access (e.g. D, M, Y).
                                          Defaults to None (using default from catalogue, recommended).
+            chunks (str or dict, optional): chunking to be used for GSV access.
+                                            Defaults to None (using default from catalogue, recommended).
+                                            If it is a string time chunking is assumed.
+                                            If it is a dictionary the keys 'time' and 'vertical' are looked for.
+                                            Time chunking can be one of S (step), 10M, 15M, 30M, h, 1h, 3h, 6h, D, 5D, W, M, Y.
+                                            Vertical chunking is expressed as the number of vertical levels to be used.
             **kwargs: Arbitrary keyword arguments to be passed as parameters to the catalogue entry.
                       'zoom', meant for HEALPix grid, is a predefined one which will allow for multiple gridname definition   
 
@@ -98,6 +105,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         self.vert_coord = None
         self.deltat = 1
         self.aggregation = aggregation
+        self.chunks = chunks
 
         self.grid_area = None
         self.src_grid_area = None
@@ -994,19 +1002,25 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         if level and not isinstance(level, list):
             level = [level]
 
+        if self.aggregation:
+            chunks = self.aggregation
+        else:
+            chunks = self.chunks
         if dask:
-            if self.aggregation:
+            if chunks:  # if the chunking or aggregation option is specified override that from the catalogue
                 data = esmcat(request=request, startdate=startdate, enddate=enddate, var=var, level=level,
-                              aggregation=self.aggregation,
-                              logging=True, loglevel=self.loglevel).to_dask()
+                              chunks=chunks, logging=True, loglevel=self.loglevel).to_dask()
             else:
                 data = esmcat(request=request, startdate=startdate, enddate=enddate, var=var, level=level,
                               logging=True, loglevel=self.loglevel).to_dask()
         else:
-            if self.aggregation:
+            if self.aggregation:  # covers special case: if GSV source and stream_generator then aggregation overrides chunks if specified
+                chunks = self.aggregation
+            else:
+                chunks = self.chunks
+            if chunks:
                 data = esmcat(request=request, startdate=startdate, enddate=enddate, var=var, level=level,
-                              aggregation=self.aggregation,
-                              logging=True, loglevel=self.loglevel).read_chunked()
+                              chunks=chunks, logging=True, loglevel=self.loglevel).read_chunked()
             else:
                 data = esmcat(request=request, startdate=startdate, enddate=enddate, var=var, level=level,
                               logging=True, loglevel=self.loglevel).read_chunked()

@@ -12,6 +12,8 @@ from .timeutil import check_dates, shift_time_dataset
 from .timeutil import split_date, make_timeaxis, date2str, date2yyyymm, add_offset
 from aqua.logger import log_configure, _check_loglevel
 
+import time
+
 # Test if FDB5 binary library is available
 try:
     from gsv.retriever import GSVRetriever
@@ -42,7 +44,7 @@ class GSVSource(base.DataSource):
     timeaxis = None  # Used for dask access
 
     def __init__(self, request, data_start_date, data_end_date, timestyle="date",
-                 aggregation="S", savefreq="h", timestep="h", timeshift=None,
+                 chunks="S", savefreq="h", timestep="h", timeshift=None,
                  startdate=None, enddate=None, var=None, metadata=None, level=None,
                  loglevel='WARNING', **kwargs):
         """
@@ -54,11 +56,15 @@ class GSVSource(base.DataSource):
             data_start_date (str): Start date of the available data.
             data_end_date (str): End date of the available data.
             timestyle (str, optional): Time style. Defaults to "date".
-            aggregation (str, optional): Time aggregation level.
-                                         Can be one of S (step), 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y.
-                                         Defaults to "S".
-            timestep (str, optional): Time step. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y.
-                                      Defaults to "H".
+            chunks (str or dict, optional): Time and vertical chunking.
+                                        If a string is provided, it is assumed to be time chunking.
+                                        If it is a dictionary the keys 'time' and 'vertical' are looked for.
+                                        Time chunking can be one of S (step), 10M, 15M, 30M, h, 1h, 3h, 6h, D, 5D, W, M, Y.
+                                        Defaults to "S".
+                                        Vertical chunking is expressed as the number of vertical levels to be used.
+                                        Defaults to None (no vertical chunking).
+            timestep (str, optional): Time step. Can be one of 10M, 15M, 30M, 1h, h, 3h, 6h, D, 5D, W, M, Y.
+                                      Defaults to "h".
             startdate (str, optional): Start date for request. Defaults to None.
             enddate (str, optional): End date for request. Defaults to None.
             var (str, optional): Variable ID. Defaults to those in the catalogue.
@@ -107,8 +113,15 @@ class GSVSource(base.DataSource):
             # special for 6h: set offset startdate if needed
             startdate = add_offset(data_start_date, startdate, offset, timestep)
 
-        if aggregation.upper() == "S":  # special case: 'aggegation at single saved level
-            aggregation = savefreq
+        if isinstance(chunks, dict):
+            chunking_time = chunks.get('time', 'S')
+            chunking_vertical = chunks.get('vertical', None)
+        else:
+            chunking_time = chunks
+            chunking_vertical = None
+
+        if chunking_time.upper() == "S":  # special case: time chunking is single saved frame
+            chunking_time = savefreq
 
         self.timeshift = timeshift
         self.itime = 0  # position of time dim
@@ -158,9 +171,24 @@ class GSVSource(base.DataSource):
          self.chk_start_date, self.chk_end_idx,
          self.chk_end_date, self.chk_size) = make_timeaxis(self.data_start_date, self.startdate, self.enddate,
                                                            shiftmonth=self.timeshift, timestep=timestep,
-                                                           savefreq=savefreq, chunkfreq=aggregation)
+                                                           savefreq=savefreq, chunkfreq=chunking_time)
 
         self._npartitions = len(self.chk_start_date)
+
+        if "levelist" in self._request:
+            self.chunking_vertical = chunking_vertical
+            if self.chunking_vertical:
+                levelist = self._request["levelist"]
+                if not isinstance(levelist, list): levelist = [levelist]
+                if len(levelist) <= self.chunking_vertical:
+                    self.chunking_vertical = None
+                else:
+                    self.chk_vert = [levelist[i:i+self.chunking_vertical] for i in range(0, len(levelist), self.chunking_vertical)]
+                    self.ntimechunks = self._npartitions
+                    self.nlevelchunks = len(self.chk_vert)
+                    self._npartitions = self._npartitions*len(self.chk_vert)
+        else:
+            self.chunking_vertical = None  # no vertical chunking
 
         super(GSVSource, self).__init__(metadata=metadata)
 
@@ -214,11 +242,23 @@ class GSVSource(base.DataSource):
 
         return schema
 
-    def _get_partition(self, i, var=None, first=False, onelevel=False):
+    def _index_to_timelevel(self, ii):
+        """
+        Internal method to convert partition index to time and level indices
+        """
+        if self.chunking_vertical:
+            i = ii // len(self.chk_vert)
+            j = ii % len(self.chk_vert)
+        else:         
+            i = ii
+            j = 0
+        return i, j
+
+    def _get_partition(self, ii, var=None, first=False, onelevel=False):
         """
         Standard internal method reading i-th data partition from FDB
         Args:
-            i (int): partition number
+            ii (int): partition number
             var (string, optional): single variable to retrieve. Defaults to using those set at init
             first (bool, optional): read only the first step (used for schema retrieval)
             onelevel (bool, optional): read only one level. Defaults to False.
@@ -227,6 +267,10 @@ class GSVSource(base.DataSource):
         """
 
         request = self._request.copy()  # We are going to change it, threads do need this
+
+        i, j = self._index_to_timelevel(ii)
+        if self.chunking_vertical:
+            request["levelist"] = self.chk_vert[j]
 
         if self.timestyle == "date":
             dds, tts = date2str(self.chk_start_date[i])
@@ -306,7 +350,7 @@ class GSVSource(base.DataSource):
         ds = xr.concat(ds, dim='time')
         return ds
 
-    def get_part_delayed(self, i, var, shape, dtype):
+    def get_part_delayed(self, ii, var, shape, dtype):
         """
         Function to read a delayed partition.
         Returns a dask.array
@@ -317,12 +361,18 @@ class GSVSource(base.DataSource):
             shape: shape of the schema
             dtype: data type of the schema
         """
-        ds = dask.delayed(self._get_partition)(i, var=var)
+
+        i, j = self._index_to_timelevel(ii)
+
+        ds = dask.delayed(self._get_partition)(ii, var=var)
 
         # get the data from the first (and only) data array
         ds = ds.to_array()[0].data
         newshape = list(shape)
         newshape[self.itime] = self.chk_size[i]
+        if self.chunking_vertical:  # if we have vertical chunking
+            newshape[self.ilevel] = len(self.chk_vert[j])
+
         return dask.array.from_delayed(ds, newshape, dtype)
     
     def get_request(self):
@@ -340,6 +390,8 @@ class GSVSource(base.DataSource):
         dtype = self._schema.dtype
 
         self.itime = self._da.dims.index("time")
+        if self.chunking_vertical:
+            self.ilevel = self._da.dims.index("level")
 
         if 'valid_time' in self._da.coords:  # temporary hack because valid_time is inconsistent anyway
             self._da = self._da.drop_vars('valid_time')
@@ -351,8 +403,16 @@ class GSVSource(base.DataSource):
 
         for var in self._var:
             # Create a dask array from a list of delayed get_partition calls
-            dalist = [self.get_part_delayed(i, var, shape, dtype) for i in range(self.npartitions)]
-            darr = dask.array.concatenate(dalist, axis=self.itime)  # This is a lazy dask array
+
+            if not self.chunking_vertical:
+                dalist = [self.get_part_delayed(i, var, shape, dtype) for i in range(self.npartitions)]
+                darr = dask.array.concatenate(dalist, axis=self.itime)  # This is a lazy dask array
+            else:
+                dalist = []
+                for j in range(self.nlevelchunks):
+                    dalistlev = [self.get_part_delayed(i*self.nlevelchunks+j, var, shape, dtype) for i in range(self.ntimechunks)]
+                    dalist.append(dask.array.concatenate(dalistlev, axis=self.itime))                
+                darr = dask.array.concatenate(dalist, axis=self.ilevel)  # This is a lazy dask array
 
             shortname = self.get_eccodes_shortname(var)
 
