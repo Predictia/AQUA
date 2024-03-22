@@ -7,8 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
-AQUA core complete list:
+## [v0.7.3]
 
+Main changes are:
+1. IFS-FESOM NextGEMS4 and storylines simulations available in the catalogue
+2. Vertical chunking for GSV intake access
+3. FDB monthly average data access is available
+
+AQUA core complete list:
 - Adding IFS_9-FESOM_5 NextGEMS4 simulation on levante (#1009)
 - Function to plot multiple maps is introduced as `plot_maps()` and documented (#866)
 - Adding the IFS-FESOM storylines simulation (#848)
@@ -397,7 +403,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.2...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.3...HEAD
+[v0.7.3]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.2...v0.7.3
 [v0.7.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.1...v0.7.2
 [v0.7.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7...v0.7.1
 [v0.7]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.3...v0.7
