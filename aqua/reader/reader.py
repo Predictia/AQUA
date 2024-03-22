@@ -41,6 +41,7 @@ default_weights_areas_parameters = ['zoom']
 # set default options for xarray
 xr.set_options(keep_attrs=True)
 
+
 class Reader(FixerMixin, RegridMixin, TimmeanMixin):
     """General reader for NextGEMS data."""
 
@@ -1014,10 +1015,6 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
                 data = esmcat(request=request, startdate=startdate, enddate=enddate, var=var, level=level,
                               logging=True, loglevel=self.loglevel).to_dask()
         else:
-            if self.aggregation:  # covers special case: if GSV source and stream_generator then aggregation overrides chunks if specified
-                chunks = self.aggregation
-            else:
-                chunks = self.chunks
             if chunks:
                 data = esmcat(request=request, startdate=startdate, enddate=enddate, var=var, level=level,
                               chunks=chunks, logging=True, loglevel=self.loglevel).read_chunked()

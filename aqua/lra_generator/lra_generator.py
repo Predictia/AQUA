@@ -69,6 +69,8 @@ class LRAgenerator():
             definitive (bool, opt):  True to create the output file,
                                      False to just explore the reader
                                      operations, default is False
+            performance_reporting (bool, opt): True to save an html report of the
+                                               dask usage, default is False.
             exclude_incomplete (bool,opt)   : True to remove incomplete chunk
                                             when averaging, default is false.  
             **kwargs:                kwargs to be sent to the Reader, as zoom
@@ -140,7 +142,7 @@ class LRAgenerator():
             'units': 'days since 1850-01-01 00:00:00',
             'calendar': 'standard',
             'dtype': 'float64',
-            'zlib' : True,
+            'zlib': True,
             'complevel': 1,
             '_FillValue': np.nan
         }
