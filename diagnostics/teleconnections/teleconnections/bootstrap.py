@@ -15,7 +15,8 @@ def bootstrap_teleconnections(reg: xr.DataArray,
                               n_bootstraps=1000,
                               concordance=0.5,
                               statistic=None,
-                              loglevel='WARNING'):
+                              loglevel='WARNING',
+                              **eval_kwargs):
     """
     Bootstrap the regression and correlation maps.
 
@@ -30,6 +31,7 @@ def bootstrap_teleconnections(reg: xr.DataArray,
         statistic (str): Statistic to compute. Default is None.
                          Available options are 'reg' and 'cor'.
         loglevel (str): Logging level. Default is 'WARNING'.
+        eval_kwargs (dict): Additional keyword arguments to pass to the evaluation function.
     """
     logger = log_configure(loglevel, 'Bootstrap teleconnections')
 
@@ -51,9 +53,9 @@ def bootstrap_teleconnections(reg: xr.DataArray,
         boot_data = data_ref.sel(time=boot_time)
 
         if statistic == 'reg':
-            bootstrap_maps[i] = reg_evaluation(indx=boot_index, data=boot_data)
+            bootstrap_maps[i] = reg_evaluation(indx=boot_index, data=boot_data, **eval_kwargs)
         elif statistic == 'cor':
-            bootstrap_maps[i] = cor_evaluation(indx=boot_index, data=boot_data)
+            bootstrap_maps[i] = cor_evaluation(indx=boot_index, data=boot_data, **eval_kwargs)
 
     # Evaluate the percentile confidence intervals
     lower = bootstrap_maps.quantile(1-concordance/2, dim='bootstrap')
