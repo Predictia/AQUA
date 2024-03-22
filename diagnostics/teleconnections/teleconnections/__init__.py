@@ -1,5 +1,5 @@
 """teleconnections module"""
-from .bootstrap import bootstrap_teleconnections, build_confidence_masks
+from .bootstrap import bootstrap_teleconnections, build_confidence_mask
 from .index import station_based_index, regional_mean_index
 from .index import regional_mean_anomalies
 from .plots import index_plot, indexes_plot
@@ -11,7 +11,7 @@ from .tools import wgt_area_mean
 
 __version__ = '0.5.0'
 
-__all__ = ['bootstrap_teleconnections', 'build_confidence_masks',
+__all__ = ['bootstrap_teleconnections', 'build_confidence_mask',
            'station_based_index', 'regional_mean_index',
            'regional_mean_anomalies',
            'index_plot', 'indexes_plot',

@@ -64,7 +64,7 @@ def bootstrap_teleconnections(reg: xr.DataArray,
     return lower, upper
 
 
-def build_confidence_masks(reg: xr.DataArray, lower: xr.DataArray, upper: xr.DataArray,
+def build_confidence_mask(reg: xr.DataArray, lower: xr.DataArray, upper: xr.DataArray,
                            mask_concordance=True):
     """
     Build the confidence masks based on the lower and upper percentiles.
