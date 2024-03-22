@@ -19,13 +19,17 @@ catalog:
   IFS-NEMO:
     ssp370:
       hourly-hpz7-atm2d:
-         vars: ['mtpr', '2t', 'skt', 'msl', 'tcc', 'lcc', 'hcc', 'mcc', 'sd', 'tciw', 'tclw', 'mer', 'msr', 'mslhf', 'msshf', 
-           'msnswrf', 'msnlwrf', 'msdwlwrf', 'msdwswrf', 'mtnswrf', 'mtnlwrf', 'mtdwswrf', 'mntss', 'metss', 'msror']
+        workers: 32
+        vars: ['mtpr', '2t', 'skt', 'msl', 'tcc', 'lcc', 'hcc', 'mcc', 'sd', 'tciw', 'tclw', 'mer', 'msr', 'mslhf', 'msshf', 
+          'msnswrf', 'msnlwrf', 'msdwlwrf', 'msdwswrf', 'mtnswrf', 'mtnlwrf', 'mtdwswrf', 'mntss', 'metss', 'msror']
       hourly-hpz7-atm3d:
-         vars: ['q', 't', 'u', 'v']
+        workers: 16
+        vars: ['q', 't', 'u', 'v']
       daily-hpz7-oce2d:
-         vars: ['avg_tos', 'avg_sithick', 'avg_siconc', 'avg_sos', 'avg_hc700m']
+        workers: 32
+        vars: ['avg_tos', 'avg_sithick', 'avg_siconc', 'avg_sos', 'avg_hc700m']
       daily-hpz7-oce3d:
+        workers: 16
         vars: ['avg_thetao', 'avg_so']
   
   ICON:
@@ -37,8 +41,8 @@ catalog:
         vars: ['q', 't', 'u', 'v']
       daily-hpz10-oce2d:
         vars: ['avg_sithick', 'avg_siconc']
-      #daily-hpz10-oce3d:
-      #  vars: ['avg_thetao', 'avg_so']
+      daily-hpz10-oce3d:
+        vars: ['avg_thetao', 'avg_so']
         
     ssp370:
       hourly-hpz10-atm2d:
@@ -48,5 +52,5 @@ catalog:
         vars: ['q', 't', 'u', 'v']
       daily-hpz10-oce2d:
         vars: ['avg_sithick', 'avg_siconc']
-      #daily-hpz10-oce3d:
-      #  vars: ['avg_thetao', 'avg_so']
+      daily-hpz10-oce3d:
+        vars: ['avg_thetao', 'avg_so']

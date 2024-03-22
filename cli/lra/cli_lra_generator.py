@@ -90,6 +90,9 @@ if __name__ == '__main__':
                     # get the zoom level
                     zoom_level = config['catalog'][model][exp][source].get('zoom', None)
 
+                    # get the number of workers for this specific configuration
+                    workers = config['catalog'][model][exp][source].get('workers', workers)
+
                     # init the LRA
                     lra = LRAgenerator(model=model, exp=exp, source=source, zoom=zoom_level,
                                        var=varname, resolution=resolution,
