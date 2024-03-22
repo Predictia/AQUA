@@ -57,9 +57,6 @@ def parse_arguments(cli_args):
 
 if __name__ == '__main__':
 
-    cluster = LocalCluster(threads_per_worker=2, n_workers=8)  # Creates a local cluster with 4 workers
-    client = Client(cluster)
-
     args = parse_arguments(sys.argv[1:])
     loglevel = get_arg(args, 'loglevel', 'WARNING')
     logger = log_configure(log_name='Teleconnections CLI', log_level=loglevel)
