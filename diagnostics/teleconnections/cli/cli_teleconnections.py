@@ -17,6 +17,7 @@ from aqua.exceptions import NoDataError, NotEnoughDataError
 from aqua.logger import log_configure
 from aqua.graphics import plot_single_map, plot_single_map_diff
 from teleconnections import __version__ as telecversion
+from teleconnections.bootstrap import bootstrap_teleconnections, build_confidence_masks
 from teleconnections.plots import indexes_plot
 from teleconnections.tc_class import Teleconnection
 from teleconnections.tools import set_figs, set_filename
@@ -39,6 +40,9 @@ def parse_arguments(cli_args):
     parser.add_argument('--ref', action='store_true',
                         required=False,
                         help='if True, analysis is performed against a reference')
+    parser.add_argument('--bootstrap', action='store_true',
+                        required=False,
+                        help='if True, bootstrap is performed')
 
     # This arguments will override the configuration file if provided
     parser.add_argument('--model', type=str, help='model name',
@@ -99,6 +103,13 @@ if __name__ == '__main__':
         logger.debug('Saving files')
         savefig = True
         savefile = True
+
+    bootstrap = get_arg(args, 'bootstrap', False)
+    if bootstrap:
+        if ref:
+            logger.info('Running bootstrap, this may take a while')
+        else:
+            logger.warning('Bootstrap requires a reference model, running without bootstrap')
 
     try:
         outputdir = get_arg(args, 'outputdir', config['outputdir'])
@@ -455,6 +466,9 @@ if __name__ == '__main__':
                                              metadata_value=descriptions[i])
                         except FileNotFoundError as e:
                             logger.error('Error adding metadata to %s: %s', map_names[i], e)
+                    
+                    # Bootstrap
+                    
                 else:  # Individual plots
                     # Index plot
                     try:
