@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+
+- Enabling the memory monitoring and (optional) full performance monitoring in LRA (#1010)
+- Adding IFS_9-FESOM_5 NextGEMS4 simulation on levante (#1009)
 - Function to plot multiple maps is introduced as `plot_maps()` and documented (#866)
 - Adding the IFS-FESOM storylines simulation (#848)
 - `file_is_complete()` accounts also for the mindate attribute (#1007)
@@ -16,6 +19,7 @@ AQUA core complete list:
 - Vertical chunking for GSV intake access (#1003)
 
 AQUA diagnostics complete list:
+- Timeseries: Various bugfix and improvements for cli and formula (#1013, #1016, #1022)
 
 ## [v0.7.2]
 
