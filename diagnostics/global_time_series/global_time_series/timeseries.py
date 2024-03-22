@@ -35,7 +35,7 @@ class Timeseries():
                  startdate=None, enddate=None,
                  monthly_std=True, annual_std=True,
                  std_startdate=None, std_enddate=None,
-                 plot_kw={'ylim': {}},
+                 plot_kw={'ylim': {}}, longname=None,
                  save=True,
                  outdir='./',
                  outfile=None,
@@ -59,6 +59,7 @@ class Timeseries():
             std_startdate (str): Start date for standard deviation. Default is "1991-01-01".
             std_enddate (str): End date for standard deviation. Default is "2020-12-31".
             plot_kw (dict): Additional keyword arguments passed to the plotting function.
+            longname (str): Long name of the variable. Default is None and logname attribute is used.
             save (bool): Save the figure. Default is True.
             outdir (str): Output directory. Default is "./".
             outfile (str): Output file name. Default is None.
@@ -103,6 +104,7 @@ class Timeseries():
         self.enddate = enddate
 
         self.plot_kw = plot_kw
+        self.longname = longname
 
         self.save = save
         if self.save is False:
@@ -146,6 +148,11 @@ class Timeseries():
                                              loglevel=self.loglevel)
                 if extend:  # We introduce the possibility to avoid this for seasonal cycle
                     self.check_ref_range()
+                if self.longname is not None:
+                    if self.ref_mon is not None:
+                        self.ref_mon.attrs['long_name'] = self.longname
+                    if self.ref_ann is not None:
+                        self.ref_ann.attrs['long_name'] = self.longname
             except NoObservationError:
                 self.plot_ref = False
                 self.logger.warning('Reference data not found, skipping reference data')
@@ -205,6 +212,9 @@ class Timeseries():
                 data_mon = reader.fldmean(data_mon)
                 self.logger.info("Monthly data retrieved")
                 if data_mon is not None:
+                    if self.longname is not None:
+                        data_mon.attrs['long_name'] = self.longname
+                        self.logger.debug(f"Long name updated to: {self.longname}")
                     self.data_mon.append(data_mon)
                 else:
                     self.logger.warning(f"No monthly data found for {model} {self.exps[i]} {self.sources[i]}")
@@ -216,6 +226,9 @@ class Timeseries():
                 data_ann = reader.fldmean(data_ann)
                 self.logger.info("Annual data retrieved")
                 if data_ann is not None:
+                    if self.longname is not None:
+                        data_ann.attrs['long_name'] = self.longname
+                        self.logger.debug(f"Long name updated to: {self.longname}")
                     self.data_annual.append(data_ann)
                 else:
                     self.logger.warning(f"No annual data found for {model} {self.exps[i]} {self.sources[i]}")
@@ -255,17 +268,14 @@ class Timeseries():
         else:
             ref_label = None
 
-        if self.formula is False or self.formula is None:
-            try:
-                if self.monthly:
-                    title = self.data_mon[0].attrs['long_name'] + ' (' + self.data_mon[0].attrs['units'] + ') timeseries'
-                elif self.annual:
-                    title = self.data_annual[0].attrs['long_name'] + ' (' + self.data_annual[0].attrs['units'] + ') timeseries'
-                else:
-                    title = self.var + ' timeseries'
-            except KeyError:
-                title = f'{self.var} timeseries'
-        else:
+        try:
+            if self.monthly:
+                title = self.data_mon[0].attrs['long_name'] + ' (' + self.data_mon[0].attrs['units'] + ') timeseries'
+            elif self.annual:
+                title = self.data_annual[0].attrs['long_name'] + ' (' + self.data_annual[0].attrs['units'] + ') timeseries'
+            else:
+                title = self.var + ' timeseries'
+        except KeyError:
             title = f'{self.var} timeseries'
 
         fig, _ = plot_timeseries(monthly_data=self.data_mon,
@@ -310,7 +320,10 @@ class Timeseries():
             description += f" for {model} {self.exps[i]}"
         if self.plot_ref:
             description += f" with {ref_label} as reference,"
-            description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}"
+            if self.std_startdate is not None and self.std_enddate is not None:
+                description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}"
+            else:
+                description += " std evaluated from the full time range."
         description += "."
         if self.expanding_ref_range:
             description += " The reference range has been expanded with a seasonal cycle or a band to match the model data."
@@ -368,22 +381,6 @@ class Timeseries():
                     self.ref_ann_std.to_netcdf(os.path.join(outdir, outfile))
             except Exception as e:
                 self.logger.error(f"Error while saving netcdf {outdir}/{outfile}: {e}")
-
-    def cleanup(self):
-        """Clean up"""
-        self.logger.debug("Cleaning up")
-        if self.monthly:
-            del self.data_mon
-            if self.plot_ref:
-                del self.ref_mon
-                del self.ref_mon_std
-        if self.annual:
-            del self.data_annual
-            if self.plot_ref:
-                del self.ref_ann
-                del self.ref_ann_std
-        gc.collect()
-        self.logger.debug("Cleaned up")
 
     def check_ref_range(self):
         """
@@ -480,3 +477,19 @@ class Timeseries():
                 raise ValueError(f"Unknown frequency: {freq}")
 
         return startdate, enddate
+
+    def cleanup(self):
+        """Clean up"""
+        self.logger.debug("Cleaning up")
+        if self.monthly:
+            del self.data_mon
+            if self.plot_ref:
+                del self.ref_mon
+                del self.ref_mon_std
+        if self.annual:
+            del self.data_annual
+            if self.plot_ref:
+                del self.ref_ann
+                del self.ref_ann_std
+        gc.collect()
+        self.logger.debug("Cleaned up")

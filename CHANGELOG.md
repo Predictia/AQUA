@@ -15,6 +15,7 @@ Main changes are:
 3. FDB monthly average data access is available
 
 AQUA core complete list:
+- Enabling the memory monitoring and (optional) full performance monitoring in LRA (#1010)
 - Adding IFS_9-FESOM_5 NextGEMS4 simulation on levante (#1009)
 - Function to plot multiple maps is introduced as `plot_maps()` and documented (#866)
 - Adding the IFS-FESOM storylines simulation (#848)
@@ -24,6 +25,7 @@ AQUA core complete list:
 - Vertical chunking for GSV intake access (#1003)
 
 AQUA diagnostics complete list:
+- Timeseries: Various bugfix and improvements for cli and formula (#1013, #1016, #1022)
 
 ## [v0.7.2]
 
