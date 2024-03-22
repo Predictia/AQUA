@@ -75,7 +75,7 @@ if __name__ == '__main__':
     monitoring = get_arg(args, 'monitoring', False)
     overwrite = get_arg(args, 'overwrite', False)
     fix = get_arg(args, 'fix', True)
-    workers = get_arg(args, 'workers', 1)
+    default_workers = get_arg(args, 'workers', 1)
     loglevel = get_arg(args, 'loglevel', loglevel)
     
     models = to_list(get_arg(args, 'model', config['catalog'].keys()))
@@ -91,7 +91,7 @@ if __name__ == '__main__':
                     zoom_level = config['catalog'][model][exp][source].get('zoom', None)
 
                     # get the number of workers for this specific configuration
-                    workers = config['catalog'][model][exp][source].get('workers', workers)
+                    workers = config['catalog'][model][exp][source].get('workers', default_workers)
 
                     # init the LRA
                     lra = LRAgenerator(model=model, exp=exp, source=source, zoom=zoom_level,
