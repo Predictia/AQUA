@@ -166,7 +166,7 @@ class sshVariability():
         fig.tight_layout()
 
     @staticmethod
-    def visualize_difference(config, ssh_data_dict):
+    def visualize_difference(config, ssh_data_dict, fig, axes):
         """
         Visualize the difference in SSH variability data between each model and the AVISO model.
 
@@ -209,7 +209,8 @@ class sshVariability():
                                       cmap="RdBu")
                 # ax.set_title(f"{model_name} - Difference from {ref_model_name}")
                 ax.coastlines()
-                ax.set_title("Difference from AVISO")
+                model_name_letters = model_name.split(':')[0]
+                ax.set_title(f"{model_name_letters} - Difference from AVISO")
                 # Add a colorbar for each subplot
                 cbar = fig.colorbar(contf, ax=ax, orientation='vertical', shrink=0.9)
                 cbar.set_label('SSH Variability Difference (mm)')
@@ -259,7 +260,7 @@ class sshVariability():
             # Add a colorbar for each subplot
             cbar = fig.colorbar(contf, ax=ax, orientation='vertical', shrink=0.9)
             cbar.set_label('SSH Variability (mm)')
-            
+
             # Save the figure after each iteration
             save_path = config.get("output_directory", "")  # Retrieve the save path from the config
 
@@ -451,7 +452,7 @@ class sshVariability():
 
         # Create a figure and axes for subplots
         fig, axes = plt.subplots(nrows=len(config['models'])+1, ncols=1, figsize=(
-            12, 8), subplot_kw={'projection': ccrs.PlateCarree()})
+            16, 12), subplot_kw={'projection': ccrs.PlateCarree()})
         fig.suptitle("SSH Variability")
 
         # By applying np.ravel() to the axes object, it flattens the 2-dimensional array into a 1-dimensional array. This means that each subplot is now accessible through a single index, rather than using row and column indices.
@@ -540,7 +541,7 @@ class sshVariability():
         if config.get('difference_plots', False):
             # Create a figure and axes for subplots
             fig_diff, axes = plt.subplots(nrows=len(config['models'])+1, ncols=1, figsize=(
-                12, 8), subplot_kw={'projection': ccrs.PlateCarree()})
+                16, 12), subplot_kw={'projection': ccrs.PlateCarree()})
             fig.suptitle("SSH Variability difference")
             aqua_logger.info("visualizing the difference data in subplots")
             self.visualize_difference(config, ssh_data_dict, fig_diff, axes)
