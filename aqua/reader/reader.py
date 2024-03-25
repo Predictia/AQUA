@@ -78,7 +78,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             loglevel (str, optional): Level of logging according to logging module.
                                       Defaults to log_level_default of loglevel().
             nproc (int,optional): Number of processes to use for weights generation. Defaults to 4.
-            aggregation (str, optional): aggregation/chunking to be used for GSV access (e.g. D, M, Y).
+            aggregation (str, optional): the streaming frequency in pandas style (1M, 7D etc. or 'monthly', 'daily' etc.)
                                          Defaults to None (using default from catalogue, recommended).
             chunks (str or dict, optional): chunking to be used for GSV access.
                                             Defaults to None (using default from catalogue, recommended).
@@ -998,15 +998,17 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             An xarray.Dataset or an iterator over datasets
         """
 
-        request = esmcat.get_request()
+        request = esmcat._request()
 
         if level and not isinstance(level, list):
             level = [level]
 
-        if self.aggregation:
+        # for streaming emulator
+        if self.aggregation and not dask:
             chunks = self.aggregation
         else:
             chunks = self.chunks
+    
         if dask:
             if chunks:  # if the chunking or aggregation option is specified override that from the catalogue
                 data = esmcat(request=request, startdate=startdate, enddate=enddate, var=var, level=level,

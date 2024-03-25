@@ -12,8 +12,6 @@ from .timeutil import check_dates, shift_time_dataset
 from .timeutil import split_date, make_timeaxis, date2str, date2yyyymm, add_offset
 from aqua.logger import log_configure, _check_loglevel
 
-import time
-
 # Test if FDB5 binary library is available
 try:
     from gsv.retriever import GSVRetriever
@@ -375,11 +373,6 @@ class GSVSource(base.DataSource):
 
         return dask.array.from_delayed(ds, newshape, dtype)
     
-    def get_request(self):
-        """Return to users the FDB default request"""
-
-        return self._request
-
     def to_dask(self):
         """Return a dask xarray dataset for this data source"""
 
