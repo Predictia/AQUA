@@ -4,8 +4,8 @@ import xarray as xr
 from teleconnections.tools import _check_dim, select_season
 
 
-def reg_evaluation(indx: xr.DataArray,
-                   data: xr.DataArray,
+def reg_evaluation(indx,
+                   data,
                    dim: str = 'time',
                    season=None):
     """
@@ -13,8 +13,8 @@ def reg_evaluation(indx: xr.DataArray,
     and a DataArray field
 
     Args:
-        indx (xarray.DataArray): teleconnection index
-        data (xarray.DataArray): data field
+        indx: teleconnection index
+        data: data field
         dim (str,opt):           dimension along which to compute
                                  regression. Default is 'time'
         season (str,opt):        season to be selected. Default is None
@@ -35,8 +35,8 @@ def reg_evaluation(indx: xr.DataArray,
     return reg
 
 
-def cor_evaluation(indx: xr.DataArray,
-                   data: xr.DataArray,
+def cor_evaluation(indx,
+                   data,
                    dim: str = 'time',
                    season=None):
     """
@@ -44,8 +44,8 @@ def cor_evaluation(indx: xr.DataArray,
     and a DataArray field
 
     Args:
-        indx (xarray.DataArray):  teleconnection index
-        data (xarray.DataArray):  data field
+        indx:  teleconnection index
+        data:  data field
         dim (str,opt):            dimension along which to compute
                                   correlation. Default is 'time'
         season (str,opt):         season to be selected. Default is None
