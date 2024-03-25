@@ -13,7 +13,7 @@ Main changes are:
 1. IFS-FESOM NextGEMS4 and storylines simulations available in the catalogue
 2. Vertical chunking for GSV intake access
 3. FDB monthly average data access is available
-4. kwargs parsing of reader arguments (e.g. allowing for ensemble support)
+4. kwargs parsing of reader arguments (e.g. allowing for zoom and ensemble support)
 
 AQUA core complete list:
 - Add kwargs parsing of reader arguments, passing them to intake to substitute parameters (#757)
