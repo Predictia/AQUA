@@ -17,7 +17,7 @@ from aqua.exceptions import NoDataError, NotEnoughDataError
 from aqua.logger import log_configure
 from aqua.graphics import plot_single_map, plot_single_map_diff
 from teleconnections import __version__ as telecversion
-from teleconnections.bootstrap import bootstrap_teleconnections, build_confidence_masks
+from teleconnections.bootstrap import bootstrap_teleconnections, build_confidence_mask
 from teleconnections.plots import indexes_plot
 from teleconnections.tc_class import Teleconnection
 from teleconnections.tools import set_figs, set_filename
@@ -174,17 +174,17 @@ if __name__ == '__main__':
                          model_ref, exp_ref, source_ref, regrid, freq, zoom)
 
             try:
-                tc = Teleconnection(telecname=telec,
-                                    configdir=configdir,
-                                    model=model_ref, exp=exp_ref, source=source_ref,
-                                    regrid=regrid, freq=freq, zoom=zoom,
-                                    months_window=months_window,
-                                    outputdir=outputnetcdf,
-                                    outputfig=outputpdf,
-                                    savefig=savefig, savefile=savefile,
-                                    interface=interface,
-                                    loglevel=loglevel)
-                tc.retrieve()
+                tc_ref = Teleconnection(telecname=telec,
+                                        configdir=configdir,
+                                        model=model_ref, exp=exp_ref, source=source_ref,
+                                        regrid=regrid, freq=freq, zoom=zoom,
+                                        months_window=months_window,
+                                        outputdir=outputnetcdf,
+                                        outputfig=outputpdf,
+                                        savefig=savefig, savefile=savefile,
+                                        interface=interface,
+                                        loglevel=loglevel)
+                tc_ref.retrieve()
             except NoDataError:
                 logger.error('No data available for %s teleconnection', telec)
                 continue
@@ -197,8 +197,8 @@ if __name__ == '__main__':
                              telec, e)
 
             try:
-                tc.evaluate_index()
-                ref_index = tc.index
+                tc_ref.evaluate_index()
+                ref_index = tc_ref.index
             except NotEnoughDataError:
                 logger.error('Not enough data available for %s teleconnection', telec)
                 continue
@@ -211,8 +211,8 @@ if __name__ == '__main__':
             # so we save them as variables
             if full_year:
                 try:
-                    ref_reg_full = tc.evaluate_regression()
-                    ref_cor_full = tc.evaluate_correlation()
+                    ref_reg_full = tc_ref.evaluate_regression()
+                    ref_cor_full = tc_ref.evaluate_correlation()
                 except NotEnoughDataError:
                     logger.error('Not enough data available for %s teleconnection',
                                  telec)
@@ -228,9 +228,9 @@ if __name__ == '__main__':
                     try:
                         logger.info('Evaluating %s regression and correlation for %s season',
                                     telec, season)
-                        reg = tc.evaluate_regression(season=season)
+                        reg = tc_ref.evaluate_regression(season=season)
                         ref_reg_season.append(reg)
-                        cor = tc.evaluate_correlation(season=season)
+                        cor = tc_ref.evaluate_correlation(season=season)
                         ref_cor_season.append(cor)
                     except NotEnoughDataError:
                         logger.error('Not enough data available for %s teleconnection',
@@ -240,10 +240,16 @@ if __name__ == '__main__':
                 ref_reg_season = None
                 ref_cor_season = None
 
-            del tc
+            if bootstrap:
+                ref_data = tc_ref.data
+            else:
+                ref_data = None
+
+            del tc_ref
             gc.collect()
         else:
             ref_index = None
+            ref_data = None
             ref_reg_full = None
             ref_cor_full = None
             ref_reg_season = None
@@ -413,6 +419,23 @@ if __name__ == '__main__':
                         except FileNotFoundError as e:
                             logger.error('Error adding metadata to %s: %s', map_names[i], e)
 
+                        if bootstrap:
+                            try:
+                                logger.info('Running bootstrap for %s teleconnection', telec)
+                                lower, upper = bootstrap_teleconnections(map=data_map,
+                                                                         index=tc.index,
+                                                                         index_ref=ref_index,
+                                                                         data_ref=ref_data,
+                                                                         statistic='cor',
+                                                                         loglevel=loglevel)
+                                mask = build_confidence_mask(data_map, lower, upper)
+
+                                if savefile:
+                                    logger.debug(f'Saving bootstrap mask for {telec} correlation')
+                                    mask.to_netcdf(os.path.join(tc.outputnetcdf, tc.filename + 'correlation_bootstrap.nc'))
+                            except Exception as e:
+                                logger.error('Error running bootstrap for %s teleconnection: %s', telec, e)
+
                     # Regression plot
                     map_names, maps, ref_maps, titles, descriptions, cbar_labels = set_figs(telec=telec,
                                                                                             model=model,
@@ -466,9 +489,24 @@ if __name__ == '__main__':
                                              metadata_value=descriptions[i])
                         except FileNotFoundError as e:
                             logger.error('Error adding metadata to %s: %s', map_names[i], e)
-                    
-                    # Bootstrap
-                    
+
+                    if bootstrap:
+                        try:
+                            logger.info('Running bootstrap for %s teleconnection', telec)
+                            lower, upper = bootstrap_teleconnections(map=data_map,
+                                                                     index=tc.index,
+                                                                     index_ref=ref_index,
+                                                                     data_ref=ref_data,
+                                                                     statistic='reg',
+                                                                     loglevel=loglevel)
+                            mask = build_confidence_mask(data_map, lower, upper)
+
+                            if savefile:
+                                logger.debug(f'Saving bootstrap mask for {telec} regression')
+                                mask.to_netcdf(os.path.join(tc.outputnetcdf, tc.filename + 'regression_bootstrap.nc'))
+                        except Exception as e:
+                            logger.error('Error running bootstrap for %s teleconnection: %s', telec, e)
+
                 else:  # Individual plots
                     # Index plot
                     try:
