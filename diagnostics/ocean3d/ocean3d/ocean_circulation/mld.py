@@ -20,12 +20,12 @@ def data_for_plot_spatial_mld_clim(data, region=None, time=None,
 
     data = area_selection(data, region, lat_s, lat_n, lon_w, lon_e)
     data = convert_variables(data)
-    data = compute_mld_cont(data)
+    data = compute_mld_cont(data[["rho"]])
     data, time = data_time_selection(data, time)
     return data.mean("time"), time
 
 
-def plot_spatial_mld_clim(o3d_request, time=None,
+def plot_spatial_mld_clim(o3d_request,
                           overlap=True, loglevel= "WARNING"):
     """
     Plots the climatology of mixed layer depth in the NH as computed with de Boyer Montegut (2004)'s criteria in
@@ -47,6 +47,7 @@ def plot_spatial_mld_clim(o3d_request, time=None,
     model = o3d_request.get('model')
     exp = o3d_request.get('exp')
     source = o3d_request.get('source')
+    time = o3d_request.get('time')
     region = o3d_request.get('region', None)
     lat_s = o3d_request.get('lat_s', None)
     lat_n = o3d_request.get('lat_n', None)
