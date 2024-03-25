@@ -5,14 +5,18 @@ import numpy as np
 import xarray as xr
 
 from aqua.logger import log_configure
-from . import reg_evaluation, cor_evaluation
+from teleconnections.statistics import reg_evaluation, cor_evaluation
 
 
-def bootstrap_teleconnections(reg: xr.DataArray,
+import numpy as np
+import xarray as xr
+
+
+def bootstrap_teleconnections(map: xr.DataArray,
                               index: xr.DataArray,
                               index_ref: xr.DataArray,
-                              data_ref: xr.DataArray,
-                              n_bootstraps=1000,
+                              data_ref, # can be either a DataArray or a Dataset
+                              n_bootstraps=100,
                               concordance=0.5,
                               statistic=None,
                               loglevel='WARNING',
@@ -38,12 +42,23 @@ def bootstrap_teleconnections(reg: xr.DataArray,
     if statistic is None:
         raise ValueError('No statistic was provided. Please provide a statistic to compute (reg or cor).')
 
-    # Build the bootstrap maps DataArray
-    bootstrap_maps = xr.DataArray(np.zeros((n_bootstraps,) + reg.shape),
-                                  coords=[range(n_bootstraps)] + [coord for coord in reg.coords.values()],
-                                  dims=['bootstrap'] + [dim for dim in reg.dims])
+    if isinstance(data_ref, xr.Dataset):
+        data_ref = data_ref[list(data_ref.keys())[0]]
 
-    # Bootstrap the maps
+    # Create empty arrays to store percentiles, dropping the time axis
+    lower = xr.DataArray(np.zeros([data_ref.shape[i] for i in range(len(data_ref.dims)) if data_ref.dims[i] != 'time']),
+                         coords={k: v for k, v in data_ref.coords.items() if k != 'time'},
+                         dims=[dim for dim in data_ref.dims if dim != 'time'])
+    upper = xr.DataArray(np.zeros([data_ref.shape[i] for i in range(len(data_ref.dims)) if data_ref.dims[i] != 'time']),
+                         coords={k: v for k, v in data_ref.coords.items() if k != 'time'},
+                         dims=[dim for dim in data_ref.dims if dim != 'time'])
+
+    # Initialize the P2 algorithm for each pixel
+    logger.info('Initializing P2 algorithm')
+    p2 = np.array([P2Algorithm() for _ in range(lower.size)])
+    logger.debug(f'Number of pixels: {lower.size}')
+
+    # Bootstrap the maps pixel by pixel
     for i in range(n_bootstraps):
         logger.debug(f'Bootstrap {i+1}/{n_bootstraps}')
 
@@ -53,19 +68,60 @@ def bootstrap_teleconnections(reg: xr.DataArray,
         boot_data = data_ref.sel(time=boot_time)
 
         if statistic == 'reg':
-            bootstrap_maps[i] = reg_evaluation(indx=boot_index, data=boot_data, **eval_kwargs)
+            bootstrap_values = reg_evaluation(indx=boot_index, data=boot_data, **eval_kwargs)
         elif statistic == 'cor':
-            bootstrap_maps[i] = cor_evaluation(indx=boot_index, data=boot_data, **eval_kwargs)
+            bootstrap_values = cor_evaluation(indx=boot_index, data=boot_data, **eval_kwargs)
+        logger.debug('Bootstrap map evaluated')
+        bootstrap_values.load()
 
-    # Evaluate the percentile confidence intervals
-    lower = bootstrap_maps.quantile(1-concordance/2, dim='bootstrap')
-    upper = bootstrap_maps.quantile(concordance/2, dim='bootstrap')
+        # Update the P2 algorithm for each pixel
+        for j in range(bootstrap_values.size):
+            p2[j].add(bootstrap_values.values.flat[j])
+
+    # Compute the percentiles for each pixel
+    logger.info('Computing percentiles')
+    for j in range(lower.size):
+        lower.values.flat[j] = p2[j].get_percentile(1-concordance/2)
+        upper.values.flat[j] = p2[j].get_percentile(concordance/2)
 
     return lower, upper
 
 
-def build_confidence_mask(reg: xr.DataArray, lower: xr.DataArray, upper: xr.DataArray,
-                           mask_concordance=True):
+class P2Algorithm:
+    def __init__(self):
+        self.n = 0
+        self.sorted_data = []
+
+    def add(self, x):
+        self.n += 1
+        if self.n == 1:
+            self.sorted_data.append(x)
+        else:
+            if x >= self.sorted_data[-1]:
+                self.sorted_data.append(x)
+            else:
+                self.sorted_data.insert(self.find_index(x), x)
+
+    def find_index(self, x):
+        for i, data_point in enumerate(self.sorted_data):
+            if x < data_point:
+                return i
+        return 0
+
+    def get_percentile(self, p):
+        if not self.sorted_data:
+            return None
+        k = (self.n - 1) * p
+        f = int(k)
+        c = k - f
+        if f + 1 < len(self.sorted_data):
+            return self.sorted_data[f] + c * (self.sorted_data[f + 1] - self.sorted_data[f])
+        else:
+            return self.sorted_data[f]
+
+
+def build_confidence_mask(map: xr.DataArray, lower: xr.DataArray, upper: xr.DataArray,
+                          mask_concordance=True):
     """
     Build the confidence masks based on the lower and upper percentiles.
 
@@ -79,8 +135,8 @@ def build_confidence_mask(reg: xr.DataArray, lower: xr.DataArray, upper: xr.Data
         xr.DataArray: Confidence mask
     """
     if mask_concordance:
-        mask = ((reg <= upper) & (reg >= lower)).astype(int)
+        mask = ((map <= upper) & (map >= lower)).astype(int)
     else:  # Mask the discordance regions
-        mask = ((reg >= upper) | (reg <= lower)).astype(int)
+        mask = ((map >= upper) | (map <= lower)).astype(int)
 
     return mask
