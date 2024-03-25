@@ -837,10 +837,11 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             kwargs after check has been processed
         """
 
-        shortcat = self.cat[self.model][self.exp][self.source]
+        #shortcat = self.cat[self.model][self.exp][self.source]
+        shortcat = self.esmcat
         user_parameters = shortcat.describe().get('user_parameters')
 
-        if user_parameters is not None: 
+        if user_parameters is not None:
             if parameters is None:
                 parameters = {}
 
@@ -998,7 +999,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             An xarray.Dataset or an iterator over datasets
         """
 
-        request = esmcat._request()
+        request = esmcat._request
 
         if level and not isinstance(level, list):
             level = [level]
