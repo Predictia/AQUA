@@ -7,6 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+## [v0.7.3]
+
+Main changes are:
+1. IFS-FESOM NextGEMS4 and storylines simulations available in the catalogue
+2. Vertical chunking for GSV intake access
+3. FDB monthly average data access is available
+4. kwargs parsing of reader arguments (e.g. allowing for zoom and ensemble support)
+
 AQUA core complete list:
 - Add kwargs parsing of reader arguments, passing them to intake to substitute parameters (#757)
 - Remove `zoom` and use kwargs instead (#757)
@@ -401,7 +409,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.2...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.3...HEAD
+[v0.7.3]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.2...v0.7.3
 [v0.7.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.1...v0.7.2
 [v0.7.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7...v0.7.1
 [v0.7]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.3...v0.7
