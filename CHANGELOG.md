@@ -13,8 +13,11 @@ Main changes are:
 1. IFS-FESOM NextGEMS4 and storylines simulations available in the catalogue
 2. Vertical chunking for GSV intake access
 3. FDB monthly average data access is available
+4. kwargs parsing of reader arguments (e.g. allowing for ensemble support)
 
 AQUA core complete list:
+- Add kwargs parsing of reader arguments, passing them to intake to substitute parameters (#757)
+- Remove `zoom` and use kwargs instead (#757)
 - Enabling the memory monitoring and (optional) full performance monitoring in LRA (#1010)
 - Adding IFS_9-FESOM_5 NextGEMS4 simulation on levante (#1009)
 - Function to plot multiple maps is introduced as `plot_maps()` and documented (#866)
@@ -165,6 +168,7 @@ Main changes are:
 1. Inclusion in the catalog of the historical-1990 production simulations from IFS-NEMO and IFS-FESOM.
 2. New fixes that targets the DestinE updated Data Governance
 
+Complete list:
 - IFS-FESOM historical-1990-dev-lowres with new data governance added to the catalogue (#770)
 - AtmoGlobalMean diagnostic improvements (#722)
 - Teleconnections diagnostic improvements (#722)
