@@ -35,13 +35,13 @@ class LRAgenerator():
         return self.nproc > 1
 
     def __init__(self,
-                 model=None, exp=None, source=None, zoom=None,
+                 model=None, exp=None, source=None,
                  var=None, configdir=None,
                  resolution=None, frequency=None, fix=True,
                  outdir=None, tmpdir=None, nproc=1,
                  loglevel=None, overwrite=False, definitive=False,
                  performance_reporting=False,
-                 exclude_incomplete=False):
+                 exclude_incomplete=False, **kwargs):
         """
         Initialize the LRA_Generator class
 
@@ -51,7 +51,6 @@ class LRAgenerator():
             source (string):         The sourceid name from the catalog
             var (str, list):         Variable(s) to be processed and archived
                                      in LRA.
-            zoom (int):              Healpix level of zoom
             resolution (string):     The target resolution for the LRA
             frequency (string,opt):  The target frequency for averaging the
                                      LRA, if no frequency is specified,
@@ -70,8 +69,11 @@ class LRAgenerator():
             definitive (bool, opt):  True to create the output file,
                                      False to just explore the reader
                                      operations, default is False
+            performance_reporting (bool, opt): True to save an html report of the
+                                               dask usage, default is False.
             exclude_incomplete (bool,opt)   : True to remove incomplete chunk
                                             when averaging, default is false.  
+            **kwargs:                kwargs to be sent to the Reader, as zoom
         """
         # General settings
         self.logger = log_configure(loglevel, 'lra_generator')
@@ -114,7 +116,7 @@ class LRAgenerator():
         else:
             raise KeyError('Please specify source.')
 
-        self.zoom = zoom
+        self.kwargs = kwargs
 
         Configurer = ConfigPath(configdir=configdir)
         self.configdir = Configurer.configdir
@@ -140,7 +142,7 @@ class LRAgenerator():
             'units': 'days since 1850-01-01 00:00:00',
             'calendar': 'standard',
             'dtype': 'float64',
-            'zlib' : True,
+            'zlib': True,
             'complevel': 1,
             '_FillValue': np.nan
         }
@@ -177,10 +179,10 @@ class LRAgenerator():
 
         # Initialize the reader
         self.reader = Reader(model=self.model, exp=self.exp,
-                             source=self.source, zoom=self.zoom,
+                             source=self.source,
                              regrid=self.resolution,
                              loglevel=self.loglevel,
-                             fix=self.fix)
+                             fix=self.fix, **self.kwargs)
 
         self.logger.info('Accessing catalog for %s-%s-%s...',
                          self.model, self.exp, self.source)
