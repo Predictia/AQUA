@@ -423,10 +423,16 @@ if __name__ == '__main__':
                     logger.debug('titles: %s', titles)
                     logger.debug('descriptions: %s', descriptions)
                     for i, data_map in enumerate(maps):
+                        vmin, vmax = config[telec].get('cbar_range', None)
+                        if vmin is None or vmax is None:
+                            sym = True
+                        else:
+                            sym = False
                         try:
                             plot_single_map_diff(data=data_map,
                                                  data_ref=ref_maps[i],
-                                                 save=True, sym=True,
+                                                 save=True, sym=sym,
+                                                 vmin_fill=vmin, vmax_fill=vmax,
                                                  cbar_label=cbar_labels[i],
                                                  outputdir=tc.outputfig,
                                                  filename=map_names[i],
@@ -440,7 +446,7 @@ if __name__ == '__main__':
                             try:
                                 plot_single_map_diff(data=data_map,
                                                      data_ref=ref_maps[i],
-                                                     save=True, sym=True,
+                                                     save=True, sym=sym,
                                                      cbar_label=cbar_labels[i],
                                                      outputdir=tc.outputfig,
                                                      filename=map_names[i],
@@ -527,9 +533,15 @@ if __name__ == '__main__':
                     logger.debug('titles: %s', titles)
                     logger.debug('descriptions: %s', descriptions)
                     for i, data_map in enumerate(maps):
+                        vmin, vmax = config[telec].get('cbar_range', None)
+                        if vmin is None or vmax is None:
+                            sym = True
+                        else:
+                            sym = False
                         try:
                             plot_single_map(data=data_map,
-                                            save=True, sym=True,
+                                            save=True, sym=sym,
+                                            vmin=vmin, vmax=vmax,
                                             cbar_label=cbar_labels[i],
                                             outputdir=tc.outputfig,
                                             filename=map_names[i],
@@ -542,7 +554,7 @@ if __name__ == '__main__':
                             logger.info('Trying with transform_first=True')
                             try:
                                 plot_single_map(data=data_map,
-                                                save=True, sym=True,
+                                                save=True, sym=sym,
                                                 cbar_label=cbar_labels[i],
                                                 outputdir=tc.outputfig,
                                                 filename=map_names[i],
