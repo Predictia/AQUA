@@ -206,7 +206,7 @@ Some of the parameters are here described:
     By the ``chunks`` argument is a string and refers to time-chunking.
     In more advanced cases it is possible to chunk both in time and in the vertical (along levels)
     by passing a dictionary to chunks with the keys ``time`` and ``vertical``. 
-    In this case ``time``is as usual a time frequency (in pandas notations) and ``vertical``is instead the maxmimum number of vertical levels
+    In this case ``time`` is as usual a time frequency (in pandas notations) and ``vertical`` is instead the maxmimum number of vertical levels
     in each chunk.
 
     An example would be:
