@@ -86,7 +86,8 @@ so that the script can be used in a batch job or in a workflow.
     By default the script will run all the state-of-the-art diagnostics available in AQUA.
     It is possible to run only a subset of the diagnostics by modifying the script itself,
     where arrays with atmospheric and oceanic diagnostics are defined.
-    
+
+.. _fdb-catalog-generator:
 
 Catalog entry generator for FDB sources
 ---------------------------------------
