@@ -12,9 +12,7 @@ from aqua.graphics import plot_seasonalcycle
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from   cartopy.util import add_cyclic_point
-import sys
-sys.path.insert(0, '..')
-from colInterpolatOr import *
+from seaice.colInterpolatOr import colInterpolatOr
 from matplotlib.colors import LinearSegmentedColormap
 
 
@@ -45,7 +43,7 @@ class SeaIceExtent:
         self.logger = log_configure(self.loglevel, 'Seaice')
 
         if regions_definition_file is None:
-            regions_definition_file = os.path.dirname(os.path.abspath(__file__)) + "/regions_definition.yaml"
+            regions_definition_file = os.path.dirname(os.path.abspath(__file__)) + "/../config/regions_definition.yaml"
             self.logger.debug("Using default regions definition file %s",
                               regions_definition_file)
 
@@ -223,16 +221,9 @@ class SeaIceExtent:
                     )
 
                 # Print area of region
-                if source == "lra-r100-monthly" or model == "OSI-SAF":
-                    if source == "lra-r100-monthly":
-                        dim1Name, dim2Name = "lon", "lat"
-                    elif model == "OSI-SAF":
-                        dim1Name, dim2Name = "xc", "yc"
-                    myExtent = areacello.where(regionMask).where(
-                        ci_mask.notnull()).sum(dim=[dim1Name, dim2Name]) / 1e12
-                else:
-                    myExtent = areacello.where(regionMask).where(
-                        ci_mask.notnull()).sum(dim="value") / 1e12
+                    
+                myExtent = areacello.where(regionMask).where(
+                    ci_mask.notnull()).sum(dim=reader.space_coord) / 1e12
 
                 myExtent.attrs["units"] = "million km^2"
                 myExtent.attrs["long_name"] = "Sea ice extent"

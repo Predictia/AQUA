@@ -1,4 +1,10 @@
 # Models for sea ice to be evaluated.
+
+run_extent: False
+run_concentration: True
+run_volume: False
+run_thickness: False
+
 models:
   - model: IFS-NEMO
     exp: historical-1990
