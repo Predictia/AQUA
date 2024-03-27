@@ -117,7 +117,7 @@ if __name__ == '__main__':
         for var in ['mtnlwrf', 'mtnswrf', 'tnr']:
             try:
                 plot_mean_bias(model=model_data, var=var, ceres=ceres,
-                               outputdir=outputdir, outputfig=outputfig, loglevel=loglevel, statistics=True)
+                               outputdir=outputdir, outputfig=outputfig, loglevel=loglevel)
                 logger.info(
                     f"The mean bias of the data over the specified time range is calculated, plotted, and saved for {var} variable.")
             except Exception as e:
