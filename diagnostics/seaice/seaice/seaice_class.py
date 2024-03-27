@@ -202,7 +202,7 @@ class SeaIceExtent:
                     )
                 except KeyError:
                     self.logger.info("Error: region not defined")
-                    print("Region " + region + " does not exist in regions_definition.yaml")
+                    self.logger.info("Region " + region + " does not exist in regions_definition.yaml")
                     raise KeyError("Region not defined")
 
                 # Dealing with regions straddling the 180° meridian
@@ -458,7 +458,7 @@ class SeaIceVolume:
             # automatically the first source available
             source = setup.get("source", None)
             regrid = setup.get("regrid", None)
-            var = setup.get("var", 'avg_sithick')
+            var = setup.get("var", 'avg_sivol')
             timespan = setup.get("timespan", None)
 
             self.logger.info(f"Retrieving data for {model} {exp} {source}")
@@ -474,9 +474,16 @@ class SeaIceVolume:
 
             try:
                 data = reader.retrieve(var=var)
+                
             except KeyError:
-                self.logger.error("Variable %s not found in dataset", var)
-                raise NoDataError("Variable not found in dataset")
+                try:
+                    data = reader.retrieve(var = "avg_sithick")
+                    self.logger.warning("WARNING! Variable avg_sivol was NOT FOUND, avg_sithick was loaded instead")
+                    
+                    data = data.rename({"avg_sithick": "avg_sivol"})
+                except KeyError:
+                    self.logger.error("Variable %s not found in dataset " + model + "-" + exp + "-" + source, var)
+                    raise NoDataError("Variable not found in dataset")
             if timespan is None:
                 # if timespan is set to None, retrieve the timespan
                 # from the data directly
@@ -500,7 +507,7 @@ class SeaIceVolume:
 
             # Compute climatology
 
-             self.regionVolumes = list()  # Will contain the time series
+            self.regionVolumes = list()  # Will contain the time series
             # for each region and for that setup
             # Iterate over regions
             for jr, region in enumerate(self.myRegions):
@@ -516,7 +523,7 @@ class SeaIceVolume:
                     )
                 except KeyError:
                     self.logger.info("Error: region not defined")
-                    print("Region " + region + " does not exist in regions_definition.yaml")
+                    self.logger.info("Region " + region + " does not exist in regions_definition.yaml")
                     raise KeyError("Region not defined")
 
                 # Dealing with regions straddling the 180° meridian
@@ -533,17 +540,12 @@ class SeaIceVolume:
                         & (lon >= lonW)
                         & (lon <= lonE)
                     )
+                
 
-                try:
-                    sivol_mask = data.sivol.where((data.sivol > 0) &
-                                        (data.sivol < 99.0))
-                except AttributeError:
-                    self.logger.warning("WARNING! Variable sivol NOT FOUND, loading sithick instead")
-                    data = data.rename({"sithick": "sivol"})
-                    sivol_mask = data.sivol.where((data.sivol > 0) &
-                                        (data.sivol < 99.0))
+                avg_sivol_mask = data.avg_sivol.where((data.avg_sivol > 0) &
+                                        (data.avg_sivol < 99.0))
 
-                myVolume = (sivol_mask * areacello.where(regionMask)).sum(dim="value") / 1e12
+                myVolume = (avg_sivol_mask * areacello.where(regionMask)).sum(dim=reader.space_coord) / 1e12
                                
                 myVolume.attrs["units"] = "thousands km^3"
                 myVolume.attrs["long_name"] = "Sea ice volume"
@@ -587,7 +589,7 @@ class SeaIceVolume:
 
                 # Don't plot PIOMAS in the SH and GIOMAS in the NH
                 if (setup["model"] == "PIOMAS" and self.regionDict[region]["latN"] < 20.0) or (
-                        setup["model"] == "GIOMAS" and setup["source"] == "nh-monthly"
+                        setup["model"] == "GIOMAS" 
                         and self.regionDict[region]["latS"] > -20.0):
                     self.logger.debug("Not plotting PIOMAS in the SH and GIOMAS in the NH")
                     pass
@@ -645,7 +647,7 @@ class SeaIceVolume:
 
                 if (setup["model"] == "PIOMAS" and
                     self.regionDict[region]["latN"] < 20.0) or (
-                        setup["model"] == "GIOAMAS" and setup["source"] == "nh-monthly"
+                        setup["model"] == "GIOMAS" and setup["source"] == "nh-monthly"
                         and self.regionDict[region]["latS"] > -20.0):
                     self.logger.debug("Not saving PIOMAS in the SH and GIOMAS in the NH")
                     pass

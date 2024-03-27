@@ -10,21 +10,31 @@ models:
     exp: historical-1990
     source: lra-r100-monthly
     regrid: null
-    var: avg_sithick
+    var: avg_sivol
     timespan: null # can be of the format ['2020-01-20', '2024-12-31']
 # These are observational datasets / reanalyses
-  - model: PSC
-    exp: piomas
-    source: nh-monthly
-    regrid: null
-    variable: avg_sithick
-    timespan: null
-  - model: PSC
-    exp: giomas
-    source: sh-monthly
-    regrid: null
-    variable: avg_sithick
-    timespan: null
+ # - model: PSC
+ #   exp: PIOMAS
+ #   source: monthly
+ #   regrid: null
+ #   variable: avg_sivol
+ #   timespan: null
+ # - model: PSC
+ #   exp: GIOMAS
+ #   source: monthly
+ #   regrid: null
+ #   variable: avg_sivol
+ #   timespan: null
+    
+regions: # If this block is missing all regions will be evaluated
+  - Arctic
+  - Southern Ocean
+  # - Hudson Bay
+  # - Ross Sea
+  # - Amundsen-Bellingshausen Seas
+  # - Weddell Sea
+  # - Indian Ocean
+  # - Pacific Ocean
 # Please specify the path to the directory where the outputs should be saved.
 # If output directory/folder does not exist, it will be created.
 # This can be overwritten by the command line argument --outputdir
