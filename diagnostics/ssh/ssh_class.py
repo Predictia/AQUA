@@ -13,6 +13,7 @@ from dateutil.parser import parse
 from aqua import Reader, util, logger
 from datetime import datetime
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
+from aqua.util import create_folder
 import pandas as pd
 from aqua.util import area_selection
 from aqua import Reader, plot_single_map
@@ -263,13 +264,11 @@ class sshVariability():
 
             # Save the figure after each iteration
             save_path = config.get("output_directory", "")  # Retrieve the save path from the config
-
+            create_folder(save_path)  # Create the folder if it doesn't exist
             # Inside your function where you save the figure
-            plt.savefig(f"{save_path}pdf/region_selection_plot_{i}.png")  
+            plt.savefig(f"{save_path}/pdf/region_selection_plot_{i}.pdf")  
             #plt.savefig(f"region_selection_plot_{i}.png")
             plt.close(fig)
-
-
 
 
     @staticmethod
@@ -300,11 +299,30 @@ class sshVariability():
         """
 
         # Set the output file path
+        create_folder(output_directory)  # Create the folder if it doesn't exist
         output_file = os.path.join(output_directory, filename)
 
         # Save the figure as a JPEG file. fig.savefig() or plt.savefig() should accomplish the same task of saving the figure to a file. (DPI = dots per inch)
         fig.savefig(output_file, dpi=100, format='jpeg')
 
+    @staticmethod
+    def save_subplots_as_pdf(output_directory, filename, fig):
+        """
+        Saves the subplots as a PDF image file.
+
+        Parameters:
+            config (dict): The configuration dictionary containing the output directory.
+            filename (str): The name of the output file.
+            fig (plt.Figure): The figure object containing the subplots.
+        """
+
+        # Set the output file path
+        create_folder(output_directory)  # Create the folder if it doesn't exist
+        output_file = os.path.join(output_directory, filename)
+
+        # Save the figure as a JPEG file. fig.savefig() or plt.savefig() should accomplish the same task of saving the figure to a file. (DPI = dots per inch)
+        fig.savefig(output_file, dpi=300, format='pdf')
+    
     @staticmethod
     def save_subplots_as_png(output_directory, filename, fig):
         """
@@ -532,11 +550,9 @@ class sshVariability():
         self.visualize_subplots(config, ssh_data_dict, fig, axes)
 
         aqua_logger.info("Saving plots as a PNG output file")
-        # self.save_subplots_as_jpeg(config, "subplots_output.jpeg", fig)
-        self.save_subplots_as_png(self.create_output_directory(
-            config), "ssh_all_models_ssh-variablity.png", fig)
         
-        
+        self.save_subplots_as_pdf(self.create_output_directory(
+            config), "ssh_all_models_ssh-variablity.pdf", fig)
         
         if config.get('difference_plots', False):
             # Create a figure and axes for subplots
@@ -547,16 +563,14 @@ class sshVariability():
             self.visualize_difference(config, ssh_data_dict, fig_diff, axes)
         
             aqua_logger.info("Saving difference plots as a PNG output file")
-            # self.save_subplots_as_jpeg(config, "subplots_output.jpeg", fig)
-            self.save_subplots_as_png(self.create_output_directory(
-                config), "ssh_variablity_difference.png", fig_diff)
+            
+            self.save_subplots_as_pdf(self.create_output_directory(
+                config), "ssh_variablity_difference.pdf", fig_diff)
 
         if config.get('region_selection', False):
             # Create a figure and axes for subplots
             aqua_logger.info("visualizing the selected region data and saving plots")
             self.region_selection(config, ssh_data_dict)
-
-
 
         # Close the Dask client and cluster
         client.close()

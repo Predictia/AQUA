@@ -84,8 +84,9 @@ if __name__ == '__main__':
     analyzer.config['models'][0]['source'] = get_arg(args, 'source', analyzer.config['models'][0]['source'])
     analyzer.config['output_directory'] = get_arg(args, 'outputdir', analyzer.config['output_directory'])
 
-    if "time_span" in analyzer.config['models'][0] and args.modeltime is not None:
-        analyzer.config['models'][0]['time_span'] = get_arg(args, 'modeltime', analyzer.config['models'][0]['time_span'])
+    #if "timespan" in analyzer.config['models'][0] and args.modeltime is not None:
+    if "timespan" in analyzer.config['models'][0] and args.modeltime is not None:
+        analyzer.config['models'][0]['timespan'] = get_arg(args, 'modeltime', analyzer.config['models'][0]['timespan'])
 
     if args.obstime is not None:
         timespan = {'start': args.obstime[0], 'end': args.obstime[1]}
