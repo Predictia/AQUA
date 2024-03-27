@@ -4,13 +4,13 @@ sources:
       request: &request-default
         class: d1
         dataset: climate-dt
-        activity: CMIP6
-        experiment: hist
+        activity: {{ activity }} 
+        experiment: {{ experiment }}
         generation: 1
         model: {{ model }}
         realization: 1
         resolution: high
-        expver: {{ expver }}
+        expver: '0001'
         type: fc
         stream: clte
         date: {{ data_start_date }}
@@ -20,26 +20,26 @@ sources:
         step: 0
       data_start_date: {{ data_start_date }}T0000
       data_end_date: {{ data_end_date }}
-      chunks: D  # Default chunks / chunk size
+      chunks: D  # Default time chunk size
       savefreq: h  # at what frequency are data saved
       timestep: h  # base timestep for step timestyle
       timestyle: date  # variable date or variable step
     description: hourly data on native grid {{ grid }}.
     driver: gsv
     metadata: &metadata-default
-      fdb_path: {{ fdb_path }}
-      fdb_home: {{ fdb_home }}
+      fdb_home: {{ fdb_home_native }}
+      fdb_path: {{ fdb_home_native }}/etc/fdb/config.yaml
       eccodes_path: {{ eccodes_path }}
       variables: {{ variables_atm2d }}
       source_grid_name: {{ grid }}
-      fixer_name: ifs-nemo-destine-v1-nan
+      fixer_name: {{ fixer_name }}
 
   hourly-native-atm3d:
     <<: *base-default
     description: hourly 3D atmospheric data on native grid {{ grid }}.
     args:
       <<: *args-default
-      chunks: 6H
+      chunks: 6h
       request:
         <<: *request-default
         param: 131
@@ -60,8 +60,8 @@ sources:
         resolution: standard
     metadata:
       <<: *metadata-default
-      fdb_path: 
-        /project/project_465000454/experiments/{{ expver }}/fdb/HEALPIX_grids/etc/fdb/config.yaml
+      fdb_home: {{ fdb_home_healpix }}
+      fdb_path: {{ fdb_home_healpix }}/etc/fdb/config.yaml
       source_grid_name: hpz7-nested
 
   hourly-hpz7-atm3d:
@@ -69,7 +69,7 @@ sources:
     description: hourly 3D atmospheric data on healpix grid (zoom=7, h128).
     args:
       <<: *args-default
-      chunks: 6H
+      chunks: 6h
       request:
         <<: *request-default
         resolution: standard
@@ -78,8 +78,8 @@ sources:
         levelist: {{ atm_levels }}
     metadata:
       <<: *metadata-default
-      fdb_path: 
-        /project/project_465000454/experiments/{{ expver }}/fdb/HEALPIX_grids/etc/fdb/config.yaml
+      fdb_home: {{ fdb_home_healpix }}
+      fdb_path: {{ fdb_home_healpix }}/etc/fdb/config.yaml
       levels: {{ atm_levels }}
       variables: {{ variables_atm3d }}
       source_grid_name: hpz7-nested
@@ -94,8 +94,8 @@ sources:
         resolution: high
     metadata:
       <<: *metadata-default
-      fdb_path: 
-        /project/project_465000454/experiments/{{ expver }}/fdb/HEALPIX_grids/etc/fdb/config.yaml
+      fdb_home: {{ fdb_home_healpix }}
+      fdb_path: {{ fdb_home_healpix }}/etc/fdb/config.yaml
       source_grid_name: hpz10-nested
 
   hourly-hpz10-atm3d:
@@ -114,8 +114,8 @@ sources:
         levelist: {{ atm_levels }}
     metadata:
       <<: *metadata-default
-      fdb_path: 
-        /project/project_465000454/experiments/{{ expver }}/fdb/HEALPIX_grids/etc/fdb/config.yaml
+      fdb_home: {{ fdb_home_healpix }}
+      fdb_path: {{ fdb_home_healpix }}/etc/fdb/config.yaml
       levels: {{ atm_levels }}
       variables: {{ variables_atm3d }}
       source_grid_name: hpz10-nested
@@ -130,8 +130,8 @@ sources:
         resolution: standard
     metadata:
       <<: *metadata-default
-      fdb_path: 
-        /project/project_465000454/experiments/{{ expver }}/fdb/REGULARLL_grids/etc/fdb/config.yaml
+      fdb_home: {{ fdb_home_regular }}
+      fdb_path: {{ fdb_home_regular }}/etc/fdb/config.yaml
       source_grid_name: era5-r025
 
   hourly-r025-atm3d:
@@ -139,7 +139,7 @@ sources:
     description: hourly 3D atmospheric data on regular r025 grid (1440x721).
     args:
       <<: *args-default
-      chunks: 6H
+      chunks: 6h
       request:
         <<: *request-default
         resolution: standard
@@ -148,8 +148,8 @@ sources:
         levelist: {{ atm_levels }}
     metadata:
       <<: *metadata-default
-      fdb_path: 
-        /project/project_465000454/experiments/{{ expver }}/fdb/REGULARLL_grids/etc/fdb/config.yaml
+      fdb_home: {{ fdb_home_regular }}
+      fdb_path: {{ fdb_home_regular }}/etc/fdb/config.yaml
       source_grid_name: era5-r025
       levels: {{ atm_levels }}
       variables: {{ variables_atm3d }}
@@ -168,7 +168,8 @@ sources:
         levtype: o2d
     metadata:
       <<: *metadata-default
-      fdb_path: /project/project_465000454/experiments/{{ expver }}/fdb/NATIVE_grids/etc/fdb/config.yaml
+      fdb_home: {{ fdb_home_native }}
+      fdb_path: {{ fdb_home_native }}/etc/fdb/config.yaml
       variables: {{ variables_oce2d }}
       source_grid_name: eORCA12-2d
 
@@ -187,7 +188,8 @@ sources:
         levelist: {{ oce_levlist }}
     metadata:
       <<: *metadata-default
-      fdb_path: /project/project_465000454/experiments/{{ expver }}/fdb/NATIVE_grids/etc/fdb/config.yaml
+      fdb_home: {{ fdb_home_native }}
+      fdb_path: {{ fdb_home_native }}/etc/fdb/config.yaml
       levels: {{ oce_levels }}
       variables: {{ variables_oce3d }}
       source_grid_name: eORCA12-3d-level
@@ -207,8 +209,8 @@ sources:
         levtype: o2d
     metadata:
       <<: *metadata-default
-      fdb_path: 
-        /project/project_465000454/experiments/{{ expver }}/fdb/REGULARLL_grids/etc/fdb/config.yaml
+      fdb_home: {{ fdb_home_regular }}
+      fdb_path: {{ fdb_home_regular }}/etc/fdb/config.yaml
       variables: {{ variables_oce2d }}
       source_grid_name: nemo-multiIO-r025
 
@@ -227,8 +229,8 @@ sources:
         levelist: {{ oce_levlist }}
     metadata:
       <<: *metadata-default
-      fdb_path: 
-        /project/project_465000454/experiments/{{ expver }}/fdb/REGULARLL_grids/etc/fdb/config.yaml
+      fdb_home: {{ fdb_home_regular }}
+      fdb_path: {{ fdb_home_regular }}/etc/fdb/config.yaml
       levels: {{ oce_levels }}
       variables: {{ variables_oce3d }}
       source_grid_name: nemo-multiIO-r025-3d
@@ -247,8 +249,8 @@ sources:
         levtype: o2d
     metadata:
       <<: *metadata-default
-      fdb_path: 
-        /project/project_465000454/experiments/{{ expver }}/fdb/HEALPIX_grids/etc/fdb/config.yaml
+      fdb_home: {{ fdb_home_healpix }}
+      fdb_path: {{ fdb_home_healpix }}/etc/fdb/config.yaml
       variables: {{ variables_oce2d }}
       source_grid_name: nemo-hpz7-nested
 
@@ -266,8 +268,8 @@ sources:
         levtype: o2d
     metadata:
       <<: *metadata-default
-      fdb_path: 
-        /project/project_465000454/experiments/{{ expver }}/fdb/HEALPIX_grids/etc/fdb/config.yaml
+      fdb_home: {{ fdb_home_healpix }}
+      fdb_path: {{ fdb_home_healpix }}/etc/fdb/config.yaml
       variables: {{ variables_oce2d }}
       source_grid_name: nemo-hpz10-nested
 
@@ -286,8 +288,8 @@ sources:
         levelist: {{ oce_levlist }}
     metadata:
       <<: *metadata-default
-      fdb_path: 
-        /project/project_465000454/experiments/{{ expver }}/fdb/HEALPIX_grids/etc/fdb/config.yaml
+      fdb_home: {{ fdb_home_healpix }}
+      fdb_path: {{ fdb_home_healpix }}/etc/fdb/config.yaml
       levels: {{ oce_levels }}
       variables: {{ variables_oce3d }}
       source_grid_name: nemo-hpz7-nested-3d
@@ -309,8 +311,8 @@ sources:
         levelist: {{ oce_levlist }}
     metadata:
       <<: *metadata-default
-      fdb_path: 
-        /project/project_465000454/experiments/{{ expver }}/fdb/HEALPIX_grids/etc/fdb/config.yaml
+      fdb_home: {{ fdb_home_healpix }}
+      fdb_path: {{ fdb_home_healpix }}/etc/fdb/config.yaml
       levels: {{ oce_levels }}
       variables: {{ variables_oce3d }}
       source_grid_name: nemo-hpz10-nested-3d

@@ -1,19 +1,24 @@
 # this is a template file for the FDB catalog generator, which is still in testing
 # you need to copy this file into a config.yaml file and then fill all keys below
 
+# AQUA definitions
 model: IFS-NEMO
-exp: historical-1990-TEST
-grid: tco1279
+exp: ssp370-1990-TEST
+fixer_name: ifs-destine-v1
+
+# Request/experiment definitions
+activity: ScenarioMIP
+experiment:  SSP3-7.0
+grid: tco2559
 description: 'FDB IFS/NEMO historical run'
-expver: a0h3
-data_start_date: 19900101
+data_start_date: 20200101
 data_end_date: auto
-fdb_path: /pfs/lustrep3/scratch/project_465000454/pool/data/EXPERIMENTS/fdb-config-HISTORICAL_1990_DEVCON.yaml
-fdb_home: /pfs/lustrep3/scratch/project_465000454/
-eccodes_version: 2.30.0
+fdb_home_healpix: /users/lrb_465000454_fdb
+fdb_home_regular: /users/lrb_465000454_fdb/latlon/etc
+fdb_home_native:: /users/lrb_465000454_fdb/native/etcl
+eccodes_version: 2.32.5
 
 #List of variables
-
 variables_atm2d: [78, 79, 134, 137, 141, 148, 151, 159, 164, 165, 166, 167, 168, 186,
                   187, 188, 235, 260048, 8, 9, 144, 146, 147, 169, 175, 176, 177, 178, 179,
                   180, 181, 182, 212, 228]

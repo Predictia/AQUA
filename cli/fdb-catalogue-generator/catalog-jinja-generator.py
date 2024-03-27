@@ -22,7 +22,7 @@ def parse_arguments(arguments):
     parser.add_argument('-j', '--jinja', type=str,
                         help='jinja template file')
     parser.add_argument('-l', '--loglevel', type=str,
-                        help='loglevel', default='WARNING')
+                        help='loglevel', default='INFO')
 
     return parser.parse_args(arguments)
 
@@ -49,8 +49,6 @@ if __name__ == '__main__':
     #eccodes path
     definitions['eccodes_path'] = '/projappl/project_465000454/jvonhar/aqua/eccodes/eccodes-' + definitions['eccodes_version'] + '/definitions'
 
-    
-
     # jinja2 loading and replacing (to be checked)
     templateLoader = jinja2.FileSystemLoader(searchpath='./')
     templateEnv = jinja2.Environment(loader=templateLoader, trim_blocks=True, lstrip_blocks=True)
@@ -70,7 +68,7 @@ if __name__ == '__main__':
     with open(output_path, "w", encoding='utf8') as output_file:
         output_file.write(outputText)
 
-    print(f"File '{output_filename}' has been created in '{output_dir}'.")
+    logger.info("File %s has been created in %s", output_filename, output_dir)
 
     #update main.yaml
     main_yaml_path = os.path.join(output_dir, 'main.yaml')
