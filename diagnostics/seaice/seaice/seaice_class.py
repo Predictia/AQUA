@@ -9,6 +9,12 @@ from aqua.util import load_yaml, create_folder
 from aqua.logger import log_configure
 from aqua.graphics import plot_seasonalcycle
 
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+from   cartopy.util import add_cyclic_point
+from seaice.colInterpolatOr import colInterpolatOr
+from matplotlib.colors import LinearSegmentedColormap
+
 
 class SeaIceExtent:
     """Sea ice extent class"""
@@ -37,7 +43,7 @@ class SeaIceExtent:
         self.logger = log_configure(self.loglevel, 'Seaice')
 
         if regions_definition_file is None:
-            regions_definition_file = os.path.dirname(os.path.abspath(__file__)) + "/regions_definition.yml"
+            regions_definition_file = os.path.dirname(os.path.abspath(__file__)) + "/../config/regions_definition.yaml"
             self.logger.debug("Using default regions definition file %s",
                               regions_definition_file)
 
@@ -140,6 +146,7 @@ class SeaIceExtent:
             try:
                 reader = Reader(model=model, exp=exp, source=source,
                                 regrid=regrid, loglevel=self.loglevel)
+                tmp = reader.retrieve()
             except Exception as e:
                 self.logger.error("An exception occurred while instantiating reader: %s", e)
                 raise NoDataError("Error while instantiating reader")
@@ -195,7 +202,7 @@ class SeaIceExtent:
                     )
                 except KeyError:
                     self.logger.info("Error: region not defined")
-                    print("Region " + region + " does not exist in regions_definition.yml")
+                    print("Region " + region + " does not exist in regions_definition.yaml")
                     raise KeyError("Region not defined")
 
                 # Dealing with regions straddling the 180° meridian
@@ -214,16 +221,9 @@ class SeaIceExtent:
                     )
 
                 # Print area of region
-                if source == "lra-r100-monthly" or model == "OSI-SAF":
-                    if source == "lra-r100-monthly":
-                        dim1Name, dim2Name = "lon", "lat"
-                    elif model == "OSI-SAF":
-                        dim1Name, dim2Name = "xc", "yc"
-                    myExtent = areacello.where(regionMask).where(
-                        ci_mask.notnull()).sum(dim=[dim1Name, dim2Name]) / 1e12
-                else:
-                    myExtent = areacello.where(regionMask).where(
-                        ci_mask.notnull()).sum(dim="value") / 1e12
+                    
+                myExtent = areacello.where(regionMask).where(
+                    ci_mask.notnull()).sum(dim=reader.space_coord) / 1e12
 
                 myExtent.attrs["units"] = "million km^2"
                 myExtent.attrs["long_name"] = "Sea ice extent"
@@ -249,14 +249,15 @@ class SeaIceExtent:
 
         for jr, region in enumerate(self.myRegions):
             for js, setup in enumerate(self.mySetups):
-                strTimeInfo = " to ".join(setup["timespan"])
+                timespan = setup["timespan"]
+                strTimeInfo = " to ".join(timespan)
                 label = setup["model"] + " " + setup["exp"] + " " + setup["source"] + " " + strTimeInfo
                 color_plot = setup["color_plot"]
                 self.logger.debug(f"Plotting {label} for region {region}")
                 extent = self.myExtents[js][jr]
 
                 # Monthly cycle
-                extentCycle = np.array([extent.sel(time=extent['time.month'] == m).mean(dim='time').values
+                extentCycle = np.array([extent.sel(time=extent['time.month'] == m).sel(time=slice(timespan[0], timespan[1])).mean(dim='time').values
                                         for m in monthsNumeric])
 
                 # One standard deviation of the temporal variability
@@ -302,11 +303,11 @@ class SeaIceExtent:
             fig2.tight_layout()
             create_folder(self.outputdir, loglevel=self.loglevel)
 
-            for fmt in ["png", "pdf"]:
-                outputfig = os.path.join(self.outputdir, "pdf", str(fmt))
+            for fmt in ["pdf"]:
+                outputfig = self.outputdir + "/" + fmt
                 create_folder(outputfig, loglevel=self.loglevel)
-                fig1Name = "SeaIceExtent_" + "all_models" + "." + fmt
-                fig2Name = "SeaIceExtentCycle_" + "all_models" + "." + fmt
+                fig1Name = "seaice.extent_timeseries." + fmt
+                fig2Name = "seaice.extent_cycle." + fmt
                 self.logger.info("Saving figure %s", fig1Name)
                 self.logger.info("Saving figure %s", fig2Name)
                 fig1.savefig(outputfig + "/" + fig1Name, dpi=300)
@@ -336,3 +337,211 @@ class SeaIceExtent:
                     filename = outputdir + "/" + varName + ".nc"
                     self.logger.info("Saving NetCDF file %s", filename)
                     dataset.to_netcdf(filename)
+
+
+class SeaIceVolume:
+    pass
+
+
+class SeaIceConcentration:
+    def __init__(self, config, loglevel: str = 'WARNING',
+            outputdir=None):
+        
+        """
+        The SeaIceConcentration constructor.
+
+        Args:
+            config (str or dict):   If str, the path to the yaml file
+                                    containing the configuration. If dict, the
+                                    configuration itself.
+            loglevel (str):     The log level
+                                Default: WARNING
+        Returns:
+            A SeaIceConcentration object.
+
+        """
+         
+        # Configure the logger
+        self.loglevel = loglevel
+        self.logger = log_configure(self.loglevel, 'Seaice')
+
+        if outputdir is None:
+            outputdir = os.path.dirname(os.path.abspath(__file__)) + "/output/"
+            self.logger.info("Using default output directory %s", outputdir)
+        self.outputdir = outputdir
+
+        if config is str:
+            self.logger.debug("Reading configuration file %s", config)
+            config = load_yaml(config)
+        else:
+            self.logger.debug("Configuration is a dictionary")
+
+        self.logger.debug("CONFIG:" + str(config))
+
+        self.configure(config)
+    
+
+    
+    def configure(self, config=None):
+        """Sets the list of setupts
+        """
+        if config is None:
+            raise ValueError("No configuration provided")
+
+        try:
+            self.mySetups = config['models']
+
+            self.nModels  = len(self.mySetups)
+        except KeyError:
+            raise NoDataError("No models specified in configuration")
+
+    def run(self):
+        """
+        The run diagnostic method.
+
+        The method produces as output a figure with the winter and summer spatial
+        distributions of sea ice concentration averaged in time (Arctic and Antarctic)
+
+        """
+
+        self.plotConcentration()
+
+    def plotConcentration(self):
+
+        # This function will produce one figure per model and per hemisphere, with as many columns ( = maps) as there are months to show.
+        months_diagnostic = [2, 9] # List of months to show - Classical (non-Pythonic) convention
+        monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+
+        for jHemi, hemi in enumerate(["nh", "sh"]):
+            if hemi == "nh":
+                central_latitude = 90
+            else:
+                central_latitude = -90
+
+            projection = ccrs.Orthographic(central_longitude=0.0, central_latitude=central_latitude)
+
+            for jSetup, setup in enumerate(self.mySetups):
+
+                # Acquiring the setup
+                self.logger.debug("Setup: " + str(setup))
+                model = setup["model"]
+                exp = setup["exp"]
+                # We use get because the reader can try to take
+                # automatically the first source available
+                source = setup.get("source", None)
+                regrid = setup.get("regrid", None)
+                var = setup.get("var", "avg_siconc")
+                timespan = setup.get("timespan", None)
+
+                self.logger.info(f"Retrieving data for {model} {exp} {source}")
+ 
+                # Load the data
+                # Instantiate reader
+                try:
+                    reader = Reader(model=model, exp=exp, source=source,
+                                    regrid=regrid, loglevel=self.loglevel)
+
+                    tmp = reader.retrieve()
+                except Exception as e:
+                    self.logger.error("An exception occurred while instantiating reader: %s", e)
+                    raise NoDataError("Error while instantiating reader")
+
+                try:
+                    data= reader.retrieve(var=var)
+                except KeyError:
+                    self.logger.error("Variable %s not found in dataset", var)
+                    raise NoDataError("Variable not found in dataset")
+
+                if regrid:
+                    self.logger.info("Regridding data")
+                    data = reader.regrid(data)
+
+                try:
+                    lat = data.coords["lat"]
+                    lon = data.coords["lon"]
+                except KeyError:
+                    raise NoDataError("No lat/lon coordinates found in dataset")
+
+                # Important: recenter the lon in the conventional 0-360 range
+                lon = (lon + 360) % 360
+                lon.attrs["units"] = "degrees"
+
+                label = setup["model"] + " " + setup["exp"] + " " + setup["source"]
+
+                if len(lon.shape) == 1: # If we are using a regular grid, we need to meshgrid it
+                    lon2D, lat2D = np.meshgrid(lon, lat)
+                else:
+                    lon2D, lat2D = lon, lat
+
+                if timespan is None:
+                    # if timespan is set to None, retrieve the timespan
+                    # from the data directly
+                    self.logger.warning("Using timespan based on data availability")
+                    timespan = [np.datetime_as_string(data.time[0].values, unit='D'),
+                                                         np.datetime_as_string(data.time[-1].values, unit='D')]
+
+                # Skip the plot if the data loaded is in the southern hemisphere (OSISAF separates hemispheres)
+                if (hemi == "nh" and source == "sh-monthly") or (hemi == "sh" and source == "nh-monthly"):
+                    pass
+                else:
+
+                    fig1, ax1 = plt.subplots(nrows = 1, ncols = len(months_diagnostic), subplot_kw={'projection': projection}, figsize=(5 * len(months_diagnostic), 5))
+    
+                    for jMonth, month_diagnostic in enumerate(months_diagnostic):
+    
+                        if len(months_diagnostic) == 1:
+                            ax1 = [ax1]
+                        else:
+                            ax1 = ax1.flatten()
+    
+    
+    
+                        # Create color sequence for sic
+                        sourceColors = [[0.0, 0.0, 0.2], [0.0, 0.0, 0.0],[0.5, 0.5, 0.5], [0.6, 0.6, 0.6], [0.7, 0.7, 0.7], [0.8, 0.8, 0.8], [0.9, 0.9, 0.9],[1.0, 1.0, 1.0]]
+                        myCM = LinearSegmentedColormap.from_list('myCM', sourceColors, N = 15)
+    
+                        # Create a figure and axis with the specified projection
+    
+                        # Add cyclic points to avoid a white Greenwich meridian
+                        #varShow, lon1DCyclic = add_cyclic_point(dataPlot, coord = lon1D, axis = 1)
+    
+                        # Plot the field data using contourf
+                        levels = np.arange(0.0, 1.05, 0.05)
+                        levelsShow = np.arange(0.0, np.max(levels), 0.1)
+    
+                    
+                        maskTime = (data['time.month'] == month_diagnostic)
+    
+                        dataPlot = data[var].where(maskTime, drop=True).sel(time = slice(timespan[0], timespan[1])).mean("time").values
+    
+                        contour = ax1[jMonth].pcolormesh(lon, lat, dataPlot,  \
+                                transform=ccrs.PlateCarree(), cmap = myCM
+                                )
+    
+    
+                        # Add coastlines and gridlines
+                        ax1[jMonth].coastlines()
+                        #ax.gridlines()
+                        ax1[jMonth].add_feature(cfeature.LAND, edgecolor='k')
+    
+                        # Add colorbar
+                        cbar = plt.colorbar(contour, ax=ax1[jMonth], orientation='vertical', pad=0.05)
+                        cbar.set_label('fractional')
+                        cbar.set_ticks(levelsShow)
+    
+                        # Set title
+                        ax1[jMonth].set_title(monthNames[month_diagnostic - 1] + ' sea ice concentration ')
+    
+                    for fmt in ["pdf"]:
+                        outputfig = self.outputdir + "/" + fmt
+                        create_folder(outputfig, loglevel=self.loglevel)
+                        fig1.suptitle(str(model) + "-" + str(exp) + "-" + str(source)  + '\n(average over ' + " - ".join(timespan) + ")" )
+    
+                        figName = "seaice.concentration." + str(hemi) +  "." + str(model) + "." + str(exp) + ".pdf"
+                        fig1.savefig(outputfig + "/" + figName) 
+
+
+class SeaIceThickness:
+    pass
+        

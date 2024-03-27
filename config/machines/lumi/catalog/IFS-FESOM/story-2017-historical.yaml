@@ -106,7 +106,6 @@ sources:
         resolution: standard
         levtype: o2d
     metadata:
-      fdb_path: /users/lrb_465000454_fdb/etc/fdb/config.yaml
       variables: [263000, 263001, 263002, 263003, 263004, 263100, 263101, 263124]
       source_grid_name: fesom-hpz7-nested
 
@@ -127,7 +126,6 @@ sources:
           55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69]
     metadata:
       <<: *metadata-default
-      fdb_path: /users/lrb_465000454_fdb/etc/fdb/config.yaml
       levels: [2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5, 37.5, 42.5, 47.5, 52.5, 57.5,
         62.5, 67.5, 72.5, 77.5, 82.5, 87.5, 92.5, 97.5, 105, 115, 125, 135, 145, 155,
         165, 175, 185, 195, 210, 230, 250, 270, 290, 320, 360, 400, 440, 480, 520,
@@ -144,13 +142,12 @@ sources:
       <<: *args-default
       aggregation: MS
       savefreq: D
+      data_start_date: 20180701T0000
       request:
         <<: *request-default
         resolution: high
-        data_start_date: 20180701T0000
         levtype: o2d
     metadata:
-      fdb_path: /users/lrb_465000454_fdb/etc/fdb/config.yaml
       variables: [263000, 263001, 263002, 263003, 263004, 263100, 263101, 263124]
       source_grid_name: fesom-hpz9-nested
 
@@ -161,10 +158,10 @@ sources:
       <<: *args-default
       aggregation: D
       savefreq: D
+      data_start_date: 20180701T0000
       request:
         <<: *request-default
         resolution: high
-        data_start_date: 20180701T0000
         param: 263500
         levtype: o3d
         levelist: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
@@ -173,7 +170,6 @@ sources:
           55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69]
     metadata:
       <<: *metadata-default
-      fdb_path: /users/lrb_465000454_fdb/etc/fdb/config.yaml
       levels: [2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5, 37.5, 42.5, 47.5, 52.5, 57.5,
         62.5, 67.5, 72.5, 77.5, 82.5, 87.5, 92.5, 97.5, 105, 115, 125, 135, 145, 155,
         165, 175, 185, 195, 210, 230, 250, 270, 290, 320, 360, 400, 440, 480, 520,
@@ -194,6 +190,7 @@ sources:
         resolution: high
     metadata:
       <<: *metadata-default
+      fdb_home: /users/lrb_465000454_fdb/native
       fdb_path: /users/lrb_465000454_fdb/native/etc/fdb/config.yaml
       source_grid_name: tco1279
 
@@ -214,6 +211,8 @@ sources:
         850, 925, 1000]
       variables: [129, 130, 131, 132, 133, 135, 157, 246]
       source_grid_name: tco1279
+      fdb_home: /users/lrb_465000454_fdb/native
+      fdb_path: /users/lrb_465000454_fdb/native/etc/fdb/config.yaml
 
 # OCEANIC NATIVE IS NOT READ BY THE GSV RETRIEVER
 #   hourly-native-oce2d:
