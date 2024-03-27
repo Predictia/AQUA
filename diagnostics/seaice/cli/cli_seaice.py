@@ -142,6 +142,13 @@ if __name__ == '__main__':
 
     if run_volume:
         logger.info("Running sea ice volume diagnostic...")
+        # If the user wants to compute sea ice volume for all regions, we override the
+        # configuration file.
+        if args.all_regions:
+            config['regions'] = None
+
+        logger.debug(f"Final configuration: {config}")
+
         analyzer = SeaIceVolume(config=config, outputdir=outputdir,
                                 loglevel=loglevel)
         run_analyzer(analyzer)

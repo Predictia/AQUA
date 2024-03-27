@@ -340,7 +340,323 @@ class SeaIceExtent:
 
 
 class SeaIceVolume:
-    pass
+    """Sea ice volume class"""
+
+    def __init__(self, config, loglevel: str = 'WARNING',
+                 regions_definition_file=None, outputdir=None):
+        """
+        The SeaIceVolume constructor.
+
+        Args:
+            config (str or dict):   If str, the path to the yaml file
+                                    containing the configuration. If dict, the
+                                    configuration itself.
+            loglevel (str):     The log level
+                                Default: WARNING
+
+            regions_definition_file (str):  The path to the file that specifies the regions boundaries
+
+        Returns:
+            A SeaIceVolume object.
+
+        """
+        # Configure logger
+        self.loglevel = loglevel
+        self.logger = log_configure(self.loglevel, 'Seaice')
+
+        if regions_definition_file is None:
+            regions_definition_file = os.path.dirname(os.path.abspath(__file__)) + "/../config/regions_definition.yaml"
+            self.logger.debug("Using default regions definition file %s",
+                              regions_definition_file)
+
+        self.regionDict = load_yaml(regions_definition_file)
+
+        if outputdir is None:
+            outputdir = os.path.dirname(os.path.abspath(__file__)) + "/output/"
+            self.logger.info("Using default output directory %s", outputdir)
+        self.outputdir = outputdir
+
+        if config is str:
+            self.logger.debug("Reading configuration file %s", config)
+            config = load_yaml(config)
+        else:
+            self.logger.debug("Configuration is a dictionary")
+
+        self.logger.debug("CONFIG:" + str(config))
+
+        self.configure(config)
+
+    def configure(self, config=None):
+        """
+        Set the number of regions and the list of regions.
+        Set also the list of setups.
+        """
+        if config is None:
+            raise ValueError("No configuration provided")
+
+        try:
+            self.myRegions = config['regions']
+        except KeyError:
+            self.logger.error("No regions specified in configuration file")
+            self.logger.warning("Using all regions")
+            self.myRegions = None
+
+        if self.myRegions is None:
+            self.myRegions = ["Arctic", "Hudson Bay",
+                              "Southern Ocean", "Ross Sea",
+                              "Amundsen-Bellingshausen Seas",
+                              "Weddell Sea", "Indian Ocean",
+                              "Pacific Ocean"]
+
+        self.logger.debug("Regions: " + str(self.myRegions))
+        self.nRegions = len(self.myRegions)
+        self.logger.debug("Number of regions: " + str(self.nRegions))
+
+        try:
+            self.mySetups = config['models']
+
+            # Attribute a color for plotting
+            reserveColorList = ["#1898e0", "#00b2ed", "#00bb62",
+                                "#8bcd45", "#dbe622", "#f9c410",
+                                "#f89e13", "#fb4c27", "#fb4865",
+                                "#d24493", "#8f57bf", "#645ccc",]
+            js = 0
+            for s in self.mySetups:
+                if s["model"] == "PIOMAS" or s["model"] == "GIOMAS" :
+                    s["color_plot"] = [0.2, 0.2, 0.2]
+                else:
+                    s["color_plot"] = reserveColorList[js]
+                js += 1
+        except KeyError:
+            raise NoDataError("No models specified in configuration")
+
+    def run(self):
+        """
+        The run diagnostic method.
+
+        The method produces as output a figure with the seasonal cycles
+        of sea ice volume in the regions for the setups and a netcdf file
+        containing the time series of sea ice volume in the regions for
+        each setup.
+        """
+        self.computeVolume()
+        self.plotVolume()
+        self.createNetCDF()
+
+    def computeVolume(self):
+        """Method which computes the seaice Volume."""
+
+        # Instantiate the various readers (one per setup) and retrieve the
+        # corresponding data
+        self.myVolumes = list()
+        for jSetup, setup in enumerate(self.mySetups):
+            # Acquiring the setup
+            self.logger.debug("Setup: " + str(setup))
+            model = setup["model"]
+            exp = setup["exp"]
+            # We use get because the reader can try to take
+            # automatically the first source available
+            source = setup.get("source", None)
+            regrid = setup.get("regrid", None)
+            var = setup.get("var", 'avg_sithick')
+            timespan = setup.get("timespan", None)
+
+            self.logger.info(f"Retrieving data for {model} {exp} {source}")
+
+            # Instantiate reader
+            try:
+                reader = Reader(model=model, exp=exp, source=source,
+                                regrid=regrid, loglevel=self.loglevel)
+                tmp = reader.retrieve()
+            except Exception as e:
+                self.logger.error("An exception occurred while instantiating reader: %s", e)
+                raise NoDataError("Error while instantiating reader")
+
+            try:
+                data = reader.retrieve(var=var)
+            except KeyError:
+                self.logger.error("Variable %s not found in dataset", var)
+                raise NoDataError("Variable not found in dataset")
+            if timespan is None:
+                # if timespan is set to None, retrieve the timespan
+                # from the data directly
+                self.logger.warning("Using timespan based on data availability")
+                self.mySetups[jSetup]["timespan"] = [np.datetime_as_string(data.time[0].values, unit='D'),
+                                                     np.datetime_as_string(data.time[-1].values, unit='D')]
+            if regrid:
+                self.logger.info("Regridding data")
+                data = reader.regrid(data)
+
+            areacello = reader.grid_area
+            try:
+                lat = data.coords["lat"]
+                lon = data.coords["lon"]
+            except KeyError:
+                raise NoDataError("No lat/lon coordinates found in dataset")
+
+            # Important: recenter the lon in the conventional 0-360 range
+            lon = (lon + 360) % 360
+            lon.attrs["units"] = "degrees"
+
+            # Compute climatology
+
+             self.regionVolumes = list()  # Will contain the time series
+            # for each region and for that setup
+            # Iterate over regions
+            for jr, region in enumerate(self.myRegions):
+                self.logger.info("Producing diagnostic for region %s", region)
+                # Create regional mask
+                try:
+                    latS, latN, lonW, lonE = (
+
+                        self.regionDict[region]["latS"],
+                        self.regionDict[region]["latN"],
+                        self.regionDict[region]["lonW"],
+                        self.regionDict[region]["lonE"],
+                    )
+                except KeyError:
+                    self.logger.info("Error: region not defined")
+                    print("Region " + region + " does not exist in regions_definition.yaml")
+                    raise KeyError("Region not defined")
+
+                # Dealing with regions straddling the 180° meridian
+                if lonW > lonE:
+                    regionMask = (
+                        (lat >= latS)
+                        & (lat <= latN)
+                        & ((lon >= lonW) | (lon <= lonE))
+                    )
+                else:
+                    regionMask = (
+                        (lat >= latS)
+                        & (lat <= latN)
+                        & (lon >= lonW)
+                        & (lon <= lonE)
+                    )
+
+                try:
+                    sivol_mask = data.sivol.where((data.sivol > 0) &
+                                        (data.sivol < 99.0))
+                except AttributeError:
+                    self.logger.warning("WARNING! Variable sivol NOT FOUND, loading sithick instead")
+                    data = data.rename({"sithick": "sivol"})
+                    sivol_mask = data.sivol.where((data.sivol > 0) &
+                                        (data.sivol < 99.0))
+
+                myVolume = (sivol_mask * areacello.where(regionMask)).sum(dim="value") / 1e12
+                               
+                myVolume.attrs["units"] = "thousands km^3"
+                myVolume.attrs["long_name"] = "Sea ice volume"
+
+                self.regionVolumes.append(myVolume)
+
+            # Save set of diagnostics for that setup
+            self.myVolumes.append(self.regionVolumes)
+
+    def plotVolume(self):
+        """
+        Method to produce figures plotting seaice volume.
+        """
+
+        # First figure: raw time series (useful to check any possible suspicious
+        # data that could contaminate statistics like averages: fig1
+
+        # Second figure: seasonal cycles (useful for evaluation): fig2
+        monthsNumeric = range(1, 12 + 1)  # Numeric months
+        monthsNames = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"]
+
+        fig1, ax1 = plt.subplots(self.nRegions, figsize=(13, 3 * self.nRegions))
+        fig2, ax2 = plt.subplots(self.nRegions, figsize=(6, 4 * self.nRegions))
+
+        for jr, region in enumerate(self.myRegions):
+            for js, setup in enumerate(self.mySetups):
+                timespan = setup["timespan"]
+                strTimeInfo = " to ".join(timespan)
+                label = setup["model"] + " " + setup["exp"] + " " + setup["source"] + " " + strTimeInfo
+                color_plot = setup["color_plot"]
+                self.logger.debug(f"Plotting {label} for region {region}")
+                volume = self.myVolumes[js][jr]
+
+                # Monthly cycle
+                volumeCycle = np.array([volume.sel(time=volume['time.month'] == m).sel(time=slice(timespan[0], timespan[1])).mean(dim='time').values
+                                        for m in monthsNumeric])
+
+                # One standard deviation of the temporal variability
+                volumeStd = np.array([volume.sel(time=volume['time.month'] == m).std(dim='time').values
+                                      for m in monthsNumeric])
+
+                # Don't plot PIOMAS in the SH and GIOMAS in the NH
+                if (setup["model"] == "PIOMAS" and self.regionDict[region]["latN"] < 20.0) or (
+                        setup["model"] == "GIOMAS" and setup["source"] == "nh-monthly"
+                        and self.regionDict[region]["latS"] > -20.0):
+                    self.logger.debug("Not plotting PIOMAS in the SH and GIOMAS in the NH")
+                    pass
+                else:
+                    ax1[jr].plot(volume.time, volume, label=label, color=color_plot)
+                    ax2[jr].plot(monthsNumeric, volumeCycle, label=label, lw=3, color=color_plot)
+
+                    # Plot ribbon of uncertainty
+                    if setup["model"] == "PIOMAS" or setup["model"] == "GIOMAS":
+                        mult = 2.0
+                        ax2[jr].fill_between(monthsNumeric, volumeCycle - mult * volumeStd, volumeCycle + mult * volumeStd,
+                                             alpha=0.5, zorder=0, color=color_plot, lw=0)
+
+                ax1[jr].set_title("Sea ice volume: region " + region)
+
+                ax1[jr].legend(fontsize=6, ncols=6, loc="best")
+                ax1[jr].set_ylabel(volume.units)
+                # ax1[jr].set_ylim(bottom = 0, top = None)
+                ax1[jr].grid()
+                ax1[jr].set_axisbelow(True)
+                fig1.tight_layout()
+
+                ax2[jr].set_title("Sea ice volume seasonal cycle: region " + region)
+                ax2[jr].legend(fontsize=6, loc="best")
+                ax2[jr].set_ylabel(volume.units)
+                # Ticks
+                ax2[jr].set_xticks(monthsNumeric)
+                ax2[jr].set_xticklabels(monthsNames)
+                # ax2[jr].set_ylim(bottom = 0, top = None)
+                ax2[jr].grid()
+                ax2[jr].set_axisbelow(True)
+
+            fig2.tight_layout()
+            create_folder(self.outputdir, loglevel=self.loglevel)
+
+            for fmt in ["pdf"]:
+                outputfig = self.outputdir + "/" + fmt
+                create_folder(outputfig, loglevel=self.loglevel)
+                fig1Name = "seaice.volume_timeseries." + fmt
+                fig2Name = "seaice.volume_cycle." + fmt
+                self.logger.info("Saving figure %s", fig1Name)
+                self.logger.info("Saving figure %s", fig2Name)
+                fig1.savefig(outputfig + "/" + fig1Name, dpi=300)
+                fig2.savefig(outputfig + "/" + fig2Name, dpi=300)
+
+    def createNetCDF(self):
+        """Method to create NetCDF files."""
+        # NetCDF creation (one per setup)
+        outputdir = os.path.join(self.outputdir, "netcdf")
+        create_folder(outputdir, loglevel=self.loglevel)
+
+        for js, setup in enumerate(self.mySetups):
+            dataset = xr.Dataset()
+            for jr, region in enumerate(self.myRegions):
+
+                if (setup["model"] == "PIOMAS" and
+                    self.regionDict[region]["latN"] < 20.0) or (
+                        setup["model"] == "GIOAMAS" and setup["source"] == "nh-monthly"
+                        and self.regionDict[region]["latS"] > -20.0):
+                    self.logger.debug("Not saving PIOMAS in the SH and GIOMAS in the NH")
+                    pass
+                else:  # we save the data
+                    # NetCDF variable
+                    varName = setup["model"] + "_" + setup["exp"] + "_" + setup["source"] + "_" + region.replace(' ', '')
+                    dataset[varName] = self.myVolumes[js][jr]
+
+                    filename = outputdir + "/" + varName + ".nc"
+                    self.logger.info("Saving NetCDF file %s", filename)
+                    dataset.to_netcdf(filename)
 
 
 class SeaIceConcentration:
