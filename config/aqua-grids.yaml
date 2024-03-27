@@ -219,25 +219,11 @@ grids:
       component: ocean
     space_coord: ["cell"]
     vert_coord: ["depth_half", "depth_full"]
-  icon-healpix-dev:
-    path:
-      2d: $grids/HealPix_old/icon_hpx9_atm_2d.nc   # this is the default 2d grid
-      #2dm: $grids/HealPix_old/icon_hpx9_oce_2d.nc  # this is an additional and optional 2d grid used if data are masked
-      #depth_full: $grids/HealPix_old/icon_hpx9_oce_depth_full.nc
-      #depth_half: $grids/HealPix_old/icon_hpx9_oce_depth_half.nc
-    #masked:   # This is the attribute used to distinguish variables which should go into the masked category
-    #  component: ocean
-    space_coord: ["ncells"]
-    #vert_coord: ["depth_half", "depth_full"]
   
   #FESOM
   ng5-nodes-2d:
     path: $grids/FESOM/AQUA_NG5_griddes_nodes_IFS.nc
     space_coord: ["nod2"]
-  # ng5-nodes-2d:
-  #   space_coord: ["nod2"]
-  #   extra:
-  #   - -setgrid,$grids/FESOM/NG5_griddes_nodes_IFS.nc
   ng5-nodes-3d:
     path:
       nz: $grids/FESOM/NG5_nodes_fesom_mask_nz.nc
