@@ -11,7 +11,7 @@ from teleconnections.tools import TeleconnectionsConfig
 xr.set_options(keep_attrs=True)
 
 
-def mjo_hovmoller(data: xr.DataArray or xr.Dataset = None,
+def mjo_hovmoller(data=None,
                   var: str = None,
                   loglevel: str = "WARNING",
                   telecname: str = "MJO",
@@ -35,7 +35,7 @@ def mjo_hovmoller(data: xr.DataArray or xr.Dataset = None,
 
     KwArgs:
         configdir (str):  Path to the configuration directory.
-    
+
     Returns:
         xr.DataArray: DataArray with the data to be used in the Hovmoller plot.
     """
@@ -48,7 +48,6 @@ def mjo_hovmoller(data: xr.DataArray or xr.Dataset = None,
         logger.info("No namelist provided. Trying to load default namelist.")
         config = TeleconnectionsConfig(**kwargs)
         namelist = config.load_namelist()
-
 
     # Subselect field if data is a dataset
     if var is None:
