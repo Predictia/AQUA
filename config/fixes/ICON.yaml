@@ -155,10 +155,10 @@ fixer_name:
             - rsdt
             - rsut
         vars:
-            iews:
+            metss:
                 source: tauu
                 grib: true
-            inss:
+            mntss:
                 source: tauv
                 grib: true
             skt:
@@ -173,12 +173,11 @@ fixer_name:
             10si:
                 source: sfcwind
                 grib: true
-            ci:
+            avg_siconc:
                 source: sic
-                src_units: "1"
+                src_units: frac
                 grib: true
-                units: "1"
-            sithick:
+            avg_sithick:
                 source: sit
                 grib: true
             2t:
@@ -233,10 +232,9 @@ fixer_name:
             mtnswrf:
                 derived: rsdt-rsut
                 grib: true
-            ocpt:
+            avg_thetao:
                 source: to
                 grib: true
-                units: degC
             t:
                 source: ta
                 grib: true
@@ -247,13 +245,13 @@ fixer_name:
             u:
                 source: ua
                 grib: true
-            uo:
+            avg_uo:
                 source: u
                 grib: true
             v:
                 source: va
                 grib: true
-            vo:
+            avg_vo:
                 source: v
                 grib: true
 
@@ -264,8 +262,8 @@ fixer_name:
                 units: m s**-1 
             conc: 
                 source: conc
-                src_units: "1"
-                units: "1"
+                src_units: frac
+                units: frac
             heat_content_seaice: 
                 source: heat_content_seaice
                 src_units: J/m**2
@@ -297,7 +295,7 @@ fixer_name:
                 source: pres_msl
                 src_units: Pa
                 grib: true
-            sst:
+            avg_tos:
                 source: ts
                 grib: false
                 src_units: K
