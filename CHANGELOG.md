@@ -15,6 +15,7 @@ AQUA core complete list:
 - Vertical chunking for GSV intake access (#1003)
 
 AQUA diagnostics complete list:
+- Seaice: convert to module, add Extent maps (#803)
 
 ## [v0.7.2]
 
