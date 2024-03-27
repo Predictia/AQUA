@@ -1009,6 +1009,10 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             chunks = self.aggregation
         else:
             chunks = self.chunks
+
+        if isinstance(chunks, dict):
+            if self.aggregation and not chunks.get('time'):
+                chunks['time'] = self.aggregation
     
         if dask:
             if chunks:  # if the chunking or aggregation option is specified override that from the catalogue
