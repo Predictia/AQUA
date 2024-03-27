@@ -23,3 +23,10 @@ ENSO:
   lonW: -170
   latS: -5
   lonE: -120
+
+MJO:
+  field: mtntrf
+  latN: 10
+  latS: -10
+  lonW: 30
+  lonE: 200
