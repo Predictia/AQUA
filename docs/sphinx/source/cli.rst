@@ -102,7 +102,7 @@ Basic usage:
     ./catalog-jinja-generator.py -c config.tmpl -j ifs-nemo-default.j2 -l INFO
 
 
-.. warning ::
+.. warning::
 
     Please note that currently only one Jinja template is available (``ifs-nemo-default.j2`` for IFS-NEMO), but it is possible to add more templates in the future.
 
