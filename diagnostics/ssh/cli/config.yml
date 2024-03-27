@@ -5,6 +5,8 @@ check_complete_timespan_models: False
 enter_aviso_dates_manually: False
 difference_plots: False
 region_selection: True
+fig_format: pdf
+contours: 21  # Number of contours for the contour plot. If not set (or 0) then pcolormesh is used
 
 # Models for which sea surface height (SSH) variability is to be evaluated.
 models:

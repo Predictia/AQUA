@@ -118,7 +118,7 @@ class sshVariability():
 
         
     @staticmethod
-    def visualize_subplots(config, ssh_data_dict, fig, axes, contours=True):
+    def visualize_subplots(config, ssh_data_dict, fig, axes, contours=21):
         """
         Visualize the SSH variability data as subplots using Cartopy.
 
@@ -127,7 +127,7 @@ class sshVariability():
             ssh_data_dict (dict): Dictionary of SSH variability data arrays with model names to visualize.
             fig (plt.Figure): The figure object for the subplots.
             axes (list): List of subplot axes.
-            contours (bool): Flag to use contour plots (default: True).
+            contours (int): Number of contours for plots (default: 21). If 0 or None the pcolormesh is used.
         """
         # Retrieve the masking flags and boundary latitudes from the configuration
         mask_northern_boundary = config.get("mask_northern_boundary", False)
@@ -150,7 +150,7 @@ class sshVariability():
                 if contours:
                     lon, lat = np.meshgrid(data[lonname].values, data[latname].values)
                     levels = np.linspace(config["subplot_options"]["scale_min"],
-                                         config["subplot_options"]["scale_max"], 21)  # XXX num of levels hardcode, could be selected from config
+                                         config["subplot_options"]["scale_max"], contours)  # XXX num of levels hardcode, could be selected from config
                     contf = ax.contourf(lon, lat, data, transform=ccrs.PlateCarree(), 
                                         levels=levels, extend='both',
                                         cmap=config["subplot_options"]["cmap"],
@@ -176,7 +176,7 @@ class sshVariability():
         fig.tight_layout()
 
     @staticmethod
-    def visualize_difference(config, ssh_data_dict, fig, axes, contours=True):
+    def visualize_difference(config, ssh_data_dict, fig, axes, contours=21):
         """
         Visualize the difference in SSH variability data between each model and the AVISO model.
 
@@ -185,7 +185,7 @@ class sshVariability():
             ssh_data_dict (dict): Dictionary of SSH variability data arrays with model names to visualize.
             fig (plt.Figure): The figure object for the subplots.
             axes (list): List of subplot axes.
-            contours (bool): Flag to use contour plots (default: True).
+            contours (int): Number of contours for plots (default: 21). If 0 or None the pcolormesh is used.
         """
         # Retrieve the masking flags and boundary latitudes from the configuration
         mask_northern_boundary = config.get("mask_northern_boundary", False)
@@ -217,7 +217,7 @@ class sshVariability():
 
                 if contours:
                     lon, lat = np.meshgrid(data[lonname].values, data[latname].values)
-                    levels = np.linspace(-0.4, 0.4, 21)
+                    levels = np.linspace(-0.4, 0.4, contours)
 
                     contf = ax.contourf(lon, lat, diff_data, transform=ccrs.PlateCarree(), 
                                         levels=levels, extend='both',
@@ -247,7 +247,7 @@ class sshVariability():
 
     
     @staticmethod  
-    def region_selection(config, ssh_data_dict):
+    def region_selection(config, ssh_data_dict, fig_format='pdf'):
         
         mask_northern_boundary = config.get("mask_northern_boundary", False)
         mask_southern_boundary = config.get("mask_southern_boundary", False)
@@ -285,10 +285,12 @@ class sshVariability():
 
             # Save the figure after each iteration
             save_path = config.get("output_directory", "")  # Retrieve the save path from the config
-            create_folder(save_path)  # Create the folder if it doesn't exist
-            # Inside your function where you save the figure
-            plt.savefig(f"{save_path}/pdf/region_selection_plot_{i}.pdf")  
-            #plt.savefig(f"region_selection_plot_{i}.png")
+
+            if fig_format == 'pdf':
+                save_subplots_as_pdf(save_path, "region_selection_plot_{i}.pdf", fig)
+            else:
+                save_subplots_as_png(save_path, "region_selection_plot_{i}.png", fig)
+
             plt.close(fig)
 
 
@@ -324,7 +326,7 @@ class sshVariability():
         output_file = os.path.join(file_type_folder, filename)
 
         # Save the figure as a PDF file. fig.savefig() or plt.savefig() should accomplish the same task of saving the figure to a file. (DPI = dots per inch)
-        fig.savefig(output_file, dpi=300, format='pdf')
+        fig.savefig(output_file, format='pdf')
     
     @staticmethod
     def save_subplots_as_png(output_directory, filename, fig):
@@ -340,7 +342,7 @@ class sshVariability():
         create_folder(file_type_folder)  # Create the folder if it doesn't exist
         output_file = os.path.join(file_type_folder, filename)
 
-        # Save the figure as a PDF file. fig.savefig() or plt.savefig() should accomplish the same task of saving the figure to a file. (DPI = dots per inch)
+        # Save the figure as a PNG file. fig.savefig() or plt.savefig() should accomplish the same task of saving the figure to a file. (DPI = dots per inch)
         fig.savefig(output_file, dpi=200, format='png')
 
     def run(self, nworkers=None,args=None):
@@ -355,9 +357,14 @@ class sshVariability():
         # Now you can use the logger from the aqua module
         #logger = logger.getLogger(config['log_name'])
 
-
         # Comparing user timespan inputs across the models
         self.validate_time_ranges(config)
+
+        # Get the format for saving the plots
+        fig_format = config.get('fig_format', 'pdf')
+
+        # Get the contours for the plots
+        contours = config.get('contours', 0)
 
         # If nworkers is not provided, use the value from the config
         if nworkers is None:
@@ -410,7 +417,6 @@ class sshVariability():
             # Update the SSH data dictionary with the precomputed AVISO standard deviation
             ssh_data_dict = {}
             ssh_data_dict[f"{config['base_model']['name']}:{config['base_model']['experiment']} {timespan_start} to {timespan_end}"] = aviso_ssh_std_r
-        
 
         else:   
             #Load AVISO data and get its time span
@@ -422,7 +428,6 @@ class sshVariability():
                 reader = Reader(model=config['base_model']['name'], exp=config['base_model']['experiment'],
                                 source=config['base_model']['source'], regrid=regrid_option, fix=True)
                 regrid=regrid_option
-                print(regrid)
             except:
                 raise NoObservationError("AVISO data not found.")
     
@@ -528,8 +533,6 @@ class sshVariability():
             ssh_std_dev_data = ssh_data.sel(time=slice(timespan_start, timespan_end)).std(
                 axis=0, keep_attrs=True).persist()
             
-
-
             aqua_logger.info("computation complete, saving output file")
             # saving the computation in output files
             model_info = f"{model_name['name']}_{model_name['experiment']}_{model_name['source']}"
@@ -544,33 +547,40 @@ class sshVariability():
             # ssh_data_dict[model_name['name']] = ssh_std_dev_regrid
             ssh_data_dict[f"{model_name['name']}:{model_name['experiment']} {timespan_start} to {timespan_end}"] = ssh_std_dev_regrid
     
-
         aqua_logger.info("visualizing the data in subplots")
         # self.visualize_subplots(config, ssh_data_list, fig, axes)
-        self.visualize_subplots(config, ssh_data_dict, fig, axes)
+        self.visualize_subplots(config, ssh_data_dict, fig, axes, contours=contours)
 
-        aqua_logger.info("Saving plots as a PDF output file")
-        
-        self.save_subplots_as_pdf(self.create_output_directory(
-            config), "ssh_all_models_ssh-variablity.pdf", fig)
-        
+        if fig_format == 'pdf':
+            aqua_logger.info("Saving plots as a PDF output file")
+            self.save_subplots_as_pdf(self.create_output_directory(
+                config), "ssh_all_models_ssh-variablity.pdf", fig)
+        else:
+            aqua_logger.info("Saving plots as a PNG output file")
+            self.save_subplots_as_png(self.create_output_directory(
+                config), "ssh_all_models_ssh-variablity.png", fig)
+            
         if config.get('difference_plots', False):
             # Create a figure and axes for subplots
             fig_diff, axes = plt.subplots(nrows=len(config['models'])+1, ncols=1, figsize=(
                 16, 12), subplot_kw={'projection': ccrs.PlateCarree()})
             fig.suptitle("SSH Variability difference")
             aqua_logger.info("visualizing the difference data in subplots")
-            self.visualize_difference(config, ssh_data_dict, fig_diff, axes)
+            self.visualize_difference(config, ssh_data_dict, fig_diff, axes, contours=contours)
         
-            aqua_logger.info("Saving difference plots as a PDF output file")
-            
-            self.save_subplots_as_pdf(self.create_output_directory(
-                config), "ssh_variablity_difference.pdf", fig_diff)
+            if fig_format == 'pdf':
+                aqua_logger.info("Saving difference plots as a PDF output file")
+                self.save_subplots_as_pdf(self.create_output_directory(
+                    config), "ssh_variablity_difference.pdf", fig_diff)
+            else:
+                aqua_logger.info("Saving difference plots as a PNG output file")
+                self.save_subplots_as_png(self.create_output_directory(
+                    config), "ssh_variablity_difference.png", fig_diff)
 
         if config.get('region_selection', False):
             # Create a figure and axes for subplots
             aqua_logger.info("visualizing the selected region data and saving plots")
-            self.region_selection(config, ssh_data_dict)
+            self.region_selection(config, ssh_data_dict, fig_format=fig_format)
 
         aqua_logger.info("Finished SSH diagnostic.")
 
