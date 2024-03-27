@@ -333,11 +333,8 @@ class sshVariability():
             filename (str): The name of the output file.
             fig (plt.Figure): The figure object containing the subplots.
         """
-        # Create the file type folder within the output directory
-        file_type_folder = os.path.join(output_directory, "pdf")
-        os.makedirs(file_type_folder, exist_ok=True)
 
-        # Set the output file path
+        create_folder(output_directory)  # Create the folder if it doesn't exist
         output_file = os.path.join(file_type_folder, filename)
 
         # Save the figure as a PDF file. fig.savefig() or plt.savefig() should accomplish the same task of saving the figure to a file. (DPI = dots per inch)
