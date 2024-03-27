@@ -128,9 +128,9 @@ class TestRegridder():
                         regrid='r100', loglevel=loglevel)
         data = reader.retrieve()
 
-        val = data.aqua.regrid().isel(time=1, nz=40, nz1=[5, 40, 42]).wo.aqua.fldmean().values
+        val = data.aqua.regrid().isel(time=1, nz=40, nz1=[5, 40, 42]).avg_wo.aqua.fldmean().values
         assert val == pytest.approx(-4.81366779e-08)
-        val = data.isel(time=1, nz=40, nz1=[5, 40, 42]).aqua.regrid().wo.aqua.fldmean().values
+        val = data.isel(time=1, nz=40, nz1=[5, 40, 42]).aqua.regrid().avg_wo.aqua.fldmean().values
         assert val == pytest.approx(-4.81366779e-08)
         val = data.isel(time=1, nz=40, nz1=[5, 40, 42]).avg_wo.aqua.regrid().aqua.fldmean().values
         assert val == pytest.approx(-4.81366779e-08)
