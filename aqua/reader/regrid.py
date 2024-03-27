@@ -42,7 +42,7 @@ class RegridMixin():
         self.logger.warning("Success!")
 
     def _make_src_area_file(self, areafile, source_grid,
-                            gridpath="", icongridpath="", zoom=None):
+                            gridpath="", icongridpath=""):
         """
         Helper function to create source area files.
 
@@ -51,7 +51,6 @@ class RegridMixin():
             source_grid (dict): The source grid specification.
             gridpath (str, optional): The path to the grid files. Defaults to an empty string.
             icongridpath (str, optional): The path to the ICON grid files. Defaults to an empty string.
-            zoom (int, optional): The zoom level for the grid (for HealPix grids). Defaults to None.
 
         Returns:
             None
@@ -62,7 +61,7 @@ class RegridMixin():
         else:
             vert_coord = None
 
-        sgrid = self._get_source_grid(source_grid, vert_coord, zoom)
+        sgrid = self._get_source_grid(source_grid, vert_coord)
        
         self.logger.warning("Source areas file not found: %s", areafile)
         self.logger.warning("Attempting to generate it ...")
@@ -126,7 +125,7 @@ class RegridMixin():
 
 
     def _make_weights_file(self, weightsfile, source_grid, cfg_regrid, method='ycon', regrid=None, extra=None, 
-                           zoom=None, vert_coord=None, original_grid_size=None, nproc=None):
+                           vert_coord=None, original_grid_size=None, nproc=None):
         """
         Helper function to produce weights file.
 
@@ -136,14 +135,13 @@ class RegridMixin():
             cfg_regrid (dict): The regrid configuration.
             regrid (str, optional): The regrid option. Defaults to None.
             extra (str or list, optional): Extra command(s) to apply to source grid before weight generation. Defaults to None.
-            zoom (int, optional): The zoom level for the grid (for HealPix grids). Defaults to None.
             vert_coord (str, optional): The vertical coordinate to use for weight generation. Defaults to None.
             method (str, optional): The interpolation method to be used (see CDO manual). Defaults to 'ycon'.
         Returns:
             None
         """
 
-        sgrid = self._get_source_grid(source_grid, vert_coord, zoom)
+        sgrid = self._get_source_grid(source_grid, vert_coord)
 
         self.logger.warning("Weights file not found: %s", weightsfile)
         self.logger.warning("Attempting to generate it ...")
@@ -193,14 +191,13 @@ class RegridMixin():
         weights.to_netcdf(weightsfile)
         self.logger.warning("Success!")
 
-    def _get_source_grid(self, source_grid, vert_coord, zoom):
+    def _get_source_grid(self, source_grid, vert_coord):
         """
         Helper function to get the source grid path.
 
         Args:
             source_grid (dict): The source grid specification.
             vert_coord (list): vertical coordinate
-            zoom (str): zoom option
 
         Returns:
             xarray.DataArray: The source grid path.
@@ -245,8 +242,7 @@ class RegridMixin():
                     sgrid = sgrid[vert_coord]
                 else:
                     sgrid = sgrid["2d"]
-            if zoom is not None:
-                sgrid = sgrid.format(zoom=zoom)
+                sgrid = sgrid.format(**self.kwargs)
             sgrid = xr.open_dataset(sgrid)
 
         return sgrid
@@ -339,17 +335,20 @@ class RegridMixin():
         """
 
         aggregation = self.aggregation
+        chunks = self.chunks
         fix = self.fix
         streaming = self.streaming
         startdate = self.startdate
         enddate = self.enddate
         self.fix = False
         self.aggregation = None
+        self.chunks = None
         self.streaming = False
         self.startdate = None
         self.enddate = None
         data = self.retrieve(sample=True, history=False, *args, **kwargs)
         self.aggregation = aggregation
+        self.chunks = chunks
         self.fix = fix
         self.streaming = streaming
         self.startdate = startdate
