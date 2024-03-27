@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 
-from aqua.util import create_folder
+from aqua.util import create_folder, evaluate_colorbar_limits
 from aqua.logger import log_configure
 
 # set default options for xarray
@@ -15,19 +15,20 @@ xr.set_options(keep_attrs=True)
 
 
 def plot_hovmoller(data: xr.DataArray,
-                   invert_axis=False, center=False,
+                   invert_axis=False, sym=False,
                    contour=True, save=False,
-                   dim='lon', figsize=(11, 8.5),
+                   dim='lon', figsize=(8, 13),
                    vmin=None, vmax=None, cmap='RdBu_r',
                    nlevels=8, cbar_label=None,
                    outputdir='.', filename='hovmoller.png',
-                   loglevel: str = "WARNING"):
+                   loglevel: str = "WARNING",
+                   **kwargs):
     """"
     Args:
         data (DataArray):       DataArray to be plot
         invert_axis (bool,opt): enable or disable axis inversion,
                                 default is False
-        center (bool,opt):      center the cbar around zero,
+        sym (bool,opt):         center the cbar around zero,
                                 default is False
         contour (bool,opt):     True for contour plot, False for pcolormesh,
                                 default is True
@@ -44,6 +45,14 @@ def plot_hovmoller(data: xr.DataArray,
         filename (str,opt):     output filename, default is 'hovmoller.png'
         loglevel (str,opt):     log level for the logger,
                                 default is 'WARNING'
+        **kwargs:               additional arguments to be passed to the plot
+
+    Keyword Args:
+        vmin (float): minimum value for the colorbar
+        vmax (float): maximum value for the colorbar
+
+    Returns:
+        fig, ax: tuple with the figure and axes
     """
     logger = log_configure(log_level=loglevel, log_name='Hovmoller')
 
@@ -66,26 +75,15 @@ def plot_hovmoller(data: xr.DataArray,
         x = data_mean.coords['time']
         y = data_mean.coords[data_mean.dims[-1]]
 
-    if vmin is not None and vmax is not None:
-        logger.debug('Cbar limits set by user')
-    if center:
-        logger.debug('Centering colorbar around zero')
-        if vmin is None or vmax is None:
-            logger.warning('Exploring data to find absmax, may take a while')
-            absmax = max(abs(data_mean.min().values),
-                         abs(data_mean.max().values))
-        else:
-            logger.info('Cbar limits set by user, centering around zero')
-            absmax = max(abs(vmin), abs(vmax))
-        vmin = -absmax
-        vmax = absmax
+    vmin = kwargs.get('vmin', None)
+    vmax = kwargs.get('vmax', None)
+    if vmin is None or vmax is None:
+        vmin, vmax = evaluate_colorbar_limits(maps=[data], sym=sym)
     else:
-        logger.debug('Not centering colorbar around zero')
-        if vmin is None:
-            vmin = data_mean.min().values
-        if vmax is None:
-            vmax = data_mean.max().values
-    logger.debug('vmin: {}, vmax: {}'.format(vmin, vmax))
+        if sym:
+            logger.warning("sym=True, vmin and vmax given will be ignored")
+            vmin, vmax = evaluate_colorbar_limits(maps=[data], sym=sym)
+    logger.debug("Setting vmin to %s, vmax to %s", vmin, vmax)
 
     if contour:
         try:
@@ -136,3 +134,5 @@ def plot_hovmoller(data: xr.DataArray,
         logger.info('Saving figure to {}/{}'.format(outputdir, filename))
         fig.savefig('{}/{}'.format(outputdir, filename), format='pdf',
                     dpi=300, bbox_inches='tight')
+    
+    return fig, ax

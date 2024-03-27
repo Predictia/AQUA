@@ -16,7 +16,7 @@ def mjo_hovmoller(data=None,
                   loglevel: str = "WARNING",
                   telecname: str = "MJO",
                   namelist: dict = None,
-                  day_window: int = 5,
+                  day_window: int = None,
                   **kwargs) -> xr.DataArray:
     """
     Prepare the data for a MJO Hovmoller plot.
@@ -31,7 +31,7 @@ def mjo_hovmoller(data=None,
                           Default is "MJO".
         namelist (dict):  Namelist with the teleconnection informations.
         day_window (int): Number of days to be used in the smoothing window.
-                          Default is 5.
+                          Default is not performed.
 
     KwArgs:
         configdir (str):  Path to the configuration directory.
@@ -56,6 +56,10 @@ def mjo_hovmoller(data=None,
         logger.info("Subselecting var " + var)
         data = data[var]
 
+    if var == 'mtntrf':
+        logger.warning("Flipping the sign of the variable mtntrf.")
+        data = -data
+
     # Acquiring MJO box
     lat = [namelist[telecname]['latS'], namelist[telecname]['latN']]
     lon = [namelist[telecname]['lonW'], namelist[telecname]['lonE']]
@@ -68,7 +72,10 @@ def mjo_hovmoller(data=None,
     data_anom = data_sel - data_mean
 
     # Smoothing the data
-    day_window = kwargs.get("day_window", 5)
-    data_anom_smooth = data_anom.rolling(time=day_window, center=True).mean()
+    if day_window:
+        logger.info("Smoothing the data with a window of " + str(day_window) + " days.")
+        data_anom_smooth = data_anom.rolling(time=day_window, center=True).mean()
+    else:
+        data_anom_smooth = data_anom
 
     return data_anom_smooth

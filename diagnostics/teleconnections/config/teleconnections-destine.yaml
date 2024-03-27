@@ -26,7 +26,7 @@ ENSO:
 
 MJO:
   field: mtntrf
-  latN: 10
-  latS: -10
+  latN: 15
+  latS: -15
   lonW: 30
   lonE: 200
