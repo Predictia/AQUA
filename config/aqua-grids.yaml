@@ -189,7 +189,7 @@ grids:
   ifs-healpix:
     space_coord: ["ncells"]
     vert_coord: ["2d"]
-    path: $grids/HealPix/ifs_hpx10.nc
+    path: $grids/HealPix_old/ifs_hpx10.nc
 
   #ICON
   R02B08:
@@ -224,10 +224,6 @@ grids:
   ng5-nodes-2d:
     path: $grids/FESOM/AQUA_NG5_griddes_nodes_IFS.nc
     space_coord: ["nod2"]
-  # ng5-nodes-2d:
-  #   space_coord: ["nod2"]
-  #   extra:
-  #   - -setgrid,$grids/FESOM/NG5_griddes_nodes_IFS.nc
   ng5-nodes-3d:
     path:
       nz: $grids/FESOM/NG5_nodes_fesom_mask_nz.nc
@@ -284,8 +280,8 @@ grids:
     vert_coord: ["height"]
   nemo-healpix:
     path:
-      2d: $grids/HealPix/nemo_hpx10_oce_2d.nc 
-      level: $grids/HealPix/nemo_hpx10_oce_level.nc
+      2d: $grids/HealPix_old/nemo_hpx10_oce_2d.nc 
+      level: $grids/HealPix_old/nemo_hpx10_oce_level.nc
     space_coord: ["ncells"]
     vert_coord: ["level"]
   nemo-multiIO-r025:
