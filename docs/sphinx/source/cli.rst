@@ -91,8 +91,21 @@ so that the script can be used in a batch job or in a workflow.
 
 Catalog entry generator for FDB sources
 ---------------------------------------
+A tool which streamlines the process of adding new experiments to the catalog.
+It exploits the capabilities of the Jinja package to obtain a cleaner and more flexible code.
+Users can easily customize their experiments by updating the ``config.tmpl`` file, with the experiment's specific details.
+The script is available in the ``cli/fdb-catalog-generator`` folder.
+Basic usage:
 
-This tool, currently under development, will provide the generation of the FDB sources for the Climate DT project.
+.. code-block:: bash
+
+    ./catalog-jinja-generator.py -c config.tmpl -j ifs-nemo-default.j2 -l INFO
+
+
+.. warning::
+
+    Please note that currently only one Jinja template is available (``ifs-nemo-default.j2`` for IFS-NEMO), but it is possible to add more templates in the future.
+
 
 .. _gribber:
 

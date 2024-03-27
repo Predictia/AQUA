@@ -8,6 +8,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Introducing a basic jinja-based catalog entry generator (#853)
+- Adapt NextGEMS sources and fixes to the final DestinE governance (#1008)
+- Remove  NextGEMS cycle2 sources (#1008)
+
+AQUA diagnostics complete list:
+
+## [v0.7.3]
+
+Main changes are:
+1. IFS-FESOM NextGEMS4 and storylines simulations available in the catalogue
+2. Vertical chunking for GSV intake access
+3. FDB monthly average data access is available
+4. kwargs parsing of reader arguments (e.g. allowing for zoom and ensemble support)
+
+AQUA core complete list:
+- Add kwargs parsing of reader arguments, passing them to intake to substitute parameters (#757)
+- Remove `zoom` and use kwargs instead (#757)
+- Enabling the memory monitoring and (optional) full performance monitoring in LRA (#1010)
+- Adding IFS_9-FESOM_5 NextGEMS4 simulation on levante (#1009)
+- Function to plot multiple maps is introduced as `plot_maps()` and documented (#866)
 - Adding the IFS-FESOM storylines simulation (#848)
 - `file_is_complete()` accounts also for the mindate attribute (#1007)
 - Introducing a `yearmonth` timestyle to access FDB data on monthly average (#1001)
@@ -15,7 +35,9 @@ AQUA core complete list:
 - Vertical chunking for GSV intake access (#1003)
 
 AQUA diagnostics complete list:
+
 - Seaice: convert to module, add Extent maps (#803)
+- Timeseries: Various bugfix and improvements for cli and formula (#1013, #1016, #1022)
 
 ## [v0.7.2]
 
@@ -155,6 +177,7 @@ Main changes are:
 1. Inclusion in the catalog of the historical-1990 production simulations from IFS-NEMO and IFS-FESOM.
 2. New fixes that targets the DestinE updated Data Governance
 
+Complete list:
 - IFS-FESOM historical-1990-dev-lowres with new data governance added to the catalogue (#770)
 - AtmoGlobalMean diagnostic improvements (#722)
 - Teleconnections diagnostic improvements (#722)
@@ -395,7 +418,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.2...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.3...HEAD
+[v0.7.3]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.2...v0.7.3
 [v0.7.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.1...v0.7.2
 [v0.7.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7...v0.7.1
 [v0.7]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.3...v0.7
