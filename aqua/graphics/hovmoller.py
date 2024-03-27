@@ -14,7 +14,7 @@ from aqua.logger import log_configure
 xr.set_options(keep_attrs=True)
 
 
-def hovmoller_plot(data: xr.DataArray,
+def plot_hovmoller(data: xr.DataArray,
                    invert_axis=False, center=False,
                    contour=True, save=False,
                    dim='lon', figsize=(11, 8.5),

@@ -2,6 +2,7 @@
 from .docker import rundiag
 from .data_models import translate_coords
 from .graphics import plot_single_map, plot_maps, plot_single_map_diff, plot_timeseries
+from .graphics import plot_hovmoller
 from .gribber import Gribber
 from .lra_generator import LRAgenerator
 from .reader import Reader, catalogue, Streaming, inspect_catalogue
@@ -13,6 +14,7 @@ __version__ = '0.7.3'
 __all__ = ["rundiag",
            "translate_coords",
            "plot_single_map", "plot_maps", "plot_single_map_diff", "plot_timeseries",
+           "plot_hovmoller",
            "Gribber",
            "LRAgenerator",
            "Reader", "catalogue", "Streaming", "inspect_catalogue",
