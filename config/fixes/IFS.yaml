@@ -131,7 +131,7 @@ fixer_name:
                 decumulate: true
                 src_units: m
                 units: kg m**-2 s**-1
-            erate:
+            mer:
                 source: e
                 grib: true
                 decumulate: true
@@ -191,15 +191,15 @@ fixer_name:
                 source: smlt
                 grib: true
                 decumulate: true
-            iews:
+            metss:
                 source: ewss
                 grib: true
                 decumulate: true  
-            inss: 
+            mntss: 
                 source: nsss
                 grib: true
                 decumulate: true
-            surfror:  # a very recent version of eccodes is needed for this one
+            msror:  # a very recent version of eccodes is needed for this one
                 source: sro
                 grib: true
                 decumulate: true 
@@ -237,7 +237,7 @@ fixer_name:
             mtpr:
                 source: tprate
     
-    ifs-cycle3:
+    ifs-multio-cycle3:
         # for this exp we have a lot of output from MultI/O, already decumulated and
         # averaged monthly, so default is without decumulation
         vars:
@@ -245,7 +245,6 @@ fixer_name:
                 src_units: m s**-1
                 source: tp
                 grib: true
-                units: kg m**-2 s**-1
             cprate:
                 src_units: m s**-1
                 source: cp
@@ -256,11 +255,10 @@ fixer_name:
                 source: lsp
                 grib: true
                 units: kg m**-2 s**-1 
-            erate:
+            mer:
                 src_units: m s**-1
                 source: e
                 grib: true
-                units: kg m**-2 s**-1 
             esrate:
                 src_units: m s**-1
                 source: es
