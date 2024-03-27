@@ -1,4 +1,5 @@
 .. _installation:
+
 Installation
 ============
 
@@ -72,6 +73,7 @@ you can install the dependencies with the following command:
 Replace ``<environment_name>`` with the name of the existing environment if this is different from ``aqua``.
 
 .. _installation-lumi:
+
 Installation on LUMI HPC
 ------------------------
 
@@ -101,6 +103,8 @@ Run the installation script:
 
 This installs the AQUA environment into a container, and then set up the correct modules
 via a ``load_aqua.sh`` script that is generated and then called from the ``.bash_profile``.
+The script will actually ask the user if they wish to include ``load_aqua.sh`` in ``.bash_profile`` at the end of the installation.
+If you do not agree, you will need to call ``load_aqua.sh`` manually every time you want to use AQUA.
 
 .. note ::
     The installation script is designed to be run on the LUMI cluster, and it may require some adjustments to be run on other systems
@@ -110,6 +114,26 @@ via a ``load_aqua.sh`` script that is generated and then called from the ``.bash
     This installation script, despite the name, does not install the AQUA package in the traditional sense nor in a pure container.
     It wraps the conda installation in a container, allowing to load LUMI modules and run from command line or batch jobs the AQUA code.
     Different LUMI module loading or setups may lead to different results, but it's the most flexible way to develop AQUA on LUMI.
+
+.. note ::
+    If you encounter any issues with the installation script, please refer to the :ref:`faq` section.
+
+Installation on Levante HPC at DKRZ
+-----------------------------------
+
+You can follow the mamba installation process described in the previous section.
+
+The only issue regards the availability of the FDB5 binary library (``libfdb5.so``) since
+at the moment a specific module for levante seems not to be available.
+
+You can either compile your own copy and then make it available (download the source code from ``https://github.com/ecmwf/fdb``),
+or you can use our precompiled version by setting
+
+.. code-block:: bash
+
+    export LD_LIBRARY_PATH=/work/bb1153/b382075/aqua/local/lib:$LD_LIBRARY_PATH 
+    
+in ``.bash_profile`` and in ``.bashrc`` in your home directory.
 
 Installation and use of the AQUA container
 ------------------------------------------
