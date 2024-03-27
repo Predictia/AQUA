@@ -9,7 +9,7 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Introducing a basic jinja-based catalog entry generator (#853)
-- Adapt NextGEMS sources and fixes to the final DestinE governance (#1008)
+- Adapt NextGEMS sources and fixes to the final DestinE governance (#1008, #1035)
 - Remove  NextGEMS cycle2 sources (#1008)
 
 AQUA diagnostics complete list:

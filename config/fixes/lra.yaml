@@ -51,6 +51,7 @@ fixer_name:
         grib: true
       avg_so:
         source: so
+        grib: true
 
       #mtdwswrf:
       #  source: tisr
