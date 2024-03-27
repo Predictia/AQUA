@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+AQUA core complete list:
+- Introducing a basic jinja-based catalog entry generator (#853)
+
+AQUA diagnostics complete list:
+
 ## [v0.7.3]
 
 Main changes are:
