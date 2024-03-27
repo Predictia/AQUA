@@ -1,4 +1,18 @@
 fixer_name:
+    fesom-destine-v1:
+        data_model: false
+        vars:
+            avg_tos:
+                source: avg_tos
+                src_units: degC
+                grib: true
+                units: 'K'
+            avg_thetao:
+                source: avg_thetao
+                src_units: degC
+                grib: true
+                units: 'K'
+
     FESOM-default: 
         data_model: false
         delete:  # variables to drop at the end
@@ -55,7 +69,7 @@ fixer_name:
             vdf: 
                 source: Kv
                 grib: true
-            tprate:
+            mtpr:
                 source: prec
                 grib: true
             mlotst125:
