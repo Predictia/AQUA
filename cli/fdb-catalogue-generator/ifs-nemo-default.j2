@@ -13,14 +13,14 @@ sources:
         expver: {{ expver }}
         type: fc
         stream: clte
-        date: {{ date }}
+        date: {{ data_start_date }}
         time: '0000'
         param: 167
         levtype: sfc
         step: 0
-      data_start_date: {{ data_start_date }}
-      data_end_date: auto
-      aggregation: D  # Default aggregation / chunk size
+      data_start_date: {{ data_start_date }}T0000
+      data_end_date: {{ data_end_date }}
+      chunks: D  # Default chunks / chunk size
       savefreq: h  # at what frequency are data saved
       timestep: h  # base timestep for step timestyle
       timestyle: date  # variable date or variable step
@@ -28,6 +28,7 @@ sources:
     driver: gsv
     metadata: &metadata-default
       fdb_path: {{ fdb_path }}
+      fdb_home: {{ fdb_home }}
       eccodes_path: {{ eccodes_path }}
       variables: {{ variables_atm2d }}
       source_grid_name: {{ grid }}
@@ -38,16 +39,16 @@ sources:
     description: hourly 3D atmospheric data on native grid {{ grid }}.
     args:
       <<: *args-default
-      aggregation: 6H
+      chunks: 6H
       request:
         <<: *request-default
         param: 131
         levtype: pl
-        levelist: {{ ifs_levels }}
+        levelist: {{ atm_levels }}
     metadata:
       <<: *metadata-default
-      levels: {{ ifs_levels }}
-      variables: {{ variables_atm2d }}
+      levels: {{ atm_levels }}
+      variables: {{ variables_atm3d }}
 
   hourly-hpz7-atm2d:
     <<: *base-default
@@ -68,18 +69,18 @@ sources:
     description: hourly 3D atmospheric data on healpix grid (zoom=7, h128).
     args:
       <<: *args-default
-      aggregation: 6H
+      chunks: 6H
       request:
         <<: *request-default
         resolution: standard
         param: 131
         levtype: pl
-        levelist: {{ ifs_levels }}
+        levelist: {{ atm_levels }}
     metadata:
       <<: *metadata-default
       fdb_path: 
         /project/project_465000454/experiments/{{ expver }}/fdb/HEALPIX_grids/etc/fdb/config.yaml
-      levels: {{ ifs_levels }}
+      levels: {{ atm_levels }}
       variables: {{ variables_atm3d }}
       source_grid_name: hpz7-nested
 
@@ -102,19 +103,21 @@ sources:
     description: hourly 3D atmospheric data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      aggregation: 6H
+      chunks:
+        time: 6h
+        vertical: 10
       request:
         <<: *request-default
         resolution: high
         param: 131
         levtype: pl
-        levelist: {{ ifs_levels }}
+        levelist: {{ atm_levels }}
     metadata:
       <<: *metadata-default
       fdb_path: 
         /project/project_465000454/experiments/{{ expver }}/fdb/HEALPIX_grids/etc/fdb/config.yaml
-      levels:{{ ifs_levels }}
-      variables: {{ variables_atm2d }}
+      levels: {{ atm_levels }}
+      variables: {{ variables_atm3d }}
       source_grid_name: hpz10-nested
 
   hourly-r025-atm2d:
@@ -136,28 +139,27 @@ sources:
     description: hourly 3D atmospheric data on regular r025 grid (1440x721).
     args:
       <<: *args-default
-      aggregation: 6H
+      chunks: 6H
       request:
         <<: *request-default
         resolution: standard
         param: 131
         levtype: pl
-        levelist: {{ ifs_levels }}
+        levelist: {{ atm_levels }}
     metadata:
       <<: *metadata-default
       fdb_path: 
         /project/project_465000454/experiments/{{ expver }}/fdb/REGULARLL_grids/etc/fdb/config.yaml
       source_grid_name: era5-r025
-      levels: {{ ifs_levels }}
-      variables: {{ variables_atm2d }}
-      
-#{% if model == "IFS-NEMO" %}
+      levels: {{ atm_levels }}
+      variables: {{ variables_atm3d }}
+
   daily-native-oce2d:
     <<: *base-default
     description: daily 2D oceanic data on native grid eORCA12.
     args:
       <<: *args-default
-      aggregation: M
+      chunks: MS
       savefreq: D
       request:
         <<: *request-default
@@ -175,18 +177,18 @@ sources:
     description: daily 3D oceanic data on native grid eORCA12.
     args:
       <<: *args-default
-      aggregation: D
+      chunks: D
       savefreq: D
       request:
         <<: *request-default
         resolution: high
         param: 263500
         levtype: o3d
-        levelist: {{ nemo_levellist }}
+        levelist: {{ oce_levlist }}
     metadata:
       <<: *metadata-default
       fdb_path: /project/project_465000454/experiments/{{ expver }}/fdb/NATIVE_grids/etc/fdb/config.yaml
-      levels: {{ nemo_levels }}
+      levels: {{ oce_levels }}
       variables: {{ variables_oce3d }}
       source_grid_name: eORCA12-3d-level
 
@@ -196,7 +198,7 @@ sources:
     description: daily 2D oceanic data on regular r025 grid (1440x721).
     args:
       <<: *args-default
-      aggregation: M
+      chunks: MS
       savefreq: D
       request:
         <<: *request-default
@@ -215,19 +217,19 @@ sources:
     description: daily 3D oceanic data on regular r025 grid (1440x721).
     args:
       <<: *args-default
-      aggregation: D
+      chunks: D
       savefreq: D
       request:
         <<: *request-default
         resolution: standard
         param: 263500
         levtype: o3d
-        levelist: {{ nemo_levellist }}
+        levelist: {{ oce_levlist }}
     metadata:
       <<: *metadata-default
       fdb_path: 
         /project/project_465000454/experiments/{{ expver }}/fdb/REGULARLL_grids/etc/fdb/config.yaml
-      levels: {{ nemo_levels }}
+      levels: {{ oce_levels }}
       variables: {{ variables_oce3d }}
       source_grid_name: nemo-multiIO-r025-3d
 
@@ -236,7 +238,7 @@ sources:
     description: daily 2D oceanic data on healpix grid (zoom=7, h128).
     args:
       <<: *args-default
-      aggregation: M
+      chunks: MS
       savefreq: D
       request:
         <<: *request-default
@@ -255,7 +257,7 @@ sources:
     description: daily 2D oceanic data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      aggregation: M
+      chunks: MS
       savefreq: D
       request:
         <<: *request-default
@@ -274,19 +276,19 @@ sources:
     description: daily 3D oceanic data on healpix grid (zoom=7, h128).
     args:
       <<: *args-default
-      aggregation: D
+      chunks: D
       savefreq: D
       request:
         <<: *request-default
         resolution: standard
         param: 263500
         levtype: o3d
-        levelist: {{ nemo_levellist }}
+        levelist: {{ oce_levlist }}
     metadata:
       <<: *metadata-default
       fdb_path: 
         /project/project_465000454/experiments/{{ expver }}/fdb/HEALPIX_grids/etc/fdb/config.yaml
-      levels: {{ nemo_levels }}
+      levels: {{ oce_levels }}
       variables: {{ variables_oce3d }}
       source_grid_name: nemo-hpz7-nested-3d
 
@@ -295,19 +297,20 @@ sources:
     description: daily 3D oceanic data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      aggregation: D
+      chunks:
+        time: D
+        vertical: 5
       savefreq: D
       request:
         <<: *request-default
         resolution: high
         param: 263500
         levtype: o3d
-        levelist:{{ nemo_levellist }}
+        levelist: {{ oce_levlist }}
     metadata:
       <<: *metadata-default
       fdb_path: 
         /project/project_465000454/experiments/{{ expver }}/fdb/HEALPIX_grids/etc/fdb/config.yaml
-      levels: {{ nemo_levels }}
+      levels: {{ oce_levels }}
       variables: {{ variables_oce3d }}
       source_grid_name: nemo-hpz10-nested-3d
-{% endif %}
