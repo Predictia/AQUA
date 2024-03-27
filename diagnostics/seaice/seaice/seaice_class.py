@@ -538,7 +538,7 @@ class SeaIceConcentration:
                         create_folder(outputfig, loglevel=self.loglevel)
                         fig1.suptitle(str(model) + "-" + str(exp) + "-" + str(source)  + '\n(average over ' + " - ".join(timespan) + ")" )
     
-                        figName = "seaice.concentration." + str(model) + "-" + str(exp) + "." + str(hemi) + ".pdf"
+                        figName = "seaice.concentration." + str(hemi) +  "." + str(model) + "." + str(exp) + ".pdf"
                         fig1.savefig(outputfig + "/" + figName) 
 
 
