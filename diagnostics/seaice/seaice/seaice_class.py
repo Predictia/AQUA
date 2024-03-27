@@ -539,7 +539,7 @@ class SeaIceConcentration:
                         fig1.suptitle(str(model) + "-" + str(exp) + "-" + str(source)  + '\n(average over ' + " - ".join(timespan) + ")" )
     
                         figName = "seaice.concentration." + str(model) + "-" + str(exp) + "." + str(hemi) + ".pdf"
-                        fig1.savefig(outputfig + "/" + str(model) + "-" + str(exp) + "-" + str(source) + "-" + hemi + ".pdf") 
+                        fig1.savefig(outputfig + "/" + figName) 
 
 
 class SeaIceThickness:
