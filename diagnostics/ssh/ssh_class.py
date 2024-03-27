@@ -590,5 +590,5 @@ class sshVariability():
 
 
 if __name__ == '__main__':
-    analyzer = sshVariability('config.yml')
+    analyzer = sshVariability('config.yaml')
     analyzer.run()

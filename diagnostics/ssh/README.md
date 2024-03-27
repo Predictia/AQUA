@@ -16,10 +16,10 @@ This application calculates the sea surface height standard deviation for multip
 The code works on both py3.10 and py3.9.  Recommended installation through mamba (a package manager for conda-forge). Please follow the README.md instructions for AQUA.
 
 ## Configuration
-The application requires a YAML configuration file (`config.yml`) to specify the settings which can be found in config.yml file.
+The application requires a YAML configuration file (`config.yaml`) to specify the settings.
 
 ## Usage
-1. Configure the config.yml file with the desired settings.
+1. Configure the config.yaml file with the desired settings.
 2. Run the application
 The application will calculate the SSH standard deviation for AVISO and the other specified models, save the results as NetCDF files, generate subplots for visualization, and save the subplots as a JPEG image.
 

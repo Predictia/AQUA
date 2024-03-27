@@ -4,7 +4,7 @@
 SSH Variability Diagnostic CLI.
 
 This script allows users to execute SSH variability diagnostics using command-line arguments.
-By default, it will read configurations from 'config.yml' unless specified by the user.
+By default, it will read configurations from 'config.yaml' unless specified by the user.
 """
 
 import argparse
@@ -45,7 +45,7 @@ def parse_arguments(args):
     parser = argparse.ArgumentParser(description='SSH variability CLI')
 
     # Define the default path for the configuration file.
-    default_config_path = os.path.join(script_dir, 'config.yml')
+    default_config_path = os.path.join(script_dir, 'config.yaml')
 
     # Arguments for the CLI.
     parser.add_argument('--config', type=str, default=default_config_path,
