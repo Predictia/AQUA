@@ -4,6 +4,7 @@ Calculating Trends
 
 from .tools import *
 from ocean3d import split_ocean3d_req
+import pandas as pd
 
 class TrendCalculator:
     @staticmethod
@@ -94,6 +95,17 @@ class TrendCalculator:
             dask.array: Trend values adjusted for time frequency.
         """
         time_frequency = y_array["time"].to_index().inferred_freq
+        
+        if time_frequency == None:
+            time_index = pd.to_datetime(y_array["time"].values)
+            time_diffs = time_index[1:] - time_index[:-1]
+            is_monthly = all(time_diff.days >= 28 for time_diff in time_diffs)
+            if is_monthly == True:
+                time_frequency= "MS"
+            else:
+                raise ValueError(f"The frequency of the data must be in Daily/Monthly/Yearly")
+                
+            
         if time_frequency == "MS":
             trend = trend * 12
         elif time_frequency == "H":
@@ -195,7 +207,6 @@ class multilevel_trend:
                 raise ValueError("Custom levels are selected, but levels are not provided.")
         else:
             self.levels = [10, 100, 500, 1000, 3000, 5000]
-            # levels = [10, 100]
         return
 
     def _create_subplot_fig(self, num_levels):
