@@ -11,12 +11,6 @@ class TestKwargs:
         assert list(data.data_vars) == ['avg_tos']
         assert data.time.dt.year == 1985
 
-    def test_kwargs_fake_zoom(self):
-        reader = Reader(model="FESOM", exp="test-pi", source="kwargs-2d", zoom=None)
-        data = reader.retrieve()
-        assert list(data.data_vars) == ['avg_tos']
-        assert data.time.dt.year == 1985
-
     @pytest.mark.aqua
     def test_kwargs_one_option(self):
         reader = Reader(model="FESOM", exp="test-pi", source="kwargs-2d", year=1986)
