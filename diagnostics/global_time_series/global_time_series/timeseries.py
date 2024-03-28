@@ -359,11 +359,11 @@ class Timeseries():
             outfile = f'global_time_series_timeseries_{self.var}_{self.plot_ref_kw["model"]}_{self.plot_ref_kw["exp"]}'
             try:
                 if self.monthly:
-                    outmon = outfile + '_mon_std.nc'
+                    outmon = outfile + '_mon.nc'
                     self.logger.debug(f"Saving monthly data to {outdir}/{outmon}")
                     self.ref_mon.to_netcdf(os.path.join(outdir, outmon))
                 if self.annual:
-                    outann = outfile + '_ann_std.nc'
+                    outann = outfile + '_ann.nc'
                     self.logger.debug(f"Saving annual data to {outdir}/{outann}")
                     self.ref_ann.to_netcdf(os.path.join(outdir, outann))
             except Exception as e:
