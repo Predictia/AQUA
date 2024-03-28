@@ -934,7 +934,6 @@ class SeaIceThickness:
 
 
         for jHemi, hemi in enumerate(["nh", "sh"]):
-            print("HEMISPHERE " + hemi)
             if hemi == "nh":
                 central_latitude = 90
             else:
@@ -943,7 +942,6 @@ class SeaIceThickness:
             projection = ccrs.Orthographic(central_longitude=0.0, central_latitude=central_latitude)
 
             for jSetup, setup in enumerate(self.mySetups):
-                print("   " + str(setup))
                 # Acquiring the setup
                 self.logger.debug("Setup: " + str(setup))
                 model = setup["model"]
@@ -1012,15 +1010,12 @@ class SeaIceThickness:
 
                 # Skip the plot if the data loaded is in the wrong hemisphere
                 if (hemi == "nh" and exp == "GIOMAS") or (hemi == "sh" and exp == "PIOMAS"):
-                    print("         PASSING")
                     pass
                 else:
-                    print("         DOING")
                     fig1, ax1 = plt.subplots(nrows = 1, ncols = len(months_diagnostic), 
                     subplot_kw={'projection': projection}, figsize=(5 * len(months_diagnostic), 5))
     
                     for jMonth, month_diagnostic in enumerate(months_diagnostic):
-                        print("                   Doing " + str(month_diagnostic))
 
                         if len(months_diagnostic) == 1:
                             ax1 = [ax1]
@@ -1044,7 +1039,6 @@ class SeaIceThickness:
                         maskTime = (data['time.month'] == month_diagnostic)
     
                         dataPlot = data[var].where(maskTime, drop=True).sel(time = slice(timespan[0], timespan[1])).mean("time").values
-                        print(" **ICI1** ")
                         # Create color sequence for sit
                         masterColors = [[0.0, 0.0, 0.2],[0.0, 0.5, 0.5],[0.0, 0.5, 0.0], [1.0, 0.5, 0.0], [0.5, 0.0, 0.0] ]
 
@@ -1054,7 +1048,6 @@ class SeaIceThickness:
                             tmp = colInterpolatOr([m, [mm + alpha * (1 - mm) for mm in m]], 5)
                             listCol += tmp
                         myCM = LinearSegmentedColormap.from_list('myCM', listCol, N = len(listCol))
-                        print(" **ICI2** ")
 
                                         
                         # Plot the field data using contourf
@@ -1064,12 +1057,9 @@ class SeaIceThickness:
                         else:
                             levels = np.arange(0.0, 2.55, 0.5)
                             levelsShow = levels
-                        print(" **ICI3** ")
-                        print(ax1)
                         contour = ax1[jMonth].pcolormesh(lon, lat, dataPlot,  \
                           transform=ccrs.PlateCarree(), cmap = myCM, vmin = np.min(levels), vmax = np.max(levels)
                           )
-                        print(" **ICI4** ")
 
                         # Add coastlines and gridlines
                         ax1[jMonth].coastlines()
@@ -1092,5 +1082,4 @@ class SeaIceThickness:
     
                         figName = "seaice.thickness." + str(hemi) + "." + str(model) + "." + str(exp) + ".pdf"
                         fig1.savefig(outputfig + "/" + figName)
-                        print(figName + " printed")
         
