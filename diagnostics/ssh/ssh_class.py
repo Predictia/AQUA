@@ -116,7 +116,6 @@ class sshVariability():
         std_dev_data.to_netcdf(output_file)
 
 
-        
     @staticmethod
     def visualize_subplots(config, ssh_data_dict, fig, axes, contours=21):
         """
@@ -174,6 +173,7 @@ class sshVariability():
             for j in range(len(ssh_data_dict), len(axes)):
                 fig.delaxes(axes[j])
         fig.tight_layout()
+
 
     @staticmethod
     def visualize_difference(config, ssh_data_dict, fig, axes, contours=21):
@@ -245,9 +245,7 @@ class sshVariability():
             
         fig.tight_layout()
 
-    
-    @staticmethod  
-    def region_selection(config, ssh_data_dict, fig_format='pdf'):
+    def region_selection(self, config, ssh_data_dict, fig_format='pdf'):
         
         mask_northern_boundary = config.get("mask_northern_boundary", False)
         mask_southern_boundary = config.get("mask_southern_boundary", False)
@@ -269,29 +267,31 @@ class sshVariability():
             ssh_sel = area_selection(data, lon=lon_lim, lat=lat_lim, drop=True)
                 
             ax = fig.add_subplot(len(ssh_data_dict), 1, i)  # Use the current value of i
+
+            save_path = os.path.join(self.create_output_directory(config), fig_format)
                 
-            if 'lon' in data.coords: 
-                contf = plot_single_map(ssh_sel, ax=ax, title=f"{config['region name']} - {model_name}", 
-                                  vmin=config["subplot_options"]["scale_min"], vmax=config["subplot_options"]["scale_max"], 
-                                  cmap=config["subplot_options"]["cmap"])
-            else:
-                contf = plot_single_map(ssh_sel, ax=ax, title=f"{config['region name']} - {model_name}", 
-                                  vmin=config["subplot_options"]["scale_min"], vmax=config["subplot_options"]["scale_max"], 
-                                  cmap=config["subplot_options"]["cmap"])              
+            plot_single_map(ssh_sel, ax=ax, title=f"{config['region name']} - {model_name}", 
+                            vmin=config["subplot_options"]["scale_min"], vmax=config["subplot_options"]["scale_max"], 
+                            cmap=config["subplot_options"]["cmap"], save=True,
+                            outputdir=save_path,
+                            filename=f"ssh.region_selection.plot_{i}.{fig_format}",
+                            format=fig_format)
                 
             # Add a colorbar for each subplot
-            cbar = fig.colorbar(contf, ax=ax, orientation='vertical', shrink=0.9)
-            cbar.set_label('SSH Variability (mm)')
+            # cbar = fig.colorbar(contf, ax=ax, orientation='vertical', shrink=0.9)
+            # cbar.set_label('SSH Variability (mm)')
 
             # Save the figure after each iteration
-            save_path = config.get("output_directory", "")  # Retrieve the save path from the config
+            #save_path = config.get("output_directory", "")  # Retrieve the save path from the config
 
-            if fig_format == 'pdf':
-                save_subplots_as_pdf(save_path, "region_selection_plot_{i}.pdf", fig)
-            else:
-                save_subplots_as_png(save_path, "region_selection_plot_{i}.png", fig)
+            #plt.savefig(f"{save_path}/pdf/region_selection_plot_{i}.png")
 
-            plt.close(fig)
+            #if fig_format == 'pdf':
+            #    self.save_subplots_as_pdf(save_path, f"region_selection_plot_{i}.pdf", contf)
+            #else:
+            #    self.save_subplots_as_png(save_path, f"region_selection_plot_{i}.png", contf)
+
+            #plt.close(fig)
 
 
     @staticmethod
@@ -554,12 +554,12 @@ class sshVariability():
         if fig_format == 'pdf':
             aqua_logger.info("Saving plots as a PDF output file")
             self.save_subplots_as_pdf(self.create_output_directory(
-                config), "ssh_all_models_ssh-variablity.pdf", fig)
+                config), "ssh.variability.all_models.pdf", fig)
         else:
             aqua_logger.info("Saving plots as a PNG output file")
             self.save_subplots_as_png(self.create_output_directory(
-                config), "ssh_all_models_ssh-variablity.png", fig)
-            
+                config), "ssh.variability.all_models.png", fig)
+    
         if config.get('difference_plots', False):
             # Create a figure and axes for subplots
             fig_diff, axes = plt.subplots(nrows=len(config['models'])+1, ncols=1, figsize=(
@@ -571,11 +571,11 @@ class sshVariability():
             if fig_format == 'pdf':
                 aqua_logger.info("Saving difference plots as a PDF output file")
                 self.save_subplots_as_pdf(self.create_output_directory(
-                    config), "ssh_variablity_difference.pdf", fig_diff)
+                    config), "ssh.variability_difference.all_models.pdf", fig_diff)
             else:
                 aqua_logger.info("Saving difference plots as a PNG output file")
                 self.save_subplots_as_png(self.create_output_directory(
-                    config), "ssh_variablity_difference.png", fig_diff)
+                    config), "ssh.variability_difference.all_models.png", fig_diff)
 
         if config.get('region_selection', False):
             # Create a figure and axes for subplots

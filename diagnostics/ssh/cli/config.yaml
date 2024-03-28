@@ -3,10 +3,12 @@ log_name: ssh_logger
 check_complete_timespan_data: False
 check_complete_timespan_models: False
 enter_aviso_dates_manually: False
-difference_plots: False
+difference_plots: True
 region_selection: True
 fig_format: pdf
-contours: 21  # Number of contours for the contour plot. If not set (or 0) then pcolormesh is used
+# Number of contours for the contour plot. If not set (or 0) then pcolormesh is used
+# contours is recommended for pdf plots, pcolormesh for png plots
+contours: 21
 
 # Models for which sea surface height (SSH) variability is to be evaluated.
 models:
