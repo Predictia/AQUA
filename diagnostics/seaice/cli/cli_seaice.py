@@ -163,7 +163,7 @@ if __name__ == '__main__':
 
     if run_thickness:
         logger.info("Running sea ice thickness diagnostic...")
-        analyzer = SeaIceThickness(config="config_VolumeThickness.yaml", outputdir=outputdir,
+        analyzer = SeaIceThickness(config=config, outputdir=outputdir,
                                 loglevel=loglevel)
         run_analyzer(analyzer)
         logger.info("sea ice diagnostic Thickness terminated!")   

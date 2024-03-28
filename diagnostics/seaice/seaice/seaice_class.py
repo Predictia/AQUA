@@ -422,7 +422,7 @@ class SeaIceVolume:
                                 "#d24493", "#8f57bf", "#645ccc",]
             js = 0
             for s in self.mySetups:
-                if s["model"] == "PIOMAS" or s["model"] == "GIOMAS" :
+                if s["model"] == "PSC":
                     s["color_plot"] = [0.2, 0.2, 0.2]
                 else:
                     s["color_plot"] = reserveColorList[js]
@@ -484,6 +484,7 @@ class SeaIceVolume:
                 except KeyError:
                     self.logger.error("Variable %s not found in dataset " + model + "-" + exp + "-" + source, var)
                     raise NoDataError("Variable not found in dataset")
+                    
             if timespan is None:
                 # if timespan is set to None, retrieve the timespan
                 # from the data directly
@@ -588,8 +589,8 @@ class SeaIceVolume:
                                       for m in monthsNumeric])
 
                 # Don't plot PIOMAS in the SH and GIOMAS in the NH
-                if (setup["model"] == "PIOMAS" and self.regionDict[region]["latN"] < 20.0) or (
-                        setup["model"] == "GIOMAS" 
+                if (setup["exp"] == "PIOMAS" and self.regionDict[region]["latN"] < 20.0) or (
+                        setup["exp"] == "GIOMAS" 
                         and self.regionDict[region]["latS"] > -20.0):
                     self.logger.debug("Not plotting PIOMAS in the SH and GIOMAS in the NH")
                     pass
@@ -598,7 +599,7 @@ class SeaIceVolume:
                     ax2[jr].plot(monthsNumeric, volumeCycle, label=label, lw=3, color=color_plot)
 
                     # Plot ribbon of uncertainty
-                    if setup["model"] == "PIOMAS" or setup["model"] == "GIOMAS":
+                    if setup["model"] == "PSC":
                         mult = 2.0
                         ax2[jr].fill_between(monthsNumeric, volumeCycle - mult * volumeStd, volumeCycle + mult * volumeStd,
                                              alpha=0.5, zorder=0, color=color_plot, lw=0)
@@ -861,5 +862,235 @@ class SeaIceConcentration:
 
 
 class SeaIceThickness:
-    pass
+    def __init__(self, config, loglevel: str = 'WARNING',
+            outputdir=None):
+        
+        """
+        The SeaIceThickness constructor.
+
+        Args:
+            config (str or dict):   If str, the path to the yaml file
+                                    containing the configuration. If dict, the
+                                    configuration itself.
+            loglevel (str):     The log level
+                                Default: WARNING
+        Returns:
+            A SeaIceThickness object.
+
+        """
+         
+        # Configure the logger
+        self.loglevel = loglevel
+        self.logger = log_configure(self.loglevel, 'Seaice')
+
+        if outputdir is None:
+            outputdir = os.path.dirname(os.path.abspath(__file__)) + "/output/"
+            self.logger.info("Using default output directory %s", outputdir)
+        self.outputdir = outputdir
+
+        if config is str:
+            self.logger.debug("Reading configuration file %s", config)
+            config = load_yaml(config)
+        else:
+            self.logger.debug("Configuration is a dictionary")
+
+        self.logger.debug("CONFIG:" + str(config))
+
+        self.configure(config)
+    
+
+    
+    def configure(self, config=None):
+        """Sets the list of setups
+        """
+        if config is None:
+            raise ValueError("No configuration provided")
+
+        try:
+            self.mySetups = config['models']
+            
+            self.nModels  = len(self.mySetups)
+        except KeyError:
+            raise NoDataError("No models specified in configuration")
+
+    def run(self):
+        """
+        The run diagnostic method.
+
+        The method produces as output a figure with the winter and summer spatial
+        distributions of sea ice thickness averaged in time (Arctic and Antarctic)
+
+        """
+
+        self.plotThickness()
+
+    def plotThickness(self):
+
+        # This function will produce one figure per model and per hemisphere, with as many 
+        # columns ( = maps) as there are months to show.
+        months_diagnostic = [2, 9] # List of months to show - Classical (non-Pythonic) convention
+        monthNames = ["January", "February", "March", "April", "May", "June", "July",
+         "August", "September", "October", "November", "December"]
+
+
+        for jHemi, hemi in enumerate(["nh", "sh"]):
+            print("HEMISPHERE " + hemi)
+            if hemi == "nh":
+                central_latitude = 90
+            else:
+                central_latitude = -90
+
+            projection = ccrs.Orthographic(central_longitude=0.0, central_latitude=central_latitude)
+
+            for jSetup, setup in enumerate(self.mySetups):
+                print("   " + str(setup))
+                # Acquiring the setup
+                self.logger.debug("Setup: " + str(setup))
+                model = setup["model"]
+                exp = setup["exp"]
+                # We use get because the reader can try to take
+                # automatically the first source available
+                source = setup.get("source", None)
+                regrid = setup.get("regrid", None)
+                var = setup.get("var", "avg_sivol")
+                timespan = setup.get("timespan", None)
+
+                self.logger.info(f"Retrieving data for {model} {exp} {source}")
+ 
+                # Load the data
+                # Instantiate reader
+                try:
+                    reader = Reader(model=model, exp=exp, source=source,
+                                    regrid=regrid, loglevel=self.loglevel)
+
+                    tmp = reader.retrieve()
+                except Exception as e:
+                    self.logger.error("An exception occurred while instantiating reader: %s", e)
+                    raise NoDataError("Error while instantiating reader")
+
+                
+                try:
+                    data = reader.retrieve(var=var)
+                
+                except KeyError:
+                    try:
+                        data = reader.retrieve(var = "avg_sithick")
+                        self.logger.warning("WARNING! Variable avg_sivol was NOT FOUND, avg_sithick was loaded instead")
+                    
+                        data = data.rename({"avg_sithick": "avg_sivol"})
+                    except KeyError:
+                        self.logger.error("Variable %s not found in dataset " + model + "-" + exp + "-" + source, var)
+                        raise NoDataError("Variable not found in dataset")
+
+                if regrid:
+                    self.logger.info("Regridding data")
+                    data = reader.regrid(data)
+
+                try:
+                    lat = data.coords["lat"]
+                    lon = data.coords["lon"]
+                except KeyError:
+                    raise NoDataError("No lat/lon coordinates found in dataset")
+
+                # Important: recenter the lon in the conventional 0-360 range
+                lon = (lon + 360) % 360
+                lon.attrs["units"] = "degrees"
+
+                label = setup["model"] + " " + setup["exp"] + " " + setup["source"]
+
+                if len(lon.shape) == 1: # If we are using a regular grid, we need to meshgrid it
+                    lon2D, lat2D = np.meshgrid(lon, lat)
+                else:
+                    lon2D, lat2D = lon, lat
+
+                if timespan is None:
+                    # if timespan is set to None, retrieve the timespan
+                    # from the data directly
+                    self.logger.warning("Using timespan based on data availability")
+                    timespan = [np.datetime_as_string(data.time[0].values, unit='D'),
+                                                         np.datetime_as_string(data.time[-1].values, unit='D')]
+
+                # Skip the plot if the data loaded is in the wrong hemisphere
+                if (hemi == "nh" and exp == "GIOMAS") or (hemi == "sh" and exp == "PIOMAS"):
+                    print("         PASSING")
+                    pass
+                else:
+                    print("         DOING")
+                    fig1, ax1 = plt.subplots(nrows = 1, ncols = len(months_diagnostic), 
+                    subplot_kw={'projection': projection}, figsize=(5 * len(months_diagnostic), 5))
+    
+                    for jMonth, month_diagnostic in enumerate(months_diagnostic):
+                        print("                   Doing " + str(month_diagnostic))
+
+                        if len(months_diagnostic) == 1:
+                            ax1 = [ax1]
+                        else:
+                            ax1 = ax1.flatten()
+    
+    
+    
+                        # Create color sequence for sic
+                        sourceColors = [[0.0, 0.0, 0.2], [0.0, 0.0, 0.0],
+                        [0.5, 0.5, 0.5], [0.6, 0.6, 0.6], [0.7, 0.7, 0.7], 
+                        [0.8, 0.8, 0.8], [0.9, 0.9, 0.9],[1.0, 1.0, 1.0]]
+                        myCM = LinearSegmentedColormap.from_list('myCM', sourceColors, N = 15)
+    
+                        # Create a figure and axis with the specified projection
+    
+                        # Add cyclic points to avoid a white Greenwich meridian
+                        #varShow, lon1DCyclic = add_cyclic_point(dataPlot, coord = lon1D, axis = 1)
+   
+                    
+                        maskTime = (data['time.month'] == month_diagnostic)
+    
+                        dataPlot = data[var].where(maskTime, drop=True).sel(time = slice(timespan[0], timespan[1])).mean("time").values
+                        print(" **ICI1** ")
+                        # Create color sequence for sit
+                        masterColors = [[0.0, 0.0, 0.2],[0.0, 0.5, 0.5],[0.0, 0.5, 0.0], [1.0, 0.5, 0.0], [0.5, 0.0, 0.0] ]
+
+                        listCol = list()
+                        for m in masterColors:
+                            alpha = 0.80
+                            tmp = colInterpolatOr([m, [mm + alpha * (1 - mm) for mm in m]], 5)
+                            listCol += tmp
+                        myCM = LinearSegmentedColormap.from_list('myCM', listCol, N = len(listCol))
+                        print(" **ICI2** ")
+
+                                        
+                        # Plot the field data using contourf
+                        if hemi == "nh":
+                            levels = np.arange(0.0, 5.05, 1.0)
+                            levelsShow = levels
+                        else:
+                            levels = np.arange(0.0, 2.55, 0.5)
+                            levelsShow = levels
+                        print(" **ICI3** ")
+                        print(ax1)
+                        contour = ax1[jMonth].pcolormesh(lon, lat, dataPlot,  \
+                          transform=ccrs.PlateCarree(), cmap = myCM, vmin = np.min(levels), vmax = np.max(levels)
+                          )
+                        print(" **ICI4** ")
+
+                        # Add coastlines and gridlines
+                        ax1[jMonth].coastlines()
+                        #ax.gridlines()
+                        ax1[jMonth].add_feature(cfeature.LAND, edgecolor='k')
+    
+                        # Add colorbar
+                        cbar = plt.colorbar(contour, ax=ax1[jMonth], orientation='vertical', pad=0.05)
+                        cbar.set_label('meters')
+                        cbar.set_ticks(levelsShow)
+    
+                        # Set title
+                        ax1[jMonth].set_title(monthNames[month_diagnostic - 1] + ' sea ice thickness')
+    
+                    for fmt in ["pdf"]:
+                        outputfig = self.outputdir + "/" + fmt
+                        create_folder(outputfig, loglevel=self.loglevel)
+                        fig1.suptitle(str(model) + "-" + str(exp) + "-" + 
+                        str(source)  + '\n(average over ' + " - ".join(timespan) + ")" )
+    
+                        figName = "seaice.thickness." + str(hemi) + "." + str(model) + "." + str(exp) + ".pdf"
+                        fig1.savefig(outputfig + "/" + figName)
+                        print(figName + " printed")
         

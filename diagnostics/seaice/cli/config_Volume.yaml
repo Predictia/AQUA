@@ -13,18 +13,18 @@ models:
     var: avg_sivol
     timespan: null # can be of the format ['2020-01-20', '2024-12-31']
 # These are observational datasets / reanalyses
- # - model: PSC
- #   exp: PIOMAS
- #   source: monthly
- #   regrid: null
- #   variable: avg_sivol
- #   timespan: null
- # - model: PSC
- #   exp: GIOMAS
- #   source: monthly
- #   regrid: null
- #   variable: avg_sivol
- #   timespan: null
+  - model: PSC
+    exp: PIOMAS
+    source: monthly
+    regrid: null
+    variable: avg_sivol
+    timespan: null
+  - model: PSC
+    exp: GIOMAS
+    source: monthly
+    regrid: null
+    variable: avg_sivol
+    timespan: null
     
 regions: # If this block is missing all regions will be evaluated
   - Arctic
