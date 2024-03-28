@@ -73,12 +73,12 @@ do
     fi
 
     # Compress the grid directory
-    log_message INFO "Compressing the grid directory $griddir/$model"
-    tar -cvzf $griddir/$model.tar.gz $griddir/$model
+    log_message INFO "Compressing the grid directory $model"
+    tar -cvzf $model.tar.gz $model
 
     # Check the size of the compressed file
-    log_message DEBUG "Checking the size of the compressed file $griddir/$model.tar.gz"
-    size=$(wc -c < $griddir/$model.tar.gz)
+    log_message DEBUG "Checking the size of the compressed file $model.tar.gz"
+    size=$(wc -c < $model.tar.gz)
     log_message DEBUG "The size of the compressed file is $size"
 
     # if size >= 5 GB set split flag to true
@@ -89,7 +89,7 @@ do
     fi
 
     # Upload the compressed grid directory to the SWIFT website
-    log_message INFO "Uploading the compressed grid directory $griddir/$model.tar.gz to the SWIFT website"
+    log_message INFO "Uploading the compressed grid directory $model.tar.gz to the SWIFT website"
     if [ "$split" = true ]; then
         swift upload --segment-size 1000000000 AQUA/grids $model.tar.gz
     else # size < 5 GB
