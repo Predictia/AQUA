@@ -13,6 +13,7 @@ AQUA core complete list:
 - Remove  NextGEMS cycle2 sources (#1008)
 
 AQUA diagnostics complete list:
+- Implement seaice Volume timeseries and thickness maps (#1043)
 
 ## [v0.7.3]
 
