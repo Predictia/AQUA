@@ -3,7 +3,8 @@
 import operator
 import os
 import re
-from string import Template
+from string import Template as DefaultTemplate
+from jinja2 import Template
 import xarray as xr
 from collections import defaultdict
 from ruamel.yaml import YAML
@@ -72,7 +73,7 @@ def load_multi_yaml(folder_path=None, filenames=None,
     return yaml_dict
 
 
-def load_yaml(infile, definitions=None):
+def load_yaml(infile, definitions=None, jinja=True):
     """
     Load yaml file with template substitution
 
@@ -100,8 +101,13 @@ def load_yaml(infile, definitions=None):
 
     if definitions:
         # perform template substitution
-        template = Template(yaml_text).safe_substitute(definitions)
-        cfg = yaml.load(template)
+        if jinja:
+            template = Template(yaml_text)
+            rendered_yaml = template.render(definitions)
+            cfg = yaml.load(rendered_yaml)
+        else:
+            template = DefaultTemplate(yaml_text).safe_substitute(definitions)
+            cfg = yaml.load(template)
     else:
         if not cfg:  # did we already load it ?
             cfg = yaml.load(yaml_text)
