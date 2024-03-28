@@ -1013,6 +1013,8 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         if isinstance(chunks, dict):
             if self.aggregation and not chunks.get('time'):
                 chunks['time'] = self.aggregation
+            if self.streaming and not self.aggregation:
+                self.logger.warning("Aggregation is not set, using default time resolution for streaming. If you are asking for a longer chunks['time'] for GSV access, please set a suitable aggregation value")
     
         if dask:
             if chunks:  # if the chunking or aggregation option is specified override that from the catalogue
