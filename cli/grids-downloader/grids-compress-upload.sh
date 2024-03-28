@@ -31,7 +31,16 @@ usage()
 
 log_message INFO "Loading the swift client module and creating a token"
 module load py-python-swiftclient
-swift-token new
+# Check if the token exists: execute swift-token and capture the output
+token_output=$(swift-token)
+
+# Check if the output contains the token expiration message
+if [[ $token_output == *"Your swift token will expire"* ]]; then
+    log_message INFO "Token already exists, no action needed"
+else
+    log_message WARNING "Token doesn't exist or has expired, creating new token..."
+    swift-token new
+fi
 module switch py-python-swiftclient/3.12.0-gcc-11.2.0
 
 # Check if no arguments are provided
