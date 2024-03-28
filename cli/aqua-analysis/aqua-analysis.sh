@@ -45,7 +45,7 @@ max_threads=-1  # Set to the desired maximum number of threads, or leave it as 0
 # Define the array of atmospheric diagnostics, add more if needed or available
 atm_diagnostics=("tropical_rainfall" "global_time_series" "seasonal_cycles" "radiation" "teleconnections" "atmglobalmean")
 # Define the array of oceanic diagnostics, add more if needed or available
-oce_diagnostics=("global_time_series" "teleconnections" "ocean3d_drift" "ocean3d_circulation" "seaice_extent" "seaice_conc")
+oce_diagnostics=("global_time_series" "teleconnections" "ocean3d_drift" "ocean3d_circulation" "seaice_extent" "seaice_conc" "seaice_volume" "seaice_thick")
 # Define the array of diagnostics combining atmospheric and oceanic data, add more if needed or available
 atm_oce_diagnostics=("ecmean")
 
@@ -138,8 +138,10 @@ oce_extra_args["seaice_extent"]="${atm_extra_args["seaice_extent"]} \
 --config ${aqua}/diagnostics/seaice/cli/config_Extent.yaml"
 oce_extra_args["seaice_conc"]="${atm_extra_args["seaice_conc"]} \
 --config ${aqua}/diagnostics/seaice/cli/config_Concentration.yaml"
-oce_extra_args["seaice_volthick"]="${atm_extra_args["seaice_volthick"]} \
---config ${aqua}/diagnostics/seaice/cli/config_VolumeThickness.yaml"
+oce_extra_args["seaice_volume"]="${atm_extra_args["seaice_volume"]} \
+--config ${aqua}/diagnostics/seaice/cli/config_Volume.yaml"
+oce_extra_args["seaice_thick"]="${atm_extra_args["seaice_thick"]} \
+--config ${aqua}/diagnostics/seaice/cli/config_Thickness.yaml"
 
 # Trap Ctrl-C to clean up and kill the entire process group
 trap 'kill 0' SIGINT
@@ -156,7 +158,8 @@ done
 script_path["seasonal_cycles"]="global_time_series/cli/cli_global_time_series.py"
 script_path["ocean3d_drift"]="ocean3d/cli/cli_ocean3d.py"
 script_path["ocean3d_circulation"]="ocean3d/cli/cli_ocean3d.py"
-script_path["seaice_volthick"]="seaice/cli/cli_seaice.py"
+script_path["seaice_volume"]="seaice/cli/cli_seaice.py"
+script_path["seaice_thick"]="seaice/cli/cli_seaice.py"
 script_path["seaice_conc"]="seaice/cli/cli_seaice.py"
 script_path["seaice_extent"]="seaice/cli/cli_seaice.py"
 
@@ -240,7 +243,8 @@ if [ $distributed -eq 1 ]; then
   oce_extra_args["ocean3d_circulation"]="${oce_extra_args['ocean3d_circulation']} --nworkers 4"
   oce_extra_args["seaice_extent"]="${oce_extra_args['seaice_extent']} --nworkers 4"
   oce_extra_args["seaice_conc"]="${oce_extra_args['seaice_conc']} --nworkers 4"
-  oce_extra_args["seaice_volthick"]="${oce_extra_args['seaice_volthick']} --nworkers 4"
+  oce_extra_args["seaice_volume"]="${oce_extra_args['seaice_volume']} --nworkers 4"
+  oce_extra_args["seaice_thick"]="${oce_extra_args['seaice_thick']} --nworkers 4"
   oce_extra_args["teleconnections"]="${oce_extra_args['teleconnections']} --nworkers 4"
   atm_oce_extra_args["ecmean"]="${atm_oce_extra_args['ecmean']} --nworkers 4"
 fi
