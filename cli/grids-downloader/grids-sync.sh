@@ -17,7 +17,7 @@ if [[ -z "$AQUA" ]]; then
     exit 1  # Exit with status 1 to indicate an error
 else
     source "$AQUA/cli/util/logger.sh"
-    log_message DEBUG "Sourcing logger.sh from: $AQUA/cli/util/logger.sh"
+    log_message INFO "Sourcing logger.sh from: $AQUA/cli/util/logger.sh"
 fi
 setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
 
@@ -28,14 +28,12 @@ LUMI_GRID_PATH="/users/nurissom/test_grids"
 # Set the paths for the grids on levante and lumi
 LEVANTE_SSH="levante:$LEVANTE_GRID_PATH"
 LUMI_SSH="lumi:$LUMI_GRID_PATH"
-
 # Function to synchronize grids from levante to lumi
 sync_levante_to_lumi() {
     log_message INFO "Syncing grids from levante to lumi..."
     log_message INFO "Source path: $LEVANTE_GRID_PATH"
     log_message INFO "Destination path: $LUMI_GRID_PATH"
-    log_message DEBUG "rsync -av --progress -e $LEVANTE_GRID_PATH/ ssh $LUMI_SSH/"
-    rsync -av --progress -e $LEVANTE_GRID_PATH/ ssh $LUMI_SSH/
+    rsync -av --progress $LEVANTE_GRID_PATH/ $LUMI_SSH/
 }
 
 # Function to synchronize grids from lumi to levante
@@ -43,8 +41,7 @@ sync_lumi_to_levante() {
     log_message INFO "Syncing grids from lumi to levante..."
     log_message INFO "Source path: $LUMI_GRID_PATH"
     log_message INFO "Destination path: $LEVANTE_GRID_PATH"
-    log_message DEBUG "rsync -av --progress -e $LUMI_GRID_PATH/ ssh $LEVANTE_SSH/"
-    rsync -av --progress -e $LUMI_GRID_PATH/ ssh $LEVANTE_SSH/
+    rsync -av --progress $LUMI_GRID_PATH/ $LEVANTE_SSH/
 }
 
 # Main script
