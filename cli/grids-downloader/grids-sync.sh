@@ -22,8 +22,8 @@ fi
 setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
 
 # Set the path to the grids on the servers
-LEVANTE_GRID_PATH="/home/b/b382289/test_grids"
-LUMI_GRID_PATH="/users/nurissom/test_grids"
+LEVANTE_GRID_PATH="/work/bb1153/b382075/aqua/grids"
+LUMI_GRID_PATH="/pfs/lustrep3/projappl/project_465000454/data/AQUA/grids"
 
 # Set the paths for the grids on levante and lumi
 LEVANTE_SSH="levante:$LEVANTE_GRID_PATH"
@@ -33,7 +33,7 @@ sync_levante_to_lumi() {
     log_message INFO "Syncing grids from levante to lumi..."
     log_message INFO "Source path: $LEVANTE_GRID_PATH"
     log_message INFO "Destination path: $LUMI_GRID_PATH"
-    rsync -av --progress $LEVANTE_GRID_PATH/ $LUMI_SSH/
+    rsync -avrh --progress $LEVANTE_GRID_PATH/ $LUMI_SSH/
 }
 
 # Function to synchronize grids from lumi to levante
@@ -41,7 +41,7 @@ sync_lumi_to_levante() {
     log_message INFO "Syncing grids from lumi to levante..."
     log_message INFO "Source path: $LUMI_GRID_PATH"
     log_message INFO "Destination path: $LEVANTE_GRID_PATH"
-    rsync -av --progress $LUMI_GRID_PATH/ $LEVANTE_SSH/
+    rsync -avrh --progress $LUMI_GRID_PATH/ $LEVANTE_SSH/
 }
 
 # Main script
