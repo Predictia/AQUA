@@ -183,6 +183,7 @@ grids:
     space_coord: ["lon", "lat"]
   multio-r025:
     space_coord: ["value"]
+    vert_coord: ["2d"]
     extra: -setgrid,$grids/IFS/grid_lonlat_025.txt
     cellareas: $grids/IFS/cellarea_unstructured_025.nc
     cellarea_var: cell_area
@@ -219,25 +220,11 @@ grids:
       component: ocean
     space_coord: ["cell"]
     vert_coord: ["depth_half", "depth_full"]
-  icon-healpix-dev:
-    path:
-      2d: $grids/HealPix_old/icon_hpx9_atm_2d.nc   # this is the default 2d grid
-      #2dm: $grids/HealPix_old/icon_hpx9_oce_2d.nc  # this is an additional and optional 2d grid used if data are masked
-      #depth_full: $grids/HealPix_old/icon_hpx9_oce_depth_full.nc
-      #depth_half: $grids/HealPix_old/icon_hpx9_oce_depth_half.nc
-    #masked:   # This is the attribute used to distinguish variables which should go into the masked category
-    #  component: ocean
-    space_coord: ["ncells"]
-    #vert_coord: ["depth_half", "depth_full"]
   
   #FESOM
   ng5-nodes-2d:
     path: $grids/FESOM/AQUA_NG5_griddes_nodes_IFS.nc
     space_coord: ["nod2"]
-  # ng5-nodes-2d:
-  #   space_coord: ["nod2"]
-  #   extra:
-  #   - -setgrid,$grids/FESOM/NG5_griddes_nodes_IFS.nc
   ng5-nodes-3d:
     path:
       nz: $grids/FESOM/NG5_nodes_fesom_mask_nz.nc
@@ -332,17 +319,18 @@ grids:
 
   # OSI-SAF
   osi-saf-nh:
+    path: $grids/OSI-SAF/grid_osi-saf_nh.nc
     space_coord: ['xc', 'yc']
-    cellareas: $grids/OSI-SAF/grid_nh.nc
+    cellareas: $grids/OSI-SAF/cellarea_osi-saf_nh.nc
     cellarea_var: areacello
-    # mask: $grids/OSI-SAF/grid_nh.nc
-    # mask_var: sftof
+    regrid_method: 'bil'
+
   osi-saf-sh:
+    path: $grids/OSI-SAF/grid_osi-saf_sh.nc
     space_coord: ['xc', 'yc']
-    cellareas: $grids/OSI-SAF/grid_sh.nc
+    cellareas: $grids/OSI-SAF/cellarea_osi-saf_sh.nc
     cellarea_var: areacello
-    # mask: $grids/OSI-SAF/grid_sh.nc
-    # mask_var: sftof
+    regrid_method: 'bil'
 
   # WOA
   woa:
@@ -354,15 +342,13 @@ grids:
   # PSC
   psc-piomas:
     space_coord: ["x", "y"]
-    cellareas: $grids/PSC/grid_piomas.nc
+    cellareas: $grids/PSC/cellarea_piomas.nc
     cellarea_var: areacello
-    mask: $grids/PSC/grid_piomas.nc
-    mask_var: sftof
+    path: $grids/PSC/grid_piomas_new.nc
     regrid_method: 'bil'
   psc-giomas:
     space_coord: ["x", "y"]
-    cellareas: $grids/PSC/grid_giomas.nc
+    cellareas: $grids/PSC/cellarea_giomas.nc
     cellarea_var: areacello
-    mask: $grids/PSC/grid_giomas.nc
-    mask_var: sftof
+    path: $grids/PSC/grid_giomas_new.nc
     regrid_method: 'bil'

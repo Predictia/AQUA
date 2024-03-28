@@ -30,7 +30,7 @@ from .reader_utils import configure_masked_fields
 # default spatial dimensions and vertical coordinates
 default_space_dims = ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude',
                       'latitude', 'cell', 'cells', 'ncells', 'values',
-                      'value', 'nod2', 'pix', 'elem']
+                      'value', 'nod2', 'pix', 'elem', 'xc', 'yc']
 
 # default vertical dimension
 default_vertical_dims = ['nz1', 'nz', 'level', 'height']
