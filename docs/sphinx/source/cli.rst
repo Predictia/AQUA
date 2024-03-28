@@ -180,6 +180,25 @@ This will synchronize the grids from Levante to LUMI or viceversa.
     If more grids are added to the Levante platform, the SWIFT database should be updated.
     Please contact the AQUA team to upload new relevant grids to the SWIFT platform.
 
+Grids uploader
+--------------
+
+A script to upload the grids to the SWIFT platform is available in the ``cli/grids-downloader/`` folder.
+You will need to be on levante and to have the access to the SWIFT platform to run the script.
+With the automatic setup updated folders will be uploaded in the same location on the SWIFT platform and 
+no updates of the links in the `grids-downloader.sh` script will be needed.
+
+Basic usage:
+
+.. code-block:: bash
+
+    bash grids-uploader.sh [all | modelname]
+
+.. note::
+
+    The script will check that a valid SWIFT token is available before starting the upload.
+    If the token is not available, the script will ask the user to login to the SWIFT platform to obtain a new token.
+
 LUMI container installation
 ---------------------------
 
