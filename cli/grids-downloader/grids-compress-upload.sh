@@ -59,6 +59,9 @@ griddir="/work/bb1153/b382075/aqua/grids"
 
 # Compress and upload grids
 log_message INFO "Compressing and uploading grids"
+# If I don't move to the grid directory, SWIFT will upload the full path as subcontainers
+cd $griddir
+
 for model in "${models[@]}"
 do
     log_message INFO "Compressing and uploading grid for $model"
@@ -88,9 +91,9 @@ do
     # Upload the compressed grid directory to the SWIFT website
     log_message INFO "Uploading the compressed grid directory $griddir/$model.tar.gz to the SWIFT website"
     if [ "$split" = true ]; then
-        swift upload --segment-size 1000000000 AQUA/grids $griddir/$model.tar.gz
+        swift upload --segment-size 1000000000 AQUA/grids $model.tar.gz
     else # size < 5 GB
-        swift upload AQUA/grids $griddir/$model.tar.gz
+        swift upload AQUA/grids $model.tar.gz
     fi
 done
 
