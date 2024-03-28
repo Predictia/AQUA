@@ -164,6 +164,8 @@ Grids synchronization
 
 Since the upload of the grids to the SWIFT platform used to store the grids is available only from Levante,
 a simple script to synchronize the grids from Levante to LUMI and viceversa is available in the ``cli/grids-downloader/`` folder.
+You will need to be logged to the destination platform to run the script and to have
+passwordless ssh access to the source platform.
 
 Basic usage:
 
