@@ -81,6 +81,7 @@ def load_yaml(infile, definitions=None, jinja=True):
         infile (str): a file path to the yaml
         definitions (str or dict, optional): name of the section containing string template
                                              definitions or a dictionary with the same content
+        jinja: (bool): jinja2 templating is used instead of standard python templating. Default is true.
     Returns:
         A dictionary with the yaml file keys
     """
@@ -100,11 +101,12 @@ def load_yaml(infile, definitions=None, jinja=True):
         definitions = cfg.get(definitions)
 
     if definitions:
-        # perform template substitution
+        # perform template substitution with jinja
         if jinja:
             template = Template(yaml_text)
             rendered_yaml = template.render(definitions)
             cfg = yaml.load(rendered_yaml)
+        # use default python templating
         else:
             template = DefaultTemplate(yaml_text).safe_substitute(definitions)
             cfg = yaml.load(template)
