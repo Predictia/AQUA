@@ -162,6 +162,7 @@ class SeaIceExtent:
                 self.logger.warning("Using timespan based on data availability")
                 self.mySetups[jSetup]["timespan"] = [np.datetime_as_string(data.time[0].values, unit='D'),
                                                      np.datetime_as_string(data.time[-1].values, unit='D')]
+                timespan = self.mySetups[jSetup]["timespan"]
             if regrid:
                 self.logger.info("Regridding data")
                 data = reader.regrid(data)
@@ -220,12 +221,9 @@ class SeaIceExtent:
                         & (lon <= lonE)
                     )
 
-                # Print area of region
                       
-                myExtent = areacello.where(regionMask).where(
-                    ci_mask.notnull()).sel(time=slice(timespan[0], timespan[1])).sum(skipna = True, 
-                                    min_count = 1, dim=reader.space_coord) / 1e12
-
+                myExtent = areacello.where(regionMask).where(ci_mask.notnull()).sel(time=slice(timespan[0], timespan[1])).sum(skipna = True, min_count = 1, dim=reader.space_coord) / 1e12
+           
                 myExtent.attrs["units"] = "million km^2"
                 myExtent.attrs["long_name"] = "Sea ice extent"
                 self.regionExtents.append(myExtent)
@@ -493,6 +491,9 @@ class SeaIceVolume:
                 self.logger.warning("Using timespan based on data availability")
                 self.mySetups[jSetup]["timespan"] = [np.datetime_as_string(data.time[0].values, unit='D'),
                                                      np.datetime_as_string(data.time[-1].values, unit='D')]
+
+                timespan = self.mySetups[jSetup]["timespan"]
+                
             if regrid:
                 self.logger.info("Regridding data")
                 data = reader.regrid(data)
