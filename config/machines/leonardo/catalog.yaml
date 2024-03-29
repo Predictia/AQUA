@@ -1,0 +1,11 @@
+paths:
+  grids: /leonardo_work/DestE_330_24/AQUA/grids
+  weights: /leonardo_work/DestE_330_24/AQUA/weights
+  areas: /leonardo_work/DestE_330_24/AQUA/areas
+
+sources:
+  IFS-FESOM:
+    description: IFS-FESOM coupled model
+    driver: yaml_file_cat
+    args:
+      path: "{{CATALOG_DIR}}/catalog/IFS-FESOM/main.yaml"
