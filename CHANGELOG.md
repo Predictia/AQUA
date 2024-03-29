@@ -15,6 +15,7 @@ AQUA core complete list:
 
 AQUA diagnostics complete list:
 - Seaice: convert to module, add Extent maps (#803)
+- Implement seaice Volume timeseries and thickness maps (#1043)
 
 ## [v0.7.3]
 

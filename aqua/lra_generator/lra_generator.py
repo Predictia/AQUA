@@ -93,13 +93,13 @@ class LRAgenerator():
 
         self.nproc = int(nproc)
         self.tmpdir = tmpdir
-        if self.nproc > 1:
+        if self.dask:
             self.logger.info('Running dask.distributed with %s workers', self.nproc)
             if not self.tmpdir:
                 raise KeyError('Please specify tmpdir for dask.distributed.')
 
-            self.tmpdir = os.path.join(self.tmpdir, 'LRA_' +
-                                       generate_random_string(10))
+        self.tmpdir = os.path.join(self.tmpdir, 'LRA_' +
+                                    generate_random_string(10))
 
         if model:
             self.model = model
