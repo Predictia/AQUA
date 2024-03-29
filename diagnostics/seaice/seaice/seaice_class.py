@@ -221,9 +221,10 @@ class SeaIceExtent:
                     )
 
                 # Print area of region
-                    
+                      
                 myExtent = areacello.where(regionMask).where(
-                    ci_mask.notnull()).sum(dim=reader.space_coord) / 1e12
+                    ci_mask.notnull()).sel(time=slice(timespan[0], timespan[1])).sum(skipna = True, 
+                                    min_count = 1, dim=reader.space_coord) / 1e12
 
                 myExtent.attrs["units"] = "million km^2"
                 myExtent.attrs["long_name"] = "Sea ice extent"
@@ -254,10 +255,11 @@ class SeaIceExtent:
                 label = setup["model"] + " " + setup["exp"] + " " + setup["source"] + " " + strTimeInfo
                 color_plot = setup["color_plot"]
                 self.logger.debug(f"Plotting {label} for region {region}")
+
                 extent = self.myExtents[js][jr]
 
                 # Monthly cycle
-                extentCycle = np.array([extent.sel(time=extent['time.month'] == m).sel(time=slice(timespan[0], timespan[1])).mean(dim='time').values
+                extentCycle = np.array([extent.sel(time=extent['time.month'] == m).mean(dim='time').values
                                         for m in monthsNumeric])
 
                 # One standard deviation of the temporal variability
@@ -546,7 +548,8 @@ class SeaIceVolume:
                 avg_sivol_mask = data.avg_sivol.where((data.avg_sivol > 0) &
                                         (data.avg_sivol < 99.0))
 
-                myVolume = (avg_sivol_mask * areacello.where(regionMask)).sum(dim=reader.space_coord) / 1e12
+                myVolume = (avg_sivol_mask * areacello.where(regionMask)).sum(dim=reader.space_coord, 
+                                                                              skipna = True, min_count = 1) / 1e12
                                
                 myVolume.attrs["units"] = "thousands km^3"
                 myVolume.attrs["long_name"] = "Sea ice volume"
