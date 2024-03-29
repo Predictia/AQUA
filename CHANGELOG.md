@@ -14,6 +14,7 @@ AQUA core complete list:
 - Remove  NextGEMS cycle2 sources (#1008)
 
 AQUA diagnostics complete list:
+- Radiation: boxplot can accomodate custom variables (#933)
 - Seaice: convert to module, add Extent maps (#803)
 - Implement seaice Volume timeseries and thickness maps (#1043)
 
