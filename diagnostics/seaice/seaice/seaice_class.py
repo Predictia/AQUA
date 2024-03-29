@@ -548,7 +548,7 @@ class SeaIceVolume:
                 avg_sivol_mask = data.avg_sivol.where((data.avg_sivol > 0) &
                                         (data.avg_sivol < 99.0))
 
-                myVolume = (avg_sivol_mask * areacello.where(regionMask)).sum(dim=reader.space_coord, 
+                myVolume = (avg_sivol_mask * areacello.where(regionMask)).sel(time=slice(timespan[0], timespan[1])).sum(dim=reader.space_coord, 
                                                                               skipna = True, min_count = 1) / 1e12
                                
                 myVolume.attrs["units"] = "thousands km^3"
@@ -584,7 +584,7 @@ class SeaIceVolume:
                 volume = self.myVolumes[js][jr]
 
                 # Monthly cycle
-                volumeCycle = np.array([volume.sel(time=volume['time.month'] == m).sel(time=slice(timespan[0], timespan[1])).mean(dim='time').values
+                volumeCycle = np.array([volume.sel(time=volume['time.month'] == m).mean(dim='time').values
                                         for m in monthsNumeric])
 
                 # One standard deviation of the temporal variability
