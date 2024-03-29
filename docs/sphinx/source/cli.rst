@@ -159,6 +159,46 @@ This will download all the grids used in AQUA.
 It is also possible to download only a subset of the grids,
 by specifying the group of grids to download (usually one per model).
 
+Grids synchronization
+---------------------
+
+Since the upload of the grids to the SWIFT platform used to store the grids is available only from Levante,
+a simple script to synchronize the grids from Levante to LUMI and viceversa is available in the ``cli/grids-downloader/`` folder.
+You will need to be logged to the destination platform to run the script and to have
+passwordless ssh access to the source platform.
+
+Basic usage:
+
+.. code-block:: bash
+
+    bash grids-sync.sh [levante_to_lumi | lumi_to_levante]
+
+This will synchronize the grids from Levante to LUMI or viceversa.
+
+.. warning::
+
+    If more grids are added to the Levante platform, the SWIFT database should be updated.
+    Please contact the AQUA team to upload new relevant grids to the SWIFT platform.
+
+Grids uploader
+--------------
+
+A script to upload the grids to the SWIFT platform is available in the ``cli/grids-downloader/`` folder.
+You will need to be on levante and to have the access to the SWIFT platform to run the script.
+With the automatic setup updated folders will be uploaded in the same location on the SWIFT platform and 
+no updates of the links in the `grids-downloader.sh` script will be needed.
+
+Basic usage:
+
+.. code-block:: bash
+
+    bash grids-uploader.sh [all | modelname]
+
+.. note::
+
+    The script will check that a valid SWIFT token is available before starting the upload.
+    If the token is not available, the script will ask the user to login to the SWIFT platform to obtain a new token.
+
 LUMI container installation
 ---------------------------
 
