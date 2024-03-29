@@ -11,6 +11,7 @@ AQUA core complete list:
 - Introducing a basic jinja-based catalog entry generator (#853)
 - Adapt NextGEMS sources and fixes to the final DestinE governance (#1008, #1035)
 - Remove  NextGEMS cycle2 sources (#1008)
+- Avoid GSVSource multiple class instantiation in dask mode (#1051)
 
 AQUA diagnostics complete list:
 - Implement seaice Volume timeseries and thickness maps (#1043)
