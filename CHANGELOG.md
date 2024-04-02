@@ -9,11 +9,15 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Allowing for jinja-based replacemente in load_yaml (#1045) 
+- Introducing an rsync script between LUMI and levante for grids (#1044)
 - Introducing a basic jinja-based catalog entry generator (#853)
 - Adapt NextGEMS sources and fixes to the final DestinE governance (#1008, #1035)
 - Remove  NextGEMS cycle2 sources (#1008)
 
 AQUA diagnostics complete list:
+- Radiation: boxplot can accomodate custom variables (#933)
+- Seaice: convert to module, add Extent maps (#803)
+- Implement seaice Volume timeseries and thickness maps (#1043)
 
 ## [v0.7.3]
 
@@ -36,8 +40,6 @@ AQUA core complete list:
 - Vertical chunking for GSV intake access (#1003)
 
 AQUA diagnostics complete list:
-
-- Seaice: convert to module, add Extent maps (#803)
 - Timeseries: Various bugfix and improvements for cli and formula (#1013, #1016, #1022)
 
 ## [v0.7.2]
