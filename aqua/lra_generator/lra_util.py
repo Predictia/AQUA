@@ -119,7 +119,7 @@ def opa_catalog_entry(datadir, model, exp, source,
 #         logger.warning('Ratio %s is unrealistically high, we will set the first time step to NaN', round(ratio, 2))
 #         xfield.loc[{'time': xfield.time.values[0]}] = np.nan
 
-    return xfield
+#    return xfield
 
 def move_tmp_files(tmp_directory, output_directory):
     """
