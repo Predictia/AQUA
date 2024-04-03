@@ -100,24 +100,24 @@ def opa_catalog_entry(datadir, model, exp, source,
 
     return entry_name
 
+# NO LONGER NECESSARY
+# def check_correct_ifs_fluxes(xfield, threshold=100, loglevel='WARNING'):
 
-def check_correct_ifs_fluxes(xfield, threshold=100, loglevel='WARNING'):
+#     """
+#     Giving a Xarray DataArray, 
+#     check if the first time step is more than 100 times larger
+#     This is done to protect LRA from wrong fluxes produced by IFS for every new month
+#     """
 
-    """
-    Giving a Xarray DataArray, 
-    check if the first time step is more than 100 times larger
-    This is done to protect LRA from wrong fluxes produced by IFS for every new month
-    """
+#     logger = log_configure(log_level=loglevel, log_name='check_ifs_fluxes')
 
-    logger = log_configure(log_level=loglevel, log_name='check_ifs_fluxes')
-
-    data1 = xfield.isel(time=0).mean().values
-    data2 = xfield.isel(time=1).mean().values
-    ratio = abs(data1)/abs(data2)
-    logger.info('Ratio of first two timesteps is %s', round(ratio,2))
-    if ratio > threshold:
-        logger.warning('Ratio %s is unrealistically high, we will set the first time step to NaN', round(ratio, 2))
-        xfield.loc[{'time': xfield.time.values[0]}] = np.nan
+#     data1 = xfield.isel(time=0).mean().values
+#     data2 = xfield.isel(time=1).mean().values
+#     ratio = abs(data1)/abs(data2)
+#     logger.info('Ratio of first two timesteps is %s', round(ratio,2))
+#     if ratio > threshold:
+#         logger.warning('Ratio %s is unrealistically high, we will set the first time step to NaN', round(ratio, 2))
+#         xfield.loc[{'time': xfield.time.values[0]}] = np.nan
 
     return xfield
 
