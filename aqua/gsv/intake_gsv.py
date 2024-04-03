@@ -4,11 +4,12 @@ import glob
 import datetime
 import eccodes
 import xarray as xr
+import numpy as np
 import dask
 from ruamel.yaml import YAML
 from aqua.util.eccodes import init_get_eccodes_shortname
 from intake.source import base
-from .timeutil import check_dates, shift_time_dataset
+from .timeutil import check_dates, shift_time_dataset, todatetime
 from .timeutil import split_date, make_timeaxis, date2str, date2yyyymm, add_offset
 from aqua.logger import log_configure, _check_loglevel
 
@@ -41,7 +42,7 @@ class GSVSource(base.DataSource):
     dask_access = False  # Flag if dask has been requested
     timeaxis = None  # Used for dask access
 
-    def __init__(self, request, data_start_date, data_end_date, timestyle="date",
+    def __init__(self, request, data_start_date, data_end_date, bridge_end_date=None, timestyle="date",
                  chunks="S", savefreq="h", timestep="h", timeshift=None,
                  startdate=None, enddate=None, var=None, metadata=None, level=None,
                  loglevel='WARNING', **kwargs):
@@ -53,6 +54,7 @@ class GSVSource(base.DataSource):
             request (dict): Request dictionary
             data_start_date (str): Start date of the available data.
             data_end_date (str): End date of the available data.
+            bridge_end_date (str, optional): End date of the bridge data (excluded). Defaults to None.
             timestyle (str, optional): Time style. Defaults to "date".
             chunks (str or dict, optional): Time and vertical chunking.
                                         If a string is provided, it is assumed to be time chunking.
@@ -82,11 +84,15 @@ class GSVSource(base.DataSource):
         if metadata:
             self.fdbhome = metadata.get('fdb_home', None)
             self.fdbpath = metadata.get('fdb_path', None)
+            self.fdbhome_bridge = metadata.get('fdb_home_bridge', None)
+            self.fdbpath_bridge = metadata.get('fdb_path_bridge', None)
             self.eccodes_path = metadata.get('eccodes_path', None)
             self.levels =  metadata.get('levels', None)
         else:
             self.fdbpath = None
             self.fdbhome = None
+            self.fdbhome_bridge = None
+            self.fdbpath_bridge = None
             self.eccodes_path = None
             self.levels = None
 
@@ -164,14 +170,51 @@ class GSVSource(base.DataSource):
         self.data_end_date = data_end_date
         self.startdate = startdate
         self.enddate = enddate
+        self.bridge_end_date = bridge_end_date
+        if self.bridge_end_date and not self.fdbpath_bridge and not self.fdbhome_bridge:
+            raise ValueError('Bridge end date requested but FDB path not specified in catalogue.')
 
-        (self.timeaxis, self.chk_start_idx,
-         self.chk_start_date, self.chk_end_idx,
-         self.chk_end_date, self.chk_size) = make_timeaxis(self.data_start_date, self.startdate, self.enddate,
-                                                           shiftmonth=self.timeshift, timestep=timestep,
-                                                           savefreq=savefreq, chunkfreq=chunking_time)
 
-        self._npartitions = len(self.chk_start_date)
+
+        if not self.bridge_end_date or (self.bridge_end_date and
+                todatetime(self.bridge_end_date) > todatetime(self.enddate) or 
+                todatetime(self.startdate) >= todatetime(self.bridge_end_date)
+            ):
+            # data are all in bridge or no bridge needed or after end of bridge data
+            (self.timeaxis, self.chk_start_idx,
+            self.chk_start_date, self.chk_end_idx,
+            self.chk_end_date, self.chk_size) = make_timeaxis(self.data_start_date, self.startdate, self.enddate,
+                                                            shiftmonth=self.timeshift, timestep=timestep,
+                                                            savefreq=savefreq, chunkfreq=chunking_time)
+            self._npartitions = len(self.chk_start_date)
+            if not self.bridge_end_date or (todatetime(self.startdate) >= todatetime(self.bridge_end_date)):
+                self.chk_type = np.zeros(self._npartitions)  # mark as hpc fdb chunks
+            else:
+                self.chk_type = np.ones(self._npartitions)   # mark as bridge chunks
+        else:
+            # data are split between bridge and hpc fdb
+            (self.timeaxis, self.chk_start_idx,
+            self.chk_start_date, self.chk_end_idx,
+            self.chk_end_date, self.chk_size) = make_timeaxis(self.data_start_date, self.startdate, self.bridge_end_date,
+                                                            shiftmonth=self.timeshift, timestep=timestep,
+                                                            savefreq=savefreq, chunkfreq=chunking_time, skiplast=True)
+            self._npartitions = len(self.chk_start_date)
+            self.chk_type = np.ones(self._npartitions)  # the first part is bridge data
+
+            (self.timeaxis2, self.chk_start_idx2,
+            self.chk_start_date2, self.chk_end_idx2,
+            self.chk_end_date2, self.chk_size2) = make_timeaxis(self.data_start_date, self.bridge_end_date, self.enddate,
+                                                            shiftmonth=self.timeshift, timestep=timestep,
+                                                            savefreq=savefreq, chunkfreq=chunking_time)
+            self.timeaxis = self.timeaxis.append(self.timeaxis2)
+            self.chk_start_idx = np.append(self.chk_start_idx, self.chk_start_idx2)
+            self.chk_start_date = self.chk_start_date.append(self.chk_start_date2)
+            self.chk_end_idx = np.append(self.chk_end_idx, self.chk_end_idx2)
+            self.chk_end_date = self.chk_end_date.append(self.chk_end_date2)
+            self.chk_size = np.append(self.chk_size, self.chk_size2)
+        
+            self._npartitions = self._npartitions + len(self.chk_start_date2)
+            self.chk_type = np.append(self.chk_type, np.zeros(len(self.chk_start_date2)))  # the second part is hpc fdb data
 
         if "levelist" in self._request:
             self.chunking_vertical = chunking_vertical
@@ -316,10 +359,21 @@ class GSVSource(base.DataSource):
         else:
             request["param"] = self._var
 
-        if self.fdbhome:  #if fdbhome is provided, use it, since we are creating a new gsv
-            os.environ["FDB_HOME"] = self.fdbhome
-        if self.fdbpath:  # if fdbpath provided, use it, since we are creating a new gsv
-            os.environ["FDB5_CONFIG_FILE"] = self.fdbpath
+        # Select based on type of FDB
+        fstream_iterator = False
+        if self.chk_type[i]:
+            # Bridge FDB type
+            if self.fdbhome_bridge:
+                os.environ["FDB_HOME"] = self.fdbhome_bridge
+            if self.fdbpath_bridge:
+                os.environ["FDB5_CONFIG_FILE"] = self.fdbpath_bridge
+            fstream_iterator = True
+        else:
+            # HPC FDB type
+            if self.fdbhome:  #if fdbhome is provided, use it, since we are creating a new gsv
+                os.environ["FDB_HOME"] = self.fdbhome
+            if self.fdbpath:  # if fdbpath provided, use it, since we are creating a new gsv
+                os.environ["FDB5_CONFIG_FILE"] = self.fdbpath
 
         if self.eccodes_path:  # if needed switch eccodes path
             # unless we have already switched
@@ -332,7 +386,7 @@ class GSVSource(base.DataSource):
         gsv = GSVRetriever(logging_level=gsv_log_level)
 
         self.logger.debug('Request %s', request)
-        dataset = gsv.request_data(request)
+        dataset = gsv.request_data(request, use_stream_iterator=fstream_iterator)
 
         if self.timeshift:  # shift time by one month (special case)
             dataset = shift_time_dataset(dataset)
@@ -396,7 +450,6 @@ class GSVSource(base.DataSource):
 
         for var in self._var:
             # Create a dask array from a list of delayed get_partition calls
-
             if not self.chunking_vertical:
                 dalist = [self.get_part_delayed(i, var, shape, dtype) for i in range(self.npartitions)]
                 darr = dask.array.concatenate(dalist, axis=self.itime)  # This is a lazy dask array
