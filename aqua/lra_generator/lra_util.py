@@ -2,12 +2,9 @@
 
 import os
 import shutil
-import numpy as np
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import ConfigPath
 from aqua.logger import log_configure
-
-
 
 def opa_catalog_entry(datadir, model, exp, source, 
                       fixer_name=False, frequency='monthly',

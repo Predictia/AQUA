@@ -17,7 +17,7 @@ def output_directory(tmpdir):
 def lra_arguments(request):
     return request.param
 
-
+@pytest.mark.aqua
 def test_opa_catalog_entry(tmp_directory, lra_arguments):
     model, exp, source = lra_arguments
     fixer_name = 'fixer'
@@ -36,7 +36,7 @@ def test_opa_catalog_entry(tmp_directory, lra_arguments):
     assert reader.esmcat.metadata['fixer_name'] == 'fixer'
     assert reader.esmcat.describe()['args']['urlpath'] == os.path.join(tmp_directory, f'*{frequency}_mean.nc')
 
-
+@pytest.mark.aqua
 def test_move_tmp_files(tmp_directory, output_directory):
     tmp_file1 = os.path.join(tmp_directory, 'file1_tmp.nc')
     tmp_file2 = os.path.join(tmp_directory, 'file2.nc')
