@@ -30,6 +30,7 @@ class TestLRA():
         assert os.path.isdir(os.path.join(os.getcwd(), outdir,
                                           "IFS/test-tco79/r100/monthly"))
         
+    # defintiiive = True with or without dask
     @pytest.mark.parametrize("nworkers", [1, 2])
     def test_definitive_true(self, lra_arguments, nworkers):
         """Test the LRA generator with definitive = True"""
