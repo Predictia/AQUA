@@ -97,7 +97,7 @@ class TestTimmean():
         assert avg['2t'].shape == (29, 9, 18)
 
     def test_timmean_time_bounds(self):
-        """Test for _timmean method with time_bounds=True"""
+        """Test for timmean method with time_bounds=True"""
         reader = Reader(model="IFS", exp="test-tco79", source='long',
                         loglevel=loglevel)
         data = reader.retrieve(var='2t')
@@ -108,17 +108,18 @@ class TestTimmean():
         assert np.all(avg['time_bnds'].isel(bnds=0) <= avg['time_bnds'].isel(bnds=1))
     
     def test_timmean_invalid_frequency(self):
-        """Test for _timmean method with an invalid frequency"""
+        """Test for timmean method with an invalid frequency"""
         reader = Reader(model="IFS", exp="test-tco79", source='long',
                         loglevel=loglevel)
         data = reader.retrieve(var='2t')
         with pytest.raises(ValueError, match=r'Cant find a frequency to resample, aborting!'):
             reader.timmean(data, freq='invalid')
 
-    def test_timmean_single_timestep(self):
-        """Test for _timmean method with a single timestep"""
+    def test_timmean_error(self):
         reader = Reader(model="IFS", exp="test-tco79", source='long')
         data = reader.retrieve(var='2t')
-        with pytest.warns(UserWarning, match=r'A single timestep is available, is this correct?'):
-            avg = reader.timmean(data, freq='monthly')
-        assert avg.shape == (1, 9, 18)
+        single = data.sel(time=data.time[0])
+        with pytest.raises(ValueError, match=r'Time dimension not found in the input data. Cannot compute timmean'):
+            avg = reader.timmean(single, freq='monthly')
+        
+            
