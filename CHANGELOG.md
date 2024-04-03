@@ -9,6 +9,8 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Support for python 3.12 (#1052)
+- More efficient use of `_retrieve_plain` for acessing sample data (#1048)
+- Introducing the catalogue structure for Leonardo HPC (#1049)
 - Introducing an rsync script between LUMI and levante for grids (#1044)
 - Introducing a basic jinja-based catalog entry generator (#853)
 - Adapt NextGEMS sources and fixes to the final DestinE governance (#1008, #1035)
