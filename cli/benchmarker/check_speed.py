@@ -31,24 +31,53 @@ def parse_arguments(arguments):
     return parser.parse_args(arguments)
 
 
-class DaskBenchmarker(): 
+class Benchmarker():
+    """
+    A class for benchmarking tasks.
+
+    Attributes:
+        model (str): The model to be benchmarked.
+        exp (str): The experiment to be performed.
+        source (str): The source of the benchmark data.
+        nproc (int): The number of processes to be used.
+        nrepeat (int): The number of times to repeat the benchmark.
+        loglevel (str): The log level for logging messages.
+        logger (Logger): The logger object for logging messages.
+        cluster (LocalCluster): The dask cluster object.
+        client (Client): The dask client object.
+    """
 
     @property
     def dask(self):
         """Check if dask is needed"""
         return self.nproc > 1
 
-    def __init__(self, nproc=1, loglevel='WARNING'):
+    def __init__(self, model=None, exp=None, source=None, 
+                 nproc=1, nrepeat=5, loglevel='WARNING'):
+        """
+        Initialize the Benchmarker object.
 
+        Args:
+            model (str, optional): The model to be benchmarked.
+            exp (str, optional): The experiment to be performed.
+            source (str, optional): The source of the benchmark data.
+            nproc (int, optional): The number of processes to be used.
+            nrepeat (int, optional): The number of times to repeat the benchmark.
+            loglevel (str, optional): The log level for logging messages.
+        """
         self.logger = log_configure(loglevel, 'daske')
         self.loglevel = loglevel
         self.nproc = nproc
         self.cluster = None
         self.client = None
+        self.model = model
+        self.exp = exp
+        self.source = source
+        self.nrepeat = nrepeat
 
     def set_dask(self):
         """
-        Set up dask cluster
+        Set up dask cluster.
         """
         if self.dask:  # self.nproc > 1
             self.logger.info('Setting up dask cluster with %s workers', self.nproc)
@@ -63,12 +92,41 @@ class DaskBenchmarker():
 
     def close_dask(self):
         """
-        Close dask cluster
+        Close dask cluster.
         """
         if self.dask:  # self.nproc > 1
             self.client.shutdown()
             self.cluster.close()
             self.logger.info('Dask cluster closed')
+
+    def benchmark_reader(self):
+        """
+        Benchmark the reader.
+        """
+        self.logger.info('Benchmarking reader')
+        single = timeit(lambda: Reader(self.model, self.exp, self.source), number=self.nrepeat)
+        return round(single / self.nrepeat, 1)
+    
+    def benchmark_fldmean(self, tsteps=100):
+        """
+        Benchmark the fldmean method.
+        """
+        self.logger.info('Benchmarking fldmean')
+        reader = Reader(self.model, self.exp, self.source)
+        single = timeit(lambda: reader.retrieve(var='2t').isel(time=slice(0,tsteps)).aqua.fldmean().compute(),
+                                number=self.nrepeat)
+        return round(single / self.nrepeat, 1)
+
+    def benchmark_regrid(self, tsteps=50):
+        """
+        Benchmark the regrid method.
+        """
+        self.logger.info('Benchmarking regrid')
+        reader = Reader(self.model, self.exp, self.source, regrid='r100')
+        single = timeit(lambda: reader.retrieve(var='2t').isel(time=slice(0,tsteps)).aqua.regrid().compute(),
+                                number=self.nrepeat)
+
+        return round(single / self.nrepeat, 1)
 
 
 
@@ -76,22 +134,29 @@ if __name__ == '__main__':
 
     args = parse_arguments(sys.argv[1:])
     logger = log_configure(args.loglevel, 'benchmarker')
-    nrepeat = 5
+    model = 'ICON'
+    exp = 'historical-1990'
+    source = 'hourly-hpz10-atm2d'
 
-    bench = DaskBenchmarker(int(args.workers), args.loglevel)
-    bench.set_dask()
-    single = timeit(lambda: Reader('ICON', 'historical-1990', 'hourly-hpz10-atm2d'),
-                           number=nrepeat)
-    out = round(single / nrepeat, 1)
-    bench.close_dask()
-    print(f'Reader initialization took on average {out} seconds over {nrepeat} runs')
+    # create benchmarker object
+    Bench = Benchmarker(model = model, exp = exp, source = source, 
+                        nproc = int(args.workers), loglevel = args.loglevel)
+    
+    # benchmark reader
+    Bench.set_dask()
+    reader_time = Bench.benchmark_reader()
+    Bench.close_dask()
+    logger.error('Reader initialization took on average %s seconds over %s runs', reader_time, Bench.nrepeat)
+
+    Bench.set_dask()
+    fldmean_time = Bench.benchmark_fldmean()
+    Bench.close_dask()
+    logger.error('Fldmean took on average %s seconds over %s runs', fldmean_time, Bench.nrepeat)
+
+    Bench.set_dask()
+    regrid_time = Bench.benchmark_fldmean()
+    Bench.close_dask()
+    logger.error('Regrid took on average %s seconds over %s runs', regrid_time, Bench.nrepeat)
 
 
-    bench.set_dask()
-    reader = Reader('ICON', 'historical-1990', 'hourly-hpz10-atm2d')
-    tsteps = 200
-    single = timeit(lambda: reader.retrieve(var='2t').isel(time=slice(0,tsteps)).aqua.fldmean().compute(),
-                           number=nrepeat)
-    out = round(single / nrepeat, 1)
-    bench.close_dask()
-    print(f'Retrieving {tsteps} timestep of 2d var + fldmean took on average {out} seconds over {nrepeat} runs')
+
