@@ -8,12 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Support for Python 3.12 (#1052)
+- Extending pytests (#1053)
+- More efficient use of `_retrieve_plain` for acessing sample data (#1048)
+- Introducing the catalogue structure for Leonardo HPC (#1049)
+- Introducing an rsync script between LUMI and levante for grids (#1044)
 - Introducing a basic jinja-based catalog entry generator (#853)
 - Adapt NextGEMS sources and fixes to the final DestinE governance (#1008, #1035)
 - Remove  NextGEMS cycle2 sources (#1008)
 - Avoid GSVSource multiple class instantiation in dask mode (#1051)
 
 AQUA diagnostics complete list:
+- Radiation: boxplot can accomodate custom variables (#933)
+- Seaice: convert to module, add Extent maps (#803)
 - Implement seaice Volume timeseries and thickness maps (#1043)
 
 ## [v0.7.3]
@@ -37,8 +44,6 @@ AQUA core complete list:
 - Vertical chunking for GSV intake access (#1003)
 
 AQUA diagnostics complete list:
-
-- Seaice: convert to module, add Extent maps (#803)
 - Timeseries: Various bugfix and improvements for cli and formula (#1013, #1016, #1022)
 
 ## [v0.7.2]
