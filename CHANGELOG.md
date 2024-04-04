@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Allowing for jinja-based replacemente in load_yaml (#1045) 
 - Support for Python 3.12 (#1052)
 - Extending pytests (#1053)
 - More efficient use of `_retrieve_plain` for acessing sample data (#1048)
