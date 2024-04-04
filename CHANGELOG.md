@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Extending pytests (#1053)
 - More efficient use of `_retrieve_plain` for acessing sample data (#1048)
 - Introducing the catalogue structure for Leonardo HPC (#1049)
 - Introducing an rsync script between LUMI and levante for grids (#1044)
