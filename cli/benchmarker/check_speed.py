@@ -6,10 +6,9 @@ AQUA tool to evalute speedo of some methods
 
 import argparse
 import sys
+from timeit import timeit
 import dask
 from dask.distributed import Client, LocalCluster
-import pandas as pd
-from timeit import timeit
 from aqua import Reader
 from aqua import __version__ as version
 from aqua.logger import log_configure
@@ -52,7 +51,7 @@ class Benchmarker():
         """Check if dask is needed"""
         return self.nproc > 1
 
-    def __init__(self, model=None, exp=None, source=None, 
+    def __init__(self, model=None, exp=None, source=None,
                  nproc=1, nrepeat=5, loglevel='WARNING'):
         """
         Initialize the Benchmarker object.
@@ -125,7 +124,6 @@ class Benchmarker():
         reader = Reader(self.model, self.exp, self.source, regrid='r100')
         single = timeit(lambda: reader.retrieve(var='2t').isel(time=slice(0,tsteps)).aqua.regrid().compute(),
                                 number=self.nrepeat)
-
         return round(single / self.nrepeat, 1)
 
 
