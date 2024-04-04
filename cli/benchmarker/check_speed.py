@@ -129,7 +129,6 @@ class Benchmarker():
         return round(single / self.nrepeat, 1)
 
 
-
 if __name__ == '__main__':
 
     args = parse_arguments(sys.argv[1:])
@@ -139,24 +138,20 @@ if __name__ == '__main__':
     source = 'hourly-hpz10-atm2d'
 
     # create benchmarker object
-    Bench = Benchmarker(model = model, exp = exp, source = source, 
+    Bench = Benchmarker(model = model, exp = exp, source = source,
                         nproc = int(args.workers), loglevel = args.loglevel)
     
-    # benchmark reader
-    Bench.set_dask()
-    reader_time = Bench.benchmark_reader()
-    Bench.close_dask()
-    logger.error('Reader initialization took on average %s seconds over %s runs', reader_time, Bench.nrepeat)
+    # create a list of methods and their names
+    methods = [(Bench.benchmark_reader, 'Reader initialization'),
+               (Bench.benchmark_fldmean, 'Fldmean'),
+               (Bench.benchmark_regrid, 'Regrid')]
 
-    Bench.set_dask()
-    fldmean_time = Bench.benchmark_fldmean()
-    Bench.close_dask()
-    logger.error('Fldmean took on average %s seconds over %s runs', fldmean_time, Bench.nrepeat)
+    # loop over the methods
+    for method, name in methods:
+        Bench.set_dask()
+        time = method()
+        Bench.close_dask()
+        print(f"{name} took on average {time} seconds over {Bench.nrepeat} runs")
 
-    Bench.set_dask()
-    regrid_time = Bench.benchmark_fldmean()
-    Bench.close_dask()
-    logger.error('Regrid took on average %s seconds over %s runs', regrid_time, Bench.nrepeat)
-
-
+    print('All benchmarks done')
 
