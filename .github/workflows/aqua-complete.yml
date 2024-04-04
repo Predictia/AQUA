@@ -3,7 +3,7 @@ name: AQUA monthly tests
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 1 3 * *" #run every third day of the month at 1AM UTC
+    - cron: "0 1 5 * *" #run every fifth day of the month at 1AM UTC
 
 permissions:
   contents: read
