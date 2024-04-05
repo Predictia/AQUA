@@ -87,6 +87,9 @@ class surface_trend:
 
         for num, data_name in enumerate(self.TS_trend_dict):
             data = self.TS_trend_dict[data_name]
+            start_year = self.data_dict[data_name].time.dt.year[0].values
+            end_year = self.data_dict[data_name].time.dt.year[-1].values
+            
             cs1 = axs[num,0].contourf(data.lon, data.lat, data["avg_thetao"], cmap="coolwarm", levels=avg_thetao_levels)
             cs2 = axs[num,1].contourf(data.lon, data.lat, data["avg_so"], cmap="coolwarm", levels=avg_so_levels)
             axs[num, 0].set_facecolor('grey')
@@ -98,14 +101,21 @@ class surface_trend:
             if num != len(self.TS_trend_dict)-1:
                 axs[num, 0].set_xticklabels([])
                 axs[num, 1].set_xticklabels([])
-            axs[num, 0].text(-0.13, 0.33, data_name, fontsize=18, color='black', rotation=90, transform=axs[num, 0].transAxes, ha='center')
+            axs[0,0].set_title(f"Pot. Temperature", fontsize=18)
+            axs[0,1].set_title(f"Salinity", fontsize=18)
+            axs[num, 0].text(-0.13, 0.33, f"{data_name} \n ({start_year}-{end_year}) " , fontsize=18, color='black', rotation=90, transform=axs[num, 0].transAxes, ha='center')
            
         # cb = fig.colorbar(cs1, ax=axs, location="bottom", pad=0.05, aspect=40, label='Mixed layer depth (in m)')
         # plt.subplots_adjust(bottom=0.30)
 
-        cb = fig.colorbar(cs1, ax=axs[num,0], location="bottom", pad=0.1, aspect=40, label=f'Pot Temp trend in {data.avg_thetao.attrs["units"]}')
-        cb2 = fig.colorbar(cs2, ax=axs[num,1], location="bottom", pad=0.1, aspect=40, label=f'Salinity trend in {data.avg_thetao.attrs["units"]}')
-
+        cb1 = fig.colorbar(cs1, ax=axs[num,0], location="bottom", pad=0.2, aspect=40, label=f'Pot Temp trend in {data.avg_thetao.attrs["units"]}')
+        # cb_pos = cb1.ax.get_position()
+        # cb1.ax.set_position([cb_pos.x0, -0.05, cb_pos.width, cb_pos.height])
+        
+        cb2 = fig.colorbar(cs2, ax=axs[num,1], location="bottom", pad=0.2, aspect=40, label=f'Salinity trend in {data.avg_thetao.attrs["units"]}')
+        # cb_pos = cb2.ax.get_position()
+        # cb2.ax.set_position([cb_pos.x0, -0.02, cb_pos.width, cb_pos.height])
+        
         region_title = custom_region(region=self.region, lat_s=self.lat_s, lat_n=self.lat_n, lon_w=self.lon_w, lon_e=self.lon_e)
         self.title = f'Linear Trends of T,S at {self.level}m in the {region_title}'
         plt.suptitle(self.title, fontsize=24)
