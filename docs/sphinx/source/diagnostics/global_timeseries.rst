@@ -32,30 +32,81 @@ For the Gregory-like plot, the following variables are required:
 * ``mtnlwrf`` (Mean top net long-wave radiation flux, GRIB paramid 235040)
 * ``mtnswrf`` (Mean top net short-wave radiation flux, GRIB paramid 235039)
 
+Basic usage
+-----------
+
+The basic usage of each class is explained with a working example in the notebooks provided in the ``notebooks`` directory.
+The basic structure of the analysis is the following:
+
+.. code-block:: python
+
+    from global_time_series import Timeseries
+
+    # Define the models to analyse
+    models = ['IFS-NEMO', 'ICON']
+    exps = ['historical-1990', 'ssp370']
+    sources = ['lra-r100-monthly', 'lra-r100-monthly']
+
+    ts = Timeseries(var='2t', models=models, exps=exps, sources=sources,
+                    startdate='1990-01-01', enddate='1999-12-31',
+                    std_startdate='1990-01-01', std_enddate='1999-12-31',
+                    loglevel='INFO')
+    ts.run()
+
+The same structure can be used for the other classes.
+As can be seen, more than one model can be analysed at the same time.
+The user can also define the start and end date of the analysis and the reference dataset.
+
 CLI usage
 ---------
 
 The diagnostic can be run from the command line interface (CLI) by running the following command:
 
-```
-cd $AQUA/diagnostics/global_time_series/cli
-python cli_global_time_series.py --config_file <path_to_config_file>
-```
+.. code-block:: bash
+
+    cd $AQUA/diagnostics/global_time_series/cli
+    python cli_global_time_series.py --config_file <path_to_config_file>
+
+Three configuration files are provided and run when executing the aqua-analysis (see :ref:`aqua_analysis`).
+Two configuration files are for atmospheric and oceanic timeseries and gregory plots, and the third one is for the seasonal cycles.
+
+Additionally the CLI can be run with the following optional arguments:
+
+- ``--config``, ``-c``: Path to the configuration file.
+- ``--nworkers``, ``-n``: Number of workers to use for parallel processing.
+- ``--loglevel``, ``-l``: Logging level. Default is ``WARNING``.
+- ``--model``: Model to analyse. It can be defined in the config file.
+- ``--exp``: Experiment to analyse. It can be defined in the config file.
+- ``--source``: Source to analyse. It can be defined in the config file.
+- ``--outputdir``: Output directory for the plots.
+
+Config file structure
+^^^^^^^^^^^^^^^^^^^^^
 
 The configuration file is a YAML file that contains the following information:
 
 * ``models``: a list of models to analyse
 * ``outputdir``: the directory where the output files will be saved
 * ``timeseries``: a list of variables to compute the global mean time series
+* ``timeseries_formulae``: a list of formulae to compute the global mean time series
 * ``gregory``: a block that contains the variables required for the Gregory plot
 * ``seasonal_cycle``: a list of variables to compute the seasonal cycle
 
-Three configuration files are provided and run when executing the aqua-analysis (see :ref:`aqua_analysis`)
+The ``gregory`` block enables the plot and controls the details of the Gregory plot:
+
+* ``ts``: the variable name to compute the 2 metre temperature.
+* ``toa``: the list of variables to compute the Net radiation TOA. It will sum the variables in the list.
+* ``monthly``: a boolean that enables the monthly Gregory plot.
+* ``annual``: a boolean that enables the annual Gregory plot.
+* ``ref``: a boolean that enables the reference dataset for the Gregory plot. At the moment the dataset is ERA5 for 2t and CERES for the Net radiation TOA.
+* ``regrid``: if set to a value compatible with the AQUA Reader, the data will be regridded to the specified resolution.
+* ``ts_std_start``, ``ts_std_end``: the start and end date for the standard deviation calculation of 2t.
+* ``toa_std_start``, ``toa_std_end``: the start and end date for the standard deviation calculation of the Net radiation TOA.
 
 Output
 ------
 
-The diagnostic produces three types of plots as shown below:
+The diagnostic produces three types of plots (see :ref:`global_timeseries_examples`):
 
 * A comparison of monthly and/or annual global mean time series of the model and the reference dataset.
 * A comparison of the seasonal cycle of the model and the reference dataset.
@@ -73,6 +124,8 @@ The diagnostic uses the following reference datasets:
 
 Custom reference datasets can be used.
 
+.. _global_timeseries_examples:
+
 Example Plots
 -------------
 
@@ -81,6 +134,7 @@ All these plots can be produced by running the notebooks in the ``notebooks`` di
 
 .. figure:: figures/global_time_series_gregory.png
     :align: center
+    :width: 100%
 
     Gregory plot of IFS-NEMO historical-1990 and ssp370 simulations.
     The left panel represents the monthly Gregory plot, while on the right the annual Gregory plot is shown.
@@ -90,12 +144,14 @@ All these plots can be produced by running the notebooks in the ``notebooks`` di
 
 .. figure:: figures/global_time_series_timeseries.png
     :align: center
+    :width: 100%
 
     Global mean temperature time series of IFS-NEMO historical-1990 and comparison with ERA5.
     Both monthly and annual timeseries are shown. A 2 sigma confidence interval is evaluated for ERA5 data (1990-2020).
 
 .. figure:: figures/global_time_series_seasonalcycle.png
     :align: center
+    :width: 100%
 
     Seasonal cycle of the global mean temperature of IFS-NEMO historical-1990 and comparison with ERA5.
     The 2 sigma confidence interval is evaluated for ERA5 data (1990-2020).
