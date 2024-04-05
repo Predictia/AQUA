@@ -103,6 +103,23 @@ The ``gregory`` block enables the plot and controls the details of the Gregory p
 * ``ts_std_start``, ``ts_std_end``: the start and end date for the standard deviation calculation of 2t.
 * ``toa_std_start``, ``toa_std_end``: the start and end date for the standard deviation calculation of the Net radiation TOA.
 
+For the other classes, the configuration is done in a block called ``timeseries_plot_params``.
+The block contains a default configuration, that can be used for all the variables, and a specific configuration for each variable.
+If a block with a specific variable name is found, the default configuration is overwritten by the specific one.
+
+The ``timeseries_plot_params`` block contains the following parameters:
+
+* ``plot_ref``: a boolean that enables the reference dataset for the plot.
+* ``plot_ref_kw``: a dictionary with ``{'model': 'ERA5', 'exp': 'era5', 'source': 'monthly'}`` to define the reference dataset.
+* ``monthly``: a boolean that enables the monthly time series plot.
+* ``monthly_std``: a boolean that enables the monthly standard deviation bands.
+* ``annual``: a boolean that enables the annual time series plot.
+* ``annual_std``: a boolean that enables the annual standard deviation bands.
+* ``regrid``: if set to a value compatible with the AQUA Reader, the data will be regridded to the specified resolution.
+* ``startdate``, ``enddate``: the start and end date for the time series plot.
+* ``std_startdate``, ``std_enddate``: the start and end date for the standard deviation calculation.
+* ``longname``: the long name of the variable. Used to overwrite formulae names.
+
 Output
 ------
 
