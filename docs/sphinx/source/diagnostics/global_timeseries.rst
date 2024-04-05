@@ -1,7 +1,7 @@
-.. _global_mean_timeseries:
+.. _global_timeseries:
 
-Global mean time series
-=======================
+Global time series
+==================
 
 Description
 -----------
@@ -55,25 +55,32 @@ Three configuration files are provided and run when executing the aqua-analysis 
 Output
 ------
 
-The diagnostic producestwo plots:
+The diagnostic produces three types of plots as shown below:
 
-* ``timeseries.png``  A comparison of ICON and IFS global mean temperature
-* ``gregory.png``     A Gregory-like plot to analyse model drift in ICON
+* A comparison of monthly and/or annual global mean time series of the model and the reference dataset.
+* A comparison of the seasonal cycle of the model and the reference dataset.
+* A Gregory-like plot of the model and the reference dataset as bands.
 
-and two data files:
-
-* ``icon_2t_mean.nc`` Data for Gregory-like plot to analyse model drift in ICON
-* ``ifs_2t_mean.nc``  Data for Gregory-like plot to analyse model drift in IFS
+The timeseries, reference timeseries and standard deviation timeseries are saved in the output directory as netCDF files.
 
 Observations
 ------------
 
-The diagnostic has an optional dependence on the ERA5 reanalysis dataset.
+The diagnostic uses the following reference datasets:
 
-Example Plot(s)
----------------
+* ERA5 as a default reference dataset for the global mean time series and seasonal cycle.
+* ERA5 for the 2m temperature and CERES for the Net radiation TOA in the Gregory-like plot.
+
+Custom reference datasets can be used.
+
+Example Plots
+-------------
+
+A plot for each class is shown below.
+All these plots can be produced by running the notebooks in the ``notebooks`` directory on LUMI HPC.
 
 .. figure:: figures/global_time_series_gregory.png
+    :align: center
 
     Gregory plot of IFS-NEMO historical-1990 and ssp370 simulations.
     The left panel represents the monthly Gregory plot, while on the right the annual Gregory plot is shown.
@@ -82,11 +89,13 @@ Example Plot(s)
     This is evaluated with ERA5 data (1980-2010) for the 2m temperature and with CERES data (2000-2020) for the Net radiation TOA.
 
 .. figure:: figures/global_time_series_timeseries.png
+    :align: center
 
     Global mean temperature time series of IFS-NEMO historical-1990 and comparison with ERA5.
     Both monthly and annual timeseries are shown. A 2 sigma confidence interval is evaluated for ERA5 data (1990-2020).
 
 .. figure:: figures/global_time_series_seasonalcycle.png
+    :align: center
 
     Seasonal cycle of the global mean temperature of IFS-NEMO historical-1990 and comparison with ERA5.
     The 2 sigma confidence interval is evaluated for ERA5 data (1990-2020).
@@ -102,7 +111,7 @@ Notebooks are stored in diagnostics/global_time_series/notebooks
 Detailed API
 ------------
 
-This section provides a detailed reference for the Application Programming Interface (API) of the "global_mean_timeseries" diagnostic,
+This section provides a detailed reference for the Application Programming Interface (API) of the ``global_time_series`` diagnostic,
 produced from the diagnostic function docstrings.
 
 .. automodule:: global_time_series
