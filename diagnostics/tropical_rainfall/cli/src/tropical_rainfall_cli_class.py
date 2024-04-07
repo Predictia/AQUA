@@ -299,75 +299,82 @@ class Tropical_Rainfall_CLI:
         regridding of the data for these periods. The method adds localized time information to the sliced
         datasets and saves this information for further diagnostic analysis.
         """
-        self.reader = Reader(model=self.model, exp=self.exp, source=self.source, loglevel=self.reader_loglevel, regrid='r100',
-                            nproc=self.nproc)
-        full_dataset = self.reader.retrieve(var=self.model_variable)
-        self.s_year, self.f_year = adjust_year_range_based_on_dataset(full_dataset, start_year=self.s_year,
-                                                                        final_year=self.f_year)
-        s_month = 1 if self.s_month is None else self.s_month
-        f_month = 12 if self.f_month is None else self.f_month
-        
-        data_regrided = self.reader.regrid(full_dataset)
-        
-        path_to_output = self.path_to_buffer+f"{self.regrid}/{self.freq}/daily_variability/"
-        create_folder(path_to_output)
-        
-        for year in range(self.s_year, self.f_year+1):
-            data_per_year = data_regrided.sel(time=str(year))
-            if data_per_year.time.size != 0:
-                for x in range(s_month, f_month+1):
-                    keys = [f"{year}-{x:02}", self.model, self.exp, self.regrid, self.freq]
+        if 'h' in self.freq.lower():
+            self.logger.debug("Contains 'h' or 'H'")
+            self.reader = Reader(model=self.model, exp=self.exp, source=self.source, loglevel=self.reader_loglevel, regrid='r100',
+                                nproc=self.nproc)
+            full_dataset = self.reader.retrieve(var=self.model_variable)
+            self.s_year, self.f_year = adjust_year_range_based_on_dataset(full_dataset, start_year=self.s_year,
+                                                                            final_year=self.f_year)
+            s_month = 1 if self.s_month is None else self.s_month
+            f_month = 12 if self.f_month is None else self.f_month
+            
+            data_regrided = self.reader.regrid(full_dataset)
+            
+            path_to_output = self.path_to_buffer+f"{self.regrid}/{self.freq}/daily_variability/"
+            create_folder(path_to_output)
+            
+            for year in range(self.s_year, self.f_year+1):
+                data_per_year = data_regrided.sel(time=str(year))
+                if data_per_year.time.size != 0:
+                    for x in range(s_month, f_month+1):
+                        keys = [f"{year}-{x:02}", self.model, self.exp, self.regrid, self.freq]
 
-                    # Check for file existence based on keys and decide on rebuilding
-                    if self.rebuild_output and self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys):
-                        self.logger.info("Rebuilding output...")
-                        self.diag.tools.remove_file_if_exists_with_keys(folder_path=path_to_output, keys=keys)
-                    elif not self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys):
-                        self.logger.debug("No existing output. Proceeding with data processing...")
-                        try:
-                            data = data_per_year.sel(time=str(year)+'-'+str(x))
-                            self.diag.add_localtime(data, path_to_netcdf=path_to_output,
-                                                    name_of_file=f"{self.regrid}_{self.freq}", 
-                                                    new_unit="mm/hr")
-                        except KeyError:
-                            pass
-                        except Exception as e:
-                                # Handle other exceptions
-                                self.logger.error(f"An unexpected error occurred: {e}")
-                    self.logger.debug(f"Current Status: {x}/{f_month} months processed in year {year}.")
-        
+                        # Check for file existence based on keys and decide on rebuilding
+                        if self.rebuild_output and self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys):
+                            self.logger.info("Rebuilding output...")
+                            self.diag.tools.remove_file_if_exists_with_keys(folder_path=path_to_output, keys=keys)
+                        elif not self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys):
+                            self.logger.debug("No existing output. Proceeding with data processing...")
+                            try:
+                                data = data_per_year.sel(time=str(year)+'-'+str(x))
+                                self.diag.add_localtime(data, path_to_netcdf=path_to_output,
+                                                        name_of_file=f"{self.regrid}_{self.freq}", 
+                                                        new_unit="mm/hr")
+                            except KeyError:
+                                pass
+                            except Exception as e:
+                                    # Handle other exceptions
+                                    self.logger.error(f"An unexpected error occurred: {e}")
+                        self.logger.debug(f"Current Status: {x}/{f_month} months processed in year {year}.")
+        else:
+            self.logger.warning("Data appears to be not in hourly intervals. The CLI will not provide the plot of daily variability.")    
             
     def plot_daily_variability(self):
-        legend = f"{self.model} {self.exp}"
-        name_of_pdf =f"{self.model}_{self.exp}"
-        
-        output_path = f"{self.path_to_netcdf}daily_variability/"
-        output_buffer_path = f"{self.path_to_buffer}{self.regrid}/{self.freq}/daily_variability/"
-        
-        create_folder(output_path)
-        create_folder(output_buffer_path)
-        
-        model_merged = self.diag.merge_list_of_daily_variability(
-            path_to_output=output_buffer_path,
-            start_year=self.s_year, end_year=self.f_year,
-            start_month=self.s_month, end_month=self.f_month
-        )
-        filename = self.diag.dataset_to_netcdf(model_merged, path_to_netcdf=output_path, 
-                                               name_of_file=f'histogram_{self.model}_{self.exp}_{self.regrid}_{self.freq}')
-        
-        add = self.diag.daily_variability_plot(path_to_netcdf=filename, legend=legend,
-                                                trop_lat=90, relative=False,
-                                                linestyle='--', path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format,
-                                                name_of_file=name_of_pdf)
-        
-        #obs_interval = 1
-        #path_to_era5 = "/pfs/lustrep3/projappl/project_465000454/nazarova/output/NetCDF/daily_variability/trop_rainfall_era5_daily_variability_1940-01-01T00_2022-12-01T00_M.nc"
-        #self.logger.info(f"The path to ERA% data is  {path_to_era5}")
-        #if not os.path.exists(path_to_era5):
-        #    self.logger.error(f"The data is exist for compatison")
-        #    return
-        #add = self.diag.daily_variability_plot(path_to_netcdf=path_to_era5, legend='ERA5', color='tab:green', add=add,
-        #                                        trop_lat=90, s_time=self.s_year, f_time=self.f_year,
-        #                                        linestyle='--', path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format,
-        #                                        name_of_file=name_of_pdf)
+        if 'h' in self.freq.lower():
+            self.logger.debug("Contains 'h' or 'H'")
+            legend = f"{self.model} {self.exp}"
+            name_of_pdf =f"{self.model}_{self.exp}"
+            
+            output_path = f"{self.path_to_netcdf}daily_variability/"
+            output_buffer_path = f"{self.path_to_buffer}{self.regrid}/{self.freq}/daily_variability/"
+            
+            create_folder(output_path)
+            create_folder(output_buffer_path)
+            
+            model_merged = self.diag.merge_list_of_daily_variability(
+                path_to_output=output_buffer_path,
+                start_year=self.s_year, end_year=self.f_year,
+                start_month=self.s_month, end_month=self.f_month
+            )
+            filename = self.diag.dataset_to_netcdf(model_merged, path_to_netcdf=output_path, 
+                                                name_of_file=f'histogram_{self.model}_{self.exp}_{self.regrid}_{self.freq}')
+            
+            add = self.diag.daily_variability_plot(path_to_netcdf=filename, legend=legend,
+                                                    trop_lat=90, relative=False,
+                                                    linestyle='--', path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format,
+                                                    name_of_file=name_of_pdf)
+            
+            #obs_interval = 1
+            #path_to_era5 = "/pfs/lustrep3/projappl/project_465000454/nazarova/output/NetCDF/daily_variability/trop_rainfall_era5_daily_variability_1940-01-01T00_2022-12-01T00_M.nc"
+            #self.logger.info(f"The path to ERA% data is  {path_to_era5}")
+            #if not os.path.exists(path_to_era5):
+            #    self.logger.error(f"The data is exist for compatison")
+            #    return
+            #add = self.diag.daily_variability_plot(path_to_netcdf=path_to_era5, legend='ERA5', color='tab:green', add=add,
+            #                                        trop_lat=90, s_time=self.s_year, f_time=self.f_year,
+            #                                        linestyle='--', path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format,
+            #                                        name_of_file=name_of_pdf)
+        else:
+            self.logger.warning("Data appears to be not in hourly intervals. The CLI will not provide the plot of daily variability.")
 
