@@ -21,8 +21,6 @@ classifiers = [
 license = {text = "MIT License"}
 dependencies = [
     "fast-histogram",
-    "boost_histogram",
-    "dask_histogram"
 ]
 
 [tool.setuptools.package-data]
