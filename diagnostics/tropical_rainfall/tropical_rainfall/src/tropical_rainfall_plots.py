@@ -749,7 +749,6 @@ class PlottingClass:
             plt.suptitle(plot_title, fontsize=self.fontsize+3)
 
         plt.grid(True)
-        plt.ylim([-2,5])
         plt.xlim([0-0.2,24+0.2])
         plt.xlabel('Local time', fontsize=self.fontsize-2)
 
