@@ -950,19 +950,22 @@ class ToolsClass:
     def check_incomplete_months(self, files):
         filenames = [os.path.basename(file) for file in files]
         for file in filenames:
-            # Updated regex to match your file name format
-            match = re.search(r"(\d{4})-(\d{2})-(\d{2})T\d{2}_(\d{4})-(\d{2})-(\d{2})T\d{2}_3H.nc", file)
+            # Updated regex to accommodate both filename patterns
+            match = re.search(r"(\d{4})-(\d{2})-(\d{2})T\d{2}(?:_(\d{4})-(\d{2})-(\d{2})T\d{2})?_?(?:3H)?\.nc", file)
             if match:
                 start_year, start_month, start_day, end_year, end_month, end_day = match.groups()
-                start_date = datetime(int(start_year), int(start_month), int(start_day))
-                end_date = datetime(int(end_year), int(end_month), int(end_day))
-                
-                # Calculate the last day of the start month
-                last_day = monthrange(start_date.year, start_date.month)[1]
-                
-                # If the end date is before the last day of the month, it's incomplete
-                if end_date < datetime(int(end_year), int(end_month), last_day):
-                    self.logger.warning(f"Warning: Be careful, the month {start_year}-{start_month} is incomplete.")
+
+                if end_year and end_month and end_day:
+                    # If the file has an end date, use it to check completeness
+                    start_date = datetime(int(start_year), int(start_month), int(start_day))
+                    end_date = datetime(int(end_year), int(end_month), int(end_day))
+
+                    # Calculate the last day of the end month
+                    last_day = monthrange(end_date.year, end_date.month)[1]
+
+                    # If the end date is before the last day of the month, it's incomplete
+                    if end_date < datetime(int(end_year), int(end_month), last_day):
+                        self.logger.warning(f"Warning: Be careful, the month {end_year}-{end_month} is incomplete.")
             else:
                 self.logger.warning(f"Could not match the file name format: {file}.")
 
@@ -970,39 +973,41 @@ class ToolsClass:
 
     def check_and_remove_incomplete_months(self, files):
         filenames = [os.path.basename(file) for file in files]
-        # Dictionaries to hold complete and incomplete files by month
         complete_files_by_month = defaultdict(list)
         incomplete_files_by_month = defaultdict(list)
 
-        # Adjusted regex to match the file name format correctly
+        # Adjusted regex to match both file name formats
         for file, full_path in zip(filenames, files):
-            match = re.search(r"(\d{4})-(\d{2})-(\d{2})T\d{2}_(\d{4})-(\d{2})-(\d{2})T\d{2}_3H.nc", file)
+            match = re.search(r"(\d{4})-(\d{2})-(\d{2})T\d{2}(?:_(\d{4})-(\d{2})-(\d{2})T\d{2})?_?(?:3H)?\.nc", file)
             if match:
-                start_year, start_month, _, end_year, end_month, end_day = match.groups()
-                end_date = datetime(int(end_year), int(end_month), int(end_day))
-                last_day = monthrange(int(end_year), int(end_month))[1]
+                start_year, start_month, start_day, end_year, end_month, end_day = match.groups()
 
-                if int(end_day) == last_day:  # Complete file
+                if end_year and end_month and end_day:
+                    # Handle files with both start and end timestamps
+                    end_date = datetime(int(end_year), int(end_month), int(end_day))
+                    last_day = monthrange(int(end_year), int(end_month))[1]
+                    if int(end_day) == last_day:  # Complete file
+                        complete_files_by_month[f"{start_year}-{start_month}"].append(full_path)
+                    else:  # Incomplete file
+                        incomplete_files_by_month[f"{start_year}-{start_month}"].append(full_path)
+                else:
+                    # Assuming files with a single date are complete month summaries
+                    # Add additional checks here if needed
                     complete_files_by_month[f"{start_year}-{start_month}"].append(full_path)
-                else:  # Incomplete file
-                    incomplete_files_by_month[f"{start_year}-{start_month}"].append(full_path)
             else:
                 self.logger.error(f"Could not match the file name format: {file}")
 
-        # Prepare the final list of files, prioritizing complete months
+        # Logic to prioritize complete months and prepare the final list of files
         final_files = []
         for month, paths in complete_files_by_month.items():
-            final_files.extend(paths)  # Add complete files
+            final_files.extend(paths)
             if month in incomplete_files_by_month:
-                # Warn and exclude incomplete files when a complete month is present
                 self.logger.warning(f"Warning: Removing incomplete records for {month} because a complete month file is present.")
 
-        # Include incomplete files only if a complete month file is not present
         for month, paths in incomplete_files_by_month.items():
             if month not in complete_files_by_month:
                 final_files.extend(paths)
 
-        # Paths are already full, so no need to reconstruct them
         return final_files
 
     def sanitize_attributes(self, ds, max_attr_length=500):
