@@ -4,7 +4,7 @@ Installation
 ============
 
 In this section we will provide a step-by-step guide to install the Python package AQUA.
-AQUA is developed and tested with Python 3.11 and it supports Python 3.9 and later.
+AQUA is developed and tested with Python 3.12 and it supports Python 3.9 and later.
 
 We recommend using Mamba, a package manager for conda-forge, for the installation process.
 However, you can also use Conda, the default package manager for Anaconda.
@@ -117,6 +117,23 @@ If you do not agree, you will need to call ``load_aqua.sh`` manually every time 
 
 .. note ::
     If you encounter any issues with the installation script, please refer to the :ref:`faq` section.
+
+Installation on Levante HPC at DKRZ
+-----------------------------------
+
+You can follow the mamba installation process described in the previous section.
+
+The only issue regards the availability of the FDB5 binary library (``libfdb5.so``) since
+at the moment a specific module for levante seems not to be available.
+
+You can either compile your own copy and then make it available (download the source code from ``https://github.com/ecmwf/fdb``),
+or you can use our precompiled version by setting
+
+.. code-block:: bash
+
+    export LD_LIBRARY_PATH=/work/bb1153/b382075/aqua/local/lib:$LD_LIBRARY_PATH 
+    
+in ``.bash_profile`` and in ``.bashrc`` in your home directory.
 
 Installation and use of the AQUA container
 ------------------------------------------
