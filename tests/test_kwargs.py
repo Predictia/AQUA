@@ -8,14 +8,14 @@ class TestKwargs:
     def test_kwargs_default(self):
         reader = Reader(model="FESOM", exp="test-pi", source="kwargs-2d")
         data = reader.retrieve()
-        assert list(data.data_vars) == ['sst']
+        assert list(data.data_vars) == ['avg_tos']
         assert data.time.dt.year == 1985
 
     @pytest.mark.aqua
     def test_kwargs_one_option(self):
         reader = Reader(model="FESOM", exp="test-pi", source="kwargs-2d", year=1986)
         data = reader.retrieve()
-        assert list(data.data_vars) == ['sst']
+        assert list(data.data_vars) == ['avg_tos']
         assert data.time.dt.year == 1986
 
     @pytest.mark.aqua
@@ -24,4 +24,3 @@ class TestKwargs:
         data = reader.retrieve()
         assert list(data.data_vars) == ['a_ice']
         assert data.time.dt.year == 1986
-
