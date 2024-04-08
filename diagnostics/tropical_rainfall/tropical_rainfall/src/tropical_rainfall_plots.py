@@ -418,12 +418,12 @@ class PlottingClass:
             plt.xscale('log') if self.xlogscale else None
 
         if save and isinstance(path_to_pdf, str):
-            self.savefig(path_to_pdf, self.pdf_format)
+            path_to_pdf = self.savefig(path_to_pdf, self.pdf_format)
 
         if 'Dataset' in str(type(data)):
-            return [fig,  ax1, ax2, ax3, ax4, ax5, ax_twin_5]
+            return [fig,  ax1, ax2, ax3, ax4, ax5, ax_twin_5, path_to_pdf]
         else:
-            return [fig,  ax]
+            return [fig,  ax, path_to_pdf]
 
     def plot_seasons_or_months(self, data: xr.DataArray, cbarlabel: Optional[str] = None, seasons: Optional[list] = None,
                                months: Optional[list] = None, cmap: str = 'coolwarm', save: bool = True,
@@ -755,6 +755,6 @@ class PlottingClass:
                        fontsize=self.fontsize-2, ncol=2)
 
         if save and isinstance(path_to_pdf, str):
-            self.savefig(path_to_pdf, self.pdf_format)
+            path_to_pdf = self.savefig(path_to_pdf, self.pdf_format)
 
-        return {fig, ax}
+        return {fig, ax}, path_to_pdf
