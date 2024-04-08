@@ -36,9 +36,7 @@ def plot_maps(maps: list = None,
     Args:
         maps (list):          list of xarray.DataArray objects
         titles (list,opt):    list of titles for the maps
-        contour (bool,opt):   If True, plot a contour map,
-                              otherwise a pcolormesh.
-                              Defaults to True.
+        contour (bool,opt):   If True, plot a contour map,otherwise a pcolormesh. Defaults to True.
         save (bool,opt):      save the figure, default is False
         sym (bool,opt):       symetric colorbar, default is False
         figsize (tuple,opt):  figure size, default is (11, 8.5)
@@ -52,10 +50,9 @@ def plot_maps(maps: list = None,
         loglevel (str,opt):   log level, default is 'WARNING'
         **kwargs:             additional arguments
 
-    Kwargs:
+    Keyword Args:
         title (str,opt):      super title for the figure
-        transform_first (bool, optional): If True, transform the data before
-                                          plotting. Defaults to False.
+        transform_first (bool, optional): If True, transform the data before plotting. Defaults to False.
         vmin (float, optional): minimum value for the colorbar
         vmax (float, optional): maximum value for the colorbar
         cbar_label (str,opt): colorbar label
