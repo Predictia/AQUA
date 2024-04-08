@@ -13,15 +13,13 @@ import gc
 from dask.distributed import Client, LocalCluster
 
 from aqua import __version__ as aquaversion
-from aqua.util import load_yaml, get_arg, add_pdf_metadata
+from aqua.util import load_yaml, get_arg
 from aqua.exceptions import NoDataError, NotEnoughDataError
 from aqua.logger import log_configure
-from aqua.graphics import plot_single_map, plot_single_map_diff
 from teleconnections import __version__ as telecversion
 from teleconnections.bootstrap import bootstrap_teleconnections, build_confidence_mask
-from teleconnections.plots import indexes_plot
 from teleconnections.tc_class import Teleconnection
-from teleconnections.tools import set_figs, set_filename
+from teleconnections.tools import set_filename
 
 
 def parse_arguments(cli_args):
