@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 '''
 AQUA teleconnections command line interface for a single dataset.
-Reads configuration file and performs teleconnections diagnostic.
+It evaluates the ENSO teleconnections and performs a boostrap to
+evaluate the concordance of the teleconnections with ERA5.
 '''
 import argparse
 import os
@@ -37,12 +38,6 @@ def parse_arguments(cli_args):
                         help='if True, run is dry, no files are written')
     parser.add_argument('-l', '--loglevel', type=str,
                         help='log level [default: WARNING]')
-    parser.add_argument('--ref', action='store_true',
-                        required=False,
-                        help='if True, analysis is performed against a reference')
-    parser.add_argument('--bootstrap', action='store_true',
-                        required=False,
-                        help='if True, bootstrap is performed')
 
     # This arguments will override the configuration file if provided
     parser.add_argument('--model', type=str, help='model name',
@@ -88,11 +83,6 @@ if __name__ == '__main__':
     logger.info('Reading configuration yaml file: {}'.format(file))
     config = load_yaml(file)
 
-    # if ref we're running the analysis against a reference
-    ref = get_arg(args, 'ref', False)
-    if ref:
-        logger.debug('Running against a reference')
-
     # if dry we're not saving any file, debug mode
     dry = get_arg(args, 'dry', False)
     if dry:
@@ -103,13 +93,6 @@ if __name__ == '__main__':
         logger.debug('Saving files')
         savefig = True
         savefile = True
-
-    bootstrap = get_arg(args, 'bootstrap', False)
-    if bootstrap:
-        if ref:
-            logger.info('Running bootstrap, this may take a while')
-        else:
-            logger.warning('Bootstrap requires a reference model, running without bootstrap')
 
     try:
         outputdir = get_arg(args, 'outputdir', config['outputdir'])
@@ -140,6 +123,8 @@ if __name__ == '__main__':
     teleclist = []
     if NAO:
         teleclist.append('NAO')
+        logger.error('NAO bootstrap is not yet implemented, exiting')
+        sys.exit(1)
     if ENSO:
         teleclist.append('ENSO')
 
@@ -161,99 +146,90 @@ if __name__ == '__main__':
         full_year = config[telec].get('full_year', True)
         seasons = config[telec].get('seasons', None)
 
-        if ref:  # We run first the reference model since it's needed for comparison plots
-            logger.info('--ref: evaluating reference models first')
-            ref_config = config['reference'][0]
-            model_ref = ref_config.get('model', 'ERA5')
-            exp_ref = ref_config.get('exp', 'era5')
-            source_ref = ref_config.get('source', 'monthly')
-            regrid = ref_config.get('regrid', None)
-            zoom = ref_config.get('zoom', None)
-            freq = ref_config.get('freq', None)
-            logger.debug("setup: %s %s %s %s %s %s",
-                         model_ref, exp_ref, source_ref, regrid, freq, zoom)
+        ref_config = config['reference'][0]
+        model_ref = ref_config.get('model', 'ERA5')
+        exp_ref = ref_config.get('exp', 'era5')
+        source_ref = ref_config.get('source', 'monthly')
+        regrid = ref_config.get('regrid', None)
+        zoom = ref_config.get('zoom', None)
+        freq = ref_config.get('freq', None)
+        logger.debug("setup: %s %s %s %s %s %s",
+                     model_ref, exp_ref, source_ref, regrid, freq, zoom)
 
-            try:
-                tc_ref = Teleconnection(telecname=telec,
-                                        configdir=configdir,
-                                        model=model_ref, exp=exp_ref, source=source_ref,
-                                        regrid=regrid, freq=freq, zoom=zoom,
-                                        months_window=months_window,
-                                        outputdir=outputnetcdf,
-                                        outputfig=outputpdf,
-                                        savefig=savefig, savefile=savefile,
-                                        interface=interface,
-                                        loglevel=loglevel)
-                tc_ref.retrieve()
-            except NoDataError:
-                logger.error('No data available for %s teleconnection', telec)
-                continue
-            except ValueError as e:
-                logger.error('Error retrieving data for %s teleconnection: %s',
-                             telec, e)
-                continue
-            except Exception as e:
-                logger.error('Unexpected error retrieving data for %s teleconnection: %s',
-                             telec, e)
+        try:
+            tc_ref = Teleconnection(telecname=telec,
+                                    configdir=configdir,
+                                    model=model_ref, exp=exp_ref, source=source_ref,
+                                    regrid=regrid, freq=freq, zoom=zoom,
+                                    months_window=months_window,
+                                    outputdir=outputnetcdf,
+                                    outputfig=outputpdf,
+                                    savefig=savefig, savefile=savefile,
+                                    interface=interface,
+                                    loglevel=loglevel)
+            tc_ref.retrieve()
+        except NoDataError:
+            logger.error('No data available for %s teleconnection', telec)
+            continue
+        except ValueError as e:
+            logger.error('Error retrieving data for %s teleconnection: %s',
+                         telec, e)
+            continue
+        except Exception as e:
+            logger.error('Unexpected error retrieving data for %s teleconnection: %s',
+                         telec, e)
 
+        try:
+            tc_ref.evaluate_index()
+            ref_index = tc_ref.index
+        except NotEnoughDataError:
+            logger.error('Not enough data available for %s teleconnection', telec)
+            continue
+        except Exception as e:
+            logger.error('Error evaluating index for %s teleconnection: %s', telec, e)
+            continue
+
+        # We now evaluate the regression and correlation
+        # They are not saved, we just need them for comparison plots
+        # so we save them as variables
+        if full_year:
             try:
-                tc_ref.evaluate_index()
-                ref_index = tc_ref.index
+                ref_reg_full = tc_ref.evaluate_regression()
+                ref_cor_full = tc_ref.evaluate_correlation()
             except NotEnoughDataError:
                 logger.error('Not enough data available for %s teleconnection', telec)
                 continue
-            except Exception as e:
-                logger.error('Error evaluating index for %s teleconnection: %s', telec, e)
-                continue
-
-            # We now evaluate the regression and correlation
-            # They are not saved, we just need them for comparison plots
-            # so we save them as variables
-            if full_year:
-                try:
-                    ref_reg_full = tc_ref.evaluate_regression()
-                    ref_cor_full = tc_ref.evaluate_correlation()
-                except NotEnoughDataError:
-                    logger.error('Not enough data available for %s teleconnection',
-                                 telec)
-                    continue
-            else:
-                ref_reg_full = None
-                ref_cor_full = None
-
-            if seasons:
-                ref_reg_season = []
-                ref_cor_season = []
-                for i, season in enumerate(seasons):
-                    try:
-                        logger.info('Evaluating %s regression and correlation for %s season',
-                                    telec, season)
-                        reg = tc_ref.evaluate_regression(season=season)
-                        ref_reg_season.append(reg)
-                        cor = tc_ref.evaluate_correlation(season=season)
-                        ref_cor_season.append(cor)
-                    except NotEnoughDataError:
-                        logger.error('Not enough data available for %s teleconnection',
-                                     telec)
-                        continue
-            else:
-                ref_reg_season = None
-                ref_cor_season = None
-
-            if bootstrap:
-                ref_data = tc_ref.data
-            else:
-                ref_data = None
-
-            del tc_ref
-            gc.collect()
         else:
-            ref_index = None
-            ref_data = None
             ref_reg_full = None
             ref_cor_full = None
+
+        if seasons:
+            logger.error("Seasons are not yet implemented for the bootstrap technique")
             ref_reg_season = None
             ref_cor_season = None
+            continue
+            # ref_reg_season = []
+            # ref_cor_season = []
+            # for i, season in enumerate(seasons):
+            #     try:
+            #         logger.info('Evaluating %s regression and correlation for %s season',
+            #                     telec, season)
+            #         reg = tc_ref.evaluate_regression(season=season)
+            #         ref_reg_season.append(reg)
+            #         cor = tc_ref.evaluate_correlation(season=season)
+            #         ref_cor_season.append(cor)
+            #     except NotEnoughDataError:
+            #         logger.error('Not enough data available for %s teleconnection',
+            #                     telec)
+            #         continue
+        else:
+            ref_reg_season = None
+            ref_cor_season = None
+
+        ref_data = tc_ref.data
+
+        del tc_ref
+        gc.collect()
 
         # Model evaluation
         logger.debug('Models to be evaluated: %s', models)
@@ -317,309 +293,25 @@ if __name__ == '__main__':
                 cor_full = None
 
             if seasons:
-                reg_season = []
-                cor_season = []
-                for i, season in enumerate(seasons):
-                    try:
-                        logger.info('Evaluating %s regression and correlation for %s season',
-                                    telec, season)
-                        reg = tc.evaluate_regression(season=season)
-                        reg_season.append(reg)
-                        cor = tc.evaluate_correlation(season=season)
-                        cor_season.append(cor)
-                    except NotEnoughDataError:
-                        logger.error('Not enough data available for %s teleconnection',
-                                     telec)
-                        continue
+                logger.error("Seasons are not yet implemented for the bootstrap technique")
+                reg_season = None # = []
+                cor_season = None # = []
+                continue
+                # for i, season in enumerate(seasons):
+                #     try:
+                #         logger.info('Evaluating %s regression and correlation for %s season',
+                #                     telec, season)
+                #         reg = tc.evaluate_regression(season=season)
+                #         reg_season.append(reg)
+                #         cor = tc.evaluate_correlation(season=season)
+                #         cor_season.append(cor)
+                #     except NotEnoughDataError:
+                #         logger.error('Not enough data available for %s teleconnection',
+                #                      telec)
+                #         continue
             else:
                 reg_season = None
                 cor_season = None
 
-            if savefig:
-                if ref:  # Plot against the reference model
-                    title = '{} index'.format(telec)
-                    titles = ['{} index for {} {}'.format(telec, model, exp),
-                              '{} index for {}'.format(telec, model_ref)]
-                    description = '{} index plot for {} {} and {}'.format(telec, model, exp, model_ref)
-                    logger.debug('Description: %s', description)
-                    # Index plots
-                    try:
-                        filename = set_filename(filename=tc.filename, fig_type='index')
-                        filename += '_{}'.format(model_ref)
-                        filename += '.pdf'
-                        indexes_plot(indx1=tc.index, indx2=ref_index,
-                                     titles=titles,
-                                     save=True, outputdir=tc.outputfig,
-                                     filename=filename,
-                                     loglevel=loglevel)
-                        add_pdf_metadata(filename=os.path.join(tc.outputfig, filename),
-                                         metadata_value=description)
-                    except Exception as e:
-                        logger.error('Error plotting %s index: %s', telec, e)
-
-                    # Correlation plot
-                    map_names, maps, ref_maps, titles, descriptions, cbar_labels = set_figs(telec=telec,
-                                                                                            model=model,
-                                                                                            exp=exp,
-                                                                                            ref=model_ref,
-                                                                                            filename=tc.filename,
-                                                                                            cor=True, reg=False,
-                                                                                            full_year=full_year,
-                                                                                            seasons=seasons,
-                                                                                            reg_full=reg_full,
-                                                                                            cor_full=cor_full,
-                                                                                            reg_season=reg_season,
-                                                                                            cor_season=cor_season,
-                                                                                            ref_reg_full_year=ref_reg_full,
-                                                                                            ref_cor_full_year=ref_cor_full,
-                                                                                            ref_reg_season=ref_reg_season,
-                                                                                            ref_cor_season=ref_cor_season)
-                    logger.debug('map_names: %s', map_names)
-                    logger.debug('titles: %s', titles)
-                    logger.debug('descriptions: %s', descriptions)
-                    for i, data_map in enumerate(maps):
-                        vmin = -1
-                        vmax = 1
-                        try:
-                            plot_single_map_diff(data=data_map,
-                                                 data_ref=ref_maps[i],
-                                                 save=True,
-                                                 sym=False, sym_contour=False,
-                                                 cbar_label=cbar_labels[i],
-                                                 outputdir=tc.outputfig,
-                                                 filename=map_names[i],
-                                                 title=titles[i],
-                                                 transform_first=False,
-                                                 vmin_contour=vmin, vmax_contour=vmax,
-                                                 vmin_fill=vmin, vmax_fill=vmax,
-                                                 loglevel=loglevel)
-                        except Exception as err:
-                            logger.warning('Error plotting %s %s %s: %s',
-                                           model, exp, map_names[i], err)
-                            logger.info('Trying with transform_first=True')
-                            try:
-                                plot_single_map_diff(data=data_map,
-                                                     data_ref=ref_maps[i],
-                                                     save=True,
-                                                     sym=False, sym_contour=False,
-                                                     cbar_label=cbar_labels[i],
-                                                     outputdir=tc.outputfig,
-                                                     filename=map_names[i],
-                                                     title=titles[i],
-                                                     transform_first=True,
-                                                     vmin_contour=vmin, vmax_contour=vmax,
-                                                     vmin_fill=vmin, vmax_fill=vmax,
-                                                     loglevel=loglevel)
-                            except Exception as err2:
-                                logger.error('Error plotting %s %s %s: %s',
-                                             model, exp, map_names[i], err2)
-                        try:
-                            add_pdf_metadata(filename=os.path.join(tc.outputfig, map_names[i]),
-                                             metadata_value=descriptions[i])
-                        except FileNotFoundError as e:
-                            logger.error('Error adding metadata to %s: %s', map_names[i], e)
-
-                        if bootstrap:
-                            try:
-                                logger.info('Running bootstrap for %s teleconnection', telec)
-                                lower, upper = bootstrap_teleconnections(map=data_map,
-                                                                         index=tc.index,
-                                                                         index_ref=ref_index,
-                                                                         data_ref=ref_data,
-                                                                         statistic='cor',
-                                                                         loglevel=loglevel)
-                                mask = build_confidence_mask(data_map, lower, upper)
-
-                                if savefile:
-                                    logger.debug(f'Saving bootstrap mask for {telec} correlation')
-                                    mask.to_netcdf(os.path.join(tc.outputnetcdf, tc.filename + 'correlation_bootstrap.nc'))
-                            except Exception as e:
-                                logger.error('Error running bootstrap for %s teleconnection: %s', telec, e)
-
-                    # Regression plot
-                    map_names, maps, ref_maps, titles, descriptions, cbar_labels = set_figs(telec=telec,
-                                                                                            model=model,
-                                                                                            exp=exp,
-                                                                                            ref=model_ref,
-                                                                                            filename=tc.filename,
-                                                                                            cor=False, reg=True,
-                                                                                            full_year=full_year,
-                                                                                            seasons=seasons,
-                                                                                            reg_full=reg_full,
-                                                                                            cor_full=cor_full,
-                                                                                            reg_season=reg_season,
-                                                                                            cor_season=cor_season,
-                                                                                            ref_reg_full_year=ref_reg_full,
-                                                                                            ref_cor_full_year=ref_cor_full,
-                                                                                            ref_reg_season=ref_reg_season,
-                                                                                            ref_cor_season=ref_cor_season)
-                    logger.debug('map_names: %s', map_names)
-                    logger.debug('titles: %s', titles)
-                    logger.debug('descriptions: %s', descriptions)
-                    for i, data_map in enumerate(maps):
-                        vmin, vmax = config[telec].get('cbar_range', None)
-                        if vmin is None or vmax is None:
-                            sym = True
-                        else:
-                            sym = False
-                        try:
-                            plot_single_map_diff(data=data_map,
-                                                 data_ref=ref_maps[i],
-                                                 save=True, sym=sym,
-                                                 vmin_fill=vmin, vmax_fill=vmax,
-                                                 cbar_label=cbar_labels[i],
-                                                 outputdir=tc.outputfig,
-                                                 filename=map_names[i],
-                                                 title=titles[i],
-                                                 transform_first=False,
-                                                 loglevel=loglevel)
-                        except Exception as err:
-                            logger.warning('Error plotting %s %s %s: %s',
-                                           model, exp, map_names[i], err)
-                            logger.info('Trying with transform_first=True')
-                            try:
-                                plot_single_map_diff(data=data_map,
-                                                     data_ref=ref_maps[i],
-                                                     save=True, sym=sym,
-                                                     cbar_label=cbar_labels[i],
-                                                     outputdir=tc.outputfig,
-                                                     filename=map_names[i],
-                                                     title=titles[i],
-                                                     transform_first=True,
-                                                     loglevel=loglevel)
-                            except Exception as err2:
-                                logger.error('Error plotting %s %s %s: %s',
-                                             model, exp, map_names[i], err2)
-                        try:
-                            add_pdf_metadata(filename=os.path.join(tc.outputfig, map_names[i]),
-                                             metadata_value=descriptions[i])
-                        except FileNotFoundError as e:
-                            logger.error('Error adding metadata to %s: %s', map_names[i], e)
-
-                    if bootstrap:
-                        try:
-                            logger.info('Running bootstrap for %s teleconnection', telec)
-                            lower, upper = bootstrap_teleconnections(map=data_map,
-                                                                     index=tc.index,
-                                                                     index_ref=ref_index,
-                                                                     data_ref=ref_data,
-                                                                     statistic='reg',
-                                                                     loglevel=loglevel)
-                            mask = build_confidence_mask(data_map, lower, upper)
-
-                            if savefile:
-                                logger.debug(f'Saving bootstrap mask for {telec} regression')
-                                mask.to_netcdf(os.path.join(tc.outputnetcdf, tc.filename + 'regression_bootstrap.nc'))
-                        except Exception as e:
-                            logger.error('Error running bootstrap for %s teleconnection: %s', telec, e)
-
-                else:  # Individual plots
-                    # Index plot
-                    try:
-                        tc.plot_index()
-                    except Exception as e:
-                        logger.error('Error plotting %s index: %s', telec, e)
-                    # Correlation plot
-                    map_names, maps, ref_maps, titles, descriptions, cbar_labels = set_figs(telec=telec,
-                                                                                            model=model,
-                                                                                            exp=exp,
-                                                                                            filename=tc.filename,
-                                                                                            cor=True, reg=False,
-                                                                                            full_year=full_year,
-                                                                                            seasons=seasons,
-                                                                                            reg_full=reg_full,
-                                                                                            cor_full=cor_full,
-                                                                                            reg_season=reg_season,
-                                                                                            cor_season=cor_season)
-                    logger.debug('map_names: %s', map_names)
-                    logger.debug('titles: %s', titles)
-                    logger.debug('descriptions: %s', descriptions)
-                    for i, data_map in enumerate(maps):
-                        vmin = -1
-                        vmax = 1
-                        try:
-                            plot_single_map(data=data_map,
-                                            save=True, sym=False,
-                                            cbar_label=cbar_labels[i],
-                                            outputdir=tc.outputfig,
-                                            filename=map_names[i],
-                                            title=titles[i],
-                                            transform_first=False,
-                                            vmin=vmin, vmax=vmax,
-                                            loglevel=loglevel)
-                        except Exception as err:
-                            logger.warning('Error plotting %s %s %s: %s',
-                                           model, exp, map_names[i], err)
-                            logger.info('Trying with transform_first=True')
-                            try:
-                                plot_single_map(data=data_map,
-                                                save=True, sym=False,
-                                                cbar_label=cbar_labels[i],
-                                                outputdir=tc.outputfig,
-                                                filename=map_names[i],
-                                                title=titles[i],
-                                                transform_first=True,
-                                                vmin=vmin, vmax=vmax,
-                                                loglevel=loglevel)
-                            except Exception as err2:
-                                logger.error('Error plotting %s %s %s: %s',
-                                             model, exp, map_names[i], err2)
-                        try:
-                            add_pdf_metadata(filename=os.path.join(tc.outputfig, map_names[i]),
-                                             metadata_value=descriptions[i])
-                        except FileNotFoundError as e:
-                            logger.error('Error adding metadata to %s: %s', map_names[i], e)
-                    # Regression plot
-                    map_names, maps, ref_maps, titles, descriptions, cbar_labels = set_figs(telec=telec,
-                                                                                            model=model,
-                                                                                            exp=exp,
-                                                                                            filename=tc.filename,
-                                                                                            cor=False, reg=True,
-                                                                                            full_year=full_year,
-                                                                                            seasons=seasons,
-                                                                                            reg_full=reg_full,
-                                                                                            cor_full=cor_full,
-                                                                                            reg_season=reg_season,
-                                                                                            cor_season=cor_season)
-                    logger.debug('map_names: %s', map_names)
-                    logger.debug('titles: %s', titles)
-                    logger.debug('descriptions: %s', descriptions)
-                    for i, data_map in enumerate(maps):
-                        vmin, vmax = config[telec].get('cbar_range', None)
-                        if vmin is None or vmax is None:
-                            sym = True
-                        else:
-                            sym = False
-                        try:
-                            plot_single_map(data=data_map,
-                                            save=True, sym=sym,
-                                            vmin=vmin, vmax=vmax,
-                                            cbar_label=cbar_labels[i],
-                                            outputdir=tc.outputfig,
-                                            filename=map_names[i],
-                                            title=titles[i],
-                                            transform_first=False,
-                                            loglevel=loglevel)
-                        except Exception as err:
-                            logger.warning('Error plotting %s %s %s: %s',
-                                           model, exp, map_names[i], err)
-                            logger.info('Trying with transform_first=True')
-                            try:
-                                plot_single_map(data=data_map,
-                                                save=True, sym=sym,
-                                                cbar_label=cbar_labels[i],
-                                                outputdir=tc.outputfig,
-                                                filename=map_names[i],
-                                                title=titles[i],
-                                                transform_first=True,
-                                                loglevel=loglevel)
-                            except Exception as err2:
-                                logger.error('Error plotting %s %s %s: %s',
-                                             model, exp, map_names[i], err2)
-                        try:
-                            add_pdf_metadata(filename=os.path.join(tc.outputfig, map_names[i]),
-                                             metadata_value=descriptions[i])
-                        except FileNotFoundError as e:
-                            logger.error('Error adding metadata to %s: %s', map_names[i], e)
-
+            # Evaluate bootstrap
     logger.info('Teleconnections diagnostic finished.')
