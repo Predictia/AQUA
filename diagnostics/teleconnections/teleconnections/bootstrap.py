@@ -69,8 +69,8 @@ def bootstrap_teleconnections(map: xr.DataArray,
             bootstrap_maps.loc[dict(bootstrap=i)] = cor_evaluation(indx=boot_index, data=boot_data, **eval_kwargs)
 
     # Evaluate the percentile confidence intervals
-    lower = bootstrap_maps.quantile(1-concordance/2, dim='bootstrap')
-    upper = bootstrap_maps.quantile(concordance/2, dim='bootstrap')
+    upper = bootstrap_maps.quantile(1-concordance, dim='bootstrap')
+    lower = bootstrap_maps.quantile(concordance, dim='bootstrap')
 
     return lower, upper
 
@@ -90,8 +90,8 @@ def build_confidence_mask(map: xr.DataArray, lower: xr.DataArray, upper: xr.Data
         xr.DataArray: Confidence mask
     """
     if mask_concordance:
-        mask = ((map <= upper) & (map >= lower)).astype(int)
+        mask = xr.where((map > lower) & (map < upper), True, False)
     else:  # Mask the discordance regions
-        mask = ((map >= upper) | (map <= lower)).astype(int)
+        mask = xr.where((map < lower) | (map > upper), True, False)
 
     return mask
