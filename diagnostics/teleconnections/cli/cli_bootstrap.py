@@ -314,11 +314,32 @@ if __name__ == '__main__':
                 cor_season = None
 
             # Evaluate bootstrap
+            # You can use **eval_kwargs for the season argument in a future development
             logger.info('Evaluating bootstrap for %s teleconnection', telec)
-            l, u = bootstrap_teleconnections(map=reg_full, index_ref=ref_index,
+            l, u = bootstrap_teleconnections(map=reg_full, index=tc.index,
+                                             index_ref=ref_index,
                                              data_ref=ref_data, statistic='reg',
-                                             n_bootstrap=1000, loglevel=loglevel)
+                                             n_bootstraps=100,
+                                             loglevel=loglevel)
+
+            if not dry:
+                logger.info('Saving bootstrap results')
+                filename = set_filename(tc.filename, fig_type='bootstrap')
+                l_filename = filename + '_lower.nc'
+                u_filename = filename + '_upper.nc'
+                l_path = os.path.join(outputnetcdf, l_filename)
+                u_path = os.path.join(outputnetcdf, u_filename)
+                l.to_netcdf(l_path)
+                u.to_netcdf(u_path)
+
             confidence_mask = build_confidence_mask(reg_full, l, u)
+
+            if not dry:
+                logger.info('Saving confidence mask')
+                filename = set_filename(filename=tc.filename, fig_type='confidence_mask')
+                mask_filename = filename + '.nc'
+                mask_path = os.path.join(outputnetcdf, mask_filename)
+                confidence_mask.to_netcdf(mask_path)
 
             # Plotting
             logger.info('Plotting concordance map')
