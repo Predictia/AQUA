@@ -410,11 +410,24 @@ class Tropical_Rainfall_CLI:
                                       plot_title=plot_title, loc=self.loc,
                                       name_of_file=f"{self.regrid}_{self.freq}")
             path_to_mswep = f"{self.mswep}r100/M/mean/trop_rainfall_r100_M_lat_1979-02-01T00_2020-11-01T00_M.nc"
-            self.diag.plot_of_average(path_to_netcdf=path_to_mswep, 
+            add = self.diag.plot_of_average(path_to_netcdf=path_to_mswep, 
                                       trop_lat=90, color=self.mswep_color, fig=add,
                                       legend="MSWEP",
                                       path_to_pdf=self.path_to_pdf,
                                       name_of_file=f"{self.regrid}_{self.freq}")
+            path_to_imerg = f"{self.imerg}r100/M/mean/trop_rainfall_r100_M_lat_2000-09-01T00_2022-11-01T00_M.nc"
+            add = self.diag.plot_of_average(path_to_netcdf=path_to_imerg, 
+                                      trop_lat=90, color=self.imerg_color, fig=add,
+                                      legend="IMERG",
+                                      path_to_pdf=self.path_to_pdf,
+                                      name_of_file=f"{self.regrid}_{self.freq}")
+            path_to_era5 = f"{self.era5}r100/M/mean/trop_rainfall_r100_M_lat_1940-01-01T00_2023-12-01T06_744H.nc"
+            add = self.diag.plot_of_average(path_to_netcdf=path_to_era5, 
+                                      trop_lat=90, color=self.era5_color, fig=add,
+                                      legend="ERA5",
+                                      path_to_pdf=self.path_to_pdf,
+                                      name_of_file=f"{self.regrid}_{self.freq}")
+            
                                         
             add = self.diag.plot_of_average(path_to_netcdf=model_average_path_lon, trop_lat=90,
                                       path_to_pdf=self.path_to_pdf, color=self.color,
@@ -422,9 +435,21 @@ class Tropical_Rainfall_CLI:
                                       plot_title=plot_title, loc=self.loc,
                                       name_of_file=f"{self.regrid}_{self.freq}")
             path_to_mswep = f"{self.mswep}r100/M/mean/trop_rainfall_r100_M_lon_1979-09-01T00_2020-11-01T00_M.nc"
-            self.diag.plot_of_average(path_to_netcdf=path_to_mswep, 
+            add = self.diag.plot_of_average(path_to_netcdf=path_to_mswep, 
                                       trop_lat=90, color=self.mswep_color, fig=add,
                                       legend="MSWEP",
+                                      path_to_pdf=self.path_to_pdf,
+                                      name_of_file=f"{self.regrid}_{self.freq}")
+            path_to_imerg = f"{self.imerg}r100/M/mean/trop_rainfall_r100_M_lon_2000-09-01T00_2022-11-01T00_M.nc"
+            add = self.diag.plot_of_average(path_to_netcdf=path_to_imerg, 
+                                      trop_lat=90, color=self.imerg_color, fig=add,
+                                      legend="IMERG",
+                                      path_to_pdf=self.path_to_pdf,
+                                      name_of_file=f"{self.regrid}_{self.freq}")
+            path_to_era5 = f"{self.era5}r100/M/mean/trop_rainfall_r100_M_lon_1940-09-01T00_2023-11-01T06_720H.nc"
+            add = self.diag.plot_of_average(path_to_netcdf=path_to_era5, 
+                                      trop_lat=90, color=self.era5_color, fig=add,
+                                      legend="ERA5",
                                       path_to_pdf=self.path_to_pdf,
                                       name_of_file=f"{self.regrid}_{self.freq}")
         else:
