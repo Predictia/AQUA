@@ -951,7 +951,7 @@ class ToolsClass:
         filenames = [os.path.basename(file) for file in files]
         for file in filenames:
             # Updated regex to accommodate both filename patterns
-            match = re.search(r"(\d{4})-(\d{2})-(\d{2})T\d{2}(?:_(\d{4})-(\d{2})-(\d{2})T\d{2})?_?(?:3H)?\.nc", file)
+            match = re.search(r"(\d{4})-(\d{2})-(\d{2})T\d{2}(?:_(\d{4})-(\d{2})-(\d{2})T\d{2})?_?(?:\dH)?\.nc", file)
             if match:
                 start_year, start_month, start_day, end_year, end_month, end_day = match.groups()
 
@@ -978,7 +978,7 @@ class ToolsClass:
 
         # Adjusted regex to match both file name formats
         for file, full_path in zip(filenames, files):
-            match = re.search(r"(\d{4})-(\d{2})-(\d{2})T\d{2}(?:_(\d{4})-(\d{2})-(\d{2})T\d{2})?_?(?:3H)?\.nc", file)
+            match = re.search(r"(\d{4})-(\d{2})-(\d{2})T\d{2}(?:_(\d{4})-(\d{2})-(\d{2})T\d{2})?_?(?:\dH)?\.nc", file)
             if match:
                 start_year, start_month, start_day, end_year, end_month, end_day = match.groups()
 
