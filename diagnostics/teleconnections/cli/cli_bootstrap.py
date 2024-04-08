@@ -13,7 +13,7 @@ import gc
 from dask.distributed import Client, LocalCluster
 
 from aqua import __version__ as aquaversion
-from aqua.util import load_yaml, get_arg
+from aqua.util import load_yaml, get_arg, create_folder
 from aqua.exceptions import NoDataError, NotEnoughDataError
 from aqua.logger import log_configure
 from teleconnections import __version__ as telecversion
@@ -99,6 +99,8 @@ if __name__ == '__main__':
             outputdir = os.path.join(execdir, outputdir)
         outputnetcdf = os.path.join(outputdir, 'netcdf')
         outputpdf = os.path.join(outputdir, 'pdf')
+        create_folder(outputnetcdf, loglevel=loglevel)
+        create_folder(outputpdf, loglevel=loglevel)
     except KeyError:
         outputdir = None
         outputnetcdf = None
