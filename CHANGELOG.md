@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Allowing for jinja-based replacemente in load_yaml (#1045) 
 - Support for Python 3.12 (#1052)
 - Extending pytests (#1053)
 - More efficient use of `_retrieve_plain` for acessing sample data (#1048)
@@ -18,9 +19,10 @@ AQUA core complete list:
 - Remove  NextGEMS cycle2 sources (#1008)
 
 AQUA diagnostics complete list:
+- Timeseries: refactor of the documentation (#1031)
 - Radiation: boxplot can accomodate custom variables (#933)
 - Seaice: convert to module, add Extent maps (#803)
-- Implement seaice Volume timeseries and thickness maps (#1043)
+- Seaice: Implement seaice Volume timeseries and thickness maps (#1043)
 
 ## [v0.7.3]
 
