@@ -15,5 +15,5 @@ set -e
 workers=8
 
 # overwrite option with short dataset
-./check_speed.py -w ${workers}
+./cli_benchmarker.py -w ${workers}
 
