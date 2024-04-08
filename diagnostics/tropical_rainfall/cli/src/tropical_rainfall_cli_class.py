@@ -358,23 +358,76 @@ class Tropical_Rainfall_CLI:
                 start_month=self.s_month, end_month=self.f_month
             )
             filename = self.diag.dataset_to_netcdf(model_merged, path_to_netcdf=output_path, 
-                                                name_of_file=f'histogram_{self.model}_{self.exp}_{self.regrid}_{self.freq}')
+                                                name_of_file=f'daily_variability_{self.model}_{self.exp}_{self.regrid}_{self.freq}')
             
             add = self.diag.daily_variability_plot(path_to_netcdf=filename, legend=legend,
-                                                    trop_lat=90, relative=False,
+                                                    trop_lat=90, relative=False, color=self.color,
                                                     linestyle='--', path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format,
                                                     name_of_file=name_of_pdf)
             
-            #obs_interval = 1
-            #path_to_era5 = "/pfs/lustrep3/projappl/project_465000454/nazarova/output/NetCDF/daily_variability/trop_rainfall_era5_daily_variability_1940-01-01T00_2022-12-01T00_M.nc"
-            #self.logger.info(f"The path to ERA% data is  {path_to_era5}")
-            #if not os.path.exists(path_to_era5):
-            #    self.logger.error(f"The data is exist for compatison")
-            #    return
-            #add = self.diag.daily_variability_plot(path_to_netcdf=path_to_era5, legend='ERA5', color='tab:green', add=add,
-            #                                        trop_lat=90, s_time=self.s_year, f_time=self.f_year,
-            #                                        linestyle='--', path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format,
-            #                                        name_of_file=name_of_pdf)
+            path_to_era5 = f"{self.era5}r100/H/daily_variability"
+            era5_merged = self.diag.merge_list_of_daily_variability(
+                path_to_output=path_to_era5,
+                start_year=self.s_year, end_year=self.f_year,
+                start_month=self.s_month, end_month=self.f_month
+            )
+            if not os.path.exists(path_to_era5):
+                self.logger.error(f"The data is exist for compatison")
+                return
+            filename_era5 = self.diag.dataset_to_netcdf(era5_merged, path_to_netcdf=output_path, name_of_file=f'daily_variability_era5')
+            self.diag.daily_variability_plot(path_to_netcdf=filename_era5, legend='ERA5', relative=False,
+                                                   color=self.era5_color, add=add,
+                                                   linestyle='--', path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format,
+                                                   name_of_file=name_of_pdf)
         else:
             self.logger.warning("Data appears to be not in hourly intervals. The CLI will not provide the plot of daily variability.")
+
+
+    def average_profiles(self):
+        if 'm' in self.freq.lower() or 'y' in self.freq.lower():
+            self.logger.debug("Contains 'M' or 'Y'")
+            plot_title = f"Grid: {self.regrid}, frequency: {self.freq}"
+            legend_model = f"{self.model} {self.exp}"
+            name_of_pdf = f"{self.model}_{self.exp}_{self.regrid}_{self.freq}"
+            output_path = f"{self.path_to_netcdf}mean/"
+            
+            full_dataset = self.reader.retrieve(var=self.model_variable)
+            regrid_bool, freq_bool = self.need_regrid_timmean(full_dataset)
+            self.s_year, self.f_year = adjust_year_range_based_on_dataset(full_dataset, start_year=self.s_year,
+                                                                          final_year=self.f_year)
+            if regrid_bool:
+                full_dataset = self.reader.regrid(full_dataset)
+            
+            model_average_path_lat = self.diag.average_into_netcdf(full_dataset,
+                                                                   path_to_netcdf=output_path,
+                                                                   name_of_file=f"{self.regrid}_{self.freq}")
+            model_average_path_lon = self.diag.average_into_netcdf(full_dataset, coord='lon', trop_lat=90,
+                                                                   path_to_netcdf=output_path,
+                                                                   name_of_file=f"{self.regrid}_{self.freq}")
+            add = self.diag.plot_of_average(path_to_netcdf=model_average_path_lat, trop_lat=90,
+                                      path_to_pdf=self.path_to_pdf, color=self.color,
+                                      figsize=self.figsize, new_unit=self.new_unit, legend=legend_model,
+                                      plot_title=plot_title, loc=self.loc,
+                                      name_of_file=f"{self.regrid}_{self.freq}")
+            path_to_mswep = f"{self.mswep}r100/M/mean/trop_rainfall_r100_M_lat_1979-02-01T00_2020-11-01T00_M.nc"
+            self.diag.plot_of_average(path_to_netcdf=path_to_mswep, 
+                                      trop_lat=90, color=self.mswep_color, fig=add,
+                                      legend="MSWEP",
+                                      path_to_pdf=self.path_to_pdf,
+                                      name_of_file=f"{self.regrid}_{self.freq}")
+                                        
+            add = self.diag.plot_of_average(path_to_netcdf=model_average_path_lon, trop_lat=90,
+                                      path_to_pdf=self.path_to_pdf, color=self.color,
+                                      figsize=self.figsize, new_unit=self.new_unit, legend=legend_model,
+                                      plot_title=plot_title, loc=self.loc,
+                                      name_of_file=f"{self.regrid}_{self.freq}")
+            path_to_mswep = f"{self.mswep}r100/M/mean/trop_rainfall_r100_M_lon_1979-09-01T00_2020-11-01T00_M.nc"
+            self.diag.plot_of_average(path_to_netcdf=path_to_mswep, 
+                                      trop_lat=90, color=self.mswep_color, fig=add,
+                                      legend="MSWEP",
+                                      path_to_pdf=self.path_to_pdf,
+                                      name_of_file=f"{self.regrid}_{self.freq}")
+        else:
+            self.logger.warning("Data appears to be not in monthly or yearly intervals.") 
+            self.logger.warning("The CLI will not provide the netcdf of average profiles.")
 

@@ -19,6 +19,7 @@ def main():
     trop_rainfall_cli.plot_histograms()
     trop_rainfall_cli.daily_variability()
     trop_rainfall_cli.plot_daily_variability()
+    trop_rainfall_cli.average_profiles()
     
 
 if __name__ == '__main__':
