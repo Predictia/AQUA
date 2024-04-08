@@ -360,11 +360,16 @@ class Tropical_Rainfall_CLI:
             filename = self.diag.dataset_to_netcdf(model_merged, path_to_netcdf=output_path, 
                                                 name_of_file=f'daily_variability_{self.model}_{self.exp}_{self.regrid}_{self.freq}')
             
-            add = self.diag.daily_variability_plot(path_to_netcdf=filename, legend=legend,
+            add, _path_to_pdf = self.diag.daily_variability_plot(path_to_netcdf=filename, legend=legend, new_unit=self.new_unit,
                                                     trop_lat=90, relative=False, color=self.color,
                                                     linestyle='--', path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format,
                                                     name_of_file=name_of_pdf)
-            
+            description = (
+                f"Comparison of the daily variability of the precipitation data "
+                f"from {self.model} {self.exp}, measured in {self.new_unit}, over the time range "
+                f"{model_merged.time_band}, against observations."
+            )
+            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
             path_to_era5 = f"{self.era5}r100/H/daily_variability"
             era5_merged = self.diag.merge_list_of_daily_variability(
                 path_to_output=path_to_era5,
@@ -375,10 +380,12 @@ class Tropical_Rainfall_CLI:
                 self.logger.error(f"The data is exist for compatison")
                 return
             filename_era5 = self.diag.dataset_to_netcdf(era5_merged, path_to_netcdf=output_path, name_of_file=f'daily_variability_era5')
-            self.diag.daily_variability_plot(path_to_netcdf=filename_era5, legend='ERA5', relative=False,
+            self.diag.daily_variability_plot(path_to_netcdf=filename_era5, legend='ERA5', relative=False, new_unit=self.new_unit,
                                                    color=self.era5_color, add=add,
                                                    linestyle='--', path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format,
                                                    name_of_file=name_of_pdf)
+            description = description+f" The time range of ERA5 is {era5_merged.time_band}."
+            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
         else:
             self.logger.warning("Data appears to be not in hourly intervals. The CLI will not provide the plot of daily variability.")
 
@@ -409,49 +416,76 @@ class Tropical_Rainfall_CLI:
                                       figsize=self.figsize, new_unit=self.new_unit, legend=legend_model,
                                       plot_title=plot_title, loc=self.loc,
                                       name_of_file=f"{self.regrid}_{self.freq}")
+            _path_to_pdf = add[-1]
+            description = (
+                f"Comparison of the average precipitation profiles along latitude"
+                f"from {self.model} {self.exp}, measured in {self.new_unit}, over the time range "
+                f"{self.diag.tools.open_dataset(model_average_path_lat).time_band}, against observations."
+            )
+            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
+            
             path_to_mswep = f"{self.mswep}r100/M/mean/trop_rainfall_r100_M_lat_1979-02-01T00_2020-11-01T00_M.nc"
             add = self.diag.plot_of_average(path_to_netcdf=path_to_mswep, 
                                       trop_lat=90, color=self.mswep_color, fig=add,
                                       legend="MSWEP",
                                       path_to_pdf=self.path_to_pdf,
                                       name_of_file=f"{self.regrid}_{self.freq}")
+            description = description+f" The time range of MSWEP is {self.diag.tools.open_dataset(path_to_mswep).time_band}."
+            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
             path_to_imerg = f"{self.imerg}r100/M/mean/trop_rainfall_r100_M_lat_2000-09-01T00_2022-11-01T00_M.nc"
             add = self.diag.plot_of_average(path_to_netcdf=path_to_imerg, 
                                       trop_lat=90, color=self.imerg_color, fig=add,
                                       legend="IMERG",
                                       path_to_pdf=self.path_to_pdf,
                                       name_of_file=f"{self.regrid}_{self.freq}")
-            path_to_era5 = f"{self.era5}r100/M/mean/trop_rainfall_r100_M_lat_1940-01-01T00_2023-12-01T06_744H.nc"
+            description = description+f" The time range of IMERG is {self.diag.tools.open_dataset(path_to_imerg).time_band}."
+            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
+            path_to_era5 = f"{self.era5}r100/M/mean/trop_rainfall_r100_M_lat_1940-01-01T00_2023-12-01T06_M.nc"
             add = self.diag.plot_of_average(path_to_netcdf=path_to_era5, 
                                       trop_lat=90, color=self.era5_color, fig=add,
                                       legend="ERA5",
                                       path_to_pdf=self.path_to_pdf,
                                       name_of_file=f"{self.regrid}_{self.freq}")
-            
+            description = description+f" The time range of ERA5 is {self.diag.tools.open_dataset(path_to_era5).time_band}."
+            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
+                  
                                         
             add = self.diag.plot_of_average(path_to_netcdf=model_average_path_lon, trop_lat=90,
                                       path_to_pdf=self.path_to_pdf, color=self.color,
                                       figsize=self.figsize, new_unit=self.new_unit, legend=legend_model,
                                       plot_title=plot_title, loc=self.loc,
                                       name_of_file=f"{self.regrid}_{self.freq}")
+            _path_to_pdf = add[-1]
+            description = (
+                f"Comparison of the average precipitation profiles along longitude"
+                f"from {self.model} {self.exp}, measured in {self.new_unit}, over the time range "
+                f"{self.diag.tools.open_dataset(model_average_path_lat).time_band}, against observations."
+            )
+            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
             path_to_mswep = f"{self.mswep}r100/M/mean/trop_rainfall_r100_M_lon_1979-09-01T00_2020-11-01T00_M.nc"
             add = self.diag.plot_of_average(path_to_netcdf=path_to_mswep, 
                                       trop_lat=90, color=self.mswep_color, fig=add,
                                       legend="MSWEP",
                                       path_to_pdf=self.path_to_pdf,
                                       name_of_file=f"{self.regrid}_{self.freq}")
+            description = description+f" The time range of MSWEP is {self.diag.tools.open_dataset(path_to_mswep).time_band}."
+            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
             path_to_imerg = f"{self.imerg}r100/M/mean/trop_rainfall_r100_M_lon_2000-09-01T00_2022-11-01T00_M.nc"
             add = self.diag.plot_of_average(path_to_netcdf=path_to_imerg, 
-                                      trop_lat=90, color=self.imerg_color, fig=add,
-                                      legend="IMERG",
-                                      path_to_pdf=self.path_to_pdf,
-                                      name_of_file=f"{self.regrid}_{self.freq}")
-            path_to_era5 = f"{self.era5}r100/M/mean/trop_rainfall_r100_M_lon_1940-09-01T00_2023-11-01T06_720H.nc"
+                                            trop_lat=90, color=self.imerg_color, fig=add,
+                                            legend="IMERG",
+                                            path_to_pdf=self.path_to_pdf,
+                                            name_of_file=f"{self.regrid}_{self.freq}")
+            description = description+f" The time range of IMERG is {self.diag.tools.open_dataset(path_to_imerg).time_band}."
+            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
+            path_to_era5 = f"{self.era5}r100/M/mean/trop_rainfall_r100_M_lon_1940-09-01T00_2023-11-01T06_M.nc"
             add = self.diag.plot_of_average(path_to_netcdf=path_to_era5, 
                                       trop_lat=90, color=self.era5_color, fig=add,
                                       legend="ERA5",
                                       path_to_pdf=self.path_to_pdf,
                                       name_of_file=f"{self.regrid}_{self.freq}")
+            description = description+f" The time range of ERA5 is {self.diag.tools.open_dataset(path_to_era5).time_band}."
+            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
         else:
             self.logger.warning("Data appears to be not in monthly or yearly intervals.") 
             self.logger.warning("The CLI will not provide the netcdf of average profiles.")
