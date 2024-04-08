@@ -19,6 +19,7 @@ AQUA core complete list:
 - Remove  NextGEMS cycle2 sources (#1008)
 
 AQUA diagnostics complete list:
+- Tropical rainfall: adding daily variability and precipitation profiles to the cli (#1063)
 - Tropical rainfall: adding metadata and comparison with era5 and imerg to the plots, re-binning of the histograms and buffering of the data (#1014)
 - Radiation: boxplot can accomodate custom variables (#933)
 - Seaice: convert to module, add Extent maps (#803)
