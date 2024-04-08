@@ -11,8 +11,10 @@ import sys
 import gc
 
 from dask.distributed import Client, LocalCluster
+import matplotlib.pyplot as plt
 
 from aqua import __version__ as aquaversion
+from aqua.graphics import plot_single_map
 from aqua.util import load_yaml, get_arg, create_folder
 from aqua.exceptions import NoDataError, NotEnoughDataError
 from aqua.logger import log_configure
@@ -319,7 +321,7 @@ if __name__ == '__main__':
             l, u = bootstrap_teleconnections(map=reg_full, index=tc.index,
                                              index_ref=ref_index,
                                              data_ref=ref_data, statistic='reg',
-                                             n_bootstraps=100,
+                                             n_bootstraps=1000,
                                              loglevel=loglevel)
 
             if not dry:
@@ -342,5 +344,15 @@ if __name__ == '__main__':
                 confidence_mask.to_netcdf(mask_path)
 
             # Plotting
-            logger.info('Plotting concordance map')
+            if not dry:
+                logger.info('Plotting concordance map')
+                fig, ax = plot_single_map(reg_full, transform_first=True,
+                                          return_fig=True, sym=True,
+                                          title=f'{telec} {model} {exp} {source} Concordance')
+                confidence_mask.where(confidence_mask == 1).plot.contour(levels=[0, 1], colors='none', hatches=['.', ''],
+                                                                         add_colorbar=False, ax=ax)
+                fig.tight_layout()
+                filename = set_filename(tc.filename, fig_type='concordance')
+                fig.savefig(os.path.join(outputpdf, filename + '.pdf'))
+
     logger.info('Teleconnections diagnostic finished.')
