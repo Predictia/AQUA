@@ -236,13 +236,10 @@ class PlottingClass:
 
         if xmax is not None:
             plt.xlim([0, xmax])
-        if not any([child.get_visible() for child in ax.get_children()]):
-            self.logger.error("The plot is empty. Skipping saving the plot.")
-            return
-        else:
-            if save and isinstance(path_to_pdf, str):
-                _path_to_pdf = self.savefig(path_to_pdf, self.pdf_format)
-        return {fig, ax}, _path_to_pdf
+            
+        if save and isinstance(path_to_pdf, str):
+            path_to_pdf = self.savefig(path_to_pdf, self.pdf_format)
+        return {fig, ax}, path_to_pdf
 
     def plot_of_average(self, data: Union[list, xr.DataArray] = None, trop_lat: Optional[float] = None, ylabel: str = '',
                         coord: Optional[str] = None, fontsize: Optional[int] = None, pad: int = 15,
@@ -741,10 +738,11 @@ class PlottingClass:
             if relative:
                 plt.suptitle(
                     'Relative Value of Daily Precipitation Variability', fontsize=self.fontsize+1)
-                plt.ylabel('mtpr variability, '+units, fontsize=self.fontsize-2)
+                plt.ylabel('relative mtpr', fontsize=self.fontsize-2)
             else:
                 plt.suptitle('Daily Precipitation Variability', fontsize=self.fontsize+1)
-                plt.ylabel('relative mtpr', fontsize=self.fontsize-2)
+                plt.ylabel('mtpr variability, '+units, fontsize=self.fontsize-2)
+                
         else:
             plt.suptitle(plot_title, fontsize=self.fontsize+3)
 
