@@ -294,8 +294,8 @@ if __name__ == '__main__':
 
             if seasons:
                 logger.error("Seasons are not yet implemented for the bootstrap technique")
-                reg_season = None # = []
-                cor_season = None # = []
+                reg_season = None  # = []
+                cor_season = None  # = []
                 continue
                 # for i, season in enumerate(seasons):
                 #     try:
@@ -314,4 +314,12 @@ if __name__ == '__main__':
                 cor_season = None
 
             # Evaluate bootstrap
+            logger.info('Evaluating bootstrap for %s teleconnection', telec)
+            l, u = bootstrap_teleconnections(map=reg_full, index_ref=ref_index,
+                                             data_ref=ref_data, statistic='reg',
+                                             n_bootstrap=1000, loglevel=loglevel)
+            confidence_mask = build_confidence_mask(reg_full, l, u)
+
+            # Plotting
+            logger.info('Plotting concordance map')
     logger.info('Teleconnections diagnostic finished.')
