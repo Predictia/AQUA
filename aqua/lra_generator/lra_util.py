@@ -2,6 +2,7 @@
 
 import os
 import shutil
+from glob import glob
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import ConfigPath
 from aqua.logger import log_configure
@@ -117,6 +118,28 @@ def opa_catalog_entry(datadir, model, exp, source,
 #         xfield.loc[{'time': xfield.time.values[0]}] = np.nan
 
 #    return xfield
+
+def list_lra_files(path, model, exp, reso='r100', freq='monthly'):
+    """
+    List LRA files in the specified path based on the given parameters.
+
+    Args:
+        path (str): The base path where the LRA files are located.
+        model (str): The model name.
+        exp (str): The experiment name.
+        reso (str, optional): The resolution of the files. Defaults to 'r100'.
+        freq (str, optional): The frequency of the files. Defaults to 'monthly'.
+
+    Returns:
+        tuple: A tuple containing two lists - lra_complete_files and lra_partial_files.
+               lra_complete_files (list): A list of complete LRA files.
+               lra_partial_files (list): A list of partial LRA files.
+    """
+
+    path = os.path.join(path, model, exp, reso, freq)
+    lra_complete_files = sorted(glob(os.path.join(path, '*_????.nc')))
+    lra_partial_files = sorted(glob(os.path.join(path, '*_??????.nc')))
+    return lra_complete_files, lra_partial_files
 
 def move_tmp_files(tmp_directory, output_directory):
     """
