@@ -20,9 +20,10 @@ AQUA core complete list:
 
 AQUA diagnostics complete list:
 - Tropical rainfall: adding metadata and comparison with era5 and imerg to the plots, re-binning of the histograms and buffering of the data (#1014)
+- Timeseries: refactor of the documentation (#1031)
 - Radiation: boxplot can accomodate custom variables (#933)
 - Seaice: convert to module, add Extent maps (#803)
-- Implement seaice Volume timeseries and thickness maps (#1043)
+- Seaice: Implement seaice Volume timeseries and thickness maps (#1043)
 
 ## [v0.7.3]
 
