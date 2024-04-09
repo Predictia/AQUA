@@ -331,6 +331,8 @@ if __name__ == '__main__':
                 u_filename = filename + '_upper.nc'
                 l_path = os.path.join(outputnetcdf, l_filename)
                 u_path = os.path.join(outputnetcdf, u_filename)
+                l.name = 'avg_tos'
+                u.name = 'avg_tos'
                 l.to_netcdf(l_path)
                 u.to_netcdf(u_path)
 
@@ -341,6 +343,7 @@ if __name__ == '__main__':
                 filename = set_filename(filename=tc.filename, fig_type='confidence_mask')
                 mask_filename = filename + '.nc'
                 mask_path = os.path.join(outputnetcdf, mask_filename)
+                confidence_mask.name = 'avg_tos'
                 confidence_mask.to_netcdf(mask_path)
 
             # Plotting
