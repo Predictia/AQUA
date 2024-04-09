@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- IFS-FESOM storyline +2K added to the Lumi catalog (#1059)
 - Allowing for jinja-based replacemente in load_yaml (#1045) 
 - Support for Python 3.12 (#1052)
 - Extending pytests (#1053)
@@ -19,9 +20,13 @@ AQUA core complete list:
 - Remove  NextGEMS cycle2 sources (#1008)
 
 AQUA diagnostics complete list:
+- Teleconnections: bootstrap evaluation of concordance with reference dataset (#1026)
+- SSH: Improvement of the CLI (#1024) 
+- Tropical rainfall: adding metadata and comparison with era5 and imerg to the plots, re-binning of the histograms and buffering of the data (#1014)
+- Timeseries: refactor of the documentation (#1031)
 - Radiation: boxplot can accomodate custom variables (#933)
 - Seaice: convert to module, add Extent maps (#803)
-- Implement seaice Volume timeseries and thickness maps (#1043)
+- Seaice: Implement seaice Volume timeseries and thickness maps (#1043)
 
 ## [v0.7.3]
 
