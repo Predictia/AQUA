@@ -102,6 +102,7 @@ but a list can be provided and it is done for the FDB sources available in the c
 If not specified, the default variable defined in the catalogue is used.
 
 .. warning::
+
     The FDB access can be significantly fasten by selecting variables and time range.
 
 An optional keyword, which in general we do **not** recommend to specify for dask access, is ``chunks``,
@@ -113,7 +114,7 @@ we use ``D`` for Tco2559 (native) and "1deg" streams, ``Y`` for monthly 2D data 
 In any case, if you use multiprocessing and run into memory troubles for your workers, you may wish to decrease
 the aggregation (i.e. chunk size).
 It is also possible to specify vertical chunking by passing a dictionary with the keys ``time`` and ``vertical``.
-In this case ``time`` will follow the notation discussed above, while ``vertical``specifies the number of vertical
+In this case ``time`` will follow the notation discussed above, while ``vertical`` specifies the number of vertical
 levels to use for each chunk.
 
 .. _iterators:
@@ -241,8 +242,8 @@ specify the queue's name as an argument of the function:
 
 .. warning::
 
-	The exclusive argument **does not** automatically provide us the maximum available memory,
-    number of cores, and walltime.
+        The exclusive argument **does not** automatically provide us the maximum available memory,
+        number of cores, and walltime.
 
 The function ``slurm.job()`` has an argument ``max_resources_per_node``, False by default.
 If we set the argument to ``max_resources_per_node=True``, the number of cores, memory,
@@ -284,5 +285,6 @@ Then the user can cancel the particular Job as:
 	slurm.scancel(all=False, Job_ID=5000000)
 
 .. warning::
+
     It is potentially dangerous to cancel all your jobs,
     always prefer to cancel jobs with the Job_ID

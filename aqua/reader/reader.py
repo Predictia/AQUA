@@ -30,7 +30,7 @@ from .reader_utils import configure_masked_fields
 # default spatial dimensions and vertical coordinates
 default_space_dims = ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude',
                       'latitude', 'cell', 'cells', 'ncells', 'values',
-                      'value', 'nod2', 'pix', 'elem']
+                      'value', 'nod2', 'pix', 'elem', 'xc', 'yc']
 
 # default vertical dimension
 default_vertical_dims = ['nz1', 'nz', 'level', 'height']
@@ -131,6 +131,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         self.enddate = enddate
 
         self.previous_data = None  # used for FDB iterator fixing
+        self.sample_data = None #used to avoid multiple calls of retrieve_plain
 
         # define configuration file and paths
         Configurer = ConfigPath()
@@ -836,18 +837,17 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         Returns:
             kwargs after check has been processed
         """
+        # remove null kwargs
+        parameters = {key: value for key, value in parameters.items() if value is not None}
 
-        #shortcat = self.cat[self.model][self.exp][self.source]
-        shortcat = self.esmcat
-        user_parameters = shortcat.describe().get('user_parameters')
-
+        user_parameters =  self.esmcat.describe().get('user_parameters')
         if user_parameters is not None:
             if parameters is None:
                 parameters = {}
 
             for param in user_parameters:
                 if param['name'] not in parameters:
-                    self.logger.warning('%s parameter is required but is missing, setting to default %s', 
+                    self.logger.warning('%s parameter is required but is missing, setting to default %s',
                                         param['name'], param['default'])
                     parameters[param['name']] = param['default']
 
@@ -1009,6 +1009,12 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             chunks = self.aggregation
         else:
             chunks = self.chunks
+
+        if isinstance(chunks, dict):
+            if self.aggregation and not chunks.get('time'):
+                chunks['time'] = self.aggregation
+            if self.streaming and not self.aggregation:
+                self.logger.warning("Aggregation is not set, using default time resolution for streaming. If you are asking for a longer chunks['time'] for GSV access, please set a suitable aggregation value")
     
         if dask:
             if chunks:  # if the chunking or aggregation option is specified override that from the catalogue
