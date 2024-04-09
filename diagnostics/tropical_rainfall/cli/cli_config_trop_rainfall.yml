@@ -1,7 +1,7 @@
 data:
-  model:  "MSWEP"         # Name of the climate model used
-  exp:    "past"          # Experiment identifier
-  source: "3hourly"       # Data source, specifying resolution and frequency
+  model:  "IFS-NEMO"         # Name of the climate model used
+  exp:    "ssp370"          # Experiment identifier
+  source: "hourly-hpz10-atm2d"       # Data source, specifying resolution and frequency #hourly-hpz10-atm2d
   freq:   "3H"            # Frequency of data, 'M' stands for Monthly
   regrid: "r010"          # Regridding option to apply
   s_year:  null           # Start year for analysis, 'null' means it will be set dynamically
@@ -48,8 +48,8 @@ mswep:
 era5:
   levante: "/work/bb1153/b382267/observations/ERA5/"  # File path for Levante machine
   lumi: "/pfs/lustrep3/projappl/project_465000454/nazarova/observations/ERA5/"
-  s_year:  None           # Start year for analysis, 'null' means it will be set dynamically
-  f_year:  None           # Final year for analysis, 'null' means it will be set dynamically
+  s_year:  null           # Start year for analysis, 'null' means it will be set dynamically
+  f_year:  null           # Final year for analysis, 'null' means it will be set dynamically
   auto: False             # will be set dynamically
   factor: null            # The factor by which to adjust bin widths
   color: 'tab:blue'       # Color for the plot
