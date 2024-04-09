@@ -15,8 +15,17 @@ interface: 'teleconnections-destine'
 # If you want to use native data, you have to set these parameters
 # for each model.
 models:
+  # - model: 'IFS-NEMO'
+  #   exp: 'historical-1990'
+  #   source: 'lra-r100-monthly'
   - model: 'IFS-NEMO'
+    exp: 'ssp370'
+    source: 'lra-r100-monthly'
+  - model: 'ICON'
     exp: 'historical-1990'
+    source: 'lra-r100-monthly'
+  - model: 'ICON'
+    exp: 'ssp370'
     source: 'lra-r100-monthly'
 
 # Reference is analyzed if --ref is passed to the script
@@ -32,7 +41,7 @@ reference:
 # outputdir
 # ├── pdf
 # └── netcdf
-outputdir: './output' # common output directory for figures and netcdf files
+outputdir: './output_deliverable' # common output directory for figures and netcdf files
 
 # Configdir for the teleconnections
 configdir: null
