@@ -37,6 +37,10 @@ def bootstrap_teleconnections(map: xr.DataArray,
         season (str): Season to compute the statistic. Default is None.
         loglevel (str): Logging level. Default is 'WARNING'.
         eval_kwargs (dict): Additional keyword arguments to pass to the evaluation function.
+
+    Returns:
+        xr.DataArray: Lower percentile map
+        xr.DataArray: Upper percentile map
     """
     logger = log_configure(loglevel, 'Bootstrap teleconnections')
 
