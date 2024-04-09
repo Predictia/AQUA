@@ -731,7 +731,7 @@ class PlottingClass:
         except AttributeError:
             units = mean_per_hour.mtpr.units
 
-        plt.plot(utc_time, mtpr, color=color, linestyle=self.linestyle, alpha=0.25)
+        #plt.plot(utc_time, mtpr, color=color, linestyle=self.linestyle, alpha=0.25)
         plt.plot(utc_time_smooth, mtpr_smooth, color=color, label=legend, linestyle=self.linestyle,
                  linewidth=1*self.linewidth)
         if plot_title is None:

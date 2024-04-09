@@ -79,6 +79,7 @@ class Tropical_Rainfall_CLI:
 
         self.rebuild_output = config['rebuild_output']
         if path_to_output is not None:
+            create_folder(path_to_output)
             self.path_to_netcdf = os.path.join(path_to_output, f'netcdf/{self.model}_{self.exp}/')
             self.path_to_pdf = os.path.join(path_to_output, f'pdf/{self.model}_{self.exp}/')
             self.path_to_buffer = os.path.join(path_to_buffer, f'netcdf/{self.model}_{self.exp}/')
@@ -118,13 +119,12 @@ class Tropical_Rainfall_CLI:
                                                                       final_year=self.f_year)
         s_month = 1 if self.s_month is None else self.s_month
         f_month = 12 if self.f_month is None else self.f_month
-
+        path_to_output = self.path_to_buffer+f"{self.regrid}/{self.freq}/histograms/"
+        create_folder(path_to_output)
         for year in range(self.s_year, self.f_year+1):
             data_per_year = full_dataset.sel(time=str(year))
             if data_per_year.time.size != 0:
                 for x in range(s_month, f_month+1):
-                    path_to_output = self.path_to_buffer+f"{self.regrid}/{self.freq}/histograms/"
-
                     bins_info = self.diag.get_bins_info()
                     keys = [f"{bins_info}_{year}-{x:02}", self.model, self.exp, self.regrid, self.freq]
 
@@ -220,7 +220,7 @@ class Tropical_Rainfall_CLI:
         self.logger.info("The Tropical Rainfall diagnostic is terminated.")
         
     def process_histograms(self, pdf_flag, pdfP_flag, model_merged=None, mswep_merged=None, 
-                       imerg_merged=None, era5_merged=None, linestyle='--'):
+                       imerg_merged=None, era5_merged=None, linestyle='-'):
         """
         Generates and saves histograms for model and observational data, with options for PDF and PDF*P plots.
         Allows for some datasets to be None, in which case those plots are skipped.
@@ -248,7 +248,6 @@ class Tropical_Rainfall_CLI:
                                         pdfP=pdfP_flag, legend=legend_model, color=self.color, xmax=self.xmax,
                                         plot_title=plot_title, loc=self.loc, path_to_pdf=self.path_to_pdf,
                                         pdf_format=self.pdf_format, name_of_file=name_of_pdf, factor=self.factor)
-            
             add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
         else:
             add = False  # Ensures that additional plots can be added to an existing plot if the model data is unavailable
@@ -313,7 +312,6 @@ class Tropical_Rainfall_CLI:
             
             path_to_output = self.path_to_buffer+f"{self.regrid}/{self.freq}/daily_variability/"
             create_folder(path_to_output)
-            
             for year in range(self.s_year, self.f_year+1):
                 data_per_year = data_regrided.sel(time=str(year))
                 if data_per_year.time.size != 0:
@@ -362,7 +360,7 @@ class Tropical_Rainfall_CLI:
             
             add, _path_to_pdf = self.diag.daily_variability_plot(path_to_netcdf=filename, legend=legend, new_unit=self.new_unit,
                                                     trop_lat=90, relative=False, color=self.color,
-                                                    linestyle='--', path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format,
+                                                    linestyle='-', path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format,
                                                     name_of_file=name_of_pdf)
             description = (
                 f"Comparison of the daily variability of the precipitation data "
@@ -382,7 +380,7 @@ class Tropical_Rainfall_CLI:
             filename_era5 = self.diag.dataset_to_netcdf(era5_merged, path_to_netcdf=output_path, name_of_file=f'daily_variability_era5')
             self.diag.daily_variability_plot(path_to_netcdf=filename_era5, legend='ERA5', relative=False, new_unit=self.new_unit,
                                                    color=self.era5_color, add=add,
-                                                   linestyle='--', path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format,
+                                                   linestyle='-', path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format,
                                                    name_of_file=name_of_pdf)
             description = description+f" The time range of ERA5 is {era5_merged.time_band}."
             add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
@@ -432,14 +430,7 @@ class Tropical_Rainfall_CLI:
                                       name_of_file=f"{self.regrid}_{self.freq}")
             description = description+f" The time range of MSWEP is {self.diag.tools.open_dataset(path_to_mswep).time_band}."
             add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
-            path_to_imerg = f"{self.imerg}r100/M/mean/trop_rainfall_r100_M_lat_2000-09-01T00_2022-11-01T00_M.nc"
-            add = self.diag.plot_of_average(path_to_netcdf=path_to_imerg, 
-                                      trop_lat=90, color=self.imerg_color, fig=add,
-                                      legend="IMERG",
-                                      path_to_pdf=self.path_to_pdf,
-                                      name_of_file=f"{self.regrid}_{self.freq}")
-            description = description+f" The time range of IMERG is {self.diag.tools.open_dataset(path_to_imerg).time_band}."
-            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
+            
             path_to_era5 = f"{self.era5}r100/M/mean/trop_rainfall_r100_M_lat_1940-01-01T00_2023-12-01T06_M.nc"
             add = self.diag.plot_of_average(path_to_netcdf=path_to_era5, 
                                       trop_lat=90, color=self.era5_color, fig=add,
@@ -470,6 +461,7 @@ class Tropical_Rainfall_CLI:
                                       name_of_file=f"{self.regrid}_{self.freq}")
             description = description+f" The time range of MSWEP is {self.diag.tools.open_dataset(path_to_mswep).time_band}."
             add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
+            
             path_to_imerg = f"{self.imerg}r100/M/mean/trop_rainfall_r100_M_lon_2000-09-01T00_2022-11-01T00_M.nc"
             add = self.diag.plot_of_average(path_to_netcdf=path_to_imerg, 
                                             trop_lat=90, color=self.imerg_color, fig=add,
@@ -478,6 +470,7 @@ class Tropical_Rainfall_CLI:
                                             name_of_file=f"{self.regrid}_{self.freq}")
             description = description+f" The time range of IMERG is {self.diag.tools.open_dataset(path_to_imerg).time_band}."
             add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
+
             path_to_era5 = f"{self.era5}r100/M/mean/trop_rainfall_r100_M_lon_1940-09-01T00_2023-11-01T06_M.nc"
             add = self.diag.plot_of_average(path_to_netcdf=path_to_era5, 
                                       trop_lat=90, color=self.era5_color, fig=add,
