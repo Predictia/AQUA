@@ -19,7 +19,8 @@ from aqua.reader import Reader
 from aqua.util import create_folder, generate_random_string
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import ConfigPath, file_is_complete
-from aqua.lra_generator.lra_util import move_tmp_files
+from aqua.util.zarr import create_zarr
+from aqua.lra_generator.lra_util import move_tmp_files, list_lra_files
 
 #from aqua.lra_generator.lra_util import check_correct_ifs_fluxes
 
@@ -244,6 +245,49 @@ class LRAgenerator():
                     'decode_times': True,
                     'combine': 'by_coords'
                 },
+            },
+            'metadata': {
+                'source_grid_name': 'lon-lat',
+            }
+        }
+
+        # find the catalog of my experiment
+        catalogfile = os.path.join(self.configdir, 'machines', self.machine,
+                                   'catalog', self.model, self.exp + '.yaml')
+
+        # load, add the block and close
+        cat_file = load_yaml(catalogfile)
+        if entry_name in cat_file['sources']:
+            self.logger.info('Catalog entry for %s %s %s exists, updating the urlpath only...',
+                             self.model, self.exp, entry_name)
+            cat_file['sources'][entry_name]['args']['urlpath'] = urlpath
+        else:
+            cat_file['sources'][entry_name] = block_cat
+        dump_yaml(outfile=catalogfile, cfg=cat_file)
+
+    def create_zarr_entry(self):
+        """
+        Create a Zarr entry in the catalog for the LRA
+        """
+
+        entry_name = f'lra-{self.resolution}-{self.frequency}-zarr'
+        fullfiles, partfiles = list_lra_files(self.outdir, self.model, self.exp, self.resolution, self.frequency)
+        self.logger.info('Creating zarr files for %s %s %s', self.model, self.exp, entry_name)
+        fulljson = os.path.join(self.outdir, f'lra-{self.resolution}-{self.frequency}-full.json')
+        partjson = os.path.join(self.outdir, f'lra-{self.resolution}-{self.frequency}-partial.json')
+        create_zarr(fullfiles, fulljson)
+        create_zarr(partfiles, partjson)
+
+        self.logger.info('Creating zarr catalog entry %s %s %s', self.model, self.exp, entry_name)
+        urlpath = [f'reference::{fulljson}', f'reference::{partjson}']
+        # define the block to be uploaded into the catalog
+        block_cat = {
+            'driver': 'zarr',
+            'description': f'LRA data {self.frequency} at {self.resolution} on zarr',
+            'args': {
+                'consolidated': False,
+                'combine': 'nested',
+                'urlpath': urlpath
             },
             'metadata': {
                 'source_grid_name': 'lon-lat',
