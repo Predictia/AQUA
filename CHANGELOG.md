@@ -19,6 +19,7 @@ AQUA core complete list:
 - Remove  NextGEMS cycle2 sources (#1008)
 
 AQUA diagnostics complete list:
+- SSH: Improvement of the CLI (#1024) 
 - Tropical rainfall: adding metadata and comparison with era5 and imerg to the plots, re-binning of the histograms and buffering of the data (#1014)
 - Timeseries: refactor of the documentation (#1031)
 - Radiation: boxplot can accomodate custom variables (#933)
