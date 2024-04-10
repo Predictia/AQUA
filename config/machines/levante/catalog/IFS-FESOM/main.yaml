@@ -4,3 +4,8 @@ sources:
     driver: yaml_file_cat
     args:
       path: '{{CATALOG_DIR}}/ssp370-ng4.yaml'
+  story-2017-historical:
+    description: storyline 2017 historical
+    driver: yaml_file_cat
+    args:
+      path: '{{CATALOG_DIR}}/story-2017-historical.yaml'
