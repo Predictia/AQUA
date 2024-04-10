@@ -19,7 +19,7 @@ from aqua.reader import Reader
 from aqua.util import create_folder, generate_random_string
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import ConfigPath, file_is_complete
-from aqua.util.zarr import create_zarr
+from aqua.util import create_zarr_reference
 from aqua.lra_generator.lra_util import move_tmp_files, list_lra_files
 
 
@@ -95,6 +95,8 @@ class LRAgenerator():
         if tmpdir is None:
             self.logger.warning('No tmpdir specifield, will use outdir')
             self.tmpdir = os.path.join(outdir, 'tmp')
+        else:
+            self.tmpdir = tmpdir
 
         if self.dask:
             self.logger.info('Running dask.distributed with %s workers', self.nproc)
@@ -124,7 +126,7 @@ class LRAgenerator():
             raise KeyError('Please specify variable string or list.')
         
         if resolution is not None:
-            self.ressolution = resolution
+            self.resolution = resolution
         else:
             raise KeyError('Please specify resolution.')
         self.logger.info('Variable(s) to be processed: %s', self.var)
@@ -286,13 +288,16 @@ class LRAgenerator():
 
         urlpath = []
         if fullfiles:
-            self.logger.info('Creating zarr files for full files')
-            create_zarr(fullfiles, fulljson)
+            self.logger.info('Creating zarr files for full files %s', fullfiles)
+            create_zarr_reference(fullfiles, fulljson)
             urlpath = urlpath + [f'reference::{fulljson}']
         if partfiles:
             self.logger.info('Creating zarr files for partial files')
-            create_zarr(partfiles, partjson)
+            create_zarr_reference(partfiles, partjson)
             urlpath = urlpath + [f'reference::{partjson}'] 
+
+        if not urlpath:
+            raise FileNotFoundError('No files found to create zarr reference')
 
         self.logger.info('Creating zarr catalog entry %s %s %s', self.model, self.exp, entry_name)
 
@@ -302,7 +307,7 @@ class LRAgenerator():
             'description': f'LRA data {self.frequency} at {self.resolution} on zarr',
             'args': {
                 'consolidated': False,
-                'combine': 'nested',
+                'combine': 'by_coords',
                 'urlpath': urlpath
             },
             'metadata': {
