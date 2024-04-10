@@ -9,13 +9,20 @@ fixer_name: ifs-destine-v1
 # Request/experiment definitions
 activity: ScenarioMIP
 experiment:  SSP3-7.0
-grid: tco2559
+atm_grid: tco399
+oce_grid: eORCA025
+expver: a17r
+resolutions: 
+  - native
+  - hpz7
+  #- hpz10
+  #- r025
 description: 'FDB IFS/NEMO historical run'
 data_start_date: 20200101
 data_end_date: auto
 fdb_home_healpix: /users/lrb_465000454_fdb
 fdb_home_regular: /users/lrb_465000454_fdb/latlon/etc
-fdb_home_native:: /users/lrb_465000454_fdb/native/etcl
+fdb_home_native: /users/lrb_465000454_fdb/native/etcl
 eccodes_version: 2.32.5
 
 #List of variables
