@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Tco399-eORCA025 control, historical and scenario runs added to Lumi catalog (#1070)
 - LRA for IFS-NEMO, IFS-FESOM, ICON added to Levante catalog (#1072)
 - IFS-FESOM storyline +2K added to the Lumi catalog (#1059)
 - Allowing for jinja-based replacemente in load_yaml (#1045) 
