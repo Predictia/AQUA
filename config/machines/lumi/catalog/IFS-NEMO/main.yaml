@@ -51,3 +51,13 @@ sources:
     driver: yaml_file_cat
     args:
       path: '{{CATALOG_DIR}}/a17r.yaml'
+  a16z:
+    description: FDB IFS/NEMO historical run
+    driver: yaml_file_cat
+    args:
+      path: '{{CATALOG_DIR}}/a16z.yaml'
+  a18j:
+    description: FDB IFS/NEMO historical run
+    driver: yaml_file_cat
+    args:
+      path: '{{CATALOG_DIR}}/a18j.yaml'
