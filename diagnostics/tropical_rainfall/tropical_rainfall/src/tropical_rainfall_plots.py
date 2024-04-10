@@ -135,11 +135,11 @@ class PlottingClass:
                     path_to_pdf), loglevel='WARNING')
 
         if pdf_format:
-            plt.savefig(path_to_pdf, format="pdf", bbox_inches="tight", pad_inches=1, transparent=True,
+            plt.savefig(path_to_pdf, format="pdf", bbox_inches="tight", pad_inches=0.1, transparent=True,
                         facecolor="w", edgecolor='w', orientation='landscape')
         else:
             path_to_pdf = path_to_pdf.replace('.pdf', '.png')
-            plt.savefig(path_to_pdf, bbox_inches="tight", pad_inches=1,
+            plt.savefig(path_to_pdf, bbox_inches="tight", pad_inches=0.1,
                         transparent=True, facecolor="w", edgecolor='w', orientation='landscape')
         self.logger.info(f"The path to plot is: {path_to_pdf}")
         return path_to_pdf
