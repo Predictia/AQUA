@@ -42,13 +42,19 @@ if __name__ == '__main__':
 
     # reading files
     definitions = load_yaml(definitions_file)
+
+    # levels from external file
     default = load_yaml('default.yaml')
-    #levels for IFS-NEMO:
     definitions = {**definitions, **default[definitions['model']]}
 
     #eccodes path
-    definitions['eccodes_path'] = '/projappl/project_465000454/jvonhar/aqua/eccodes/eccodes-' + definitions['eccodes_version'] + '/definitions'
+    if '/' not in definitions['eccodes_version'][0]:
+        definitions['eccodes_path'] = '/projappl/project_465000454/jvonhar/aqua/eccodes/eccodes-' + definitions['eccodes_version'] + '/definitions'
 
+    # description
+    if 'description' not in definitions:
+        definitions['description'] = f'FDB {definitions["model"]} {definitions["atm_grid"]}-{definitions["oce_grid"]} {definitions["experiment"]} run'
+    
     # jinja2 loading and replacing (to be checked)
     templateLoader = jinja2.FileSystemLoader(searchpath='./')
     templateEnv = jinja2.Environment(loader=templateLoader, trim_blocks=True, lstrip_blocks=True)

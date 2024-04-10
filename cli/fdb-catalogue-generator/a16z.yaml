@@ -17,7 +17,7 @@ resolutions:
   - hpz7
   #- hpz10
   #- r025
-description: 'FDB IFS/NEMO historical run'
+#description: 'FDB IFS/NEMO Tco399-eORCA025 control 1990 run'
 data_start_date: 19900101
 data_end_date: auto
 fdb_home_healpix: /users/lrb_465000454_fdb
