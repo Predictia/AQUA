@@ -22,7 +22,6 @@ from aqua.util import ConfigPath, file_is_complete
 from aqua.util.zarr import create_zarr
 from aqua.lra_generator.lra_util import move_tmp_files, list_lra_files
 
-#from aqua.lra_generator.lra_util import check_correct_ifs_fluxes
 
 
 class LRAgenerator():
@@ -93,29 +92,42 @@ class LRAgenerator():
             self.logger.warning('IMPORTANT: no file will be created, this is a dry run')
 
         self.nproc = int(nproc)
-        self.tmpdir = tmpdir
+        if tmpdir is None:
+            self.logger.warning('No tmpdir specifield, will use outdir')
+            self.tmpdir = os.path.join(outdir, 'tmp')
+
         if self.dask:
             self.logger.info('Running dask.distributed with %s workers', self.nproc)
-            if not self.tmpdir:
-                raise KeyError('Please specify tmpdir for dask.distributed.')
 
         self.tmpdir = os.path.join(self.tmpdir, 'LRA_' +
                                     generate_random_string(10))
-
-        if model:
+        
+        # safechecks
+        if model is not None:
             self.model = model
         else:
             raise KeyError('Please specify model.')
 
-        if exp:
+        if exp is not None:
             self.exp = exp
         else:
             raise KeyError('Please specify experiment.')
 
-        if source:
+        if source is not None:
             self.source = source
         else:
             raise KeyError('Please specify source.')
+        
+        if var is not None:
+            self.var = var
+        else:
+            raise KeyError('Please specify variable string or list.')
+        
+        if resolution is not None:
+            self.ressolution = resolution
+        else:
+            raise KeyError('Please specify resolution.')
+        self.logger.info('Variable(s) to be processed: %s', self.var)
 
         self.kwargs = kwargs
 
@@ -123,17 +135,7 @@ class LRAgenerator():
         self.configdir = Configurer.configdir
         self.machine = Configurer.machine
 
-        # Initialize variable(s)
-        self.var = var
-
-        if not self.var:
-            raise KeyError('Please specify variable string or list.')
-        self.logger.info('Variable(s) to be processed: %s', self.var)
-
-        self.resolution = resolution
-        if not self.resolution:
-            raise KeyError('Please specify resolution.')
-
+    
         self.frequency = frequency
         if not self.frequency:
             self.logger.info('Frequency not specified, no time averagin will be performed.')
@@ -159,6 +161,11 @@ class LRAgenerator():
         self.check = False
 
         # Create LRA folders
+        if outdir is None:
+            raise KeyError('Please specify outdir.')
+        if not os.path.exists(outdir):
+            raise FileNotFoundError('Outdir does not exist.')
+
         self.outdir = os.path.join(outdir, self.model, self.exp, self.resolution)
 
         if self.frequency:
@@ -272,16 +279,17 @@ class LRAgenerator():
 
         entry_name = f'lra-{self.resolution}-{self.frequency}-zarr'
         fullfiles, partfiles = list_lra_files(self.outdir)
-        self.logger.debug('Fullfiles found are %s', fullfiles)
-        self.logger.debug('Partfiles found are %s', partfiles)
+
         fulljson = os.path.join(self.outdir, f'lra-{self.resolution}-{self.frequency}-full.json')
         partjson = os.path.join(self.outdir, f'lra-{self.resolution}-{self.frequency}-partial.json')
         self.logger.info('Creating zarr files for %s %s %s', self.model, self.exp, entry_name)
+
         create_zarr(fullfiles, fulljson)
         create_zarr(partfiles, partjson)
 
         self.logger.info('Creating zarr catalog entry %s %s %s', self.model, self.exp, entry_name)
         urlpath = [f'reference::{fulljson}', f'reference::{partjson}']
+
         # define the block to be uploaded into the catalog
         block_cat = {
             'driver': 'zarr',
