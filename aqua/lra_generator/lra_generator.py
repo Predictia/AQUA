@@ -284,11 +284,17 @@ class LRAgenerator():
         partjson = os.path.join(self.outdir, f'lra-{self.resolution}-{self.frequency}-partial.json')
         self.logger.info('Creating zarr files for %s %s %s', self.model, self.exp, entry_name)
 
-        create_zarr(fullfiles, fulljson)
-        create_zarr(partfiles, partjson)
+        urlpath = []
+        if fullfiles:
+            self.logger.info('Creating zarr files for full files')
+            create_zarr(fullfiles, fulljson)
+            urlpath = urlpath + [f'reference::{fulljson}']
+        if partfiles:
+            self.logger.info('Creating zarr files for partial files')
+            create_zarr(partfiles, partjson)
+            urlpath = urlpath + [f'reference::{partjson}'] 
 
         self.logger.info('Creating zarr catalog entry %s %s %s', self.model, self.exp, entry_name)
-        urlpath = [f'reference::{fulljson}', f'reference::{partjson}']
 
         # define the block to be uploaded into the catalog
         block_cat = {
