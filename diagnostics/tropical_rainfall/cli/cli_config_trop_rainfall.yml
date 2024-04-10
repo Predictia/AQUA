@@ -40,7 +40,7 @@ mswep:
   levante: "/work/bb1153/b382267/observations/MSWEP/"  # File path for Levante machine
   lumi: "/pfs/lustrep3/projappl/project_465000454/nazarova/observations/MSWEP/"
   s_year:  1990           # Start year for analysis, 'null' means it will be set dynamically
-  f_year:  2021           # Final year for analysis, 'null' means it will be set dynamically
+  f_year:  2020           # Final year for analysis, 'null' means it will be set dynamically
   auto: False             # will be set dynamically
   factor: 10              # The factor by which to adjust bin widths
   color: 'tab:red'        # Color for the plot
@@ -48,8 +48,8 @@ mswep:
 era5:
   levante: "/work/bb1153/b382267/observations/ERA5/"  # File path for Levante machine
   lumi: "/pfs/lustrep3/projappl/project_465000454/nazarova/observations/ERA5/"
-  s_year:  null           # Start year for analysis, 'null' means it will be set dynamically
-  f_year:  null           # Final year for analysis, 'null' means it will be set dynamically
+  s_year:  1990           # Start year for analysis, 'null' means it will be set dynamically
+  f_year:  2021           # Final year for analysis, 'null' means it will be set dynamically
   auto: False             # will be set dynamically
   factor: null            # The factor by which to adjust bin widths
   color: 'tab:blue'       # Color for the plot

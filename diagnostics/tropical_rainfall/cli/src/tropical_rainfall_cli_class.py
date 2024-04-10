@@ -1,4 +1,6 @@
 import os
+import re
+import glob
 import pandas as pd
 from aqua.util import get_arg
 from aqua import Reader
@@ -157,6 +159,33 @@ class Tropical_Rainfall_CLI:
         self.logger.info("The histograms are calculated and saved in storage.")
         return None
 
+    def check_files(self, folder_path, start_year, end_year):
+        if self.s_month is None and self.f_month is None:
+            search_path = os.path.join(folder_path, '..', '*.nc')
+            self.logger.error(f"search_path {search_path}")
+            files = glob.glob(search_path)
+            self.logger.error(f"Files {files}")
+            # Regular expression to match the specific date format in your filenames
+            # Adjusted to extract the start and end years directly
+            date_pattern = re.compile(r'(\d{4})-\d{2}-\d{2}T\d{2}')
+
+
+            for file in files:
+                # Extract start and end years from filename
+                matches = date_pattern.findall(os.path.basename(file))
+                
+                if matches:
+                    file_start_year, file_end_year = matches[0], matches[-1]  # First and last match should be start and end years
+                    if str(start_year) == file_start_year and str(end_year) == file_end_year:
+                        self.logger.error(f"File {os.path.basename(file)} correctly spans from {start_year} to {end_year}.")
+                        self.logger.error(f"File {file}")
+                        return file
+                    else:
+                        self.logger.debug(f"File {os.path.basename(file)} does not span the specified period from {start_year} to {end_year}.")
+                else:
+                    self.logger.debug(f"No matching years found in {os.path.basename(file)}.")
+            return False
+
     def get_merged_histogram_for_source(self, source_info, default_interval=10):
         """
         Merges histogram data for a given source based on specified parameters or defaults.
@@ -173,11 +202,15 @@ class Tropical_Rainfall_CLI:
         start_year = self.s_year - default_interval if source_info.get('auto', False) else source_info.get('s_year', self.s_year)
         end_year = self.f_year + default_interval if source_info.get('auto', False) else source_info.get('f_year', self.f_year)
 
-        return self.diag.merge_list_of_histograms(
-            path_to_histograms=folder_path,
-            start_year=start_year, end_year=end_year,
-            start_month=self.s_month, end_month=self.f_month
-        )
+        file = self.check_files(folder_path=folder_path, start_year=start_year, end_year=end_year)
+        if file:
+            return self.diag.tools.open_dataset(file)
+        else:
+            return self.diag.merge_list_of_histograms(
+                path_to_histograms=folder_path,
+                start_year=start_year, end_year=end_year,
+                start_month=self.s_month, end_month=self.f_month
+            )
 
     def plot_histograms(self):
         """

@@ -54,15 +54,6 @@ all_diagnostics=("${atm_diagnostics[@]}" "${oce_diagnostics[@]}" "${atm_oce_diag
 
 log_message DEBUG "Running diagnostics: ${all_diagnostics[@]}"
 
-# Define the outputdir for ocanic and atmospheric diagnostics
-outputdir_atm="$outputdir/$model_atm/$exp"
-outputdir_oce="$outputdir/$model_oce/$exp"
-
-# Create output directory if it does not exist
-log_message INFO "Creating output directory $outputdir"
-mkdir -p "$outputdir_atm"
-mkdir -p "$outputdir_oce"
-
 run_dummy=true
 
 # Define an associative array for atmospheric extra arguments
@@ -124,8 +115,7 @@ atm_extra_args["teleconnections"]="${atm_extra_args["teleconnections"]} \
 oce_extra_args["teleconnections"]="${oce_extra_args["teleconnections"]} \
 --config cli_config_oce.yaml --ref"
 # Concatenate the new part to the existing content
-atm_extra_args["tropical_rainfall"]="--regrid=r100 --freq=M --xmax=75 \
---bufferdir=${outputdir_atm}/tropical_rainfall/"
+atm_extra_args["tropical_rainfall"]="--regrid=r100 --freq=M --xmax=75"
 # End of user defined variables
 # ---------------------------------------------------
 # Command line extra arguments for seasonal_cycles:
@@ -259,6 +249,10 @@ if [ $distributed -eq 1 ]; then
   atm_oce_extra_args["ecmean"]="${atm_oce_extra_args['ecmean']} --nworkers 4"
 fi
 
+# Define the outputdir for ocanic and atmospheric diagnostics
+outputdir_atm="$outputdir/$model_atm/$exp"
+outputdir_oce="$outputdir/$model_oce/$exp"
+
 # Define the arguments for the diagnostics
 args_atm="--model $model_atm --exp $exp --source $source"
 args_oce="--model $model_oce --exp $exp --source $source"
@@ -274,6 +268,14 @@ else
   sed -i "/^machine:/c\\machine: $machine" "${aqua}/config/config-aqua.yaml"
 fi
 log_message INFO "Machine set to $machine in the config file"
+
+# Create output directory if it does not exist
+log_message INFO "Creating output directory $outputdir"
+mkdir -p "$outputdir_atm"
+mkdir -p "$outputdir_oce"
+
+atm_extra_args["tropical_rainfall"]="${atm_extra_args["tropical_rainfall"]} \
+--bufferdir=${outputdir_atm}/tropical_rainfall/"
 
 cd $AQUA
 if [ "$run_dummy" = true ] ; then
@@ -355,4 +357,3 @@ done
 # Wait for all background processes to finish
 wait
 log_message INFO "Finished all diagnostics"
-
