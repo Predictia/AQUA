@@ -158,7 +158,7 @@ class LRAgenerator():
         self.last_record = None
         self.check = False
 
-        # Create LRA folder
+        # Create LRA folders
         self.outdir = os.path.join(outdir, self.model, self.exp, self.resolution)
 
         if self.frequency:
@@ -271,10 +271,12 @@ class LRAgenerator():
         """
 
         entry_name = f'lra-{self.resolution}-{self.frequency}-zarr'
-        fullfiles, partfiles = list_lra_files(self.outdir, self.model, self.exp, self.resolution, self.frequency)
-        self.logger.info('Creating zarr files for %s %s %s', self.model, self.exp, entry_name)
+        fullfiles, partfiles = list_lra_files(self.outdir)
+        self.logger.debug('Fullfiles found are %s', fullfiles)
+        self.logger.debug('Partfiles found are %s', partfiles)
         fulljson = os.path.join(self.outdir, f'lra-{self.resolution}-{self.frequency}-full.json')
         partjson = os.path.join(self.outdir, f'lra-{self.resolution}-{self.frequency}-partial.json')
+        self.logger.info('Creating zarr files for %s %s %s', self.model, self.exp, entry_name)
         create_zarr(fullfiles, fulljson)
         create_zarr(partfiles, partjson)
 
