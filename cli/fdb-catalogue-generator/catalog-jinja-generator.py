@@ -65,6 +65,9 @@ if __name__ == '__main__':
     output_filename = f"{definitions['exp']}.yaml"
     output_path = os.path.join(output_dir, output_filename)
 
+    if os.path.exists(output_path):
+        os.remove(output_path)
+
     with open(output_path, "w", encoding='utf8') as output_file:
         output_file.write(outputText)
 
