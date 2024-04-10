@@ -5,14 +5,14 @@ paths:
 
 metadata:
   parameters:
-    LUMI-LRA:
+    LUMI_LRA:
       type: str
       description: the path of the rsynced LRA data from lumi
       default: /work/bb1153/b382076/LRA-lumi
   
 sources:
   IFS-FESOM:
-    description: IFS-FESOM NextGEMS pre-final (cycle 4)
+    description: IFS-FESOM NextGEMS pre-final (cycle 4) and LUMI backup
     driver: yaml_file_cat
     args:
         path: "{{CATALOG_DIR}}/catalog/IFS-FESOM/main.yaml"
