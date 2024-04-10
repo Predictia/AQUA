@@ -2,6 +2,13 @@ paths:
   grids: /work/bb1153/b382075/aqua/grids
   weights: /work/bb1153/b382075/aqua/weights
   areas: /work/bb1153/b382075/aqua/areas
+
+metadata:
+  parameters:
+    LUMI-LRA:
+      type: str
+      description: the path of the rsynced LRA data from lumi
+      default: /work/bb1153/b382076/LRA-lumi
   
 sources:
   IFS-FESOM:
