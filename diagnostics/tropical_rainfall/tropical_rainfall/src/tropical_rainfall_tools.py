@@ -965,7 +965,7 @@ class ToolsClass:
 
                     # If the end date is before the last day of the month, it's incomplete
                     if end_date < datetime(int(end_year), int(end_month), last_day):
-                        self.logger.warning(f"The month {end_year}-{end_month} may be incomplete.")
+                        self.logger.debug(f"The month {end_year}-{end_month} may be incomplete.")
             else:
                 self.logger.warning(f"Could not match the file name format: {file}.")
 
