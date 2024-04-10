@@ -28,7 +28,7 @@ sources:
     driver: gsv
     metadata: &metadata-default
       fdb_home: {{ fdb_home_native }}
-      fdb_path: {{ fdb_home_native }}/etc/fdb/config.yaml
+      fdb_path: {{ fdb_home_native }}/fdb/config.yaml
       eccodes_path: {{ eccodes_path }}
       variables: {{ variables_atm2d }}
       source_grid_name: {{ atm_grid }}
@@ -65,7 +65,7 @@ sources:
     metadata:
       <<: *metadata-default
       fdb_home: {{ fdb_home_native }}
-      fdb_path: {{ fdb_home_native }}/etc/fdb/config.yaml
+      fdb_path: {{ fdb_home_native }}/fdb/config.yaml
       variables: {{ variables_oce2d }}
       source_grid_name: {{ oce_grid }}-2d
 
@@ -85,7 +85,7 @@ sources:
     metadata:
       <<: *metadata-default
       fdb_home: {{ fdb_home_native }}
-      fdb_path: {{ fdb_home_native }}/etc/fdb/config.yaml
+      fdb_path: {{ fdb_home_native }}/fdb/config.yaml
       levels: {{ oce_levels }}
       variables: {{ variables_oce3d }}
       source_grid_name: {{ oce_grid }}-3d-level
@@ -259,7 +259,7 @@ sources:
     metadata:
       <<: *metadata-default
       fdb_home: {{ fdb_home_regular }}
-      fdb_path: {{ fdb_home_regular }}/etc/fdb/config.yaml
+      fdb_path: {{ fdb_home_regular }}/fdb/config.yaml
       source_grid_name: era5-r025
 
   hourly-r025-atm3d:
@@ -277,7 +277,7 @@ sources:
     metadata:
       <<: *metadata-default
       fdb_home: {{ fdb_home_regular }}
-      fdb_path: {{ fdb_home_regular }}/etc/fdb/config.yaml
+      fdb_path: {{ fdb_home_regular }}/fdb/config.yaml
       source_grid_name: era5-r025
       levels: {{ atm_levels }}
       variables: {{ variables_atm3d }}
@@ -297,7 +297,7 @@ sources:
     metadata:
       <<: *metadata-default
       fdb_home: {{ fdb_home_regular }}
-      fdb_path: {{ fdb_home_regular }}/etc/fdb/config.yaml
+      fdb_path: {{ fdb_home_regular }}/fdb/config.yaml
       variables: {{ variables_oce2d }}
       source_grid_name: nemo-multiIO-r025
 
@@ -317,7 +317,7 @@ sources:
     metadata:
       <<: *metadata-default
       fdb_home: {{ fdb_home_regular }}
-      fdb_path: {{ fdb_home_regular }}/etc/fdb/config.yaml
+      fdb_path: {{ fdb_home_regular }}/fdb/config.yaml
       levels: {{ oce_levels }}
       variables: {{ variables_oce3d }}
       source_grid_name: nemo-multiIO-r025-3d
