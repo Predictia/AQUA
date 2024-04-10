@@ -14,6 +14,11 @@ sources:
     driver: yaml_file_cat
     args:
         path: "{{CATALOG_DIR}}/catalog/IFS/main.yaml"
+  IFS-NEMO:
+    description: IFS-NEMO coupled model
+    driver: yaml_file_cat
+    args:
+        path: "{{CATALOG_DIR}}/catalog/IFS-NEMO/main.yaml"
   FESOM:
     description: FESOM ocean model
     driver: yaml_file_cat
