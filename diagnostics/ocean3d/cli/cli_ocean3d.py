@@ -8,7 +8,7 @@ from aqua import Reader
 from aqua.util import load_yaml
 
 from ocean3d import check_variable_name
-from ocean3d import plot_stratification
+from ocean3d import stratification
 from ocean3d import plot_spatial_mld_clim
 from ocean3d import load_obs_data
 
@@ -142,8 +142,8 @@ class Ocean3DCLI:
         time_series_plot.plot()
 
         self.logger.info("Evaluating multilevel trend")
-        trend = linear_trend(o3d_request)
-        trend.multilevel_t_s_trend_plot()
+        trend = multilevel_trend(o3d_request)
+        trend.plot()
 
         self.logger.info("Evaluating zonal mean trend")
         zonal_trend = zonal_mean_trend(o3d_request)
@@ -159,8 +159,11 @@ class Ocean3DCLI:
         o3d_request = self.make_request(kwargs)
 
         self.logger.info("Evaluating stratification")
-        plot_stratification(o3d_request, time=time)
+        o3d_request["time"] = time
+        stratification(o3d_request)
+        
         self.logger.info("Evaluating Mixed layer depth")
+        o3d_request["time"] = time
         plot_spatial_mld_clim(o3d_request, time=time)
         
         self.logger.warning(f"Finished the diags for {region}")
