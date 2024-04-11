@@ -165,8 +165,6 @@ class LRAgenerator():
         # Create LRA folders
         if outdir is None:
             raise KeyError('Please specify outdir.')
-        if not os.path.exists(outdir):
-            raise FileNotFoundError('Outdir does not exist.')
 
         self.outdir = os.path.join(outdir, self.model, self.exp, self.resolution)
 
