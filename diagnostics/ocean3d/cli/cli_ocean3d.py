@@ -164,7 +164,7 @@ class Ocean3DCLI:
         
         self.logger.info("Evaluating Mixed layer depth")
         o3d_request["time"] = time
-        plot_spatial_mld_clim(o3d_request, time=time)
+        plot_spatial_mld_clim(o3d_request)
         
         self.logger.warning(f"Finished the diags for {region}")
 
