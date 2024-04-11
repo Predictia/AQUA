@@ -113,5 +113,6 @@ if __name__ == '__main__':
                     
         # create the catalog once the loop is over
         lra.create_catalog_entry()
+        lra.create_zarr_entry()
 
     print('LRA run completed. Have yourself a beer!')
