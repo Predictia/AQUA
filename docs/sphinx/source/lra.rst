@@ -31,6 +31,10 @@ The only difference is that a specific source must be defined, following the syn
 
     LRA built available on Levante and Lumi by AQUA team are all at ``r100`` (i.e. 1 deg resolution) and at ``monthly`` or ``daily`` frequency. 
 
+.. note ::
+    Since version v0.8.1 the LRA access is granted not only with usual NetCDF files but also with Zarr reference files. 
+    This is possible by setting ``source="lra-r100-monthly-zarr"`` in the Reader initialization. This will allow for faster access to the data.
+
 Generation of the LRA
 ---------------------
 
