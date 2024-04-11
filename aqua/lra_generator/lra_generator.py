@@ -305,7 +305,8 @@ class LRAgenerator():
             'description': f'LRA data {self.frequency} at {self.resolution} on zarr',
             'args': {
                 'consolidated': False,
-                'combine': 'by_coords',
+                'combine': 'nested', #this has to be double checked
+                'compat': 'override', #as above
                 'urlpath': urlpath
             },
             'metadata': {

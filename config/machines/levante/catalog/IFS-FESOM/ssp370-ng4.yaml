@@ -857,3 +857,15 @@ sources:
         combine: by_coords
     metadata:
       source_grid_name: lon-lat
+  lra-r100-monthly-zarr:
+    driver: zarr
+    description: LRA data monthly at r100 on zarr
+    args:
+      consolidated: false
+      combine: nested
+      compat: override
+      urlpath:
+      - reference::/work/bb1153/b382075/aqua/lra/IFS-FESOM/ssp370-ng4/r100/monthly/lra-r100-monthly-full.json
+      - reference::/work/bb1153/b382075/aqua/lra/IFS-FESOM/ssp370-ng4/r100/monthly/lra-r100-monthly-partial.json
+    metadata:
+      source_grid_name: lon-lat
