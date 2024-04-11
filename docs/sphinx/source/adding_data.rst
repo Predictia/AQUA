@@ -184,6 +184,11 @@ Some of the parameters are here described:
 
     As above, it tells AQUA when to stop reading from the FDB and it can be set to ``auto`` too (only if ``timestyle`` is 'date').
 
+.. option:: bridge_end_date
+
+    This optional date is used for cases where part of the data are on the HPC FDB and part on the databridge.
+    This is the first date/time (included) from which data are still on the HPC. Before all data are assumed to be on the databridge.
+
 .. option:: chunks
 
     The chunks parameter is essential, whether you are using Dask or a generator.
@@ -263,6 +268,9 @@ Some of the parameters are here described:
     This includes important supplementary information:
 
     - ``fdb_path``: the path of the FDB configuration file (mandatory)
+    - ``fdb_home``: the path to where the FDB data are stored (optional)
+    - ``fdb_path_bridge``: the path of the FDB configuration file for bridge access (optional)
+    - ``fdb_home_bridge``: FDB_HOME for bridge access (optional)
     - ``eccodes_path``: the path of the eccodes version used for the encoding/decoding of the FDB
     - ``variables``: a list of variables available in the fdb.
     - ``source_grid_name``: the grid name defined in aqua-grids.yaml to be used for areas and regridding
