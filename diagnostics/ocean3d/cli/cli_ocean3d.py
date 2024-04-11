@@ -160,7 +160,8 @@ class Ocean3DCLI:
 
         self.logger.info("Evaluating stratification")
         o3d_request["time"] = time
-        stratification(o3d_request)
+        strat = stratification(o3d_request)
+        strat.plot()
         
         self.logger.info("Evaluating Mixed layer depth")
         o3d_request["time"] = time
