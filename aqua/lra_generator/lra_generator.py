@@ -287,11 +287,11 @@ class LRAgenerator():
         urlpath = []
         if fullfiles:
             self.logger.info('Creating zarr files for full files %s', fullfiles)
-            create_zarr_reference(fullfiles, fulljson)
+            create_zarr_reference(fullfiles, fulljson, loglevel=self.loglevel)
             urlpath = urlpath + [f'reference::{fulljson}']
         if partfiles:
             self.logger.info('Creating zarr files for partial files')
-            create_zarr_reference(partfiles, partjson)
+            create_zarr_reference(partfiles, partjson, loglevel=self.loglevel)
             urlpath = urlpath + [f'reference::{partjson}'] 
 
         if not urlpath:
