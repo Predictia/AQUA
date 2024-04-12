@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- LRA for ICON avg_sos and avg_tos (#1076)
 - LRA for IFS-NEMO, IFS-FESOM, ICON added to Levante catalog (#1072)
 - IFS-FESOM storyline +2K added to the Lumi catalog (#1059)
 - Allowing for jinja-based replacemente in load_yaml (#1045) 
@@ -21,6 +22,7 @@ AQUA core complete list:
 - Remove  NextGEMS cycle2 sources (#1008)
 
 AQUA diagnostics complete list:
+- Performance indices: minor improvements with the inclusion of mask and area files (#1076)
 - Tropical rainfall: minor modifications to the CLI and fixes to changes in the wrapper introduced in PR #1063 (#1074)
 - Tropical rainfall: adding daily variability and precipitation profiles to the cli (#1063)
 - Teleconnections: bootstrap evaluation of concordance with reference dataset (#1026)
