@@ -1,14 +1,16 @@
 #!/bin/bash
-#SBATCH --partition=debug # compute is suggested on levante
+#SBATCH --partition=compute # compute is suggested on levante
 #SBATCH --job-name=timeseries
 #SBATCH --output=timeseries_%j.out
 #SBATCH --error=timeseries_%j.err
-#SBATCH --account=project_465000454
+#SBATCH --account=bb1153
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=128
-#SBATCH --time=00:30:00
+#SBATCH --time=01:00:00
 #SBATCH --mem=0
 set -e
+
+mamba activate aqua
 
 configfile="${AQUA}/diagnostics/global_time_series/deliverable/config_deliverable.yaml"
 scriptfile="${AQUA}/diagnostics/global_time_series/cli/cli_global_time_series.py"
