@@ -28,7 +28,7 @@ Input variables
 
 For Performance Indices the following variables are requested:
 
-* ``tprate`` (total precipitation rate, GRIB paramid 260048)
+* ``mtpr`` (Mean total precipitation rate, GRIB paramid 235055)
 * ``2t``     (2 metre temperature, GRIB paramid 167)
 * ``msl``    (mean sea level pressure, GRIB paramid 151)
 * ``metss``  (eastward wind stress, GRIB paramid 180)
@@ -41,6 +41,7 @@ For Performance Indices the following variables are requested:
 * ``avg_sos``    (sea surface salinity, GRIB paramid 263100)
 * ``avg_siconc``     (sea ice concentration, GRIB paramid 263001)
 
+If a variable (or more) is missing, blank line will be reported in the output figures. 
 
 3D fields are zonally averaged, so that the PIs reports the performance on the zonal field. 
 
