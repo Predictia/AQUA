@@ -4,12 +4,15 @@ Module to extract the seasonal cycle of a variable from a time series.
 import os
 import gc
 
+import xarray as xr
 from matplotlib import pyplot as plt
 from aqua.graphics import plot_seasonalcycle
 from aqua.util import create_folder, add_pdf_metadata, time_to_string
 from aqua.logger import log_configure
 
 from .timeseries import Timeseries
+
+xr.set_options(keep_attrs=True)
 
 
 class SeasonalCycle(Timeseries):
