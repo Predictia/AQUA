@@ -40,6 +40,11 @@ For Performance Indices the following variables are requested:
 * ``avg_tos``    (sea surface temperature, GRIB paramid 263101)
 * ``avg_sos``    (sea surface salinity, GRIB paramid 263100)
 * ``avg_siconc``     (sea ice concentration, GRIB paramid 263001)
+* ``msshf``     (surface sensible heat flux, GRIB paramid 235033, required for net surface flux computation)
+* ``mslhf```    (surface latent heat flux, GRIB paramid 235034, required for net surface flux computation)
+* ``msnlwrf``  (surface net longwave radiation flux, GRIB paramid 235038, required for net surface flux computation)
+* ``msnswrf``   (surface net shortwave radiation flux, GRIB paramid 235037, required for net surface flux computation)
+* ``msr``      (snowfall rate, GRIB paramid 235031, required for net surface flux computation)
 
 If a variable (or more) is missing, blank line will be reported in the output figures. 
 
