@@ -101,6 +101,29 @@ The CLI accepts the following arguments:
 - ``-d`` or ``--dry``: dry run, no files are written.
 - ``-l`` or ``--loglevel``: log level for the logger. Default is WARNING.
 
+Configuration file structure
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The configuration file is a YAML file that contains the following information:
+
+* ``teleconnections``: a block that contains the list of teleconnections to analyze. If not present, by default every teleconnection is skipped.
+* ``interface``: the interface file to use. Default is  ``teleconnections_destine.py``.
+* ``models``: a list of models to analyse. Here extra reader keyword can be added (e.g. ``regrid: 'r100'``, ``freq: 'M'``). By default we assume that data are monthly and regridded to 1x1 deg resolution.
+* ``reference``: a block that contains the reference dataset to compare the models with. If not present, ERA5 is used as default.
+* ``outputdir``: the directory where the output files will be saved
+* ``configdir``: the directory where the configuration files are saved, if not present the default directory inside AQUA is used.
+* ``NAO`` or ``ENSO``: a block that contains the parameters for the NAO or ENSO teleconnection analysis. By default NAO is evaluated for DJF and JJA, while ENSO for the full year, both with a 3 months rolling window over the original data.
+
+Bootstrap CLI
+^^^^^^^^^^^^^
+
+A command line interface for bootstrap evaluation is available in the ``cli`` folder.
+``cli_bootstrap.py`` is used to run the bootstrap evaluation for concordance maps of regression and correlation from the command line.
+This is not included in any automatic run of the diagnostic because it is a time-consuming process.
+The CLI accepts the same arguments and configuration files as the basic CLI.
+It produces only the netCDF files needed to plot the concordance maps, that needs to be generated in a second moment in a notebook.
+You can see the example notebook `concordance_map.ipynb` for more details.
+
 Input variables
 ---------------
 
@@ -125,6 +148,8 @@ The diagnostic produces the following output:
 - `ENSO`: El Niño Southern Oscillation index, regression and correlation maps.
 
 All these outputs can be stored both as images (pdf format) and as netCDF files.
+If a reference dataset is provided, the automatic maps consist of contour lines for the model regression map 
+and filled contour map for the difference between the model and the reference regression map.
 
 Example plot
 ------------
@@ -133,13 +158,14 @@ Example plot
    :width: 100%
 
    ENSO IFS-NEMO ssp370 regression map (avg_tos) compared to ERA5.
-   The contour lines are the model regression map and the filled contour map is the difference between the model and the reference regression map.
+   The contour lines are the model regression map and the filled contour map is the difference between the model and the reference regression map (ERA5).
 
 Available demo notebooks
 ------------------------
 
 - `NAO: notebook available <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/teleconnections/notebooks/NAO.ipynb>`_
 - `ENSO: notebook available <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/teleconnections/notebooks/ENSO.ipynb>`_
+- `concordance_map: notebook available <https://github.com/oloapinivad/AQUA/blob/main/diagnostics/teleconnections/notebooks/concordance_map.ipynb>`_
 
 Detailed API
 ------------
