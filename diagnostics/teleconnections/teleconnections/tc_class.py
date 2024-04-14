@@ -237,15 +237,6 @@ class Teleconnection():
                                                  months_window=self.months_window,
                                                  loglevel=self.loglevel, **kwargs)
 
-        # HACK: ICON has a depth_full dimension that is not used
-        #       but it is not removed by the index evaluation
-        if self.model == 'ICON':
-            try:
-                self.index = self.index.isel(depth_full=0)
-            except ValueError as e:
-                self.logger.debug(f"Depth_full dimension not found, skipping: {e}")
-                self.index = self.index
-
         self.logger.info('Index evaluated')
         if self.index is None:
             raise ValueError('It was not possible to calculate the index')
@@ -285,14 +276,6 @@ class Teleconnection():
         data, dim = self._prepare_corr_reg(var=var, data=data, dim=dim)
 
         reg = reg_evaluation(indx=self.index, data=data, dim=dim, season=season)
-        # HACK: ICON has a depth_full dimension that is not used
-        #       but it is not removed by the regression evaluation
-        if self.model == 'ICON':
-            try:
-                self.logger.warning("ICON data, trying to remove depth_full dimension")
-                reg = reg.isel(depth_full=0)
-            except ValueError:
-                self.logger.warning("Depth_full dimension not found, skipping")
 
         if self.savefile:
             if var:
