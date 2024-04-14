@@ -36,7 +36,6 @@ class Teleconnection():
                  configdir=None, aquaconfigdir=None,
                  interface='teleconnections-destine',
                  regrid=None, freq=None,
-                 zoom=None,
                  savefig=False, outputfig=None,
                  savefile=False, outputdir=None,
                  filename=None,
@@ -54,7 +53,6 @@ class Teleconnection():
             interface (str, optional):      Interface filename. Defaults to 'teleconnections-destine'.
             regrid (str, optional):         Regridding resolution. Defaults to None.
             freq (str, optional):           Frequency of the data. Defaults to None.
-            zoom (str, optional):           Zoom for ICON data. Defaults to None.
             savefig (bool, optional):       Save figures if True. Defaults to False.
             outputfig (str, optional):      Output directory for figures.
                                             If None, the current directory is used.
@@ -104,9 +102,6 @@ class Teleconnection():
                              'already at the desired frequency')
         self.logger.debug("Frequency: %s", self.freq)
 
-        self.zoom = zoom
-        self.logger.debug("Zoom: %s", self.zoom)
-
         # Teleconnection variables
         self.telecname = telecname
         avail_telec = ['NAO', 'ENSO']
@@ -146,10 +141,7 @@ class Teleconnection():
         # Notice that reader is a private method
         # but **kwargs are passed to it so that it can be used to pass
         # arguments to the reader if needed
-        if self.zoom:
-            self._reader(zoom=self.zoom, startdate=self.startdate, enddate=self.enddate)
-        else:
-            self._reader(startdate=self.startdate, enddate=self.enddate)
+        self._reader(startdate=self.startdate, enddate=self.enddate)
 
     def retrieve(self, var=None, **kwargs):
         """Retrieve teleconnection data with the AQUA reader.
