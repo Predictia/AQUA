@@ -32,6 +32,6 @@ echo "Config: $configfile_oce"
 python $scriptfile -c $configfile_oce -l DEBUG -n $workers --outputdir $outputdir --ref
 
 echo "Running the concordance map script"
-python ${AQUA}/diagnostics/teleconnections/cli/cli_bootstrap.py -l DEBUG --outputdir $outputdir --configfile $configfile_oce
+python ${AQUA}/diagnostics/teleconnections/cli/cli_bootstrap.py -l DEBUG --outputdir $outputdir --config $configfile_oce
 
 echo "Done"
