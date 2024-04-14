@@ -98,6 +98,7 @@ The CLI accepts the following arguments:
 - ``-c`` or ``--config``: path to the configuration file.
 - ``--interface``: path to the interface file.
 - ``--outputdir``: path to the output folder.
+- ``-n`` or ``--nworkers``: number of dask workers for parallel computation.
 - ``-d`` or ``--dry``: dry run, no files are written.
 - ``-l`` or ``--loglevel``: log level for the logger. Default is WARNING.
 
