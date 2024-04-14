@@ -65,6 +65,22 @@ A command line interface is available in the ``cli`` folder.
 Tests are available in the ``AQUA/tests/teleconnections`` folder.
 They make use of the ``pytest`` library and of the functions available in the ``cdo_testing.py`` library file.
 
+Basic teleconnections diagnostic usage
+--------------------------------------
+
+The basic usage of the teleconnections diagnostic is to create an instance of the ``Teleconnections`` class and run the diagnostic.
+This can be simply done with the following code:
+
+.. code-block:: python
+
+    from teleconnections import Teleconnections
+
+    tc = Teleconnection(model='ICON', exp='ssp370', source='lra-r100-monthly', telecname='NAO')
+    tc.run()
+
+This will run the diagnostic for the NAO teleconnection with the ICON model, ssp370 experiment and lra-r100-monthly source.
+netCDF and pdf files will be saved in the default output directory, regression and correlation maps will be saved as images and computed with the same variable of the index evaluation.
+
 Command line interface
 ----------------------
 
