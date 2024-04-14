@@ -10,8 +10,9 @@ import os
 import sys
 import gc
 
-from dask.distributed import Client, LocalCluster
 import matplotlib.pyplot as plt
+import xarray as xr
+from dask.distributed import Client, LocalCluster
 
 from aqua import __version__ as aquaversion
 from aqua.graphics import plot_single_map
@@ -22,6 +23,8 @@ from teleconnections import __version__ as telecversion
 from teleconnections.bootstrap import bootstrap_teleconnections, build_confidence_mask
 from teleconnections.tc_class import Teleconnection
 from teleconnections.tools import set_filename
+
+xr.set_options(keep_attrs=True)
 
 
 def parse_arguments(cli_args):
