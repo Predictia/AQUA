@@ -16,6 +16,15 @@ interface: 'teleconnections-destine'
 # for each model.
 models:
   - model: 'IFS-NEMO'
+    exp: 'ssp370'
+    source: 'lra-r100-monthly'
+  - model: 'ICON'
+    exp: 'ssp370'
+    source: 'lra-r100-monthly'
+  - model: 'IFS-NEMO'
+    exp: 'historical-1990'
+    source: 'lra-r100-monthly'
+  - model: 'ICON'
     exp: 'historical-1990'
     source: 'lra-r100-monthly'
 
