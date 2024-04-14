@@ -18,7 +18,7 @@ configfile_atm="${AQUA}/diagnostics/teleconnections/deliverable/config_deliverab
 configfile_oce="${AQUA}/diagnostics/teleconnections/deliverable/config_deliverable_oce.yaml"
 scriptfile="${AQUA}/diagnostics/teleconnections/cli/cli_teleconnections.py"
 outputdir="${AQUA}/diagnostics/teleconnections/deliverable/output"
-workers=8
+workers=32
 
 echo "Running the global time series diagnostic with $workers workers"
 echo "Script: $scriptfile"
@@ -32,6 +32,6 @@ echo "Config: $configfile_oce"
 python $scriptfile -c $configfile_oce -l DEBUG -n $workers --outputdir $outputdir --ref
 
 echo "Running the concordance map script"
-python ${AQUA}/diagnostics/teleconnections/cli/cli_bootstrap.py -l DEBUG --outputdir $outputdir --config $configfile_oce
+python ${AQUA}/diagnostics/teleconnections/cli/cli_bootstrap.py -l DEBUG --outputdir $outputdir --config $configfile_oce -n $workers
 
 echo "Done"
