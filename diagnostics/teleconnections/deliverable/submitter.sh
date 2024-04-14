@@ -14,13 +14,24 @@ whereconda=$(which mamba | rev | cut -f 3-10 -d"/" | rev)
 source $whereconda/etc/profile.d/conda.sh
 conda activate aqua
 
-configfile="${AQUA}/diagnostics/teleconnections/deliverable/config_deliverable.yaml"
+configfile_atm="${AQUA}/diagnostics/teleconnections/deliverable/config_deliverable_atm.yaml"
+configfile_oce="${AQUA}/diagnostics/teleconnections/deliverable/config_deliverable_oce.yaml"
 scriptfile="${AQUA}/diagnostics/teleconnections/cli/cli_teleconnections.py"
 outputdir="${AQUA}/diagnostics/teleconnections/deliverable/output"
 workers=8
 
 echo "Running the global time series diagnostic with $workers workers"
 echo "Script: $scriptfile"
-echo "Config: $configfile"
 
-python $scriptfile -c $configfile -l DEBUG -n $workers --outputdir $outputdir --ref
+echo "Running the atmospheric diagnostic"
+echo "Config: $configfile_atm"
+python $scriptfile -c $configfile_atm -l DEBUG -n $workers --outputdir $outputdir --ref
+
+echo "Running the oceanic diagnostic"
+echo "Config: $configfile_oce"
+python $scriptfile -c $configfile_oce -l DEBUG -n $workers --outputdir $outputdir --ref
+
+echo "Running the concordance map script"
+python ${AQUA}/diagnostics/teleconnections/cli/cli_bootstrap.py -l DEBUG --outputdir $outputdir --configfile $configfile_oce
+
+echo "Done"
