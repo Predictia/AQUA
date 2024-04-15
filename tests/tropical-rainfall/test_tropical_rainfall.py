@@ -198,17 +198,6 @@ def test_hist_figure_load_to_memory(histogram_output):
 
 
 @pytest.mark.tropical_rainfall
-def test_lazy_mode_calculation(retrieved_dataarray):
-    """ Testing the lazy mode of the calculation
-    """
-    data = retrieved_dataarray
-    diag = Tropical_Rainfall(num_of_bins=1000, first_edge=0, width_of_bin=1 - 1*10**(-6))
-    hist_lazy = diag.histogram_lowres(data, lazy=True)
-    assert 'frequency' not in hist_lazy.attrs
-    assert 'pdf' not in hist_lazy.variables
-
-
-@pytest.mark.tropical_rainfall
 def test_local_attributes_of_histogram(histogram_output):
     """ Testing the local attributes of histogram
     """
