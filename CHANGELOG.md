@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- LRA for IFS-NEMO, IFS-FESOM, ICON added to Levante catalog (#1072)
+- IFS-FESOM storyline +2K added to the Lumi catalog (#1059)
+- Allowing for jinja-based replacemente in load_yaml (#1045) 
 - Support for Python 3.12 (#1052)
 - Extending pytests (#1053)
 - More efficient use of `_retrieve_plain` for acessing sample data (#1048)
@@ -18,9 +21,15 @@ AQUA core complete list:
 - Remove  NextGEMS cycle2 sources (#1008)
 
 AQUA diagnostics complete list:
+- Tropical rainfall: minor modifications to the CLI and fixes to changes in the wrapper introduced in PR #1063 (#1074)
+- Tropical rainfall: adding daily variability and precipitation profiles to the cli (#1063)
+- Teleconnections: bootstrap evaluation of concordance with reference dataset (#1026)
+- SSH: Improvement of the CLI (#1024) 
+- Tropical rainfall: adding metadata and comparison with era5 and imerg to the plots, re-binning of the histograms and buffering of the data (#1014)
+- Timeseries: refactor of the documentation (#1031)
 - Radiation: boxplot can accomodate custom variables (#933)
 - Seaice: convert to module, add Extent maps (#803)
-- Implement seaice Volume timeseries and thickness maps (#1043)
+- Seaice: Implement seaice Volume timeseries and thickness maps (#1043)
 
 ## [v0.7.3]
 
@@ -78,6 +87,7 @@ AQUA diagnostic complete list:
 - SSH: technical improvements including removal of hardcoded loglevel and timespan definition. (#677)
 - SSH: ready with new data governance and option to plot difference plots added. (#677)
 - Atmosferic Global Mean: added mean bias for the entire year in seasonal bias function (#947)
+- Tropical Cyclones: working with IFS-NEMO and ICON, includes retrieval of orography from file (#1071).
 
 ## [v0.7.1]
 
