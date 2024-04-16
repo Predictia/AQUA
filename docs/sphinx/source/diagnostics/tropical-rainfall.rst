@@ -11,9 +11,13 @@ Description
 The current version of tropical rainfall diagnostic successfully achieves the minimal requirements: 
 
 * calculation of histograms for selected tropical area band,
+
 * calculation of the seasonal mean of precipitation along the latitude or longitude coordinate,
+
 * calculation of the bias between the climatological model and observations, and
+
 * diurnal, i.e., daily variability of precipitation data.
+
 The diagnostic also provides us with simple in-the-use plotting functions to create a graphical representation of obtained results. 
 
 
@@ -25,13 +29,16 @@ The Tropical-Rainfall Diagnostic is structured around a main class and associate
 #. Core Files:
     - `tropical_rainfall_class.py`: Contains the Tropical_Rainfall class, which includes the constructor and method definitions essential for the diagnostic operations.
     - `pyproject.toml`: Configuration file used to install the diagnostic package.
+
 #. Documentation and Examples:
     - `README.md`: Provides technical installation guidelines and general information about the tropical-rainfall diagnostic.
     - `notebooks/*.ipynb`: A collection of iPython notebooks demonstrating the use of the tropical rainfall class and its methods.
+
 #. Configuration:
-   - `config-tropical-rainfall.yaml`: A YAML file specifying necessary settings for the physical quantities required for proper diagnostic initialization.
+    - `config-tropical-rainfall.yml``: A YAML file specifying necessary settings for the physical quantities required for proper diagnostic initialization.
+
 #. Command Line Interface (CLI):
-    - `cli_tropical_rainfall.py`: Python script that initializes the **Tropical_Rainfall_CLI** class and contains the actual list of functions to run.
+    - `cli_tropical_rainfall.py`: Python script that initializes the Tropical_Rainfall_CLI class and contains the actual list of functions to run.
     - `src/tropical_rainfall_cli_class.py` and `src/tropical_rainfall_utils.py`: These files include the CLI class and utility functions that are necessary to utilize the CLI efficiently.
     - `cli_config_trop_rainfall.yml`: A YAML file specifying settings necessary for the CLI execution and physical quantities required for proper diagnostic initialization.
     - `run_cli_tropical_rainfall.sh`: A Bash script that submits the CLI script to the Slurm queue.
@@ -41,16 +48,16 @@ Detailed Class Descriptions:
 
 #. `src/tropical_rainfall_main`:
     * Purpose: Serves as the main functional class for the diagnostic, encapsulating key functionalities such as histogram generation and plotting.
-    * Key Methods: Includes histogram, histogram_plot, etc.
-    * Attributes: Handles major physical quantities such as tropical latitude band (trop_lat), number of histogram bins (num_of_bins), bin width (width_of_bin), and model variables.
+    * Methods: Includes histogram, histogram_plot, get_95percent_level, etc.
+    * Attributes: Handles major physical quantities such as tropical latitude band (trop_lat), number of histogram bins (num_of_bins), bin width (width_of_bin), model variables, etc.
 #. `src/tropical_rainfall_plots`:
     * Purpose: Manages all plotting functions specific to the diagnostics.
-    * Key Methods: Features methods like histogram_plot, plot_of_average, and daily_variability_plot.
+    * Methods: Features methods like histogram_plot, plot_of_average, daily_variability_plot, etc.
     * Attributes: Plotting-specific settings such as PDF format (pdf_format), figure size (figsize), font size (fontsize), line style (linestyle), line width (linewidth), and others. 
       Incorporating these directly into the class allows for uniform styling across plots through initial class setup rather than manual specification for each function.
 #. `src/tropical_rainfall_tools`:
     * Purpose: Contains utility functions that support the diagnostic processes but are not directly involved in scientific calculations or plotting.
-    * Key Functions: Includes open_dataset, find_files_with_keys, remove_file_if_exists_with_keys, and check_need_for_regridding.
+    * Methods: Includes open_dataset, find_files_with_keys, remove_file_if_exists_with_keys, check_need_for_regridding, etc.
     * Attributes: None
 #. `src/tropical_rainfall_meta`:
     * Purpose: Facilitates the importation of methods from nested classes into the main class file for streamlined access and use.
@@ -86,17 +93,23 @@ The default unit of precipitation is set to mm/day. Users can set a new unit eit
 .. code-block:: python
 
       diag.new_units = 'mm/hr' 
+
 Alternatively, users can pass the **new_units** argument directly to the histogram function.
 
 The output from the histogram function is an xarray.Dataset, which includes two coordinates:
 
 * `center_of_bin`:   the center of each bin
+
 * `width`:           width of each bin
 
 The xarray.Dataset contains three variables: 
+
 * `counts`: the raw number of cases in each bin
+
 * `frequency`: the proportion of cases in each bin, normalized by the total number of cases
+
 * `pdf`: the probability distribution function
+
 * `pdfP`: the probability distribution function multiplied by probability.
 
 The resulting xarray.Dataset features both local and global attributes. The global attribute `history` and local attributes provide details about the temporal and spatial grid used for the diagnostic calculations: `time_band`, `lat_band`, and `lon_band`.
@@ -140,7 +153,7 @@ The example of a histogram plot is:
 
 You can find an example of the histogram obtained with the tropical-rainfall diagnostic below. 
 
-.. figure:: figures/trop_rainfall_icon_ngc3028_ifs_tco2559_ng5_ifs_tco1279_orca025_mswep_lra_r100_monthly_comparison_histogram.png
+.. figure:: figures/trop_rainfall_icon_ngc3028_ifs_tco2559_ng5_ifs_tco1279_orca025_mswep_lra_r100_monthly_comparison_histogram.png  
     :width: 12cm
 
 Seasonal Mean Values
@@ -181,43 +194,40 @@ calculates the mean value of precipitation for each season  `DJF`, `MAM`, `JJA`,
 Available demo notebooks
 ------------------------
 
-The notebook folder contains the demonstration of:
+The **notebooks/** folder contains several notebooks demonstrating various functionalities:
 
 #. `Diagnostic Demonstartion on Low_resolution data  <https://github.com/DestinE-Climate-DT/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/demo_for_lowres_data.ipynb>`_: 
-The notebook demonstrates:
-    - histogram calculation and comparison for different climate models,
-    - mean of tropical and global precipitation calculations for different climate models,
-    - bias between climatological model and observations. 
+   
+   - Histogram comparison for different climate models
+   - Merging separate plots into a single one
+   - Mean tropical and global precipitation calculations for different climate models
+   - Bias between climatological model and observations
 
 #. `Histogram Calculation <https://github.com/DestinE-Climate-DT/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/functions_demo/histogram_calculation.ipynb>`_: 
    
-   The notebook demonstrates the major abilities of tropical rainfall diagnostic: 
-    - initialization of an object of the diagnostic class, 
-    - selection of the class attributes,  
-    - calculation of the histograms in the form of xarray, 
-    - saving the histograms in the storage,
-    - and loading the histograms from storage.
+   - Initialization of a diagnostic class object
+   - Selection of class attributes
+   - Calculation of histograms in the form of xarray
+   - Saving histograms in storage
+   - Loading histograms from storage
 
 #. `Histogram Plotting <https://github.com/DestinE-Climate-DT/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/functions_demo/histogram_plotting.ipynb>`_:
 
-   The notebook demonstrates the abilities of the histogram plotting functions:
-    - selection of the plot style,
-    - selection of the plot size, axes scales, 
-    - saving plot into storage, 
-    - plotting the counts, frequencies, and Probability density function (pdf) from the obtained histograms.
+   - Selection of plot styles and color maps
+   - Adjusting plot size and axes scales
+   - Saving plots into storage
+   - Plotting counts, frequencies, and probability density functions from histograms
 
 #. `Diagnostic During Streaming <https://github.com/DestinE-Climate-DT/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/functions_demo/diagnostic_vs_streaming.ipynb>`_:
 
-   The notebook demonstrates the usage of diagnostic during the streaming mode:
-    - saving the obtained histogram with the histogram into storage per each chunk of any data during the stream, 
-    - loading all or multiple histograms from storage and merging them into a single histogram. 
+   - Saving histograms per data chunk during streaming
+   - Loading and merging multiple histograms into a single histogram
 
 #. `Data attributes of produced output <https://github.com/DestinE-Climate-DT/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/functions_demo/data_attributes.ipynb>`_:
 
-   The notebook demonstrates:
-    - saving high-resolution data chunks with unique filenames incorporating 'time_band',
-    - automatically updating 'time_band' when merging datasets,
-    - and ensuring merged datasets in the filesystem reflect the accurate total time band.
+   - Saving high-resolution data chunks with unique filenames including `time_band`
+   - Automatically updating `time_band` when merging datasets
+   - Ensuring merged datasets reflect the accurate total time band
 
 Detailed API
 ------------
