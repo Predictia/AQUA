@@ -84,15 +84,21 @@ The histogram calculation
 
 The most straightforward illustration of a histogram calculation with continuous uniform binning:
 
+
 .. code-block:: python
 
-      diag = Tropical_Rainfall(num_of_bins = 20, first_edge = 0, width_of_bin = 0.5)
-      diag.histogram(ifs)
+    diag = Tropical_Rainfall(num_of_bins=20, first_edge=0, width_of_bin=0.5)
+    diag.histogram(ifs)
+
+
 
 The default unit of precipitation is set to mm/day. Users can set a new unit either by assigning a new value to the class attribute as shown below
+
+
 .. code-block:: python
 
-      diag.new_units = 'mm/hr' 
+    diag.new_units = 'mm/hr'
+
 
 Alternatively, users can pass the **new_units** argument directly to the histogram function.
 
@@ -124,17 +130,22 @@ The diagnostic can combine any number of histograms into a single histogram, rec
 
 For example, to merge all histograms from a specified repository, use the following code:
 
+
 .. code-block:: python
 
-  path_to_histograms="/path/to/histograms/"
+    path_to_histograms = "/path/to/histograms/"
+    merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms)
 
-  merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms)
+
 
 It is advisable to store the obtained histograms for distinct models in separate repositories to avoid potential errors. Alternatively, you can specify a keyword as a flag:
 
+
 .. code-block:: python
 
-  merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, flag='model_exp')
+    merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, flag='model_exp')
+
+
 
 If you wish to merge only a specific subset of histograms, set the `start_year`, `end_year`, `start_month`, and `end_month` arguments in the function. The function will then sort the files in the repository and merge the histograms that meet the specified time range.
 
@@ -147,8 +158,9 @@ The example of a histogram plot is:
 
 .. code-block:: python
 
-  diag.histogram_plot(histogram, smooth = True, figsize=0.7, 
-               xlogscale = True, ylogscale=True)
+    diag.histogram_plot(histogram, smooth=True, figsize=0.7, 
+                        xlogscale=True, ylogscale=True)
+
 
 
 You can find an example of the histogram obtained with the tropical-rainfall diagnostic below. 
@@ -164,9 +176,10 @@ For example, the function
 
 .. code-block:: python
 
-  diag.trop_lat = 90
-  diag.mean_and_median_plot(icon_historical_1990, coord='lon',  
-                                  legend='icon, historical-1990', new_unit = 'mm/hr' )
+    diag.trop_lat = 90
+    diag.mean_and_median_plot(icon_historical_1990, coord='lon',  
+                              legend='icon, historical-1990', new_unit='mm/hr')
+
 
 calculates the mean value of precipitation along the longitude during 
 
@@ -185,9 +198,11 @@ The function
 
 .. code-block:: python
 
-  diag.plot_bias(icon_historical_1990, dataset_2 = mswep, seasons=True, new_unit='mm/day',  trop_lat=90,  vmin=-10, vmax=10,
-                    plot_title='The bias between icon, historical-1990 ans mswep, monthly, 1 degree res (100km)',
-                    path_to_pdf=path_to_pdf, name_of_file='icon_historical_1990_mswep_lra_r100_monthly_bias')
+    diag.plot_bias(icon_historical_1990, dataset_2=mswep, seasons=True, new_unit='mm/day', 
+                   trop_lat=90, vmin=-10, vmax=10,
+                   plot_title='The bias between icon, historical-1990 and mswep, monthly, 1 degree res (100km)',
+                   path_to_pdf=path_to_pdf, name_of_file='icon_historical_1990_mswep_lra_r100_monthly_bias')
+
 
 calculates the mean value of precipitation for each season  `DJF`, `MAM`, `JJA`, `SON` and  for the total period of time.
 
