@@ -1,15 +1,16 @@
 Ocean3D
-================
+=======
 
 Description
 -----------
 
 This package contains two submodules to monitor and evaluate the 3D ocean evolution and mean state:
 
-``Ocean Drifts` to characterise and monitor model drifts 
-``Ocean Circulation`` to evaluate the realism of the model in simulating key precursors of the ocean circulation
+- ``Ocean Drifts``: to characterize and monitor model drifts.
+- ``Ocean Circulation``: to evaluate the realism of the model in simulating key precursors of the ocean circulation.
 
-All these diagnostics are produced in a consistent way, for a selected model simulation.
+All these diagnostics are produced in a consistent way for a selected model simulation.
+Additionally, there are newly added multi-model diagnostics functions under ocean drift and circulation.
 
 Structure
 -----------
