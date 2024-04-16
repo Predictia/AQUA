@@ -23,13 +23,13 @@ Structure
 The Tropical-Rainfall Diagnostic is structured around a main class and associated utility classes, organized across several files to facilitate ease of use and modularity:
 
 #. Core Files:
-    - `tropical_rainfall_class.py``: Contains the Tropical_Rainfall class, which includes the constructor and method definitions essential for the diagnostic operations.
-    - `pyproject.toml``: Configuration file used to install the diagnostic package.
+    - `tropical_rainfall_class.py`: Contains the Tropical_Rainfall class, which includes the constructor and method definitions essential for the diagnostic operations.
+    - `pyproject.toml`: Configuration file used to install the diagnostic package.
 #. Documentation and Examples:
-    - `README.md``: Provides technical installation guidelines and general information about the tropical-rainfall diagnostic.
+    - `README.md`: Provides technical installation guidelines and general information about the tropical-rainfall diagnostic.
     - `notebooks/*.ipynb`: A collection of iPython notebooks demonstrating the use of the dummy class and its methods.
 #. Configuration:
-   - `config-tropical-rainfall.yaml``: A YAML file specifying necessary settings for the physical quantities required for proper diagnostic initialization.
+   - `config-tropical-rainfall.yaml`: A YAML file specifying necessary settings for the physical quantities required for proper diagnostic initialization.
 #. Command Line Interface (CLI):
     - `cli_tropical_rainfall.py`: Python script that initializes the **Tropical_Rainfall_CLI** class and contains the actual list of functions to run.
     - `src/tropical_rainfall_cli_class.py` and `src/tropical_rainfall_utils.py`: These files include the CLI class and utility functions that are necessary to utilize the CLI efficiently.
@@ -52,7 +52,7 @@ Detailed Class Descriptions:
     * Purpose: Contains utility functions that support the diagnostic processes but are not directly involved in scientific calculations or plotting.
     * Key Functions: Includes open_dataset, find_files_with_keys, remove_file_if_exists_with_keys, and check_need_for_regridding.
     * Attributes: None
-#. `src/tropical_rainfall_meta``:
+#. `src/tropical_rainfall_meta`:
     * Purpose: Facilitates the importation of methods from nested classes into the main class file for streamlined access and use.
     * Functionality: Allows specific or all methods from nested classes to be treated as methods of the main tropical_rainfall_class.py, simplifying the structure and enhancing the compactness of the diagnostic by segmenting the class into smaller, more manageable units.
     * Attributes: None
@@ -97,9 +97,9 @@ The xarray.Dataset contains three variables:
 * `counts`: the raw number of cases in each bin
 * `frequency`: the proportion of cases in each bin, normalized by the total number of cases
 * `pdf`: the probability distribution function
-* `pdfP``: the probability distribution function multiplied by probability.
+* `pdfP`: the probability distribution function multiplied by probability.
 
-The resulting xarray.Dataset features both local and global attributes. The global attribute `history`` and local attributes provide details about the temporal and spatial grid used for the diagnostic calculations: `time_band`, `lat_band`, and `lon_band`.
+The resulting xarray.Dataset features both local and global attributes. The global attribute `history` and local attributes provide details about the temporal and spatial grid used for the diagnostic calculations: `time_band`, `lat_band`, and `lon_band`.
 
 For more detailed information about these attributes, refer to the notebook located at `$AQUA/diagnostics/tropical_rainfall/notebooks/functions_demo/data_attributes.ipynb`.
 
