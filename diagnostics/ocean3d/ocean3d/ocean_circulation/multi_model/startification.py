@@ -1,6 +1,7 @@
 from ocean3d.ocean_circulation.ocean_circulation import *
 from ocean3d import split_ocean3d_req
 
+
 class stratification:
     def __init__(self, o3d_request):
         self.data_dict = o3d_request.get('data_dict')
@@ -39,14 +40,16 @@ class stratification:
     def plot(self):
         
         self.data_regions()
-        # self.data = self.data_dict["EN4"]
-        # self.obs_data = self.data_dict["EN4"]
-        
         legend_list = [] 
 
-        fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(14, 18))
+        nrows = len(self.region_data)
+        
+        fig, axs = plt.subplots(nrows = nrows, ncols=3, figsize=(14, 7.5*nrows))
         self.logger.info("Stratification plot is in process")
-
+        
+        if nrows == 1:
+            axs = axs.reshape(1, -1)
+            
         for row, region_name in enumerate(self.region_data):
             axs[row, 0].text(-0.35, 0.33, region_name, fontsize=18, color='dimgray', rotation=90, transform=axs[row, 0].transAxes, ha='center')
             data_list = self.region_data[region_name]
@@ -61,8 +64,10 @@ class stratification:
                     else:
                         start_year = data.time[0].dt.year.data
                         end_year = data.time[-1].dt.year.data
-
-                    line, = axs[row,column].plot(data.mean('time'), data.lev, linewidth=2.0)
+                    
+                    data = data.mean('time')
+                    line, = axs[row,column].plot(data, data.lev,
+                                                 linewidth=1.0)
                     if column == 2 and row == 0:
                         line.set_label(data_name)
                         legend_list.append(f"{data_name} ({start_year}-{end_year})")
@@ -82,15 +87,15 @@ class stratification:
                 #     axs[row, column].set_xlabel("", fontsize=0)
                 #     axs[row, column].set_xticklabels([])
                 
-            
+           
         axs[0, 0].set_title("Temperature", fontsize=16)
-        axs[3, 0].set_xlabel("Temperature (°C)", fontsize=12)
+        axs[nrows-1, 0].set_xlabel("Temperature (°C)", fontsize=12)
 
         axs[0, 1].set_title("Salinity", fontsize=16)
-        axs[3, 1].set_xlabel("Salinity (psu)", fontsize=12)
+        axs[nrows-1, 1].set_xlabel("Salinity (psu)", fontsize=12)
 
         axs[0, 2].set_title("Rho (ref 0)", fontsize=16)
-        axs[3, 2].set_xlabel("Density Anomaly (kg/m³)", fontsize=12)
+        axs[nrows-1, 2].set_xlabel("Density Anomaly (kg/m³)", fontsize=12)
 
 
         axs[0, 2].legend(legend_list, loc='best')
