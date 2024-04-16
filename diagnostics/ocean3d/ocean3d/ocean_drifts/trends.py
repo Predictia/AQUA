@@ -110,7 +110,7 @@ class TrendCalculator:
             trend = trend * 12
         elif time_frequency == "H":
             trend = trend * 24 * 30 * 12
-        elif time_frequency == "Y":
+        elif time_frequency == "Y" or 'YE-DEC':
             trend = trend
         else:
             raise ValueError(f"The frequency: {time_frequency} of the data must be in Daily/Monthly/Yearly")
