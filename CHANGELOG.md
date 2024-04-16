@@ -23,6 +23,7 @@ AQUA core complete list:
 
 AQUA diagnostics complete list:
 - Performance indices: minor improvements with the inclusion of mask and area files (#1076)
+- Timeseries: Seasonal Cycle and Gregory plots save netcdf files (#1079)
 - Tropical rainfall: minor modifications to the CLI and fixes to changes in the wrapper introduced in PR #1063 (#1074)
 - Tropical rainfall: adding daily variability and precipitation profiles to the cli (#1063)
 - Teleconnections: bootstrap evaluation of concordance with reference dataset (#1026)
@@ -89,6 +90,7 @@ AQUA diagnostic complete list:
 - SSH: technical improvements including removal of hardcoded loglevel and timespan definition. (#677)
 - SSH: ready with new data governance and option to plot difference plots added. (#677)
 - Atmosferic Global Mean: added mean bias for the entire year in seasonal bias function (#947)
+- Tropical Cyclones: working with IFS-NEMO and ICON, includes retrieval of orography from file (#1071).
 
 ## [v0.7.1]
 

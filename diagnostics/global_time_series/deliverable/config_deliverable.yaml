@@ -2,16 +2,16 @@
 # in the command line by using:
 # --model, --exp, --source, --outputdir
 models:
-  - model: 'ICON'
+  - model: 'IFS-NEMO'
     exp: 'historical-1990'
     source: 'lra-r100-monthly'
-  - model: 'ICON'
+  - model: 'IFS-NEMO'
     exp: 'ssp370'
     source: 'lra-r100-monthly'
-  - model: 'IFS-NEMO'
+  - model: 'ICON'
     exp: 'historical-1990'
     source: 'lra-r100-monthly'
-  - model: 'IFS-NEMO'
+  - model: 'ICON'
     exp: 'ssp370'
     source: 'lra-r100-monthly'
 outputdir: "./"
@@ -39,6 +39,7 @@ timeseries_plot_params:
     annual: True
     std_startdate: '1990-01-01'
     std_enddate: '2020-12-31'
+    expand: False
   # 2t:
   #   plot_kw:
   #     color: "tab:blue"
