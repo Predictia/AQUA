@@ -86,7 +86,10 @@ The **notebook/** folder contains the following notebooks:
 
  - **([functions_demo/data_attributes.ipynb](https://github.com/DestinE-Climate-DT/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/functions_demo/data_attributes.ipynb))**:
 
-...
+   The notebook demonstrates:
+    - saving high-resolution data chunks with unique filenames incorporating 'time_band',
+    - automatically updating 'time_band' when merging datasets,
+    - and ensuring merged datasets in the filesystem reflect the accurate total time band.
 
 ## Contributing
 

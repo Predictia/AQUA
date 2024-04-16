@@ -107,19 +107,23 @@ For more detailed information about these attributes, refer to the notebook loca
 List of histograms 
 ^^^^^^^^^^^^^^^^^^
 
-The diagnostic can combine any number of histograms into a single histogram, recalculating 
-the frequencies and pdf values and modifying the attributes automatically.
+The diagnostic can combine any number of histograms into a single histogram, recalculating the frequencies and PDF values while automatically modifying the attributes.
 
-For example, if you want to merge all histograms if the specified repository, set the following flag: **all=True**.
+For example, to merge all histograms from a specified repository, use the following code:
 
 .. code-block:: python
 
-  path_to_histograms="/work/bb1153/b382267/tropical_rainfall_cicle3/NetCDF/histograms/"
+  path_to_histograms="/path/to/histograms/"
 
-  merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, all=True)
+  merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms)
 
-**Reminder**: Store the obtained histograms for distinct models in separate repositories to avoid possible errors. 
+It is advisable to store the obtained histograms for distinct models in separate repositories to avoid potential errors. Alternatively, you can specify a keyword as a flag:
 
+.. code-block:: python
+
+  merged_histograms = diag.merge_list_of_histograms(path_to_histograms=path_to_histograms, flag='model_exp')
+
+If you wish to merge only a specific subset of histograms, set the `start_year`, `end_year`, `start_month`, and `end_month` arguments in the function. The function will then sort the files in the repository and merge the histograms that meet the specified time range.
 
 The histogram plots 
 ^^^^^^^^^^^^^^^^^^^
@@ -130,7 +134,7 @@ The example of a histogram plot is:
 
 .. code-block:: python
 
-  diag.histogram_plot(histogram, smooth = False, color_map = 'gist_heat', figsize=0.7, 
+  diag.histogram_plot(histogram, smooth = True, figsize=0.7, 
                xlogscale = True, ylogscale=True)
 
 
@@ -149,7 +153,7 @@ For example, the function
 
   diag.trop_lat = 90
   diag.mean_and_median_plot(icon_historical_1990, coord='lon',  
-                                  legend='icon, historical-1990', new_unit = 'mm/day' )
+                                  legend='icon, historical-1990', new_unit = 'mm/hr' )
 
 calculates the mean value of precipitation along the longitude during 
 
@@ -181,8 +185,7 @@ The notebook folder contains the demonstration of:
 
 #. `Diagnostic Demonstartion on Low_resolution data  <https://github.com/DestinE-Climate-DT/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/demo_for_lowres_data.ipynb>`_: 
 The notebook demonstrates:
-    - histogram comparison for different climate models,
-    - the ability to merge a few separate plots into a single one, 
+    - histogram calculation and comparison for different climate models,
     - mean of tropical and global precipitation calculations for different climate models,
     - bias between climatological model and observations. 
 
@@ -198,7 +201,7 @@ The notebook demonstrates:
 #. `Histogram Plotting <https://github.com/DestinE-Climate-DT/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/functions_demo/histogram_plotting.ipynb>`_:
 
    The notebook demonstrates the abilities of the histogram plotting functions:
-    - selection of the plot style: step line style, 2D smooth line style, and different color maps,
+    - selection of the plot style,
     - selection of the plot size, axes scales, 
     - saving plot into storage, 
     - plotting the counts, frequencies, and Probability density function (pdf) from the obtained histograms.
@@ -210,7 +213,11 @@ The notebook demonstrates:
     - loading all or multiple histograms from storage and merging them into a single histogram. 
 
 #. `Data attributes of produced output <https://github.com/DestinE-Climate-DT/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/functions_demo/data_attributes.ipynb>`_:
-....
+
+   The notebook demonstrates:
+    - saving high-resolution data chunks with unique filenames incorporating 'time_band',
+    - automatically updating 'time_band' when merging datasets,
+    - and ensuring merged datasets in the filesystem reflect the accurate total time band.
 
 Detailed API
 ------------
