@@ -22,6 +22,7 @@ AQUA core complete list:
 
 AQUA diagnostics complete list:
 - Teleconnections: refactor of the documentation (#1061)
+- Timeseries: Seasonal Cycle and Gregory plots save netcdf files (#1079)
 - Tropical rainfall: minor modifications to the CLI and fixes to changes in the wrapper introduced in PR #1063 (#1074)
 - Tropical rainfall: adding daily variability and precipitation profiles to the cli (#1063)
 - Teleconnections: bootstrap evaluation of concordance with reference dataset (#1026)
