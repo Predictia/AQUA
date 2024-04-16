@@ -5,11 +5,11 @@ Main authors:
 
 ## Description
 
-The tropical-rainfall diagnostic analyzes rainfall variability in the tropical zone and compares the climatological models' predictions with observations.  
+The Tropical-Rainfall Diagnostic analyzes rainfall variability in the tropical zone and compares predictions from climatological models with observations.
 
-The module comprises Python-implemented source files, an environment file, tests, demonstration files, and a command line interface. You can find a detailed description of the module in the aqua documentation. 
+The module comprises Python-implemented source files, an environment configuration file, tests, demonstration files, and a command-line interface. A detailed description of the module is available in the AQUA documentation.
 
-Below you can find a quick start to the tropical_rainfall diagnostic.
+Below is a quick start guide for the Tropical Rainfall Diagnostic.
 
 ## Table of Contents
 
@@ -32,17 +32,17 @@ Alternatively, you can include the package in your Conda environment by adding t
 ```
 -e $AQUA/diagnostics/tropical_rainfall/
 ```
-The Tropical Rainfall Diagnostic requires the installation of **fast_histogram** in addition to other dependencies. However, the installation of the Tropical Rainfall package is integrated into the Aqua package installation process.
+The installation requires **fast_histogram** among other dependencies. The installation of the Tropical Rainfall package is integrated into the AQUA package installation process.
 
-For detailed installation instructions specific to environments like Levante or Lumi, please refer to the **Installation** sections in the README.md file of the AQUA package.
+For detailed installation instructions specific to environments like Levante or Lumi, please refer to the **Installation** sections in the 
+**[README.md](https://github.com/DestinE-Climate-DT/AQUA/blob/main/README.md)** file of the AQUA package.
 
 
 ## Data requirements  
 
-The following are the requirements for input climatological data:
-Data must include the precipitation rate variable (**mtpr**) in a latitude and longitude grid. 
+Input data must include the precipitation rate variable (**mtpr**) on a latitude and longitude grid.
 
-The diagnostic can be perrformed on the data of any spatial and time resolution. 
+The diagnostic can be performed on data of any spatial and temporal resolution.
 
 ## Output 
 
@@ -52,45 +52,33 @@ diag = Tropical_Rainfall(path_to_netcdf = 'your/path/to/netcdf/', path_to_pdf = 
 ```
 
 
-
 ## Examples
 
-The **notebook/** folder contains the following notebooks:
- - **([demo_for_lowres_data](https://github.com/DestinE-Climate-DT/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/demo_for_lowres_data.ipynb))**:
-
-    The notebook demonstrates:
-    - histogram comparison for different climate models,
-    - the ability to merge a few separate plots into a single one, 
-    - mean of tropical and global precipitation calculations for different climate models,
-    - bias between climatological model and observations. 
- - **([functions_demo/histogram_calculation.ipynb](https://github.com/DestinE-Climate-DT/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/functions_demo/histogram_calculation.ipynb))**:
-
-    The notebook demonstrates the major abilities of tropical rainfall diagnostic: 
-    - initialization of an object of the diagnostic class, 
-    - selection of the class attributes,  
-    - calculation of the histograms in the form of xarray, 
-    - saving the histograms in the storage,
-    - and loading the histograms from storage.
- - **([functions_demo/histogram_plotting.ipynb](https://github.com/DestinE-Climate-DT/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/functions_demo/histogram_plotting.ipynb))**:
-
-    The notebook demonstrates the abilities of the histogram plotting functions:
-    - selection of the plot style: step line style, 2D smooth line style, and different color maps,
-    - selection of the plot size, axes scales, 
-    - saving plot into storage, 
-    - plotting the counts, frequencies, and Probability density function (pdf) from the obtained histograms.
- - **([functions_demo/diagnostic_vs_streaming.ipynb](https://github.com/DestinE-Climate-DT/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/functions_demo/diagnostic_vs_streaming.ipynb))**:
-
-    The notebook demonstrates the usage of diagnostic during the streaming mode:
-    - saving the obtained histogram with the histogram into storage per each chunk of any data during the stream, 
-    - loading all or multiple histograms from storage and merging them into a single histogram. 
-
- - **([functions_demo/data_attributes.ipynb](https://github.com/DestinE-Climate-DT/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/functions_demo/data_attributes.ipynb))**:
-
-   The notebook demonstrates:
-    - saving high-resolution data chunks with unique filenames incorporating 'time_band',
-    - automatically updating 'time_band' when merging datasets,
-    - and ensuring merged datasets in the filesystem reflect the accurate total time band.
+The **notebooks/** folder contains several notebooks demonstrating various functionalities::
+ - **[Demo for Low-Resolution Data](https://github.com/DestinE-Climate-DT/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/demo_for_lowres_data.ipynb)**:
+   - Histogram comparison for different climate models
+   - Merging separate plots into a single one
+   - Mean tropical and global precipitation calculations for different climate models
+   - Bias between climatological model and observations
+ - **[Histogram Calculation](https://github.com/DestinE-Climate-DT/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/functions_demo/histogram_calculation.ipynb)**:
+   - Initialization of a diagnostic class object
+   - Selection of class attributes
+   - Calculation of histograms in the form of xarray
+   - Saving histograms in storage
+   - Loading histograms from storage
+ - **[Histogram Plotting](https://github.com/DestinE-Climate-DT/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/functions_demo/histogram_plotting.ipynb)**:
+   - Selection of plot styles and color maps
+   - Adjusting plot size and axes scales
+   - Saving plots into storage
+   - Plotting counts, frequencies, and probability density functions from histograms
+ - **[Diagnostic vs. Streaming](https://github.com/DestinE-Climate-DT/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/functions_demo/diagnostic_vs_streaming.ipynb)**:
+   - Saving histograms per data chunk during streaming
+   - Loading and merging multiple histograms into a single histogram
+ - **[Data Attributes](https://github.com/DestinE-Climate-DT/AQUA/blob/main/diagnostics/tropical_rainfall/notebooks/functions_demo/data_attributes.ipynb)**:
+   - Saving high-resolution data chunks with unique filenames including `time_band`
+   - Automatically updating `time_band` when merging datasets
+   - Ensuring merged datasets reflect the accurate total time band
 
 ## Contributing
 
-The tropical_rainfall module is in a developing stage and will be significantly improved in the near future. If you have any suggestions, comments, or problems with its usage, please get in touch with the AQUA team or Natalia Nazarova (natalia.nazarova@polito.it).
+The tropical_rainfall module is in the development stage and will be significantly improved in the near future. If you have suggestions, comments, or issues with its usage, please contact the AQUA team or Natalia Nazarova (natalia.nazarova@polito.it).
