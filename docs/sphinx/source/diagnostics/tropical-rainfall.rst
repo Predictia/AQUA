@@ -27,7 +27,7 @@ The Tropical-Rainfall Diagnostic is structured around a main class and associate
     - `pyproject.toml`: Configuration file used to install the diagnostic package.
 #. Documentation and Examples:
     - `README.md`: Provides technical installation guidelines and general information about the tropical-rainfall diagnostic.
-    - `notebooks/*.ipynb`: A collection of iPython notebooks demonstrating the use of the dummy class and its methods.
+    - `notebooks/*.ipynb`: A collection of iPython notebooks demonstrating the use of the tropical rainfall class and its methods.
 #. Configuration:
    - `config-tropical-rainfall.yaml`: A YAML file specifying necessary settings for the physical quantities required for proper diagnostic initialization.
 #. Command Line Interface (CLI):
@@ -148,8 +148,8 @@ For example, the function
 .. code-block:: python
 
   diag.trop_lat = 90
-  diag.mean_and_median_plot(icon_ngc3028, coord='lon',  
-                                  legend='icon, ngc3028', new_unit = 'mm/day' )
+  diag.mean_and_median_plot(icon_historical_1990, coord='lon',  
+                                  legend='icon, historical-1990', new_unit = 'mm/day' )
 
 calculates the mean value of precipitation along the longitude during 
 
@@ -168,9 +168,9 @@ The function
 
 .. code-block:: python
 
-  diag.plot_bias(icon_ngc3028, dataset_2 = mswep_mon, seasons=True, new_unit='mm/day',  trop_lat=90,  vmin=-10, vmax=10,
-                    plot_title='The bias between icon, ngc3028 ans mswep, monthly, 1 degree res (100km)',
-                    path_to_pdf=path_to_pdf, name_of_file='icon_ngc3028_mswep_lra_r100_monthly_bias')
+  diag.plot_bias(icon_historical_1990, dataset_2 = mswep, seasons=True, new_unit='mm/day',  trop_lat=90,  vmin=-10, vmax=10,
+                    plot_title='The bias between icon, historical-1990 ans mswep, monthly, 1 degree res (100km)',
+                    path_to_pdf=path_to_pdf, name_of_file='icon_historical_1990_mswep_lra_r100_monthly_bias')
 
 calculates the mean value of precipitation for each season  `DJF`, `MAM`, `JJA`, `SON` and  for the total period of time.
 
