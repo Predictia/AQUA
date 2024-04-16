@@ -118,6 +118,7 @@ The ``timeseries_plot_params`` block contains the following parameters:
 * ``regrid``: if set to a value compatible with the AQUA Reader, the data will be regridded to the specified resolution.
 * ``startdate``, ``enddate``: the start and end date for the time series plot.
 * ``std_startdate``, ``std_enddate``: the start and end date for the standard deviation calculation.
+* ``expand``: a boolean that enables the expansion of the time series of the reference dataset to match the model time series length. Default is True.
 * ``longname``: the long name of the variable. Used to overwrite formulae names.
 
 Output
