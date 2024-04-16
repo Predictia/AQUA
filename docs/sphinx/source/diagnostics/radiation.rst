@@ -18,11 +18,12 @@ Structure
 
 Input variables 
 ---------------
-Usual radiative flues can be analyzed such as:
+
+Usual radiative fluxes can be analyzed such as:
+
 *  ``mtnlwrf`` (total thermal radiation): longwave radiation;
 *  ``mtnswrf`` (total solar radiation): shortwave radiation;
-*  ``tnr`` (total net radiation): net radiation;
-* etc.
+*  ``tnr`` (total net radiation): net radiation.
 
 The data we retrieve from the LRA through the provided functions have monthly timesteps and a 1x1 deg resolution.
 A higher resolution is not necessary for this diagnostic.
