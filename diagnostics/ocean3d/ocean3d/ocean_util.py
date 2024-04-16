@@ -54,7 +54,7 @@ def check_variable_name(data, loglevel= "WARNING"):
             required_vars.append(var)
     if required_vars != []:
         logger.debug("This are the variables %s available for the diags in the catalogue.", required_vars)
-        # data = data[required_vars]
+        data = data[required_vars]
         logger.debug("Selected this variables")
         for var in required_vars:
             if 'avg_so' in var.lower() or 'soce' in var.lower():
