@@ -56,9 +56,21 @@ Output
 ------
 
 This module exports all the data and diagnostics  used to create the different figures except the multi-model diagnostics.
-  
 
-prepare the o3d request
+
+CLI (Command Line Interface) 
+------------------------------
+
+Under the cli folder, upon updating the config file and rnning the cli_ocean3d.py, users will generate all the ocean3d diagnostics figures. 
+
+.. code-block:: python
+
+    python cli_ocean3d.py --model <model> --exp <experiment> --source <source> 
+
+
+
+
+Prepare the o3d request
 ---------------------------
 ocean3d request looks like this but, some details change with functions. To look into a more detailed request. Also, the request for multi-model analysis looks different.  we recommend to look into the notebooks to get clear idea. 
 
