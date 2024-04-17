@@ -50,7 +50,7 @@ class stratification:
                 write_data(self.output_dir, new_filename, data_1)
 
             if len(data_list) > 1:
-                if time in ["Yearly"]:
+                if self.time in ["Yearly"]:
                     start_year_data_2 = data_list[1].time[0].data
                     end_year_data_2 = data_list[1].time[-1].data
                     logger.debug(end_year)
@@ -63,7 +63,7 @@ class stratification:
 
                 legend_info_data_2 = f"Model {start_year_data_2}-{end_year_data_2}"
                 legend_list.append(legend_info_data_2)
-                if output:
+                if self.output:
                     new_filename = f"{filename}_{legend_info_data_2.replace(' ', '_')}"
                     write_data(self.output_dir, new_filename, data_2)
 
