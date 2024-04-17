@@ -260,6 +260,25 @@ Example Plot(s) for an individual simulation (i.e. the IFS-NEMO historical exper
 .. figure:: figures/IFS-NEMO-historical-1990-lra-r100-monthly_spatial_MLD_Jun-Jul-Aug_weddell_sea-1.jpg
     :width: 20cm
 
+* This is an example of multi-model time series plot. 
+
+.. figure:: figures/Time_series_IFS-NEMO-historical-ssp370-ICON_historical-ssp370.png
+    :width: 20cm
+
+* This is an example of multi-model surface trends of global ocean. 
+
+.. figure:: figures/linear_trend_IFS-NEMO-historical-ICON_historical.png
+    :width: 20cm
+
+* This is an example of multi-model stratification of two regions. 
+
+.. figure:: figures/Stratification_IFS-NEMO-historical-ssp370-ICON_historical-ssp370.png
+    :width: 20cm
+
+* This is an example of multi-model MLD. 
+
+.. figure:: figures/MLD_IFS-NEMO-historical-ssp370-ICON_historical-ssp370.png
+    :width: 20cm
 
 Available demo notebooks
 ------------------------
