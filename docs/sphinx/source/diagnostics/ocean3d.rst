@@ -9,8 +9,8 @@ This package contains two submodules to monitor and evaluate the 3D ocean evolut
 - ``Ocean Drifts``: to characterize and monitor model drifts.
 - ``Ocean Circulation``: to evaluate the realism of the model in simulating key precursors of the ocean circulation.
 
-All these diagnostics are produced in a consistent way for a selected model simulation.
-Additionally, there are newly added multi-model diagnostics functions under ocean drift and circulation.
+All these diagnostics are produced in a consistent way for any selected model simulation.
+Additionally, there are newly added multi-model diagnostic functions under both submodules that allow the comparison of different experiments at once.
 
 
 Structure
@@ -55,13 +55,13 @@ Input variables example
 Output 
 ------
 
-This module exports all the data and diagnostics  used to create the different figures except the multi-model diagnostics.
+This module exports all the data and diagnostics used to create the different figures except the multi-model diagnostics.
 
 
 CLI (Command Line Interface) 
 ------------------------------
 
-Under the cli folder, upon updating the config file and rnning the cli_ocean3d.py, users will generate all the ocean3d diagnostics figures. 
+Under the cli folder, upon updating the config file and running the cli_ocean3d.py, users will generate all the ocean3d diagnostics figures. 
 
 .. code-block:: python
 
@@ -72,7 +72,10 @@ Under the cli folder, upon updating the config file and rnning the cli_ocean3d.p
 
 Prepare the o3d request
 ---------------------------
-ocean3d request looks like this but, some details change with functions. To look into a more detailed request. Also, the request for multi-model analysis looks different.  we recommend to look into the notebooks to get clear idea. 
+
+ - Single Model analysis:
+
+ocean3d typical request looks like this, but some details may change depending on the selected function. Also, the requests for multi-model diagnostics are also different.  We recommend to look into the notebooks to get a clearer idea of function-specific details. 
 
 .. code-block:: python
 
@@ -80,15 +83,28 @@ ocean3d request looks like this but, some details change with functions. To look
                   'obs_data': obs_data, 'region':'Labrador Sea', 'latS':None, 'latN':None, 'lonW':None, 'lonE':None,
                   'output':True, "time" : "February", 'output_dir':'./output'}
 
+ - Multi Model analysis:
+
+For multi-model analysis, the request looks like this, but some details may change depending on the selected function.  We recommend looking into the notebooks to get a clearer idea of function-specific details. 
+
+.. code-block:: python
+
+    data_dict = {'EN4 1':en4_1, EN4 2':en4_2, 'IFS-NEMO Historical':ifs_nemo_historical, 'IFS-NEMO ssp370':ifs_nemo_ssp370,
+                 'icon Historical':icon_historical,'icon ssp370': icon_ssp370} 
+    o3d_request= {'data_dict': data_dict,'region':'Labrador Gin Seas','latS':None,'latN':None,'lonW':None,'lonE':None,
+              'output':True,"time" : "March",'output_dir':'./output'}
+
 
 Functions used 
 ---------------
+
+ - Single Model analysis:
 
 .. code-block:: python
 
     hovmoller_plot(o3d_request)
 
-*hovmoller_lev_time_plot*: This function requires data, a region. 
+*hovmoller_lev_time_plot*: This function requires the input data and a region of choice. 
 It produces a Hovmöller plot of regionally averaged temperature and salinity including three types of subplots. 
 The region name supports all the major oceans and seas, in case users require a custom region,
 they can fill in the values of latitude, and longitude in the boxes as desired.
@@ -98,7 +114,7 @@ they can fill in the values of latitude, and longitude in the boxes as desired.
 
     time_series(o3d_request)
 
-*time_series*: This function requires data, a region. 
+*time_series*: This function requires the input data and a region of choice.
 It produces time series plots of regionally averaged temperature and salinity including three types of subplots
 for a predefined or customized list of vertical levels. 
 The region name supports all the major oceans and seas, in case users require a custom region,
@@ -110,7 +126,7 @@ they can fill in the values of latitude, and longitude in the boxes.
     multilevel_trend(o3d_request)
 
 
-*multilevel_trend*: This function requires data, a region, and optional depth levels. 
+*multilevel_trend*: This function requires the input data, a region of choice, and (optionally) a choice of depth levels. 
 It produces lon-lat maps of linear temporal trends of temperature and salinity over the selected
 region for a predefined or customized list of vertical levels. 
 The region name supports all the major oceans and seas, in case users require a custom region,
@@ -121,7 +137,7 @@ they can fill in the values of latitude, and longitude in the boxes.
 
    zonal_mean_trend_plot(o3d_request)
 
-*Zonal Mean Trend Plot*: This function requires data for a region. 
+*Zonal Mean Trend Plot*: This function requires the input data and a region of choice. 
 It produces plots of zonally averaged linear temporal trends plot of temperature and salinity as a function of depth and latitude. 
 The zonal average is produced over the selected region, whose name supports all the major oceans and seas;
 in case users require a custom region, they can fill in the values of latitude and longitude in the boxes.
@@ -131,7 +147,7 @@ in case users require a custom region, they can fill in the values of latitude a
 
     stratification(o3d_request)
 
-*Stratification plot*: This function requires data, a region, and the time of the climatology. 
+*Stratification plot*: This function requires the input data, a region of choice, and a temporal period to compute the climatology. 
 It produces a stratification plot of Temperature, salinity and Density, including the overlapped data with the observation. 
 The region name supports all the major oceans and seas, in case users require a custom region, they can fill in the values of latitude,
 and longitude in the boxes.
@@ -141,11 +157,43 @@ and longitude in the boxes.
 
     plot_spatial_mld_clim(o3d_request)
 
-Mixed Layer Depth Plot: This function requires data, a region, and the time of the climatology. 
+Mixed Layer Depth Plot: This function requires the input data, a region of choice, and a temporal period to compute the climatology. 
 It produces a time series plot of temperature and salinity.
 Users have the option of choosing whether they want to use the whole obs data or overlapped obs data with the model. 
 The region name supports all the major oceans and seas; in case users require a custom region, they can fill in the values of latitude,
 and longitude in the boxes.
+
+
+ - Multi Model analysis:
+
+.. code-block:: python
+
+    mld_multi_model(o3d_request)
+
+This function provides the plots for mixed player depth provided the different models or observations and regions. 
+
+.. code-block:: python
+
+    trend_plot = trend(o3d_request)
+    trend_plot.plot()
+
+This function provides the plots for trends provided the different models or observations, depth level and regions. 
+
+
+.. code-block:: python
+
+    strat = stratification(o3d_request)
+    strat.plot()
+
+This function provides the plots for stratification (Temperature, salinity, and density profile) provided the different models or observations and regions. 
+
+
+.. code-block:: python
+
+    timeser = time_series(o3d_request)
+    timeser.plot()
+
+This function provides the plots for standardized anomaly time series provided the different models or observations and regions. 
 
 
 Methods used 
@@ -184,7 +232,7 @@ A code to compute very efficiently the linear trends has been adapted from this 
 https://stackoverflow.com/questions/52108417/how-to-apply-linear-regression-to-every-pixel-in-a-large-multi-dimensional-array
 
 
-Example Plot(s)
+Example Plot(s) for an individual simulation (i.e. the IFS-NEMO historical experiment at Tco1279/eORCA12)
 ---------------
 
 
@@ -212,6 +260,25 @@ Example Plot(s)
 .. figure:: figures/IFS-NEMO-historical-1990-lra-r100-monthly_spatial_MLD_Jun-Jul-Aug_weddell_sea-1.jpg
     :width: 20cm
 
+* This is an example of multi-model time series plot. 
+
+.. figure:: figures/Time_series_IFS-NEMO-historical-ssp370-ICON_historical-ssp370.png
+    :width: 20cm
+
+* This is an example of multi-model surface trends of global ocean. 
+
+.. figure:: figures/linear_trend_IFS-NEMO-historical-ICON_historical.png
+    :width: 20cm
+
+* This is an example of multi-model stratification of two regions. 
+
+.. figure:: figures/Stratification_IFS-NEMO-historical-ssp370-ICON_historical-ssp370.png
+    :width: 20cm
+
+* This is an example of multi-model MLD. 
+
+.. figure:: figures/MLD_IFS-NEMO-historical-ssp370-ICON_historical-ssp370.png
+    :width: 20cm
 
 Available demo notebooks
 ------------------------
