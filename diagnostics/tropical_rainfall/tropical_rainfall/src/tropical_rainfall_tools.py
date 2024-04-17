@@ -951,7 +951,7 @@ class ToolsClass:
         filenames = [os.path.basename(file) for file in files]
         for file in filenames:
             # Updated regex to accommodate both filename patterns
-            match = re.search(r"(\d{4})-(\d{2})-(\d{2})T\d{2}(?:_(\d{4})-(\d{2})-(\d{2})T\d{2})?_?(?:3H)?\.nc", file)
+            match = re.search(r"(\d{4})-(\d{2})-(\d{2})T\d{2}(?:_(\d{4})-(\d{2})-(\d{2})T\d{2})?_?(?:\dH)?\.nc", file)
             if match:
                 start_year, start_month, start_day, end_year, end_month, end_day = match.groups()
 
@@ -965,7 +965,7 @@ class ToolsClass:
 
                     # If the end date is before the last day of the month, it's incomplete
                     if end_date < datetime(int(end_year), int(end_month), last_day):
-                        self.logger.warning(f"Warning: Be careful, the month {end_year}-{end_month} is incomplete.")
+                        self.logger.debug(f"The month {end_year}-{end_month} may be incomplete.")
             else:
                 self.logger.warning(f"Could not match the file name format: {file}.")
 
@@ -978,7 +978,7 @@ class ToolsClass:
 
         # Adjusted regex to match both file name formats
         for file, full_path in zip(filenames, files):
-            match = re.search(r"(\d{4})-(\d{2})-(\d{2})T\d{2}(?:_(\d{4})-(\d{2})-(\d{2})T\d{2})?_?(?:3H)?\.nc", file)
+            match = re.search(r"(\d{4})-(\d{2})-(\d{2})T\d{2}(?:_(\d{4})-(\d{2})-(\d{2})T\d{2})?_?(?:\dH)?\.nc", file)
             if match:
                 start_year, start_month, start_day, end_year, end_month, end_day = match.groups()
 

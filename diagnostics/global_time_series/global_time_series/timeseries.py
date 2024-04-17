@@ -36,6 +36,7 @@ class Timeseries():
                  monthly_std=True, annual_std=True,
                  std_startdate=None, std_enddate=None,
                  plot_kw={'ylim': {}}, longname=None,
+                 expand=True,
                  save=True,
                  outdir='./',
                  outfile=None,
@@ -60,6 +61,7 @@ class Timeseries():
             std_enddate (str): End date for standard deviation. Default is "2020-12-31".
             plot_kw (dict): Additional keyword arguments passed to the plotting function.
             longname (str): Long name of the variable. Default is None and logname attribute is used.
+            expand (bool): Expand the reference range. Default is True.
             save (bool): Save the figure. Default is True.
             outdir (str): Output directory. Default is "./".
             outfile (str): Output file name. Default is None.
@@ -98,6 +100,7 @@ class Timeseries():
         self.annual_std = annual_std if annual else False
         self.std_startdate = std_startdate
         self.std_enddate = std_enddate
+        self.expand = expand
         self.expanding_ref_range = False
 
         self.startdate = startdate
@@ -115,7 +118,7 @@ class Timeseries():
     def run(self):
         """Retrieve ref, retrieve data and plot"""
         self.retrieve_data()
-        self.retrieve_ref()
+        self.retrieve_ref(extend=self.expand)
         self.plot()
         if self.save:
             self.save_netcdf()
