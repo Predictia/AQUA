@@ -61,7 +61,7 @@ This module exports all the data and diagnostics used to create the different fi
 CLI (Command Line Interface) 
 ------------------------------
 
-Under the cli folder, upon updating the config file and rnning the cli_ocean3d.py, users will generate all the ocean3d diagnostics figures. 
+Under the cli folder, upon updating the config file and running the cli_ocean3d.py, users will generate all the ocean3d diagnostics figures. 
 
 .. code-block:: python
 
@@ -72,7 +72,10 @@ Under the cli folder, upon updating the config file and rnning the cli_ocean3d.p
 
 Prepare the o3d request
 ---------------------------
-ocean3d typical request looks like this, but some details may change depending on the selected function. Also, the requests for multi-model diagnostics are also different.  We recommend to look into the notebooks to get a clearer idea on function-specific details. 
+
+ - Single Model analysis:
+
+ocean3d typical request looks like this, but some details may change depending on the selected function. Also, the requests for multi-model diagnostics are also different.  We recommend to look into the notebooks to get a clearer idea of function-specific details. 
 
 .. code-block:: python
 
@@ -80,9 +83,22 @@ ocean3d typical request looks like this, but some details may change depending o
                   'obs_data': obs_data, 'region':'Labrador Sea', 'latS':None, 'latN':None, 'lonW':None, 'lonE':None,
                   'output':True, "time" : "February", 'output_dir':'./output'}
 
+ - Multi Model analysis:
+
+For multi-model analysis, the request looks like this, but some details may change depending on the selected function.  We recommend looking into the notebooks to get a clearer idea of function-specific details. 
+
+.. code-block:: python
+
+    data_dict = {'EN4 1':en4_1, EN4 2':en4_2, 'IFS-NEMO Historical':ifs_nemo_historical, 'IFS-NEMO ssp370':ifs_nemo_ssp370,
+                 'icon Historical':icon_historical,'icon ssp370': icon_ssp370} 
+    o3d_request= {'data_dict': data_dict,'region':'Labrador Gin Seas','latS':None,'latN':None,'lonW':None,'lonE':None,
+              'output':True,"time" : "March",'output_dir':'./output'}
+
 
 Functions used 
 ---------------
+
+ - Single Model analysis:
 
 .. code-block:: python
 
@@ -146,6 +162,38 @@ It produces a time series plot of temperature and salinity.
 Users have the option of choosing whether they want to use the whole obs data or overlapped obs data with the model. 
 The region name supports all the major oceans and seas; in case users require a custom region, they can fill in the values of latitude,
 and longitude in the boxes.
+
+
+ - Multi Model analysis:
+
+.. code-block:: python
+
+    mld_multi_model(o3d_request)
+
+This function provides the plots for mixed player depth provided the different models or observations and regions. 
+
+.. code-block:: python
+
+    trend_plot = trend(o3d_request)
+    trend_plot.plot()
+
+This function provides the plots for trends provided the different models or observations, depth level and regions. 
+
+
+.. code-block:: python
+
+    strat = stratification(o3d_request)
+    strat.plot()
+
+This function provides the plots for stratification (Temperature, salinity, and density profile) provided the different models or observations and regions. 
+
+
+.. code-block:: python
+
+    timeser = time_series(o3d_request)
+    timeser.plot()
+
+This function provides the plots for standardized anomaly time series provided the different models or observations and regions. 
 
 
 Methods used 
