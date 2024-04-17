@@ -200,11 +200,6 @@ Example Plot(s)
     :width: 18cm
 
 
-* This is an example of the plots of lat-depth maps of temporal trends in T, S
-
-.. figure:: figures/ocean3d4.png
-    :width: 18cm
-
 
 * This is an example of one of the climatological stratification profiles.
 
