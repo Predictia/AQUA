@@ -22,6 +22,7 @@ AQUA core complete list:
 - Remove  NextGEMS cycle2 sources (#1008)
 
 AQUA diagnostics complete list:
+- Teleconnections: refactor of the documentation (#1061)
 - Tropical rainfall: Updating the Documentation and Notebooks (#1083)
 - Performance indices: minor improvements with the inclusion of mask and area files (#1076)
 - Timeseries: Seasonal Cycle and Gregory plots save netcdf files (#1079)

@@ -1,6 +1,6 @@
-# you can turn on/off the oceanic teleconnections you want to compute
+# you can turn on/off the atmosferic teleconnections you want to compute
 teleconnections:
-  ENSO: true
+  NAO: true
 
 # Interface file, found in config folder
 interface: 'teleconnections-destine'
@@ -9,12 +9,22 @@ interface: 'teleconnections-destine'
 # Extra keyword arguments for the models are:
 # regrid: null
 # freq: null
+# zoom: null
 # These are all null (None) by default because we're assuming
 # data are monthly and already regridded to a 1deg grid.
 # If you want to use native data, you have to set these parameters
 # for each model.
 models:
   - model: 'IFS-NEMO'
+    exp: 'ssp370'
+    source: 'lra-r100-monthly'
+  - model: 'ICON'
+    exp: 'ssp370'
+    source: 'lra-r100-monthly'
+  - model: 'IFS-NEMO'
+    exp: 'historical-1990'
+    source: 'lra-r100-monthly'
+  - model: 'ICON'
     exp: 'historical-1990'
     source: 'lra-r100-monthly'
 
@@ -37,8 +47,8 @@ outputdir: './output' # common output directory for figures and netcdf files
 configdir: null
 
 # List of teleconnections specific configuration parameters
-ENSO:
+NAO:
   months_window: 3
-  full_year: true
-  seasons: null # to analyse additionally to the full data
-  cbar_range: [-2, 2] # colorbar range for the regression figures
+  full_year: false
+  seasons: ['DJF', 'JJA'] # to analyse additionally to the full data
+  cbar_range: [-5, 5] # colorbar range for the regression figures
