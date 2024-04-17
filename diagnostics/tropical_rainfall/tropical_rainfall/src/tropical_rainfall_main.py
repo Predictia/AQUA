@@ -2169,3 +2169,86 @@ class MainClass:
                                                  model_variable=self.model_variable, loc=loc, fontsize=fontsize,
                                                  add=add, fig=fig, plot_title=None, path_to_pdf=path_to_pdf,
                                                  pdf_format=pdf_format)
+
+    def concat_two_datasets(self, dataset_1: xr.Dataset = None, dataset_2: xr.Dataset = None) -> xr.Dataset:
+        """
+        Function to concatenate two datasets along the time dimension.
+
+        Args:
+            dataset_1 (xarray.Dataset, optional): The first dataset. Defaults to None.
+            dataset_2 (xarray.Dataset, optional): The second dataset. Defaults to None.
+
+        Returns:
+            xarray.Dataset: The xarray.Dataset resulting from concatenating dataset_1 and dataset_2 along the time dimension.
+        """
+
+        if not isinstance(dataset_1, xr.Dataset) or not isinstance(dataset_2, xr.Dataset):
+            raise ValueError("Both dataset_1 and dataset_2 must be xarray.Dataset instances")
+
+        # Ensure both datasets have a 'time' coordinate to concatenate along
+        if 'time' not in dataset_1.coords or 'time' not in dataset_2.coords:
+            raise ValueError("Both datasets must have a 'time' coordinate for concatenation")
+
+        # Concatenate datasets along the time dimension
+        concatenated_dataset = xr.concat([dataset_1, dataset_2], dim='time')
+        concatenated_dataset.attrs['time_band_history'] = str(dataset_1.time_band)+'; '+str(dataset_2.time_band)
+        concatenated_dataset.attrs['time_band'] = self.tools.merge_time_bands(dataset_1, dataset_2)
+                        
+        return concatenated_dataset
+
+
+    def merge_list_of_daily_variability(self, path_to_output: str = None, start_year: int = None, end_year: int = None,
+                             start_month: int = None, end_month: int = None,
+                             test: bool = False, tqdm: bool = False, flag: str = None) -> xr.Dataset:
+        """
+        Function to merge a list of histograms based on specified criteria. It supports merging by seasonal 
+        categories or specific year and month ranges.
+        
+        Args:
+            path_to_output (str, optional): Path to the list of daily_variability data.
+            start_year (int, optional): Start year of the range (inclusive).
+            end_year (int, optional): End year of the range (inclusive).
+            start_month (int, optional): Start month of the range (inclusive).
+            end_month (int, optional): End month of the range (inclusive).
+            test (bool, optional): Runs function in test mode.
+            tqdm (bool, optional): Displays a progress bar during merging.
+            flag (str, optional): A specific flag to look for in the filenames. Defaults to None.
+        
+        Returns:
+            xr.Dataset: Merged xarray Dataset.
+        """
+
+        list_to_load = self.tools.select_files_by_year_and_month_range(path_to_histograms=path_to_output,
+                                                                       start_year=start_year, end_year=end_year,
+                                                                       start_month=start_month, end_month=end_month,
+                                                                       flag=flag)
+        
+        self.tools.check_time_continuity(list_to_load)
+        self.tools.check_incomplete_months(list_to_load)
+        list_to_load = self.tools.check_and_remove_incomplete_months(list_to_load)
+        
+        self.logger.debug(f"List of files to merge:")
+        for i in range(0, len(list_to_load)):
+            self.logger.debug(f"{list_to_load[i]}")
+
+        if len(list_to_load) > 0:
+            progress_bar_template = "[{:<40}] {}%"
+            try:
+                # Initialize the merged dataset with the first histogram
+                merged_dataset = self.tools.open_dataset(path_to_netcdf=list_to_load[0])
+                
+                # Loop through the rest of the histograms and merge them one by one
+                for i in range(1, len(list_to_load)):
+                    if tqdm:
+                        ratio = i / len(list_to_load)
+                        progress = int(40 * ratio)
+                        print(progress_bar_template.format("=" * progress, int(ratio * 100)), end="\r")
+                    
+                    self.logger.debug(f"Merging histogram: {list_to_load[i]}")
+                    next_dataset = self.tools.open_dataset(path_to_netcdf=list_to_load[i])
+                    merged_dataset = self.concat_two_datasets(dataset_1=merged_dataset, dataset_2=next_dataset)
+                return merged_dataset
+            except Exception as e:
+                self.logger.error(f"An unexpected error occurred while merging histograms: {e}") 
+        else:
+            self.logger.error("No histograms to load and merge.")
