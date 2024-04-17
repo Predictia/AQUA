@@ -35,7 +35,7 @@ def retrieved_dataarray():
 
     elif str(os.getenv('INPUT_ARG')) == 'levante':
         """reader_levante """
-        data = Reader(model="ICON", exp="ngc2009", source="lra-r100-monthly")
+        data = Reader(model="ICON", exp="historical-1990", source="lra-r100-monthly")
         retrieved = data.retrieve()
         try:
             retrieved_array = retrieved['mtpr']*86400
