@@ -15,7 +15,9 @@ xr.set_options(keep_attrs=True)
 
 
 def plot_hovmoller(data: xr.DataArray,
-                   invert_axis=False, sym=False,
+                   invert_axis=False,
+                   invert_time=False,
+                   sym=False,
                    contour=True, save=False,
                    dim='lon', figsize=(8, 13),
                    vmin=None, vmax=None, cmap='RdBu_r',
@@ -28,6 +30,9 @@ def plot_hovmoller(data: xr.DataArray,
         data (DataArray):       DataArray to be plot
         invert_axis (bool,opt): enable or disable axis inversion,
                                 default is False
+        invert_time (bool,opt): enable or disable time inversion,
+                                if False, time will increase with
+                                the increasing axis direction.
         sym (bool,opt):         center the cbar around zero,
                                 default is False
         contour (bool,opt):     True for contour plot, False for pcolormesh,
@@ -71,12 +76,17 @@ def plot_hovmoller(data: xr.DataArray,
     if invert_axis:
         x = data_mean.coords[data_mean.dims[-1]]
         y = data_mean.coords['time']
+        ax.set_xlabel(data_mean.dims[-1])
+        ax.set_ylabel('time')
     else:
         x = data_mean.coords['time']
         y = data_mean.coords[data_mean.dims[-1]]
+        ax.set_xlabel('time')
+        ax.set_ylabel(data_mean.dims[-1])
 
-    vmin = kwargs.get('vmin', None)
-    vmax = kwargs.get('vmax', None)
+    if invert_time:
+        data_mean.assign_coords({'time': (data_mean.time * -1)})
+
     if vmin is None or vmax is None:
         vmin, vmax = evaluate_colorbar_limits(maps=[data], sym=sym)
     else:
@@ -117,15 +127,30 @@ def plot_hovmoller(data: xr.DataArray,
     # Add a colorbar axis at the bottom of the graph
     cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.02])
 
-    if cbar_label is not None:
-        fig.colorbar(im, cax=cbar_ax, orientation='horizontal',
-                     label=cbar_label)
-    else:
+    # cbar label
+    if cbar_label is None:
         try:
-            fig.colorbar(im, cax=cbar_ax, orientation='horizontal',
-                         label=data_mean.short_name)
+            var_name = data_mean.short_name
         except AttributeError:
-            fig.colorbar(im, cax=cbar_ax, orientation='horizontal')
+            try:
+                var_name = data_mean.long_name
+            except AttributeError:
+                var_name = None
+        # Add units
+        try:
+            units = data_mean.units
+        except AttributeError:
+            units = None
+        if var_name is not None and units is not None:
+            cbar_label = '{} [{}]'.format(var_name, units)
+        elif var_name is not None:
+            cbar_label = var_name
+        else:
+            cbar_label = None
+            logger.warning('Could not find a label for the colorbar')
+
+    fig.colorbar(im, cax=cbar_ax, orientation='horizontal',
+                label=cbar_label)
 
     # Save the figure
     if save is True:
