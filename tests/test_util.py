@@ -4,7 +4,7 @@ import pytest
 import datetime
 import xarray as xr
 import numpy as np
-from aqua.util import extract_literal_and_numeric, file_is_complete
+from aqua.util import extract_literal_and_numeric, file_is_complete, flip_time
 
 @pytest.fixture
 def test_text():
@@ -107,3 +107,11 @@ class TestFileIsComplete:
         assert result is True
 
 
+def test_flip_time():
+    """Test the flip_time function"""
+    time = np.arange(0, 10)
+    data = xr.DataArray(np.random.rand(10, 3, 4), dims=("time", "lat", "lon"))
+    data = data.assign_coords(time=time)
+    flipped_data = flip_time(data)
+    assert flipped_data.time.values[0] == 9
+    assert flipped_data.time.values[-1] == 0
