@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 
-from aqua.util import create_folder, evaluate_colorbar_limits
+from aqua.util import create_folder, evaluate_colorbar_limits, flip_time
 from aqua.logger import log_configure
 
 # set default options for xarray
@@ -85,7 +85,8 @@ def plot_hovmoller(data: xr.DataArray,
         ax.set_ylabel(data_mean.dims[-1])
 
     if invert_time:
-        data_mean.assign_coords({'time': (data_mean.time * -1)})
+        logger.debug('Inverting time axis')
+        data_mean = flip_time(data_mean)
 
     if vmin is None or vmax is None:
         vmin, vmax = evaluate_colorbar_limits(maps=[data], sym=sym)
