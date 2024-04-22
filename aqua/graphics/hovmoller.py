@@ -48,13 +48,11 @@ def plot_hovmoller(data: xr.DataArray,
         cbar_label (str,opt):   colorbar label, default is None
         outputdir (str,opt):    output directory, default is '.'
         filename (str,opt):     output filename, default is 'hovmoller.png'
+        show_dim_values (bool,opt): show the values of the dimension
+                                    over which the mean was taken (round them to int)
+                                    Default is True
         loglevel (str,opt):     log level for the logger,
                                 default is 'WARNING'
-        **kwargs:               additional arguments to be passed to the plot
-
-    Keyword Args:
-        vmin (float): minimum value for the colorbar
-        vmax (float): maximum value for the colorbar
 
     Returns:
         fig, ax: tuple with the figure and axes
@@ -67,13 +65,23 @@ def plot_hovmoller(data: xr.DataArray,
 
     # Evaluate the mean over the dimension to be averaged over
     logger.info('Averaging over dimension: {}'.format(dim))
+    dim_min = data.coords[dim].min()
+    dim_max = data.coords[dim].max()
+    dim_min = np.round(dim_min, 0)
+    dim_max = np.round(dim_max, 0)
+    
     data_mean = data.mean(dim=dim)
 
     # Create figure and axes
     fig, ax = plt.subplots(figsize=figsize)
 
+    if invert_time:
+        logger.debug('Inverting time axis')
+        data_mean = flip_time(data_mean)
+
     # Plot the data
     if invert_axis:
+        logger.debug('Inverting axis for plot')
         x = data_mean.coords[data_mean.dims[-1]]
         y = data_mean.coords['time']
         ax.set_xlabel(data_mean.dims[-1])
@@ -83,10 +91,6 @@ def plot_hovmoller(data: xr.DataArray,
         y = data_mean.coords[data_mean.dims[-1]]
         ax.set_xlabel('time')
         ax.set_ylabel(data_mean.dims[-1])
-
-    if invert_time:
-        logger.debug('Inverting time axis')
-        data_mean = flip_time(data_mean)
 
     if vmin is None or vmax is None:
         vmin, vmax = evaluate_colorbar_limits(maps=[data], sym=sym)
@@ -101,25 +105,25 @@ def plot_hovmoller(data: xr.DataArray,
             levels = np.linspace(vmin, vmax, nlevels)
             if invert_axis:
                 im = ax.contourf(x, y, data_mean, levels=levels, cmap=cmap,
-                                 vmin=vmin, vmax=vmax)
+                                 vmin=vmin, vmax=vmax, extend='both')
             else:
                 im = ax.contourf(x, y, data_mean.T, levels=levels, cmap=cmap,
-                                 vmin=vmin, vmax=vmax)
+                                 vmin=vmin, vmax=vmax, extend='both')
         except TypeError as e:
             logger.warning('Could not evaluate levels: {}'.format(e))
             if invert_axis:
                 im = ax.contourf(x, y, data_mean, cmap=cmap,
-                                 vmin=vmin, vmax=vmax)
+                                 vmin=vmin, vmax=vmax, extend='both')
             else:
                 im = ax.contourf(x, y, data_mean.T, cmap=cmap,
-                                 vmin=vmin, vmax=vmax)
+                                 vmin=vmin, vmax=vmax, extend='both')
     else:  # pcolormesh
         if invert_axis:
             im = ax.pcolormesh(x, y, data_mean, cmap=cmap,
-                               vmin=vmin, vmax=vmax)
+                               vmin=vmin, vmax=vmax, extend='both')
         else:
             im = ax.pcolormesh(x, y, data_mean.T, cmap=cmap,
-                               vmin=vmin, vmax=vmax)
+                               vmin=vmin, vmax=vmax, extend='both')
 
     # Adjust the location of the subplots on the page to make room for the colorbar
     fig.subplots_adjust(bottom=0.25, top=0.9, left=0.05, right=0.95,
@@ -127,6 +131,12 @@ def plot_hovmoller(data: xr.DataArray,
 
     # Add a colorbar axis at the bottom of the graph
     cbar_ax = fig.add_axes([0.2, 0.15, 0.6, 0.02])
+
+    # Add min and max values of the dim on the top right corner
+    ax.text(0.99, 0.99, f'{dim} = {dim_min:.2f} to {dim_max:.2f}',
+            verticalalignment='top', horizontalalignment='right',
+            transform=ax.transAxes, fontsize=12,
+            bbox=dict(facecolor='white', alpha=0.5))
 
     # cbar label
     if cbar_label is None:
