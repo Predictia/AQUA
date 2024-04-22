@@ -10,7 +10,7 @@ from .tc_class import Teleconnection
 from .tools import TeleconnectionsConfig
 from .tools import wgt_area_mean
 
-__version__ = '0.5.1'
+__version__ = '0.6.0'
 
 __all__ = ['bootstrap_teleconnections', 'build_confidence_mask',
            'station_based_index', 'regional_mean_index',
@@ -24,6 +24,7 @@ __all__ = ['bootstrap_teleconnections', 'build_confidence_mask',
 
 
 # Changelog
+# 0.6.0: MJO Hovmoller plot added
 # 0.5.1: Keeping attributes in xarray operations, final deliverable
 # 0.5.0: Bootstrap teleconnections and confidence masks functions added
 # 0.4.0: CLI is now plotting maps with the differences wrt the reference
