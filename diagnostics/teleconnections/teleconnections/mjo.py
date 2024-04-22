@@ -17,6 +17,7 @@ def mjo_hovmoller(data=None,
                   telecname: str = "MJO",
                   namelist: dict = None,
                   day_window: int = None,
+                  flip_sign: bool = False,
                   **kwargs) -> xr.DataArray:
     """
     Prepare the data for a MJO Hovmoller plot.
@@ -32,6 +33,8 @@ def mjo_hovmoller(data=None,
         namelist (dict):  Namelist with the teleconnection informations.
         day_window (int): Number of days to be used in the smoothing window.
                           Default is not performed.
+        flip_sign (bool): If True, it will flip the sign of the variable.
+                          Default is False.
 
     KwArgs:
         configdir (str):  Path to the configuration directory.
@@ -56,8 +59,8 @@ def mjo_hovmoller(data=None,
         logger.info("Subselecting var " + var)
         data = data[var]
 
-    if var == 'mtntrf':
-        logger.warning("Flipping the sign of the variable mtntrf.")
+    if flip_sign:
+        logger.info("Flipping the sign of the variable.")
         data = -data
 
     # Acquiring MJO box
