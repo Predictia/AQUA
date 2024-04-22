@@ -22,7 +22,8 @@ def plot_hovmoller(data: xr.DataArray,
                    dim='lon', figsize=(8, 13),
                    vmin=None, vmax=None, cmap='PuOr_r', # defaul map for MJO
                    nlevels=8, cbar_label=None,
-                   outputdir='.', filename='hovmoller.png',
+                   outputdir='.', filename='hovmoller.pdf',
+                   display=True, return_fig=False,
                    loglevel: str = "WARNING",
                    **kwargs):
     """"
@@ -51,8 +52,15 @@ def plot_hovmoller(data: xr.DataArray,
         show_dim_values (bool,opt): show the values of the dimension
                                     over which the mean was taken (round them to int)
                                     Default is True
+        display (bool, optional):   If True, display the figure. Defaults to True.
+        return_fig (bool, optional): If True, return the figure (fig, ax). Defaults to False.
         loglevel (str,opt):     log level for the logger,
                                 default is 'WARNING'
+
+    Keyword Args:
+        format (str, optional):      Format of the figure. Defaults to 'pdf'.
+        dpi (int, optional):         Dots per inch. Defaults to 100 for pcolormesh
+                                     and 300 for contour plots.
 
     Returns:
         fig, ax: tuple with the figure and axes
@@ -164,11 +172,32 @@ def plot_hovmoller(data: xr.DataArray,
                 label=cbar_label)
 
     # Save the figure
-    if save is True:
+    if save:
+        logger.debug("Saving figure to %s", outputdir)
         create_folder(outputdir, loglevel=loglevel)
+        plot_format = kwargs.get('format', 'pdf')
+        if filename.endswith(plot_format):
+            logger.debug("Format already set in the filename")
+        else:
+            filename = f"{filename}.{plot_format}"
+        logger.debug("Setting filename to %s", filename)
 
+        logger.info("Saving figure as %s/%s", outputdir, filename)
+        if contour:
+            dpi = kwargs.get('dpi', 300)
+        else:
+            dpi = kwargs.get('dpi', 100)
+            if dpi == 100:
+                logger.info("Setting dpi to 100 by default, use dpi kwarg to change it")
+
+        fig.savefig('{}/{}'.format(outputdir, filename),
+                    dpi=dpi, bbox_inches='tight')
+
+        if display is False:
+            logger.debug("Display is set to False, closing figure")
+            plt.close(fig)
         logger.info('Saving figure to {}/{}'.format(outputdir, filename))
-        fig.savefig('{}/{}'.format(outputdir, filename), format='pdf',
-                    dpi=300, bbox_inches='tight')
-    
-    return fig, ax
+
+        if return_fig:
+            logger.debug("Returning figure and axes")
+            return fig, ax
