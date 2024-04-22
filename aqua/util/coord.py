@@ -92,7 +92,8 @@ def flip_lat_dir(dataset):
 
     return new_dataset
 
-# NOT IN USE, LEAVING FOR FUTURE REFERENCEs
+# NOT IN USE, LEAVING FOR FUTURE REFERENCE
+# In case this is uncommented, a test is available in tests/test_util.py
 
 # def flip_time(dataset):
 #     """
