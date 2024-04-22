@@ -92,35 +92,36 @@ def flip_lat_dir(dataset):
 
     return new_dataset
 
+# NOT IN USE, LEAVING FOR FUTURE REFERENCEs
 
-def flip_time(dataset):
-    """
-    Flips the time coordinate of a dataset.
+# def flip_time(dataset):
+#     """
+#     Flips the time coordinate of a dataset.
 
-    Args:
-        dataset (xarray.Dataset or xarray.DataArray): The dataset to be flipped.
+#     Args:
+#         dataset (xarray.Dataset or xarray.DataArray): The dataset to be flipped.
 
-    Return:
-        xarray.Dataset or xarray.DataArray: The flipped dataset.
+#     Return:
+#         xarray.Dataset or xarray.DataArray: The flipped dataset.
 
-    Raises:
-        ValueError: If the dataset does not have a 'time' coordinate.
-    """
+#     Raises:
+#         ValueError: If the dataset does not have a 'time' coordinate.
+#     """
 
-    # Assume the time coordinate is called 'time'
-    new_dataset = dataset
-    time_coord = None
+#     # Assume the time coordinate is called 'time'
+#     new_dataset = dataset
+#     time_coord = None
     
-    for coord in time_coords:
-        if coord in dataset.coords:
-            time_coord = coord
-            break
+#     for coord in time_coords:
+#         if coord in dataset.coords:
+#             time_coord = coord
+#             break
 
-    if time_coord:
-        new_dataset = dataset.copy()
-        new_dataset = new_dataset.isel({time_coord: slice(None, None, -1)})
-        new_dataset.coords["time"].attrs["flipped"] = True
-    else:
-        raise ValueError("The dataset does not have a 'time' coordinate.")
+#     if time_coord:
+#         new_dataset = dataset.copy()
+#         new_dataset = new_dataset.isel({time_coord: slice(None, None, -1)})
+#         new_dataset.coords["time"].attrs["flipped"] = True
+#     else:
+#         raise ValueError("The dataset does not have a 'time' coordinate.")
 
-    return new_dataset
+#     return new_dataset
