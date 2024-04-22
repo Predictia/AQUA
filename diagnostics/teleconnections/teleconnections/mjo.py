@@ -59,6 +59,7 @@ def mjo_hovmoller(data=None,
         logger.info("Subselecting var " + var)
         data = data[var]
 
+    flip_sign = namelist[telecname].get('flip_sign', flip_sign)
     if flip_sign:
         logger.info("Flipping the sign of the variable.")
         data = -data
