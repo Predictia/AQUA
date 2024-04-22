@@ -272,7 +272,7 @@ if __name__ == '__main__':
             logger.info(f"Plotting {var} seasonal cycle")
             monthly, annual, regrid, plot_ref, plot_ref_kw, startdate, \
                 enddate, monthly_std, annual_std, std_startdate, std_enddate, \
-                plot_kw, longname = get_plot_options(config, var)
+                plot_kw, longname, _ = get_plot_options(config, var)
 
             sc = SeasonalCycle(var=var,
                                formula=False,
