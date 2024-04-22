@@ -34,7 +34,7 @@ def mjo_hovmoller(data=None,
         day_window (int): Number of days to be used in the smoothing window.
                           Default is not performed.
         flip_sign (bool): If True, it will flip the sign of the variable.
-                          Default is False.
+                          Will be extracted from the namelist if not provided. Default is False.
 
     KwArgs:
         configdir (str):  Path to the configuration directory.

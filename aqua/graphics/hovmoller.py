@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 
-from aqua.util import create_folder, evaluate_colorbar_limits, flip_time
+from aqua.util import create_folder, evaluate_colorbar_limits
 from aqua.logger import log_configure
 
 # set default options for xarray
@@ -20,7 +20,7 @@ def plot_hovmoller(data: xr.DataArray,
                    sym=False,
                    contour=True, save=False,
                    dim='lon', figsize=(8, 13),
-                   vmin=None, vmax=None, cmap='RdBu_r',
+                   vmin=None, vmax=None, cmap='PuOr_r', # defaul map for MJO
                    nlevels=8, cbar_label=None,
                    outputdir='.', filename='hovmoller.png',
                    loglevel: str = "WARNING",
@@ -75,10 +75,6 @@ def plot_hovmoller(data: xr.DataArray,
     # Create figure and axes
     fig, ax = plt.subplots(figsize=figsize)
 
-    if invert_time:
-        logger.debug('Inverting time axis')
-        data_mean = flip_time(data_mean)
-
     # Plot the data
     if invert_axis:
         logger.debug('Inverting axis for plot')
@@ -86,11 +82,15 @@ def plot_hovmoller(data: xr.DataArray,
         y = data_mean.coords['time']
         ax.set_xlabel(data_mean.dims[-1])
         ax.set_ylabel('time')
+        if invert_time:
+            plt.gca().invert_yaxis()
     else:
         x = data_mean.coords['time']
         y = data_mean.coords[data_mean.dims[-1]]
         ax.set_xlabel('time')
         ax.set_ylabel(data_mean.dims[-1])
+        if invert_time:
+            plt.gca().invert_xaxis()
 
     if vmin is None or vmax is None:
         vmin, vmax = evaluate_colorbar_limits(maps=[data], sym=sym)
