@@ -155,6 +155,10 @@ def get_reference_timeseries(var, formula=False,
 
     start_retrieve, end_retrieve = _start_end_dates(startdate=startdate, enddate=enddate,
                                                     start_std=std_startdate, end_std=std_enddate)
+    if model == 'ERA5':
+        if end_retrieve >= '2023-01-01':
+            logger.warning("ERA5 2023 has a double time axis, limiting the end date to 2022-12-31")
+            end_retrieve = '2022-12-31'
     logger.debug(f"Retrieve data from {start_retrieve} to {end_retrieve}")
     logger.debug(f"Retrieve std from {std_startdate} to {std_enddate}")
 
@@ -175,9 +179,6 @@ def get_reference_timeseries(var, formula=False,
         # HACK: ERA5 2023 has a double time axis, so we need to resample
         if 'monthly' in source or 'mon' in source:
             logger.debug(f"No monthly resample needed for {model} {exp} {source}")
-            if model == 'ERA5':
-                logger.warning('ERA5 2023 has a double time axis, removing T06:00:00')
-                data = data.where('T06:00:00' not in data.time.values)
         else:
             data = reader.timmean(data=data, freq='MS', exclude_incomplete=True)
 
