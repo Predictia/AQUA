@@ -10,6 +10,9 @@ Unreleased in the current development version:
 AQUA core complete list:
 - ESA-CCI-L4 dataset added for Lumi and Levante catalogues (#1090)
 
+AQUA diagnostics complete list:
+- Timeseries: units can be overridden in the configuration file (#1098)
+
 ## [v0.8]
 
 Main changes are:
