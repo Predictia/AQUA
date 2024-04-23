@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+AQUA core complete list:
+- ESA-CCI-L4 dataset added for Lumi and Levante catalogues (#1090)
+
 ## [v0.8]
 
 Main changes are:
