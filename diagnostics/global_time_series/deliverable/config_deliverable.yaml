@@ -19,7 +19,7 @@ outputdir: "./"
 # This is the list of variables that will be plotted as seasonal cycles
 timeseries: ['2t']
 timeseries_formulae: ['86400*mtpr']
-seasonal_cycle: ['mtpr']
+seasonal_cycle_formulae: ['86400*mtpr']
 
 gregory:
   ts: '2t'
@@ -39,9 +39,9 @@ timeseries_plot_params:
     annual: True
     std_startdate: '1990-01-01'
     std_enddate: '2020-12-31'
-    expand: False
+    expand: True
   mtnlwrf+mtnswrf:
-    longname: "Net top radiation" # This is to override title and ylabel
+    longname: "Mean top net radiation" # This is to override title and ylabel
     std_startdate: '1990-01-01'
     std_enddate: '2020-12-31'
   86400*mtpr:

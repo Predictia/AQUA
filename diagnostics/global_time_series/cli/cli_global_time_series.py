@@ -305,4 +305,42 @@ if __name__ == '__main__':
                 logger.warning(f"Skipping {var} seasonal cycle plot: {e}")
             except Exception as e:
                 logger.error(f"Error plotting {var} seasonal cycle: {e}")
+
+    if "seasonal_cycle_formulae" in config:
+        logger.info("Plotting seasonal cycle formulae")
+
+        for var in config["seasonal_cycle_formulae"]:
+            logger.info(f"Plotting {var} seasonal cycle")
+            monthly, annual, regrid, plot_ref, plot_ref_kw, startdate, \
+                enddate, monthly_std, annual_std, std_startdate, std_enddate, \
+                plot_kw, longname, units, _ = get_plot_options(config, var)
+
+            sc = SeasonalCycle(var=var,
+                               formula=True,
+                               models=models_list,
+                               exps=exp_list,
+                               sources=source_list,
+                               regrid=regrid,
+                               plot_ref=plot_ref,
+                               plot_ref_kw=plot_ref_kw,
+                               startdate=startdate,
+                               enddate=enddate,
+                               std_startdate=std_startdate,
+                               std_enddate=std_enddate,
+                               plot_kw=plot_kw,
+                               outdir=outputdir,
+                               longname=longname,
+                               units=units,
+                               loglevel=loglevel)
+            try:
+                sc.run()
+            except NotEnoughDataError as e:
+                logger.warning(f"Skipping {var} seasonal cycle plot: {e}")
+            except NoDataError as e:
+                logger.warning(f"Skipping {var} seasonal cycle plot: {e}")
+            except NoObservationError as e:
+                logger.warning(f"Skipping {var} seasonal cycle plot: {e}")
+            except Exception as e:
+                logger.error(f"Error plotting {var} seasonal cycle: {e}")
+
     logger.info("Global Time Series is terminated.")
