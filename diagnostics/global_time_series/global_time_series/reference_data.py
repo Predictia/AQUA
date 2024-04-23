@@ -9,6 +9,7 @@ from aqua.util import eval_formula
 
 xr.set_options(keep_attrs=True)
 
+
 def get_reference_ts_gregory(ts_name='2t', ts_ref={'model': 'ERA5', 'exp': 'era5', 'source': 'monthly'},
                              startdate='1980-01-01', enddate='2010-12-31', loglevel='WARNING'):
     """Retrieve ts reference data for Gregory plot.
@@ -171,8 +172,12 @@ def get_reference_timeseries(var, formula=False,
     # Monthly data
     if monthly or monthly_std:
         # exclude resample if 'monthly' is in the source name
+        # HACK: ERA5 2023 has a double time axis, so we need to resample
         if 'monthly' in source or 'mon' in source:
             logger.debug(f"No monthly resample needed for {model} {exp} {source}")
+            if model == 'ERA5':
+                logger.warning('ERA5 2023 has a double time axis, removing T06:00:00')
+                data = data.where('T06:00:00' not in data.time.values)
         else:
             data = reader.timmean(data=data, freq='MS', exclude_incomplete=True)
 

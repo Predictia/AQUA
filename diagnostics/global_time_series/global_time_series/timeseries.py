@@ -409,7 +409,7 @@ class Timeseries():
             exp_startdate, exp_enddate = self._expand_ref_range(freq='monthly')
             self.logger.info(f"Monthly reference std time range for expansion evaluation: {exp_startdate} to {exp_enddate}")
 
-            startdate, enddate = self._expand_ref_range(freq='monthly', range_eval=True)
+            startdate, enddate = self._expand_ref_range(freq='monthly', range_eval=False)
             self.logger.info(f"Monthly reference data time available {startdate} to {enddate}")
 
             if startdate > self.startdate or enddate < self.enddate:
@@ -430,7 +430,7 @@ class Timeseries():
                     ref_mon_loop = loop_seasonalcycle(data=self.ref_mon,
                                                       startdate=enddate,
                                                       enddate=self.enddate,
-                                                      freq='MS')
+                                                      freq='MS', loglevel=self.loglevel)
                     self.ref_mon = xr.concat([self.ref_mon, ref_mon_loop], dim='time')
                     self.ref_mon = self.ref_mon.sortby('time')
 
@@ -440,7 +440,7 @@ class Timeseries():
             exp_startdate, exp_enddate = self._expand_ref_range(freq='annual')
             self.logger.info(f"Annual reference std time range for expansion evaluation: {exp_startdate} to {exp_enddate}")
 
-            startdate, enddate = self._expand_ref_range(freq='annual', range_eval=True)
+            startdate, enddate = self._expand_ref_range(freq='annual', range_eval=False)
             self.logger.info(f"Annual reference data time available {startdate} to {enddate}")
 
             if startdate > self.startdate or enddate < self.enddate:
@@ -461,7 +461,7 @@ class Timeseries():
                     ref_ann_loop = loop_seasonalcycle(data=self.ref_ann,
                                                       startdate=enddate,
                                                       enddate=self.enddate,
-                                                      freq='YS')
+                                                      freq='YS', loglevel=self.loglevel)
                     self.ref_ann = xr.concat([self.ref_ann, ref_ann_loop], dim='time')
                     self.ref_ann = self.ref_ann.sortby('time')
 
