@@ -127,12 +127,9 @@ class SeasonalCycle(Timeseries):
 
         ref_label = f"{self.plot_ref_kw['model']}"
 
-        if self.formula is False or self.formula is None:
-            try:
-                title = self.data_mon[0].attrs['long_name'] + ' (' + self.data_mon[0].attrs['units'] + ') seasonal cycle'
-            except KeyError:
-                title = f'{self.var} seasonal cycle'
-        else:
+        try:
+            title = self.data_mon[0].attrs['long_name'] + ' (' + self.data_mon[0].attrs['units'] + ') seasonal cycle'
+        except KeyError:
             title = f'{self.var} seasonal cycle'
 
         fig, _ = plot_seasonalcycle(data=self.cycle,
