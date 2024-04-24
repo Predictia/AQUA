@@ -118,7 +118,7 @@ Example Plot(s)
 .. figure:: figures/tropical_cyclones2.png
     :width: 10cm
     
-    Example of TCs trajectories computed from the nextGEMS IFS simulation tco1279-orca025-cycle3.
+    Example of TCs trajectories computed from the nextGEMS IFS simulation tco1279-orca025-cycle3. Note the extratropical cyclone identifided offshore the East Coast of the US which might have been erroneously classified as tropical by the TempestExtremes algorithm.
 
 
 Available demo notebooks
