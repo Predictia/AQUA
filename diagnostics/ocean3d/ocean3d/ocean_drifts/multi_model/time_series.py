@@ -56,8 +56,7 @@ class time_series:
                 # Plot the temperature time series
                 data_level.avg_thetao.plot.line(
                     ax=axs[num,0],
-                    label=f"{round(int(data_level.lev.data),
-                    -2)}")
+                    label=f"{round(int(data_level.lev.data), -2)}")
 
                 # Plot the salinity time series
                 data_level.avg_so.plot.line(
