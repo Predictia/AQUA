@@ -113,7 +113,7 @@ Example Plot(s)
 .. figure:: figures/tropical_cyclones1.png
     :width: 10cm
 
-    Pressure in the vicinity of a tropical cyclone (from the IFStco1279-orca025-cycle3 simulation).
+    Module of wind in the vicinity of a tropical cyclone following its trajectory (from the IFStco1279-orca025-cycle3 simulation).
 
 .. figure:: figures/tropical_cyclones2.png
     :width: 10cm
