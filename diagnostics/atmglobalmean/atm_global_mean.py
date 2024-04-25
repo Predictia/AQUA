@@ -227,7 +227,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
         cnplots.append(cnplot)
 
     if seasons:
-        ax.set_title("Climatological Bias")
+        ax.set_title("Annual Mean Bias")
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
     
@@ -297,7 +297,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
 
     # Add a colorbar
     if seasons:
-        cbar_ax = fig.add_axes([0.25, 0.02, 0.5, 0.02])  # Adjust the position and size of the colorbar
+        cbar_ax = fig.add_axes([0.25, 0.033, 0.5, 0.02])  # Adjust the position and size of the colorbar
     else:
         cbar_ax = fig.add_axes([0.25, 0.09, 0.5, 0.02])
     cbar = fig.colorbar(cnplots[0], cax=cbar_ax, orientation='horizontal')
@@ -311,9 +311,9 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
 
     # Set the overall figure title
     if plev:
-        overall_title = f'Bias of {var_name} [{var2.units}] ({statistic}) from ({start_date1} to {end_date1}) at {plev} Pa\n Experiment {model_label1} with respect to  {model_label2} climatology ({start_date2} to {end_date2})'
+        overall_title = f'Bias / Difference of {var_name} [{var2.units}] ({statistic}) from ({start_date1} to {end_date1}) at {plev} Pa\n Experiment {model_label1} with respect to  {model_label2} climatology ({start_date2} to {end_date2})'
     else:
-        overall_title = f'Bias of {var_name} [{var2.units}] ({statistic})\n Experiment {model_label1} from ({start_date1} to {end_date1})\n with respect to {model_label2} ({start_date2} to {end_date2})'
+        overall_title = f'Bias / Difference of {var_name} [{var2.units}] ({statistic})\n Experiment {model_label1} from ({start_date1} to {end_date1})\n with respect to {model_label2} ({start_date2} to {end_date2})'
 
     # Set the title above the subplots
     fig.suptitle(overall_title, fontsize=14)
@@ -464,7 +464,7 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None,
         # Create the plot
         fig, ax = plt.subplots(figsize=(10, 8))
         cax = ax.contourf(lat, plev, z_values, cmap='RdBu_r', levels=levels, extend='both')
-        ax.set_title(f'Bias of {var_name} Experiment {model_label1} with respect to {model_label2} \n Selected model time range: {start_date1} to {end_date1} \n Reference time range: {start_date2} to {end_date2}', fontsize=14)
+        ax.set_title(f'Bias / Difference of {var_name} Experiment {model_label1} with respect to {model_label2} \n Selected model time range: {start_date1} to {end_date1} \n Reference time range: {start_date2} to {end_date2}', fontsize=14)
         ax.set_yscale('log')
         ax.set_ylabel('Pressure Level (Pa)', fontsize=14)
         ax.set_xlabel('Latitude', fontsize=14)
@@ -484,7 +484,7 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None,
             # Save the data into a NetCDF file
             filename = f"{outputdir}/atmglobalmean.vertical_bias.{var_name}.{model_label1}.{model_label2}.nc"
             mean_bias.to_netcdf(filename)
-            logger.info(f"The zonal bias for a selected models has been saved to {outputdir} for {var_name} variable.")
+            logger.info(f"The zonal bias / difference for a selected models has been saved to {outputdir} for {var_name} variable.")
 
         if outputfig:
             create_folder(folder=str(outputfig), loglevel=loglevel)
@@ -492,7 +492,7 @@ def compare_datasets_plev(dataset1=None, dataset2=None, var_name=None,
             filename = f"atmglobalmean.vertical_bias.{var_name}.{model_label1}.{model_label2}.pdf"
             output_path = os.path.join(outputfig, filename)
             plt.savefig(output_path, dpi=300, format='pdf')
-            logger.info(f"The zonal bias plot for a selected models have been saved to {outputfig} for {var_name} variable.")
+            logger.info(f"The zonal bias / difference plot for a selected models have been saved to {outputfig} for {var_name} variable.")
         else:
             plt.show()
 
