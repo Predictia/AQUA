@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
+- Tropical Rainfall: Fixing the Bug in the CLI (#1100)
 
 AQUA core complete list:
 - ESA-CCI-L4 dataset added for Lumi and Levante catalogues (#1090)
