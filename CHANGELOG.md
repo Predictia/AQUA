@@ -9,6 +9,7 @@ Unreleased in the current development version:
 - Tropical Rainfall: Fixing the Bug in the CLI (#1100)
 
 AQUA core complete list:
+- Tco399-eORCA025 control, historical and scenario runs added to Lumi catalog (#1070)
 - ESA-CCI-L4 dataset added for Lumi and Levante catalogues (#1090)
 
 AQUA diagnostics complete list:
