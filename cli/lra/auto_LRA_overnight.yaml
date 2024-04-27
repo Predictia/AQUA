@@ -17,10 +17,6 @@ slurm:
 
 catalog:
   IFS-NEMO:
-    ssp370:
-      daily-hpz7-oce3d:
-        workers: 16
-        vars: ['avg_thetao', 'avg_so']
     a16z:
       hourly-hpz7-atm2d:
         workers: 24
