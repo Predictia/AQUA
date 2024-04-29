@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
+- Tropical Rainfall: Reduce Redundancy in Conversion Functions (#1096)
+- Tropical Rainfall: Fixing the Bug in the CLI (#1100)
 
 ## [v0.8.1]
 
