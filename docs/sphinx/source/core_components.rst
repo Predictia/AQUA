@@ -419,6 +419,9 @@ Some options includes:
 - ``degree``: this will define with an integer the order of the polynominial fit. Default is 1, i.e. linear Detrending
 - ``skipna==True``: removing the NaN from the fit. Default is True. 
 
+.. warning::
+    Detrending might lead to incorrect results if there is not an equal amount of time elements (e.g. same amount of months or days) in the dataset.
+
 
 Spatial Averaging
 -----------------

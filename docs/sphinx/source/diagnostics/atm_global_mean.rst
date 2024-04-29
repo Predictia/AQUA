@@ -59,7 +59,7 @@ Data can be compared to ERA5 data an analysis of two model datasets is also poss
 Example plot
 -------------
 
-.. figure:: figures/atmglobalmean.png
+.. figure:: figures/atmglobalmean_docs_figure.png
    :width: 20cm
    :align: center
 
