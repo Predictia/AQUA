@@ -672,15 +672,19 @@ class ToolsClass:
             if 'path' not in value:
                 print(f"Error: 'path' key is missing in the entry with key {key}")
 
-        # Select a seaborn palette
-        palette = sns.color_palette("husl", len(loaded_dict))
+        # Define the number of entries
+        num_entries = len(loaded_dict)
+        
+        # Generate a palette starting at a hue past red (e.g., starting at 30 degrees out of 360)
+        palette = sns.husl_palette(n_colors=num_entries, h=0.25) 
 
-        # Loop through the dictionary and assign colors
+        # Assign colors to dictionary entries
         for i, (key, value) in enumerate(loaded_dict.items()):
             loaded_dict[key]["data"] = self.open_dataset(path_to_netcdf=value["path"])
             loaded_dict[key]["color"] = palette[i]
 
         return loaded_dict
+
 
     def add_colors_to_dict(self, loaded_dict: dict = None) -> Union[dict, None]:
         """
@@ -696,11 +700,17 @@ class ToolsClass:
         if not isinstance(loaded_dict, dict):
             self.logger.error("The provided object must be a 'dict' type.")
             return None
-        # Select a seaborn palette
-        palette = sns.color_palette("husl", len(loaded_dict))
+        
+        # Use a custom palette excluding red hues
+        num_entries = len(loaded_dict)
+        # Exclude red by setting hue range to avoid red (hue near 0)
+        palette = sns.husl_palette(n_colors=num_entries, h=0.25)
+        # You can also use other palettes like 'viridis', 'Blues', or 'Greens' depending on your needs
+
         # Loop through the dictionary and assign colors
         for i, (key, value) in enumerate(loaded_dict.items()):
             loaded_dict[key]["color"] = palette[i]
+
         return loaded_dict
 
     def time_interpreter(self, dataset):
