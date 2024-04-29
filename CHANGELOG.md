@@ -7,6 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 - Tropical Rainfall: Reduce Redundancy in Conversion Functions (#1096)
+- Tropical Rainfall: Fixing the Bug in the CLI (#1100)
+
+AQUA core complete list:
+- Tco399-eORCA025 control, historical and scenario runs added to Lumi catalog (#1070)
+- ESA-CCI-L4 dataset added for Lumi and Levante catalogues (#1090)
+
+AQUA diagnostics complete list:
+- Timeseries: units can be overridden in the configuration file (#1098)
 
 ## [v0.8]
 

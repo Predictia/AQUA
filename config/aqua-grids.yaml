@@ -266,6 +266,18 @@ grids:
       height: '{{ grids }}/NEMO/eORCA1_mesh_3d_grid_T_level.nc'
     space_coord: ["ncells"]
     vert_coord: ["height"]
+  eORCA025-2d:
+    path: '{{ grids }}/NEMO/eORCA025_mesh_sfc_grid_T.nc'
+  eORCA025-3d-level: 
+    path: 
+      level: '{{ grids }}/NEMO/eORCA025_mesh_3d_grid_T_level.nc'
+    space_coord: ["ncells"]
+    vert_coord: ["level"]
+  eORCA025-3d-height: 
+    path: 
+      height: '{{ grids }}/NEMO/eORCA025_mesh_3d_grid_T_level.nc'
+    space_coord: ["ncells"]
+    vert_coord: ["height"]
   eORCA12-2d:
     path: '{{ grids }}/NEMO/eORCA12_mesh_sfc_grid_T.nc'
   eORCA12-3d-level: 
