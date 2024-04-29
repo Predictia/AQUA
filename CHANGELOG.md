@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+- Define AQUA NEMO healpix grids as a function of their ORCA source (#1113)
+
 ## [v0.8.1]
 
 Main changes are: 
