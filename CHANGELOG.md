@@ -25,6 +25,9 @@ AQUA diagnostics complete list:
 - Timeseries: units can be overridden in the configuration file (#1098)
 - Tropical Rainfall: Fixing the Bug in the CLI (#1100)
 
+AQUA core complete list:
+- Fixer for dimensions is now available (#1050)
+
 ## [v0.8]
 
 Main changes are:
