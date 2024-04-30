@@ -4,9 +4,9 @@ check_complete_timespan_data: False
 check_complete_timespan_models: False
 enter_aviso_dates_manually: False
 difference_plots: False
-region_selection: True
-fig_format: pdf
-contours: 21  # Number of contours for the contour plot. If not set (or 0) then pcolormesh is used
+region_selection: False
+fig_format: png
+contours: 0  # Number of contours for the contour plot. If not set (or 0) then pcolormesh is used
 
 # Models for which sea surface height (SSH) variability is to be evaluated.
 models:
@@ -16,7 +16,7 @@ models:
     regrid: r010
     variable: avg_zos
     zoom: 10
-    timespan: ['2020-01-20', '2020-05-30']
+    timespan: ['2020-01-01', '2020-03-30']
 # #    timespan: ['2020-01-01', '2020-12-31']
 
   # - name: IFS-NEMO
