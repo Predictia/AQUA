@@ -264,6 +264,9 @@ Here we show an example of a fixer file, including all the possible options:
         documentation-fix:
             parent: documentation-to-merge
             data_model: ifs
+            dims:
+                cells:
+                    source: cells-to-rename
             coords:
                 time:
                     source: time-to-rename
@@ -303,6 +306,8 @@ different sections of the fixer file.
   In the above example, the ``documentation-fix`` will extend the ``documentation-mother`` fix integrating it. 
 - **data_model**: the name of the data model for coordinates. (See :ref:`coord-fix`).
 - **coords**: extra coordinates handling if data model is not flexible enough.
+  (See :ref:`coord-fix`).
+- **dims**: extra dimensions handling if data model is not flexible enough. 
   (See :ref:`coord-fix`).
 - **decumulation**: 
     - If only ``deltat`` is specified, all the variables that are considered flux variables
@@ -360,8 +365,8 @@ The fixer can adopt a common *coordinate data model*
 If this data model is not appropriate for a specific source,
 it is possible to specify a different one in the catalogue.
 
-If the data model coordinate treatment is not enough to fix the coordinates,
-it is possible to specify a custom fix in the catalogue in the **coords** block
+If the data model coordinate treatment is not enough to fix the coordinates or dimensions,
+it is possible to specify a custom fix in the catalogue in the **coords** or **dims** blocks
 as shown in section :ref:`fix-structure`.
 For example, if the longitude coordinate is called ``longitude`` instead of ``lon``,
 it is possible to specify a fix like:

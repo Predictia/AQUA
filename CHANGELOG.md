@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 - Tropical Rainfall: Notebook for the Live Demonstration (#1112)
+- Tropical Rainfall: Reduce Redundancy in Conversion Functions (#1096)
+- Tropical Rainfall: Fixing the Bug in the CLI (#1100)
+- Define AQUA NEMO healpix grids as a function of their ORCA source (#1113)
 
 ## [v0.8.1]
 
@@ -21,6 +24,9 @@ AQUA core complete list:
 AQUA diagnostics complete list:
 - Timeseries: units can be overridden in the configuration file (#1098)
 - Tropical Rainfall: Fixing the Bug in the CLI (#1100)
+
+AQUA core complete list:
+- Fixer for dimensions is now available (#1050)
 
 ## [v0.8]
 
