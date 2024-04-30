@@ -166,7 +166,7 @@ sources:
       fdb_path: /users/lrb_465000454_fdb/etc/fdb/config.yaml
       variables: [263000, 263001, 263003, 263004, 263008, 263009, 263021, 263022,
         263100, 263101, 263121, 263122, 263124]
-      source_grid_name: nemo-hpz7-nested
+      source_grid_name: nemo-eORCA025-hpz7-nested
 
   daily-hpz7-oce3d:
     <<: *base-default
@@ -208,7 +208,7 @@ sources:
         4888.06982421875, 5089.478515625, 5291.68310546875, 5494.5751953125, 5698.060546875,
         5902.0576171875]
       variables: [263500, 263501, 263505, 263506, 263507]
-      source_grid_name: nemo-hpz7-nested-3d
+      source_grid_name: nemo-eORCA025-hpz7-nested-3d
 
 
 

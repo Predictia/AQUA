@@ -9,6 +9,8 @@ Unreleased in the current development version:
 - Tropical Rainfall: Reduce Redundancy in Conversion Functions (#1096)
 - Tropical Rainfall: Fixing the Bug in the CLI (#1100)
 
+- Define AQUA NEMO healpix grids as a function of their ORCA source (#1113)
+
 ## [v0.8.1]
 
 Main changes are: 
