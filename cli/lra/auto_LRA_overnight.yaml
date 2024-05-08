@@ -17,7 +17,7 @@ slurm:
 
 catalog:
   IFS-NEMO:
-    a16z:
+    a1al:
       hourly-hpz7-atm2d:
         workers: 24
         vars: ['mtpr', '2t', 'skt', 'msl', 'tcc', 'lcc', 'hcc', 'mcc', 'sd', 'tciw', 'tclw', 'mer', 'msr', 'mslhf', 'msshf', 
