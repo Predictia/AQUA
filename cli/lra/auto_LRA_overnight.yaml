@@ -31,7 +31,7 @@ catalog:
       daily-hpz7-oce3d:
         workers: 16
         vars: ['avg_thetao', 'avg_so']
-    a17r:
+    a16z:
       hourly-hpz7-atm2d:
         workers: 24
         vars: ['mtpr', '2t', 'skt', 'msl', 'tcc', 'lcc', 'hcc', 'mcc', 'sd', 'tciw', 'tclw', 'mer', 'msr', 'mslhf', 'msshf', 
