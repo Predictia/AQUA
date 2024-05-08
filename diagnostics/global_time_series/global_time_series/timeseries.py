@@ -409,7 +409,7 @@ class Timeseries():
             exp_startdate, exp_enddate = self._expand_ref_range(freq='monthly')
             self.logger.info(f"Monthly reference std time range for expansion evaluation: {exp_startdate} to {exp_enddate}")
 
-            startdate, enddate = self._expand_ref_range(freq='monthly', range_eval=False)
+            startdate, enddate = self._expand_ref_range(freq='monthly', range_eval=True)
             self.logger.info(f"Monthly reference data time available {startdate} to {enddate}")
 
             if startdate > self.startdate or enddate < self.enddate:
@@ -440,7 +440,7 @@ class Timeseries():
             exp_startdate, exp_enddate = self._expand_ref_range(freq='annual')
             self.logger.info(f"Annual reference std time range for expansion evaluation: {exp_startdate} to {exp_enddate}")
 
-            startdate, enddate = self._expand_ref_range(freq='annual', range_eval=False)
+            startdate, enddate = self._expand_ref_range(freq='annual', range_eval=True)
             self.logger.info(f"Annual reference data time available {startdate} to {enddate}")
 
             if startdate > self.startdate or enddate < self.enddate:
