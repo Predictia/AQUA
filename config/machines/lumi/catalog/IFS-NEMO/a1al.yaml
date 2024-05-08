@@ -4,21 +4,21 @@ sources:
       request: &request-default
         class: d1
         dataset: climate-dt
-        activity: HighResMIP
-        experiment: cont
+        activity: ScenarioMIP
+        experiment: SSP3-7.0
         generation: 1
         model: IFS-NEMO
         realization: 1
-        resolution: high
+        resolution: standard
         expver: a1al
         type: fc
         stream: clte
-        date: 19900101
+        date: 20200101
         time: '0000'
         param: 167
         levtype: sfc
         step: 0
-      data_start_date: 19900101T0000
+      data_start_date: 20200101T0000
       data_end_date: auto
       chunks: D  # Default time chunk size
       savefreq: h  # at what frequency are data saved
