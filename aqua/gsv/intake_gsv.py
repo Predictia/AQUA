@@ -18,7 +18,7 @@ try:
     gsv_available = True
 except RuntimeError:
     gsv_available = False
-    gsv_error_cause = "FDB5 binary library not present on system on ouxtdated"
+    gsv_error_cause = "FDB5 binary library not present on system or outdated"
 except KeyError:
     gsv_available = False
     gsv_error_cause = "Environment variables for gsv, such as GRID_DEFINITION_PATH, not set."
@@ -185,8 +185,6 @@ class GSVSource(base.DataSource):
             self.chk_vert = None
             self.ntimechunks = self._npartitions
             self.nlevelchunks = None
-
-        
 
         self.get_eccodes_shortname = init_get_eccodes_shortname()  # Can't pickle this, so we need to reinitialize it
 
