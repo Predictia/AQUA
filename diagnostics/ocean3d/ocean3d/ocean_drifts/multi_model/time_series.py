@@ -61,8 +61,7 @@ class time_series:
                 # Plot the salinity time series
                 data_level.avg_so.plot.line(
                     ax=axs[num,1],
-                    label=f"{round(int(data_level.lev.data),
-                    -2)}")
+                    label=f"{round(int(data_level.lev.data),-2)}")
                 
                 if re.search(r'Hist', data_name):
                     start_date = np.datetime64('1990-01-01')
