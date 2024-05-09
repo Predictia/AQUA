@@ -264,6 +264,9 @@ Here we show an example of a fixer file, including all the possible options:
         documentation-fix:
             parent: documentation-to-merge
             data_model: ifs
+            dims:
+                cells:
+                    source: cells-to-rename
             coords:
                 time:
                     source: time-to-rename
@@ -303,6 +306,8 @@ different sections of the fixer file.
   In the above example, the ``documentation-fix`` will extend the ``documentation-mother`` fix integrating it. 
 - **data_model**: the name of the data model for coordinates. (See :ref:`coord-fix`).
 - **coords**: extra coordinates handling if data model is not flexible enough.
+  (See :ref:`coord-fix`).
+- **dims**: extra dimensions handling if data model is not flexible enough. 
   (See :ref:`coord-fix`).
 - **decumulation**: 
     - If only ``deltat`` is specified, all the variables that are considered flux variables
@@ -360,8 +365,8 @@ The fixer can adopt a common *coordinate data model*
 If this data model is not appropriate for a specific source,
 it is possible to specify a different one in the catalogue.
 
-If the data model coordinate treatment is not enough to fix the coordinates,
-it is possible to specify a custom fix in the catalogue in the **coords** block
+If the data model coordinate treatment is not enough to fix the coordinates or dimensions,
+it is possible to specify a custom fix in the catalogue in the **coords** or **dims** blocks
 as shown in section :ref:`fix-structure`.
 For example, if the longitude coordinate is called ``longitude`` instead of ``lon``,
 it is possible to specify a fix like:
@@ -418,6 +423,9 @@ Some options includes:
 
 - ``degree``: this will define with an integer the order of the polynominial fit. Default is 1, i.e. linear Detrending
 - ``skipna==True``: removing the NaN from the fit. Default is True. 
+
+.. warning::
+    Detrending might lead to incorrect results if there is not an equal amount of time elements (e.g. same amount of months or days) in the dataset.
 
 
 Spatial Averaging
@@ -683,7 +691,7 @@ The function is built to plot time series of a single variable,
 with the possibility to plot multiple lines for different models and a special line for a reference dataset.
 The reference dataset can have a representation of the uncertainty over time.
 
-By default the function is built to be able to plot monthly and yearly time series, as required by the :ref:`global_mean_timeseries` diagnostic.
+By default the function is built to be able to plot monthly and yearly time series, as required by the :ref:`global_timeseries` diagnostic.
 
 The function takes as data input:
 
@@ -700,7 +708,7 @@ The function will automatically plot what is available, so it is possible to plo
     :align: center
     :width: 100%
 
-    Example of a ``plot_timeseries()`` output done with the :ref:`global_mean_timeseries`.
+    Example of a ``plot_timeseries()`` output done with the :ref:`global_timeseries`.
     The plot shows the global mean 2 meters temperature time series for the IFS-NEMO scenario and the ERA5 reference dataset.
 
 Seasonal cycle
@@ -720,7 +728,7 @@ The function will automatically plot what is available, so it is possible to plo
     :align: center
     :width: 100%
 
-    Example of a ``plot_seasonalcycle()`` output done with the :ref:`global_mean_timeseries`.
+    Example of a ``plot_seasonalcycle()`` output done with the :ref:`global_timeseries`.
     The plot shows the seasonal cycle of the 2 meters temperature for the IFS-NEMO scenario and the ERA5 reference dataset.
 
 Multiple maps

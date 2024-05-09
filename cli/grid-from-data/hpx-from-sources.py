@@ -18,7 +18,7 @@ def parse_arguments(args):
     """
 
     parser = argparse.ArgumentParser(description='AQUA gribber')
-    parser.add_argument('-c', '--config', type=str, required=False,
+    parser.add_argument('-c', '--config', type=str, required=True,
                         help='yaml file with exp information and directories')
     parser.add_argument('-l', '--loglevel', type=str,
                         help='log level [default: WARNING]')
@@ -29,9 +29,10 @@ def parse_arguments(args):
 if __name__ == '__main__':
     args = parse_arguments(sys.argv[1:])
     loglevel = get_arg(args, 'loglevel', 'WARNING')
-    logger = log_configure(log_level=loglevel, log_name='hpx-from-nemo')
+    logger = log_configure(log_level=loglevel, log_name='hpx-from-sources')
 
-    file = get_arg(args, 'config', 'config-hpx-fesom.yaml')
+    file = get_arg(args, 'config', None)
+    
     logger.info('Reading configuration from %s', file)
     config = load_yaml(file)
 
@@ -40,13 +41,13 @@ if __name__ == '__main__':
     exp = config['exp']
     source = config['source']
     var = config['var']
+    resolution = config.get('resolution')
     logger.info('Retrieving %s from %s %s %s', var, model, exp, source)
 
     # Configuration needed to save the file
     tmp = config['tmp']
     model_name = config['model_name']
     zoom = config['zoom']
-    model3d = config['3d']
     nested = config['nested']
 
     # Create Reader object
@@ -54,12 +55,19 @@ if __name__ == '__main__':
                     areas=False, fix=False, loglevel=loglevel)
     data = reader.retrieve(var=var)
 
+    #automatic detection of 3d
+    if data['level'] is not None:
+        model3d = True
+    else: 
+        model3d = False
+
     if model3d:
         logger.debug("Modifying level axis attributes as Z")
         data['level'].attrs['axis'] = 'Z'
 
     # Save data in a netcdf file on the temporary directory
     create_folder(tmp)
+
     filename = tmp + '/' + model + '_' + exp + '_' + source + '_' + var + '.nc'
 
     logger.info('Saving data in %s', filename)
@@ -78,7 +86,11 @@ if __name__ == '__main__':
     # setting output filename
     tgt = config['tgt']
     create_folder(tgt)
-    filename_tgt = tgt + '/' + model_name + '_hpz' + str(zoom)
+    filename_tgt = tgt + '/' + model_name
+    if resolution:
+        filename_tgt = filename_tgt + "-" + resolution
+
+    filename_tgt = filename_tgt + '_hpz' + str(zoom)
     if nested:
         filename_tgt = filename_tgt + '_nested_oce'
     else:

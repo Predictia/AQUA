@@ -250,7 +250,7 @@ class GregoryPlot():
                         label_b = None
                         label_e = None
                     ax1.plot(self.data_ts_mon[i][0], self.data_toa_mon[i][0], marker=">",
-                             color="tab:green", label=label_b)
+                             color="tab:blue", label=label_b) # Blue to be colorblind friendly
                     ax1.plot(self.data_ts_mon[i][-1], self.data_toa_mon[i][-1], marker="<",
                              color="tab:red", label=label_e)
 
@@ -286,7 +286,7 @@ class GregoryPlot():
                         label_b = None
                         label_e = None
                     ax2.plot(self.data_ts_annual[i][0], self.data_toa_annual[i][0], marker=">",
-                             color="tab:green", label=label_b)
+                             color="tab:blue", label=label_b)
                     ax2.plot(self.data_ts_annual[i][-1], self.data_toa_annual[i][-1], marker="<",
                              color="tab:red", label=label_e)
                     ax2.text(self.data_ts_annual[i][0], self.data_toa_annual[i][0],
@@ -335,7 +335,33 @@ class GregoryPlot():
                          metadata_value=description)
 
     def save_netcdf(self):
-        pass
+        """Save the data to a netcdf file."""
+        self.logger.info("Saving data to netcdf")
+        outdir = os.path.join(self.outdir, 'netcdf')
+        create_folder(outdir, self.loglevel)
+
+        for i, model in enumerate(self.models):
+            try:
+                if self.monthly:
+                    outfile = f'global_time_series_gregory_plot_monthly_{model}_{self.exps[i]}.nc'
+                    self.data_ts_mon[i].to_netcdf(os.path.join(outdir, outfile), mode='w')
+                    self.data_toa_mon[i].to_netcdf(os.path.join(outdir, outfile), mode='a')
+                if self.annual:
+                    outfile = f'global_time_series_gregory_plot_annual_{model}_{self.exps[i]}.nc'
+                    self.data_ts_annual[i].to_netcdf(os.path.join(outdir, outfile), mode='w')
+                    self.data_toa_annual[i].to_netcdf(os.path.join(outdir, outfile), mode='a')
+            except Exception as e:
+                self.logger.error(f"Error: {e}")
+                self.logger.error(f"Could not save data to {outfile}")
+
+        if self.ref:
+            try:
+                outfile = 'global_time_series_gregory_plot_ref_ERA5_CERES.nc'
+                xr.Dataset({'ts_mean': self.ref_ts_mean, 'ts_std': self.ref_ts_std,
+                            'toa_mean': self.ref_toa_mean, 'toa_std': self.ref_toa_std}).to_netcdf(os.path.join(outdir, outfile), mode='w')
+            except Exception as e:
+                self.logger.error(f"Error: {e}")
+                self.logger.error(f"Could not save reference data to {outfile}")
 
     def cleanup(self):
         """Clean up"""

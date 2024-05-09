@@ -76,7 +76,7 @@ do
 
     # HealPix link
     if [ "$model" == "HealPix" ]; then
-        path="https://swift.dkrz.de/v1/dkrz_a973e394-5f24-4f4d-8bbf-1a83bd387ccb/AQUA/grids/FESOM.tar.gz?temp_url_sig=2a01ec890c2a1c7192d32e8bcd3a2a42d93ff8a2&temp_url_expires=2026-08-31T13:49:33Z"
+        path="https://swift.dkrz.de/v1/dkrz_a973e394-5f24-4f4d-8bbf-1a83bd387ccb/AQUA/grids/HealPix.tar.gz?temp_url_sig=c68c113e592d801a0a145b8524e6b15260029b3f&temp_url_expires=2027-01-25T12:57:38Z"
     fi
 
     # ICON link

@@ -116,7 +116,7 @@ class Tropical_Rainfall(metaclass=MetaClass):
                               path_to_netcdf=self.path_to_netcdf, path_to_pdf=self.path_to_pdf, loglevel=self.loglevel)
 
         self.precipitation_rate_units_converter = self.main.precipitation_rate_units_converter
-        self.width_of_bin = self.precipitation_rate_units_converter(width_of_bin, old_unit='mm/day', new_unit=self.new_unit)
+        self.width_of_bin = width_of_bin
         self.main.width_of_bin = self.width_of_bin
 
         self.plots = PlottingClass(pdf_format=pdf_format, figsize=figsize, linewidth=linewidth,
@@ -131,5 +131,4 @@ class Tropical_Rainfall(metaclass=MetaClass):
     def import_methods(self):
         pass
 
-
-Tropical_Rainfall.class_attributes_update.__doc__ = MainClass.class_attributes_update.__doc__
+#Tropical_Rainfall.class_attributes_update.__doc__ = MainClass.class_attributes_update.__doc__
