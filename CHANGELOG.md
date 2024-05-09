@@ -10,6 +10,37 @@ Unreleased in the current development version:
 AQUA core complete list:
 
 - Automatic switching between HPC and databridge fdb (#1054)
+- Introducing a tool for benchmarking AQUA code (#1057)
+- Define AQUA NEMO healpix grids as a function of their ORCA source (#1113)
+
+AQUA diagnostics complete list:
+- Teleconnections: MJO Hovmoller plot introduced as notebook (#247)
+- Tropical Rainfall: Reduce Redundancy in Conversion Functions (#1096)
+
+## [v0.8.1]
+
+Main changes are: 
+1. Fixes following internal D340.7.3.3 and D340.7.1.4 review 
+
+AQUA core complete list:
+- Tco399-eORCA025 control, historical and scenario runs added to Lumi catalog (#1070)
+- ESA-CCI-L4 dataset added for Lumi and Levante catalogues (#1090)
+- Various fixes to the documentation (#1106)
+- Fixer for dimensions is now available (#1050)
+
+AQUA diagnostics complete list:
+- Timeseries: units can be overridden in the configuration file (#1098)
+- Tropical Rainfall: Fixing the Bug in the CLI (#1100)
+
+## [v0.8]
+
+Main changes are:
+1. Support for Python 3.12
+2. Update in the catalog for Levante and introduction of Leonardo
+3. Multiple diagnostics improvement to fullfil D340.7.3.3 and D340.7.1.4
+
+AQUA core complete list:
+- LRA for ICON avg_sos and avg_tos (#1076)
 - LRA for IFS-NEMO, IFS-FESOM, ICON added to Levante catalog (#1072)
 - IFS-FESOM storyline +2K added to the Lumi catalog (#1059)
 - Allowing for jinja-based replacemente in load_yaml (#1045) 
@@ -21,8 +52,13 @@ AQUA core complete list:
 - Introducing a basic jinja-based catalog entry generator (#853)
 - Adapt NextGEMS sources and fixes to the final DestinE governance (#1008, #1035)
 - Remove  NextGEMS cycle2 sources (#1008)
+- Avoid GSVSource multiple class instantiation in dask mode (#1051)
 
 AQUA diagnostics complete list:
+- Teleconnections: refactor of the documentation (#1061)
+- Tropical rainfall: Updating the Documentation and Notebooks (#1083)
+- Performance indices: minor improvements with the inclusion of mask and area files (#1076)
+- Timeseries: Seasonal Cycle and Gregory plots save netcdf files (#1079)
 - Tropical rainfall: minor modifications to the CLI and fixes to changes in the wrapper introduced in PR #1063 (#1074)
 - Tropical rainfall: adding daily variability and precipitation profiles to the cli (#1063)
 - Teleconnections: bootstrap evaluation of concordance with reference dataset (#1026)
@@ -89,6 +125,7 @@ AQUA diagnostic complete list:
 - SSH: technical improvements including removal of hardcoded loglevel and timespan definition. (#677)
 - SSH: ready with new data governance and option to plot difference plots added. (#677)
 - Atmosferic Global Mean: added mean bias for the entire year in seasonal bias function (#947)
+- Tropical Cyclones: working with IFS-NEMO and ICON, includes retrieval of orography from file (#1071).
 
 ## [v0.7.1]
 
@@ -435,7 +472,9 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.3...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.8.1...HEAD
+[v0.8.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.8...v0.8.1
+[v0.8]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.3...v0.8
 [v0.7.3]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.2...v0.7.3
 [v0.7.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.1...v0.7.2
 [v0.7.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7...v0.7.1

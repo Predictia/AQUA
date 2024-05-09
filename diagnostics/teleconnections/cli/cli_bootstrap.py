@@ -10,8 +10,9 @@ import os
 import sys
 import gc
 
-from dask.distributed import Client, LocalCluster
 import matplotlib.pyplot as plt
+import xarray as xr
+from dask.distributed import Client, LocalCluster
 
 from aqua import __version__ as aquaversion
 from aqua.graphics import plot_single_map
@@ -22,6 +23,8 @@ from teleconnections import __version__ as telecversion
 from teleconnections.bootstrap import bootstrap_teleconnections, build_confidence_mask
 from teleconnections.tc_class import Teleconnection
 from teleconnections.tools import set_filename
+
+xr.set_options(keep_attrs=True)
 
 
 def parse_arguments(cli_args):
@@ -58,7 +61,7 @@ if __name__ == '__main__':
 
     args = parse_arguments(sys.argv[1:])
     loglevel = get_arg(args, 'loglevel', 'WARNING')
-    logger = log_configure(log_name='Teleconnections CLI', log_level=loglevel)
+    logger = log_configure(log_name='Teleconnections Bootstrap CLI', log_level=loglevel)
 
     logger.info(f'Running AQUA v{aquaversion} Teleconnections diagnostic v{telecversion}')
 
@@ -153,16 +156,15 @@ if __name__ == '__main__':
         exp_ref = ref_config.get('exp', 'era5')
         source_ref = ref_config.get('source', 'monthly')
         regrid = ref_config.get('regrid', None)
-        zoom = ref_config.get('zoom', None)
         freq = ref_config.get('freq', None)
-        logger.debug("setup: %s %s %s %s %s %s",
-                     model_ref, exp_ref, source_ref, regrid, freq, zoom)
+        logger.debug("setup: %s %s %s %s %s",
+                     model_ref, exp_ref, source_ref, regrid, freq)
 
         try:
             tc_ref = Teleconnection(telecname=telec,
                                     configdir=configdir,
                                     model=model_ref, exp=exp_ref, source=source_ref,
-                                    regrid=regrid, freq=freq, zoom=zoom,
+                                    regrid=regrid, freq=freq,
                                     months_window=months_window,
                                     outputdir=outputnetcdf,
                                     outputfig=outputpdf,
@@ -241,19 +243,18 @@ if __name__ == '__main__':
             source = mod['source']
             regrid = mod.get('regrid', None)
             freq = mod.get('freq', None)
-            zoom = mod.get('zoom', None)
             reference = mod.get('reference', False)
             startdate = mod.get('startdate', None)
             enddate = mod.get('enddate', None)
 
-            logger.debug("setup: %s %s %s %s %s %s",
-                         model, exp, source, regrid, freq, zoom)
+            logger.debug("setup: %s %s %s %s %s",
+                         model, exp, source, regrid, freq)
 
             try:
                 tc = Teleconnection(telecname=telec,
                                     configdir=configdir,
                                     model=model, exp=exp, source=source,
-                                    regrid=regrid, freq=freq, zoom=zoom,
+                                    regrid=regrid, freq=freq,
                                     months_window=months_window,
                                     outputdir=outputnetcdf,
                                     outputfig=outputpdf,
@@ -331,6 +332,8 @@ if __name__ == '__main__':
                 u_filename = filename + '_upper.nc'
                 l_path = os.path.join(outputnetcdf, l_filename)
                 u_path = os.path.join(outputnetcdf, u_filename)
+                l.name = 'avg_tos'
+                u.name = 'avg_tos'
                 l.to_netcdf(l_path)
                 u.to_netcdf(u_path)
 
@@ -341,6 +344,7 @@ if __name__ == '__main__':
                 filename = set_filename(filename=tc.filename, fig_type='confidence_mask')
                 mask_filename = filename + '.nc'
                 mask_path = os.path.join(outputnetcdf, mask_filename)
+                confidence_mask.name = 'avg_tos'
                 confidence_mask.to_netcdf(mask_path)
 
             # Plotting

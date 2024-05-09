@@ -1,10 +1,13 @@
 """
 Functions to retrieve reference data for global time series diagnostics.
 """
+import xarray as xr
 from aqua import Reader
 from aqua.logger import log_configure
 from aqua.exceptions import NoObservationError
 from aqua.util import eval_formula
+
+xr.set_options(keep_attrs=True)
 
 
 def get_reference_ts_gregory(ts_name='2t', ts_ref={'model': 'ERA5', 'exp': 'era5', 'source': 'monthly'},
@@ -149,6 +152,10 @@ def get_reference_timeseries(var, formula=False,
     logger = log_configure(loglevel, 'get_reference_data')
 
     logger.debug(f"Reference data: {model} {exp} {source}")
+
+    if model == 'ERA5' and exp == 'era5' and source == 'monthly':
+        logger.debug("HACK: ERA5 restricts enddate to 2022-12-31")
+        enddate = min(enddate, '2022-12-31')
 
     start_retrieve, end_retrieve = _start_end_dates(startdate=startdate, enddate=enddate,
                                                     start_std=std_startdate, end_std=std_enddate)

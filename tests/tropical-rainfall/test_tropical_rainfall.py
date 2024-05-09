@@ -35,7 +35,7 @@ def retrieved_dataarray():
 
     elif str(os.getenv('INPUT_ARG')) == 'levante':
         """reader_levante """
-        data = Reader(model="ICON", exp="ngc2009", source="lra-r100-monthly")
+        data = Reader(model="ICON", exp="historical-1990", source="lra-r100-monthly")
         retrieved = data.retrieve()
         try:
             retrieved_array = retrieved['mtpr']*86400
@@ -116,7 +116,7 @@ def histogram_output(retrieved_dataarray):
     if 'mtpr' in data.name:
         diag = Tropical_Rainfall(num_of_bins=1000, first_edge=0, width_of_bin=1 - 1*10**(-6), loglevel='debug')
     elif '2t' in data.name:
-        diag = Tropical_Rainfall(num_of_bins=1000, first_edge=0, width_of_bin=0.5, loglevel='debug')
+        diag = Tropical_Rainfall(num_of_bins=1000, first_edge=0, width_of_bin=0.5, new_unit='K', loglevel='debug')
     hist = diag.histogram(data, trop_lat=90)
     return hist
 
