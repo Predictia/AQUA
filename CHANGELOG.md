@@ -6,10 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
-- Tropical Rainfall: Notebook for the Live Demonstration (#1112)
-- Tropical Rainfall: Reduce Redundancy in Conversion Functions (#1096)
-- Tropical Rainfall: Fixing the Bug in the CLI (#1100)
+
+AQUA core complete list:
+- Introducing a tool for benchmarking AQUA code (#1057)
 - Define AQUA NEMO healpix grids as a function of their ORCA source (#1113)
+
+AQUA diagnostics complete list:
+- Tropical Rainfall: Notebook for the Live Demonstration (#1112)
+- Teleconnections: MJO Hovmoller plot introduced as notebook (#247)
+- Tropical Rainfall: Reduce Redundancy in Conversion Functions (#1096)
 
 ## [v0.8.1]
 
@@ -20,13 +25,11 @@ AQUA core complete list:
 - Tco399-eORCA025 control, historical and scenario runs added to Lumi catalog (#1070)
 - ESA-CCI-L4 dataset added for Lumi and Levante catalogues (#1090)
 - Various fixes to the documentation (#1106)
+- Fixer for dimensions is now available (#1050)
 
 AQUA diagnostics complete list:
 - Timeseries: units can be overridden in the configuration file (#1098)
 - Tropical Rainfall: Fixing the Bug in the CLI (#1100)
-
-AQUA core complete list:
-- Fixer for dimensions is now available (#1050)
 
 ## [v0.8]
 
@@ -48,6 +51,7 @@ AQUA core complete list:
 - Introducing a basic jinja-based catalog entry generator (#853)
 - Adapt NextGEMS sources and fixes to the final DestinE governance (#1008, #1035)
 - Remove  NextGEMS cycle2 sources (#1008)
+- Avoid GSVSource multiple class instantiation in dask mode (#1051)
 
 AQUA diagnostics complete list:
 - Teleconnections: refactor of the documentation (#1061)
