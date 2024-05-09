@@ -14,7 +14,7 @@ permissions:
 
 env:
   # This is the path to the AQUA configuration files.
-  AQUA_CONFIG: /app/config/
+  AQUA_CONFIG: ${{ github.workspace }}/config
 
 defaults:
   run:
