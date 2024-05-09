@@ -107,6 +107,16 @@ Basic usage:
     Please note that currently only one Jinja template is available (``ifs-nemo-default.j2`` for IFS-NEMO), but it is possible to add more templates in the future.
 
 
+.. _benchmarker:
+
+Benchmarker
+-----------
+
+A tool to benchmark the performance of the AQUA analysis tools. The tool is available in the ``cli/benchmarker`` folder.
+It runs a few selected methods for multiple times and report the durations of multiple execution: it has to be run in batch mode with 
+the associated jobscript in order to guarantee robust results. 
+It will be replaced in future by more robust performance machinery.
+
 .. _gribber:
 
 GRIB catalog generator
