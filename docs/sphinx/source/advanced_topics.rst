@@ -209,25 +209,17 @@ The job can be launched to the queue with the following command in a Notebook ce
 	slurm.job()
  
 
-The default arguments of ``slurm.job()`` function on Levante
-(``machine=Levante`` in configdir) are the followings:
-
-.. code-block:: python
-
-	account = "bb1153"
-	queue = "compute"
-	cores=1
-	memory="10 GB"
-	path_to_output="."
-	exclusive=False
-
-The default arguments of ``slurm.job()`` function,
-i.e., account and queue names, are different for Lumi (``machine=Lumi`` in configdir):
+The default arguments of ``slurm.job()`` function on Lumi are the followings:
 
 .. code-block:: python
 
 	account = "project_465000454"
 	queue = "small"
+	cores=1
+	memory="10 GB"
+	path_to_output="."
+	exclusive=False
+
 
 The function ``slurm.job()`` has an argument ``exclusive=False`` by default.
 Exclusive argument ``exclusive=True`` is reserving an entire node for the Job.
@@ -237,7 +229,7 @@ specify the queue's name as an argument of the function:
 
 .. code-block:: python
 
-	slurm.job(queue="gpu")
+	slurm.job(queue="small")
 
 
 .. warning::
