@@ -7,8 +7,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+AQUA core complete list:
+- Define AQUA NEMO healpix grids as a function of their ORCA source (#1113)
+
 AQUA diagnostics complete list:
 - Teleconnections: MJO Hovmoller plot introduced as notebook (#247)
+- Tropical Rainfall: Reduce Redundancy in Conversion Functions (#1096)
+
+## [v0.8.1]
+
+Main changes are: 
+1. Fixes following internal D340.7.3.3 and D340.7.1.4 review 
+
+AQUA core complete list:
+- Tco399-eORCA025 control, historical and scenario runs added to Lumi catalog (#1070)
+- ESA-CCI-L4 dataset added for Lumi and Levante catalogues (#1090)
+- Various fixes to the documentation (#1106)
+- Fixer for dimensions is now available (#1050)
+
+AQUA diagnostics complete list:
+- Timeseries: units can be overridden in the configuration file (#1098)
+- Tropical Rainfall: Fixing the Bug in the CLI (#1100)
 
 ## [v0.8]
 
@@ -449,7 +468,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.8...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.8.1...HEAD
+[v0.8.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.8...v0.8.1
 [v0.8]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.3...v0.8
 [v0.7.3]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.2...v0.7.3
 [v0.7.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.1...v0.7.2
