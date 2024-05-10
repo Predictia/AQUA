@@ -24,6 +24,8 @@ class AquaConsole():
 
         parser.add_argument('-l', '--loglevel', type=str,
                             help='log level [default: WARNING]')
+        parser.add_argument('-v', '--version', action='version',
+                    version=f'%(prog)s {version}', help="Show program's version number and exit.")
 
         
         init_parser = subparsers.add_parser("init")
@@ -65,7 +67,6 @@ class AquaConsole():
         command = args.command
         method = command_map.get(command, parser.print_help)
         if command not in command_map:
-            print("AQUA v" + version)
             parser.print_help()
         else:
             method(args)
