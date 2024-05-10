@@ -211,14 +211,18 @@ The job can be launched to the queue with the following command in a Notebook ce
 
 The default arguments of ``slurm.job()`` function on Lumi are the followings:
 
-.. code-block:: python
+.. code-block:: yaml
 
-	account = "project_465000454"
-	queue = "small"
-	cores=1
-	memory="10 GB"
-	path_to_output="."
-	exclusive=False
+    machines:
+      lumi:
+        queue: 'small'
+        account: 'project_465000454'
+        walltime: '02:30:00'
+        memory: '10 GB'
+        cores: 1
+        jobs: 1
+        loglevel: 'WARNING'
+        path_to_output: '.'
 
 
 The function ``slurm.job()`` has an argument ``exclusive=False`` by default.
@@ -280,3 +284,62 @@ Then the user can cancel the particular Job as:
 
     It is potentially dangerous to cancel all your jobs,
     always prefer to cancel jobs with the Job_ID
+
+
+Submitting Jobs on Different Machines
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The job() function provides a flexible and efficient way to submit jobs to SLURM-managed clusters on different machines. 
+Users can specify machine-specific configurations through a YAML configuration file `AQUA/aqua/slurm/config-slurm.yml` or
+provide parameters directly through the function call.
+
+The job() function allows users to either use predefined settings from a YAML file for known machines or manually input 
+job parameters for machines without predefined settings. Here's how to use the function for different scenarios:
+
+**Submit a Job Using Predefined Configurations**
+
+If the machine has predefined settings in the YAML configuration file, simply specify the machine's name:
+
+
+.. code-block:: python
+
+	slurm.job(machine_name='lumi')
+
+
+This method pulls all necessary parameters like memory, cores, and walltime from the YAML file associated with the 
+specified machine name.
+
+**Submit a Job with Manual Parameters**
+
+If you are working with a machine that does not have predefined settings, or if you need to override the defaults for a 
+specific task, you can manually specify all required parameters:
+
+
+.. code-block:: python
+
+	slurm.job(cores=4, memory='16GB', walltime='03:00:00', queue='research', account='project123')
+
+
+**Modifying and Adding Machine Configurations in YAML**
+
+To modify existing configurations or add new machines, edit the `AQUA/aqua/slurm/config-slurm.yml` file:
+
+ 1. Open the YAML file and locate the machines section.
+
+ 2. Modify or add entries for machines. For example, to add a new machine configuration:
+
+
+.. code-block:: yaml
+
+  machine:
+    name: 'lumi'
+    properties:
+      queue: 'large'
+      account: 'project_465000455'
+      memory: '32 GB'
+      cores: 8
+      walltime: '24:00:00'
+      loglevel: 'INFO'
+      path_to_output: '/path/to/lumi/output'
+
+
