@@ -330,7 +330,13 @@ class Timeseries():
         self.logger.debug(f"Outfile: {self.outfile}")
         fig.savefig(os.path.join(outfig, self.outfile))
 
-        description = f"Time series of the global mean of {self.var}"
+        description = "Time series of the global mean of"
+        if self.monthly:
+            description += f" {self.data_annual[0].attrs['long_name']}"
+        elif self.annual:
+            description += f" {self.data_annual[0].attrs['long_name']}"
+        else:
+            description += f" {self.var}"
         description += f" from {time_to_string(self.startdate)} to {time_to_string(self.enddate)}"
         for i, model in enumerate(self.models):
             description += f" for {model} {self.exps[i]}"
