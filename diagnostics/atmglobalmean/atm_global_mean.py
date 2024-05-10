@@ -227,7 +227,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
         cnplots.append(cnplot)
 
     if seasons:
-        ax.set_title("Annual Mean Bias")
+        ax.set_title("Annual Mean Bias",  y=1.1)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
     
@@ -260,7 +260,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
                                         add_colorbar=False)
             cnplots.append(cnplot)
 
-            ax.set_title(f'{season}')
+            ax.set_title(f'{season}', y=1.1)
             ax.set_xlabel('Longitude')
             ax.set_ylabel('Latitude')
 
@@ -291,7 +291,7 @@ def seasonal_bias(dataset1=None, dataset2=None, var_name=None,
                                         add_colorbar=False)
             cnplots.append(cnplot)
 
-            ax.set_title(f'{season}')
+            ax.set_title(f'{season}', y=1.1)
             ax.set_xlabel('Longitude')
             ax.set_ylabel('Latitude')
 

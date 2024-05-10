@@ -9,11 +9,14 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Removing any machine name depencency from slurm files (#1135)
+- Swift links for tests and grids renewed (#1142)
 - Removing the docker folder (#1137)
 - Introducing a tool for benchmarking AQUA code (#1057)
 - Define AQUA NEMO healpix grids as a function of their ORCA source (#1113)
 
 AQUA diagnostics complete list:
+- Atm global mean: produce seasonal bias plots by default (#1140)
+- Tropical Rainfall: Notebook for the Live Demonstration (#1112)
 - Teleconnections: MJO Hovmoller plot introduced as notebook (#247)
 - Tropical Rainfall: Reduce Redundancy in Conversion Functions (#1096)
 
