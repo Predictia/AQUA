@@ -12,6 +12,10 @@ on:
 permissions:
   contents: read
 
+env:
+  # This is the path to the AQUA configuration files.
+  AQUA_CONFIG: ${{ github.workspace }}/config
+
 defaults:
   run:
     # NOTE: We must take care with the shell value here. We have steps
