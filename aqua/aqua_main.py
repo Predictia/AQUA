@@ -12,7 +12,7 @@ from aqua.util import load_yaml, dump_yaml
 from aqua.logger import log_configure
 from aqua.util import ConfigPath
 from aqua import __path__ as pypath
-
+from aqua import __version__ as version
 
 class AquaConsole():
     """Class for AquaConsole"""
@@ -24,6 +24,7 @@ class AquaConsole():
 
         parser.add_argument('-l', '--loglevel', type=str,
                             help='log level [default: WARNING]')
+
         
         init_parser = subparsers.add_parser("init")
         uninstall_parser = subparsers.add_parser("uninstall")
@@ -63,7 +64,12 @@ class AquaConsole():
 
         command = args.command
         method = command_map.get(command, parser.print_help)
-        method(args)
+        if command not in command_map:
+            print("AQUA v" + version)
+            parser.print_help()
+        else:
+            method(args)
+
 
     def init(self, args):
         """Initialize AQUA, find the folders and the install"""
