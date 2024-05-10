@@ -8,6 +8,7 @@ import os
 import argparse
 import shutil
 import sys
+from aqua.util import load_yaml, dump_yaml
 from aqua.logger import log_configure
 from aqua.util import ConfigPath
 from aqua import __path__ as pypath
@@ -38,7 +39,7 @@ class AquaConsole():
         catalog_add_parser.add_argument("catalog", metavar="CATALOG",
                                         help="Catalog to be installed")
         catalog_add_parser.add_argument('-e', '--editable', type=str,
-                    help='Install a catalog in editable mode from the original source')
+                    help='Install a catalog in editable mode from the original source: provide the Path')
         
 
         catalog_remove_parser.add_argument("catalog", metavar="CATALOG",
@@ -50,6 +51,7 @@ class AquaConsole():
         self.pypath = pypath[0]
         self.aquapath = os.path.join(os.path.dirname(self.pypath), 'config')
         self.configpath = None
+        self.grids = None
 
         command_map = {
             'init': self.init,
@@ -67,6 +69,7 @@ class AquaConsole():
         """Initialize AQUA, find the folders and the install"""
         self.logger.info('Running the AQUA init')
 
+        
         # define the home folder
         if args.path is None:
             if 'HOME' in os.environ:
@@ -75,26 +78,45 @@ class AquaConsole():
                     os.makedirs(path, exist_ok=True)
                 else:
                     self.logger.warning('AQUA already installed in %s', path)
-                    check = query_yes_no(f"Do you want to overwrite AQUA installation in {path}. You will lose all catalogs installed.", "no")
+                    check = query_yes_no(f"Do you want to overwrite AQUA installation in {path}. "
+                                         "You will lose all catalogs installed.", "no")
                     if not check:
                         sys.exit(0)
                     else:
                         self.logger.warning('Removing the content of %s', path)
                         shutil.rmtree(path)
+                        os.makedirs(path, exist_ok=True)
             else:
-                raise ValueError('$HOME not found. Please specify a path where to install AQUA')
+                raise ValueError('$HOME not found.'
+                                 'Please specify a path where to install AQUA and define AQUA_CONFIG as environment variable')
         else:
             path = args.path
+            self.logger.warning('AQUA will be installed in %s, but please remember to define AQUA_CONFIG environment variable', path)
             if not os.path.exists(path):
                 os.makedirs(path, exist_ok=True)
             else:
                 if not os.path.isdir(path):
                     raise ValueError("Path chosen is not a directory")
-        
-        self.configpath = path
-        self.install()
 
-    def install(self):
+        self.configpath = path
+        self.grids = args.grids
+        self._install()
+
+        if self.grids is None:
+            self.logger.warning('Grids directory undefined')
+        else:
+            self._grids_define()
+
+    def _grids_define(self):
+        """add the grid definition into the aqua-config.yaml"""
+
+        config_file = os.path.join(self.configpath, 'config-aqua.yaml')
+        cfg = load_yaml(config_file)
+        cfg['reader']['grids'] = self.grids
+        self.logger.info('Defining grid path %s in config-aqua.yaml', self.grids)
+        dump_yaml(config_file, cfg)
+
+    def _install(self):
         """Copying the installation file"""
 
         print("Installing AQUA to", self.configpath)
@@ -107,13 +129,13 @@ class AquaConsole():
                 self.logger.info('Copying from %s to %s',
                                  os.path.join(self.aquapath, directory), self.configpath)
                 shutil.copytree(f'{self.aquapath}/{directory}', f'{self.configpath}/{directory}')
-        os.makedirs(f'{self.configpath}/catalog', exist_ok=True)
+        os.makedirs(f'{self.configpath}/machines', exist_ok=True)
 
     def list(self, args):
         """List installed catalogs"""
 
         self.configpath = ConfigPath().configdir
-        cdir = f'{self.configpath}/catalog'
+        cdir = f'{self.configpath}/machines'
         contents = os.listdir(cdir)
 
         print('AQUA current installed catalogs in', cdir, ':')
@@ -126,9 +148,10 @@ class AquaConsole():
                  
     def add(self, args):
         """Add a catalog"""
-        self.logger.info('Adding the AQUA catalog %s', args.catalog)
-        self.configpath = ConfigPath().configdir
-        cdir = f'{self.configpath}/catalog/{args.catalog}'
+        print('Adding the AQUA catalog', args.catalog)
+        self._check()
+        cdir = f'{self.configpath}/machines/{args.catalog}'
+        sdir = f'{self.aquapath}/machines/{args.catalog}'
         self.logger.info('Installing to %s', self.configpath)
         if args.editable is not None:
             if os.path.exists(args.editable):
@@ -137,30 +160,38 @@ class AquaConsole():
                 self.logger.error('Catalog %s cannot be found in %s', args.catalog, args.editable)
         else:
             if not os.path.exists(cdir):
-                shutil.copytree(f'{self.aquapath}/machines/{args.catalog}', cdir)
+                if os.path.isdir(sdir):
+                    shutil.copytree(f'{self.aquapath}/machines/{args.catalog}', cdir)
+                else: 
+                    self.logger.error('Catalog %s does not appear to exist in %s', args.catalog, sdir)
             else:
-                self.logger.error('Catalog %s already installed in %s, please consider `aqua update`',
+                self.logger.error("Catalog %s already installed in %s, please consider `aqua update`. "
+                                  "Which does not exist hahaha!",
                                 args.catalog, cdir)
     
     def remove(self, args):
         """Remove a catalog"""
-        self.logger.info('Remove the AQUA catalog %s', args.catalog)
-        self.configpath = ConfigPath().configdir
-        cdir = f'{self.configpath}/catalog/{args.catalog}'
+        print('Remove the AQUA catalog', args.catalog)
+        self._check()
+        cdir = f'{self.configpath}/machines/{args.catalog}'
         if os.path.exists(cdir):
             shutil.rmtree(cdir)
         else:
-            self.logger.error('Catalog %s is not installed in %s, cannot remove it', 
+            self.logger.error('Catalog %s is not installed in %s, cannot remove it',
                               args.catalog, cdir)
-
-    def uninstall(self, args):
-        """Remove AQUA"""
-        print('Remove the AQUA installation')
+            
+    def _check(self):
+        """check installation"""
         try:
             self.configpath = ConfigPath().configdir
         except FileNotFoundError:
             self.logger.error('No AQUA installation found!')
             sys.exit(1)
+
+    def uninstall(self, args):
+        """Remove AQUA"""
+        print('Remove the AQUA installation')
+        self._check()
         check = query_yes_no(f"Do you want to uninstall AQUA from {self.configpath}", "no")
         if check:
             self.logger.info('Uninstalling AQUA from %s', self.configpath)
