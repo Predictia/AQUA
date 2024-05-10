@@ -26,6 +26,7 @@ class AquaConsole():
         
         init_parser = subparsers.add_parser("init")
         uninstall_parser = subparsers.add_parser("uninstall")
+        list_parser = subparsers.add_parser("list")
         catalog_add_parser = subparsers.add_parser("add")
         catalog_remove_parser = subparsers.add_parser("remove")
 
@@ -36,7 +37,10 @@ class AquaConsole():
         
         catalog_add_parser.add_argument("catalog", metavar="CATALOG",
                                         help="Catalog to be installed")
+        catalog_add_parser.add_argument('-e', '--editable', type=str,
+                    help='Install a catalog in editable mode from the original source')
         
+
         catalog_remove_parser.add_argument("catalog", metavar="CATALOG",
                                         help="Catalog to be removed")
         
@@ -52,6 +56,7 @@ class AquaConsole():
             'add': self.add,
             'remove': self.remove,
             'uninstall': self.uninstall,
+            'list': self.list
         }
 
         command = args.command
@@ -87,7 +92,7 @@ class AquaConsole():
                     raise ValueError("Path chosen is not a directory")
         
         self.configpath = path
-        self.install()  
+        self.install()
 
     def install(self):
         """Copying the installation file"""
@@ -99,23 +104,43 @@ class AquaConsole():
                 shutil.copy(f'{self.aquapath}/{file}', f'{self.configpath}/{file}')
         for directory in ['fixes', 'data_models']:
             if not os.path.exists(os.path.join(self.configpath, directory)):
-                self.logger.info('Copying from %s to %s', 
+                self.logger.info('Copying from %s to %s',
                                  os.path.join(self.aquapath, directory), self.configpath)
                 shutil.copytree(f'{self.aquapath}/{directory}', f'{self.configpath}/{directory}')
         os.makedirs(f'{self.configpath}/catalog', exist_ok=True)
 
-        
+    def list(self, args):
+        """List installed catalogs"""
+
+        self.configpath = ConfigPath().configdir
+        cdir = f'{self.configpath}/catalog'
+        contents = os.listdir(cdir)
+
+        print('AQUA current installed catalogs in', cdir, ':')
+        for item in contents:
+            file_path = os.path.join(cdir, item)
+            if os.path.islink(file_path):
+                print(f"\t - {item} (editable)")
+            else:
+                print(f"\t - {item}")
+                 
     def add(self, args):
         """Add a catalog"""
         self.logger.info('Adding the AQUA catalog %s', args.catalog)
         self.configpath = ConfigPath().configdir
         cdir = f'{self.configpath}/catalog/{args.catalog}'
         self.logger.info('Installing to %s', self.configpath)
-        if not os.path.exists(cdir):
-            shutil.copytree(f'{self.aquapath}/machines/{args.catalog}', cdir)
+        if args.editable is not None:
+            if os.path.exists(args.editable):
+                os.symlink(args.editable, cdir)
+            else:
+                self.logger.error('Catalog %s cannot be found in %s', args.catalog, args.editable)
         else:
-            self.logger.error('Catalog %s already installed in %s, please consider `aqua update`', 
-                              args.catalog, cdir)
+            if not os.path.exists(cdir):
+                shutil.copytree(f'{self.aquapath}/machines/{args.catalog}', cdir)
+            else:
+                self.logger.error('Catalog %s already installed in %s, please consider `aqua update`',
+                                args.catalog, cdir)
     
     def remove(self, args):
         """Remove a catalog"""
