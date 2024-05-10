@@ -9,6 +9,7 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Removing any machine name depencency from slurm files (#1135)
+- Removing the docker folder (#1137)
 - Introducing a tool for benchmarking AQUA code (#1057)
 - Define AQUA NEMO healpix grids as a function of their ORCA source (#1113)
 
