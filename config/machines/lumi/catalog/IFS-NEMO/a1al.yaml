@@ -209,3 +209,15 @@ sources:
         5902.0576171875]
       variables: [263500, 263501, 263505, 263506, 263507]
       source_grid_name: nemo-eORCA025-hpz7-nested-3d
+  lra-r100-monthly:
+    driver: netcdf
+    description: LRA data monthly at r100
+    args:
+      urlpath: 
+        /pfs/lustrep3/projappl/project_465000454/data/AQUA/LRA/IFS-NEMO/a1al/r100/monthly/*a1al_r100_monthly_*.nc
+      chunks: {}
+      xarray_kwargs:
+        decode_times: true
+        combine: by_coords
+    metadata:
+      source_grid_name: lon-lat
