@@ -8,6 +8,7 @@ import os
 import argparse
 import shutil
 from aqua.logger import log_configure
+from aqua.util import ConfigPath
 from aqua import __path__ as pypath
 
 
@@ -41,7 +42,8 @@ class AquaConsole():
 
         self.logger = log_configure(args.loglevel, 'AQUA')
         self.pypath = pypath[0]
-        self.configpath = os.path.join(os.path.dirname(self.pypath), 'config')
+        self.aquapath = os.path.join(os.path.dirname(self.pypath), 'config')
+        self.configpath = None
 
         if args.command == 'init':
             self.init(args)
@@ -49,6 +51,8 @@ class AquaConsole():
             self.add(args)
         elif args.command == 'remove':
             self.remove(args)
+        elif args.command == 'uninstall':
+            self.uninstall(args)
         else:
             parser.print_help()
 
@@ -72,27 +76,39 @@ class AquaConsole():
                 if not os.path.isdir(path):
                     raise ValueError("Path chosen is not a directory")
         
-        self.path = path
+        self.configpath = path
         print("Installing AQUA to", path)
         for file in ['config-aqua.yaml', 'aqua-grids.yaml']:
-            if not os.path.exists(f'{path}/{file}'):
-                self.logger.info(f'Copying from {self.configpath}/{file} to {path}')
-                shutil.copy(f'{self.configpath}/{file}', f'{path}/{file}')
-        for dirs in ['fixes', 'data_models']:
-            if not os.path.exists(f'{path}/{dirs}'):
-                self.logger.info(f'Copying from {self.configpath}/{dirs} to {path}')
-                shutil.copytree(f'{self.configpath}/{dirs}', f'{path}/{dirs}')
-        os.makedirs(f'{self.path}/catalog', exist_ok=True)
+            if not os.path.exists(os.path.join(self.configpath, file)):
+                self.logger.info('Copying from %s to %s', self.aquapath, self.configpath)
+                shutil.copy(f'{self.aquapath}/{file}', f'{self.configpath}/{file}')
+        for directory in ['fixes', 'data_models']:
+            if not os.path.exists(os.path.join(self.configpath, directory)):
+                self.logger.info('Copying from %s to %s', os.path.join(self.aquapath, directory), self.configpath)
+                shutil.copytree(f'{self.aquapath}/{directory}', f'{self.configpath}/{directory}')
+        os.makedirs(f'{self.configpath}/catalog', exist_ok=True)
         
 
     def add(self, args):
         """Add a catalog"""
         self.logger.info('Adding the AQUA catalog %s', args.catalog)
-        shutil.copytree(f'{self.configpath}/machines/{args.catalog}', f'{self.path}/catalog/{args.catalog}')
+        self.configpath = ConfigPath().configdir
+        cdir = f'{self.configpath}/catalog/{args.catalog}'
+        self.logger.info('Installing to %s', self.configpath)
+        shutil.copytree(f'{self.aquapath}/machines/{args.catalog}', cdir)
     
     def remove(self, args):
         """Remove a catalog"""
         self.logger.info('Remove the AQUA catalog %s', args.catalog)
+        self.configpath = ConfigPath().configdir
+        cdir = f'{self.configpath}/catalog/{args.catalog}'
+        shutil.rmtree(cdir)
+
+    def uninstall(self, args):
+        """Remove AQUA"""
+        self.logger.info('Remove the AQUA installation')
+        self.configpath = ConfigPath().configdir
+        shutil.rmtree(self.configpath) 
 
 
 def main():
