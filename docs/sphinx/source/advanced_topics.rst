@@ -288,3 +288,28 @@ Then the user can cancel the particular Job as:
 
     It is potentially dangerous to cancel all your jobs,
     always prefer to cancel jobs with the Job_ID
+
+Developer notes
+---------------
+
+Set up environment variables
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Since ``v0.8.2`` the AQUA package has an entry point script that can be used to copy the configuration files
+and the catalogue to an external directory.
+
+By default the configuration files are stored in the ``$HOME/.aqua`` directory.
+Same for the catalogue, which is stored in the ``$HOME/.aqua/machines`` directory.
+This has been done to make the package more user-friendly, expecially when installing the package
+from a conda environment or from a pip package.
+
+To work with the AQUA package it is strongly recommended to set up an environment variable
+to specify the path to the AQUA package. This can be done by adding the following line to
+your `.bashrc` or `.bash_profile` file:
+
+.. code-block:: bash
+
+    export AQUA=/path/to/aqua
+
+This will allow you to use the AQUA package from any location on the system and will make
+clear for the code where to find the AQUA catalogue.

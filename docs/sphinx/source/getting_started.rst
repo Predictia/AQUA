@@ -35,20 +35,6 @@ Installation can be done using `mamba <https://mamba.readthedocs.io/en/latest/>`
 Containers and tools specific to the machines used in the project are available.
 Please refer to the :ref:`installation` section for more information.
 
-Set up environment variables
-----------------------------
-
-To work with the AQUA package it is strongly recommended to set up an environment variable
-to specify the path to the AQUA package. This can be done by adding the following line to
-your `.bashrc` or `.bash_profile` file:
-
-.. code-block:: bash
-
-    export AQUA=/path/to/aqua
-
-This will allow you to use the AQUA package from any location on the system and will make
-clear for the code where to find the AQUA catalogue.
-
 Set up the configuration file
 -----------------------------
 
