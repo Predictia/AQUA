@@ -8,6 +8,12 @@ Advanced Topics
 Adding a new machine
 --------------------
 
+.. warning::
+
+    The machine depencency in configuration files will be removed in the next release.
+    If you want to add a new machine, please follow the instructions below, but be aware
+    of the changes we are introducing in the section :ref:`aqua-console`.
+
 Change the machine name
 ^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -288,3 +294,50 @@ Then the user can cancel the particular Job as:
 
     It is potentially dangerous to cancel all your jobs,
     always prefer to cancel jobs with the Job_ID
+
+.. _dev-notes:
+
+Developer notes
+---------------
+
+The standard setup of AQUA is thought to be used in a conda environment by users who are not going to modify under version control the downloaded catalogues.
+For this reason we suggest to install the AQUA configuration files in the ``$HOME/.aqua``. 
+Anyway, this configuration could be not ideal if you're creating a new catalogue or modifying an existing one and you want to keep it under version control.
+For this reason the following steps are suggested to set up the AQUA package in a developer environment.
+
+Set up environment variables
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Since ``v0.8.2`` the AQUA package has an entry point script that can be used to copy the configuration files
+and the catalogue to an external directory (see :ref:`aqua-init` and :ref:`aqua-console`).
+
+By default the configuration files are stored in the ``$HOME/.aqua`` directory.
+Same for the catalogue, which is stored in the ``$HOME/.aqua/machines`` directory.
+This has been done to make the package more user-friendly, expecially when installing the package
+from a conda environment or from a pip package.
+
+A developer may want to keep the configuration files and the catalogues in a different directory,
+for this reason the ``aqua init`` command can be used to copy the configuration files and the catalogue
+to a different directory. For more information see the :ref:`aqua-init` section.
+
+If you're using a custom directory to store the configuration files and the catalogue it is recommended
+to set up an environment variable to specify the path to the AQUA package.
+This can be done by adding the following line to your `.bashrc` or `.bash_profile` file:
+
+.. code-block:: bash
+
+    export AQUA_CONFIG=/path/to/config_files
+
+This will make clear for the code where to find the AQUA catalogue and the configuration files.
+
+.. note::
+    It is temporalily possible to set the environment variable ``AQUA`` to specify the path of the source code,
+    so that the entire new aqua entry point can be superseeded by the old method.
+    This will be removed in the next release.
+
+Add new catalogues as developer
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you're adding a new catalogue or modifying an existing one it is recommended to use the old method to set up the AQUA package
+or to add the catalogue with the editable option.
+Please refer to the :ref:`aqua-add` section for more information.
