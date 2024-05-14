@@ -35,11 +35,59 @@ Installation can be done using `mamba <https://mamba.readthedocs.io/en/latest/>`
 Containers and tools specific to the machines used in the project are available.
 Please refer to the :ref:`installation` section for more information.
 
+.. _initialization:
+
+Initialize the package
+----------------------
+
+After the package has been installed, or the container has been loaded, the AQUA package needs to be initialized.
+This means to set up the configuration file and the catalogue.
+This needs to be done only once, unless catalogues are added or need to be updated/removed.
+
+.. note::
+  A more complete description of the available commands can be found in the :ref:`aqua-console` section.
+
+Set up the configuration folder
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The configuration folder contains configuration files and the catalogues added to the AQUA package.
+To set up the configuration folder, run the following command:
+
+.. code-block:: bash
+
+    aqua init
+
+This command will create the configuration folder in the ``$HOME/.aqua`` directory and it will copy there the essential files.
+Check the :ref:`aqua-init` section for more information.
+
+Add a catalogue
+^^^^^^^^^^^^^^^
+
+A catalogue is a folder containing the YAML files that describe the data available in the catalogue.
+
+.. note::
+  At the actual state of the AQUA package, the catalogues coincide with the machines.
+  This means that you will need to install only the catalogue of the machine you are working on.
+
+To add a catalogue, run the following command:
+
+.. code-block:: bash
+
+    aqua add <catalog>
+
+For example, to add the catalogue of the machine ``lumi``, run:
+
+.. code-block:: bash
+
+    aqua add lumi
+
+This command will copy the catalogue folder to the configuration folder.
+
 Set up the configuration file
 -----------------------------
 
 A configuration file is available to specify the parameters for the AQUA package.
-This is a YAML file located in `config/config-aqua.yaml`.
+This is a YAML file called ``config-aqua.yaml`` and is located in the configuration folder.
 
 The configuration file is used to specify the following parameters:
 
@@ -68,6 +116,9 @@ The configuration folder has this structure:
     │       └── ...
     ├── aqua-grids.yaml
     ├── config-aqua.yaml
+
+.. note::
+  The machine depencency in files and folders will be removed in future versions of AQUA.
 
 Set up Jupyter kernel
 ---------------------
