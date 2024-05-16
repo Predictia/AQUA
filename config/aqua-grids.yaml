@@ -147,6 +147,10 @@ grids:
       level: '{{ grids }}/HealPix/icon_hpz10_nested_oce_level.nc'
   
   #IFS
+  tl63:
+    path: '{{ grids }}/IFS/tl63_grid.nc'
+  tl159:
+    path: '{{ grids }}/IFS/tl159_grid.nc'
   tco79:
     path:  
       2d: '{{ grids }}/IFS/tco79_grid.nc'
