@@ -157,13 +157,16 @@ class AquaConsole():
             else:
                 print(f"\t - {item}")
 
-    def add_fixes(self, args):
+    def fixes_add(self, args):
         """Add a personalized fixes file to the fixes folder"""
+        if not os.path.exists(args.fixfile):
+            self.logger.error('%s is not a valid file!', args.fixfile)
+            return
         self._check()
-        fixfile = f'{self.configpath}/fixes/{args.fixes_add}'
+        fixfile = f'{self.configpath}/fixes/{args.fixfile}'
         if not os.path.exists(fixfile):
-            self.logger.info('Installing %s to %s', args.fixes_add, fixfile)
-            shutil.copy(args.fixes_add, fixfile)
+            self.logger.info('Installing %s to %s', args.fixfile, fixfile)
+            shutil.copy(args.fixfile, fixfile)
         else:
             self.logger.error('Fixes already installed, or a file with same name exist')
                  
