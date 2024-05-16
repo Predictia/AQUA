@@ -153,10 +153,6 @@ def get_reference_timeseries(var, formula=False,
 
     logger.debug(f"Reference data: {model} {exp} {source}")
 
-    if model == 'ERA5' and exp == 'era5' and source == 'monthly':
-        logger.debug("HACK: ERA5 restricts enddate to 2022-12-31")
-        enddate = min(enddate, '2022-12-31')
-
     start_retrieve, end_retrieve = _start_end_dates(startdate=startdate, enddate=enddate,
                                                     start_std=std_startdate, end_std=std_enddate)
     logger.debug(f"Retrieve data from {start_retrieve} to {end_retrieve}")
@@ -175,7 +171,7 @@ def get_reference_timeseries(var, formula=False,
 
     # Monthly data
     if monthly or monthly_std:
-        # exclude resample if 'monthly' is in the source name
+        # Exclude resample if 'monthly' is in the source name
         if 'monthly' in source or 'mon' in source:
             logger.debug(f"No monthly resample needed for {model} {exp} {source}")
         else:
