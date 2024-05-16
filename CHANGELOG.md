@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Add support for IFS TL63 and TL159 grids (#1150)
 - Swift links for tests and grids renewed (#1142)
 - Removing the docker folder (#1137)
 - Introducing a tool for benchmarking AQUA code (#1057)
