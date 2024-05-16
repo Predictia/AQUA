@@ -30,6 +30,7 @@ class AquaConsole():
         init_parser = subparsers.add_parser("init")
         uninstall_parser = subparsers.add_parser("uninstall")
         list_parser = subparsers.add_parser("list")
+        fixes_add_parser = subparsers.add_parser("fixes-add")
         catalog_add_parser = subparsers.add_parser("add")
         catalog_remove_parser = subparsers.add_parser("remove")
 
@@ -43,7 +44,9 @@ class AquaConsole():
         catalog_add_parser.add_argument('-e', '--editable', type=str,
                     help='Install a catalog in editable mode from the original source: provide the Path')
         
-
+        fixes_add_parser.add_argument("fixfile", metavar="fixfile",
+                                        help="Fix file to be added")
+        
         catalog_remove_parser.add_argument("catalog", metavar="CATALOG",
                                         help="Catalog to be removed")
         
@@ -59,6 +62,7 @@ class AquaConsole():
         command_map = {
             'init': self.init,
             'add': self.add,
+            'fixes-add': self.fixes_add,
             'remove': self.remove,
             'uninstall': self.uninstall,
             'list': self.list
@@ -152,6 +156,16 @@ class AquaConsole():
                 print(f"\t - {item} (editable)")
             else:
                 print(f"\t - {item}")
+
+    def add_fixes(self, args):
+        """Add a personalized fixes file to the fixes folder"""
+        self._check()
+        fixfile = f'{self.configpath}/fixes/{args.fixes_add}'
+        if not os.path.exists(fixfile):
+            self.logger.info('Installing %s to %s', args.fixes_add, fixfile)
+            shutil.copy(args.fixes_add, fixfile)
+        else:
+            self.logger.error('Fixes already installed, or a file with same name exist')
                  
     def add(self, args):
         """Add a catalog"""
@@ -213,10 +227,7 @@ class AquaConsole():
 
 
 def main():
-    """temporary hack to be removed"""
-    AquaConsole()
-
-if __name__ == '__main__':
+    """AQUA main installation tool"""
     AquaConsole()
 
 def query_yes_no(question, default="yes"):
