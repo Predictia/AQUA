@@ -53,6 +53,7 @@ class AquaConsole():
         self.pypath = pypath[0]
         self.aquapath = os.path.join(os.path.dirname(self.pypath), 'config')
         self.configpath = None
+        self.configfile = 'config-aqua.yaml'
         self.grids = None
 
         command_map = {
@@ -168,12 +169,18 @@ class AquaConsole():
             if not os.path.exists(cdir):
                 if os.path.isdir(sdir):
                     shutil.copytree(f'{self.aquapath}/machines/{args.catalog}', cdir)
-                else: 
+                else:
                     self.logger.error('Catalog %s does not appear to exist in %s', args.catalog, sdir)
             else:
                 self.logger.error("Catalog %s already installed in %s, please consider `aqua update`. "
                                   "Which does not exist hahaha!",
                                 args.catalog, cdir)
+
+        # once we get rid of machine dependence, this can be removed    
+        self.logger.info('Setting machine name to %s', args.catalog)
+        cfg = load_yaml(self.configfile)
+        cfg['machine'] = args.catalog
+        dump_yaml(self.configfile, cfg)
     
     def remove(self, args):
         """Remove a catalog"""
@@ -190,9 +197,10 @@ class AquaConsole():
         """check installation"""
         try:
             self.configpath = ConfigPath().configdir
+            self.configfile = os.path.join(self.configpath, 'config-aqua.yaml')
         except FileNotFoundError:
             self.logger.error('No AQUA installation found!')
-            sys.exit(1)
+            sys.exit()
 
     def uninstall(self, args):
         """Remove AQUA"""
