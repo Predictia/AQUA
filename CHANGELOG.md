@@ -9,6 +9,7 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - AQUA entry point for installation and catalog addition (#1131, #1134, #1146)
+- Add support for IFS TL63 and TL159 grids (#1150)
 - Swift links for tests and grids renewed (#1142)
 - Removing the docker folder (#1137)
 - Introducing a tool for benchmarking AQUA code (#1057)
