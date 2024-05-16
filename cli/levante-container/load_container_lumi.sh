@@ -34,6 +34,8 @@ fi
 
 log_message INFO "Perfect! Now it's time to ride with AQUA ⛵"
 
+module load singularity
+
 singularity shell \
     --cleanenv \
     --env PYTHONPATH=/opt/conda/lib/python3.10/site-packages \
