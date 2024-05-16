@@ -31,6 +31,7 @@ class AquaConsole():
         uninstall_parser = subparsers.add_parser("uninstall")
         list_parser = subparsers.add_parser("list")
         fixes_add_parser = subparsers.add_parser("fixes-add")
+        grids_add_parser = subparsers.add_parser("grids-add")
         catalog_add_parser = subparsers.add_parser("add")
         catalog_remove_parser = subparsers.add_parser("remove")
 
@@ -45,6 +46,9 @@ class AquaConsole():
                     help='Install a catalog in editable mode from the original source: provide the Path')
         
         fixes_add_parser.add_argument("fixfile", metavar="fixfile",
+                                        help="Fix file to be added")
+
+        grids_add_parser.add_argument("gridfile", metavar="gridfile",
                                         help="Fix file to be added")
         
         catalog_remove_parser.add_argument("catalog", metavar="CATALOG",
@@ -63,6 +67,7 @@ class AquaConsole():
             'init': self.init,
             'add': self.add,
             'fixes-add': self.fixes_add,
+            'grids-add': self.grids_add,
             'remove': self.remove,
             'uninstall': self.uninstall,
             'list': self.list
@@ -158,17 +163,30 @@ class AquaConsole():
                 print(f"\t - {item}")
 
     def fixes_add(self, args):
-        """Add a personalized fixes file to the fixes folder"""
-        if not os.path.exists(args.fixfile):
-            self.logger.error('%s is not a valid file!', args.fixfile)
+        """Add a fix file"""
+        
+        self._file_add('fixes', args.fixfile)
+
+    def grids_add(self, args):
+        """Add a grid file"""
+
+        self._file_add('grids', args.gridfile)
+
+
+    def _file_add(self, kind, file):
+        """Add a personalized file to the fixes/grids folder"""
+
+        if not os.path.exists(file):
+            self.logger.error('%s is not a valid file!', file)
             return
         self._check()
-        fixfile = f'{self.configpath}/fixes/{args.fixfile}'
-        if not os.path.exists(fixfile):
-            self.logger.info('Installing %s to %s', args.fixfile, fixfile)
-            shutil.copy(args.fixfile, fixfile)
+        basefile = os.path.basename(file)
+        pathfile = f'{self.configpath}/{kind}/{basefile}'
+        if not os.path.exists(pathfile):
+            self.logger.info('Installing %s to %s', file, pathfile)
+            shutil.copy(file, pathfile)
         else:
-            self.logger.error('Fixes already installed, or a file with same name exist')
+            self.logger.error('%s for file %s already installed, or a file with same name exist', kind, file)
                  
     def add(self, args):
         """Add a catalog"""
