@@ -9,6 +9,7 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Removing any machine name depencency from slurm files (#1135)
+- Jinja replacement is added to the aqua-config.yaml (#1154)
 - grid definitions split in multiple files (#1152)
 - Add script to access the container on Levante HPC (#1151)
 - Add support for IFS TL63 and TL159 grids (#1150)
@@ -18,6 +19,7 @@ AQUA core complete list:
 - Define AQUA NEMO healpix grids as a function of their ORCA source (#1113)
 
 AQUA diagnostics complete list:
+- Tropical Rainfall: Improve Paths in Live Demonstration Notebook  (#1157)
 - Atm global mean: produce seasonal bias plots by default (#1140)
 - Tropical Rainfall: Notebook for the Live Demonstration (#1112)
 - Teleconnections: MJO Hovmoller plot introduced as notebook (#247)
