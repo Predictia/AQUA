@@ -9,6 +9,9 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Removing any machine name depencency from slurm files (#1135)
+- grid definitions split in multiple files (#1152)
+- Add script to access the container on Levante HPC (#1151)
+- Add support for IFS TL63 and TL159 grids (#1150)
 - Swift links for tests and grids renewed (#1142)
 - Removing the docker folder (#1137)
 - Introducing a tool for benchmarking AQUA code (#1057)
