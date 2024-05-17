@@ -17,15 +17,6 @@ machines:
     jobs: 1
     loglevel: 'WARNING'
     path_to_output: '.'
-  leonardo:
-    queue: null
-    account: null
-    walltime: '02:30:00'
-    memory: '10 GB'
-    cores: 1
-    jobs: 1
-    loglevel: 'WARNING'
-    path_to_output: '.'
   mafalda:
     queue: 'batch'
     account: null
