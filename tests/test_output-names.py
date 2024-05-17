@@ -15,7 +15,7 @@ def test_generate_name(output_namer):
     assert filename == 'dummy.mean.MSWEP.past.nc'
     
     # Test filename generation with additional parameters
-    filename = output_namer.generate_name(diagnostic_product='mean', var='mtpr', model_2='ERA5', exp_2='era5', time_s='1990-01', time_f='1990-02', time_precision='ym', area='indian_ocean', frequency="3H", status="preliminary")
+    filename = output_namer.generate_name(diagnostic_product='mean', var='mtpr', model_2='ERA5', exp_2='era5', time_start='1990-01', time_end='1990-02', time_precision='ym', area='indian_ocean', frequency="3H", status="preliminary")
     assert filename == 'dummy.mean.mtpr.MSWEP.past.ERA5.era5.indian_ocean.199001.199002.frequency_3H.status_preliminary.nc'
 
 def test_save_nc(output_namer):
@@ -24,7 +24,7 @@ def test_save_nc(output_namer):
     assert path == './dummy.mean.MSWEP.past.nc'
     
     # Test saving nc file with additional parameters
-    path = output_namer.save_nc(diagnostic_product='mean', var='mtpr', model_2='ERA5', exp_2='era5', time_s='1990-01', time_f='1990-02', time_precision='ym', area='indian_ocean', frequency="3H", status="preliminary")
+    path = output_namer.save_nc(diagnostic_product='mean', var='mtpr', model_2='ERA5', exp_2='era5', time_start='1990-01', time_end='1990-02', time_precision='ym', area='indian_ocean', frequency="3H", status="preliminary")
     assert path == './dummy.mean.mtpr.MSWEP.past.ERA5.era5.indian_ocean.199001.199002.frequency_3H.status_preliminary.nc'
 
 def test_save_pdf(output_namer):
@@ -33,7 +33,7 @@ def test_save_pdf(output_namer):
     assert path == './dummy.mean.MSWEP.past.pdf'
     
     # Test saving pdf file with additional parameters
-    path = output_namer.save_pdf(diagnostic_product='mean', var='mtpr', model_2='ERA5', exp_2='era5', time_s='1990-01', time_f='1990-02', time_precision='ym', area='indian_ocean', frequency="3H", status="preliminary")
+    path = output_namer.save_pdf(diagnostic_product='mean', var='mtpr', model_2='ERA5', exp_2='era5', time_start='1990-01', time_end='1990-02', time_precision='ym', area='indian_ocean', frequency="3H", status="preliminary")
     assert path == './dummy.mean.mtpr.MSWEP.past.ERA5.era5.indian_ocean.199001.199002.frequency_3H.status_preliminary.pdf'
 
 def test_missing_diagnostic_product(output_namer):
