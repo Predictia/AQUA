@@ -1,4 +1,8 @@
 from aqua.logger import log_configure, log_history
+from aqua.util import add_pdf_metadata
+import io
+import os
+from matplotlib.figure import Figure
 
 class OutputNamer:
     def __init__(self, diagnostic, model, exp, diagnostic_product=None, loglevel='WARNING', default_path='.'):
@@ -90,12 +94,13 @@ class OutputNamer:
         return filename
 
 
-    def save_nc(self, path=None, diagnostic_product=None, var=None, model_2=None, exp_2=None, time_start=None, time_end=None,
-                time_precision='ymd', area=None, **kwargs):
+    def save_xarray_to_memory(self, dataset, path=None, diagnostic_product=None, var=None, model_2=None, exp_2=None,
+                              time_start=None, time_end=None, time_precision='ymd', area=None, metadata=None, **kwargs):
         """
-        Simulate saving a netCDF file to the provided path, with support for additional filename keywords and precise time intervals.
+        Save an xarray dataset to memory as a netCDF file with optional metadata.
 
         Parameters:
+            dataset (xarray.Dataset): The xarray dataset to save.
             path (str, optional): The path where the netCDF file will be saved.
             diagnostic_product (str, optional): Product of the diagnostic analysis.
             var (str, optional): Variable of interest.
@@ -105,25 +110,39 @@ class OutputNamer:
             time_end (str, optional): The finish (end) time for the data, in format consistent with time_precision.
             time_precision (str, optional): Precision for time representation ('y', 'ym', 'ymd', 'ymdh', etc.).
             area (str, optional): The geographical area covered by the data.
+            metadata (dict, optional): Additional metadata to include in the netCDF file.
             **kwargs: Additional keyword arguments for more flexible filename customization.
 
         Returns:
-            str: The full path to where the netCDF file would be simulated to save.
+            io.BytesIO: The BytesIO object containing the netCDF file content.
         """
         if path is None:
             path = self.default_path
         # Generate the filename with the new time parameters and precision
         filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_start, time_end, time_precision, area, suffix='nc', **kwargs)
         full_path = f"{path}/{filename}"
-        self.logger.info(f"Simulated saving netCDF file at: {full_path}")
+
+        # Add metadata to dataset if provided
+        if metadata:
+            dataset.attrs.update(metadata)
+
+        # Create an in-memory file-like object
+        memory_file = io.BytesIO()
+        
+        # Write the dataset to the in-memory file
+        dataset.to_netcdf(memory_file)
+        
+        self.logger.info(f"Simulated saving netCDF file to memory with name: {full_path}")
         return full_path
 
-    def save_pdf(self, path=None, diagnostic_product=None, var=None, model_2=None, exp_2=None, time_start=None, time_end=None,
-                 time_precision='ymd', area=None, **kwargs):
+
+    def save_pdf(self, fig: Figure, path=None, diagnostic_product=None, var=None, model_2=None, exp_2=None, time_start=None, time_end=None,
+                 time_precision='ymd', area=None, metadata=None, dpi=300, **kwargs):
         """
-        Simulate saving a PDF file to the provided path, with support for additional filename keywords and precise time intervals.
+        Save a PDF file with a matplotlib figure to the provided path, with support for additional filename keywords and precise time intervals.
 
         Parameters:
+            fig (Figure): The matplotlib figure object to be saved as a PDF.
             path (str, optional): The path where the PDF file will be saved.
             diagnostic_product (str, optional): Product of the diagnostic analysis.
             var (str, optional): Variable of interest.
@@ -133,15 +152,59 @@ class OutputNamer:
             time_end (str, optional): The finish (end) time for the data, in format consistent with time_precision.
             time_precision (str, optional): Precision for time representation ('y', 'ym', 'ymd', 'ymdh', etc.).
             area (str, optional): The geographical area covered by the data.
+            metadata (dict, optional): Additional metadata to include in the PDF file.
+            dpi (int, optional): The resolution of the saved PDF file. Default is 300.
             **kwargs: Additional keyword arguments for more flexible filename customization.
 
         Returns:
-            str: The full path to where the PDF file would be simulated to save.
+            str: The full path to where the PDF file was saved.
         """
         if path is None:
             path = self.default_path
-        # Generate the filename with the new time parameters and precision
         filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_start, time_end, time_precision, area, suffix='pdf', **kwargs)
-        full_path = f"{path}/{filename}"
-        self.logger.info(f"Simulated saving PDF file at: {full_path}")
+        full_path = os.path.join(path, filename)
+
+        # Save the figure as a PDF
+        fig.savefig(full_path, dpi=dpi)
+
+        # Add metadata if provided
+        if metadata:
+            for key, value in metadata.items():
+                add_pdf_metadata(full_path, metadata_value=value, metadata_name=key, loglevel=self.loglevel)
+
+        self.logger.info(f"Saved PDF file at: {full_path}")
+        return full_path
+    
+    def save_png(self, fig: Figure, path=None, diagnostic_product=None, var=None, model_2=None, exp_2=None, time_start=None, time_end=None,
+                 time_precision='ymd', area=None, metadata=None, dpi=300, **kwargs):
+        """
+        Save a PNG file with a matplotlib figure to the provided path, with support for additional filename keywords and precise time intervals.
+
+        Parameters:
+            fig (Figure): The matplotlib figure object to be saved as a PNG.
+            path (str, optional): The path where the PNG file will be saved.
+            diagnostic_product (str, optional): Product of the diagnostic analysis.
+            var (str, optional): Variable of interest.
+            model_2 (str, optional): The second model, for comparative studies.
+            exp_2 (str, optional): The experiment associated with the second model.
+            time_start (str, optional): The start time for the data, in format consistent with time_precision.
+            time_end (str, optional): The finish (end) time for the data, in format consistent with time_precision.
+            time_precision (str, optional): Precision for time representation ('y', 'ym', 'ymd', 'ymdh', etc.).
+            area (str, optional): The geographical area covered by the data.
+            metadata (dict, optional): Additional metadata to include in the PNG file.
+            dpi (int, optional): The resolution of the saved PNG file. Default is 300.
+            **kwargs: Additional keyword arguments for more flexible filename customization.
+
+        Returns:
+            str: The full path to where the PNG file was saved.
+        """
+        if path is None:
+            path = self.default_path
+        filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_start, time_end, time_precision, area, suffix='png', **kwargs)
+        full_path = os.path.join(path, filename)
+
+        # Save the figure as a PNG
+        fig.savefig(full_path, dpi=dpi)
+
+        self.logger.info(f"Saved PNG file at: {full_path}")
         return full_path
