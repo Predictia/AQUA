@@ -96,14 +96,14 @@ def exctract_sinfo(sinfo_str=None):
 
     return new_list
 
-def get_config(machine_name='lumi', config_name=slurm_config_file, loglevel='WARNING'):
+def get_config(machine_name=None, config_name=slurm_config_file, loglevel='WARNING'):
     """
     Retrieve configuration settings for a specified machine from a YAML file. If the specified
     machine is not found in the configuration, it logs a warning and returns None.
 
     Args:
         machine_name (str, optional):   The name of the machine for which to retrieve configuration settings.
-                                        Defaults to 'lumi'.
+                                        Defaults to None.
         config_name (str, optional):    The path to the YAML configuration file that contains machine
                                         specific settings. Defaults to 'config-slurm.yml'.
         loglevel (str, optional):       The logging level to be used for the logger that reports issues or
@@ -132,7 +132,7 @@ def get_config(machine_name='lumi', config_name=slurm_config_file, loglevel='WAR
         logger.warning("Machine name not specified. Cannot proceed without a valid machine name.")
         return None
 
-def max_resources_per_node(queue=None, machine_name='lumi', config_name=slurm_config_file):
+def max_resources_per_node(queue=None, machine_name=None, config_name=slurm_config_file, loglevel='WARNING'):
     """
     Extracting the maximum resources available on the node for the queue
 
@@ -141,9 +141,11 @@ def max_resources_per_node(queue=None, machine_name='lumi', config_name=slurm_co
                                         available on the node are extracted.
                                         Defaults to None.
         machine_name (str, optional):   The name of the machine for which to retrieve configuration settings.
-                                        Defaults to 'lumi'.
+                                        Defaults to None.
         config_name (str, optional):    The path to the YAML configuration file that contains machine
                                         specific settings. Defaults to 'config-slurm.yml'.
+        loglevel (str, optional):       The logging level to be used for the logger that reports issues or
+                                        activities of the function. Defaults to 'WARNING'.
 
     Returns:
         max_memory (str):       The maximum amount of memory available on the
@@ -159,11 +161,20 @@ def max_resources_per_node(queue=None, machine_name='lumi', config_name=slurm_co
         max_threads (str):      The maximum number of threads available on the
                                 node for the queue
     """
-    config = get_config(machine_name=machine_name, config_name=config_name)
-    if not config:
-        raise ValueError(f"No valid configuration available for machine '{machine_name}'. Please specify a valid machine or check your configuration file.")
+    logger = log_configure(log_level=loglevel, log_name='slurm')
+    
+    config = None
+    if machine_name:
+        config = get_config(machine_name=machine_name, config_name=config_name)
+        if not config:
+            logger.warning(f"No valid configuration available for machine '{machine_name}'. Please specify all configurations manually.")
+    
+    if not queue:
+        if config and 'queue' in config:
+            queue = config.get('queue')
+        else:
+            raise ValueError("Queue name must be specified if no valid machine configuration is available.")
 
-    queue = queue if queue is not None else config.get('queue')
     max_resources = exctract_sinfo("sinfo  --partition=" + str(queue) + " -lNe")
 
     if max_resources[2] == queue:
@@ -187,7 +198,7 @@ def max_resources_per_node(queue=None, machine_name='lumi', config_name=slurm_co
 
 def job(exclusive=False, max_resources=False, cores=None, memory=None,
         queue=None, account=None, walltime=None, jobs=None, path_to_output=None,
-        loglevel=None, machine_name='lumi', config_name=slurm_config_file):
+        loglevel='WARNING', machine_name=None, config_name=slurm_config_file):
     """
     Submitting the Job to the SLURM queue
 
@@ -219,27 +230,37 @@ def job(exclusive=False, max_resources=False, cores=None, memory=None,
         loglevel (str, optional):       The level of logging.
                                         Defaults to 'WARNING'.
         machine_name (str, optional):   The name of the machine for which to retrieve configuration settings.
-                                        Defaults to 'lumi'.
+                                        Defaults to None.
         config_name (str, optional):    The path to the YAML configuration file that contains machine
                                         specific settings. Defaults to 'config-slurm.yml'.
 
     """
-    config = get_config(machine_name=machine_name, config_name=config_name)
-    if not config:
-        raise ValueError(f"No valid configuration available for machine '{machine_name}'. Please specify a valid machine or check your configuration file.")
+    logger = log_configure(log_level=loglevel, log_name='slurm')
+    
+    if machine_name:
+        config = get_config(machine_name=machine_name, config_name=config_name)
+        if not config:
+            logger.warning(f"No valid configuration available for machine '{machine_name}'. Please specify all configurations manually.")
+    else:
+        config = None
+        logger.warning("Machine name not specified. Please manually specify all configurations such as queue, cores, memory, etc.")
 
     # Apply configurations
-    cores = cores if cores is not None else config.get('cores')
-    memory = memory if memory is not None else config.get('memory')
-    queue = queue if queue is not None else config.get('queue')
-    account = account if account is not None else config.get('account')
-    walltime = walltime if walltime is not None else config.get('walltime')
-    jobs = jobs if jobs is not None else config.get('jobs')
-    path_to_output = path_to_output if path_to_output is not None else config.get('path_to_output')
-    loglevel = loglevel if loglevel is not None else config.get('loglevel')
-    
-    # Initializing the logger
-    logger = log_configure(log_level=loglevel, log_name='slurm')
+    cores = cores if cores is not None else config.get('cores') if config else None
+    memory = memory if memory is not None else config.get('memory') if config else None
+    queue = queue if queue is not None else config.get('queue') if config else None
+    account = account if account is not None else config.get('account') if config else None
+    walltime = walltime if walltime is not None else config.get('walltime') if config else None
+    jobs = jobs if jobs is not None else config.get('jobs') if config else None
+    path_to_output = path_to_output if path_to_output is not None else config.get('path_to_output') if config else None
+    loglevel = loglevel if loglevel is not None else config.get('loglevel') if config else 'WARNING'
+
+    # Check if necessary configurations are provided
+    if not all([cores, memory, queue, walltime]):
+        raise ValueError("Please manually specify the necessary configurations: queue, cores, memory, and walltime, OR provide a valid machine name.")
+    # Log the applied configurations
+    logger.debug(f"Submitting job with the following configurations: queue={queue}, cores={cores}, memory={memory}, walltime={walltime}, jobs={jobs}, account={account}, path_to_output={path_to_output}, loglevel={loglevel}")
+
 
     # Creating the directory for logs and output
     logs_path, output_path = output_dir(path_to_output=path_to_output,
