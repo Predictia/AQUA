@@ -183,11 +183,11 @@ class AquaConsole():
         """Copying the installation file"""
 
         print("Installing AQUA to", self.configpath)
-        for file in ['config-aqua.yaml', 'aqua-grids.yaml']:
+        for file in ['config-aqua.yaml']:
             if not os.path.exists(os.path.join(self.configpath, file)):
                 self.logger.info('Copying from %s to %s', self.aquapath, self.configpath)
                 shutil.copy(f'{self.aquapath}/{file}', f'{self.configpath}/{file}')
-        for directory in ['fixes', 'data_models']:
+        for directory in ['fixes', 'data_models', 'grids']:
             if not os.path.exists(os.path.join(self.configpath, directory)):
                 self.logger.info('Copying from %s to %s',
                                  os.path.join(self.aquapath, directory), self.configpath)
@@ -290,8 +290,18 @@ class AquaConsole():
         self._check()
         check = query_yes_no(f"Do you want to uninstall AQUA from {self.configpath}", "no")
         if check:
-            self.logger.info('Uninstalling AQUA from %s', self.configpath)
-            shutil.rmtree(self.configpath)
+            # Remove the AQUA installation both for folder and link case
+            if os.path.islink(self.configpath):
+                linked_folder = os.readlink(self.configpath)
+                self.logger.info('Uninstalling AQUA from %s', linked_folder)
+                # Remove link and data in the linked folder
+                self.logger.debug('Removing the link %s', self.configpath)
+                os.unlink(self.configpath)
+                self.logger.debug('Removing the content of %s', linked_folder)
+                shutil.rmtree(linked_folder)
+            else:
+                self.logger.info('Uninstalling AQUA from %s', self.configpath)
+                shutil.rmtree(self.configpath)
 
 
 def main():
