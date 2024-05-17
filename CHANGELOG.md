@@ -9,6 +9,9 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - AQUA entry point for installation and catalog addition (#1131, #1134, #1146)
+- Jinja replacement is added to the aqua-config.yaml (#1154)
+- grid definitions split in multiple files (#1152)
+- Add script to access the container on Levante HPC (#1151)
 - Add support for IFS TL63 and TL159 grids (#1150)
 - Swift links for tests and grids renewed (#1142)
 - Removing the docker folder (#1137)
