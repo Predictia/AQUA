@@ -211,17 +211,27 @@ class AquaConsole():
 
     def fixes_add(self, args):
         """Add a fix file"""
-        
-        self._file_add('fixes', args.fixfile)
+        if args.editable is not None:
+            self._file_add(kind='fixes', file=args.editable, link=True)
+        else:
+            self._file_add(kind='fixes', file=args.fixfile)
 
     def grids_add(self, args):
         """Add a grid file"""
+        if args.editable is not None:
+            self._file_add(kind='grids', file=args.editable, link=True)
+        else:
+            self._file_add(kind='grids', file=args.gridfile)
 
-        self._file_add('grids', args.gridfile)
 
-
-    def _file_add(self, kind, file):
-        """Add a personalized file to the fixes/grids folder"""
+    def _file_add(self, kind, file, link=False):
+        """Add a personalized file to the fixes/grids folder
+        
+        Args:
+            kind (str): the kind of file to be added, either 'fixes' or 'grids'
+            file (str): the file to be added
+            link (bool): whether to add the file as a link or not
+        """
 
         if not os.path.exists(file):
             self.logger.error('%s is not a valid file!', file)
@@ -230,10 +240,14 @@ class AquaConsole():
         basefile = os.path.basename(file)
         pathfile = f'{self.configpath}/{kind}/{basefile}'
         if not os.path.exists(pathfile):
-            self.logger.info('Installing %s to %s', file, pathfile)
-            shutil.copy(file, pathfile)
+            if link:
+                self.logger.info('Linking %s to %s', file, pathfile)
+                os.symlink(file, pathfile)
+            else:
+                self.logger.info('Installing %s to %s', file, pathfile)
+                shutil.copy(file, pathfile)
         else:
-            self.logger.error('%s for file %s already installed, or a file with same name exist', kind, file)
+            self.logger.error('%s for file %s already installed, or a file with the same name exists', kind, file)
                  
     def add(self, args):
         """Add a catalog"""
