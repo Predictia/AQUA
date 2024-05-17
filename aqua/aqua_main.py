@@ -119,7 +119,8 @@ class AquaConsole():
         self.logger.info('Running the AQUA init')
 
         
-        # define the home folder
+        # Define the installation folder,
+        # by default it is $HOME/.aqua
         if args.path is None:
             if 'HOME' in os.environ:
                 path = os.path.join(os.environ['HOME'], '.aqua')
@@ -140,12 +141,25 @@ class AquaConsole():
                                  'Please specify a path where to install AQUA and define AQUA_CONFIG as environment variable')
         else:
             path = args.path
-            self.logger.warning('AQUA will be installed in %s, but please remember to define AQUA_CONFIG environment variable', path)
             if not os.path.exists(path):
                 os.makedirs(path, exist_ok=True)
             else:
                 if not os.path.isdir(path):
                     raise ValueError("Path chosen is not a directory")
+            
+            check = query_yes_no(f"Do you want to create a link in the $HOME/.aqua to {path}", "yes")
+            if check:
+                if 'HOME' in os.environ:
+                    link = os.path.join(os.environ['HOME'], '.aqua')
+                    if os.path.exists(link):
+                        self.logger.warning('Removing the content of %s', link)
+                        shutil.rmtree(link)
+                    os.symlink(path, link)
+                else:
+                    self.logger.error('$HOME not found. Cannot create a link to the installation path')
+                    self.logger.warning('AQUA will be installed in %s, but please remember to define AQUA_CONFIG environment variable', path)
+            else:
+                self.logger.warning('AQUA will be installed in %s, but please remember to define AQUA_CONFIG environment variable', path)
 
         self.configpath = path
         self.grids = args.grids
