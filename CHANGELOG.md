@@ -8,21 +8,123 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
-- Fix LRA souyrces to allow incomplete times for different vars (#994)
+- Jinja replacement is added to the aqua-config.yaml (#1154)
+- grid definitions split in multiple files (#1152)
+- Add script to access the container on Levante HPC (#1151)
+- Add support for IFS TL63 and TL159 grids (#1150)
+- Swift links for tests and grids renewed (#1142)
+- Removing the docker folder (#1137)
+- Introducing a tool for benchmarking AQUA code (#1057)
+- Define AQUA NEMO healpix grids as a function of their ORCA source (#1113)
+
+AQUA diagnostics complete list:
+- Tropical Rainfall: Improve Paths in Live Demonstration Notebook  (#1157)
+- Atm global mean: produce seasonal bias plots by default (#1140)
+- Tropical Rainfall: Notebook for the Live Demonstration (#1112)
+- Teleconnections: MJO Hovmoller plot introduced as notebook (#247)
+- Tropical Rainfall: Reduce Redundancy in Conversion Functions (#1096)
+
+## [v0.8.1]
+
+Main changes are: 
+1. Fixes following internal D340.7.3.3 and D340.7.1.4 review 
+
+AQUA core complete list:
+- Tco399-eORCA025 control, historical and scenario runs added to Lumi catalog (#1070)
+- ESA-CCI-L4 dataset added for Lumi and Levante catalogues (#1090)
+- Various fixes to the documentation (#1106)
+- Fixer for dimensions is now available (#1050)
+
+AQUA diagnostics complete list:
+- Timeseries: units can be overridden in the configuration file (#1098)
+- Tropical Rainfall: Fixing the Bug in the CLI (#1100)
+
+## [v0.8]
+
+Main changes are:
+1. Support for Python 3.12
+2. Update in the catalog for Levante and introduction of Leonardo
+3. Multiple diagnostics improvement to fullfil D340.7.3.3 and D340.7.1.4
+
+AQUA core complete list:
+- LRA for ICON avg_sos and avg_tos (#1076)
+- LRA for IFS-NEMO, IFS-FESOM, ICON added to Levante catalog (#1072)
+- IFS-FESOM storyline +2K added to the Lumi catalog (#1059)
+- Allowing for jinja-based replacemente in load_yaml (#1045) 
+- Support for Python 3.12 (#1052)
+- Extending pytests (#1053)
+- More efficient use of `_retrieve_plain` for acessing sample data (#1048)
+- Introducing the catalogue structure for Leonardo HPC (#1049)
+- Introducing an rsync script between LUMI and levante for grids (#1044)
+- Introducing a basic jinja-based catalog entry generator (#853)
+- Adapt NextGEMS sources and fixes to the final DestinE governance (#1008, #1035)
+- Remove  NextGEMS cycle2 sources (#1008)
+- Avoid GSVSource multiple class instantiation in dask mode (#1051)
+
+AQUA diagnostics complete list:
+- Teleconnections: refactor of the documentation (#1061)
+- Tropical rainfall: Updating the Documentation and Notebooks (#1083)
+- Performance indices: minor improvements with the inclusion of mask and area files (#1076)
+- Timeseries: Seasonal Cycle and Gregory plots save netcdf files (#1079)
+- Tropical rainfall: minor modifications to the CLI and fixes to changes in the wrapper introduced in PR #1063 (#1074)
+- Tropical rainfall: adding daily variability and precipitation profiles to the cli (#1063)
+- Teleconnections: bootstrap evaluation of concordance with reference dataset (#1026)
+- SSH: Improvement of the CLI (#1024) 
+- Tropical rainfall: adding metadata and comparison with era5 and imerg to the plots, re-binning of the histograms and buffering of the data (#1014)
+- Timeseries: refactor of the documentation (#1031)
+- Radiation: boxplot can accomodate custom variables (#933)
+- Seaice: convert to module, add Extent maps (#803)
+- Seaice: Implement seaice Volume timeseries and thickness maps (#1043)
+
+## [v0.7.3]
+
+Main changes are:
+1. IFS-FESOM NextGEMS4 and storylines simulations available in the catalogue
+2. Vertical chunking for GSV intake access
+3. FDB monthly average data access is available
+4. kwargs parsing of reader arguments (e.g. allowing for zoom and ensemble support)
+
+AQUA core complete list:
+- Add kwargs parsing of reader arguments, passing them to intake to substitute parameters (#757)
+- Remove `zoom` and use kwargs instead (#757)
+- Enabling the memory monitoring and (optional) full performance monitoring in LRA (#1010)
+- Adding IFS_9-FESOM_5 NextGEMS4 simulation on levante (#1009)
+- Function to plot multiple maps is introduced as `plot_maps()` and documented (#866)
+- Adding the IFS-FESOM storylines simulation (#848)
+- `file_is_complete()` accounts also for the mindate attribute (#1007)
+- Introducing a `yearmonth` timestyle to access FDB data on monthly average (#1001)
+- Adding expected time calculation for weight generation (#701)
+- Vertical chunking for GSV intake access (#1003)
+
+AQUA diagnostics complete list:
+- Timeseries: Various bugfix and improvements for cli and formula (#1013, #1016, #1022)
+
+## [v0.7.2]
+
+Main changes are:
+1. `mtpr` is used for precipitation in all the catalogue entries
+2. LRA CLI support for parallel SLURM submission and other improvements
+3. ICON production simulations available in the catalogue
+4. `detrend()` method is available in the `Reader` class
+5. All the diagnostics have dask support in their CLI
+
+AQUA core complete list:
+- Fix LRA sources to allow incomplete times for different vars (#994)
 - Distributed dask option for diagnostic CLIs and wrapper (#981)
 - Added documentation for `plot_timeseries`, `plot_seasonalcycle` and `plot_single_map_diff` (#975)
 - Minimum date fixer feature / ICON net fluxes fix (#958)
 - Unified logging for all diagnostics (#931)
-- A ``detrend()`` method is added to the Reader class (#919)
+- A `detrend()` method is added to the Reader class (#919)
 - LRA file handling improvements (#849, #972)
 - Updating fixer for ERA5 monthly and hourly data on Levante (#937)
 - GSV pin to 1.0.0 (#950)
 - Adding ICON production simulations (#925)
-- LRA CLI for parallel SLURM submission support a max number of concurrent jobs (#955)
+- LRA CLI for parallel SLURM submission support a max number of concurrent jobs and avoid same job to run (#955, #990)
 - Renaming of EC-mean output figures in cli push tool for aqua-web (#930)
 - Renaming the `tprate` variable into `mtpr` in all fixes (#944)
 
 AQUA diagnostic complete list:
+- Tropical rainfall: enhancements of plotting and performance, files path correction (#997)
 - Timeseries: seasonal cycle runs as a separate cli in aqua-analysis for performance speed-up (#982)
 - Timeseries: seasonal cycle is added if reference data are not available in some timespan (#974)
 - Tropical rainfall: Removing unnecessary printing during the CLI, optimazing the CLi for low and high-resolution data (#963)
@@ -30,6 +132,7 @@ AQUA diagnostic complete list:
 - SSH: technical improvements including removal of hardcoded loglevel and timespan definition. (#677)
 - SSH: ready with new data governance and option to plot difference plots added. (#677)
 - Atmosferic Global Mean: added mean bias for the entire year in seasonal bias function (#947)
+- Tropical Cyclones: working with IFS-NEMO and ICON, includes retrieval of orography from file (#1071).
 
 ## [v0.7.1]
 
@@ -135,6 +238,7 @@ Main changes are:
 1. Inclusion in the catalog of the historical-1990 production simulations from IFS-NEMO and IFS-FESOM.
 2. New fixes that targets the DestinE updated Data Governance
 
+Complete list:
 - IFS-FESOM historical-1990-dev-lowres with new data governance added to the catalogue (#770)
 - AtmoGlobalMean diagnostic improvements (#722)
 - Teleconnections diagnostic improvements (#722)
@@ -375,7 +479,12 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.8.1...HEAD
+[v0.8.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.8...v0.8.1
+[v0.8]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.3...v0.8
+[v0.7.3]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.2...v0.7.3
+[v0.7.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.1...v0.7.2
+[v0.7.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7...v0.7.1
 [v0.7]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.3...v0.7
 [v0.6.3]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.2...v0.6.3
 [v0.6.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.6.1...v0.6.2

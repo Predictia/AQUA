@@ -57,9 +57,6 @@ def parse_arguments(cli_args):
 
 if __name__ == '__main__':
 
-    cluster = LocalCluster(threads_per_worker=2, n_workers=8)  # Creates a local cluster with 4 workers
-    client = Client(cluster)
-
     args = parse_arguments(sys.argv[1:])
     loglevel = get_arg(args, 'loglevel', 'WARNING')
     logger = log_configure(log_name='Teleconnections CLI', log_level=loglevel)
@@ -160,16 +157,15 @@ if __name__ == '__main__':
             exp_ref = ref_config.get('exp', 'era5')
             source_ref = ref_config.get('source', 'monthly')
             regrid = ref_config.get('regrid', None)
-            zoom = ref_config.get('zoom', None)
             freq = ref_config.get('freq', None)
-            logger.debug("setup: %s %s %s %s %s %s",
-                         model_ref, exp_ref, source_ref, regrid, freq, zoom)
+            logger.debug("setup: %s %s %s %s %s",
+                         model_ref, exp_ref, source_ref, regrid, freq)
 
             try:
                 tc = Teleconnection(telecname=telec,
                                     configdir=configdir,
                                     model=model_ref, exp=exp_ref, source=source_ref,
-                                    regrid=regrid, freq=freq, zoom=zoom,
+                                    regrid=regrid, freq=freq,
                                     months_window=months_window,
                                     outputdir=outputnetcdf,
                                     outputfig=outputpdf,
@@ -249,21 +245,23 @@ if __name__ == '__main__':
             source = mod['source']
             regrid = mod.get('regrid', None)
             freq = mod.get('freq', None)
-            zoom = mod.get('zoom', None)
             reference = mod.get('reference', False)
+            startdate = mod.get('startdate', None)
+            enddate = mod.get('enddate', None)
 
-            logger.debug("setup: %s %s %s %s %s %s",
-                         model, exp, source, regrid, freq, zoom)
+            logger.debug("setup: %s %s %s %s %s",
+                         model, exp, source, regrid, freq)
 
             try:
                 tc = Teleconnection(telecname=telec,
                                     configdir=configdir,
                                     model=model, exp=exp, source=source,
-                                    regrid=regrid, freq=freq, zoom=zoom,
+                                    regrid=regrid, freq=freq,
                                     months_window=months_window,
                                     outputdir=outputnetcdf,
                                     outputfig=outputpdf,
                                     savefig=savefig, savefile=savefile,
+                                    startdate=startdate, enddate=enddate,
                                     interface=interface,
                                     loglevel=loglevel)
                 tc.retrieve()
@@ -423,10 +421,16 @@ if __name__ == '__main__':
                     logger.debug('titles: %s', titles)
                     logger.debug('descriptions: %s', descriptions)
                     for i, data_map in enumerate(maps):
+                        vmin, vmax = config[telec].get('cbar_range', None)
+                        if vmin is None or vmax is None:
+                            sym = True
+                        else:
+                            sym = False
                         try:
                             plot_single_map_diff(data=data_map,
                                                  data_ref=ref_maps[i],
-                                                 save=True, sym=True,
+                                                 save=True, sym=sym,
+                                                 vmin_fill=vmin, vmax_fill=vmax,
                                                  cbar_label=cbar_labels[i],
                                                  outputdir=tc.outputfig,
                                                  filename=map_names[i],
@@ -440,7 +444,7 @@ if __name__ == '__main__':
                             try:
                                 plot_single_map_diff(data=data_map,
                                                      data_ref=ref_maps[i],
-                                                     save=True, sym=True,
+                                                     save=True, sym=sym,
                                                      cbar_label=cbar_labels[i],
                                                      outputdir=tc.outputfig,
                                                      filename=map_names[i],
@@ -527,9 +531,15 @@ if __name__ == '__main__':
                     logger.debug('titles: %s', titles)
                     logger.debug('descriptions: %s', descriptions)
                     for i, data_map in enumerate(maps):
+                        vmin, vmax = config[telec].get('cbar_range', None)
+                        if vmin is None or vmax is None:
+                            sym = True
+                        else:
+                            sym = False
                         try:
                             plot_single_map(data=data_map,
-                                            save=True, sym=True,
+                                            save=True, sym=sym,
+                                            vmin=vmin, vmax=vmax,
                                             cbar_label=cbar_labels[i],
                                             outputdir=tc.outputfig,
                                             filename=map_names[i],
@@ -542,7 +552,7 @@ if __name__ == '__main__':
                             logger.info('Trying with transform_first=True')
                             try:
                                 plot_single_map(data=data_map,
-                                                save=True, sym=True,
+                                                save=True, sym=sym,
                                                 cbar_label=cbar_labels[i],
                                                 outputdir=tc.outputfig,
                                                 filename=map_names[i],

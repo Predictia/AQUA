@@ -18,9 +18,9 @@ sources:
         param: 167
         levtype: sfc
         step: 0
-      data_start_date: 20200101T0000
+      data_start_date: auto
       data_end_date: auto
-      aggregation: D  # Default aggregation / chunk size
+      chunks: D  # Default time chunk size
       savefreq: h  # at what frequency are data saved
       timestep: h  # base timestep for step timestyle
       timestyle: date  # variable date or variable step
@@ -40,7 +40,9 @@ sources:
     description: hourly 3D atmospheric data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      aggregation: 6h
+      chunks:
+        time: 6h
+        vertical: 10
       request:
         <<: *request-default
         param: 129
@@ -59,7 +61,7 @@ sources:
     description: daily 2D oceanic data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      aggregation: ME
+      chunks: MS
       savefreq: D
       request:
         <<: *request-default
@@ -78,7 +80,9 @@ sources:
     args:
       <<: *args-default
       data_start_date: 20200401T0000
-      aggregation: D
+      chunks:
+        time: D
+        vertical: 5
       savefreq: D
       request:
         <<: *request-default
@@ -93,8 +97,8 @@ sources:
       levels: [1., 3.1, 5.45, 8.1, 11.05, 14.35, 18.05, 22.2, 26.85, 32., 37.65, 43.8,
         50.55, 57.95, 66., 74.8, 84.45, 95., 106.5, 119.1, 132.9, 147.95, 164.35,
         182.25, 201.8, 223.15, 246.45, 271.85, 299.55, 329.75, 362.65, 398.45, 437.4,
-        479.25, 523.45, 569.5, 617.1, 666.3, 717.15, 769.7, 8240, 880.1, 938.05, 997.9,
-        1059.75, 1124.5, 1194.1, 1270.7, 1356.3, 1451.7, 1556.8, 1671.95, 1796.45,
+        479.25, 523.45, 569.5, 617.1, 666.3, 717.15, 769.7, 824.0, 880.1, 938.05,
+        997.9, 1059.75, 1124.5, 1194.1, 1270.7, 1356.3, 1451.7, 1556.8, 1671.95, 1796.45,
         1929.5, 2071.4, 2222.45, 2382.9, 2552.9, 2732.5, 2921.75, 3120.6, 3328.85,
         3546.25, 3772.45, 4006.95, 4249.15, 4498.3, 4753.55, 5014., 5278.6, 5546.25,
         5815.75]
@@ -108,7 +112,9 @@ sources:
     args:
       <<: *args-default
       data_start_date: 20200401T0000
-      aggregation: D
+      chunks:
+        time: D
+        vertical: 5
       savefreq: D
       request:
         <<: *request-default
@@ -130,6 +136,7 @@ sources:
         4624.5, 4882.6, 5145.4, 5411.8, 5680.7, 5950.8]
       variables: [263507]
       source_grid_name: icon-hpz10-nested-3d
+
   lra-r100-monthly:
     driver: netcdf
     description: LRA data monthly at r100
@@ -139,7 +146,7 @@ sources:
       chunks: {}
       xarray_kwargs:
         decode_times: true
-        combine: 'by_coords'
+        combine: by_coords
     metadata:
       source_grid_name: lon-lat
       fixer_name: icon-destine-v1-ssp370-lra

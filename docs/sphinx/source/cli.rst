@@ -91,8 +91,31 @@ so that the script can be used in a batch job or in a workflow.
 
 Catalog entry generator for FDB sources
 ---------------------------------------
+A tool which streamlines the process of adding new experiments to the catalog.
+It exploits the capabilities of the Jinja package to obtain a cleaner and more flexible code.
+Users can easily customize their experiments by updating the ``config.tmpl`` file, with the experiment's specific details.
+The script is available in the ``cli/fdb-catalog-generator`` folder.
+Basic usage:
 
-This tool, currently under development, will provide the generation of the FDB sources for the Climate DT project.
+.. code-block:: bash
+
+    ./catalog-jinja-generator.py -c config.tmpl -j ifs-nemo-default.j2 -l INFO
+
+
+.. warning::
+
+    Please note that currently only one Jinja template is available (``ifs-nemo-default.j2`` for IFS-NEMO), but it is possible to add more templates in the future.
+
+
+.. _benchmarker:
+
+Benchmarker
+-----------
+
+A tool to benchmark the performance of the AQUA analysis tools. The tool is available in the ``cli/benchmarker`` folder.
+It runs a few selected methods for multiple times and report the durations of multiple execution: it has to be run in batch mode with 
+the associated jobscript in order to guarantee robust results. 
+It will be replaced in future by more robust performance machinery.
 
 .. _gribber:
 
@@ -146,10 +169,50 @@ This will download all the grids used in AQUA.
 It is also possible to download only a subset of the grids,
 by specifying the group of grids to download (usually one per model).
 
-LUMI container installation
----------------------------
+Grids synchronization
+---------------------
 
-Includes the script for the installation of the container on LUMI: please refer to :ref:`container`
+Since the upload of the grids to the SWIFT platform used to store the grids is available only from Levante,
+a simple script to synchronize the grids from Levante to LUMI and viceversa is available in the ``cli/grids-downloader/`` folder.
+You will need to be logged to the destination platform to run the script and to have
+passwordless ssh access to the source platform.
+
+Basic usage:
+
+.. code-block:: bash
+
+    bash grids-sync.sh [levante_to_lumi | lumi_to_levante]
+
+This will synchronize the grids from Levante to LUMI or viceversa.
+
+.. warning::
+
+    If more grids are added to the Levante platform, the SWIFT database should be updated.
+    Please contact the AQUA team to upload new relevant grids to the SWIFT platform.
+
+Grids uploader
+--------------
+
+A script to upload the grids to the SWIFT platform is available in the ``cli/grids-downloader/`` folder.
+You will need to be on levante and to have the access to the SWIFT platform to run the script.
+With the automatic setup updated folders will be uploaded in the same location on the SWIFT platform and 
+no updates of the links in the `grids-downloader.sh` script will be needed.
+
+Basic usage:
+
+.. code-block:: bash
+
+    bash grids-uploader.sh [all | modelname]
+
+.. note::
+
+    The script will check that a valid SWIFT token is available before starting the upload.
+    If the token is not available, the script will ask the user to login to the SWIFT platform to obtain a new token.
+
+HPC container utilities
+-----------------------
+
+Includes the script for the usage of the container on LUMI and Levante HPC: please refer to :ref:`container`
 
 LUMI conda installation
 -----------------------

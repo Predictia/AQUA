@@ -9,10 +9,10 @@ levante:
 
 class_attributes:
   trop_lat:    15
-  num_of_bins: 1000
+  num_of_bins: 5000
   first_edge:   0
   bins: 0
-  width_of_bin: 0.05 # in [mm/day]
+  width_of_bin: 0.5 # in [mm/day]
   model_variable: 'mtpr'
   new_unit:       'mm/day'
   loglevel:       'WARNING'
@@ -28,10 +28,10 @@ time_frame:
 plot_attributes:
   pdf_format: True
   figsize: 1
-  linewidth: 3
+  linewidth: 2
   fontsize: 14
-  smooth: True
-  step: False
+  smooth: False
+  step: True
   color_map: False
   cmap: 'coolwarm'
   linestyle: '-'
