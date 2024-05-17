@@ -5,8 +5,11 @@ from dask_jobqueue import SLURMCluster  # pip
 from dask.distributed import Client
 from aqua.logger import log_configure
 from aqua.util import create_folder, load_yaml
+from aqua import __path__ as pypath
 
-aqua_path = os.getenv('AQUA')
+aqua_dir = os.path.dirname(pypath[0])
+# Define the relative path to the 'slurm' folder and the configuration file
+slurm_config_file = os.path.join(aqua_dir, 'aqua', 'slurm', 'config-slurm.yml')
 
 """
 The Slurm module contains functions to create and control the SLURM job:
@@ -93,7 +96,7 @@ def exctract_sinfo(sinfo_str=None):
 
     return new_list
 
-def get_config(machine_name='lumi', config_name=f'{aqua_path}/aqua/slurm/config-slurm.yml', loglevel='WARNING'):
+def get_config(machine_name='lumi', config_name=slurm_config_file, loglevel='WARNING'):
     """
     Retrieve configuration settings for a specified machine from a YAML file. If the specified
     machine is not found in the configuration, it logs a warning and returns None.
@@ -119,13 +122,17 @@ def get_config(machine_name='lumi', config_name=f'{aqua_path}/aqua/slurm/config-
         if machine_config:
             return machine_config
         else:
-            logger.warning(f"No specific configuration found for machine '{machine_name}'. Operation cannot proceed without valid configurations.")
-            return None  # Return None if the machine is unknown
+            logger.warning(
+                f"No specific configuration found for machine '{machine_name}'. Since the machine is unknown, "
+                f"there's no default setting available. You will need to manually specify all necessary configurations "
+                f"such as queue, account, walltime, memory, cores, jobs, loglevel, and path_to_output."
+            )
+            return None
     else:
         logger.warning("Machine name not specified. Cannot proceed without a valid machine name.")
         return None
 
-def max_resources_per_node(queue=None, machine_name='lumi', config_name=f'{aqua_path}/aqua/slurm/config-slurm.yml'):
+def max_resources_per_node(queue=None, machine_name='lumi', config_name=slurm_config_file):
     """
     Extracting the maximum resources available on the node for the queue
 
@@ -180,7 +187,7 @@ def max_resources_per_node(queue=None, machine_name='lumi', config_name=f'{aqua_
 
 def job(exclusive=False, max_resources=False, cores=None, memory=None,
         queue=None, account=None, walltime=None, jobs=None, path_to_output=None,
-        loglevel=None, machine_name='lumi', config_name=f'{aqua_path}/aqua/slurm/config-slurm.yml'):
+        loglevel=None, machine_name='lumi', config_name=slurm_config_file):
     """
     Submitting the Job to the SLURM queue
 
