@@ -150,7 +150,7 @@ if __name__ == '__main__':
     source = get_arg(args, 'source', None)
     config = get_arg(args, 'config', './config.aqua-web.yaml')
     serial = get_arg(args, 'serial', True)
-    list = get_arg(args, 'list', None)
+    listfile = get_arg(args, 'list', None)
     dependency = get_arg(args, 'max', None)
     template = get_arg(args, 'template', './aqua-web.job.j2')
     dryrun = get_arg(args, 'dry', True)
@@ -159,8 +159,8 @@ if __name__ == '__main__':
     parent_job = None
     jobid = None
 
-    if list:
-        with open(list, 'r') as file:
+    if listfile:
+        with open(listfile, 'r') as file:
             for line in file:
 
                 line = line.strip()
