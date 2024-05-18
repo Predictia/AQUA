@@ -76,9 +76,6 @@ def submit_sbatch(model, exp, source='',
     definitions['output'] = 'aqua-web-' + job_name + '_%j.out'
     definitions['error'] = 'aqua-web-' + job_name + '_%j.err'
 
-    print("read these defs:")
-    print(definitions)
-
     with open(template, 'r', encoding='utf-8') as file:
         template = Template(file.read())
         rendered_job = template.render(definitions)
@@ -153,7 +150,7 @@ if __name__ == '__main__':
     listfile = get_arg(args, 'list', None)
     dependency = get_arg(args, 'max', None)
     template = get_arg(args, 'template', './aqua-web.job.j2')
-    dryrun = get_arg(args, 'dry', True)
+    dryrun = get_arg(args, 'dry', False)
 
     count = 0
     parent_job = None
