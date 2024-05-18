@@ -129,8 +129,8 @@ def parse_arguments(arguments):
                         help='source to be processed')
     parser.add_argument('-l', '--list', type=str,
                         help='list of experiments in format: model, exp, source')
-    parser.add_argument('-p', '--parallel', action="store_true",
-                        help='run in parallel mode')
+    parser.add_argument('-r', '--serial', action="store_true",
+                        help='run in serial mode (only one core)')
     parser.add_argument('-x', '--max', type=int,
                         help='max number of jobs to submit without dependency')
     parser.add_argument('-t', '--template', type=str,
@@ -149,7 +149,7 @@ if __name__ == '__main__':
     exp = get_arg(args, 'exp', None)
     source = get_arg(args, 'source', None)
     config = get_arg(args, 'config', './config.aqua-web.yaml')
-    parallel = get_arg(args, 'parallel', True)
+    serial = get_arg(args, 'serial', True)
     list = get_arg(args, 'list', None)
     dependency = get_arg(args, 'max', None)
     template = get_arg(args, 'template', './aqua-web.job.j2')
@@ -160,10 +160,9 @@ if __name__ == '__main__':
     jobid = None
 
     if list:
-        
         with open(list, 'r') as file:
             for line in file:
-                
+
                 line = line.strip()
                 if not line or line.startswith('#'):
                     continue
@@ -174,15 +173,15 @@ if __name__ == '__main__':
                     source = None
 
                 if dependency and (count % dependency == 0) and count != 0:
-                            print('Updating parent job to' + jobid)
+                            print('Updating parent job to' + str(jobid))
                             parent_job = str(jobid)
 
                 count = count + 1
                 
-                jobid = submit_sbatch(model=model, exp=exp, source=source, parallel=parallel,
-                                    config=config, dependency=dependency,
-                                    template=template, dryrun=dryrun)            
+                jobid = submit_sbatch(model=model, exp=exp, source=source, parallel=not serial,
+                                    config=config, dependency=parent_job,
+                                    template=template, dryrun=dryrun)           
     else:
-        jobid = submit_sbatch(model=model, exp=exp, source=source, parallel=parallel,
-                              config=config, dependency=dependency,
+        jobid = submit_sbatch(model=model, exp=exp, source=source, parallel=not serial,
+                              config=config, dependency=parent_job,
                               template=template, dryrun=dryrun)
