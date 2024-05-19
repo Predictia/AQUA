@@ -18,6 +18,6 @@ export OUTDIR={{ outdir }}
 
 cd $OUTDIR
 
-bash $AQUA/cli/aqua-analysis/aqua-analysis.sh -l debug -a $model -o $model -e $exp -s $source -d $OUTDIR -p
+bash $AQUA/cli/aqua-analysis/aqua-analysis.sh -l debug -a $model -o $model -e $exp -s $source -d $OUTDIR {{ parallel }}
 bash $AQUA/cli/aqua-web/push_analysis.sh $OUTDIR $model/$exp
 
