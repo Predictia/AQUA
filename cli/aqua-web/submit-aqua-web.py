@@ -56,7 +56,7 @@ class Submitter():
 
     def submit_sbatch(self, model, exp, source=None, dependency=None):
         """
-        Submit a sbatch script for the LRA CLI with basic options
+        Submit a sbatch script with basic options
 
         args:
             model: model to be processed
@@ -99,6 +99,8 @@ class Submitter():
         definitions['output'] = full_job_name + '_%j.out'
         definitions['error'] = full_job_name + '_%j.err'
 
+        definitions['push'] = "false"
+
         with open(self.template, 'r', encoding='utf-8') as file:
             rendered_job  = Template(file.read()).render(definitions)
 
@@ -115,10 +117,11 @@ class Submitter():
             sbatch_cmd.append('--dependency=afterany:'+ str(dependency))
 
         sbatch_cmd.append(job_temp_path)
+        self.logger.debug("sbatch command: %s", sbatch_cmd)
 
         if not self.dryrun and self.is_job_running(full_job_name, username):
             self.logger.info('The job is %s is already running, will not resubmit', full_job_name)
-            return 0
+            return '0'
 
         if not self.dryrun:
             self.logger.info('Submitting %s %s %s', model, exp, source)
@@ -127,7 +130,63 @@ class Submitter():
             return jobid
         else:
             self.logger.debug('SLURM job name: %s', full_job_name)
-            return 0
+            return '0'
+
+
+    def submit_push(self, jobid_list, listfile):
+        """
+        Submit a sbatch script for pushing to aqua-web
+
+        Args:
+            jobid_list: list of jobids for dependency
+            listfile: file with list of experiments or "$model$/$exp" string
+        """
+
+        self.logger.info('Submitting push job %s', listfile)
+
+        yaml = YAML(typ='rt')
+        with open(self.config, 'r', encoding='utf-8') as file:
+            definitions = yaml.load(file)
+
+        username = definitions['username']
+        full_job_name = definitions.get('jobname', 'push-aqua-web')
+
+        definitions['job_name'] = full_job_name
+        definitions['output'] = full_job_name + '_%j.out'
+        definitions['error'] = full_job_name + '_%j.err'
+
+        definitions['push'] = "true"
+        definitions['explist'] = listfile
+
+        with open(self.template, 'r', encoding='utf-8') as file:
+            rendered_job  = Template(file.read()).render(definitions)
+
+        with NamedTemporaryFile('w', delete=False) as tempfile:
+            tempfile.write(rendered_job)
+            job_temp_path = tempfile.name
+
+        if self.dryrun:
+            self.logger.debug("SLURM job:\n %s", rendered_job)
+        
+        sbatch_cmd = [ 'sbatch' ]
+
+        sbatch_cmd.append('--dependency=afterany:' + ":".join(jobid_list))
+
+        sbatch_cmd.append(job_temp_path)
+        self.logger.debug("sbatch command: %s", sbatch_cmd)
+
+        if not self.dryrun and self.is_job_running(full_job_name, username):
+            self.logger.info('The job is %s is already running, will not resubmit', full_job_name)
+            return '0'
+
+        if not self.dryrun:
+            self.logger.info('Submitting push job')
+            result = subprocess.run(sbatch_cmd, capture_output = True, check=True).stdout.decode('utf-8')
+            jobid = re.findall(r'\b\d+\b', result)[-1]
+            return jobid
+        else:
+            self.logger.debug('SLURM job name: %s', full_job_name)
+            return '0'
 
 
     def find_config_files(self, config, template):
@@ -194,6 +253,8 @@ def parse_arguments(arguments):
                         help='perform a dry run (no job submission)')
     parser.add_argument('-l', '--loglevel', type=str,
                         help='logging level')
+    parser.add_argument('-p', '--push', action="store_true",
+                        help='flag to push to aqua-web')
     
     # List of experiments is a positional argument
     parser.add_argument('list', nargs='?', type=str,
@@ -216,12 +277,15 @@ if __name__ == '__main__':
     template = get_arg(args, 'template', 'aqua-web.job.j2')
     dryrun = get_arg(args, 'dry', False)
     loglevel = get_arg(args, 'loglevel', 'info')
+    push = get_arg(args, 'push', False)
 
     submitter = Submitter(config=config, template=template, dryrun=dryrun, parallel=not serial, loglevel=loglevel)
 
     count = 0
     parent_job = None
     jobid = None
+
+    jobid_list = []
 
     if listfile:
         with open(listfile, 'r') as file:
@@ -242,6 +306,11 @@ if __name__ == '__main__':
 
                 count = count + 1
                 
-                jobid = submitter.submit_sbatch(model, exp, source=source, dependency=parent_job)           
+                jobid = submitter.submit_sbatch(model, exp, source=source, dependency=parent_job)
+                jobid_list.append(jobid)
+    
+        submitter.submit_push(jobid_list, listfile)     
+
     else:
         jobid = submitter.submit_sbatch(model, exp, source=source, dependency=parent_job)
+        submitter.submit_push([jobid], f'{model}/{exp}') 
