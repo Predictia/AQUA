@@ -309,8 +309,10 @@ if __name__ == '__main__':
                 jobid = submitter.submit_sbatch(model, exp, source=source, dependency=parent_job)
                 jobid_list.append(jobid)
     
-        submitter.submit_push(jobid_list, listfile)     
+        if push:
+            submitter.submit_push(jobid_list, listfile)     
 
     else:
         jobid = submitter.submit_sbatch(model, exp, source=source, dependency=parent_job)
-        submitter.submit_push([jobid], f'{model}/{exp}') 
+        if push:
+            submitter.submit_push([jobid], f'{model}/{exp}') 
