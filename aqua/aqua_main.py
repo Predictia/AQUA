@@ -8,7 +8,7 @@ import os
 import argparse
 import shutil
 import sys
-from aqua.util import load_yaml, dump_yaml
+from aqua.util import load_yaml, dump_yaml, load_multi_yaml
 from aqua.logger import log_configure
 from aqua.util import ConfigPath
 from aqua import __path__ as pypath
@@ -249,6 +249,13 @@ class AquaConsole():
                 shutil.copy(file, pathfile)
         else:
             self.logger.error('%s for file %s already installed, or a file with the same name exists', kind, file)
+        
+        # check 
+        try:
+            load_multi_yaml(f'{self.configpath}/{kind}')
+        except:
+            self.logger.error('Installed file %s is causing issues, removing immediately', pathfile)
+            os.remove(pathfile)
                  
     def add(self, args):
         """Add a catalog"""
