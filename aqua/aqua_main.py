@@ -242,8 +242,14 @@ class AquaConsole():
         sdir = f'{self.aquapath}/machines/{args.catalog}'
         self.logger.info('Installing to %s', self.configpath)
         if args.editable is not None:
+            self.logger.info('Installing in editable mode from %s', args.editable)
             if os.path.exists(args.editable):
-                os.symlink(args.editable, cdir)
+                if os.path.exists(cdir):
+                    self.logger.error('Catalog %s already installed in %s, please consider `aqua update`. '
+                                      "Which does not exist hahaha!",
+                                      args.catalog, cdir)
+                else:
+                    os.symlink(args.editable, cdir)
             else:
                 self.logger.error('Catalog %s cannot be found in %s', args.catalog, args.editable)
         else:
