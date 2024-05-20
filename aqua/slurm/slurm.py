@@ -96,6 +96,7 @@ def exctract_sinfo(sinfo_str=None):
 
     return new_list
 
+
 def get_config(machine_name=None, config_name=slurm_config_file, loglevel='WARNING'):
     """
     Retrieve configuration settings for a specified machine from a YAML file. If the specified
@@ -116,7 +117,7 @@ def get_config(machine_name=None, config_name=slurm_config_file, loglevel='WARNI
     """
     config = load_yaml(infile=config_name)
     logger = log_configure(log_level=loglevel, log_name='slurm')
-    
+
     if machine_name:
         machine_config = config.get('machines', {}).get(machine_name)
         if machine_config:
@@ -131,6 +132,7 @@ def get_config(machine_name=None, config_name=slurm_config_file, loglevel='WARNI
     else:
         logger.warning("Machine name not specified. Cannot proceed without a valid machine name.")
         return None
+
 
 def max_resources_per_node(queue=None, machine_name=None, config_name=slurm_config_file, loglevel='WARNING'):
     """
@@ -162,13 +164,13 @@ def max_resources_per_node(queue=None, machine_name=None, config_name=slurm_conf
                                 node for the queue
     """
     logger = log_configure(log_level=loglevel, log_name='slurm')
-    
+
     config = None
     if machine_name:
         config = get_config(machine_name=machine_name, config_name=config_name)
         if not config:
-            logger.warning(f"No valid configuration available for machine '{machine_name}'. Please specify all configurations manually.")
-    
+            logger.warning(f"No valid configuration available for machine '{machine_name}'. Please specify all configurations manually.") # noqa
+
     if not queue:
         if config and 'queue' in config:
             queue = config.get('queue')
@@ -236,14 +238,14 @@ def job(exclusive=False, max_resources=False, cores=None, memory=None,
 
     """
     logger = log_configure(log_level=loglevel, log_name='slurm')
-    
+
     if machine_name:
         config = get_config(machine_name=machine_name, config_name=config_name)
         if not config:
-            logger.warning(f"No valid configuration available for machine '{machine_name}'. Please specify all configurations manually.")
+            logger.warning(f"No valid configuration available for machine '{machine_name}'. Please specify all configurations manually.") # noqa
     else:
         config = None
-        logger.warning("Machine name not specified. Please manually specify all configurations such as queue, cores, memory, etc.")
+        logger.warning("Machine name not specified. Please manually specify all configurations such as queue, cores, memory, etc.") # noqa
 
     # Apply configurations
     cores = cores if cores is not None else config.get('cores') if config else None
@@ -257,10 +259,10 @@ def job(exclusive=False, max_resources=False, cores=None, memory=None,
 
     # Check if necessary configurations are provided
     if not all([cores, memory, queue, walltime]):
-        raise ValueError("Please manually specify the necessary configurations: queue, cores, memory, and walltime, OR provide a valid machine name.")
+        raise ValueError("Please manually specify the necessary configurations: queue, cores, memory, and walltime, OR provide a valid machine name.") # noqa
     # Log the applied configurations
-    logger.debug(f"Submitting job with the following configurations: queue={queue}, cores={cores}, memory={memory}, walltime={walltime}, jobs={jobs}, account={account}, path_to_output={path_to_output}, loglevel={loglevel}")
-
+    logger.debug("Submitting job with the following configurations:")
+    logger.debug(f"queue={queue}, cores={cores}, memory={memory}, walltime={walltime}, jobs={jobs}, account={account}, path_to_output={path_to_output}, loglevel={loglevel}") # noqa
 
     # Creating the directory for logs and output
     logs_path, output_path = output_dir(path_to_output=path_to_output,
