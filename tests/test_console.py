@@ -30,7 +30,7 @@ class TestAquaConsole():
         assert os.path.exists('tmp/.aqua')
 
         # do it twice!
-        set_args(['init', '-l', 'info'])
+        set_args(['-vv', 'init'])
         with open(testfile, 'w') as f:
             f.write("yes")
         sys.stdin = open(testfile)
@@ -44,7 +44,7 @@ class TestAquaConsole():
         assert os.path.exists('tmp/.aqua/machines/ci')
 
         # add catalog again and error
-        set_args(['add', 'ci', '-l', 'info'])
+        set_args(['-vv', 'add', 'ci'])
         AquaConsole()
         assert os.path.exists('tmp/.aqua/machines/ci')
 
