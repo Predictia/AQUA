@@ -26,15 +26,18 @@ def parse_arguments():
                         help='Increase verbosity of the output to INFO loglevel')
     parser.add_argument('-vv', '--very-verbose', action='store_true',
                         help='Increase verbosity of the output to DEBUG loglevel')
-    
-    # List of the subparsers, corresponding to the different aqua commands available (see command map)
+
+    # List of the subparsers with actions
+    # Corresponding to the different aqua commands available (see command map)
     init_parser = subparsers.add_parser("init")
-    uninstall_parser = subparsers.add_parser("uninstall")
-    list_parser = subparsers.add_parser("list")
     fixes_add_parser = subparsers.add_parser("fixes-add")
     grids_add_parser = subparsers.add_parser("grids-add")
     catalog_add_parser = subparsers.add_parser("add")
     catalog_remove_parser = subparsers.add_parser("remove")
+
+    # subparser with no arguments
+    subparsers.add_parser("uninstall")
+    subparsers.add_parser("list")
 
     init_parser.add_argument('-p', '--path', type=str,
                 help='Path where to install AQUA')
@@ -64,15 +67,16 @@ def parse_arguments():
     return parser
 
 class AquaConsole():
-    """Class for AquaConsole"""
+    """Class for AquaConsole, the AQUA command line interface for
+    installation, catalog, grids and fixes editing"""
 
     def __init__(self):
         """The main AQUA command line interface"""
-        
+
         parser = parse_arguments()
         args = parser.parse_args(sys.argv[1:])
 
-        # Set the log level 
+        # Set the log level
         if args.very_verbose or (args.verbose and args.very_verbose):
             loglevel = 'DEBUG'
         elif args.verbose:
@@ -108,56 +112,65 @@ class AquaConsole():
         """Initialize AQUA, find the folders and the install"""
         self.logger.info('Running the AQUA init')
 
-        # Define the installation folder,
-        # by default it is $HOME/.aqua
-        if args.path is None:
-            if 'HOME' in os.environ:
-                path = os.path.join(os.environ['HOME'], '.aqua')
-                if not os.path.exists(path):
-                    os.makedirs(path, exist_ok=True)
-                else:
-                    self.logger.warning('AQUA already installed in %s', path)
-                    check = query_yes_no(f"Do you want to overwrite AQUA installation in {path}. "
-                                         "You will lose all catalogs installed.", "no")
-                    if not check:
-                        sys.exit(0)
-                    else:
-                        self.logger.warning('Removing the content of %s', path)
-                        shutil.rmtree(path)
-                        os.makedirs(path, exist_ok=True)
-            else:
-                raise ValueError('$HOME not found.'
-                                 'Please specify a path where to install AQUA and define AQUA_CONFIG as environment variable')
+        if self.configpath is None:
+            self._init_home()
         else:
-            path = args.path
-            if not os.path.exists(path):
-                os.makedirs(path, exist_ok=True)
-            else:
-                if not os.path.isdir(path):
-                    raise ValueError("Path chosen is not a directory")
-            
-            check = query_yes_no(f"Do you want to create a link in the $HOME/.aqua to {path}", "yes")
-            if check:
-                if 'HOME' in os.environ:
-                    link = os.path.join(os.environ['HOME'], '.aqua')
-                    if os.path.exists(link):
-                        self.logger.warning('Removing the content of %s', link)
-                        shutil.rmtree(link)
-                    os.symlink(path, link)
-                else:
-                    self.logger.error('$HOME not found. Cannot create a link to the installation path')
-                    self.logger.warning('AQUA will be installed in %s, but please remember to define AQUA_CONFIG environment variable', path)
-            else:
-                self.logger.warning('AQUA will be installed in %s, but please remember to define AQUA_CONFIG environment variable', path)
+            self._init_path(args.path)
 
-        self.configpath = path
-        self.grids = args.grids
         self._install()
 
+        self.grids = args.grids
         if self.grids is None:
             self.logger.warning('Grids directory undefined')
         else:
             self._grids_define()
+
+    def _init_home(self):
+        """Define the AQUA installation folder, by default inside $HOME"""
+
+        if 'HOME' in os.environ:
+            path = os.path.join(os.environ['HOME'], '.aqua')
+            self.configpath = path
+            if not os.path.exists(path):
+                os.makedirs(path, exist_ok=True)
+            else:
+                self.logger.warning('AQUA already installed in %s', path)
+                check = query_yes_no(f"Do you want to overwrite AQUA installation in {path}. "
+                                        "You will lose all catalogs installed.", "no")
+                if not check:
+                    sys.exit(0)
+                else:
+                    self.logger.warning('Removing the content of %s', path)
+                    shutil.rmtree(path)
+                    os.makedirs(path, exist_ok=True)
+        else:
+            raise ValueError('$HOME not found.'
+                            'Please specify a path where to install AQUA and define AQUA_CONFIG as environment variable')
+
+    def _init_path(self, path):
+        """Define the AQUA installation folder when a path is specified"""
+
+        self.configpath = path
+        if not os.path.exists(path):
+            os.makedirs(path, exist_ok=True)
+        else:
+            if not os.path.isdir(path):
+                raise ValueError("Path chosen is not a directory")
+
+        check = query_yes_no(f"Do you want to create a link in the $HOME/.aqua to {path}", "yes")
+        if check:
+            if 'HOME' in os.environ:
+                link = os.path.join(os.environ['HOME'], '.aqua')
+                if os.path.exists(link):
+                    self.logger.warning('Removing the content of %s', link)
+                    shutil.rmtree(link)
+                os.symlink(path, link)
+            else:
+                self.logger.error('$HOME not found. Cannot create a link to the installation path')
+                self.logger.warning('AQUA will be installed in %s, but please remember to define AQUA_CONFIG environment variable', path)
+        else:
+            self.logger.warning('AQUA will be installed in %s, but please remember to define AQUA_CONFIG environment variable', path)
+
 
     def _grids_define(self):
         """add the grid definition into the aqua-config.yaml"""
@@ -234,7 +247,7 @@ class AquaConsole():
                 shutil.copy(file, pathfile)
         else:
             self.logger.error('%s for file %s already installed, or a file with the same name exists', kind, file)
-                 
+
     def add(self, args):
         """Add a catalog"""
         print('Adding the AQUA catalog', args.catalog)
@@ -320,7 +333,7 @@ class AquaConsole():
         """
         if kind not in ['fixes', 'grids']:
             raise ValueError('Kind must be either fixes or grids')
-        
+
         self._check()
         try:
             load_multi_yaml(folder_path=f'{self.configpath}/{kind}',
@@ -332,9 +345,9 @@ class AquaConsole():
             return True
         except Exception as e:
             if file is not None:
-                self.logger.error(f"It is not possible to add the file {file} to the {kind} folder")
+                self.logger.error("It is not possible to add the file %s to the %s folder", file, kind)
             else:
-                self.logger.error(f"Existing files in the {kind} folder are not compatible")
+                self.logger.error("Existing files in the %s folder are not compatible", kind)
             self.logger.error(e)
             return False
 
