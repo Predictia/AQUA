@@ -15,6 +15,7 @@ from aqua import __path__ as pypath
 from aqua import __version__ as version
 
 def parse_arguments():
+    """Parse arguments for AQUA console"""
 
     parser = argparse.ArgumentParser(description='AQUA command line tool')
     subparsers = parser.add_subparsers(dest='command', help='Available AQUA commands')
@@ -112,7 +113,7 @@ class AquaConsole():
         """Initialize AQUA, find the folders and the install"""
         self.logger.info('Running the AQUA init')
 
-        if self.configpath is None:
+        if args.path is None:
             self._init_home()
         else:
             self._init_path(args.path)
@@ -151,6 +152,7 @@ class AquaConsole():
         """Define the AQUA installation folder when a path is specified"""
 
         self.configpath = path
+        print(path)
         if not os.path.exists(path):
             os.makedirs(path, exist_ok=True)
         else:

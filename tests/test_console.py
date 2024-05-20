@@ -27,6 +27,14 @@ def set_home():
     yield _modify_home
     os.environ['HOME'] = original_value
 
+@pytest.fixture
+def delete_home():
+    original_value = os.environ.get('HOME')
+    def _modify_home():
+        del os.environ['HOME']
+    yield _modify_home
+    os.environ['HOME'] = original_value
+
 # fixture to run AQUA console with some interactive command
 @pytest.fixture
 def run_aqua_console_with_input(tmpdir):
@@ -150,6 +158,21 @@ class TestAquaConsole():
         # uninstall everything again
         run_aqua_console_with_input(['uninstall'], 'yes')
         assert not os.path.exists(os.path.join(mydir,'.aqua'))
+
+    def test_console_without_home(self, delete_home, tmpdir, run_aqua_console_with_input):
+
+        # getting fixture
+        delete_home()
+        mydir = str(tmpdir)
+        
+        # raise init without home
+        with pytest.raises(ValueError):
+            set_args(['init'])
+            AquaConsole()
+
+        # install from path without home
+        run_aqua_console_with_input(['-v', 'init', '-p', os.path.join(mydir, 'vicesindaco')], 'yes')
+        assert os.path.exists(os.path.join(mydir, 'vicesindaco'))
 
 # checks for query function
 @pytest.fixture
