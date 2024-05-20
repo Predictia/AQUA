@@ -184,24 +184,25 @@ the regridder is still able to deal with this situation using the information in
 Slurm utilities
 ---------------
 
-The aqua.slurm module is based on the `dask_jobqueue package <https://jobqueue.dask.org/en/latest/>`_.
-The Dask-jobqueue makes it easy to run Dask on job-queuing systems in high-performance supercomputers.
+The ``aqua.slurm`` module is based on the ``dask_jobqueue`` `package <https://jobqueue.dask.org/en/latest/>`_.
+This package makes easy to run Dask on job-queuing systems in HPC environments.
 It has a simple interface accessible from interactive systems like Jupyter Notebooks or batch Jobs.
 
 The Slurm Class
 ^^^^^^^^^^^^^^^
 
-The `aqua.slurm` module contains several functions that allow us to create and operate Dask jobs:
+The ``aqua.slurm`` module contains several functions that allow us to create and operate Dask jobs:
 
-- `squeue`: Allows us to check the status of created jobs in the queue.
-- `job`: Allows the creation and submission of a job to a selected queue.
-- `scancel`: Allows the cancellation of all submitted jobs or only a job with a specified Job_ID.
+- ``squeue``: Allows us to check the status of created jobs in the queue.
+- ``job``: Allows the creation and submission of a job to a selected queue.
+- ``scancel``: Allows the cancellation of all submitted jobs or only a job with a specified Job_ID.
 
 
 Dask-Job Initialization
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-The `job()` function can be used to launch a job to the queue directly from a notebook cell. This function leverages the `dask_jobqueue.SLURMCluster` for initializing and managing Dask jobs on SLURM-managed clusters.
+The ``job()`` function can be used to launch a job to the queue directly from a notebook cell.
+This function leverages the ``dask_jobqueue.SLURMCluster`` for initializing and managing Dask jobs on SLURM-managed clusters.
 
 .. code-block:: python
 
@@ -211,10 +212,11 @@ The `job()` function can be used to launch a job to the queue directly from a no
 Submitting Jobs on Different Machines
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The `job()` function provides a flexible and efficient way to submit jobs to SLURM-managed clusters on different machines.
-Users can specify machine-specific configurations through a YAML configuration file (`.aqua/aqua/slurm/config-slurm.yml`) or provide parameters directly through the function call.
+The ``job()`` function provides a flexible and efficient way to submit jobs to SLURM-managed clusters on different machines.
+Users can specify machine-specific configurations through a YAML configuration file (``.aqua/aqua/slurm/config-slurm.yml``) or provide parameters directly through the function call.
 
-The `job()` function allows users to either use predefined settings from a YAML file for known machines or manually input job parameters for machines without predefined settings. Here's how to use the function for different scenarios:
+The ``job()`` function allows users to either use predefined settings from a YAML file for known machines or manually input job parameters for machines without predefined settings. 
+Here's how to use the function for different scenarios:
 
 
 Submit a Job Using Predefined Configurations
@@ -228,21 +230,26 @@ If the machine has predefined settings in the YAML configuration file, simply sp
 
 This method pulls all necessary parameters like memory, cores, and walltime from the YAML file associated with the specified machine name.
 
+.. note::
+
+    The available machines are Lumi, Levante, Atos (HPC2020) and Mafalda.
+    Please be aware that the user or project fields may be specific of the Destination Earth project and may need to be changed.
 
 Submit a Job with Maximum Available Resources per Node
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To utilize the maximum available resources per node for the selected queue, set the `max_resources_per_node` argument to `True`:
+To utilize the maximum available resources per node for the selected queue, set ``max_resources_per_node=True``:
 
 .. code-block:: python
 
     slurm.job(machine_name='lumi', max_resources_per_node=True)
 
 
-Default Job Attributes for Lumi
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Change default attributes
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The default arguments of the `slurm.job()` function on Lumi are as follows:
+If a machine is defined then default arguments are used for a simple call of the ``slurm.job()`` function.
+On Lumi for example they are as follows:
 
 .. code-block:: yaml
 
@@ -257,8 +264,10 @@ The default arguments of the `slurm.job()` function on Lumi are as follows:
         loglevel: 'WARNING'
         path_to_output: '.'
 
-The `slurm.job()` function has an argument `exclusive=False` by default.
-Setting `exclusive=True` reserves an entire node for the job.
+.. note::
+
+    The ``slurm.job()`` function has an argument ``exclusive=False`` by default.
+    Setting ``exclusive=True`` reserves an entire node for the job.
 
 If you would like to reserve a node on a different queue, specify the queue's name as an argument of the function:
 
@@ -269,16 +278,17 @@ If you would like to reserve a node on a different queue, specify the queue's na
 .. warning::
 
     The `exclusive` argument **does not** automatically provide the maximum available memory, number of cores, and walltime.
+    Anyway for some machines you will be billed for the entire node every time you ask exclusive access to it.
 
-The `slurm.job()` function has an argument `max_resources_per_node`, which is `False` by default.
-Setting `max_resources_per_node=True` will allocate the maximum number of cores, memory, and walltime available for the chosen node.
+The ``slurm.job()`` function has an argument ``max_resources_per_node``, which is ``False`` by default.
+Setting ``max_resources_per_node=True`` will allocate the maximum number of cores, memory, and walltime available for the chosen node.
 
 
 Path to the Output
 ^^^^^^^^^^^^^^^^^^
 
-The `slurm.job()` function creates folders for the job output.
-By default, the path is `"."`.
+The ``slurm.job()`` function creates folders for the job output.
+By default, the path is ``"."``.
 Therefore, the paths for log and output are:
 
 - ``./slurm/logs`` for errors,
@@ -301,7 +311,7 @@ The user can cancel all submitted jobs by:
     slurm.scancel()
 
 If the user would like to cancel a specific job, they need to know the Job_ID of that job.
-The Job_ID can be found using the `slurm.squeue()` function, which returns information about all user SLURM jobs on the machine.
+The Job_ID can be found using the ``slurm.squeue()`` function, which returns information about all user SLURM jobs on the machine.
 Then, the user can cancel the particular job as:
 
 .. code-block:: python
@@ -316,7 +326,7 @@ Then, the user can cancel the particular job as:
 Modifying and Adding Machine Configurations in YAML
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To modify existing configurations or add new machines, edit the `.aqua/aqua/slurm/config-slurm.yml` file:
+To modify existing configurations or add new machines, edit the ``.aqua/aqua/slurm/config-slurm.yml`` file:
 
 1. Open the YAML file and locate the machines section.
 2. Modify or add entries for machines. For example, to add a new machine configuration:
@@ -337,4 +347,3 @@ To modify existing configurations or add new machines, edit the `.aqua/aqua/slur
 .. note::
 
     Currently, the pip installation does not copy the YAML configuration file to a user-accessible directory. This functionality will be updated in the future to ensure easier modification of configurations by users.
-
