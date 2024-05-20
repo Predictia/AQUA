@@ -24,6 +24,8 @@ class TestAquaConsole():
     """Class for LRA Tests"""
 
     def test_console_sequence(self):
+        # Save the original HOME environment variable
+        original_home = os.environ['HOME']
         os.environ['HOME'] = 'tmp'
         set_args(['init'])
         AquaConsole()
@@ -93,6 +95,9 @@ class TestAquaConsole():
         AquaConsole()
         sys.stdin.close()
         assert os.path.exists('tmp/vicesindaco')
+
+        #Restore the original HOME environment variable
+        os.environ['HOME'] = original_home
 
 @pytest.mark.aqua
 class TestQuery():
