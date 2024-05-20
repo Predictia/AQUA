@@ -11,24 +11,23 @@ testfile = 'testfile.txt'
 def set_args(args):
     sys.argv = ['aqua'] + args
 
+# fixture to create temporary directory
 @pytest.fixture(scope="session")
 def tmpdir(tmp_path_factory):
     mydir = tmp_path_factory.mktemp('tmp')
     yield mydir 
     shutil.rmtree(str(mydir))
 
+# fixture to modify the home directory
 @pytest.fixture
 def set_home():
     original_value = os.environ.get('HOME')
-
     def _modify_home(new_value):
         os.environ['HOME'] = new_value
-
     yield _modify_home
-    
     os.environ['HOME'] = original_value
 
-
+# fixture to run AQUA console with some interactive command
 @pytest.fixture
 def run_aqua_console_with_input(tmpdir):
     def _run_aqua_console(args, input_text):
@@ -47,12 +46,14 @@ def run_aqua_console_with_input(tmpdir):
 class TestAquaConsole():
     """Class for AQUA console tests"""
 
+    # base set of tests
     def test_console_base(self, tmpdir, set_home, run_aqua_console_with_input):
 
         # getting fixture
         mydir = str(tmpdir)
         set_home(mydir)
 
+        # aqua init
         set_args(['init'])
         AquaConsole()
         assert os.path.exists(os.path.join(mydir,'.aqua'))
@@ -89,7 +90,6 @@ class TestAquaConsole():
         run_aqua_console_with_input(['uninstall'], 'yes')
         assert not os.path.exists(os.path.join(mydir,'.aqua'))
 
-
     def test_console_advanced(self, tmpdir, set_home, run_aqua_console_with_input):
 
         # getting fixture
@@ -101,9 +101,15 @@ class TestAquaConsole():
             run_aqua_console_with_input(['uninstall'], 'yes')
             assert excinfo.value.code == 0
 
+        # a new init
         set_args(['init'])
         AquaConsole()
         assert os.path.exists(os.path.join(mydir,'.aqua'))
+
+        # add catalog with editable option - to be improved
+        set_args(['-v', 'add', 'ci', '-e', 'config/machines/ci'])
+        AquaConsole()
+        assert os.path.exists(os.path.join(mydir,'.aqua/machines'))
 
         # add wrong fix file
         fixtest = os.path.join(mydir, 'antani.yaml')
@@ -115,7 +121,7 @@ class TestAquaConsole():
         # add mock grid file
         gridtest = os.path.join(mydir, 'supercazzola.yaml')
         dump_yaml(gridtest, {'grids': {'sindaco': {'path': '{{ grids }}/comesefosseantani.nc'}}})
-        set_args(['grids-add', gridtest])
+        set_args(['-v','grids-add', gridtest])
         AquaConsole()
         assert os.path.exists(gridtest)
 
@@ -123,12 +129,29 @@ class TestAquaConsole():
         run_aqua_console_with_input(['uninstall'], 'yes')
         assert not os.path.exists(os.path.join(mydir,'.aqua'))
 
+    def test_console_with_links(self, tmpdir, set_home, run_aqua_console_with_input):
+
+        # getting fixture
+        mydir = str(tmpdir)
+        set_home(mydir)
+
+        # install from path with grids
+        run_aqua_console_with_input(['-v', 'init', '-g', os.path.join(mydir, 'supercazzola')], 'yes')
+        assert os.path.exists(os.path.join(mydir, '.aqua'))
+
+        # uninstall everything
+        run_aqua_console_with_input(['uninstall'], 'yes')
+        assert not os.path.exists(os.path.join(mydir,'.aqua'))
+
         # install from path
-        run_aqua_console_with_input(['init', '-p', os.path.join(mydir, 'vicesindaco')], 'yes')
+        run_aqua_console_with_input(['-v', 'init', '-p', os.path.join(mydir, 'vicesindaco')], 'yes')
         assert os.path.exists(os.path.join(mydir, 'vicesindaco'))
 
+        # uninstall everything again
+        run_aqua_console_with_input(['uninstall'], 'yes')
+        assert not os.path.exists(os.path.join(mydir,'.aqua'))
 
-
+# checks for query function
 @pytest.fixture
 def run_query_with_input(tmpdir):
     def _run_query(input_text, default_answer):
