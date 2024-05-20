@@ -23,13 +23,12 @@ class AquaConsole():
         subparsers = parser.add_subparsers(dest='command', help='Available AQUA commands')
 
         # Parser for the aqua main command
-        # NOTE: the loglevel is not used in the main command, but it is passed to the subparsers
-        #       unless the subparser has its own loglevel argument, that will override the main one
-        #       This is done to allow both "aqua -l INFO init" and "aqua init -l INFO" syntaxes
-        parser.add_argument('-l', '--loglevel', type=str,
-                            help='log level [default: WARNING]')
-        parser.add_argument('-v', '--version', action='version',
+        parser.add_argument('--version', action='version',
                     version=f'%(prog)s {version}', help="show AQUA version number and exit.")
+        parser.add_argument('-v', '--verbose', action='store_true',
+                            help='Increase verbosity of the output to INFO loglevel')
+        parser.add_argument('-vv', '--very-verbose', action='store_true',
+                            help='Increase verbosity of the output to DEBUG loglevel')
         
         # List of the subparsers, corresponding to the different aqua commands available (see command map)
         init_parser = subparsers.add_parser("init")
@@ -46,49 +45,34 @@ class AquaConsole():
                     help='Path where to install AQUA')
         init_parser.add_argument('-e', '--editable', type=str,
                     help='Install AQUA in editable mode from the original source')
-        init_parser.add_argument('-l', '--loglevel', type=str,
-                    help='log level [default: WARNING]')
-        
-        uninstall_parser.add_argument('-l', '--loglevel', type=str,
-                    help='log level [default: WARNING]')
-        
-        list_parser.add_argument('-l', '--loglevel', type=str,
-                    help='log level [default: WARNING]')
 
         catalog_add_parser.add_argument("catalog", metavar="CATALOG",
                     help="Catalog to be installed")
         catalog_add_parser.add_argument('-e', '--editable', type=str,
                     help='Install a catalog in editable mode from the original source: provide the Path')
-        catalog_add_parser.add_argument('-l', '--loglevel', type=str,
-                    help='log level [default: WARNING]')
         
         fixes_add_parser.add_argument("fixfile", metavar="fixfile",
                                         help="Fix file to be added")
-        fixes_add_parser.add_argument("-e", "--editable", type=str,
-                                        help="Add a fixes file in editable mode from the original source: provide the Path")
-        fixes_add_parser.add_argument("-l", "--loglevel", type=str,
-                                        help="log level [default: WARNING]")
+        fixes_add_parser.add_argument("-e", "--editable", action="store_true",
+                                        help="Add a fixes file in editable mode from the original path")
 
         grids_add_parser.add_argument("gridfile", metavar="gridfile",
                                         help="Fix file to be added")
-        grids_add_parser.add_argument("-e", "--editable", type=str,
-                                        help="Add a grids file in editable mode from the original source: provide the Path")
-        grids_add_parser.add_argument("-l", "--loglevel", type=str,
-                                        help="log level [default: WARNING]")
+        grids_add_parser.add_argument("-e", "--editable", action="store_true",
+                                        help="Add a grids file in editable mode from the original path")
         
         catalog_remove_parser.add_argument("catalog", metavar="CATALOG",
                                         help="Catalog to be removed")
-        catalog_remove_parser.add_argument("-l", "--loglevel", type=str,
-                                        help="log level [default: WARNING]")
         
         args = parser.parse_args()
 
-        # Set the log level giving priority to the subparser
-        if args.command and getattr(args, 'loglevel', None):
-            loglevel = args.loglevel
+        # Set the log level 
+        if args.very_verbose or (args.verbose and args.very_verbose):
+            loglevel = 'DEBUG'
+        elif args.verbose:
+            loglevel = 'INFO'
         else:
             loglevel = 'WARNING'
-
         self.logger = log_configure(loglevel, 'AQUA')
 
         self.pypath = pypath[0]
@@ -119,7 +103,6 @@ class AquaConsole():
         """Initialize AQUA, find the folders and the install"""
         self.logger.info('Running the AQUA init')
 
-        
         # Define the installation folder,
         # by default it is $HOME/.aqua
         if args.path is None:
@@ -212,17 +195,11 @@ class AquaConsole():
 
     def fixes_add(self, args):
         """Add a fix file"""
-        if args.editable is not None:
-            self._file_add(kind='fixes', file=args.editable, link=True)
-        else:
-            self._file_add(kind='fixes', file=args.fixfile)
+        self._file_add(kind='fixes', file=args.fixfile, link=args.editable)
 
     def grids_add(self, args):
         """Add a grid file"""
-        if args.editable is not None:
-            self._file_add(kind='grids', file=args.editable, link=True)
-        else:
-            self._file_add(kind='grids', file=args.gridfile)
+        self._file_add(kind='grids', file=args.gridfile, link=args.editable)
 
 
     def _file_add(self, kind, file, link=False):
