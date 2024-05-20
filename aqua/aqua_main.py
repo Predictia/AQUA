@@ -30,7 +30,7 @@ class AquaConsole():
                             help='log level [default: WARNING]')
         parser.add_argument('-v', '--version', action='version',
                     version=f'%(prog)s {version}', help="show AQUA version number and exit.")
-  
+        
         # List of the subparsers, corresponding to the different aqua commands available (see command map)
         init_parser = subparsers.add_parser("init")
         uninstall_parser = subparsers.add_parser("uninstall")
@@ -90,6 +90,7 @@ class AquaConsole():
             loglevel = 'WARNING'
 
         self.logger = log_configure(loglevel, 'AQUA')
+
         self.pypath = pypath[0]
         self.aquapath = os.path.join(os.path.dirname(self.pypath), 'config')
         self.configpath = None
