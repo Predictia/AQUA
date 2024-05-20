@@ -195,12 +195,15 @@ class AquaConsole():
 
     def fixes_add(self, args):
         """Add a fix file"""
-        self._file_add(kind='fixes', file=args.fixfile, link=args.editable)
+        compatible = self._check_file(kind='fixes', file=args.fixfile)
+        if compatible:
+            self._file_add(kind='fixes', file=args.fixfile, link=args.editable)
 
     def grids_add(self, args):
         """Add a grid file"""
-        self._file_add(kind='grids', file=args.gridfile, link=args.editable)
-
+        compatible = self._check_file(kind='grids', file=args.gridfile)
+        if compatible:
+            self._file_add(kind='grids', file=args.gridfile, link=args.editable)
 
     def _file_add(self, kind, file, link=False):
         """Add a personalized file to the fixes/grids folder
@@ -226,13 +229,6 @@ class AquaConsole():
                 shutil.copy(file, pathfile)
         else:
             self.logger.error('%s for file %s already installed, or a file with the same name exists', kind, file)
-        
-        # check 
-        try:
-            load_multi_yaml(f'{self.configpath}/{kind}')
-        except:
-            self.logger.error('Installed file %s is causing issues, removing immediately', pathfile)
-            os.remove(pathfile)
                  
     def add(self, args):
         """Add a catalog"""
@@ -307,6 +303,35 @@ class AquaConsole():
             else:
                 self.logger.info('Uninstalling AQUA from %s', self.configpath)
                 shutil.rmtree(self.configpath)
+
+    def _check_file(self, kind, file=None):
+        """
+        Check if a new file can be merged with AQUA load_multi_yaml()
+        It works also without a new file to check that the existing files are compatible
+        
+        Args:
+            kind (str): the kind of file to be added, either 'fixes' or 'grids'
+            file (str): the file to be added
+        """
+        if kind not in ['fixes', 'grids']:
+            raise ValueError('Kind must be either fixes or grids')
+        
+        self._check()
+        try:
+            load_multi_yaml(folder_path=f'{self.configpath}/{kind}',
+                            filenames=[file]) if file is not None else load_multi_yaml(folder_path=f'{self.configpath}/{kind}')
+            
+            if file is not None:
+                self.logger.debug('File %s is compatible with the existing files in %s', file, kind)
+            
+            return True
+        except Exception as e:
+            if file is not None:
+                self.logger.error(f"It is not possible to add the file {file} to the {kind} folder")
+            else:
+                self.logger.error(f"Existing files in the {kind} folder are not compatible")
+            self.logger.error(e)
+            return False
 
 
 def main():
