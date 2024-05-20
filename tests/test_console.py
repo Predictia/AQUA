@@ -18,6 +18,18 @@ def tmpdir(tmp_path_factory):
     shutil.rmtree(str(mydir))
 
 @pytest.fixture
+def set_home():
+    original_value = os.environ.get('HOME')
+
+    def _modify_home(new_value):
+        os.environ['HOME'] = new_value
+
+    yield _modify_home
+    
+    os.environ['HOME'] = original_value
+
+
+@pytest.fixture
 def run_aqua_console_with_input(tmpdir):
     def _run_aqua_console(args, input_text):
         set_args(args)
@@ -35,15 +47,11 @@ def run_aqua_console_with_input(tmpdir):
 class TestAquaConsole():
     """Class for AQUA console tests"""
 
-    def test_console_sequence(self, tmpdir, run_aqua_console_with_input):
-
-        
-        # Save the original HOME environment variable
-        original_home = os.environ['HOME']
+    def test_console_base(self, tmpdir, set_home, run_aqua_console_with_input):
 
         # getting fixture
         mydir = str(tmpdir)
-        os.environ['HOME'] = mydir
+        set_home(mydir)
 
         set_args(['init'])
         AquaConsole()
@@ -59,7 +67,7 @@ class TestAquaConsole():
         assert os.path.exists(os.path.join(mydir,'.aqua/machines/ci'))
 
         # add catalog again and error
-        set_args(['-vv', 'add', 'ci'])
+        set_args(['-v', 'add', 'ci'])
         AquaConsole()
         assert os.path.exists(os.path.join(mydir,'.aqua/machines/ci'))
 
@@ -76,6 +84,26 @@ class TestAquaConsole():
         set_args(['remove', 'ci'])
         AquaConsole()
         assert not os.path.exists(os.path.join(mydir,'.aqua/machines/ci'))
+
+        # uninstall everything
+        run_aqua_console_with_input(['uninstall'], 'yes')
+        assert not os.path.exists(os.path.join(mydir,'.aqua'))
+
+
+    def test_console_advanced(self, tmpdir, set_home, run_aqua_console_with_input):
+
+        # getting fixture
+        mydir = str(tmpdir)
+        set_home(mydir)
+
+        # check unexesting installation
+        with pytest.raises(SystemExit) as excinfo:
+            run_aqua_console_with_input(['uninstall'], 'yes')
+            assert excinfo.value.code == 0
+
+        set_args(['init'])
+        AquaConsole()
+        assert os.path.exists(os.path.join(mydir,'.aqua'))
 
         # add wrong fix file
         fixtest = os.path.join(mydir, 'antani.yaml')
@@ -99,31 +127,35 @@ class TestAquaConsole():
         run_aqua_console_with_input(['init', '-p', os.path.join(mydir, 'vicesindaco')], 'yes')
         assert os.path.exists(os.path.join(mydir, 'vicesindaco'))
 
-        #Restore the original HOME environment variable
-        os.environ['HOME'] = original_home
+
+
+@pytest.fixture
+def run_query_with_input(tmpdir):
+    def _run_query(input_text, default_answer):
+        testfile = os.path.join(tmpdir, 'testfile')
+        with open(testfile, 'w') as f:
+            f.write(input_text)
+        sys.stdin = open(testfile)
+        try:
+            result = query_yes_no("Question?", default_answer)
+        finally:
+            sys.stdin.close()
+            os.remove(testfile)
+        return result
+    return _run_query
 
 @pytest.mark.aqua
-class TestQuery():
-    """Class for query test"""
+class TestQueryYesNo:
+    """Class for query_yes_no tests"""
 
-    
-    def test_query_yes_no_invalid_input(self):
-        with open(testfile, 'w') as f:
-            f.write("invalid\nyes")
-        sys.stdin = open(testfile)
-        assert query_yes_no("Question?", "yes") is True
-        sys.stdin.close()
+    def test_query_yes_no_invalid_input(self, run_query_with_input):
+        result = run_query_with_input("invalid\nyes", "yes")
+        assert result is True
 
-    def test_query_yes_no_explicit_yes(self):
-        with open(testfile, 'w') as f:
-            f.write("yes")
-        sys.stdin = open(testfile)
-        assert query_yes_no("Question?", "no") is True
-        sys.stdin.close()
+    def test_query_yes_no_explicit_yes(self, run_query_with_input):
+        result = run_query_with_input("yes", "no")
+        assert result is True
 
-    def test_query_yes_no_explicit_no(self):
-        with open(testfile, 'w') as f:
-            f.write("no")
-        sys.stdin = open(testfile)
-        assert query_yes_no("Question?", "yes") is False
-        sys.stdin.close()
+    def test_query_yes_no_explicit_no(self, run_query_with_input):
+        result = run_query_with_input("no", "yes")
+        assert result is False
