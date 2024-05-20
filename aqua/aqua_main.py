@@ -14,57 +14,63 @@ from aqua.util import ConfigPath
 from aqua import __path__ as pypath
 from aqua import __version__ as version
 
+def parse_arguments():
+
+    parser = argparse.ArgumentParser(description='AQUA command line tool')
+    subparsers = parser.add_subparsers(dest='command', help='Available AQUA commands')
+
+    # Parser for the aqua main command
+    parser.add_argument('--version', action='version',
+                version=f'%(prog)s {version}', help="show AQUA version number and exit.")
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='Increase verbosity of the output to INFO loglevel')
+    parser.add_argument('-vv', '--very-verbose', action='store_true',
+                        help='Increase verbosity of the output to DEBUG loglevel')
+    
+    # List of the subparsers, corresponding to the different aqua commands available (see command map)
+    init_parser = subparsers.add_parser("init")
+    uninstall_parser = subparsers.add_parser("uninstall")
+    list_parser = subparsers.add_parser("list")
+    fixes_add_parser = subparsers.add_parser("fixes-add")
+    grids_add_parser = subparsers.add_parser("grids-add")
+    catalog_add_parser = subparsers.add_parser("add")
+    catalog_remove_parser = subparsers.add_parser("remove")
+
+    init_parser.add_argument('-p', '--path', type=str,
+                help='Path where to install AQUA')
+    init_parser.add_argument('-g', '--grids', type=str,
+                help='Path where to install AQUA')
+    init_parser.add_argument('-e', '--editable', type=str,
+                help='Install AQUA in editable mode from the original source')
+
+    catalog_add_parser.add_argument("catalog", metavar="CATALOG",
+                help="Catalog to be installed")
+    catalog_add_parser.add_argument('-e', '--editable', type=str,
+                help='Install a catalog in editable mode from the original source: provide the Path')
+    
+    fixes_add_parser.add_argument("fixfile", metavar="fixfile",
+                                    help="Fix file to be added")
+    fixes_add_parser.add_argument("-e", "--editable", action="store_true",
+                                    help="Add a fixes file in editable mode from the original path")
+
+    grids_add_parser.add_argument("gridfile", metavar="gridfile",
+                                    help="Fix file to be added")
+    grids_add_parser.add_argument("-e", "--editable", action="store_true",
+                                    help="Add a grids file in editable mode from the original path")
+    
+    catalog_remove_parser.add_argument("catalog", metavar="CATALOG",
+                                    help="Catalog to be removed")
+    
+    return parser
+
 class AquaConsole():
     """Class for AquaConsole"""
 
     def __init__(self):
         """The main AQUA command line interface"""
-        parser = argparse.ArgumentParser(description='AQUA command line tool')
-        subparsers = parser.add_subparsers(dest='command', help='Available AQUA commands')
-
-        # Parser for the aqua main command
-        parser.add_argument('--version', action='version',
-                    version=f'%(prog)s {version}', help="show AQUA version number and exit.")
-        parser.add_argument('-v', '--verbose', action='store_true',
-                            help='Increase verbosity of the output to INFO loglevel')
-        parser.add_argument('-vv', '--very-verbose', action='store_true',
-                            help='Increase verbosity of the output to DEBUG loglevel')
         
-        # List of the subparsers, corresponding to the different aqua commands available (see command map)
-        init_parser = subparsers.add_parser("init")
-        uninstall_parser = subparsers.add_parser("uninstall")
-        list_parser = subparsers.add_parser("list")
-        fixes_add_parser = subparsers.add_parser("fixes-add")
-        grids_add_parser = subparsers.add_parser("grids-add")
-        catalog_add_parser = subparsers.add_parser("add")
-        catalog_remove_parser = subparsers.add_parser("remove")
-
-        init_parser.add_argument('-p', '--path', type=str,
-                    help='Path where to install AQUA')
-        init_parser.add_argument('-g', '--grids', type=str,
-                    help='Path where to install AQUA')
-        init_parser.add_argument('-e', '--editable', type=str,
-                    help='Install AQUA in editable mode from the original source')
-
-        catalog_add_parser.add_argument("catalog", metavar="CATALOG",
-                    help="Catalog to be installed")
-        catalog_add_parser.add_argument('-e', '--editable', type=str,
-                    help='Install a catalog in editable mode from the original source: provide the Path')
-        
-        fixes_add_parser.add_argument("fixfile", metavar="fixfile",
-                                        help="Fix file to be added")
-        fixes_add_parser.add_argument("-e", "--editable", action="store_true",
-                                        help="Add a fixes file in editable mode from the original path")
-
-        grids_add_parser.add_argument("gridfile", metavar="gridfile",
-                                        help="Fix file to be added")
-        grids_add_parser.add_argument("-e", "--editable", action="store_true",
-                                        help="Add a grids file in editable mode from the original path")
-        
-        catalog_remove_parser.add_argument("catalog", metavar="CATALOG",
-                                        help="Catalog to be removed")
-        
-        args = parser.parse_args()
+        parser = parse_arguments()
+        args = parser.parse_args(sys.argv[1:])
 
         # Set the log level 
         if args.very_verbose or (args.verbose and args.very_verbose):
@@ -97,7 +103,6 @@ class AquaConsole():
             parser.print_help()
         else: # The command is in the command_map
             method(args)
-
 
     def init(self, args):
         """Initialize AQUA, find the folders and the install"""
