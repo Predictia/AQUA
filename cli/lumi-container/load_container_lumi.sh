@@ -17,8 +17,17 @@ FDB5_CONFIG_FILE="/scratch/project_465000454/igonzalez/fdb-long/config.yaml"
 GSV_WEIGHTS_PATH="/scratch/project_465000454/igonzalez/gsv_weights/"
 GRID_DEFINITION_PATH="/scratch/project_465000454/igonzalez/grid_definitions"
 
-log_message $next_level_msg_type "Do you want to use your local AQUA (y/n): "
-read user_defined_aqua
+# If the user specifies -y or -n using local AQUA or not is selected automatically
+if [[ "$*" == *"-y"* ]]; then
+    log_message INFO "Using local AQUA"
+    user_defined_aqua="yes"
+elif [[ "$*" == *"-n"* ]]; then
+    log_message INFO "Using container AQUA"
+    user_defined_aqua="no"
+else
+    log_message $next_level_msg_type "Do you want to use your local AQUA (y/n): "
+    read user_defined_aqua
+fi
 
 if [[ "$user_defined_aqua" = "yes" || "$user_defined_aqua" = "y" || "$user_defined_aqua" = "Y" ]]; then
     # Check if AQUA is set and the file exists 

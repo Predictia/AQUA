@@ -14,8 +14,17 @@ fi
 setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
 AQUA_container="/work/bb1153/b382289/container/AQUA/aqua_v0.8.1.sif"
 
-log_message $next_level_msg_type "Do you want to use your local AQUA (y/n): "
-read user_defined_aqua
+# If the user specifies -y or -n using local AQUA or not is selected automatically
+if [[ "$*" == *"-y"* ]]; then
+    log_message INFO "Using local AQUA"
+    user_defined_aqua="yes"
+elif [[ "$*" == *"-n"* ]]; then
+    log_message INFO "Using container AQUA"
+    user_defined_aqua="no"
+else
+    log_message $next_level_msg_type "Do you want to use your local AQUA (y/n): "
+    read user_defined_aqua
+fi
 
 if [[ "$user_defined_aqua" = "yes" || "$user_defined_aqua" = "y" || "$user_defined_aqua" = "Y" ]]; then
     # Check if AQUA is set and the file exists 
