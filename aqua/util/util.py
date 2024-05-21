@@ -1,12 +1,14 @@
 """Module containing general utility functions for AQUA"""
 
 import os
+import io
 import random
 import string
 import re
 import numpy as np
 import xarray as xr
 from pypdf import PdfReader, PdfWriter
+from PIL import Image, PngImagePlugin
 from aqua.logger import log_configure
 
 
@@ -229,7 +231,41 @@ def add_pdf_metadata(filename: str,
         pdf_writer.write(f)
         f.close()
 
+def add_png_metadata(png_bytes: io.BytesIO, metadata: dict, loglevel: str = 'WARNING'):
+    """
+    Add new metadata to an in-memory PNG file.
 
+    Args:
+        png_bytes (io.BytesIO): The BytesIO object containing the PNG file.
+        metadata (dict): A dictionary of metadata to add to the PNG file.
+        loglevel (str): The log level. Default is 'WARNING'.
+    """
+    logger = log_configure(loglevel, 'add_png_metadata')
+
+    # Rewind the BytesIO object
+    png_bytes.seek(0)
+    image = Image.open(png_bytes)
+
+    # Create a dictionary for the PNG metadata
+    meta = PngImagePlugin.PngInfo()
+
+    # Add the new metadata
+    for key, value in metadata.items():
+        meta.add_text(key, value)
+        logger.debug(f'Adding metadata: {key} = {value}')
+
+    # Save the file with the new metadata to another BytesIO object
+    output_bytes = io.BytesIO()
+    image.save(output_bytes, "PNG", pnginfo=meta)
+    output_bytes.seek(0)
+
+    # Copy the content back to the original BytesIO object
+    png_bytes.seek(0)
+    png_bytes.write(output_bytes.getvalue())
+    png_bytes.truncate()
+    logger.info('Metadata added to PNG file in memory')
+
+    
 def username():
     """
     Retrieves the current user's username from the 'USER' environment variable.
