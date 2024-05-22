@@ -11,14 +11,14 @@ class OutputNamer:
         """
         Initialize the OutputNamer class to manage output file naming.
 
-        Parameters:
+        Args:
             diagnostic (str): Name of the diagnostic.
             model (str): Model used in the diagnostic.
             exp (str): Experiment identifier.
             diagnostic_product (str, optional): Product of the diagnostic analysis.
             loglevel (str, optional): Log level for the class's logger.
             default_path (str, optional): Default path where files will be saved.
-
+        
         Returns:
             None.
         """
@@ -35,7 +35,7 @@ class OutputNamer:
         """
         Update the diagnostic product for the instance.
 
-        Parameters:
+        Args:
             diagnostic_product (str): The new diagnostic product to be used.
 
         Returns:
@@ -50,7 +50,7 @@ class OutputNamer:
         """
         Generate a filename based on provided parameters and additional user-defined keywords, including precise time intervals.
 
-        Parameters:
+        Args:
             diagnostic_product (str, optional): Product of the diagnostic analysis.
             var (str, optional): Variable of interest.
             model_2 (str, optional): The second model, for comparative studies.
@@ -64,6 +64,9 @@ class OutputNamer:
 
         Returns:
             str: A string representing the generated filename.
+        
+        Raises:
+            ValueError: If diagnostic_product is not provided.
         """
         self.update_diagnostic_product(diagnostic_product)
 
@@ -75,33 +78,30 @@ class OutputNamer:
         # Handle time formatting based on the specified precision
         time_parts = []
         if time_start and time_end:
-            # Example format adjustment, you may need to implement your logic based on time_precision
             if time_precision == 'y':
                 time_parts = [time_start[:4], time_end[:4]]
             elif time_precision == 'ym':
                 time_parts = [time_start[:7].replace('-', ''), time_end[:7].replace('-', '')]
             elif time_precision == 'ymd':
                 time_parts = [time_start.replace('-', ''), time_end.replace('-', '')]
-            # Add more conditions for different time_precisions if needed
 
         additional_parts = [f"{key}_{value}" for key, value in sorted(kwargs.items())]
 
         parts = [part for part in [self.diagnostic, self.diagnostic_product, var, self.model, self.exp, model_2, exp_2, area] if part]
-        parts.extend(time_parts)  # Add the time_parts to the main parts list
-        parts.extend(additional_parts)  # Add the additional_parts to the main parts list
+        parts.extend(time_parts)
+        parts.extend(additional_parts)
         parts.append(suffix)
 
         filename = '.'.join(parts)
         self.logger.debug(f"Generated filename with time precision and kwargs: {filename}")
         return filename
 
-    
     def save_netcdf(self, dataset: xr.Dataset, path=None, diagnostic_product=None, var=None, model_2=None, exp_2=None,
                     time_start=None, time_end=None, time_precision='ymd', area=None, metadata=None, **kwargs):
         """
         Save a netCDF file with a dataset to a specified path, with support for additional filename keywords and precise time intervals.
 
-        Parameters:
+        Args:
             dataset (xr.Dataset): The xarray dataset to be saved as a netCDF file.
             path (str, optional): The absolute path where the netCDF file will be saved.
             diagnostic_product (str, optional): Product of the diagnostic analysis.
@@ -122,7 +122,7 @@ class OutputNamer:
         
         if path is None:
             path = self.default_path
-        full_path = f"{path}/{filename}"
+        full_path = os.path.join(path, filename)
 
         # Add metadata if provided
         if metadata:
@@ -135,13 +135,12 @@ class OutputNamer:
         self.logger.info(f"Saved netCDF file to path: {full_path}")
         return full_path
 
-
     def save_pdf(self, fig: Figure, path=None, diagnostic_product=None, var=None, model_2=None, exp_2=None, time_start=None, time_end=None,
                  time_precision='ymd', area=None, metadata=None, dpi=300, **kwargs):
         """
         Save a PDF file with a matplotlib figure to the provided path, with support for additional filename keywords and precise time intervals.
 
-        Parameters:
+        Args:
             fig (Figure): The matplotlib figure object to be saved as a PDF.
             path (str, optional): The path where the PDF file will be saved.
             diagnostic_product (str, optional): Product of the diagnostic analysis.
@@ -158,6 +157,9 @@ class OutputNamer:
 
         Returns:
             str: The full path to where the PDF file was saved.
+
+        Raises:
+            ValueError: If the provided fig parameter is not a valid matplotlib Figure.
         """
         if path is None:
             path = self.default_path
@@ -172,12 +174,11 @@ class OutputNamer:
 
         # Add metadata if provided
         if metadata:
-            for key, value in metadata.items():
-                add_pdf_metadata(full_path, metadata_value=value, metadata_name=key, loglevel=self.loglevel)
+            add_pdf_metadata(full_path, metadata, loglevel=self.loglevel)
 
         self.logger.info(f"Saved PDF file at: {full_path}")
         return full_path
-    
+
     def save_png(self, fig: Figure, path=None, diagnostic_product=None, var=None, model_2=None, exp_2=None, time_start=None, time_end=None,
                  time_precision='ymd', area=None, metadata=None, dpi=300, **kwargs):
         """
