@@ -4,6 +4,7 @@ import io
 import os
 import xarray as xr
 from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 
 class OutputNamer:
     def __init__(self, diagnostic, model, exp, diagnostic_product=None, loglevel='WARNING', default_path='.'):
@@ -164,7 +165,10 @@ class OutputNamer:
         full_path = os.path.join(path, filename)
 
         # Save the figure as a PDF
-        fig.savefig(full_path, dpi=dpi)
+        if isinstance(fig, (plt.Figure, Figure)):
+            fig.savefig(full_path, dpi=dpi)
+        else:
+            raise ValueError("The provided fig parameter is not a valid matplotlib Figure or pyplot figure.")
 
         # Add metadata if provided
         if metadata:
@@ -174,13 +178,14 @@ class OutputNamer:
         self.logger.info(f"Saved PDF file at: {full_path}")
         return full_path
     
-    def save_png(self, fig: Figure, diagnostic_product=None, var=None, model_2=None, exp_2=None, time_start=None, time_end=None,
-                           time_precision='ymd', area=None, metadata=None, dpi=300, **kwargs):
+    def save_png(self, fig: Figure, path=None, diagnostic_product=None, var=None, model_2=None, exp_2=None, time_start=None, time_end=None,
+                 time_precision='ymd', area=None, metadata=None, dpi=300, **kwargs):
         """
-        Save a PNG file with a matplotlib figure to memory, with support for additional filename keywords and precise time intervals.
+        Save a PNG file with a matplotlib figure to a provided path, with support for additional filename keywords and precise time intervals.
 
         Parameters:
             fig (Figure): The matplotlib figure object to be saved as a PNG.
+            path (str, optional): The path where the PNG file will be saved.
             diagnostic_product (str, optional): Product of the diagnostic analysis.
             var (str, optional): Variable of interest.
             model_2 (str, optional): The second model, for comparative studies.
@@ -194,18 +199,20 @@ class OutputNamer:
             **kwargs: Additional keyword arguments for more flexible filename customization.
 
         Returns:
-            io.BytesIO: The BytesIO object containing the PNG file content.
+            str: The full path to where the PNG file has been saved.
         """
         filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_start, time_end, time_precision, area, suffix='png', **kwargs)
+        
+        if path is None:
+            path = self.default_path
+        full_path = f"{path}/{filename}"
 
-        # Save the figure to a BytesIO object
-        png_bytes = io.BytesIO()
-        fig.savefig(png_bytes, format='png', dpi=dpi)
-        png_bytes.seek(0)
+        # Save the figure to the specified path
+        fig.savefig(full_path, format='png', dpi=dpi)
 
         # Add metadata if provided
         if metadata:
-            add_png_metadata(png_bytes, metadata, loglevel=self.loglevel)
+            add_png_metadata(full_path, metadata, loglevel=self.loglevel)
 
-        self.logger.info(f"Saved PNG file to memory with name: {filename}")
-        return png_bytes
+        self.logger.info(f"Saved PNG file to path: {full_path}")
+        return full_path
