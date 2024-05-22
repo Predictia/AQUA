@@ -11,7 +11,7 @@ import datetime
 from pypdf import PdfReader, PdfWriter
 from PIL import Image, PngImagePlugin
 from aqua.logger import log_configure
-
+from IPython.display import display, Image as IPImage, FileLink
 
 def generate_random_string(length):
     """
@@ -257,6 +257,73 @@ def add_png_metadata(png_path: str, metadata: dict, loglevel: str = 'WARNING'):
     image.save(png_path, "PNG", pnginfo=png_info)
     logger.info(f"Metadata added to PNG: {png_path}")
 
+def open_image(file_path: str, loglevel: str = 'WARNING'):
+    """
+    Open an image file (PNG or PDF), log its metadata, and display a link to the file in the notebook.
+
+    Args:
+        file_path (str): The path to the image file.
+        loglevel (str): The log level. Default is 'WARNING'.
+
+    Returns:
+        None
+    """
+    logger = log_configure(loglevel, 'open_image')
+
+    # Ensure the file exists
+    if not os.path.isfile(file_path):
+        logger.error(f"The file {file_path} does not exist.")
+        raise FileNotFoundError(f"The file {file_path} does not exist.")
+
+    # Determine the file extension
+    _, file_extension = os.path.splitext(file_path)
+    
+    if file_extension.lower() == '.png':
+        # Open the PNG file and read the metadata
+        image = Image.open(file_path)
+        image_metadata = image.info
+
+        # Log the metadata
+        print("PNG Metadata:")
+        for key, value in image_metadata.items():
+            print(f"{key}: {value}")
+    elif file_extension.lower() == '.pdf':
+        # Open the PDF file and read the metadata
+        pdf_reader = PdfReader(file_path)
+        metadata = pdf_reader.metadata
+
+        # Log the metadata
+        print("PDF Metadata:")
+        for key, value in metadata.items():
+            print(f"{key}: {value}")
+    else:
+        logger.error(f"Unsupported file type: {file_extension}")
+        raise ValueError(f"Unsupported file type: {file_extension}")
+
+    # Provide a FileLink to the file
+    display(FileLink(file_path))
+    logger.info(f"Displayed file link for: {file_path}")
+
+def open_dataset(path_to_netcdf: str) -> object:
+        """
+        Function to load a histogram dataset from a file using pickle.
+
+        Args:
+            path_to_netcdf (str): The path to the dataset file.
+
+        Returns:
+            object: The loaded histogram dataset.
+
+        Raises:
+            FileNotFoundError: If the specified dataset file is not found.
+        """
+        try:
+            dataset = xr.open_dataset(path_to_netcdf)
+            return dataset
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                "The specified dataset file was not found.")
+
 def update_metadata_with_date(metadata: dict = None) -> dict:
     """
     Update the provided metadata dictionary with the current date and time.
@@ -274,7 +341,7 @@ def update_metadata_with_date(metadata: dict = None) -> dict:
     date_now = now.strftime("%Y-%m-%d %H:%M:%S")
     metadata['date_saved'] = date_now
     return metadata
-
+    
 def username():
     """
     Retrieves the current user's username from the 'USER' environment variable.

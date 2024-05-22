@@ -5,7 +5,6 @@ import xarray as xr
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
-
 class OutputNamer:
     def __init__(self, diagnostic: str, model: str, exp: str, diagnostic_product: str = None, loglevel: str = 'WARNING', default_path: str = '.', rebuild: bool = True):
         """
@@ -176,6 +175,9 @@ class OutputNamer:
             self.logger.info(f"File already exists and rebuild is set to False: {full_path}")
             return full_path
 
+        # Ensure fig is a Figure object
+        if isinstance(fig, plt.Axes):
+            fig = fig.figure
         # Save the figure as a PDF
         if isinstance(fig, (plt.Figure, Figure)):
             fig.savefig(full_path, dpi=dpi)
@@ -228,7 +230,6 @@ class OutputNamer:
         # Ensure fig is a Figure object
         if isinstance(fig, plt.Axes):
             fig = fig.figure
-
         # Save the figure to the specified path
         if isinstance(fig, (plt.Figure, Figure)):
             fig.savefig(full_path, format='png', dpi=dpi)
