@@ -1,5 +1,5 @@
 from aqua.logger import log_configure, log_history
-from aqua.util import add_pdf_metadata, add_png_metadata
+from aqua.util import add_pdf_metadata, add_png_metadata, update_metadata_with_date
 import os
 import xarray as xr
 from matplotlib.figure import Figure
@@ -124,10 +124,10 @@ class OutputNamer:
             path = self.default_path
         full_path = os.path.join(path, filename)
 
-        # Add metadata if provided
-        if metadata:
-            dataset.attrs.update(metadata)
-            self.logger.debug(f"Metadata added: {metadata}")
+        # Add metadata if provided, including the current time
+        metadata = update_metadata_with_date(metadata)
+        dataset.attrs.update(metadata)
+        self.logger.debug(f"Metadata added: {metadata}")
 
         # Save the dataset to the specified path
         dataset.to_netcdf(full_path, mode='w')
@@ -172,9 +172,9 @@ class OutputNamer:
         else:
             raise ValueError("The provided fig parameter is not a valid matplotlib Figure or pyplot figure.")
 
-        # Add metadata if provided
-        if metadata:
-            add_pdf_metadata(full_path, metadata, loglevel=self.loglevel)
+        # Update metadata with the current date and time
+        metadata = update_metadata_with_date(metadata)
+        add_pdf_metadata(full_path, metadata, loglevel=self.loglevel)
 
         self.logger.info(f"Saved PDF file at: {full_path}")
         return full_path
@@ -211,15 +211,19 @@ class OutputNamer:
             path = self.default_path
         full_path = os.path.join(path, filename)
 
+        # Ensure fig is a Figure object
+        if isinstance(fig, plt.Axes):
+            fig = fig.figure
+
         # Save the figure to the specified path
         if isinstance(fig, (plt.Figure, Figure)):
             fig.savefig(full_path, format='png', dpi=dpi)
         else:
             raise ValueError("The provided fig parameter is not a valid matplotlib Figure or pyplot figure.")
 
-        # Add metadata if provided
-        if metadata:
-            add_png_metadata(full_path, metadata, loglevel=self.loglevel)
+        # Update metadata with the current date and time
+        metadata = update_metadata_with_date(metadata)
+        add_png_metadata(full_path, metadata, loglevel=self.loglevel)
 
         self.logger.info(f"Saved PNG file to path: {full_path}")
         return full_path

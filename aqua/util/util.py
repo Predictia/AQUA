@@ -7,6 +7,7 @@ import string
 import re
 import numpy as np
 import xarray as xr
+import datetime
 from pypdf import PdfReader, PdfWriter
 from PIL import Image, PngImagePlugin
 from aqua.logger import log_configure
@@ -255,7 +256,25 @@ def add_png_metadata(png_path: str, metadata: dict, loglevel: str = 'WARNING'):
     # Save the file with the new metadata
     image.save(png_path, "PNG", pnginfo=png_info)
     logger.info(f"Metadata added to PNG: {png_path}")
+
+def update_metadata_with_date(metadata: dict = None) -> dict:
+    """
+    Update the provided metadata dictionary with the current date and time.
+
+    Args:
+        metadata (dict, optional): The original metadata dictionary.
+
+    Returns:
+        dict: The updated metadata dictionary with the current date and time.
+    """
+    if metadata is None:
+        metadata = {}
     
+    now = datetime.datetime.now()
+    date_now = now.strftime("%Y-%m-%d %H:%M:%S")
+    metadata['date_saved'] = date_now
+    return metadata
+
 def username():
     """
     Retrieves the current user's username from the 'USER' environment variable.
