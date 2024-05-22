@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 
 class OutputNamer:
-    def __init__(self, diagnostic: str, model: str, exp: str, diagnostic_product: str = None, loglevel: str = 'WARNING', default_path: str = '.'):
+    def __init__(self, diagnostic: str, model: str, exp: str, diagnostic_product: str = None, loglevel: str = 'WARNING', default_path: str = '.', rebuild: bool = True):
         """
         Initialize the OutputNamer class to manage output file naming.
 
@@ -18,6 +18,7 @@ class OutputNamer:
             diagnostic_product (str, optional): Product of the diagnostic analysis.
             loglevel (str, optional): Log level for the class's logger.
             default_path (str, optional): Default path where files will be saved.
+            rebuild (bool, optional): If True, overwrite the existing files. If False, do not overwrite. Default is True.
 
         Returns:
             None
@@ -28,6 +29,7 @@ class OutputNamer:
         self.diagnostic_product = diagnostic_product
         self.loglevel = loglevel
         self.default_path = default_path
+        self.rebuild = rebuild
         self.logger = log_configure(log_level=self.loglevel, log_name='OutputNamer')
         self.logger.debug(f"OutputNamer initialized with diagnostic: {diagnostic}, model: {model}, exp: {exp}, default_path: {default_path}")
 
@@ -124,6 +126,10 @@ class OutputNamer:
             path = self.default_path
         full_path = os.path.join(path, filename)
 
+        if not self.rebuild and os.path.exists(full_path):
+            self.logger.info(f"File already exists and rebuild is set to False: {full_path}")
+            return full_path
+        
         # Add metadata if provided, including the current time
         metadata = update_metadata_with_date(metadata)
         dataset.attrs.update(metadata)
@@ -165,6 +171,10 @@ class OutputNamer:
             path = self.default_path
         filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_start, time_end, time_precision, area, suffix='pdf', **kwargs)
         full_path = os.path.join(path, filename)
+
+        if not self.rebuild and os.path.exists(full_path):
+            self.logger.info(f"File already exists and rebuild is set to False: {full_path}")
+            return full_path
 
         # Save the figure as a PDF
         if isinstance(fig, (plt.Figure, Figure)):
@@ -210,6 +220,10 @@ class OutputNamer:
         if path is None:
             path = self.default_path
         full_path = os.path.join(path, filename)
+
+        if not self.rebuild and os.path.exists(full_path):
+            self.logger.info(f"File already exists and rebuild is set to False: {full_path}")
+            return full_path
 
         # Ensure fig is a Figure object
         if isinstance(fig, plt.Axes):
