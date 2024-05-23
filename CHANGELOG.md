@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+## [v0.8.2]
+
+Main changes are: 
+1. `aqua-grids.yaml` file split in multiple files into `grids` folder
+2. Container for Levante
+
 AQUA core complete list:
 - Removing any machine name depencency from slurm files (#1135)
 - Jinja replacement is added to the aqua-config.yaml (#1154)
@@ -480,7 +486,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.8.1...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.8.2...HEAD
+[v0.8.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.8.1...v0.8.2
 [v0.8.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.8...v0.8.1
 [v0.8]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.3...v0.8
 [v0.7.3]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.2...v0.7.3
