@@ -31,7 +31,7 @@ While it is possible to check the version of the package with the following opti
 
 .. _aqua-init:
 
-aqua init
+aqua install
 ---------
 
 With this command the configuration file ``config-aqua.yaml`` is copied from the package to the destination folder.

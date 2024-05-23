@@ -61,13 +61,13 @@ class TestAquaConsole():
         mydir = str(tmpdir)
         set_home(mydir)
 
-        # aqua init
-        set_args(['init'])
+        # aqua install
+        set_args(['install'])
         AquaConsole()
         assert os.path.exists(os.path.join(mydir,'.aqua'))
 
         # do it twice!
-        run_aqua_console_with_input(['-vv', 'init'], 'yes')
+        run_aqua_console_with_input(['-vv', 'install'], 'yes')
         assert os.path.exists(os.path.join(mydir,'.aqua'))
 
         # add catalog
@@ -109,8 +109,8 @@ class TestAquaConsole():
             run_aqua_console_with_input(['uninstall'], 'yes')
             assert excinfo.value.code == 0
 
-        # a new init
-        set_args(['init'])
+        # a new install
+        set_args(['install'])
         AquaConsole()
         assert os.path.exists(os.path.join(mydir,'.aqua'))
 
@@ -144,7 +144,7 @@ class TestAquaConsole():
         set_home(mydir)
 
         # install from path with grids
-        run_aqua_console_with_input(['-v', 'init', '-g', os.path.join(mydir, 'supercazzola')], 'yes')
+        run_aqua_console_with_input(['-v', 'install', '-g', os.path.join(mydir, 'supercazzola')], 'yes')
         assert os.path.exists(os.path.join(mydir, '.aqua'))
 
         # uninstall everything
@@ -152,7 +152,7 @@ class TestAquaConsole():
         assert not os.path.exists(os.path.join(mydir,'.aqua'))
 
         # install from path
-        run_aqua_console_with_input(['-v', 'init', '-p', os.path.join(mydir, 'vicesindaco')], 'yes')
+        run_aqua_console_with_input(['-v', 'install', '-p', os.path.join(mydir, 'vicesindaco')], 'yes')
         assert os.path.exists(os.path.join(mydir, 'vicesindaco'))
 
         # uninstall everything again
@@ -165,13 +165,13 @@ class TestAquaConsole():
         delete_home()
         mydir = str(tmpdir)
         
-        # raise init without home
+        # raise install without home
         with pytest.raises(ValueError):
-            set_args(['init'])
+            set_args(['install'])
             AquaConsole()
 
         # install from path without home
-        run_aqua_console_with_input(['-v', 'init', '-p', os.path.join(mydir, 'vicesindaco')], 'yes')
+        run_aqua_console_with_input(['-v', 'install', '-p', os.path.join(mydir, 'vicesindaco')], 'yes')
         assert os.path.exists(os.path.join(mydir, 'vicesindaco'))
 
 # checks for query function
