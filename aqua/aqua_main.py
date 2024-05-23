@@ -43,7 +43,7 @@ def parse_arguments():
     init_parser.add_argument('-p', '--path', type=str,
                 help='Path where to install AQUA')
     init_parser.add_argument('-g', '--grids', type=str,
-                help='Path where to install AQUA')
+                help='Path where to be usef for AQUA grids (NOT WORKING FOR NOW)')
     init_parser.add_argument('-e', '--editable', type=str,
                 help='Install AQUA in editable mode from the original source')
 
@@ -113,18 +113,24 @@ class AquaConsole():
         """Initialize AQUA, find the folders and the install"""
         self.logger.info('Running the AQUA init')
 
+        # define where to install AQUA
         if args.path is None:
             self._init_home()
         else:
             self._init_path(args.path)
 
-        self._install()
+        # define from where aqua is installed and copy/link the files
+        if args.editable is None:
+            self._install()
+        else:
+            self._install_editable(args.editable)
 
         self.grids = args.grids
-        if self.grids is None:
-            self.logger.warning('Grids directory undefined')
-        else:
-            self._grids_define()
+        #TODO
+        #if self.grids is None: 
+        #    self.logger.warning('Grids directory undefined')
+        #else:
+        #self._grids_define()
 
     def _init_home(self):
         """Define the AQUA installation folder, by default inside $HOME"""
@@ -152,7 +158,6 @@ class AquaConsole():
         """Define the AQUA installation folder when a path is specified"""
 
         self.configpath = path
-        print(path)
         if not os.path.exists(path):
             os.makedirs(path, exist_ok=True)
         else:
@@ -198,6 +203,22 @@ class AquaConsole():
                 shutil.copytree(f'{self.aquapath}/{directory}', f'{self.configpath}/{directory}')
         os.makedirs(f'{self.configpath}/machines', exist_ok=True)
 
+    def _install_editable(self, editable):
+        """Linking the installation file in editable"""
+
+        editable = os.path.abspath(editable)
+        print("Installing AQUA with a link from ", editable," to ", self.configpath)
+        for file in ['config-aqua.yaml']:
+            if not os.path.exists(os.path.join(self.configpath, file)):
+                self.logger.info('Linking from %s to %s', editable, self.configpath)
+                os.symlink(f'{editable}/{file}', f'{self.configpath}/{file}')
+        for directory in ['fixes', 'data_models', 'grids']:
+            if not os.path.exists(os.path.join(self.configpath, directory)):
+                self.logger.info('Linking from %s to %s',
+                                 os.path.join(editable, directory), self.configpath)
+                os.symlink(f'{editable}/{directory}', f'{self.configpath}/{directory}')
+        os.makedirs(f'{self.configpath}/machines', exist_ok=True)
+
     def list(self, args):
         """List installed catalogs"""
 
@@ -237,6 +258,7 @@ class AquaConsole():
         if not os.path.exists(file):
             self.logger.error('%s is not a valid file!', file)
             return
+        file = os.path.abspath(file)
         self._check()
         basefile = os.path.basename(file)
         pathfile = f'{self.configpath}/{kind}/{basefile}'
@@ -256,18 +278,18 @@ class AquaConsole():
         self._check()
         cdir = f'{self.configpath}/machines/{args.catalog}'
         sdir = f'{self.aquapath}/machines/{args.catalog}'
-        self.logger.info('Installing to %s', self.configpath)
         if args.editable is not None:
-            self.logger.info('Installing in editable mode from %s', args.editable)
-            if os.path.exists(args.editable):
+            editable = os.path.abspath(args.editable)
+            print('Installing catalog in editable mode from', editable, 'to', self.configpath)
+            if os.path.exists(editable):
                 if os.path.exists(cdir):
                     self.logger.error('Catalog %s already installed in %s, please consider `aqua update`. '
                                       "Which does not exist hahaha!",
                                       args.catalog, cdir)
                 else:
-                    os.symlink(args.editable, cdir)
+                    os.symlink(editable, cdir)
             else:
-                self.logger.error('Catalog %s cannot be found in %s', args.catalog, args.editable)
+                self.logger.error('Catalog %s cannot be found in %s', args.catalog, editable)
         else:
             if not os.path.exists(cdir):
                 if os.path.isdir(sdir):
@@ -287,11 +309,14 @@ class AquaConsole():
     
     def remove(self, args):
         """Remove a catalog"""
-        print('Remove the AQUA catalog', args.catalog)
         self._check()
         cdir = f'{self.configpath}/machines/{args.catalog}'
+        print('Remove the AQUA catalog', args.catalog, 'from', cdir)
         if os.path.exists(cdir):
-            shutil.rmtree(cdir)
+            if os.path.islink(cdir):
+                os.unlink(cdir)
+            else:
+                shutil.rmtree(cdir)
         else:
             self.logger.error('Catalog %s is not installed in %s, cannot remove it',
                               args.catalog, cdir)
@@ -313,13 +338,13 @@ class AquaConsole():
         if check:
             # Remove the AQUA installation both for folder and link case
             if os.path.islink(self.configpath):
-                linked_folder = os.readlink(self.configpath)
-                self.logger.info('Uninstalling AQUA from %s', linked_folder)
+                #linked_folder = os.readlink(self.configpath)
+                #self.logger.info('Uninstalling AQUA from %s', linked_folder)
                 # Remove link and data in the linked folder
-                self.logger.debug('Removing the link %s', self.configpath)
+                self.logger.info('Removing the link %s', self.configpath)
                 os.unlink(self.configpath)
-                self.logger.debug('Removing the content of %s', linked_folder)
-                shutil.rmtree(linked_folder)
+                #self.logger.debug('Removing the content of %s', linked_folder)
+                #shutil.rmtree(linked_folder)
             else:
                 self.logger.info('Uninstalling AQUA from %s', self.configpath)
                 shutil.rmtree(self.configpath)
