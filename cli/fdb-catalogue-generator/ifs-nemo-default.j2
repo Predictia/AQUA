@@ -84,6 +84,7 @@ sources:
       levels: {{ oce_levels }}
       variables: {{ variables_oce3d }}
       source_grid_name: nemo-{{oce_grid}}-hpz7-nested-3d
+
 {% if 'native' in resolutions %}
   hourly-native-atm2d:
     <<: *base-default
@@ -138,7 +139,7 @@ sources:
       variables: {{ variables_oce2d }}
       source_grid_name: {{ oce_grid }}-2d
 
-  daily-hpz7-oce3d:
+  daily-native-oce3d:
     <<: *base-default
     description: daily 2D oceanic data on native grid {{ oce_grid }}.
     args:
@@ -215,7 +216,7 @@ sources:
       fdb_home: {{ fdb_home_healpix }}
       fdb_path: {{ fdb_home_healpix }}/etc/fdb/config.yaml
       variables: {{ variables_oce2d }}
-      source_grid_name: nemo-hpz10-nested
+      source_grid_name: nemo-{{oce_grid}}-hpz10-nested
   
   daily-hpz10-oce3d:
     <<: *base-default
@@ -238,7 +239,7 @@ sources:
       fdb_path: {{ fdb_home_healpix }}/etc/fdb/config.yaml
       levels: {{ oce_levels }}
       variables: {{ variables_oce3d }}
-      source_grid_name: nemo-hpz10-nested-3d
+      source_grid_name: nemo-{{oce_grid}}-hpz10-nested
 {% endif %}
 
 {% if 'r025' in resolutions %}

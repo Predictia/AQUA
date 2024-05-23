@@ -15,7 +15,7 @@ expver: a14c
 resolutions: 
   #- native
   - hpz7
-  #- hpz10
+  - hpz10
   #- r025
 #description: 'FDB IFS/NEMO Tco399-eORCA025 control 1990 run'
 data_start_date: 19910401
