@@ -37,6 +37,8 @@ fi
 
 log_message INFO "Perfect! Now it's time to ride with AQUA ⛵"
 
+cd $AQUA
+
 singularity shell \
     --cleanenv \
     --env FDB5_CONFIG_FILE=$FDB5_CONFIG_FILE \
@@ -47,7 +49,9 @@ singularity shell \
     --env PYTHONPATH=$AQUA \
     --env AQUA=$AQUA \
     --bind /pfs/lustrep3/ \
+    --bind /pfs/lustrep3/scratch/ \
     --bind /users/lrb_465000454_fdb/ \
+    --bind /flash/project_465000454 \
     --bind /projappl/ \
     --bind /project \
     --bind /scratch/ \
