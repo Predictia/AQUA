@@ -87,7 +87,7 @@ all = [
 ]
 
 [project.scripts]
-aqua = "aqua.aqua_main:main"
+aqua = "aqua.main:main"
 
 [project.urls]
 homepage = "https://aqua-web-contbuild.2.rahtiapp.fi"

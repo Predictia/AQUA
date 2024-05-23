@@ -30,7 +30,7 @@ def parse_arguments():
 
     # List of the subparsers with actions
     # Corresponding to the different aqua commands available (see command map)
-    init_parser = subparsers.add_parser("init")
+    install_parser = subparsers.add_parser("install")
     fixes_add_parser = subparsers.add_parser("fixes-add")
     grids_add_parser = subparsers.add_parser("grids-add")
     catalog_add_parser = subparsers.add_parser("add")
@@ -40,11 +40,11 @@ def parse_arguments():
     subparsers.add_parser("uninstall")
     subparsers.add_parser("list")
 
-    init_parser.add_argument('-p', '--path', type=str,
+    install_parser.add_argument('-p', '--path', type=str,
                 help='Path where to install AQUA')
-    init_parser.add_argument('-g', '--grids', type=str,
+    install_parser.add_argument('-g', '--grids', type=str,
                 help='Path where to be usef for AQUA grids (NOT WORKING FOR NOW)')
-    init_parser.add_argument('-e', '--editable', type=str,
+    install_parser.add_argument('-e', '--editable', type=str,
                 help='Install AQUA in editable mode from the original source')
 
     catalog_add_parser.add_argument("catalog", metavar="CATALOG",
@@ -93,7 +93,7 @@ class AquaConsole():
         self.grids = None
 
         command_map = {
-            'init': self.init,
+            'install': self.install,
             'add': self.add,
             'fixes-add': self.fixes_add,
             'grids-add': self.grids_add,
@@ -109,15 +109,15 @@ class AquaConsole():
         else: # The command is in the command_map
             method(args)
 
-    def init(self, args):
-        """Initialize AQUA, find the folders and the install"""
-        self.logger.info('Running the AQUA init')
+    def install(self, args):
+        """Install AQUA, find the folders and then install"""
+        self.logger.info('Running the AQUA install')
 
         # define where to install AQUA
         if args.path is None:
-            self._init_home()
+            self._install_home()
         else:
-            self._init_path(args.path)
+            self._install_path(args.path)
 
         # define from where aqua is installed and copy/link the files
         if args.editable is None:
@@ -132,7 +132,7 @@ class AquaConsole():
         #else:
         #self._grids_define()
 
-    def _init_home(self):
+    def _install_home(self):
         """Define the AQUA installation folder, by default inside $HOME"""
 
         if 'HOME' in os.environ:
@@ -154,7 +154,7 @@ class AquaConsole():
             raise ValueError('$HOME not found.'
                             'Please specify a path where to install AQUA and define AQUA_CONFIG as environment variable')
 
-    def _init_path(self, path):
+    def _install_path(self, path):
         """Define the AQUA installation folder when a path is specified"""
 
         self.configpath = path
@@ -338,13 +338,9 @@ class AquaConsole():
         if check:
             # Remove the AQUA installation both for folder and link case
             if os.path.islink(self.configpath):
-                #linked_folder = os.readlink(self.configpath)
-                #self.logger.info('Uninstalling AQUA from %s', linked_folder)
                 # Remove link and data in the linked folder
                 self.logger.info('Removing the link %s', self.configpath)
                 os.unlink(self.configpath)
-                #self.logger.debug('Removing the content of %s', linked_folder)
-                #shutil.rmtree(linked_folder)
             else:
                 self.logger.info('Uninstalling AQUA from %s', self.configpath)
                 shutil.rmtree(self.configpath)
