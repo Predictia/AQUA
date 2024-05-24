@@ -120,21 +120,28 @@ class TestAquaConsole():
         # add catalog with editable option - to be improved
         set_args(['-v', 'add', 'ci', '-e', 'config/machines/ci'])
         AquaConsole()
-        assert os.path.exists(os.path.join(mydir,'.aqua/machines'))
+        assert os.path.isdir(os.path.join(mydir,'.aqua/machines/ci'))
 
         # add wrong fix file
         fixtest = os.path.join(mydir, 'antani.yaml')
         dump_yaml(fixtest, {'fixer_name':  'antani'})
         set_args(['fixes-add', fixtest])
         AquaConsole()
-        assert not os.path.exists(os.path.join(mydir,'config/dir/fixes/antani.yaml'))
+        assert not os.path.exists(os.path.join(mydir,'.aqua/fixes/antani.yaml'))
 
         # add mock grid file
         gridtest = os.path.join(mydir, 'supercazzola.yaml')
         dump_yaml(gridtest, {'grids': {'sindaco': {'path': '{{ grids }}/comesefosseantani.nc'}}})
         set_args(['-v','grids-add', gridtest])
         AquaConsole()
-        assert os.path.exists(gridtest)
+        assert os.path.isfile(os.path.join(mydir,'.aqua/grids/supercazzola.yaml'))
+
+        # add mock grid file but editable
+        gridtest = os.path.join(mydir, 'garelli.yaml')
+        dump_yaml(gridtest, {'grids': {'sindaco': {'path': '{{ grids }}/comesefosseantani.nc'}}})
+        set_args(['-v','grids-add', gridtest, '-e'])
+        AquaConsole()
+        assert os.path.islink(os.path.join(mydir,'.aqua/grids/garelli.yaml'))
 
         # uninstall everything
         run_aqua_console_with_input(['uninstall'], 'yes')
@@ -175,7 +182,8 @@ class TestAquaConsole():
 
         # install from path without home
         run_aqua_console_with_input(['-v', 'install', '-p', os.path.join(mydir, 'vicesindaco')], 'yes')
-        assert os.path.exists(os.path.join(mydir, 'vicesindaco'))
+        assert os.path.isdir(os.path.join(mydir, 'vicesindaco'))
+        assert os.path.isfile(os.path.join(mydir, 'vicesindaco', 'config-aqua.yaml'))
 
     def test_console_editable(self, tmpdir, set_home, run_aqua_console_with_input):
 
@@ -187,14 +195,25 @@ class TestAquaConsole():
         set_args(['-vv', 'install', '--editable', 'config'])
         AquaConsole()
         assert os.path.exists(os.path.join(mydir, '.aqua'))
+        for folder in ['fixes', 'data_models', 'grids']:
+            assert os.path.islink(os.path.join(mydir,'.aqua', folder))
+        assert os.path.isdir(os.path.join(mydir, '.aqua', 'machines'))
 
-        # install from path with grids
+        # install from path in editable mode
         run_aqua_console_with_input(['-vv', 'install', '--editable', 'config', '--path', os.path.join(mydir, 'vicesindaco')], 'yes')
-        assert os.path.exists(os.path.join(mydir, '.aqua'))
-
-        # uninstall everything again
+        assert os.path.islink(os.path.join(mydir, '.aqua'))
         run_aqua_console_with_input(['uninstall'], 'yes')
-        assert not os.path.exists(os.path.join(mydir,'.aqua'))
+
+        # install from path in editable mode but withoyt aqua link
+        run_aqua_console_with_input(['-vv', 'install', '--editable', 'config', '--path', os.path.join(mydir, 'vicesindaco')], 'no')
+        assert not os.path.exists(os.path.join(mydir, '.aqua'))
+        assert os.path.isdir(os.path.join(mydir, 'vicesindaco', 'machines'))
+       
+        # uninstall everything again, using AQUA_CONFIG env variable
+        os.environ['AQUA_CONFIG'] = os.path.join(mydir, 'vicesindaco')
+        run_aqua_console_with_input(['uninstall'], 'yes')
+        assert not os.path.exists(os.path.join(mydir,'vicesindaco'))
+        del os.environ['AQUA_CONFIG']
 
     # base set of tests
     def test_console_list(self, tmpdir, set_home, capfd):

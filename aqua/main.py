@@ -209,9 +209,13 @@ class AquaConsole():
         editable = os.path.abspath(editable)
         print("Installing AQUA with a link from ", editable," to ", self.configpath)
         for file in ['config-aqua.yaml']:
-            if not os.path.exists(os.path.join(self.configpath, file)):
-                self.logger.info('Linking from %s to %s', editable, self.configpath)
-                os.symlink(f'{editable}/{file}', f'{self.configpath}/{file}')
+            if os.path.isfile(os.path.join(editable,file)):
+                if not os.path.exists(os.path.join(self.configpath, file)):
+                    self.logger.info('Linking from %s to %s', editable, self.configpath)
+                    os.symlink(f'{editable}/{file}', f'{self.configpath}/{file}')
+            else:
+                self.logger.error('%s folder does not include AQUA configuration files. Please use AQUA/config', editable)
+                sys.exit(1)
         for directory in ['fixes', 'data_models', 'grids']:
             if not os.path.exists(os.path.join(self.configpath, directory)):
                 self.logger.info('Linking from %s to %s',
