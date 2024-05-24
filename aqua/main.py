@@ -35,6 +35,7 @@ def parse_arguments():
     grids_add_parser = subparsers.add_parser("grids-add")
     catalog_add_parser = subparsers.add_parser("add")
     catalog_remove_parser = subparsers.add_parser("remove")
+    set_parser = subparsers.add_parser("set")
 
     # subparser with no arguments
     subparsers.add_parser("uninstall")
@@ -64,6 +65,9 @@ def parse_arguments():
     
     catalog_remove_parser.add_argument("catalog", metavar="CATALOG",
                                     help="Catalog to be removed")
+    
+    set_parser.add_argument("catalog", metavar="CATALOG",
+                                    help="Catalog to be used in AQUA")
     
     return parser
 
@@ -98,6 +102,7 @@ class AquaConsole():
             'fixes-add': self.fixes_add,
             'grids-add': self.grids_add,
             'remove': self.remove,
+            'set': self.set,
             'uninstall': self.uninstall,
             'list': self.list
         }
@@ -226,10 +231,22 @@ class AquaConsole():
                 os.symlink(f'{editable}/{directory}', f'{self.configpath}/{directory}')
         os.makedirs(f'{self.configpath}/machines', exist_ok=True)
 
+    def set(self, args):
+        """Set an installed catalog as the one used in the config-aqua.yaml"""
+
+        self._check()
+        #print(f"{self.configpath}/machines/{args.catalog}")
+        if os.path.exists(f"{self.configpath}/machines/{args.catalog}"):
+            self._set_catalog(args.catalog)
+        else:
+            self.logger.error('%s catalog is not installed!', args.catalog)
+            sys.exit(1)
+
     def list(self, args):
         """List installed catalogs"""
 
-        self.configpath = ConfigPath().configdir
+        self._check()
+        #self.configpath = ConfigPath().configdir
         cdir = f'{self.configpath}/machines'
         contents = os.listdir(cdir)
 
@@ -310,10 +327,15 @@ class AquaConsole():
                                 args.catalog, cdir)
                 sys.exit(1)
 
+        self._set_catalog(args.catalog)
+
+    def _set_catalog(self, catalog):
+        """Modify the config-aqua.yaml with the proper catalog"""
+
         # once we get rid of machine dependence, this can be removed    
-        self.logger.info('Setting machine name to %s', args.catalog)
+        self.logger.info('Setting machine name to %s', catalog)
         cfg = load_yaml(self.configfile)
-        cfg['machine'] = args.catalog
+        cfg['machine'] = catalog
         dump_yaml(self.configfile, cfg)
     
     def remove(self, args):
