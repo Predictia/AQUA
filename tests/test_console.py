@@ -85,7 +85,7 @@ class TestAquaConsole():
         # check unexesting installation
         with pytest.raises(SystemExit) as excinfo:
             AquaConsole()
-            assert excinfo.value.code == 0
+            assert excinfo.value.code == 1
         assert os.path.exists(os.path.join(mydir,'.aqua/machines/ci'))
 
         # remove non-existing catalog
@@ -93,7 +93,7 @@ class TestAquaConsole():
         set_args(['remove', 'pippo'])
         with pytest.raises(SystemExit) as excinfo:
             AquaConsole()
-            assert excinfo.value.code == 0
+            assert excinfo.value.code == 1
 
         # remove existing catalog
         set_args(['remove', 'ci'])
@@ -114,7 +114,7 @@ class TestAquaConsole():
         # check unexesting installation
         with pytest.raises(SystemExit) as excinfo:
             run_aqua_console_with_input(['uninstall'], 'yes')
-            assert excinfo.value.code == 0
+            assert excinfo.value.code == 1
 
         # a new install
         set_args(['install'])
@@ -131,7 +131,7 @@ class TestAquaConsole():
         # check unexesting installation
         with pytest.raises(SystemExit) as excinfo:
             AquaConsole()
-            assert excinfo.value.code == 0
+            assert excinfo.value.code == 1
         assert os.path.exists(os.path.join(mydir,'.aqua/machines/ci'))
 
         # add catalog again and error
@@ -139,7 +139,7 @@ class TestAquaConsole():
         # check unexesting installation
         with pytest.raises(SystemExit) as excinfo:
             AquaConsole()
-            assert excinfo.value.code == 0
+            assert excinfo.value.code == 1
         assert not os.path.exists(os.path.join(mydir,'.aqua/machines/baciugo'))
 
         # add wrong fix file
@@ -167,7 +167,7 @@ class TestAquaConsole():
         with pytest.raises(SystemExit) as excinfo:
             set_args(['-v','grids-add', gridtest, '-e'])
             AquaConsole()
-            assert excinfo.value.code == 0
+            assert excinfo.value.code == 1
 
         # uninstall everything
         run_aqua_console_with_input(['uninstall'], 'yes')
@@ -182,7 +182,7 @@ class TestAquaConsole():
         # check unexesting installation
         with pytest.raises(SystemExit) as excinfo:
             run_aqua_console_with_input(['-v', 'install', '-p', 'environment.yml'], 'yes')
-            assert excinfo.value.code == 0
+            assert excinfo.value.code == 1
 
         # install from path with grids
         run_aqua_console_with_input(['-v', 'install', '-g', os.path.join(mydir, 'supercazzola')], 'yes')
@@ -211,7 +211,7 @@ class TestAquaConsole():
         with pytest.raises(SystemExit) as excinfo:
             set_args(['-vv', 'install', '-e', '.'])
             AquaConsole()
-            assert excinfo.value.code == 0
+            assert excinfo.value.code == 1
 
         # install from path with grids
         set_args(['-vv', 'install', '--editable', 'config'])
@@ -272,7 +272,7 @@ class TestAquaConsole():
         with pytest.raises(SystemExit) as excinfo:
             set_args(['install'])
             AquaConsole()
-            assert excinfo.value.code == 0
+            assert excinfo.value.code == 1
 
         # install from path without home
         run_aqua_console_with_input(['-v', 'install', '-p', os.path.join(mydir, 'vicesindaco')], 'yes')
