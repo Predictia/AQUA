@@ -36,10 +36,11 @@ def parse_arguments():
     catalog_add_parser = subparsers.add_parser("add", description='Add a catalog in the current AQUA installation')
     catalog_remove_parser = subparsers.add_parser("remove", description='Remove a catalog in the current AQUA installation')
     set_parser = subparsers.add_parser("set", description="Set an installed catalog as the predefined in config-aqua.yaml")
+    list_parser = subparsers.add_parser("list", description="List the currently installed AQUA catalogs")
 
     # subparser with no arguments
     subparsers.add_parser("uninstall", description="Remove the current AQUA installation")
-    subparsers.add_parser("list", description="List the currently installed AQUA catalogs")
+    
 
     install_parser.add_argument('-p', '--path', type=str,
                 help='Path where to install AQUA. Default is $HOME/.aqua')
@@ -68,6 +69,9 @@ def parse_arguments():
     
     set_parser.add_argument("catalog", metavar="CATALOG",
                                     help="Catalog to be used in AQUA")
+    
+    list_parser.add_argument("-a", "--all", action="store_true",
+                                    help="Print also all the installed fixes, grids and data_models")
     
     return parser
 
@@ -118,15 +122,15 @@ class AquaConsole():
         """Install AQUA, find the folders and then install"""
         self.logger.info('Running the AQUA install')
 
-        # define where to install AQUA
+        # configure where to install AQUA
         if args.path is None:
-            self._install_home()
+            self._config_home()
         else:
-            self._install_path(args.path)
+            self._config_path(args.path)
 
         # define from where aqua is installed and copy/link the files
         if args.editable is None:
-            self._install()
+            self._install_default()
         else:
             self._install_editable(args.editable)
 
@@ -137,8 +141,8 @@ class AquaConsole():
         #else:
         #self._grids_define()
 
-    def _install_home(self):
-        """Define the AQUA installation folder, by default inside $HOME"""
+    def _config_home(self):
+        """Configure the AQUA installation folder, by default inside $HOME"""
 
         if 'HOME' in os.environ:
             path = os.path.join(os.environ['HOME'], '.aqua')
@@ -160,8 +164,8 @@ class AquaConsole():
                             'Please specify a path where to install AQUA and define AQUA_CONFIG as environment variable')
             sys.exit(1)
 
-    def _install_path(self, path):
-        """Define the AQUA installation folder when a path is specified"""
+    def _config_path(self, path):
+        """Configurare the AQUA installation folder when a path is specified"""
 
         self.configpath = path
         if not os.path.exists(path):
@@ -195,7 +199,7 @@ class AquaConsole():
     #     self.logger.info('Defining grid path %s in config-aqua.yaml', self.grids)
     #     dump_yaml(config_file, cfg)
 
-    def _install(self):
+    def _install_default(self):
         """Copying the installation file"""
 
         print("Installing AQUA to", self.configpath)
@@ -235,7 +239,6 @@ class AquaConsole():
         """Set an installed catalog as the one used in the config-aqua.yaml"""
 
         self._check()
-        #print(f"{self.configpath}/machines/{args.catalog}")
         if os.path.exists(f"{self.configpath}/machines/{args.catalog}"):
             self._set_catalog(args.catalog)
         else:
@@ -246,19 +249,30 @@ class AquaConsole():
         """List installed catalogs"""
 
         self._check()
-        #self.configpath = ConfigPath().configdir
         cdir = f'{self.configpath}/machines'
         contents = os.listdir(cdir)
 
         print('AQUA current installed catalogs in', cdir, ':')
-        for item in contents:
-            file_path = os.path.join(cdir, item)
-            if os.path.islink(file_path):
-                print('pippo')
-                orig_path = os.readlink(file_path)
-                print(f"\t - {item} (editable from {orig_path})")
+        self._list_folder(cdir)
+        
+        if args.all: 
+            contents = ['data_models', 'grids', 'fixes']
+            for content in contents:
+                print(f'AQUA current installed {content} in {self.configpath}:')
+                self._list_folder(os.path.join(self.configpath, content))
+
+    def _list_folder(self, mydir):
+        """List all the files in a AQUA config folder and check if they are link or file/folder"""
+
+        yaml_files = os.listdir(mydir)
+        for file in yaml_files:
+            file = os.path.join(mydir, file)
+            if os.path.islink(file):
+                orig_path = os.readlink(file)
+                print(f"\t - {file} (editable from {orig_path})")
             else:
-                print(f"\t - {item}")
+                print(f"\t - {file}")
+
 
     def fixes_add(self, args):
         """Add a fix file"""
@@ -300,36 +314,47 @@ class AquaConsole():
             sys.exit(1)
 
     def add(self, args):
-        """Add a catalog"""
+        """Add a catalog and set it as a default in config-aqua.yaml"""
         print('Adding the AQUA catalog', args.catalog)
         self._check()
-        cdir = f'{self.configpath}/machines/{args.catalog}'
-        sdir = f'{self.aquapath}/machines/{args.catalog}'
+
         if args.editable is not None:
-            editable = os.path.abspath(args.editable)
+            self._add_catalog_editable(args.catalog, args.editable)
+        else:
+            self._add_catalog_default(args.catalog)
+        
+        self._set_catalog(args.catalog)
+
+
+    def _add_catalog_editable(self, catalog, editable):
+            """Add a catalog in editable mode (i.e. link)"""
+            
+            cdir = f'{self.configpath}/machines/{catalog}'
+            editable = os.path.abspath(editable)
             print('Installing catalog in editable mode from', editable, 'to', self.configpath)
             if os.path.exists(editable):
                 if os.path.exists(cdir):
                     self.logger.error('Catalog %s already installed in %s, please consider `aqua remove`',
-                                      args.catalog, cdir)
+                                      catalog, cdir)
                     sys.exit(1)
                 else:
                     os.symlink(editable, cdir)
             else:
-                self.logger.error('Catalog %s cannot be found in %s', args.catalog, editable)
-                sys.exit(1)
-        else:
-            if not os.path.exists(cdir):
-                if os.path.isdir(sdir):
-                    shutil.copytree(f'{self.aquapath}/machines/{args.catalog}', cdir)
-                else:
-                    self.logger.error('Catalog %s does not appear to exist in %s', args.catalog, sdir)
-            else:
-                self.logger.error("Catalog %s already installed in %s, please consider `aqua remove`.",
-                                args.catalog, cdir)
+                self.logger.error('Catalog %s cannot be found in %s', catalog, editable)
                 sys.exit(1)
 
-        self._set_catalog(args.catalog)
+    def _add_catalog_default(self, catalog):
+            cdir = f'{self.configpath}/machines/{catalog}'
+            sdir = f'{self.aquapath}/machines/{catalog}'
+            if not os.path.exists(cdir):
+                if os.path.isdir(sdir):
+                    shutil.copytree(f'{self.aquapath}/machines/{catalog}', cdir)
+                else:
+                    self.logger.error('Catalog %s does not appear to exist in %s', catalog, sdir)
+            else:
+                self.logger.error("Catalog %s already installed in %s, please consider `aqua remove`.",
+                                catalog, cdir)
+                sys.exit(1)
 
     def _set_catalog(self, catalog):
         """Modify the config-aqua.yaml with the proper catalog"""
