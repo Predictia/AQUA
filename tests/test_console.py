@@ -74,11 +74,26 @@ class TestAquaConsole():
             assert os.path.isdir(os.path.join(mydir,'.aqua', folder))
 
         # add catalog
-        set_args(['add', 'ci'])
+        for catalog in ['ci', 'levante']:
+            set_args(['add', catalog])
+            AquaConsole()
+            assert os.path.isdir(os.path.join(mydir,'.aqua/machines', catalog))
+            config_file = load_yaml(os.path.join(mydir,'.aqua', 'config-aqua.yaml'))
+            assert config_file['machine'] == catalog
+
+        # set catalog
+        set_args(['set', 'ci'])
         AquaConsole()
         assert os.path.isdir(os.path.join(mydir,'.aqua/machines/ci'))
         config_file = load_yaml(os.path.join(mydir,'.aqua', 'config-aqua.yaml'))
         assert config_file['machine'] == 'ci'
+
+        # add catalog again and error
+        set_args(['-v', 'set', 'ciccio'])
+        # check unexesting installation
+        with pytest.raises(SystemExit) as excinfo:
+            AquaConsole()
+            assert excinfo.value.code == 1
 
         # add catalog again and error
         set_args(['-v', 'add', 'ci'])
@@ -86,7 +101,6 @@ class TestAquaConsole():
         with pytest.raises(SystemExit) as excinfo:
             AquaConsole()
             assert excinfo.value.code == 1
-        assert os.path.exists(os.path.join(mydir,'.aqua/machines/ci'))
 
         # remove non-existing catalog
         os.makedirs(os.path.join(mydir,'.aqua/machines/ci'), exist_ok=True)
@@ -125,6 +139,8 @@ class TestAquaConsole():
         set_args(['-v', 'add', 'ci', '-e', 'config/machines/ci'])
         AquaConsole()
         assert os.path.isdir(os.path.join(mydir,'.aqua/machines/ci'))
+
+
 
         # add catalog again and error
         set_args(['-v', 'add', 'ci', '-e', 'config/machines/ci'])
