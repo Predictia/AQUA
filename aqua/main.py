@@ -254,7 +254,9 @@ class AquaConsole():
         for item in contents:
             file_path = os.path.join(cdir, item)
             if os.path.islink(file_path):
-                print(f"\t - {item} (editable)")
+                print('pippo')
+                orig_path = os.readlink(file_path)
+                print(f"\t - {item} (editable from {orig_path})")
             else:
                 print(f"\t - {item}")
 

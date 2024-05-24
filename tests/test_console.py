@@ -264,8 +264,8 @@ class TestAquaConsole():
 
         assert not os.path.exists(os.path.join(mydir,'.aqua'))
 
-    # base set of tests
-    def test_console_list(self, tmpdir, set_home, capfd, run_aqua_console_with_input):
+    # base set of tests for list
+    def test_console_list1(self, tmpdir, set_home, capfd, run_aqua_console_with_input):
 
         # getting fixture
         mydir = str(tmpdir)
@@ -276,12 +276,15 @@ class TestAquaConsole():
         AquaConsole()
         set_args(['add', 'ci'])
         AquaConsole()
+        set_args(['add', 'ciccio', '-e', 'config/machines/ci'])
+        AquaConsole()
         set_args(['list'])
         AquaConsole()
 
         out, _ = capfd.readouterr()
         assert 'AQUA current installed catalogs in' in out
         assert 'ci' in out
+        assert 'ciccio (editable' in out
 
         # uninstall everything again
         run_aqua_console_with_input(['uninstall'], 'yes')
