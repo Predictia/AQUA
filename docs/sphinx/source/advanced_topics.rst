@@ -3,6 +3,48 @@
 Advanced Topics
 ===============
 
+Set up the configuration file
+-----------------------------
+
+A configuration file is available to specify the parameters for the AQUA package.
+This is a YAML file called ``config-aqua.yaml`` and is located in the configuration folder.
+
+.. warning::
+  All the details of the configuration file are now handled during the installation process
+  described in the :ref:`initialization` section. This is why this section is in the advanced topics.
+  As a normal user you should not need to modify the configuration file manually.
+
+The configuration file is used to specify the following parameters:
+
+- **machine**: the machine on which the code is running. This is used to specify the
+  location of the AQUA catalogue and the location of the data. Default is ``lumi``.
+  Other options are ``ci`` and ``levante``. Custom machines can be defined (see :ref:`new-machine`).
+- **reader**: this block contains catalogue, fixes and grids location.
+  These paths are required to be inside the AQUA repository,
+  so these paths should not be changed unless strictly necessary.
+  Refer to :ref:`add-data` for more information.
+- **cdo**: location of the CDO executable. By default this option is not needed, since CDO is required in the ``environment.yml`` file
+  and provided by conda.
+
+The configuration folder has this structure:
+
+.. code-block:: text
+
+    ├── config
+    │   ├── data_models
+    │   ├── fixes
+    │   ├── grids
+    │   └── machines
+    │       ├── lumi
+    │       │   ├── catalog 
+    │       │   └── catalog.yaml
+    │       ├── levante
+    │       └── ...
+    ├── config-aqua.yaml
+
+.. note::
+  The machine depencency in files and folders will be removed in future versions of AQUA.
+
 .. _new-machine:
 
 Adding a new machine
