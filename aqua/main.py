@@ -179,14 +179,14 @@ class AquaConsole():
             self.logger.warning('AQUA will be installed in %s, but please remember to define AQUA_CONFIG environment variable', path)
 
 
-    def _grids_define(self):
-        """add the grid definition into the aqua-config.yaml"""
+    # def _grids_define(self):
+    #     """add the grid definition into the aqua-config.yaml"""
 
-        config_file = os.path.join(self.configpath, 'config-aqua.yaml')
-        cfg = load_yaml(config_file)
-        cfg['reader']['grids'] = self.grids
-        self.logger.info('Defining grid path %s in config-aqua.yaml', self.grids)
-        dump_yaml(config_file, cfg)
+    #     config_file = os.path.join(self.configpath, 'config-aqua.yaml')
+    #     cfg = load_yaml(config_file)
+    #     cfg['reader']['grids'] = self.grids
+    #     self.logger.info('Defining grid path %s in config-aqua.yaml', self.grids)
+    #     dump_yaml(config_file, cfg)
 
     def _install(self):
         """Copying the installation file"""

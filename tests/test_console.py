@@ -174,6 +174,26 @@ class TestAquaConsole():
         run_aqua_console_with_input(['-v', 'install', '-p', os.path.join(mydir, 'vicesindaco')], 'yes')
         assert os.path.exists(os.path.join(mydir, 'vicesindaco'))
 
+    def test_console_editable(self, tmpdir, set_home, run_aqua_console_with_input):
+
+        # getting fixture
+        mydir = str(tmpdir)
+        set_home(mydir)
+
+        # install from path with grids
+        set_args(['-vv', 'install', '--editable', 'config'])
+        AquaConsole()
+        assert os.path.exists(os.path.join(mydir, '.aqua'))
+
+        # install from path with grids
+        run_aqua_console_with_input(['-vv', 'install', '--editable', 'config', '--path', os.path.join(mydir, 'vicesindaco')], 'yes')
+        assert os.path.exists(os.path.join(mydir, '.aqua'))
+
+        # uninstall everything again
+        run_aqua_console_with_input(['uninstall'], 'yes')
+        assert not os.path.exists(os.path.join(mydir,'.aqua'))
+
+
 # checks for query function
 @pytest.fixture
 def run_query_with_input(tmpdir):
