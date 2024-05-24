@@ -115,7 +115,13 @@ class TestAquaConsole():
         assert not os.path.exists(os.path.join(mydir,'.aqua/machines/ci'))
         assert os.path.exists(os.path.join(mydir,'.aqua'))
 
-        # uninstall everything
+        # uninstall and say no
+        with pytest.raises(SystemExit) as excinfo:
+            run_aqua_console_with_input(['uninstall'], 'no')
+            assert excinfo.value.code == 0
+            assert os.path.exists(os.path.join(mydir,'.aqua'))
+
+        # uninstall and say no
         run_aqua_console_with_input(['uninstall'], 'yes')
         assert not os.path.exists(os.path.join(mydir,'.aqua'))
         
@@ -140,8 +146,6 @@ class TestAquaConsole():
         AquaConsole()
         assert os.path.isdir(os.path.join(mydir,'.aqua/machines/ci'))
 
-
-
         # add catalog again and error
         set_args(['-v', 'add', 'ci', '-e', 'config/machines/ci'])
         # check unexesting installation
@@ -157,6 +161,11 @@ class TestAquaConsole():
             AquaConsole()
             assert excinfo.value.code == 1
         assert not os.path.exists(os.path.join(mydir,'.aqua/machines/baciugo'))
+
+        # remove existing catalog from link
+        set_args(['remove', 'ci'])
+        AquaConsole()
+        assert not os.path.exists(os.path.join(mydir,'.aqua/machines/ci'))
 
         # add wrong fix file
         fixtest = os.path.join(mydir, 'antani.yaml')
@@ -327,4 +336,8 @@ class TestQueryYesNo:
 
     def test_query_yes_no_explicit_no(self, run_query_with_input):
         result = run_query_with_input("no", "yes")
+        assert result is False
+
+    def test_query_yes_no_default(self, run_query_with_input):
+        result = run_query_with_input("no", None)
         assert result is False
