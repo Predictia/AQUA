@@ -298,9 +298,6 @@ class AquaConsole():
             link (bool): whether to add the file as a link or not
         """
 
-        if not os.path.exists(file):
-            self.logger.error('%s is not a valid file!', file)
-            sys.exit(1)
         file = os.path.abspath(file)
         self._check()
         basefile = os.path.basename(file)
@@ -454,7 +451,10 @@ class AquaConsole():
             return True
         except Exception as e:
             if file is not None:
-                self.logger.error("It is not possible to add the file %s to the %s folder", file, kind)
+                if not os.path.exists(file):
+                    self.logger.error('%s is not a valid file!', file)
+                else:
+                    self.logger.error("It is not possible to add the file %s to the %s folder", file, kind)
             else:
                 self.logger.error("Existing files in the %s folder are not compatible", kind)
             self.logger.error(e)
