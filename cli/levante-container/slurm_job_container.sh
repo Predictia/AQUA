@@ -4,8 +4,8 @@
 #SBATCH --output=output_%j.out
 #SBATCH --error=output_%j.err
 #SBATCH --account=bb1153
-#SBATCH --nodes=2
-#SBATCH --ntasks-per-node=128
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=8
 #SBATCH --time=08:00:00
 #SBATCH --mem=0 
 set -e
@@ -22,7 +22,6 @@ singularity exec \
     --env PYTHONPATH=$AQUA \
     --env AQUA=$AQUA \
     --bind /pool/data/ICDC/atmosphere/ceres_ebaf/ \
-    --bind /work/uc0928/DATA/ocean/ \
     --bind /work/bb1153 \
     $AQUA_container \
     bash -c \
