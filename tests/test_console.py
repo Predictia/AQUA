@@ -110,7 +110,7 @@ class TestAquaConsole():
         # getting fixture
         mydir = str(tmpdir)
         set_home(mydir)
-
+        
         # check unexesting installation
         with pytest.raises(SystemExit) as excinfo:
             run_aqua_console_with_input(['uninstall'], 'yes')
@@ -121,10 +121,26 @@ class TestAquaConsole():
         AquaConsole()
         assert os.path.exists(os.path.join(mydir,'.aqua'))
 
-        # add catalog with editable option - to be improved
+        # add catalog with editable option
         set_args(['-v', 'add', 'ci', '-e', 'config/machines/ci'])
         AquaConsole()
         assert os.path.isdir(os.path.join(mydir,'.aqua/machines/ci'))
+
+        # add catalog again and error
+        set_args(['-v', 'add', 'ci', '-e', 'config/machines/ci'])
+        # check unexesting installation
+        with pytest.raises(SystemExit) as excinfo:
+            AquaConsole()
+            assert excinfo.value.code == 0
+        assert os.path.exists(os.path.join(mydir,'.aqua/machines/ci'))
+
+        # add catalog again and error
+        set_args(['-v', 'add', 'ci', '-e', 'config/machines/baciugo'])
+        # check unexesting installation
+        with pytest.raises(SystemExit) as excinfo:
+            AquaConsole()
+            assert excinfo.value.code == 0
+        assert not os.path.exists(os.path.join(mydir,'.aqua/machines/baciugo'))
 
         # add wrong fix file
         fixtest = os.path.join(mydir, 'antani.yaml')
@@ -147,6 +163,12 @@ class TestAquaConsole():
         AquaConsole()
         assert os.path.islink(os.path.join(mydir,'.aqua/grids/garelli.yaml'))
 
+        # error for already existing file
+        with pytest.raises(SystemExit) as excinfo:
+            set_args(['-v','grids-add', gridtest, '-e'])
+            AquaConsole()
+            assert excinfo.value.code == 0
+
         # uninstall everything
         run_aqua_console_with_input(['uninstall'], 'yes')
         assert not os.path.exists(os.path.join(mydir,'.aqua'))
@@ -156,6 +178,11 @@ class TestAquaConsole():
         # getting fixture
         mydir = str(tmpdir)
         set_home(mydir)
+
+        # check unexesting installation
+        with pytest.raises(SystemExit) as excinfo:
+            run_aqua_console_with_input(['-v', 'install', '-p', 'environment.yml'], 'yes')
+            assert excinfo.value.code == 0
 
         # install from path with grids
         run_aqua_console_with_input(['-v', 'install', '-g', os.path.join(mydir, 'supercazzola')], 'yes')
@@ -173,28 +200,18 @@ class TestAquaConsole():
         run_aqua_console_with_input(['uninstall'], 'yes')
         assert not os.path.exists(os.path.join(mydir,'.aqua'))
 
-    def test_console_without_home(self, delete_home, tmpdir, run_aqua_console_with_input):
-
-        # getting fixture
-        delete_home()
-        mydir = str(tmpdir)
-        
-        # check unexesting installation
-        with pytest.raises(SystemExit) as excinfo:
-            set_args(['install'])
-            AquaConsole()
-            assert excinfo.value.code == 0
-
-        # install from path without home
-        run_aqua_console_with_input(['-v', 'install', '-p', os.path.join(mydir, 'vicesindaco')], 'yes')
-        assert os.path.isdir(os.path.join(mydir, 'vicesindaco'))
-        assert os.path.isfile(os.path.join(mydir, 'vicesindaco', 'config-aqua.yaml'))
 
     def test_console_editable(self, tmpdir, set_home, run_aqua_console_with_input):
 
         # getting fixture
         mydir = str(tmpdir)
         set_home(mydir)
+
+        # check unexesting installation
+        with pytest.raises(SystemExit) as excinfo:
+            set_args(['-vv', 'install', '-e', '.'])
+            AquaConsole()
+            assert excinfo.value.code == 0
 
         # install from path with grids
         set_args(['-vv', 'install', '--editable', 'config'])
@@ -220,8 +237,10 @@ class TestAquaConsole():
         assert not os.path.exists(os.path.join(mydir,'vicesindaco'))
         del os.environ['AQUA_CONFIG']
 
+        assert not os.path.exists(os.path.join(mydir,'.aqua'))
+
     # base set of tests
-    def test_console_list(self, tmpdir, set_home, capfd):
+    def test_console_list(self, tmpdir, set_home, capfd, run_aqua_console_with_input):
 
         # getting fixture
         mydir = str(tmpdir)
@@ -238,6 +257,28 @@ class TestAquaConsole():
         out, _ = capfd.readouterr()
         assert 'AQUA current installed catalogs in' in out
         assert 'ci' in out
+
+        # uninstall everything again
+        run_aqua_console_with_input(['uninstall'], 'yes')
+        assert not os.path.exists(os.path.join(mydir,'.aqua'))
+
+    def test_console_without_home(self, delete_home, tmpdir, run_aqua_console_with_input):
+
+        # getting fixture
+        delete_home()
+        mydir = str(tmpdir)
+        
+        # check unexesting installation
+        with pytest.raises(SystemExit) as excinfo:
+            set_args(['install'])
+            AquaConsole()
+            assert excinfo.value.code == 0
+
+        # install from path without home
+        run_aqua_console_with_input(['-v', 'install', '-p', os.path.join(mydir, 'vicesindaco')], 'yes')
+        assert os.path.isdir(os.path.join(mydir, 'vicesindaco'))
+        assert os.path.isfile(os.path.join(mydir, 'vicesindaco', 'config-aqua.yaml'))
+        assert not os.path.exists(os.path.join(mydir,'.aqua'))
 
 
 # checks for query function

@@ -217,6 +217,7 @@ class AquaConsole():
                     os.symlink(f'{editable}/{file}', f'{self.configpath}/{file}')
             else:
                 self.logger.error('%s folder does not include AQUA configuration files. Please use AQUA/config', editable)
+                os.rmdir(self.configpath)
                 sys.exit()
         for directory in ['fixes', 'data_models', 'grids']:
             if not os.path.exists(os.path.join(self.configpath, directory)):
@@ -305,8 +306,7 @@ class AquaConsole():
                 else:
                     self.logger.error('Catalog %s does not appear to exist in %s', args.catalog, sdir)
             else:
-                self.logger.error("Catalog %s already installed in %s, please consider `aqua update`. "
-                                  "Which does not exist hahaha!",
+                self.logger.error("Catalog %s already installed in %s, please consider `aqua remove`.",
                                 args.catalog, cdir)
                 sys.exit()
 
