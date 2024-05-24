@@ -30,19 +30,19 @@ def parse_arguments():
 
     # List of the subparsers with actions
     # Corresponding to the different aqua commands available (see command map)
-    install_parser = subparsers.add_parser("install")
-    fixes_add_parser = subparsers.add_parser("fixes-add")
-    grids_add_parser = subparsers.add_parser("grids-add")
-    catalog_add_parser = subparsers.add_parser("add")
-    catalog_remove_parser = subparsers.add_parser("remove")
-    set_parser = subparsers.add_parser("set")
+    install_parser = subparsers.add_parser("install", description='Install AQUA configuration files')
+    fixes_add_parser = subparsers.add_parser("fixes-add", description='Add a fix file in the current AQUA installation')
+    grids_add_parser = subparsers.add_parser("grids-add", description='Add a grid file in the current AQUA installation')
+    catalog_add_parser = subparsers.add_parser("add", description='Add a catalog in the current AQUA installation')
+    catalog_remove_parser = subparsers.add_parser("remove", description='Remove a catalog in the current AQUA installation')
+    set_parser = subparsers.add_parser("set", description="Set an installed catalog as the predefined in config-aqua.yaml")
 
     # subparser with no arguments
-    subparsers.add_parser("uninstall")
-    subparsers.add_parser("list")
+    subparsers.add_parser("uninstall", description="Remove the current AQUA installation")
+    subparsers.add_parser("list", description="List the currently installed AQUA catalogs")
 
     install_parser.add_argument('-p', '--path', type=str,
-                help='Path where to install AQUA')
+                help='Path where to install AQUA. Default is $HOME/.aqua')
     install_parser.add_argument('-g', '--grids', type=str,
                 help='Path where to be usef for AQUA grids (NOT WORKING FOR NOW)')
     install_parser.add_argument('-e', '--editable', type=str,
