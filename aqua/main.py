@@ -145,14 +145,15 @@ class AquaConsole():
                 check = query_yes_no(f"Do you want to overwrite AQUA installation in {path}. "
                                         "You will lose all catalogs installed.", "no")
                 if not check:
-                    sys.exit(0)
+                    sys.exit()
                 else:
                     self.logger.warning('Removing the content of %s', path)
                     shutil.rmtree(path)
                     os.makedirs(path, exist_ok=True)
         else:
-            raise ValueError('$HOME not found.'
+            self.logger.error('$HOME not found.'
                             'Please specify a path where to install AQUA and define AQUA_CONFIG as environment variable')
+            sys.exit()
 
     def _install_path(self, path):
         """Define the AQUA installation folder when a path is specified"""
@@ -162,7 +163,8 @@ class AquaConsole():
             os.makedirs(path, exist_ok=True)
         else:
             if not os.path.isdir(path):
-                raise ValueError("Path chosen is not a directory")
+                self.logger.error("Path chosen is not a directory")
+                sys.exit()
 
         check = query_yes_no(f"Do you want to create a link in the $HOME/.aqua to {path}", "yes")
         if check:
@@ -215,7 +217,7 @@ class AquaConsole():
                     os.symlink(f'{editable}/{file}', f'{self.configpath}/{file}')
             else:
                 self.logger.error('%s folder does not include AQUA configuration files. Please use AQUA/config', editable)
-                sys.exit(1)
+                sys.exit()
         for directory in ['fixes', 'data_models', 'grids']:
             if not os.path.exists(os.path.join(self.configpath, directory)):
                 self.logger.info('Linking from %s to %s',
@@ -261,7 +263,7 @@ class AquaConsole():
 
         if not os.path.exists(file):
             self.logger.error('%s is not a valid file!', file)
-            return
+            sys.exit()
         file = os.path.abspath(file)
         self._check()
         basefile = os.path.basename(file)
@@ -275,6 +277,7 @@ class AquaConsole():
                 shutil.copy(file, pathfile)
         else:
             self.logger.error('%s for file %s already installed, or a file with the same name exists', kind, file)
+            sys.exit()
 
     def add(self, args):
         """Add a catalog"""
@@ -289,10 +292,12 @@ class AquaConsole():
                 if os.path.exists(cdir):
                     self.logger.error('Catalog %s already installed in %s, please consider `aqua remove`',
                                       args.catalog, cdir)
+                    sys.exit()
                 else:
                     os.symlink(editable, cdir)
             else:
                 self.logger.error('Catalog %s cannot be found in %s', args.catalog, editable)
+                sys.exit()
         else:
             if not os.path.exists(cdir):
                 if os.path.isdir(sdir):
@@ -303,6 +308,7 @@ class AquaConsole():
                 self.logger.error("Catalog %s already installed in %s, please consider `aqua update`. "
                                   "Which does not exist hahaha!",
                                 args.catalog, cdir)
+                sys.exit()
 
         # once we get rid of machine dependence, this can be removed    
         self.logger.info('Setting machine name to %s', args.catalog)
@@ -323,6 +329,7 @@ class AquaConsole():
         else:
             self.logger.error('Catalog %s is not installed in %s, cannot remove it',
                               args.catalog, cdir)
+            sys.exit()
             
     def _check(self):
         """check installation"""

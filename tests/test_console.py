@@ -82,14 +82,18 @@ class TestAquaConsole():
 
         # add catalog again and error
         set_args(['-v', 'add', 'ci'])
-        AquaConsole()
+        # check unexesting installation
+        with pytest.raises(SystemExit) as excinfo:
+            AquaConsole()
+            assert excinfo.value.code == 0
         assert os.path.exists(os.path.join(mydir,'.aqua/machines/ci'))
-
 
         # remove non-existing catalog
         os.makedirs(os.path.join(mydir,'.aqua/machines/ci'), exist_ok=True)
         set_args(['remove', 'pippo'])
-        AquaConsole()
+        with pytest.raises(SystemExit) as excinfo:
+            AquaConsole()
+            assert excinfo.value.code == 0
 
         # remove existing catalog
         set_args(['remove', 'ci'])
@@ -175,10 +179,11 @@ class TestAquaConsole():
         delete_home()
         mydir = str(tmpdir)
         
-        # raise install without home
-        with pytest.raises(ValueError):
+        # check unexesting installation
+        with pytest.raises(SystemExit) as excinfo:
             set_args(['install'])
             AquaConsole()
+            assert excinfo.value.code == 0
 
         # install from path without home
         run_aqua_console_with_input(['-v', 'install', '-p', os.path.join(mydir, 'vicesindaco')], 'yes')
