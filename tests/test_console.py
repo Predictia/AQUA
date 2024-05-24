@@ -3,7 +3,7 @@ import shutil
 import sys
 import pytest
 from aqua.main import AquaConsole, query_yes_no
-from aqua.util import dump_yaml
+from aqua.util import dump_yaml, load_yaml
 
 testfile = 'testfile.txt'
 
@@ -64,25 +64,27 @@ class TestAquaConsole():
         # aqua install
         set_args(['install'])
         AquaConsole()
-        assert os.path.exists(os.path.join(mydir,'.aqua'))
+        assert os.path.isdir(os.path.join(mydir,'.aqua'))
+        assert os.path.isfile(os.path.join(mydir,'.aqua', 'config-aqua.yaml'))
 
         # do it twice!
         run_aqua_console_with_input(['-vv', 'install'], 'yes')
         assert os.path.exists(os.path.join(mydir,'.aqua'))
+        for folder in ['fixes', 'data_models', 'grids']:
+            assert os.path.isdir(os.path.join(mydir,'.aqua', folder))
 
         # add catalog
         set_args(['add', 'ci'])
         AquaConsole()
-        assert os.path.exists(os.path.join(mydir,'.aqua/machines/ci'))
+        assert os.path.isdir(os.path.join(mydir,'.aqua/machines/ci'))
+        config_file = load_yaml(os.path.join(mydir,'.aqua', 'config-aqua.yaml'))
+        assert config_file['machine'] == 'ci'
 
         # add catalog again and error
         set_args(['-v', 'add', 'ci'])
         AquaConsole()
         assert os.path.exists(os.path.join(mydir,'.aqua/machines/ci'))
 
-        # run the list
-        set_args(['list'])
-        AquaConsole()
 
         # remove non-existing catalog
         os.makedirs(os.path.join(mydir,'.aqua/machines/ci'), exist_ok=True)
@@ -93,11 +95,12 @@ class TestAquaConsole():
         set_args(['remove', 'ci'])
         AquaConsole()
         assert not os.path.exists(os.path.join(mydir,'.aqua/machines/ci'))
+        assert os.path.exists(os.path.join(mydir,'.aqua'))
 
         # uninstall everything
         run_aqua_console_with_input(['uninstall'], 'yes')
         assert not os.path.exists(os.path.join(mydir,'.aqua'))
-
+        
     def test_console_advanced(self, tmpdir, set_home, run_aqua_console_with_input):
 
         # getting fixture
@@ -192,6 +195,25 @@ class TestAquaConsole():
         # uninstall everything again
         run_aqua_console_with_input(['uninstall'], 'yes')
         assert not os.path.exists(os.path.join(mydir,'.aqua'))
+
+    # base set of tests
+    def test_console_list(self, tmpdir, set_home, capfd):
+
+        # getting fixture
+        mydir = str(tmpdir)
+        set_home(mydir)
+
+        # aqua install
+        set_args(['install'])
+        AquaConsole()
+        set_args(['add', 'ci'])
+        AquaConsole()
+        set_args(['list'])
+        AquaConsole()
+
+        out, _ = capfd.readouterr()
+        assert 'AQUA current installed catalogs in' in out
+        assert 'ci' in out
 
 
 # checks for query function

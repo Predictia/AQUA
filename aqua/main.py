@@ -283,8 +283,7 @@ class AquaConsole():
             print('Installing catalog in editable mode from', editable, 'to', self.configpath)
             if os.path.exists(editable):
                 if os.path.exists(cdir):
-                    self.logger.error('Catalog %s already installed in %s, please consider `aqua update`. '
-                                      "Which does not exist hahaha!",
+                    self.logger.error('Catalog %s already installed in %s, please consider `aqua remove`',
                                       args.catalog, cdir)
                 else:
                     os.symlink(editable, cdir)
