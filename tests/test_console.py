@@ -102,6 +102,11 @@ class TestAquaConsole():
             AquaConsole()
             assert excinfo.value.code == 1
 
+        # update a catalog
+        set_args(['-v', 'update', 'ci'])
+        AquaConsole()
+        assert os.path.isdir(os.path.join(mydir,'.aqua/machines/ci'))
+
         # remove non-existing catalog
         os.makedirs(os.path.join(mydir,'.aqua/machines/ci'), exist_ok=True)
         set_args(['remove', 'pippo'])
@@ -153,6 +158,19 @@ class TestAquaConsole():
             AquaConsole()
             assert excinfo.value.code == 1
         assert os.path.exists(os.path.join(mydir,'.aqua/machines/ci'))
+
+        # error for update an editable catalog
+        set_args(['-v', 'update', 'ci'])
+        # check unexesting installation
+        with pytest.raises(SystemExit) as excinfo:
+            AquaConsole()
+            assert excinfo.value.code == 1
+
+        # error for update an missing catalog
+        set_args(['-v', 'update', 'antani'])
+        with pytest.raises(SystemExit) as excinfo:
+            AquaConsole()
+            assert excinfo.value.code == 1
 
         # add catalog again and error
         set_args(['-v', 'add', 'ci', '-e', 'config/machines/baciugo'])

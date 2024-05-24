@@ -34,6 +34,7 @@ def parse_arguments():
     fixes_add_parser = subparsers.add_parser("fixes-add", description='Add a fix file in the current AQUA installation')
     grids_add_parser = subparsers.add_parser("grids-add", description='Add a grid file in the current AQUA installation')
     catalog_add_parser = subparsers.add_parser("add", description='Add a catalog in the current AQUA installation')
+    catalog_update_parser = subparsers.add_parser("update", description='Update a catalog in the current AQUA installation')
     catalog_remove_parser = subparsers.add_parser("remove", description='Remove a catalog in the current AQUA installation')
     set_parser = subparsers.add_parser("set", description="Set an installed catalog as the predefined in config-aqua.yaml")
     list_parser = subparsers.add_parser("list", description="List the currently installed AQUA catalogs")
@@ -67,8 +68,9 @@ def parse_arguments():
     catalog_remove_parser.add_argument("catalog", metavar="CATALOG",
                                     help="Catalog to be removed")
     
-    set_parser.add_argument("catalog", metavar="CATALOG",
-                                    help="Catalog to be used in AQUA")
+    set_parser.add_argument("catalog", metavar="CATALOG", help="Catalog to be used in AQUA")
+    
+    catalog_update_parser.add_argument("catalog", metavar="CATALOG", help="Catalog to be updated")
     
     list_parser.add_argument("-a", "--all", action="store_true",
                                     help="Print also all the installed fixes, grids and data_models")
@@ -108,7 +110,8 @@ class AquaConsole():
             'remove': self.remove,
             'set': self.set,
             'uninstall': self.uninstall,
-            'list': self.list
+            'list': self.list,
+            'update': self.update
         }
 
         command = args.command
@@ -327,34 +330,55 @@ class AquaConsole():
 
 
     def _add_catalog_editable(self, catalog, editable):
-            """Add a catalog in editable mode (i.e. link)"""
-            
-            cdir = f'{self.configpath}/machines/{catalog}'
-            editable = os.path.abspath(editable)
-            print('Installing catalog in editable mode from', editable, 'to', self.configpath)
-            if os.path.exists(editable):
-                if os.path.exists(cdir):
-                    self.logger.error('Catalog %s already installed in %s, please consider `aqua remove`',
-                                      catalog, cdir)
-                    sys.exit(1)
-                else:
-                    os.symlink(editable, cdir)
-            else:
-                self.logger.error('Catalog %s cannot be found in %s', catalog, editable)
+        """Add a catalog in editable mode (i.e. link)"""
+        
+        cdir = f'{self.configpath}/machines/{catalog}'
+        editable = os.path.abspath(editable)
+        print('Installing catalog in editable mode from', editable, 'to', self.configpath)
+        if os.path.exists(editable):
+            if os.path.exists(cdir):
+                self.logger.error('Catalog %s already installed in %s, please consider `aqua remove`',
+                                    catalog, cdir)
                 sys.exit(1)
+            else:
+                os.symlink(editable, cdir)
+        else:
+            self.logger.error('Catalog %s cannot be found in %s', catalog, editable)
+            sys.exit(1)
 
     def _add_catalog_default(self, catalog):
-            cdir = f'{self.configpath}/machines/{catalog}'
-            sdir = f'{self.aquapath}/machines/{catalog}'
-            if not os.path.exists(cdir):
-                if os.path.isdir(sdir):
-                    shutil.copytree(f'{self.aquapath}/machines/{catalog}', cdir)
-                else:
-                    self.logger.error('Catalog %s does not appear to exist in %s', catalog, sdir)
+        """Add a catalog in default mode"""
+
+        cdir = f'{self.configpath}/machines/{catalog}'
+        sdir = f'{self.aquapath}/machines/{catalog}'
+        if not os.path.exists(cdir):
+            if os.path.isdir(sdir):
+                shutil.copytree(sdir, cdir)
             else:
-                self.logger.error("Catalog %s already installed in %s, please consider `aqua remove`.",
-                                catalog, cdir)
+                self.logger.error('Catalog %s does not appear to exist in %s', catalog, sdir)
+        else:
+            self.logger.error("Catalog %s already installed in %s, please consider `aqua update`.",
+                            catalog, cdir)
+            sys.exit(1)
+
+    def update(self, args):
+        """Update an existing catalog by copying it if not installed in editable mode"""
+        
+        self._check()
+        cdir = f'{self.configpath}/machines/{args.catalog}'
+        sdir = f'{self.aquapath}/machines/{args.catalog}'
+        if os.path.exists(cdir):
+            if os.path.islink(cdir):
+                self.logger.error('%s catalog has been installed in editable mode, no need to update', args.catalog)
                 sys.exit(1)
+            else:
+                self.logger.info('Removing %s from %s', args.catalog, sdir)
+                shutil.rmtree(cdir)
+                self.logger.info('Copying %s from %s', args.catalog, sdir)
+                shutil.copytree(sdir, cdir)
+        else:
+            self.logger.error('%s does not appear to be installed, please consider `aqua add`', args.catalog)
+            sys.exit(1)
 
     def _set_catalog(self, catalog):
         """Modify the config-aqua.yaml with the proper catalog"""
