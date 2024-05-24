@@ -356,6 +356,7 @@ class AquaConsole():
                 shutil.copytree(sdir, cdir)
             else:
                 self.logger.error('Catalog %s does not appear to exist in %s', catalog, sdir)
+                self.logger.error('Available catalogs are: %s', os.listdir(f'{self.aquapath}/machines'))
         else:
             self.logger.error("Catalog %s already installed in %s, please consider `aqua update`.",
                             catalog, cdir)
