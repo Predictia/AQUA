@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #SBATCH -A project_465000454
-#SBATCH --cpus-per-task=128
-#SBATCH -n 2
+#SBATCH --cpus-per-task=1
+#SBATCH -n q
 #SBATCH -t 00:30:00 #change the wallclock
 #SBATCH -J aqua_jupyter
 #SBATCH --output=output_%j.out
@@ -14,7 +14,6 @@ AQUA_container=/project/project_465000454/containers/aqua/aqua-v0.8.1.sif
 FDB5_CONFIG_FILE=/scratch/project_465000454/igonzalez/fdb-long/config.yaml
 GSV_WEIGHTS_PATH=/scratch/project_465000454/igonzalez/gsv_weights/
 GRID_DEFINITION_PATH=/scratch/project_465000454/igonzalez/grid_definitions
-cd $AQUA_path
 
 # singularity shell can be an option depending on the requirement
 singularity exec \

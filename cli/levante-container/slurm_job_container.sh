@@ -14,7 +14,7 @@ set -e
 AQUA_container="/work/bb1153/b382289/container/AQUA/aqua_v0.8.1.sif"
 
 module load singularity
-cd $AQUA
+
 singularity exec \
     --cleanenv \
     --env PYTHONPATH=/opt/conda/lib/python3.10/site-packages \
