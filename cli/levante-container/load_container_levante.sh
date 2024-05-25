@@ -12,7 +12,7 @@ else
     # Your subsequent commands here
 fi
 setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
-AQUA_container="/work/bb1153/b382289/container/AQUA/aqua_v0.8.1.sif"
+AQUA_container="/work/bb1153/b382289/container/AQUA/aqua_v0.8.2.sif"
 
 # Simple command line parsing
 user_defined_aqua="ask"
@@ -76,4 +76,6 @@ singularity $cmd \
     --env PYTHONPATH=$AQUA \
     --env AQUA=$AQUA \
     --bind /work/bb1153 \
+    --bind /pool/data/ICDC/atmosphere/ceres_ebaf/ \
     $AQUA_container $script
+
