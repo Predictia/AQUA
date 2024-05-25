@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
+- CLI script for automatic multiple experiment analysis submission (#1160)
 
 ## [v0.8.2]
 
