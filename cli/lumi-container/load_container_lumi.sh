@@ -27,6 +27,7 @@ while [ $# -gt 0 ] ; do
         case $1 in
                 -y) user_defined_aqua="y" ; shift 1 ;;
                 -n) user_defined_aqua="n" ; shift 1 ;;
+                -e) cmd="exec"; script="bash $2" ; shift 2 ;;
                 -c) cmd="exec"; script=$2 ; shift 2 ;;
                 -h) help=1 ; shift 1 ;;
                 *) shift 1 ;;
@@ -40,7 +41,8 @@ Loads the AQUA container in LUMI or runs a script in the container
 Options:
     -y          use the AQUA variable from your current machine
     -n          use the AQUA variable from the container
-    -c SCRIPT   run a script in the container
+    -e SCRIPT   execute a script in the container
+    -c CMD      run a command in the container
     -h          show this help message 
 END
     exit 0
