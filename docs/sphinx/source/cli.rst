@@ -97,7 +97,8 @@ AQUA figures produced by the analysis can be uploaded to the [aqua-web](https://
 repository to publish them automatically on a dedicated website. The same site is used to host the documentation.
 Two scripts in the ``cli/aqua-web`` folder are available to push figures or documentation to aqua-web.
 
-Basic usage:
+Basic usage
+^^^^^^^^^^^
 
 .. code-block:: bash
 
@@ -111,6 +112,7 @@ Basic usage:
 
 The user running the script must have the right to push to the aqua-web repository and must have
 set up the ssh keys to access the repository.
+
 
 .. _submit-aqua-web:
 
@@ -154,40 +156,52 @@ experiment specified in the configuration file. in the list.
 
 Adding the `-p`or `--push` flag will push the results to the AQUA Explorer.
 
-Options:
+Options
 ^^^^^^^
 
 .. option:: -c <config>, --config <config>
+
     The configuration file to use. Default is `config.aqua-web.yaml`.
 
 .. option:: -m <model>, --model <model>
+
     Specify a single model to be processed (alternative to specifying the experiment list).
 
 .. option:: -e <exp>, --exp <exp>
+
     Experiment to be processed.
 
 .. option:: -s <source>, --source <source>
+
     Source to be processed.
 
 .. option:: -r, --serial
+
     Run in serial mode (only one core). This is passed to the `aqua-analysis.sh` script.
 
 .. option:: -x <max>, --max <max>
+
     Maximum number of jobs to submit without dependency.
 
 .. option:: -t <template>, --template <template>
+
     Template jinja file for slurm job. Default is `aqua-web.job.j2`
 
 .. option:: -d, --dry
+
     Perform a dry run for debugging (no job submission). Sets also `loglevel`` to 'debug'.
 
 .. option:: -l <loglevel>, --loglevel <loglevel>
+
     Logging level.
 
 .. option:: -p, --push
+    
     Flag to push to aqua-web. This uses the `make_push_figures.py` script.
 
+
 .. _fdb-catalog-generator:
+
 Catalog entry generator for FDB sources
 ---------------------------------------
 
