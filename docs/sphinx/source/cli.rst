@@ -108,10 +108,12 @@ Basic usage
     # to collect the figures from a directory $INDIR  figures to aqua-web
     INDIR=/path/to/figures_root
     MODELEXP=IFS-NEMO/historical-1990 # the subfolder of INDIR where the figures are stored (also model/exp pair for aqua-web)
-    ./make_push_figures.py $INDIR IFS-NEMO/historical-1990 # to collect the figures and push them to aqua-web
+    
+    python ./make_push_figures.py $INDIR $MODELEXP # to collect the figures and push them to aqua-web
 
 The user running the script must have the right to push to the aqua-web repository and must have
-set up the ssh keys to access the repository.
+set up the ssh keys to access the repository. Instead of a MODEL/EXPERIMENT pair, it is possible to specify
+an experiment list in a text file, in the same format as the one used by the `submit-aqua-web <#submit-aqua-web>`_ script.
 
 
 .. _submit-aqua-web:
