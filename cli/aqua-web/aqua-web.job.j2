@@ -13,17 +13,13 @@ model={{ model }}
 exp={{ exp }}
 source={{ source }}
 
-export OUTDIR={{ outdir }}
 export AQUA={{ aquadir }}
+export OUTDIR={{ outdir }}
 
 cd $OUTDIR
 
-$AQUA/cli/{{ machine }}-container/load_container_{{ machine }}.sh -n << EOF
-
 if [[ "{{ push }}" == "false" ]]; then
-    bash \$AQUA/cli/aqua-analysis/aqua-analysis.sh -l debug -a $model -o $model -e $exp -s $source -d $OUTDIR {{ parallel }}
+    bash $AQUA/cli/aqua-analysis/aqua-analysis.sh -l debug -a $model -o $model -e $exp -s $source -d $OUTDIR {{ parallel }}
 else
-    bash \$AQUA/cli/aqua-web/push_analysis.sh $OUTDIR {{ explist }}
+    bash $AQUA/cli/aqua-web/push_analysis.sh $OUTDIR {{ explist }}
 fi
-
-EOF

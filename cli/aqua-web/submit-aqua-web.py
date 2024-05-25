@@ -120,7 +120,7 @@ class Submitter():
         self.logger.debug("sbatch command: %s", sbatch_cmd)
 
         if not self.dryrun and self.is_job_running(full_job_name, username):
-            self.logger.info('The job is %s is already running, will not resubmit', full_job_name)
+            self.logger.info('The job %s is already running, will not resubmit', full_job_name)
             return '0'
 
         if not self.dryrun:
