@@ -17,7 +17,7 @@ FDB5_CONFIG_FILE="/scratch/project_465000454/igonzalez/fdb-long/config.yaml"
 GSV_WEIGHTS_PATH="/scratch/project_465000454/igonzalez/gsv_weights/"
 GRID_DEFINITION_PATH="/scratch/project_465000454/igonzalez/grid_definitions"
 
-# Simple ommand line parsing
+# Simple command line parsing
 user_defined_aqua="ask"
 script=""
 cmd="shell"
