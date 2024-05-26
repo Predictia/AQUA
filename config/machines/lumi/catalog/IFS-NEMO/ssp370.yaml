@@ -61,6 +61,7 @@ sources:
     description: hourly 2D atmospheric data on healpix grid (zoom=7, h128).
     args:
       <<: *args-default
+      bridge_end_date: 20310326T0000
       request:
         <<: *request-default
         resolution: standard
@@ -75,6 +76,7 @@ sources:
     description: hourly 3D atmospheric data on healpix grid (zoom=7, h128).
     args:
       <<: *args-default
+      bridge_end_date: 20310326T0000
       chunks: 6h
       request:
         <<: *request-default
@@ -97,7 +99,7 @@ sources:
     description: hourly 2D atmospheric data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      bridge_end_date: 20290909T0000
+      bridge_end_date: 20310326T0000
       request:
         <<: *request-default
         resolution: high
@@ -114,6 +116,7 @@ sources:
     description: hourly 3D atmospheric data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
+      bridge_end_date: 20310326T0000
       chunks:
         time: 6h
         vertical: 10
@@ -301,6 +304,7 @@ sources:
     description: daily 2D oceanic data on healpix grid (zoom=7, h128).
     args:
       <<: *args-default
+      bridge_end_date: 20310326T0000
       chunks: MS
       savefreq: D
       request:
@@ -321,6 +325,7 @@ sources:
     description: daily 2D oceanic data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
+      bridge_end_date: 20310326T0000
       chunks: MS
       savefreq: D
       request:
@@ -343,6 +348,7 @@ sources:
     description: daily 3D oceanic data on healpix grid (zoom=7, h128).
     args:
       <<: *args-default
+      bridge_end_date: 20310326T0000
       chunks: D
       savefreq: D
       request:
@@ -385,6 +391,7 @@ sources:
     description: daily 3D oceanic data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
+      bridge_end_date: 20310326T0000
       chunks:
         time: D
         vertical: 5
