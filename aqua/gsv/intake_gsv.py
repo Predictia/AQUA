@@ -166,9 +166,8 @@ class GSVSource(base.DataSource):
         if self.bridge_end_date and not self.fdbpath_bridge and not self.fdbhome_bridge:
             raise ValueError('Bridge end date requested but FDB path not specified in catalogue.')
 
-
-
-        if not self.bridge_end_date or (self.bridge_end_date and
+        if self.bridge_end_date == "complete" or not self.bridge_end_date or (
+                self.bridge_end_date and
                 todatetime(self.bridge_end_date) > todatetime(self.enddate) or 
                 todatetime(self.startdate) >= todatetime(self.bridge_end_date)
             ):
@@ -179,7 +178,9 @@ class GSVSource(base.DataSource):
                                                             shiftmonth=self.timeshift, timestep=timestep,
                                                             savefreq=savefreq, chunkfreq=chunking_time)
             self._npartitions = len(self.chk_start_date)
-            if not self.bridge_end_date or (todatetime(self.startdate) >= todatetime(self.bridge_end_date)):
+            if self.bridge_end_date != "complete" and (
+                    not self.bridge_end_date or (todatetime(self.startdate) >= todatetime(self.bridge_end_date))
+            ):
                 self.chk_type = np.zeros(self._npartitions)  # mark as hpc fdb chunks
             else:
                 self.chk_type = np.ones(self._npartitions)   # mark as bridge chunks
