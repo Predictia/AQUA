@@ -87,10 +87,7 @@ class MainClass:
         self.path_to_netcdf = self.tools.get_netcdf_path() if path_to_netcdf is None else path_to_netcdf
         self.path_to_pdf = self.tools.get_pdf_path() if path_to_pdf is None else path_to_pdf
 
-        if width_of_bin is None:
-            self.width_of_bin = self.precipitation_rate_units_converter(0.05, old_unit='mm/day', new_unit=self.new_unit)
-        else:
-            self.width_of_bin = width_of_bin
+        self.width_of_bin = width_of_bin
 
     def class_attributes_update(self, trop_lat: Union[float, None] = None, s_time: Union[str, int, None] = None,
                                 f_time: Union[str, int, None] = None, s_year: Union[int, None] = None,
@@ -1368,6 +1365,7 @@ class MainClass:
 
     def plot_of_average(self, data: xr.Dataset = None, ymax: int = 12, fontsize: int = None, pad: int = 15, save: bool = True,
                         trop_lat: float = None, get_mean: bool = True, get_median: bool = False, legend: str = '_Hidden',
+                        projection: bool = False,
                         figsize: int = None, linestyle: str = None, maxticknum: int = 12, color: str = 'tab:blue',
                         model_variable: str = None, ylogscale: bool = False, xlogscale: bool = False, loc: str = 'upper right',
                         add: figure.Figure = None, fig: figure.Figure = None, plot_title: str = None,
@@ -1450,6 +1448,7 @@ class MainClass:
         return self.plots.plot_of_average(data=data, trop_lat=self.trop_lat, ylabel=ylabel, coord=coord, fontsize=fontsize,
                                           pad=pad, y_lim_max=y_lim_max, legend=legend, figsize=figsize, linestyle=linestyle,
                                           maxticknum=maxticknum, color=color, ylogscale=ylogscale, xlogscale=xlogscale,
+                                          projection=projection,
                                           loc=loc, add=add, fig=fig, plot_title=plot_title, path_to_pdf=path_to_pdf,
                                           save=save, pdf_format=pdf_format)
 

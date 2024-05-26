@@ -8,6 +8,12 @@ Advanced Topics
 Adding a new machine
 --------------------
 
+.. warning::
+
+    The machine depencency in configuration files will be removed in the next release.
+    If you want to add a new machine, please follow the instructions below, but be aware
+    of the changes we are introducing in the section :ref:`aqua-console`.
+
 Change the machine name
 ^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -184,107 +190,214 @@ the regridder is still able to deal with this situation using the information in
 Slurm utilities
 ---------------
 
-The aqua.slurm module is based on the `dask_jobqueue package <https://jobqueue.dask.org/en/latest/>`_.
-The Dask-jobqueue makes it easy to run Dask on job-queuing systems in high-performance supercomputers.
+The ``aqua.slurm`` module is based on the ``dask_jobqueue`` `package <https://jobqueue.dask.org/en/latest/>`_.
+This package makes easy to run Dask on job-queuing systems in HPC environments.
 It has a simple interface accessible from interactive systems like Jupyter Notebooks or batch Jobs.
 
 The Slurm Class
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^
 
-The aqua.slurm module contains the ``slurm`` class, which allows us to create and operate the dask-jobs.
-The ``slurm`` class has the following main functions:
+The ``aqua.slurm`` module contains several functions that allow us to create and operate Dask jobs:
 
-- ``squeue``: allows us to check the status of created Jobs in the queue,
-- ``job``: allows the creation and submission of the Job to a selected queue,
-- ``scancel``: allows to cancel of all submitted Jobs or only Job with specified Job_ID.
+- ``squeue``: Allows us to check the status of created jobs in the queue.
+- ``job``: Allows the creation and submission of a job to a selected queue.
+- ``scancel``: Allows the cancellation of all submitted jobs or only a job with a specified Job_ID.
 
 
-The dask-job initialization 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Dask-Job Initialization
+^^^^^^^^^^^^^^^^^^^^^^^
 
-The job can be launched to the queue with the following command in a Notebook cell:
-
-.. code-block:: python
-
-	slurm.job()
- 
-
-The default arguments of ``slurm.job()`` function on Levante
-(``machine=Levante`` in configdir) are the followings:
+The ``job()`` function can be used to launch a job to the queue directly from a notebook cell.
+This function leverages the ``dask_jobqueue.SLURMCluster`` for initializing and managing Dask jobs on SLURM-managed clusters.
 
 .. code-block:: python
 
-	account = "bb1153"
-	queue = "compute"
-	cores=1
-	memory="10 GB"
-	path_to_output="."
-	exclusive=False
+    slurm.job(machine_name='lumi')
 
-The default arguments of ``slurm.job()`` function,
-i.e., account and queue names, are different for Lumi (``machine=Lumi`` in configdir):
 
-.. code-block:: python
+Submitting Jobs on Different Machines
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-	account = "project_465000454"
-	queue = "small"
+The ``job()`` function provides a flexible and efficient way to submit jobs to SLURM-managed clusters on different machines.
+Users can specify machine-specific configurations through a YAML configuration file (``.aqua/aqua/slurm/config-slurm.yml``) or provide parameters directly through the function call.
 
-The function ``slurm.job()`` has an argument ``exclusive=False`` by default.
-Exclusive argument ``exclusive=True`` is reserving an entire node for the Job.
+The ``job()`` function allows users to either use predefined settings from a YAML file for known machines or manually input job parameters for machines without predefined settings. 
+Here's how to use the function for different scenarios:
 
-If you would like to reserve a node on a different queue,
-specify the queue's name as an argument of the function:
+
+Submit a Job Using Predefined Configurations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the machine has predefined settings in the YAML configuration file, simply specify the machine's name:
 
 .. code-block:: python
 
-	slurm.job(queue="gpu")
+    slurm.job(machine_name='lumi')
 
+This method pulls all necessary parameters like memory, cores, and walltime from the YAML file associated with the specified machine name.
+
+.. note::
+
+    The available machines are Lumi, Levante, Atos (HPC2020) and Mafalda.
+    Please be aware that the user or project fields may be specific of the Destination Earth project and may need to be changed.
+
+Submit a Job with Maximum Available Resources per Node
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To utilize the maximum available resources per node for the selected queue, set ``max_resources_per_node=True``:
+
+.. code-block:: python
+
+    slurm.job(machine_name='lumi', max_resources_per_node=True)
+
+
+Change default attributes
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If a machine is defined then default arguments are used for a simple call of the ``slurm.job()`` function.
+On Lumi for example they are as follows:
+
+.. code-block:: yaml
+
+    machines:
+      lumi:
+        queue: 'small'
+        account: 'project_465000454'
+        walltime: '02:30:00'
+        memory: '10 GB'
+        cores: 1
+        jobs: 1
+        loglevel: 'WARNING'
+        path_to_output: '.'
+
+.. note::
+
+    The ``slurm.job()`` function has an argument ``exclusive=False`` by default.
+    Setting ``exclusive=True`` reserves an entire node for the job.
+
+If you would like to reserve a node on a different queue, specify the queue's name as an argument of the function:
+
+.. code-block:: python
+
+    slurm.job(machine_name='lumi', queue="small")
 
 .. warning::
 
-        The exclusive argument **does not** automatically provide us the maximum available memory,
-        number of cores, and walltime.
+    The `exclusive` argument **does not** automatically provide the maximum available memory, number of cores, and walltime.
+    Anyway for some machines you will be billed for the entire node every time you ask exclusive access to it.
 
-The function ``slurm.job()`` has an argument ``max_resources_per_node``, False by default.
-If we set the argument to ``max_resources_per_node=True``, the number of cores, memory,
-and walltime will equal the maximum available for the choosen node.
+The ``slurm.job()`` function has an argument ``max_resources_per_node``, which is ``False`` by default.
+Setting ``max_resources_per_node=True`` will allocate the maximum number of cores, memory, and walltime available for the chosen node.
 
-Path to the output
+
+Path to the Output
 ^^^^^^^^^^^^^^^^^^
 
-The function slurm.job() creates the folders for the job output.
-By default, the path is ``".""``. 
-Therefore, the paths for log and output are: 
+The ``slurm.job()`` function creates folders for the job output.
+By default, the path is ``"."``.
+Therefore, the paths for log and output are:
 
-- ``./slurm/logs`` for the errors,
-- ``./slurm/output/`` for the output.
+- ``./slurm/logs`` for errors,
+- ``./slurm/output/`` for output.
 
-Users can specify the different paths for the SLURM output:
-
-.. code-block:: python
-
-	slurm.job(path_to_output="/any/other/folder/")
-
-
-Cancel the dask-job
-^^^^^^^^^^^^^^^^^^^
-
-The user can cancel all submitted Jobs by
-
-.. code-block:: python
-	
-	slurm.scancel()
-
-If the user would like to cancel the specific Job, he needs to know the Job_ID of that Job. 
-The Job_ID can be found with the function slurm.squeue(),
-which returns the information about all user Slurm Jobs on the machine. 
-Then the user can cancel the particular Job as:
+Users can specify different paths for the SLURM output:
 
 .. code-block:: python
 
-	slurm.scancel(all=False, Job_ID=5000000)
+    slurm.job(machine_name='lumi', path_to_output="/any/other/folder/")
+
+
+Canceling the Dask Job
+^^^^^^^^^^^^^^^^^^^^^^
+
+The user can cancel all submitted jobs by:
+
+.. code-block:: python
+
+    slurm.scancel()
+
+If the user would like to cancel a specific job, they need to know the Job_ID of that job.
+The Job_ID can be found using the ``slurm.squeue()`` function, which returns information about all user SLURM jobs on the machine.
+Then, the user can cancel the particular job as:
+
+.. code-block:: python
+
+    slurm.scancel(all=False, Job_ID=5000000)
 
 .. warning::
 
-    It is potentially dangerous to cancel all your jobs,
-    always prefer to cancel jobs with the Job_ID
+It is potentially dangerous to cancel all your jobs. Always prefer to cancel jobs with the Job_ID.
+
+
+Modifying and Adding Machine Configurations in YAML
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To modify existing configurations or add new machines, edit the ``.aqua/aqua/slurm/config-slurm.yml`` file:
+
+1. Open the YAML file and locate the machines section.
+2. Modify or add entries for machines. For example, to add a new machine configuration:
+
+.. code-block:: yaml
+
+    machines:
+      mafalda:
+        queue: 'batch'
+        account: null
+        walltime: '02:30:00'
+        memory: '10 GB'
+        cores: 1
+        jobs: 1
+        loglevel: 'WARNING'
+        path_to_output: '.'
+
+.. note::
+
+    Currently, the pip installation does not copy the YAML configuration file to a user-accessible directory.
+    This functionality will be updated in the future to ensure easier modification of configurations by users.
+
+.. _dev-notes:
+
+Developer notes
+---------------
+
+The standard setup of AQUA is thought to be used in a conda environment by users who are not going to modify under version control the downloaded catalogues.
+For this reason we suggest to install the AQUA configuration files in the ``$HOME/.aqua``. 
+Anyway, this configuration could be not ideal if you're creating a new catalogue or modifying an existing one and you want to keep it under version control.
+For this reason the following steps are suggested to set up the AQUA package in a developer environment.
+
+Set up environment variables
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Since ``v0.8.2`` the AQUA package has an entry point script that can be used to copy the configuration files
+and the catalogue to an external directory (see :ref:`aqua-init` and :ref:`aqua-console`).
+
+By default the configuration files are stored in the ``$HOME/.aqua`` directory.
+Same for the catalogue, which is stored in the ``$HOME/.aqua/machines`` directory.
+This has been done to make the package more user-friendly, expecially when installing the package
+from a conda environment or from a pip package.
+
+A developer may want to keep the configuration files and the catalogues in a different directory,
+for this reason the ``aqua init`` command can be used to copy the configuration files and the catalogue
+to a different directory. For more information see the :ref:`aqua-init` section.
+
+If you're using a custom directory to store the configuration files and the catalogue it is recommended
+to set up an environment variable to specify the path to the AQUA package.
+This can be done by adding the following line to your `.bashrc` or `.bash_profile` file:
+
+.. code-block:: bash
+
+    export AQUA_CONFIG=/path/to/config_files
+
+This will make clear for the code where to find the AQUA catalogue and the configuration files.
+
+.. note::
+    It is temporalily possible to set the environment variable ``AQUA`` to specify the path of the source code,
+    so that the entire new aqua entry point can be superseeded by the old method.
+    This will be removed in the next release.
+
+Add new catalogues as developer
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you're adding a new catalogue or modifying an existing one it is recommended to use the old method to set up the AQUA package
+or to add the catalogue with the editable option.
+Please refer to the :ref:`aqua-add` section for more information.

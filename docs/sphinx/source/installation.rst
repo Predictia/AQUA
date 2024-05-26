@@ -9,6 +9,11 @@ AQUA is developed and tested with Python 3.12 and it supports Python 3.9 and lat
 We recommend using Mamba, a package manager for conda-forge, for the installation process.
 However, you can also use Conda, the default package manager for Anaconda.
 
+.. note ::
+    Soon AQUA will be available on the PyPI repository, so you will be able to install it with pip.
+    The installation process will be updated accordingly.
+    Some dependencies are not available in the PyPI repository, so mamba or conda are recommended for the installation process.
+
 Prerequisites
 -------------
 
@@ -144,6 +149,6 @@ The AQUA container is a Docker container that contains the AQUA package and all 
 Please refer to the :ref:`container` section for more information on how to deploy and how to use the AQUA container.
 
 .. note ::
-    If you're working on LUMI HPC, a compact script is available to load the AQUA container,
+    If you're working on LUMI or Levante HPC, a compact script is available to load the AQUA container,
     mounting the necessary folders and creating the necessary environment variables.
     Please refer to the :ref:`container` section.
