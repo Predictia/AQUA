@@ -83,11 +83,8 @@ and it is possible to install extra catalogues not present in the AQUA release.
 .. option:: catalog
 
     The name of the catalogue to be added.
+    It can be also a path pointing to a specific folder where an AQUA compatible catalog can be found
     This is a mandatory field.
-
-.. warning::
-    At the moment only catalogues present in AQUA can be added without the editable mode.
-    This will change in the future, but for now the only way to add a custom catalogue is in the editable mode.
 
 .. option:: --editable, -e <path>
 
@@ -113,6 +110,10 @@ aqua update <catalogue>
 -----------------------
 
 This command will check if there is a new version of the catalogue available and update it.
+
+.. warning::
+
+    This will work smoothly only for default AQUA catalogs unless the full path is specified.
 
 .. _aqua-remove:
 

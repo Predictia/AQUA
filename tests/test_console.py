@@ -83,6 +83,20 @@ class TestAquaConsole():
             config_file = load_yaml(os.path.join(mydir,'.aqua', 'config-aqua.yaml'))
             assert config_file['machine'] == catalog
 
+        # add catalog from path
+        set_args(['add', 'config/machines/lumi'])
+        AquaConsole()
+        assert os.path.isdir(os.path.join(mydir,'.aqua/machines/lumi'))
+        config_file = load_yaml(os.path.join(mydir,'.aqua', 'config-aqua.yaml'))
+        assert config_file['machine'] == 'lumi'
+
+        # check unexesting installation
+        set_args(['add', 'config/ueeeeee/ci'])
+        with pytest.raises(SystemExit) as excinfo:
+            AquaConsole()
+            assert excinfo.value.code == 1
+
+
         # set catalog
         set_args(['set', 'ci'])
         AquaConsole()

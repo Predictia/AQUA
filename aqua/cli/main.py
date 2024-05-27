@@ -12,6 +12,7 @@ from aqua.logger import log_configure
 from aqua.util import ConfigPath
 from aqua.cli.parser import parse_arguments
 from aqua import __path__ as pypath
+from aqua import catalogue
 
 
 class AquaConsole():
@@ -304,7 +305,7 @@ class AquaConsole():
         else:
             self._add_catalog_default(args.catalog)
 
-        self._set_catalog(args.catalog)
+
 
     def _add_catalog_editable(self, catalog, editable):
         """Add a catalog in editable mode (i.e. link)"""
@@ -322,12 +323,27 @@ class AquaConsole():
         else:
             self.logger.error('Catalog %s cannot be found in %s', catalog, editable)
             sys.exit(1)
+    
+        self._set_catalog(catalog)
 
     def _add_catalog_default(self, catalog):
         """Add a catalog in default mode"""
 
+        # check if catalog is a path or a name
+        if '/' in catalog:
+            if os.path.exists(catalog):
+                sdir = catalog
+                catalog = os.path.basename(catalog)
+                self.logger.info('%s catalog is installed from disk from %s', catalog, sdir)
+            else:
+                self.logger.error('Cannot find %s catalog, is the path correct?', catalog)
+                sys.exit(1)
+        else:
+            sdir = f'{self.aquapath}/machines/{catalog}'
+
+        # define target
         cdir = f'{self.configpath}/machines/{catalog}'
-        sdir = f'{self.aquapath}/machines/{catalog}'
+
         if not os.path.exists(cdir):
             if os.path.isdir(sdir):
                 shutil.copytree(sdir, cdir)
@@ -339,6 +355,8 @@ class AquaConsole():
             self.logger.error("Catalog %s already installed in %s, please consider `aqua update`.",
                               catalog, cdir)
             sys.exit(1)
+
+        self._set_catalog(catalog)
 
     def update(self, args):
         """Update an existing catalog by copying it if not installed in editable mode"""
@@ -353,8 +371,9 @@ class AquaConsole():
             else:
                 self.logger.info('Removing %s from %s', args.catalog, sdir)
                 shutil.rmtree(cdir)
-                self.logger.info('Copying %s from %s', args.catalog, sdir)
-                shutil.copytree(sdir, cdir)
+                #self.logger.info('Copying %s from %s', args.catalog, sdir)
+                #shutil.copytree(sdir, cdir)
+                self._add_catalog_default(args.catalog)
         else:
             self.logger.error('%s does not appear to be installed, please consider `aqua add`', args.catalog)
             sys.exit(1)
