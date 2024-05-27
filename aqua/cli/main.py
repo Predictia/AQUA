@@ -13,6 +13,7 @@ from aqua.util import ConfigPath
 from aqua.cli.parser import parse_arguments
 from aqua import __path__ as pypath
 
+
 class AquaConsole():
     """Class for AquaConsole, the AQUA command line interface for
     installation, catalog, grids and fixes editing"""
@@ -46,12 +47,12 @@ class AquaConsole():
             'uninstall': self.uninstall,
             'list': self.list,
             'update': self.update,
-            'fixes':  {
-                'add':  self.fixes_add,
+            'fixes': {
+                'add': self.fixes_add,
                 'remove': self.remove_file
             },
-            'grids':  {
-                'add':  self.grids_add,
+            'grids': {
+                'add': self.grids_add,
                 'remove': self.remove_file
             }
         }
@@ -147,7 +148,7 @@ class AquaConsole():
                 os.symlink(path, link)
             else:
                 self.logger.error('$HOME not found. Cannot create a link to the installation path')
-                self.logger.warning('AQUA will be installed in %s, but please remember to define AQUA_CONFIG environment variable', path) # noqa
+                self.logger.warning('AQUA will be installed in %s, but please remember to define AQUA_CONFIG environment variable', path)  # noqa
         else:
             self.logger.warning('AQUA will be installed in %s, but please remember to define AQUA_CONFIG environment variable',
                                 path)
@@ -226,7 +227,7 @@ class AquaConsole():
 
         print('AQUA current installed catalogs in', cdir, ':')
         self._list_folder(cdir)
-        
+
         if args.all:
             contents = ['data_models', 'grids', 'fixes']
             for content in contents:
@@ -244,7 +245,6 @@ class AquaConsole():
                 print(f"\t - {file} (editable from {orig_path})")
             else:
                 print(f"\t - {file}")
-
 
     def fixes_add(self, args):
         """Add a fix file
@@ -303,20 +303,19 @@ class AquaConsole():
             self._add_catalog_editable(args.catalog, args.editable)
         else:
             self._add_catalog_default(args.catalog)
-        
-        self._set_catalog(args.catalog)
 
+        self._set_catalog(args.catalog)
 
     def _add_catalog_editable(self, catalog, editable):
         """Add a catalog in editable mode (i.e. link)"""
-        
+
         cdir = f'{self.configpath}/machines/{catalog}'
         editable = os.path.abspath(editable)
         print('Installing catalog in editable mode from', editable, 'to', self.configpath)
         if os.path.exists(editable):
             if os.path.exists(cdir):
                 self.logger.error('Catalog %s already installed in %s, please consider `aqua remove`',
-                                    catalog, cdir)
+                                  catalog, cdir)
                 sys.exit(1)
             else:
                 os.symlink(editable, cdir)
@@ -338,12 +337,12 @@ class AquaConsole():
                 sys.exit(1)
         else:
             self.logger.error("Catalog %s already installed in %s, please consider `aqua update`.",
-                            catalog, cdir)
+                              catalog, cdir)
             sys.exit(1)
 
     def update(self, args):
         """Update an existing catalog by copying it if not installed in editable mode"""
-        
+
         self._check()
         cdir = f'{self.configpath}/machines/{args.catalog}'
         sdir = f'{self.aquapath}/machines/{args.catalog}'
@@ -391,7 +390,6 @@ class AquaConsole():
             self.logger.error('Catalog %s is not installed in %s, cannot remove it',
                               args.catalog, cdir)
             sys.exit(1)
-
 
     def remove_file(self, args):
         """Add a personalized file to the fixes/grids folder

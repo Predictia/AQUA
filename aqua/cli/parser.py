@@ -8,6 +8,7 @@ AQUA command line parser
 import argparse
 from aqua import __version__ as version
 
+
 def parse_arguments():
     """Parse arguments for AQUA console"""
 
@@ -53,22 +54,23 @@ def parse_arguments():
 
     catalog_remove_parser.add_argument("catalog", metavar="CATALOG",
                                        help="Catalog to be removed")
-    
+
     set_parser.add_argument("catalog", metavar="CATALOG", help="Catalog to be used in AQUA")
-    
+
     catalog_update_parser.add_argument("catalog", metavar="CATALOG", help="Catalog to be updated")
-    
+
     list_parser.add_argument("-a", "--all", action="store_true",
-                                    help="Print also all the installed fixes, grids and data_models")
-    
+                             help="Print also all the installed fixes, grids and data_models")
+
     # create a dictionary to simplify the call
     parser_dict = {
         'main': parser,
         'fixes': parser_fixes,
         'grids': parser_grids
-        }
+    }
 
     return parser_dict
+
 
 def file_subparser(main_parser, name):
     """Compact subparsers for file handling - fixes and grids"""
@@ -76,7 +78,7 @@ def file_subparser(main_parser, name):
     # subparsers for fixes
     parser = main_parser.add_parser(name, help=f'{name} related commands')
     subparsers = parser.add_subparsers(dest='nested_command')
-    
+
     parser_add = subparsers.add_parser('add', help=f'Add a {name} file in the current AQUA installation')
     parser_add.add_argument('file', help=f'The {name} yaml file to add')
     parser_add.add_argument("-e", "--editable", action="store_true",
