@@ -37,12 +37,12 @@ Please refer to the :ref:`installation` section for more information.
 
 .. _initialization:
 
-Initialize the package
+Catalogue Installation
 ----------------------
 
-After the package has been installed, or the container has been loaded, the AQUA package needs to be initialized.
-This means to set up the configuration file and the catalogue.
-This needs to be done only once, unless catalogues are added or need to be updated/removed.
+After the package has been installed, or the container has been loaded, the AQUA catalogue needs to be set up.
+This means to set up the configuration file and the catalogue, with a copy or a link to the necessary files.
+This needs to be done only once, unless catalogues or fix and grid files are added or need to be updated/removed.
 
 .. note::
   A more complete description of the available commands can be found in the :ref:`aqua-console` section.
@@ -55,7 +55,7 @@ To set up the configuration folder, run the following command:
 
 .. code-block:: bash
 
-    aqua init
+    aqua install
 
 This command will create the configuration folder in the ``$HOME/.aqua`` directory and it will copy there the essential files.
 Check the :ref:`aqua-init` section for more information.
@@ -82,43 +82,6 @@ For example, to add the catalogue of the machine ``lumi``, run:
     aqua add lumi
 
 This command will copy the catalogue folder to the configuration folder.
-
-Set up the configuration file
------------------------------
-
-A configuration file is available to specify the parameters for the AQUA package.
-This is a YAML file called ``config-aqua.yaml`` and is located in the configuration folder.
-
-The configuration file is used to specify the following parameters:
-
-- **machine**: the machine on which the code is running. This is used to specify the
-  location of the AQUA catalogue and the location of the data. Default is ``lumi``.
-  Other options are ``ci`` and ``levante``. Custom machines can be defined (see :ref:`new-machine`).
-- **reader**: this block contains catalogue, fixes and grids location.
-  These paths are required to be inside the AQUA repository,
-  so these paths should not be changed unless strictly necessary.
-  Refer to :ref:`add-data` for more information.
-- **cdo**: location of the CDO executable. By default this option is not needed, since CDO is required in the ``environment.yml`` file
-  and provided by conda.
-
-The configuration folder has this structure:
-
-.. code-block:: text
-
-    ├── config
-    │   ├── data_models
-    │   ├── fixes
-    │   ├── grids
-    │   └── machines
-    │       ├── lumi
-    │       │   ├── catalog 
-    │       │   └── catalog.yaml
-    │       ├── levante
-    │       └── ...
-    ├── config-aqua.yaml
-
-.. note::
-  The machine depencency in files and folders will be removed in future versions of AQUA.
 
 Set up Jupyter kernel
 ---------------------
