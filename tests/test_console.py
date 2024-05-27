@@ -96,6 +96,11 @@ class TestAquaConsole():
             AquaConsole()
             assert excinfo.value.code == 1
 
+        # Install non-existing catalog
+        set_args(['add', 'config/fixes'])
+        with pytest.raises(SystemExit) as excinfo:
+            AquaConsole()
+            assert excinfo.value.code == 1
 
         # set catalog
         set_args(['set', 'ci'])

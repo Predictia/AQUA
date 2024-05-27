@@ -300,11 +300,21 @@ class AquaConsole():
         print('Adding the AQUA catalog', args.catalog)
         self._check()
 
+
         if args.editable is not None:
             self._add_catalog_editable(args.catalog, args.editable)
         else:
             self._add_catalog_default(args.catalog)
 
+        # verify that the new catalog is compatible with AQUA, loading it with catalogue()
+        try:
+            with HiddenPrints():
+                catalogue()
+        except Exception as e:
+            self.remove(args)
+            self.logger.error('Current catalog is not compatible with AQUA, removing it for safety!')
+            self.logger.error(e)
+            sys.exit(1)
 
 
     def _add_catalog_editable(self, catalog, editable):
@@ -398,6 +408,8 @@ class AquaConsole():
             args (argparse.Namespace): arguments from the command line
         """
         self._check()
+        if '/' in args.catalog:
+            args.catalog = os.path.basename(args.catalog)
         cdir = f'{self.configpath}/machines/{args.catalog}'
         print('Remove the AQUA catalog', args.catalog, 'from', cdir)
         if os.path.exists(cdir):
@@ -531,3 +543,13 @@ def query_yes_no(question, default="yes"):
             return valid[choice]
         else:
             print("Please respond with 'yes' or 'no' (or 'y' or 'n').")
+
+class HiddenPrints:
+    # from stackoverflow https://stackoverflow.com/questions/8391411/how-to-block-calls-to-print#:~:text=If%20you%20don't%20want,the%20top%20of%20the%20file.
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
