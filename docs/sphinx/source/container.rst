@@ -49,6 +49,9 @@ or analogue for Docker.
 Anyway, you may want to bind some folders to the container to access your data and scripts or
 to define some environment variables.
 
+Load container script
+^^^^^^^^^^^^^^^^^^^^^
+
 AQUA provides scripts to use the AQUA container (updated to the last release) with Singularity on LUMI and Levante.
 These contain also bindings to the commonly used folders on the machine but they can be easily adapted to other platforms.
 The scripts are located in the ``cli/lumi-container`` and ``cli/levante-container`` folders.
@@ -59,6 +62,29 @@ The scripts are (for LUMI, but same in the Levante folder):
 - **slurm_job_container.sh**: A template for a Slurm script to use the AQUA container on LUMI.
   This is useful to run batch jobs on LUMI using the AQUA container, but it can be easily adapted to
   any platform using Slurm. By default it opens a Jupyter Lab server on the computational node.
+
+The script can be called and will guide the user to load the container in an interactive way.
+Otherwise some options can be passed to the script to avoid the interactive mode, for example in a batch job.
+
+.. option:: -y
+
+   Load the container with the local version of AQUA found in the ``$AQUA`` environment variable.
+
+.. option:: -n
+
+   Load the container with the container version of AQUA.
+
+.. option:: -e <script>
+
+   Execute a script in the container after loading it.
+
+.. option:: -c <command>
+
+   Execute a command in the container after loading it.
+
+.. option:: -h
+   
+   Show the help message.
 
 .. _pat:
 
