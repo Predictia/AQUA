@@ -1,8 +1,10 @@
+"""Module for tests for AQUA cli"""
+
 import os
 import shutil
 import sys
 import pytest
-from aqua.main import AquaConsole, query_yes_no
+from aqua.cli.main import AquaConsole, query_yes_no
 from aqua.util import dump_yaml, load_yaml
 
 testfile = 'testfile.txt'
