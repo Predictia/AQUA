@@ -18,7 +18,7 @@ from aqua import __version__ as version
 def parse_arguments():
     """Parse arguments for AQUA console"""
 
-    parser = argparse.ArgumentParser(description='AQUA command line tool')
+    parser = argparse.ArgumentParser(prog='aqua', description='AQUA command line tool')
     subparsers = parser.add_subparsers(dest='command', help='Available AQUA commands')
 
     # Parser for the aqua main command
@@ -32,8 +32,8 @@ def parse_arguments():
     # List of the subparsers with actions
     # Corresponding to the different aqua commands available (see command map)
     install_parser = subparsers.add_parser("install", description='Install AQUA configuration files')
-    fixes_add_parser = subparsers.add_parser("fixes-add", description='Add a fix file in the current AQUA installation')
-    grids_add_parser = subparsers.add_parser("grids-add", description='Add a grid file in the current AQUA installation')
+    #fixes_add_parser = subparsers.add_parser("fixes-add", description='Add a fix file in the current AQUA installation')
+    #grids_add_parser = subparsers.add_parser("grids-add", description='Add a grid file in the current AQUA installation')
     catalog_add_parser = subparsers.add_parser("add", description='Add a catalog in the current AQUA installation')
     catalog_update_parser = subparsers.add_parser("update", description='Update a catalog in the current AQUA installation')
     catalog_remove_parser = subparsers.add_parser("remove", description='Remove a catalog in the current AQUA installation')
@@ -42,8 +42,30 @@ def parse_arguments():
 
     # subparser with no arguments
     subparsers.add_parser("uninstall", description="Remove the current AQUA installation")
-    
 
+    # subparsers for fixes
+    parser_fixes = subparsers.add_parser('fixes', help='Fixes related commands')
+    fixes_subparsers = parser_fixes.add_subparsers(dest='nested_command')
+    
+    parser_fixes_add = fixes_subparsers.add_parser('add', help='Add a fix in the current AQUA installation')
+    parser_fixes_add.add_argument('file', help='The fix yaml file to add')
+    parser_fixes_add.add_argument("-e", "--editable", action="store_true",
+                                  help="Add a fixes file in editable mode from the original path")
+    parser_fixes_remove = fixes_subparsers.add_parser('remove', help='Remove a fix file')
+    parser_fixes_remove.add_argument('file', help='The fix file to remove')
+
+    # subparsers for grids
+    parser_grids = subparsers.add_parser('grids', help='Grids related commands')
+    grids_subparsers = parser_grids.add_subparsers(dest='nested_command')
+    
+    parser_grids_add = grids_subparsers.add_parser('add', help='Add a grid in the current AQUA installation')
+    parser_grids_add.add_argument('file', help='The grid yaml file to add')
+    parser_grids_add.add_argument("-e", "--editable", action="store_true",
+                                  help="Add a grid file in editable mode from the original path")
+    parser_grids_remove = grids_subparsers.add_parser('remove', help='Remove a grid file')
+    parser_grids_remove.add_argument('file', help='The grid file to remove')
+
+    # extra parsers
     install_parser.add_argument('-p', '--path', type=str,
                                 help='Path where to install AQUA. Default is $HOME/.aqua')
     install_parser.add_argument('-g', '--grids', type=str,
@@ -51,20 +73,11 @@ def parse_arguments():
     install_parser.add_argument('-e', '--editable', type=str,
                                 help='Install AQUA in editable mode from the original source')
 
+    
     catalog_add_parser.add_argument("catalog", metavar="CATALOG",
                                     help="Catalog to be installed")
     catalog_add_parser.add_argument('-e', '--editable', type=str,
                                     help='Install a catalog in editable mode from the original source: provide the Path')
-
-    fixes_add_parser.add_argument("fixfile", metavar="fixfile",
-                                  help="Fix file to be added")
-    fixes_add_parser.add_argument("-e", "--editable", action="store_true",
-                                  help="Add a fixes file in editable mode from the original path")
-
-    grids_add_parser.add_argument("gridfile", metavar="gridfile",
-                                  help="Fix file to be added")
-    grids_add_parser.add_argument("-e", "--editable", action="store_true",
-                                  help="Add a grids file in editable mode from the original path")
 
     catalog_remove_parser.add_argument("catalog", metavar="CATALOG",
                                        help="Catalog to be removed")
@@ -113,15 +126,32 @@ class AquaConsole():
             'set': self.set,
             'uninstall': self.uninstall,
             'list': self.list,
-            'update': self.update
+            'update': self.update,
+            'fixes':  {
+                'add':  self.fixes_add,
+                'remove': self.remove_file
+            },
+            'grids':  {
+                'add':  self.grids_add,
+                'remove': self.remove_file
+            }
         }
 
         command = args.command
         method = command_map.get(command, parser.print_help)
         if command not in command_map:
             parser.print_help()
-        else:  # The command is in the command_map
-            method(args)
+        else: 
+            # nested map
+            if isinstance(command_map[command], dict):
+                print(args)
+                if args.nested_command:
+                    command_map[command][args.nested_command](args)
+                else:
+                    parser.print_help()
+            # default
+            else:
+                method(args)
 
     def install(self, args):
         """Install AQUA, find the folders and then install
@@ -278,7 +308,7 @@ class AquaConsole():
         print('AQUA current installed catalogs in', cdir, ':')
         self._list_folder(cdir)
         
-        if args.all: 
+        if args.all:
             contents = ['data_models', 'grids', 'fixes']
             for content in contents:
                 print(f'AQUA current installed {content} in {self.configpath}:')
@@ -303,9 +333,9 @@ class AquaConsole():
         Args:
             args (argparse.Namespace): arguments from the command line
         """
-        compatible = self._check_file(kind='fixes', file=args.fixfile)
+        compatible = self._check_file(kind='fixes', file=args.file)
         if compatible:
-            self._file_add(kind='fixes', file=args.fixfile, link=args.editable)
+            self._file_add(kind='fixes', file=args.file, link=args.editable)
 
     def grids_add(self, args):
         """Add a grid file
@@ -313,9 +343,9 @@ class AquaConsole():
         Args:
             args (argparse.Namespace): arguments from the command line
         """
-        compatible = self._check_file(kind='grids', file=args.gridfile)
+        compatible = self._check_file(kind='grids', file=args.file)
         if compatible:
-            self._file_add(kind='grids', file=args.gridfile, link=args.editable)
+            self._file_add(kind='grids', file=args.file, link=args.editable)
 
     def _file_add(self, kind, file, link=False):
         """Add a personalized file to the fixes/grids folder
@@ -440,6 +470,30 @@ class AquaConsole():
         else:
             self.logger.error('Catalog %s is not installed in %s, cannot remove it',
                               args.catalog, cdir)
+            sys.exit(1)
+
+
+    def remove_file(self, args):
+        """Add a personalized file to the fixes/grids folder
+
+        Args:
+            kind (str): the kind of file to be added, either 'fixes' or 'grids'
+            file (str): the file to be added
+        """
+
+        self._check()
+        kind = args.command
+        file = args.file
+        pathfile = f'{self.configpath}/{kind}/{file}'
+
+        if os.path.exists(pathfile):
+            if os.path.islink(pathfile):
+                os.unlink(pathfile)
+            else:
+                os.remove(pathfile)
+        else:
+            self.logger.error('%s file %s is not installed in AQUA, cannot remove it',
+                              kind, file)
             sys.exit(1)
 
     def _check(self):
