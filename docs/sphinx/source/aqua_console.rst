@@ -3,7 +3,7 @@
 Configuration and Catalogue manager
 ===================================
 
-Since v0.8.2 the possibility to manage where the configuration and catalogue files are stored has been added.
+Since ``v0.8.2`` the possibility to manage where the configuration and catalogue files are stored has been added.
 Here we give a brief overview of the features.
 If you are a developer, you may want to read the :ref:`dev-notes` section.
 
@@ -85,7 +85,7 @@ and it is possible to install a catalogue normally not present in the package.
 
 .. warning::
     At the moment only catalogues present in the package can be added without the editable mode.
-    This will change in the future, but for now the only way to add a new catalogue is in the editable mode.
+    This will change in the future, but for now the only way to add a custom catalogue is in the editable mode.
 
 .. option:: --editable, -e <path>
 
@@ -128,9 +128,52 @@ aqua uninstall
 This command removes the configuration and catalogue files from the installation folder.
 If the installation was done in editable mode, only the links will be removed.
 
+.. note::
+    If you need to reinstall aqua, the command ``aqua install`` will ask if you want to overwrite the existing files.
+
 .. _aqua-fixes:
 
 aqua fixes-add <fix-file>
 -------------------------
 
 This command adds a fix to the list of available fixes.
+It will copy the fix file to the destination folder, or create a symbolic link if the editable mode is used.
+This is useful if a new external fix is created and needs to be added to the list of available fixes.
+
+.. option:: <fix-file>
+
+    The path of the file to be added.
+    This is a mandatory field.
+
+.. option:: -e, --editable
+
+    It will create a symbolic link to the fix folder.
+
+.. _aqua-grids:
+
+aqua grids-add <grid-file>
+--------------------------
+
+This command adds a grid to the list of available grids.
+It will copy the grid file to the destination folder, or create a symbolic link if the editable mode is used.
+This is useful if a new external grid is created and needs to be added to the list of available grids.
+
+.. option:: <grid-file>
+
+    The path of the file to be added.
+    This is a mandatory field.
+
+.. option:: -e, --editable
+
+    It will create a symbolic link to the grid folder.
+
+.. _aqua-set:
+
+aqua set <catalogue>
+--------------------
+
+This command sets the default catalogue to be used.
+
+.. warning::
+    At the actual stage of development, the catalogue coincide with a machine.
+    This command is then setting the machine name to be used in the configuration file.
