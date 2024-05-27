@@ -111,10 +111,12 @@ Basic usage
     
     python ./make_push_figures.py $INDIR $MODELEXP # to collect the figures and push them to aqua-web
 
-The user running the script must have the right to push to the aqua-web repository and must have
-set up the ssh keys to access the repository. Instead of a MODEL/EXPERIMENT pair, it is possible to specify
-an experiment list in a text file, in the same format as the one used by the `submit-aqua-web <#submit-aqua-web>`_ script.
+Instead of a MODEL/EXPERIMENT pair, it is possible to specify
+an experiment list in a text file, in the same format as the one used by the :ref:`submit-aqua-web` script.
 
+.. note::
+    The user running the script must have the right to push to the aqua-web repository and must have
+    set up the ssh keys to access the repository.
 
 .. _submit-aqua-web:
 
@@ -143,27 +145,27 @@ This will read a text file EXPLIST containing a list of models/experiments in th
     ICON historical-1990
     ICON ssp370
 
-A sample file `aqua-web.experiment.list` is provided in the source code of AQUA.
+A sample file ``aqua-web.experiment.list`` is provided in the source code of AQUA.
 Specifying the source is optional ('lra-r100-monthly' is the default).
 
 Before using the script you will need to specify details for SLURM and other options
-in the configuration file `config.aqua-web.yaml`. This file is searched in the same directories as 
+in the configuration file ``config.aqua-web.yaml``. This file is searched in the same directories as 
 other AQUA configuration files or in the current directory as last resort.
 
 It is possible to run the analysis on a single experiment specifying model, experiment and source
-with the arguments `-m`, `-e` and `-s` respectively.
+with the arguments ``-m``, ``-e`` and ``-s`` respectively.
 
 If run without arguments, the script will run the analysis on the default 
-experiment specified in the configuration file. in the list.
+experiments specified in the list.
 
-Adding the `-p`or `--push` flag will push the results to the AQUA Explorer.
+Adding the ``-p`` or ``--push`` flag will push the results to the AQUA Explorer.
 
 Options
 ^^^^^^^
 
 .. option:: -c <config>, --config <config>
 
-    The configuration file to use. Default is `config.aqua-web.yaml`.
+    The configuration file to use. Default is ``config.aqua-web.yaml``.
 
 .. option:: -m <model>, --model <model>
 
@@ -179,7 +181,7 @@ Options
 
 .. option:: -r, --serial
 
-    Run in serial mode (only one core). This is passed to the `aqua-analysis.sh` script.
+    Run in serial mode (only one core). This is passed to the ``aqua-analysis.sh`` script.
 
 .. option:: -x <max>, --max <max>
 
@@ -187,11 +189,11 @@ Options
 
 .. option:: -t <template>, --template <template>
 
-    Template jinja file for slurm job. Default is `aqua-web.job.j2`
+    Template jinja file for slurm job. Default is ``aqua-web.job.j2``.
 
 .. option:: -d, --dry
 
-    Perform a dry run for debugging (no job submission). Sets also `loglevel`` to 'debug'.
+    Perform a dry run for debugging (no job submission). Sets also ``loglevel`` to 'debug'.
 
 .. option:: -l <loglevel>, --loglevel <loglevel>
 
@@ -199,7 +201,7 @@ Options
 
 .. option:: -p, --push
     
-    Flag to push to aqua-web. This uses the `make_push_figures.py` script.
+    Flag to push to aqua-web. This uses the ``make_push_figures.py`` script.
 
 
 .. _fdb-catalog-generator:
