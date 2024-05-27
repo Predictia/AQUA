@@ -32,8 +32,6 @@ def parse_arguments():
     # List of the subparsers with actions
     # Corresponding to the different aqua commands available (see command map)
     install_parser = subparsers.add_parser("install", description='Install AQUA configuration files')
-    #fixes_add_parser = subparsers.add_parser("fixes-add", description='Add a fix file in the current AQUA installation')
-    #grids_add_parser = subparsers.add_parser("grids-add", description='Add a grid file in the current AQUA installation')
     catalog_add_parser = subparsers.add_parser("add", description='Add a catalog in the current AQUA installation')
     catalog_update_parser = subparsers.add_parser("update", description='Update a catalog in the current AQUA installation')
     catalog_remove_parser = subparsers.add_parser("remove", description='Remove a catalog in the current AQUA installation')
@@ -43,29 +41,11 @@ def parse_arguments():
     # subparser with no arguments
     subparsers.add_parser("uninstall", description="Remove the current AQUA installation")
 
-    # subparsers for fixes
-    parser_fixes = subparsers.add_parser('fixes', help='Fixes related commands')
-    fixes_subparsers = parser_fixes.add_subparsers(dest='nested_command')
-    
-    parser_fixes_add = fixes_subparsers.add_parser('add', help='Add a fix in the current AQUA installation')
-    parser_fixes_add.add_argument('file', help='The fix yaml file to add')
-    parser_fixes_add.add_argument("-e", "--editable", action="store_true",
-                                  help="Add a fixes file in editable mode from the original path")
-    parser_fixes_remove = fixes_subparsers.add_parser('remove', help='Remove a fix file')
-    parser_fixes_remove.add_argument('file', help='The fix file to remove')
+    # subparsers for grids and fixes
+    parser_grids = file_subparser(subparsers, 'grids')
+    parser_fixes = file_subparser(subparsers, 'fixes')
 
-    # subparsers for grids
-    parser_grids = subparsers.add_parser('grids', help='Grids related commands')
-    grids_subparsers = parser_grids.add_subparsers(dest='nested_command')
-    
-    parser_grids_add = grids_subparsers.add_parser('add', help='Add a grid in the current AQUA installation')
-    parser_grids_add.add_argument('file', help='The grid yaml file to add')
-    parser_grids_add.add_argument("-e", "--editable", action="store_true",
-                                  help="Add a grid file in editable mode from the original path")
-    parser_grids_remove = grids_subparsers.add_parser('remove', help='Remove a grid file')
-    parser_grids_remove.add_argument('file', help='The grid file to remove')
-
-    # extra parsers
+    # extra parsers arguments
     install_parser.add_argument('-p', '--path', type=str,
                                 help='Path where to install AQUA. Default is $HOME/.aqua')
     install_parser.add_argument('-g', '--grids', type=str,
@@ -73,7 +53,6 @@ def parse_arguments():
     install_parser.add_argument('-e', '--editable', type=str,
                                 help='Install AQUA in editable mode from the original source')
 
-    
     catalog_add_parser.add_argument("catalog", metavar="CATALOG",
                                     help="Catalog to be installed")
     catalog_add_parser.add_argument('-e', '--editable', type=str,
@@ -88,9 +67,31 @@ def parse_arguments():
     
     list_parser.add_argument("-a", "--all", action="store_true",
                                     help="Print also all the installed fixes, grids and data_models")
+    
+    # create a dictionary to simplify the call
+    parser_dict = {
+        'main': parser,
+        'fixes': parser_fixes,
+        'grids': parser_grids
+        }
+
+    return parser_dict
+
+def file_subparser(main_parser, name):
+    """Compact subparsers for file handling - fixes and grids"""
+
+    # subparsers for fixes
+    parser = main_parser.add_parser(name, help=f'{name} related commands')
+    subparsers = parser.add_subparsers(dest='nested_command')
+    
+    parser_add = subparsers.add_parser('add', help=f'Add a {name} file in the current AQUA installation')
+    parser_add.add_argument('file', help=f'The {name} yaml file to add')
+    parser_add.add_argument("-e", "--editable", action="store_true",
+                                  help=f"Add a {name} file in editable mode from the original path")
+    parser_remove = subparsers.add_parser('remove', help=f'Remove a {name} file')
+    parser_remove.add_argument('file', help=f'The {name} file to remove')
 
     return parser
-
 
 class AquaConsole():
     """Class for AquaConsole, the AQUA command line interface for
@@ -99,8 +100,8 @@ class AquaConsole():
     def __init__(self):
         """The main AQUA command line interface"""
 
-        parser = parse_arguments()
-        args = parser.parse_args(sys.argv[1:])
+        parser_dict = parse_arguments()
+        args = parser_dict['main'].parse_args(sys.argv[1:])
 
         # Set the log level
         if args.very_verbose or (args.verbose and args.very_verbose):
@@ -120,8 +121,6 @@ class AquaConsole():
         command_map = {
             'install': self.install,
             'add': self.add,
-            'fixes-add': self.fixes_add,
-            'grids-add': self.grids_add,
             'remove': self.remove,
             'set': self.set,
             'uninstall': self.uninstall,
@@ -138,9 +137,9 @@ class AquaConsole():
         }
 
         command = args.command
-        method = command_map.get(command, parser.print_help)
+        method = command_map.get(command, parser_dict['main'].print_help)
         if command not in command_map:
-            parser.print_help()
+            parser_dict['main'].print_help()
         else:
             # nested map
             if isinstance(command_map[command], dict):
@@ -148,7 +147,7 @@ class AquaConsole():
                 if args.nested_command:
                     command_map[command][args.nested_command](args)
                 else:
-                    parser.print_help()
+                    parser_dict[command].print_help()
             # default
             else:
                 method(args)
