@@ -188,27 +188,27 @@ class TestAquaConsole():
         # add wrong fix file
         fixtest = os.path.join(mydir, 'antani.yaml')
         dump_yaml(fixtest, {'fixer_name':  'antani'})
-        set_args(['fixes-add', fixtest])
+        set_args(['fixes', 'add', fixtest])
         AquaConsole()
         assert not os.path.exists(os.path.join(mydir,'.aqua/fixes/antani.yaml'))
 
         # add mock grid file
         gridtest = os.path.join(mydir, 'supercazzola.yaml')
         dump_yaml(gridtest, {'grids': {'sindaco': {'path': '{{ grids }}/comesefosseantani.nc'}}})
-        set_args(['-v','grids-add', gridtest])
+        set_args(['-v','grids', 'add', gridtest])
         AquaConsole()
         assert os.path.isfile(os.path.join(mydir,'.aqua/grids/supercazzola.yaml'))
 
         # add mock grid file but editable
         gridtest = os.path.join(mydir, 'garelli.yaml')
         dump_yaml(gridtest, {'grids': {'sindaco': {'path': '{{ grids }}/comesefosseantani.nc'}}})
-        set_args(['-v','grids-add', gridtest, '-e'])
+        set_args(['-v','grids','add', gridtest, '-e'])
         AquaConsole()
         assert os.path.islink(os.path.join(mydir,'.aqua/grids/garelli.yaml'))
 
         # error for already existing file
         with pytest.raises(SystemExit) as excinfo:
-            set_args(['-v','grids-add', gridtest, '-e'])
+            set_args(['-v','grids', 'add', gridtest, '-e'])
             AquaConsole()
             assert excinfo.value.code == 1
 
