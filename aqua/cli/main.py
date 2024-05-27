@@ -22,25 +22,13 @@ class AquaConsole():
     def __init__(self):
         """The main AQUA command line interface"""
 
-        parser_dict = parse_arguments()
-        args = parser_dict['main'].parse_args(sys.argv[1:])
-
-        # Set the log level
-        if args.very_verbose or (args.verbose and args.very_verbose):
-            loglevel = 'DEBUG'
-        elif args.verbose:
-            loglevel = 'INFO'
-        else:
-            loglevel = 'WARNING'
-        self.logger = log_configure(loglevel, 'AQUA')
-
         self.pypath = pypath[0]
         self.aquapath = os.path.join(os.path.dirname(self.pypath), 'config')
         self.configpath = None
         self.configfile = 'config-aqua.yaml'
         self.grids = None
 
-        command_map = {
+        self.command_map = {
             'install': self.install,
             'add': self.add,
             'remove': self.remove,
@@ -58,21 +46,36 @@ class AquaConsole():
             }
         }
 
+    def execute(self):
+
+        parser_dict = parse_arguments()
+        args = parser_dict['main'].parse_args(sys.argv[1:])
+
+        # Set the log level
+        if args.very_verbose or (args.verbose and args.very_verbose):
+            loglevel = 'DEBUG'
+        elif args.verbose:
+            loglevel = 'INFO'
+        else:
+            loglevel = 'WARNING'
+        self.logger = log_configure(loglevel, 'AQUA')
+        
         command = args.command
-        method = command_map.get(command, parser_dict['main'].print_help)
-        if command not in command_map:
+        method = self.command_map.get(command, parser_dict['main'].print_help)
+        if command not in self.command_map:
             parser_dict['main'].print_help()
         else:
             # nested map
-            if isinstance(command_map[command], dict):
+            if isinstance(self.command_map[command], dict):
                 print(args)
                 if args.nested_command:
-                    command_map[command][args.nested_command](args)
+                    self.command_map[command][args.nested_command](args)
                 else:
                     parser_dict[command].print_help()
             # default
             else:
                 method(args)
+
 
     def install(self, args):
         """Install AQUA, find the folders and then install
@@ -508,7 +511,8 @@ class AquaConsole():
 
 def main():
     """AQUA main installation tool"""
-    AquaConsole()
+    aquacli = AquaConsole()
+    aquacli.execute()
 
 
 def query_yes_no(question, default="yes"):

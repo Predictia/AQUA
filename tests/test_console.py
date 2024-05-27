@@ -46,9 +46,19 @@ def run_aqua_console_with_input(tmpdir):
         with open(testfile, 'w') as f:
             f.write(input_text)
         sys.stdin = open(testfile)
-        AquaConsole()
+        aquacli = AquaConsole()
+        aquacli.execute()
         sys.stdin.close()
         os.remove(testfile)
+    return _run_aqua_console
+
+# fixture to run AQUA console with some interactive command
+@pytest.fixture
+def run_aqua():
+    def _run_aqua_console(args):
+        set_args(args)
+        aquacli = AquaConsole()
+        aquacli.execute()
     return _run_aqua_console
 
 
@@ -57,15 +67,14 @@ class TestAquaConsole():
     """Class for AQUA console tests"""
 
     # base set of tests
-    def test_console_base(self, tmpdir, set_home, run_aqua_console_with_input):
+    def test_console_base(self, tmpdir, set_home, run_aqua, run_aqua_console_with_input):
 
         # getting fixture
         mydir = str(tmpdir)
         set_home(mydir)
 
         # aqua install
-        set_args(['install'])
-        AquaConsole()
+        run_aqua(['install'])
         assert os.path.isdir(os.path.join(mydir,'.aqua'))
         assert os.path.isfile(os.path.join(mydir,'.aqua', 'config-aqua.yaml'))
 
@@ -77,73 +86,64 @@ class TestAquaConsole():
 
         # add catalog
         for catalog in ['ci', 'levante']:
-            set_args(['add', catalog])
-            AquaConsole()
+            run_aqua(['add', catalog])
             assert os.path.isdir(os.path.join(mydir,'.aqua/machines', catalog))
             config_file = load_yaml(os.path.join(mydir,'.aqua', 'config-aqua.yaml'))
             assert config_file['machine'] == catalog
 
         # add catalog from path
-        set_args(['add', 'config/machines/lumi'])
-        AquaConsole()
+        run_aqua(['add', 'config/machines/lumi'])
         assert os.path.isdir(os.path.join(mydir,'.aqua/machines/lumi'))
         config_file = load_yaml(os.path.join(mydir,'.aqua', 'config-aqua.yaml'))
         assert config_file['machine'] == 'lumi'
 
         # check unexesting installation
-        set_args(['add', 'config/ueeeeee/ci'])
         with pytest.raises(SystemExit) as excinfo:
-            AquaConsole()
+            run_aqua(['add', 'config/ueeeeee/ci'])
             assert excinfo.value.code == 1
 
         # Install non-existing catalog
-        set_args(['add', 'config/fixes'])
+        
         with pytest.raises(SystemExit) as excinfo:
-            AquaConsole()
+            run_aqua(['add', 'config/fixes'])
             assert excinfo.value.code == 1
 
         # set catalog
-        set_args(['set', 'ci'])
-        AquaConsole()
+        run_aqua(['set', 'ci'])
         assert os.path.isdir(os.path.join(mydir,'.aqua/machines/ci'))
         config_file = load_yaml(os.path.join(mydir,'.aqua', 'config-aqua.yaml'))
         assert config_file['machine'] == 'ci'
 
         # add catalog again and error
-        set_args(['-v', 'set', 'ciccio'])
         # check unexesting installation
         with pytest.raises(SystemExit) as excinfo:
-            AquaConsole()
+            run_aqua(['-v', 'set', 'ciccio'])
             assert excinfo.value.code == 1
 
         # add catalog again and error
-        set_args(['-v', 'add', 'ci'])
+        
         # check unexesting installation
         with pytest.raises(SystemExit) as excinfo:
-            AquaConsole()
+            run_aqua(['-v', 'add', 'ci'])
             assert excinfo.value.code == 1
 
         # update a catalog
-        set_args(['-v', 'update', 'ci'])
-        AquaConsole()
+        run_aqua(['-v', 'update', 'ci'])
         assert os.path.isdir(os.path.join(mydir,'.aqua/machines/ci'))
 
         # add non existing catalog
-        set_args(['-v', 'add', 'antani'])
         with pytest.raises(SystemExit) as excinfo:
-            AquaConsole()
+            run_aqua(['-v', 'add', 'antani'])
             assert excinfo.value.code == 1
 
         # remove non-existing catalog
         os.makedirs(os.path.join(mydir,'.aqua/machines/ci'), exist_ok=True)
-        set_args(['remove', 'pippo'])
         with pytest.raises(SystemExit) as excinfo:
-            AquaConsole()
+            run_aqua(['remove', 'pippo'])
             assert excinfo.value.code == 1
 
         # remove existing catalog
-        set_args(['remove', 'ci'])
-        AquaConsole()
+        run_aqua(['remove', 'ci'])
         assert not os.path.exists(os.path.join(mydir,'.aqua/machines/ci'))
         assert os.path.exists(os.path.join(mydir,'.aqua'))
 
@@ -157,7 +157,7 @@ class TestAquaConsole():
         run_aqua_console_with_input(['uninstall'], 'yes')
         assert not os.path.exists(os.path.join(mydir,'.aqua'))
         
-    def test_console_advanced(self, tmpdir, set_home, run_aqua_console_with_input):
+    def test_console_advanced(self, tmpdir, run_aqua, set_home, run_aqua_console_with_input):
 
         # getting fixture
         mydir = str(tmpdir)
@@ -169,84 +169,71 @@ class TestAquaConsole():
             assert excinfo.value.code == 1
 
         # a new install
-        set_args(['install'])
-        AquaConsole()
+        run_aqua(['install'])
         assert os.path.exists(os.path.join(mydir,'.aqua'))
 
         # add catalog with editable option
-        set_args(['-v', 'add', 'ci', '-e', 'config/machines/ci'])
-        AquaConsole()
+        run_aqua(['-v', 'add', 'ci', '-e', 'config/machines/ci'])
         assert os.path.isdir(os.path.join(mydir,'.aqua/machines/ci'))
 
         # add catalog again and error
-        set_args(['-v', 'add', 'ci', '-e', 'config/machines/ci'])
         # check unexesting installation
         with pytest.raises(SystemExit) as excinfo:
-            AquaConsole()
+            run_aqua(['-v', 'add', 'ci', '-e', 'config/machines/ci'])
             assert excinfo.value.code == 1
         assert os.path.exists(os.path.join(mydir,'.aqua/machines/ci'))
 
         # error for update an editable catalog
-        set_args(['-v', 'update', 'ci'])
+        
         # check unexesting installation
         with pytest.raises(SystemExit) as excinfo:
-            AquaConsole()
+            run_aqua(['-v', 'update', 'ci'])
             assert excinfo.value.code == 1
 
-        # error for update an missing catalog
-        set_args(['-v', 'update', 'antani'])
+        # error for update an missing catalog      
         with pytest.raises(SystemExit) as excinfo:
-            AquaConsole()
+            run_aqua(['-v', 'update', 'antani'])
             assert excinfo.value.code == 1
 
-        # add catalog again and error
-        set_args(['-v', 'add', 'ci', '-e', 'config/machines/baciugo'])
         # check unexesting installation
         with pytest.raises(SystemExit) as excinfo:
-            AquaConsole()
+            run_aqua(['-v', 'add', 'ci', '-e', 'config/machines/baciugo'])
             assert excinfo.value.code == 1
         assert not os.path.exists(os.path.join(mydir,'.aqua/machines/baciugo'))
 
         # remove existing catalog from link
-        set_args(['remove', 'ci'])
-        AquaConsole()
+        run_aqua(['remove', 'ci'])
         assert not os.path.exists(os.path.join(mydir,'.aqua/machines/ci'))
 
         # add wrong fix file
         fixtest = os.path.join(mydir, 'antani.yaml')
         dump_yaml(fixtest, {'fixer_name':  'antani'})
-        set_args(['fixes', 'add', fixtest])
-        AquaConsole()
+        run_aqua(['fixes', 'add', fixtest])
         assert not os.path.exists(os.path.join(mydir,'.aqua/fixes/antani.yaml'))
 
         # add mock grid file
         gridtest = os.path.join(mydir, 'supercazzola.yaml')
         dump_yaml(gridtest, {'grids': {'sindaco': {'path': '{{ grids }}/comesefosseantani.nc'}}})
-        set_args(['-v','grids', 'add', gridtest])
-        AquaConsole()
+        run_aqua(['-v','grids', 'add', gridtest])
         assert os.path.isfile(os.path.join(mydir,'.aqua/grids/supercazzola.yaml'))
 
         # add mock grid file but editable
         gridtest = os.path.join(mydir, 'garelli.yaml')
         dump_yaml(gridtest, {'grids': {'sindaco': {'path': '{{ grids }}/comesefosseantani.nc'}}})
-        set_args(['-v','grids','add', gridtest, '-e'])
-        AquaConsole()
+        run_aqua(['-v','grids','add', gridtest, '-e'])
         assert os.path.islink(os.path.join(mydir,'.aqua/grids/garelli.yaml'))
 
         # error for already existing file
         with pytest.raises(SystemExit) as excinfo:
-            set_args(['-v','grids', 'add', gridtest, '-e'])
-            AquaConsole()
+            run_aqua(['-v','grids', 'add', gridtest, '-e'])
             assert excinfo.value.code == 1
 
-        set_args(['-v','grids','remove', 'garelli.yaml'])
-        AquaConsole()
+        run_aqua(['-v','grids','remove', 'garelli.yaml'])
         assert not os.path.exists(os.path.join(mydir,'.aqua/grids/garelli.yaml'))
 
         # error for already non existing file
         with pytest.raises(SystemExit) as excinfo:
-            set_args(['-v','fixes', 'remove', 'ciccio.yaml'])
-            AquaConsole()
+            run_aqua(['-v','fixes', 'remove', 'ciccio.yaml'])
             assert excinfo.value.code == 1
 
         # uninstall everything
@@ -281,7 +268,7 @@ class TestAquaConsole():
         assert not os.path.exists(os.path.join(mydir,'.aqua'))
 
 
-    def test_console_editable(self, tmpdir, set_home, run_aqua_console_with_input):
+    def test_console_editable(self, tmpdir, run_aqua, set_home, run_aqua_console_with_input):
 
         # getting fixture
         mydir = str(tmpdir)
@@ -289,13 +276,11 @@ class TestAquaConsole():
 
         # check unexesting installation
         with pytest.raises(SystemExit) as excinfo:
-            set_args(['-vv', 'install', '-e', '.'])
-            AquaConsole()
+            run_aqua(['-vv', 'install', '-e', '.'])
             assert excinfo.value.code == 1
 
         # install from path with grids
-        set_args(['-vv', 'install', '--editable', 'config'])
-        AquaConsole()
+        run_aqua(['-vv', 'install', '--editable', 'config'])
         assert os.path.exists(os.path.join(mydir, '.aqua'))
         for folder in ['fixes', 'data_models', 'grids']:
             assert os.path.islink(os.path.join(mydir,'.aqua', folder))
@@ -320,21 +305,17 @@ class TestAquaConsole():
         assert not os.path.exists(os.path.join(mydir,'.aqua'))
 
     # base set of tests for list
-    def test_console_list(self, tmpdir, set_home, capfd, run_aqua_console_with_input):
+    def test_console_list(self, tmpdir, run_aqua, set_home, capfd, run_aqua_console_with_input):
 
         # getting fixture
         mydir = str(tmpdir)
         set_home(mydir)
 
         # aqua install
-        set_args(['install'])
-        AquaConsole()
-        set_args(['add', 'ci'])
-        AquaConsole()
-        set_args(['add', 'ciccio', '-e', 'config/machines/ci'])
-        AquaConsole()
-        set_args(['list', '-a'])
-        AquaConsole()
+        run_aqua(['install'])
+        run_aqua(['add', 'ci'])
+        run_aqua(['add', 'ciccio', '-e', 'config/machines/ci'])
+        run_aqua(['list', '-a'])
 
         out, _ = capfd.readouterr()
         assert 'AQUA current installed catalogs in' in out
@@ -348,7 +329,7 @@ class TestAquaConsole():
         run_aqua_console_with_input(['uninstall'], 'yes')
         assert not os.path.exists(os.path.join(mydir,'.aqua'))
 
-    def test_console_without_home(self, delete_home, tmpdir, run_aqua_console_with_input):
+    def test_console_without_home(self, delete_home, run_aqua, tmpdir, run_aqua_console_with_input):
 
         # getting fixture
         delete_home()
@@ -356,8 +337,7 @@ class TestAquaConsole():
         
         # check unexesting installation
         with pytest.raises(SystemExit) as excinfo:
-            set_args(['install'])
-            AquaConsole()
+            run_aqua(['install'])
             assert excinfo.value.code == 1
 
         # install from path without home
