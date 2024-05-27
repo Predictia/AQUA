@@ -6,7 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
+
+AQUA core complete list:
+- AQUA entry point for installation and catalog addition (#1131, #1134, #1146, #1168)
 - Automatic switching between HPC and databridge fdb (#1054)
+- CLI script for automatic multiple experiment analysis submission (#1160)
 
 ## [v0.8.2]
 
@@ -15,7 +19,6 @@ Main changes are:
 2. Container for Levante
 
 AQUA core complete list:
-- AQUA entry point for installation and catalog addition (#1131, #1134, #1146)
 - Removing any machine name depencency from slurm files (#1135)
 - Jinja replacement is added to the aqua-config.yaml (#1154)
 - grid definitions split in multiple files (#1152)
