@@ -4,21 +4,22 @@ Configuration and Catalogue manager
 ===================================
 
 Since ``v0.8.2`` the possibility to manage where the configuration and catalogue files are stored has been added.
+This is based on a command line interface which can also handle fixes and grids files. 
 Here we give a brief overview of the features.
 If you are a developer, you may want to read the :ref:`dev-notes` section.
 
 The entry point for the console is the command ``aqua``.
 It has the following subcommands:
 
-- :ref:`aqua-init`
+- :ref:`aqua-install`
 - :ref:`aqua-add`
 - :ref:`aqua-list`
 - :ref:`aqua-update`
 - :ref:`aqua-remove`
+- :ref:`aqua-set`
 - :ref:`aqua-uninstall`
 - :ref:`aqua-fixes`
 - :ref:`aqua-grids`
-- :ref:`aqua-set`
 
 To show the AQUA version, you can use the command:
 
@@ -44,14 +45,15 @@ It is possible to set the level of verbosity with two options:
 
 In both cases the level of verbosity has to be specified before the command.
 
-.. _aqua-init:
+.. _aqua-install:
 
 aqua install
 ------------
 
 With this command the configuration file and the default data models, grids and fixes are copied to the destination folder.
-It is possible to specify from where to copy and where to store.
-It is also possible to ask for an editable installation, so that only links are created, ideal for developers.
+By default, this will be ``$HOME/.aqua``. It is possible to specify from where to copy and where to store.
+It is also possible to ask for an editable installation, so that only links are created, ideal for developers, 
+which can keep their catalog or fixes files under version control.
 
 .. option:: --path, -p <path>
 
@@ -74,9 +76,9 @@ aqua add <catalogue>
 --------------------
 
 This command adds a catalogue to the list of available catalogues.
-It will copy the catalogue file to the destination folder.
-Also in this case it is possible to specify if symbolic links have to be created
-and it is possible to install a catalogue normally not present in the package.
+It will copy the catalogue folder and files to the destination folder.
+As before, it is possible to specify if symbolic links have to be created
+and it is possible to install extra catalogues not present in the AQUA release.
 
 .. option:: catalog
 
@@ -84,7 +86,7 @@ and it is possible to install a catalogue normally not present in the package.
     This is a mandatory field.
 
 .. warning::
-    At the moment only catalogues present in the package can be added without the editable mode.
+    At the moment only catalogues present in AQUA can be added without the editable mode.
     This will change in the future, but for now the only way to add a custom catalogue is in the editable mode.
 
 .. option:: --editable, -e <path>
@@ -101,15 +103,16 @@ aqua list
 This command lists the available catalogues in the installation folder.
 It will show also if a catalogue is installed in editable mode.
 
+.. option:: --all, -a
+
+    This will show also all the fixes, grids and data models installed
+
 .. _aqua-update:
 
 aqua update <catalogue>
 -----------------------
 
 This command will check if there is a new version of the catalogue available and update it.
-
-.. warning::
-    This command is not yet implemented.
 
 .. _aqua-remove:
 
@@ -119,6 +122,17 @@ aqua remove <catalogue>
 It removes a catalogue from the list of available catalogues.
 This means that the catalogue folder will be removed from the installation folder or the link will be deleted
 if the catalogue is installed in editable mode.
+
+.. _aqua-set:
+
+aqua set <catalogue>
+--------------------
+
+This command sets the default catalogue to be used.
+
+.. warning::
+    At the actual stage of development, the catalogue coincide with a machine.
+    This command is then setting the machine name to be used in the configuration file.
 
 .. _aqua-uninstall:
 
@@ -133,10 +147,10 @@ If the installation was done in editable mode, only the links will be removed.
 
 .. _aqua-fixes:
 
-aqua fixes-add <fix-file>
--------------------------
+aqua fixes {add,remove} <fixes-file>
+-------------------------------------
 
-This command adds a fix to the list of available fixes.
+This submcommand is able to add or remove a fixes YAML file to the list of available installed fixes.
 It will copy the fix file to the destination folder, or create a symbolic link if the editable mode is used.
 This is useful if a new external fix is created and needs to be added to the list of available fixes.
 
@@ -147,16 +161,16 @@ This is useful if a new external fix is created and needs to be added to the lis
 
 .. option:: -e, --editable
 
-    It will create a symbolic link to the fix folder.
+    It will create a symbolic link to the fix folder. Valid only for ``aqua fixes add``
 
 .. _aqua-grids:
 
-aqua grids-add <grid-file>
---------------------------
+aqua grids {add,remove} <grid-file>
+-----------------------------------
 
-This command adds a grid to the list of available grids.
-It will copy the grid file to the destination folder, or create a symbolic link if the editable mode is used.
-This is useful if a new external grid is created and needs to be added to the list of available grids.
+This submcommand is able to add or remove a grids YAML file to the list of available installed grids.
+It will copy the grids file to the destination folder, or create a symbolic link if the editable mode is used.
+This is useful if new external grids are created and need to be added to the list of available grids.
 
 .. option:: <grid-file>
 
@@ -165,15 +179,4 @@ This is useful if a new external grid is created and needs to be added to the li
 
 .. option:: -e, --editable
 
-    It will create a symbolic link to the grid folder.
-
-.. _aqua-set:
-
-aqua set <catalogue>
---------------------
-
-This command sets the default catalogue to be used.
-
-.. warning::
-    At the actual stage of development, the catalogue coincide with a machine.
-    This command is then setting the machine name to be used in the configuration file.
+    It will create a symbolic link to the grid folder. Valid only for ``aqua grids add``
