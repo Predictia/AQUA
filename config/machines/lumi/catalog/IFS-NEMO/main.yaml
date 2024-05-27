@@ -66,3 +66,8 @@ sources:
     driver: yaml_file_cat
     args:
       path: '{{CATALOG_DIR}}/a18j.yaml'
+  a14c:
+    description: FDB IFS-NEMO tco1279-eORCA12 1990 control run
+    driver: yaml_file_cat
+    args:
+      path: '{{CATALOG_DIR}}/a14c.yaml'
