@@ -107,6 +107,12 @@ class TestAquaConsole():
         AquaConsole()
         assert os.path.isdir(os.path.join(mydir,'.aqua/machines/ci'))
 
+        # add non existing catalog
+        set_args(['-v', 'add', 'antani'])
+        with pytest.raises(SystemExit) as excinfo:
+            AquaConsole()
+            assert excinfo.value.code == 1
+
         # remove non-existing catalog
         os.makedirs(os.path.join(mydir,'.aqua/machines/ci'), exist_ok=True)
         set_args(['remove', 'pippo'])
@@ -209,6 +215,16 @@ class TestAquaConsole():
         # error for already existing file
         with pytest.raises(SystemExit) as excinfo:
             set_args(['-v','grids', 'add', gridtest, '-e'])
+            AquaConsole()
+            assert excinfo.value.code == 1
+
+        set_args(['-v','grids','remove', 'garelli.yaml'])
+        AquaConsole()
+        assert not os.path.exists(os.path.join(mydir,'.aqua/grids/garelli.yaml'))
+
+        # error for already non existing file
+        with pytest.raises(SystemExit) as excinfo:
+            set_args(['-v','fixes', 'remove', 'ciccio.yaml'])
             AquaConsole()
             assert excinfo.value.code == 1
 

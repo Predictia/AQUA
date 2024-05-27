@@ -141,7 +141,7 @@ class AquaConsole():
         method = command_map.get(command, parser.print_help)
         if command not in command_map:
             parser.print_help()
-        else: 
+        else:
             # nested map
             if isinstance(command_map[command], dict):
                 print(args)
@@ -416,6 +416,7 @@ class AquaConsole():
             else:
                 self.logger.error('Catalog %s does not appear to exist in %s', catalog, sdir)
                 self.logger.error('Available catalogs are: %s', os.listdir(f'{self.aquapath}/machines'))
+                sys.exit(1)
         else:
             self.logger.error("Catalog %s already installed in %s, please consider `aqua update`.",
                             catalog, cdir)
@@ -483,9 +484,9 @@ class AquaConsole():
 
         self._check()
         kind = args.command
-        file = args.file
+        file = os.path.basename(args.file)
         pathfile = f'{self.configpath}/{kind}/{file}'
-
+        print(pathfile)
         if os.path.exists(pathfile):
             if os.path.islink(pathfile):
                 os.unlink(pathfile)
