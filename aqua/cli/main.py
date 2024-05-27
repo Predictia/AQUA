@@ -27,6 +27,7 @@ class AquaConsole():
         self.configpath = None
         self.configfile = 'config-aqua.yaml'
         self.grids = None
+        self.logger = None
 
         self.command_map = {
             'install': self.install,
@@ -47,6 +48,7 @@ class AquaConsole():
         }
 
     def execute(self):
+        """parse AQUA class and run the required command"""
 
         parser_dict = parse_arguments()
         args = parser_dict['main'].parse_args(sys.argv[1:])
@@ -98,6 +100,7 @@ class AquaConsole():
             self._install_editable(args.editable)
 
         self.grids = args.grids
+        
         # TODO
         # if self.grids is None:
         #    self.logger.warning('Grids directory undefined')
