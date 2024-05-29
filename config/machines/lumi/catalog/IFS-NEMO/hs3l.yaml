@@ -13,27 +13,27 @@ sources:
         expver: hs3l
         type: fc
         stream: clmn
-        date: 19900101
-        time: '0000'
-        param: 167
+        year: 1990
+        month: 1
+        param: 228004
         levtype: sfc
-        step: 0
-      data_start_date: auto
-      data_end_date: auto
+      data_start_date: 19900101T0000
+      data_end_date: 19951201T0000
       chunks: MS  # Default time chunk size
       savefreq: MS  # at what frequency are data saved
       timestep: h  # base timestep for step timestyle
-      timestyle: date  # variable date or variable step
+      timestyle: yearmonth  # variable date or variable step
     description: monthly 2D atmospheric data on healpix grid (zoom=7, h128).
     driver: gsv
     metadata: &metadata-default
-      fdb_path: /project/project_465000454/experiments/a0h3/fdb/NATIVE_grids/etc/fdb/config.yaml
+      fdb_home: /scratch/project_465000454/xpedruzo/ClimDT_399_runs/hs3l/fdb/healpix
+      fdb_path: /scratch/project_465000454/xpedruzo/ClimDT_399_runs/hs3l/fdb/healpix/etc/fdb/config.yaml
       eccodes_path: /projappl/project_465000454/jvonhar/aqua/eccodes/eccodes-2.32.2/definitions
       variables: [78, 79, 134, 137, 141, 148, 151, 159, 164, 165, 166, 167, 168, 186,
         187, 188, 235, 260048, 8, 9, 144, 146, 147, 169, 175, 176, 177, 178, 179,
-        180, 181, 182, 212, 228]
+        180, 181, 182, 212, 228004]
       source_grid_name: hpz7-nested
-      fixer_name: ifs-nemo-destine-v1
+      fixer_name: ifs-nemo-destine-v1-monthly
 
   monthly-hpz7-atm3d:
     <<: *base-default
@@ -66,8 +66,6 @@ sources:
         levtype: o2d
     metadata:
       <<: *metadata-default
-      fdb_path: 
-        /project/project_465000454/experiments/a0h3/fdb/HEALPIX_grids/etc/fdb/config.yaml
       variables: [263000, 263001, 263003, 263004, 263008, 263009, 263021, 263022,
         263100, 263101, 263121, 263122, 263124]
       source_grid_name: nemo-eORCA12-hpz7-nested
@@ -91,8 +89,6 @@ sources:
           73, 74, 75]
     metadata:
       <<: *metadata-default
-      fdb_path: 
-        /project/project_465000454/experiments/a0h3/fdb/HEALPIX_grids/etc/fdb/config.yaml
       levels: [0.5057600140571594, 1.5558552742004395, 2.6676816940307617, 3.8562798500061035,
         5.140361309051514, 6.543033599853516, 8.09251880645752, 9.822750091552734,
         11.773679733276367, 13.99103832244873, 16.52532196044922, 19.42980194091797,
