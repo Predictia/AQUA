@@ -114,6 +114,7 @@ def test_inspect_catalogue(capfd):
     assert 'FESOM' in out
     assert 'IFS' in out
 
+    # inspect catalog
     models = inspect_catalogue(cat)
     assert isinstance(models, list)
     exps = inspect_catalogue(cat, model='IFS')
