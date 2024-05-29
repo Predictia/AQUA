@@ -105,16 +105,31 @@ def test_catalogue_reader(reader_regrid):
 
 
 @pytest.mark.aqua
-def test_inspect_catalogue():
+def test_inspect_catalogue(capfd):
     """Checking that inspect catalogue works"""
+
+    # calling the catalog
     cat = catalogue(verbose=True)
+    out, _ = capfd.readouterr()
+    assert 'FESOM' in out
+    assert 'IFS' in out
+
     models = inspect_catalogue(cat)
     assert isinstance(models, list)
     exps = inspect_catalogue(cat, model='IFS')
     assert isinstance(exps, list)
     sources = inspect_catalogue(cat, model='IFS', exp='test-tco79')
     assert isinstance(sources, list)
+    vars = inspect_catalogue(model='IFS', exp="test-tco79", source='short')
+    assert vars is True
 
+    # wrong calls
+    models = inspect_catalogue(model='antani')
+    assert 'IFS' in models 
+    exps = inspect_catalogue(model='IFS', exp="antani")
+    assert 'test-tco79' in exps
+    sources = inspect_catalogue(model='IFS', exp="test-tco79", source='antani')
+    assert 'short' in sources
 
 @pytest.mark.aqua
 @pytest.mark.parametrize(
