@@ -471,7 +471,7 @@ members, and we want to described this in the catalog. This is something intake 
                         allowed: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                         description: realization member
                         type: int
-                        default: '1'
+                        default: 1
 
 This can be later accessed via the reader providing an extra argument, or kwargs in python jargon, which define the realization
 
