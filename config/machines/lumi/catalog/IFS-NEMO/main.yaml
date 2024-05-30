@@ -71,3 +71,8 @@ sources:
     driver: yaml_file_cat
     args:
       path: '{{CATALOG_DIR}}/a1bm.yaml'
+  a1ca:
+    description: FDB IFS/NEMO control run (ensemble) with single precision
+    driver: yaml_file_cat
+    args:
+      path: '{{CATALOG_DIR}}/a1ca.yaml'
