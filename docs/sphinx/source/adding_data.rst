@@ -461,7 +461,7 @@ members, and we want to described this in the catalog. This is something intake 
                     domain: g
                     class: rd
                     expver: a06x
-                    realization: '{{ realization }}''
+                    realization: '{{ realization }}'
 
                     ...
                    
