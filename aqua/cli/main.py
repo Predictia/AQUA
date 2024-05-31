@@ -11,6 +11,7 @@ from aqua.util import load_yaml, dump_yaml, load_multi_yaml
 from aqua.logger import log_configure
 from aqua.util import ConfigPath
 from aqua.cli.parser import parse_arguments
+from aqua.util.util import HiddenPrints
 from aqua import __path__ as pypath
 from aqua import catalogue
 
@@ -69,7 +70,6 @@ class AquaConsole():
         else:
             # nested map
             if isinstance(self.command_map[command], dict):
-                print(args)
                 if args.nested_command:
                     self.command_map[command][args.nested_command](args)
                 else:
@@ -100,7 +100,7 @@ class AquaConsole():
             self._install_editable(args.editable)
 
         self.grids = args.grids
-        
+
         # TODO
         # if self.grids is None:
         #    self.logger.warning('Grids directory undefined')
@@ -440,7 +440,6 @@ class AquaConsole():
         kind = args.command
         file = os.path.basename(args.file)
         pathfile = f'{self.configpath}/{kind}/{file}'
-        print(pathfile)
         if os.path.exists(pathfile):
             self.logger.info('Removing %s', pathfile)
             if os.path.islink(pathfile):
@@ -550,13 +549,3 @@ def query_yes_no(question, default="yes"):
             return valid[choice]
         else:
             print("Please respond with 'yes' or 'no' (or 'y' or 'n').")
-
-class HiddenPrints:
-    # from stackoverflow https://stackoverflow.com/questions/8391411/how-to-block-calls-to-print#:~:text=If%20you%20don't%20want,the%20top%20of%20the%20file.
-    def __enter__(self):
-        self._original_stdout = sys.stdout
-        sys.stdout = open(os.devnull, 'w')
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        sys.stdout.close()
-        sys.stdout = self._original_stdout
