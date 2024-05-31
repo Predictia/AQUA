@@ -15,6 +15,10 @@ How to create a new source and add new data is documented in the next sections.
 - Finally, to exploit the regridding functionalities, you will also need to verify the grid is available in the ``config/grids`` folder 
   or to add it (see :ref:`grid_definition`).
 
+.. note::
+    A method to add new catalogues to the configuration folder has been developed.
+    You can find more information in the :ref:`aqua-add` section.
+
 .. _file-based-sources:
 
 File-based sources
@@ -457,17 +461,17 @@ members, and we want to described this in the catalog. This is something intake 
                     domain: g
                     class: rd
                     expver: a06x
-                    realization: {{ realization }}
+                    realization: '{{ realization }}'
 
                     ...
                    
                 driver: gsv
                 parameters:
                     realization:
-                        allowed: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+                        allowed: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                         description: realization member
-                        type: str
-                        default: '1'
+                        type: int
+                        default: 1
 
 This can be later accessed via the reader providing an extra argument, or kwargs in python jargon, which define the realization
 
