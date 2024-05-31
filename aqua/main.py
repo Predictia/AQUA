@@ -14,6 +14,7 @@ from aqua.util import ConfigPath
 from aqua import __path__ as pypath
 from aqua import __version__ as version
 
+
 def parse_arguments():
     """Parse arguments for AQUA console"""
 
@@ -22,7 +23,7 @@ def parse_arguments():
 
     # Parser for the aqua main command
     parser.add_argument('--version', action='version',
-                version=f'%(prog)s {version}', help="show AQUA version number and exit.")
+                        version=f'%(prog)s {version}', help="show AQUA version number and exit.")
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='Increase verbosity of the output to INFO loglevel')
     parser.add_argument('-vv', '--very-verbose', action='store_true',
@@ -42,34 +43,35 @@ def parse_arguments():
     subparsers.add_parser("list", description="List the currently installed AQUA catalogs")
 
     install_parser.add_argument('-p', '--path', type=str,
-                help='Path where to install AQUA. Default is $HOME/.aqua')
+                                help='Path where to install AQUA. Default is $HOME/.aqua')
     install_parser.add_argument('-g', '--grids', type=str,
-                help='Path where to be usef for AQUA grids (NOT WORKING FOR NOW)')
+                                help='Path where to be usef for AQUA grids (NOT WORKING FOR NOW)')
     install_parser.add_argument('-e', '--editable', type=str,
-                help='Install AQUA in editable mode from the original source')
+                                help='Install AQUA in editable mode from the original source')
 
     catalog_add_parser.add_argument("catalog", metavar="CATALOG",
-                help="Catalog to be installed")
+                                    help="Catalog to be installed")
     catalog_add_parser.add_argument('-e', '--editable', type=str,
-                help='Install a catalog in editable mode from the original source: provide the Path')
-    
+                                    help='Install a catalog in editable mode from the original source: provide the Path')
+
     fixes_add_parser.add_argument("fixfile", metavar="fixfile",
-                                    help="Fix file to be added")
+                                  help="Fix file to be added")
     fixes_add_parser.add_argument("-e", "--editable", action="store_true",
-                                    help="Add a fixes file in editable mode from the original path")
+                                  help="Add a fixes file in editable mode from the original path")
 
     grids_add_parser.add_argument("gridfile", metavar="gridfile",
-                                    help="Fix file to be added")
+                                  help="Fix file to be added")
     grids_add_parser.add_argument("-e", "--editable", action="store_true",
-                                    help="Add a grids file in editable mode from the original path")
-    
+                                  help="Add a grids file in editable mode from the original path")
+
     catalog_remove_parser.add_argument("catalog", metavar="CATALOG",
-                                    help="Catalog to be removed")
-    
+                                       help="Catalog to be removed")
+
     set_parser.add_argument("catalog", metavar="CATALOG",
-                                    help="Catalog to be used in AQUA")
-    
+                            help="Catalog to be used in AQUA")
+
     return parser
+
 
 class AquaConsole():
     """Class for AquaConsole, the AQUA command line interface for
@@ -111,11 +113,15 @@ class AquaConsole():
         method = command_map.get(command, parser.print_help)
         if command not in command_map:
             parser.print_help()
-        else: # The command is in the command_map
+        else:  # The command is in the command_map
             method(args)
 
     def install(self, args):
-        """Install AQUA, find the folders and then install"""
+        """Install AQUA, find the folders and then install
+
+        Args:
+            args (argparse.Namespace): arguments from the command line
+        """
         self.logger.info('Running the AQUA install')
 
         # define where to install AQUA
@@ -131,11 +137,11 @@ class AquaConsole():
             self._install_editable(args.editable)
 
         self.grids = args.grids
-        #TODO
-        #if self.grids is None: 
+        # TODO
+        # if self.grids is None:
         #    self.logger.warning('Grids directory undefined')
-        #else:
-        #self._grids_define()
+        # else:
+        # self._grids_define()
 
     def _install_home(self):
         """Define the AQUA installation folder, by default inside $HOME"""
@@ -148,7 +154,7 @@ class AquaConsole():
             else:
                 self.logger.warning('AQUA already installed in %s', path)
                 check = query_yes_no(f"Do you want to overwrite AQUA installation in {path}. "
-                                        "You will lose all catalogs installed.", "no")
+                                     "You will lose all catalogs installed.", "no")
                 if not check:
                     sys.exit()
                 else:
@@ -157,11 +163,15 @@ class AquaConsole():
                     os.makedirs(path, exist_ok=True)
         else:
             self.logger.error('$HOME not found.'
-                            'Please specify a path where to install AQUA and define AQUA_CONFIG as environment variable')
+                              'Please specify a path where to install AQUA and define AQUA_CONFIG as environment variable')
             sys.exit(1)
 
     def _install_path(self, path):
-        """Define the AQUA installation folder when a path is specified"""
+        """Define the AQUA installation folder when a path is specified
+
+        Args:
+            path (str): the path where to install AQUA
+        """
 
         self.configpath = path
         if not os.path.exists(path):
@@ -181,10 +191,10 @@ class AquaConsole():
                 os.symlink(path, link)
             else:
                 self.logger.error('$HOME not found. Cannot create a link to the installation path')
-                self.logger.warning('AQUA will be installed in %s, but please remember to define AQUA_CONFIG environment variable', path)
+                self.logger.warning('AQUA will be installed in %s, but please remember to define AQUA_CONFIG environment variable', path) # noqa
         else:
-            self.logger.warning('AQUA will be installed in %s, but please remember to define AQUA_CONFIG environment variable', path)
-
+            self.logger.warning('AQUA will be installed in %s, but please remember to define AQUA_CONFIG environment variable',
+                                path)
 
     # def _grids_define(self):
     #     """add the grid definition into the aqua-config.yaml"""
@@ -211,12 +221,16 @@ class AquaConsole():
         os.makedirs(f'{self.configpath}/machines', exist_ok=True)
 
     def _install_editable(self, editable):
-        """Linking the installation file in editable"""
+        """Linking the installation file in editable
+
+        Args:
+            editable (str): the path where to link the AQUA installation files
+        """
 
         editable = os.path.abspath(editable)
-        print("Installing AQUA with a link from ", editable," to ", self.configpath)
+        print("Installing AQUA with a link from ", editable, " to ", self.configpath)
         for file in ['config-aqua.yaml']:
-            if os.path.isfile(os.path.join(editable,file)):
+            if os.path.isfile(os.path.join(editable, file)):
                 if not os.path.exists(os.path.join(self.configpath, file)):
                     self.logger.info('Linking from %s to %s', editable, self.configpath)
                     os.symlink(f'{editable}/{file}', f'{self.configpath}/{file}')
@@ -232,10 +246,14 @@ class AquaConsole():
         os.makedirs(f'{self.configpath}/machines', exist_ok=True)
 
     def set(self, args):
-        """Set an installed catalog as the one used in the config-aqua.yaml"""
+        """Set an installed catalog as the one used in the config-aqua.yaml
+
+        Args:
+            args (argparse.Namespace): arguments from the command line
+        """
 
         self._check()
-        #print(f"{self.configpath}/machines/{args.catalog}")
+        # print(f"{self.configpath}/machines/{args.catalog}")
         if os.path.exists(f"{self.configpath}/machines/{args.catalog}"):
             self._set_catalog(args.catalog)
         else:
@@ -246,7 +264,7 @@ class AquaConsole():
         """List installed catalogs"""
 
         self._check()
-        #self.configpath = ConfigPath().configdir
+        # self.configpath = ConfigPath().configdir
         cdir = f'{self.configpath}/machines'
         contents = os.listdir(cdir)
 
@@ -261,20 +279,28 @@ class AquaConsole():
                 print(f"\t - {item}")
 
     def fixes_add(self, args):
-        """Add a fix file"""
+        """Add a fix file
+
+        Args:
+            args (argparse.Namespace): arguments from the command line
+        """
         compatible = self._check_file(kind='fixes', file=args.fixfile)
         if compatible:
             self._file_add(kind='fixes', file=args.fixfile, link=args.editable)
 
     def grids_add(self, args):
-        """Add a grid file"""
+        """Add a grid file
+
+        Args:
+            args (argparse.Namespace): arguments from the command line
+        """
         compatible = self._check_file(kind='grids', file=args.gridfile)
         if compatible:
             self._file_add(kind='grids', file=args.gridfile, link=args.editable)
 
     def _file_add(self, kind, file, link=False):
         """Add a personalized file to the fixes/grids folder
-        
+
         Args:
             kind (str): the kind of file to be added, either 'fixes' or 'grids'
             file (str): the file to be added
@@ -300,7 +326,11 @@ class AquaConsole():
             sys.exit(1)
 
     def add(self, args):
-        """Add a catalog"""
+        """Add a catalog
+
+        Args:
+            args (argparse.Namespace): arguments from the command line
+        """
         print('Adding the AQUA catalog', args.catalog)
         self._check()
         cdir = f'{self.configpath}/machines/{args.catalog}'
@@ -326,22 +356,30 @@ class AquaConsole():
                     self.logger.error('Catalog %s does not appear to exist in %s', args.catalog, sdir)
             else:
                 self.logger.error("Catalog %s already installed in %s, please consider `aqua remove`.",
-                                args.catalog, cdir)
+                                  args.catalog, cdir)
                 sys.exit(1)
 
         self._set_catalog(args.catalog)
 
     def _set_catalog(self, catalog):
-        """Modify the config-aqua.yaml with the proper catalog"""
+        """Modify the config-aqua.yaml with the proper catalog
 
-        # once we get rid of machine dependence, this can be removed    
+        Args:
+            catalog (str): the catalog to be set as the default in the config-aqua.yaml
+        """
+
+        # once we get rid of machine dependence, this can be removed
         self.logger.info('Setting machine name to %s', catalog)
         cfg = load_yaml(self.configfile)
         cfg['machine'] = catalog
         dump_yaml(self.configfile, cfg)
-    
+
     def remove(self, args):
-        """Remove a catalog"""
+        """Remove a catalog
+
+        Args:
+            args (argparse.Namespace): arguments from the command line
+        """
         self._check()
         cdir = f'{self.configpath}/machines/{args.catalog}'
         print('Remove the AQUA catalog', args.catalog, 'from', cdir)
@@ -354,7 +392,7 @@ class AquaConsole():
             self.logger.error('Catalog %s is not installed in %s, cannot remove it',
                               args.catalog, cdir)
             sys.exit(1)
-            
+
     def _check(self):
         """check installation"""
         try:
@@ -385,7 +423,7 @@ class AquaConsole():
         """
         Check if a new file can be merged with AQUA load_multi_yaml()
         It works also without a new file to check that the existing files are compatible
-        
+
         Args:
             kind (str): the kind of file to be added, either 'fixes' or 'grids'
             file (str): the file to be added
@@ -397,10 +435,10 @@ class AquaConsole():
         try:
             load_multi_yaml(folder_path=f'{self.configpath}/{kind}',
                             filenames=[file]) if file is not None else load_multi_yaml(folder_path=f'{self.configpath}/{kind}')
-            
+
             if file is not None:
                 self.logger.debug('File %s is compatible with the existing files in %s', file, kind)
-            
+
             return True
         except Exception as e:
             if file is not None:
@@ -415,16 +453,19 @@ def main():
     """AQUA main installation tool"""
     AquaConsole()
 
+
 def query_yes_no(question, default="yes"):
     # from stackoverflow
     """Ask a yes/no question via input() and return their answer.
 
-    "question" is a string that is presented to the user.
-    "default" is the presumed answer if the user just hits <Enter>.
-            It must be "yes" (the default), "no" or None (meaning
-            an answer is required of the user).
+    Args:
+        question (str): the question to be asked to the user
+        default (str): the default answer if the user just hits <Enter>.
+                       It must be "yes" (the default), "no" or None (meaning
+                       an answer is required of the user).
 
-    The return value is True for "yes" or False for "no".
+    Returns:
+        bool: True for yes, False for no
     """
     valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
     if default is None:
