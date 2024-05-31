@@ -196,7 +196,14 @@ def make_timeaxis(data_startdate, startdate, enddate, timestep=None,
         sdate = dates[sidx]
         edate = dates[eidx]
 
-    return dates[idx], sidx + offset, sdate, eidx + offset, edate, chunksize
+    return {
+        'timeaxis': dates[idx],
+        'start_idx': sidx + offset,
+        'start_date': sdate,
+        'end_idx': eidx + offset,
+        'end_date': edate,
+        'size': chunksize
+    }
 
 
 def todatetime(datestr):

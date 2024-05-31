@@ -172,12 +172,13 @@ class GSVSource(base.DataSource):
                 todatetime(self.startdate) >= todatetime(self.bridge_end_date)
             ):
             # data are all in bridge or no bridge needed or after end of bridge data
-            (self.timeaxis, self.chk_start_idx,
-            self.chk_start_date, self.chk_end_idx,
-            self.chk_end_date, self.chk_size) = make_timeaxis(self.data_start_date, self.startdate, self.enddate,
-                                                            shiftmonth=self.timeshift, timestep=timestep,
-                                                            savefreq=savefreq, chunkfreq=chunking_time)
-            self._npartitions = len(self.chk_start_date)
+
+            timeaxis = make_timeaxis(self.data_start_date, self.startdate, self.enddate,
+                                     shiftmonth=self.timeshift, timestep=timestep,
+                                     savefreq=savefreq, chunkfreq=chunking_time)
+
+            self._npartitions = len(timeaxis["timeaxis"])
+
             if self.bridge_end_date != "complete" and (
                     not self.bridge_end_date or (todatetime(self.startdate) >= todatetime(self.bridge_end_date))
             ):
@@ -186,28 +187,33 @@ class GSVSource(base.DataSource):
                 self.chk_type = np.ones(self._npartitions)   # mark as bridge chunks
         else:
             # data are split between bridge and hpc fdb
-            (self.timeaxis, self.chk_start_idx,
-            self.chk_start_date, self.chk_end_idx,
-            self.chk_end_date, self.chk_size) = make_timeaxis(self.data_start_date, self.startdate, self.bridge_end_date,
-                                                            shiftmonth=self.timeshift, timestep=timestep,
-                                                            savefreq=savefreq, chunkfreq=chunking_time, skiplast=True)
-            self._npartitions = len(self.chk_start_date)
-            self.chk_type = np.ones(self._npartitions)  # the first part is bridge data
 
-            (self.timeaxis2, self.chk_start_idx2,
-            self.chk_start_date2, self.chk_end_idx2,
-            self.chk_end_date2, self.chk_size2) = make_timeaxis(self.data_start_date, self.bridge_end_date, self.enddate,
-                                                            shiftmonth=self.timeshift, timestep=timestep,
-                                                            savefreq=savefreq, chunkfreq=chunking_time)
-            self.timeaxis = self.timeaxis.append(self.timeaxis2)
-            self.chk_start_idx = np.append(self.chk_start_idx, self.chk_start_idx2)
-            self.chk_start_date = self.chk_start_date.append(self.chk_start_date2)
-            self.chk_end_idx = np.append(self.chk_end_idx, self.chk_end_idx2)
-            self.chk_end_date = self.chk_end_date.append(self.chk_end_date2)
-            self.chk_size = np.append(self.chk_size, self.chk_size2)
-        
-            self._npartitions = self._npartitions + len(self.chk_start_date2)
-            self.chk_type = np.append(self.chk_type, np.zeros(len(self.chk_start_date2)))  # the second part is hpc fdb data
+            # data on the bridge
+            timeaxis = make_timeaxis(self.data_start_date, self.startdate, self.bridge_end_date,
+                                     shiftmonth=self.timeshift, timestep=timestep,
+                                     savefreq=savefreq, chunkfreq=chunking_time, skiplast=True)
+            # data on the hpc fdb
+            timeaxis_hpc = make_timeaxis(self.data_start_date, self.bridge_end_date, self.enddate,
+                                         shiftmonth=self.timeshift, timestep=timestep,
+                                         savefreq=savefreq, chunkfreq=chunking_time)
+
+            nbridge = len(timeaxis["start_date"])
+            nhpc = len(timeaxis_hpc["start_date"])
+
+            for key in timeaxis.keys():
+                timeaxis[key] = np.append(timeaxis[key], timeaxis_hpc[key])
+
+            self._npartitions = len(timeaxis["timeaxis"])
+
+            self.chk_type = np.ones(nbridge)  # the first part is bridge data
+            self.chk_type = np.append(self.chk_type, np.zeros(nhpc))  # the second part is hpc fdb data
+
+        self.timeaxis = timeaxis["timeaxis"]
+        self.chk_start_idx = timeaxis["start_idx"]
+        self.chk_start_date = timeaxis["start_date"]
+        self.chk_end_idx = timeaxis["end_idx"]
+        self.chk_end_date = timeaxis["end_date"]
+        self.chk_size = timeaxis["size"]
 
         if "levelist" in self._request:
             self.chunking_vertical = chunking_vertical
