@@ -12,6 +12,9 @@ AQUA core complete list:
 - Automatic switching between HPC and databridge fdb (#1054)
 - CLI script for automatic multiple experiment analysis submission (#1160)
 
+AQUA diagnostics complete list:
+- CLI script for automatic multiple experiment analysis submission (#1160, #1175)
+
 ## [v0.8.2]
 
 Main changes are: 
