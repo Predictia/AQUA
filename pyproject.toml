@@ -86,6 +86,9 @@ all = [
     "aqua[ecmean]"
 ]
 
+[project.scripts]
+aqua = "aqua.main:main"
+
 [project.urls]
 homepage = "https://aqua-web-contbuild.2.rahtiapp.fi"
 documentation = "https://aqua-web-contbuild.2.rahtiapp.fi/documentation/index.html"
