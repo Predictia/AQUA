@@ -470,17 +470,17 @@ members, and we want to described this in the catalog. This is something intake 
                     domain: g
                     class: rd
                     expver: a06x
-                    realization: {{ realization }}
+                    realization: '{{ realization }}'
 
                     ...
                    
                 driver: gsv
                 parameters:
                     realization:
-                        allowed: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+                        allowed: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                         description: realization member
-                        type: str
-                        default: '1'
+                        type: int
+                        default: 1
 
 This can be later accessed via the reader providing an extra argument, or kwargs in python jargon, which define the realization
 

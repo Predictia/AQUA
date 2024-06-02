@@ -4,6 +4,7 @@ import os
 import random
 import string
 import re
+import sys
 import numpy as np
 import xarray as xr
 from pypdf import PdfReader, PdfWriter
@@ -238,3 +239,13 @@ def username():
     if user is None:
         raise EnvironmentError("The 'USER' environment variable is not set.")
     return user
+
+class HiddenPrints:
+    # from stackoverflow https://stackoverflow.com/questions/8391411/how-to-block-calls-to-print#:~:text=If%20you%20don't%20want,the%20top%20of%20the%20file.
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
