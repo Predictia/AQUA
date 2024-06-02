@@ -178,14 +178,16 @@ class GSVSource(base.DataSource):
                                      shiftmonth=self.timeshift, timestep=timestep,
                                      savefreq=savefreq, chunkfreq=chunking_time)
 
-            self._npartitions = len(timeaxis["timeaxis"])
+            self._npartitions = len(timeaxis["start_date"])
 
             if self.bridge_end_date != "complete" and (
                     not self.bridge_end_date or (todatetime(self.startdate) >= todatetime(self.bridge_end_date))
             ):
                 self.chk_type = np.zeros(self._npartitions)  # mark as hpc fdb chunks
+                self.logger.debug("All data are in HPC FDB")
             else:
                 self.chk_type = np.ones(self._npartitions)   # mark as bridge chunks
+                self.logger.debug("All data are on bridge FDB")
         else:
             # data are split between bridge and hpc fdb
 
@@ -201,13 +203,16 @@ class GSVSource(base.DataSource):
             nbridge = len(timeaxis["start_date"])
             nhpc = len(timeaxis_hpc["start_date"])
 
-            for key in timeaxis.keys():
+            for key in ["timeaxis", "start_date", "end_date"]:
+                timeaxis[key] = timeaxis[key].append(timeaxis_hpc[key])
+
+            for key in ["start_idx", "end_idx", "size"]:
                 timeaxis[key] = np.append(timeaxis[key], timeaxis_hpc[key])
 
-            self._npartitions = len(timeaxis["timeaxis"])
-
+            self._npartitions = nbridge + nhpc
             self.chk_type = np.ones(nbridge)  # the first part is bridge data
             self.chk_type = np.append(self.chk_type, np.zeros(nhpc))  # the second part is hpc fdb data
+            self.logger.debug("Data up to %s are on bridge FDB", timeaxis["end_date"][nbridge-1])
 
         self.timeaxis = timeaxis["timeaxis"]
         self.chk_start_idx = timeaxis["start_idx"]
