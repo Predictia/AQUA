@@ -2,6 +2,7 @@
 
 import pandas as pd
 from datetime import datetime
+import os
 
 
 def date2str(dateobj):
@@ -218,3 +219,19 @@ def todatetime(datestr):
     """
 
     return pd.Timestamp(str(datestr))
+
+
+def read_bridge_end_date(obj):
+    """
+    Reads the bridge end date from a file or string
+    """
+    
+    if obj != "complete" and os.path.isfile(obj):
+        with open(obj, 'r') as file:
+            date = file.read()
+        date = date.strip()
+        date = pd.Timestamp(date_str)
+        date += pd.DateOffset(days=1)
+        return (datetime(date.astype(datetime)).strftime('%Y%m%d'))
+    else:
+        return obj
