@@ -196,6 +196,7 @@ Some of the parameters are here described:
     This optional date is used for cases where part of the data are on the HPC FDB and part on the databridge.
     This is the first date/time (included) from which data are still on the HPC. Before all data are assumed to be on the databridge.
     If set to "complete" then all data are assumed to be on the bridge.
+    It can also be set to a filename, from which to read the date of the data which were last wiped from the HPC (in YYYYMMDD format).
 
 .. option:: chunks
 
