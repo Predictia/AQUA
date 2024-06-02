@@ -99,7 +99,7 @@ sources:
     description: hourly 2D atmospheric data on healpix grid (zoom=10, h1024).
     args:
       <<: *args-default
-      bridge_end_date: 20310326T0000
+      bridge_end_date: /scratch/project_465000454/lrb_465000454_asub/a13j/last_wiped.txt
       request:
         <<: *request-default
         resolution: high
