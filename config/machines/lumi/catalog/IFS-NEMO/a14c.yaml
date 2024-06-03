@@ -1,18 +1,38 @@
 sources:
-
-  hourly-hpz10-atm2d:
-    <<: *base-default
-    description: hourly 2D atmospheric data on healpix grid (zoom=10, h1024).
-    args:
-      <<: *args-default
-      request:
-        <<: *request-default
+  hourly-hpz10-atm2d: &base-default
+    args: &args-default
+      request: &request-default
+        class: d1
+        dataset: climate-dt
+        activity: HighResMIP 
+        experiment: cont
+        generation: 1
+        model: IFS-NEMO
+        realization: 1
         resolution: high
-    metadata:
-      <<: *metadata-default
+        expver: 'a14c'
+        type: fc
+        stream: clte
+        date: 19910401
+        time: '0000'
+        param: 167
+        levtype: sfc
+        step: 0
+      data_start_date: 19910401T0000
+      data_end_date: auto
+      chunks: D  # Default time chunk size
+      savefreq: h  # at what frequency are data saved
+      timestep: h  # base timestep for step timestyle
+      timestyle: date  # variable date or variable step
+    description: hourly 2D atmospheric data on healpix grid (zoom=10, h1024).
+    driver: gsv
+    metadata: &metadata-default
       fdb_home: /scratch/project_465000542/experiments/a14c/fdb/HEALPIX_grids
       fdb_path: /scratch/project_465000542/experiments/a14c/fdb/HEALPIX_grids/etc/fdb/config.yaml
+      eccodes_path: /projappl/project_465000454/jvonhar/aqua/eccodes/eccodes-2.32.5/definitions
+      variables: [78, 79, 134, 137, 141, 148, 151, 159, 164, 165, 166, 167, 168, 186, 187, 188, 235, 260048, 8, 9, 144, 146, 147, 169, 175, 176, 177, 178, 179, 180, 181, 182, 212, 228]
       source_grid_name: hpz10-nested
+      fixer_name: ifs-destine-v1
 
   hourly-hpz10-atm3d:
     <<: *base-default
