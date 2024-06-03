@@ -226,7 +226,7 @@ def read_bridge_end_date(obj):
     Reads the bridge end date from a file or string
     """
     
-    if obj != "complete" and os.path.isfile(obj):
+    if obj and obj != "complete" and os.path.isfile(obj):
         with open(obj, 'r') as file:
             date = file.read()
         date = pd.Timestamp(date.strip())
