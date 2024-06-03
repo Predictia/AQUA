@@ -34,7 +34,7 @@ sources:
                   207, 228090, 235, 236, 208, 209, 210, 228029, 147, 169, 8, 9, 166, 170, 34, 
                   31, 33, 78, 79, 142, 144, 146, 165, 139, 141, 164, 134, 151, 159, 40, 41, 42, 137, 39]
       source_grid_name: hpz7-nested
-      fixer_name: ifs-nemo-destine-v1-monthly
+      fixer_name: ifs-nemo-destine-v2-monthly
 
   monthly-hpz7-atm3d:
     <<: *base-default
