@@ -162,7 +162,7 @@ class GSVSource(base.DataSource):
         self.data_end_date = data_end_date
         self.startdate = startdate
         self.enddate = enddate
-        self.bridge_end_date = read_bridge_end_date(bridge_end_date)  # this accepts also a filename
+        self.bridge_end_date = read_bridge_end_date(bridge_end_date)  # HACK
         
         if self.bridge_end_date and not self.fdbpath_bridge and not self.fdbhome_bridge:
             raise ValueError('Bridge end date requested but FDB path not specified in catalogue.')
