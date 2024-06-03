@@ -4,11 +4,12 @@ import glob
 import datetime
 import eccodes
 import xarray as xr
+import numpy as np
 import dask
 from ruamel.yaml import YAML
 from aqua.util.eccodes import init_get_eccodes_shortname
 from intake.source import base
-from .timeutil import check_dates, shift_time_dataset
+from .timeutil import check_dates, shift_time_dataset, todatetime, read_bridge_end_date
 from .timeutil import split_date, make_timeaxis, date2str, date2yyyymm, add_offset
 from aqua.logger import log_configure, _check_loglevel
 
@@ -34,7 +35,7 @@ class GSVSource(base.DataSource):
     _da = None
     dask_access = False  # Flag if dask has been requested
 
-    def __init__(self, request, data_start_date, data_end_date, timestyle="date",
+    def __init__(self, request, data_start_date, data_end_date, bridge_end_date=None, timestyle="date",
                  chunks="S", savefreq="h", timestep="h", timeshift=None,
                  startdate=None, enddate=None, var=None, metadata=None, level=None,
                  loglevel='WARNING', **kwargs):
@@ -46,6 +47,7 @@ class GSVSource(base.DataSource):
             request (dict): Request dictionary
             data_start_date (str): Start date of the available data.
             data_end_date (str): End date of the available data.
+            bridge_end_date (str, optional): End date of the bridge data (excluded). Defaults to None.
             timestyle (str, optional): Time style. Defaults to "date".
             chunks (str or dict, optional): Time and vertical chunking.
                                         If a string is provided, it is assumed to be time chunking.
@@ -77,11 +79,15 @@ class GSVSource(base.DataSource):
         if metadata:
             self.fdbhome = metadata.get('fdb_home', None)
             self.fdbpath = metadata.get('fdb_path', None)
+            self.fdbhome_bridge = metadata.get('fdb_home_bridge', None)
+            self.fdbpath_bridge = metadata.get('fdb_path_bridge', None)
             self.eccodes_path = metadata.get('eccodes_path', None)
             self.levels =  metadata.get('levels', None)
         else:
             self.fdbpath = None
             self.fdbhome = None
+            self.fdbhome_bridge = None
+            self.fdbpath_bridge = None
             self.eccodes_path = None
             self.levels = None
 
@@ -156,14 +162,64 @@ class GSVSource(base.DataSource):
         self.data_end_date = data_end_date
         self.startdate = startdate
         self.enddate = enddate
+        self.bridge_end_date = read_bridge_end_date(bridge_end_date)  # HACK
+        
+        if self.bridge_end_date and not self.fdbpath_bridge and not self.fdbhome_bridge:
+            raise ValueError('Bridge end date requested but FDB path not specified in catalogue.')
 
-        (self.timeaxis, self.chk_start_idx,
-         self.chk_start_date, self.chk_end_idx,
-         self.chk_end_date, self.chk_size) = make_timeaxis(self.data_start_date, self.startdate, self.enddate,
-                                                           shiftmonth=self.timeshift, timestep=timestep,
-                                                           savefreq=savefreq, chunkfreq=chunking_time)
+        if self.bridge_end_date == "complete" or not self.bridge_end_date or (
+                self.bridge_end_date and
+                todatetime(self.bridge_end_date) > todatetime(self.enddate) or 
+                todatetime(self.startdate) >= todatetime(self.bridge_end_date)
+            ):
+            # data are all in bridge or no bridge needed or after end of bridge data
 
-        self._npartitions = len(self.chk_start_date)
+            timeaxis = make_timeaxis(self.data_start_date, self.startdate, self.enddate,
+                                     shiftmonth=self.timeshift, timestep=timestep,
+                                     savefreq=savefreq, chunkfreq=chunking_time)
+
+            self._npartitions = len(timeaxis["start_date"])
+
+            if self.bridge_end_date != "complete" and (
+                    not self.bridge_end_date or (todatetime(self.startdate) >= todatetime(self.bridge_end_date))
+            ):
+                self.chk_type = np.zeros(self._npartitions)  # mark as hpc fdb chunks
+                self.logger.debug("All data are in HPC FDB")
+            else:
+                self.chk_type = np.ones(self._npartitions)   # mark as bridge chunks
+                self.logger.debug("All data are on bridge FDB")
+        else:
+            # data are split between bridge and hpc fdb
+
+            # data on the bridge
+            timeaxis = make_timeaxis(self.data_start_date, self.startdate, self.bridge_end_date,
+                                     shiftmonth=self.timeshift, timestep=timestep,
+                                     savefreq=savefreq, chunkfreq=chunking_time, skiplast=True)
+            # data on the hpc fdb
+            timeaxis_hpc = make_timeaxis(self.data_start_date, self.bridge_end_date, self.enddate,
+                                         shiftmonth=self.timeshift, timestep=timestep,
+                                         savefreq=savefreq, chunkfreq=chunking_time)
+
+            nbridge = len(timeaxis["start_date"])
+            nhpc = len(timeaxis_hpc["start_date"])
+
+            for key in ["timeaxis", "start_date", "end_date"]:
+                timeaxis[key] = timeaxis[key].append(timeaxis_hpc[key])
+
+            for key in ["start_idx", "end_idx", "size"]:
+                timeaxis[key] = np.append(timeaxis[key], timeaxis_hpc[key])
+
+            self._npartitions = nbridge + nhpc
+            self.chk_type = np.ones(nbridge)  # the first part is bridge data
+            self.chk_type = np.append(self.chk_type, np.zeros(nhpc))  # the second part is hpc fdb data
+            self.logger.debug("Data up to %s are on bridge FDB", timeaxis["end_date"][nbridge-1])
+
+        self.timeaxis = timeaxis["timeaxis"]
+        self.chk_start_idx = timeaxis["start_idx"]
+        self.chk_start_date = timeaxis["start_date"]
+        self.chk_end_idx = timeaxis["end_idx"]
+        self.chk_end_date = timeaxis["end_date"]
+        self.chk_size = timeaxis["size"]
 
         if "levelist" in self._request:
             self.chunking_vertical = chunking_vertical
@@ -364,10 +420,21 @@ class GSVSource(base.DataSource):
         else:
             request["param"] = self._var
 
-        if self.fdbhome:  #if fdbhome is provided, use it, since we are creating a new gsv
-            os.environ["FDB_HOME"] = self.fdbhome
-        if self.fdbpath:  # if fdbpath provided, use it, since we are creating a new gsv
-            os.environ["FDB5_CONFIG_FILE"] = self.fdbpath
+        # Select based on type of FDB
+        fstream_iterator = False
+        if self.chk_type[i]:
+            # Bridge FDB type
+            if self.fdbhome_bridge:
+                os.environ["FDB_HOME"] = self.fdbhome_bridge
+            if self.fdbpath_bridge:
+                os.environ["FDB5_CONFIG_FILE"] = self.fdbpath_bridge
+            fstream_iterator = True
+        else:
+            # HPC FDB type
+            if self.fdbhome:  #if fdbhome is provided, use it, since we are creating a new gsv
+                os.environ["FDB_HOME"] = self.fdbhome
+            if self.fdbpath:  # if fdbpath provided, use it, since we are creating a new gsv
+                os.environ["FDB5_CONFIG_FILE"] = self.fdbpath
 
         if self.eccodes_path:  # if needed switch eccodes path
             # unless we have already switched
@@ -377,7 +444,12 @@ class GSVSource(base.DataSource):
         
         gsv = GSVRetriever(logging_level=self.gsv_log_level)
 
-        dataset = gsv.request_data(request)
+        # for some reason this is needed here and not in init
+        gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel())
+        gsv = GSVRetriever(logging_level=gsv_log_level)
+
+        self.logger.debug('Request %s', request)
+        dataset = gsv.request_data(request, use_stream_iterator=fstream_iterator)
 
         if self.timeshift:  # shift time by one month (special case)
             dataset = shift_time_dataset(dataset)
