@@ -59,6 +59,14 @@ catalog:
       daily-hpz7-oce3d:
         workers: 16
         vars: ['avg_thetao', 'avg_so']
+    hs3l:
+      monthly-hp7-atm2d:
+        workers: 24
+        vars: ['mtpr', '2t', 'skt', 'msl', 'tcc', 'lcc', 'hcc', 'mcc', 'sd', 'tciw', 'tclw', 'mer', 'msr', 'mslhf', 'msshf', 
+          'msnswrf', 'msnlwrf', 'msdwlwrf', 'msdwswrf', 'mtnswrf', 'mtnlwrf', 'mtdwswrf', 'mntss', 'metss', 'msror']
+      monthly-hp7-atm3d:
+        workers: 16
+        vars: ['q', 't', 'u', 'v']
 
   ICON:
     historical-1990:
