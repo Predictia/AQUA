@@ -90,7 +90,7 @@ class OutputNamer:
         parts.append(suffix)
 
         filename = '.'.join(parts)
-        self.logger.debug(f"Generated filename with time precision and kwargs: {filename}")
+        self.logger.debug(f"Generated filename: {filename}")
         return filename
 
     def save_netcdf(self, dataset: xr.Dataset, path: str = None, diagnostic_product: str = None, var: str = None,
@@ -131,6 +131,13 @@ class OutputNamer:
 
         # Add metadata if provided, including the current time
         metadata = update_metadata_with_date(metadata)
+
+        # If metadata contains a history attribute, log the history
+        if 'history' in metadata:
+            log_history(data=dataset, msg=metadata['history'])
+            # Remove the history attribute from the metadata dictionary
+            metadata.pop('history')
+
         dataset.attrs.update(metadata)
         self.logger.debug(f"Metadata added: {metadata}")
 
