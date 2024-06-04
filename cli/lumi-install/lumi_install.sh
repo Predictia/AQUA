@@ -180,6 +180,11 @@ if ! grep -q 'module use /project/project_465000454/devaraju/modules/LUMI/23.03/
   echo 'export GSV_WEIGHTS_PATH=/scratch/project_465000454/igonzalez/gsv_weights' >>  $load_aqua_file
   echo 'export GSV_TEST_FILES=/scratch/project_465000454/igonzalez/gsv_test_files' >> $load_aqua_file
   echo 'export GRID_DEFINITION_PATH=/scratch/project_465000454/igonzalez/grid_definitions' >>  $load_aqua_file
+
+  # Currently (March 2024) this is the recommended setup for bridge access
+  echo 'export PATH=/users/lrb_465000454_fdb/mars/versions/current/bin:$PATH' >>  $load_aqua_file
+  echo 'export LD_LIBRARY_PATH=/users/lrb_465000454_fdb/mars/versions/current/lib64:$LD_LIBRARY_PATH' >>  $load_aqua_file
+
   log_message INFO "export for GSV has been added to .bashrc. Please run 'source  $load_aqua_file' to load the new configuration."
 
   # Install path
