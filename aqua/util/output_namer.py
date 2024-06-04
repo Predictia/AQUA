@@ -29,7 +29,6 @@ class OutputNamer:
         self.default_path = default_path
         self.rebuild = rebuild
         self.logger = log_configure(log_level=self.loglevel, log_name='OutputNamer')
-        self.logger.debug(f"OutputNamer initialized with diagnostic: {diagnostic}, model: {model}, exp: {exp}, default_path: {default_path}") # noqa
 
     def update_diagnostic_product(self, diagnostic_product: str):
         """
@@ -40,7 +39,6 @@ class OutputNamer:
         """
         if diagnostic_product is not None:
             self.diagnostic_product = diagnostic_product
-            self.logger.debug(f"Diagnostic product updated to: {diagnostic_product}")
 
     def generate_name(self, diagnostic_product: str = None, var: str = None, model_2: str = None, exp_2: str = None,
                       time_start: str = None, time_end: str = None, time_precision: str = 'ymd', area: str = None,
@@ -71,7 +69,6 @@ class OutputNamer:
 
         if not self.diagnostic_product:
             msg = "diagnostic_product is required."
-            self.logger.error(msg)
             raise ValueError(msg)
 
         # Handle time formatting based on the specified precision
@@ -120,8 +117,9 @@ class OutputNamer:
         Returns:
             str: The absolute path where the netCDF file has been saved.
         """
-        filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_start, time_end, time_precision, area,
-                                      suffix='nc', **kwargs)
+        filename = self.generate_name(diagnostic_product=diagnostic_product, var=var,
+                                      model_2=model_2, exp_2=exp_2, time_start=time_start, time_end=time_end,
+                                      time_precision=time_precision, area=area, suffix='nc', **kwargs)
 
         if path is None:
             path = self.default_path
@@ -172,7 +170,8 @@ class OutputNamer:
         """
         if path is None:
             path = self.default_path
-        filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_start, time_end, time_precision, area,
+        filename = self.generate_name(diagnostic_product=diagnostic_product, var=var, model_2=model_2, exp_2=exp_2,
+                                      time_start=time_start, time_end=time_end, time_precision=time_precision, area=area,
                                       suffix='pdf', **kwargs)
         full_path = os.path.join(path, filename)
 
@@ -224,8 +223,9 @@ class OutputNamer:
         Raises:
             ValueError: If the provided fig parameter is not a valid matplotlib Figure.
         """
-        filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_start, time_end, time_precision,
-                                      area, suffix='png', **kwargs)
+        filename = self.generate_name(diagnostic_product=diagnostic_product, var=var, model_2=model_2, exp_2=exp_2,
+                                      time_start=time_start, time_end=time_end, time_precision=time_precision,
+                                      area=area, suffix='png', **kwargs)
 
         if path is None:
             path = self.default_path
