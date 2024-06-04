@@ -5,8 +5,10 @@ import xarray as xr
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
+
 class OutputNamer:
-    def __init__(self, diagnostic: str, model: str, exp: str, diagnostic_product: str = None, loglevel: str = 'WARNING', default_path: str = '.', rebuild: bool = True):
+    def __init__(self, diagnostic: str, model: str, exp: str, diagnostic_product: str = None, loglevel: str = 'WARNING',
+                 default_path: str = '.', rebuild: bool = True):
         """
         Initialize the OutputNamer class to manage output file naming.
 
@@ -18,9 +20,6 @@ class OutputNamer:
             loglevel (str, optional): Log level for the class's logger.
             default_path (str, optional): Default path where files will be saved.
             rebuild (bool, optional): If True, overwrite the existing files. If False, do not overwrite. Default is True.
-
-        Returns:
-            None
         """
         self.diagnostic = diagnostic
         self.model = model
@@ -30,7 +29,7 @@ class OutputNamer:
         self.default_path = default_path
         self.rebuild = rebuild
         self.logger = log_configure(log_level=self.loglevel, log_name='OutputNamer')
-        self.logger.debug(f"OutputNamer initialized with diagnostic: {diagnostic}, model: {model}, exp: {exp}, default_path: {default_path}")
+        self.logger.debug(f"OutputNamer initialized with diagnostic: {diagnostic}, model: {model}, exp: {exp}, default_path: {default_path}") # noqa
 
     def update_diagnostic_product(self, diagnostic_product: str):
         """
@@ -38,18 +37,17 @@ class OutputNamer:
 
         Args:
             diagnostic_product (str): The new diagnostic product to be used.
-
-        Returns:
-            None
         """
         if diagnostic_product is not None:
             self.diagnostic_product = diagnostic_product
             self.logger.debug(f"Diagnostic product updated to: {diagnostic_product}")
 
     def generate_name(self, diagnostic_product: str = None, var: str = None, model_2: str = None, exp_2: str = None,
-                      time_start: str = None, time_end: str = None, time_precision: str = 'ymd', area: str = None, suffix: str = 'nc', **kwargs) -> str:
+                      time_start: str = None, time_end: str = None, time_precision: str = 'ymd', area: str = None,
+                      suffix: str = 'nc', **kwargs) -> str:
         """
-        Generate a filename based on provided parameters and additional user-defined keywords, including precise time intervals.
+        Generate a filename based on provided parameters and additional user-defined keywords,
+        including precise time intervals.
 
         Args:
             diagnostic_product (str, optional): Product of the diagnostic analysis.
@@ -65,7 +63,7 @@ class OutputNamer:
 
         Returns:
             str: A string representing the generated filename.
-        
+
         Raises:
             ValueError: If diagnostic_product is not provided.
         """
@@ -88,7 +86,8 @@ class OutputNamer:
 
         additional_parts = [f"{key}_{value}" for key, value in sorted(kwargs.items())]
 
-        parts = [part for part in [self.diagnostic, self.diagnostic_product, var, self.model, self.exp, model_2, exp_2, area] if part]
+        parts = [part for part in [self.diagnostic, self.diagnostic_product, var,
+                                   self.model, self.exp, model_2, exp_2, area] if part]
         parts.extend(time_parts)
         parts.extend(additional_parts)
         parts.append(suffix)
@@ -97,10 +96,12 @@ class OutputNamer:
         self.logger.debug(f"Generated filename with time precision and kwargs: {filename}")
         return filename
 
-    def save_netcdf(self, dataset: xr.Dataset, path: str = None, diagnostic_product: str = None, var: str = None, model_2: str = None, exp_2: str = None,
-                    time_start: str = None, time_end: str = None, time_precision: str = 'ymd', area: str = None, metadata: dict = None, **kwargs) -> str:
+    def save_netcdf(self, dataset: xr.Dataset, path: str = None, diagnostic_product: str = None, var: str = None,
+                    model_2: str = None, exp_2: str = None, time_start: str = None, time_end: str = None,
+                    time_precision: str = 'ymd', area: str = None, metadata: dict = None, **kwargs) -> str:
         """
-        Save a netCDF file with a dataset to a specified path, with support for additional filename keywords and precise time intervals.
+        Save a netCDF file with a dataset to a specified path, with support for additional filename keywords and
+        precise time intervals.
 
         Args:
             dataset (xr.Dataset): The xarray dataset to be saved as a netCDF file.
@@ -119,7 +120,8 @@ class OutputNamer:
         Returns:
             str: The absolute path where the netCDF file has been saved.
         """
-        filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_start, time_end, time_precision, area, suffix='nc', **kwargs)
+        filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_start, time_end, time_precision, area,
+                                      suffix='nc', **kwargs)
 
         if path is None:
             path = self.default_path
@@ -128,7 +130,7 @@ class OutputNamer:
         if not self.rebuild and os.path.exists(full_path):
             self.logger.info(f"File already exists and rebuild is set to False: {full_path}")
             return full_path
-        
+
         # Add metadata if provided, including the current time
         metadata = update_metadata_with_date(metadata)
         dataset.attrs.update(metadata)
@@ -140,10 +142,12 @@ class OutputNamer:
         self.logger.info(f"Saved netCDF file to path: {full_path}")
         return full_path
 
-    def save_pdf(self, fig: Figure, path: str = None, diagnostic_product: str = None, var: str = None, model_2: str = None, exp_2: str = None,
-                 time_start: str = None, time_end: str = None, time_precision: str = 'ymd', area: str = None, metadata: dict = None, dpi: int = 300, **kwargs) -> str:
+    def save_pdf(self, fig: Figure, path: str = None, diagnostic_product: str = None, var: str = None,
+                 model_2: str = None, exp_2: str = None, time_start: str = None, time_end: str = None,
+                 time_precision: str = 'ymd', area: str = None, metadata: dict = None, dpi: int = 300, **kwargs) -> str:
         """
-        Save a PDF file with a matplotlib figure to the provided path, with support for additional filename keywords and precise time intervals.
+        Save a PDF file with a matplotlib figure to the provided path, with support for additional filename keywords and
+        precise time intervals.
 
         Args:
             fig (Figure): The matplotlib figure object to be saved as a PDF.
@@ -168,7 +172,8 @@ class OutputNamer:
         """
         if path is None:
             path = self.default_path
-        filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_start, time_end, time_precision, area, suffix='pdf', **kwargs)
+        filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_start, time_end, time_precision, area,
+                                      suffix='pdf', **kwargs)
         full_path = os.path.join(path, filename)
 
         if not self.rebuild and os.path.exists(full_path):
@@ -191,10 +196,12 @@ class OutputNamer:
         self.logger.info(f"Saved PDF file at: {full_path}")
         return full_path
 
-    def save_png(self, fig: Figure, path: str = None, diagnostic_product: str = None, var: str = None, model_2: str = None, exp_2: str = None,
-                time_start: str = None, time_end: str = None, time_precision: str = 'ymd', area: str = None, metadata: dict = None, dpi: int = 300, **kwargs) -> str:
+    def save_png(self, fig: Figure, path: str = None, diagnostic_product: str = None, var: str = None,
+                 model_2: str = None, exp_2: str = None, time_start: str = None, time_end: str = None,
+                 time_precision: str = 'ymd', area: str = None, metadata: dict = None, dpi: int = 300, **kwargs) -> str:
         """
-        Save a PNG file with a matplotlib figure to a provided path, with support for additional filename keywords and precise time intervals.
+        Save a PNG file with a matplotlib figure to a provided path, with support for additional filename keywords and
+        precise time intervals.
 
         Args:
             fig (Figure): The matplotlib figure object to be saved as a PNG.
@@ -217,8 +224,9 @@ class OutputNamer:
         Raises:
             ValueError: If the provided fig parameter is not a valid matplotlib Figure.
         """
-        filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_start, time_end, time_precision, area, suffix='png', **kwargs)
-        
+        filename = self.generate_name(diagnostic_product, var, model_2, exp_2, time_start, time_end, time_precision,
+                                      area, suffix='png', **kwargs)
+
         if path is None:
             path = self.default_path
         full_path = os.path.join(path, filename)
