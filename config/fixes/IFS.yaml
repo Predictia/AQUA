@@ -89,6 +89,35 @@ fixer_name:
                 source: mean2t
                 grib: true
 
+    ifs-nemo-destine-v2-monthly:
+        # multio saves 2t as mean2t if it averages. This is pretty weird and we have to fix it back.
+        parent: ifs-destine-v1
+        vars:
+            2t: 
+                source: mean2t
+                grib: true
+            avg_tos:
+                source: sst
+                grib: true
+            mtpr: # https://codes.ecmwf.int/grib/param-db/235055
+                source: mtpr
+                grib: True
+            mtnswrfcs:
+                source: tsrc
+                grib: true
+            mtnlwrfcs:
+                source: ttrc
+                grib: true
+            msnswrfcs:
+                source: ssrc
+                grib: true
+            msnlwrfcs:
+                source: strc
+                grib: true
+            msdwswrfcs:
+                source: ssrdc
+                grib: true
+
     ifs-nemo-destine-v1-nan:  # special version for historical-1990 IFS-NEMO data, fixing to nan first step of month
         parent: ifs-destine-v1
          # The nanfirst keys fix to NaN the first step of each month
