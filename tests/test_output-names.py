@@ -18,7 +18,7 @@ def test_generate_name(output_namer):
     assert filename == 'dummy.mean.MSWEP.past.nc'
     
     # Test filename generation with additional parameters
-    filename = output_namer.generate_name(diagnostic_product='mean', var='mtpr', model_2='ERA5', exp_2='era5', time_start='1990-01', time_end='1990-02', time_precision='ym', area='indian_ocean', frequency="3H", status="preliminary")
+    filename = output_namer.generate_name(diagnostic_product='mean', var='mtpr', model_2='ERA5', exp_2='era5', time_start='1990-01-01', time_end='1990-02-01', time_precision='ym', area='indian_ocean', frequency="3H", status="preliminary")
     assert filename == 'dummy.mean.mtpr.MSWEP.past.ERA5.era5.indian_ocean.199001.199002.frequency_3H.status_preliminary.nc'
 
 def test_save_netcdf(output_namer):
@@ -30,7 +30,7 @@ def test_save_netcdf(output_namer):
     assert path == './dummy.mean.MSWEP.past.nc'
     
     # Test saving netCDF file with additional parameters
-    path = output_namer.save_netcdf(dataset=data, diagnostic_product='mean', var='mtpr', model_2='ERA5', exp_2='era5', time_start='1990-01', time_end='1990-02', time_precision='ym', area='indian_ocean', frequency="3H", status="preliminary")
+    path = output_namer.save_netcdf(dataset=data, diagnostic_product='mean', var='mtpr', model_2='ERA5', exp_2='era5', time_start='1990-01-01', time_end='1990-02-01', time_precision='ym', area='indian_ocean', frequency="3H", status="preliminary")
     assert path == './dummy.mean.mtpr.MSWEP.past.ERA5.era5.indian_ocean.199001.199002.frequency_3H.status_preliminary.nc'
 
 def test_save_pdf(output_namer):
@@ -43,7 +43,7 @@ def test_save_pdf(output_namer):
     assert path == './dummy.mean.MSWEP.past.pdf'
     
     # Test saving PDF file with additional parameters
-    path = output_namer.save_pdf(fig=fig, diagnostic_product='mean', var='mtpr', model_2='ERA5', exp_2='era5', time_start='1990-01', time_end='1990-02', time_precision='ym', area='indian_ocean', frequency="3H", status="preliminary")
+    path = output_namer.save_pdf(fig=fig, diagnostic_product='mean', var='mtpr', model_2='ERA5', exp_2='era5', time_start='1990-01-01', time_end='1990-02-01', time_precision='ym', area='indian_ocean', frequency="3H", status="preliminary")
     assert path == './dummy.mean.mtpr.MSWEP.past.ERA5.era5.indian_ocean.199001.199002.frequency_3H.status_preliminary.pdf'
 
 def test_save_png(output_namer):
@@ -56,27 +56,25 @@ def test_save_png(output_namer):
     assert path == './dummy.mean.MSWEP.past.png'
     
     # Test saving PNG file with additional parameters
-    path = output_namer.save_png(fig=fig, diagnostic_product='mean', var='mtpr', model_2='ERA5', exp_2='era5', time_start='1990-01', time_end='1990-02', time_precision='ym', area='indian_ocean', frequency="3H", status="preliminary")
+    path = output_namer.save_png(fig=fig, diagnostic_product='mean', var='mtpr', model_2='ERA5', exp_2='era5', time_start='1990-01-01', time_end='1990-02-01', time_precision='ym', area='indian_ocean', frequency="3H", status="preliminary")
     assert path == './dummy.mean.mtpr.MSWEP.past.ERA5.era5.indian_ocean.199001.199002.frequency_3H.status_preliminary.png'
-
 
 def test_missing_diagnostic_product(output_namer):
     # Test that a ValueError is raised when diagnostic_product is not provided
-    with pytest.raises(ValueError, match="diagnostic_product is required."):
+    with pytest.raises(ValueError, match="The 'diagnostic_product' parameter is required and cannot be empty."):
         output_namer.generate_name()
 
     data = xr.Dataset({'data': (('x', 'y'), [[1, 2], [3, 4]])})
-    with pytest.raises(ValueError, match="diagnostic_product is required."):
+    with pytest.raises(ValueError, match="The 'diagnostic_product' parameter is required and cannot be empty."):
         output_namer.save_netcdf(dataset=data)
 
     fig, ax = plt.subplots()
     ax.plot([1, 2, 3], [4, 5, 6])
-    with pytest.raises(ValueError, match="diagnostic_product is required."):
+    with pytest.raises(ValueError, match="The 'diagnostic_product' parameter is required and cannot be empty."):
         output_namer.save_pdf(fig=fig)
 
-    with pytest.raises(ValueError, match="diagnostic_product is required."):
+    with pytest.raises(ValueError, match="The 'diagnostic_product' parameter is required and cannot be empty."):
         output_namer.save_png(fig=fig)
-
 
 def test_metadata_addition(output_namer):
     # Create a simple xarray dataset and metadata
@@ -97,7 +95,6 @@ def test_metadata_addition(output_namer):
     pdf_path = output_namer.save_pdf(fig=fig, diagnostic_product='mean', metadata=metadata)
     # Check metadata in PDF (this is more complex, requires reading PDF metadata, which is skipped here for simplicity)
 
-
 def test_overwriting_files(output_namer):
     # Create a simple xarray dataset
     data = xr.Dataset({'data': (('x', 'y'), [[1, 2], [3, 4]])})
@@ -112,7 +109,6 @@ def test_overwriting_files(output_namer):
     path_no_overwrite = output_namer.save_netcdf(dataset=data, diagnostic_product='mean')
     assert os.path.exists(path_no_overwrite)
     assert xr.open_dataset(path)['data'].values[0, 0] != 100  # Ensure the file was not overwritten
-
 
 def test_invalid_figure_input(output_namer):
     # Test handling of invalid figure input
