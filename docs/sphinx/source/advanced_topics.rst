@@ -18,7 +18,7 @@ The configuration file is used to specify the following parameters:
 
 - **machine**: the machine on which the code is running. This is used to specify the
   location of the AQUA catalogue and the location of the data. Default is ``lumi``.
-  Other options are ``ci`` and ``levante``. Custom machines can be defined (see :ref:`_new-catalogue`).
+  Other options are ``ci`` and ``levante``. Custom machines can be defined (see :ref:`new-catalogue`).
 - **reader**: this block contains catalogue, fixes and grids location.
   These paths are required to be inside the AQUA repository,
   so these paths should not be changed unless strictly necessary.
@@ -385,7 +385,7 @@ Then, the user can cancel the particular job as:
 
 .. warning::
 
-It is potentially dangerous to cancel all your jobs. Always prefer to cancel jobs with the Job_ID.
+    It is potentially dangerous to cancel all your jobs. Always prefer to cancel jobs with the Job_ID.
 
 
 Modifying and Adding Machine Configurations in YAML

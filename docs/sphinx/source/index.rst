@@ -15,7 +15,6 @@ Welcome to AQUA's documentation!
    core_components
    aqua_console
    container
-   output_management
    diagnostics/index
    adding_data
    lra

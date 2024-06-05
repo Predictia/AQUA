@@ -1,10 +1,12 @@
-OutputNamer Class Documentation
-===============================
+Automatic Standardized File Naming
+==================================
 
 Class Overview
 --------------
 
-The `OutputNamer` class is designed to manage output file naming conventions for scientific data. It supports generating filenames for various types of files (e.g., NetCDF, PDF, PNG) with metadata integration to enhance data management and traceability. The class ensures consistent and descriptive file names, facilitating better data management and reproducibility.
+The ``OutputNamer`` class is designed to manage output file naming conventions for scientific data.
+It supports generating filenames for various types of file (e.g., NetCDF, PDF, PNG) with metadata integration to enhance data management and traceability.
+The class ensures consistent and descriptive filenames, facilitating better data management and reproducibility.
 
 Attributes
 ----------
@@ -17,10 +19,9 @@ Attributes
 - **default_path** (*str, optional*): Default path where files will be saved. Default is '.'.
 - **rebuild** (*bool, optional*): Flag indicating whether to rebuild existing files. If set to True, existing files with the same name will be overwritten. Default is True.
 
-Key Metadata
-------------
-
-The `OutputNamer` class automatically includes the current date and time when saving files as metadata (`date_saved`). This ensures each file has a timestamp indicating when it was generated.
+.. note::
+    The ``OutputNamer`` class automatically includes the current date and time when saving files as metadata ``date_saved``.
+    This ensures each file has a timestamp indicating when it was generated.
 
 Usage Examples
 --------------
@@ -28,25 +29,24 @@ Usage Examples
 Initializing the OutputNamer Class
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The following example demonstrates how to initialize the `OutputNamer` class:
+The following example demonstrates how to initialize the ``OutputNamer`` class:
 
 .. code-block:: python
 
     from aqua.util import OutputNamer
 
-    # Initialize the OutputNamer class instance
-    names = OutputNamer(diagnostic='tropical_rainfall', model='MSWEP', exp='past', loglevel='debug', default_path='.')
+    names = OutputNamer(diagnostic='tropical_rainfall', model='MSWEP', exp='past',
+                        loglevel='debug', default_path='.')
 
 Generating a Filename for a NetCDF File
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This example shows how to generate a filename for a NetCDF file with the 'mean' diagnostic product:
+This example shows how to generate a filename for a NetCDF file with the 'mean' diagnostic product for the previously initialized class.
+This and the following methods return the generated filename as a string, to be used with the incorporated methods or with other functions.
 
 .. code-block:: python
 
-    # Generate a filename for a NetCDF file with the 'mean' diagnostic product
     netcdf_filename = names.generate_name(diagnostic_product='mean', suffix='nc')
-    print(netcdf_filename)
 
 Generating a Filename with Flexible Date Inputs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -55,9 +55,9 @@ This example demonstrates generating a filename with flexible date inputs and th
 
 .. code-block:: python
 
-    # Generate a filename with flexible date inputs
-    filename = names.generate_name(var='mtpr', model_2='ERA5', exp_2='era5', time_start='1990-01', time_end='1990-02', time_precision='ym', area='indian_ocean')
-    print(filename)
+    filename = names.generate_name(var='mtpr', model_2='ERA5', exp_2='era5',
+                                   time_start='1990-01', time_end='1990-02',
+                                   time_precision='ym', area='indian_ocean')
 
 Saving a NetCDF File with Metadata
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -79,8 +79,13 @@ Here is an example of saving a NetCDF file with metadata. The metadata includes 
     }
 
     # Save the NetCDF to the specified path with the metadata
-    saved_file_path = names.save_netcdf(dataset, path='.', diagnostic_product='histogram', metadata=metadata)
-    print(f"netCDF with metadata saved to: {saved_file_path}")
+    saved_file_path = names.save_netcdf(dataset, path='.', diagnostic_product='histogram',
+                                        metadata=metadata)
+
+.. note::
+
+    If the ``history`` metadata field is provided, the ``OutputNamer`` class will append
+    the current message to the existing history.
 
 Saving a PDF Plot with Metadata
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -105,7 +110,11 @@ This example demonstrates saving a PDF plot with metadata. The metadata includes
 
     # Save the PDF with metadata
     pdf_path = names.save_pdf(fig, diagnostic_product='histogram', metadata=metadata, dpi=300)
-    print(f"PDF saved to: {pdf_path}")
+
+.. note::
+
+    We suggest at the moment to use the metadata ``/Caption`` field to store the plot description.
+    This is used at the moment by the AQUA dashboard to generate the plot description.
 
 Opening a PDF File and Displaying Metadata
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -116,10 +125,4 @@ To open a PDF file and display its metadata:
 
     from aqua.util import open_image
 
-    # Provide a link to the saved PDF file
-    open_image("/users/nazarova/work/demo/netcdf/output_test/tropical_rainfall.histogram.IFS-NEMO.historical-1990.pdf")
-
-Warning
--------
-
-By default, the `OutputNamer` class will always include a `date_saved` metadata field, recording the date and time the file was saved. This ensures traceability and reproducibility of the generated files.
+    open_image("/path/to/my/file/tropical_rainfall.histogram.IFS-NEMO.historical-1990.pdf")
