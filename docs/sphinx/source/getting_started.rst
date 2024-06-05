@@ -58,7 +58,7 @@ To set up the configuration folder, run the following command:
     aqua install
 
 This command will create the configuration folder in the ``$HOME/.aqua`` directory and it will copy there the essential files.
-Check the :ref:`aqua-init` section for more information.
+Check the :ref:`aqua-install` section for more information.
 
 Add a catalogue
 ^^^^^^^^^^^^^^^

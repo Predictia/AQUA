@@ -428,7 +428,7 @@ Set up environment variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Since ``v0.8.2`` the AQUA package has an entry point script that can be used to copy the configuration files
-and the catalogue to an external directory (see :ref:`aqua-init` and :ref:`aqua-console`).
+and the catalogue to an external directory (see :ref:`aqua-install` and :ref:`aqua-console`).
 
 By default the configuration files are stored in the ``$HOME/.aqua`` directory.
 Same for the catalogue, which is stored in the ``$HOME/.aqua/machines`` directory.
@@ -437,7 +437,7 @@ from a conda environment or from a pip package.
 
 A developer may want to keep the configuration files and the catalogues in a different directory,
 for this reason the ``aqua init`` command can be used to copy the configuration files and the catalogue
-to a different directory. For more information see the :ref:`aqua-init` section.
+to a different directory. For more information see the :ref:`aqua-install` section.
 
 If you're using a custom directory to store the configuration files and the catalogue it is recommended
 to set up an environment variable to specify the path to the AQUA package.
