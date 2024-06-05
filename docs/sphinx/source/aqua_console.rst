@@ -3,7 +3,7 @@
 Configuration and Catalogue manager
 ===================================
 
-Since ``v0.8.2`` the possibility to manage where the configuration and catalogue files are stored has been added.
+Since ``v0.9`` the possibility to manage where the configuration and catalogue files are stored has been added.
 This is based on a command line interface which can also handle fixes and grids files. 
 Here we give a brief overview of the features.
 If you are a developer, you may want to read the :ref:`dev-notes` section.
