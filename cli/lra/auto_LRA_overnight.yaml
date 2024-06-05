@@ -77,7 +77,7 @@ catalog:
         vars: ['q', 't', 'u', 'v']
 
   IFS-FESOM:
-    story-2017-historical:
+    story-2017-control:
       hourly-hpz7-atm2d:
         workers: 24
         vars: ['mtpr', '2t', 'skt', 'msl', 'tcc', 'lcc', 'hcc', 'mcc', 'sd', 'tciw', 'tclw', 'mer', 'msr', 'mslhf', 'msshf', 
