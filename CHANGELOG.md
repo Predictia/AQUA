@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
-- AQUA entry point for installation and catalog maintanance and fixes/grids handling (#1131, #1134, #1146, #1168, #1169)
+- AQUA entry point for installation and catalog maintanance and fixes/grids handling (#1131, #1134, #1146, #1168, #1169, #1182)
 - Automatic switching between HPC and databridge fdb (#1054)
 - CLI script for automatic multiple experiment analysis submission (#1160, #1175)
 
