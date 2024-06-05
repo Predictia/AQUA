@@ -86,7 +86,8 @@ class OutputNamer:
                 start_time = parse(time_start)
                 end_time = parse(time_end)
                 if time_precision in time_format:
-                    time_parts = [start_time.strftime(time_format[time_precision]), end_time.strftime(time_format[time_precision])]
+                    time_parts = [start_time.strftime(time_format[time_precision]),
+                                  end_time.strftime(time_format[time_precision])]
                 else:
                     raise ValueError(f"Invalid time_precision: {time_precision}")
             except (ValueError, TypeError) as e:
