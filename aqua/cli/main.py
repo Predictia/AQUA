@@ -7,6 +7,8 @@ AQUA command line main functions
 import os
 import shutil
 import sys
+from urllib.error import HTTPError
+import fsspec
 from aqua.util import load_yaml, dump_yaml, load_multi_yaml
 from aqua.logger import log_configure
 from aqua.util import ConfigPath
@@ -310,7 +312,10 @@ class AquaConsole():
         if args.editable is not None:
             self._add_catalog_editable(args.catalog, args.editable)
         else:
-            self._add_catalog_default(args.catalog)
+            if args.github:
+                self._add_catalog_github(args.catalog)
+            else:
+                self._add_catalog_default(args.catalog)
 
         # verify that the new catalog is compatible with AQUA, loading it with catalogue()
         try:
@@ -341,6 +346,40 @@ class AquaConsole():
             sys.exit(1)
     
         self._set_catalog(catalog)
+
+    def _add_catalog_github(self, catalog):
+        """Add a catalog from the remote Github Climate-DT repository"""
+
+        # recursive copy
+        cdir = f'{self.configpath}/machines/{catalog}'
+        if not os.path.exists(cdir):
+            try:
+                # for private repo, we need user e token. since this is a test feature,
+                # before going open source, we will use a basic token and PD account.
+                fs = fsspec.filesystem("github",
+                                       org="DestinE-Climate-DT",
+                                       repo="Climate-DT-catalog",
+                                       username="oloapinivad",
+                                       token="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")
+                self.logger.info('Accessed remote repository https://github.com/DestinE-Climate-DT/Climate-DT-catalog')
+            except HTTPError:
+                self.logger.error('Permission issues in accessing Climate-DT catalog, please contact AQUA mantainers')
+                sys.exit(1)
+            available_catalog = [os.path.basename(x) for x in fs.ls("machines/")]
+            if catalog not in available_catalog:
+                self.logger.error('Cannot find on Climate-DT-catalog the requested catalog %s, available are %s',
+                                  catalog, available_catalog)
+                sys.exit(1)
+
+            source_dir = f"machines/{catalog}"
+            self.logger.info('Fetching remote catalog %s from github to %s', catalog, cdir)
+            os.makedirs(cdir, exist_ok=True)
+            fsspec_get_recursive(fs, source_dir, cdir)
+            self.logger.info('Download complete!')
+        else:
+            self.logger.error("Catalog %s already installed in %s, please consider `aqua update`.",
+                              catalog, cdir)
+            sys.exit(1)
 
     def _add_catalog_default(self, catalog):
         """Add a catalog in default mode"""
@@ -389,7 +428,10 @@ class AquaConsole():
                 shutil.rmtree(cdir)
                 #self.logger.info('Copying %s from %s', args.catalog, sdir)
                 #shutil.copytree(sdir, cdir)
-                self._add_catalog_default(args.catalog)
+                if args.github:
+                    self._add_catalog_github(args.catalog)
+                else:
+                    self._add_catalog_default(args.catalog)
         else:
             self.logger.error('%s does not appear to be installed, please consider `aqua add`', args.catalog)
             sys.exit(1)
@@ -549,3 +591,32 @@ def query_yes_no(question, default="yes"):
             return valid[choice]
         else:
             print("Please respond with 'yes' or 'no' (or 'y' or 'n').")
+
+# Function to recursively copy files and directories
+def fsspec_get_recursive(fs, src_dir, dest_dir):
+    """
+    Recursive function to download from a fsspec object
+    
+    Args:
+        fs: fsspec filesystem object, as github instance
+        src_dir (str): source directory
+        dest_dir (str): target directory
+
+    Returns:
+        Remotely copy data from source to dest directory
+    """
+    data = fs.ls(src_dir)
+    for item in data:
+        relative_path = os.path.relpath(item, src_dir)
+        dest_path = os.path.join(dest_dir, relative_path)
+    
+        if fs.isdir(item):
+            # Create the directory in the destination
+            os.makedirs(dest_path, exist_ok=True)
+            # Recursively copy the contents of the directory
+            fsspec_get_recursive(fs, item, dest_path)
+        else:
+            # Ensure the directory exists before copying the file
+            os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+            # Copy the file
+            fs.get(item, dest_path)
