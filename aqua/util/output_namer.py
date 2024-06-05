@@ -2,6 +2,7 @@ from aqua.logger import log_configure, log_history
 from aqua.util import add_pdf_metadata, add_png_metadata, update_metadata_with_date
 import os
 import xarray as xr
+from datetime import datetime
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
@@ -71,14 +72,23 @@ class OutputNamer:
             raise ValueError("The 'diagnostic_product' parameter is required and cannot be empty.")
 
         # Handle time formatting based on the specified precision
+        time_format = {
+            'y': '%Y',
+            'ym': '%Y%m',
+            'ymd': '%Y%m%d',
+            'ymdh': '%Y%m%d%H'
+        }
         time_parts = []
         if time_start and time_end:
-            if time_precision == 'y':
-                time_parts = [time_start[:4], time_end[:4]]
-            elif time_precision == 'ym':
-                time_parts = [time_start[:7].replace('-', ''), time_end[:7].replace('-', '')]
-            elif time_precision == 'ymd':
-                time_parts = [time_start.replace('-', ''), time_end.replace('-', '')]
+            try:
+                start_time = datetime.strptime(time_start, '%Y-%m-%d')
+                end_time = datetime.strptime(time_end, '%Y-%m-%d')
+                if time_precision in time_format:
+                    time_parts = [start_time.strftime(time_format[time_precision]), end_time.strftime(time_format[time_precision])]
+                else:
+                    raise ValueError(f"Invalid time_precision: {time_precision}")
+            except ValueError as e:
+                raise ValueError(f"Invalid date format: {e}")
 
         additional_parts = [f"{key}_{value}" for key, value in sorted(kwargs.items())]
 
