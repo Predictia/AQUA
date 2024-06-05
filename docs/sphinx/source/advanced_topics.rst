@@ -126,7 +126,7 @@ More informations about how to add them can be found in the :ref:`add-data` sect
 Adding the catalogue to the AQUA package
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Since ``v0.8.2`` the AQUA package has an entry point script that will allow to add a new catalogue to the AQUA package.
+Since ``v0.9`` the AQUA package has an entry point script that will allow to add a new catalogue to the AQUA package.
 This is done with the ``aqua add`` command.
 
 .. code-block:: bash
@@ -427,7 +427,7 @@ For this reason the following steps are suggested to set up the AQUA package in 
 Set up environment variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Since ``v0.8.2`` the AQUA package has an entry point script that can be used to copy the configuration files
+Since ``v0.9`` the AQUA package has an entry point script that can be used to copy the configuration files
 and the catalogue to an external directory (see :ref:`aqua-install` and :ref:`aqua-console`).
 
 By default the configuration files are stored in the ``$HOME/.aqua`` directory.
