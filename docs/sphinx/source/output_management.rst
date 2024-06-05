@@ -48,6 +48,17 @@ This example shows how to generate a filename for a NetCDF file with the 'mean' 
     netcdf_filename = names.generate_name(diagnostic_product='mean', suffix='nc')
     print(netcdf_filename)
 
+Generating a Filename with Flexible Date Inputs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This example demonstrates generating a filename with flexible date inputs and the 'ym' time precision:
+
+.. code-block:: python
+
+    # Generate a filename with flexible date inputs
+    filename = names.generate_name(var='mtpr', model_2='ERA5', exp_2='era5', time_start='1990-01', time_end='1990-02', time_precision='ym', area='indian_ocean')
+    print(filename)
+
 Saving a NetCDF File with Metadata
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
