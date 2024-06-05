@@ -3,6 +3,7 @@ from aqua.util import add_pdf_metadata, add_png_metadata, update_metadata_with_d
 import os
 import xarray as xr
 from datetime import datetime
+from dateutil.parser import parse
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
@@ -64,7 +65,7 @@ class OutputNamer:
             str: A string representing the generated filename.
 
         Raises:
-            ValueError: If diagnostic_product is not provided.
+            ValueError: If diagnostic_product is not provided or if time format is invalid.
         """
         self.update_diagnostic_product(diagnostic_product)
 
@@ -78,16 +79,17 @@ class OutputNamer:
             'ymd': '%Y%m%d',
             'ymdh': '%Y%m%d%H'
         }
+
         time_parts = []
         if time_start and time_end:
             try:
-                start_time = datetime.strptime(time_start, '%Y-%m-%d')
-                end_time = datetime.strptime(time_end, '%Y-%m-%d')
+                start_time = parse(time_start)
+                end_time = parse(time_end)
                 if time_precision in time_format:
                     time_parts = [start_time.strftime(time_format[time_precision]), end_time.strftime(time_format[time_precision])]
                 else:
                     raise ValueError(f"Invalid time_precision: {time_precision}")
-            except ValueError as e:
+            except (ValueError, TypeError) as e:
                 raise ValueError(f"Invalid date format: {e}")
 
         additional_parts = [f"{key}_{value}" for key, value in sorted(kwargs.items())]
