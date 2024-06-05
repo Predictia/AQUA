@@ -3,7 +3,7 @@ import pytest
 import xarray as xr
 import matplotlib.pyplot as plt
 from aqua.logger import log_configure
-from aqua.util import OutputNamer  # Adjust this import to match your module's structure
+from aqua.util import OutputNamer
 
 # Initialize the logger for the tests
 log_configure(log_level='DEBUG', log_name='OutputNamerTest')
@@ -14,7 +14,9 @@ def output_namer():
     return OutputNamer(diagnostic='dummy', model='MSWEP', exp='past', loglevel='DEBUG', default_path='.')
 
 
+@pytest.mark.aqua
 def test_generate_name(output_namer):
+    """Test the generation of output filenames with and without additional parameters."""
     # Test filename generation without additional parameters
     filename = output_namer.generate_name(diagnostic_product='mean', suffix='nc')
     assert filename == 'dummy.mean.MSWEP.past.nc'
@@ -26,6 +28,7 @@ def test_generate_name(output_namer):
     assert filename == 'dummy.mean.mtpr.MSWEP.past.ERA5.era5.indian_ocean.199001.199002.frequency_3H.status_preliminary.nc'
 
 
+@pytest.mark.aqua
 def test_save_netcdf(output_namer):
     # Create a simple xarray dataset
     data = xr.Dataset({'data': (('x', 'y'), [[1, 2], [3, 4]])})
@@ -41,6 +44,7 @@ def test_save_netcdf(output_namer):
     assert path == './dummy.mean.mtpr.MSWEP.past.ERA5.era5.indian_ocean.199001.199002.frequency_3H.status_preliminary.nc'
 
 
+@pytest.mark.aqua
 def test_save_pdf(output_namer):
     # Create a simple matplotlib figure
     fig, ax = plt.subplots()
@@ -57,6 +61,7 @@ def test_save_pdf(output_namer):
     assert path == './dummy.mean.mtpr.MSWEP.past.ERA5.era5.indian_ocean.199001.199002.frequency_3H.status_preliminary.pdf'
 
 
+@pytest.mark.aqua
 def test_save_png(output_namer):
     # Create a simple matplotlib figure
     fig, ax = plt.subplots()
@@ -73,6 +78,7 @@ def test_save_png(output_namer):
     assert path == './dummy.mean.mtpr.MSWEP.past.ERA5.era5.indian_ocean.199001.199002.frequency_3H.status_preliminary.png'
 
 
+@pytest.mark.aqua
 def test_missing_diagnostic_product(output_namer):
     # Test that a ValueError is raised when diagnostic_product is not provided
     with pytest.raises(ValueError, match="The 'diagnostic_product' parameter is required and cannot be empty."):
@@ -91,6 +97,7 @@ def test_missing_diagnostic_product(output_namer):
         output_namer.save_png(fig=fig)
 
 
+@pytest.mark.aqua
 def test_metadata_addition(output_namer):
     # Create a simple xarray dataset and metadata
     data = xr.Dataset({'data': (('x', 'y'), [[1, 2], [3, 4]])})
@@ -111,6 +118,7 @@ def test_metadata_addition(output_namer):
     # Check metadata in PDF (this is more complex, requires reading PDF metadata, which is skipped here for simplicity)
 
 
+@pytest.mark.aqua
 def test_overwriting_files(output_namer):
     # Create a simple xarray dataset
     data = xr.Dataset({'data': (('x', 'y'), [[1, 2], [3, 4]])})
@@ -127,6 +135,7 @@ def test_overwriting_files(output_namer):
     assert xr.open_dataset(path)['data'].values[0, 0] != 100  # Ensure the file was not overwritten
 
 
+@pytest.mark.aqua
 def test_invalid_figure_input(output_namer):
     # Test handling of invalid figure input
     with pytest.raises(ValueError, match="The provided fig parameter is not a valid matplotlib Figure or pyplot figure."):
