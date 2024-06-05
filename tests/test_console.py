@@ -323,6 +323,44 @@ class TestAquaConsole():
         run_aqua_console_with_input(['uninstall'], 'yes')
         assert not os.path.exists(os.path.join(mydir,'.aqua'))
 
+    # base set of tests
+    def test_console_github(self, tmpdir, set_home, run_aqua, run_aqua_console_with_input):
+
+        # getting fixture
+        mydir = str(tmpdir)
+        set_home(mydir)
+
+        # aqua install
+        run_aqua(['install'])
+        assert os.path.isdir(os.path.join(mydir,'.aqua'))
+        assert os.path.isfile(os.path.join(mydir,'.aqua', 'config-aqua.yaml'))
+
+        # add catalog from github
+        run_aqua(['-v', 'add', 'ci', '--github'])
+        assert os.path.isdir(os.path.join(mydir,'.aqua/machines/ci'))
+        config_file = load_yaml(os.path.join(mydir,'.aqua', 'config-aqua.yaml'))
+        assert config_file['machine'] == 'ci'
+
+        # raise error for existing catalog
+        with pytest.raises(SystemExit) as excinfo:
+            run_aqua(['-v', 'add', 'ci', '--github'])
+            assert excinfo.value.code == 1
+
+        # update catalog from github
+        run_aqua(['-v', 'update', 'ci', '--github'])
+        assert os.path.isdir(os.path.join(mydir,'.aqua/machines/ci'))
+        config_file = load_yaml(os.path.join(mydir,'.aqua', 'config-aqua.yaml'))
+        assert config_file['machine'] == 'ci'
+
+        # add non existing catalog editable
+        with pytest.raises(SystemExit) as excinfo:
+            run_aqua(['-v', 'add', 'ciccio', '--github'])
+            assert excinfo.value.code == 1
+
+        # uninstall everything again
+        run_aqua_console_with_input(['uninstall'], 'yes')
+        assert not os.path.exists(os.path.join(mydir,'.aqua'))
+
     def test_console_without_home(self, delete_home, run_aqua, tmpdir, run_aqua_console_with_input):
 
         # getting fixture

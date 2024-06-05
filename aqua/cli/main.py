@@ -376,6 +376,7 @@ class AquaConsole():
             os.makedirs(cdir, exist_ok=True)
             fsspec_get_recursive(fs, source_dir, cdir)
             self.logger.info('Download complete!')
+            self._set_catalog(catalog)
         else:
             self.logger.error("Catalog %s already installed in %s, please consider `aqua update`.",
                               catalog, cdir)
