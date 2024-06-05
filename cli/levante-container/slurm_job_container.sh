@@ -11,7 +11,7 @@
 set -e
 
 # export AQUA = PATH_TO_AQUA_repo
-AQUA_container="/work/bb1153/b382289/container/AQUA/aqua_v0.8.2.sif"
+AQUA_container="/work/bb1153/b382289/container/AQUA/aqua_v0.9.sif"
 
 module load singularity
 
