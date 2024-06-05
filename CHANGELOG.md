@@ -14,6 +14,7 @@ Main changes are:
 2. Experiments placed half on HPC and half on DataBridge data can be accessed in continuous manner.
 
 AQUA core complete list:
+- OutputNamer Class: Comprehensive Naming Scheme and Metadata Support (#998)
 - AQUA entry point for installation and catalog maintanance and fixes/grids handling (#1131, #1134, #1146, #1168, #1169)
 - Automatic switching between HPC and databridge fdb (#1054)
 - CLI script for automatic multiple experiment analysis submission (#1160, #1175)
