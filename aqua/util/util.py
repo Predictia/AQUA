@@ -280,10 +280,8 @@ def open_image(file_path: str, loglevel: str = 'WARNING'):
         logger.error(f"The file {file_path} does not exist.")
         raise FileNotFoundError(f"The file {file_path} does not exist.")
 
-    # Determine the file extension
-    _, file_extension = os.path.splitext(file_path)
-
-    if file_extension.lower() == '.png':
+    # Determine the file extension using endswith()
+    if file_path.lower().endswith('.png'):
         # Open the PNG file and read the metadata
         image = Image.open(file_path)
         image_metadata = image.info
@@ -292,7 +290,7 @@ def open_image(file_path: str, loglevel: str = 'WARNING'):
         print("PNG Metadata:")
         for key, value in image_metadata.items():
             print(f"{key}: {value}")
-    elif file_extension.lower() == '.pdf':
+    elif file_path.lower().endswith('.pdf'):
         # Open the PDF file and read the metadata
         pdf_reader = PdfReader(file_path)
         metadata = pdf_reader.metadata
@@ -302,8 +300,8 @@ def open_image(file_path: str, loglevel: str = 'WARNING'):
         for key, value in metadata.items():
             print(f"{key}: {value}")
     else:
-        logger.error(f"Unsupported file type: {file_extension}")
-        raise ValueError(f"Unsupported file type: {file_extension}")
+        logger.error(f"Unsupported file type: {file_path}")
+        raise ValueError(f"Unsupported file type: {file_path}")
 
     # Provide a FileLink to the file
     display(FileLink(file_path))
