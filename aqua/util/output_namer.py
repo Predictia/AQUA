@@ -68,8 +68,7 @@ class OutputNamer:
         self.update_diagnostic_product(diagnostic_product)
 
         if not self.diagnostic_product:
-            msg = "diagnostic_product is required."
-            raise ValueError(msg)
+            raise ValueError("The 'diagnostic_product' parameter is required and cannot be empty.")
 
         # Handle time formatting based on the specified precision
         time_parts = []
