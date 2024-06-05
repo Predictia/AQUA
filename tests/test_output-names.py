@@ -1,3 +1,4 @@
+import os
 import pytest
 import xarray as xr
 import matplotlib.pyplot as plt
@@ -75,3 +76,48 @@ def test_missing_diagnostic_product(output_namer):
 
     with pytest.raises(ValueError, match="diagnostic_product is required."):
         output_namer.save_png(fig=fig)
+
+
+def test_metadata_addition(output_namer):
+    # Create a simple xarray dataset and metadata
+    data = xr.Dataset({'data': (('x', 'y'), [[1, 2], [3, 4]])})
+    metadata = {'author': 'test', 'description': 'test metadata'}
+
+    # Save netCDF file with metadata
+    path = output_namer.save_netcdf(dataset=data, diagnostic_product='mean', metadata=metadata)
+    loaded_data = xr.open_dataset(path)
+    assert loaded_data.attrs['author'] == 'test'
+    assert loaded_data.attrs['description'] == 'test metadata'
+
+    # Create a simple matplotlib figure
+    fig, ax = plt.subplots()
+    ax.plot([1, 2, 3], [4, 5, 6])
+    
+    # Save PDF file with metadata
+    pdf_path = output_namer.save_pdf(fig=fig, diagnostic_product='mean', metadata=metadata)
+    # Check metadata in PDF (this is more complex, requires reading PDF metadata, which is skipped here for simplicity)
+
+
+def test_overwriting_files(output_namer):
+    # Create a simple xarray dataset
+    data = xr.Dataset({'data': (('x', 'y'), [[1, 2], [3, 4]])})
+
+    # Save netCDF file with rebuild=True
+    path = output_namer.save_netcdf(dataset=data, diagnostic_product='mean', rebuild=True)
+    assert os.path.exists(path)
+
+    # Modify the dataset and save with rebuild=False
+    data['data'].values[0, 0] = 100
+    output_namer.rebuild = False
+    path_no_overwrite = output_namer.save_netcdf(dataset=data, diagnostic_product='mean')
+    assert os.path.exists(path_no_overwrite)
+    assert xr.open_dataset(path)['data'].values[0, 0] != 100  # Ensure the file was not overwritten
+
+
+def test_invalid_figure_input(output_namer):
+    # Test handling of invalid figure input
+    with pytest.raises(ValueError, match="The provided fig parameter is not a valid matplotlib Figure or pyplot figure."):
+        output_namer.save_pdf(fig="invalid_figure", diagnostic_product='mean')
+
+    with pytest.raises(ValueError, match="The provided fig parameter is not a valid matplotlib Figure or pyplot figure."):
+        output_namer.save_png(fig="invalid_figure", diagnostic_product='mean')
