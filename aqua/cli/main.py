@@ -101,6 +101,7 @@ class AquaConsole():
         else:
             self._install_editable(args.editable)
 
+        self._check()
         self._set_machine(args)
         self.grids = args.grids
 
@@ -221,7 +222,7 @@ class AquaConsole():
         else:
             if args.editable:
                 self.logger.info('Editable version installed, not modifying the machine name and leaving in auto')
-            else:    
+            else:
                 self.logger.info('Setting machine name to %s', machine)
                 cfg = load_yaml(self.configfile)
                 cfg['machine'] = machine
