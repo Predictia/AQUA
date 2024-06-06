@@ -92,7 +92,7 @@ sources:
     driver: intake_esm.esm_datastore
     description: Test Intake-ESM Catalog
     args:
-      obj: ./config/machines/ci/catalog/IFS/test-esm.json
+      obj: ./config/catalogs/ci/catalog/IFS/test-esm.json
     metadata:
       source_grid_name: lon-lat
       query:
