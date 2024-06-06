@@ -135,7 +135,8 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         # define configuration file and paths
         Configurer = ConfigPath()
-        self.machine = Configurer.catalog
+        self.configdir = Configurer.configdir
+        #self.machine = Configurer.catalog
 
         # get configuration from the machine
         self.catalog_file, self.fixer_folder, self.grids_folder, self.config_file = (
@@ -177,8 +178,8 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         # load and check the regrid
         if regrid or areas:
             # loading the grid defintion file
-            machine_file = os.path.join(self.configdir, 'catalogs', self.machine, 'catalog.yaml')
-            cfg_regrid = load_multi_yaml(filenames=[machine_file],
+            #machine_file = os.path.join(self.configdir, 'catalogs', self.machine, 'catalog.yaml')
+            cfg_regrid = load_multi_yaml(filenames=[self.catalog_file],
                                          folder_path=self.grids_folder,
                                          definitions="paths",
                                          loglevel=self.loglevel)
@@ -218,7 +219,8 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             The path to the CDO executable
         """
 
-        cdo = cfg_base["cdo"].get(self.machine, None)
+        #cdo = cfg_base["cdo"].get(self.machine, None)
+        cdo = None
         if not cdo:
             cdo = shutil.which("cdo")
             if cdo:

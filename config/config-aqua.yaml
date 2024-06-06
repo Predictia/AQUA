@@ -1,5 +1,4 @@
-# machine dependent configuration file for AQUA
-# so far nothing is really strict
+# catalog dependent configuration file for AQUA
 catalog: lumi
 
 reader: 
@@ -9,6 +8,6 @@ reader:
 
 # Location of the CDO executable. 
 # Usually this option is not needed, since CDO is required in the environment.yml file and provided by conda.
-cdo:
-  levante: /home/m/m214003/local/bin/cdo # CDO 2.2.0 by Uwe Schulzweida (HEALPix support)
+#cdo:
+#  levante: /home/m/m214003/local/bin/cdo # CDO 2.2.0 by Uwe Schulzweida (HEALPix support)
 

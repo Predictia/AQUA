@@ -9,6 +9,7 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - OutputNamer Class: Comprehensive Naming Scheme and Metadata Support (#998)
+- Replacing `machine` instances with `catalog` to go for a catalog based development (#1186)
 
 ## [v0.9]
 

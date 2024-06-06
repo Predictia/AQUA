@@ -93,7 +93,7 @@ if __name__ == '__main__':
 
     # define the interface file
     Configurer = ConfigPath(configdir=None)
-    interface = '../config/interface_AQUA_' + Configurer.machine + '.yml'
+    interface = '../config/interface_AQUA_' + Configurer.catalog + '.yml'
     logger.debug('Default interface file: %s', interface)
 
     # activate override from command line

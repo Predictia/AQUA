@@ -403,7 +403,6 @@ class AquaConsole():
             catalog (str): the catalog to be set as the default in the config-aqua.yaml
         """
 
-        # once we get rid of machine dependence, this can be removed
         self.logger.info('Setting catalog name to %s', catalog)
         cfg = load_yaml(self.configfile)
         cfg['catalog'] = catalog

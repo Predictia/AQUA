@@ -105,7 +105,7 @@ class Gribber():
 
         Configurer = ConfigPath(self.dir['configdir'])
         self.configdir = Configurer.configdir
-        self.machine = Configurer.machine
+        self.machine = Configurer.catalog
 
         self.logger.info("Data directory: %s", self.datadir)
         self.logger.info("JSON directory: %s", self.jsondir)
@@ -135,7 +135,7 @@ class Gribber():
             self.gribfiles = '*' + format
 
         # Get catalog filename
-        self.catalogdir = os.path.join(self.configdir, 'machines',
+        self.catalogdir = os.path.join(self.configdir, 'catalogs',
                                        self.machine, 'catalog',
                                        self.model)
         self.catalogfile = os.path.join(self.catalogdir, self.exp + '.yaml')
@@ -403,7 +403,7 @@ class Gribber():
         self.logger.info(block_main)
 
         # Write main catalog file
-        mainfilepath = os.path.join(self.configdir, 'machines', self.machine,
+        mainfilepath = os.path.join(self.configdir, 'catalogs', self.machine,
                                     'catalog', self.model, 'main.yaml')
         main_file = load_yaml(mainfilepath)
 

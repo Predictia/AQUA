@@ -99,7 +99,7 @@ class OPAgenerator():
 
         Configurer = ConfigPath(configdir=configdir)
         self.configdir = Configurer.configdir
-        self.machine = Configurer.machine
+        self.machine = Configurer.catalog
 
         # Initialize variable(s)
         self.var = var
@@ -271,7 +271,7 @@ class OPAgenerator():
             block_cat.update(block_zoom)
 
         # find the catalog of my experiment
-        catalogfile = os.path.join(self.configdir, 'machines', self.machine,
+        catalogfile = os.path.join(self.configdir, 'catalogs', self.machine,
                                    'catalog', self.model, self.exp + '.yaml')
 
         # load, add the block and close
@@ -280,7 +280,7 @@ class OPAgenerator():
         dump_yaml(outfile=catalogfile, cfg=cat_file)
 
         # find the regrid of my experiment
-        regridfile = os.path.join(self.configdir, 'machines', self.machine,
+        regridfile = os.path.join(self.configdir, 'catalogs', self.machine,
                                   'regrid.yaml')
         cat_file = load_yaml(regridfile)
         dictexp = cat_file['sources'][self.model][self.exp]

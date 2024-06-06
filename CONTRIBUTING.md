@@ -37,7 +37,7 @@ Before asking for a review, please make sure to:
 - run the tests successfully
 - if a new dependency has been added to the framework, please make sure to update the `environment.yml` and `pyproject.toml` files
 - please notice that a installation_lumi.sh script is available to install the framework on a LUMI machine.
-  It is located in the `config/machines/lumi/installation` folder.
+  It is located in the `config/catalogs/lumi/installation` folder.
   If the environment has been modified, please make sure to update the files `environment_lumi.yml` and `pip_lumi.txt` accordingly.
 - if a new feature has been added, please make sure to update the documentation accordingly
 - add docstrings to your code
@@ -63,6 +63,7 @@ Please use the `bug` label for bugs issue and the `fix` label for Pull Requests 
 When describing the bug, please include as much information as possible. This includes:
 - short description of the bug
 - steps to reproduce the bug
+- catalog you are using
 - machine you are using
 
 ### Suggesting enhancements
