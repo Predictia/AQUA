@@ -56,7 +56,7 @@ so that the script can be used in a batch job or in a workflow.
     Default is ``$AQUA/cli/aqua-analysis/output``.
     Prefer to use an absolute path.
 
-.. option:: -m <machine>, --machine <machine>
+.. option:: -c <catalog>, --catalog <catalog>
 
     The catalog to use.
     Default is ``lumi``.

@@ -191,7 +191,7 @@ while [[ $# -gt 0 ]]; do
       outputdir="$2"
       shift 2
       ;;
-    -m|--catalog)
+    -c|--catalog)
       catalog="$2"
       shift 2
       ;;

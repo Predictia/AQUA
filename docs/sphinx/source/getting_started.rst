@@ -75,7 +75,7 @@ To add a catalogue, run the following command:
 
     aqua add <catalog>
 
-For example, to add the catalogue of the machine ``lumi``, run:
+For example, to add the catalogue of ``lumi``, run:
 
 .. code-block:: bash
 

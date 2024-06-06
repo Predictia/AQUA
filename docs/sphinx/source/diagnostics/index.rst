@@ -70,7 +70,7 @@ or by passing them as command line arguments:
 - **exp**: name of the experiment to use (default: `historical-1990`)
 - **source**: name of the source to use (default: `lra-r100-monthly`)
 - **outputdir**: name of the output directory to use (default: `./output`)
-- **machine**: name of the machine to use (default: `lumi`)
+- **catalog**: name of the catalog to use (default: `lumi`)
 - **max_threads**: maximum number of threads to use (default: `-1`, i.e. use all available threads)
 - **loglevel**: log level to use (default: `WARNING`)
 
