@@ -101,6 +101,7 @@ class AquaConsole():
         else:
             self._install_editable(args.editable)
 
+        self._set_machine(args)
         self.grids = args.grids
 
         # TODO
@@ -210,6 +211,21 @@ class AquaConsole():
                                  os.path.join(editable, directory), self.configpath)
                 os.symlink(f'{editable}/{directory}', f'{self.configpath}/{directory}')
         os.makedirs(f'{self.configpath}/{catpath}', exist_ok=True)
+
+    def _set_machine(self, args):
+        """Modify the config-aqua.yaml with the identified machine"""
+
+        machine = ConfigPath().get_machine()
+        if machine is None:
+            self.logger.info('Unknown machine!')
+        else:
+            if args.editable:
+                self.logger.info('Editable version installed, not modifying the machine name and leaving in auto')
+            else:    
+                self.logger.info('Setting machine name to %s', machine)
+                cfg = load_yaml(self.configfile)
+                cfg['machine'] = machine
+                dump_yaml(self.configfile, cfg)
 
     def set(self, args):
         """Set an installed catalog as the one used in the config-aqua.yaml

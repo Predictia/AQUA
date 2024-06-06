@@ -1,9 +1,8 @@
 """Utility functions for getting the configuration files"""
 import os
 from .yaml import load_yaml
+import platform
 
-
-catname = 'catalog'
 
 class ConfigPath():
 
@@ -73,11 +72,54 @@ class ConfigPath():
         if os.path.exists(self.config_file):
             base = load_yaml(self.config_file)
             try:
-                return base[catname]
+                return base['catalog']
             except KeyError as exc:
-                raise KeyError(f'Cannot find {catname} information in {self.config_file}') from exc
+                raise KeyError(f'Cannot find catalog information in {self.config_file}') from exc
         else:
             raise FileNotFoundError(f'Cannot find the basic configuration file {self.config_file}!')
+        
+    def get_machine(self):
+        """
+        Extract the name of the machine from the configuration file
+
+        Returns:
+            The name of the machine read from the configuration file
+        """
+
+        if os.path.exists(self.config_file):
+            base = load_yaml(self.config_file)
+            # if we do not know the machine we assume is "unknown"
+            machine = 'unknown'
+            # if the configuration file has a machine entry, use it
+            if 'machine' in base:
+                machine = base['machine']
+            # if the entry is auto, or the machine unknown, try autodetection
+            if machine in ['auto', 'unknown']:
+                machine = self._auto_detect_machine()
+            return machine
+        else:
+            raise FileNotFoundError(f'Cannot find the basic configuration file {self.config_file}!')
+    
+    def _auto_detect_machine(self):
+        """Tentative method to identify the machine from the hostname"""
+
+        platform_name = platform.node()
+
+        if os.getenv('GITHUB_ACTIONS'):
+            return 'github'
+
+        platform_dict = {
+            'uan': 'lumi',
+            'levante': 'levante',
+        }
+
+        # Search for the dictionary key in the key_string
+        for key in platform_dict:
+            if key in platform_name:
+                return platform_dict[key]
+        
+        return None
+
 
     def get_reader_filenames(self):
         """
@@ -88,7 +130,7 @@ class ConfigPath():
         """
 
         # Build the template dictionary
-        definitions = {catname: self.catalog, 'configdir': self.configdir}
+        definitions = {'catalog': self.catalog, 'configdir': self.configdir}
 
         if os.path.exists(self.config_file):
             base = load_yaml(infile=self.config_file, definitions=definitions, jinja=True)
