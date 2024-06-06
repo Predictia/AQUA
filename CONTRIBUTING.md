@@ -36,8 +36,8 @@ Before asking for a review, please make sure to:
 - be up to date with the `main` branch
 - run the tests successfully
 - if a new dependency has been added to the framework, please make sure to update the `environment.yml` and `pyproject.toml` files
-- please notice that a installation_lumi.sh script is available to install the framework on a LUMI machine.
-  It is located in the `config/catalogs/lumi/installation` folder.
+- please notice that a lumi_install.sh script is available to install the framework on a LUMI machine.
+  It is located in the `cli/lumi-install` folder.
   If the environment has been modified, please make sure to update the files `environment_lumi.yml` and `pip_lumi.txt` accordingly.
 - if a new feature has been added, please make sure to update the documentation accordingly
 - add docstrings to your code

@@ -42,8 +42,6 @@ The configuration folder has this structure:
     │       └── ...
     ├── config-aqua.yaml
 
-.. note::
-  The machine depencency in files and folders will be removed in future versions of AQUA.
 
 .. _new-catalogue:
 
@@ -70,8 +68,8 @@ Adding a new catalogue
 Creation of the catalogue folder
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To add a new machine to the AQUA catalogue we need to create a
-new folder that will contain the configuration files for the new machine.
+To add a new catalog to the AQUA catalogue we need to create a
+new folder that will contain the configuration files.
 
 You can create the folder where you prefer and then add it to the
 available catalogues with the ``aqua add`` command (see :ref:`aqua-add`).
@@ -83,7 +81,7 @@ folder under version control if needed.
     cd /path/of/your/catalogue
     mkdir new_catalogue
 
-This will contain the ``catalog.yaml`` file, which is the main file for the machine configuration.
+This will contain the ``catalog.yaml`` file, which is the main file for the catalog configuration.
 
 .. code-block:: yaml
 
@@ -94,7 +92,7 @@ This will contain the ``catalog.yaml`` file, which is the main file for the mach
 
     sources:
         my-model:
-            description: New model for a new machine
+            description: New model for a new catalog
             driver: yaml_file_cat
             args:
                 path: "{{CATALOG_DIR}}/catalog/my-model/main.yaml"
