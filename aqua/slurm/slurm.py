@@ -119,7 +119,7 @@ def get_config(machine_name=None, config_name=slurm_config_file, loglevel='WARNI
     logger = log_configure(log_level=loglevel, log_name='slurm')
 
     if machine_name:
-        machine_config = config.get('catalogs', {}).get(machine_name)
+        machine_config = config.get('machines', {}).get(machine_name)
         if machine_config:
             return machine_config
         else:

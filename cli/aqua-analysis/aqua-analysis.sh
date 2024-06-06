@@ -25,7 +25,7 @@ exp="historical-1990"
 source="lra-r100-monthly"
 outputdir="${AQUA}/cli/aqua-analysis/output" # Prefer absolute paths, e.g., "/path/to/aqua/my/output"
 loglevel="WARNING" # DEBUG, INFO, WARNING, ERROR, CRITICAL
-machine="lumi" # will change the aqua config file
+catalog="lumi" # will change the aqua config file
 
 # ---------------------------------------
 # The max_threads variable serves as a mechanism to control the maximum number of threads
@@ -191,8 +191,8 @@ while [[ $# -gt 0 ]]; do
       outputdir="$2"
       shift 2
       ;;
-    -m|--machine)
-      machine="$2"
+    -m|--catalog)
+      catalog="$2"
       shift 2
       ;;
     -p|--parallel)
@@ -226,7 +226,7 @@ log_message INFO "Atmospheric model: $model_atm"
 log_message INFO "Oceanic model: $model_oce"
 log_message INFO "Experiment: $exp"
 log_message INFO "Source: $source"
-log_message INFO "Machine: $machine"
+log_message INFO "Catalog: $catalog"
 log_message INFO "Output directory: $outputdir"
 
 # Set extra arguments in distributed case
@@ -258,16 +258,16 @@ args_atm="--model $model_atm --exp $exp --source $source"
 args_oce="--model $model_oce --exp $exp --source $source"
 args="--model_atm $model_atm --model_oce $model_oce --exp $exp --source $source"
 
-# set the correct machine in the config file
+# set the correct catalog in the config file
 if [[ "$OSTYPE" == "darwin"* ]]; then
   # Mac OSX
-  sed -i '' "/^machine:/c\\
-machine: $machine" "${aqua}/config/config-aqua.yaml"
+  sed -i '' "/^catalog:/c\\
+catalog: $catalog" "${aqua}/config/config-aqua.yaml"
 else
   # Linux
-  sed -i "/^machine:/c\\machine: $machine" "${aqua}/config/config-aqua.yaml"
+  sed -i "/^catalog:/c\\catalog: $catalog" "${aqua}/config/config-aqua.yaml"
 fi
-log_message INFO "Machine set to $machine in the config file"
+log_message INFO "Catalog set to $catalog in the config file"
 
 # Create output directory if it does not exist
 log_message INFO "Creating output directory $outputdir"

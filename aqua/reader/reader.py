@@ -136,7 +136,6 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         # define configuration file and paths
         Configurer = ConfigPath()
         self.configdir = Configurer.configdir
-        #self.machine = Configurer.catalog
 
         # get configuration from the machine
         self.catalog_file, self.fixer_folder, self.grids_folder, self.config_file = (
