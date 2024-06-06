@@ -1,9 +1,9 @@
 # machine dependent configuration file for AQUA
 # so far nothing is really strict
-machine: lumi
+catalog: lumi
 
 reader: 
-  catalog: '{{ configdir }}/machines/{{ machine }}/catalog.yaml'
+  catalog: '{{ configdir }}/catalogs/{{ catalog }}/catalog.yaml'
   fixer: '{{ configdir }}/fixes'
   regrid: '{{ configdir }}/grids'
 
