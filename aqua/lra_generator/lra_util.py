@@ -101,7 +101,7 @@ def opa_catalog_entry(datadir, model, exp, source,
 # def check_correct_ifs_fluxes(xfield, threshold=100, loglevel='WARNING'):
 
 #     """
-#     Giving a Xarray DataArray, 
+#     Giving a Xarray DataArray,
 #     check if the first time step is more than 100 times larger
 #     This is done to protect LRA from wrong fluxes produced by IFS for every new month
 #     """

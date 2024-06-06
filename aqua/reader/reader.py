@@ -171,9 +171,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             if not self.dst_datamodel:
                 self.dst_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
 
-        # Store the machine-specific CDO path if available
-        cfg_base = load_yaml(self.config_file)
-        self.cdo = self._set_cdo(cfg_base)
+        self.cdo = self._set_cdo()
 
         # load and check the regrid
         if regrid or areas:
@@ -208,7 +206,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         if areas and regrid:
             self._generate_load_dst_area(cfg_regrid, rebuild)
 
-    def _set_cdo(self, cfg_base):
+    def _set_cdo(self):
         """
         Check information on CDO to set the correct version
 
@@ -219,16 +217,11 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             The path to the CDO executable
         """
 
-        #cdo = cfg_base["cdo"].get(self.machine, None)
-        cdo = None
-        if not cdo:
-            cdo = shutil.which("cdo")
-            if cdo:
-                self.logger.debug("Found CDO path: %s", cdo)
-            else:
-                self.logger.error("CDO not found in path: Weight and area generation will fail.")
+        cdo = shutil.which("cdo")
+        if cdo:
+            self.logger.debug("Found CDO path: %s", cdo)
         else:
-            self.logger.debug("Using CDO from config: %s", cdo)
+            self.logger.error("CDO not found in path: Weight and area generation will fail.")
 
         return cdo
 
