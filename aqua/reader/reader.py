@@ -1062,6 +1062,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         return data
 
+    # An error arised here by pylin: An attribute defined in aqua.reader.reader line 125 hides this method
     def stream(self, data, startdate=None, enddate=None, aggregation=None,
                timechunks=None, reset=False):
         """
