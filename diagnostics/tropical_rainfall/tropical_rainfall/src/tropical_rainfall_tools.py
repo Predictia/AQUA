@@ -70,7 +70,7 @@ class ToolsClass:
             SomeException: If the ConfigPath object is not properly initialized or if there is an issue with
                         retrieving the machine information.
         """
-        return ConfigPath().machine
+        return ConfigPath().catalog
 
     def get_netcdf_path(self, configname: str = full_path_to_config) -> tuple:
         """

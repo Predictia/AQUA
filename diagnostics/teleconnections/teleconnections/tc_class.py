@@ -404,8 +404,8 @@ class Teleconnection():
             NoDataError: If the data is not available.
         """
         aqua_config = ConfigPath(configdir=self.aquaconfigdir)
-        self.machine = aqua_config.machine
-        self.logger.debug("Machine: %s", self.machine)
+        self.machine = aqua_config.catalog
+        self.logger.debug("Catalog: %s", self.machine)
 
         # Check that the data is available in the catalogue
         if inspect_catalogue(model=self.model, exp=self.exp,

@@ -3,13 +3,15 @@ import os
 from .yaml import load_yaml
 
 
+catname = 'catalog'
+
 class ConfigPath():
 
     """
     Class to set the configuration path and dir in a robust way
     """
 
-    def __init__(self, configdir=None, filename='config-aqua.yaml', machine=None):
+    def __init__(self, configdir=None, filename='config-aqua.yaml', catalog=None):
 
         self.filename = filename
         if not configdir:
@@ -17,10 +19,10 @@ class ConfigPath():
         else:
             self.configdir = configdir
         self.config_file = os.path.join(self.configdir, self.filename)
-        if not machine:
-            self.machine = self.get_machine()
+        if not catalog:
+            self.catalog = self.get_catalog()
         else:
-            self.machine = machine
+            self.catalog = catalog
 
     def get_config_dir(self):
         """
@@ -51,7 +53,7 @@ class ConfigPath():
         # Finally for developers if AQUA is defined
         aquadir = os.environ.get('AQUA')
         if aquadir:
-            configdirs.append(os.path.join(aquadir, 'config'))        
+            configdirs.append(os.path.join(aquadir, 'config'))  
 
         # Autosearch for the config folder
         for configdir in configdirs:
@@ -60,20 +62,20 @@ class ConfigPath():
 
         raise FileNotFoundError(f"No config file {self.filename} found in {configdirs}")
 
-    def get_machine(self):
+    def get_catalog(self):
         """
-        Extract the name of the machine from the configuration file
+        Extract the name of the catalog from the configuration file
 
         Returns:
-            The name of the machine read from the configuration file
+            The name of the catalog read from the configuration file
         """
 
         if os.path.exists(self.config_file):
             base = load_yaml(self.config_file)
             try:
-                return base['machine']
-            except KeyError:
-                raise KeyError(f'Cannot find machine information in {self.config_file}')
+                return base[catname]
+            except KeyError as exc:
+                raise KeyError(f'Cannot find {catname} information in {self.config_file}') from exc
         else:
             raise FileNotFoundError(f'Cannot find the basic configuration file {self.config_file}!')
 
@@ -86,7 +88,7 @@ class ConfigPath():
         """
 
         # Build the template dictionary
-        definitions = {'machine': self.machine, 'configdir': self.configdir}
+        definitions = {catname: self.catalog, 'configdir': self.configdir}
 
         if os.path.exists(self.config_file):
             base = load_yaml(infile=self.config_file, definitions=definitions, jinja=True)

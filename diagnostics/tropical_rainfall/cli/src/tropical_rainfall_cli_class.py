@@ -41,7 +41,7 @@ class Tropical_Rainfall_CLI:
         self.reader_loglevel = get_arg(args, 'loglevel', config['logger']['reader_loglevel'])
 
         self.nproc = get_arg(args, 'nproc', config['compute_resources']['nproc'])
-        machine = config['machine']
+        machine = config['catalog']
         path_to_output = get_arg(args, 'outputdir', config['output'][machine])
         path_to_buffer = get_arg(args, 'bufferdir', config['buffer'][machine])
 

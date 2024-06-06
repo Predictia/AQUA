@@ -135,8 +135,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         # define configuration file and paths
         Configurer = ConfigPath()
-        self.configdir = Configurer.configdir
-        self.machine = Configurer.machine
+        self.machine = Configurer.catalog
 
         # get configuration from the machine
         self.catalog_file, self.fixer_folder, self.grids_folder, self.config_file = (
@@ -178,7 +177,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         # load and check the regrid
         if regrid or areas:
             # loading the grid defintion file
-            machine_file = os.path.join(self.configdir, 'machines', self.machine, 'catalog.yaml')
+            machine_file = os.path.join(self.configdir, 'catalogs', self.machine, 'catalog.yaml')
             cfg_regrid = load_multi_yaml(filenames=[machine_file],
                                          folder_path=self.grids_folder,
                                          definitions="paths",
