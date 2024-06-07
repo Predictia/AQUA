@@ -21,9 +21,9 @@ sources:
       - '{{ TEST_PATH }}/FESOM/short/a_ice.fesom.1985.nc'
       - '{{ TEST_PATH }}/FESOM/short/a_ice.fesom.1986.nc'
       - '{{ TEST_PATH }}/FESOM/short/MLD2.fesom.1985.nc'
-      - '{{ TEST_PATH }}/models/FESOM/short/MLD2.fesom.1986.nc'
-      - '{{ TEST_PATH }}/models/FESOM/short/sst.fesom.1985.nc'
-      - '{{ TEST_PATH }}/models/FESOM/short/sst.fesom.1986.nc'
+      - '{{ TEST_PATH }}/FESOM/short/MLD2.fesom.1986.nc'
+      - '{{ TEST_PATH }}/FESOM/short/sst.fesom.1985.nc'
+      - '{{ TEST_PATH }}/FESOM/short/sst.fesom.1986.nc'
     description: original 2d output
     driver: netcdf
   original_2d_fix:
