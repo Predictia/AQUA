@@ -18,7 +18,7 @@ Main changes are:
 
 AQUA core complete list:
 - AQUA entry point for installation and catalog maintanance and fixes/grids handling (#1131, #1134, #1146, #1168, #1169)
-- Automatic switching between HPC and databridge fdb (#1054)
+- Automatic switching between HPC and databridge fdb (#1054, #1190)
 - CLI script for automatic multiple experiment analysis submission (#1160, #1175)
 
 ## [v0.8.2]
