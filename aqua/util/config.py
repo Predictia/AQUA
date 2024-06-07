@@ -10,7 +10,7 @@ class ConfigPath():
     Class to set the configuration path and dir in a robust way
     """
 
-    def __init__(self, configdir=None, filename='config-aqua.yaml', filemachine='machines-aqua.yaml', catalog=None):
+    def __init__(self, configdir=None, filename='config-aqua.yaml', catalog=None):
 
         self.filename = filename
         if not configdir:
@@ -18,7 +18,6 @@ class ConfigPath():
         else:
             self.configdir = configdir
         self.config_file = os.path.join(self.configdir, self.filename)
-        self.machines_file = os.path.join(self.configdir, filemachine)
         if not catalog:
             self.catalog = self.get_catalog()
         else:
@@ -127,7 +126,7 @@ class ConfigPath():
         Extract the filenames for the reader for catalog, regrid and fixer
 
         Returns:
-            Four strings for the path of the catalog, fixer, regrid and config files
+            Four strings for the path of the catalog, machine, fixer, regrid and config files
         """
 
         # Build the template dictionary
@@ -138,6 +137,9 @@ class ConfigPath():
             catalog_file = base['reader']['catalog']
             if not os.path.exists(catalog_file):
                 raise FileNotFoundError(f'Cannot find catalog file in {catalog_file}')
+            machine_file = base['reader']['machine']
+            if not os.path.exists(catalog_file):
+                raise FileNotFoundError(f'Cannot find machine file for {self.catalog} in {machine_file}')
             fixer_folder = base['reader']['fixer']
             if not os.path.exists(fixer_folder):
                 raise FileNotFoundError(f'Cannot find the fixer folder in {fixer_folder}')
@@ -147,4 +149,4 @@ class ConfigPath():
         else:
             raise FileNotFoundError(f'Cannot find the basic configuration file {self.config_file}!')
 
-        return catalog_file, fixer_folder, grids_folder, self.config_file
+        return catalog_file, machine_file, fixer_folder, grids_folder, self.config_file
