@@ -1,5 +1,5 @@
-paths:
-  default: 
+default:
+  paths: 
     grids: ./AQUA_tests/grids
     weights: ./AQUA_tests/weights
     areas: ./AQUA_tests/weights
