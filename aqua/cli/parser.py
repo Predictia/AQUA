@@ -40,6 +40,8 @@ def parse_arguments():
     parser_fixes = file_subparser(subparsers, 'fixes')
 
     # extra parsers arguments
+    install_parser.add_argument('machine', nargs='?', metavar="MACHINE", default=None,
+                                help="Machine on which install AQUA")
     install_parser.add_argument('-p', '--path', type=str,
                                 help='Path where to install AQUA. Default is $HOME/.aqua')
     install_parser.add_argument('-g', '--grids', type=str,

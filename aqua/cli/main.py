@@ -64,7 +64,7 @@ class AquaConsole():
         else:
             loglevel = 'WARNING'
         self.logger = log_configure(loglevel, 'AQUA')
-        
+
         command = args.command
         method = self.command_map.get(command, parser_dict['main'].print_help)
         if command not in self.command_map:
@@ -215,7 +215,11 @@ class AquaConsole():
     def _set_machine(self, args):
         """Modify the config-aqua.yaml with the identified machine"""
 
-        machine = ConfigPath(configdir=self.configpath).get_machine()
+        if args.machine is not None:
+            machine = args.machine
+        else:
+            machine = ConfigPath(configdir=self.configpath).get_machine()
+
         if machine is None:
             self.logger.info('Unknown machine!')
         else:
@@ -226,7 +230,20 @@ class AquaConsole():
                 self.logger.info('Setting machine name to %s', machine)
                 cfg = load_yaml(self.configfile)
                 cfg['machine'] = machine
+                machine_paths = self._set_paths(machine)
+                if machine_paths is not None:
+                    self.logger.debug('Paths installed for %s are %s', machine, machine_paths)
+                    cfg['paths'] = machine_paths
+                else:
+                    self.logger.warning('%s is not a machine known by AQUA, paths will not be configured', machine)
                 dump_yaml(self.configfile, cfg)
+
+    def _set_paths(self, machine):
+        """Get the paths from the machines-aqua file"""
+
+        machines_file = os.path.join(self.aquapath, 'machines-aqua.yaml')
+        machines_paths = load_yaml(machines_file)
+        return machines_paths['machines'].get(machine)
 
     def set(self, args):
         """Set an installed catalog as the one used in the config-aqua.yaml
