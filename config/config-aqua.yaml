@@ -6,6 +6,7 @@ machine: auto
 
 reader: 
   catalog: '{{ configdir }}/catalogs/{{ catalog }}/catalog.yaml'
+  machine: '{{ configdir }}/catalogs/{{ catalog }}/machine.yaml'
   fixer: '{{ configdir }}/fixes'
   regrid: '{{ configdir }}/grids'
 
