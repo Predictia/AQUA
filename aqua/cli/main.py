@@ -176,7 +176,7 @@ class AquaConsole():
         """Copying the installation file"""
 
         print("Installing AQUA to", self.configpath)
-        for file in ['config-aqua.yaml']:
+        for file in ['config-aqua.yaml', 'machines-aqua.yaml']:
             if not os.path.exists(os.path.join(self.configpath, file)):
                 self.logger.info('Copying from %s to %s', self.aquapath, self.configpath)
                 shutil.copy(f'{self.aquapath}/{file}', f'{self.configpath}/{file}')
@@ -196,7 +196,7 @@ class AquaConsole():
 
         editable = os.path.abspath(editable)
         print("Installing AQUA with a link from ", editable, " to ", self.configpath)
-        for file in ['config-aqua.yaml']:
+        for file in ['config-aqua.yaml', 'machines-aqua.yaml']:
             if os.path.isfile(os.path.join(editable, file)):
                 if not os.path.exists(os.path.join(self.configpath, file)):
                     self.logger.info('Linking from %s to %s', editable, self.configpath)
@@ -230,20 +230,20 @@ class AquaConsole():
                 self.logger.info('Setting machine name to %s', machine)
                 cfg = load_yaml(self.configfile)
                 cfg['machine'] = machine
-                machine_paths = self._set_paths(machine)
-                if machine_paths is not None:
-                    self.logger.debug('Paths installed for %s are %s', machine, machine_paths)
-                    cfg['paths'] = machine_paths
-                else:
-                    self.logger.warning('%s is an unknown machine for AQUA, paths will not be configured', machine)
+                # machine_paths = self._set_paths(machine)
+                # if machine_paths is not None:
+                #     self.logger.debug('Paths installed for %s are %s', machine, machine_paths)
+                #     cfg['paths'] = machine_paths
+                # else:
+                #     self.logger.warning('%s is an unknown machine for AQUA, paths will not be configured', machine)
                 dump_yaml(self.configfile, cfg)
 
-    def _set_paths(self, machine):
-        """Get the paths from the machines-aqua file"""
-
-        machines_file = os.path.join(self.aquapath, 'machines-aqua.yaml')
-        machines_paths = load_yaml(machines_file)
-        return machines_paths['machines'].get(machine)
+#    def _set_paths(self, machine):
+#        """Get the paths from the machines-aqua file"""
+#
+#        machines_file = os.path.join(self.aquapath, 'machines-aqua.yaml')
+#        machines_paths = load_yaml(machines_file)
+#        return machines_paths['machines'].get(machine)
 
     def set(self, args):
         """Set an installed catalog as the one used in the config-aqua.yaml
