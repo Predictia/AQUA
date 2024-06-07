@@ -27,6 +27,22 @@ collect_figures() {
     git add $dstdir
 }
 
+convert_pdf_to_png() {
+    # This assumes that we are inside the aqua-web repository
+
+    log_message INFO "Converting PDFs to PNGs for $1"
+
+    dstdir="./content/png/$1"
+
+    git rm -r $dstdir
+    mkdir -p $dstdir
+    
+    IFS='/' read -r model experiment <<< "$1"
+    ./pdf_to_png.sh "$model" "$experiment"
+
+    git add $dstdir
+}
+
 # Check if AQUA is set
 if [[ -z "$AQUA" ]]; then
     echo -e "\033[0;31mError: The AQUA environment variable is not defined."
@@ -73,9 +89,11 @@ if [ -f "$2" ]; then
         experiment=$(echo "$line" | awk '{print $2}')
 
         collect_figures "$1" "$model/$experiment"
+        convert_pdf_to_png "$model/$experiment"
     done < "$2"
 else  # Otherwise, use the second argument as the experiment
     collect_figures "$1" "$2"
+    convert_pdf_to_png "$2"
 fi
 
 # commit and push
