@@ -235,7 +235,7 @@ class AquaConsole():
                     self.logger.debug('Paths installed for %s are %s', machine, machine_paths)
                     cfg['paths'] = machine_paths
                 else:
-                    self.logger.warning('%s is not a machine known by AQUA, paths will not be configured', machine)
+                    self.logger.warning('%s is an unknown machine for AQUA, paths will not be configured', machine)
                 dump_yaml(self.configfile, cfg)
 
     def _set_paths(self, machine):
