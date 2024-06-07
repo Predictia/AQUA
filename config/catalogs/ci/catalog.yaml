@@ -1,3 +1,10 @@
+metadata:
+  parameters:
+    TEST_PATH:
+      type: str
+      description: the path to test datasets
+      default: '.'
+
 sources:
   FESOM:
     description: FESOM ocean model

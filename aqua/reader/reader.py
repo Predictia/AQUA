@@ -140,6 +140,11 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         self.config_file = Configurer.config_file
         self.catalog_file, self.machine_file = Configurer.get_catalog_filenames()
         self.fixer_folder, self.grids_folder = Configurer.get_reader_filenames()
+
+
+        # machine dependent catalog path
+        machine_paths, intake_vars = self._get_machine_info()
+
         
         # access the catalog
         self.cat = intake.open_catalog(self.catalog_file)
@@ -149,7 +154,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
                                            source, name="catalog")
 
         # load the catalog
-        self.esmcat = self.cat[self.model][self.exp][self.source](**kwargs)
+        self.esmcat = self.cat[self.model][self.exp][self.source](**kwargs, **intake_vars)
 
         # store the kwargs for further usage
         self.kwargs = self._check_kwargs_parameters(kwargs)
@@ -176,14 +181,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         # load and check the regrid
         if regrid or areas:
-            # loading the grid defintion file
-            machine_file = load_yaml(self.machine_file)
-            if self.machine in machine_file:
-                machine_paths = machine_file[self.machine]
-            elif 'default' in machine_file:
-                machine_paths = machine_file['default']
-            else:
-                raise KeyError(f'Cannot find machine paths for {self.machine}, regridding and areas feature will not work')
+
 
             cfg_regrid = load_multi_yaml(folder_path=self.grids_folder,
                                          definitions=machine_paths['paths'],
@@ -214,6 +212,24 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         # generate destination areas
         if areas and regrid:
             self._generate_load_dst_area(cfg_regrid, rebuild)
+
+    def _get_machine_info(self):
+        
+        # loading the grid defintion file
+        machine_file = load_yaml(self.machine_file)
+        if self.machine in machine_file:
+            machine_paths = machine_file[self.machine]
+        elif 'default' in machine_file:
+            machine_paths = machine_file['default']
+        else:
+            raise KeyError(f'Cannot find machine paths for {self.machine}, regridding and areas feature will not work')
+        
+        if 'intake' in machine_paths:
+            intake_vars = machine_paths['intake']
+        else:
+            intake_vars = {}
+        
+        return machine_paths, intake_vars
 
     def _set_cdo(self):
         """
