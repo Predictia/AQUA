@@ -10,7 +10,7 @@ class ConfigPath():
     Class to set the configuration path and dir in a robust way
     """
 
-    def __init__(self, configdir=None, filename='config-aqua.yaml', catalog=None):
+    def __init__(self, configdir=None, filename='config-aqua.yaml', filemachine='machines-aqua.yaml', catalog=None):
 
         self.filename = filename
         if not configdir:
@@ -18,6 +18,7 @@ class ConfigPath():
         else:
             self.configdir = configdir
         self.config_file = os.path.join(self.configdir, self.filename)
+        self.machines_file = os.path.join(self.configdir, filemachine)
         if not catalog:
             self.catalog = self.get_catalog()
         else:
@@ -52,7 +53,7 @@ class ConfigPath():
         # Finally for developers if AQUA is defined
         aquadir = os.environ.get('AQUA')
         if aquadir:
-            configdirs.append(os.path.join(aquadir, 'config'))  
+            configdirs.append(os.path.join(aquadir, 'config'))
 
         # Autosearch for the config folder
         for configdir in configdirs:
