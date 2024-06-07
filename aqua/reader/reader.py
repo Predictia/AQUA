@@ -181,12 +181,12 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             if self.machine in machines_file:
                 machine_paths = machines_file[self.machine]
             else:
-                self.logger.warning('Cannot find machine paths for %s, regridding and areas feature might not work', self.machine)
-                machine_paths = None
-            
+                raise KeyError(f'Cannot find machine paths for {self.machine}, regridding and areas feature will not work')
+
             cfg_regrid = load_multi_yaml(folder_path=self.grids_folder,
                                          definitions=machine_paths,
                                          loglevel=self.loglevel)
+            cfg_regrid = {**machine_paths, **cfg_regrid}
 
             # define grid names
             self.src_grid_name = self.esmcat.metadata.get('source_grid_name')
