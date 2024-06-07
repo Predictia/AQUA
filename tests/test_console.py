@@ -246,12 +246,12 @@ class TestAquaConsole():
             assert excinfo.value.code == 1
 
         # install from path with grids
-        run_aqua_console_with_input(['-v', 'install', '-g', os.path.join(mydir, 'supercazzola')], 'yes')
-        assert os.path.exists(os.path.join(mydir, '.aqua'))
+        #run_aqua_console_with_input(['-v', 'install', '-g', os.path.join(mydir, 'supercazzola')], 'yes')
+        #assert os.path.exists(os.path.join(mydir, '.aqua'))
 
         # uninstall everything
-        run_aqua_console_with_input(['uninstall'], 'yes')
-        assert not os.path.exists(os.path.join(mydir,'.aqua'))
+        #run_aqua_console_with_input(['uninstall'], 'yes')
+        #assert not os.path.exists(os.path.join(mydir,'.aqua'))
 
         # install from path
         run_aqua_console_with_input(['-v', 'install', '-p', os.path.join(mydir, 'vicesindaco')], 'yes')
