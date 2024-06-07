@@ -176,17 +176,20 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         # load and check the regrid
         if regrid or areas:
             # loading the grid defintion file
-            machine_file = load_yaml(self.machine_file)['paths']
-            if self.machine in machine_file:
-                machine_paths = machine_file[self.machine]
-            elif 'default' in machine_file:
-                machine_paths = machine_file['default']
+            machine_file = load_yaml(self.machine_file)
+            if self.machine in machine_file['paths']:
+                machine_paths = machine_file['paths'][self.machine]
+            elif 'default' in machine_file['paths']:
+                machine_paths = machine_file['paths']['default']
             else:
                 raise KeyError(f'Cannot find machine paths for {self.machine}, regridding and areas feature will not work')
 
             cfg_regrid = load_multi_yaml(folder_path=self.grids_folder,
                                          definitions=machine_paths,
                                          loglevel=self.loglevel)
+            
+            machine_paths = {'paths': machine_paths}
+
             cfg_regrid = {**machine_paths, **cfg_regrid}
 
             # define grid names
