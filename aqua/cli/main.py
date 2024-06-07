@@ -176,7 +176,7 @@ class AquaConsole():
         """Copying the installation file"""
 
         print("Installing AQUA to", self.configpath)
-        for file in ['config-aqua.yaml', 'machines-aqua.yaml']:
+        for file in ['config-aqua.yaml']:
             if not os.path.exists(os.path.join(self.configpath, file)):
                 self.logger.info('Copying from %s to %s', self.aquapath, self.configpath)
                 shutil.copy(f'{self.aquapath}/{file}', f'{self.configpath}/{file}')
@@ -196,7 +196,7 @@ class AquaConsole():
 
         editable = os.path.abspath(editable)
         print("Installing AQUA with a link from ", editable, " to ", self.configpath)
-        for file in ['config-aqua.yaml', 'machines-aqua.yaml']:
+        for file in ['config-aqua.yaml']:
             if os.path.isfile(os.path.join(editable, file)):
                 if not os.path.exists(os.path.join(self.configpath, file)):
                     self.logger.info('Linking from %s to %s', editable, self.configpath)
