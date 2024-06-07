@@ -44,8 +44,6 @@ def parse_arguments():
                                 help="Machine on which install AQUA")
     install_parser.add_argument('-p', '--path', type=str,
                                 help='Path where to install AQUA. Default is $HOME/.aqua')
-    install_parser.add_argument('-g', '--grids', type=str,
-                                help='Path where to be usef for AQUA grids (NOT WORKING FOR NOW)')
     install_parser.add_argument('-e', '--editable', type=str,
                                 help='Install AQUA in editable mode from the original source')
 

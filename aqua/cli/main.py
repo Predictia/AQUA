@@ -102,13 +102,6 @@ class AquaConsole():
             self._install_editable(args.editable)
 
         self._set_machine(args)
-        self.grids = args.grids
-
-        # TODO
-        # if self.grids is None:
-        #    self.logger.warning('Grids directory undefined')
-        # else:
-        # self._grids_define()
 
     def _config_home(self):
         """Configure the AQUA installation folder, by default inside $HOME"""
@@ -162,15 +155,6 @@ class AquaConsole():
         else:
             self.logger.warning('AQUA will be installed in %s, but please remember to define AQUA_CONFIG environment variable',
                                 path)
-
-    # def _grids_define(self):
-    #     """add the grid definition into the aqua-config.yaml"""
-
-    #     config_file = os.path.join(self.configpath, 'config-aqua.yaml')
-    #     cfg = load_yaml(config_file)
-    #     cfg['reader']['grids'] = self.grids
-    #     self.logger.info('Defining grid path %s in config-aqua.yaml', self.grids)
-    #     dump_yaml(config_file, cfg)
 
     def _install_default(self):
         """Copying the installation file"""
