@@ -176,7 +176,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         # load and check the regrid
         if regrid or areas:
             # loading the grid defintion file
-            machine_file = load_yaml(self.machine_file)
+            machine_file = load_yaml(self.machine_file)['paths']
             if self.machine in machine_file:
                 machine_paths = machine_file[self.machine]
             elif 'default' in machine_file:
