@@ -18,6 +18,7 @@ dependencies:
   - tempest-extremes # for TCs
   - xesmf # for ECmean
   - intake-esm
+  - imagemagick
   - pip:
     - -e ./diagnostics/global_time_series/ # pip install -e of global_time_series
     - -e ./diagnostics/ocean3d/ # pip install -e of ocean3d

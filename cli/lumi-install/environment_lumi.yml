@@ -18,3 +18,4 @@ dependencies:
   - tempest-extremes # for TCs
   - xesmf # for ECmean
   - intake-esm
+  - imagemagick
