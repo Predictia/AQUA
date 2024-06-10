@@ -1,7 +1,9 @@
 #!/bin/bash
 set -e
 
-# Check if AQUA is set and the file exists
+# define the aqua installation path
+AQUA=$(aqua --path)/..
+
 if [[ -z "$AQUA" ]]; then
     echo -e "\033[0;31mError: The AQUA environment variable is not defined."
     echo -e "\x1b[38;2;255;165;0mPlease define the AQUA environment variable with the path to your 'AQUA' directory."
