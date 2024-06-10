@@ -9,6 +9,7 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - OutputNamer Class: Comprehensive Naming Scheme and Metadata Support (#998)
+- Creation of png figures for AQUA explorer is local (#1189)
 
 ## [v0.9]
 
