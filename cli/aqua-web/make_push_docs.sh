@@ -1,7 +1,10 @@
 #!/bin/bash
 
 # Compiles AQUA html documentation and pushes to aqua-web
-#
+
+# define the aqua installation path
+AQUA=$(aqua --path)/..
+
 # Check if AQUA is set
 if [[ -z "$AQUA" ]]; then
     echo -e "\033[0;31mError: The AQUA environment variable is not defined."
