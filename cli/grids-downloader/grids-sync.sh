@@ -9,6 +9,9 @@ set -e
 # Note: The script assumes that the user has passwordless ssh access to the servers
 # and you're connected to the machine from which you're copying the grids
 
+# define the aqua installation path
+AQUA=$(aqua --path)/..
+
 # Check if AQUA is set and the file exists
 if [[ -z "$AQUA" ]]; then
     echo -e "\033[0;31mError: The AQUA environment variable is not defined."
