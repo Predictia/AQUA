@@ -10,6 +10,7 @@ Unreleased in the current development version:
 - Restructure of the `machine` and `catalog` instances to support a catalog based development (#1186)
 - AQUA installation via command line support a machine specification `aqua install lumi` (#1186)
 - Introduction of `machine.yaml` file to support machine dependency of data path and intake variables as kwargs into each catalog (#1186)
+- Removing all the AQUA catalogs from the repo, now using https://github.com/DestinE-Climate-DT/Climate-DT-catalog (#1200)
 
 ## [v0.9.1]
 
