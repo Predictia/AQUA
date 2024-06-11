@@ -64,7 +64,7 @@ class AquaConsole():
         else:
             loglevel = 'WARNING'
         self.logger = log_configure(loglevel, 'AQUA')
-        
+
         command = args.command
         method = self.command_map.get(command, parser_dict['main'].print_help)
         if command not in self.command_map:
@@ -79,7 +79,6 @@ class AquaConsole():
             # default
             else:
                 method(args)
-
 
     def install(self, args):
         """Install AQUA, find the folders and then install
@@ -308,7 +307,6 @@ class AquaConsole():
         print('Adding the AQUA catalog', args.catalog)
         self._check()
 
-
         if args.editable is not None:
             self._add_catalog_editable(args.catalog, args.editable)
         else:
@@ -327,7 +325,6 @@ class AquaConsole():
             self.logger.error(e)
             sys.exit(1)
 
-
     def _add_catalog_editable(self, catalog, editable):
         """Add a catalog in editable mode (i.e. link)"""
 
@@ -344,7 +341,7 @@ class AquaConsole():
         else:
             self.logger.error('Catalog %s cannot be found in %s', catalog, editable)
             sys.exit(1)
-    
+
         self._set_catalog(catalog)
 
     def _add_catalog_github(self, catalog):
@@ -359,8 +356,8 @@ class AquaConsole():
                 fs = fsspec.filesystem("github",
                                        org="DestinE-Climate-DT",
                                        repo="Climate-DT-catalog",
-                                       username="oloapinivad",
-                                       token="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")
+                                       username="mnurisso",
+                                       token="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") # noqa
                 self.logger.info('Accessed remote repository https://github.com/DestinE-Climate-DT/Climate-DT-catalog')
             except HTTPError:
                 self.logger.error('Permission issues in accessing Climate-DT catalog, please contact AQUA mantainers')
