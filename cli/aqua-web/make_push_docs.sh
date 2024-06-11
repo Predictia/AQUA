@@ -5,7 +5,6 @@
 # define the aqua installation path
 AQUA=$(aqua --path)/..
 
-echo $AQUA
 if [ ! -d $AQUA ]; then
     echo -e "\033[0;31mError: AQUA is not installed."
     echo -e "\x1b[38;2;255;165;0mPlease install AQUA with aqua install command"
