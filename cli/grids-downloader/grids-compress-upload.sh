@@ -12,7 +12,7 @@ if [ ! -d $AQUA ]; then
 fi
 
 source "$AQUA/cli/util/logger.sh"
-log_message INFO "Sourcing logger.sh from: $AQUA/cli/util/logger.sh"
+log_message DEBUG "Sourcing logger.sh from: $AQUA/cli/util/logger.sh"
 setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
 
 # This script compresses the grids as tar.gz files and uploads them to the SWIFT website
