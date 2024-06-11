@@ -66,7 +66,7 @@ Add a catalogue
 A catalogue is a folder containing the YAML files that describe the data available in the catalogue.
 
 .. note::
-  At the actual state of the AQUA package, the catalogues coincide with the machines.
+  At the actual state of the AQUA package, the catalogues coincide with the machines on which you are working.
   This means that you will need to install only the catalogue of the machine you are working on.
 
 To add a catalogue, run the following command:
@@ -75,7 +75,7 @@ To add a catalogue, run the following command:
 
     aqua add <catalog>
 
-For example, to add the catalogue of the machine ``lumi``, run:
+For example, to add the catalogue of ``lumi``, run:
 
 .. code-block:: bash
 

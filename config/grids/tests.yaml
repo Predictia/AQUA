@@ -1,34 +1,4 @@
-paths:
-  grids: ./AQUA_tests/grids
-  weights: ./AQUA_tests/weights
-  areas: ./AQUA_tests/weights
-
-sources:
-  FESOM:
-    description: FESOM ocean model
-    driver: yaml_file_cat
-    args:
-        path: "{{CATALOG_DIR}}/catalog/FESOM/main.yaml"
-  IFS:
-    description: IFS atmospheric model
-    driver: yaml_file_cat
-    args:
-        path: "{{CATALOG_DIR}}/catalog/IFS/main.yaml"
-  ICON:
-    description: ICON atmospheric model
-    driver: yaml_file_cat
-    args:
-        path: "{{CATALOG_DIR}}/catalog/ICON/main.yaml"
-  NEMO:
-    description: NEMO oceanic model
-    driver: yaml_file_cat
-    args:
-        path: "{{CATALOG_DIR}}/catalog/NEMO/main.yaml"
-
-# available grids, not worth to become machine independent
-# extra is an extra special cdo command to be applied before generating the weights
 grids:
-  # IFS
   tco79-testmask:
     path:  
       2d: '{{ grids }}/IFS/tco79_grid.nc'

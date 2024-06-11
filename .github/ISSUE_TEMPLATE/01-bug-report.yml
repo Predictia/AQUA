@@ -17,10 +17,19 @@ body:
       - Levante
       - Leonardo
       - Lumi
-      - MN4
       - MN5
       - CI
       - Atos
+      - Others
+    validations:
+      required: true
+  - type: dropdown
+    id: catalog
+    attributes:
+      label: catalog
+      description: Which catalog are you using?
+      options:
+      - ClimateDT
       - Others
     validations:
       required: true

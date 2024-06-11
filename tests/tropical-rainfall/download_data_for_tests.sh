@@ -16,9 +16,9 @@ cp ./config/config-aqua.yaml ./config/config-aqua.yaml.bak
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   # Mac OSX
-  sed -i '' "/^machine:/c\\
-machine: ci" "./config/config-aqua.yaml"
+  sed -i '' "/^catalog:/c\\
+catalog: ci" "./config/config-aqua.yaml"
 else
   # Linux
-  sed -i "/^machine:/c\\machine: ci" "./config/config-aqua.yaml"
+  sed -i "/^catalog:/c\\catalog: ci" "./config/config-aqua.yaml"
 fi

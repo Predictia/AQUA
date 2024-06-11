@@ -58,7 +58,7 @@ Calling, for example:
 will return experiments available in the catalogue for model CERES.
 
 .. warning::
-    The ``inspect_catalogue()`` and the ``Reader`` are based on the machine and AQUA path configuration.
+    The ``inspect_catalogue()`` and the ``Reader`` are based on the catalog and AQUA path configuration.
     If you don't find a source you're expecting, please check these are correctly set (see :ref:`getting_started`).
 
 If you want to have a complete overview of the sources available in the catalogue, you can use the ``catalogue()`` function.
@@ -138,7 +138,7 @@ Concept
 The idea of the regridder is first to generate the weights for the interpolation and
 then to use them for each regridding operation. 
 The reader generates the regridding weights automatically (with CDO) if not already
-existent and stored in a directory specified in the ``config/machine/<machine-name>/catalog.yaml`` file.
+existent and stored in a directory specified in the ``config/catalogs/<catalog-name>/catalog.yaml`` file.
 A list of predefined target grids (only regular lon-lat for now) is available in the ``config/grids/default.yaml`` file.
 For example, ``r100`` is a regular grid at 1° resolution, ``r005`` at 0.05°, etc.
 

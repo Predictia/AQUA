@@ -14,6 +14,9 @@ Main changes are:
 1. Update of fdb libraries to be compatible with the FDB data bridge
 
 AQUA core complete list:
+- Restructure of the `machine` and `catalog` instances to support a catalog based development (#1186)
+- AQUA installation via command line support a machine specification `aqua install lumi` (#1186)
+- Introduction of `machine.yaml` file to support machine dependency of data path and intake variables as kwargs into each catalog (#1186)
 - OutputNamer Class: Comprehensive Naming Scheme and Metadata Support (#998)
 - Creation of png figures for AQUA explorer is local (#1189)
 
