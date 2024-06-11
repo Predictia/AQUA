@@ -3,9 +3,12 @@
 import os
 import shutil
 import sys
+import subprocess
 import pytest
 from aqua.cli.main import AquaConsole, query_yes_no
 from aqua.util import dump_yaml, load_yaml
+from aqua import __version__ as version
+from aqua import __path__ as pypath
 
 testfile = 'testfile.txt'
 
@@ -66,8 +69,20 @@ def run_aqua():
 class TestAquaConsole():
     """Class for AQUA console tests"""
 
+    def test_console_install(self):
+        """Test for CLI call"""
+
+        # test version
+        result = subprocess.run(['aqua','--version'], check=False, capture_output=True, text=True)
+        assert result.stdout.strip() == f'aqua v{version}'
+
+        # test path
+        result = subprocess.run(['aqua','--path'], check=False, capture_output=True, text=True)
+        assert pypath[0] == result.stdout.strip()
+
     # base set of tests
     def test_console_base(self, tmpdir, set_home, run_aqua, run_aqua_console_with_input):
+        """Basic tests"""
 
         # getting fixture
         mydir = str(tmpdir)
