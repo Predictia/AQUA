@@ -16,9 +16,9 @@ This is a YAML file called ``config-aqua.yaml`` and is located in the configurat
 
 The configuration file is used to specify the following parameters:
 
-- **machine**: the machine on which the code is running. This is used to specify the
+- **caalog**: the catalog on which the AQUA will run. This is used to specify the
   location of the AQUA catalogue and the location of the data. Default is ``lumi``.
-  Other options are ``ci`` and ``levante``. Custom machines can be defined (see :ref:`_new-catalogue`).
+  Other options are ``ci`` and ``levante``. Custom catalogs can be defined (see :ref:`new-catalogue`).
 - **reader**: this block contains catalogue, fixes and grids location.
   These paths are required to be inside the AQUA repository,
   so these paths should not be changed unless strictly necessary.
@@ -34,7 +34,7 @@ The configuration folder has this structure:
     │   ├── data_models
     │   ├── fixes
     │   ├── grids
-    │   └── machines
+    │   └── catalogs
     │       ├── lumi
     │       │   ├── catalog 
     │       │   └── catalog.yaml
@@ -42,8 +42,6 @@ The configuration folder has this structure:
     │       └── ...
     ├── config-aqua.yaml
 
-.. note::
-  The machine depencency in files and folders will be removed in future versions of AQUA.
 
 .. _new-catalogue:
 
@@ -70,8 +68,8 @@ Adding a new catalogue
 Creation of the catalogue folder
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To add a new machine to the AQUA catalogue we need to create a
-new folder that will contain the configuration files for the new machine.
+To add a new catalog to the AQUA catalogue we need to create a
+new folder that will contain the configuration files.
 
 You can create the folder where you prefer and then add it to the
 available catalogues with the ``aqua add`` command (see :ref:`aqua-add`).
@@ -83,7 +81,7 @@ folder under version control if needed.
     cd /path/of/your/catalogue
     mkdir new_catalogue
 
-This will contain the ``catalog.yaml`` file, which is the main file for the machine configuration.
+This will contain the ``catalog.yaml`` file, which is the main file for the catalog configuration.
 
 .. code-block:: yaml
 
@@ -94,7 +92,7 @@ This will contain the ``catalog.yaml`` file, which is the main file for the mach
 
     sources:
         my-model:
-            description: New model for a new machine
+            description: New model for a new catalog
             driver: yaml_file_cat
             args:
                 path: "{{CATALOG_DIR}}/catalog/my-model/main.yaml"
@@ -126,7 +124,7 @@ More informations about how to add them can be found in the :ref:`add-data` sect
 Adding the catalogue to the AQUA package
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Since ``v0.8.2`` the AQUA package has an entry point script that will allow to add a new catalogue to the AQUA package.
+Since ``v0.9`` the AQUA package has an entry point script that will allow to add a new catalogue to the AQUA package.
 This is done with the ``aqua add`` command.
 
 .. code-block:: bash
@@ -134,7 +132,7 @@ This is done with the ``aqua add`` command.
     aqua add new_catalogue -e /path/to/your/catalogue/new_catalogue
 
 .. note::
-    This command will create a symbolic link to the new catalogue in the ``$AQUA/config/machines`` directory.
+    This command will create a symbolic link to the new catalogue in the ``$AQUA/config/catalogs`` directory.
     See the :ref:`aqua-add` section for more information.
 
 Download of grids
@@ -385,7 +383,7 @@ Then, the user can cancel the particular job as:
 
 .. warning::
 
-It is potentially dangerous to cancel all your jobs. Always prefer to cancel jobs with the Job_ID.
+    It is potentially dangerous to cancel all your jobs. Always prefer to cancel jobs with the Job_ID.
 
 
 Modifying and Adding Machine Configurations in YAML
@@ -427,17 +425,17 @@ For this reason the following steps are suggested to set up the AQUA package in 
 Set up environment variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Since ``v0.8.2`` the AQUA package has an entry point script that can be used to copy the configuration files
-and the catalogue to an external directory (see :ref:`aqua-init` and :ref:`aqua-console`).
+Since ``v0.9`` the AQUA package has an entry point script that can be used to copy the configuration files
+and the catalogue to an external directory (see :ref:`aqua-install` and :ref:`aqua-console`).
 
 By default the configuration files are stored in the ``$HOME/.aqua`` directory.
-Same for the catalogue, which is stored in the ``$HOME/.aqua/machines`` directory.
+Same for the catalogue, which is stored in the ``$HOME/.aqua/catalogs`` directory.
 This has been done to make the package more user-friendly, expecially when installing the package
 from a conda environment or from a pip package.
 
 A developer may want to keep the configuration files and the catalogues in a different directory,
 for this reason the ``aqua init`` command can be used to copy the configuration files and the catalogue
-to a different directory. For more information see the :ref:`aqua-init` section.
+to a different directory. For more information see the :ref:`aqua-install` section.
 
 If you're using a custom directory to store the configuration files and the catalogue it is recommended
 to set up an environment variable to specify the path to the AQUA package.

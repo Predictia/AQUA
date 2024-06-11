@@ -37,10 +37,10 @@ def opa_catalog_entry(datadir, model, exp, source,
     # load the catalog experiment file
     Configurer = ConfigPath()
     configdir = Configurer.configdir
-    machine = Configurer.machine
+    catalog = Configurer.catalog
 
     # find the catalog of my experiment
-    catalogfile = os.path.join(configdir, 'machines', machine,
+    catalogfile = os.path.join(configdir, 'catalogs', catalog,
                                'catalog', model, exp + '.yaml')
 
     # load, add the block and close
@@ -101,7 +101,7 @@ def opa_catalog_entry(datadir, model, exp, source,
 # def check_correct_ifs_fluxes(xfield, threshold=100, loglevel='WARNING'):
 
 #     """
-#     Giving a Xarray DataArray, 
+#     Giving a Xarray DataArray,
 #     check if the first time step is more than 100 times larger
 #     This is done to protect LRA from wrong fluxes produced by IFS for every new month
 #     """

@@ -1,17 +1,18 @@
 #!/bin/bash
-# Check if AQUA is set and the file exists
-if [[ -z "$AQUA" ]]; then
-    echo -e "\033[0;31mError: The AQUA environment variable is not defined."
-    echo -e "\x1b[38;2;255;165;0mPlease define the AQUA environment variable with the path to your 'AQUA' directory."
-    echo -e "For example: export AQUA=/path/to/aqua\033[0m"
+
+# define the aqua installation path
+AQUA=$(aqua --path)/..
+
+if [ ! -d $AQUA ]; then
+    echo -e "\033[0;31mError: AQUA is not installed."
+    echo -e "\x1b[38;2;255;165;0mPlease install AQUA with aqua install command"
     exit 1  # Exit with status 1 to indicate an error
-else
-    source "${AQUA}/cli/util/logger.sh"
-    log_message INFO "Sourcing logger.sh from: ${AQUA}/cli/util/logger.sh"
-    # Your subsequent commands here
 fi
+
+source "$AQUA/cli/util/logger.sh"
+log_message DEBUG "Sourcing logger.sh from: $AQUA/cli/util/logger.sh"
+
 setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
-aqua=$AQUA
 
 # User defined variables
 # ---------------------------------------------------
@@ -25,7 +26,7 @@ exp="historical-1990"
 source="lra-r100-monthly"
 outputdir="${AQUA}/cli/aqua-analysis/output" # Prefer absolute paths, e.g., "/path/to/aqua/my/output"
 loglevel="WARNING" # DEBUG, INFO, WARNING, ERROR, CRITICAL
-machine="lumi" # will change the aqua config file
+catalog="lumi" # will change the aqua config file
 
 # ---------------------------------------
 # The max_threads variable serves as a mechanism to control the maximum number of threads
@@ -85,15 +86,15 @@ done
 # Concatenate the new part to the existing content
 
 atm_extra_args["global_time_series"]="${atm_extra_args["global_time_series"]} \
---config ${aqua}/diagnostics/global_time_series/cli/config_time_series_atm.yaml"
+--config ${AQUA}/diagnostics/global_time_series/cli/config_time_series_atm.yaml"
 oce_extra_args["global_time_series"]="${oce_extra_args["global_time_series"]} \
---config ${aqua}/diagnostics/global_time_series/cli/config_time_series_oce.yaml"
+--config ${AQUA}/diagnostics/global_time_series/cli/config_time_series_oce.yaml"
 # ----------------------------------------
 # Command line extra arguments for ecmean:
 # -c --config (ecmean config file)
 # -i --interface (custom interface file)
 atm_oce_extra_args["ecmean"]="${atm_oce_extra_args["ecmean"]} \
---interface ${aqua}/diagnostics/ecmean/config/interface_AQUA_destine-v1.yml"
+--interface ${AQUA}/diagnostics/ecmean/config/interface_AQUA_destine-v1.yml"
 # -------------------------------------------
 # Command line extra arguments for radiation:
 # --config (readiation config file)
@@ -122,26 +123,26 @@ atm_extra_args["tropical_rainfall"]="--regrid=r100 --freq=M --xmax=75"
 # It's still under time_series folder
 # --config (seasonal cycles config file)
 atm_extra_args["seasonal_cycles"]="${atm_extra_args["seasonal_cycles"]} \
---config ${aqua}/diagnostics/global_time_series/cli/config_seasonal_cycles_atm.yaml"
+--config ${AQUA}/diagnostics/global_time_series/cli/config_seasonal_cycles_atm.yaml"
 # -----------------------------
 # Command line extra arguments for ocean3d:
 #
 oce_extra_args["ocean3d_circulation"]="${atm_extra_args["ocean3d_circulation"]} \
---config ${aqua}/diagnostics/ocean3d/cli/config.circulation.yaml"
+--config ${AQUA}/diagnostics/ocean3d/cli/config.circulation.yaml"
 oce_extra_args["ocean3d_drift"]="${atm_extra_args["ocean3d_drift"]} \
---config ${aqua}/diagnostics/ocean3d/cli/config.drift.yaml"
+--config ${AQUA}/diagnostics/ocean3d/cli/config.drift.yaml"
 
 # -----------------------------
 # Command line extra arguments for seaice:
 #
 oce_extra_args["seaice_extent"]="${atm_extra_args["seaice_extent"]} \
---config ${aqua}/diagnostics/seaice/cli/config_Extent.yaml"
+--config ${AQUA}/diagnostics/seaice/cli/config_Extent.yaml"
 oce_extra_args["seaice_conc"]="${atm_extra_args["seaice_conc"]} \
---config ${aqua}/diagnostics/seaice/cli/config_Concentration.yaml"
+--config ${AQUA}/diagnostics/seaice/cli/config_Concentration.yaml"
 oce_extra_args["seaice_volume"]="${atm_extra_args["seaice_volume"]} \
---config ${aqua}/diagnostics/seaice/cli/config_Volume.yaml"
+--config ${AQUA}/diagnostics/seaice/cli/config_Volume.yaml"
 oce_extra_args["seaice_thick"]="${atm_extra_args["seaice_thick"]} \
---config ${aqua}/diagnostics/seaice/cli/config_Thickness.yaml"
+--config ${AQUA}/diagnostics/seaice/cli/config_Thickness.yaml"
 
 # Trap Ctrl-C to clean up and kill the entire process group
 trap 'kill 0' SIGINT
@@ -191,8 +192,8 @@ while [[ $# -gt 0 ]]; do
       outputdir="$2"
       shift 2
       ;;
-    -m|--machine)
-      machine="$2"
+    -c|--catalog)
+      catalog="$2"
       shift 2
       ;;
     -p|--parallel)
@@ -226,7 +227,7 @@ log_message INFO "Atmospheric model: $model_atm"
 log_message INFO "Oceanic model: $model_oce"
 log_message INFO "Experiment: $exp"
 log_message INFO "Source: $source"
-log_message INFO "Machine: $machine"
+log_message INFO "Catalog: $catalog"
 log_message INFO "Output directory: $outputdir"
 
 # Set extra arguments in distributed case
@@ -258,16 +259,16 @@ args_atm="--model $model_atm --exp $exp --source $source"
 args_oce="--model $model_oce --exp $exp --source $source"
 args="--model_atm $model_atm --model_oce $model_oce --exp $exp --source $source"
 
-# set the correct machine in the config file
+# set the correct catalog in the config file
 if [[ "$OSTYPE" == "darwin"* ]]; then
   # Mac OSX
-  sed -i '' "/^machine:/c\\
-machine: $machine" "${aqua}/config/config-aqua.yaml"
+  sed -i '' "/^catalog:/c\\
+catalog: $catalog" "${AQUA}/config/config-aqua.yaml"
 else
   # Linux
-  sed -i "/^machine:/c\\machine: $machine" "${aqua}/config/config-aqua.yaml"
+  sed -i "/^catalog:/c\\catalog: $catalog" "${AQUA}/config/config-aqua.yaml"
 fi
-log_message INFO "Machine set to $machine in the config file"
+log_message INFO "Catalog set to $catalog in the config file"
 
 # Create output directory if it does not exist
 log_message INFO "Creating output directory $outputdir"
@@ -280,7 +281,7 @@ atm_extra_args["tropical_rainfall"]="${atm_extra_args["tropical_rainfall"]} \
 cd $AQUA
 if [ "$run_dummy" = true ] ; then
   log_message INFO "Running setup checker"
-  scriptpy="${aqua}/diagnostics/dummy/cli/cli_dummy.py"
+  scriptpy="${AQUA}/diagnostics/dummy/cli/cli_dummy.py"
   python $scriptpy $args -l $loglevel > "$outputdir_atm/setup_checker.log" 2>&1
   
   # Store the error code of the dummy script
@@ -326,18 +327,18 @@ for diagnostic in "${all_diagnostics[@]}"; do
   fi
 
   if [[ "${atm_diagnostics[@]}" =~ "$diagnostic" ]]; then
-    python "${aqua}/diagnostics/${script_path[$diagnostic]}" $args_atm ${atm_extra_args[$diagnostic]} \
+    python "${AQUA}/diagnostics/${script_path[$diagnostic]}" $args_atm ${atm_extra_args[$diagnostic]} \
     -l $loglevel --outputdir $outputdir_atm/$diagnostic > "$outputdir_atm/atm_$diagnostic.log" 2>&1 &
     # Remove diagnostic from atm_diagnostics array
     atm_diagnostics=(${atm_diagnostics[@]/$diagnostic})
   elif [[ "${oce_diagnostics[@]}" =~ "$diagnostic" ]]; then
-    python "${aqua}/diagnostics/${script_path[$diagnostic]}" $args_oce ${oce_extra_args[$diagnostic]} \
+    python "${AQUA}/diagnostics/${script_path[$diagnostic]}" $args_oce ${oce_extra_args[$diagnostic]} \
     -l $loglevel --outputdir $outputdir_oce/$diagnostic > "$outputdir_oce/oce_$diagnostic.log" 2>&1 &
     # Remove diagnostic from oce_diagnostics array
     oce_diagnostics=(${oce_diagnostics[@]/$diagnostic})
   elif [[ "${atm_oce_diagnostics[@]}" =~ "$diagnostic" ]]; then
     # NOTE: atm_oce diagnostics are run in the atmospheric output directory
-    python "${aqua}/diagnostics/${script_path[$diagnostic]}" $args ${atm_oce_extra_args[$diagnostic]} \
+    python "${AQUA}/diagnostics/${script_path[$diagnostic]}" $args ${atm_oce_extra_args[$diagnostic]} \
     -l $loglevel --outputdir $outputdir_atm/$diagnostic > "$outputdir_atm/$diagnostic.log" 2>&1 &
     # Remove diagnostic from atm_oce_diagnostics array
     atm_oce_diagnostics=(${atm_oce_diagnostics[@]/$diagnostic})

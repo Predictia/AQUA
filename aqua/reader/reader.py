@@ -136,11 +136,17 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         # define configuration file and paths
         Configurer = ConfigPath()
         self.configdir = Configurer.configdir
-        self.machine = Configurer.machine
+        self.machine = Configurer.get_machine()
+        self.config_file = Configurer.config_file
+        self.catalog_file, self.machine_file = Configurer.get_catalog_filenames()
+        self.fixer_folder, self.grids_folder = Configurer.get_reader_filenames()
 
-        # get configuration from the machine
-        self.catalog_file, self.fixer_folder, self.grids_folder, self.config_file = (
-            Configurer.get_reader_filenames())
+
+        # machine dependent catalog path
+        machine_paths, intake_vars = self._get_machine_info()
+
+        
+        # access the catalog
         self.cat = intake.open_catalog(self.catalog_file)
 
         # check source existence
@@ -148,7 +154,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
                                            source, name="catalog")
 
         # load the catalog
-        self.esmcat = self.cat[self.model][self.exp][self.source](**kwargs)
+        self.esmcat = self.cat[self.model][self.exp][self.source](**kwargs, **intake_vars)
 
         # store the kwargs for further usage
         self.kwargs = self._check_kwargs_parameters(kwargs)
@@ -171,18 +177,17 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             if not self.dst_datamodel:
                 self.dst_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
 
-        # Store the machine-specific CDO path if available
-        cfg_base = load_yaml(self.config_file)
-        self.cdo = self._set_cdo(cfg_base)
+        self.cdo = self._set_cdo()
 
         # load and check the regrid
         if regrid or areas:
-            # loading the grid defintion file
-            machine_file = os.path.join(self.configdir, 'machines', self.machine, 'catalog.yaml')
-            cfg_regrid = load_multi_yaml(filenames=[machine_file],
-                                         folder_path=self.grids_folder,
-                                         definitions="paths",
+
+
+            cfg_regrid = load_multi_yaml(folder_path=self.grids_folder,
+                                         definitions=machine_paths['paths'],
                                          loglevel=self.loglevel)
+            
+            cfg_regrid = {**machine_paths, **cfg_regrid}
 
             # define grid names
             self.src_grid_name = self.esmcat.metadata.get('source_grid_name')
@@ -208,7 +213,36 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         if areas and regrid:
             self._generate_load_dst_area(cfg_regrid, rebuild)
 
-    def _set_cdo(self, cfg_base):
+    def _get_machine_info(self):
+        """
+        This extract the information related to the machine from the catalog-dependent machine file
+        
+        Returns: 
+            machine_paths: the dictionary with the paths
+            intake_vars: the dictionary for the intake catalog variables
+        """
+        
+        # loading the grid defintion file
+        machine_file = load_yaml(self.machine_file)
+
+        # get informtion on paths
+        if self.machine in machine_file:
+            machine_paths = machine_file[self.machine]
+        else:
+            if 'default' in machine_file:
+                machine_paths = machine_file['default']
+            else:
+                raise KeyError(f'Cannot find machine paths for {self.machine}, regridding and areas feature will not work')
+        
+        # extract potential intake variables
+        if 'intake' in machine_paths:
+            intake_vars = machine_paths['intake']
+        else:
+            intake_vars = {}
+        
+        return machine_paths, intake_vars
+
+    def _set_cdo(self):
         """
         Check information on CDO to set the correct version
 
@@ -219,15 +253,11 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             The path to the CDO executable
         """
 
-        cdo = cfg_base["cdo"].get(self.machine, None)
-        if not cdo:
-            cdo = shutil.which("cdo")
-            if cdo:
-                self.logger.debug("Found CDO path: %s", cdo)
-            else:
-                self.logger.error("CDO not found in path: Weight and area generation will fail.")
+        cdo = shutil.which("cdo")
+        if cdo:
+            self.logger.debug("Found CDO path: %s", cdo)
         else:
-            self.logger.debug("Using CDO from config: %s", cdo)
+            self.logger.error("CDO not found in path: Weight and area generation will fail.")
 
         return cdo
 
@@ -1068,40 +1098,41 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         return data
 
-    def stream(self, data, startdate=None, enddate=None, aggregation=None,
-               timechunks=None, reset=False):
-        """
-        Stream a dataset chunk using the startdate, enddate, and aggregation parameters defined in the constructor.
-        This operation utilizes the 'stream' method from the Streaming class.
-        It first checks if the Streaming class has been initialized; if not, it initializes the class.
+    # # An error arised here by pylin: An attribute defined in aqua.reader.reader line 125 hides this method
+    # def stream(self, data, startdate=None, enddate=None, aggregation=None,
+    #            timechunks=None, reset=False):
+    #     """
+    #     Stream a dataset chunk using the startdate, enddate, and aggregation parameters defined in the constructor.
+    #     This operation utilizes the 'stream' method from the Streaming class.
+    #     It first checks if the Streaming class has been initialized; if not, it initializes the class.
 
-        Arguments:
-            data (xr.Dataset):      the input xarray.Dataset
-            startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
-            enddate (str): the ending date for streaming the data (e.g. '2021-01-01') (None)
-            aggregation (str): the streaming frequency in pandas style (1M, 7D etc.)
-            timechunks (DataArrayResample, optional): a precomputed chunked time axis
-            reset (bool, optional): reset the streaming
+    #     Arguments:
+    #         data (xr.Dataset):      the input xarray.Dataset
+    #         startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
+    #         enddate (str): the ending date for streaming the data (e.g. '2021-01-01') (None)
+    #         aggregation (str): the streaming frequency in pandas style (1M, 7D etc.)
+    #         timechunks (DataArrayResample, optional): a precomputed chunked time axis
+    #         reset (bool, optional): reset the streaming
 
-        Returns:
-            A xarray.Dataset containing the subset of the input data that has been streamed.
-        """
-        if not hasattr(self, 'streamer'):
-            self.streamer = Streaming(startdate=startdate,
-                                      enddate=enddate,
-                                      aggregation=aggregation)
-            self.stream = self.streamer.stream
+    #     Returns:
+    #         A xarray.Dataset containing the subset of the input data that has been streamed.
+    #     """
+    #     if not hasattr(self, 'streamer'):
+    #         self.streamer = Streaming(startdate=startdate,
+    #                                   enddate=enddate,
+    #                                   aggregation=aggregation)
+    #         self.stream = self.streamer.stream
 
-        stream_data = self.stream(data,
-                                  startdate=startdate,
-                                  enddate=enddate,
-                                  aggregation=aggregation,
-                                  timechunks=timechunks,
-                                  reset=reset)
+    #     stream_data = self.stream(data,
+    #                               startdate=startdate,
+    #                               enddate=enddate,
+    #                               aggregation=aggregation,
+    #                               timechunks=timechunks,
+    #                               reset=reset)
 
-        stream_data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
+    #     stream_data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
 
-        return stream_data
+    #     return stream_data
 
     def info(self):
         """Prints info about the reader"""

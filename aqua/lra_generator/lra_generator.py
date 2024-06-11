@@ -120,7 +120,7 @@ class LRAgenerator():
 
         Configurer = ConfigPath(configdir=configdir)
         self.configdir = Configurer.configdir
-        self.machine = Configurer.machine
+        self.catalog = Configurer.catalog
 
         # Initialize variable(s)
         self.var = var
@@ -251,7 +251,7 @@ class LRAgenerator():
         }
 
         # find the catalog of my experiment
-        catalogfile = os.path.join(self.configdir, 'machines', self.machine,
+        catalogfile = os.path.join(self.configdir, 'catalogs', self.catalog,
                                    'catalog', self.model, self.exp + '.yaml')
 
         # load, add the block and close

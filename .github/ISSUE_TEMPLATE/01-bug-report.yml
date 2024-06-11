@@ -17,10 +17,19 @@ body:
       - Levante
       - Leonardo
       - Lumi
-      - MN4
       - MN5
       - CI
       - Atos
+      - Others
+    validations:
+      required: true
+  - type: dropdown
+    id: catalog
+    attributes:
+      label: catalog
+      description: Which catalog are you using?
+      options:
+      - ClimateDT
       - Others
     validations:
       required: true
@@ -31,9 +40,9 @@ body:
       description: Which AQUA version are you using?
       options:
       - main
-      - v0.8.2
-      - v0.8.1
-      - v0.8
+      - v0.9.1
+      - v0.9
+      - v0.8.*
       - v0.7.*
       - older
     validations:

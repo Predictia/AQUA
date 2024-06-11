@@ -6,10 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
+- AQUA cli command to provide the installation path with `--path` option (#1193)
+- Restructure of the `machine` and `catalog` instances to support a catalog based development (#1186)
+- AQUA installation via command line support a machine specification `aqua install lumi` (#1186)
+- Introduction of `machine.yaml` file to support machine dependency of data path and intake variables as kwargs into each catalog (#1186)
+
+## [v0.9.1]
+
+Main changes are:
+1. Update of fdb libraries to be compatible with the FDB data bridge
+
+AQUA core complete list:
+- OutputNamer Class: Comprehensive Naming Scheme and Metadata Support (#998)
+- Creation of png figures for AQUA explorer is local (#1189)
+
+## [v0.9]
+
+Main changes are:
+1. AQUA has an `aqua` CLI entry point, that allow for installation/uninstallation, catalog add/remova/update, fixes and grids handling
+2. Experiments placed half on HPC and half on DataBridge data can be accessed in continuous manner.
 
 AQUA core complete list:
 - AQUA entry point for installation and catalog maintanance and fixes/grids handling (#1131, #1134, #1146, #1168, #1169, #1182)
-- Automatic switching between HPC and databridge fdb (#1054)
+- Automatic switching between HPC and databridge FDB (#1054, #1190)
 - CLI script for automatic multiple experiment analysis submission (#1160, #1175)
 
 ## [v0.8.2]
@@ -491,7 +510,9 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.8.2...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.9.1...HEAD
+[v0.9.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.9...v0.9.1
+[v0.9]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.8.2...v0.9
 [v0.8.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.8.1...v0.8.2
 [v0.8.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.8...v0.8.1
 [v0.8]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.7.3...v0.8

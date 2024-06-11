@@ -56,9 +56,9 @@ so that the script can be used in a batch job or in a workflow.
     Default is ``$AQUA/cli/aqua-analysis/output``.
     Prefer to use an absolute path.
 
-.. option:: -m <machine>, --machine <machine>
+.. option:: -c <catalog>, --catalog <catalog>
 
-    The machine to use.
+    The catalog to use.
     Default is ``lumi``.
 
 .. option:: -l <loglevel>, --loglevel <loglevel>
@@ -234,18 +234,6 @@ A tool to benchmark the performance of the AQUA analysis tools. The tool is avai
 It runs a few selected methods for multiple times and report the durations of multiple execution: it has to be run in batch mode with 
 the associated jobscript in order to guarantee robust results. 
 It will be replaced in future by more robust performance machinery.
-
-.. _gribber:
-
-GRIB catalog generator
-----------------------
-
-A tool building on Gribscan, aiming at creating compact catalog entries through JSON files for massive GRIB archives.
-A script in the ``cli/gribber`` folder is available.
-
-.. warning ::
-
-    This tool is currently deprecated, it might be removed in the future.
 
 
 .. _grids-from-data:

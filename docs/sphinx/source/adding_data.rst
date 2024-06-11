@@ -4,7 +4,7 @@ Adding new data
 ===============
 
 To add new data the 3-level hierarchy on which AQUA is based, i.e. **model** - **exp** - **source**, must be respected so that 
-specific files must be created within the catalog of a specific machine.
+specific files must be created within the catalog.
 How to create a new source and add new data is documented in the next sections.
 
 - To add your data to AQUA, you have to provide an ``intake`` catalogue that describes your data,
@@ -48,7 +48,7 @@ The additional entry in this file will look like this:
         args:
           path: "{{CATALOG_DIR}}/yearly_SST/main.yaml"
 
-The first step is to add this catalogue to the ``config/machines/lumi/catalog.yaml`` file.  
+The first step is to add this catalogue to the ``config/catalogs/lumi/catalog.yaml`` file.  
 This will create the ``model`` entry within the catalog that can be used later by the ``Reader()``.
 
 .. note::
@@ -68,7 +68,7 @@ corresponding to the same model, can be added aside of this):
           path: "{{CATALOG_DIR}}/yearly_SST.yaml"
 
 We finally need to define the specific experiment file that we linked in the ``main.yaml``,
-using the ``yearly_SST.yaml`` file and saving it in the ``config/machines/lumi/catalog/yearly_SST`` directory
+using the ``yearly_SST.yaml`` file and saving it in the ``config/catalogs/lumi/catalog/yearly_SST`` directory
 (that we should create first if missing).
 
 The most straightforward intake catalogue describing our dataset will look like this: 

@@ -29,8 +29,6 @@ fi
 setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
 #####################################################################
 # Begin of user input
-machine=lumi 
-configfile=config-aqua.yaml
 user=$USER # change this to your username if automatic detection fails
 MAMBADIR="$HOME/mambaforge" #check if $HOME does not exist
 load_aqua_file="$HOME/load_aqua.sh" #check if $HOME does not exist
@@ -75,13 +73,6 @@ export PATH="$new_path"
 log_message INFO "Paths containing '$word_to_remove' have been removed from \$PATH."
 
 #####################################################################
-
-# change machine name in config file
-sed -i "/^machine:/c\\machine: ${machine}" "${AQUA}/config/$configfile"
-log_message INFO "Machine name in config file has been set to ${machine}"
-
-sed -i "/^  lumi:/c\\  lumi: ${INSTALLATION_PATH}/bin/cdo" "${AQUA}/config/$configfile"
-log_message INFO "CDO in config file now points to ${INSTALLATION_PATH}/bin/cdo"
 
 install_aqua() {
   # clean up environment
@@ -225,3 +216,5 @@ while true; do
       ;;
   esac
 done
+
+log_message WARNING "AQUA environment has been installed, please remember to to run aqua install and aqua add lumi"

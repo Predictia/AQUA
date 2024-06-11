@@ -65,7 +65,9 @@ if __name__ == '__main__':
 
     #create output file in model folder
     configurer = ConfigPath()
-    catalog_path, fixer_folder, _, config_file = configurer.get_reader_filenames()
+    catalog_path, _ = configurer.get_catalog_filenames()
+    fixer_folder, _ = configurer.get_reader_filenames()
+    config_folder = configurer.configdir
 
     output_dir = os.path.join(os.path.dirname(catalog_path), 'catalog', definitions['model'])
     output_filename = f"{definitions['exp']}.yaml"

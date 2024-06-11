@@ -7,6 +7,7 @@ AQUA command line parser
 
 import argparse
 from aqua import __version__ as version
+from aqua import __path__ as pypath
 
 
 def parse_arguments():
@@ -17,7 +18,9 @@ def parse_arguments():
 
     # Parser for the aqua main command
     parser.add_argument('--version', action='version',
-                        version=f'%(prog)s {version}', help="show AQUA version number and exit.")
+                        version=f'%(prog)s v{version}', help="show AQUA version number and exit.")
+    parser.add_argument('--path', action='version', version=f'{pypath[0]}',
+                        help="show AQUA installation path and exit")
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='Increase verbosity of the output to INFO loglevel')
     parser.add_argument('-vv', '--very-verbose', action='store_true',
@@ -40,10 +43,10 @@ def parse_arguments():
     parser_fixes = file_subparser(subparsers, 'fixes')
 
     # extra parsers arguments
+    install_parser.add_argument('machine', nargs='?', metavar="MACHINE", default=None,
+                                help="Machine on which install AQUA")
     install_parser.add_argument('-p', '--path', type=str,
                                 help='Path where to install AQUA. Default is $HOME/.aqua')
-    install_parser.add_argument('-g', '--grids', type=str,
-                                help='Path where to be usef for AQUA grids (NOT WORKING FOR NOW)')
     install_parser.add_argument('-e', '--editable', type=str,
                                 help='Install AQUA in editable mode from the original source')
 

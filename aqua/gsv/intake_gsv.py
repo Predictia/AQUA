@@ -261,14 +261,18 @@ class GSVSource(base.DataSource):
             'chk_end_date': self.chk_end_date,
             'chunking_vertical': self.chunking_vertical,
             'chk_vert': self.chk_vert,
+            'chk_type': self.chk_type,
             '_request': self._request,
             'timestyle': self.timestyle,
-            'self.fdbhome': self.fdbhome,
-            'self.fdbpath': self.fdbpath,
-            'self.eccodes_path': self.eccodes_path,
+            'fdbhome': self.fdbhome,
+            'fdbpath': self.fdbpath,
+            'fdbhome_bridge': self.fdbhome_bridge,
+            'fdbpath_bridge': self.fdbpath_bridge,
+            'eccodes_path': self.eccodes_path,
             '_var': self._var,
             'timeshift': self.timeshift,
-            'gsv_log_level': self.gsv_log_level
+            'gsv_log_level': self.gsv_log_level,
+            'logger': self.logger
         }
 
     def __setstate__(self, state):
@@ -285,14 +289,18 @@ class GSVSource(base.DataSource):
         self.chk_end_date = state['chk_end_date']
         self.chunking_vertical = state['chunking_vertical']
         self.chk_vert = state['chk_vert']
+        self.chk_type = state['chk_type']
         self.timestyle = state['timestyle']
-        self.fdbhome = state['self.fdbhome']
-        self.fdbpath = state['self.fdbpath']
-        self.eccodes_path = state['self.eccodes_path']
+        self.fdbhome = state['fdbhome']
+        self.fdbpath = state['fdbpath']
+        self.fdbhome_bridge = state['fdbhome_bridge']
+        self.fdbpath_bridge = state['fdbpath_bridge']
+        self.eccodes_path = state['eccodes_path']
         self._var = state['_var']
         self.timeshift = state['timeshift']
         self._request = state['_request']
         self.gsv_log_level = state['gsv_log_level']
+        self.logger = state['logger']
 
     def _get_schema(self):
         """
