@@ -296,7 +296,7 @@ class FixerMixin():
         self.deltat = self.fixes.get("deltat", 1.0)
         if self.deltat == "monthly":
             self.deltat = 3600*24*30
-            self.correction = days_in_month(data)/30
+            self.correction = 30/days_in_month(data)
             self.logger.info('Monthly deltat found, estimating correction based on number of days')
                              
         jump = self.fixes.get("jump", None)  # if to correct for a monthly accumulation jump
@@ -952,6 +952,7 @@ class FixerMixin():
             offset = data.attrs.get("offset", 0)
             if factor != 1:
                 data *= factor
+                # if a special correction has been defined, apply it
                 if self.correction is not None:
                     data *= self.correction
             if offset != 0:

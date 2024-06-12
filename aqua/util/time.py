@@ -5,15 +5,15 @@ Module including time utilities for AQUA
 import math
 import calendar
 import pandas as pd
-import numpy as np
 import xarray as xr
 from pandas.tseries.frequencies import to_offset
 from aqua.logger import log_configure
 
 def days_in_month(xfield):
     """
-    Given a data array/dataset, estimate the number of days in each month
-    and returns as in xarray dataarray to be later used
+    Given a data xarray array/dataset, estimate the number of days in each month
+    and returns as in xarray dataarray to be later used.
+    This assumes complete calendar month with gregorian calendar
     """
 
     years = xfield.time.dt.year.data
