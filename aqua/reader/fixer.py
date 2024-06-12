@@ -11,6 +11,7 @@ import numpy as np
 from metpy.units import units
 
 from aqua.util import eval_formula, get_eccodes_attr, find_lat_dir, check_direction
+from aqua.util.time import days_in_month
 from aqua.logger import log_history
 from aqua.data_models import translate_coords
 
@@ -293,6 +294,11 @@ class FixerMixin():
         self.logger.debug("Default input datamodel: %s", src_datamodel)
 
         self.deltat = self.fixes.get("deltat", 1.0)
+        if self.deltat == "monthly":
+            self.deltat = 3600*24*30
+            self.correction = days_in_month(data)/30
+            self.logger.info('Monthly deltat found, estimating correction based on number of days')
+                             
         jump = self.fixes.get("jump", None)  # if to correct for a monthly accumulation jump
         # Special feature to fix corrupted data in first step of each month
 
@@ -946,6 +952,8 @@ class FixerMixin():
             offset = data.attrs.get("offset", 0)
             if factor != 1:
                 data *= factor
+                if self.correction is not None:
+                    data *= self.correction
             if offset != 0:
                 data += offset
             log_history(data, f"Units changed to {tgt_units} by fixer")
