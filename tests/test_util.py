@@ -1,4 +1,4 @@
-"""Test for timmean method"""
+"""Test for some of the utils"""
 
 import pytest
 import datetime
