@@ -4,7 +4,9 @@ import pytest
 import datetime
 import xarray as xr
 import numpy as np
+import pandas as pd
 from aqua.util import extract_literal_and_numeric, file_is_complete
+from aqua.util.time import days_in_month
 
 @pytest.fixture
 def test_text():
@@ -20,6 +22,19 @@ def test_extract_literal_and_numeric(test_text):
     for input_text, expected_output in test_text:
         result = extract_literal_and_numeric(input_text)
         assert result == expected_output
+
+@pytest.mark.aqua
+def test_normalize_by_days_in_month():
+    """Test to verify we can normalize as a function of the months"""
+
+    time = pd.date_range('2023-01-01', periods=3, freq='MS')
+    data = xr.DataArray([310, 280, 310], coords=[time], dims=['time'])
+    expected_values = [10, 10, 10] 
+    result = data/days_in_month(data)
+
+    # Check if the result is as expected
+    assert (result.values == expected_values).all(), f"Expected {expected_values}, but got {result.values}"
+
 
 # Define a fixture to create a sample netCDF file for testing
 @pytest.mark.aqua
