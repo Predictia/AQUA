@@ -12,6 +12,11 @@ class ConfigPath():
 
     def __init__(self, configdir=None, filename='config-aqua.yaml', catalog=None):
 
+        # self.catalog_available is a list
+        # self.catalog is a string
+        # self.base_availabe is a dictionary for all self.catalog_available
+        # self.base is dictionary for self.catalog
+
         self.filename = filename
         if not configdir:
             self.configdir = self.get_config_dir()
@@ -19,15 +24,13 @@ class ConfigPath():
             self.configdir = configdir
         self.config_file = os.path.join(self.configdir, self.filename)
         if not catalog:
-            self.catalog_available = self.get_catalog()
+            self.catalog_available = to_list(self.get_catalog())
             self.catalog = self.set_catalog()
         else:
-            self.catalog_available = [catalog]
-            self.catalog = catalog
+            self.catalog_available = to_list(catalog)
+            self.catalog = self.catalog_available[0]
 
-        print(self)
         self.base_available = self.get_base()    
-        print(self.base_available)
         self.base = self.base_available[self.catalog]
         
     def get_config_dir(self):
@@ -79,7 +82,7 @@ class ConfigPath():
         if os.path.exists(self.config_file):
             base = load_yaml(self.config_file)
             try:
-                return base['catalog']
+                return to_list(base['catalog'])
             except KeyError as exc:
                 raise KeyError(f'Cannot find catalog information in {self.config_file}') from exc
         else:
@@ -90,12 +93,11 @@ class ConfigPath():
         Given a list of catalog installed set the first one
         """
 
-        if isinstance(self.catalog_available, list):
-            if all(v is not None for v in [model, exp, source]):
-                print('Browsing with inspect catalog to be developed')
-            else:
-                return self.catalog_available[0]
-        return self.catalog_available
+        if all(v is not None for v in [model, exp, source]):
+            print('Browsing with inspect catalog to be developed')
+
+        return self.catalog_available[0]
+
         
     def get_base(self):
         """
@@ -104,7 +106,7 @@ class ConfigPath():
 
         base = {}
         if os.path.exists(self.config_file):
-            for catalog in to_list(self.catalog_available):
+            for catalog in self.catalog_available:
                 definitions = {'catalog': catalog, 'configdir': self.configdir}
                 base[catalog] = load_yaml(infile=self.config_file, definitions=definitions, jinja=True)
         else:
