@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
+- `aqua-config.yaml` replaced by a template to be installed on each machine (#1203)
 - AQUA cli command to provide the installation path with `--path` option (#1193)
 - Restructure of the `machine` and `catalog` instances to support a catalog based development (#1186)
 - AQUA installation via command line support a machine specification `aqua install lumi` (#1186)
