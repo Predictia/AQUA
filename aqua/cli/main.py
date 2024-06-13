@@ -330,10 +330,11 @@ class AquaConsole():
         if args.editable is not None:
             self._add_catalog_editable(args.catalog, args.editable)
         else:
-            if args.github:
-                self._add_catalog_github(args.catalog)
+            if args.local:
+                self._add_catalog_local(args.catalog)
             else:
-                self._add_catalog_default(args.catalog)
+                self._add_catalog_github(args.catalog)
+  
 
         # verify that the new catalog is compatible with AQUA, loading it with catalogue()
         try:
@@ -399,8 +400,8 @@ class AquaConsole():
                               catalog, cdir)
             sys.exit(1)
 
-    def _add_catalog_default(self, catalog):
-        """Add a catalog in default mode"""
+    def _add_catalog_local(self, catalog):
+        """Add a catalog in local mode"""
 
         # check if catalog is a path or a name
         if '/' in catalog:
@@ -446,10 +447,10 @@ class AquaConsole():
                 shutil.rmtree(cdir)
                 #self.logger.info('Copying %s from %s', args.catalog, sdir)
                 #shutil.copytree(sdir, cdir)
-                if args.github:
-                    self._add_catalog_github(args.catalog)
+                if args.local:
+                    self._add_catalog_local(args.catalog)
                 else:
-                    self._add_catalog_default(args.catalog)
+                    self._add_catalog_github(args.catalog)
         else:
             self.logger.error('%s does not appear to be installed, please consider `aqua add`', args.catalog)
             sys.exit(1)

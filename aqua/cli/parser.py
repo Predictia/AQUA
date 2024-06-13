@@ -54,11 +54,11 @@ def parse_arguments():
                                     help="Catalog to be installed")
     catalog_add_parser.add_argument('-e', '--editable', type=str,
                                     help='Install a catalog in editable mode from the original source: provide the Path')
-    catalog_add_parser.add_argument("-g", "--github", action="store_true",
-                                    help="Retrieve the AQUA catalog from Github repository")
+    catalog_add_parser.add_argument("-l", "--local", action="store_true",
+                                    help="Retrieve the AQUA catalog from local AQUA repository instead of Github")
 
-    catalog_update_parser.add_argument("-g", "--github", action="store_true",
-                                       help="Retrieve the AQUA catalog from Github repository")
+    catalog_update_parser.add_argument("-l", "--local", action="store_true",
+                                       help="Retrieve the AQUA catalog from local repository instead of Github")
 
     catalog_remove_parser.add_argument("catalog", metavar="CATALOG",
                                        help="Catalog to be removed")
