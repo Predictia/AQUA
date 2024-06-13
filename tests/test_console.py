@@ -352,9 +352,9 @@ class TestAquaConsole():
 
         # add catalog from github
         run_aqua(['-v', 'add', 'ci', '--github'])
-        assert os.path.isdir(os.path.join(mydir,'.aqua/machines/ci'))
+        assert os.path.isdir(os.path.join(mydir,'.aqua/catalogs/ci'))
         config_file = load_yaml(os.path.join(mydir,'.aqua', 'config-aqua.yaml'))
-        assert config_file['machine'] == 'ci'
+        assert config_file['catalog'] == 'ci'
 
         # raise error for existing catalog
         with pytest.raises(SystemExit) as excinfo:
@@ -363,9 +363,9 @@ class TestAquaConsole():
 
         # update catalog from github
         run_aqua(['-v', 'update', 'ci', '--github'])
-        assert os.path.isdir(os.path.join(mydir,'.aqua/machines/ci'))
+        assert os.path.isdir(os.path.join(mydir,'.aqua/catalogs/ci'))
         config_file = load_yaml(os.path.join(mydir,'.aqua', 'config-aqua.yaml'))
-        assert config_file['machine'] == 'ci'
+        assert config_file['catalog'] == 'ci'
 
         # add non existing catalog editable
         with pytest.raises(SystemExit) as excinfo:

@@ -368,7 +368,7 @@ class AquaConsole():
         """Add a catalog from the remote Github Climate-DT repository"""
 
         # recursive copy
-        cdir = f'{self.configpath}/machines/{catalog}'
+        cdir = f'{self.configpath}/{catpath}/{catalog}'
         if not os.path.exists(cdir):
             try:
                 # for private repo, we need user e token. since this is a test feature,
@@ -382,13 +382,13 @@ class AquaConsole():
             except HTTPError:
                 self.logger.error('Permission issues in accessing Climate-DT catalog, please contact AQUA mantainers')
                 sys.exit(1)
-            available_catalog = [os.path.basename(x) for x in fs.ls("machines/")]
+            available_catalog = [os.path.basename(x) for x in fs.ls(f"{catpath}/")]
             if catalog not in available_catalog:
                 self.logger.error('Cannot find on Climate-DT-catalog the requested catalog %s, available are %s',
                                   catalog, available_catalog)
                 sys.exit(1)
 
-            source_dir = f"machines/{catalog}"
+            source_dir = f"{catpath}/{catalog}"
             self.logger.info('Fetching remote catalog %s from github to %s', catalog, cdir)
             os.makedirs(cdir, exist_ok=True)
             fsspec_get_recursive(fs, source_dir, cdir)
