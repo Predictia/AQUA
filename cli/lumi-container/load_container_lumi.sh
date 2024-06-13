@@ -84,7 +84,7 @@ singularity $cmd \
     --bind /pfs/lustrep3/ \
     --bind /pfs/lustrep4/ \
     --bind /pfs/lustrep3/scratch/ \
-    --bind /users/lrb_465000454_fdb/ \
+    --bind /appl/local/climatedt/ \
     --bind /flash/project_465000454 \
     --bind /projappl/ \
     --bind /project \
