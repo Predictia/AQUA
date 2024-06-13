@@ -12,7 +12,12 @@ if [ ! -f "$file_path" ]; then
 else
     echo "File already exists."
 fi
-cp ./config/config-aqua.yaml ./config/config-aqua.yaml.bak
+
+if [ -f "./config/config-aqua.yaml" ] ; then
+    cp ./config/config-aqua.yaml ./config/config-aqua.yaml.bak
+else
+    cp ./config/config-aqua.tmpl ./config/config-aqua.yaml
+fi
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   # Mac OSX
