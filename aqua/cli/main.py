@@ -457,17 +457,27 @@ class AquaConsole():
                 os.unlink(cdir)
             else:
                 shutil.rmtree(cdir)
-            cfg = load_yaml(self.configfile)
-            if isinstance(cfg['catalog'], str):
-                cfg['catalog'] = None
-            else:
-                cfg['catalog'].remove(args.catalog)
-            self.logger.info('Catalog %s removed, catalogs %s are available', args.catalog, cfg['catalog'])
-            dump_yaml(self.configfile, cfg)
+            self._clean_catalog(args.catalog)
         else:
             self.logger.error('Catalog %s is not installed in %s, cannot remove it',
                               args.catalog, cdir)
             sys.exit(1)
+
+    def _clean_catalog(self, catalog):
+            
+        """
+        Remove catalog from the configuration file
+        """
+
+        cfg = load_yaml(self.configfile)
+        if isinstance(cfg['catalog'], str):
+            cfg['catalog'] = None
+        else:
+            cfg['catalog'].remove(catalog)
+        self.logger.info('Catalog %s removed, catalogs %s are available', catalog, cfg['catalog'])
+        dump_yaml(self.configfile, cfg)
+
+
 
     def remove_file(self, args):
         """Add a personalized file to the fixes/grids folder
