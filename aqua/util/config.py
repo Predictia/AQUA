@@ -173,7 +173,7 @@ class ConfigPath():
 
         catalog_file = self.base['reader']['catalog']
         if not os.path.exists(catalog_file):
-            raise FileNotFoundError(f'Cannot find catalog file in {catalog_file}')
+            raise FileNotFoundError(f'Cannot find catalog file in {catalog_file}. Did you install it with "aqua add {self.catalog}"?')
         machine_file = self.base['reader']['machine']
         if not os.path.exists(machine_file):
             raise FileNotFoundError(f'Cannot find machine file for {self.catalog} in {machine_file}')
