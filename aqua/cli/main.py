@@ -210,24 +210,16 @@ class AquaConsole():
         if machine is None:
             self.logger.info('Unknown machine!')
         else:
+            #if args.editable:
+            #    self.logger.info('Editable version installed, not modifying the machine name and leaving in auto')
+            #else:
             self.configfile = os.path.join(self.configpath, 'config-aqua.yaml')
             self.logger.info('Setting machine name to %s', machine)
             cfg = load_yaml(self.configfile)
             cfg['machine'] = machine
-            # machine_paths = self._set_paths(machine)
-            # if machine_paths is not None:
-            #     self.logger.debug('Paths installed for %s are %s', machine, machine_paths)
-            #     cfg['paths'] = machine_paths
-            # else:
-            #     self.logger.warning('%s is an unknown machine for AQUA, paths will not be configured', machine)
+            
             dump_yaml(self.configfile, cfg)
 
-#    def _set_paths(self, machine):
-#        """Get the paths from the machines-aqua file"""
-#
-#        machines_file = os.path.join(self.aquapath, 'machines-aqua.yaml')
-#        machines_paths = load_yaml(machines_file)
-#        return machines_paths['machines'].get(machine)
 
     def set(self, args):
         """Set an installed catalog as the one used in the config-aqua.yaml
