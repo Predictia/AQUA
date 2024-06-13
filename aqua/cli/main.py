@@ -458,7 +458,10 @@ class AquaConsole():
             else:
                 shutil.rmtree(cdir)
             cfg = load_yaml(self.configfile)
-            cfg['catalog'].remove(args.catalog)
+            if isinstance(cfg['catalog'], str):
+                cfg['catalog'] = None
+            else:
+                cfg['catalog'].remove(args.catalog)
             self.logger.info('Catalog %s removed, catalogs %s are available', args.catalog, cfg['catalog'])
             dump_yaml(self.configfile, cfg)
         else:
