@@ -1,5 +1,5 @@
 # catalog dependent configuration file for AQUA
-catalog: lumi
+catalog: null
 
 # please do not modify this if you do not know what you are doing
 machine: auto

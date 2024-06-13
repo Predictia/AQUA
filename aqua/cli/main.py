@@ -423,10 +423,22 @@ class AquaConsole():
 
         self.logger.info('Setting catalog name to %s', catalog)
         cfg = load_yaml(self.configfile)
-        if cfg['catalog'] != 'lumi': #HACK lumi is default catalog
-            cfg['catalog'] = [catalog] + to_list(cfg['catalog'])
-        else:
+        if cfg['catalog'] is None:
+            self.logger.debug('No catalog previously installed: setting catalog name to %s', catalog)
             cfg['catalog'] = catalog
+        else:
+            if catalog not in cfg['catalog']:
+                self.logger.debug('Adding catalog %s to the existing list %s', catalog, cfg['catalog'])
+                cfg['catalog'] = [catalog] + to_list(cfg['catalog'])
+            else:
+                if isinstance(cfg['catalog'], list):
+                    other_catalogs = [x for x in to_list(cfg['catalog']) if x != catalog]
+                    self.logger.debug('Catalog %s is already there, setting it as first entry before %s', catalog, other_catalogs)
+                    cfg['catalog'] = [catalog] + other_catalogs
+                else:
+                    self.logger.debug('Catalog %s is already there, but is the only installed', catalog)
+                    cfg['catalog'] = catalog
+    
         dump_yaml(self.configfile, cfg)
 
     def remove(self, args):
@@ -445,6 +457,10 @@ class AquaConsole():
                 os.unlink(cdir)
             else:
                 shutil.rmtree(cdir)
+            cfg = load_yaml(self.configfile)
+            cfg['catalog'].remove(args.catalog)
+            self.logger.info('Catalog %s removed, catalogs %s are available', args.catalog, cfg['catalog'])
+            dump_yaml(self.configfile, cfg)
         else:
             self.logger.error('Catalog %s is not installed in %s, cannot remove it',
                               args.catalog, cdir)

@@ -30,8 +30,12 @@ class ConfigPath():
             self.catalog_available = to_list(catalog)
             self.catalog = self.catalog_available[0]
 
-        self.base_available = self.get_base()    
-        self.base = self.base_available[self.catalog]
+        if self.catalog_available is not None:
+            self.base_available = self.get_base()
+            self.base = self.base_available[self.catalog]
+        else:
+            self.base_available = None
+            self.base = None
         
     def get_config_dir(self):
         """
@@ -95,7 +99,9 @@ class ConfigPath():
 
         if all(v is not None for v in [model, exp, source]):
             print('Browsing with inspect catalog to be developed')
-
+        if self.catalog_available is None:
+            return None
+        
         return self.catalog_available[0]
 
         
@@ -162,7 +168,8 @@ class ConfigPath():
         Returns:
             Two strings for the path of the fixer, regrid and config files
         """
-
+        if self.catalog is None:
+            raise KeyError('No AQUA catalog is installed. Please run "aqua add CATALOG_NAME"')
 
         catalog_file = self.base['reader']['catalog']
         if not os.path.exists(catalog_file):
@@ -187,5 +194,6 @@ class ConfigPath():
         grids_folder = self.base['reader']['regrid']
         if not os.path.exists(grids_folder):
             raise FileNotFoundError(f'Cannot find the regrid folder in {grids_folder}')
+        
 
         return fixer_folder, grids_folder
