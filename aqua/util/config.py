@@ -78,10 +78,10 @@ class ConfigPath():
 
         if os.path.exists(self.config_file):
             base = load_yaml(self.config_file)
-            try:
-                return base['catalog']
-            except KeyError as exc:
-                raise KeyError(f'Cannot find catalog information in {self.config_file}') from exc
+            if 'catalog' not in base:
+                raise KeyError(f'Cannot find catalog information in {self.config_file}')
+            
+            return base['catalog']
         else:
             raise FileNotFoundError(f'Cannot find the basic configuration file {self.config_file}!')
         

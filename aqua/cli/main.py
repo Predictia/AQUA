@@ -160,10 +160,11 @@ class AquaConsole():
         """Copying the installation file"""
 
         print("Installing AQUA to", self.configpath)
-        for file in ['config-aqua.yaml']:
-            if not os.path.exists(os.path.join(self.configpath, file)):
+        for file in ['config-aqua.tmpl']:
+            target_file = os.path.splitext(file)[0] + '.yaml' #replace the tmpl with yaml
+            if not os.path.exists(os.path.join(self.configpath, target_file)):
                 self.logger.info('Copying from %s to %s', self.aquapath, self.configpath)
-                shutil.copy(f'{self.aquapath}/{file}', f'{self.configpath}/{file}')
+                shutil.copy(f'{self.aquapath}/{file}', f'{self.configpath}/{target_file}')
         for directory in ['fixes', 'data_models', 'grids']:
             if not os.path.exists(os.path.join(self.configpath, directory)):
                 self.logger.info('Copying from %s to %s',
@@ -180,11 +181,13 @@ class AquaConsole():
 
         editable = os.path.abspath(editable)
         print("Installing AQUA with a link from ", editable, " to ", self.configpath)
-        for file in ['config-aqua.yaml']:
+        for file in ['config-aqua.tmpl']:
+            target_file = os.path.splitext(file)[0] + '.yaml'
             if os.path.isfile(os.path.join(editable, file)):
                 if not os.path.exists(os.path.join(self.configpath, file)):
                     self.logger.info('Linking from %s to %s', editable, self.configpath)
-                    os.symlink(f'{editable}/{file}', f'{self.configpath}/{file}')
+                    #os.symlink(f'{editable}/{file}', f'{self.configpath}/{file}')
+                    shutil.copy(f'{editable}/{file}', f'{self.configpath}/{target_file}')
             else:
                 self.logger.error('%s folder does not include AQUA configuration files. Please use AQUA/config', editable)
                 os.rmdir(self.configpath)
