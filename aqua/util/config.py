@@ -2,6 +2,7 @@
 import os
 import platform
 from .yaml import load_yaml
+from .util import to_list
 
 class ConfigPath():
 
@@ -18,17 +19,16 @@ class ConfigPath():
             self.configdir = configdir
         self.config_file = os.path.join(self.configdir, self.filename)
         if not catalog:
-            self.catalog = self.get_catalog()
+            self.catalog_available = self.get_catalog()
+            self.catalog = self.set_catalog()
         else:
+            self.catalog_available = [catalog]
             self.catalog = catalog
-        
-        definitions = {'catalog': self.catalog, 'configdir': self.configdir}
 
-        if os.path.exists(self.config_file):
-            self.base = load_yaml(infile=self.config_file, definitions=definitions, jinja=True)
-        else:
-            raise FileNotFoundError(f'Cannot find the basic configuration file {self.config_file}!')
-
+        print(self)
+        self.base_available = self.get_base()    
+        print(self.base_available)
+        self.base = self.base_available[self.catalog]
         
     def get_config_dir(self):
         """
@@ -84,7 +84,33 @@ class ConfigPath():
                 raise KeyError(f'Cannot find catalog information in {self.config_file}') from exc
         else:
             raise FileNotFoundError(f'Cannot find the basic configuration file {self.config_file}!')
+
+    def set_catalog(self, model=None, exp=None, source=None):
+        """
+        Given a list of catalog installed set the first one
+        """
+
+        if isinstance(self.catalog_available, list):
+            if all(v is not None for v in [model, exp, source]):
+                print('Browsing with inspect catalog to be developed')
+            else:
+                return self.catalog_available[0]
+        return self.catalog_available
         
+    def get_base(self):
+        """
+        Get all the possible base configurations available
+        """
+
+        base = {}
+        if os.path.exists(self.config_file):
+            for catalog in to_list(self.catalog_available):
+                definitions = {'catalog': catalog, 'configdir': self.configdir}
+                base[catalog] = load_yaml(infile=self.config_file, definitions=definitions, jinja=True)
+        else:
+            raise FileNotFoundError(f'Cannot find the basic configuration file {self.config_file}!')
+        return base
+
     def get_machine(self):
         """
         Extract the name of the machine from the configuration file
