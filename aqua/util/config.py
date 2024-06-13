@@ -57,9 +57,9 @@ class ConfigPath():
             configdirs.append(os.path.join(homedir, '.aqua'))
 
         # Finally for developers if AQUA is defined
-        aquadir = os.environ.get('AQUA')
-        if aquadir:
-            configdirs.append(os.path.join(aquadir, 'config'))
+        #aquadir = os.environ.get('AQUA')
+        #if aquadir:
+        #    configdirs.append(os.path.join(aquadir, 'config'))
 
         # Autosearch for the config folder
         for configdir in configdirs:
