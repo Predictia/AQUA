@@ -84,7 +84,7 @@ def file_subparser(main_parser, name):
 
     parser_add = subparsers.add_parser('add', help=f'Add a {name} file in the current AQUA installation')
     parser_add.add_argument('file', help=f'The {name} yaml file to add')
-    parser_add.add_argument("-e", "--editable", metavar='SOURCE_FILE_PATH', action="store_true",
+    parser_add.add_argument("-e", "--editable", action="store_true",
                                   help=f"Add a {name} file in editable mode from the original path")
     parser_remove = subparsers.add_parser('remove', help=f'Remove a {name} file')
     parser_remove.add_argument('file', help=f'The {name} file to remove')
