@@ -324,7 +324,7 @@ class AquaConsole():
         else:
             self._add_catalog_default(args.catalog)
 
-        # verify that the new catalog is compatible with AQUA, loading it with catalogue()
+        # verify that the new catalog is compatible with AQUA, loading it with catalog()
         try:
             with HiddenPrints():
                 catalog()

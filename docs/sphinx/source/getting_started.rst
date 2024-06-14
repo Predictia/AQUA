@@ -37,7 +37,7 @@ Please refer to the :ref:`installation` section for more information.
 
 .. _initialization:
 
-Catalogue Installation
+catalog Installation
 ----------------------
 
 After the package has been installed, or the container has been loaded, the AQUA catalog needs to be set up.

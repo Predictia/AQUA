@@ -40,7 +40,7 @@ specifically an ``xarray.Dataset``, where only the metadata are loaded in memory
     on top of the NetCDF format, to `significantly improve the performance <https://ui.adsabs.harvard.edu/abs/2021AGUFMIN15A..08P/abstract>`_
     of the data access.
 
-Catalogue Exploration
+catalog Exploration
 ^^^^^^^^^^^^^^^^^^^^^
 
 To check what is available in the catalog, we can use the ``inspect_catalog()`` function.
