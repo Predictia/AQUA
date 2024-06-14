@@ -14,7 +14,6 @@ from .yaml import load_yaml, dump_yaml, load_multi_yaml, eval_formula
 from .time import check_chunk_completeness, frequency_string_to_pandas
 from .time import time_to_string
 from .coord import flip_lat_dir, find_lat_dir, check_direction
-from .inspect_catalog import inspect_catalog
 from .output_namer import OutputNamer
 
 __all__ = ['ConfigPath',
@@ -29,6 +28,6 @@ __all__ = ['ConfigPath',
            'open_image', 'username', 'update_metadata_with_date',
            'load_yaml', 'dump_yaml', 'load_multi_yaml', 'eval_formula',
            'check_chunk_completeness', 'frequency_string_to_pandas',
-           'time_to_string', 'inspect_catalog',
+           'time_to_string',
            'flip_lat_dir', 'find_lat_dir', 'check_direction',
            'OutputNamer']

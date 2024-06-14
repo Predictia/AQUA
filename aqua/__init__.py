@@ -1,9 +1,8 @@
 """AQUA module"""
-from .util import inspect_catalog
 from .graphics import plot_single_map, plot_maps, plot_single_map_diff, plot_timeseries
 from .graphics import plot_hovmoller
 from .lra_generator import LRAgenerator
-from .reader import Reader, catalog, Streaming
+from .reader import Reader, catalog, Streaming, inspect_catalog
 from .slurm import squeue, job, output_dir, scancel, max_resources_per_node
 from .accessor import AquaAccessor
 
