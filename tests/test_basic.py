@@ -30,8 +30,8 @@ class TestAqua:
         """
         Test if the catalog function returns a non-empty list
         """
-        catalog = catalog()
-        assert len(catalog) > 0
+        cat = catalog()
+        assert len(cat) > 0
 
     def test_reader_init(self):
         """
