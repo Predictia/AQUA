@@ -1,6 +1,7 @@
 """Utility functions for getting the configuration files"""
 import os
 import platform
+import intake
 from .yaml import load_yaml
 from .util import to_list
 
@@ -23,19 +24,17 @@ class ConfigPath():
         else:
             self.configdir = configdir
         self.config_file = os.path.join(self.configdir, self.filename)
+
         if catalog is None:
             self.catalog_available = to_list(self.get_catalog())
-            self.catalog = self.set_catalog()
         else:
             self.catalog_available = to_list(catalog)
-            self.catalog = self.catalog_available[0]
+        self.catalog = self.catalog_available[0]
 
         if self.catalog_available is not None:
             self.base_available = self.get_base()
-            self.base = self.base_available[self.catalog]
         else:
             self.base_available = None
-            self.base = None
         
     def get_config_dir(self):
         """
@@ -94,19 +93,44 @@ class ConfigPath():
         else:
             raise FileNotFoundError(f'Cannot find the basic configuration file {self.config_file}!')
 
-    def set_catalog(self, model=None, exp=None, source=None):
+    def browse_catalogs(self, model:str, exp:str, source:str):
         """
         Given a list of catalog installed set the first one
         """
 
-        if all(v is not None for v in [model, exp, source]):
-            print('Browsing with inspect catalog to be developed')
         if self.catalog_available is None:
             return None
-        
-        return self.catalog_available[0]
 
+        if all(v is not None for v in [model, exp, source]):
+            out = []
+            for catalog in self.catalog_available:
+                print('Browsing catalog:', catalog)
+                check = self.inspect_catalogue(catalog=catalog, model=model, exp=exp,
+                                               source=source, verbose=False)
+                if check is True:
+                    out.append(catalog)
+            return out
         
+        raise KeyError('Need to defined the triplet model, exp and source')
+    
+    def set_catalog(self, model, exp, source, catalog=None):
+        
+        matched = self.browse_catalogs(model=model, exp=exp, source=source)
+        if catalog is not None:
+            if catalog in matched:
+                self.catalog = catalog
+            else:
+                raise KeyError('Cannot find triplet in the required catalog')
+        else:
+            if matched: 
+                self.catalog = matched[0]
+            else:
+                raise KeyError('Cannot find the triplet in any catalog')
+            
+        catalog_file, machine_file = self.get_catalog_filenames(self.catalog)
+        return intake.open_catalog(catalog_file), machine_file
+
+      
     def get_base(self):
         """
         Get all the possible base configurations available
@@ -163,39 +187,153 @@ class ConfigPath():
         
         return None
 
-    def get_catalog_filenames(self):
+    def get_catalog_filenames(self, catalog=None):
         """
         Extract the filenames
 
         Returns:
             Two strings for the path of the fixer, regrid and config files
         """
+
         if self.catalog is None:
             raise KeyError('No AQUA catalog is installed. Please run "aqua add CATALOG_NAME"')
 
-        catalog_file = self.base['reader']['catalog']
+        if catalog is None:
+            catalog = self.catalog
+
+        catalog_file = self.base_available[catalog]['reader']['catalog']
         if not os.path.exists(catalog_file):
-            raise FileNotFoundError(f'Cannot find catalog file in {catalog_file}. Did you install it with "aqua add {self.catalog}"?')
-        machine_file = self.base['reader']['machine']
+            raise FileNotFoundError(f'Cannot find catalog file in {catalog_file}. Did you install it with "aqua add {catalog}"?')
+        machine_file = self.base_available[catalog]['reader']['machine']
         if not os.path.exists(machine_file):
-            raise FileNotFoundError(f'Cannot find machine file for {self.catalog} in {machine_file}')
+            raise FileNotFoundError(f'Cannot find machine file for {catalog} in {machine_file}')
 
         return catalog_file, machine_file
 
-    def get_reader_filenames(self):
+    def get_reader_filenames(self, catalog=None):
         """
         Extract the filenames for the reader for catalog, regrid and fixer
 
         Returns:
             Three strings for the path of the fixer, regrid and config files
         """
+        if catalog is None:
+            catalog = self.catalog
 
-        fixer_folder = self.base['reader']['fixer']
+        fixer_folder = self.base_available[catalog]['reader']['fixer']
         if not os.path.exists(fixer_folder):
             raise FileNotFoundError(f'Cannot find the fixer folder in {fixer_folder}')
-        grids_folder = self.base['reader']['regrid']
+        grids_folder = self.base_available[catalog]['reader']['regrid']
         if not os.path.exists(grids_folder):
             raise FileNotFoundError(f'Cannot find the regrid folder in {grids_folder}')
         
 
         return fixer_folder, grids_folder
+
+    def inspect_catalogue(self, catalog=None, model=None, exp=None, source=None, verbose=True):
+        """
+        Basic function to simplify catalog inspection.
+        If a partial match between model, exp and source is provided, then it will return a list
+        of models, experiments or possible sources. If all three are specified it returns False if that
+        combination does not exist, a list of variables if the source is a FDB/GSV source and it exists and
+        True if it exists but is not a FDB source.
+
+        Args:
+            cat (intake.catalog.local.LocalCatalog, optional): The catalog object containing the data.
+            model (str, optional): The model ID to filter the catalog.
+                If None, all models are returned. Defaults to None.
+            exp (str, optional): The experiment ID to filter the catalog.
+                If None, all experiments are returned. Defaults to None.
+            source (str, optional): The source ID to filter the catalog.
+                If None, all sources are returned. Defaults to None.
+            verbose (bool, optional): Print the catalog information to the console. Defaults to True.
+
+        Returns:
+            list:   A list of available items in the catalog, depending on the
+                    specified model and/or experiment, a list of variables or True/False.
+
+        Raises:
+            KeyError: If the input specifications are incorrect.
+        """
+
+               # get configuration from the catalog
+        catalog_file, _ = self.get_catalog_filenames(catalog)
+
+        cat = intake.open_catalog(catalog_file)
+
+        if model and exp and not source:
+            if is_in_cat(cat, model, exp, None):
+                if verbose:
+                    print(f"Sources available in catalogue for model {model} and exp {exp}:")
+                return list(cat[model][exp].keys())
+        elif model and not exp:
+            if is_in_cat(cat, model, None, None):
+                if verbose:
+                    print(f"Experiments available in catalogue for model {model}:")
+                return list(cat[model].keys())
+        elif not model:
+            if verbose:
+                print("Models available in catalog:")
+            return list(cat.keys())
+
+        elif model and exp and source:
+            # Check if variables can be explored
+            # Added a try/except to avoid the KeyError when the source is not in the catalogue
+            # because model or exp are not in the catalogue
+            # This allows to always have a True/False or var list return
+            # when model/exp/source are provided
+            try:
+                if is_in_cat(cat, model, exp, source):
+                    # Ok, it exists, but does it have metadata?
+                    #try:
+                    #    variables = cat[model][exp][source].metadata['variables']
+                    #    if verbose:
+                    #        print(f"The following variables are available for model {model}, exp {exp}, source {source}:")
+                    #    return variables
+                    #except KeyError:
+                    return True
+            except KeyError:
+                pass  # go to return False
+
+        if verbose:
+            print(f"The combination model={model}, exp={exp}, source={source} is not available in the catalogue.")
+            if model:
+                if is_in_cat(cat, model, None, None):
+                    if exp:
+                        if is_in_cat(cat, model, exp, None):
+                            print(f"Available sources for model {model} and exp {exp}:")
+                            return list(cat[model][exp].keys())
+                        else:
+                            print(f"Experiment {exp} is not available for model {model}.")
+                            print(f"Available experiments for model {model}:")
+                            return list(cat[model].keys())
+                    else:
+                        print(f"Available experiments for model {model}:")
+                        return list(cat[model].keys())
+                else:
+                    print(f"Model {model} is not available.")
+                    print("Available models:")
+                    return list(cat.keys())
+
+        return False
+
+
+def is_in_cat(cat, model, exp, source):
+    """
+    Check if the model, experiment and source are in the catalog.
+    """
+    if source:
+        try:
+            return source in cat[model][exp].keys()
+        except KeyError:
+            return False
+    elif exp:
+        try:
+            return exp in cat[model].keys()
+        except KeyError:
+            return False
+    else:
+        try:
+            return model in cat.keys()
+        except KeyError:
+            return False

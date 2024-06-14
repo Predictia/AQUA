@@ -47,7 +47,8 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
     instance = None  # Used to store the latest instance of the class
 
-    def __init__(self, model=None, exp=None, source=None, fix=True,
+    def __init__(self, model=None, exp=None, source=None, catalog=None,
+                 fix=True,
                  regrid=None, regrid_method=None,
                  areas=True, datamodel=None,
                  streaming=False, stream_generator=False,
@@ -134,11 +135,12 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         self.sample_data = None #used to avoid multiple calls of retrieve_plain
 
         # define configuration file and paths
-        Configurer = ConfigPath()
+        Configurer = ConfigPath(catalog=catalog)
         self.configdir = Configurer.configdir
         self.machine = Configurer.get_machine()
         self.config_file = Configurer.config_file
-        self.catalog_file, self.machine_file = Configurer.get_catalog_filenames()
+        self.cat, self.machine_file = Configurer.set_catalog(catalog=catalog, model=model, exp=exp, source=source)
+        #self.catalog_file, self.machine_file = Configurer.get_catalog_filenames()
         self.fixer_folder, self.grids_folder = Configurer.get_reader_filenames()
 
 
@@ -147,11 +149,12 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         
         # access the catalog
-        self.cat = intake.open_catalog(self.catalog_file)
+        #self.cat = intake.open_catalog(self.catalog_file)
 
         # check source existence
-        self.source = check_catalog_source(self.cat, self.model, self.exp,
-                                           source, name="catalog")
+        #self.source = check_catalog_source(self.cat, self.model, self.exp,
+        #                                   source, name="catalog")
+        self.source = source
 
         # load the catalog
         self.esmcat = self.cat[self.model][self.exp][self.source](**kwargs, **intake_vars)
