@@ -18,12 +18,12 @@ class ConfigPath():
         # self.base is dictionary for self.catalog
 
         self.filename = filename
-        if not configdir:
+        if configdir is None:
             self.configdir = self.get_config_dir()
         else:
             self.configdir = configdir
         self.config_file = os.path.join(self.configdir, self.filename)
-        if not catalog:
+        if catalog is None:
             self.catalog_available = to_list(self.get_catalog())
             self.catalog = self.set_catalog()
         else:
@@ -87,6 +87,8 @@ class ConfigPath():
             base = load_yaml(self.config_file)
             if 'catalog' not in base:
                 raise KeyError(f'Cannot find catalog information in {self.config_file}')
+            if not base['catalog']:
+                return None
             
             return base['catalog']
         else:

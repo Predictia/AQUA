@@ -380,7 +380,7 @@ class AquaConsole():
                 self.logger.error('Available catalogs are: %s', os.listdir(f'{self.aquapath}/{catpath}'))
                 sys.exit(1)
         else:
-            self.logger.error("Catalog %s already installed in %s, please consider `aqua update`.",
+            self.logger.error("Catalog %s already installed in %s, please consider `aqua update` or `aqua set`",
                               catalog, cdir)
             sys.exit(1)
 
@@ -419,7 +419,7 @@ class AquaConsole():
             self.logger.debug('No catalog previously installed: setting catalog name to %s', catalog)
             cfg['catalog'] = catalog
         else:
-            if catalog not in cfg['catalog']:
+            if catalog not in to_list(cfg['catalog']):
                 self.logger.debug('Adding catalog %s to the existing list %s', catalog, cfg['catalog'])
                 cfg['catalog'] = [catalog] + to_list(cfg['catalog'])
             else:
