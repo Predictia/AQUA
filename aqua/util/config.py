@@ -29,7 +29,11 @@ class ConfigPath():
             self.catalog_available = to_list(self.get_catalog())
         else:
             self.catalog_available = to_list(catalog)
-        self.catalog = self.catalog_available[0]
+
+        if self.catalog_available is None:
+            self.catalog = None
+        else:
+            self.catalog = self.catalog_available[0]
 
         if self.catalog_available is not None:
             self.base_available = self.get_base()
