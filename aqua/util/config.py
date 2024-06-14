@@ -2,6 +2,7 @@
 import os
 import platform
 import intake
+from aqua.logger import log_configure
 from .yaml import load_yaml
 from .util import to_list
 
@@ -18,7 +19,11 @@ class ConfigPath():
                        no catalogs are available.
     """
 
-    def __init__(self, configdir=None, filename='config-aqua.yaml', catalog=None):
+    def __init__(self, configdir=None, filename='config-aqua.yaml', catalog=None, loglevel='warning'):
+
+        # set up logger
+        self.loglevel = loglevel
+        self.logger = log_configure(log_level=self.loglevel, log_name='ConfigPath')
 
         # get the configuration directory and its file
         self.filename = filename
@@ -27,24 +32,25 @@ class ConfigPath():
         else:
             self.configdir = configdir
         self.config_file = os.path.join(self.configdir, self.filename)
+        self.logger.debug('Configuration file found in %s', self.config_file)
 
         # get all the available installed catalogs
         if catalog is None:
             self.catalog_available = to_list(self.get_catalog())
         else:
             self.catalog_available = to_list(catalog)
-
-        # set the catalog as the first available
+        self.logger.debug('Available catalogs are %s', self.catalog_available)
+        
+        # set the catalog as the first available and get all configurations
         if self.catalog_available is None:
+            self.logger.warning('No available catalogs found')
             self.catalog = None
+            self.base_available = None
         else:
             self.catalog = self.catalog_available[0]
-
-        # get all the configuration possible
-        if self.catalog_available is not None:
             self.base_available = self.get_base()
-        else:
-            self.base_available = None
+            self.logger.debug('Default catalog will be %s', self.catalog)
+
         
     def get_config_dir(self):
         """
@@ -75,6 +81,7 @@ class ConfigPath():
         # Autosearch for the config folder
         for configdir in configdirs:
             if os.path.exists(os.path.join(configdir, self.filename)):
+                self.logger.debug('AQUA installation found in %s', configdir)
                 return configdir
 
         raise FileNotFoundError(f"No config file {self.filename} found in {configdirs}")
@@ -96,6 +103,7 @@ class ConfigPath():
             if not base['catalog']:
                 return None
 
+            self.logger.debug('Catalog found in %s file are %s', self.config_file, base['catalog'])
             return base['catalog']
         
         raise FileNotFoundError(f'Cannot find the basic configuration file {self.config_file}!')
@@ -112,12 +120,13 @@ class ConfigPath():
         if all(v is not None for v in [model, exp, source]):
             out = []
             for catalog in self.catalog_available:
-                print('Browsing catalog:', catalog)
+                self.logger.debug('Browsing catalog %s ...', catalog)
                 catalog_file, _ = self.get_catalog_filenames(catalog)
                 cat = intake.open_catalog(catalog_file)
                 check = inspect_catalogue(cat, model=model, exp=exp,
                                                source=source, verbose=False)
                 if check is True:
+                    self.logger.info('%s_%s_%s triplet found in in %s!', model, exp, source, catalog)
                     out.append(catalog)
             return out
         
@@ -141,6 +150,8 @@ class ConfigPath():
                 raise KeyError('Cannot find triplet in the required catalog')
         else:
             if matched:
+                if len(matched)>1:
+                    self.logger.warning('Multiple triplets found in %s, setting %s as the default', matched, matched[0])
                 self.catalog = matched[0]
             else:
                 raise KeyError('Cannot find the triplet in any catalog')
@@ -191,6 +202,7 @@ class ConfigPath():
         platform_name = platform.node()
 
         if os.getenv('GITHUB_ACTIONS'):
+            self.logger.debug('GitHub machine identified!')
             return 'github'
 
         platform_dict = {
@@ -201,11 +213,12 @@ class ConfigPath():
         # Search for the dictionary key in the key_string
         for key, value in platform_dict.items():
             if key in platform_name:
+                self.logger.debug('%s machine identified!', value)
                 return value
         # for key in platform_dict:
         #     if key in platform_name:
         #         return platform_dict[key]
-        
+        self.logger.debug('No machine identified!')
         return None
 
     def get_catalog_filenames(self, catalog=None):

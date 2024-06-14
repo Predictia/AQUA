@@ -136,7 +136,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         self.sample_data = None #used to avoid multiple calls of retrieve_plain
 
         # define configuration file and paths
-        Configurer = ConfigPath(catalog=catalog)
+        Configurer = ConfigPath(catalog=catalog, loglevel=loglevel)
         self.configdir = Configurer.configdir
         self.machine = Configurer.get_machine()
         self.config_file = Configurer.config_file
