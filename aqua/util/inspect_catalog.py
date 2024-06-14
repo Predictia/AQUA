@@ -83,22 +83,28 @@ def inspect_catalog(cat, model=None, exp=None, source=None, verbose=True):
     return False
 
 
-def is_in_cat(cat, model, exp, source):
+def is_in_cat(cat, model=None, exp=None, source=None):
     """
     Check if the model, experiment and source are in the catalog.
     """
+
     if source:
-        try:
-            return source in cat[model][exp].keys()
-        except KeyError:
-            return False
-    elif exp:
-        try:
-            return exp in cat[model].keys()
-        except KeyError:
-            return False
-    else:
-        try:
-            return model in cat.keys()
-        except KeyError:
-            return False
+        if source in cat[model][exp]:
+            return source
+
+        avail = list(cat[model][exp].keys())
+        raise KeyError(f"Source {source} of experiment {exp} "
+            f"not found in catalog for model {model}. "
+            f"Please choose between available sources: {avail}")
+    if exp:
+        if exp in cat[model]:
+            return exp
+        avail = list(cat[model].keys())
+        raise KeyError(f"Experiment {exp} not found in catalog for model {model}. "
+                       f"Please choose between available exps: {avail}")
+    if model in cat:
+        return model
+    avail = list(cat.keys())
+    raise KeyError(f"Model {model} not found in catalog. " 
+                  f"Please choose between available models: {avail}")
+ 
