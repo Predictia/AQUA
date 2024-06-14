@@ -29,6 +29,3 @@ dependencies:
     # pip install -e of AQUA itself
     - -e .[all]
     
-# Set environment variables
-variables:
-  GRID_DEFINITION_PATH: /work/bb1153/b382321/grid_definitions
