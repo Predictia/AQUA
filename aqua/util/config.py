@@ -3,6 +3,7 @@ import os
 import platform
 import intake
 from aqua.logger import log_configure
+from .inspect_catalog import inspect_catalog
 from .yaml import load_yaml
 from .util import to_list
 
@@ -19,11 +20,11 @@ class ConfigPath():
                        no catalogs are available.
     """
 
-    def __init__(self, configdir=None, filename='config-aqua.yaml', catalog=None, loglevel='warning'):
+    def __init__(self, configdir=None, filename='config-aqua.yaml',
+                 catalog=None, loglevel='warning'):
 
         # set up logger
-        self.loglevel = loglevel
-        self.logger = log_configure(log_level=self.loglevel, log_name='ConfigPath')
+        self.logger = log_configure(log_level=loglevel, log_name='ConfigPath')
 
         # get the configuration directory and its file
         self.filename = filename
@@ -123,8 +124,8 @@ class ConfigPath():
                 self.logger.debug('Browsing catalog %s ...', catalog)
                 catalog_file, _ = self.get_catalog_filenames(catalog)
                 cat = intake.open_catalog(catalog_file)
-                check = inspect_catalogue(cat, model=model, exp=exp,
-                                               source=source, verbose=False)
+                check = inspect_catalog(cat, model=model, exp=exp,
+                                        source=source, verbose=False)
                 if check is True:
                     self.logger.info('%s_%s_%s triplet found in in %s!', model, exp, source, catalog)
                     out.append(catalog)
@@ -263,106 +264,3 @@ class ConfigPath():
         
 
         return fixer_folder, grids_folder
-
-def inspect_catalogue(cat, model=None, exp=None, source=None, verbose=True):
-    """
-    Basic function to simplify catalog inspection.
-    If a partial match between model, exp and source is provided, then it will return a list
-    of models, experiments or possible sources. If all three are specified it returns False if that
-    combination does not exist, a list of variables if the source is a FDB/GSV source and it exists and
-    True if it exists but is not a FDB source.
-
-    Args:
-        cat (intake.catalog.local.LocalCatalog): The catalog object containing the data.
-        model (str, optional): The model ID to filter the catalog.
-            If None, all models are returned. Defaults to None.
-        exp (str, optional): The experiment ID to filter the catalog.
-            If None, all experiments are returned. Defaults to None.
-        source (str, optional): The source ID to filter the catalog.
-            If None, all sources are returned. Defaults to None.
-        verbose (bool, optional): Print the catalog information to the console. Defaults to True.
-
-    Returns:
-        list:   A list of available items in the catalog, depending on the
-                specified model and/or experiment, a list of variables or True/False.
-
-    Raises:
-        KeyError: If the input specifications are incorrect.
-    """
-
-    if model and exp and not source:
-        if is_in_cat(cat, model, exp, None):
-            if verbose:
-                print(f"Sources available in catalogue for model {model} and exp {exp}:")
-            return list(cat[model][exp].keys())
-    elif model and not exp:
-        if is_in_cat(cat, model, None, None):
-            if verbose:
-                print(f"Experiments available in catalogue for model {model}:")
-            return list(cat[model].keys())
-    elif not model:
-        if verbose:
-            print("Models available in catalog:")
-        return list(cat.keys())
-
-    elif model and exp and source:
-        # Check if variables can be explored
-        # Added a try/except to avoid the KeyError when the source is not in the catalogue
-        # because model or exp are not in the catalogue
-        # This allows to always have a True/False or var list return
-        # when model/exp/source are provided
-        try:
-            if is_in_cat(cat, model, exp, source):
-                # Ok, it exists, but does it have metadata?
-                #try:
-                #    variables = cat[model][exp][source].metadata['variables']
-                #    if verbose:
-                #        print(f"The following variables are available for model {model}, exp {exp}, source {source}:")
-                #    return variables
-                #except KeyError:
-                return True
-        except KeyError:
-            pass  # go to return False
-
-    if verbose:
-        print(f"The combination model={model}, exp={exp}, source={source} is not available in the catalogue.")
-        if model:
-            if is_in_cat(cat, model, None, None):
-                if exp:
-                    if is_in_cat(cat, model, exp, None):
-                        print(f"Available sources for model {model} and exp {exp}:")
-                        return list(cat[model][exp].keys())
-                    else:
-                        print(f"Experiment {exp} is not available for model {model}.")
-                        print(f"Available experiments for model {model}:")
-                        return list(cat[model].keys())
-                else:
-                    print(f"Available experiments for model {model}:")
-                    return list(cat[model].keys())
-            else:
-                print(f"Model {model} is not available.")
-                print("Available models:")
-                return list(cat.keys())
-
-    return False
-
-
-def is_in_cat(cat, model, exp, source):
-    """
-    Check if the model, experiment and source are in the catalog.
-    """
-    if source:
-        try:
-            return source in cat[model][exp].keys()
-        except KeyError:
-            return False
-    elif exp:
-        try:
-            return exp in cat[model].keys()
-        except KeyError:
-            return False
-    else:
-        try:
-            return model in cat.keys()
-        except KeyError:
-            return False

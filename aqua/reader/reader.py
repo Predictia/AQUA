@@ -5,7 +5,6 @@ import re
 
 import types
 import shutil
-import intake
 import intake_esm
 
 import xarray as xr
@@ -24,7 +23,7 @@ from .streaming import Streaming
 from .fixer import FixerMixin
 from .regrid import RegridMixin
 from .timmean import TimmeanMixin
-from .reader_utils import check_catalog_source, group_shared_dims, set_attrs
+from .reader_utils import group_shared_dims, set_attrs
 from .reader_utils import configure_masked_fields
 
 # default spatial dimensions and vertical coordinates

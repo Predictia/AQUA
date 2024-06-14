@@ -13,7 +13,7 @@ from aqua.util import ConfigPath
 from aqua.cli.parser import parse_arguments
 from aqua.util.util import HiddenPrints, to_list
 from aqua import __path__ as pypath
-from aqua import catalogue
+from aqua import catalog
 
 # folder used for reading/storing catalogs
 catpath = 'catalogs'
@@ -327,7 +327,7 @@ class AquaConsole():
         # verify that the new catalog is compatible with AQUA, loading it with catalogue()
         try:
             with HiddenPrints():
-                catalogue()
+                catalog()
         except Exception as e:
             self.remove(args)
             self.logger.error('Current catalog is not compatible with AQUA, removing it for safety!')
