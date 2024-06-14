@@ -71,22 +71,22 @@ def inspect_catalog(cat=None, model=None, exp=None, source=None, verbose=True):
     if model and exp and not source:
         if is_in_cat(cat, model, exp, None):
             if verbose:
-                print(f"Sources available in catalogue for model {model} and exp {exp}:")
+                print(f"Sources available in catalog for model {model} and exp {exp}:")
             return list(cat[model][exp].keys())
     elif model and not exp:
         if is_in_cat(cat, model, None, None):
             if verbose:
-                print(f"Experiments available in catalogue for model {model}:")
+                print(f"Experiments available in catalog for model {model}:")
             return list(cat[model].keys())
     elif not model:
         if verbose:
-            print("Models available in catalogue:")
+            print("Models available in catalog:")
         return list(cat.keys())
 
     elif model and exp and source:
         # Check if variables can be explored
-        # Added a try/except to avoid the KeyError when the source is not in the catalogue
-        # because model or exp are not in the catalogue
+        # Added a try/except to avoid the KeyError when the source is not in the catalog
+        # because model or exp are not in the catalog
         # This allows to always have a True/False or var list return
         # when model/exp/source are provided
         try:
@@ -103,7 +103,7 @@ def inspect_catalog(cat=None, model=None, exp=None, source=None, verbose=True):
             pass  # go to return False
 
     if verbose:
-        print(f"The combination model={model}, exp={exp}, source={source} is not available in the catalogue.")
+        print(f"The combination model={model}, exp={exp}, source={source} is not available in the catalog.")
         if model:
             if is_in_cat(cat, model, None, None):
                 if exp:
