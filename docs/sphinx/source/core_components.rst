@@ -310,8 +310,11 @@ different sections of the fixer file.
 - **dims**: extra dimensions handling if data model is not flexible enough. 
   (See :ref:`coord-fix`).
 - **decumulation**: 
-    - If only ``deltat`` is specified, all the variables that are considered flux variables
-      will be divided by the ``deltat``. This is done automatically based on target and source units.
+    - If only ``deltat`` is specified, all the variables that are considered flux variables 
+      (i.e. that have a time unit mismatch from the source to target units) will be divided
+      by ``deltat``. This is done automatically based on the values of target and source units.
+      ``deltat``can be an integer in seconds, or alternatively a string with `monthly`: in this case
+      each flux variable will be divided by the number of seconds of each month.
     - If additionally ``decumulate: true`` is specified for a specific variable,
       a time derivative of the variable will be computed.
       This is tipically done for cumulated fluxes for the IFS model, that are cumulated on a period longer
