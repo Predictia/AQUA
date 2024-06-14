@@ -190,8 +190,10 @@ class ConfigPath():
             # if the configuration file has a machine entry, use it
             if 'machine' in base:
                 machine = base['machine']
+                self.logger.debug('Machine found in configuration file, set to %s', machine)
             # if the entry is auto, or the machine unknown, try autodetection
             if machine in ['auto', 'unknown']:
+                self.logger.debug('Machine is %s, trying to self detect', machine)
                 machine = self._auto_detect_machine()
             return machine
         
@@ -216,10 +218,8 @@ class ConfigPath():
             if key in platform_name:
                 self.logger.debug('%s machine identified!', value)
                 return value
-        # for key in platform_dict:
-        #     if key in platform_name:
-        #         return platform_dict[key]
-        self.logger.debug('No machine identified!')
+
+        self.logger.debug('No machine identified, still unknown and set to None!')
         return None
 
     def get_catalog_filenames(self, catalog=None):
@@ -237,9 +237,11 @@ class ConfigPath():
             catalog = self.catalog
 
         catalog_file = self.base_available[catalog]['reader']['catalog']
+        self.logger.debug('Catalog file is %s', catalog_file)
         if not os.path.exists(catalog_file):
             raise FileNotFoundError(f'Cannot find catalog file in {catalog_file}. Did you install it with "aqua add {catalog}"?')
         machine_file = self.base_available[catalog]['reader']['machine']
+        self.logger.debug('Machine file is %s', machine_file)
         if not os.path.exists(machine_file):
             raise FileNotFoundError(f'Cannot find machine file for {catalog} in {machine_file}')
 

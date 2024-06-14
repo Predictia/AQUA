@@ -5,7 +5,7 @@ from aqua.util import ConfigPath
 
 def catalog(verbose=True, configdir=None, catalog=None):
     """
-    Catalogue of available data.
+    Catalog of available data.
 
     Args:
         verbose (bool, optional):       If True, prints the catalog
