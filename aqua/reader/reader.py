@@ -2,14 +2,10 @@
 
 import os
 import re
-
 import types
 import shutil
 import intake_esm
-
 import xarray as xr
-
-# from metpy.units import units, DimensionalityError
 
 import smmregrid as rg
 
@@ -60,9 +56,11 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         `config/config.yaml` to identify the required data.
 
         Args:
-            model (str, optional): Model ID. Defaults to "ICON".
-            exp (str, optional): Experiment ID. Defaults to "tco2559-ng5".
-            source (str, optional): Source ID. Defaults to None.
+            model (str): Model ID. Mandatory
+            exp (str): Experiment ID. Mandatory.
+            source (str): Source ID. Mandatory
+            catalog (str, optional): Catalog where to search for the triplet.  Default to None will allow for autosearch in 
+                                     the installed catalogs. 
             regrid (str, optional): Perform regridding to grid `regrid`, as defined in `config/regrid.yaml`. Defaults to None.
             regrid_method (str, optional): CDO Regridding regridding method. Read from grid configuration.
                                            If not specified anywhere, using "ycon".

@@ -55,6 +55,10 @@ By default, this will be ``$HOME/.aqua``. It is possible to specify from where t
 It is also possible to ask for an editable installation, so that only links are created, ideal for developers, 
 which can keep their catalog or fixes files under version control.
 
+.. option:: machine
+
+    The name of the machine where you are installing. It is an optional argument to simplify analysis on specific system as levante or lumi.
+
 .. option:: --path, -p <path>
 
     The folder where the configuration file is copied to. Default is ``$HOME/.aqua``.
@@ -79,6 +83,7 @@ This command adds a catalogue to the list of available catalogues.
 It will copy the catalogue folder and files to the destination folder.
 As before, it is possible to specify if symbolic links have to be created
 and it is possible to install extra catalogues not present in the AQUA release.
+Multiple catalogs can be installed with multiple calls to `aqua add`
 
 .. option:: catalog
 
@@ -109,7 +114,7 @@ It will show also if a catalogue is installed in editable mode.
 aqua update <catalogue>
 -----------------------
 
-This command will check if there is a new version of the catalogue available and update it.
+This command will check if there is a new version of the catalogue available and update it by overwriting the current installation.
 
 .. warning::
 
@@ -129,11 +134,7 @@ if the catalogue is installed in editable mode.
 aqua set <catalogue>
 --------------------
 
-This command sets the default catalogue to be used.
-
-.. warning::
-    At the actual stage of development, the catalogue coincide with a machine.
-    This command is then setting the machine name to be used in the configuration file.
+This command sets the default main catalogue to be used. 
 
 .. _aqua-uninstall:
 

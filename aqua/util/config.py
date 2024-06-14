@@ -111,7 +111,10 @@ class ConfigPath():
     def browse_catalogs(self, model:str, exp:str, source:str):
         """
         Given a triplet of model-exp-source, browse all catalog installed catalogs
-        and return a list of catalogs where the triplet is found
+
+        Returns
+            a list of catalogs where the triplet is found
+            a dictionary with information on wrong triplet
         """
 
         if self.catalog_available is None:
@@ -130,14 +133,8 @@ class ConfigPath():
                     self.logger.info('%s_%s_%s triplet found in in %s!', model, exp, source, catalog)
                     success.append(catalog)
                 else:
-                    fail[catalog] = f'In catalog {catalog} for {model}_{exp}_{source} triplet cannot find {level}. Available alternatives are {avail}'
-
-            # this is a bit of HACK: return a list if elements is found, a dictionary if not.
-            if success:
-                return success
-            
-            return fail
-
+                    fail[catalog] = f'In catalog {catalog} when looking for {model}_{exp}_{source} triplet I could not find the {level}. Available alternatives are {avail}'
+            return success, fail
         
         raise KeyError('Need to defined the triplet model, exp and source')
     
@@ -151,24 +148,18 @@ class ConfigPath():
 
         """
         
-        matched = self.browse_catalogs(model=model, exp=exp, source=source)
-        if isinstance(matched, dict):
-            for key, value in matched.items():
+        matched, failed = self.browse_catalogs(model=model, exp=exp, source=source)
+        if not matched:
+            for _, value in failed.items():
                 self.logger.error(value)
             raise KeyError('Cannot find the triplet in any catalog. Check logger error for hints on possible typos')
         
         if catalog is not None:
-            if catalog in matched:
-                self.catalog = catalog
-            else:
-                raise KeyError('Cannot find triplet in the required catalog')
+            self.catalog = catalog
         else:
-            if matched:
-                if len(matched)>1:
-                    self.logger.warning('Multiple triplets found in %s, setting %s as the default', matched, matched[0])
-                self.catalog = matched[0]
-            else:
-                raise KeyError('Cannot find the triplet in any catalog')
+            if len(matched)>1:
+                self.logger.warning('Multiple triplets found in %s, setting %s as the default', matched, matched[0])
+            self.catalog = matched[0]
             
         self.logger.debug('Final catalog to be used is %s', self.catalog)
         catalog_file, machine_file = self.get_catalog_filenames(self.catalog)
@@ -277,10 +268,10 @@ class ConfigPath():
         grids_folder = self.base_available[catalog]['reader']['regrid']
         if not os.path.exists(grids_folder):
             raise FileNotFoundError(f'Cannot find the regrid folder in {grids_folder}')
-        
+
 
         return fixer_folder, grids_folder
-    
+
 def scan_catalog(cat, model=None, exp=None, source=None):
     """
     Check if the model, experiment and source are in the catalog.
