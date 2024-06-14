@@ -6,7 +6,6 @@ import xarray as xr
 import numpy as np
 import pandas as pd
 from aqua.util import extract_literal_and_numeric, file_is_complete
-from aqua.util.time import days_in_month
 
 @pytest.fixture
 def test_text():
