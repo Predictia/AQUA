@@ -102,6 +102,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         self.exp = exp
         self.model = model
+        self.source = source
         self.regrid_method = regrid_method
         self.nproc = nproc
         self.vert_coord = None
@@ -139,8 +140,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         self.configdir = Configurer.configdir
         self.machine = Configurer.get_machine()
         self.config_file = Configurer.config_file
-        self.cat, self.machine_file = Configurer.set_catalog(catalog=catalog, model=model, exp=exp, source=source)
-        #self.catalog_file, self.machine_file = Configurer.get_catalog_filenames()
+        self.cat, self.catalog_file, self.machine_file = Configurer.deliver_intake_catalog(catalog=catalog, model=model, exp=exp, source=source)
         self.fixer_folder, self.grids_folder = Configurer.get_reader_filenames()
 
 
@@ -154,7 +154,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         # check source existence
         #self.source = check_catalog_source(self.cat, self.model, self.exp,
         #                                   source, name="catalog")
-        self.source = source
+        
 
         # load the catalog
         self.esmcat = self.cat[self.model][self.exp][self.source](**kwargs, **intake_vars)
