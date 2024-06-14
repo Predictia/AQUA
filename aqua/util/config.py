@@ -3,7 +3,6 @@ import os
 import platform
 import intake
 from aqua.logger import log_configure
-from .inspect_catalog import inspect_catalog
 from .yaml import load_yaml
 from .util import to_list
 
@@ -119,17 +118,26 @@ class ConfigPath():
             return None
 
         if all(v is not None for v in [model, exp, source]):
-            out = []
+            success = []
+            fail = {}
             for catalog in self.catalog_available:
                 self.logger.debug('Browsing catalog %s ...', catalog)
                 catalog_file, _ = self.get_catalog_filenames(catalog)
                 cat = intake.open_catalog(catalog_file)
-                check = inspect_catalog(cat, model=model, exp=exp,
-                                        source=source, verbose=False)
+                check, level, avail = scan_catalog(cat, model=model,
+                                                   exp=exp, source=source)
                 if check is True:
                     self.logger.info('%s_%s_%s triplet found in in %s!', model, exp, source, catalog)
-                    out.append(catalog)
-            return out
+                    success.append(catalog)
+                else:
+                    fail[catalog] = f'In catalog {catalog} for {model}_{exp}_{source} triplet cannot find {level}. Available alternatives are {avail}'
+
+            # this is a bit of HACK: return a list if elements is found, a dictionary if not.
+            if success:
+                return success
+            
+            return fail
+
         
         raise KeyError('Need to defined the triplet model, exp and source')
     
@@ -144,6 +152,11 @@ class ConfigPath():
         """
         
         matched = self.browse_catalogs(model=model, exp=exp, source=source)
+        if isinstance(matched, dict):
+            for key, value in matched.items():
+                self.logger.error(value)
+            raise KeyError('Cannot find the triplet in any catalog. Check logger error for hints on possible typos')
+        
         if catalog is not None:
             if catalog in matched:
                 self.catalog = catalog
@@ -157,6 +170,7 @@ class ConfigPath():
             else:
                 raise KeyError('Cannot find the triplet in any catalog')
             
+        self.logger.debug('Final catalog to be used is %s', self.catalog)
         catalog_file, machine_file = self.get_catalog_filenames(self.catalog)
         return intake.open_catalog(catalog_file), catalog_file, machine_file
 
@@ -266,3 +280,27 @@ class ConfigPath():
         
 
         return fixer_folder, grids_folder
+    
+def scan_catalog(cat, model=None, exp=None, source=None):
+    """
+    Check if the model, experiment and source are in the catalog.
+    """
+
+    status = False
+    avail = None
+    level = None
+    if model in cat:
+        if exp in cat[model]:
+            if source in cat[model][exp]:
+                status = True
+            else:
+                level = 'source'
+                avail = list(cat[model][exp].keys())
+        else:
+            level = 'exp'
+            avail = list(cat[model].keys())
+    else:
+        level = 'model'
+        avail = list(cat.keys())
+
+    return status, level, avail

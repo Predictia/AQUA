@@ -105,6 +105,7 @@ def is_in_cat(cat, model=None, exp=None, source=None):
     if model in cat:
         return model
     avail = list(cat.keys())
-    raise KeyError(f"Model {model} not found in catalog. " 
+    raise KeyError(f"Model {model} not found in catalog. "
                   f"Please choose between available models: {avail}")
- 
+
+    
