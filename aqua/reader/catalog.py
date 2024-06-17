@@ -3,7 +3,7 @@
 import intake
 from aqua.util import ConfigPath
 
-def catalog(verbose=True, configdir=None, catalog=None):
+def catalog(verbose=True, configdir=None, catalog_name=None):
     """
     Catalog of available data.
 
@@ -22,7 +22,7 @@ def catalog(verbose=True, configdir=None, catalog=None):
     """
 
     # get the config dir and the catalog
-    Configurer = ConfigPath(configdir=configdir, catalog=catalog)
+    Configurer = ConfigPath(configdir=configdir, catalog=catalog_name)
 
     # get configuration from the catalog
     catalog_file, _ = Configurer.get_catalog_filenames()
@@ -39,7 +39,7 @@ def catalog(verbose=True, configdir=None, catalog=None):
             print()
     return cat
 
-def inspect_catalog(cat=None, model=None, exp=None, source=None, verbose=True):
+def inspect_catalog(catalog_name=None, model=None, exp=None, source=None, verbose=True):
     """
     Basic function to simplify catalog inspection.
     If a partial match between model, exp and source is provided, then it will return a list
@@ -48,7 +48,7 @@ def inspect_catalog(cat=None, model=None, exp=None, source=None, verbose=True):
     True if it exists but is not a FDB source.
 
     Args:
-        cat (intake.catalog.local.LocalCatalog, optional): The catalog object containing the data.
+        catalog_name(str, optional): A string containing the catalog name.
         model (str, optional): The model ID to filter the catalog.
             If None, all models are returned. Defaults to None.
         exp (str, optional): The experiment ID to filter the catalog.
@@ -64,23 +64,25 @@ def inspect_catalog(cat=None, model=None, exp=None, source=None, verbose=True):
     Raises:
         KeyError: If the input specifications are incorrect.
     """
+    
+    cat = catalog(catalog_name=catalog_name, verbose=False)
 
-    if cat is None:
-        cat = catalog(verbose=False)
+    if catalog_name is None:
+        catalog_name = ConfigPath().catalog
 
     if model and exp and not source:
         if is_in_cat(cat, model, exp, None):
             if verbose:
-                print(f"Sources available in catalog for model {model} and exp {exp}:")
+                print(f"Sources available in catalog {catalog_name} for model {model} and exp {exp}:")
             return list(cat[model][exp].keys())
     elif model and not exp:
         if is_in_cat(cat, model, None, None):
             if verbose:
-                print(f"Experiments available in catalog for model {model}:")
+                print(f"Experiments available in catalog {catalog_name} for model {model}:")
             return list(cat[model].keys())
     elif not model:
         if verbose:
-            print("Models available in catalog:")
+            print(f"Models available in catalog {catalog_name}:")
         return list(cat.keys())
 
     elif model and exp and source:
