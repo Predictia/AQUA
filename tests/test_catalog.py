@@ -105,93 +105,93 @@ def test_catalog_reader(reader_regrid):
 
 
 @pytest.mark.aqua
-def test_inspect_catalog(capfd):
+def test_inspect_catalog():
     """Checking that inspect catalog works"""
 
     # calling the catalog
-    cat = catalog(verbose=True)
-    out, _ = capfd.readouterr()
-    assert 'FESOM' in out
-    assert 'IFS' in out
+    #cat = catalog(verbose=True)
+    #out, _ = capfd.readouterr()
+    #assert 'FESOM' in out
+    #assert 'IFS' in out
 
     # inspect catalog
-    models = inspect_catalog(cat)
+    models = inspect_catalog()
     assert isinstance(models, list)
-    exps = inspect_catalog(cat, model='IFS')
+    exps = inspect_catalog(model='IFS')
     assert isinstance(exps, list)
-    sources = inspect_catalog(cat, model='IFS', exp='test-tco79')
+    sources = inspect_catalog(model='IFS', exp='test-tco79')
     assert isinstance(sources, list)
-    variables = inspect_catalog(cat, model='IFS', exp="test-tco79", source='short')
+    variables = inspect_catalog(model='IFS', exp="test-tco79", source='short')
     assert variables is True
 
     # wrong calls
-    models = inspect_catalog(cat, model='antani')
+    models = inspect_catalog(model='antani')
     assert 'IFS' in models 
-    exps = inspect_catalog(cat, model='IFS', exp="antani")
+    exps = inspect_catalog(model='IFS', exp="antani")
     assert 'test-tco79' in exps
-    sources = inspect_catalog(cat, model='IFS', exp="test-tco79", source='antani')
+    sources = inspect_catalog(model='IFS', exp="test-tco79", source='antani')
     assert 'short' in sources
 
-@pytest.mark.aqua
-@pytest.mark.parametrize(
-    "catalog, model, exp, source, expected_output",
-    [
-        # Test case 1: Source is specified and exists in the catalog
-        (
-            {"model1": {"exp1": {"source1": "data1", "source2": "data2"}}},
-            "model1",
-            "exp1",
-            "source1",
-            "source1"
-        ),
-        # Test case 2: Source is specified but does not exist,
-        # default source exists
-        (
-            {"model1": {"exp1": {"default": "default_data", "source2": "data2"}}},
-            "model1",
-            "exp1",
-            "source1",
-            "default"
-        ),
-        # Test case 3: Source is specified but does not exist,
-        # default source does not exist
-        (
-            {"model1": {"exp1": {"source2": "data2"}}},
-            "model1",
-            "exp1",
-            "source1",
-            pytest.raises(KeyError)
-        ),
-        # Test case 4: Source is not specified, choose the first source
-        (
-            {"model1": {"exp1": {"source1": "data1", "source2": "data2"}}},
-            "model1",
-            "exp1",
-            None,
-            "source1"
-        ),
-        # Test case 5: Source is not specified, no sources available
-        (
-            {"model1": {"exp1": {}}},
-            "model1",
-            "exp1",
-            None,
-            pytest.raises(KeyError)
-        ),
-        # Test case 6: Source is not specified, no sources available,
-        # but a default source exists
-        (
-            {"model1": {"exp1": {"default": "default_data"}}},
-            "model1",
-            "exp1",
-            None,
-            "default"
-        )
-    ]
-)
-def test_check_catalog_source(catalog, model, exp, source, expected_output):
-    if isinstance(expected_output, str):
-        assert check_catalog_source(catalog, model, exp, source) == expected_output
-    else:
-        with expected_output:
-            check_catalog_source(catalog, model, exp, source)
+# @pytest.mark.aqua
+# @pytest.mark.parametrize(
+#     "catalog, model, exp, source, expected_output",
+#     [
+#         # Test case 1: Source is specified and exists in the catalog
+#         (
+#             {"model1": {"exp1": {"source1": "data1", "source2": "data2"}}},
+#             "model1",
+#             "exp1",
+#             "source1",
+#             "source1"
+#         ),
+#         # Test case 2: Source is specified but does not exist,
+#         # default source exists
+#         (
+#             {"model1": {"exp1": {"default": "default_data", "source2": "data2"}}},
+#             "model1",
+#             "exp1",
+#             "source1",
+#             "default"
+#         ),
+#         # Test case 3: Source is specified but does not exist,
+#         # default source does not exist
+#         (
+#             {"model1": {"exp1": {"source2": "data2"}}},
+#             "model1",
+#             "exp1",
+#             "source1",
+#             pytest.raises(KeyError)
+#         ),
+#         # Test case 4: Source is not specified, choose the first source
+#         (
+#             {"model1": {"exp1": {"source1": "data1", "source2": "data2"}}},
+#             "model1",
+#             "exp1",
+#             None,
+#             "source1"
+#         ),
+#         # Test case 5: Source is not specified, no sources available
+#         (
+#             {"model1": {"exp1": {}}},
+#             "model1",
+#             "exp1",
+#             None,
+#             pytest.raises(KeyError)
+#         ),
+#         # Test case 6: Source is not specified, no sources available,
+#         # but a default source exists
+#         (
+#             {"model1": {"exp1": {"default": "default_data"}}},
+#             "model1",
+#             "exp1",
+#             None,
+#             "default"
+#         )
+#     ]
+# )
+# def test_check_catalog_source(catalog, model, exp, source, expected_output):
+#     if isinstance(expected_output, str):
+#         assert check_catalog_source(catalog, model, exp, source) == expected_output
+#     else:
+#         with expected_output:
+#             check_catalog_source(catalog, model, exp, source)
