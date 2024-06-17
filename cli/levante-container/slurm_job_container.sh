@@ -12,6 +12,7 @@ set -e
 
 # export AQUA = PATH_TO_AQUA_repo
 AQUA_container="/work/bb1153/b382289/container/AQUA/aqua-v0.9.1.sif"
+GRID_DEFINITION_PATH="/work/bb1153/b382321/grid_definitions"
 
 module load singularity
 
