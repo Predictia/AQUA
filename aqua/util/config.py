@@ -117,12 +117,14 @@ class ConfigPath():
             a dictionary with information on wrong triplet
         """
 
+        success = []
+        fail = {}
+
         if self.catalog_available is None:
-            return None
+            return success, fail
 
         if all(v is not None for v in [model, exp, source]):
-            success = []
-            fail = {}
+
             for catalog in self.catalog_available:
                 self.logger.debug('Browsing catalog %s ...', catalog)
                 catalog_file, _ = self.get_catalog_filenames(catalog)
