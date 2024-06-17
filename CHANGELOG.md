@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
+- More detailed documentation for Levante and Lumi installation (#1210)
 - `aqua-config.yaml` replaced by a template to be installed on each machine (#1203)
 - `$AQUA` removed from the `Configdir()` autosearch (#1208)
 - AQUA cli command to provide the installation path with `--path` option (#1193)
