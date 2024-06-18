@@ -13,8 +13,8 @@ else
 fi
 setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
 # If you don't have access to ehpc01, use the below bsc32 path
-# AQUA_container="/gpfs/projects/bsc32/DestinE/containers/aqua-v0.9.1.sif"
-AQUA_container="/gpfs/scratch/ehpc01/bsc032655/lab/DestinE/aqua_containers/aqua-v0.9.1.sif"
+# AQUA_container="/gpfs/projects/bsc32/DestinE/containers/aqua/aqua_0.9.2.sif"
+AQUA_container="/gpfs/projects/ehpc01/containers/aqua_0.9.2.sif"
 
 # Simple command line parsing
 user_defined_aqua="ask"
