@@ -7,6 +7,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 - AQUA is now capable of accessing multiple catalogs at the same time (#1205)
+
+## [v0.9.2]
+
+Main changes are:
+1. The `aqua-config.yaml` file is replaced by a template to be installed. The aqua console is now mandatory to use aqua.
+2. `$AQUA` removed from the `Configdir()` autosearch, an installation with the aqua console is mandatory to use aqua.
+3. AQUA cli command to provide the installation path with `--path` option. This can substitute the `$AQUA` variable in scripts.
+4. The catalog file is now split into `machine.yaml` and `catalog.yaml` to support machine dependency of data path and intake variables as kwargs into each catalog.
+
+AQUA core complete list:
+- More detailed documentation for Levante and Lumi installation (#1210)
 - `aqua-config.yaml` replaced by a template to be installed on each machine (#1203)
 - `$AQUA` removed from the `Configdir()` autosearch (#1208)
 - AQUA cli command to provide the installation path with `--path` option (#1193)
@@ -513,7 +524,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.9.1...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.9.2...HEAD
+[v0.9.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.9.1...v0.9.2
 [v0.9.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.9...v0.9.1
 [v0.9]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.8.2...v0.9
 [v0.8.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.8.1...v0.8.2
