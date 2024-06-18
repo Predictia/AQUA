@@ -11,9 +11,9 @@ from aqua.util import load_yaml, dump_yaml, load_multi_yaml
 from aqua.logger import log_configure
 from aqua.util import ConfigPath
 from aqua.cli.parser import parse_arguments
-from aqua.util.util import HiddenPrints
+from aqua.util.util import HiddenPrints, to_list
 from aqua import __path__ as pypath
-from aqua import catalogue
+from aqua import catalog
 
 # folder used for reading/storing catalogs
 catpath = 'catalogs'
@@ -160,10 +160,11 @@ class AquaConsole():
         """Copying the installation file"""
 
         print("Installing AQUA to", self.configpath)
-        for file in ['config-aqua.yaml']:
-            if not os.path.exists(os.path.join(self.configpath, file)):
+        for file in ['config-aqua.tmpl']:
+            target_file = os.path.splitext(file)[0] + '.yaml' #replace the tmpl with yaml
+            if not os.path.exists(os.path.join(self.configpath, target_file)):
                 self.logger.info('Copying from %s to %s', self.aquapath, self.configpath)
-                shutil.copy(f'{self.aquapath}/{file}', f'{self.configpath}/{file}')
+                shutil.copy(f'{self.aquapath}/{file}', f'{self.configpath}/{target_file}')
         for directory in ['fixes', 'data_models', 'grids']:
             if not os.path.exists(os.path.join(self.configpath, directory)):
                 self.logger.info('Copying from %s to %s',
@@ -180,11 +181,13 @@ class AquaConsole():
 
         editable = os.path.abspath(editable)
         print("Installing AQUA with a link from ", editable, " to ", self.configpath)
-        for file in ['config-aqua.yaml']:
+        for file in ['config-aqua.tmpl']:
+            target_file = os.path.splitext(file)[0] + '.yaml'
             if os.path.isfile(os.path.join(editable, file)):
                 if not os.path.exists(os.path.join(self.configpath, file)):
                     self.logger.info('Linking from %s to %s', editable, self.configpath)
-                    os.symlink(f'{editable}/{file}', f'{self.configpath}/{file}')
+                    #os.symlink(f'{editable}/{file}', f'{self.configpath}/{file}')
+                    shutil.copy(f'{editable}/{file}', f'{self.configpath}/{target_file}')
             else:
                 self.logger.error('%s folder does not include AQUA configuration files. Please use AQUA/config', editable)
                 os.rmdir(self.configpath)
@@ -207,27 +210,16 @@ class AquaConsole():
         if machine is None:
             self.logger.info('Unknown machine!')
         else:
-            if args.editable:
-                self.logger.info('Editable version installed, not modifying the machine name and leaving in auto')
-            else:
-                self.configfile = os.path.join(self.configpath, 'config-aqua.yaml')
-                self.logger.info('Setting machine name to %s', machine)
-                cfg = load_yaml(self.configfile)
-                cfg['machine'] = machine
-                # machine_paths = self._set_paths(machine)
-                # if machine_paths is not None:
-                #     self.logger.debug('Paths installed for %s are %s', machine, machine_paths)
-                #     cfg['paths'] = machine_paths
-                # else:
-                #     self.logger.warning('%s is an unknown machine for AQUA, paths will not be configured', machine)
-                dump_yaml(self.configfile, cfg)
+            #if args.editable:
+            #    self.logger.info('Editable version installed, not modifying the machine name and leaving in auto')
+            #else:
+            self.configfile = os.path.join(self.configpath, 'config-aqua.yaml')
+            self.logger.info('Setting machine name to %s', machine)
+            cfg = load_yaml(self.configfile)
+            cfg['machine'] = machine
+            
+            dump_yaml(self.configfile, cfg)
 
-#    def _set_paths(self, machine):
-#        """Get the paths from the machines-aqua file"""
-#
-#        machines_file = os.path.join(self.aquapath, 'machines-aqua.yaml')
-#        machines_paths = load_yaml(machines_file)
-#        return machines_paths['machines'].get(machine)
 
     def set(self, args):
         """Set an installed catalog as the one used in the config-aqua.yaml
@@ -332,10 +324,10 @@ class AquaConsole():
         else:
             self._add_catalog_default(args.catalog)
 
-        # verify that the new catalog is compatible with AQUA, loading it with catalogue()
+        # verify that the new catalog is compatible with AQUA, loading it with catalog()
         try:
             with HiddenPrints():
-                catalogue()
+                catalog()
         except Exception as e:
             self.remove(args)
             self.logger.error('Current catalog is not compatible with AQUA, removing it for safety!')
@@ -388,7 +380,7 @@ class AquaConsole():
                 self.logger.error('Available catalogs are: %s', os.listdir(f'{self.aquapath}/{catpath}'))
                 sys.exit(1)
         else:
-            self.logger.error("Catalog %s already installed in %s, please consider `aqua update`.",
+            self.logger.error("Catalog %s already installed in %s, please consider `aqua update` or `aqua set`",
                               catalog, cdir)
             sys.exit(1)
 
@@ -423,7 +415,22 @@ class AquaConsole():
 
         self.logger.info('Setting catalog name to %s', catalog)
         cfg = load_yaml(self.configfile)
-        cfg['catalog'] = catalog
+        if cfg['catalog'] is None:
+            self.logger.debug('No catalog previously installed: setting catalog name to %s', catalog)
+            cfg['catalog'] = catalog
+        else:
+            if catalog not in to_list(cfg['catalog']):
+                self.logger.debug('Adding catalog %s to the existing list %s', catalog, cfg['catalog'])
+                cfg['catalog'] = [catalog] + to_list(cfg['catalog'])
+            else:
+                if isinstance(cfg['catalog'], list):
+                    other_catalogs = [x for x in to_list(cfg['catalog']) if x != catalog]
+                    self.logger.debug('Catalog %s is already there, setting it as first entry before %s', catalog, other_catalogs)
+                    cfg['catalog'] = [catalog] + other_catalogs
+                else:
+                    self.logger.debug('Catalog %s is already there, but is the only installed', catalog)
+                    cfg['catalog'] = catalog
+    
         dump_yaml(self.configfile, cfg)
 
     def remove(self, args):
@@ -442,10 +449,27 @@ class AquaConsole():
                 os.unlink(cdir)
             else:
                 shutil.rmtree(cdir)
+            self._clean_catalog(args.catalog)
         else:
             self.logger.error('Catalog %s is not installed in %s, cannot remove it',
                               args.catalog, cdir)
             sys.exit(1)
+
+    def _clean_catalog(self, catalog):
+            
+        """
+        Remove catalog from the configuration file
+        """
+
+        cfg = load_yaml(self.configfile)
+        if isinstance(cfg['catalog'], str):
+            cfg['catalog'] = None
+        else:
+            cfg['catalog'].remove(catalog)
+        self.logger.info('Catalog %s removed, catalogs %s are available', catalog, cfg['catalog'])
+        dump_yaml(self.configfile, cfg)
+
+
 
     def remove_file(self, args):
         """Add a personalized file to the fixes/grids folder

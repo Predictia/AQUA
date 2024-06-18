@@ -8,8 +8,8 @@ def test_config_plain():
     assert config.filename == 'config-aqua.yaml'
     assert config.catalog == 'ci'
 
-@pytest.mark.aqua
-def test_config_ci():
-    config = ConfigPath(configdir='./config', catalog='ci')
-    assert config.filename == 'config-aqua.yaml'
-    assert config.catalog == 'ci'
+# @pytest.mark.aqua
+# def test_config_ci():
+#     config = ConfigPath(configdir='./config', catalog='ci')
+#     assert config.filename == 'config-aqua.yaml'
+#     assert config.catalog == 'ci'

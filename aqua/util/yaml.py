@@ -8,9 +8,19 @@ from jinja2 import Template
 import xarray as xr
 from collections import defaultdict
 from ruamel.yaml import YAML
+from ruamel.yaml.representer import RoundTripRepresenter
 from aqua.logger import log_configure
 
 import yaml  # This is needed to allow YAML override in intake
+
+
+class RepresentNone:
+    pass
+
+def represent_none(dumper, data):
+    return dumper.represent_scalar('tag:yaml.org,2002:null', 'null')
+
+RoundTripRepresenter.add_representer(RepresentNone, represent_none)
 
 
 def construct_yaml_merge(loader, node):
@@ -138,6 +148,7 @@ def dump_yaml(outfile=None, cfg=None, typ='rt'):
 
     # Dump the dictionary
     with open(outfile, 'w', encoding='utf-8') as file:
+        cfg = {k: RepresentNone() if v is None else v for k, v in cfg.items()}
         yaml.dump(cfg, file)
 
 
