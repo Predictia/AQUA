@@ -295,9 +295,8 @@ class FixerMixin():
         self.deltat = self.fixes.get("deltat", 1.0)
         if self.deltat == "monthly":
             self.deltat = 3600*24
-            #self.correction = 30/days_in_month(data)
-            self.correction = 1/data.time.dt.days_in_month
-            self.logger.info('Monthly deltat found, estimating correction based on number of days')
+            self.dpm = True
+            self.logger.info('Monthly deltat found, we will estimate a correction based on number of days per month')
                              
         jump = self.fixes.get("jump", None)  # if to correct for a monthly accumulation jump
         # Special feature to fix corrupted data in first step of each month
@@ -398,15 +397,15 @@ class FixerMixin():
                                                                                                                           '')]
                     self.logger.info("%s: converting units %s --> %s", var, data[source].units, tgt_units)
                     log_history(data[source], f"Converting units of {var}: from {data[source].units} to {tgt_units}")
-                    factor, offset = self.convert_units(data[source].units, tgt_units, var)
-                    # self.logger.info('Factor: %s, offset: %s', factor, offset)
+                    factor, offset, dpm = self.convert_units(data[source].units, tgt_units, var)
 
                     if (factor != 1.0) or (offset != 0):
                         data[source].attrs.update({"tgt_units": tgt_units})
                         data[source].attrs.update({"factor": factor})
                         data[source].attrs.update({"offset": offset})
-                        self.logger.debug("Fixing %s to %s. Unit fix: factor=%f, offset=%f",
-                                          source, var, factor, offset)
+                        data[source].attrs.update({"dpm": dpm})
+                        self.logger.debug("Fixing %s to %s. Unit fix: factor=%f, offset=%f, dpm=%d",
+                                          source, var, factor, offset, dpm)
                         log_history(data[source], f"Fixing {source} to {var}. Unit fix: factor={factor}, offset={offset}")
 
                 # Set to NaN before a certain date
@@ -886,12 +885,15 @@ class FixerMixin():
             var (str):  variable name (optional, used only for diagnostic output)
 
         Returns:
-            factor, offset (float): a factor and an offset to convert the input data (None if not needed).
+            factor, offset, dpm (float): a factor and an offset to convert the
+                                             input data (None if not needed).
+                                             dpm is 0 or 1 to indicate monthly correction allowed
         """
 
         src = self.normalize_units(src)
         dst = self.normalize_units(dst)
         factor = units(src).to_base_units() / units(dst).to_base_units()
+        dpm = 0
 
         if factor.units == units('dimensionless'):
             offset = (0 * units(src)).to(units(dst)) - (0 * units(dst))
@@ -904,6 +906,7 @@ class FixerMixin():
             elif factor.units == "meter ** 3 * second / kilogram":
                 # Density of water and accumulation time were missing
                 factor = factor * 1000 * units("kg m-3") / (self.deltat * units("s"))
+                dpm = 1
                 self.logger.debug("%s: corrected multiplying by density of water 1000 kg m-3",
                                  var)
                 self.logger.info("%s: corrected dividing by accumulation time %s s",
@@ -913,6 +916,7 @@ class FixerMixin():
                 factor = factor / (self.deltat * units("s"))
                 self.logger.debug("%s: corrected dividing by accumulation time %s s",
                                  var, self.deltat)
+                dpm = 1
             elif factor.units == "kilogram / meter ** 3":
                 # Density of water was missing
                 factor = factor / (1000 * units("kg m-3"))
@@ -928,7 +932,7 @@ class FixerMixin():
         else:
             offset = 0
             factor = factor.magnitude
-        return factor, offset
+        return factor, offset, dpm
 
     def apply_unit_fix(self, data):
         """
@@ -939,7 +943,8 @@ class FixerMixin():
         """
         tgt_units = data.attrs.get("tgt_units", None)
         org_units = data.attrs.get("units", None)
-        self.logger.debug("org_units is %s, tgt_units is %s", org_units, tgt_units)
+        self.logger.debug("%s: org_units is %s, tgt_units is %s",
+                          data.name, org_units, tgt_units)
 
         # if units are not already updated and if a tgt_units exist
         if tgt_units and org_units != tgt_units:
@@ -950,11 +955,12 @@ class FixerMixin():
             data.attrs["units"] = self.normalize_units(tgt_units)
             factor = data.attrs.get("factor", 1)
             offset = data.attrs.get("offset", 0)
+            dpm = data.attrs.get("dpm", 0)
             if factor != 1:
                 data *= factor
-                # if a special correction has been defined, apply it
-                if self.correction is not None:
-                    data *= self.correction
+                # if a special dpm correction has been defined, apply it
+                if dpm and self.dpm:
+                    data /=  data.time.dt.days_in_month
             if offset != 0:
                 data += offset
             log_history(data, f"Units changed to {tgt_units} by fixer")

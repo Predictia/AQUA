@@ -105,7 +105,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         self.nproc = nproc
         self.vert_coord = None
         self.deltat = 1
-        self.correction = None
+        self.dpm = False
         self.aggregation = aggregation
         self.chunks = chunks
 
