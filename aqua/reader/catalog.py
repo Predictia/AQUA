@@ -1,11 +1,11 @@
-"""Simple catalogue utility"""
+"""Simple catalog utility"""
 
 import intake
 from aqua.util import ConfigPath
 
-def catalogue(verbose=True, configdir=None):
+def catalog(verbose=True, configdir=None, catalog_name=None):
     """
-    Catalogue of available data.
+    Catalog of available data.
 
     Args:
         verbose (bool, optional):       If True, prints the catalog
@@ -22,13 +22,14 @@ def catalogue(verbose=True, configdir=None):
     """
 
     # get the config dir and the catalog
-    Configurer = ConfigPath(configdir=configdir)
+    Configurer = ConfigPath(configdir=configdir, catalog=catalog_name)
 
     # get configuration from the catalog
     catalog_file, _ = Configurer.get_catalog_filenames()
 
     cat = intake.open_catalog(catalog_file)
     if verbose:
+        print('Catalog: ' + Configurer.catalog)
         for model, vm in cat.items():
             for exp, _ in vm.items():
                 print(model + '\t' + exp + '\t' + cat[model][exp].description)
@@ -38,8 +39,7 @@ def catalogue(verbose=True, configdir=None):
             print()
     return cat
 
-
-def inspect_catalogue(cat=None, model=None, exp=None, source=None, verbose=True):
+def inspect_catalog(catalog_name=None, model=None, exp=None, source=None, verbose=True):
     """
     Basic function to simplify catalog inspection.
     If a partial match between model, exp and source is provided, then it will return a list
@@ -48,7 +48,7 @@ def inspect_catalogue(cat=None, model=None, exp=None, source=None, verbose=True)
     True if it exists but is not a FDB source.
 
     Args:
-        cat (intake.catalog.local.LocalCatalog, optional): The catalog object containing the data.
+        catalog_name(str, optional): A string containing the catalog name.
         model (str, optional): The model ID to filter the catalog.
             If None, all models are returned. Defaults to None.
         exp (str, optional): The experiment ID to filter the catalog.
@@ -64,29 +64,31 @@ def inspect_catalogue(cat=None, model=None, exp=None, source=None, verbose=True)
     Raises:
         KeyError: If the input specifications are incorrect.
     """
+    
+    cat = catalog(catalog_name=catalog_name, verbose=False)
 
-    if cat is None:
-        cat = catalogue(verbose=False)
+    if catalog_name is None:
+        catalog_name = ConfigPath().catalog
 
     if model and exp and not source:
         if is_in_cat(cat, model, exp, None):
             if verbose:
-                print(f"Sources available in catalogue for model {model} and exp {exp}:")
+                print(f"Sources available in catalog {catalog_name} for model {model} and exp {exp}:")
             return list(cat[model][exp].keys())
     elif model and not exp:
         if is_in_cat(cat, model, None, None):
             if verbose:
-                print(f"Experiments available in catalogue for model {model}:")
+                print(f"Experiments available in catalog {catalog_name} for model {model}:")
             return list(cat[model].keys())
     elif not model:
         if verbose:
-            print("Models available in catalogue:")
+            print(f"Models available in catalog {catalog_name}:")
         return list(cat.keys())
 
     elif model and exp and source:
         # Check if variables can be explored
-        # Added a try/except to avoid the KeyError when the source is not in the catalogue
-        # because model or exp are not in the catalogue
+        # Added a try/except to avoid the KeyError when the source is not in the catalog
+        # because model or exp are not in the catalog
         # This allows to always have a True/False or var list return
         # when model/exp/source are provided
         try:
@@ -103,7 +105,7 @@ def inspect_catalogue(cat=None, model=None, exp=None, source=None, verbose=True)
             pass  # go to return False
 
     if verbose:
-        print(f"The combination model={model}, exp={exp}, source={source} is not available in the catalogue.")
+        print(f"The combination model={model}, exp={exp}, source={source} is not available in the catalog.")
         if model:
             if is_in_cat(cat, model, None, None):
                 if exp:
