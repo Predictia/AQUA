@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 - AQUA is now capable of accessing multiple catalogs at the same time (#1205)
+- MN5 container for AQUA (#1213)
 
 ## [v0.9.2]
 
