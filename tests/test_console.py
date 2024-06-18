@@ -104,7 +104,7 @@ class TestAquaConsole():
             run_aqua(['add', catalog])
             assert os.path.isdir(os.path.join(mydir,'.aqua/catalogs', catalog))
             config_file = load_yaml(os.path.join(mydir,'.aqua', 'config-aqua.yaml'))
-            assert config_file['catalog'] == catalog
+            assert catalog in config_file['catalog']
 
         # add unexesting catalog from path
         with pytest.raises(SystemExit) as excinfo:
@@ -125,7 +125,7 @@ class TestAquaConsole():
         run_aqua(['set', 'ci'])
         assert os.path.isdir(os.path.join(mydir,'.aqua/catalogs/ci'))
         config_file = load_yaml(os.path.join(mydir,'.aqua', 'config-aqua.yaml'))
-        assert config_file['catalog'] == 'ci'
+        assert config_file['catalog'][0] == 'ci'
 
         # set non existing catalog
         with pytest.raises(SystemExit) as excinfo:

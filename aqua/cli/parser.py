@@ -43,14 +43,14 @@ def parse_arguments():
     parser_fixes = file_subparser(subparsers, 'fixes')
 
     # extra parsers arguments
-    install_parser.add_argument('machine', nargs='?', metavar="MACHINE", default=None,
+    install_parser.add_argument('machine', nargs='?', metavar="MACHINE_NAME", default=None,
                                 help="Machine on which install AQUA")
-    install_parser.add_argument('-p', '--path', type=str,
+    install_parser.add_argument('-p', '--path', type=str, metavar="AQUA_TARGET_PATH",
                                 help='Path where to install AQUA. Default is $HOME/.aqua')
-    install_parser.add_argument('-e', '--editable', type=str,
+    install_parser.add_argument('-e', '--editable', type=str, metavar="AQUA_SOURCE_PATH",
                                 help='Install AQUA in editable mode from the original source')
 
-    catalog_add_parser.add_argument("catalog", metavar="CATALOG",
+    catalog_add_parser.add_argument("catalog", metavar="CATALOG_NAME",
                                     help="Catalog to be installed")
     catalog_add_parser.add_argument('-e', '--editable', type=str,
                                     help='Install a catalog in editable mode from the original source: provide the Path')
@@ -60,12 +60,12 @@ def parse_arguments():
     catalog_update_parser.add_argument("-l", "--local", action="store_true",
                                        help="Retrieve the AQUA catalog from local repository instead of Github")
 
-    catalog_remove_parser.add_argument("catalog", metavar="CATALOG",
+    catalog_remove_parser.add_argument("catalog", metavar="CATALOG_NAME",
                                        help="Catalog to be removed")
 
-    set_parser.add_argument("catalog", metavar="CATALOG", help="Catalog to be used in AQUA")
+    set_parser.add_argument("catalog", metavar="CATALOG_NAME", help="Catalog to be used in AQUA")
 
-    catalog_update_parser.add_argument("catalog", metavar="CATALOG", help="Catalog to be updated")
+    catalog_update_parser.add_argument("catalog", metavar="CATALOG_NAME", help="Catalog to be updated")
 
     list_parser.add_argument("-a", "--all", action="store_true",
                              help="Print also all the installed fixes, grids and data_models")
