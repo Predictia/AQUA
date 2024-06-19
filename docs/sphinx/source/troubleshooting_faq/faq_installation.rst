@@ -16,7 +16,7 @@ Pip dependency resolution
 You may encounter an error messange indicating a problem with the pip's dependency resolution process,
 which may involve outdated dependencies for certain packages, e.g.:
   
-.. code-block:: bash
+.. code-block:: text
   
   ERROR: pip's dependency resolver does not currently take into account all the packages that are installed.
   This behaviour is the source of the following dependency conflicts.
