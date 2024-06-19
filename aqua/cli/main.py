@@ -318,10 +318,7 @@ class AquaConsole():
         if args.editable is not None:
             self._add_catalog_editable(args.catalog, args.editable)
         else:
-            if args.local:
-                self._add_catalog_local(args.catalog)
-            else:
-                self._add_catalog_github(args.catalog)
+            self._add_catalog_github(args.catalog)
 
         # verify that the new catalog is compatible with AQUA, loading it with catalog()
         try:
