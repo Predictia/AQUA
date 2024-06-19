@@ -52,8 +52,8 @@ def parse_arguments():
 
     catalog_add_parser.add_argument("catalog", metavar="CATALOG_NAME",
                                     help="Catalog to be installed")
-    catalog_add_parser.add_argument('-e', '--editable', metavar="CATALOG_SOURCE_PATH", type=str,
-                                    help='Install a catalog in editable mode from the original source')
+    catalog_add_parser.add_argument('-e', '--editable', type=str,
+                                    help='Install a catalog in editable mode from the original source: provide the Path')
 
     catalog_remove_parser.add_argument("catalog", metavar="CATALOG_NAME",
                                        help="Catalog to be removed")
