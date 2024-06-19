@@ -332,50 +332,6 @@ class TestAquaConsole():
         run_aqua_console_with_input(['uninstall'], 'yes')
         assert not os.path.exists(os.path.join(mydir,'.aqua'))
 
-    # # base set of tests
-    # def test_console_local(self, tmpdir, set_home, run_aqua, run_aqua_console_with_input):
-
-    #     # getting fixture
-    #     mydir = str(tmpdir)
-    #     set_home(mydir)
-
-    #     # aqua install
-    #     run_aqua(['install'])
-    #     assert os.path.isdir(os.path.join(mydir,'.aqua'))
-    #     assert os.path.isfile(os.path.join(mydir,'.aqua', 'config-aqua.yaml'))
-
-    #     # add catalog from local
-    #     run_aqua(['-v', 'add', 'ci', '--local'])
-    #     assert os.path.isdir(os.path.join(mydir,'.aqua/catalogs/ci'))
-    #     config_file = load_yaml(os.path.join(mydir,'.aqua', 'config-aqua.yaml'))
-    #     assert config_file['catalog'] == 'ci'
-
-    #     # add catalog from path
-    #     run_aqua(['add', 'config/catalogs/lumi', '--local'])
-    #     assert os.path.isdir(os.path.join(mydir,'.aqua/catalogs/lumi'))
-    #     config_file = load_yaml(os.path.join(mydir,'.aqua', 'config-aqua.yaml'))
-    #     assert config_file['catalog'] == 'lumi'
-
-    #     # raise error for existing catalog
-    #     with pytest.raises(SystemExit) as excinfo:
-    #         run_aqua(['-v', 'add', 'ci', '--local'])
-    #         assert excinfo.value.code == 1
-
-    #     # update catalog from local
-    #     run_aqua(['-v', 'update', 'ci', '--local'])
-    #     assert os.path.isdir(os.path.join(mydir,'.aqua/catalogs/ci'))
-    #     config_file = load_yaml(os.path.join(mydir,'.aqua', 'config-aqua.yaml'))
-    #     assert config_file['catalog'] == 'ci'
-
-    #     # add non existing catalog editable
-    #     with pytest.raises(SystemExit) as excinfo:
-    #         run_aqua(['-v', 'add', 'ciccio', '--local'])
-    #         assert excinfo.value.code == 1
-
-    #     # uninstall everything again
-    #     run_aqua_console_with_input(['uninstall'], 'yes')
-    #     assert not os.path.exists(os.path.join(mydir,'.aqua'))
-
     def test_console_without_home(self, delete_home, run_aqua, tmpdir, run_aqua_console_with_input):
 
         # getting fixture
