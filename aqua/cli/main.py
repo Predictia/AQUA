@@ -7,6 +7,8 @@ AQUA command line main functions
 import os
 import shutil
 import sys
+from urllib.error import HTTPError
+import fsspec
 from aqua.util import load_yaml, dump_yaml, load_multi_yaml
 from aqua.logger import log_configure
 from aqua.util import ConfigPath
@@ -17,6 +19,7 @@ from aqua import catalog
 
 # folder used for reading/storing catalogs
 catpath = 'catalogs'
+
 
 class AquaConsole():
     """Class for AquaConsole, the AQUA command line interface for
@@ -79,7 +82,6 @@ class AquaConsole():
             # default
             else:
                 method(args)
-
 
     def install(self, args):
         """Install AQUA, find the folders and then install
@@ -161,7 +163,7 @@ class AquaConsole():
 
         print("Installing AQUA to", self.configpath)
         for file in ['config-aqua.tmpl']:
-            target_file = os.path.splitext(file)[0] + '.yaml' #replace the tmpl with yaml
+            target_file = os.path.splitext(file)[0] + '.yaml'  # replace the tmpl with yaml
             if not os.path.exists(os.path.join(self.configpath, target_file)):
                 self.logger.info('Copying from %s to %s', self.aquapath, self.configpath)
                 shutil.copy(f'{self.aquapath}/{file}', f'{self.configpath}/{target_file}')
@@ -186,7 +188,6 @@ class AquaConsole():
             if os.path.isfile(os.path.join(editable, file)):
                 if not os.path.exists(os.path.join(self.configpath, file)):
                     self.logger.info('Linking from %s to %s', editable, self.configpath)
-                    #os.symlink(f'{editable}/{file}', f'{self.configpath}/{file}')
                     shutil.copy(f'{editable}/{file}', f'{self.configpath}/{target_file}')
             else:
                 self.logger.error('%s folder does not include AQUA configuration files. Please use AQUA/config', editable)
@@ -210,16 +211,12 @@ class AquaConsole():
         if machine is None:
             self.logger.info('Unknown machine!')
         else:
-            #if args.editable:
-            #    self.logger.info('Editable version installed, not modifying the machine name and leaving in auto')
-            #else:
             self.configfile = os.path.join(self.configpath, 'config-aqua.yaml')
             self.logger.info('Setting machine name to %s', machine)
             cfg = load_yaml(self.configfile)
             cfg['machine'] = machine
-            
-            dump_yaml(self.configfile, cfg)
 
+            dump_yaml(self.configfile, cfg)
 
     def set(self, args):
         """Set an installed catalog as the one used in the config-aqua.yaml
@@ -318,11 +315,10 @@ class AquaConsole():
         print('Adding the AQUA catalog', args.catalog)
         self._check()
 
-
         if args.editable is not None:
             self._add_catalog_editable(args.catalog, args.editable)
         else:
-            self._add_catalog_default(args.catalog)
+            self._add_catalog_github(args.catalog)
 
         # verify that the new catalog is compatible with AQUA, loading it with catalog()
         try:
@@ -333,7 +329,6 @@ class AquaConsole():
             self.logger.error('Current catalog is not compatible with AQUA, removing it for safety!')
             self.logger.error(e)
             sys.exit(1)
-
 
     def _add_catalog_editable(self, catalog, editable):
         """Add a catalog in editable mode (i.e. link)"""
@@ -351,40 +346,43 @@ class AquaConsole():
         else:
             self.logger.error('Catalog %s cannot be found in %s', catalog, editable)
             sys.exit(1)
-    
+
         self._set_catalog(catalog)
 
-    def _add_catalog_default(self, catalog):
-        """Add a catalog in default mode"""
+    def _add_catalog_github(self, catalog):
+        """Add a catalog from the remote Github Climate-DT repository"""
 
-        # check if catalog is a path or a name
-        if '/' in catalog:
-            if os.path.exists(catalog):
-                sdir = catalog
-                catalog = os.path.basename(catalog)
-                self.logger.info('%s catalog is installed from disk from %s', catalog, sdir)
-            else:
-                self.logger.error('Cannot find %s catalog, is the path correct?', catalog)
-                sys.exit(1)
-        else:
-            sdir = f'{self.aquapath}/{catpath}/{catalog}'
-
-        # define target
+        # recursive copy
         cdir = f'{self.configpath}/{catpath}/{catalog}'
-
         if not os.path.exists(cdir):
-            if os.path.isdir(sdir):
-                shutil.copytree(sdir, cdir)
-            else:
-                self.logger.error('Catalog %s does not appear to exist in %s', catalog, sdir)
-                self.logger.error('Available catalogs are: %s', os.listdir(f'{self.aquapath}/{catpath}'))
+            try:
+                # for private repo, we need user e token. since this is a test feature,
+                # before going open source, we will use a basic token and PD account.
+                fs = fsspec.filesystem("github",
+                                       org="DestinE-Climate-DT",
+                                       repo="Climate-DT-catalog",
+                                       username="mnurisso",
+                                       token="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") # noqa
+                self.logger.info('Accessed remote repository https://github.com/DestinE-Climate-DT/Climate-DT-catalog')
+            except HTTPError:
+                self.logger.error('Permission issues in accessing Climate-DT catalog, please contact AQUA mantainers')
                 sys.exit(1)
+            available_catalog = [os.path.basename(x) for x in fs.ls(f"{catpath}/")]
+            if catalog not in available_catalog:
+                self.logger.error('Cannot find on Climate-DT-catalog the requested catalog %s, available are %s',
+                                  catalog, available_catalog)
+                sys.exit(1)
+
+            source_dir = f"{catpath}/{catalog}"
+            self.logger.info('Fetching remote catalog %s from github to %s', catalog, cdir)
+            os.makedirs(cdir, exist_ok=True)
+            fsspec_get_recursive(fs, source_dir, cdir)
+            self.logger.info('Download complete!')
+            self._set_catalog(catalog)
         else:
-            self.logger.error("Catalog %s already installed in %s, please consider `aqua update` or `aqua set`",
+            self.logger.error("Catalog %s already installed in %s, please consider `aqua update`.",
                               catalog, cdir)
             sys.exit(1)
-
-        self._set_catalog(catalog)
 
     def update(self, args):
         """Update an existing catalog by copying it if not installed in editable mode"""
@@ -399,9 +397,7 @@ class AquaConsole():
             else:
                 self.logger.info('Removing %s from %s', args.catalog, sdir)
                 shutil.rmtree(cdir)
-                #self.logger.info('Copying %s from %s', args.catalog, sdir)
-                #shutil.copytree(sdir, cdir)
-                self._add_catalog_default(args.catalog)
+                self._add_catalog_github(args.catalog)
         else:
             self.logger.error('%s does not appear to be installed, please consider `aqua add`', args.catalog)
             sys.exit(1)
@@ -425,12 +421,13 @@ class AquaConsole():
             else:
                 if isinstance(cfg['catalog'], list):
                     other_catalogs = [x for x in to_list(cfg['catalog']) if x != catalog]
-                    self.logger.debug('Catalog %s is already there, setting it as first entry before %s', catalog, other_catalogs)
+                    self.logger.debug('Catalog %s is already there, setting it as first entry before %s',
+                                      catalog, other_catalogs)
                     cfg['catalog'] = [catalog] + other_catalogs
                 else:
                     self.logger.debug('Catalog %s is already there, but is the only installed', catalog)
                     cfg['catalog'] = catalog
-    
+
         dump_yaml(self.configfile, cfg)
 
     def remove(self, args):
@@ -456,7 +453,6 @@ class AquaConsole():
             sys.exit(1)
 
     def _clean_catalog(self, catalog):
-            
         """
         Remove catalog from the configuration file
         """
@@ -468,8 +464,6 @@ class AquaConsole():
             cfg['catalog'].remove(catalog)
         self.logger.info('Catalog %s removed, catalogs %s are available', catalog, cfg['catalog'])
         dump_yaml(self.configfile, cfg)
-
-
 
     def remove_file(self, args):
         """Add a personalized file to the fixes/grids folder
@@ -592,3 +586,33 @@ def query_yes_no(question, default="yes"):
             return valid[choice]
         else:
             print("Please respond with 'yes' or 'no' (or 'y' or 'n').")
+
+
+# Function to recursively copy files and directories
+def fsspec_get_recursive(fs, src_dir, dest_dir):
+    """
+    Recursive function to download from a fsspec object
+
+    Args:
+        fs: fsspec filesystem object, as github instance
+        src_dir (str): source directory
+        dest_dir (str): target directory
+
+    Returns:
+        Remotely copy data from source to dest directory
+    """
+    data = fs.ls(src_dir)
+    for item in data:
+        relative_path = os.path.relpath(item, src_dir)
+        dest_path = os.path.join(dest_dir, relative_path)
+
+        if fs.isdir(item):
+            # Create the directory in the destination
+            os.makedirs(dest_path, exist_ok=True)
+            # Recursively copy the contents of the directory
+            fsspec_get_recursive(fs, item, dest_path)
+        else:
+            # Ensure the directory exists before copying the file
+            os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+            # Copy the file
+            fs.get(item, dest_path)
