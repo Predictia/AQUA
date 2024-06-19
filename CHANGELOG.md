@@ -13,6 +13,7 @@ Main changes are:
 1. The catalog is externalized and AQUA supports multiple catalogs. It is now mandatory to use the aqua console to add a new catalog to the AQUA installation.
 
 AQUA core complete list:
+- Catalogs can be installed from the external repository (#1182)
 - Catalog is externalized to a separate repository (#1200)
 - AQUA is now capable of accessing multiple catalogs at the same time (#1205)
 - MN5 container for AQUA (#1213)
@@ -51,7 +52,7 @@ Main changes are:
 2. Experiments placed half on HPC and half on DataBridge data can be accessed in continuous manner.
 
 AQUA core complete list:
-- AQUA entry point for installation and catalog maintanance and fixes/grids handling (#1131, #1134, #1146, #1168, #1169, #1182)
+- AQUA entry point for installation and catalog maintanance and fixes/grids handling (#1131, #1134, #1146, #1168, #1169)
 - Automatic switching between HPC and databridge FDB (#1054, #1190)
 - CLI script for automatic multiple experiment analysis submission (#1160, #1175)
 
