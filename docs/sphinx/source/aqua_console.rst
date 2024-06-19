@@ -13,25 +13,33 @@ It has the following subcommands:
 
 - :ref:`aqua-install`
 - :ref:`aqua-add`
-- :ref:`aqua-list`
-- :ref:`aqua-update`
 - :ref:`aqua-remove`
 - :ref:`aqua-set`
 - :ref:`aqua-uninstall`
+- :ref:`aqua-list`
+- :ref:`aqua-update`
 - :ref:`aqua-fixes`
 - :ref:`aqua-grids`
 
-To show the AQUA version, you can use the command:
+The main command has some options listed below:
 
-.. code-block:: bash
+.. option:: --version
 
-    aqua --version
+    To show the AQUA version.
 
-while a brief help is available with:
+.. option:: --path
 
-.. code-block:: bash
+    To show the path where the source code is installed.
+    This is particularly useful if you're running a script that uses AQUA.
 
-    aqua --help, -h
+.. warning::
+    Many of the CLI commands (see :ref:`cli`) are still relying on the existance
+    of an environment variable ``AQUA`` pointing to the main AQUA folder.
+    This will be soon deprecated in favor of the new console command.
+
+.. option:: --help, -h
+
+    To show the help message.
 
 It is possible to set the level of verbosity with two options:
 
@@ -43,7 +51,7 @@ It is possible to set the level of verbosity with two options:
 
     It increases the verbosity level, setting it to DEBUG.
 
-In both cases the level of verbosity has to be specified before the command.
+In both cases the level of verbosity has to be specified before the subcommand.
 
 .. _aqua-install:
 
@@ -55,9 +63,21 @@ By default, this will be ``$HOME/.aqua``. It is possible to specify from where t
 It is also possible to ask for an editable installation, so that only links are created, ideal for developers, 
 which can keep their catalog or fixes files under version control.
 
-.. option:: machine
+.. note::
+    Since version ``v0.10`` the configuration file provided in the AQUA release is a template.
+    Even if the ``aqua install`` is done in editable mode, the configuration file will be copied to the destination folder.
 
-    The name of the machine where you are installing. It is an optional argument to simplify analysis on specific system as levante or lumi.
+Optional arguments are:
+
+.. option:: machine-name
+
+    The name of the machine where you are installing.
+    It is an optional argument that will set the machine name of the configuration file.
+
+.. warning::
+    If not provided, the machine name will be left to ``auto``, where each time the 
+    configuration file is loaded, the machine name will be set trying to guess the machine name.
+    This can bring to some issues if the machine name is not correctly guessed.
 
 .. option:: --path, -p <path>
 
@@ -83,19 +103,68 @@ This command adds a catalog to the list of available catalogs.
 It will copy the catalog folder and files to the destination folder.
 As before, it is possible to specify if symbolic links have to be created
 and it is possible to install extra catalogs not present in the AQUA release.
-Multiple catalogs can be installed with multiple calls to `aqua add`
+
+.. note::
+    Since version ``v0.10`` the catalog is detached from the AQUA repository and
+    it is available `here <https://github.com/DestinE-Climate-DT/Climate-DT-catalog>`_.
+
+Multiple catalogs can be installed with multiple calls to `aqua add`.
+By default the catalog will be downloaded from the external Climate-DT catalog repository,
+if a matching catalog is found. As shown below, it is possible to specify a local path
+and install the catalog from there.
 
 .. option:: catalog
 
     The name of the catalog to be added.
-    It can be also a path pointing to a specific folder where an AQUA compatible catalog can be found
-    This is a mandatory field.
+    **It is a mandatory argument.**
+    If the installation is done in editable mode, this name can be customized.
 
 .. option:: --editable, -e <path>
 
     It installs the catalog based on the path given.
     It will create a symbolic link to the catalog folder.
     This is very recommended for developers. Please read the :ref:`dev-notes` section.
+
+.. _aqua-remove:
+
+aqua remove <catalog>
+-----------------------
+
+It removes a catalog from the list of available catalogs.
+This means that the catalog folder will be removed from the installation folder or the link will be deleted
+if the catalog is installed in editable mode.
+
+.. option:: catalog
+
+    The name of the catalog to be removed.
+    **It is a mandatory argument.**
+
+.. _aqua-set:
+
+aqua set <catalog>
+--------------------
+
+This command sets the default main catalog to be used.
+Since it is possible to have multiple catalogs installed and accessible at the same time, 
+if more than one catalog is present it will move the selected catalog to the top of the list.
+The ``Reader`` behaviour will be then, if multiple triplets of ``model``, ``exp``, ``source`` are found in multiple
+catalogs, to use the first one found in the selected catalog.
+
+.. option:: catalog
+
+    The name of the catalog to be set as default.
+    **It is a mandatory argument.**
+
+.. _aqua-uninstall:
+
+aqua uninstall
+--------------
+
+This command removes the configuration and catalog files from the installation folder.
+If the installation was done in editable mode, only the links will be removed.
+
+.. note::
+    If you need to reinstall aqua, the command ``aqua install`` will ask if you want to overwrite the existing files.
 
 .. _aqua-list:
 
@@ -118,34 +187,9 @@ This command will check if there is a new version of the catalog available and u
 
 .. warning::
 
-    This will work smoothly only for default AQUA catalogs unless the full path is specified.
+    This will work only for catalogs installed from the Climate-DT repository.
+    If the catalog is installed in editable mode, it will be enough to update the linked folders.
 
-.. _aqua-remove:
-
-aqua remove <catalog>
------------------------
-
-It removes a catalog from the list of available catalogs.
-This means that the catalog folder will be removed from the installation folder or the link will be deleted
-if the catalog is installed in editable mode.
-
-.. _aqua-set:
-
-aqua set <catalog>
---------------------
-
-This command sets the default main catalog to be used. 
-
-.. _aqua-uninstall:
-
-aqua uninstall
---------------
-
-This command removes the configuration and catalog files from the installation folder.
-If the installation was done in editable mode, only the links will be removed.
-
-.. note::
-    If you need to reinstall aqua, the command ``aqua install`` will ask if you want to overwrite the existing files.
 
 .. _aqua-fixes:
 
