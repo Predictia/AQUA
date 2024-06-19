@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 - Fixer for monthly frequency data with monthly cumulated fluxes (#1201)
+- Catalogs can be installed from the external repository (#1182)
 
 ## [v0.10]
 
@@ -14,7 +15,6 @@ Main changes are:
 1. The catalog is externalized and AQUA supports multiple catalogs. It is now mandatory to use the aqua console to add a new catalog to the AQUA installation.
 
 AQUA core complete list:
-- Catalogs can be installed from the external repository (#1182)
 - Catalog is externalized to a separate repository (#1200)
 - AQUA is now capable of accessing multiple catalogs at the same time (#1205)
 - MN5 container for AQUA (#1213)
