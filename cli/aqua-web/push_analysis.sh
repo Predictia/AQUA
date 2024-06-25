@@ -74,7 +74,6 @@ git clone git@github.com:DestinE-Climate-DT/aqua-web.git aqua-web$$
 # erase content and copy all files to content
 log_message INFO "Collect and update figures in content/pdf"
 cd aqua-web$$
-git checkout devel/catalog # XXXX
 
 # Check if the second argument is an actual file and use it as a list of experiments
 if [ -f "$2" ]; then
