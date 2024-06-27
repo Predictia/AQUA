@@ -37,8 +37,8 @@ convert_pdf_to_png() {
     git rm -r $dstdir
     mkdir -p $dstdir
     
-    IFS='/' read -r model experiment <<< "$1"
-    ./pdf_to_png.sh "$model" "$experiment"
+    IFS='/' read -r catalog model experiment <<< "$1"
+    ./pdf_to_png.sh "$catalog" "$model" "$experiment"
 
     git add $dstdir
 }
@@ -87,13 +87,14 @@ if [ -f "$2" ]; then
         fi
 
         # Extract model, experiment, and source from the line
-        model=$(echo "$line" | awk '{print $1}')
-        experiment=$(echo "$line" | awk '{print $2}')
+        catalog=$(echo "$line" | awk '{print $1}')
+        model=$(echo "$line" | awk '{print $2}')
+        experiment=$(echo "$line" | awk '{print $3}')
 
-        collect_figures "$1" "$model/$experiment"
-        convert_pdf_to_png "$model/$experiment"
+        collect_figures "$1" "$catalog/$model/$experiment"
+        convert_pdf_to_png "$catalog/$model/$experiment"
     done < "$2"
-else  # Otherwise, use the second argument as the experiment
+else  # Otherwise, use the second argument as the experiment folder
     collect_figures "$1" "$2"
     convert_pdf_to_png "$2"
 fi
