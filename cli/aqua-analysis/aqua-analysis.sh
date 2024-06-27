@@ -259,17 +259,6 @@ args_atm="--model $model_atm --exp $exp --source $source"
 args_oce="--model $model_oce --exp $exp --source $source"
 args="--model_atm $model_atm --model_oce $model_oce --exp $exp --source $source"
 
-# set the correct catalog in the config file
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  # Mac OSX
-  sed -i '' "/^catalog:/c\\
-catalog: $catalog" "${AQUA}/config/config-aqua.yaml"
-else
-  # Linux
-  sed -i "/^catalog:/c\\catalog: $catalog" "${AQUA}/config/config-aqua.yaml"
-fi
-log_message INFO "Catalog set to $catalog in the config file"
-
 # Create output directory if it does not exist
 log_message INFO "Creating output directory $outputdir"
 mkdir -p "$outputdir_atm"
