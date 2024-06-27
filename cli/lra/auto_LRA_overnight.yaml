@@ -5,7 +5,6 @@ target:
   outdir: /pfs/lustrep3/projappl/project_465000454/data/AQUA/LRA
   tmpdir: /pfs/lustrep3/projappl/project_465000454/padavini/tmp
 
-configdir: '../../config/'
 loglevel: INFO
 
 slurm:
@@ -17,6 +16,20 @@ slurm:
 
 catalog:
   IFS-NEMO:
+    control-1990:
+      hourly-hpz10-atm2d:
+        workers: 12
+        vars: ['mtpr', '2t', 'skt', 'msl', 'tcc', 'lcc', 'hcc', 'mcc', 'sd', 'tciw', 'tclw', 'mer', 'msr', 'mslhf', 'msshf',
+          'msnswrf', 'msnlwrf', 'msdwlwrf', 'msdwswrf', 'mtnswrf', 'mtnlwrf', 'mtdwswrf', 'mntss', 'metss', 'msror']
+      hourly-hpz10-atm3d:
+        workers: 8
+        vars: ['q', 't', 'u', 'v']
+      daily-hpz10-oce2d:
+        workers: 8
+        vars: ['avg_tos', 'avg_sithick', 'avg_siconc', 'avg_sos', 'avg_hc700m']
+      daily-hpz10-oce3d:
+        workers: 4
+        vars: ['avg_thetao', 'avg_so']
     a1al:
       hourly-hpz7-atm2d:
         workers: 24
@@ -59,22 +72,22 @@ catalog:
       daily-hpz7-oce3d:
         workers: 16
         vars: ['avg_thetao', 'avg_so']
-    hs3l-historical-1990:
-      monthly-hpz7-atm2d:
-        workers: 24
-        vars: ['mtpr', '2t', 'skt', 'msl', 'tcc', 'lcc', 'hcc', 'mcc', 'sd', 'tciw', 'tclw', 'mer', 'msr', 'mslhf', 'msshf', 
-          'msnswrf', 'msnlwrf', 'msdwlwrf', 'msdwswrf', 'mtnswrf', 'mtnlwrf', 'mtdwswrf', 'mntss', 'metss', 'msror']
-      monthly-hpz7-atm3d:
-        workers: 16
-        vars: ['q', 't', 'u', 'v']
-    hs3l-control-1990:
-      monthly-hpz7-atm2d:
-        workers: 24
-        vars: ['mtpr', '2t', 'skt', 'msl', 'tcc', 'lcc', 'hcc', 'mcc', 'sd', 'tciw', 'tclw', 'mer', 'msr', 'mslhf', 'msshf', 
-          'msnswrf', 'msnlwrf', 'msdwlwrf', 'msdwswrf', 'mtnswrf', 'mtnlwrf', 'mtdwswrf', 'mntss', 'metss', 'msror']
-      monthly-hpz7-atm3d:
-        workers: 16
-        vars: ['q', 't', 'u', 'v']
+          #    hs3l-historical-1990:
+          #      monthly-hpz7-atm2d:
+          #        workers: 24
+          #        vars: ['mtpr', '2t', 'skt', 'msl', 'tcc', 'lcc', 'hcc', 'mcc', 'sd', 'tciw', 'tclw', 'mer', 'msr', 'mslhf', 'msshf', 
+          #          'msnswrf', 'msnlwrf', 'msdwlwrf', 'msdwswrf', 'mtnswrf', 'mtnlwrf', 'mtdwswrf', 'mntss', 'metss', 'msror']
+          #      monthly-hpz7-atm3d:
+          #        workers: 16
+          #        vars: ['q', 't', 'u', 'v']
+          #    hs3l-control-1990:
+          #      monthly-hpz7-atm2d:
+          #        workers: 24
+          #      vars: ['mtpr', '2t', 'skt', 'msl', 'tcc', 'lcc', 'hcc', 'mcc', 'sd', 'tciw', 'tclw', 'mer', 'msr', 'mslhf', 'msshf', 
+          #       'msnswrf', 'msnlwrf', 'msdwlwrf', 'msdwswrf', 'mtnswrf', 'mtnlwrf', 'mtdwswrf', 'mntss', 'metss', 'msror']
+          #      monthly-hpz7-atm3d:
+          #     workers: 16
+          #  vars: ['q', 't', 'u', 'v']
 
   IFS-FESOM:
     story-2017-control:
