@@ -18,17 +18,17 @@ catalog:
   IFS-NEMO:
     control-1990:
       hourly-hpz10-atm2d:
-        workers: 12
+        workers: 16
         vars: ['mtpr', '2t', 'skt', 'msl', 'tcc', 'lcc', 'hcc', 'mcc', 'sd', 'tciw', 'tclw', 'mer', 'msr', 'mslhf', 'msshf',
           'msnswrf', 'msnlwrf', 'msdwlwrf', 'msdwswrf', 'mtnswrf', 'mtnlwrf', 'mtdwswrf', 'mntss', 'metss', 'msror']
       hourly-hpz10-atm3d:
-        workers: 8
+        workers: 6
         vars: ['q', 't', 'u', 'v']
       daily-hpz10-oce2d:
-        workers: 8
+        workers: 12
         vars: ['avg_tos', 'avg_sithick', 'avg_siconc', 'avg_sos', 'avg_hc700m']
       daily-hpz10-oce3d:
-        workers: 4
+        workers: 3
         vars: ['avg_thetao', 'avg_so']
     # a1al:
     #   hourly-hpz7-atm2d:
