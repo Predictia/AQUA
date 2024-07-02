@@ -448,7 +448,7 @@ class FixerMixin():
             data = log_history(data, f"Coordinates adjusted to {src_datamodel} by fixer")
 
         # Extra coordinate handling
-        dazta = self._fix_dims(data)
+        data = self._fix_dims(data)
         data = self._fix_coord(data)
 
         return data
