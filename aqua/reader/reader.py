@@ -104,7 +104,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         self.nproc = nproc
         self.vert_coord = None
         self.deltat = 1
-        self.dpm = False
+        self.time_correction = False #extra flag for correction data with cumulation time on monthly timescale
         self.aggregation = aggregation
         self.chunks = chunks
 
