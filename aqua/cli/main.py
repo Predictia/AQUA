@@ -16,6 +16,7 @@ from aqua.cli.parser import parse_arguments
 from aqua.util.util import HiddenPrints, to_list
 from aqua import __path__ as pypath
 from aqua import catalog
+from aqua.util import create_folder
 
 # folder used for reading/storing catalogs
 catpath = 'catalogs'
@@ -100,8 +101,10 @@ class AquaConsole():
         # define from where aqua is installed and copy/link the files
         if args.editable is None:
             self._install_default()
+            self._install_default_diagnostics()
         else:
             self._install_editable(args.editable)
+            self._install_editable_diagnostics(args.editable)
 
         self._set_machine(args)
 
@@ -200,6 +203,66 @@ class AquaConsole():
                 os.symlink(f'{editable}/{directory}', f'{self.configpath}/{directory}')
         os.makedirs(f'{self.configpath}/{catpath}', exist_ok=True)
 
+    def _install_default_diagnostics(self):
+        """Copy the config file from the diagnostics path to AQUA"""
+
+        diagnostic_path = os.path.join(os.path.dirname(self.pypath), 'diagnostics', 'tropical_rainfall', 'tropical_rainfall')
+        config_file = 'config-tropical-rainfall.yml'
+        target_directory = os.path.join(self.configpath, 'diagnostics', 'tropical_rainfall')
+        target_file = os.path.join(target_directory, config_file)
+
+        if not os.path.exists(diagnostic_path):
+            self.logger.error('The diagnostic path %s does not exist. Please check the path.', diagnostic_path)
+            sys.exit(1)
+
+        source_file = os.path.join(diagnostic_path, config_file)
+
+        if not os.path.isfile(source_file):
+            self.logger.error('The config file %s does not exist in the diagnostic path. Please check the path.', source_file)
+            sys.exit(1)
+
+        # Ensure the target directory exists using create_folder
+        create_folder(target_directory, loglevel="INFO")
+
+        if not os.path.exists(target_file):
+            self.logger.debug('Copying from %s to %s', source_file, target_file)
+            shutil.copy(source_file, target_file)
+        else:
+            self.logger.debug('Config file %s already exists in the target path %s. Skipping copy.', config_file, target_directory)
+        
+    def _install_editable_diagnostics(self, editable):
+        """Create a symbolic link for the config file from the diagnostics path to AQUA"""
+
+        if not os.path.exists(editable):
+            self.logger.error('The editable path %s does not exist. Please check the path.', editable)
+            sys.exit(1)
+
+        editable = os.path.abspath(editable)
+        self.logger.info("Copying tropical_rainfall config files from %s to %s", editable, self.configpath)
+        diagnostic_path = os.path.join(os.path.dirname(editable), 'diagnostics', 'tropical_rainfall', 'tropical_rainfall')
+        config_file = 'config-tropical-rainfall.yml'
+        target_directory = os.path.join(self.configpath, 'diagnostics', 'tropical_rainfall')
+        target_file = os.path.join(target_directory, config_file)
+
+        if not os.path.exists(diagnostic_path):
+            self.logger.error('The diagnostic path %s does not exist. Please check the path.', diagnostic_path)
+            sys.exit(1)
+
+        source_file = os.path.join(diagnostic_path, config_file)
+
+        if not os.path.isfile(source_file):
+            self.logger.error('The config file %s does not exist in the diagnostic path. Please check the path.', source_file)
+            sys.exit(1)
+
+        # Ensure the target directory exists using create_folder
+        create_folder(target_directory, loglevel="INFO")
+
+        if not os.path.exists(target_file):
+            self.logger.debug('Linking from %s to %s', source_file, target_file)
+            os.symlink(source_file, target_file)
+        else:
+            self.logger.debug('Config file %s already exists in the target path %s. Skipping link.', config_file, target_directory)
+    
     def _set_machine(self, args):
         """Modify the config-aqua.yaml with the identified machine"""
 
