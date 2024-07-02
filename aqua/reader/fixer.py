@@ -939,9 +939,10 @@ class FixerMixin():
             offset = 0 * units(dst)
         
         # store only offset and factor when they are different from the default
+        # pay attention that offset and factor should be applied together
         if offset.magnitude != 0:
             conversion['offset'] = offset.magnitude
-        if factor.magnitude != 1:
+        elif factor.magnitude != 1:
             conversion['factor'] = factor.magnitude
 
         return conversion
