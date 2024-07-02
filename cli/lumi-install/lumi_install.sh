@@ -159,7 +159,7 @@ if ! grep -q 'module use /project/project_465000454/devaraju/modules/LUMI/23.03/
   echo '# Load modules' >> $load_aqua_file
   echo 'module purge' >> $load_aqua_file
   echo 'module load ecCodes/2.33.0-cpeCray-23.03' >> $load_aqua_file
-  echo 'module load fdb/5.11.94-cpeCray-23.03' >> $load_aqua_file
+  echo 'module load fdb/5.11.111-cpeCray-23.03' >> $load_aqua_file
   echo 'module load eckit/1.25.0-cpeCray-23.03' >> $load_aqua_file
   echo 'module load metkit/1.11.0-cpeCray-23.03' >> $load_aqua_file
     
