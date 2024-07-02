@@ -400,20 +400,13 @@ class FixerMixin():
                     log_history(data[source], f"Converting units of {var}: from {data[source].units} to {tgt_units}")
                     conversion_dictionary = self.convert_units(data[source].units, tgt_units, var)
 
+                    # if some unit conversion is defined, modify the attributes and history for later usage
                     if conversion_dictionary:
                         data[source].attrs.update({"tgt_units": tgt_units})
                         for key, value in conversion_dictionary.items():
                             data[source].attrs.update({key: value})
                             self.logger.debug("Fixing %s to %s. Unit fix: %s=%f", source, var, key, value)
                             log_history(data[source], f"Fixing {source} to {var}. Unit fix: {key}={value}")
-                    # if (factor != 1.0) or (offset != 0):
-                    #     data[source].attrs.update({"tgt_units": tgt_units})
-                    #     data[source].attrs.update({"factor": factor})
-                    #     data[source].attrs.update({"offset": offset})
-                    #     data[source].attrs.update({"dpm": dpm})
-                    #     self.logger.debug("Fixing %s to %s. Unit fix: factor=%f, offset=%f, dpm=%d",
-                    #                       source, var, factor, offset, dpm)
-                    #     log_history(data[source], f"Fixing {source} to {var}. Unit fix: factor={factor}, offset={offset}")
 
                 # Set to NaN before a certain date
                 mindate = varfix.get("mindate", None)
