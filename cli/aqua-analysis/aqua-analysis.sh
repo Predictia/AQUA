@@ -20,13 +20,13 @@ setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
 # They can be overwritten by using the command line
 # arguments.
 # ---------------------------------------------------
-model_atm="IFS-NEMO"
-model_oce="IFS-NEMO"
-exp="historical-1990"
-source="lra-r100-monthly"
+model_atm=""
+model_oce=""
+exp=""
+source=""
 outputdir="${AQUA}/cli/aqua-analysis/output" # Prefer absolute paths, e.g., "/path/to/aqua/my/output"
 loglevel="WARNING" # DEBUG, INFO, WARNING, ERROR, CRITICAL
-catalog="lumi" # will change the aqua config file
+catalog="" # will be set as first if set
 
 # ---------------------------------------
 # The max_threads variable serves as a mechanism to control the maximum number of threads
@@ -222,12 +222,22 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# Check if mandatory options are set
+if [[ -z "$model_atm" || -z "$model_oce" || -z "$exp" || -z "$source" ]]; then
+  echo "Error: Missing mandatory command line option."
+  echo "Usage: $0 --model_atm <model_atm> --model_oce <model_oce> --exp <exp> --source <source>"
+  exit 1
+fi
+
 log_message INFO "Setting loglevel to $loglevel"
+if [ -n "$catalog" ]; then # If catalog is present, set it as the first source
+  log_message INFO "Catalog: $catalog"
+  aqua set $catalog
+fi
 log_message INFO "Atmospheric model: $model_atm"
 log_message INFO "Oceanic model: $model_oce"
 log_message INFO "Experiment: $exp"
 log_message INFO "Source: $source"
-log_message INFO "Catalog: $catalog"
 log_message INFO "Output directory: $outputdir"
 
 # Set extra arguments in distributed case
