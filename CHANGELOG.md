@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 - Fixer for monthly frequency data with monthly cumulated fluxes (#1201)
 - Catalogs can be installed from the external repository (#1182)
+- Added grid for NEMO multiIO r100 (#1227)
 - Reorganized analysis output in catalog/model/exp structure (#1218)
 
 ## [v0.10]
