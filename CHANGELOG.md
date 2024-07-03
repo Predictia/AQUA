@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
+
+## [v0.10.1]
+
+AQUA core complete list:
 - Fixer for monthly frequency data with monthly cumulated fluxes (#1201)
 - Catalogs can be installed from the external repository (#1182)
 - Added grid for NEMO multiIO r100 (#1227)
@@ -538,7 +542,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.1...HEAD
+[v0.10.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10...v0.10.1
 [v0.10]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.9.2...v0.10
 [v0.9.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.9.1...v0.9.2
 [v0.9.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.9...v0.9.1
