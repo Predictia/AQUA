@@ -45,7 +45,7 @@ def parse_arguments(args):
     return parser.parse_args(args)
 
 
-def reader_data(model, exp, source, catalog=None):
+def reader_data(model, exp, source, catalog=None, keep_vars=None):
     """
     Simple function to retrieve and do some operation on reader data
     """
@@ -57,15 +57,16 @@ def reader_data(model, exp, source, catalog=None):
     try:
         reader = Reader(model=model, exp=exp, source=source, catalog=catalog, 
                         areas=False)
-        return reader
+        data = reader.retrieve()
+     
     except Exception as err:
         logger.error('Error while reading model %s: %s', model, err)
         return None
 
-    # return only vars that are available
-    #if keep_vars is None:
-    #    return data
-    #return data[[value for value in keep_vars if value in data.data_vars]]
+    # return only vars that are available: slower but avoid reader failures
+    if keep_vars is None:
+        return data
+    return data[[value for value in keep_vars if value in data.data_vars]]
 
 
 if __name__ == '__main__':
@@ -91,9 +92,8 @@ if __name__ == '__main__':
     year1 = configfile['dataset']['year1']
     year2 = configfile['dataset']['year2']
     config = configfile['setup']['config_file']
-    numproc = configfile['compute']['numproc']
 
-    numproc = get_arg(args, 'nworkers', numproc)
+    numproc = get_arg(args, 'nworkers', configfile['compute']['numproc'])
 
     # define the interface file
     Configurer = ConfigPath(configdir=None)
@@ -111,12 +111,13 @@ if __name__ == '__main__':
     logger.debug('Definitive interface file %s', interface)
 
     # load the data
-    logger.info('Accessing the AQUA reader for %s %s %s', model, exp, source)
-    reader = reader_data(model=model, exp=exp, source=source, catalog=catalog)
     logger.info('Loading atmospheric data %s', model)
-    data_atm = reader.retrieve(var=atm_vars)
+    data_atm = reader_data(model=model, exp=exp, source=source, 
+                           catalog=catalog, keep_vars=atm_vars)
+    
     logger.info('Loading oceanic data from %s', model)
-    data_oce = reader.retrieve(var=oce_vars)
+    data_oce = reader_data(model=model, exp=exp, source=source, 
+                            catalog=catalog, keep_vars=oce_vars)
 
     # create a single dataset
     if data_oce is None:
