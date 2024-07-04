@@ -1,9 +1,8 @@
 dataset:
-  model_atm: IFS-NEMO
-  model_oce: IFS-NEMO
+  model: IFS-NEMO
   exp: historical-1990
   atm_vars: ['2t', 'mtpr', 'msl', 'mer', 'metss', 'mntss', 'tcc',
-  'mtnswrf', 'mtnlwrf', 'msnswrf', 'msnlwrf', 'msshf', 'mslhf',
+    'mtnswrf', 'mtnlwrf', 'msnswrf', 'msnlwrf', 'msshf', 'mslhf',
     'u', 'v', 't', 'q']
   oce_vars: ['avg_tos', 'avg_siconc', 'avg_sos']
 

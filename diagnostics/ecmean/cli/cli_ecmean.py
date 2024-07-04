@@ -14,6 +14,7 @@ from aqua.util import load_yaml, get_arg, ConfigPath
 from aqua import Reader
 from aqua import __version__ as aquaversion
 from aqua.logger import log_configure
+from aqua.exceptions import NoDataError, NotEnoughDataError
 
 
 def parse_arguments(args):
@@ -26,10 +27,8 @@ def parse_arguments(args):
                         help='ecmean yaml configuration file', default='config_ecmean_cli.yaml')
     parser.add_argument('-n', '--nworkers',  type=int,
                         help='number of dask distributed processes')
-    parser.add_argument('-m', '--model_atm', type=str,
-                        help='atmospheric model to be analysed')
-    parser.add_argument('-x', '--model_oce', type=str,
-                        help='oceanic model to be analysed')
+    parser.add_argument('-m', '--model', type=str,
+                        help='model to be analysed')
     parser.add_argument('-e', '--exp', type=str,
                         help='exp to be analysed')
     parser.add_argument('-s', '--source', type=str,
@@ -44,7 +43,7 @@ def parse_arguments(args):
     return parser.parse_args(args)
 
 
-def reader_data(model, exp, source, keep_vars):
+def reader_data(model, exp, source):
     """
     Simple function to retrieve and do some operation on reader data
     """
@@ -56,15 +55,15 @@ def reader_data(model, exp, source, keep_vars):
     try:
         reader = Reader(model=model, exp=exp, source=source, areas=False,
                         fix=False)
-        data = reader.retrieve()
+        return reader
     except Exception as err:
         logger.error('Error while reading model %s: %s', model, err)
         return None
 
     # return only vars that are available
-    if keep_vars is None:
-        return data
-    return data[[value for value in keep_vars if value in data.data_vars]]
+    #if keep_vars is None:
+    #    return data
+    #return data[[value for value in keep_vars if value in data.data_vars]]
 
 
 if __name__ == '__main__':
@@ -101,21 +100,18 @@ if __name__ == '__main__':
     # activate override from command line
     exp = get_arg(args, 'exp', configfile['dataset']['exp'])
     source = get_arg(args, 'source', 'lra-r100-monthly')
-    model_atm = get_arg(args, 'model_atm', configfile['dataset']['model_atm'])
-    model_oce = get_arg(args, 'model_oce', configfile['dataset']['model_oce'])
+    model = get_arg(args, 'model', configfile['dataset']['model'])
     outputdir = get_arg(args, 'outputdir', configfile['setup']['outputdir'])
     interface = get_arg(args, 'interface', interface)
     logger.debug('Definitive interface file %s', interface)
 
     # load the data
-    logger.info('Loading atmospheric data %s', model_atm)
-    data_atm = reader_data(model=model_atm, exp=exp, source=source, keep_vars=atm_vars)
-    logger.info('Loading oceanic data from %s', model_oce)
-    data_oce = reader_data(model=model_oce, exp=exp, source=source, keep_vars=oce_vars)
-
-    # there are issues with vertical axis in LRA
-    # if 'level' in data_atm.coords:
-    #     data_atm = data_atm.rename({'level': 'plev'})
+    logger.info('Accessing the AQUA reader for %s %s %s', model, exp, source)
+    reader = reader_data(model=model, exp=exp, source=source)
+    logger.info('Loading atmospheric data %s', model)
+    data_atm = reader.retrieve(var=atm_vars)
+    logger.info('Loading oceanic data from %s', model)
+    data_oce = reader.retrieve(var=oce_vars)
 
     # create a single dataset
     if data_oce is None:
@@ -130,8 +126,7 @@ if __name__ == '__main__':
 
     # Quit if no data is available
     if data is None:
-        logger.error('No data available, exiting...')
-        exit(0)
+        raise NoDataError('No data available, exiting...')
 
     # guessing years from the dataset
     year1 = int(data.time[0].values.astype('datetime64[Y]').astype(str))
@@ -141,9 +136,7 @@ if __name__ == '__main__':
 
     # run the performance indices if you have at least 12 month of data
     if len(data.time) < 12:
-        # NOTE: this should become a NotEnoughData exception
-        logger.error('Not enough data, exiting...')
-        exit(0)
+        raise NotEnoughDataError("Not enough data, exiting...")
     else:
         logger.info('Launching ECmean performance indices...')
         performance_indices(exp, year1, year2, numproc=numproc, config=config,
