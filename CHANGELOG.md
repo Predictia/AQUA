@@ -18,6 +18,7 @@ AQUA core complete list:
 - Catalog is externalized to a separate repository (#1200)
 - AQUA is now capable of accessing multiple catalogs at the same time (#1205)
 - MN5 container for AQUA (#1213)
+- Adding diagnostics integration to AQUA installation process (#1229)
 
 ## [v0.9.2]
 
