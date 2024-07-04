@@ -27,6 +27,8 @@ def parse_arguments(args):
                         help='ecmean yaml configuration file', default='config_ecmean_cli.yaml')
     parser.add_argument('-n', '--nworkers',  type=int,
                         help='number of dask distributed processes')
+    parser.add_argument('--catalog', type=str,
+                        help='catalog to be analysed')    
     parser.add_argument('-m', '--model', type=str,
                         help='model to be analysed')
     parser.add_argument('-e', '--exp', type=str,
@@ -43,7 +45,7 @@ def parse_arguments(args):
     return parser.parse_args(args)
 
 
-def reader_data(model, exp, source):
+def reader_data(model, exp, source, catalog=None):
     """
     Simple function to retrieve and do some operation on reader data
     """
@@ -53,8 +55,8 @@ def reader_data(model, exp, source):
 
     # Try to read the data, if dataset is not available return None
     try:
-        reader = Reader(model=model, exp=exp, source=source, areas=False,
-                        fix=False)
+        reader = Reader(model=model, exp=exp, source=source, catalog=catalog, 
+                        areas=False)
         return reader
     except Exception as err:
         logger.error('Error while reading model %s: %s', model, err)
@@ -86,6 +88,8 @@ if __name__ == '__main__':
     # setting options from configuration files
     atm_vars = configfile['dataset']['atm_vars']
     oce_vars = configfile['dataset']['oce_vars']
+    year1 = configfile['dataset']['year1']
+    year2 = configfile['dataset']['year2']
     config = configfile['setup']['config_file']
     numproc = configfile['compute']['numproc']
 
@@ -101,13 +105,14 @@ if __name__ == '__main__':
     exp = get_arg(args, 'exp', configfile['dataset']['exp'])
     source = get_arg(args, 'source', 'lra-r100-monthly')
     model = get_arg(args, 'model', configfile['dataset']['model'])
+    catalog = get_arg(args, 'catalog', configfile['dataset']['catalog'])
     outputdir = get_arg(args, 'outputdir', configfile['setup']['outputdir'])
     interface = get_arg(args, 'interface', interface)
     logger.debug('Definitive interface file %s', interface)
 
     # load the data
     logger.info('Accessing the AQUA reader for %s %s %s', model, exp, source)
-    reader = reader_data(model=model, exp=exp, source=source)
+    reader = reader_data(model=model, exp=exp, source=source, catalog=catalog)
     logger.info('Loading atmospheric data %s', model)
     data_atm = reader.retrieve(var=atm_vars)
     logger.info('Loading oceanic data from %s', model)
@@ -129,10 +134,12 @@ if __name__ == '__main__':
         raise NoDataError('No data available, exiting...')
 
     # guessing years from the dataset
-    year1 = int(data.time[0].values.astype('datetime64[Y]').astype(str))
-    year2 = int(data.time[-1].values.astype('datetime64[Y]').astype(str))
-    logger.info('Guessing starting year %s and ending year %s',
-                year1, year2)
+    if year1 is None:
+        year1 = int(data.time[0].values.astype('datetime64[Y]').astype(str))
+        logger.info('Guessing starting year %s', year1)
+    if year2 is None:
+        year2 = int(data.time[-1].values.astype('datetime64[Y]').astype(str))
+        logger.info('Guessing ending year %s', year2)
 
     # run the performance indices if you have at least 12 month of data
     if len(data.time) < 12:
@@ -142,8 +149,9 @@ if __name__ == '__main__':
         performance_indices(exp, year1, year2, numproc=numproc, config=config,
                             interface=interface, loglevel=loglevel,
                             outputdir=outputdir, xdataset=data)
+        logger.info('Launching ECmean global mean...')
         global_mean(exp, year1, year2, numproc=numproc, config=config,
                             interface=interface, loglevel=loglevel,
                             outputdir=outputdir, xdataset=data)
 
-    logger.info('AQUA ECmean4 Performance diagnostic is terminated. Go outside and live your life!')
+    logger.info('AQUA ECmean4 Performance Diagnostic is terminated. Go outside and live your life!')
