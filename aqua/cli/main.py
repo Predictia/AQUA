@@ -13,6 +13,7 @@ from aqua.util import load_yaml, dump_yaml, load_multi_yaml
 from aqua.logger import log_configure
 from aqua.util import ConfigPath
 from aqua.cli.parser import parse_arguments
+from aqua.cli.diagnostic_config import diagnostic_config
 from aqua.util.util import HiddenPrints, to_list
 from aqua import __path__ as pypath
 from aqua import catalog
@@ -20,22 +21,6 @@ from aqua.util import create_folder
 
 # folder used for reading/storing catalogs
 catpath = 'catalogs'
-
-diagnostic_config = {
-    'tropical_rainfall': [
-        {
-            'config_file': 'config-tropical-rainfall.yml',
-            'source_path': 'diagnostics/tropical_rainfall/tropical_rainfall',
-            'target_path': 'diagnostics/tropical_rainfall/config'
-        },
-        {
-            'config_file': 'cli_config_trop_rainfall.yml',
-            'source_path': 'diagnostics/tropical_rainfall/cli',
-            'target_path': 'diagnostics/tropical_rainfall/cli'
-        }
-    ]
-    # Add other diagnostic configurations here
-}
 
 class AquaConsole():
     """Class for AquaConsole, the AQUA command line interface for
