@@ -21,6 +21,15 @@ from aqua.util import create_folder
 # folder used for reading/storing catalogs
 catpath = 'catalogs'
 
+diagnostic_config = {
+    'tropical_rainfall': {
+        'config_file': 'config-tropical-rainfall.yml',
+        'source_path': 'diagnostics/tropical_rainfall/tropical_rainfall',
+        'target_path': 'diagnostics/tropical_rainfall/config'
+    }
+    # Add other diagnostic configurations here
+}
+# diagnostics/tropical_rainfall/cli/cli_config_trop_rainfall.yml
 
 class AquaConsole():
     """Class for AquaConsole, the AQUA command line interface for
@@ -101,10 +110,12 @@ class AquaConsole():
         # define from where aqua is installed and copy/link the files
         if args.editable is None:
             self._install_default()
-            self._install_default_diagnostics()
+            for diagnostic_type in diagnostic_config.keys():
+                self._install_default_diagnostics(diagnostic_type)
         else:
             self._install_editable(args.editable)
-            self._install_editable_diagnostics(args.editable)
+            for diagnostic_type in diagnostic_config.keys():
+                self._install_editable_diagnostics(diagnostic_type, args.editable)
 
         self._set_machine(args)
 
@@ -203,22 +214,27 @@ class AquaConsole():
                 os.symlink(f'{editable}/{directory}', f'{self.configpath}/{directory}')
         os.makedirs(f'{self.configpath}/{catpath}', exist_ok=True)
 
-    def _install_default_diagnostics(self):
+    def _install_default_diagnostics(self, diagnostic_type):
         """Copy the config file from the diagnostics path to AQUA"""
 
-        diagnostic_path = os.path.join(os.path.dirname(self.pypath), 'diagnostics', 'tropical_rainfall', 'tropical_rainfall')
-        config_file = 'config-tropical-rainfall.yml'
-        target_directory = os.path.join(self.configpath, 'diagnostics', 'tropical_rainfall')
-        target_file = os.path.join(target_directory, config_file)
-
-        if not os.path.exists(diagnostic_path):
-            self.logger.error('The diagnostic path %s does not exist. Please check the path.', diagnostic_path)
+        if diagnostic_type not in diagnostic_config:
+            self.logger.error('Unknown diagnostic type: %s', diagnostic_type)
             sys.exit(1)
 
-        source_file = os.path.join(diagnostic_path, config_file)
+        diagnostic_info = diagnostic_config[diagnostic_type]
+        source_path = os.path.join(os.path.dirname(self.pypath), diagnostic_info['source_path'])
+        config_file = diagnostic_info['config_file']
+        target_directory = os.path.join(self.configpath, diagnostic_info['target_path'])
+        target_file = os.path.join(target_directory, config_file)
+
+        if not os.path.exists(source_path):
+            self.logger.error('The source path %s does not exist. Please check the path.', source_path)
+            sys.exit(1)
+
+        source_file = os.path.join(source_path, config_file)
 
         if not os.path.isfile(source_file):
-            self.logger.error('The config file %s does not exist in the diagnostic path. Please check the path.', source_file)
+            self.logger.error('The config file %s does not exist in the source path. Please check the path.', source_file)
             sys.exit(1)
 
         # Ensure the target directory exists using create_folder
@@ -229,29 +245,34 @@ class AquaConsole():
             shutil.copy(source_file, target_file)
         else:
             self.logger.debug('Config file %s already exists in the target path %s. Skipping copy.', config_file, target_directory)
-        
-    def _install_editable_diagnostics(self, editable):
+
+    def _install_editable_diagnostics(self, diagnostic_type, editable):
         """Create a symbolic link for the config file from the diagnostics path to AQUA"""
+
+        if diagnostic_type not in diagnostic_config:
+            self.logger.error('Unknown diagnostic type: %s', diagnostic_type)
+            sys.exit(1)
 
         if not os.path.exists(editable):
             self.logger.error('The editable path %s does not exist. Please check the path.', editable)
             sys.exit(1)
 
+        diagnostic_info = diagnostic_config[diagnostic_type]
         editable = os.path.abspath(editable)
-        self.logger.info("Copying tropical_rainfall config files from %s to %s", editable, self.configpath)
-        diagnostic_path = os.path.join(os.path.dirname(editable), 'diagnostics', 'tropical_rainfall', 'tropical_rainfall')
-        config_file = 'config-tropical-rainfall.yml'
-        target_directory = os.path.join(self.configpath, 'diagnostics', 'tropical_rainfall')
+        self.logger.info("Copying %s config files from %s to %s", diagnostic_type, editable, self.configpath)
+        source_path = os.path.join(os.path.dirname(editable), diagnostic_info['source_path'])
+        config_file = diagnostic_info['config_file']
+        target_directory = os.path.join(self.configpath, diagnostic_info['target_path'])
         target_file = os.path.join(target_directory, config_file)
 
-        if not os.path.exists(diagnostic_path):
-            self.logger.error('The diagnostic path %s does not exist. Please check the path.', diagnostic_path)
+        if not os.path.exists(source_path):
+            self.logger.error('The source path %s does not exist. Please check the path.', source_path)
             sys.exit(1)
 
-        source_file = os.path.join(diagnostic_path, config_file)
+        source_file = os.path.join(source_path, config_file)
 
         if not os.path.isfile(source_file):
-            self.logger.error('The config file %s does not exist in the diagnostic path. Please check the path.', source_file)
+            self.logger.error('The config file %s does not exist in the source path. Please check the path.', source_file)
             sys.exit(1)
 
         # Ensure the target directory exists using create_folder
@@ -262,7 +283,7 @@ class AquaConsole():
             os.symlink(source_file, target_file)
         else:
             self.logger.debug('Config file %s already exists in the target path %s. Skipping link.', config_file, target_directory)
-    
+        
     def _set_machine(self, args):
         """Modify the config-aqua.yaml with the identified machine"""
 
