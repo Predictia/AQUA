@@ -8,6 +8,7 @@ import argparse
 import os
 import xarray as xr
 from ecmean.performance_indices import performance_indices
+from ecmean.global_mean import global_mean
 from ecmean import __version__ as eceversion
 from aqua.util import load_yaml, get_arg, ConfigPath
 from aqua import Reader
@@ -93,7 +94,8 @@ if __name__ == '__main__':
 
     # define the interface file
     Configurer = ConfigPath(configdir=None)
-    interface = '../config/interface_AQUA_' + Configurer.catalog + '.yml'
+    #interface = '../config/interface_AQUA_' + Configurer.catalog + '.yml'
+    interface = '../config/interface_AQUA_destine-v1.yml'
     logger.debug('Default interface file: %s', interface)
 
     # activate override from command line
@@ -145,6 +147,9 @@ if __name__ == '__main__':
     else:
         logger.info('Launching ECmean performance indices...')
         performance_indices(exp, year1, year2, numproc=numproc, config=config,
+                            interface=interface, loglevel=loglevel,
+                            outputdir=outputdir, xdataset=data)
+        global_mean(exp, year1, year2, numproc=numproc, config=config,
                             interface=interface, loglevel=loglevel,
                             outputdir=outputdir, xdataset=data)
 
