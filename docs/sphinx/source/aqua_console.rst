@@ -94,6 +94,76 @@ Optional arguments are:
 .. warning::
     The editable mode requires a path to the ``AQUA/config`` folder, not to the main AQUA folder.
 
+In addition to the general configuration file, `aqua install` supports copying and linking configuration files 
+for different diagnostics. Each diagnostic has its own set of configuration files that are copied or linked to specific folders.
+
+The structure of the `diagnostic_config` is defined in the `diagnostic_config.py` file. Each diagnostic is associated 
+with multiple configuration files and their corresponding source and target paths.
+
+Example `diagnostic_config.py` structure:
+
+.. code-block:: python
+
+    diagnostic_config = {
+        'atmglobalmean': [
+            {
+                'config_file': 'atm_mean_bias_config.yaml',
+                'source_path': 'diagnostics/atmglobalmean/cli/config',
+                'target_path': 'diagnostics/atmglobalmean/cli'
+            }
+        ],
+        'ecmean': [
+            {
+                'config_file': 'ecmean_config_destine-v1-levante.yml',
+                'source_path': 'diagnostics/ecmean/config',
+                'target_path': 'diagnostics/ecmean/config'
+            },
+            {
+                'config_file': 'ecmean_config_destine-v1.yml',
+                'source_path': 'diagnostics/ecmean/config',
+                'target_path': 'diagnostics/ecmean/config'
+            },
+            {
+                'config_file': 'interface_AQUA_destine-v1.yml',
+                'source_path': 'diagnostics/ecmean/config',
+                'target_path': 'diagnostics/ecmean/config'
+            },
+            {
+                'config_file': 'config_ecmean_cli.yaml',
+                'source_path': 'diagnostics/ecmean/cli',
+                'target_path': 'diagnostics/ecmean/cli'
+            }
+        ]
+    }
+
+During the installation process, the configuration and CLI files for each diagnostic type are copied or linked 
+from the source path to the target path specified in the `diagnostic_config.py`.
+
+
+After running `aqua install`, the configuration files for each diagnostic will be organized in the target directories 
+specified in the `diagnostic_config.py`. For example, the structure might look like this:
+
+.. code-block:: text
+
+    $HOME/.aqua/
+        ├── diagnostics/
+        │   ├── atmglobalmean/
+        │   │   └── cli/
+        │   │       └── atm_mean_bias_config.yaml
+        │   ├── ecmean/
+        │   │   ├── config/
+        │   │   │   ├── ecmean_config_destine-v1-levante.yml
+        │   │   │   ├── ecmean_config_destine-v1.yml
+        │   │   │   ├── interface_AQUA_destine-v1.yml
+        │   │   └── cli/
+        │   │       └── config_ecmean_cli.yaml
+
+This structure ensures that all configuration files are neatly organized and easily accessible for each diagnostic type.
+
+.. note::
+    Make sure to update the `diagnostic_config.py` file with any new diagnostics and their corresponding configurations 
+    to keep the installation process up to date.
+
 .. _aqua-add:
 
 aqua add <catalog>
