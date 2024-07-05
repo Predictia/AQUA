@@ -49,6 +49,7 @@ class Teleconnection():
             source (str):                   Source name.
             telecname (str):                Teleconnection name.
                                             See documentation for available teleconnections.
+            catalog (str, optional):        Name of the catalog that contains the data
             configdir (str, optional):      Path to diagnostics configuration folder.
             aquaconfigdir (str, optional):  Path to AQUA configuration folder.
             interface (str, optional):      Interface filename. Defaults to 'teleconnections-destine'.
