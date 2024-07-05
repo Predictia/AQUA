@@ -82,6 +82,7 @@ class Teleconnection():
         self.exp = exp
         self.source = source
 
+        print("test")
         self.startdate = startdate
         self.enddate = enddate
 
@@ -403,9 +404,11 @@ class Teleconnection():
         Raises:
             NoDataError: If the data is not available.
         """
-        aqua_config = ConfigPath(configdir=self.aquaconfigdir)
+        
+        aqua_config = ConfigPath(catalog='obs', configdir=self.aquaconfigdir)
         self.catalog = aqua_config.catalog
         self.logger.debug("Catalog: %s", self.catalog)
+        self.logger.debug("hello world", self.catalog)
 
         # Check that the data is available in the catalog
         if inspect_catalog(model=self.model, exp=self.exp,
