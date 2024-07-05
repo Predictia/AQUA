@@ -211,6 +211,7 @@ class TestAquaConsole():
         run_aqua_console_with_input(['uninstall'], 'yes')
         assert not os.path.exists(os.path.join(mydir, '.aqua'))
 
+    # RUN TEST
     def test_install_copies_config_files(self, tmpdir, set_home, run_aqua):
         """Test that configuration files are copied correctly during install.
 
