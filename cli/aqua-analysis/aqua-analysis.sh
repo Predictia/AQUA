@@ -28,7 +28,7 @@ outputdir=$(parse_yaml .job.outputdir)
 model=$(parse_yaml .job.model)
 exp=$(parse_yaml .job.exp)
 source=$(parse_yaml .job.source)
-catalog=$(parse_yaml .job.catalog)  # Ignored at the moment
+catalog=""  # catalog that will be set as first if set in the command line, else leave default
 
 loglevel=$(parse_yaml .job.loglevel)
 max_threads=$(parse_yaml .job.max_threads)  # Set to the desired maximum number of threads, or leave it as 0 for no limit
@@ -110,6 +110,11 @@ log_message INFO "Experiment: $exp"
 log_message INFO "Source: $source"
 log_message INFO "Catalog: $catalog"
 log_message INFO "Output directory: $outputdir"
+
+if [ -n "$catalog" ]; then # If catalog is present, set it as the first source
+  log_message INFO "Catalog: $catalog"
+  aqua set $catalog
+fi
 
 # Define an associative array for atmospheric extra arguments
 declare -A extra_args
