@@ -33,6 +33,7 @@ class Teleconnection():
 
     def __init__(self, model: str, exp: str, source: str,
                  telecname: str,
+                 catalog=None,
                  configdir=None, aquaconfigdir=None,
                  interface='teleconnections-destine',
                  regrid=None, freq=None,
@@ -78,16 +79,15 @@ class Teleconnection():
         self.logger = log_configure(self.loglevel, 'Teleconnection')
 
         # Reader variables
+        self.catalog = catalog
         self.model = model
         self.exp = exp
         self.source = source
 
-        print("test")
         self.startdate = startdate
         self.enddate = enddate
 
         # Load AQUA config and check that the data is available
-        self.catalog = None
         self.aquaconfigdir = aquaconfigdir
         self._aqua_config()
 
@@ -404,14 +404,13 @@ class Teleconnection():
         Raises:
             NoDataError: If the data is not available.
         """
-        
-        aqua_config = ConfigPath(catalog='obs', configdir=self.aquaconfigdir)
+
+        aqua_config = ConfigPath(catalog=self.catalog, configdir=self.aquaconfigdir)
         self.catalog = aqua_config.catalog
         self.logger.debug("Catalog: %s", self.catalog)
-        self.logger.debug("hello world", self.catalog)
 
         # Check that the data is available in the catalog
-        if inspect_catalog(model=self.model, exp=self.exp,
+        if inspect_catalog(catalog_name=self.catalog, model=self.model, exp=self.exp,
                              source=self.source,
                              verbose=False) is False:
             raise NoDataError('Data not available')
