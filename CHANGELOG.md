@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+- External yaml file to configure aqua-analysis (#1246)
+
 ## [v0.10.1]
 
 AQUA core complete list:
