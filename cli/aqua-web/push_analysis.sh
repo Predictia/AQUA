@@ -17,7 +17,7 @@ collect_figures() {
     find $indir -name "*.pdf"  -exec cp {} $dstdir/ \;
 
     # Remove dates from EC-mean filenames
-    for file in $dstdir/PI4*_????_????.pdf
+    for file in $dstdir/PI4*_????_????.pdf $dstdir/global_mean*_????_????.pdf
     do
         mv -- "$file" "${file%_*_*}.pdf"
     done
