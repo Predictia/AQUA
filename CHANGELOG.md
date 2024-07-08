@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
-- Reorganized analysis output in catalog/model/exp structure (#1218)
+- Reorganized analysis output in catalog/model/exp structure (#1218, #1244)
 
 ## [v0.10]
 
