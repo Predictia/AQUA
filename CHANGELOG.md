@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
+- Adding diagnostics integration to AQUA installation process (#1229)
+
+AQUA diagnostic complete list:
+- ECmean upgrades for the CLI (#1241)
+- ECmean enables the computation of global mean diagostic (#1241)
 
 - External yaml file to configure aqua-analysis (#1246)
 

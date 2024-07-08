@@ -94,6 +94,35 @@ Optional arguments are:
 .. warning::
     The editable mode requires a path to the ``AQUA/config`` folder, not to the main AQUA folder.
 
+.. _aqua-install-diagnostics:
+
+aqua install of diagnostics
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In addition to the general configuration file, ``aqua install`` supports copying and linking configuration files 
+for different diagnostics.
+Each diagnostic has its own set of configuration files that are copied or linked to specific folders.
+
+After running ``aqua install``, the configuration files for each diagnostic will be organized in the target directories 
+specified in the ``diagnostic_config.py``. For example, the structure might look like this:
+
+.. code-block:: text
+
+    $HOME/.aqua/
+        ├── diagnostics/
+        │   ├── atmglobalmean/
+        │   │   └── cli/
+        │   │       └── atm_mean_bias_config.yaml
+        │   ├── ecmean/
+        │   │   ├── config/
+        │   │   │   ├── ecmean_config_destine-v1-levante.yml
+        │   │   │   ├── ecmean_config_destine-v1.yml
+        │   │   │   ├── interface_AQUA_destine-v1.yml
+        │   │   └── cli/
+        │   │       └── config_ecmean_cli.yaml
+
+This structure ensures that all configuration files are neatly organized and easily accessible for each diagnostic type.
+
 .. _aqua-add:
 
 aqua add <catalog>
