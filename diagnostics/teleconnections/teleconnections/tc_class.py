@@ -95,7 +95,7 @@ class Teleconnection():
         self.regrid = regrid
         if self.regrid is None:
             self.logger.info('No regrid will be performed, be sure that the data is '
-                                'already at low resolution')
+                             'already at low resolution')
         self.logger.debug("Regrid resolution: %s", self.regrid)
 
         self.freq = freq
@@ -412,8 +412,8 @@ class Teleconnection():
 
         # Check that the data is available in the catalog
         if inspect_catalog(catalog_name=self.catalog, model=self.model, exp=self.exp,
-                             source=self.source,
-                             verbose=False) is False:
+                           source=self.source,
+                           verbose=False) is False:
             raise NoDataError('Data not available')
 
     def _load_figs_options(self, savefig=False, outputfig=None):
@@ -497,7 +497,7 @@ class Teleconnection():
             **kwargs: Keyword arguments to be passed to the reader.
         """
 
-        self.reader = Reader(model=self.model, exp=self.exp, source=self.source,
+        self.reader = Reader(catalog=self.catalog, model=self.model, exp=self.exp, source=self.source,
                              regrid=self.regrid, loglevel=self.loglevel, **kwargs)
         self.logger.info('Reader initialized')
 
