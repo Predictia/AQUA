@@ -26,7 +26,7 @@ job:
     outputdir: "${AQUA}/cli/aqua-analysis/output" 
 
     # Default values, overriden from command line arguments
-    catalog: "lumi"  # ignored at the moment
+    # catalog: "lumi"  # The catalog to use for the analysis, usually defined elsewhere
     model: "IFS-NEMO"
     exp: "historical-1990"
     source: "lra-r100-monthly"

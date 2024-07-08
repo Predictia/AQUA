@@ -118,6 +118,9 @@ setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
 if [ -z "$outputdir" ]; then
   outputdir=$(parse_yaml .job.outputdir)
 fi
+if [ -z "$catalog" ]; then
+  catalog=$(parse_yaml .job.catalog)
+fi
 if [ -z "$model" ]; then
   model=$(parse_yaml .job.model)
 fi
@@ -132,6 +135,12 @@ if [ -z "$loglevel" ]; then
 fi
 if [ $max_threads -lt 0 ]; then
   max_threads=$(parse_yaml .job.max_threads)
+fi
+
+if [[ -z "$model" || -z "$exp" || -z "$source" ]]; then
+  echo "Error: Missing mandatory options in config file or from command line:"
+  echo "Usage: $0 --model <model> --exp <exp> --source <source>"
+  exit 1
 fi
 
 script_path_base=$(parse_yaml .job.script_path_base)  # Set the base path for the diagnostics scripts
