@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
+- Adding diagnostics integration to AQUA installation process (#1229)
 
 ## [v0.10.1]
 
