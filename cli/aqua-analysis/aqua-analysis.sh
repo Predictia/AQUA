@@ -267,7 +267,7 @@ outputdir_oce="$outputdir/$model_oce/$exp"
 # Define the arguments for the diagnostics
 args_atm="--model $model_atm --exp $exp --source $source"
 args_oce="--model $model_oce --exp $exp --source $source"
-args="--model_atm $model_atm --model_oce $model_oce --exp $exp --source $source"
+args="--model $model_atm --exp $exp --source $source"
 
 # Create output directory if it does not exist
 log_message INFO "Creating output directory $outputdir"
