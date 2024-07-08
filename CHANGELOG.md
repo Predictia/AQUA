@@ -11,8 +11,8 @@ Unreleased in the current development version:
 AQUA diagnostic complete list:
 - ECmean upgrades for the CLI (#1241)
 - ECmean enables the computation of global mean diagostic (#1241)
-
 - External yaml file to configure aqua-analysis (#1246)
+- Hotfix for rare situation with 3D data but no vertical chunking defined (#1252)
 
 ## [v0.10.1]
 
