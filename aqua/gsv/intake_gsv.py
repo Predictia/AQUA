@@ -221,6 +221,10 @@ class GSVSource(base.DataSource):
         self.chk_end_date = timeaxis["end_date"]
         self.chk_size = timeaxis["size"]
 
+        self.chk_vert = None
+        self.ntimechunks = self._npartitions
+        self.nlevelchunks = None
+
         if "levelist" in self._request:
             self.chunking_vertical = chunking_vertical
             if self.chunking_vertical:
@@ -228,9 +232,6 @@ class GSVSource(base.DataSource):
                 if not isinstance(levelist, list): levelist = [levelist]
                 if len(levelist) <= self.chunking_vertical:
                     self.chunking_vertical = None
-                    self.chk_vert = None
-                    self.ntimechunks = self._npartitions
-                    self.nlevelchunks = None
                 else:
                     self.chk_vert = [levelist[i:i+self.chunking_vertical] for i in range(0, len(levelist), self.chunking_vertical)]
                     self.ntimechunks = self._npartitions
@@ -238,9 +239,6 @@ class GSVSource(base.DataSource):
                     self._npartitions = self._npartitions*len(self.chk_vert)
         else:
             self.chunking_vertical = None  # no vertical chunking
-            self.chk_vert = None
-            self.ntimechunks = self._npartitions
-            self.nlevelchunks = None
 
         self.get_eccodes_shortname = init_get_eccodes_shortname()  # Can't pickle this, so we need to reinitialize it
 
