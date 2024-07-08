@@ -168,8 +168,6 @@ for diagnostic in ${all_diagnostics[@]}; do
   extra_args["$diagnostic"]="--model $model --exp $exp --source $source"
   outname["$diagnostic"]=$diagnostic
 done
-# ECmean has not-standard arguments
-extra_args["ecmean"]="--model_atm $model --model_oce $model --exp $exp --source $source"
 
 OUTPUT="$outputdir/$model/$exp"
 
