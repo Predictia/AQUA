@@ -965,7 +965,7 @@ class FixerMixin():
             if factor != 1:
                 data *= factor
                 # if a special dpm correction has been defined, apply it
-                if time_conversion_flag and self.time_correction:
+                if time_conversion_flag and self.time_correction is not False:
                     data /=  self.time_correction
             if offset != 0:
                 data += offset
