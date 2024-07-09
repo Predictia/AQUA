@@ -18,6 +18,7 @@ Additional options are:
 -  `-d` or `--dry`: if True, run is dry, no files are written
 -  `-l` or `--loglevel`: log level [default: WARNING]
 -  `--ref`: if True, analysis is performed against a reference
+-  `--catalog`: catalog name
 -  `--model`: model name
 -  `--exp`: experiment name
 -  `--source`: source name
@@ -35,7 +36,7 @@ The configuration file is a YAML file with the following structure:
 teleconnections:
   NAO: true
 
-# The first is overwritten if the script with the flags --model, --exp, --source
+# The first is overwritten if the script with the flags--catalog, --model, --exp, --source
 # Extra keyword arguments for the models are:
 # regrid: null
 # freq: null
@@ -45,14 +46,16 @@ teleconnections:
 # If you want to use native data, you have to set these parameters
 # for each model.
 models:
-  - model: 'IFS'
+  - catalog: 'lumi-phase1'
+    model: 'IFS'
     exp: 'tco2559-ng5-cycle3'
     source: 'lra-r100-monthly'
 
 # Reference is analyzed if --ref is passed to the script
 # The same extra keyword arguments as for the models can be used.
 reference:
-  - model: 'ERA5'
+  - catalog: 'obs'
+    model: 'ERA5'
     exp: 'era5'
     source: 'monthly'
 
