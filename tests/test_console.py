@@ -211,25 +211,6 @@ class TestAquaConsole():
         run_aqua_console_with_input(['uninstall'], 'yes')
         assert not os.path.exists(os.path.join(mydir, '.aqua'))
 
-    # RUN TEST
-    def test_install_copies_config_files(self, tmpdir, set_home, run_aqua):
-        """Test that configuration files are copied correctly during install.
-
-        Args:
-            tmpdir (str): Temporary directory
-            set_home (fixture): Fixture to modify the HOME environment variable
-            run_aqua (fixture): Fixture to run AQUA console with some interactive command
-        """
-        # Setup temporary home directory
-        mydir = str(tmpdir)
-        set_home(mydir)
-
-        # Run aqua install
-        run_aqua(['install'])
-
-        # Verify the configuration files were copied correctly
-        assert verify_config_files(os.path.join(mydir, '.aqua/diagnostics'), diagnostic_config)
-
     def test_console_advanced(self, tmpdir, run_aqua, set_home, run_aqua_console_with_input):
         """Advanced tests for editable installation, editable catalog, catalog update,
         add a wrong catalog, uninstall
@@ -319,6 +300,24 @@ class TestAquaConsole():
         # uninstall everything
         run_aqua_console_with_input(['uninstall'], 'yes')
         assert not os.path.exists(os.path.join(mydir, '.aqua'))
+
+    def test_install_copies_config_files(self, tmpdir, set_home, run_aqua):
+        """Test that configuration files are copied correctly during install.
+
+        Args:
+            tmpdir (str): Temporary directory
+            set_home (fixture): Fixture to modify the HOME environment variable
+            run_aqua (fixture): Fixture to run AQUA console with some interactive command
+        """
+        # Setup temporary home directory
+        mydir = str(tmpdir)
+        set_home(mydir)
+
+        # Run aqua install
+        run_aqua(['install'])
+
+        # Verify the configuration files were copied correctly
+        assert verify_config_files(os.path.join(mydir, '.aqua'), diagnostic_config)
 
     def test_console_with_links(self, tmpdir, set_home, run_aqua_console_with_input):
 
