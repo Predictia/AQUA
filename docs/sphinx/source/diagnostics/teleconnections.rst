@@ -114,6 +114,7 @@ CLI options
 
 The CLI accepts the following arguments:
 
+- ``--catalog``: the catalog to analyze.
 - ``--model``: the model to analyze.
 - ``--exp``: the experiment to analyze.
 - ``--source``: the source to analyze.

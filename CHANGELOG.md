@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
+- Bugfix for the monthly frequency data with monthly cumulated fluxes (#1255)
+
+## [v0.10.2]
+
+Main changes are:
+1. aqua-analysis script can be configured with an external yaml file
+2. AQUA installation process now includes diagnostics integration
+
+AQUA core complete list:
+- Hotfix for rare situation with 3D data but no vertical chunking defined (#1252)
+- External yaml file to configure aqua-analysis (#1246)
+- Adding diagnostics integration to AQUA installation process (#1229)
+
+AQUA diagnostic complete list:
+- Teleconnections: adding the catalog feature to the diagnostic (#1247)
+- ECmean upgrades for the CLI (#1241)
+- ECmean enables the computation of global mean diagostic (#1241)
+
+## [v0.10.1]
+
+AQUA core complete list:
+- Fixer for monthly frequency data with monthly cumulated fluxes (#1201)
+- Catalogs can be installed from the external repository (#1182)
+- Added grid for NEMO multiIO r100 (#1227)
 - Reorganized analysis output in catalog/model/exp structure (#1218)
 
 ## [v0.10]
@@ -14,11 +38,9 @@ Main changes are:
 1. The catalog is externalized and AQUA supports multiple catalogs. It is now mandatory to use the aqua console to add a new catalog to the AQUA installation.
 
 AQUA core complete list:
-- Catalogs can be installed from the external repository (#1182)
 - Catalog is externalized to a separate repository (#1200)
 - AQUA is now capable of accessing multiple catalogs at the same time (#1205)
 - MN5 container for AQUA (#1213)
-- Adding diagnostics integration to AQUA installation process (#1229)
 
 ## [v0.9.2]
 
@@ -537,7 +559,9 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.2...HEAD
+[v0.10.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.1...v0.10.2
+[v0.10.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10...v0.10.1
 [v0.10]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.9.2...v0.10
 [v0.9.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.9.1...v0.9.2
 [v0.9.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.9...v0.9.1

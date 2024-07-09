@@ -127,13 +127,13 @@ has been introduced into the code to support future development and serve as sta
 This includes multiple template files and demo code, ranging from the creation 
 of a proper README up to a command line interface tool, going through the documentation, notebook and tests.
 
-Output Management
-^^^^^^^^^^^^^^^^^
+Standards for new diagnostics
++++++++++++++++++++++++++++++
 
-The filenames and requirements of the output files are converging towards a common standard.
-Here you can find the available instructions on the tool and requirements for the output files we are using.
+In this section we provide some guidelines for the development of new diagnostics.
 
 .. toctree::
    :maxdepth: 1
 
-   output_management
+   guidelines/output_management
+   guidelines/configuration_files

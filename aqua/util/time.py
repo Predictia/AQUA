@@ -4,11 +4,9 @@ Module including time utilities for AQUA
 
 import math
 import pandas as pd
-import numpy as np
 import xarray as xr
 from pandas.tseries.frequencies import to_offset
 from aqua.logger import log_configure
-
 
 def frequency_string_to_pandas(freq):
     """
