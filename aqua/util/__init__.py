@@ -14,7 +14,7 @@ from .yaml import load_yaml, dump_yaml, load_multi_yaml, eval_formula
 from .time import check_chunk_completeness, frequency_string_to_pandas
 from .time import time_to_string
 from .coord import flip_lat_dir, find_lat_dir, check_direction
-from .output_namer import OutputSaver
+from .output_saver import OutputSaver
 
 __all__ = ['ConfigPath',
            'read_eccodes_dic', 'read_eccodes_def', 'get_eccodes_attr',
