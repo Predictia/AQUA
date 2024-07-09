@@ -28,38 +28,42 @@ All the diagnostic logfiles will be saved in this main folder, while the diagnos
 named after the diagnostic name.
 Inside each diagnostic folder, the output will be saved in a subfolder named with the filetype (e.g. ``pdf``, ``netcdf``).
 
+The exact list of diagnostics to run and technical details of the analysis
+(such as the nuber of cpu cores to be used for each diagnostic) 
+are specified in the configuration file ``config.aqua-analysis.yaml``. 
+
 Additional options
 ^^^^^^^^^^^^^^^^^^
 
 Some options are available to launch the script without having to modify the script itself,
 so that the script can be used in a batch job or in a workflow.
 
-.. option:: -a <model>, --model_atm <model>
+.. option:: -m <model>
 
-    The atmospheric model to use.
-
-.. option:: -o <model>, --model_oce <model>
-
-    The oceanic model to use.
+    The  model to use.
 
 .. option:: -e <exp>, --exp <exp>
 
     The experiment to use.
 
-.. option:: -s <source>, source <source>
+.. option:: -s <source>, --source <source>
 
     The source to use.
+
+.. option:: -c <catalog>, --catalog <catalog>
+
+    The catalog to use.
+    Default is using the catalog currently defined by the AQUA console.
+
+.. option:: -f <config>, --config <source>
+
+    The config file to use.
 
 .. option:: -d <dir>, --outputdir <dir>
 
     The output directory to use.
     Default is ``$AQUA/cli/aqua-analysis/output``.
     Prefer to use an absolute path.
-
-.. option:: -c <catalog>, --catalog <catalog>
-
-    The catalog to use.
-    Default is ``lumi``.
 
 .. option:: -l <loglevel>, --loglevel <loglevel>
 
@@ -80,7 +84,6 @@ so that the script can be used in a batch job or in a workflow.
     A predefined number of workers is used for each diagnostic, set in the script itself.
     For ecmean the multiprocessing option is used.
     
-
 .. note ::
 
     By default the script will run all the state-of-the-art diagnostics available in AQUA.
