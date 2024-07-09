@@ -8,11 +8,11 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
 
-class OutputNamer:
+class OutputSaver:
     def __init__(self, diagnostic: str, model: str, exp: str, diagnostic_product: str = None, loglevel: str = 'WARNING',
                  default_path: str = '.', rebuild: bool = True):
         """
-        Initialize the OutputNamer class to manage output file naming.
+        Initialize the OutputSaver class to manage output file saving.
 
         Args:
             diagnostic (str): Name of the diagnostic.
@@ -30,7 +30,7 @@ class OutputNamer:
         self.loglevel = loglevel
         self.default_path = default_path
         self.rebuild = rebuild
-        self.logger = log_configure(log_level=self.loglevel, log_name='OutputNamer')
+        self.logger = log_configure(log_level=self.loglevel, log_name='OutputSaver')
 
     def update_diagnostic_product(self, diagnostic_product: str):
         """

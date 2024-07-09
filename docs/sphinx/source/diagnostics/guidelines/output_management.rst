@@ -4,7 +4,7 @@ Automatic Standardized File Naming
 Class Overview
 --------------
 
-The ``OutputNamer`` class is designed to manage output file naming conventions for scientific data.
+The ``OutputSaver`` class is designed to manage output file naming conventions for scientific data.
 It supports generating filenames for various types of file (e.g., NetCDF, PDF, PNG) with metadata integration to enhance data management and traceability.
 The class ensures consistent and descriptive filenames, facilitating better data management and reproducibility.
 
@@ -20,22 +20,22 @@ Attributes
 - **rebuild** (*bool, optional*): Flag indicating whether to rebuild existing files. If set to True, existing files with the same name will be overwritten. Default is True.
 
 .. note::
-    The ``OutputNamer`` class automatically includes the current date and time when saving files as metadata ``date_saved``.
+    The ``OutputSaver`` class automatically includes the current date and time when saving files as metadata ``date_saved``.
     This ensures each file has a timestamp indicating when it was generated.
 
 Usage Examples
 --------------
 
-Initializing the OutputNamer Class
+Initializing the OutputSaver Class
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The following example demonstrates how to initialize the ``OutputNamer`` class:
+The following example demonstrates how to initialize the ``OutputSaver`` class:
 
 .. code-block:: python
 
-    from aqua.util import OutputNamer
+    from aqua.util import OutputSaver
 
-    names = OutputNamer(diagnostic='tropical_rainfall', model='MSWEP', exp='past',
+    names = OutputSaver(diagnostic='tropical_rainfall', model='MSWEP', exp='past',
                         loglevel='debug', default_path='.')
 
 Generating a Filename for a NetCDF File
@@ -74,7 +74,7 @@ Here is an example of saving a NetCDF file with metadata. The metadata includes 
     # Define metadata for the NetCDF file
     metadata = {
         'title': 'Testing the saving of NetCDF files',
-        'author': 'OutputNamer',
+        'author': 'OutputSaver',
         'description': 'Demonstrating netCDF Metadata Addition'
     }
 
@@ -84,7 +84,7 @@ Here is an example of saving a NetCDF file with metadata. The metadata includes 
 
 .. note::
 
-    If the ``history`` metadata field is provided, the ``OutputNamer`` class will append
+    If the ``history`` metadata field is provided, the ``OutputSaver`` class will append
     the current message to the existing history.
 
 Saving a PDF Plot with Metadata
@@ -103,9 +103,9 @@ This example demonstrates saving a PDF plot with metadata. The metadata includes
     # Define metadata for the PDF file
     metadata = {
         '/Title': 'Sample PDF',
-        '/Author': 'OutputNamer',
+        '/Author': 'OutputSaver',
         '/Subject': 'Demonstrating PDF Metadata Addition',
-        '/Keywords': 'PDF, OutputNamer, Metadata'
+        '/Keywords': 'PDF, OutputSaver, Metadata'
     }
 
     # Save the PDF with metadata

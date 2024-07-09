@@ -3,15 +3,15 @@ import pytest
 import xarray as xr
 import matplotlib.pyplot as plt
 from aqua.logger import log_configure
-from aqua.util import OutputNamer
+from aqua.util import OutputSaver
 
 # Initialize the logger for the tests
-log_configure(log_level='DEBUG', log_name='OutputNamerTest')
+log_configure(log_level='DEBUG', log_name='OutputSaverTest')
 
 
 @pytest.fixture
 def output_namer():
-    return OutputNamer(diagnostic='dummy', model='MSWEP', exp='past', loglevel='DEBUG', default_path='.')
+    return OutputSaver(diagnostic='dummy', model='MSWEP', exp='past', loglevel='DEBUG', default_path='.')
 
 
 @pytest.mark.aqua
