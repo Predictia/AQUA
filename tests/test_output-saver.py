@@ -32,7 +32,7 @@ def test_save_netcdf(output_saver):
     # Create a simple xarray dataset
     data = xr.Dataset({'data': (('x', 'y'), [[1, 2], [3, 4]])})
 
-    # Test saving netCDF file with a different catalog
+    # Test saving netCDF file without additional parameters
     path = output_saver.save_netcdf(dataset=data, diagnostic_product='mean')
     assert path == './dummy.mean.MSWEP.past.lumi-phase2.nc'
 

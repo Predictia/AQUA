@@ -14,6 +14,7 @@ Main changes are:
 2. AQUA installation process now includes diagnostics integration
 
 AQUA core complete list:
+- Rename OutputNamer to OutputSaver and add catalog name (#1259)
 - Hotfix for rare situation with 3D data but no vertical chunking defined (#1252)
 - External yaml file to configure aqua-analysis (#1246)
 - Adding diagnostics integration to AQUA installation process (#1229)
