@@ -53,7 +53,7 @@ class OutputSaver:
 
     def generate_name(self, diagnostic_product: str = None, var: str = None, model_2: str = None, exp_2: str = None,
                       time_start: str = None, time_end: str = None, time_precision: str = 'ymd', area: str = None,
-                      suffix: str = 'nc', catalog: str = None, **kwargs) -> str:
+                      suffix: str = 'nc', catalog: str = None, catalog_2: str = None, **kwargs) -> str:
         """
         Generate a filename based on provided parameters and additional user-defined keywords,
         including precise time intervals.
@@ -69,6 +69,7 @@ class OutputSaver:
             area (str, optional): The geographical area covered by the data.
             suffix (str, optional): The file extension/suffix indicating file type.
             catalog (str, optional): Catalog where to search for the triplet. Default to None will allow for autosearch in the installed catalogs.
+            catalog_2 (str, optional): The second catalog, for comparative studies. Default to None will allow for autosearch in the installed catalogs.
             **kwargs: Arbitrary keyword arguments provided by the user for additional customization.
 
         Returns:
@@ -106,7 +107,7 @@ class OutputSaver:
         additional_parts = [f"{key}_{value}" for key, value in sorted(kwargs.items())]
 
         parts = [part for part in [self.diagnostic, self.diagnostic_product, var,
-                                   self.model, self.exp, catalog if catalog else self.catalog, model_2, exp_2, area] if part]
+                                   self.model, self.exp, catalog if catalog else self.catalog, model_2, exp_2, catalog_2, area] if part]
         parts.extend(time_parts)
         parts.extend(additional_parts)
         parts.append(suffix)
@@ -117,7 +118,7 @@ class OutputSaver:
 
     def save_netcdf(self, dataset: xr.Dataset, path: str = None, diagnostic_product: str = None, var: str = None,
                     model_2: str = None, exp_2: str = None, time_start: str = None, time_end: str = None,
-                    time_precision: str = 'ymd', area: str = None, metadata: dict = None, catalog: str = None, **kwargs) -> str:
+                    time_precision: str = 'ymd', area: str = None, metadata: dict = None, catalog: str = None, catalog_2: str = None, **kwargs) -> str:
         """
         Save a netCDF file with a dataset to a specified path, with support for additional filename keywords and
         precise time intervals.
@@ -135,6 +136,7 @@ class OutputSaver:
             area (str, optional): The geographical area covered by the data.
             metadata (dict, optional): Additional metadata to include in the netCDF file.
             catalog (str, optional): Catalog where to search for the triplet. Default to None will allow for autosearch in the installed catalogs.
+            catalog_2 (str, optional): The second catalog, for comparative studies. Default to None will allow for autosearch in the installed catalogs.
             **kwargs: Additional keyword arguments for more flexible filename customization.
 
         Returns:
@@ -142,7 +144,7 @@ class OutputSaver:
         """
         filename = self.generate_name(diagnostic_product=diagnostic_product, var=var,
                                       model_2=model_2, exp_2=exp_2, time_start=time_start, time_end=time_end,
-                                      time_precision=time_precision, area=area, suffix='nc', catalog=catalog, **kwargs)
+                                      time_precision=time_precision, area=area, suffix='nc', catalog=catalog, catalog_2=catalog_2, **kwargs)
 
         if path is None:
             path = self.default_path
@@ -172,7 +174,7 @@ class OutputSaver:
 
     def save_pdf(self, fig: Figure, path: str = None, diagnostic_product: str = None, var: str = None,
                  model_2: str = None, exp_2: str = None, time_start: str = None, time_end: str = None,
-                 time_precision: str = 'ymd', area: str = None, metadata: dict = None, dpi: int = 300, catalog: str = None, **kwargs) -> str:
+                 time_precision: str = 'ymd', area: str = None, metadata: dict = None, dpi: int = 300, catalog: str = None, catalog_2: str = None, **kwargs) -> str:
         """
         Save a PDF file with a matplotlib figure to the provided path, with support for additional filename keywords and
         precise time intervals.
@@ -191,6 +193,7 @@ class OutputSaver:
             metadata (dict, optional): Additional metadata to include in the PDF file.
             dpi (int, optional): The resolution of the saved PDF file. Default is 300.
             catalog (str, optional): Catalog where to search for the triplet. Default to None will allow for autosearch in the installed catalogs.
+            catalog_2 (str, optional): The second catalog, for comparative studies. Default to None will allow for autosearch in the installed catalogs.
             **kwargs: Additional keyword arguments for more flexible filename customization.
 
         Returns:
@@ -203,7 +206,7 @@ class OutputSaver:
             path = self.default_path
         filename = self.generate_name(diagnostic_product=diagnostic_product, var=var, model_2=model_2, exp_2=exp_2,
                                       time_start=time_start, time_end=time_end, time_precision=time_precision, area=area,
-                                      suffix='pdf', catalog=catalog, **kwargs)
+                                      suffix='pdf', catalog=catalog, catalog_2=catalog_2, **kwargs)
         full_path = os.path.join(path, filename)
 
         if not self.rebuild and os.path.exists(full_path):
@@ -228,7 +231,7 @@ class OutputSaver:
 
     def save_png(self, fig: Figure, path: str = None, diagnostic_product: str = None, var: str = None,
                  model_2: str = None, exp_2: str = None, time_start: str = None, time_end: str = None,
-                 time_precision: str = 'ymd', area: str = None, metadata: dict = None, dpi: int = 300, catalog: str = None, **kwargs) -> str:
+                 time_precision: str = 'ymd', area: str = None, metadata: dict = None, dpi: int = 300, catalog: str = None, catalog_2: str = None, **kwargs) -> str:
         """
         Save a PNG file with a matplotlib figure to a provided path, with support for additional filename keywords and
         precise time intervals.
@@ -247,6 +250,7 @@ class OutputSaver:
             metadata (dict, optional): Additional metadata to include in the PNG file.
             dpi (int, optional): The resolution of the saved PNG file. Default is 300.
             catalog (str, optional): Catalog where to search for the triplet. Default to None will allow for autosearch in the installed catalogs.
+            catalog_2 (str, optional): The second catalog, for comparative studies. Default to None will allow for autosearch in the installed catalogs.
             **kwargs: Additional keyword arguments for more flexible filename customization.
 
         Returns:
@@ -257,7 +261,7 @@ class OutputSaver:
         """
         filename = self.generate_name(diagnostic_product=diagnostic_product, var=var, model_2=model_2, exp_2=exp_2,
                                       time_start=time_start, time_end=time_end, time_precision=time_precision,
-                                      area=area, suffix='png', catalog=catalog, **kwargs)
+                                      area=area, suffix='png', catalog=catalog, catalog_2=catalog_2, **kwargs)
 
         if path is None:
             path = self.default_path

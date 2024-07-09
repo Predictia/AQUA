@@ -71,13 +71,14 @@ This and the following methods return the generated filename as a string, to be 
 Generating a Filename with Flexible Date Inputs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This example demonstrates generating a filename with flexible date inputs and the 'ym' time precision:
+This example demonstrates generating a filename with flexible date inputs and the 'ym' time precision, including a second dataset with a different catalog:
 
 .. code-block:: python
 
     filename = names.generate_name(var='mtpr', model_2='ERA5', exp_2='era5',
-                                   time_start='1990-01', time_end='1990-02',
-                                   time_precision='ym', area='indian_ocean')
+                                   time_start='1990-01-01', time_end='1990-02-28',
+                                   time_precision='ym', area='indian_ocean', catalog_2='lumi-phase3')
+    # Output: 'tropical_rainfall.<diagnostic_product>.mtpr.MSWEP.past.<default_catalog>.ERA5.era5.lumi-phase3.indian_ocean.199001-199002.nc'
 
 Saving a NetCDF File with Metadata
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
