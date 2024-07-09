@@ -1,3 +1,5 @@
+"""Class for saving outputs, including NetCDF, PDF, and PNG files"""
+
 from aqua.logger import log_configure, log_history
 from aqua.util import add_pdf_metadata, add_png_metadata, update_metadata_with_date
 import os
@@ -9,6 +11,11 @@ import matplotlib.pyplot as plt
 
 
 class OutputSaver:
+    """
+    Class to manage saving outputs, including NetCDF, PDF, and PNG files, with
+    customized naming based on provided parameters and metadata.
+    """
+
     def __init__(self, diagnostic: str, model: str, exp: str, diagnostic_product: str = None, loglevel: str = 'WARNING',
                  default_path: str = '.', rebuild: bool = True):
         """
