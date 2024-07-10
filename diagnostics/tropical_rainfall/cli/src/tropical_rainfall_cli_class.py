@@ -225,7 +225,8 @@ class Tropical_Rainfall_CLI:
             start_month=self.s_month, end_month=self.f_month,
             flag=bins_info
         )
-        self.diag.dataset_to_netcdf(model_merged, path_to_netcdf=hist_path, name_of_file=f'histogram_{self.model}_{self.exp}_{self.regrid}_{self.freq}')
+        self.diag.dataset_to_netcdf(model_merged, path_to_netcdf=hist_path,
+                                    name_of_file=f'histogram_{self.model}_{self.exp}_{self.regrid}_{self.freq}')
         
         # Define source information for MSWEP, IMERG, ERA5
         sources = [
@@ -449,7 +450,7 @@ class Tropical_Rainfall_CLI:
                                       name_of_file=f"{self.regrid}_{self.freq}")
             _path_to_pdf = add[-1]
             description = (
-                f"Comparison of the average precipitation profiles along latitude"
+                f"Comparison of the average precipitation profiles along latitude "
                 f"from {self.model} {self.exp}, measured in {self.new_unit}, over the time range "
                 f"{self.diag.tools.open_dataset(model_average_path_lat).time_band}, against observations."
             )
@@ -481,7 +482,7 @@ class Tropical_Rainfall_CLI:
                                       name_of_file=f"{self.regrid}_{self.freq}")
             _path_to_pdf = add[-1]
             description = (
-                f"Comparison of the average precipitation profiles along longitude"
+                f"Comparison of the average precipitation profiles along longitude "
                 f"from {self.model} {self.exp}, measured in {self.new_unit}, over the time range "
                 f"{self.diag.tools.open_dataset(model_average_path_lat).time_band}, against observations."
             )
