@@ -6,8 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
+
+AQUA core complete list:
 - Added test for diagnostics integration to AQUA installation process (#1244)
 - Bugfix for the monthly frequency data with monthly cumulated fluxes (#1255)
+
+AQUA diagnostic complete list:
+- ECmean documentation updates (#1264)
 
 ## [v0.10.2]
 
