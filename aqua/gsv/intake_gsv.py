@@ -566,7 +566,7 @@ class GSVSource(base.DataSource):
         yaml = YAML() 
   
         if self.fdbhome:  # FDB_HOME takes precedence but assumes a fixed subdirectory structure
-            yamlfile = os.path.join(self.fdbhome, '/etc/fdb/config.yaml')
+            yamlfile = os.path.join(self.fdbhome, 'etc/fdb/config.yaml')
         else:
             yamlfile = self.fdbpath
         
