@@ -34,7 +34,7 @@ For detailed information on the code, please refer to the `official ECmean4 docu
 Input variables 
 ---------------
 
-For Performance Indices the following variables are requested:
+For **Performance Indices** the following variables are requested:
 
 * ``mtpr`` (Mean total precipitation rate, GRIB paramid 235055)
 * ``2t``     (2 metre temperature, GRIB paramid 167)
@@ -54,16 +54,12 @@ For Performance Indices the following variables are requested:
 * ``msnswrf``   (surface net shortwave radiation flux, GRIB paramid 235037, required for net surface flux computation)
 * ``msr``      (snowfall rate, GRIB paramid 235031, required for net surface flux computation)
 
-If a variable (or more) is missing, blank line will be reported in the output figures. 
-
 3D fields are zonally averaged, so that the PIs reports the performance on the zonal field. 
 
-For Global Means, the following variables are requested
-
-For Performance Indices the following variables are requested:
+For **Global Means**, the following variables are requested
 
 * ``mtpr`` (Mean total precipitation rate, GRIB paramid 235055)
-* ``mer``(Mean evaporation rate, GRIB paramid 235043)
+* ``mer`` (Mean evaporation rate, GRIB paramid 235043)
 * ``2t``     (2 metre temperature, GRIB paramid 167)
 * ``msl``    (mean sea level pressure, GRIB paramid 151)
 * ``metss``  (eastward wind stress, GRIB paramid 180)
@@ -85,6 +81,8 @@ For Performance Indices the following variables are requested:
 * ``msr``      (snowfall rate, GRIB paramid 235031, required for net surface flux computation)
 
 
+For both diagnostics, if a variable (or more) is missing, blank line will be reported in the output figures. 
+
 .. note ::
     ECmean4 is made to work with CMOR variables, but can handle name and file conversion with specification of
     an `interface file <https://ecmean4.readthedocs.io/en/latest/configuration.html#interface-files>`_.
@@ -101,6 +99,7 @@ The result are stored as a YAML file, indicating PIs and GMs for each variable, 
 Most importantly, a figure for GMs and a figure for PIs are produced showing a score card for the different regions, variables and seasons.
 For the sake of simplicity, the PIs figure is computed as the ratio between the model PI and the average value estimated over the (precomputed) ensemble of CMIP6 models. 
 Numbers lower than one implies that the model is performing better than the average of CMIP6 models. 
+
 Similarly, the GMs are reported as a score card with the average of the field, together with observational value reported in a 
 smaller font, and colorscale which tells how many standard deviations from the interannual variability the model is far from observation. 
 The whiter the color, the more reliable is the model output.
@@ -113,7 +112,8 @@ Please refer to the `official ECmean4 documentation <https://ecmean4.readthedocs
 Observations
 ------------
 
-ECmean4 uses multiple sources as reference climatologies: please refer to the `Official climatology description <https://ecmean4.readthedocs.io/en/latest/performanceindices.html#climatologies-available>`_ to get more insight. 
+ECmean4 uses multiple sources as reference climatologies: please refer to the climatology description for `Performance Indices <https://ecmean4.readthedocs.io/en/latest/performanceindices.html#climatologies-available>`_ 
+and for `Global Mean <https://ecmean4.readthedocs.io/en/latest/globalmean.html#climatology-computation>`_ to get more insight. 
 
 References
 ----------
