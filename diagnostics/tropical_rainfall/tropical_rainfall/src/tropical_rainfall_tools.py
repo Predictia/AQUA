@@ -491,13 +491,15 @@ class ToolsClass:
         """
         fix = FixerMixin()
         fix.logger = self.logger
+
         fix.fixer_folder, _ = (ConfigPath().get_reader_filenames())
         fix.fixes_dictionary = load_multi_yaml(fix.fixer_folder)
 
-        factor, offset = fix.convert_units(from_unit, to_unit)
+        conversion = fix.convert_units(from_unit, to_unit)
+        factor = conversion.get('factor', 1)
+        offset = conversion.get('offset', 0)
 
         converted_value = (value * factor) + offset
-
         return converted_value
 
     def get_local_time_decimal(self, utc_decimal_hour, longitude):
@@ -1055,3 +1057,17 @@ class ToolsClass:
             for i in _names:
                 _size *= data[i].size
         return _size
+
+    def format_time(self, time_band: str) -> str:
+        """
+        Extract the dates from the time_band string and format them as 'year-month-day'.
+
+        Args:
+            time_band (str): The input time_band string.
+
+        Returns:
+            str: The formatted date string.
+        """
+        # Find all datetime parts and format them
+        formatted_time_band = re.sub(r'(\d{4})-(\d{2})-(\d{2})T\d{2}:\d{2}:\d{2}\.\d+', r'\1-\2-\3', time_band)
+        return formatted_time_band

@@ -153,9 +153,11 @@ class Tropical_Rainfall_CLI:
                                 self.logger.error(f"An unexpected error occurred: {e}")
                     self.logger.debug(f"Current Status: {x}/{f_month} months processed in year {year}.")
             else:
-                self.logger.warning("The specified year is not present in the dataset. " +
-                            "Ensure the time range in your selection accurately reflects the available " +
-                            "data. Check dataset time bounds and adjust your time selection parameters accordingly.")
+                self.logger.warning(
+                    "The specified year is not present in the dataset. " +
+                    "Ensure the time range in your selection accurately reflects the available " +
+                    "data. Check dataset time bounds and adjust your time selection parameters accordingly."
+                    )
         self.logger.info("The histograms are calculated and saved in storage.")
         return None
 
@@ -195,8 +197,10 @@ class Tropical_Rainfall_CLI:
         self.logger.info(f"The path to {source_info['name']} data is {folder_path}")
 
         if not os.path.exists(folder_path):
-            self.logger.error(f"Error: The folder for {source_info['name']} data with resolution '{self.regrid}' "
-                              f"and frequency '{self.freq}' does not exist.")
+            self.logger.error(
+                f"Error: The folder for {source_info['name']} data with resolution '{self.regrid}' "
+                f"and frequency '{self.freq}' does not exist."
+                )
             return None
 
         start_year = self.s_year - default_interval if source_info.get('auto', False) else source_info.get('s_year', self.s_year)
@@ -266,13 +270,13 @@ class Tropical_Rainfall_CLI:
             description = (
                 f"Comparison of the probability distribution function (PDF) for precipitation data "
                 f"from {self.model} {self.exp}, measured in {self.new_unit}, over the time range "
-                f"{model_merged.time_band}, against observations."
+                f"{self.diag.tools.format_time(model_merged.time_band)}, against observations."
             )
         else:
             description = (
                 f"Comparison of the probability distribution function (PDF) multiplied by probability "
                 f"(PDF*P) for precipitation data from {self.model} {self.exp}, measured in "
-                f"{self.new_unit}, across the time range {model_merged.time_band}, with observations."
+                f"{self.new_unit}, across the time range {self.diag.tools.format_time(model_merged.time_band)}, with observations."
             )
         self.logger.debug('Description: %s', description)
                     
@@ -293,11 +297,16 @@ class Tropical_Rainfall_CLI:
                                     legend="MSWEP", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
                                     path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf,
                                     factor=self.mswep_factor)
-            description = description+f" The time range of MSWEP is {mswep_merged.time_band}."
+            description = description + (
+                f" The time range of MSWEP is {self.diag.tools.format_time(mswep_merged.time_band)}."
+            )
             add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
             self.logger.info("Plotting MSWEP data for comparison.")
         else:
-            self.logger.warning("MSWEP data with the necessary resolution is missing for comparison. Check the data source or adjust the resolution settings.")
+            self.logger.warning(
+                "MSWEP data with the necessary resolution is missing for comparison. "
+                "Check the data source or adjust the resolution settings."
+            )
 
         if imerg_merged is not None:
             add, _path_to_pdf = self.diag.histogram_plot(imerg_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
@@ -305,11 +314,16 @@ class Tropical_Rainfall_CLI:
                                     legend="IMERG", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
                                     path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf,
                                     factor=self.imerg_factor)
-            description = description+f" The time range of IMERG is {imerg_merged.time_band}."
+            description = description + (
+                f" The time range of IMERG is {self.diag.tools.format_time(imerg_merged.time_band)}."
+            )
             add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
             self.logger.info("Plotting IMERG data for comparison.")
         else:
-            self.logger.warning("IMERG data with the necessary resolution is missing for comparison. Check the data source or adjust the resolution settings.")
+            self.logger.warning(
+                "IMERG data with the necessary resolution is missing for comparison. "
+                "Check the data source or adjust the resolution settings."
+            )
 
         if era5_merged is not None:
             add, _path_to_pdf = self.diag.histogram_plot(era5_merged, figsize=self.figsize, new_unit=self.new_unit, add=add, pdf=pdf_flag,
@@ -317,11 +331,16 @@ class Tropical_Rainfall_CLI:
                                     legend="ERA5", xmax=self.xmax, loc=self.loc, plot_title=plot_title,
                                     path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format, name_of_file=name_of_pdf,
                                     factor=self.era5_factor)
-            description = description+f" The time range of ERA5 is {era5_merged.time_band}."
+            description = description + (
+                f" The time range of ERA5 is {self.diag.tools.format_time(era5_merged.time_band)}."
+            )
             add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
             self.logger.info("Plotting ERA5 data for comparison.")
         else:
-            self.logger.warning("ERA5 data with the necessary resolution is missing for comparison. Check the data source or adjust the resolution settings.")
+            self.logger.warning(
+                "ERA5 data with the necessary resolution is missing for comparison. "
+                "Check the data source or adjust the resolution settings."
+            )
         self.logger.info("Histogram plots (as available) have been generated and saved.")
     
     def daily_variability(self):
@@ -344,7 +363,7 @@ class Tropical_Rainfall_CLI:
             
             data_regrided = self.reader.regrid(full_dataset)
             
-            path_to_output = self.path_to_buffer+f"{self.regrid}/{self.freq}/daily_variability/"
+            path_to_output = self.path_to_buffer + f"{self.regrid}/{self.freq}/daily_variability/"
             create_folder(path_to_output)
             for year in range(self.s_year, self.f_year+1):
                 data_per_year = data_regrided.sel(time=str(year))
@@ -389,8 +408,8 @@ class Tropical_Rainfall_CLI:
                 start_year=self.s_year, end_year=self.f_year,
                 start_month=self.s_month, end_month=self.f_month
             )
-            filename = self.diag.dataset_to_netcdf(model_merged, path_to_netcdf=output_path, 
-                                                name_of_file=f'daily_variability_{self.model}_{self.exp}_{self.regrid}_{self.freq}')
+            filename = self.diag.dataset_to_netcdf(model_merged, path_to_netcdf=output_path,
+                                                   name_of_file=f'daily_variability_{self.model}_{self.exp}_{self.regrid}_{self.freq}')
             
             add, _path_to_pdf = self.diag.daily_variability_plot(path_to_netcdf=filename, legend=legend, new_unit=self.new_unit,
                                                     trop_lat=90, relative=False, color=self.color,
@@ -399,7 +418,7 @@ class Tropical_Rainfall_CLI:
             description = (
                 f"Comparison of the daily variability of the precipitation data "
                 f"from {self.model} {self.exp}, measured in {self.new_unit}, over the time range "
-                f"{model_merged.time_band}, against observations."
+                f"{self.diag.tools.format_time(model_merged.time_band)}, against observations."
             )
             add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
             path_to_era5 = f"{self.era5}r100/H/daily_variability"
@@ -416,7 +435,7 @@ class Tropical_Rainfall_CLI:
                                                    color=self.era5_color, add=add,
                                                    linestyle='-', path_to_pdf=self.path_to_pdf, pdf_format=self.pdf_format,
                                                    name_of_file=name_of_pdf)
-            description = description+f" The time range of ERA5 is {era5_merged.time_band}."
+            description = description+f" The time range of ERA5 is {self.diag.tools.format_time(era5_merged.time_band)}."
             add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
         else:
             self.logger.warning("Data appears to be not in hourly intervals. The CLI will not provide the plot of daily variability.")
@@ -452,7 +471,8 @@ class Tropical_Rainfall_CLI:
             description = (
                 f"Comparison of the average precipitation profiles along latitude "
                 f"from {self.model} {self.exp}, measured in {self.new_unit}, over the time range "
-                f"{self.diag.tools.open_dataset(model_average_path_lat).time_band}, against observations."
+                f"{self.diag.tools.format_time(self.diag.tools.open_dataset(model_average_path_lat).time_band)}, "
+                f"against observations."
             )
             add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
             
@@ -462,7 +482,9 @@ class Tropical_Rainfall_CLI:
                                       legend="MSWEP",
                                       path_to_pdf=self.path_to_pdf,
                                       name_of_file=f"{self.regrid}_{self.freq}")
-            description = description+f" The time range of MSWEP is {self.diag.tools.open_dataset(path_to_mswep).time_band}."
+            description = description + (
+                f" The time range of MSWEP is {self.diag.tools.format_time(self.diag.tools.open_dataset(path_to_mswep).time_band)}."
+            )
             add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
             
             path_to_era5 = f"{self.era5}r100/M/mean/trop_rainfall_r100_M_lat_1940-01-01T00_2023-12-01T06_M.nc"
@@ -471,7 +493,9 @@ class Tropical_Rainfall_CLI:
                                       legend="ERA5",
                                       path_to_pdf=self.path_to_pdf,
                                       name_of_file=f"{self.regrid}_{self.freq}")
-            description = description+f" The time range of ERA5 is {self.diag.tools.open_dataset(path_to_era5).time_band}."
+            description = description + (
+                f" The time range of ERA5 is {self.diag.tools.format_time(self.diag.tools.open_dataset(path_to_era5).time_band)}."
+            )
             add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
                   
                                         
@@ -484,7 +508,8 @@ class Tropical_Rainfall_CLI:
             description = (
                 f"Comparison of the average precipitation profiles along longitude "
                 f"from {self.model} {self.exp}, measured in {self.new_unit}, over the time range "
-                f"{self.diag.tools.open_dataset(model_average_path_lat).time_band}, against observations."
+                f"{self.diag.tools.format_time(self.diag.tools.open_dataset(model_average_path_lat).time_band)}, "
+                f"against observations."
             )
             add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
             path_to_mswep = f"{self.mswep}r100/M/mean/trop_rainfall_r100_M_lon_1979-09-01T00_2020-11-01T00_M.nc"
@@ -493,7 +518,9 @@ class Tropical_Rainfall_CLI:
                                       legend="MSWEP",
                                       path_to_pdf=self.path_to_pdf,
                                       name_of_file=f"{self.regrid}_{self.freq}")
-            description = description+f" The time range of MSWEP is {self.diag.tools.open_dataset(path_to_mswep).time_band}."
+            description = description + (
+                f" The time range of MSWEP is {self.diag.tools.format_time(self.diag.tools.open_dataset(path_to_mswep).time_band)}."
+            )
             add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
             
             path_to_imerg = f"{self.imerg}r100/M/mean/trop_rainfall_r100_M_lon_2000-09-01T00_2022-11-01T00_M.nc"
@@ -502,7 +529,9 @@ class Tropical_Rainfall_CLI:
                                             legend="IMERG",
                                             path_to_pdf=self.path_to_pdf,
                                             name_of_file=f"{self.regrid}_{self.freq}")
-            description = description+f" The time range of IMERG is {self.diag.tools.open_dataset(path_to_imerg).time_band}."
+            description = description + (
+                f" The time range of IMERG is {self.diag.tools.format_time(self.diag.tools.open_dataset(path_to_imerg).time_band)}."
+            )
             add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
 
             path_to_era5 = f"{self.era5}r100/M/mean/trop_rainfall_r100_M_lon_1940-09-01T00_2023-11-01T06_M.nc"
@@ -511,7 +540,9 @@ class Tropical_Rainfall_CLI:
                                       legend="ERA5",
                                       path_to_pdf=self.path_to_pdf,
                                       name_of_file=f"{self.regrid}_{self.freq}")
-            description = description+f" The time range of ERA5 is {self.diag.tools.open_dataset(path_to_era5).time_band}."
+            description = description + (
+                f" The time range of ERA5 is {self.diag.tools.format_time(self.diag.tools.open_dataset(path_to_era5).time_band)}."
+            )
             add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel = self.loglevel)
         else:
             self.logger.warning("Data appears to be not in monthly or yearly intervals.") 
