@@ -2,10 +2,10 @@ ECmean4 Performance Metrics
 ===========================
 
 `ECmean4 <https://pypi.org/project/ECmean4>`_ is an open source package which has been integrated within AQUA,
-aiming at computing basic performance metrics. It specifically coverse the Reichler and Kim Performance Indices (PIs)
-and the so-called Global Mean (GMs), nothing more than global averages for several fields compared againt observations.
+aiming at computing basic performance metrics. It specifically covers the Reichler and Kim Performance Indices (PIs)
+and the so-called Global Mean (GMs), i.e. global averages for several fields compared againt observations.
 
-Those numbers provides an estimates of the DE_340 models climatological *skill* of some selected atmospheric and oceanic fields.
+Together, those numbers provides an estimates of the climate models climatological *skill* of some selected atmospheric and oceanic fields.
 
 Description
 -----------
@@ -20,10 +20,10 @@ interannual variance estimated from the observations. Larger values implies wors
 In the plots produced by ECmean4 implementation, PIs are normalized by the (precomputed) average of CMIP6 climate models,
 so that number smaller than one implies a better performance than CMIP6 model.
 
-On the other hand, also the Global Mean (GMs) metric is computed. These are the average of many dynamical and physical fields which are 
+On the other hand, the Global Mean (GMs) metric is computed. These are simply the average of many dynamical and physical fields which are 
 compared against a set of pre-computed climatological values for both the atmosphere and the ocean (e.g. land temperature, salinity, etc.). 
 Different observational datasets are taken in consideration for each variable, providing an estimate of the plausible variability in the form of interannual standard deviation.
-GMs provides also estimate for the radiative budget (including clouds radiative forcing) and for the hydrological cycle (including integrals over land and ocean) 
+GMs provides also estimate for the radiative budget  and for the hydrological cycle (including integrals over land and ocean) 
 and other quantities useful for fast model assessment and for model tuning.
 
 Structure
@@ -127,6 +127,11 @@ Example Plot(s)
     :width: 15cm
 
     An example of the Performance Indices computed on a single year of the tco2599-ng5 simulation from NextGEMS Cycle2 run.
+
+.. figure:: figures/ecmean-gm.png
+    :width: 15cm
+
+    An example of the Global Mean computed on 30 years of the tco2599-ng5 simulation from NextGEMS Cycle4 run.
 
 Available demo notebooks
 ------------------------
