@@ -165,7 +165,7 @@ class GSVSource(base.DataSource):
         self.bridge_end_date = read_bridge_end_date(bridge_end_date)  # HACK
         
         if self.bridge_end_date and not self.fdbpath_bridge and not self.fdbhome_bridge:
-            raise ValueError('Bridge end date requested but FDB path not specified in catalog.')
+            raise ValueError('Bridge end date requested but no bridge FDB path or FDB home specified in catalog.')
 
         if self.bridge_end_date == "complete" or not self.bridge_end_date or (
                 self.bridge_end_date and
@@ -560,12 +560,12 @@ class GSVSource(base.DataSource):
            This works only with the DE GSV schema.
         """
 
-        if not self.fdbpath and not self.fdbpath:
-            raise ValueError('Automatic dates requested but FDB path not specified in catalog.')
+        if not self.fdbhome and not self.fdbpath:
+            raise ValueError('Automatic dates requested but no FDB home or FDB path specified in catalog.')
 
         yaml = YAML() 
   
-        if self.fdbhome and not self.fdbpath:
+        if self.fdbhome:  # FDB_HOME takes precedence but assumes a fixed subdirectory structure
             yamlfile = os.path.join(self.fdbhome, '/etc/fdb/config.yaml')
         else:
             yamlfile = self.fdbpath
