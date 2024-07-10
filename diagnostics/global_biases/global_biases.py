@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 from aqua.exceptions import NoDataError
-from aqua.graphics import plot_single_map, plot_single_map_diff, plot_maps
+from aqua.graphics import plot_single_map, plot_single_map_diff, plot_maps_diff
 from aqua.util import create_folder, add_cyclic_lon, select_season
 from aqua.util import evaluate_colorbar_limits, ticks_round
 from aqua.logger import log_configure
@@ -129,14 +129,19 @@ class GlobalBiases:
                 raise ValueError("Invalid statistic. Please choose one of 'mean', 'std', 'max', 'min'.")
 
             seasonal_data = []
+            seasonal_data_ref = []
+            
             for season in season_list:
                 data_season = select_season(self.data[self.var_name], season)
                 data_ref_season = select_season(self.data_ref[self.var_name], season)
-                seasonal_diff = getattr(data_season, stat_funcs[self.seasons_stat])(dim='time') - \
-                                getattr(data_ref_season, stat_funcs[self.seasons_stat])(dim='time')
-                seasonal_data.append(seasonal_diff.compute())  
+                data_stat =  getattr(data_season, stat_funcs[self.seasons_stat])(dim='time') 
+                data_ref_stat = getattr(data_ref_season, stat_funcs[self.seasons_stat])(dim='time')
 
-            plot_maps(seasonal_data, titles=season_list)
+                seasonal_data.append(data_stat)  
+                seasonal_data_ref.append(data_ref_stat)  
+            
+            plot_maps_diff(maps=seasonal_data, maps_ref=seasonal_data_ref, titles=season_list)
+
 
     def plot_vertical_bias(self, data=None, data_ref=None, var_name=None, plev_min=None, plev_max=None, vmin=None, vmax=None):
         """
