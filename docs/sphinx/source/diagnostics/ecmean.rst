@@ -63,7 +63,7 @@ For Global Means, the following variables are requested
 For Performance Indices the following variables are requested:
 
 * ``mtpr`` (Mean total precipitation rate, GRIB paramid 235055)
-* ``evspsbl``(Mean evaporation rate, GRIB paramid)
+* ``mer``(Mean evaporation rate, GRIB paramid 235043)
 * ``2t``     (2 metre temperature, GRIB paramid 167)
 * ``msl``    (mean sea level pressure, GRIB paramid 151)
 * ``metss``  (eastward wind stress, GRIB paramid 180)
@@ -72,9 +72,9 @@ For Performance Indices the following variables are requested:
 * ``u``      (zonal wind, GRIB paramid 131)
 * ``v``      (meridional wind, GRIB paramid 132)
 * ``q``      (specific humidity, GRIB paramid 133)
-* ``clt``    (total cloud cover, GRIB paramid )
-* ``mtnswrf``  (top net shortwave radiation, GRIB paramid)
-* ``mtnlwrf``  (top net longwave radiation, GRIB paramid)
+* ``tcc``    (total cloud cover, GRIB paramid 228164)
+* ``mtnswrf``  (top net shortwave radiation, GRIB paramid 235039)
+* ``mtnlwrf``  (top net longwave radiation, GRIB paramid 235040)
 * ``avg_tos``    (sea surface temperature, GRIB paramid 263101)
 * ``avg_sos``    (sea surface salinity, GRIB paramid 263100)
 * ``avg_siconc``     (sea ice concentration, GRIB paramid 263001)
