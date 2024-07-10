@@ -78,12 +78,16 @@ class GSVSource(base.DataSource):
 
         if metadata:
             self.fdbhome = metadata.get('fdb_home', None)
+            self.fdbpath = metadata.get('fdb_path', None)
             self.fdbhome_bridge = metadata.get('fdb_home_bridge', None)
+            self.fdbpath_bridge = metadata.get('fdb_path_bridge', None)
             self.eccodes_path = metadata.get('eccodes_path', None)
             self.levels =  metadata.get('levels', None)
         else:
+            self.fdbpath = None
             self.fdbhome = None
             self.fdbhome_bridge = None
+            self.fdbpath_bridge = None
             self.eccodes_path = None
             self.levels = None
 
@@ -160,7 +164,7 @@ class GSVSource(base.DataSource):
         self.enddate = enddate
         self.bridge_end_date = read_bridge_end_date(bridge_end_date)  # HACK
         
-        if self.bridge_end_date and not self.fdbhome_bridge:
+        if self.bridge_end_date and not self.fdbpath_bridge and not self.fdbhome_bridge:
             raise ValueError('Bridge end date requested but FDB path not specified in catalog.')
 
         if self.bridge_end_date == "complete" or not self.bridge_end_date or (
@@ -259,7 +263,9 @@ class GSVSource(base.DataSource):
             '_request': self._request,
             'timestyle': self.timestyle,
             'fdbhome': self.fdbhome,
+            'fdbpath': self.fdbpath,
             'fdbhome_bridge': self.fdbhome_bridge,
+            'fdbpath_bridge': self.fdbpath_bridge,
             'eccodes_path': self.eccodes_path,
             '_var': self._var,
             'timeshift': self.timeshift,
@@ -284,7 +290,9 @@ class GSVSource(base.DataSource):
         self.chk_type = state['chk_type']
         self.timestyle = state['timestyle']
         self.fdbhome = state['fdbhome']
+        self.fdbpath = state['fdbpath']
         self.fdbhome_bridge = state['fdbhome_bridge']
+        self.fdbpath_bridge = state['fdbpath_bridge']
         self.eccodes_path = state['eccodes_path']
         self._var = state['_var']
         self.timeshift = state['timeshift']
@@ -424,11 +432,15 @@ class GSVSource(base.DataSource):
             # Bridge FDB type
             if self.fdbhome_bridge:
                 os.environ["FDB_HOME"] = self.fdbhome_bridge
+            if self.fdbpath_bridge:
+                os.environ["FDB5_CONFIG_FILE"] = self.fdbpath_bridge
             fstream_iterator = True
         else:
             # HPC FDB type
             if self.fdbhome:  #if fdbhome is provided, use it, since we are creating a new gsv
                 os.environ["FDB_HOME"] = self.fdbhome
+            if self.fdbpath:  # if fdbpath provided, use it, since we are creating a new gsv
+                os.environ["FDB5_CONFIG_FILE"] = self.fdbpath
 
         if self.eccodes_path:  # if needed switch eccodes path
             # unless we have already switched
@@ -548,11 +560,15 @@ class GSVSource(base.DataSource):
            This works only with the DE GSV schema.
         """
 
-        if not self.fdbhome:
-            raise ValueError('Automatic dates requested but FDB home not specified in catalog.')
+        if not self.fdbpath and not self.fdbpath:
+            raise ValueError('Automatic dates requested but FDB path not specified in catalog.')
 
         yaml = YAML() 
-        yamlfile = os.path.join(self.fdbhome, '/etc/fdb/config.yaml')
+  
+        if self.fdbhome and not self.fdbpath:
+            yamlfile = os.path.join(self.fdbhome, '/etc/fdb/config.yaml')
+        else:
+            yamlfile = self.fdbpath
         
         with open(yamlfile, 'r') as file:
             cfg = yaml.load(file)
