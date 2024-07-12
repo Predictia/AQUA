@@ -53,38 +53,45 @@ class AquaConsole():
             'grids': {
                 'add': self.grids_add,
                 'remove': self.remove_file
-            }
+            },
+            'lra': self.lra
         }
 
     def execute(self):
         """parse AQUA class and run the required command"""
 
         parser_dict = parse_arguments()
+        print(f'parser_dict: {parser_dict}')
         args = parser_dict['main'].parse_args(sys.argv[1:])
+        # print(f"Arguments: {args}")
 
-        # Set the log level
-        if args.very_verbose or (args.verbose and args.very_verbose):
-            loglevel = 'DEBUG'
-        elif args.verbose:
-            loglevel = 'INFO'
-        else:
-            loglevel = 'WARNING'
-        self.logger = log_configure(loglevel, 'AQUA')
+        # # Set the log level
+        # if args.very_verbose or (args.verbose and args.very_verbose):
+        #     loglevel = 'DEBUG'
+        # elif args.verbose:
+        #     loglevel = 'INFO'
+        # else:
+        #     loglevel = 'WARNING'
+        # self.logger = log_configure(loglevel, 'AQUA')
 
-        command = args.command
-        method = self.command_map.get(command, parser_dict['main'].print_help)
-        if command not in self.command_map:
-            parser_dict['main'].print_help()
-        else:
-            # nested map
-            if isinstance(self.command_map[command], dict):
-                if args.nested_command:
-                    self.command_map[command][args.nested_command](args)
-                else:
-                    parser_dict[command].print_help()
-            # default
-            else:
-                method(args)
+        # command = args.command
+        # method = self.command_map.get(command, parser_dict['main'].print_help)
+
+        # print(f"Running AQUA command: {command} and method: {method}")
+        # if command not in self.command_map:
+        #     parser_dict['main'].print_help()
+        # elif command == "lra":
+        #     handle_lra_command(args.args)
+        # else:
+        #     # nested map
+        #     if isinstance(self.command_map[command], dict):
+        #         if args.nested_command:
+        #             self.command_map[command][args.nested_command](args)
+        #         else:
+        #             parser_dict[command].print_help()
+        #     # default
+        #     else:
+        #         method(args)
 
     def install(self, args):
         """Install AQUA, find the folders and then install
@@ -626,6 +633,12 @@ class AquaConsole():
             self.logger.error(e)
             return False
 
+    def lra(self, args):
+        """Run the Low Resolution Archive generator"""
+
+        print('Running the Low Resolution Archive generator')
+        print(f'Arguments: {args.args}')
+
 
 def main():
     """AQUA main installation tool"""
@@ -695,3 +708,9 @@ def fsspec_get_recursive(fs, src_dir, dest_dir):
             os.makedirs(os.path.dirname(dest_path), exist_ok=True)
             # Copy the file
             fs.get(item, dest_path)
+
+
+def handle_lra_command(args):
+    # Here we handle the LRA command and forward the remaining arguments
+    lra_command = ["lra_command"] + args
+    print("Handling LRA command with args:", args)

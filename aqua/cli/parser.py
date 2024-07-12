@@ -35,6 +35,9 @@ def parse_arguments():
     set_parser = subparsers.add_parser("set", description="Set an installed catalog as the predefined in config-aqua.yaml")
     list_parser = subparsers.add_parser("list", description="List the currently installed AQUA catalogs")
 
+    # # subparser for other AQUA commands
+    # parser_lra = subparsers.add_parser("lra", description="Low Resolution Archive generator")
+
     # subparser with no arguments
     subparsers.add_parser("uninstall", description="Remove the current AQUA installation")
 
@@ -65,11 +68,14 @@ def parse_arguments():
     list_parser.add_argument("-a", "--all", action="store_true",
                              help="Print also all the installed fixes, grids and data_models")
 
+    parser_lra = lra_subpaser(subparsers)
+
     # create a dictionary to simplify the call
     parser_dict = {
         'main': parser,
         'fixes': parser_fixes,
-        'grids': parser_grids
+        'grids': parser_grids,
+        'lra': parser_lra
     }
 
     return parser_dict
@@ -88,5 +94,14 @@ def file_subparser(main_parser, name):
                                   help=f"Add a {name} file in editable mode from the original path")
     parser_remove = subparsers.add_parser('remove', help=f'Remove a {name} file')
     parser_remove.add_argument('file', help=f'The {name} file to remove')
+
+    return parser
+
+
+def lra_subpaser(main_parser):
+    """Compact subparsers for the LRA generator"""
+
+    parser = main_parser.add_parser('lra', help='Low Resolution Archive generator')
+    parser.add_argument('args', nargs=argparse.REMAINDER, help="Arguments for the LRA generator")
 
     return parser
