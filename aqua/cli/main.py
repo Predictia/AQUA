@@ -7,8 +7,9 @@ AQUA command line main functions
 import os
 import shutil
 import sys
-from urllib.error import HTTPError
 import fsspec
+from urllib.error import HTTPError
+
 from aqua.util import load_yaml, dump_yaml, load_multi_yaml
 from aqua.logger import log_configure
 from aqua.util import ConfigPath
@@ -21,6 +22,7 @@ from aqua.util import create_folder
 
 # folder used for reading/storing catalogs
 catpath = 'catalogs'
+
 
 class AquaConsole():
     """Class for AquaConsole, the AQUA command line interface for
@@ -235,7 +237,8 @@ class AquaConsole():
                 self.logger.debug('Copying from %s to %s', source_file, target_file)
                 shutil.copy(source_file, target_file)
             else:
-                self.logger.debug('Config file %s already exists in the target path %s. Skipping copy.', config_file, target_directory)
+                self.logger.debug('Config file %s already exists in the target path %s. Skipping copy.',
+                                  config_file, target_directory)
 
     def _install_editable_diagnostics(self, diagnostic_type, editable):
         """Create a symbolic link for the config file from the diagnostics path to AQUA"""
@@ -273,9 +276,9 @@ class AquaConsole():
                 self.logger.debug('Linking from %s to %s', source_file, target_file)
                 os.symlink(source_file, target_file)
             else:
-                self.logger.debug('Config file %s already exists in the target path %s. Skipping link.', config_file, target_directory)
+                self.logger.debug('Config file %s already exists in the target path %s. Skipping link.',
+                                  config_file, target_directory)
 
-        
     def _set_machine(self, args):
         """Modify the config-aqua.yaml with the identified machine"""
 
