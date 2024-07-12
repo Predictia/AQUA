@@ -158,7 +158,7 @@ if ! grep -q 'module use /project/project_465000454/software/23.09/modules/C'  "
 
   echo '# Load modules' >> $load_aqua_file
   echo 'module purge' >> $load_aqua_file
-  echo 'module load ecCodes/2.36.0-cpeCray-23.09' >> $load_aqua_file
+  echo 'module load eccodes/2.36.0-cpeCray-23.09' >> $load_aqua_file
   echo 'module load fdb/5.12.1-cpeCray-23.09' >> $load_aqua_file
   echo 'module load eckit/1.26.3-cpeCray-23.09' >> $load_aqua_file
   echo 'module load metkit/1.11.14-cpeCray-23.09' >> $load_aqua_file
