@@ -9,6 +9,7 @@ from aqua.cli.main import AquaConsole, query_yes_no
 from aqua.util import dump_yaml, load_yaml
 from aqua import __version__ as version
 from aqua import __path__ as pypath
+from aqua.cli.diagnostic_config import diagnostic_config
 
 testfile = 'testfile.txt'
 
@@ -82,6 +83,29 @@ def run_aqua():
         aquacli = AquaConsole()
         aquacli.execute()
     return _run_aqua_console
+
+def verify_config_files(base_dir, diagnostic_config):
+    """
+    Verify that the configuration files were copied correctly.
+
+    Args:
+        base_dir (str): The base directory where the files should be copied.
+        diagnostic_config (dict): The diagnostic configuration dictionary.
+
+    Returns:
+        bool: True if all files are present, False otherwise.
+    """
+    all_files_present = True
+    for diagnostic, configs in diagnostic_config.items():
+        for config in configs:
+            target_path = os.path.join(base_dir, config['target_path'], config['config_file'])
+            print(f"Checking file: {target_path}")
+            if not os.path.isfile(target_path):
+                print(f"Missing file: {target_path}")
+                all_files_present = False
+            else:
+                print(f"File exists: {target_path}")
+    return all_files_present
 
 
 @pytest.mark.aqua
@@ -277,6 +301,24 @@ class TestAquaConsole():
         run_aqua_console_with_input(['uninstall'], 'yes')
         assert not os.path.exists(os.path.join(mydir, '.aqua'))
 
+    def test_install_copies_config_files(self, tmpdir, set_home, run_aqua):
+        """Test that configuration files are copied correctly during install.
+
+        Args:
+            tmpdir (str): Temporary directory
+            set_home (fixture): Fixture to modify the HOME environment variable
+            run_aqua (fixture): Fixture to run AQUA console with some interactive command
+        """
+        # Setup temporary home directory
+        mydir = str(tmpdir)
+        set_home(mydir)
+
+        # Run aqua install
+        run_aqua(['install'])
+
+        # Verify the configuration files were copied correctly
+        assert verify_config_files(os.path.join(mydir, '.aqua'), diagnostic_config)
+
     def test_console_with_links(self, tmpdir, set_home, run_aqua_console_with_input):
 
         # getting fixture
@@ -372,6 +414,8 @@ class TestAquaConsole():
         # getting fixture
         delete_home()
         mydir = str(tmpdir)
+
+        print(f"HOME is set to: {os.environ.get('HOME')}")
 
         # check unexesting installation
         with pytest.raises(SystemExit) as excinfo:

@@ -1,5 +1,5 @@
 from aqua.logger import log_configure, log_history
-from aqua.util import add_pdf_metadata, add_png_metadata, update_metadata_with_date
+from aqua.util import add_pdf_metadata, add_png_metadata, update_metadata_with_date, ConfigPath
 import os
 import xarray as xr
 from datetime import datetime
@@ -8,17 +8,23 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
 
-class OutputNamer:
-    def __init__(self, diagnostic: str, model: str, exp: str, diagnostic_product: str = None, loglevel: str = 'WARNING',
+class OutputSaver:
+    """
+    Class to manage saving outputs, including NetCDF, PDF, and PNG files, with
+    customized naming based on provided parameters and metadata.
+    """
+
+    def __init__(self, diagnostic: str, model: str, exp: str, diagnostic_product: str = None, catalog: str = None, loglevel: str = 'WARNING',
                  default_path: str = '.', rebuild: bool = True):
         """
-        Initialize the OutputNamer class to manage output file naming.
+        Initialize the OutputSaver class to manage output file saving.
 
         Args:
             diagnostic (str): Name of the diagnostic.
             model (str): Model used in the diagnostic.
             exp (str): Experiment identifier.
             diagnostic_product (str, optional): Product of the diagnostic analysis.
+            catalog (str, optional): Catalog where to search for the triplet. Default to None will allow for autosearch in the installed catalogs.
             loglevel (str, optional): Log level for the class's logger.
             default_path (str, optional): Default path where files will be saved.
             rebuild (bool, optional): If True, overwrite the existing files. If False, do not overwrite. Default is True.
@@ -27,10 +33,11 @@ class OutputNamer:
         self.model = model
         self.exp = exp
         self.diagnostic_product = diagnostic_product
+        self.catalog = catalog if catalog is not None else ConfigPath().catalog
         self.loglevel = loglevel
         self.default_path = default_path
         self.rebuild = rebuild
-        self.logger = log_configure(log_level=self.loglevel, log_name='OutputNamer')
+        self.logger = log_configure(log_level=self.loglevel, log_name='OutputSaver')
 
     def update_diagnostic_product(self, diagnostic_product: str):
         """
@@ -44,7 +51,7 @@ class OutputNamer:
 
     def generate_name(self, diagnostic_product: str = None, var: str = None, model_2: str = None, exp_2: str = None,
                       time_start: str = None, time_end: str = None, time_precision: str = 'ymd', area: str = None,
-                      suffix: str = 'nc', **kwargs) -> str:
+                      suffix: str = 'nc', catalog_2: str = None, **kwargs) -> str:
         """
         Generate a filename based on provided parameters and additional user-defined keywords,
         including precise time intervals.
@@ -59,6 +66,7 @@ class OutputNamer:
             time_precision (str, optional): Precision for time representation ('y', 'ym', 'ymd', 'ymdh', etc.).
             area (str, optional): The geographical area covered by the data.
             suffix (str, optional): The file extension/suffix indicating file type.
+            catalog_2 (str, optional): The second catalog, for comparative studies. Default to None will allow for autosearch in the installed catalogs.
             **kwargs: Arbitrary keyword arguments provided by the user for additional customization.
 
         Returns:
@@ -96,7 +104,7 @@ class OutputNamer:
         additional_parts = [f"{key}_{value}" for key, value in sorted(kwargs.items())]
 
         parts = [part for part in [self.diagnostic, self.diagnostic_product, var,
-                                   self.model, self.exp, model_2, exp_2, area] if part]
+                                   self.model, self.exp, self.catalog, model_2, exp_2, catalog_2, area] if part]
         parts.extend(time_parts)
         parts.extend(additional_parts)
         parts.append(suffix)
@@ -107,7 +115,7 @@ class OutputNamer:
 
     def save_netcdf(self, dataset: xr.Dataset, path: str = None, diagnostic_product: str = None, var: str = None,
                     model_2: str = None, exp_2: str = None, time_start: str = None, time_end: str = None,
-                    time_precision: str = 'ymd', area: str = None, metadata: dict = None, **kwargs) -> str:
+                    time_precision: str = 'ymd', area: str = None, metadata: dict = None, catalog_2: str = None, **kwargs) -> str:
         """
         Save a netCDF file with a dataset to a specified path, with support for additional filename keywords and
         precise time intervals.
@@ -124,6 +132,7 @@ class OutputNamer:
             time_precision (str, optional): Precision for time representation ('y', 'ym', 'ymd', 'ymdh', etc.).
             area (str, optional): The geographical area covered by the data.
             metadata (dict, optional): Additional metadata to include in the netCDF file.
+            catalog_2 (str, optional): The second catalog, for comparative studies. Default to None will allow for autosearch in the installed catalogs.
             **kwargs: Additional keyword arguments for more flexible filename customization.
 
         Returns:
@@ -131,7 +140,7 @@ class OutputNamer:
         """
         filename = self.generate_name(diagnostic_product=diagnostic_product, var=var,
                                       model_2=model_2, exp_2=exp_2, time_start=time_start, time_end=time_end,
-                                      time_precision=time_precision, area=area, suffix='nc', **kwargs)
+                                      time_precision=time_precision, area=area, suffix='nc', catalog_2=catalog_2, **kwargs)
 
         if path is None:
             path = self.default_path
@@ -161,7 +170,7 @@ class OutputNamer:
 
     def save_pdf(self, fig: Figure, path: str = None, diagnostic_product: str = None, var: str = None,
                  model_2: str = None, exp_2: str = None, time_start: str = None, time_end: str = None,
-                 time_precision: str = 'ymd', area: str = None, metadata: dict = None, dpi: int = 300, **kwargs) -> str:
+                 time_precision: str = 'ymd', area: str = None, metadata: dict = None, dpi: int = 300, catalog_2: str = None, **kwargs) -> str:
         """
         Save a PDF file with a matplotlib figure to the provided path, with support for additional filename keywords and
         precise time intervals.
@@ -179,6 +188,7 @@ class OutputNamer:
             area (str, optional): The geographical area covered by the data.
             metadata (dict, optional): Additional metadata to include in the PDF file.
             dpi (int, optional): The resolution of the saved PDF file. Default is 300.
+            catalog_2 (str, optional): The second catalog, for comparative studies. Default to None will allow for autosearch in the installed catalogs.
             **kwargs: Additional keyword arguments for more flexible filename customization.
 
         Returns:
@@ -191,7 +201,7 @@ class OutputNamer:
             path = self.default_path
         filename = self.generate_name(diagnostic_product=diagnostic_product, var=var, model_2=model_2, exp_2=exp_2,
                                       time_start=time_start, time_end=time_end, time_precision=time_precision, area=area,
-                                      suffix='pdf', **kwargs)
+                                      suffix='pdf', catalog_2=catalog_2, **kwargs)
         full_path = os.path.join(path, filename)
 
         if not self.rebuild and os.path.exists(full_path):
@@ -216,7 +226,7 @@ class OutputNamer:
 
     def save_png(self, fig: Figure, path: str = None, diagnostic_product: str = None, var: str = None,
                  model_2: str = None, exp_2: str = None, time_start: str = None, time_end: str = None,
-                 time_precision: str = 'ymd', area: str = None, metadata: dict = None, dpi: int = 300, **kwargs) -> str:
+                 time_precision: str = 'ymd', area: str = None, metadata: dict = None, dpi: int = 300, catalog_2: str = None, **kwargs) -> str:
         """
         Save a PNG file with a matplotlib figure to a provided path, with support for additional filename keywords and
         precise time intervals.
@@ -234,6 +244,7 @@ class OutputNamer:
             area (str, optional): The geographical area covered by the data.
             metadata (dict, optional): Additional metadata to include in the PNG file.
             dpi (int, optional): The resolution of the saved PNG file. Default is 300.
+            catalog_2 (str, optional): The second catalog, for comparative studies. Default to None will allow for autosearch in the installed catalogs.
             **kwargs: Additional keyword arguments for more flexible filename customization.
 
         Returns:
@@ -244,7 +255,7 @@ class OutputNamer:
         """
         filename = self.generate_name(diagnostic_product=diagnostic_product, var=var, model_2=model_2, exp_2=exp_2,
                                       time_start=time_start, time_end=time_end, time_precision=time_precision,
-                                      area=area, suffix='png', **kwargs)
+                                      area=area, suffix='png', catalog_2=catalog_2, **kwargs)
 
         if path is None:
             path = self.default_path

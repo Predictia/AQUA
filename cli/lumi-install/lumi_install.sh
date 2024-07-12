@@ -163,8 +163,6 @@ if ! grep -q 'module use /project/project_465000454/software/23.09/modules/C'  "
   echo 'module load eckit/1.26.3-cpeCray-23.09' >> $load_aqua_file
   echo 'module load metkit/1.11.14-cpeCray-23.09' >> $load_aqua_file
     
-  # Config FDB: check load_modules_lumi.sh on GSV repo https://earth.bsc.es/gitlab/digital-twins/de_340/gsv_interface/-/blob/main/load_modules_lumi.sh
-  echo 'export FDB5_CONFIG_FILE=/scratch/project_465000454/igonzalez/fdb-test/config.yaml' >>  $load_aqua_file
   log_message INFO "exports for FDB5 added to .bashrc. Please run 'source ~/.bashrc' to load the new configuration."
 
   # Config GSV: check load_modules_lumi.sh on GSV repo https://earth.bsc.es/gitlab/digital-twins/de_340/gsv_interface/-/blob/main/load_modules_lumi.sh
