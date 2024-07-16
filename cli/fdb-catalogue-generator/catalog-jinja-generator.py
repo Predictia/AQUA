@@ -126,14 +126,6 @@ def create_catalog_entry(config, catalog_dir_path, model, all_content):
 
     logger.info("%s entry in 'main.yaml' has been updated in %s", config['exp'], output_dir)
 
-def load_yaml(yaml_path):
-    with open(yaml_path, 'r', encoding='utf8') as file:
-        return yaml.safe_load(file)
-
-def dump_yaml(yaml_path, data):
-    with open(yaml_path, 'w', encoding='utf8') as file:
-        yaml.dump(data, file, default_flow_style=False, allow_unicode=True)
-
 
 if __name__ == '__main__':
 
@@ -141,7 +133,7 @@ if __name__ == '__main__':
     args = parse_arguments(sys.argv[1:])
 
     dp_version = get_arg(args, 'portfolio', 'production')
-    config_file = get_arg(args, 'config', 'config.tmpl')
+    config_file = get_arg(args, 'config', 'config.yaml')
     loglevel = get_arg(args, 'loglevel', 'WARNING')
 
     logger = log_configure(loglevel, 'FDB catalog generator')
@@ -156,12 +148,12 @@ if __name__ == '__main__':
     model = config["model"]
     
     # reading the portfolio file
-    dp_file_path =  os.path.join(dp_dir_path, 'production', 'portfolio.yaml')
+    dp_file_path =  os.path.join(dp_dir_path, dp_version, 'portfolio.yaml')
     with open(dp_file_path, 'r') as dp_file:
         dp = yaml.safe_load(dp_file)
 
     # readig the grids file
-    grids_file_path = os.path.join(dp_dir_path, 'production', 'grids.yaml')
+    grids_file_path = os.path.join(dp_dir_path, dp_version, 'grids.yaml')
     with open(grids_file_path, 'r') as grids_file:
         grids = yaml.safe_load(grids_file)
 
