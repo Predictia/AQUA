@@ -66,6 +66,9 @@ print_help() {
     echo "Options:"
     echo "  -h, --help             display this help and exit"
     echo "  -b, --branch BRANCH    branch to push to (optional, default is "main")"
+    echo "  -u, --user USER:PAT    credentials (in the format "username:PAT") to create an automatic PR for the branch (optional)"
+    echo "  -m, --message MESSAGE  message for the automatic PR (optional)"
+    echo "  -t, --title TITLE      title for the automatic PR (optional)"
 #    echo "  -r, --repository REPO  specify a local copy of the aqua-web repository"
 }
 
