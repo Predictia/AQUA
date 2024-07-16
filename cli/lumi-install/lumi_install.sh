@@ -144,24 +144,31 @@ if [ -f "$load_aqua_file" ]; then
   if [[ $REPLY =~ ^[Yy]$ ]]; then
     rm $load_aqua_file
     log_message INFO "Existing ${load_aqua_file} removed."
+
+    # Creating the new file
+    create_aqua_file
   elif [[ $REPLY =~ ^[Nn]$ ]]; then
-    log_message INFO "Keeping the old $load_aqua_file"
+    log_message WARNING "Keeping the old $load_aqua_file file. Please make sure it is up to date."
   else
     log_message ERROR "Invalid response. Please enter 'y' or 'n'."
   fi
 fi
 
-if ! grep -q 'module use /project/project_465000454/software/23.09/modules/C'  "~/load_aqua.sh" ; then
-#if [ ! -f $load_aqua_file ] ; then
+create_aqua_file() {
+  # Create a new file
+  touch $load_aqua_file
+
   echo '# Use ClimateDT paths' >> $load_aqua_file
   echo 'module use /project/project_465000454/software/23.09/modules/C' >> $load_aqua_file
 
   echo '# Load modules' >> $load_aqua_file
-  echo 'module purge' >> $load_aqua_file
+  # Removed, see issue #1195
+  # echo 'module purge' >> $load_aqua_file
   echo 'module load eccodes/2.36.0-cpeCray-23.09' >> $load_aqua_file
   echo 'module load fdb/5.12.1-cpeCray-23.09' >> $load_aqua_file
-  echo 'module load eckit/1.26.3-cpeCray-23.09' >> $load_aqua_file
-  echo 'module load metkit/1.11.14-cpeCray-23.09' >> $load_aqua_file
+  # These are loaded automatically with the fdb module
+  # echo 'module load eckit/1.26.3-cpeCray-23.09' >> $load_aqua_file
+  # echo 'module load metkit/1.11.14-cpeCray-23.09' >> $load_aqua_file
     
   log_message INFO "exports for FDB5 added to .bashrc. Please run 'source ~/.bashrc' to load the new configuration."
 
@@ -180,9 +187,7 @@ if ! grep -q 'module use /project/project_465000454/software/23.09/modules/C'  "
   echo "# AQUA installation path" >>  $load_aqua_file
   echo 'export PATH="'$INSTALLATION_PATH'/bin:$PATH"' >>  $load_aqua_file
   log_message INFO "export PATH has been added to .bashrc. Please run 'source $load_aqua_file' to load the new configuration."
-else
-  log_message WARNING "A $(basename $load_aqua_file) is already available in your home. Nothing to add!"
-fi
+}
 
 # ask if you want to add this to the bash profile
 log_message $next_level_msg_type "Would you like to source $load_aqua_file in your .bash_profile? (y/n) "
