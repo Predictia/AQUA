@@ -11,6 +11,7 @@ AQUA core complete list:
 - Added test for diagnostics integration to AQUA installation process (#1244)
 - Bugfix for the monthly frequency data with monthly cumulated fluxes (#1255)
 - fdb_path becomes optional and deprecated in favour of fdb_home (#1262)
+- Branch support for tool to push analysis to explorer (#1273)
 
 AQUA diagnostic complete list:
 - ECmean documentation updates (#1264)
