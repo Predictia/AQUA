@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Restructure fixes folder and files (#1271)
 - Removed eccodes pin, better handling of tables in get_eccodes_attr (#1269)
 - Added test for diagnostics integration to AQUA installation process (#1244)
 - Bugfix for the monthly frequency data with monthly cumulated fluxes (#1255)
