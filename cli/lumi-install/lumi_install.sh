@@ -136,24 +136,6 @@ else
   fi
 fi
 
-# check if load_aqua_file exist and clean it
-if [ -f "$load_aqua_file" ]; then
-  log_message $next_level_msg_type "Existing ${load_aqua_file} found. Would you like to remove it? Safer to say yes (y/n) " 
-  read -n 1 -r
-  echo
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
-    rm $load_aqua_file
-    log_message INFO "Existing ${load_aqua_file} removed."
-
-    # Creating the new file
-    create_aqua_file
-  elif [[ $REPLY =~ ^[Nn]$ ]]; then
-    log_message WARNING "Keeping the old $load_aqua_file file. Please make sure it is up to date."
-  else
-    log_message ERROR "Invalid response. Please enter 'y' or 'n'."
-  fi
-fi
-
 create_aqua_file() {
   # Create a new file
   touch $load_aqua_file
@@ -189,6 +171,27 @@ create_aqua_file() {
   log_message INFO "export PATH has been added to .bashrc. Please run 'source $load_aqua_file' to load the new configuration."
 }
 
+# check if load_aqua_file exist and clean it
+if [ -f "$load_aqua_file" ]; then
+  log_message $next_level_msg_type "Existing ${load_aqua_file} found. Would you like to remove it? Safer to say yes (y/n) " 
+  read -n 1 -r
+  echo
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
+    rm $load_aqua_file
+    log_message INFO "Existing ${load_aqua_file} removed."
+
+    # Creating the new file
+    create_aqua_file
+  elif [[ $REPLY =~ ^[Nn]$ ]]; then
+    log_message WARNING "Keeping the old $load_aqua_file file. Please make sure it is up to date."
+  else
+    log_message ERROR "Invalid response. Please enter 'y' or 'n'."
+  fi
+else
+  # Creating the new file
+  create_aqua_file
+fi
+
 # ask if you want to add this to the bash profile
 log_message $next_level_msg_type "Would you like to source $load_aqua_file in your .bash_profile? (y/n) "
 # Read the user's input
@@ -211,7 +214,7 @@ while true; do
       break
       ;;
     [Nn])
-      log_message ERROR "source load_aqua.sh not added to .bash_profile"
+      log_message WARNING "source load_aqua.sh not added to .bash_profile"
       break
       ;;
     *)
@@ -220,4 +223,4 @@ while true; do
   esac
 done
 
-log_message WARNING "AQUA environment has been installed, please remember to to run aqua install and aqua add lumi"
+log_message WARNING "AQUA environment has been installed, please remember to to run 'aqua install' and 'aqua add lumi'"
