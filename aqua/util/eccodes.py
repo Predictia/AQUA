@@ -37,30 +37,36 @@ def read_eccodes_def(filename):
         A list containing the keys of the ecCodes definition file.
     """
 
-    keylist = []
+    keylist = {'grib2': {
+                    'wmo': [],
+                    'ecmwf': []
+                },
+               'grib1': {
+                   'ecmwf': []
+               }}
+
+    fn_eccodes = eccodes.codes_definition_path().split(':')[0]  # LUMI fix, take only first
 
     # WMO lists
-    fn = eccodes.codes_definition_path().split(':')[0]  # LUMI fix, take only first
-    fn = os.path.join(fn, 'grib2', filename)
+    fn = os.path.join(fn_eccodes, 'grib2', filename)
     with open(fn, "r", encoding='utf-8') as f:
         for line in f:
             line = line.replace(" =", "").replace('{', '').replace('}', '').replace(';', '').replace('\t', '#    ')
             if not line.startswith("#"):
-                keylist.append(line.strip().replace("'", ""))
-    keylist = keylist[:-1]  # The last entry is no good
+                keylist['grib2']['wmo'].append(line.strip().replace("'", ""))
+    keylist['grib2']['wmo'] = keylist['grib2']['wmo'][:-1]  # The last entry is no good
 
     # ECMWF lists
-    fn = eccodes.codes_definition_path().split(':')[0]  # LUMI fix, take only first
     for grib_version in ['grib2', 'grib1']:
-        fn_grib = os.path.join(fn, grib_version, 'localConcepts', 'ecmf', filename)
+        fn_grib = os.path.join(fn_eccodes, grib_version, 'localConcepts', 'ecmf', filename)
         with open(fn_grib, "r", encoding='utf-8') as f:
             for line in f:
                 line = line.replace(" =", "").replace('{', '').replace('}', '').replace(';', '').replace('\t', '#    ')
                 if not line.startswith("#"):
-                    keylist.append(line.strip().replace("'", ""))
+                    keylist[grib_version]['ecmwf'].append(line.strip().replace("'", ""))
+        keylist[grib_version]['ecmwf'] = keylist[grib_version]['ecmwf'][:-1]  # The last entry is no good
 
-    # The last entry is no good
-    return keylist[:-1]
+    return keylist
 
 
 # Define this as a closure to avoid reading twice the same file
@@ -72,7 +78,7 @@ def _init_get_eccodes_attr():
     cfvarname = read_eccodes_def("cfVarName.def")
     units = read_eccodes_def("units.def")
 
-    def _get_eccodes_attr(sn, loglevel='warning'):
+    def _get_eccodes_attr(sn, loglevel='debug'):
         """
         Recover eccodes attributes for a given short name
 
@@ -84,30 +90,44 @@ def _init_get_eccodes_attr():
         """
         logger = log_configure(log_level=loglevel, log_name='eccodes')
         nonlocal shortname, paramid, name, cfname, cfvarname, units
-        try:
-            if sn.startswith("var"):
-                i = paramid.index(sn[3:])
-                # indices = [i for i, x in enumerate(paramid) if x == sn[3:]]
-            else:
-                # i = shortname.index(sn)
-                indices = [i for i, x in enumerate(shortname) if x == sn]
-                if len(indices) > 1:
-                    logger.warning('ShortName %s has multiple grib codes associated: %s', sn, [paramid[i] for i in indices])
-                    logger.warning('AQUA will take the first so that %s -> %s, please set up a correct fix if this does not look right',  # noqa E501
-                                   sn, paramid[indices[0]])
-                i = indices[0]
 
-            dic = {"paramId": paramid[i],
-                   "long_name": name[i],
-                   "units": units[i],
-                   "cfVarName": cfvarname[i],
-                   "shortName": shortname[i]}
-            return dic
+        print(f'Looking for {sn}')
 
-        except (ValueError, IndexError) as error:
-            logger.debug('ERROR: %s', error)
-            logger.warning('Cannot find any grib codes for ShortName %s, returning empty dictionary', sn)
-            return None
+        for grib_version in shortname.keys():
+            for table in shortname[grib_version].keys():
+                try:
+                    if sn.startswith("var"):
+                        i = paramid[grib_version][table].index(sn[3:])
+                        # indices = [i for i, x in enumerate(paramid) if x == sn[3:]]
+                    else:
+                        # i = shortname.index(sn)
+                        indices = [i for i, x in enumerate(shortname[grib_version][table]) if x == sn]
+                        if len(indices) > 1:
+                            logger.warning('ShortName %s has multiple grib codes associated: %s',
+                                           sn, [paramid[grib_version][table][i] for i in indices])
+                            logger.warning('AQUA will take the first so that %s -> %s, please set up a correct fix if this does not look right',  # noqa E501
+                                           sn, paramid[grib_version][table][indices[0]])
+                        i = indices[0]
+
+                    dic = {"paramId": paramid[grib_version][table][i],
+                           "long_name": name[grib_version][table][i],
+                           "units": units[grib_version][table][i],
+                           "cfVarName": cfvarname[grib_version][table][i],
+                           "shortName": shortname[grib_version][table][i]}
+
+                    if 'grib1' in grib_version:
+                        logger.warning(f'Variable {shortname[grib_version][table][i]} is found in grib1 tables, please check if it is correct') # noqa E501
+                    elif 'ecmwf' in table:
+                        logger.info(f'Variable {shortname[grib_version][table][i]} is found in ECMWF local tables')
+
+                    return dic
+
+                except (ValueError, IndexError):
+                    logger.debug('Not found for gribversion %s, table %s: %s', grib_version, table)
+
+        logger.error(f'Cannot find any grib codes for ShortName {sn}, returning empty dictionary')
+
+        return None
 
     return _get_eccodes_attr
 
