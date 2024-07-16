@@ -241,7 +241,7 @@ class GSVSource(base.DataSource):
         else:
             self.chunking_vertical = None  # no vertical chunking
 
-        self.get_eccodes_shortname = init_get_eccodes_shortname(loglevel=loglevel)  # Can't pickle this, so we need to reinitialize it
+        self.get_eccodes_shortname = init_get_eccodes_shortname()  # Can't pickle this, so we need to reinitialize it
 
         super(GSVSource, self).__init__(metadata=metadata)
 

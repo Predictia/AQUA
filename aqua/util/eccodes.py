@@ -134,7 +134,7 @@ get_eccodes_attr = _init_get_eccodes_attr()
 
 
 # Define this as a closure to avoid reading twice the same file
-def init_get_eccodes_shortname(loglevel='WARNING'):
+def init_get_eccodes_shortname():
     """
     Recover eccodes shorthname from a given paramid
 
@@ -147,18 +147,16 @@ def init_get_eccodes_shortname(loglevel='WARNING'):
     shortname = read_eccodes_def("shortName.def")
     paramid = read_eccodes_def("paramId.def")
 
-    def _get_eccodes_shortname(var, loglevel='WARNING'):
+    def _get_eccodes_shortname(var):
         """
         Allows to retrieve the shortname from the paramid
 
         Args:
             var(str, int): the variable name (a short_name or a paramid)
-            loglevel (str): the loggin level
 
         Returns:
             A string containing the short_name
         """
-        logger = log_configure(log_level=loglevel, log_name='eccodes')
         nonlocal shortname, paramid
 
         # If we have a digit we have to search for the shortname
@@ -168,13 +166,13 @@ def init_get_eccodes_shortname(loglevel='WARNING'):
                 for table in shortname[grib_version].keys():
                     try:
                         i = paramid[grib_version][table].index(str(var))
-                        return shortname[i]
+                        return shortname[grib_version][table][i]
                     except (ValueError, IndexError):
                         # We don't have an error yet unless it's the last table to analyze
-                        logger.debug(f'paramid {var} not found for gribversion {grib_version}, table {table}')
+                        pass
             # Out of the loop, we have not found anything and we have no left table, error
             raise NoEcCodesShortNameError(f'Cannot find any grib codes for paramid {var}')
-        else:
+        else:  # If we have a string there is no need to search
             return var
 
     return _get_eccodes_shortname
