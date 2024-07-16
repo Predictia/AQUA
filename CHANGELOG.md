@@ -13,6 +13,7 @@ Main changes are:
 2. fdb_path is deprecated in favour of fdb_home
 
 AQUA core complete list:
+- Restructure fixes folder and files (#1271)
 - Removed eccodes pin, better handling of tables in get_eccodes_attr (#1269)
 - Added test for diagnostics integration to AQUA installation process (#1244)
 - Bugfix for the monthly frequency data with monthly cumulated fluxes (#1255)
