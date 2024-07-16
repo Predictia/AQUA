@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+## [v0.10.3]
+Main changes are:
+1. support for ecCodes >= 2.35.0
+2. fdb_path is deprecated in favour of fdb_home
+
 AQUA core complete list:
 - Restructure fixes folder and files (#1271)
 - Removed eccodes pin, better handling of tables in get_eccodes_attr (#1269)
@@ -569,7 +574,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.2...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.3...HEAD
+[v0.10.3]:https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.2...v0.10.3
 [v0.10.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.1...v0.10.2
 [v0.10.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10...v0.10.1
 [v0.10]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.9.2...v0.10
