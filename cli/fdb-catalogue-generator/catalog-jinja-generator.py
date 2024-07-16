@@ -1,98 +1,197 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 '''
 AQUA basic tool for generating catalog entries based on jinja
 '''
 
 import jinja2
 import os
+import re
 import sys
 import argparse
-from aqua.util import ConfigPath, load_yaml, dump_yaml, get_arg
+import subprocess
+import yaml
+from aqua.util import load_yaml, dump_yaml, get_arg
 from aqua.logger import log_configure
+
 
 def parse_arguments(arguments):
     """
-    Parse command line arguments for the LRA CLI
+    Parse command line arguments 
     """
 
     parser = argparse.ArgumentParser(description='AQUA FDB entries generator')
+    parser.add_argument("-p", "--portfolio", 
+                        help="Type of Data Portfolio utilized (production/reduced)")
     parser.add_argument('-c', '--config', type=str,
                         help='yaml configuration file')
-    parser.add_argument('-j', '--jinja', type=str,
-                        help='jinja template file')
     parser.add_argument('-l', '--loglevel', type=str,
                         help='loglevel', default='INFO')
 
     return parser.parse_args(arguments)
 
-if __name__ == '__main__':
 
-    # parsing
-    args = parse_arguments(sys.argv[1:])
-    definitions_file = get_arg(args, 'config', 'config.tmpl')
-    jinja_file = get_arg(args, 'jinja', False)
-    loglevel = get_arg(args, 'loglevel', 'WARNING')
+def get_local_grids(run_resolution, grids):
+    local_grids = grids["common"]
+    local_grids.update(grids[run_resolution])
+    return local_grids
 
-    if not jinja_file:
-        raise FileNotFoundError('You need to specify a jinja file for templating')
+def get_available_resolutions(local_grids, model):
+    re_pattern = f"horizontal-{model.upper()}-(.+)"
+    resolutions = []
 
-    # setup logger
-    logger = log_configure(loglevel, 'FDB-catalog-generator')
-
-    # reading files
-    definitions = load_yaml(definitions_file)
-
-    # levels from external file
-    default = load_yaml('default.yaml')
-    definitions = {**definitions, **default[definitions['model']]}
-
-    #eccodes path
-    if '/' not in definitions['eccodes_version'][0]:
-        definitions['eccodes_path'] = '/projappl/project_465000454/jvonhar/aqua/eccodes/eccodes-' + definitions['eccodes_version'] + '/definitions'
-
-    # description
-    if 'description' not in definitions:
-        definitions['description'] = f'FDB {definitions["model"]} {definitions["atm_grid"]}-{definitions["oce_grid"]} {definitions["experiment"]} run'
-    
-    # jinja2 loading and replacing (to be checked)
-    templateLoader = jinja2.FileSystemLoader(searchpath='./')
-    templateEnv = jinja2.Environment(loader=templateLoader, trim_blocks=True, lstrip_blocks=True)
-
-    template = templateEnv.get_template(jinja_file)
-    outputText = template.render(definitions)
+    for key in local_grids:
+        match = re.match(re_pattern, key)
+        if match:
+            resolutions.append(match.group(1))
+    return resolutions
 
 
-    #create output file in model folder
-    configurer = ConfigPath()
-    catalog_path, _ = configurer.get_catalog_filenames()
-    fixer_folder, _ = configurer.get_reader_filenames()
-    config_folder = configurer.configdir
+def get_levelist(profile, local_grids, levels):
+    vertical = profile.get("vertical")
+    if vertical is None:
+        return None, None
+    else:
+        level_data = levels[local_grids[f"vertical-{vertical}"]]
+        return level_data["levelist"], level_data["levels"]
 
-    output_dir = os.path.join(os.path.dirname(catalog_path), 'catalog', definitions['model'])
-    output_filename = f"{definitions['exp']}.yaml"
+def get_profile_content(template, profile, resolution, model, dp_version, local_grids, levels):
+    grid = local_grids[f"horizontal-{model.upper()}-{resolution}"]
+    levelist, levels_values = get_levelist(profile, local_grids, levels)
+
+    levtype_str = (
+        'atm2d' if profile["levtype"] == 'sfc' else
+        'atm3d' if profile["levtype"] == 'pl' else
+        'oce2d' if profile["levtype"] == 'o2d' else
+        'oce3d' if profile["levtype"] == 'o3d' else
+        profile["levtype"]
+    )
+
+    # Construct the source string
+    source = f"{frequency}-{grid}-{levtype_str}"
+
+    kwargs = {
+        "dp_version": dp_version,
+        "resolution": resolution,
+        "grid": grid,
+        "source": source,
+        "levelist": levelist,
+        "levels": levels_values,
+        "levtype":  profile["levtype"],
+        "variables": profile["variables"],
+        "param": profile["variables"][0],
+        "time": get_time(profile["frequency"])
+
+    }
+    return kwargs
+
+def get_time(frequency):
+    freq2time = {
+        "hourly": '"0000/to/2300/by/0100"',
+        "daily": '"0000"',
+        "monthly": None
+    }
+    return freq2time[frequency]
+
+
+def create_catalog_entry(config, catalog_dir_path, model, all_content):
+    # Create output file in model folder
+    output_dir = os.path.join(catalog_dir_path, 'catalogs', config['catalog_dir'], 'catalog', model.upper())
+    output_filename = f"{config['exp']}.yaml"
     output_path = os.path.join(output_dir, output_filename)
 
     if os.path.exists(output_path):
         os.remove(output_path)
 
-    with open(output_path, "w", encoding='utf8') as output_file:
-        output_file.write(outputText)
+    with open(output_path, "w", encoding='utf8') as f:
+        f.write('sources:\n')
+        for content in all_content:
+            f.write(f'  {content}\n')
 
     logger.info("File %s has been created in %s", output_filename, output_dir)
 
-    #update main.yaml
+    # Update main.yaml
     main_yaml_path = os.path.join(output_dir, 'main.yaml')
 
     main_yaml = load_yaml(main_yaml_path)
-    main_yaml['sources'][definitions['exp']] = {
-        'description': definitions['description'],
+    main_yaml['sources'][config['exp']] = {
+        'description': config['description'],
         'driver': 'yaml_file_cat',
         'args': {
-            'path': f"{{{{CATALOG_DIR}}}}/{definitions['exp']}.yaml"
+            'path': f"{{{{CATALOG_DIR}}}}/{config['exp']}.yaml"
         }
     }
-
     dump_yaml(main_yaml_path, main_yaml)
 
-    logger.info("%s entry in 'main.yaml' has been updated in %s", definitions['exp'], output_dir)
+    logger.info("%s entry in 'main.yaml' has been updated in %s", config['exp'], output_dir)
+
+def load_yaml(yaml_path):
+    with open(yaml_path, 'r', encoding='utf8') as file:
+        return yaml.safe_load(file)
+
+def dump_yaml(yaml_path, data):
+    with open(yaml_path, 'w', encoding='utf8') as file:
+        yaml.dump(data, file, default_flow_style=False, allow_unicode=True)
+
+
+if __name__ == '__main__':
+
+    # parsing
+    args = parse_arguments(sys.argv[1:])
+
+    dp_version = get_arg(args, 'portfolio', 'production')
+    config_file = get_arg(args, 'config', 'config.tmpl')
+    loglevel = get_arg(args, 'loglevel', 'WARNING')
+
+    logger = log_configure(loglevel, 'FDB catalog generator')
+    logger.info("Running FDB catalog generator") 
+
+    # reading config file
+    with open("config.yaml", 'r') as config_file:
+        config = yaml.safe_load(config_file)
+    
+    dp_dir_path = config["repos"]["data-portfolio_path"]
+    catalog_dir_path = config["repos"]["Climate-DT-catalog_path"]
+    model = config["model"]
+    
+    # reading the portfolio file
+    dp_file_path =  os.path.join(dp_dir_path, 'production', 'portfolio.yaml')
+    with open(dp_file_path, 'r') as dp_file:
+        dp = yaml.safe_load(dp_file)
+
+    # readig the grids file
+    grids_file_path = os.path.join(dp_dir_path, 'production', 'grids.yaml')
+    with open(grids_file_path, 'r') as grids_file:
+        grids = yaml.safe_load(grids_file)
+
+    run_resolution = config["run_resolution"]   
+    local_grids = get_local_grids(run_resolution, grids)
+
+    # readig the levels file
+    levels_file_path = os.path.join(dp_dir_path, 'definitions', 'levels.yaml')
+    with open(levels_file_path, 'r') as levels_file:
+        levels = yaml.safe_load(levels_file)
+ 
+    # jinja2 loading and replacing 
+    templateLoader = jinja2.FileSystemLoader(searchpath='./')
+    templateEnv = jinja2.Environment(loader=templateLoader, trim_blocks=True, lstrip_blocks=True)
+
+    jinja_file = f"{dp_version}.j2"   
+    template = templateEnv.get_template(jinja_file)
+
+    all_content = []
+
+    for profile in dp[model]:
+        levtype = profile["levtype"]
+        frequency = profile["frequency"]
+        resolutions = get_available_resolutions(local_grids, model)
+        for resolution in resolutions:
+            content = get_profile_content(
+                        template, profile, resolution, model.lower(), dp_version,
+                        local_grids, levels)
+            combined = {**config, **content}
+            all_content.append(template.render(combined))
+
+
+    create_catalog_entry(config, catalog_dir_path, model, all_content)
