@@ -78,7 +78,7 @@ def _init_get_eccodes_attr():
     cfvarname = read_eccodes_def("cfVarName.def")
     units = read_eccodes_def("units.def")
 
-    def _get_eccodes_attr(sn, loglevel='debug'):
+    def _get_eccodes_attr(sn, loglevel='WARNING'):
         """
         Recover eccodes attributes for a given short name
 
@@ -90,8 +90,6 @@ def _init_get_eccodes_attr():
         """
         logger = log_configure(log_level=loglevel, log_name='eccodes')
         nonlocal shortname, paramid, name, cfname, cfvarname, units
-
-        print(f'Looking for {sn}')
 
         for grib_version in shortname.keys():
             for table in shortname[grib_version].keys():
@@ -149,17 +147,33 @@ def init_get_eccodes_shortname():
     shortname = read_eccodes_def("shortName.def")
     paramid = read_eccodes_def("paramId.def")
 
-    def _get_eccodes_shortname(var):
+    def _get_eccodes_shortname(var, loglevel='WARNING'):
         """
+        Allows to retrieve the shortname from the paramid
+
+        Args:
+            var(str, int): the variable name (a short_name or a paramid)
+            loglevel (str): the loggin level
+
+        Returns:
+            A string containing the short_name
         """
+        logger = log_configure(log_level=loglevel, log_name='eccodes')
         nonlocal shortname, paramid
 
+        # If we have a digit we have to search for the shortname
         if str(var).isdigit():
-            try:
-                i = paramid.index(str(var))
-                return shortname[i]
-            except (ValueError, IndexError) as error:
-                raise NoEcCodesShortNameError('Cannot find any grib codes for paramId %s' % var) from error
+            # We loop over the available tables
+            for grib_version in shortname.keys():
+                for table in shortname[grib_version].keys():
+                    try:
+                        i = paramid[grib_version][table].index(str(var))
+                        return shortname[i]
+                    except (ValueError, IndexError):
+                        # We don't have an error yet unless it's the last table to analyze
+                        logger.debug(f'paramid {var} not found for gribversion {grib_version}, table {table}')
+            # Out of the loop, we have not found anything and we have no left table, error
+            raise NoEcCodesShortNameError(f'Cannot find any grib codes for paramid {var}')
         else:
             return var
 
