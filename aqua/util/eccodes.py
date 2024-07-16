@@ -7,23 +7,23 @@ from aqua.exceptions import NoEcCodesShortNameError
 
 
 # Currently not used
-def read_eccodes_dic(filename):
-    """
-    Reads an ecCodes definition file and returns its contents as a dictionary.
+# def read_eccodes_dic(filename):
+#     """
+#     Reads an ecCodes definition file and returns its contents as a dictionary.
 
-    Parameters:
-    - filename (str): The name of the ecCodes definition file to read.
+#     Parameters:
+#     - filename (str): The name of the ecCodes definition file to read.
 
-    Returns:
-    - A dictionary containing the contents of the ecCodes definition file.
-    """
-    yaml = YAML(typ='rt')
-    fn = eccodes.codes_definition_path().split(':')[0]  # LUMI fix, take only first
-    fn = os.path.join(fn, 'grib2', filename)
-    with open(fn, "r", encoding='utf-8') as file:
-        text = file.read()
-    text = text.replace(" =", ":").replace('{', '').replace('}', '').replace(';', '').replace('\t', '    ')
-    return yaml.load(text)
+#     Returns:
+#     - A dictionary containing the contents of the ecCodes definition file.
+#     """
+#     yaml = YAML(typ='rt')
+#     fn = eccodes.codes_definition_path().split(':')[0]  # LUMI fix, take only first
+#     fn = os.path.join(fn, 'grib2', filename)
+#     with open(fn, "r", encoding='utf-8') as file:
+#         text = file.read()
+#     text = text.replace(" =", ":").replace('{', '').replace('}', '').replace(';', '').replace('\t', '    ')
+#     return yaml.load(text)
 
 
 def read_eccodes_def(filename):
