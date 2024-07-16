@@ -51,12 +51,13 @@ def read_eccodes_def(filename):
 
     # ECMWF lists
     fn = eccodes.codes_definition_path().split(':')[0]  # LUMI fix, take only first
-    fn = os.path.join(fn, 'grib2', 'localConcepts', 'ecmf', filename)
-    with open(fn, "r", encoding='utf-8') as f:
-        for line in f:
-            line = line.replace(" =", "").replace('{', '').replace('}', '').replace(';', '').replace('\t', '#    ')
-            if not line.startswith("#"):
-                keylist.append(line.strip().replace("'", ""))
+    for grib_version in ['grib2', 'grib1']:
+        fn_grib = os.path.join(fn, grib_version, 'localConcepts', 'ecmf', filename)
+        with open(fn_grib, "r", encoding='utf-8') as f:
+            for line in f:
+                line = line.replace(" =", "").replace('{', '').replace('}', '').replace(';', '').replace('\t', '#    ')
+                if not line.startswith("#"):
+                    keylist.append(line.strip().replace("'", ""))
 
     # The last entry is no good
     return keylist[:-1]
