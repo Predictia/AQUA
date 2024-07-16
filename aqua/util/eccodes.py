@@ -134,7 +134,7 @@ get_eccodes_attr = _init_get_eccodes_attr()
 
 
 # Define this as a closure to avoid reading twice the same file
-def init_get_eccodes_shortname():
+def init_get_eccodes_shortname(loglevel='WARNING'):
     """
     Recover eccodes shorthname from a given paramid
 
