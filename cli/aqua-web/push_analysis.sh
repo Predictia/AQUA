@@ -45,15 +45,6 @@ convert_pdf_to_png() {
     git add $dstdir
 }
 
-# define the aqua installation path
-AQUA=$(aqua --path)/..
-
-if [ ! -d $AQUA ]; then
-    echo -e "\033[0;31mError: AQUA is not installed."
-    echo -e "\x1b[38;2;255;165;0mPlease install AQUA with aqua install command"
-    exit 1  # Exit with status 1 to indicate an error
-fi
-
 # Note: the -r|--repository option is implemented but deactivated at the moment since 
 # it may create issues when the repository history is purged. To be evaluated.
 
@@ -62,6 +53,7 @@ print_help() {
     echo "Arguments:"
     echo "  INDIR                  the directory containing the output, e.g. ~/work/aqua-analysis/output"
     echo "  EXPS                   the subfolder to push, e.g climatedt-phase1/IFS-NEMO/historical-1990"
+    echo "                         or the name of a text file containing a list of catalog, model, experiment (space separated)"
     echo
     echo "Options:"
     echo "  -h, --help             display this help and exit"
@@ -118,6 +110,15 @@ done
 indir=$1
 exps=$2
 
+# define the aqua installation path
+AQUA=$(aqua --path)/..
+
+if [ ! -d $AQUA ]; then
+    echo -e "\033[0;31mError: AQUA is not installed."
+    echo -e "\x1b[38;2;255;165;0mPlease install AQUA with aqua install command"
+    exit 1  # Exit with status 1 to indicate an error
+fi
+
 source "$AQUA/cli/util/logger.sh"
 log_message DEBUG "Sourcing logger.sh from: $AQUA/cli/util/logger.sh"
 setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
@@ -150,14 +151,13 @@ if [ -n "$branch" ]; then
             if [ -z "$title" ]; then
                 title="Automatic PR for branch $branch"
             fi
-            if [ -z "$message" ]; then
-                message="This is an automatic PR for branch $branch"
-            fi
     fi
 fi
 
 # erase content and copy all files to content
 log_message INFO "Collect and update figures in content/pdf"
+
+description="This is an automatic PR to update the figures in the aqua-web repository.\n\nThe following experiments were updated on $(date):\n\n|Catalog|Experiment|Model|\n|--------|-----------|------|\n"
 
 # Check if the second argument is an actual file and use it as a list of experiments
 if [ -f "$exps" ]; then
@@ -178,11 +178,13 @@ if [ -f "$exps" ]; then
         log_message INFO "Collect figures for $catalog/$model/$experiment and converting to png"
         collect_figures "$1" "$catalog/$model/$experiment"
         convert_pdf_to_png "$catalog/$model/$experiment"
+        description="$description|$catalog|$experiment|$model|\n"
     done < "$exps"
 else  # Otherwise, use the second argument as the experiment folder
     log_message INFO "Collect figures for $exps and converting to png"
     collect_figures "$indir" "$exps"
     convert_pdf_to_png "$exps"
+    description="$description|${exps//\//|}|\n"
 fi
 
 # commit and push
@@ -208,6 +210,9 @@ fi
 log_message INFO "Pushed new figures to aqua-web"
 
 if [ "$autopr" = true ]; then
+    if [ -z "$message" ]; then
+        message=$description
+    fi
     log_message INFO "Creating automatic PR for branch $branch"
     log_message INFO "    Title: $title"
     log_message INFO "    Description: $message"
