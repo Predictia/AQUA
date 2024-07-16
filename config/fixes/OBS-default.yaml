@@ -1,4 +1,5 @@
 fixer_name:  
+  # EN4
   EN4-default:
     data_model: false
     vars:
@@ -10,6 +11,8 @@ fixer_name:
         source: so
         grib: true
         units: psu
+  
+  # GPM
   GPM-default:
     data_model: cf
     vars:
@@ -17,6 +20,8 @@ fixer_name:
         mtpr:
             source: precipitationCal
             grib: true
+
+  # MSWEP
   MSWEP-default:
     data_model: cf
     vars:
@@ -24,6 +29,8 @@ fixer_name:
         mtpr:
             source: precipitation
             grib: true
+
+  # OSI-SAF
   OSI-SAF-default:
     data_model: false  # Do not attempt to fix coordinates
     vars:
@@ -31,6 +38,8 @@ fixer_name:
         avg_siconc:  # siconc
             source: ice_conc
             grib: true
+
+  # PHC3
   PHC3-default:
     data_model: false
     vars:
@@ -43,8 +52,12 @@ fixer_name:
         source: salt
         grib: true
         units: psu
+
+  #PSC
   PSC-default:
     data_model: False
+
+  # GIOMAS and PIOMAS
   GIOMAS:
     data_model: false  # Do not attempt to fix coordinates
     delete: [latitude, longitude]

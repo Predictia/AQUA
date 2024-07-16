@@ -62,16 +62,6 @@ fixer_name:
                 source: MLD2
                 src_units: m
                 grib: true
-    FESOM-test:
-        parent: FESOM-default
-        data_model: false
-        vars:
-            mlotst125:
-                source: MLD2
-                src_units: m
-                grib: true
-                attributes:
-                    uncle: "scrooge"
 
     FESOM-interpolated_global_TS:
         data_model: False  # Do not attempto to correct coordinates
@@ -81,11 +71,3 @@ fixer_name:
                 src_units: degC
                 grib: true
                 units: degC # Override units from grib tables
-
-    FESOM-lra-r100-monthly:
-        data_model: False
-        vars:
-            sst: 
-                derived: sst
-                grib: true
-                units: K
