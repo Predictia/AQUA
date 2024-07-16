@@ -37,6 +37,8 @@ def read_eccodes_def(filename):
         A list containing the keys of the ecCodes definition file.
     """
 
+    # This allows to further extend the list of grib_version and tables to read
+    # when looking for eccodes definitions.
     keylist = {'grib2': {
                     'wmo': [],
                     'ecmwf': []
