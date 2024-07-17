@@ -315,7 +315,7 @@ class LRAgenerator():
         }
 
         # find the catalog of my experiment
-        catalogfile = os.path.join(self.configdir, 'machines', self.machine,
+        catalogfile = os.path.join(self.configdir, 'catalogs', self.catalog,
                                    'catalog', self.model, self.exp + '.yaml')
 
         # load, add the block and close
