@@ -1,0 +1,38 @@
+  {{source}}:
+    args:
+      request:
+        activity: cmip6  # To be overwritten by workflow/config file
+        class: d1
+        dataset: climate-dt
+        date: 19900101  # To be overwritten by workflow/config file
+        experiment: hist  # To be overwritten by workflow/config file
+        expver: 0001  # To be overwritten by workflow/config file
+        generation: 1  # To be overwritten by workflow/config file
+        levtype: {{ levtype }}
+        param: {{ param }}
+        model: {{ model }}
+        realization: 1  # To be overwritten by workflow/config file
+        resolution: {{ resolution }}
+        stream: clte
+        type: fc
+        year: {{ year }}
+        month: {{ month }}
+        {% if levelist != None %}
+        levelist: {{ levelist }}
+        {% endif %}
+      chunks: MS
+      savefreq: MS
+      timestep: h
+      timestyle: yearmonth
+    driver: gsv
+    metadata:
+        {% if levels != None %}
+        levels: {{ levels }}
+        {% endif %}
+        fdb_home: {{ fdb_home }}
+        fdb_path: {{ fdb_path }}
+        eccodes_path: {{ eccodes_path }}
+        fixer_name: {{ fixer_name }}
+        source_grid_name: {{ grid }}
+        variables: {{ variables }}
+        
