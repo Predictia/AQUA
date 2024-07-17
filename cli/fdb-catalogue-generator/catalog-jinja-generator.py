@@ -31,7 +31,6 @@ def parse_arguments(arguments):
 
     return parser.parse_args(arguments)
 
-
 def get_local_grids(run_resolution, grids):
     local_grids = grids["common"]
     local_grids.update(grids[run_resolution])
@@ -58,6 +57,10 @@ def get_levelist(profile, local_grids, levels):
 
 def get_profile_content(template, profile, resolution, model, dp_version, local_grids, levels):
     grid = local_grids[f"horizontal-{model.upper()}-{resolution}"]
+    
+    #matching dp grid with aqua grid
+    matching_grids = load_yaml("matching_grids.yaml")
+    aqua_grid = matching_grids[grid]
     levelist, levels_values = get_levelist(profile, local_grids, levels)
 
     levtype_str = (
@@ -69,7 +72,7 @@ def get_profile_content(template, profile, resolution, model, dp_version, local_
     )
 
     # Construct the source string
-    source = f"{frequency}-{grid}-{levtype_str}"
+    source = f"{frequency}-{aqua_grid}-{levtype_str}"
 
     kwargs = {
         "dp_version": dp_version,
