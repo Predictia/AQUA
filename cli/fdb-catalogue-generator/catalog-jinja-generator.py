@@ -83,7 +83,7 @@ def get_profile_content(template, profile, resolution, model, dp_version, local_
         'fesom-' + aqua_grid + '-nested-3d' if profile["levtype"] == 'o3d' and model == 'ifs-fesom' else
         'icon-' + aqua_grid + '-nested-3d' if profile["levtype"] == 'o3d' and model == 'icon' else
 
-        grid
+        aqua-grid
     )
 
     # Construct the source string
