@@ -1,4 +1,4 @@
-Core Components
+The AQUA Reader
 ===============
 
 Here we describe the core components of the AQUA library.
@@ -40,7 +40,7 @@ specifically an ``xarray.Dataset``, where only the metadata are loaded in memory
     on top of the NetCDF format, to `significantly improve the performance <https://ui.adsabs.harvard.edu/abs/2021AGUFMIN15A..08P/abstract>`_
     of the data access.
 
-catalog Exploration
+Catalog exploration
 ^^^^^^^^^^^^^^^^^^^^^
 
 To check what is available in the catalog, we can use the ``inspect_catalog()`` function.
@@ -92,6 +92,16 @@ If some information about the data is needed, it is possible to use the ``info()
 .. warning::
     Every ``Reader`` instance carries information about the grids and fixes of the retrieved data.
     If you're retrieving data from many sources, please instantiate a new ``Reader`` for each source.
+
+
+Since version v0.10, multiple catalogs are supported. AQUA is designed to browse all the sources to match the triplet requested
+by the users, but things can be speed up if we target a specific catalog. This can be done by passing the ``catalog`` kwargs. 
+
+.. code-block:: python
+
+    from aqua import Reader
+    reader = Reader(model='IFS-NEMO', exp='historical-1990', source='lra-r100-monthly', catalog='climatedt-phase1')
+    data = reader.retrieve()
 
 Dask and Iterator access
 ^^^^^^^^^^^^^^^^^^^^^^^^
