@@ -70,6 +70,21 @@ def get_profile_content(template, profile, resolution, model, dp_version, local_
         'oce3d' if profile["levtype"] == 'o3d' else
         profile["levtype"]
     )
+    
+    grid_str = (
+        aqua_grid + '-nested' if profile["levtype"] == 'sfc' else
+        aqua_grid + '-nested' if profile["levtype"] == 'pl' else
+
+        'nemo-eORCA12-' + aqua_grid + '-nested' if profile["levtype"] == 'o2d' and model == 'ifs-nemo' else
+        'fesom-' + aqua_grid + '-nested' if profile["levtype"] == 'o2d' and model == 'ifs-fesom' else
+        'icon-' + aqua_grid + '-nested' if profile["levtype"] == 'o2d' and model == 'icon' else
+
+        'nemo-eORCA12-' + aqua_grid + '-nested-3d' if profile["levtype"] == 'o3d' and model == 'ifs-nemo' else
+        'fesom-' + aqua_grid + '-nested-3d' if profile["levtype"] == 'o3d' and model == 'ifs-fesom' else
+        'icon-' + aqua_grid + '-nested-3d' if profile["levtype"] == 'o3d' and model == 'icon' else
+
+        grid
+    )
 
     # Construct the source string
     source = f"{frequency}-{aqua_grid}-{levtype_str}"
@@ -77,7 +92,7 @@ def get_profile_content(template, profile, resolution, model, dp_version, local_
     kwargs = {
         "dp_version": dp_version,
         "resolution": resolution,
-        "grid": grid,
+        "grid": grid_str,
         "source": source,
         "levelist": levelist,
         "levels": levels_values,
@@ -159,6 +174,7 @@ if __name__ == '__main__':
     grids_file_path = os.path.join(dp_dir_path, dp_version, 'grids.yaml')
     with open(grids_file_path, 'r') as grids_file:
         grids = yaml.safe_load(grids_file)
+        print(grids)
 
     run_resolution = config["run_resolution"]   
     local_grids = get_local_grids(run_resolution, grids)
