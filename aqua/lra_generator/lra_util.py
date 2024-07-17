@@ -38,10 +38,10 @@ def opa_catalog_entry(datadir, model, exp, source,
     # load the catalog experiment file
     Configurer = ConfigPath()
     configdir = Configurer.configdir
-    machine = Configurer.machine
+    catalog = Configurer.catalog
 
     # find the catalog of my experiment
-    catalogfile = os.path.join(configdir, 'machines', machine,
+    catalogfile = os.path.join(configdir, 'catalogs', catalog,
                                'catalog', model, exp + '.yaml')
 
     # load, add the block and close

@@ -55,7 +55,7 @@ dependencies = [
     "kerchunk",
     "h5py",
     "pyfdb@git+https://github.com/ecmwf/pyfdb.git@0.0.3",
-    "gsv@git+https://oauth2:pXj19aBDApiBPs1YgwuZ@earth.bsc.es/gitlab/digital-twins/de_340-2/gsv_interface.git@v1.5.1"
+    "gsv@git+https://oauth2:pXj19aBDApiBPs1YgwuZ@earth.bsc.es/gitlab/digital-twins/de_340-2/gsv_interface.git@v2.2.0"
 ]
 
 [project.optional-dependencies]
@@ -89,11 +89,11 @@ all = [
 ]
 
 [project.scripts]
-aqua = "aqua.main:main"
+aqua = "aqua.cli.main:main"
 
 [project.urls]
-homepage = "https://aqua-web-contbuild.2.rahtiapp.fi"
-documentation = "https://aqua-web-contbuild.2.rahtiapp.fi/documentation/index.html"
+homepage = "https://aqua-web-climatedt.2.rahtiapp.fi"
+documentation = "https://aqua-web-climatedt.2.rahtiapp.fi/documentation/index.html"
 repository = "https://github.com/DestinE-Climate-DT/AQUA/"
 issues = "https://github.com/DestinE-Climate-DT/AQUA/issues/"
 

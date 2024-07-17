@@ -68,7 +68,6 @@ if __name__ == '__main__':
     frequency = config['target']['frequency']
     outdir = config['target']['outdir']
     tmpdir = config['target']['tmpdir']
-    configdir = config['configdir']
     loglevel = config['loglevel']
 
     definitive = get_arg(args, 'definitive', False)
@@ -97,7 +96,7 @@ if __name__ == '__main__':
                     lra = LRAgenerator(model=model, exp=exp, source=source,
                                        var=varname, resolution=resolution,
                                        frequency=frequency, fix=fix,
-                                       outdir=outdir, tmpdir=tmpdir, configdir=configdir,
+                                       outdir=outdir, tmpdir=tmpdir,
                                        nproc=workers, loglevel=loglevel,
                                        definitive=definitive, overwrite=overwrite,
                                        performance_reporting=monitoring,

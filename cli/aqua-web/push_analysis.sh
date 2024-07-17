@@ -17,7 +17,7 @@ collect_figures() {
     find $indir -name "*.pdf"  -exec cp {} $dstdir/ \;
 
     # Remove dates from EC-mean filenames
-    for file in $dstdir/PI4*_????_????.pdf
+    for file in $dstdir/PI4*_????_????.pdf $dstdir/global_mean*_????_????.pdf
     do
         mv -- "$file" "${file%_*_*}.pdf"
     done
@@ -27,17 +27,35 @@ collect_figures() {
     git add $dstdir
 }
 
-# Check if AQUA is set
-if [[ -z "$AQUA" ]]; then
-    echo -e "\033[0;31mError: The AQUA environment variable is not defined."
-    echo -e "\x1b[38;2;255;165;0mPlease define the AQUA environment variable with the path to your 'AQUA' directory."
-    echo -e "For example: export AQUA=/path/to/aqua\033[0m"
+convert_pdf_to_png() {
+    # This assumes that we are inside the aqua-web repository
+
+    log_message INFO "Converting PDFs to PNGs for $1"
+
+    dstdir="./content/png/$1"
+
+    git rm -r $dstdir
+    mkdir -p $dstdir
+    
+    IFS='/' read -r catalog model experiment <<< "$1"
+    ./pdf_to_png.sh "$catalog" "$model" "$experiment"
+
+    git add $dstdir
+}
+
+# define the aqua installation path
+AQUA=$(aqua --path)/..
+
+if [ ! -d $AQUA ]; then
+    echo -e "\033[0;31mError: AQUA is not installed."
+    echo -e "\x1b[38;2;255;165;0mPlease install AQUA with aqua install command"
     exit 1  # Exit with status 1 to indicate an error
 fi
 
 source "$AQUA/cli/util/logger.sh"
-setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
 log_message DEBUG "Sourcing logger.sh from: $AQUA/cli/util/logger.sh"
+setup_log_level 2 # 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL
+
 
 if [ -z "$1" ] || [ -z "$2" ]; then
     echo "Usage: $0 <indir> <modelexp>"
@@ -69,13 +87,16 @@ if [ -f "$2" ]; then
         fi
 
         # Extract model, experiment, and source from the line
-        model=$(echo "$line" | awk '{print $1}')
-        experiment=$(echo "$line" | awk '{print $2}')
+        catalog=$(echo "$line" | awk '{print $1}')
+        model=$(echo "$line" | awk '{print $2}')
+        experiment=$(echo "$line" | awk '{print $3}')
 
-        collect_figures "$1" "$model/$experiment"
+        collect_figures "$1" "$catalog/$model/$experiment"
+        convert_pdf_to_png "$catalog/$model/$experiment"
     done < "$2"
-else  # Otherwise, use the second argument as the experiment
+else  # Otherwise, use the second argument as the experiment folder
     collect_figures "$1" "$2"
+    convert_pdf_to_png "$2"
 fi
 
 # commit and push

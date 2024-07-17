@@ -70,7 +70,7 @@ class ToolsClass:
             SomeException: If the ConfigPath object is not properly initialized or if there is an issue with
                         retrieving the machine information.
         """
-        return ConfigPath().machine
+        return ConfigPath().catalog
 
     def get_netcdf_path(self, configname: str = full_path_to_config) -> tuple:
         """
@@ -491,13 +491,15 @@ class ToolsClass:
         """
         fix = FixerMixin()
         fix.logger = self.logger
-        _, fix.fixer_folder, _, _  = (ConfigPath().get_reader_filenames())
+
+        fix.fixer_folder, _ = (ConfigPath().get_reader_filenames())
         fix.fixes_dictionary = load_multi_yaml(fix.fixer_folder)
 
-        factor, offset = fix.convert_units(from_unit, to_unit)
+        conversion = fix.convert_units(from_unit, to_unit)
+        factor = conversion.get('factor', 1)
+        offset = conversion.get('offset', 0)
 
         converted_value = (value * factor) + offset
-
         return converted_value
 
     def get_local_time_decimal(self, utc_decimal_hour, longitude):

@@ -10,8 +10,7 @@
 #SBATCH -p debug    #change the partition
 
 AQUA_path=$AQUA
-AQUA_container=/project/project_465000454/containers/aqua/aqua-v0.8.2.sif
-FDB5_CONFIG_FILE=/scratch/project_465000454/igonzalez/fdb-long/config.yaml
+AQUA_container=/project/project_465000454/containers/aqua/aqua-v0.10.3.sif
 GSV_WEIGHTS_PATH=/scratch/project_465000454/igonzalez/gsv_weights/
 GRID_DEFINITION_PATH=/scratch/project_465000454/igonzalez/grid_definitions
 
@@ -30,7 +29,7 @@ singularity exec \
     --bind /pfs/lustrep3/ \
     --bind /pfs/lustrep4/ \
     --bind /pfs/lustrep3/scratch/ \
-    --bind /users/lrb_465000454_fdb/ \
+    --bind /appl/local/climatedt/ \
     --bind /flash/project_465000454 \
     --bind /projappl/ \
     --bind /project \

@@ -4,10 +4,14 @@ import os
 import random
 import string
 import re
+import sys
 import numpy as np
 import xarray as xr
+import datetime
 from pypdf import PdfReader, PdfWriter
+from PIL import Image, PngImagePlugin
 from aqua.logger import log_configure
+from IPython.display import display, Image as IPImage, FileLink
 
 
 def generate_random_string(length):
@@ -19,13 +23,15 @@ def generate_random_string(length):
     random_string = ''.join(random.choice(letters_and_digits) for _ in range(length))
     return random_string
 
+
 def to_list(arg):
 
     """Support function to ensure conversion of a variable to list"""
 
     if isinstance(arg, str):
         arg = [arg]
-    return arg 
+    return arg
+
 
 def get_arg(args, arg, default):
     """
@@ -72,12 +78,12 @@ def file_is_complete(filename, loglevel='WARNING'):
     which are not NaN in its first variabiles
     Return a boolean that can be used as a flag for further operation
     A loglevel can be passed for tune the logging properties
-    
+
     Args:
         filename: a string with the filename
         loglevel: the log level
 
-    Returns 
+    Returns
         A boolean flag (True for file ok, False for file corrupted)
     """
 
@@ -98,10 +104,10 @@ def file_is_complete(filename, loglevel='WARNING'):
         if len(xfield.data_vars) == 0:
             logger.error('File %s has no variables!', filename)
             return False
-        
+
         # check on a single variable
         varname = list(xfield.data_vars)[0]
-            
+
         # all NaN case
         if xfield[varname].isnull().all():
 
@@ -112,14 +118,14 @@ def file_is_complete(filename, loglevel='WARNING'):
                 if xfield[varname].time.max() < np.datetime64(mindate):
                     logger.info('File %s is full of NaN but it is ok according to mindate', filename)
                     return True
-        
+
                 logger.error('File %s is full of NaN and not ok according to mindate', filename)
                 return False
-            
+
             logger.error('File %s is empty or full of NaN! Recomputing...', filename)
             return False
 
-        #some NaN case
+        # some NaN case
         mydims = [dim for dim in xfield[varname].dims if dim != 'time']
         nan_count = np.isnan(xfield[varname]).sum(dim=mydims)
         if all(value == nan_count[0] for value in nan_count):
@@ -132,19 +138,20 @@ def file_is_complete(filename, loglevel='WARNING'):
             logger.warning('Some NaN and mindate found: %s', mindate)
             last_nan = xfield.time[np.where(nan_count == nan_count[0])].max()
             if np.datetime64(mindate) > last_nan:
-                logger.info('File %s has some of NaN up to %s but it is ok according to mindate %s', 
+                logger.info('File %s has some of NaN up to %s but it is ok according to mindate %s',
                             filename, last_nan.values, mindate)
                 return True
-            
+
             logger.error('File %s has some NaN bit it is not ok according to mindate', filename)
             return False
-    
+
         logger.error('File %s has at least one time step with NaN! Recomputing...', filename)
         return False
 
     except Exception as e:
         logger.error('Something wrong with file %s! Recomputing... Error: %s', filename, e)
         return False
+
 
 def find_vert_coord(ds):
     """
@@ -203,8 +210,7 @@ def add_pdf_metadata(filename: str,
     # Check that metadata_name starts with '/'
     if metadata_name and metadata_name[0] != '/':
         logger.debug('metadata_name does not start with "/". Adding it...')
-        metadata_name = '/' + metadata_name 
-    
+        metadata_name = '/' + metadata_name
 
     pdf_reader = PdfReader(filename)
     pdf_writer = PdfWriter()
@@ -230,6 +236,97 @@ def add_pdf_metadata(filename: str,
         f.close()
 
 
+def add_png_metadata(png_path: str, metadata: dict, loglevel: str = 'WARNING'):
+    """
+    Add metadata to a PNG image file.
+
+    Args:
+        png_path (str): The path to the PNG image file.
+        metadata (dict): A dictionary of metadata to add to the PNG file.
+        loglevel (str): The log level. Default is 'WARNING'.
+    """
+    logger = log_configure(loglevel, 'add_png_metadata')
+
+    image = Image.open(png_path)
+
+    # Create a dictionary for the PNG metadata
+    png_info = PngImagePlugin.PngInfo()
+
+    # Add the new metadata
+    for key, value in metadata.items():
+        png_info.add_text(key, value)
+        logger.debug(f'Adding metadata: {key} = {value}')
+
+    # Save the file with the new metadata
+    image.save(png_path, "PNG", pnginfo=png_info)
+    logger.info(f"Metadata added to PNG: {png_path}")
+
+
+def open_image(file_path: str, loglevel: str = 'WARNING'):
+    """
+    Open an image file (PNG or PDF), log its metadata, and display a link to the file in the notebook.
+
+    Args:
+        file_path (str): The path to the image file.
+        loglevel (str): The log level. Default is 'WARNING'.
+
+    Returns:
+        None
+    """
+    logger = log_configure(loglevel, 'open_image')
+
+    # Ensure the file exists
+    if not os.path.isfile(file_path):
+        logger.error(f"The file {file_path} does not exist.")
+        raise FileNotFoundError(f"The file {file_path} does not exist.")
+
+    # Determine the file extension using endswith()
+    if file_path.lower().endswith('.png'):
+        # Open the PNG file and read the metadata
+        image = Image.open(file_path)
+        image_metadata = image.info
+
+        # Log the metadata
+        print("PNG Metadata:")
+        for key, value in image_metadata.items():
+            print(f"{key}: {value}")
+    elif file_path.lower().endswith('.pdf'):
+        # Open the PDF file and read the metadata
+        pdf_reader = PdfReader(file_path)
+        metadata = pdf_reader.metadata
+
+        # Log the metadata
+        print("PDF Metadata:")
+        for key, value in metadata.items():
+            print(f"{key}: {value}")
+    else:
+        logger.error(f"Unsupported file type: {file_path}")
+        raise ValueError(f"Unsupported file type: {file_path}")
+
+    # Provide a FileLink to the file
+    display(FileLink(file_path))
+    logger.info(f"Displayed file link for: {file_path}")
+
+
+def update_metadata_with_date(metadata: dict = None) -> dict:
+    """
+    Update the provided metadata dictionary with the current date and time.
+
+    Args:
+        metadata (dict, optional): The original metadata dictionary.
+
+    Returns:
+        dict: The updated metadata dictionary with the current date and time.
+    """
+    if metadata is None:
+        metadata = {}
+
+    now = datetime.datetime.now()
+    date_now = now.strftime("%Y-%m-%d %H:%M:%S")
+    metadata['date_saved'] = date_now
+    return metadata
+
+
 def username():
     """
     Retrieves the current user's username from the 'USER' environment variable.
@@ -238,3 +335,14 @@ def username():
     if user is None:
         raise EnvironmentError("The 'USER' environment variable is not set.")
     return user
+
+
+class HiddenPrints:
+    # from stackoverflow https://stackoverflow.com/questions/8391411/how-to-block-calls-to-print#:~:text=If%20you%20don't%20want,the%20top%20of%20the%20file. # noqa
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
