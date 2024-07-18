@@ -70,20 +70,16 @@ def get_profile_content(template, profile, resolution, model, dp_version, local_
         profile["levtype"]
     )
     
-    grid_str = (
-        aqua_grid + '-nested' if profile["levtype"] == 'sfc' else
-        aqua_grid + '-nested' if profile["levtype"] == 'pl' else
+    grid_mappings = matching_grids['grid_mappings']
+    levtype = profile["levtype"]
 
-        'nemo-eORCA12-' + aqua_grid + '-nested' if profile["levtype"] == 'o2d' and model == 'ifs-nemo' else
-        'fesom-' + aqua_grid + '-nested' if profile["levtype"] == 'o2d' and model == 'ifs-fesom' else
-        'icon-' + aqua_grid + '-nested' if profile["levtype"] == 'o2d' and model == 'icon' else
-
-        'nemo-eORCA12-' + aqua_grid + '-nested-3d' if profile["levtype"] == 'o3d' and model == 'ifs-nemo' else
-        'fesom-' + aqua_grid + '-nested-3d' if profile["levtype"] == 'o3d' and model == 'ifs-fesom' else
-        'icon-' + aqua_grid + '-nested-3d' if profile["levtype"] == 'o3d' and model == 'icon' else
-
-        aqua_grid
-    )
+    if levtype in grid_mappings:
+        if model in grid_mappings[levtype]:
+            grid_str = grid_mappings[levtype][model].format(aqua_grid=aqua_grid)
+        elif 'default' in grid_mappings[levtype]:
+            grid_str = grid_mappings[levtype]['default'].format(aqua_grid=aqua_grid)
+    else:
+        grid_str = grid_mappings['default'].format(aqua_grid=aqua_grid)
 
     # Construct the source string
     source = f"{frequency}-{aqua_grid}-{levtype_str}"
