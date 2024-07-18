@@ -10,7 +10,6 @@ import os
 import re
 import sys
 import argparse
-import subprocess
 import yaml
 from aqua.util import load_yaml, dump_yaml, get_arg
 from aqua.logger import log_configure
@@ -31,9 +30,9 @@ def parse_arguments(arguments):
 
     return parser.parse_args(arguments)
 
-def get_local_grids(run_resolution, grids):
+def get_local_grids(portfolio, grids):
     local_grids = grids["common"]
-    local_grids.update(grids[run_resolution])
+    local_grids.update(grids[portfolio])
     return local_grids
 
 def get_available_resolutions(local_grids, model):
@@ -115,7 +114,7 @@ def get_time(frequency):
 
 def create_catalog_entry(config, catalog_dir_path, model, all_content):
     # Create output file in model folder
-    output_dir = os.path.join(catalog_dir_path, 'catalogs', config['catalog_dir'], 'catalog', model.upper())
+    output_dir = os.path.join(catalog_dir_path, 'catalogs', config['catalog_dir'], 'catalog', model)
     output_filename = f"{config['exp']}.yaml"
     output_path = os.path.join(output_dir, output_filename)
 
@@ -163,7 +162,7 @@ if __name__ == '__main__':
     
     dp_dir_path = config["repos"]["data-portfolio_path"]
     catalog_dir_path = config["repos"]["Climate-DT-catalog_path"]
-    model = config["model"]
+    model = config["model"].lower()
     
     # reading the portfolio file
     dp_file_path =  os.path.join(dp_dir_path, dp_version, 'portfolio.yaml')
@@ -175,8 +174,8 @@ if __name__ == '__main__':
     with open(grids_file_path, 'r') as grids_file:
         grids = yaml.safe_load(grids_file)
 
-    run_resolution = config["run_resolution"]   
-    local_grids = get_local_grids(run_resolution, grids)
+    portfolio = config["portfolio"]   
+    local_grids = get_local_grids(portfolio, grids)
 
     # readig the levels file
     levels_file_path = os.path.join(dp_dir_path, 'definitions', 'levels.yaml')
@@ -198,10 +197,10 @@ if __name__ == '__main__':
         resolutions = get_available_resolutions(local_grids, model)
         for resolution in resolutions:
             content = get_profile_content(
-                        template, profile, resolution, model.lower(), dp_version,
+                        template, profile, resolution, model, dp_version,
                         local_grids, levels)
             combined = {**config, **content}
             all_content.append(template.render(combined))
 
 
-    create_catalog_entry(config, catalog_dir_path, model, all_content)
+    create_catalog_entry(config, catalog_dir_path, model.upper(), all_content)

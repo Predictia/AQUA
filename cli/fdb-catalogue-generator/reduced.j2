@@ -1,12 +1,12 @@
   {{source}}:
     args:
       request:
-        activity: cmip6  # To be overwritten by workflow/config file
+        activity: {{ activity }}  # To be overwritten by workflow/config file
         class: d1
         dataset: climate-dt
-        date: 19900101  # To be overwritten by workflow/config file
-        experiment: hist  # To be overwritten by workflow/config file
-        expver: 0001  # To be overwritten by workflow/config file
+        date: {{ data_start_date }}  # To be overwritten by workflow/config file
+        experiment: {{ experiment }} # To be overwritten by workflow/config file
+        expver: {{ expver }}  # To be overwritten by workflow/config file
         generation: 1  # To be overwritten by workflow/config file
         levtype: {{ levtype }}
         param: {{ param }}
