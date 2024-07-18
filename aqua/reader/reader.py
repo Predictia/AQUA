@@ -140,19 +140,12 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         self.config_file = Configurer.config_file
         self.cat, self.catalog_file, self.machine_file = Configurer.deliver_intake_catalog(catalog=catalog, model=model, exp=exp, source=source)
         self.fixer_folder, self.grids_folder = Configurer.get_reader_filenames()
-
+        
+        # deduce catalog name
+        self.catalog = self.cat.name
 
         # machine dependent catalog path
         machine_paths, intake_vars = self._get_machine_info()
-
-        
-        # access the catalog
-        #self.cat = intake.open_catalog(self.catalog_file)
-
-        # check source existence
-        #self.source = check_catalog_source(self.cat, self.model, self.exp,
-        #                                   source, name="catalog")
-        
 
         # load the catalog
         self.esmcat = self.cat[self.model][self.exp][self.source](**kwargs, **intake_vars)

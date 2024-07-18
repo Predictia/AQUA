@@ -120,7 +120,7 @@ class LRAgenerator():
 
         Configurer = ConfigPath(configdir=configdir)
         self.configdir = Configurer.configdir
-        self.catalog = Configurer.catalog
+        self.catalog = None
 
         # Initialize variable(s)
         self.var = var
@@ -181,6 +181,7 @@ class LRAgenerator():
         self.reader = Reader(model=self.model, exp=self.exp,
                              source=self.source,
                              regrid=self.resolution,
+                             catalog=self.catalog,
                              loglevel=self.loglevel,
                              fix=self.fix, **self.kwargs)
 
@@ -192,6 +193,10 @@ class LRAgenerator():
         else:
             self.logger.info('I am going to produce LRA at %s resolution...',
                              self.resolution)
+
+        if self.catalog is None:
+            self.logger.info('Assuming catalog from the reader so thatno is %s', self.reader.catalog)
+            self.catalog = self.reader.catalog
 
         self.logger.info('Retrieving data...')
         self.data = self.reader.retrieve(var=self.var)
