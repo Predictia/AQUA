@@ -29,8 +29,17 @@ body:
       label: catalog
       description: Which catalog are you using?
       options:
-      - ClimateDT
-      - Others
+      - ci
+      - climatedt-phase1
+      - leonardo
+      - levante
+      - lumi-phase1
+      - lumi-phase2
+      - mn5-phase2
+      - nextgems3
+      - nextgems4
+      - obs
+      - Others (specify)
     validations:
       required: true
   - type: dropdown
