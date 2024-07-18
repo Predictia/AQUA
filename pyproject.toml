@@ -15,6 +15,7 @@ keywords = [
     "diagnostics"
 ]
 license = {text = "Private"}
+requires-python = ">=3.9"
 classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: System Administrators",
@@ -24,6 +25,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: Implementation :: CPython"
 ]
@@ -50,8 +52,8 @@ dependencies = [
     "smmregrid",
     "sparse",
     "xarray",
-    "pyfdb@git+https://github.com/ecmwf/pyfdb.git@master",
-    "gsv@git+https://oauth2:NrMi_dshtmNeaWy9F3sz@earth.bsc.es/gitlab/digital-twins/de_340/gsv_interface.git@v1.0.0"
+    "pyfdb@git+https://github.com/ecmwf/pyfdb.git@0.0.3",
+    "gsv@git+https://oauth2:pXj19aBDApiBPs1YgwuZ@earth.bsc.es/gitlab/digital-twins/de_340-2/gsv_interface.git@v2.2.0"
 ]
 
 [project.optional-dependencies]
@@ -84,9 +86,12 @@ all = [
     "aqua[ecmean]"
 ]
 
+[project.scripts]
+aqua = "aqua.cli.main:main"
+
 [project.urls]
-homepage = "https://aqua-web-contbuild.2.rahtiapp.fi"
-documentation = "https://aqua-web-contbuild.2.rahtiapp.fi/documentation/index.html"
+homepage = "https://aqua-web-climatedt.2.rahtiapp.fi"
+documentation = "https://aqua-web-climatedt.2.rahtiapp.fi/documentation/index.html"
 repository = "https://github.com/DestinE-Climate-DT/AQUA/"
 issues = "https://github.com/DestinE-Climate-DT/AQUA/issues/"
 

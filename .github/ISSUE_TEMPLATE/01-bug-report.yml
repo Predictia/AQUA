@@ -15,9 +15,21 @@ body:
       description: Which machine are you using?
       options:
       - Levante
+      - Leonardo
       - Lumi
-      - MN4
+      - MN5
       - CI
+      - Atos
+      - Others
+    validations:
+      required: true
+  - type: dropdown
+    id: catalog
+    attributes:
+      label: catalog
+      description: Which catalog are you using?
+      options:
+      - ClimateDT
       - Others
     validations:
       required: true
@@ -28,12 +40,12 @@ body:
       description: Which AQUA version are you using?
       options:
       - main
-      - v0.7.1
-      - v0.7
-      - v0.6.3
-      - v0.6.2
-      - v0.6.1
-      - v0.6
+      - v0.10.3
+      - v0.10.2
+      - v0.10.1
+      - v0.10
+      - v0.9.*
+      - v0.8.*
       - older
     validations:
       required: true
@@ -51,6 +63,11 @@ body:
       label: Code to reproduce the issue
       description: Please copy and paste any relevant code. This will be automatically formatted into code, so no need for backticks.
       render: python
+  - type: textarea
+    id: error
+    attributes:
+      label: Error messages
+      description: Please copy and paste any error messages you received.
   - type: dropdown
     id: contributor
     attributes:

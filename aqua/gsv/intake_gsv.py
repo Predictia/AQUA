@@ -4,12 +4,13 @@ import glob
 import datetime
 import eccodes
 import xarray as xr
+import numpy as np
 import dask
 from ruamel.yaml import YAML
 from aqua.util.eccodes import init_get_eccodes_shortname
 from intake.source import base
-from .timeutil import check_dates, shift_time_dataset
-from .timeutil import split_date, make_timeaxis, date2str, add_offset
+from .timeutil import check_dates, shift_time_dataset, todatetime, read_bridge_end_date
+from .timeutil import split_date, make_timeaxis, date2str, date2yyyymm, add_offset
 from aqua.logger import log_configure, _check_loglevel
 
 # Test if FDB5 binary library is available
@@ -18,7 +19,7 @@ try:
     gsv_available = True
 except RuntimeError:
     gsv_available = False
-    gsv_error_cause = "FDB5 binary library not present on system on outdated"
+    gsv_error_cause = "FDB5 binary library not present on system or outdated"
 except KeyError:
     gsv_available = False
     gsv_error_cause = "Environment variables for gsv, such as GRID_DEFINITION_PATH, not set."
@@ -29,46 +30,46 @@ class GSVSource(base.DataSource):
     name = 'gsv'
     version = '0.0.2'
     partition_access = True
-    timeaxis = None
-    chk_start_idx = None
-    chk_start_date = None
-    chk_end_idx = None
-    chk_end_date = None
-    chk_size = None
 
     _ds = None  # _ds and _da will contain samples of the data for dask access
     _da = None
     dask_access = False  # Flag if dask has been requested
-    timeaxis = None  # Used for dask access
 
-    def __init__(self, request, data_start_date, data_end_date, timestyle="date",
-                 aggregation="S", savefreq="h", timestep="h", timeshift=None,
+    def __init__(self, request, data_start_date, data_end_date, bridge_end_date=None, timestyle="date",
+                 chunks="S", savefreq="h", timestep="h", timeshift=None,
                  startdate=None, enddate=None, var=None, metadata=None, level=None,
                  loglevel='WARNING', **kwargs):
         """
-        Initializes the GSVSource class. These are typically specified in the catalogue entry,
-        but can also be specified upon accessing the catalogue.
+        Initializes the GSVSource class. These are typically specified in the catalog entry,
+        but can also be specified upon accessing the catalog.
 
         Args:
             request (dict): Request dictionary
             data_start_date (str): Start date of the available data.
             data_end_date (str): End date of the available data.
+            bridge_end_date (str, optional): End date of the bridge data (excluded). Defaults to None.
             timestyle (str, optional): Time style. Defaults to "date".
-            aggregation (str, optional): Time aggregation level.
-                                         Can be one of S (step), 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y.
-                                         Defaults to "S".
-            timestep (str, optional): Time step. Can be one of 10M, 15M, 30M, 1H, H, 3H, 6H, D, 5D, W, M, Y.
-                                      Defaults to "H".
+            chunks (str or dict, optional): Time and vertical chunking.
+                                        If a string is provided, it is assumed to be time chunking.
+                                        If it is a dictionary the keys 'time' and 'vertical' are looked for.
+                                        Time chunking can be one of S (step), 10M, 15M, 30M, h, 1h, 3h, 6h, D, 5D, W, M, Y.
+                                        Defaults to "S".
+                                        Vertical chunking is expressed as the number of vertical levels to be used.
+                                        Defaults to None (no vertical chunking).
+            timestep (str, optional): Time step. Can be one of 10M, 15M, 30M, 1h, h, 3h, 6h, D, 5D, W, M, Y.
+                                      Defaults to "h".
             startdate (str, optional): Start date for request. Defaults to None.
             enddate (str, optional): End date for request. Defaults to None.
-            var (str, optional): Variable ID. Defaults to those in the catalogue.
-            metadata (dict, optional): Metadata read from catalogue. Contains path to FDB.
+            var (str, optional): Variable ID. Defaults to those in the catalog.
+            metadata (dict, optional): Metadata read from catalog. Contains path to FDB.
             level (int, float, list): optional level(s) to be read. Must use the same units as the original source.
             loglevel (string) : The loglevel for the GSVSource
             kwargs: other keyword arguments.
         """
 
         self.logger = log_configure(log_level=loglevel, log_name='GSVSource')
+        self.gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel())
+        self.logger.debug("Init of the GSV source class")
 
         if not gsv_available:
             raise ImportError(gsv_error_cause)
@@ -78,16 +79,35 @@ class GSVSource(base.DataSource):
         if metadata:
             self.fdbhome = metadata.get('fdb_home', None)
             self.fdbpath = metadata.get('fdb_path', None)
+            self.fdbhome_bridge = metadata.get('fdb_home_bridge', None)
+            self.fdbpath_bridge = metadata.get('fdb_path_bridge', None)
             self.eccodes_path = metadata.get('eccodes_path', None)
-            self.levels =  metadata.get('levels', None)
+            self.levels = metadata.get('levels', None)
         else:
             self.fdbpath = None
             self.fdbhome = None
+            self.fdbhome_bridge = None
+            self.fdbpath_bridge = None
             self.eccodes_path = None
             self.levels = None
 
+        # set the timestyle
+        self.timestyle = timestyle
+
+        self.timeshift = timeshift
+        self.itime = 0  # position of time dim
+
+        if not var:  # if no var provided keep the default in the catalog
+            self._var = request["param"]
+        else:
+            self._var = var
+
+        self._kwargs = kwargs
+
         if data_start_date == 'auto' or data_end_date == 'auto':
             self.logger.debug('Autoguessing of the FDB start and end date enabled.')
+            if self.timestyle == 'yearmonth':
+                raise ValueError('Auto date selection not supported for timestyle=yearmonth. Please specify start and end date!')
             data_start_date, data_end_date = self.parse_fdb(data_start_date, data_end_date)
 
         if not startdate:
@@ -95,27 +115,23 @@ class GSVSource(base.DataSource):
         if not enddate:
             enddate = data_end_date
 
-        offset = int(request["step"])  # optional initial offset for steps (in timesteps)
+        if self.timestyle != "yearmonth":
+            offset = int(self._request["step"])  # optional initial offset for steps (in timesteps)
 
-        # special for 6h: set offset startdate if needed
-        startdate = add_offset(data_start_date, startdate, offset, timestep)
+            # special for 6h: set offset startdate if needed
+            startdate = add_offset(data_start_date, startdate, offset, timestep)
 
-        self.timestyle = timestyle
+        if isinstance(chunks, dict):
+            chunking_time = chunks.get('time', 'S')
+            chunking_vertical = chunks.get('vertical', None)
+        else:
+            chunking_time = chunks
+            chunking_vertical = None
 
-        if aggregation.upper() == "S":  # special case: 'aggegation at single saved level
-            aggregation = savefreq
-
-        self.timeshift = timeshift
-        self.itime = 0  # position of time dim
+        if chunking_time.upper() == "S":  # special case: time chunking is single saved frame
+            chunking_time = savefreq
 
         self.data_startdate, self.data_starttime = split_date(data_start_date)
-
-        if not var:  # if no var provided keep the default in the catalogue
-            self._var = request["param"]
-        else:
-            self._var = var
-
-        self._kwargs = kwargs
 
         if "levelist" in self._request:
             levelist = self._request["levelist"]
@@ -124,7 +140,7 @@ class GSVSource(base.DataSource):
                 if not isinstance(level, list): level = [level]
                 idx = list(map(levelist.index, level))
                 self.idx_3d = idx
-                self._request["levelist"] = level  # override default levels                
+                self._request["levelist"] = level  # override default levels
                 if self.levels:  # if levels in metadata select them too
                     if not isinstance(self.levels, list): self.levels = [self.levels]
                     self.levels = [self.levels[i] for i in idx]
@@ -135,29 +151,155 @@ class GSVSource(base.DataSource):
 
         self.onelevel = False
         if "levelist" in self._request:
-            if self.levels: # Do we have physical levels specified in metadata?
+            if self.levels:  # Do we have physical levels specified in metadata?
                 lev = self._request["levelist"]
                 if isinstance(lev, list) and len(lev) > 1:
                     self.onelevel = True  # If yes we can afford to read only one level
             else:
                 self.logger.warning("A speedup of data retrieval could be achieved by specifying the levels keyword in metadata.")
-        
-        self.get_eccodes_shortname = init_get_eccodes_shortname()
 
         self.data_start_date = data_start_date
         self.data_end_date = data_end_date
         self.startdate = startdate
         self.enddate = enddate
+        self.bridge_end_date = read_bridge_end_date(bridge_end_date)  # HACK
 
-        (self.timeaxis, self.chk_start_idx,
-         self.chk_start_date, self.chk_end_idx,
-         self.chk_end_date, self.chk_size) = make_timeaxis(self.data_start_date, self.startdate, self.enddate,
-                                                           shiftmonth=self.timeshift, timestep=timestep,
-                                                           savefreq=savefreq, chunkfreq=aggregation)
+        if self.bridge_end_date and not self.fdbpath_bridge and not self.fdbhome_bridge:
+            raise ValueError('Bridge end date requested but no bridge FDB path or FDB home specified in catalog.')
 
-        self._npartitions = len(self.chk_start_date)
+        if self.bridge_end_date == "complete" or not self.bridge_end_date or (
+                self.bridge_end_date and
+                todatetime(self.bridge_end_date) > todatetime(self.enddate) or
+                todatetime(self.startdate) >= todatetime(self.bridge_end_date)
+                ):
+            # data are all in bridge or no bridge needed or after end of bridge data
+
+            timeaxis = make_timeaxis(self.data_start_date, self.startdate, self.enddate,
+                                     shiftmonth=self.timeshift, timestep=timestep,
+                                     savefreq=savefreq, chunkfreq=chunking_time)
+
+            self._npartitions = len(timeaxis["start_date"])
+
+            if self.bridge_end_date != "complete" and (
+                    not self.bridge_end_date or (todatetime(self.startdate) >= todatetime(self.bridge_end_date))
+            ):
+                self.chk_type = np.zeros(self._npartitions)  # mark as hpc fdb chunks
+                self.logger.debug("All data are in HPC FDB")
+            else:
+                self.chk_type = np.ones(self._npartitions)   # mark as bridge chunks
+                self.logger.debug("All data are on bridge FDB")
+        else:
+            # data are split between bridge and hpc fdb
+
+            # data on the bridge
+            timeaxis = make_timeaxis(self.data_start_date, self.startdate, self.bridge_end_date,
+                                     shiftmonth=self.timeshift, timestep=timestep,
+                                     savefreq=savefreq, chunkfreq=chunking_time, skiplast=True)
+            # data on the hpc fdb
+            timeaxis_hpc = make_timeaxis(self.data_start_date, self.bridge_end_date, self.enddate,
+                                         shiftmonth=self.timeshift, timestep=timestep,
+                                         savefreq=savefreq, chunkfreq=chunking_time)
+
+            nbridge = len(timeaxis["start_date"])
+            nhpc = len(timeaxis_hpc["start_date"])
+
+            for key in ["timeaxis", "start_date", "end_date"]:
+                timeaxis[key] = timeaxis[key].append(timeaxis_hpc[key])
+
+            for key in ["start_idx", "end_idx", "size"]:
+                timeaxis[key] = np.append(timeaxis[key], timeaxis_hpc[key])
+
+            self._npartitions = nbridge + nhpc
+            self.chk_type = np.ones(nbridge)  # the first part is bridge data
+            self.chk_type = np.append(self.chk_type, np.zeros(nhpc))  # the second part is hpc fdb data
+            self.logger.debug("Data up to %s are on bridge FDB", timeaxis["end_date"][nbridge-1])
+
+        self.timeaxis = timeaxis["timeaxis"]
+        self.chk_start_idx = timeaxis["start_idx"]
+        self.chk_start_date = timeaxis["start_date"]
+        self.chk_end_idx = timeaxis["end_idx"]
+        self.chk_end_date = timeaxis["end_date"]
+        self.chk_size = timeaxis["size"]
+
+        self.chk_vert = None
+        self.ntimechunks = self._npartitions
+        self.nlevelchunks = None
+
+        if "levelist" in self._request:
+            self.chunking_vertical = chunking_vertical
+            if self.chunking_vertical:
+                levelist = self._request["levelist"]
+                if not isinstance(levelist, list): levelist = [levelist]
+                if len(levelist) <= self.chunking_vertical:
+                    self.chunking_vertical = None
+                else:
+                    self.chk_vert = [levelist[i:i+self.chunking_vertical] for i in range(0, len(levelist),
+                                                                                         self.chunking_vertical)]
+                    self.ntimechunks = self._npartitions
+                    self.nlevelchunks = len(self.chk_vert)
+                    self._npartitions = self._npartitions*len(self.chk_vert)
+        else:
+            self.chunking_vertical = None  # no vertical chunking
+
+        self.get_eccodes_shortname = init_get_eccodes_shortname()  # Can't pickle this, so we need to reinitialize it
 
         super(GSVSource, self).__init__(metadata=metadata)
+
+    def __getstate__(self):
+        """
+        This helps to pickle variables which were added later, after initialization of the class.
+        These are all self variables needed by get_partition().
+        """
+
+        return {
+            'data_startdate': self.data_startdate,
+            'data_starttime': self.data_starttime,
+            'chk_start_idx': self.chk_start_idx,
+            'chk_end_idx': self.chk_end_idx,
+            'chk_start_date': self.chk_start_date,
+            'chk_end_date': self.chk_end_date,
+            'chunking_vertical': self.chunking_vertical,
+            'chk_vert': self.chk_vert,
+            'chk_type': self.chk_type,
+            '_request': self._request,
+            'timestyle': self.timestyle,
+            'fdbhome': self.fdbhome,
+            'fdbpath': self.fdbpath,
+            'fdbhome_bridge': self.fdbhome_bridge,
+            'fdbpath_bridge': self.fdbpath_bridge,
+            'eccodes_path': self.eccodes_path,
+            '_var': self._var,
+            'timeshift': self.timeshift,
+            'gsv_log_level': self.gsv_log_level,
+            'logger': self.logger
+        }
+
+    def __setstate__(self, state):
+        """
+        This helps to restore from pickle variables which were added later after initialization.
+        These are all self variables needed by get_partition().
+        """
+
+        self.data_startdate = state['data_startdate']
+        self.data_starttime = state['data_starttime']
+        self.chk_start_idx = state['chk_start_idx']
+        self.chk_end_idx = state['chk_end_idx']
+        self.chk_start_date = state['chk_start_date']
+        self.chk_end_date = state['chk_end_date']
+        self.chunking_vertical = state['chunking_vertical']
+        self.chk_vert = state['chk_vert']
+        self.chk_type = state['chk_type']
+        self.timestyle = state['timestyle']
+        self.fdbhome = state['fdbhome']
+        self.fdbpath = state['fdbpath']
+        self.fdbhome_bridge = state['fdbhome_bridge']
+        self.fdbpath_bridge = state['fdbpath_bridge']
+        self.eccodes_path = state['eccodes_path']
+        self._var = state['_var']
+        self.timeshift = state['timeshift']
+        self._request = state['_request']
+        self.gsv_log_level = state['gsv_log_level']
+        self.logger = state['logger']
 
     def _get_schema(self):
         """
@@ -209,19 +351,35 @@ class GSVSource(base.DataSource):
 
         return schema
 
-    def _get_partition(self, i, var=None, first=False, onelevel=False):
+    def _index_to_timelevel(self, ii):
+        """
+        Internal method to convert partition index to time and level indices
+        """
+        if self.chunking_vertical:
+            i = ii // len(self.chk_vert)
+            j = ii % len(self.chk_vert)
+        else:     
+            i = ii
+            j = 0
+        return i, j
+
+    def _get_partition(self, ii, var=None, first=False, onelevel=False):
         """
         Standard internal method reading i-th data partition from FDB
         Args:
-            i (int): partition number
+            ii (int): partition number
             var (string, optional): single variable to retrieve. Defaults to using those set at init
-            first (bool, optional): read only the first step (used for schema retrieval
+            first (bool, optional): read only the first step (used for schema retrieval)
             onelevel (bool, optional): read only one level. Defaults to False.
         Returns:
             An xarray.DataSet
         """
 
         request = self._request.copy()  # We are going to change it, threads do need this
+
+        i, j = self._index_to_timelevel(ii)
+        if self.chunking_vertical:
+            request["levelist"] = self.chk_vert[j]
 
         if self.timestyle == "date":
             dds, tts = date2str(self.chk_start_date[i])
@@ -232,19 +390,34 @@ class GSVSource(base.DataSource):
             else:
                 request["date"] = f"{dds}/to/{dde}"
                 request["time"] = f"{tts}/to/{tte}"
-            s0 = None
-            s1 = None
-        else:  # style is 'step'
+
+        elif self.timestyle == "step":  # style is 'step'
             request["date"] = self.data_startdate
             request["time"] = self.data_starttime
-
             s0 = self.chk_start_idx[i]
             s1 = self.chk_end_idx[i]
-
             if s0 == s1 or first:
                 request["step"] = f'{s0}'
             else:
                 request["step"] = f'{s0}/to/{s1}'
+
+        elif self.timestyle == "yearmonth":  # style is 'yearmonth'
+            yys, mms = date2yyyymm(self.chk_start_date[i])
+            yye, mme = date2yyyymm(self.chk_end_date[i])
+            if ((yys == yye) or first):
+                request["year"] = f"{yys}"
+            else:
+                request["year"] = f"{yys}/to/{yye}"
+            if ((mms == mme) or first):
+                request["month"] = f"{mms}"
+            else:
+                request["month"] = f"{mms}/to/{mme}"
+            # HACK: step is required by the code, but not needed by GSV
+            # for key in ["date", "step", "time"]:
+            #    if key in request:
+            #        del request[key]
+        else:
+            raise ValueError(f'Timestyle {self.timestyle} not supported')
 
         if onelevel:  # limit to one single level
             request["levelist"] = request["levelist"][0]
@@ -254,10 +427,21 @@ class GSVSource(base.DataSource):
         else:
             request["param"] = self._var
 
-        if self.fdbhome:  #if fdbhome is provided, use it, since we are creating a new gsv
-            os.environ["FDB_HOME"] = self.fdbhome
-        if self.fdbpath:  # if fdbpath provided, use it, since we are creating a new gsv
-            os.environ["FDB5_CONFIG_FILE"] = self.fdbpath
+        # Select based on type of FDB
+        fstream_iterator = False
+        if self.chk_type[i]:
+            # Bridge FDB type
+            if self.fdbhome_bridge:
+                os.environ["FDB_HOME"] = self.fdbhome_bridge
+            if self.fdbpath_bridge:
+                os.environ["FDB5_CONFIG_FILE"] = self.fdbpath_bridge
+            fstream_iterator = True
+        else:
+            # HPC FDB type
+            if self.fdbhome:  # if fdbhome is provided, use it, since we are creating a new gsv
+                os.environ["FDB_HOME"] = self.fdbhome
+            if self.fdbpath:  # if fdbpath provided, use it, since we are creating a new gsv
+                os.environ["FDB5_CONFIG_FILE"] = self.fdbpath
 
         if self.eccodes_path:  # if needed switch eccodes path
             # unless we have already switched
@@ -265,18 +449,17 @@ class GSVSource(base.DataSource):
                 eccodes.codes_context_delete()  # flush old definitions in cache
                 eccodes.codes_set_definitions_path(self.eccodes_path)
 
+        gsv = GSVRetriever(logging_level=self.gsv_log_level)
+
         # for some reason this is needed here and not in init
         gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel())
         gsv = GSVRetriever(logging_level=gsv_log_level)
 
         self.logger.debug('Request %s', request)
-        dataset = gsv.request_data(request)
+        dataset = gsv.request_data(request, use_stream_iterator=fstream_iterator)
 
         if self.timeshift:  # shift time by one month (special case)
             dataset = shift_time_dataset(dataset)
-
-        # Log history
-        log_history(dataset, "Dataset retrieved by GSV interface")
 
         return dataset
 
@@ -286,7 +469,7 @@ class GSVSource(base.DataSource):
         ds = xr.concat(ds, dim='time')
         return ds
 
-    def get_part_delayed(self, i, var, shape, dtype):
+    def get_part_delayed(self, ii, var, shape, dtype):
         """
         Function to read a delayed partition.
         Returns a dask.array
@@ -297,12 +480,18 @@ class GSVSource(base.DataSource):
             shape: shape of the schema
             dtype: data type of the schema
         """
-        ds = dask.delayed(self._get_partition)(i, var=var)
+
+        i, j = self._index_to_timelevel(ii)
+
+        ds = dask.delayed(self._get_partition)(ii, var=var)
 
         # get the data from the first (and only) data array
         ds = ds.to_array()[0].data
         newshape = list(shape)
         newshape[self.itime] = self.chk_size[i]
+        if self.chunking_vertical:  # if we have vertical chunking
+            newshape[self.ilevel] = len(self.chk_vert[j])
+
         return dask.array.from_delayed(ds, newshape, dtype)
 
     def to_dask(self):
@@ -315,6 +504,8 @@ class GSVSource(base.DataSource):
         dtype = self._schema.dtype
 
         self.itime = self._da.dims.index("time")
+        if self.chunking_vertical:
+            self.ilevel = self._da.dims.index("level")
 
         if 'valid_time' in self._da.coords:  # temporary hack because valid_time is inconsistent anyway
             self._da = self._da.drop_vars('valid_time')
@@ -326,8 +517,15 @@ class GSVSource(base.DataSource):
 
         for var in self._var:
             # Create a dask array from a list of delayed get_partition calls
-            dalist = [self.get_part_delayed(i, var, shape, dtype) for i in range(self.npartitions)]
-            darr = dask.array.concatenate(dalist, axis=self.itime)  # This is a lazy dask array
+            if not self.chunking_vertical:
+                dalist = [self.get_part_delayed(i, var, shape, dtype) for i in range(self.npartitions)]
+                darr = dask.array.concatenate(dalist, axis=self.itime)  # This is a lazy dask array
+            else:
+                dalist = []
+                for j in range(self.nlevelchunks):
+                    dalistlev = [self.get_part_delayed(i*self.nlevelchunks+j, var, shape, dtype) for i in range(self.ntimechunks)]
+                    dalist.append(dask.array.concatenate(dalistlev, axis=self.itime))                
+                darr = dask.array.concatenate(dalist, axis=self.ilevel)  # This is a lazy dask array
 
             shortname = self.get_eccodes_shortname(var)
 
@@ -336,7 +534,9 @@ class GSVSource(base.DataSource):
                               attrs=self._ds[shortname].attrs,
                               dims=self._da.dims,
                               coords=coords)
-            
+
+            log_history(da, "Dataset retrieved by GSV interface")
+
             ds[shortname] = da
 
         ds.attrs.update(self._ds.attrs)
@@ -355,22 +555,21 @@ class GSVSource(base.DataSource):
                 ds = ds.assign_coords(idx_level=("level", self.idx_3d))
             yield ds
 
-    
     def parse_fdb(self, start_date, end_date):
         """Parse the FDB config file and return the start and end dates of the data.
            This works only with the DE GSV schema.
         """
 
-        if not self.fdbpath and not self.fdbpath:
-            raise ValueError('Automatic dates requested but FDB path not specified in catalogue.')
+        if not self.fdbhome and not self.fdbpath:
+            raise ValueError('Automatic dates requested but no FDB home or FDB path specified in catalog.')
 
-        yaml = YAML() 
-  
-        if self.fdbhome and not self.fdbpath:
-            yamlfile = os.path.join(self.fdbhome, '/etc/fdb/config.yaml')
+        yaml = YAML()
+
+        if self.fdbhome:  # FDB_HOME takes precedence but assumes a fixed subdirectory structure
+            yamlfile = os.path.join(self.fdbhome, 'etc/fdb/config.yaml')
         else:
             yamlfile = self.fdbpath
-        
+
         with open(yamlfile, 'r') as file:
             cfg = yaml.load(file)
 
@@ -381,15 +580,14 @@ class GSVSource(base.DataSource):
 
         req = self._request
 
-        # This assumes a fixed schema and that all keys are present
         file_mask = f"{req['class']}:{req['dataset']}:{req['activity']}:{req['experiment']}:{req['generation']}:{req['model']}:{req['realization']}:{req['expver']}:{req['stream']}:*"
         file_list = glob.glob(os.path.join(root, file_mask))
-        
+
         datesel = [filename[-8:] for filename in file_list if (filename[-8:].isdigit() and len(filename[-8:])==8)]
         datesel.sort()
 
         if len(datesel) == 0:
-            raise ValueError('Auto date selection in catalogue but no valid dates found in FDB')
+            raise ValueError('Auto date selection in catalog but no valid dates found in FDB')
         else:
             if start_date == 'auto':
                 start_date = datesel[0] + 'T0000'
@@ -398,7 +596,8 @@ class GSVSource(base.DataSource):
             self.logger.info('Automatic FDB date range: %s - %s', start_date, end_date)
 
         return start_date, end_date
-                
+
+
 # This function is repeated here in order not to create a cross dependency between GSVSource and AQUA
 def log_history(data, msg):
     """Elementary provenance logger in the history attribute"""

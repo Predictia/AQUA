@@ -28,38 +28,42 @@ All the diagnostic logfiles will be saved in this main folder, while the diagnos
 named after the diagnostic name.
 Inside each diagnostic folder, the output will be saved in a subfolder named with the filetype (e.g. ``pdf``, ``netcdf``).
 
+The exact list of diagnostics to run and technical details of the analysis
+(such as the nuber of cpu cores to be used for each diagnostic) 
+are specified in the configuration file ``config.aqua-analysis.yaml``. 
+
 Additional options
 ^^^^^^^^^^^^^^^^^^
 
 Some options are available to launch the script without having to modify the script itself,
 so that the script can be used in a batch job or in a workflow.
 
-.. option:: -a <model>, --model_atm <model>
+.. option:: -m <model>
 
-    The atmospheric model to use.
-
-.. option:: -o <model>, --model_oce <model>
-
-    The oceanic model to use.
+    The  model to use.
 
 .. option:: -e <exp>, --exp <exp>
 
     The experiment to use.
 
-.. option:: -s <source>, source <source>
+.. option:: -s <source>, --source <source>
 
     The source to use.
+
+.. option:: -c <catalog>, --catalog <catalog>
+
+    The catalog to use.
+    Default is using the catalog currently defined by the AQUA console.
+
+.. option:: -f <config>, --config <source>
+
+    The config file to use.
 
 .. option:: -d <dir>, --outputdir <dir>
 
     The output directory to use.
     Default is ``$AQUA/cli/aqua-analysis/output``.
     Prefer to use an absolute path.
-
-.. option:: -m <machine>, --machine <machine>
-
-    The machine to use.
-    Default is ``lumi``.
 
 .. option:: -l <loglevel>, --loglevel <loglevel>
 
@@ -80,31 +84,159 @@ so that the script can be used in a batch job or in a workflow.
     A predefined number of workers is used for each diagnostic, set in the script itself.
     For ecmean the multiprocessing option is used.
     
-
 .. note ::
 
     By default the script will run all the state-of-the-art diagnostics available in AQUA.
     It is possible to run only a subset of the diagnostics by modifying the script itself,
     where arrays with atmospheric and oceanic diagnostics are defined.
 
+
+.. _aqua_web:
+
+Automatic uploading of figures and documentation to aqua-web
+------------------------------------------------------------
+
+AQUA figures produced by the analysis can be uploaded to the [aqua-web](https://github.com/DestinE-Climate-DT/aqua-web)
+repository to publish them automatically on a dedicated website. The same site is used to host the documentation.
+Two scripts in the ``cli/aqua-web`` folder are available to push figures or documentation to aqua-web.
+
+Basic usage
+^^^^^^^^^^^
+
+.. code-block:: bash
+
+    # to generate and push the documentation to aqua-web
+    ./make_push_docs.py 
+
+    # to collect the figures from a directory $INDIR  figures to aqua-web
+    INDIR=/path/to/figures_root
+    MODELEXP=IFS-NEMO/historical-1990 # the subfolder of INDIR where the figures are stored (also model/exp pair for aqua-web)
+    
+    python ./make_push_figures.py $INDIR $MODELEXP # to collect the figures and push them to aqua-web
+
+Instead of a MODEL/EXPERIMENT pair, it is possible to specify
+an experiment list in a text file, in the same format as the one used by the :ref:`submit-aqua-web` script.
+
+.. note::
+    The user running the script must have the right to push to the aqua-web repository and must have
+    set up the ssh keys to access the repository.
+
+.. _submit-aqua-web:
+
+Multiple experiment analysis submitter
+--------------------------------------
+
+A wrapper containing to facilitate automatic submission of analysis of multiple experiments
+in parallel and possible pushing to AQUA Explorer. This is used to implement overnight updates to AQUA Explorer.
+
+Basic usage
+^^^^^^^^^^^
+
+.. code-block:: bash
+
+    python ./submit-aqua-web.py EXPLIST
+
+This will read a text file EXPLIST containing a list of models/experiments in the format
+
+.. code-block:: rst
+
+    # List of experiments to analyze in the format
+    # model exp [source]
+
+    IFS-NEMO  ssp370  lra-r100-monthly
+    IFS-NEMO historical-1990
+    ICON historical-1990
+    ICON ssp370
+
+A sample file ``aqua-web.experiment.list`` is provided in the source code of AQUA.
+Specifying the source is optional ('lra-r100-monthly' is the default).
+
+Before using the script you will need to specify details for SLURM and other options
+in the configuration file ``config.aqua-web.yaml``. This file is searched in the same directories as 
+other AQUA configuration files or in the current directory as last resort.
+
+It is possible to run the analysis on a single experiment specifying model, experiment and source
+with the arguments ``-m``, ``-e`` and ``-s`` respectively.
+
+If run without arguments, the script will run the analysis on the default 
+experiments specified in the list.
+
+Adding the ``-p`` or ``--push`` flag will push the results to the AQUA Explorer.
+
+Options
+^^^^^^^
+
+.. option:: -c <config>, --config <config>
+
+    The configuration file to use. Default is ``config.aqua-web.yaml``.
+
+.. option:: -m <model>, --model <model>
+
+    Specify a single model to be processed (alternative to specifying the experiment list).
+
+.. option:: -e <exp>, --exp <exp>
+
+    Experiment to be processed.
+
+.. option:: -s <source>, --source <source>
+
+    Source to be processed.
+
+.. option:: -r, --serial
+
+    Run in serial mode (only one core). This is passed to the ``aqua-analysis.sh`` script.
+
+.. option:: -x <max>, --max <max>
+
+    Maximum number of jobs to submit without dependency.
+
+.. option:: -t <template>, --template <template>
+
+    Template jinja file for slurm job. Default is ``aqua-web.job.j2``.
+
+.. option:: -d, --dry
+
+    Perform a dry run for debugging (no job submission). Sets also ``loglevel`` to 'debug'.
+
+.. option:: -l <loglevel>, --loglevel <loglevel>
+
+    Logging level.
+
+.. option:: -p, --push
+    
+    Flag to push to aqua-web. This uses the ``make_push_figures.py`` script.
+
+
 .. _fdb-catalog-generator:
 
 Catalog entry generator for FDB sources
 ---------------------------------------
 
-This tool, currently under development, will provide the generation of the FDB sources for the Climate DT project.
+A tool which streamlines the process of adding new experiments to the catalog.
+It exploits the capabilities of the Jinja package to obtain a cleaner and more flexible code.
+Users can easily customize their experiments by updating the ``config.tmpl`` file, with the experiment's specific details.
+The script is available in the ``cli/fdb-catalog-generator`` folder.
+Basic usage:
 
-.. _gribber:
+.. code-block:: bash
 
-GRIB catalog generator
-----------------------
+    ./catalog-jinja-generator.py -c config.tmpl -j ifs-nemo-default.j2 -l INFO
 
-A tool building on Gribscan, aiming at creating compact catalog entries through JSON files for massive GRIB archives.
-A script in the ``cli/gribber`` folder is available.
 
-.. warning ::
+.. warning::
 
-    This tool is currently deprecated, it might be removed in the future.
+    Please note that currently only one Jinja template is available (``ifs-nemo-default.j2`` for IFS-NEMO), but it is possible to add more templates in the future.
+
+
+.. _benchmarker:
+
+Benchmarker
+-----------
+
+A tool to benchmark the performance of the AQUA analysis tools. The tool is available in the ``cli/benchmarker`` folder.
+It runs a few selected methods for multiple times and report the durations of multiple execution: it has to be run in batch mode with 
+the associated jobscript in order to guarantee robust results. 
+It will be replaced in future by more robust performance machinery.
 
 
 .. _grids-from-data:
@@ -146,10 +278,50 @@ This will download all the grids used in AQUA.
 It is also possible to download only a subset of the grids,
 by specifying the group of grids to download (usually one per model).
 
-LUMI container installation
----------------------------
+Grids synchronization
+---------------------
 
-Includes the script for the installation of the container on LUMI: please refer to :ref:`container`
+Since the upload of the grids to the SWIFT platform used to store the grids is available only from Levante,
+a simple script to synchronize the grids from Levante to LUMI and viceversa is available in the ``cli/grids-downloader/`` folder.
+You will need to be logged to the destination platform to run the script and to have
+passwordless ssh access to the source platform.
+
+Basic usage:
+
+.. code-block:: bash
+
+    bash grids-sync.sh [levante_to_lumi | lumi_to_levante]
+
+This will synchronize the grids from Levante to LUMI or viceversa.
+
+.. warning::
+
+    If more grids are added to the Levante platform, the SWIFT database should be updated.
+    Please contact the AQUA team to upload new relevant grids to the SWIFT platform.
+
+Grids uploader
+--------------
+
+A script to upload the grids to the SWIFT platform is available in the ``cli/grids-downloader/`` folder.
+You will need to be on levante and to have the access to the SWIFT platform to run the script.
+With the automatic setup updated folders will be uploaded in the same location on the SWIFT platform and 
+no updates of the links in the `grids-downloader.sh` script will be needed.
+
+Basic usage:
+
+.. code-block:: bash
+
+    bash grids-uploader.sh [all | modelname]
+
+.. note::
+
+    The script will check that a valid SWIFT token is available before starting the upload.
+    If the token is not available, the script will ask the user to login to the SWIFT platform to obtain a new token.
+
+HPC container utilities
+-----------------------
+
+Includes the script for the usage of the container on LUMI and Levante HPC: please refer to :ref:`container`
 
 LUMI conda installation
 -----------------------
@@ -188,26 +360,5 @@ Basic usage:
     ./generate_weights.py -c weights_config.yaml
 
 
-.. _aqua_web:
 
-Automatic uploading of figures and documentation to aqua-web
-------------------------------------------------------------
 
-AQUA figures produced by the analysis can be uploaded to the [aqua-web](https://github.com/DestinE-Climate-DT/aqua-web)
-repository to publish them automatically on a dedicated website. The same site is used to host the documentation.
-Two scripts in the ``cli/aqua-web`` folder are available to push figures or documentation to aqua-web.
-
-Basic usage:
-
-.. code-block:: bash
-
-    # to generate and push the documentation to aqua-web
-    ./make_push_docs.py 
-
-    # to collect the figures from a directory $INDIR  figures to aqua-web
-    INDIR=/path/to/figures_root
-    MODELEXP=IFS-NEMO/historical-1990 # the subfolder of INDIR where the figures are stored (also model/exp pair for aqua-web)
-    ./make_push_figures.py $INDIR IFS-NEMO/historical-1990 # to collect the figures and push them to aqua-web
-
-The user running the script must have the right to push to the aqua-web repository and must have
-set up the ssh keys to access the repository.

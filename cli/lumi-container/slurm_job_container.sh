@@ -2,16 +2,15 @@
 
 #SBATCH -A project_465000454
 #SBATCH --cpus-per-task=1
-#SBATCH -n 1
-#SBATCH -t 00:25:00 #change the wallclock
+#SBATCH -n q
+#SBATCH -t 00:30:00 #change the wallclock
 #SBATCH -J aqua_jupyter
-#SBATCH --output=aqua_slurm.out
-#SBATCH --error=aqua_slurm.err
+#SBATCH --output=output_%j.out
+#SBATCH --error=output_%j.err
 #SBATCH -p debug    #change the partition
 
-AQUA_path=/path_to/AQUA 
-AQUA_container=/project/project_465000454/containers/aqua/aqua-v0.7.1.sif
-FDB5_CONFIG_FILE=/scratch/project_465000454/igonzalez/fdb-long/config.yaml
+AQUA_path=$AQUA
+AQUA_container=/project/project_465000454/containers/aqua/aqua-v0.10.3.sif
 GSV_WEIGHTS_PATH=/scratch/project_465000454/igonzalez/gsv_weights/
 GRID_DEFINITION_PATH=/scratch/project_465000454/igonzalez/grid_definitions
 
@@ -25,7 +24,13 @@ singularity exec \
     --env ESMFMKFILE=/opt/conda/lib/esmf.mk \
     --env PYTHONPATH=$AQUA_path \
     --env AQUA=$AQUA_path \
+    --bind /pfs/lustrep1/ \
+    --bind /pfs/lustrep2/ \
     --bind /pfs/lustrep3/ \
+    --bind /pfs/lustrep4/ \
+    --bind /pfs/lustrep3/scratch/ \
+    --bind /appl/local/climatedt/ \
+    --bind /flash/project_465000454 \
     --bind /projappl/ \
     --bind /project \
     --bind /scratch/ \

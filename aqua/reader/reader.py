@@ -2,15 +2,10 @@
 
 import os
 import re
-
 import types
 import shutil
-import intake
 import intake_esm
-
 import xarray as xr
-
-# from metpy.units import units, DimensionalityError
 
 import smmregrid as rg
 
@@ -24,44 +19,52 @@ from .streaming import Streaming
 from .fixer import FixerMixin
 from .regrid import RegridMixin
 from .timmean import TimmeanMixin
-from .reader_utils import check_catalog_source, group_shared_dims, set_attrs
+from .reader_utils import group_shared_dims, set_attrs
 from .reader_utils import configure_masked_fields
 
 # default spatial dimensions and vertical coordinates
 default_space_dims = ['i', 'j', 'x', 'y', 'lon', 'lat', 'longitude',
                       'latitude', 'cell', 'cells', 'ncells', 'values',
-                      'value', 'nod2', 'pix', 'elem']
+                      'value', 'nod2', 'pix', 'elem', 'xc', 'yc']
 
 # default vertical dimension
 default_vertical_dims = ['nz1', 'nz', 'level', 'height']
 
+# parameters which will affect the weights and areas name
+default_weights_areas_parameters = ['zoom']
+
 # set default options for xarray
 xr.set_options(keep_attrs=True)
+
 
 class Reader(FixerMixin, RegridMixin, TimmeanMixin):
     """General reader for NextGEMS data."""
 
     instance = None  # Used to store the latest instance of the class
 
-    def __init__(self, model=None, exp=None, source=None, fix=True,
-                 regrid=None, regrid_method=None, zoom=None,
+    def __init__(self, model=None, exp=None, source=None, catalog=None,
+                 fix=True,
+                 regrid=None, regrid_method=None,
                  areas=True, datamodel=None,
                  streaming=False, stream_generator=False,
                  startdate=None, enddate=None,
-                 rebuild=False, loglevel=None, nproc=4, aggregation=None):
+                 rebuild=False, loglevel=None, nproc=4,
+                 aggregation=None, chunks=None,
+                 **kwargs):
         """
         Initializes the Reader class, which uses the catalog
         `config/config.yaml` to identify the required data.
 
         Args:
-            model (str, optional): Model ID. Defaults to "ICON".
-            exp (str, optional): Experiment ID. Defaults to "tco2559-ng5".
-            source (str, optional): Source ID. Defaults to None.
+            model (str): Model ID. Mandatory
+            exp (str): Experiment ID. Mandatory.
+            source (str): Source ID. Mandatory
+            catalog (str, optional): Catalog where to search for the triplet.  Default to None will allow for autosearch in 
+                                     the installed catalogs. 
             regrid (str, optional): Perform regridding to grid `regrid`, as defined in `config/regrid.yaml`. Defaults to None.
             regrid_method (str, optional): CDO Regridding regridding method. Read from grid configuration.
                                            If not specified anywhere, using "ycon".
             fix (bool, optional): Activate data fixing
-            zoom (int): healpix zoom level. (Default: None)
             areas (bool, optional): Compute pixel areas if needed. Defaults to True.
             datamodel (str, optional): Destination data model for coordinates, overrides the one in fixes.yaml.
                                        Defaults to None.
@@ -73,8 +76,16 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             loglevel (str, optional): Level of logging according to logging module.
                                       Defaults to log_level_default of loglevel().
             nproc (int,optional): Number of processes to use for weights generation. Defaults to 4.
-            aggregation (str, optional): aggregation/chunking to be used for GSV access (e.g. D, M, Y).
-                                         Defaults to None (using default from catalogue, recommended).
+            aggregation (str, optional): the streaming frequency in pandas style (1M, 7D etc. or 'monthly', 'daily' etc.)
+                                         Defaults to None (using default from catalog, recommended).
+            chunks (str or dict, optional): chunking to be used for GSV access.
+                                            Defaults to None (using default from catalog, recommended).
+                                            If it is a string time chunking is assumed.
+                                            If it is a dictionary the keys 'time' and 'vertical' are looked for.
+                                            Time chunking can be one of S (step), 10M, 15M, 30M, h, 1h, 3h, 6h, D, 5D, W, M, Y.
+                                            Vertical chunking is expressed as the number of vertical levels to be used.
+            **kwargs: Arbitrary keyword arguments to be passed as parameters to the catalog entry.
+                      'zoom', meant for HEALPix grid, is a predefined one which will allow for multiple gridname definition   
 
         Returns:
             Reader: A `Reader` class object.
@@ -88,11 +99,14 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         self.exp = exp
         self.model = model
+        self.source = source
         self.regrid_method = regrid_method
         self.nproc = nproc
         self.vert_coord = None
-        self.deltat = 1
+        self.deltat = 1 #time in seconds to be used for cumulated variables unit convrersion
+        self.time_correction = False #extra flag for correction data with cumulation time on monthly timescale
         self.aggregation = aggregation
+        self.chunks = chunks
 
         self.grid_area = None
         self.src_grid_area = None
@@ -117,28 +131,27 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         self.enddate = enddate
 
         self.previous_data = None  # used for FDB iterator fixing
+        self.sample_data = None #used to avoid multiple calls of retrieve_plain
 
         # define configuration file and paths
-        Configurer = ConfigPath()
+        Configurer = ConfigPath(catalog=catalog, loglevel=loglevel)
         self.configdir = Configurer.configdir
-        self.machine = Configurer.machine
+        self.machine = Configurer.get_machine()
+        self.config_file = Configurer.config_file
+        self.cat, self.catalog_file, self.machine_file = Configurer.deliver_intake_catalog(catalog=catalog, model=model, exp=exp, source=source)
+        self.fixer_folder, self.grids_folder = Configurer.get_reader_filenames()
+        
+        # deduce catalog name
+        self.catalog = self.cat.name
 
-        # get configuration from the machine
-        self.catalog_file, self.fixer_folder, self.config_file = (
-            Configurer.get_reader_filenames())
-        self.cat = intake.open_catalog(self.catalog_file)
+        # machine dependent catalog path
+        machine_paths, intake_vars = self._get_machine_info()
 
-        # check source existence
-        self.source = check_catalog_source(self.cat, self.model, self.exp,
-                                           source, name="catalog")
+        # load the catalog
+        self.esmcat = self.cat[self.model][self.exp][self.source](**kwargs, **intake_vars)
 
-        # check that you defined zoom in a correct way
-        self.zoom = self._check_zoom(zoom)
-
-        if self.zoom:
-            self.esmcat = self.cat[self.model][self.exp][self.source](zoom=self.zoom)
-        else:
-            self.esmcat = self.cat[self.model][self.exp][self.source]
+        # store the kwargs for further usage
+        self.kwargs = self._check_kwargs_parameters(kwargs)
 
         # get fixes dictionary and find them
         self.fix = fix  # fix activation flag
@@ -158,19 +171,17 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             if not self.dst_datamodel:
                 self.dst_datamodel = self.fixes_dictionary["defaults"].get("dst_datamodel", None)
 
-        # Store the machine-specific CDO path if available
-        cfg_base = load_yaml(self.config_file)
-        self.cdo = self._set_cdo(cfg_base)
+        self.cdo = self._set_cdo()
 
         # load and check the regrid
         if regrid or areas:
 
-            # loading the grid defintion file
-            main_file = os.path.join(self.configdir, 'aqua-grids.yaml')
-            machine_file = os.path.join(self.configdir, 'machines', self.machine, 'catalog.yaml')
-            cfg_regrid = load_multi_yaml(filenames=[main_file, machine_file],
-                                         definitions="paths",
+
+            cfg_regrid = load_multi_yaml(folder_path=self.grids_folder,
+                                         definitions=machine_paths['paths'],
                                          loglevel=self.loglevel)
+            
+            cfg_regrid = {**machine_paths, **cfg_regrid}
 
             # define grid names
             self.src_grid_name = self.esmcat.metadata.get('source_grid_name')
@@ -196,7 +207,36 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         if areas and regrid:
             self._generate_load_dst_area(cfg_regrid, rebuild)
 
-    def _set_cdo(self, cfg_base):
+    def _get_machine_info(self):
+        """
+        This extract the information related to the machine from the catalog-dependent machine file
+        
+        Returns: 
+            machine_paths: the dictionary with the paths
+            intake_vars: the dictionary for the intake catalog variables
+        """
+        
+        # loading the grid defintion file
+        machine_file = load_yaml(self.machine_file)
+
+        # get informtion on paths
+        if self.machine in machine_file:
+            machine_paths = machine_file[self.machine]
+        else:
+            if 'default' in machine_file:
+                machine_paths = machine_file['default']
+            else:
+                raise KeyError(f'Cannot find machine paths for {self.machine}, regridding and areas feature will not work')
+        
+        # extract potential intake variables
+        if 'intake' in machine_paths:
+            intake_vars = machine_paths['intake']
+        else:
+            intake_vars = {}
+        
+        return machine_paths, intake_vars
+
+    def _set_cdo(self):
         """
         Check information on CDO to set the correct version
 
@@ -207,15 +247,11 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             The path to the CDO executable
         """
 
-        cdo = cfg_base["cdo"].get(self.machine, None)
-        if not cdo:
-            cdo = shutil.which("cdo")
-            if cdo:
-                self.logger.debug("Found CDO path: %s", cdo)
-            else:
-                self.logger.error("CDO not found in path: Weight and area generation will fail.")
+        cdo = shutil.which("cdo")
+        if cdo:
+            self.logger.debug("Found CDO path: %s", cdo)
         else:
-            self.logger.debug("Using CDO from config: %s", cdo)
+            self.logger.error("CDO not found in path: Weight and area generation will fail.")
 
         return cdo
 
@@ -266,11 +302,12 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
                                                                                  method=self.regrid_method,
                                                                                  targetgrid=self.dst_grid_name,
                                                                                  level=levname)
-            # add the zoom level in the template file
-            if self.zoom is not None:
-                template_file = re.sub(r'\.nc',
-                                       '_z' + str(self.zoom) + r'\g<0>',
-                                       template_file)
+            # add the kwargs naming in the template file
+            for parameter in default_weights_areas_parameters:
+                if parameter in self.kwargs:
+                    template_file = re.sub(r'\.nc',
+                                        '_' + parameter + str(self.kwargs[parameter]) + r'\g<0>',
+                                        template_file)
 
             self.weightsfile.update({vc: os.path.join(
                 cfg_regrid["paths"]["weights"],
@@ -283,7 +320,10 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
                 self._make_weights_file(self.weightsfile[vc], source_grid,
                                         cfg_regrid, regrid=self.dst_grid_name,
                                         vert_coord=vc, extra=[],
-                                        zoom=self.zoom, method=self.regrid_method)
+                                        method=self.regrid_method,
+                                        original_grid_size=self.grid_area.size,
+                                        nproc = self.nproc)
+
 
             self.weights.update({vc: xr.open_mfdataset(self.weightsfile[vc])})
             vc2 = None if vc == "2d" or vc == "2dm" else vc
@@ -355,14 +395,14 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             if isinstance(sgridpath, dict):
                 self.src_grid = {}
                 for k, v in sgridpath.items():
-                    self.src_grid.update({k: xr.open_dataset(v.format(zoom=self.zoom),
+                    self.src_grid.update({k: xr.open_dataset(v.format(**self.kwargs),
                                                              decode_times=False)})
             else:
                 if self.vert_coord:
-                    self.src_grid = {self.vert_coord[0]: xr.open_dataset(sgridpath.format(zoom=self.zoom),
+                    self.src_grid = {self.vert_coord[0]: xr.open_dataset(sgridpath.format(**self.kwargs),
                                                                          decode_times=False)}
                 else:
-                    self.src_grid = {"2d": xr.open_dataset(sgridpath.format(zoom=self.zoom),
+                    self.src_grid = {"2d": xr.open_dataset(sgridpath.format(**self.kwargs),
                                                            decode_times=False)}
         else:
             self.src_grid = None
@@ -425,11 +465,12 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             template_file = cfg_regrid["areas"]["template_default"].format(model=self.model,
                                                                            exp=self.exp,
                                                                            source=self.source)
-        # add the zoom level in the template file
-        if self.zoom is not None:
-            template_file = re.sub(r'\.nc',
-                                   '_z' + str(self.zoom) + r'\g<0>',
-                                   template_file)
+        # add the kwargs naming in the template file
+        for parameter in default_weights_areas_parameters:
+            if parameter in self.kwargs:
+                template_file = re.sub(r'\.nc',
+                                    '_' + parameter + str(self.kwargs[parameter]) + r'\g<0>',
+                                    template_file)
 
         self.src_areafile = os.path.join(
             cfg_regrid["paths"]["areas"],
@@ -449,8 +490,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             else:
                 self._make_src_area_file(self.src_areafile, source_grid,
                                          gridpath=cfg_regrid["cdo-paths"]["download"],
-                                         icongridpath=cfg_regrid["cdo-paths"]["icon"],
-                                         zoom=self.zoom)
+                                         icongridpath=cfg_regrid["cdo-paths"]["icon"])
 
         self.src_grid_area = xr.open_mfdataset(self.src_areafile).cell_area
 
@@ -466,7 +506,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         Arguments:
             var (str, list): the variable(s) to retrieve. Defaults to None. If None, all variables are retrieved.
-            level (list, float, int): Levels to be read, overriding default in catalogue source (only for FDB) .
+            level (list, float, int): Levels to be read, overriding default in catalog source (only for FDB) .
             startdate (str): The starting date for reading/streaming the data (e.g. '2020-02-25'). Defaults to None.
             enddate (str): The final date for reading/streaming the data (e.g. '2020-03-25'). Defaults to None.
             history (bool): If you want to add to the metadata history information about retrieve. Defaults to True.
@@ -494,13 +534,13 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         else:
             # If we are retrieving from fdb we have to specify the var
             if isinstance(self.esmcat, aqua.gsv.intake_gsv.GSVSource):
-
+                
                 metadata = self.esmcat.metadata
                 if metadata:
                     loadvar = metadata.get('variables')
                     
                     if loadvar is None:
-                        loadvar = [self.esmcat._request['param']]  # retrieve var from catalogue
+                        loadvar = [self.esmcat._request['param']]  # retrieve var from catalog
         
                     if not isinstance(loadvar, list):
                         loadvar = [loadvar]
@@ -516,7 +556,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         fiter = False
         ffdb = False
-        # If this is an ESM-intake catalogue use first dictionary value,
+        # If this is an ESM-intake catalog use first dictionary value,
         if isinstance(self.esmcat, intake_esm.core.esm_datastore):
             data = self.reader_esm(self.esmcat, loadvar)
         # If this is an fdb entry
@@ -811,46 +851,30 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         return out
 
-    def _check_zoom(self, zoom):
-        """
-        Function to check if the zoom parameter is included in the metadata of
-        the source and performs a few safety checks.
-        It could be extended to any other metadata flag.
+    def _check_kwargs_parameters(self, parameters):
 
-        Arguments:
-            zoom (int): the zoom level to be checked
+        """
+        Function to check if which parameters are included in the metadata of
+        the source and performs a few safety checks.
 
         Returns:
-            zoom after check has been processed
+            kwargs after check has been processed
         """
+        # remove null kwargs
+        parameters = {key: value for key, value in parameters.items() if value is not None}
 
-        # safe check for zoom into the catalog parameters (at exp level)
-        shortcat = self.cat[self.model][self.exp]
-        metadata1 = 'zoom' in shortcat.metadata.get('parameters', {}).keys()
+        user_parameters =  self.esmcat.describe().get('user_parameters')
+        if user_parameters is not None:
+            if parameters is None:
+                parameters = {}
 
-        # check at source level (within the parameters)
-        # metadata2 = 'zoom' in shortcat[self.source].metadata.get('parameters', {}).keys()
-        checkentry = shortcat[self.source].describe()['user_parameters']
-        if len(checkentry) > 0:
-            metadata2 = 'zoom' in checkentry[0]['name']
-        else:
-            metadata2 = False
+            for param in user_parameters:
+                if param['name'] not in parameters:
+                    self.logger.warning('%s parameter is required but is missing, setting to default %s',
+                                        param['name'], param['default'])
+                    parameters[param['name']] = param['default']
 
-        # combine the two flags
-        metadata = metadata1 or metadata2
-        if zoom is None:
-            if metadata:
-                self.logger.warning('No zoom specified but the source requires it, setting zoom=0')
-                return 0
-            return zoom
-
-        if zoom is not None:
-            if metadata:
-                return zoom
-
-            self.logger.warning('%s %s %s has not zoom option, disabling zoom=None',
-                                self.model, self.exp, self.source)
-            return None
+        return parameters
 
     def vertinterp(self, data, levels=None, vert_coord='plev', units=None,
                    method='linear'):
@@ -988,34 +1012,46 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         """
         Read fdb data. Returns an iterator or dask array.
         Args:
-            esmcat (intake catalogue): the intake catalogue to read
+            esmcat (intake catalog): the intake catalog to read
             var (str): the shortname of the variable to retrieve
             startdate (str): a starting date and time in the format YYYYMMDD:HHTT
             enddate (str): an ending date and time in the format YYYYMMDD:HHTT
             dask (bool): return directly a dask array instead of an iterator
-            level (list, float, int): level to be read, overriding default in catalogue
+            level (list, float, int): level to be read, overriding default in catalog
         Returns:
             An xarray.Dataset or an iterator over datasets
         """
 
+        request = esmcat._request
+
         if level and not isinstance(level, list):
             level = [level]
 
+        # for streaming emulator
+        if self.aggregation and not dask:
+            chunks = self.aggregation
+        else:
+            chunks = self.chunks
+
+        if isinstance(chunks, dict):
+            if self.aggregation and not chunks.get('time'):
+                chunks['time'] = self.aggregation
+            if self.streaming and not self.aggregation:
+                self.logger.warning("Aggregation is not set, using default time resolution for streaming. If you are asking for a longer chunks['time'] for GSV access, please set a suitable aggregation value")
+    
         if dask:
-            if self.aggregation:
-                data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
-                              aggregation=self.aggregation,
-                              logging=True, loglevel=self.loglevel).to_dask()
+            if chunks:  # if the chunking or aggregation option is specified override that from the catalog
+                data = esmcat(request=request, startdate=startdate, enddate=enddate, var=var, level=level,
+                              chunks=chunks, logging=True, loglevel=self.loglevel).to_dask()
             else:
-                data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
+                data = esmcat(request=request, startdate=startdate, enddate=enddate, var=var, level=level,
                               logging=True, loglevel=self.loglevel).to_dask()
         else:
-            if self.aggregation:
-                data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
-                              aggregation=self.aggregation,
-                              logging=True, loglevel=self.loglevel).read_chunked()
+            if chunks:
+                data = esmcat(request=request, startdate=startdate, enddate=enddate, var=var, level=level,
+                              chunks=chunks, logging=True, loglevel=self.loglevel).read_chunked()
             else:
-                data = esmcat(startdate=startdate, enddate=enddate, var=var, level=level,
+                data = esmcat(request=request, startdate=startdate, enddate=enddate, var=var, level=level,
                               logging=True, loglevel=self.loglevel).read_chunked()
 
         return data
@@ -1056,40 +1092,41 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         return data
 
-    def stream(self, data, startdate=None, enddate=None, aggregation=None,
-               timechunks=None, reset=False):
-        """
-        Stream a dataset chunk using the startdate, enddate, and aggregation parameters defined in the constructor.
-        This operation utilizes the 'stream' method from the Streaming class.
-        It first checks if the Streaming class has been initialized; if not, it initializes the class.
+    # # An error arised here by pylin: An attribute defined in aqua.reader.reader line 125 hides this method
+    # def stream(self, data, startdate=None, enddate=None, aggregation=None,
+    #            timechunks=None, reset=False):
+    #     """
+    #     Stream a dataset chunk using the startdate, enddate, and aggregation parameters defined in the constructor.
+    #     This operation utilizes the 'stream' method from the Streaming class.
+    #     It first checks if the Streaming class has been initialized; if not, it initializes the class.
 
-        Arguments:
-            data (xr.Dataset):      the input xarray.Dataset
-            startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
-            enddate (str): the ending date for streaming the data (e.g. '2021-01-01') (None)
-            aggregation (str): the streaming frequency in pandas style (1M, 7D etc.)
-            timechunks (DataArrayResample, optional): a precomputed chunked time axis
-            reset (bool, optional): reset the streaming
+    #     Arguments:
+    #         data (xr.Dataset):      the input xarray.Dataset
+    #         startdate (str): the starting date for streaming the data (e.g. '2020-02-25') (None)
+    #         enddate (str): the ending date for streaming the data (e.g. '2021-01-01') (None)
+    #         aggregation (str): the streaming frequency in pandas style (1M, 7D etc.)
+    #         timechunks (DataArrayResample, optional): a precomputed chunked time axis
+    #         reset (bool, optional): reset the streaming
 
-        Returns:
-            A xarray.Dataset containing the subset of the input data that has been streamed.
-        """
-        if not hasattr(self, 'streamer'):
-            self.streamer = Streaming(startdate=startdate,
-                                      enddate=enddate,
-                                      aggregation=aggregation)
-            self.stream = self.streamer.stream
+    #     Returns:
+    #         A xarray.Dataset containing the subset of the input data that has been streamed.
+    #     """
+    #     if not hasattr(self, 'streamer'):
+    #         self.streamer = Streaming(startdate=startdate,
+    #                                   enddate=enddate,
+    #                                   aggregation=aggregation)
+    #         self.stream = self.streamer.stream
 
-        stream_data = self.stream(data,
-                                  startdate=startdate,
-                                  enddate=enddate,
-                                  aggregation=aggregation,
-                                  timechunks=timechunks,
-                                  reset=reset)
+    #     stream_data = self.stream(data,
+    #                               startdate=startdate,
+    #                               enddate=enddate,
+    #                               aggregation=aggregation,
+    #                               timechunks=timechunks,
+    #                               reset=reset)
 
-        stream_data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
+    #     stream_data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
 
-        return stream_data
+    #     return stream_data
 
     def info(self):
         """Prints info about the reader"""
@@ -1107,7 +1144,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             if "fixer_name" in metadata.keys():
                 print("  Fixer name is %s" % metadata["fixer_name"])
             else:
-                # TODO: to be removed when all the catalogues are updated
+                # TODO: to be removed when all the catalogs are updated
                 print("  Fixes: %s" % self.fixes)
 
         if self.dst_grid_name:

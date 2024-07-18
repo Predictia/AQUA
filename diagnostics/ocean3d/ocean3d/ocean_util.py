@@ -7,9 +7,10 @@ import xarray as xr
 import numpy as np
 from aqua import Reader
 from aqua.exceptions import NoObservationError
-from aqua.util import find_vert_coord, load_yaml
+from aqua.util import find_vert_coord, load_yaml, add_pdf_metadata
 import matplotlib.pyplot as plt
 from aqua.logger import log_configure
+
 
 def kelvin_to_celsius(data, variable_name, loglevel= "WARNING"):
     """
@@ -25,11 +26,11 @@ def kelvin_to_celsius(data, variable_name, loglevel= "WARNING"):
     """
     logger = log_configure(loglevel, 'Unit')
     # Check if the variable exists in the dataset
-    if data.avg_thetao.attrs['units']== 'K' or 'kelvin':
+    if data[variable_name].attrs['units']== 'K' or 'kelvin':
         logger.warning("The unit of Pot. Temperature is Kelvin. Converting to degC")
         # Convert Kelvin to Celsius: Celsius = Kelvin - 273.15
         data[variable_name] -= 273.15
-        data.avg_thetao.attrs['units']= 'degC'
+        data[variable_name].attrs['units']= 'degC'
     return data
 
 def check_variable_name(data, loglevel= "WARNING"):
@@ -52,7 +53,7 @@ def check_variable_name(data, loglevel= "WARNING"):
         if var in var_list:
             required_vars.append(var)
     if required_vars != []:
-        logger.debug("This are the variables %s available for the diags in the catalogue.", required_vars)
+        logger.debug("This are the variables %s available for the diags in the catalog.", required_vars)
         data = data[required_vars]
         logger.debug("Selected this variables")
         for var in required_vars:
@@ -63,10 +64,12 @@ def check_variable_name(data, loglevel= "WARNING"):
                 data = data.rename({var: "avg_thetao"})
                 logger.debug("renaming %s as avg_thetao", var)
     else:
-        raise ValueError("Required variable avg_so and avg_thetao is not available in the catalogue")
+        raise ValueError("Required variable avg_so and avg_thetao is not available in the catalog")
     vertical_coord = find_vert_coord(data)[0]
     data = data.rename({vertical_coord: "lev"})
     data = kelvin_to_celsius(data, "avg_thetao")
+    # if "thetao_uncertainty" in data:
+    #     data = kelvin_to_celsius(data, "thetao_uncertainty")
     return data
 
 def time_slicing(data, start_year, end_year, loglevel= "WARNING"):
@@ -234,7 +237,7 @@ def weighted_area_mean(data, region=None, lat_s: float = None, lat_n: float = No
     data = area_selection(data, region, lat_s,
                           lat_n, lon_w, lon_e)
     weighted_data = data.weighted(np.cos(np.deg2rad(data.lat)))
-    wgted_mean = weighted_data.mean(("lat", "lon"))
+    wgted_mean = weighted_data.mean("lat").mean("lon")
     return wgted_mean
 
 
@@ -304,27 +307,27 @@ def load_obs_data(model='EN4', exp='en4', source='monthly', loglevel= "WARNING")
     return den4
 
 
-def crop_obs_overlap_time(mod_data, obs_data, loglevel= "WARNING"):
+def crop_obs_overlap_time(data1, data2, loglevel= "WARNING"):
     """
     Crop the observational data to the overlapping time period with the model data.
 
     Parameters:
-        mod_data (xarray.Dataset): Model data.
-        obs_data (xarray.Dataset): Observational data.
+        data1 (xarray.Dataset): data1.
+        data2 (xarray.Dataset): data2.
 
     Returns:
         xarray.Dataset: Observational data cropped to the overlapping time period with the model data.
     """
     logger = log_configure(loglevel, 'crop_obs_overlap_time')
-    mod_data_time = mod_data.time
-    obs_data_time = obs_data.time
+    data1_time = data1.time
+    data2_time = data2.time
     common_time = xr.DataArray(np.intersect1d(
-        mod_data_time, obs_data_time), dims='time')
+        data1_time, data2_time), dims='time')
     if len(common_time) > 0:
-        obs_data = obs_data.sel(time=common_time)
+        data2 = data2.sel(time=common_time)
         logger.debug(
             "selected the overlaped time of the obs data compare to the model")
-    return obs_data
+    return data2
 
 
 def data_time_selection(data, time, loglevel= "WARNING"):
@@ -435,8 +438,8 @@ def compare_arrays(mod_data, obs_data, loglevel= "WARNING"):
     return mod_data_list, obs_data_selected
 
 
-def dir_creation(data, region=None,  lat_s: float = None, lat_n: float = None, lon_w: float = None,
-                 lon_e: float = None, output_dir=None, plot_name=None, loglevel= "WARNING"):
+def file_naming(region=None,  lat_s: float = None, lat_n: float = None, lon_w: float = None,
+                 lon_e: float = None, plot_name=None, loglevel= "WARNING"):
     """
     Creates the directory structure for saving the output data and figures.
 
@@ -447,7 +450,6 @@ def dir_creation(data, region=None,  lat_s: float = None, lat_n: float = None, l
         lat_n (float): Northern latitude bound.
         lon_w (float): Western longitude bound.
         lon_e (float): Eastern longitude bound.
-        output_dir (str): Directory path for saving the output.
         plot_name (str): Name of the plot.
 
     Returns:
@@ -456,23 +458,16 @@ def dir_creation(data, region=None,  lat_s: float = None, lat_n: float = None, l
     logger = log_configure(loglevel, 'dir_creation')
     # current_time = f'{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
 
-    if output_dir is None:
-        raise ValueError("Please provide the outut_dir when output = True")
     if region in [None, "custom", "Custom"]:
         region = "custom"
-        filename =  f"lat_{lat_s}_{lat_n}_lon_{lon_w}_{lon_e}_{plot_name}"
+        filename =  f"{plot_name}_lat_{lat_s}_{lat_n}_lon_{lon_w}_{lon_e}"
     else:
-        filename =  f"{region.replace(' ', '_')}_{plot_name}"
+        filename =  f"{plot_name}_{region.replace(' ', '_').lower()}"
 
-    # output_path = f"{output_dir}/"
-    fig_dir = f"{output_dir}/pdf"
-    data_dir = f"{output_dir}/netcdf"
-    os.makedirs(fig_dir, exist_ok=True)
-    os.makedirs(data_dir, exist_ok=True)
-    return output_dir, fig_dir, data_dir, filename
+    return filename
 
 
-def write_data(file_name, data, loglevel= "INFO"):
+def write_data(output_dir, filename, data, loglevel= "INFO"):
     """
     Write xarray data to a NetCDF file.
 
@@ -485,17 +480,22 @@ def write_data(file_name, data, loglevel= "INFO"):
         None
     """
     logger = log_configure(loglevel, 'write_data')
+    output_dir = f"{output_dir}/netcdf"
+    filename = f"{output_dir}/{filename}.nc"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
     # Check if the file exists
-    if os.path.exists(file_name):
+    if os.path.exists(filename):
         # If it exists, delete it
-        os.remove(file_name)
-        logger.debug("Deleted existing file: %s", file_name)
+        os.remove(filename)
+        logger.debug("Deleted existing file: %s", filename)
 
     # Write the new xarray data to the NetCDF file
-    data.to_netcdf(file_name)
-    logger.debug("Data written to: %s", file_name)
+    data.to_netcdf(filename)
+    logger.debug("Data written to: %s", filename)
 
-def export_fig(output_dir, filename, type, loglevel= "INFO"):
+def export_fig(output_dir, filename, type, metadata_value: str = None,
+                metadata_name: str = '/Description', loglevel: str = "WARNING"):
     """
     Export a matplotlib figure to a specified output directory and file format.
 
@@ -518,6 +518,9 @@ def export_fig(output_dir, filename, type, loglevel= "INFO"):
         os.remove(filename)
         logger.debug("Deleted existing file: %s", filename)
     plt.savefig(filename, bbox_inches='tight')
+
+    if type == "pdf":
+        add_pdf_metadata(filename, metadata_value, loglevel = loglevel)
     logger.info("Figure saved to: %s", output_dir)
 
 def split_ocean3d_req(self, o3d_request, loglevel= "WARNING"):
@@ -531,17 +534,21 @@ def split_ocean3d_req(self, o3d_request, loglevel= "WARNING"):
     Returns:
         None
     """
-    logger = log_configure(loglevel, 'split_ocean3d_req')
     self.data = o3d_request.get('data')
     self.model = o3d_request.get('model')
     self.exp = o3d_request.get('exp')
     self.source = o3d_request.get('source')
+    self.obs_data = o3d_request.get('obs_data', None)
+    self.time = o3d_request.get('time', None)
     self.region = o3d_request.get('region', None)
     self.lat_s = o3d_request.get('lat_s', None)
     self.lat_n = o3d_request.get('lat_n', None)
     self.lon_w = o3d_request.get('lon_w', None)
     self.lon_e = o3d_request.get('lon_e', None)
+    self.customise_level = o3d_request.get('customise_level', None)
+    self.levels = o3d_request.get('levels', None)
+    self.overlap = o3d_request.get('overlap', None)
     self.output = o3d_request.get('output')
-    self.output_dir = o3d_request.get('output_dir')
+    self.output_dir = o3d_request.get('output_dir', None)
     self.loglevel= o3d_request.get('loglevel',"WARNING")
     return self

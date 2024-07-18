@@ -3,13 +3,24 @@
 import operator
 import os
 import re
-from string import Template
+from string import Template as DefaultTemplate
+from jinja2 import Template
 import xarray as xr
 from collections import defaultdict
 from ruamel.yaml import YAML
+from ruamel.yaml.representer import RoundTripRepresenter
 from aqua.logger import log_configure
 
 import yaml  # This is needed to allow YAML override in intake
+
+
+class RepresentNone:
+    pass
+
+def represent_none(dumper, data):
+    return dumper.represent_scalar('tag:yaml.org,2002:null', 'null')
+
+RoundTripRepresenter.add_representer(RepresentNone, represent_none)
 
 
 def construct_yaml_merge(loader, node):
@@ -72,7 +83,7 @@ def load_multi_yaml(folder_path=None, filenames=None,
     return yaml_dict
 
 
-def load_yaml(infile, definitions=None):
+def load_yaml(infile, definitions=None, jinja=True):
     """
     Load yaml file with template substitution
 
@@ -80,6 +91,7 @@ def load_yaml(infile, definitions=None):
         infile (str): a file path to the yaml
         definitions (str or dict, optional): name of the section containing string template
                                              definitions or a dictionary with the same content
+        jinja: (bool): jinja2 templating is used instead of standard python templating. Default is true.
     Returns:
         A dictionary with the yaml file keys
     """
@@ -99,9 +111,15 @@ def load_yaml(infile, definitions=None):
         definitions = cfg.get(definitions)
 
     if definitions:
-        # perform template substitution
-        template = Template(yaml_text).safe_substitute(definitions)
-        cfg = yaml.load(template)
+        # perform template substitution with jinja
+        if jinja:
+            template = Template(yaml_text)
+            rendered_yaml = template.render(definitions)
+            cfg = yaml.load(rendered_yaml)
+        # use default python templating
+        else:
+            template = DefaultTemplate(yaml_text).safe_substitute(definitions)
+            cfg = yaml.load(template)
     else:
         if not cfg:  # did we already load it ?
             cfg = yaml.load(yaml_text)
@@ -130,6 +148,7 @@ def dump_yaml(outfile=None, cfg=None, typ='rt'):
 
     # Dump the dictionary
     with open(outfile, 'w', encoding='utf-8') as file:
+        cfg = {k: RepresentNone() if v is None else v for k, v in cfg.items()}
         yaml.dump(cfg, file)
 
 
@@ -224,8 +243,8 @@ def _load_merge(folder_path=None, filenames=None,
     else:
         logger.debug('Updating an existing dictionary')
 
-    if filenames and folder_path is not None or filenames is None and folder_path is None:
-        raise ValueError('ERROR: either folder_path or filenames must be provided')
+    if filenames is None and folder_path is None:
+        raise ValueError('ERROR: at least one between folder_path or filenames must be provided')
 
     if filenames:  # Merging a list of files
         logger.debug(f'Files to be merged: {filenames}')

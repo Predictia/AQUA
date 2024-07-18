@@ -2,6 +2,7 @@
 
 import pandas as pd
 from datetime import datetime
+import os
 
 
 def date2str(dateobj):
@@ -16,6 +17,19 @@ def date2str(dateobj):
     """
 
     return dateobj.strftime('%Y%m%d'), dateobj.strftime('%H%M')
+
+def date2yyyymm(dateobj):
+    """
+    Converts a date object to year, month string representation
+
+    Args:
+        dateobj (datetime): datetime object
+
+    Returns:
+        year, month (str): Date as year and month
+    """
+
+    return dateobj.strftime('%Y'), dateobj.strftime('%m')
 
 
 def add_offset(data_start_date, startdate, offset, timestep):
@@ -107,7 +121,8 @@ def split_date(datestr, timedefault="0000"):
     return dd[0], timestr
 
 
-def make_timeaxis(data_startdate, startdate, enddate, timestep=None, savefreq=None, chunkfreq=None, shiftmonth=False):
+def make_timeaxis(data_startdate, startdate, enddate, timestep=None,
+                  savefreq=None, chunkfreq=None, shiftmonth=False, skiplast=False):
     """
     Compute timeaxis and chunk start and end dates and indices.
 
@@ -116,10 +131,11 @@ def make_timeaxis(data_startdate, startdate, enddate, timestep=None, savefreq=No
         startdate (datetime.datetime): Starting date of the time axis
         enddate (datetime.datetime): Ending date of the time axis
         offset (int): An initial offset for steps (to be used e.g. for 6H data saved starting from step=6)
-        timestep (str): Timestep. Can be one of H, D, M
-        savefreq (str): Frequency at which the data are saved. Can be one of H, 6H, D, M
+        timestep (str): Timestep. Can be one of h, D, M
+        savefreq (str): Frequency at which the data are saved. Can be one of h, 6h, D, M
         chunkfreq (str): Frequency at which the data are to be chunked. Can be one of D, M, Y
         shiftmonth (bool): If True, fixes data accumulated at the end of the month. Default is False.
+        skiplast (bool): If True, skips the last date. Default is False.
 
     Returns:
         A tuple containing:
@@ -151,6 +167,9 @@ def make_timeaxis(data_startdate, startdate, enddate, timestep=None, savefreq=No
     if shiftmonth:  # We will need one month more
         edate = edate + pd.offsets.MonthBegin()
 
+    if skiplast:
+        edate = edate - pd.Timedelta(1, unit=timestep)
+
     dates = pd.date_range(sdate, edate, freq=timestep)
     idx = range(len(dates))
     ts = pd.Series(idx, index=dates)
@@ -178,4 +197,40 @@ def make_timeaxis(data_startdate, startdate, enddate, timestep=None, savefreq=No
         sdate = dates[sidx]
         edate = dates[eidx]
 
-    return dates[idx], sidx + offset, sdate, eidx + offset, edate, chunksize
+    return {
+        'timeaxis': dates[idx],
+        'start_idx': sidx + offset,
+        'start_date': sdate,
+        'end_idx': eidx + offset,
+        'end_date': edate,
+        'size': chunksize
+    }
+
+
+def todatetime(datestr):
+    """
+    Converts a date string to a datetime object
+
+    Args:
+        datestr (str): Date string
+
+    Returns:
+        datetime object
+    """
+
+    return pd.Timestamp(str(datestr))
+
+
+def read_bridge_end_date(obj):
+    """
+    Reads the bridge end date from a file or string
+    """
+    
+    if obj and obj != "complete" and os.path.isfile(obj):
+        with open(obj, 'r') as file:
+            date = file.read()
+        date = pd.Timestamp(date.strip())
+        date += pd.DateOffset(days=1)
+        return (date.strftime('%Y%m%d'))
+    else:
+        return obj
