@@ -199,7 +199,7 @@ class LRAgenerator():
                              self.resolution)
 
         if self.catalog is None:
-            self.logger.info('Assuming catalog from the reader so thatno is %s', self.reader.catalog)
+            self.logger.info('Assuming catalog from the reader so that is %s', self.reader.catalog)
             self.catalog = self.reader.catalog
 
         self.logger.info('Retrieving data...')
