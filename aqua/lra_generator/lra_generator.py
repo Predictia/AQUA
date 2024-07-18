@@ -35,7 +35,7 @@ class LRAgenerator():
         return self.nproc > 1
 
     def __init__(self,
-                 model=None, exp=None, source=None,
+                 catalog=None, model=None, exp=None, source=None,
                  var=None, configdir=None,
                  resolution=None, frequency=None, fix=True,
                  outdir=None, tmpdir=None, nproc=1,
@@ -46,6 +46,7 @@ class LRAgenerator():
         Initialize the LRA_Generator class
 
         Args:
+            catalog (string):        The catalog you want to reader. If None, guessed by the reader. 
             model (string):          The model name from the catalog
             exp (string):            The experiment name from the catalog
             source (string):         The sourceid name from the catalog
@@ -120,7 +121,7 @@ class LRAgenerator():
 
         Configurer = ConfigPath(configdir=configdir)
         self.configdir = Configurer.configdir
-        self.catalog = None
+        self.catalog = catalog
 
         # Initialize variable(s)
         self.var = var

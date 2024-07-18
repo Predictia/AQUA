@@ -93,9 +93,9 @@ if __name__ == '__main__':
                     workers = config['catalog'][model][exp][source].get('workers', default_workers)
 
                     # init the LRA
-                    lra = LRAgenerator(model=model, exp=exp, source=source,
+                    lra = LRAgenerator(catalog=None, model=model, exp=exp, source=source,
                                        var=varname, resolution=resolution,
-                                       frequency=frequency, fix=fix,
+                                       frequency=frequency  , fix=fix,
                                        outdir=outdir, tmpdir=tmpdir,
                                        nproc=workers, loglevel=loglevel,
                                        definitive=definitive, overwrite=overwrite,
