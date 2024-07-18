@@ -10,8 +10,7 @@
 #SBATCH -p debug    #change the partition
 
 AQUA_path=$AQUA
-AQUA_container=/project/project_465000454/containers/aqua/aqua-v0.10.2.sif
-FDB5_CONFIG_FILE=/scratch/project_465000454/igonzalez/fdb-long/config.yaml
+AQUA_container=/project/project_465000454/containers/aqua/aqua-v0.10.3.sif
 GSV_WEIGHTS_PATH=/scratch/project_465000454/igonzalez/gsv_weights/
 GRID_DEFINITION_PATH=/scratch/project_465000454/igonzalez/grid_definitions
 
