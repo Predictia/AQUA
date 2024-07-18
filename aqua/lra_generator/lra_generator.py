@@ -138,10 +138,13 @@ class LRAgenerator():
         if not self.frequency:
             self.logger.info('Frequency not specified, no time averagin will be performed.')
 
-        # option for time encoding, defined once for all
+        # option for encoding, defined once for all
         self.time_encoding = {
             'units': 'days since 1850-01-01 00:00:00',
             'calendar': 'standard',
+            'dtype': 'float64'}
+        
+        self.var_encoding = {
             'dtype': 'float64',
             'zlib': True,
             'complevel': 1,
@@ -541,7 +544,8 @@ class LRAgenerator():
 
         # Write data to file, lazy evaluation
         write_job = data.to_netcdf(outfile,
-                                   encoding={'time': self.time_encoding},
+                                   encoding={'time': self.time_encoding,
+                                             data.name: self.var_encoding},
                                    compute=False)
 
         if self.dask:
