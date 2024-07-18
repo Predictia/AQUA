@@ -241,6 +241,12 @@ class GSVSource(base.DataSource):
         else:
             self.chunking_vertical = None  # no vertical chunking
 
+        if self.eccodes_path:  # if needed switch eccodes path
+            # unless we have already switched
+            if self.eccodes_path and (self.eccodes_path != eccodes.codes_definition_path()):
+                eccodes.codes_context_delete()  # flush old definitions in cache
+                eccodes.codes_set_definitions_path(self.eccodes_path)
+                
         self.get_eccodes_shortname = init_get_eccodes_shortname()  # Can't pickle this, so we need to reinitialize it
 
         super(GSVSource, self).__init__(metadata=metadata)
@@ -442,12 +448,6 @@ class GSVSource(base.DataSource):
                 os.environ["FDB_HOME"] = self.fdbhome
             if self.fdbpath:  # if fdbpath provided, use it, since we are creating a new gsv
                 os.environ["FDB5_CONFIG_FILE"] = self.fdbpath
-
-        if self.eccodes_path:  # if needed switch eccodes path
-            # unless we have already switched
-            if self.eccodes_path and (self.eccodes_path != eccodes.codes_definition_path()):
-                eccodes.codes_context_delete()  # flush old definitions in cache
-                eccodes.codes_set_definitions_path(self.eccodes_path)
 
         gsv = GSVRetriever(logging_level=self.gsv_log_level)
 
