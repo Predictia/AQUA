@@ -1,20 +1,20 @@
 {{source}}:
     args:
       request:
-        activity: {{ activity }}  # To be overwritten by workflow/config file
         class: d1
         dataset: climate-dt
-        date: {{ data_start_date }}  # To be overwritten by workflow/config file
-        experiment: {{ experiment }} # To be overwritten by workflow/config file
-        expver: {{ expver }}  # To be overwritten by workflow/config file
+        activity: {{ activity }}  # To be overwritten by workflow/config file
+        experiment: {{ experiment }} # To be overwritten by workflow/config file
         generation: 1  # To be overwritten by workflow/config file
-        levtype: {{ levtype }}
-        param: {{ param }}
         model: {{ model }}
         realization: 1  # To be overwritten by workflow/config file
         resolution: {{ resolution }}
-        stream: clte
+        expver: {{ expver }}  # To be overwritten by workflow/config file
         type: fc
+        stream: clte
+        date: {{ data_start_date }}  # To be overwritten by workflow/config file
+        param: {{ param }}
+        levtype: {{ levtype }}
         year: {{ data_start_date[:4] }}
         month: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]  
         {% if levelist != None %}
@@ -24,14 +24,16 @@
       savefreq: MS
       timestep: h
       timestyle: yearmonth
+    description: {{ description }}
     driver: gsv
     metadata:
+        fdb_home: {{ fdb_home }}
+        eccodes_path: {{ eccodes_path }}
         {% if levels != None %}
         levels: {{ levels }}
         {% endif %}
-        fdb_home: {{ fdb_home }}
-        eccodes_path: {{ eccodes_path }}
-        fixer_name: {{ fixer_name }}
-        source_grid_name: {{ grid }}
         variables: {{ variables }}
+        source_grid_name: {{ grid }}
+        fixer_name: {{ fixer_name }}
+
         
