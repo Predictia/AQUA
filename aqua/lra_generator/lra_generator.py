@@ -241,13 +241,14 @@ class LRAgenerator():
             update (bool): if true, update the path of the LRA if the source is already there
         """
 
+        entry_name = f'lra-{self.resolution}-{self.frequency}'
         self.logger.info('Creating catalog entry %s %s %s', self.model, self.exp, entry_name)
 
         # we exploit of configurerto get info on intake_vars so that we can replace them in the urlpath
         Configurer = ConfigPath(catalog=self.catalog)
         _, intake_vars = Configurer.get_machine_info()
 
-        entry_name = f'lra-{self.resolution}-{self.frequency}'
+        
         urlpath = os.path.join(self.outdir, f'*{self.exp}_{self.resolution}_{self.frequency}_*.nc')
 
         # loop on available intake_vars, replace them in the urlpath
