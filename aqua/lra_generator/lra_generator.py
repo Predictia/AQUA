@@ -19,7 +19,8 @@ from aqua.reader import Reader
 from aqua.util import create_folder, generate_random_string
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import ConfigPath, file_is_complete
-from aqua.lra_generator.lra_util import move_tmp_files
+from aqua.lra_generator.lra_util import move_tmp_files, replace_intake_vars
+
 
 #from aqua.lra_generator.lra_util import check_correct_ifs_fluxes
 
@@ -584,26 +585,4 @@ class LRAgenerator():
         self.logger.info('Writing file %s successfull!', outfile)
 
 
-def replace_intake_vars(path, catalog=None):
-        
-        """
-        Replace the intake jinja vars into a string for a predefined catalog
-
-        Args:
-            catalog:  the catalog name where the intake vars must be read
-            path: the original path that you want to update with the intake variables
-        """
-
-            # we exploit of configurerto get info on intake_vars so that we can replace them in the urlpath
-        Configurer = ConfigPath(catalog=catalog)
-        _, intake_vars = Configurer.get_machine_info()
-
-        # loop on available intake_vars, replace them in the urlpath
-        for name in intake_vars.keys():
-            replacepath = intake_vars[name]
-            if replacepath is not None and replacepath in path:
-                # quotes used to ensure that then you can read the source
-                path = path.replace(replacepath, "{{ " + name + " }}")
-        
-        return path
                 
