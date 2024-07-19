@@ -105,21 +105,38 @@ Basic usage
 
 .. code-block:: bash
 
-    # to generate and push the documentation to aqua-web
-    ./make_push_docs.py 
+    bash push-analysis.sh [OPTIONS] INDIR EXPS
 
-    # to collect the figures from a directory $INDIR  figures to aqua-web
-    INDIR=/path/to/figures_root
-    MODELEXP=IFS-NEMO/historical-1990 # the subfolder of INDIR where the figures are stored (also model/exp pair for aqua-web)
-    
-    python ./make_push_figures.py $INDIR $MODELEXP # to collect the figures and push them to aqua-web
+This script is used to push the figures produced by the AQUA analysis to the aqua-web repository.
+``INDIR`` is the directory containing the output, e.g. ``~/work/aqua-analysis/output``.
+``EXPS`` is the subfolder to push, e.g ``climatedt-phase1/IFS-NEMO/historical-1990``
+or a text file containing a list of experiments in the format "catalog model experiment".
 
-Instead of a MODEL/EXPERIMENT pair, it is possible to specify
-an experiment list in a text file, in the same format as the one used by the :ref:`submit-aqua-web` script.
+Additional options
+^^^^^^^^^^^^^^^^^^
 
-.. note::
-    The user running the script must have the right to push to the aqua-web repository and must have
-    set up the ssh keys to access the repository.
+.. option:: -b <branch>, --branch <branch>
+
+    The branch to push to (optional, default is ``main``).
+
+.. option:: -u <user>, --user <user>
+
+    Credentials (in the format username:PAT) to create an automatic PR for the branch (optional).
+    If this is option is specified and a branch is used, then an automatic PR is generated.
+
+.. option:: -m <message>, --message <message>
+
+    Description of the automatic PR (optional, is generated automatically by default). 
+
+.. option:: -t <title>, --title <title>
+
+    Title for the automatic PR (optional).
+
+Another script is used to upload the documentation to the aqua-web repository.
+
+.. code-block:: bash
+
+    bash make_push_docs.py 
 
 .. _submit-aqua-web:
 
