@@ -23,19 +23,19 @@ def create_zarr_reference(filelist, outfile, loglevel='WARNING'):
     logger = log_configure(log_level=loglevel, log_name='Zarr reference creator')
     data = xr.open_mfdataset(filelist, combine='by_coords')
     identical_coords = [coord for coord in data.coords if coord != 'time']
-    logger.info('Common coordinates: %s', identical_coords)
+    logger.debug('Common coordinates: %s', identical_coords)
 
     logger.debug('Creating Zarr file from %s', filelist)
     singles = [SingleHdf5ToZarr(filepath, inline_threshold=0).translate() for filepath in sorted(filelist)]
 
-    logger.info('Combining Zarr files')
+    logger.debug('Combining Zarr files')
     mzz = MultiZarrToZarr(
         singles,
         concat_dims=["time"],
         identical_dims=identical_coords,
     )
 
-    logger.info('Translating Zarr files to json')
+    logger.debug('Translating Zarr files to json')
     out = mzz.translate()
 
     # Dump to file

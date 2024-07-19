@@ -260,7 +260,7 @@ class LRAgenerator():
         }
 
         # find the catalog of my experiment
-        self.catalog = 'climatedt-phase1'
+        self.catalog = 'nextgems4'
         catalogfile = os.path.join(self.configdir, 'catalogs', self.catalog,
                                    'catalog', self.model, self.exp + '.yaml')
 
@@ -281,16 +281,23 @@ class LRAgenerator():
 
         entry_name = f'lra-{self.resolution}-{self.frequency}-zarr'
         #fullfiles, partfiles = list_lra_files(self.outdir)
-        files_dict = list_lra_files_vars(self.outdir)
-        print(files_dict)
+        full_dict, partial_dict = list_lra_files_vars(self.outdir)
         self.logger.info('Creating zarr files for %s %s %s', self.model, self.exp, entry_name)
 
         urlpath = []
-        for key in files_dict.keys():
+        for key, value in full_dict.items():
             jsonfile = os.path.join(self.outdir, f'lra-{key}.json')
-            self.logger.info('Creating zarr files for files %s', key)
-            create_zarr_reference(files_dict[key], jsonfile, loglevel=self.loglevel)
-            urlpath = urlpath + [f'reference::{jsonfile}'] 
+            self.logger.debug('Creating zarr files for full files %s', key)
+            if value:
+                create_zarr_reference(value, jsonfile, loglevel=self.loglevel)
+            urlpath = urlpath + [f'reference::{jsonfile}']
+
+        for key, value in partial_dict.items():
+            jsonfile = os.path.join(self.outdir, f'lra-{key}.json')
+            self.logger.debug('Creating zarr files for partial files %s', key)
+            if value:
+                create_zarr_reference(value, jsonfile, loglevel=self.loglevel)
+            urlpath = urlpath + [f'reference::{jsonfile}']
 
         #fulljson = os.path.join(self.outdir, f'lra-{self.resolution}-{self.frequency}-full.json')
         #partjson = os.path.join(self.outdir, f'lra-{self.resolution}-{self.frequency}-partial.json')
@@ -316,7 +323,7 @@ class LRAgenerator():
             'driver': 'zarr',
             'description': f'LRA data {self.frequency} at {self.resolution} reference on zarr',
             'args': {
-                'consolidated': True,
+                'consolidated': False,
                 'urlpath': urlpath
             },
             'metadata': {
@@ -326,7 +333,7 @@ class LRAgenerator():
         }
 
         # find the catalog of my experiment
-        self.catalog = 'climatedt-phase1'
+        self.catalog = 'nextgems4'
         catalogfile = os.path.join(self.configdir, 'catalogs', self.catalog,
                                    'catalog', self.model, self.exp + '.yaml')
 

@@ -121,11 +121,13 @@ def list_lra_files_vars(path):
     #path = os.path.join(path, model, exp, reso, freq)
     searchpath = os.path.join(path, '*.nc')
     variables = set([os.path.basename(complete).rpartition('_')[0] for complete in glob(searchpath)])
-    dict = {}
+    full_dict = {}
+    partial_dict = {}
     for var in variables:
-        dict[var] = sorted(glob(os.path.join(path, var) + '_*.nc'))
-
-    return dict
+        full_dict[var] = sorted(glob(os.path.join(path, var) + '_????.nc'))
+        partial_dict[var] = sorted(glob(os.path.join(path, var) + '_??????.nc'))
+        
+    return full_dict, partial_dict
 
 def move_tmp_files(tmp_directory, output_directory):
     """
