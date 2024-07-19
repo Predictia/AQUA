@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
-- gsv_intake bugfix, now uses the correct eccodes definitions in all the calls (#1279)
+- gsv_intake switches eccodes also for shortname definitions (#1279)
 
 ## [v0.10.3]
 Main changes are:
