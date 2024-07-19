@@ -60,10 +60,10 @@ if __name__ == '__main__':
     loglevel = config['loglevel']
     loglevel = get_arg(args, 'loglevel', loglevel)
 
-    for model in config['catalog'].keys():
-        for exp in config['catalog'][model].keys():
+    for model in config['data'].keys():
+        for exp in config['data'][model].keys():
             source = f'lra-{resolution}-{frequency}'
-            variables = config['catalog'][model][exp][source]['vars']
+            variables = config['data'][model][exp][source]['vars']
             print(f'LRA Processing {model}-{exp}-opa-{frequency}')
 
             # update the dir
@@ -81,7 +81,7 @@ if __name__ == '__main__':
                     print(f'Netcdf files found in {opadir}: Launching LRA')
 
                     # init the LRA
-                    # zoom_level = config['catalog'][model][exp][source].get('zoom', None)
+                    # zoom_level = config['data'][model][exp][source].get('zoom', None)
                     lra = LRAgenerator(model=model, exp=exp, source=entry_name, zoom=None,
                                     var=varname, resolution=resolution,
                                     frequency=frequency, fix=True,

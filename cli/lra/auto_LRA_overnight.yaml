@@ -14,7 +14,7 @@ slurm:
   time: 10:00:00
   mem: 256GB
 
-catalog:
+data:
   ICON:
     historical-1990:
       hourly-hpz10-atm2d:
