@@ -40,16 +40,24 @@ class ConfigPath():
         else:
             self.catalog_available = to_list(catalog)
         self.logger.debug('Available catalogs are %s', self.catalog_available)
+
+
         
         # set the catalog as the first available and get all configurations
         if self.catalog_available is None:
             self.logger.warning('No available catalogs found')
             self.catalog = None
             self.base_available = None
+            self.catalog_file = None
+            self.machine_file = None
         else:
             self.catalog = self.catalog_available[0]
             self.base_available = self.get_base()
             self.logger.debug('Default catalog will be %s', self.catalog)
+            self.catalog_file, self.machine_file = self.get_catalog_filenames(self.catalog)
+        
+        # get also info on machine on init
+        self.machine = self.get_machine()
 
         
     def get_config_dir(self):

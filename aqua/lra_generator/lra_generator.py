@@ -241,9 +241,23 @@ class LRAgenerator():
             update (bool): if true, update the path of the LRA if the source is already there
         """
 
+        self.logger.info('Creating catalog entry %s %s %s', self.model, self.exp, entry_name)
+
+        # we exploit of configurerto get info on intake_vars so that we can replace them in the urlpath
+        Configurer = ConfigPath(catalog=self.catalog)
+        _, intake_vars = Configurer.get_machine_info()
+
         entry_name = f'lra-{self.resolution}-{self.frequency}'
         urlpath = os.path.join(self.outdir, f'*{self.exp}_{self.resolution}_{self.frequency}_*.nc')
-        self.logger.info('Creating catalog entry %s %s %s', self.model, self.exp, entry_name)
+
+        # loop on available intake_vars, replace them in the urlpath
+        for name in intake_vars.keys():
+            path = intake_vars[name]
+            if path is not None and path in urlpath:
+                self.logger.info('Fully expanded urlpath %s', urlpath)
+                urlpath = urlpath.replace(path, '{{ ' + name +  ' }}')
+                self.logger.info('New urlpath with intake variables is %s', urlpath)
+
 
         # find the catalog of my experiment and load it
         catalogfile = os.path.join(self.configdir, 'catalogs', self.catalog,
