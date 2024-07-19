@@ -20,7 +20,7 @@ from aqua.util import create_folder, generate_random_string
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import ConfigPath, file_is_complete
 from aqua.util import create_zarr_reference
-from aqua.lra_generator.lra_util import move_tmp_files, list_lra_files
+from aqua.lra_generator.lra_util import move_tmp_files, list_lra_files_vars
 
 
 
@@ -255,10 +255,12 @@ class LRAgenerator():
             },
             'metadata': {
                 'source_grid_name': 'lon-lat',
-            }
+            },
+            'fixer_name': False
         }
 
         # find the catalog of my experiment
+        self.catalog = 'climatedt-phase1'
         catalogfile = os.path.join(self.configdir, 'catalogs', self.catalog,
                                    'catalog', self.model, self.exp + '.yaml')
 
@@ -278,21 +280,31 @@ class LRAgenerator():
         """
 
         entry_name = f'lra-{self.resolution}-{self.frequency}-zarr'
-        fullfiles, partfiles = list_lra_files(self.outdir)
-
-        fulljson = os.path.join(self.outdir, f'lra-{self.resolution}-{self.frequency}-full.json')
-        partjson = os.path.join(self.outdir, f'lra-{self.resolution}-{self.frequency}-partial.json')
+        #fullfiles, partfiles = list_lra_files(self.outdir)
+        files_dict = list_lra_files_vars(self.outdir)
+        print(files_dict)
         self.logger.info('Creating zarr files for %s %s %s', self.model, self.exp, entry_name)
 
         urlpath = []
-        if fullfiles:
-            self.logger.info('Creating zarr files for full files %s', fullfiles)
-            create_zarr_reference(fullfiles, fulljson, loglevel=self.loglevel)
-            urlpath = urlpath + [f'reference::{fulljson}']
-        if partfiles:
-            self.logger.info('Creating zarr files for partial files')
-            create_zarr_reference(partfiles, partjson, loglevel=self.loglevel)
-            urlpath = urlpath + [f'reference::{partjson}'] 
+        for key in files_dict.keys():
+            jsonfile = os.path.join(self.outdir, f'lra-{key}.json')
+            self.logger.info('Creating zarr files for files %s', key)
+            create_zarr_reference(files_dict[key], jsonfile, loglevel=self.loglevel)
+            urlpath = urlpath + [f'reference::{jsonfile}'] 
+
+        #fulljson = os.path.join(self.outdir, f'lra-{self.resolution}-{self.frequency}-full.json')
+        #partjson = os.path.join(self.outdir, f'lra-{self.resolution}-{self.frequency}-partial.json')
+        
+
+        #urlpath = []
+        #if fullfiles:
+        #    self.logger.info('Creating zarr files for full files %s', fullfiles)
+        #    create_zarr_reference(fullfiles, fulljson, loglevel=self.loglevel)
+        #    urlpath = urlpath + [f'reference::{fulljson}']
+        #if partfiles:
+        #    self.logger.info('Creating zarr files for partial files')
+        #    create_zarr_reference(partfiles, partjson, loglevel=self.loglevel)
+        #    urlpath = urlpath + [f'reference::{partjson}'] 
 
         if not urlpath:
             raise FileNotFoundError('No files found to create zarr reference')
@@ -302,19 +314,19 @@ class LRAgenerator():
         # define the block to be uploaded into the catalog
         block_cat = {
             'driver': 'zarr',
-            'description': f'LRA data {self.frequency} at {self.resolution} on zarr',
+            'description': f'LRA data {self.frequency} at {self.resolution} reference on zarr',
             'args': {
-                'consolidated': False,
-                'combine': 'nested', #this has to be double checked
-                'compat': 'override', #as above
+                'consolidated': True,
                 'urlpath': urlpath
             },
             'metadata': {
                 'source_grid_name': 'lon-lat',
-            }
+            },
+            'fixer_name': False
         }
 
         # find the catalog of my experiment
+        self.catalog = 'climatedt-phase1'
         catalogfile = os.path.join(self.configdir, 'catalogs', self.catalog,
                                    'catalog', self.model, self.exp + '.yaml')
 

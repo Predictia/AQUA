@@ -86,7 +86,7 @@ def opa_catalog_entry(datadir, model, exp, source,
     return entry_name
 
 
-def list_lra_files(path):
+def list_lra_files_together(path):
     """
     List LRA files in the specified path based on the given parameters.
 
@@ -104,6 +104,28 @@ def list_lra_files(path):
     lra_complete_files = sorted(glob(os.path.join(path, '*_????.nc')))
     lra_partial_files = sorted(glob(os.path.join(path, '*_??????.nc')))
     return lra_complete_files, lra_partial_files
+
+
+def list_lra_files_vars(path):
+    """
+    List LRA files in the specified path based on the given parameters.
+
+    Args:
+        path (str): The base path where the LRA files are located.
+
+
+    Returns:
+        A dictionary containing the netcdf files for a each LRA variable
+    """
+
+    #path = os.path.join(path, model, exp, reso, freq)
+    searchpath = os.path.join(path, '*.nc')
+    variables = set([os.path.basename(complete).rpartition('_')[0] for complete in glob(searchpath)])
+    dict = {}
+    for var in variables:
+        dict[var] = sorted(glob(os.path.join(path, var) + '_*.nc'))
+
+    return dict
 
 def move_tmp_files(tmp_directory, output_directory):
     """
