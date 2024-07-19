@@ -233,44 +233,53 @@ class LRAgenerator():
 
         self.logger.info('Finished generating LRA data.')
 
-    def create_catalog_entry(self):
+    def create_catalog_entry(self, update=False):
         """
         Create an entry in the catalog for the LRA
+
+        Args:
+            update (bool): if true, update the path of the LRA if the source is already there
         """
 
         entry_name = f'lra-{self.resolution}-{self.frequency}'
         urlpath = os.path.join(self.outdir, f'*{self.exp}_{self.resolution}_{self.frequency}_*.nc')
         self.logger.info('Creating catalog entry %s %s %s', self.model, self.exp, entry_name)
 
-        # define the block to be uploaded into the catalog
-        block_cat = {
-            'driver': 'netcdf',
-            'description': f'LRA data {self.frequency} at {self.resolution}',
-            'args': {
-                'urlpath': urlpath,
-                'chunks': {},
-                'xarray_kwargs': {
-                    'decode_times': True,
-                    'combine': 'by_coords'
-                },
-            },
-            'metadata': {
-                'source_grid_name': 'lon-lat',
-            }
-        }
-
-        # find the catalog of my experiment
+        # find the catalog of my experiment and load it
         catalogfile = os.path.join(self.configdir, 'catalogs', self.catalog,
                                    'catalog', self.model, self.exp + '.yaml')
-
-        # load, add the block and close
         cat_file = load_yaml(catalogfile)
+
+        # if the entry already exists, update the urlpath if requested and return
         if entry_name in cat_file['sources']:
-            self.logger.info('Catalog entry for %s %s %s exists, updating the urlpath only...',
-                             self.model, self.exp, entry_name)
+            self.logger.info('Catalog entry for %s %s %s exists', self.model, self.exp, entry_name)
+            if not update:
+                return
+            
+            self.logger.info('Update is True: Updating the urlpath to %s', urlpath)
             cat_file['sources'][entry_name]['args']['urlpath'] = urlpath
-        else:
+
+        else: 
+            # if the entry is not there, define the block to be uploaded into the catalog
+            block_cat = {
+                'driver': 'netcdf',
+                'description': f'LRA data {self.frequency} at {self.resolution}',
+                'args': {
+                    'urlpath': urlpath,
+                    'chunks': {},
+                    'xarray_kwargs': {
+                        'decode_times': True,
+                        'combine': 'by_coords'
+                    },
+                },
+                'metadata': {
+                    'source_grid_name': 'lon-lat',
+                }
+            }
+
             cat_file['sources'][entry_name] = block_cat
+
+        # dump the update file
         dump_yaml(outfile=catalogfile, cfg=cat_file)
 
     def _set_dask(self):

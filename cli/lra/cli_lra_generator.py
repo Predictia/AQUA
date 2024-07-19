@@ -53,6 +53,9 @@ def parse_arguments(arguments):
                         help='source to be processed. Use with coherence with --exp and --var')
     parser.add_argument('-v', '--var', type=str,
                         help='var to be processed. Use with coherence with --source')
+    parser.add_argument('--updatepath', action="store_true",
+                        help='Update the path of the LRA even if the source already exists')
+    
 
     return parser.parse_args(arguments)
 
@@ -76,6 +79,7 @@ if __name__ == '__main__':
     fix = get_arg(args, 'fix', True)
     default_workers = get_arg(args, 'workers', 1)
     loglevel = get_arg(args, 'loglevel', loglevel)
+    updatepath =  get_arg(args, 'updatepath', False)
     
     models = to_list(get_arg(args, 'model', config['data'].keys()))
     for model in models:
@@ -111,6 +115,6 @@ if __name__ == '__main__':
                     lra.generate_lra()
                     
         # create the catalog once the loop is over
-        lra.create_catalog_entry()
+        lra.create_catalog_entry(update=updatepath)
 
     print('LRA run completed. Have yourself a beer!')
