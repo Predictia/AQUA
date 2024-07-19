@@ -163,7 +163,7 @@ class LRAgenerator():
         self.check = False
 
         # Create LRA folder
-        self.outdir = os.path.join(outdir, self.model, self.exp, self.resolution)
+        self.outdir = os.path.join(outdir, self.catalog, self.model, self.exp, self.resolution)
 
         if self.frequency:
             self.outdir = os.path.join(self.outdir, self.frequency)
@@ -583,6 +583,3 @@ class LRAgenerator():
 
         del write_job
         self.logger.info('Writing file %s successfull!', outfile)
-
-
-                
