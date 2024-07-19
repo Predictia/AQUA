@@ -241,11 +241,7 @@ class GSVSource(base.DataSource):
         else:
             self.chunking_vertical = None  # no vertical chunking
 
-        if self.eccodes_path:  # if needed switch eccodes path
-            # unless we have already switched
-            if self.eccodes_path and (self.eccodes_path != eccodes.codes_definition_path()):
-                eccodes.codes_context_delete()  # flush old definitions in cache
-                eccodes.codes_set_definitions_path(self.eccodes_path)
+         _switch_eccodes()
                 
         self.get_eccodes_shortname = init_get_eccodes_shortname()  # Can't pickle this, so we need to reinitialize it
 
@@ -357,6 +353,13 @@ class GSVSource(base.DataSource):
 
         return schema
 
+    def _switch_eccodes(self):
+        if self.eccodes_path:  # if needed switch eccodes path
+            # unless we have already switched
+            if self.eccodes_path and (self.eccodes_path != eccodes.codes_definition_path()):
+                eccodes.codes_context_delete()  # flush old definitions in cache
+                eccodes.codes_set_definitions_path(self.eccodes_path)
+
     def _index_to_timelevel(self, ii):
         """
         Internal method to convert partition index to time and level indices
@@ -449,9 +452,9 @@ class GSVSource(base.DataSource):
             if self.fdbpath:  # if fdbpath provided, use it, since we are creating a new gsv
                 os.environ["FDB5_CONFIG_FILE"] = self.fdbpath
 
-        gsv = GSVRetriever(logging_level=self.gsv_log_level)
+        _switch_eccodes()
 
-        # for some reason this is needed here and not in init
+        # this is needed here and not in init because each worker spawns a new environment
         gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel())
         gsv = GSVRetriever(logging_level=gsv_log_level)
 
