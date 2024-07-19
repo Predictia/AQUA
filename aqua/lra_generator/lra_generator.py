@@ -233,32 +233,19 @@ class LRAgenerator():
 
         self.logger.info('Finished generating LRA data.')
 
-    def create_catalog_entry(self, update=False):
+    def create_catalog_entry(self):
         """
         Create an entry in the catalog for the LRA
-
-        Args:
-            update (bool): if true, update the path of the LRA if the source is already there
         """
 
         entry_name = f'lra-{self.resolution}-{self.frequency}'
         self.logger.info('Creating catalog entry %s %s %s', self.model, self.exp, entry_name)
 
-        # we exploit of configurerto get info on intake_vars so that we can replace them in the urlpath
-        Configurer = ConfigPath(catalog=self.catalog)
-        _, intake_vars = Configurer.get_machine_info()
-
-        
         urlpath = os.path.join(self.outdir, f'*{self.exp}_{self.resolution}_{self.frequency}_*.nc')
 
-        # loop on available intake_vars, replace them in the urlpath
-        for name in intake_vars.keys():
-            path = intake_vars[name]
-            if path is not None and path in urlpath:
-                self.logger.info('Fully expanded urlpath %s', urlpath)
-                urlpath = urlpath.replace(path, '{{ ' + name +  ' }}')
-                self.logger.info('New urlpath with intake variables is %s', urlpath)
-
+        self.logger.info('Fully expanded urlpath %s', urlpath)
+        urlpath = replace_intake_vars(catalog=self.catalog, path=urlpath)
+        self.logger.info('New urlpath with intake variables is %s', urlpath)
 
         # find the catalog of my experiment and load it
         catalogfile = os.path.join(self.configdir, 'catalogs', self.catalog,
@@ -267,11 +254,8 @@ class LRAgenerator():
 
         # if the entry already exists, update the urlpath if requested and return
         if entry_name in cat_file['sources']:
-            self.logger.info('Catalog entry for %s %s %s exists', self.model, self.exp, entry_name)
-            if not update:
-                return
-            
-            self.logger.info('Update is True: Updating the urlpath to %s', urlpath)
+            self.logger.info('Catalog entry for %s %s %s already exists', self.model, self.exp, entry_name)
+            self.logger.info('Updating the urlpath to %s', urlpath)
             cat_file['sources'][entry_name]['args']['urlpath'] = urlpath
 
         else: 
@@ -598,3 +582,28 @@ class LRAgenerator():
 
         del write_job
         self.logger.info('Writing file %s successfull!', outfile)
+
+
+def replace_intake_vars(path, catalog=None):
+        
+        """
+        Replace the intake jinja vars into a string for a predefined catalog
+
+        Args:
+            catalog:  the catalog name where the intake vars must be read
+            path: the original path that you want to update with the intake variables
+        """
+
+            # we exploit of configurerto get info on intake_vars so that we can replace them in the urlpath
+        Configurer = ConfigPath(catalog=catalog)
+        _, intake_vars = Configurer.get_machine_info()
+
+        # loop on available intake_vars, replace them in the urlpath
+        for name in intake_vars.keys():
+            replacepath = intake_vars[name]
+            if replacepath is not None and replacepath in path:
+                # quotes used to ensure that then you can read the source
+                path = path.replace(replacepath, "{{ " + name + " }}")
+        
+        return path
+                
