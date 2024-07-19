@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+AQUA diagnostic complete list:
+- Teleconnections: catalog feature bugfix (#1276)
+
 ## [v0.10.3]
 Main changes are:
 1. support for ecCodes >= 2.35.0
@@ -18,6 +21,7 @@ AQUA core complete list:
 - Added test for diagnostics integration to AQUA installation process (#1244)
 - Bugfix for the monthly frequency data with monthly cumulated fluxes (#1255)
 - fdb_path becomes optional and deprecated in favour of fdb_home (#1262)
+- Branch support for tool to push analysis to explorer (#1273)
 
 AQUA diagnostic complete list:
 - ECmean documentation updates (#1264)
