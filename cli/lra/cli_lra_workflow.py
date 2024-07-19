@@ -52,6 +52,7 @@ if __name__ == '__main__':
     tmpdir = config['target']['tmpdir']
     opadir = config['target']['opadir']
     configdir = config['configdir']
+    catalog = config.get('catalog', None)
 
     # configuration of the tool
     definitive = get_arg(args, 'definitive', False)
@@ -82,7 +83,7 @@ if __name__ == '__main__':
 
                     # init the LRA
                     # zoom_level = config['data'][model][exp][source].get('zoom', None)
-                    lra = LRAgenerator(model=model, exp=exp, source=entry_name, zoom=None,
+                    lra = LRAgenerator(catalog=catalog, model=model, exp=exp, source=entry_name, zoom=None,
                                     var=varname, resolution=resolution,
                                     frequency=frequency, fix=True,
                                     outdir=outdir, tmpdir=tmpdir, configdir=configdir,

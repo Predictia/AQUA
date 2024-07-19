@@ -45,10 +45,12 @@ def parse_arguments(arguments):
                         help='log level [default: WARNING]')
     parser.add_argument('--monitoring', action="store_true",
                         help='enable the dask performance monitoring. Will run a single chunk')
+    parser.add_argument('--catalog', type=str,
+                        help='catalog to be processed. Use with coherence with --model, -exp and --source')
     parser.add_argument('-m', '--model', type=str,
-                        help='model to be processed. Use with coherence with --exp')
+                        help='model to be processed. Use with coherence with --exp and --source')
     parser.add_argument('-e', '--exp', type=str,
-                        help='experiment to be processed. Use with coherence with --exp and --model')
+                        help='experiment to be processed. Use with coherence with --source and --model')
     parser.add_argument('-s', '--source', type=str,
                         help='source to be processed. Use with coherence with --exp and --var')
     parser.add_argument('-v', '--var', type=str,
@@ -70,6 +72,7 @@ if __name__ == '__main__':
     outdir = config['target']['outdir']
     tmpdir = config['target']['tmpdir']
     loglevel = config['loglevel']
+    catalog = config.get('catalog', None)
 
     definitive = get_arg(args, 'definitive', False)
     monitoring = get_arg(args, 'monitoring', False)
@@ -94,7 +97,7 @@ if __name__ == '__main__':
                     workers = config['data'][model][exp][source].get('workers', default_workers)
 
                     # init the LRA
-                    lra = LRAgenerator(data=None, model=model, exp=exp, source=source,
+                    lra = LRAgenerator(catalog=None, model=model, exp=exp, source=source,
                                        var=varname, resolution=resolution,
                                        frequency=frequency  , fix=fix,
                                        outdir=outdir, tmpdir=tmpdir,
