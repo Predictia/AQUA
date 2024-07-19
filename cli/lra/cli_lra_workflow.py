@@ -12,7 +12,6 @@ from aqua import LRAgenerator
 from aqua.lra_generator.lra_util import opa_catalog_entry
 from aqua.util import load_yaml, get_arg
 from glob import glob
-import os
 
 
 def parse_arguments(args):
@@ -75,7 +74,7 @@ if __name__ == '__main__':
                 for varname in variables:
 
                     # create the catalog entry
-                    entry_name = opa_catalog_entry(datadir=opadir, model=model, source=source,
+                    entry_name = opa_catalog_entry(datadir=opadir, catalog=catalog, model=model, source=source,
                                                 exp=exp, frequency=frequency, 
                                                 fixer_name=fixer_name, loglevel=loglevel)
 
