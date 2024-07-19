@@ -145,7 +145,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         self.catalog = self.cat.name
 
         # machine dependent catalog path
-        machine_paths, intake_vars = self._get_machine_info()
+        machine_paths, intake_vars = Configurer.get_machine_info()
 
         # load the catalog
         self.esmcat = self.cat[self.model][self.exp][self.source](**kwargs, **intake_vars)
@@ -206,35 +206,6 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         # generate destination areas
         if areas and regrid:
             self._generate_load_dst_area(cfg_regrid, rebuild)
-
-    def _get_machine_info(self):
-        """
-        This extract the information related to the machine from the catalog-dependent machine file
-        
-        Returns: 
-            machine_paths: the dictionary with the paths
-            intake_vars: the dictionary for the intake catalog variables
-        """
-        
-        # loading the grid defintion file
-        machine_file = load_yaml(self.machine_file)
-
-        # get informtion on paths
-        if self.machine in machine_file:
-            machine_paths = machine_file[self.machine]
-        else:
-            if 'default' in machine_file:
-                machine_paths = machine_file['default']
-            else:
-                raise KeyError(f'Cannot find machine paths for {self.machine}, regridding and areas feature will not work')
-        
-        # extract potential intake variables
-        if 'intake' in machine_paths:
-            intake_vars = machine_paths['intake']
-        else:
-            intake_vars = {}
-        
-        return machine_paths, intake_vars
 
     def _set_cdo(self):
         """
