@@ -37,17 +37,12 @@ Generation of the LRA
 Given the character of the computation required, the standard approach is to use the LRA through a command line 
 interface (CLI) which is available in ``cli/lra/cli_lra_generator.py``
 
-The configuration of the CLI is done via a YAML file that can be build from the ``lra_config.tmpl``.
+The configuration of the CLI is done via a YAML file that can be build from the ``lumi_lra_config.tmpl`` or ``levante_lra_config.tmpl`` 
 templates, which include the target resolution, the target frequency, the temporary directory and the 
 directory where you want to store the obtained LRA.
 
-Most importantly, you have to edit the entries of the ``data`` dictionary, which follows the model-exp-source 3-level hierarchy.
+Most importantly, you have to edit the entries of the ``catalog`` dictionary, which follows the model-exp-source 3-level hierarchy.
 On top of that you must specify the variables you want to produce under the ``vars`` key.
-
-.. caution::
-    Catalog detection is done automatically by the code. 
-    However, if you have triplets with same name in two different catalog, you should also specify the catalog name in the configuration file.
-
 
 Usage
 ^^^^^
