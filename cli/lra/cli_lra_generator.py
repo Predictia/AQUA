@@ -63,6 +63,7 @@ if __name__ == '__main__':
     file = get_arg(args, 'config', 'lra_config.yaml')
     print('Reading configuration yaml file..')
 
+    # basic from configuration
     config = load_yaml(file)
     resolution = config['target']['resolution']
     frequency = config['target']['frequency']
@@ -70,6 +71,11 @@ if __name__ == '__main__':
     tmpdir = config['target']['tmpdir']
     loglevel = config['loglevel']
 
+    #zarr options - HACK: template to be updated
+    do_zarr = config.get('zarr', True)
+    verify_zarr = config.get('verify_zarr', True)
+
+    # command line override
     definitive = get_arg(args, 'definitive', False)
     monitoring = get_arg(args, 'monitoring', False)
     overwrite = get_arg(args, 'overwrite', False)
@@ -112,6 +118,7 @@ if __name__ == '__main__':
                     
         # create the catalog once the loop is over
         lra.create_catalog_entry()
-        lra.create_zarr_entry()
+        if do_zarr:
+            lra.create_zarr_entry(verify=verify_zarr)
 
     print('LRA run completed. Have yourself a beer!')

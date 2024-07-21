@@ -86,24 +86,25 @@ def opa_catalog_entry(datadir, model, exp, source,
     return entry_name
 
 
-def list_lra_files_together(path):
+def list_lra_files_complete(path):
     """
     List LRA files in the specified path based on the given parameters.
 
     Args:
         path (str): The base path where the LRA files are located.
 
-
     Returns:
-        tuple: A tuple containing two lists - lra_complete_files and lra_partial_files.
-               lra_complete_files (list): A list of complete LRA files.
-               lra_partial_files (list): A list of partial LRA files.
+        A dictionary containing the netcdf files for a each LRA variable
     """
 
+    yearly_dict = {}
+    monthly_dict = {}
+    searchpath = "*"
+    yearly_dict['files'] = sorted(glob(os.path.join(path, searchpath) + '_????.nc'))
+    monthly_dict['files'] = sorted(glob(os.path.join(path, searchpath) + '_??????.nc'))
+
     #path = os.path.join(path, model, exp, reso, freq)
-    lra_complete_files = sorted(glob(os.path.join(path, '*_????.nc')))
-    lra_partial_files = sorted(glob(os.path.join(path, '*_??????.nc')))
-    return lra_complete_files, lra_partial_files
+    return yearly_dict, monthly_dict
 
 
 def list_lra_files_vars(path):
@@ -114,20 +115,18 @@ def list_lra_files_vars(path):
         path (str): The base path where the LRA files are located.
 
 
-    Returns:
-        A dictionary containing the netcdf files for a each LRA variable
     """
 
     #path = os.path.join(path, model, exp, reso, freq)
     searchpath = os.path.join(path, '*.nc')
     variables = set([os.path.basename(complete).rpartition('_')[0] for complete in glob(searchpath)])
-    full_dict = {}
-    partial_dict = {}
+    yearly_dict = {}
+    monthly_dict = {}
     for var in variables:
-        full_dict[var] = sorted(glob(os.path.join(path, var) + '_????.nc'))
-        partial_dict[var] = sorted(glob(os.path.join(path, var) + '_??????.nc'))
+        yearly_dict[var] = sorted(glob(os.path.join(path, var) + '_????.nc'))
+        monthly_dict[var] = sorted(glob(os.path.join(path, var) + '_??????.nc'))
         
-    return full_dict, partial_dict
+    return yearly_dict, monthly_dict
 
 def move_tmp_files(tmp_directory, output_directory):
     """

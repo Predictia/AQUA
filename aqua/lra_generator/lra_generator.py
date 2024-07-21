@@ -20,7 +20,7 @@ from aqua.util import create_folder, generate_random_string
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import ConfigPath, file_is_complete
 from aqua.util import create_zarr_reference
-from aqua.lra_generator.lra_util import move_tmp_files, list_lra_files_vars
+from aqua.lra_generator.lra_util import move_tmp_files, list_lra_files_complete
 
 
 
@@ -259,8 +259,8 @@ class LRAgenerator():
             'fixer_name': False
         }
 
-        # find the catalog of my experiment
-        self.catalog = 'nextgems4'
+        # HACK need catalog support to proceed
+        self.catalog = 'climatedt-phase1'
         catalogfile = os.path.join(self.configdir, 'catalogs', self.catalog,
                                    'catalog', self.model, self.exp + '.yaml')
 
@@ -274,44 +274,38 @@ class LRAgenerator():
             cat_file['sources'][entry_name] = block_cat
         dump_yaml(outfile=catalogfile, cfg=cat_file)
 
-    def create_zarr_entry(self):
+    def create_zarr_entry(self, verify=True):
         """
         Create a Zarr entry in the catalog for the LRA
+
+        Args:
+            verify: open the LRA source and verify it can be read by the reader
         """
 
         entry_name = f'lra-{self.resolution}-{self.frequency}-zarr'
-        #fullfiles, partfiles = list_lra_files(self.outdir)
-        full_dict, partial_dict = list_lra_files_vars(self.outdir)
+        full_dict, partial_dict = list_lra_files_complete(self.outdir)
+        #full_dict, partial_dict = list_lra_files_vars(self.outdir)
         self.logger.info('Creating zarr files for %s %s %s', self.model, self.exp, entry_name)
 
+        # extra zarr only directory
+        zarrdir = os.path.join(self.outdir, 'zarr')
+        create_folder(zarrdir)
+
+        # this dictionary based structure is an overkill but guarantee flexibility
         urlpath = []
         for key, value in full_dict.items():
-            jsonfile = os.path.join(self.outdir, f'lra-{key}.json')
+            jsonfile = os.path.join(zarrdir, f'lra-yearly-{key}.json')
             self.logger.debug('Creating zarr files for full files %s', key)
             if value:
                 create_zarr_reference(value, jsonfile, loglevel=self.loglevel)
-            urlpath = urlpath + [f'reference::{jsonfile}']
+                urlpath = urlpath + [f'reference::{jsonfile}']
 
         for key, value in partial_dict.items():
-            jsonfile = os.path.join(self.outdir, f'lra-{key}.json')
+            jsonfile = os.path.join(zarrdir, f'lra-monthly-{key}.json')
             self.logger.debug('Creating zarr files for partial files %s', key)
             if value:
                 create_zarr_reference(value, jsonfile, loglevel=self.loglevel)
-            urlpath = urlpath + [f'reference::{jsonfile}']
-
-        #fulljson = os.path.join(self.outdir, f'lra-{self.resolution}-{self.frequency}-full.json')
-        #partjson = os.path.join(self.outdir, f'lra-{self.resolution}-{self.frequency}-partial.json')
-        
-
-        #urlpath = []
-        #if fullfiles:
-        #    self.logger.info('Creating zarr files for full files %s', fullfiles)
-        #    create_zarr_reference(fullfiles, fulljson, loglevel=self.loglevel)
-        #    urlpath = urlpath + [f'reference::{fulljson}']
-        #if partfiles:
-        #    self.logger.info('Creating zarr files for partial files')
-        #    create_zarr_reference(partfiles, partjson, loglevel=self.loglevel)
-        #    urlpath = urlpath + [f'reference::{partjson}'] 
+                urlpath = urlpath + [f'reference::{jsonfile}']
 
         if not urlpath:
             raise FileNotFoundError('No files found to create zarr reference')
@@ -324,6 +318,7 @@ class LRAgenerator():
             'description': f'LRA data {self.frequency} at {self.resolution} reference on zarr',
             'args': {
                 'consolidated': False,
+                'combine': 'by_coords',
                 'urlpath': urlpath
             },
             'metadata': {
@@ -332,8 +327,8 @@ class LRAgenerator():
             'fixer_name': False
         }
 
-        # find the catalog of my experiment
-        self.catalog = 'nextgems4'
+        # HACK: waiting for catalog support find the catalog of my experiment
+        self.catalog = 'climatedt-phase1'
         catalogfile = os.path.join(self.configdir, 'catalogs', self.catalog,
                                    'catalog', self.model, self.exp + '.yaml')
 
@@ -346,6 +341,21 @@ class LRAgenerator():
         else:
             cat_file['sources'][entry_name] = block_cat
         dump_yaml(outfile=catalogfile, cfg=cat_file)
+
+        if verify:
+            self.logger.info('Verifying that zarr entry can be loaded...')
+            try:
+                reader = Reader(model=self.model, exp=self.exp, source='lra-r100-monthly-zarr')
+                data = reader.retrieve()
+                self.logger.info('Success!')
+            except (KeyError, ValueError) as e:
+                self.logger.error('Cannot load zarr LRA with error --> %s', e)
+                self.logger.error('Zarr source is not accessible by the Reader likely due to irregular amount of NetCDF file')
+                self.logger.error('To avoid issues in the catalog, the entry will be removed')
+                self.logger.error('In case you want to keep it, please run with verify=False')
+                cat_file = load_yaml(catalogfile)
+                del cat_file['sources'][entry_name]
+                dump_yaml(outfile=catalogfile, cfg=cat_file)
 
     def _set_dask(self):
         """
