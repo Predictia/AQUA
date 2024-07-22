@@ -241,8 +241,8 @@ class GSVSource(base.DataSource):
         else:
             self.chunking_vertical = None  # no vertical chunking
 
-         _switch_eccodes()
-                
+        self._switch_eccodes()
+
         self.get_eccodes_shortname = init_get_eccodes_shortname()  # Can't pickle this, so we need to reinitialize it
 
         super(GSVSource, self).__init__(metadata=metadata)
@@ -367,7 +367,7 @@ class GSVSource(base.DataSource):
         if self.chunking_vertical:
             i = ii // len(self.chk_vert)
             j = ii % len(self.chk_vert)
-        else:     
+        else:
             i = ii
             j = 0
         return i, j
@@ -395,7 +395,7 @@ class GSVSource(base.DataSource):
             dde, tte = date2str(self.chk_end_date[i])
             if ((dds == dde) and (tts == tte)) or first:
                 request["date"] = f"{dds}"
-                request["time"] = f"{tts}"     
+                request["time"] = f"{tts}"
             else:
                 request["date"] = f"{dds}/to/{dde}"
                 request["time"] = f"{tts}/to/{tte}"
@@ -452,7 +452,7 @@ class GSVSource(base.DataSource):
             if self.fdbpath:  # if fdbpath provided, use it, since we are creating a new gsv
                 os.environ["FDB5_CONFIG_FILE"] = self.fdbpath
 
-        _switch_eccodes()
+        self._switch_eccodes()
 
         # this is needed here and not in init because each worker spawns a new environment
         gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel())
@@ -527,7 +527,7 @@ class GSVSource(base.DataSource):
                 dalist = []
                 for j in range(self.nlevelchunks):
                     dalistlev = [self.get_part_delayed(i*self.nlevelchunks+j, var, shape, dtype) for i in range(self.ntimechunks)]
-                    dalist.append(dask.array.concatenate(dalistlev, axis=self.itime))                
+                    dalist.append(dask.array.concatenate(dalistlev, axis=self.itime))
                 darr = dask.array.concatenate(dalist, axis=self.ilevel)  # This is a lazy dask array
 
             shortname = self.get_eccodes_shortname(var)
@@ -586,7 +586,7 @@ class GSVSource(base.DataSource):
         file_mask = f"{req['class']}:{req['dataset']}:{req['activity']}:{req['experiment']}:{req['generation']}:{req['model']}:{req['realization']}:{req['expver']}:{req['stream']}:*"
         file_list = glob.glob(os.path.join(root, file_mask))
 
-        datesel = [filename[-8:] for filename in file_list if (filename[-8:].isdigit() and len(filename[-8:])==8)]
+        datesel = [filename[-8:] for filename in file_list if (filename[-8:].isdigit() and len(filename[-8:]) == 8)]
         datesel.sort()
 
         if len(datesel) == 0:
