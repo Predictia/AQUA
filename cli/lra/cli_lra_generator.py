@@ -45,14 +45,17 @@ def parse_arguments(arguments):
                         help='log level [default: WARNING]')
     parser.add_argument('--monitoring', action="store_true",
                         help='enable the dask performance monitoring. Will run a single chunk')
+    parser.add_argument('--catalog', type=str,
+                        help='catalog to be processed. Use with coherence with --model, -exp and --source')
     parser.add_argument('-m', '--model', type=str,
-                        help='model to be processed. Use with coherence with --exp')
+                        help='model to be processed. Use with coherence with --exp and --source')
     parser.add_argument('-e', '--exp', type=str,
-                        help='experiment to be processed. Use with coherence with --exp and --model')
+                        help='experiment to be processed. Use with coherence with --source and --model')
     parser.add_argument('-s', '--source', type=str,
                         help='source to be processed. Use with coherence with --exp and --var')
     parser.add_argument('-v', '--var', type=str,
                         help='var to be processed. Use with coherence with --source')
+    
 
     return parser.parse_args(arguments)
 
@@ -70,6 +73,7 @@ if __name__ == '__main__':
     outdir = config['target']['outdir']
     tmpdir = config['target']['tmpdir']
     loglevel = config['loglevel']
+    catalog = config.get('catalog', None)
 
     #zarr options - HACK: template to be updated
     do_zarr = config.get('zarr', True)
@@ -83,25 +87,25 @@ if __name__ == '__main__':
     default_workers = get_arg(args, 'workers', 1)
     loglevel = get_arg(args, 'loglevel', loglevel)
     
-    models = to_list(get_arg(args, 'model', config['catalog'].keys()))
+    models = to_list(get_arg(args, 'model', config['data'].keys()))
     for model in models:
-        exps =  to_list(get_arg(args, 'exp', config['catalog'][model].keys()))
+        exps =  to_list(get_arg(args, 'exp', config['data'][model].keys()))
         for exp in exps:
-            sources =  to_list(get_arg(args, 'source', config['catalog'][model][exp].keys()))
+            sources =  to_list(get_arg(args, 'source', config['data'][model][exp].keys()))
             for source in sources:
-                varnames = to_list(get_arg(args, 'var', config['catalog'][model][exp][source]['vars']))
+                varnames = to_list(get_arg(args, 'var', config['data'][model][exp][source]['vars']))
                 for varname in varnames:
 
                     # get the zoom level
-                    zoom_level = config['catalog'][model][exp][source].get('zoom', None)
+                    zoom_level = config['data'][model][exp][source].get('zoom', None)
 
                     # get the number of workers for this specific configuration
-                    workers = config['catalog'][model][exp][source].get('workers', default_workers)
+                    workers = config['data'][model][exp][source].get('workers', default_workers)
 
                     # init the LRA
-                    lra = LRAgenerator(model=model, exp=exp, source=source,
+                    lra = LRAgenerator(catalog=None, model=model, exp=exp, source=source,
                                        var=varname, resolution=resolution,
-                                       frequency=frequency, fix=fix,
+                                       frequency=frequency  , fix=fix,
                                        outdir=outdir, tmpdir=tmpdir,
                                        nproc=workers, loglevel=loglevel,
                                        definitive=definitive, overwrite=overwrite,

@@ -20,7 +20,8 @@ from aqua.util import create_folder, generate_random_string
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import ConfigPath, file_is_complete
 from aqua.util import create_zarr_reference
-from aqua.lra_generator.lra_util import move_tmp_files, list_lra_files_complete
+from aqua.lra_generator.lra_util import move_tmp_files, list_lra_files_complete, replace_intake_vars
+
 
 
 
@@ -35,7 +36,7 @@ class LRAgenerator():
         return self.nproc > 1
 
     def __init__(self,
-                 model=None, exp=None, source=None,
+                 catalog=None, model=None, exp=None, source=None,
                  var=None, configdir=None,
                  resolution=None, frequency=None, fix=True,
                  outdir=None, tmpdir=None, nproc=1,
@@ -46,6 +47,7 @@ class LRAgenerator():
         Initialize the LRA_Generator class
 
         Args:
+            catalog (string):        The catalog you want to reader. If None, guessed by the reader. 
             model (string):          The model name from the catalog
             exp (string):            The experiment name from the catalog
             source (string):         The sourceid name from the catalog
@@ -135,17 +137,20 @@ class LRAgenerator():
 
         Configurer = ConfigPath(configdir=configdir)
         self.configdir = Configurer.configdir
-        self.catalog = Configurer.catalog
+        self.catalog = catalog
 
     
         self.frequency = frequency
         if not self.frequency:
             self.logger.info('Frequency not specified, no time averagin will be performed.')
 
-        # option for time encoding, defined once for all
+        # option for encoding, defined once for all
         self.time_encoding = {
             'units': 'days since 1850-01-01 00:00:00',
             'calendar': 'standard',
+            'dtype': 'float64'}
+        
+        self.var_encoding = {
             'dtype': 'float64',
             'zlib': True,
             'complevel': 1,
@@ -189,6 +194,7 @@ class LRAgenerator():
         self.reader = Reader(model=self.model, exp=self.exp,
                              source=self.source,
                              regrid=self.resolution,
+                             catalog=self.catalog,
                              loglevel=self.loglevel,
                              fix=self.fix, **self.kwargs)
 
@@ -200,6 +206,10 @@ class LRAgenerator():
         else:
             self.logger.info('I am going to produce LRA at %s resolution...',
                              self.resolution)
+
+        if self.catalog is None:
+            self.logger.info('Assuming catalog from the reader so that is %s', self.reader.catalog)
+            self.catalog = self.reader.catalog
 
         self.logger.info('Retrieving data...')
         self.data = self.reader.retrieve(var=self.var)
@@ -238,40 +248,46 @@ class LRAgenerator():
         """
 
         entry_name = f'lra-{self.resolution}-{self.frequency}'
-        urlpath = os.path.join(self.outdir, f'*{self.exp}_{self.resolution}_{self.frequency}_*.nc')
         self.logger.info('Creating catalog entry %s %s %s', self.model, self.exp, entry_name)
 
-        # define the block to be uploaded into the catalog
-        block_cat = {
-            'driver': 'netcdf',
-            'description': f'LRA data {self.frequency} at {self.resolution}',
-            'args': {
-                'urlpath': urlpath,
-                'chunks': {},
-                'xarray_kwargs': {
-                    'decode_times': True,
-                    'combine': 'by_coords'
-                },
-            },
-            'metadata': {
-                'source_grid_name': 'lon-lat',
-            },
-            'fixer_name': False
-        }
+        urlpath = os.path.join(self.outdir, f'*{self.exp}_{self.resolution}_{self.frequency}_*.nc')
 
-        # HACK need catalog support to proceed
-        self.catalog = 'climatedt-phase1'
+        self.logger.info('Fully expanded urlpath %s', urlpath)
+        urlpath = replace_intake_vars(catalog=self.catalog, path=urlpath)
+        self.logger.info('New urlpath with intake variables is %s', urlpath)
+
+        # find the catalog of my experiment and load it
         catalogfile = os.path.join(self.configdir, 'catalogs', self.catalog,
                                    'catalog', self.model, self.exp + '.yaml')
-
-        # load, add the block and close
         cat_file = load_yaml(catalogfile)
+
+        # if the entry already exists, update the urlpath if requested and return
         if entry_name in cat_file['sources']:
-            self.logger.info('Catalog entry for %s %s %s exists, updating the urlpath only...',
-                             self.model, self.exp, entry_name)
+            self.logger.info('Catalog entry for %s %s %s already exists', self.model, self.exp, entry_name)
+            self.logger.info('Updating the urlpath to %s', urlpath)
             cat_file['sources'][entry_name]['args']['urlpath'] = urlpath
-        else:
+
+        else: 
+            # if the entry is not there, define the block to be uploaded into the catalog
+            block_cat = {
+                'driver': 'netcdf',
+                'description': f'LRA data {self.frequency} at {self.resolution}',
+                'args': {
+                    'urlpath': urlpath,
+                    'chunks': {},
+                    'xarray_kwargs': {
+                        'decode_times': True,
+                        'combine': 'by_coords'
+                    },
+                },
+                'metadata': {
+                    'source_grid_name': 'lon-lat',
+                }
+            }
+
             cat_file['sources'][entry_name] = block_cat
+
+        # dump the update file
         dump_yaml(outfile=catalogfile, cfg=cat_file)
 
     def create_zarr_entry(self, verify=True):
@@ -327,8 +343,6 @@ class LRAgenerator():
             'fixer_name': False
         }
 
-        # HACK: waiting for catalog support find the catalog of my experiment
-        self.catalog = 'climatedt-phase1'
         catalogfile = os.path.join(self.configdir, 'catalogs', self.catalog,
                                    'catalog', self.model, self.exp + '.yaml')
 
@@ -628,7 +642,8 @@ class LRAgenerator():
 
         # Write data to file, lazy evaluation
         write_job = data.to_netcdf(outfile,
-                                   encoding={'time': self.time_encoding},
+                                   encoding={'time': self.time_encoding,
+                                             data.name: self.var_encoding},
                                    compute=False)
 
         if self.dask:
@@ -657,3 +672,6 @@ class LRAgenerator():
 
         del write_job
         self.logger.info('Writing file %s successfull!', outfile)
+
+
+                

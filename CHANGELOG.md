@@ -9,6 +9,8 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Introduce a function to convert NetCDF to Zarr and zarr catalog entry for LRA (#1068)
+- Increase compatibility between LRA generator and multi-catalog (#1278)
+- Allow for intake string replacement within LRA-generated catalogs (#1278)
 
 AQUA diagnostic complete list:
 - Teleconnections: catalog feature bugfix (#1276)
