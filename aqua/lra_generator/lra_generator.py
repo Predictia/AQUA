@@ -307,6 +307,8 @@ class LRAgenerator():
         zarrdir = os.path.join(self.outdir, 'zarr')
         create_folder(zarrdir)
 
+
+
         # this dictionary based structure is an overkill but guarantee flexibility
         urlpath = []
         for key, value in full_dict.items():
@@ -326,42 +328,50 @@ class LRAgenerator():
         if not urlpath:
             raise FileNotFoundError('No files found to create zarr reference')
 
-        self.logger.info('Creating zarr catalog entry %s %s %s', self.model, self.exp, entry_name)
-
-        # define the block to be uploaded into the catalog
-        block_cat = {
-            'driver': 'zarr',
-            'description': f'LRA data {self.frequency} at {self.resolution} reference on zarr',
-            'args': {
-                'consolidated': False,
-                'combine': 'by_coords',
-                'urlpath': urlpath
-            },
-            'metadata': {
-                'source_grid_name': 'lon-lat',
-            },
-            'fixer_name': False
-        }
-
+        # apply intake replacement: works on string need to loop on the list
+        for index, value in enumerate(urlpath):
+            urlpath[index] = replace_intake_vars(catalog=self.catalog, path=value)
+        
+        # load, add the block and close
         catalogfile = os.path.join(self.configdir, 'catalogs', self.catalog,
                                    'catalog', self.model, self.exp + '.yaml')
-
-        # load, add the block and close
         cat_file = load_yaml(catalogfile)
+
+        # if entry exists
         if entry_name in cat_file['sources']:
+
             self.logger.info('Catalog entry for %s %s %s exists, updating the urlpath only...',
                              self.model, self.exp, entry_name)
             cat_file['sources'][entry_name]['args']['urlpath'] = urlpath
+
         else:
+            self.logger.info('Creating zarr catalog entry %s %s %s', self.model, self.exp, entry_name)
+
+            # define the block to be uploaded into the catalog
+            block_cat = {
+                'driver': 'zarr',
+                'description': f'LRA data {self.frequency} at {self.resolution} reference on zarr',
+                'args': {
+                    'consolidated': False,
+                    'combine': 'by_coords',
+                    'urlpath': urlpath
+                },
+                'metadata': {
+                    'source_grid_name': 'lon-lat',
+                },
+                'fixer_name': False
+            }
             cat_file['sources'][entry_name] = block_cat
+        
         dump_yaml(outfile=catalogfile, cfg=cat_file)
 
+        # verify the zarr entry makes sense 
         if verify:
             self.logger.info('Verifying that zarr entry can be loaded...')
             try:
                 reader = Reader(model=self.model, exp=self.exp, source='lra-r100-monthly-zarr')
                 data = reader.retrieve()
-                self.logger.info('Success!')
+                self.logger.info('Zarr entry successfully created!!!')
             except (KeyError, ValueError) as e:
                 self.logger.error('Cannot load zarr LRA with error --> %s', e)
                 self.logger.error('Zarr source is not accessible by the Reader likely due to irregular amount of NetCDF file')
