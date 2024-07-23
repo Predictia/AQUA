@@ -135,6 +135,7 @@ if __name__ == '__main__':
 
     # loading the usual configuration file
     config = load_yaml(config_file)
+    catalog = config.get('catalog', None)
 
     slurm = config.get('slurm', {})
 
@@ -142,17 +143,18 @@ if __name__ == '__main__':
     COUNT = 0 # to count job
     jobid = None
     PARENT_JOB = None # to define the parent job for dependency
-    for model in config['catalog'].keys():
-        for exp in config['catalog'][model].keys():
-            for source in config['catalog'][model][exp].keys():
-                varnames = config['catalog'][model][exp][source]['vars']
+    for model in config['data'].keys():
+        for exp in config['data'][model].keys():
+            for source in config['data'][model][exp].keys():
+                varnames = config['data'][model][exp][source]['vars']
                 for varname in varnames:
                     if (COUNT % int(parallel)) == 0 and COUNT != 0:
                         print('Updating parent job to' + jobid)
                         PARENT_JOB = str(jobid)
                     COUNT = COUNT + 1
                     print(' '.join(['Submitting', model, exp, source, varname]))
-                    jobid = submit_sbatch(model=model, exp=exp, source=source, varname=varname,
+                    jobid = submit_sbatch(catalog=catalog, 
+                                          model=model, exp=exp, source=source, varname=varname,
                                           slurm_dict=slurm, yaml_file=config_file,
                                           workers=workers, definitive=definitive,
                                           overwrite=overwrite, dependency=PARENT_JOB)

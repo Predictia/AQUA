@@ -40,16 +40,24 @@ class ConfigPath():
         else:
             self.catalog_available = to_list(catalog)
         self.logger.debug('Available catalogs are %s', self.catalog_available)
+
+
         
         # set the catalog as the first available and get all configurations
         if self.catalog_available is None:
             self.logger.warning('No available catalogs found')
             self.catalog = None
             self.base_available = None
+            self.catalog_file = None
+            self.machine_file = None
         else:
             self.catalog = self.catalog_available[0]
             self.base_available = self.get_base()
             self.logger.debug('Default catalog will be %s', self.catalog)
+            self.catalog_file, self.machine_file = self.get_catalog_filenames(self.catalog)
+        
+        # get also info on machine on init
+        self.machine = self.get_machine()
 
         
     def get_config_dir(self):
@@ -164,8 +172,37 @@ class ConfigPath():
             self.catalog = matched[0]
             
         self.logger.debug('Final catalog to be used is %s', self.catalog)
-        catalog_file, machine_file = self.get_catalog_filenames(self.catalog)
-        return intake.open_catalog(catalog_file), catalog_file, machine_file
+        self.catalog_file, self.machine_file = self.get_catalog_filenames(self.catalog)
+        return intake.open_catalog(self.catalog_file), self.catalog_file, self.machine_file
+    
+    def get_machine_info(self):
+        """
+        This extract the information related to the machine from the catalog-dependent machine file
+        
+        Returns: 
+            machine_paths: the dictionary with the paths
+            intake_vars: the dictionary for the intake catalog variables
+        """
+        
+        # loading the grid defintion file
+        machine_file = load_yaml(self.machine_file)
+
+        # get informtion on paths
+        if self.machine in machine_file:
+            machine_paths = machine_file[self.machine]
+        else:
+            if 'default' in machine_file:
+                machine_paths = machine_file['default']
+            else:
+                raise KeyError(f'Cannot find machine paths for {self.machine}, regridding and areas feature will not work')
+        
+        # extract potential intake variables
+        if 'intake' in machine_paths:
+            intake_vars = machine_paths['intake']
+        else:
+            intake_vars = {}
+        
+        return machine_paths, intake_vars
 
       
     def get_base(self):
@@ -193,16 +230,16 @@ class ConfigPath():
         if os.path.exists(self.config_file):
             base = load_yaml(self.config_file)
             # if we do not know the machine we assume is "unknown"
-            machine = 'unknown'
+            self.machine = 'unknown'
             # if the configuration file has a machine entry, use it
             if 'machine' in base:
-                machine = base['machine']
-                self.logger.debug('Machine found in configuration file, set to %s', machine)
+                self.machine = base['machine']
+                self.logger.debug('Machine found in configuration file, set to %s', self.machine)
             # if the entry is auto, or the machine unknown, try autodetection
-            if machine in ['auto', 'unknown']:
-                self.logger.debug('Machine is %s, trying to self detect', machine)
-                machine = self._auto_detect_machine()
-            return machine
+            if self.machine in ['auto', 'unknown']:
+                self.logger.debug('Machine is %s, trying to self detect', self.machine)
+                self.machine = self._auto_detect_machine()
+            return self.machine
         
         raise FileNotFoundError(f'Cannot find the basic configuration file {self.config_file}!')
     
