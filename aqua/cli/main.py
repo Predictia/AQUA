@@ -389,7 +389,7 @@ class AquaConsole():
             args (argparse.Namespace): arguments from the command line
         """
         print('Adding the AQUA catalog', args.catalog)
-        self._check()
+        self._check(silent=True)
 
         if args.editable is not None:
             self._add_catalog_editable(args.catalog, args.editable)
@@ -564,10 +564,12 @@ class AquaConsole():
                               kind, file)
             sys.exit(1)
 
-    def _check(self):
+    def _check(self, silent=False):
         """check installation"""
+
+        checklevel = 'ERROR' if silent else 'WARNING'
         try:
-            self.configpath = ConfigPath().configdir
+            self.configpath = ConfigPath(loglevel=checklevel).configdir
             self.configfile = os.path.join(self.configpath, 'config-aqua.yaml')
             self.logger.debug('AQUA found in %s', self.configpath)
         except FileNotFoundError:
