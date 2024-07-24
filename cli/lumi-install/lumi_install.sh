@@ -80,7 +80,7 @@ install_aqua() {
   log_message INFO "Environment has been cleaned up."
 
   # load modules
-  module load LUMI/22.08
+  module load LUMI/23.09
   module load lumi-container-wrapper
   log_message INFO "Modules have been loaded."
   
