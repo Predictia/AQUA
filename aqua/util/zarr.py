@@ -36,11 +36,18 @@ def create_zarr_reference(filelist, outfile, loglevel='WARNING'):
     )
 
     logger.debug('Translating Zarr files to json')
-    out = mzz.translate()
+    try:
+        out = mzz.translate()
+    except ValueError as e:
+        logger.error('Cannot create Zarr %s file due chunk mismatch', outfile)
+        logger.error(e)
+        return None
 
     # Dump to file
     logger.info('Dumping to file JSON %s', outfile)
     if os.path.exists(outfile):
         os.remove(outfile)
-    with open(outfile, "w") as outfile:
-        json.dump(out, outfile)
+    with open(outfile, "w") as file:
+        json.dump(out, file)
+    
+    return outfile

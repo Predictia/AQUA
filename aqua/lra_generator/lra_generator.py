@@ -315,15 +315,17 @@ class LRAgenerator():
             jsonfile = os.path.join(zarrdir, f'lra-yearly-{key}.json')
             self.logger.debug('Creating zarr files for full files %s', key)
             if value:
-                create_zarr_reference(value, jsonfile, loglevel=self.loglevel)
-                urlpath = urlpath + [f'reference::{jsonfile}']
+                jsonfile = create_zarr_reference(value, jsonfile, loglevel=self.loglevel)
+                if jsonfile is not None:
+                    urlpath = urlpath + [f'reference::{jsonfile}']
 
         for key, value in partial_dict.items():
             jsonfile = os.path.join(zarrdir, f'lra-monthly-{key}.json')
             self.logger.debug('Creating zarr files for partial files %s', key)
             if value:
-                create_zarr_reference(value, jsonfile, loglevel=self.loglevel)
-                urlpath = urlpath + [f'reference::{jsonfile}']
+                jsonfile = create_zarr_reference(value, jsonfile, loglevel=self.loglevel)
+                if jsonfile is not None:
+                    urlpath = urlpath + [f'reference::{jsonfile}']
 
         if not urlpath:
             raise FileNotFoundError('No files found to create zarr reference')
