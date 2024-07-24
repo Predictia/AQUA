@@ -53,3 +53,14 @@ fixer_name:
             - surface
             - step
             - number
+
+    FESOM-test:
+        parent: FESOM-default
+        data_model: false
+        vars:
+            mlotst125:
+                source: MLD2
+                src_units: m
+                grib: true
+                attributes:
+                    uncle: "scrooge"
