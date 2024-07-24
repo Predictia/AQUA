@@ -123,9 +123,9 @@ if __name__ == '__main__':
                     lra.retrieve()
                     lra.generate_lra()
                     
-        # create the catalog once the loop is over
-        lra.create_catalog_entry()
-        if do_zarr:
-            lra.create_zarr_entry(verify=verify_zarr)
+            # create the catalog once the loop is over
+            lra.create_catalog_entry()
+            if do_zarr:
+                lra.create_zarr_entry(verify=verify_zarr)
 
     print('LRA run completed. Have yourself a beer!')
