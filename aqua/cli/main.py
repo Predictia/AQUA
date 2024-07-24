@@ -229,7 +229,7 @@ class AquaConsole():
                 sys.exit(1)
 
             # Ensure the target directory exists using create_folder
-            create_folder(target_directory, loglevel=loglevel)
+            create_folder(target_directory, loglevel=self.loglevel)
 
             if not os.path.exists(target_file):
                 self.logger.debug('Copying from %s to %s', source_file, target_file)
@@ -267,7 +267,7 @@ class AquaConsole():
                 sys.exit(1)
 
             # Ensure the target directory exists using create_folder
-            create_folder(target_directory, loglevel="WARNING")
+            create_folder(target_directory, loglevel=self.loglevel)
 
             if not os.path.exists(target_file):
                 self.logger.debug('Linking from %s to %s', source_file, target_file)
