@@ -45,6 +45,8 @@ def parse_arguments(arguments):
                         help='log level [default: WARNING]')
     parser.add_argument('--monitoring', action="store_true",
                         help='enable the dask performance monitoring. Will run a single chunk')
+    parser.add_argument('--only-catalog', action="store_true",
+                        help='To not run the LRA but simply create the catalog entries for netcdf and zarr')
     parser.add_argument('--catalog', type=str,
                         help='catalog to be processed. Use with coherence with --model, -exp and --source')
     parser.add_argument('-m', '--model', type=str,
@@ -83,6 +85,7 @@ if __name__ == '__main__':
     definitive = get_arg(args, 'definitive', False)
     monitoring = get_arg(args, 'monitoring', False)
     overwrite = get_arg(args, 'overwrite', False)
+    only_catalog = get_arg(args, 'only_catalog', False) #option not used yet
     fix = get_arg(args, 'fix', True)
     default_workers = get_arg(args, 'workers', 1)
     loglevel = get_arg(args, 'loglevel', loglevel)
