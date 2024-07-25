@@ -12,7 +12,6 @@ from aqua import LRAgenerator
 from aqua.lra_generator.lra_util import opa_catalog_entry
 from aqua.util import load_yaml, get_arg
 from glob import glob
-import os
 
 
 def parse_arguments(args):
@@ -52,6 +51,7 @@ if __name__ == '__main__':
     tmpdir = config['target']['tmpdir']
     opadir = config['target']['opadir']
     configdir = config['configdir']
+    catalog = config.get('catalog', None)
 
     # configuration of the tool
     definitive = get_arg(args, 'definitive', False)
@@ -60,10 +60,10 @@ if __name__ == '__main__':
     loglevel = config['loglevel']
     loglevel = get_arg(args, 'loglevel', loglevel)
 
-    for model in config['catalog'].keys():
-        for exp in config['catalog'][model].keys():
+    for model in config['data'].keys():
+        for exp in config['data'][model].keys():
             source = f'lra-{resolution}-{frequency}'
-            variables = config['catalog'][model][exp][source]['vars']
+            variables = config['data'][model][exp][source]['vars']
             print(f'LRA Processing {model}-{exp}-opa-{frequency}')
 
             # update the dir
@@ -74,15 +74,15 @@ if __name__ == '__main__':
                 for varname in variables:
 
                     # create the catalog entry
-                    entry_name = opa_catalog_entry(datadir=opadir, model=model, source=source,
+                    entry_name = opa_catalog_entry(datadir=opadir, catalog=catalog, model=model, source=source,
                                                 exp=exp, frequency=frequency, 
                                                 fixer_name=fixer_name, loglevel=loglevel)
 
                     print(f'Netcdf files found in {opadir}: Launching LRA')
 
                     # init the LRA
-                    # zoom_level = config['catalog'][model][exp][source].get('zoom', None)
-                    lra = LRAgenerator(model=model, exp=exp, source=entry_name, zoom=None,
+                    # zoom_level = config['data'][model][exp][source].get('zoom', None)
+                    lra = LRAgenerator(catalog=catalog, model=model, exp=exp, source=entry_name, zoom=None,
                                     var=varname, resolution=resolution,
                                     frequency=frequency, fix=True,
                                     outdir=outdir, tmpdir=tmpdir, configdir=configdir,

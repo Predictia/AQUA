@@ -1,4 +1,5 @@
 fixer_name:
+
   lra-cycle3:
     data_model: False
     vars:
@@ -52,11 +53,13 @@ fixer_name:
       avg_so:
         source: so
         grib: true
-
-      #mtdwswrf:
-      #  source: tisr
-      #  grib: true
-
-
+  
+  FESOM-lra-r100-monthly:
+    data_model: False
+    vars:
+        sst: 
+            derived: sst
+            grib: true
+            units: K
       
       

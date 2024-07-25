@@ -140,25 +140,18 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         self.config_file = Configurer.config_file
         self.cat, self.catalog_file, self.machine_file = Configurer.deliver_intake_catalog(catalog=catalog, model=model, exp=exp, source=source)
         self.fixer_folder, self.grids_folder = Configurer.get_reader_filenames()
-
+        
+        # deduce catalog name
+        self.catalog = self.cat.name
 
         # machine dependent catalog path
-        machine_paths, intake_vars = self._get_machine_info()
-
-        
-        # access the catalog
-        #self.cat = intake.open_catalog(self.catalog_file)
-
-        # check source existence
-        #self.source = check_catalog_source(self.cat, self.model, self.exp,
-        #                                   source, name="catalog")
-        
+        machine_paths, intake_vars = Configurer.get_machine_info()
 
         # load the catalog
         self.esmcat = self.cat[self.model][self.exp][self.source](**kwargs, **intake_vars)
 
         # store the kwargs for further usage
-        self.kwargs = self._check_kwargs_parameters(kwargs)
+        self.kwargs = self._check_kwargs_parameters(kwargs, intake_vars)
 
         # get fixes dictionary and find them
         self.fix = fix  # fix activation flag
@@ -213,35 +206,6 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         # generate destination areas
         if areas and regrid:
             self._generate_load_dst_area(cfg_regrid, rebuild)
-
-    def _get_machine_info(self):
-        """
-        This extract the information related to the machine from the catalog-dependent machine file
-        
-        Returns: 
-            machine_paths: the dictionary with the paths
-            intake_vars: the dictionary for the intake catalog variables
-        """
-        
-        # loading the grid defintion file
-        machine_file = load_yaml(self.machine_file)
-
-        # get informtion on paths
-        if self.machine in machine_file:
-            machine_paths = machine_file[self.machine]
-        else:
-            if 'default' in machine_file:
-                machine_paths = machine_file['default']
-            else:
-                raise KeyError(f'Cannot find machine paths for {self.machine}, regridding and areas feature will not work')
-        
-        # extract potential intake variables
-        if 'intake' in machine_paths:
-            intake_vars = machine_paths['intake']
-        else:
-            intake_vars = {}
-        
-        return machine_paths, intake_vars
 
     def _set_cdo(self):
         """
@@ -858,15 +822,22 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         return out
 
-    def _check_kwargs_parameters(self, parameters):
+    def _check_kwargs_parameters(self, main_parameters, intake_parameters):
 
         """
         Function to check if which parameters are included in the metadata of
         the source and performs a few safety checks.
 
+        Args:
+            main_parameters: get them from kwargs
+            intake_parameters: get them from catalog machine specific file
+
         Returns:
             kwargs after check has been processed
         """
+        # join the kwargs
+        parameters = {**main_parameters, **intake_parameters}
+
         # remove null kwargs
         parameters = {key: value for key, value in parameters.items() if value is not None}
 

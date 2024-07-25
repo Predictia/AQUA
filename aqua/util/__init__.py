@@ -1,7 +1,7 @@
 """Utilities module"""
 
 from .config import ConfigPath
-from .eccodes import read_eccodes_dic, read_eccodes_def, get_eccodes_attr
+from .eccodes import read_eccodes_def, get_eccodes_attr
 from .graphics import add_cyclic_lon, plot_box, minmax_maps
 from .graphics import evaluate_colorbar_limits, cbar_get_label, set_map_title
 from .graphics import coord_names, ticks_round, set_ticks
@@ -17,7 +17,7 @@ from .coord import flip_lat_dir, find_lat_dir, check_direction
 from .output_saver import OutputSaver
 
 __all__ = ['ConfigPath',
-           'read_eccodes_dic', 'read_eccodes_def', 'get_eccodes_attr',
+           'read_eccodes_def', 'get_eccodes_attr',
            'add_cyclic_lon', 'plot_box', 'minmax_maps',
            'evaluate_colorbar_limits', 'cbar_get_label', 'set_map_title',
            'coord_names', 'ticks_round', 'set_ticks',
