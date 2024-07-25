@@ -229,20 +229,34 @@ Options
 Catalog entry generator for FDB sources
 ---------------------------------------
 
-A tool which streamlines the process of adding new experiments to the catalog.
+A tool which streamlines the process of adding new experiments to the catalog, based on the data-portfolio structure of the Destination Earth Climate DT. 
 It exploits the capabilities of the Jinja package to obtain a cleaner and more flexible code.
-Users can easily customize their experiments by updating the ``config.tmpl`` file, with the experiment's specific details.
-The script is available in the ``cli/fdb-catalog-generator`` folder.
-Basic usage:
 
-.. code-block:: bash
+Basic usage
+^^^^^^^^^^^
 
-    ./catalog-jinja-generator.py -c config.tmpl -j ifs-nemo-default.j2 -l INFO
+To add a new experiment to the catalog, follow these steps:
 
+1. Clone the two repositories, `DestinE-ClimateDT-catalog <https://github.com/DestinE-Climate-DT/Climate-DT-catalog/tree/main>`_ and `data-portfolio <https://earth.bsc.es/gitlab/digital-twins/de_340-2/data-portfolio>`_, to your preferred location.
+2. Navigate to the ``cli/fdb-catalog-generator`` folder.
+3. Update the ``config.yaml`` file with the details of your simulation, including the paths of the cloned repositories. 
+4. Run the command ``python catalog-jinja-generator.py -p production -c config.yaml``, where the ``-p`` argument can be either ``production`` or ``reduced`` to specify the Jinja template to be used.
+5. The catalog entry will be created in the appropriate location in the DestinE-ClimateDT-catalog folder, and the corresponding ``main.yaml`` file will be automatically updated.
 
-.. warning::
+Options
+^^^^^^^
 
-    Please note that currently only one Jinja template is available (``ifs-nemo-default.j2`` for IFS-NEMO), but it is possible to add more templates in the future.
+.. option:: -c <config>, --config <config>
+
+    The configuration file to use. A ``config.tmpl`` is available to be copied and edited.
+
+.. option:: -p <portfolio>, --portfolio <portfolio>  
+
+    The data portfolio to be used. At moment `production` and `reduced` are supported.
+
+.. option:: -l <loglevel>, --loglevel <loglevel>
+
+    Logging level.
 
 
 .. _benchmarker:

@@ -151,7 +151,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         self.esmcat = self.cat[self.model][self.exp][self.source](**kwargs, **intake_vars)
 
         # store the kwargs for further usage
-        self.kwargs = self._check_kwargs_parameters(kwargs)
+        self.kwargs = self._check_kwargs_parameters(kwargs, intake_vars)
 
         # get fixes dictionary and find them
         self.fix = fix  # fix activation flag
@@ -822,15 +822,22 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         return out
 
-    def _check_kwargs_parameters(self, parameters):
+    def _check_kwargs_parameters(self, main_parameters, intake_parameters):
 
         """
         Function to check if which parameters are included in the metadata of
         the source and performs a few safety checks.
 
+        Args:
+            main_parameters: get them from kwargs
+            intake_parameters: get them from catalog machine specific file
+
         Returns:
             kwargs after check has been processed
         """
+        # join the kwargs
+        parameters = {**main_parameters, **intake_parameters}
+
         # remove null kwargs
         parameters = {key: value for key, value in parameters.items() if value is not None}
 
