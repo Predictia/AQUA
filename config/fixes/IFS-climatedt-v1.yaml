@@ -137,6 +137,18 @@ fixer_name:
             tcc: 
                 source: meantcc
                 grib: true
+            t: 
+                source: mt
+                grib: true
+            u: 
+                source: mu
+                grib: true
+            v: 
+                source: mv
+                grib: true
+            q: 
+                source: mq
+                grib: true
 
 
     ifs-nemo-destine-v1-nan:  # special version for historical-1990 IFS-NEMO data, fixing to nan first step of month
