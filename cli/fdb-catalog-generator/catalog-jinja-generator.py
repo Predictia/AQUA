@@ -19,34 +19,30 @@ class AquaFDBGenerator:
         self.dp_version = data_portfolio
         self.config = load_yaml(config_path)
         self.loglevel = loglevel
-        self.logger = self.setup_logger()
+        self.logger = log_configure(self.loglevel, 'FDB catalog generator')
         self.dp_dir_path = self.config["repos"]["data-portfolio_path"]
         self.catalog_dir_path = self.config["repos"]["Climate-DT-catalog_path"]
         self.model = self.config["model"].lower()
         self.portfolio = self.config["portfolio"]
-        
+
+        self.logger.info("Running FDB catalog generator for %s portfolio", data_portfolio)
         self.dp = load_yaml(os.path.join(self.dp_dir_path, data_portfolio, 'portfolio.yaml'))
         self.grids = load_yaml(os.path.join(self.dp_dir_path, data_portfolio, 'grids.yaml'))
         self.levels = load_yaml(os.path.join(self.dp_dir_path, 'definitions', 'levels.yaml'))
-        
+
         self.local_grids = self.get_local_grids(self.portfolio, self.grids)
         self.template = self.load_jinja_template(f"{data_portfolio}.j2")
 
-    def setup_logger(self):
-        logger = log_configure(self.loglevel, 'FDB catalog generator')
-        logger.info("Running FDB catalog generator for %s portfolio", self.dp_version)
-        return logger
 
     @staticmethod
     def parse_arguments(arguments):
         parser = argparse.ArgumentParser(description='AQUA FDB entries generator')
-        parser.add_argument("-p", "--portfolio", help="Type of Data Portfolio utilized (production/reduced): Default is production")
+        parser.add_argument("-p", "--portfolio", help="Type of Data Portfolio utilized (production/reduced)")
         parser.add_argument('-c', '--config', type=str, help='yaml configuration file')
         parser.add_argument('-l', '--loglevel', type=str, help='loglevel', default='INFO')
         return parser.parse_args(arguments)
 
-    @staticmethod
-    def get_local_grids(portfolio, grids):
+    def get_local_grids(self, portfolio, grids):
         """
         Get local grids based on the portfolio.
 
@@ -58,11 +54,14 @@ class AquaFDBGenerator:
             dict: Local grids for the given portfolio.
         """
         local_grids = grids["common"]
-        local_grids.update(grids[portfolio])
+        if portfolio in grids:
+            self.logger.debug('Update grids for specific %s portfolio', portfolio)
+            local_grids.update(grids[portfolio])
+        else:
+            self.logger.error('Cannot find grids for %s portfolio', portfolio)
         return local_grids
 
-    @staticmethod
-    def get_available_resolutions(local_grids, model):
+    def get_available_resolutions(self, local_grids, model):
         """
         Get available resolutions from local grids.
 
@@ -75,6 +74,7 @@ class AquaFDBGenerator:
         """
         re_pattern = f"horizontal-{model.upper()}-(.+)"
         resolutions = [match.group(1) for key in local_grids if (match := re.match(re_pattern, key))]
+        self.logger.debug('Resolution found are %s', resolutions)
         return resolutions
 
     @staticmethod
@@ -103,16 +103,28 @@ class AquaFDBGenerator:
         Get time string based on the frequency.
 
         Args:
-            frequency (str): The frequency type (hourly/daily/monthly).
+            time_dict (dict): The time-related dictionary information
 
         Returns:
             str: Corresponding time string.
         """
 
         freq2time = {
-            "hourly": '"0000/to/2300/by/0100"',
-            "daily": '"0000"',
-            "monthly": None
+            "hourly": {
+                'time': '"0000/to/2300/by/0100"',
+                'chunks': 'D',
+                'savefreq': 'h'
+            }, 
+            "daily": {
+                'time': "0000",
+                'chunks': "D",
+                'savefreq': "D"
+            },
+            "monthly": {
+                'time': None,
+                'chunks': "MS",
+                'savefreq': "MS"
+            }
         }
         return freq2time[frequency]
 
@@ -127,9 +139,10 @@ class AquaFDBGenerator:
             jinja2.Template: Loaded Jinja2 template.
         """
 
-        templateLoader = jinja2.FileSystemLoader(searchpath='./')
-        templateEnv = jinja2.Environment(loader=templateLoader, trim_blocks=True, lstrip_blocks=True)
-        return templateEnv.get_template(template_file)
+        templateloader = jinja2.FileSystemLoader(searchpath='./')
+        templateenv = jinja2.Environment(loader=templateloader, trim_blocks=True, lstrip_blocks=True)
+        self.logger.debug('Loading template for %s', template_file)
+        return templateenv.get_template(template_file)
 
     def get_profile_content(self, profile, resolution):
         """
@@ -167,6 +180,10 @@ class AquaFDBGenerator:
 
         source = f"{profile['frequency']}-{aqua_grid}-{levtype_str}"
 
+        self.logger.debug('levtype: %s, levels: %s, grid: %s', levtype, levelist, grid_str)
+
+        time_dict = self.get_time(profile["frequency"])
+
         kwargs = {
             "dp_version": self.dp_version,
             "resolution": resolution,
@@ -177,7 +194,9 @@ class AquaFDBGenerator:
             "levtype": profile["levtype"],
             "variables": profile["variables"],
             "param": profile["variables"][0],
-            "time": self.get_time(profile["frequency"])
+            "time": time_dict['time'],
+            "chunks": time_dict['chunks'],
+            "savefreq": time_dict['savefreq']
         }
         return kwargs
 
@@ -222,8 +241,10 @@ class AquaFDBGenerator:
 
         all_content = []
 
+        resolutions = self.get_available_resolutions(self.local_grids, self.model)
         for profile in self.dp[self.model]:
-            resolutions = self.get_available_resolutions(self.local_grids, self.model)
+            if not resolutions:
+                self.logger.error('No resolutions found, generating an empty file!')
             for resolution in resolutions:
                 content = self.get_profile_content(profile, resolution)
                 combined = {**self.config, **content}
