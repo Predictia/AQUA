@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+## [v0.11]
+
+Attention: this version is not compatible with catalog entries with ecCodes >= 2.35.0.
+
+1. LRA supports multi-catalog structure
+2. ecCodes temporarily restricted to < 2.34
+
 AQUA core complete list:
 - Refactor the fdb-catalog-generator tool to work with data-portfolio repository (#1275)
 - Introduce a function to convert NetCDF to Zarr and zarr catalog entry for LRA (#1068)
@@ -21,8 +28,11 @@ AQUA diagnostic complete list:
 - Teleconnections: catalog feature bugfix (#1276)
 
 ## [v0.10.3]
+
+Attention: this version is not compatible with catalog entries with ecCodes < 2.35.0.
+
 Main changes are:
-1. support for ecCodes >= 2.35.0
+1. support for ecCodes >= 2.35.0 (to be used with caution, not working with exps with eccodes < 2.35.0)
 2. fdb_path is deprecated in favour of fdb_home
 
 AQUA core complete list:
@@ -588,7 +598,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.3...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11...HEAD
+[v0.11]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.3...v0.11
 [v0.10.3]:https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.2...v0.10.3
 [v0.10.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.1...v0.10.2
 [v0.10.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10...v0.10.1

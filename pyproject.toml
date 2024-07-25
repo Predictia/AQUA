@@ -55,7 +55,7 @@ dependencies = [
     "kerchunk",
     "h5py",
     "pyfdb@git+https://github.com/ecmwf/pyfdb.git@0.0.3",
-    "gsv@git+https://oauth2:pXj19aBDApiBPs1YgwuZ@earth.bsc.es/gitlab/digital-twins/de_340-2/gsv_interface.git@v2.2.0"
+    "gsv@git+https://oauth2:pXj19aBDApiBPs1YgwuZ@earth.bsc.es/gitlab/digital-twins/de_340-2/gsv_interface.git@v2.4.0"
 ]
 
 [project.optional-dependencies]
