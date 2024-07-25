@@ -241,6 +241,8 @@ class GSVSource(base.DataSource):
         else:
             self.chunking_vertical = None  # no vertical chunking
 
+        self._switch_eccodes()
+
         self.get_eccodes_shortname = init_get_eccodes_shortname()  # Can't pickle this, so we need to reinitialize it
 
         super(GSVSource, self).__init__(metadata=metadata)
@@ -351,6 +353,13 @@ class GSVSource(base.DataSource):
 
         return schema
 
+    def _switch_eccodes(self):
+        if self.eccodes_path:  # if needed switch eccodes path
+            # unless we have already switched
+            if self.eccodes_path and (self.eccodes_path != eccodes.codes_definition_path()):
+                eccodes.codes_context_delete()  # flush old definitions in cache
+                eccodes.codes_set_definitions_path(self.eccodes_path)
+
     def _index_to_timelevel(self, ii):
         """
         Internal method to convert partition index to time and level indices
@@ -358,7 +367,7 @@ class GSVSource(base.DataSource):
         if self.chunking_vertical:
             i = ii // len(self.chk_vert)
             j = ii % len(self.chk_vert)
-        else:     
+        else:
             i = ii
             j = 0
         return i, j
@@ -386,7 +395,7 @@ class GSVSource(base.DataSource):
             dde, tte = date2str(self.chk_end_date[i])
             if ((dds == dde) and (tts == tte)) or first:
                 request["date"] = f"{dds}"
-                request["time"] = f"{tts}"     
+                request["time"] = f"{tts}"
             else:
                 request["date"] = f"{dds}/to/{dde}"
                 request["time"] = f"{tts}/to/{tte}"
@@ -443,15 +452,9 @@ class GSVSource(base.DataSource):
             if self.fdbpath:  # if fdbpath provided, use it, since we are creating a new gsv
                 os.environ["FDB5_CONFIG_FILE"] = self.fdbpath
 
-        if self.eccodes_path:  # if needed switch eccodes path
-            # unless we have already switched
-            if self.eccodes_path and (self.eccodes_path != eccodes.codes_definition_path()):
-                eccodes.codes_context_delete()  # flush old definitions in cache
-                eccodes.codes_set_definitions_path(self.eccodes_path)
+        self._switch_eccodes()
 
-        gsv = GSVRetriever(logging_level=self.gsv_log_level)
-
-        # for some reason this is needed here and not in init
+        # this is needed here and not in init because each worker spawns a new environment
         gsv_log_level = _check_loglevel(self.logger.getEffectiveLevel())
         gsv = GSVRetriever(logging_level=gsv_log_level)
 
@@ -524,7 +527,7 @@ class GSVSource(base.DataSource):
                 dalist = []
                 for j in range(self.nlevelchunks):
                     dalistlev = [self.get_part_delayed(i*self.nlevelchunks+j, var, shape, dtype) for i in range(self.ntimechunks)]
-                    dalist.append(dask.array.concatenate(dalistlev, axis=self.itime))                
+                    dalist.append(dask.array.concatenate(dalistlev, axis=self.itime))
                 darr = dask.array.concatenate(dalist, axis=self.ilevel)  # This is a lazy dask array
 
             shortname = self.get_eccodes_shortname(var)
@@ -583,7 +586,7 @@ class GSVSource(base.DataSource):
         file_mask = f"{req['class']}:{req['dataset']}:{req['activity']}:{req['experiment']}:{req['generation']}:{req['model']}:{req['realization']}:{req['expver']}:{req['stream']}:*"
         file_list = glob.glob(os.path.join(root, file_mask))
 
-        datesel = [filename[-8:] for filename in file_list if (filename[-8:].isdigit() and len(filename[-8:])==8)]
+        datesel = [filename[-8:] for filename in file_list if (filename[-8:].isdigit() and len(filename[-8:]) == 8)]
         datesel.sort()
 
         if len(datesel) == 0:

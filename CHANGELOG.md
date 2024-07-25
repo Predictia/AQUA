@@ -9,6 +9,8 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Suppress the warning of missing catalogs in the AQUA console `add` command (#1288)
+- Lumi installation is completely updated to LUMI/23.09 modules (#1290)
+- gsv_intake switches eccodes also for shortname definitions (#1279)
 - Increase compatibility between LRA generator and multi-catalog (#1278)
 - Allow for intake string replacement within LRA-generated catalogs (#1278)
 
