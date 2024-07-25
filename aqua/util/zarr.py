@@ -7,6 +7,7 @@ from kerchunk.hdf import SingleHdf5ToZarr
 from kerchunk.combine import MultiZarrToZarr
 from aqua.logger import log_configure
 
+
 def create_zarr_reference(filelist, outfile, loglevel='WARNING'):
     """
     Create a Zarr file from a list of HDF5/NetCDF files.
@@ -49,5 +50,5 @@ def create_zarr_reference(filelist, outfile, loglevel='WARNING'):
         os.remove(outfile)
     with open(outfile, "w") as file:
         json.dump(out, file)
-    
+
     return outfile

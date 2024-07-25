@@ -23,8 +23,6 @@ from aqua.util import create_zarr_reference
 from aqua.lra_generator.lra_util import move_tmp_files, list_lra_files_complete, replace_intake_vars
 
 
-
-
 class LRAgenerator():
     """
     Class to generate LRA data at required frequency/resolution
@@ -104,8 +102,8 @@ class LRAgenerator():
             self.logger.info('Running dask.distributed with %s workers', self.nproc)
 
         self.tmpdir = os.path.join(self.tmpdir, 'LRA_' +
-                                    generate_random_string(10))
-        
+                                   generate_random_string(10))
+
         # safechecks
         if model is not None:
             self.model = model
@@ -121,12 +119,12 @@ class LRAgenerator():
             self.source = source
         else:
             raise KeyError('Please specify source.')
-        
+
         if var is not None:
             self.var = var
         else:
             raise KeyError('Please specify variable string or list.')
-        
+
         if resolution is not None:
             self.resolution = resolution
         else:
@@ -139,7 +137,6 @@ class LRAgenerator():
         self.configdir = Configurer.configdir
         self.catalog = catalog
 
-    
         self.frequency = frequency
         if not self.frequency:
             self.logger.info('Frequency not specified, no time averagin will be performed.')
@@ -149,7 +146,7 @@ class LRAgenerator():
             'units': 'days since 1850-01-01 00:00:00',
             'calendar': 'standard',
             'dtype': 'float64'}
-        
+
         self.var_encoding = {
             'dtype': 'float64',
             'zlib': True,
@@ -213,7 +210,7 @@ class LRAgenerator():
 
         self.logger.info('Retrieving data...')
         self.data = self.reader.retrieve(var=self.var)
-        
+
         self.logger.debug(self.data)
 
     def generate_lra(self):
@@ -231,10 +228,10 @@ class LRAgenerator():
 
         else:  # Only one variable
             self._write_var(self.var)
-                
+
         self.logger.info('Move tmp files to output directory')
         move_tmp_files(self.tmpdir, self.outdir)
-            
+
         # Cleaning
         self.data.close()
         self._close_dask()
@@ -300,14 +297,12 @@ class LRAgenerator():
 
         entry_name = f'lra-{self.resolution}-{self.frequency}-zarr'
         full_dict, partial_dict = list_lra_files_complete(self.outdir)
-        #full_dict, partial_dict = list_lra_files_vars(self.outdir)
+        # full_dict, partial_dict = list_lra_files_vars(self.outdir)
         self.logger.info('Creating zarr files for %s %s %s', self.model, self.exp, entry_name)
 
         # extra zarr only directory
         zarrdir = os.path.join(self.outdir, 'zarr')
         create_folder(zarrdir)
-
-
 
         # this dictionary based structure is an overkill but guarantee flexibility
         urlpath = []
@@ -333,7 +328,7 @@ class LRAgenerator():
         # apply intake replacement: works on string need to loop on the list
         for index, value in enumerate(urlpath):
             urlpath[index] = replace_intake_vars(catalog=self.catalog, path=value)
-        
+
         # load, add the block and close
         catalogfile = os.path.join(self.configdir, 'catalogs', self.catalog,
                                    'catalog', self.model, self.exp + '.yaml')
@@ -364,10 +359,10 @@ class LRAgenerator():
                 'fixer_name': False
             }
             cat_file['sources'][entry_name] = block_cat
-        
+
         dump_yaml(outfile=catalogfile, cfg=cat_file)
 
-        # verify the zarr entry makes sense 
+        # verify the zarr entry makes sense
         if verify:
             self.logger.info('Verifying that zarr entry can be loaded...')
             try:
@@ -420,15 +415,15 @@ class LRAgenerator():
         from the same year
         """
 
-        #infiles = os.path.join(self.outdir,
+        # infiles = os.path.join(self.outdir,
         #                       f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}??.nc')
         infiles = self.get_filename(var, year, month = '??')
         if len(glob.glob(infiles)) == 12:
             xfield = xr.open_mfdataset(infiles)
             self.logger.info('Creating a single file for %s, year %s...', var, str(year))
             outfile = self.get_filename(var, year)
-            #outfile = os.path.join(self.tmpdir,
-            #                       f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}.nc')
+            # outfile = os.path.join(self.tmpdir,
+            #                        f'{var}_{self.exp}_{self.resolution}_{self.frequency}_{year}.nc')
             # clean older file
             if os.path.exists(outfile):
                 os.remove(outfile)
@@ -438,7 +433,6 @@ class LRAgenerator():
             for infile in glob.glob(infiles):
                 self.logger.info('Cleaning %s...', infile)
                 os.remove(infile)
-
 
     def get_filename(self, var, year=None, month=None, tmp=False):
         """Create output filenames"""
@@ -538,7 +532,7 @@ class LRAgenerator():
     #                 continue
     #             else:
     #                 self.logger.warning('Monthly file %s already exists, overwriting as requested...', outfile)
-            
+
     #         # real writing
     #         if self.definitive:
     #             self.write_chunk(temp_data, outfile)
@@ -581,7 +575,7 @@ class LRAgenerator():
         for year in years:
 
             self.logger.info('Processing year %s...', str(year))
-            yearfile = self.get_filename(var, year = year)
+            yearfile = self.get_filename(var, year=year)
 
             # checking if file is there and is complete
             filecheck = file_is_complete(yearfile, loglevel=self.loglevel)
@@ -599,7 +593,7 @@ class LRAgenerator():
                 months = [months[0]]
             for month in months:
                 self.logger.info('Processing month %s...', str(month))
-                outfile = self.get_filename(var, year = year, month = month)
+                outfile = self.get_filename(var, year=year, month=month)
 
                 # checking if file is there and is complete
                 filecheck = file_is_complete(outfile, loglevel=self.loglevel)
@@ -612,12 +606,9 @@ class LRAgenerator():
 
                 month_data = year_data.sel(time=year_data.time.dt.month == month)
 
-                #self.logger.debug(month_data.mean().values)
-                #self.logger.debug(month_data)
-
                 # real writing
                 if self.definitive:
-                    tmpfile = self.get_filename(var, year = year, month = month, tmp = True)
+                    tmpfile = self.get_filename(var, year=year, month=month, tmp=True)
                     schunk = time()
                     self.write_chunk(month_data, tmpfile)
                     tchunk = time() - schunk
@@ -638,7 +629,7 @@ class LRAgenerator():
     def write_chunk(self, data, outfile):
         """Write a single chunk of data - Xarray Dataset - to a specific file
         using dask if required and monitoring the progress"""
-        
+
         # update data attributes for history
         if self.frequency:
             log_history(data, f'regridded from {self.reader.src_grid_name} to {self.resolution} and from frequency {self.reader.orig_freq} to {self.frequency} through LRA generator')                
@@ -677,13 +668,10 @@ class LRAgenerator():
                 avg_mem = np.mean(array_data[:, 1])/1e9
                 max_mem = np.max(array_data[:, 1])/1e9
                 self.logger.info('Avg memory used: %.2f GiB, Peak memory used: %.2f GiB', avg_mem, max_mem)
-                
+
         else:
             with ProgressBar():
                 write_job.compute()
 
         del write_job
         self.logger.info('Writing file %s successfull!', outfile)
-
-
-                
