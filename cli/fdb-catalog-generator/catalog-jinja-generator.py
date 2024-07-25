@@ -13,6 +13,7 @@ import argparse
 import yaml
 from aqua.util import load_yaml, dump_yaml, get_arg
 from aqua.logger import log_configure
+from aqua.lra_generator.lra_util import replace_intake_vars
 
 
 def parse_arguments(arguments):
@@ -22,7 +23,7 @@ def parse_arguments(arguments):
 
     parser = argparse.ArgumentParser(description='AQUA FDB entries generator')
     parser.add_argument("-p", "--portfolio", 
-                        help="Type of Data Portfolio utilized (production/reduced)")
+                        help="Type of Data Portfolio utilized (production/reduced): Default is production")
     parser.add_argument('-c', '--config', type=str,
                         help='yaml configuration file')
     parser.add_argument('-l', '--loglevel', type=str,
@@ -150,7 +151,7 @@ if __name__ == '__main__':
     loglevel = get_arg(args, 'loglevel', 'WARNING')
 
     logger = log_configure(loglevel, 'FDB catalog generator')
-    logger.info("Running FDB catalog generator") 
+    logger.info("Running FDB catalog generator for %s portfolio", dp_version) 
 
     # reading config file
     with open("config.yaml", 'r') as config_file:
@@ -188,6 +189,7 @@ if __name__ == '__main__':
     all_content = []
 
     for profile in dp[model]:
+        
         levtype = profile["levtype"]
         frequency = profile["frequency"]
         resolutions = get_available_resolutions(local_grids, model)
@@ -196,7 +198,9 @@ if __name__ == '__main__':
                         template, profile, resolution, model, dp_version,
                         local_grids, levels)
             combined = {**config, **content}
+            logger.info('Creating catalog entry for %s', combined['source'])
+            for replacepath in ['fdb_home', 'eccodes_path']:
+                combined[replacepath] = '"' + replace_intake_vars(combined[replacepath], catalog=combined['catalog_dir']) + '"'
             all_content.append(template.render(combined))
-
 
     create_catalog_entry(config, catalog_dir_path, model.upper(), all_content)
