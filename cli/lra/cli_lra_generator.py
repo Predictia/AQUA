@@ -57,7 +57,6 @@ def parse_arguments(arguments):
                         help='source to be processed. Use with coherence with --exp and --var')
     parser.add_argument('-v', '--var', type=str,
                         help='var to be processed. Use with coherence with --source')
-    
 
     return parser.parse_args(arguments)
 
@@ -77,24 +76,24 @@ if __name__ == '__main__':
     loglevel = config['loglevel']
     catalog = config.get('catalog', None)
 
-    #zarr options - HACK: template to be updated
-    do_zarr = config.get('zarr', True)
-    verify_zarr = config.get('verify_zarr', True)
+    # zarr options - HACK: template to be updated
+    do_zarr = config.get('zarr', False)
+    verify_zarr = config.get('verify_zarr', False)
 
     # command line override
     definitive = get_arg(args, 'definitive', False)
     monitoring = get_arg(args, 'monitoring', False)
     overwrite = get_arg(args, 'overwrite', False)
-    only_catalog = get_arg(args, 'only_catalog', False) #option not used yet
+    only_catalog = get_arg(args, 'only_catalog', False)  # option not used yet
     fix = get_arg(args, 'fix', True)
     default_workers = get_arg(args, 'workers', 1)
     loglevel = get_arg(args, 'loglevel', loglevel)
-    
+
     models = to_list(get_arg(args, 'model', config['data'].keys()))
     for model in models:
-        exps =  to_list(get_arg(args, 'exp', config['data'][model].keys()))
+        exps = to_list(get_arg(args, 'exp', config['data'][model].keys()))
         for exp in exps:
-            sources =  to_list(get_arg(args, 'source', config['data'][model][exp].keys()))
+            sources = to_list(get_arg(args, 'source', config['data'][model][exp].keys()))
             for source in sources:
                 varnames = to_list(get_arg(args, 'var', config['data'][model][exp][source]['vars']))
                 for varname in varnames:
@@ -122,7 +121,7 @@ if __name__ == '__main__':
                     # retrieve and generate
                     lra.retrieve()
                     lra.generate_lra()
-                    
+
             # create the catalog once the loop is over
             lra.create_catalog_entry()
             if do_zarr:
