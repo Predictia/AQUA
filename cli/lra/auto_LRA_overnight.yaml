@@ -7,6 +7,10 @@ target:
 
 loglevel: INFO
 
+# Set to True if lra-r100-monthly-zarr should be created and checked
+zarr: False
+verify_zarr: False
+
 slurm:
   partition: small
   username: padavini
