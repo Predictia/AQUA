@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Refactor the fdb-catalog-generator tool to work with data-portfolio repository (#1275)
 - Introduce a function to convert NetCDF to Zarr and zarr catalog entry for LRA (#1068)
 - Suppress the warning of missing catalogs in the AQUA console `add` command (#1288)
 - Lumi installation is completely updated to LUMI/23.09 modules (#1290)
