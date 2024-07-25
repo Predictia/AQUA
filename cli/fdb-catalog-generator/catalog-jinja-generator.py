@@ -5,202 +5,240 @@
 AQUA basic tool for generating catalog entries based on jinja
 '''
 
-import jinja2
 import os
 import re
 import sys
 import argparse
-import yaml
+import jinja2
 from aqua.util import load_yaml, dump_yaml, get_arg
 from aqua.logger import log_configure
 from aqua.lra_generator.lra_util import replace_intake_vars
 
+class AquaFDBGenerator:
+    def __init__(self, data_portfolio, config_path, loglevel='INFO'):
+        self.dp_version = data_portfolio
+        self.config = load_yaml(config_path)
+        self.loglevel = loglevel
+        self.logger = self.setup_logger()
+        self.dp_dir_path = self.config["repos"]["data-portfolio_path"]
+        self.catalog_dir_path = self.config["repos"]["Climate-DT-catalog_path"]
+        self.model = self.config["model"].lower()
+        self.portfolio = self.config["portfolio"]
+        
+        self.dp = load_yaml(os.path.join(self.dp_dir_path, data_portfolio, 'portfolio.yaml'))
+        self.grids = load_yaml(os.path.join(self.dp_dir_path, data_portfolio, 'grids.yaml'))
+        self.levels = load_yaml(os.path.join(self.dp_dir_path, 'definitions', 'levels.yaml'))
+        
+        self.local_grids = self.get_local_grids(self.portfolio, self.grids)
+        self.template = self.load_jinja_template(f"{data_portfolio}.j2")
 
-def parse_arguments(arguments):
-    """
-    Parse command line arguments 
-    """
+    def setup_logger(self):
+        logger = log_configure(self.loglevel, 'FDB catalog generator')
+        logger.info("Running FDB catalog generator for %s portfolio", self.dp_version)
+        return logger
 
-    parser = argparse.ArgumentParser(description='AQUA FDB entries generator')
-    parser.add_argument("-p", "--portfolio", 
-                        help="Type of Data Portfolio utilized (production/reduced): Default is production")
-    parser.add_argument('-c', '--config', type=str,
-                        help='yaml configuration file')
-    parser.add_argument('-l', '--loglevel', type=str,
-                        help='loglevel', default='INFO')
+    @staticmethod
+    def parse_arguments(arguments):
+        parser = argparse.ArgumentParser(description='AQUA FDB entries generator')
+        parser.add_argument("-p", "--portfolio", help="Type of Data Portfolio utilized (production/reduced): Default is production")
+        parser.add_argument('-c', '--config', type=str, help='yaml configuration file')
+        parser.add_argument('-l', '--loglevel', type=str, help='loglevel', default='INFO')
+        return parser.parse_args(arguments)
 
-    return parser.parse_args(arguments)
+    @staticmethod
+    def get_local_grids(portfolio, grids):
+        """
+        Get local grids based on the portfolio.
 
-def get_local_grids(portfolio, grids):
-    local_grids = grids["common"]
-    local_grids.update(grids[portfolio])
-    return local_grids
+        Args:
+            portfolio (str): The portfolio type (production/reduced).
+            grids (dict): The grids definition.
 
-def get_available_resolutions(local_grids, model):
-    re_pattern = f"horizontal-{model.upper()}-(.+)"
-    resolutions = []
+        Returns:
+            dict: Local grids for the given portfolio.
+        """
+        local_grids = grids["common"]
+        local_grids.update(grids[portfolio])
+        return local_grids
 
-    for key in local_grids:
-        match = re.match(re_pattern, key)
-        if match:
-            resolutions.append(match.group(1))
-    return resolutions
+    @staticmethod
+    def get_available_resolutions(local_grids, model):
+        """
+        Get available resolutions from local grids.
 
+        Args:
+            local_grids (dict): Local grids definition.
+            model (str): The model name.
 
-def get_levelist(profile, local_grids, levels):
-    vertical = profile.get("vertical")
-    if vertical is None:
-        return None, None
-    else:
+        Returns:
+            list: List of available resolutions.
+        """
+        re_pattern = f"horizontal-{model.upper()}-(.+)"
+        resolutions = [match.group(1) for key in local_grids if (match := re.match(re_pattern, key))]
+        return resolutions
+
+    @staticmethod
+    def get_levelist(profile, local_grids, levels):
+        """
+        Get the level list from local grids.
+
+        Args:
+            profile (dict): Profile definition.
+            local_grids (dict): Local grids definition.
+            levels (dict): Levels definition.
+
+        Returns:
+            tuple: Levelist and levels values.
+        """
+
+        vertical = profile.get("vertical")
+        if vertical is None:
+            return None, None
         level_data = levels[local_grids[f"vertical-{vertical}"]]
         return level_data["levelist"], level_data["levels"]
 
-def get_profile_content(template, profile, resolution, model, dp_version, local_grids, levels):
-    grid = local_grids[f"horizontal-{model.upper()}-{resolution}"]
-    
-    #matching dp grid with aqua grid
-    matching_grids = load_yaml("matching_grids.yaml")
-    aqua_grid = matching_grids[grid]
-    levelist, levels_values = get_levelist(profile, local_grids, levels)
+    @staticmethod
+    def get_time(frequency):
+        """
+        Get time string based on the frequency.
 
-    levtype_str = (
-        'atm2d' if profile["levtype"] == 'sfc' else
-        'atm3d' if profile["levtype"] == 'pl' else
-        'oce2d' if profile["levtype"] == 'o2d' else
-        'oce3d' if profile["levtype"] == 'o3d' else
-        profile["levtype"]
-    )
-    
-    grid_mappings = matching_grids['grid_mappings']
-    levtype = profile["levtype"]
+        Args:
+            frequency (str): The frequency type (hourly/daily/monthly).
 
-    if levtype in grid_mappings:
-        if model in grid_mappings[levtype]:
-            grid_str = grid_mappings[levtype][model].format(aqua_grid=aqua_grid)
-        elif 'default' in grid_mappings[levtype]:
-            grid_str = grid_mappings[levtype]['default'].format(aqua_grid=aqua_grid)
-    else:
-        grid_str = grid_mappings['default'].format(aqua_grid=aqua_grid)
+        Returns:
+            str: Corresponding time string.
+        """
 
-    # Construct the source string
-    source = f"{frequency}-{aqua_grid}-{levtype_str}"
-
-    kwargs = {
-        "dp_version": dp_version,
-        "resolution": resolution,
-        "grid": grid_str,
-        "source": source,
-        "levelist": levelist,
-        "levels": levels_values,
-        "levtype":  profile["levtype"],
-        "variables": profile["variables"],
-        "param": profile["variables"][0],
-        "time": get_time(profile["frequency"])
-
-    }
-    return kwargs
-
-def get_time(frequency):
-    freq2time = {
-        "hourly": '"0000/to/2300/by/0100"',
-        "daily": '"0000"',
-        "monthly": None
-    }
-    return freq2time[frequency]
-
-
-def create_catalog_entry(config, catalog_dir_path, model, all_content):
-    # Create output file in model folder
-    output_dir = os.path.join(catalog_dir_path, 'catalogs', config['catalog_dir'], 'catalog', model)
-    output_filename = f"{config['exp']}.yaml"
-    output_path = os.path.join(output_dir, output_filename)
-
-    if os.path.exists(output_path):
-        os.remove(output_path)
-
-    with open(output_path, "w", encoding='utf8') as f:
-        f.write('sources:\n')
-        for content in all_content:
-            f.write(f'  {content}\n')
-
-    logger.info("File %s has been created in %s", output_filename, output_dir)
-
-    # Update main.yaml
-    main_yaml_path = os.path.join(output_dir, 'main.yaml')
-
-    main_yaml = load_yaml(main_yaml_path)
-    main_yaml['sources'][config['exp']] = {
-        'description': config['description'],
-        'driver': 'yaml_file_cat',
-        'args': {
-            'path': f"{{{{CATALOG_DIR}}}}/{config['exp']}.yaml"
+        freq2time = {
+            "hourly": '"0000/to/2300/by/0100"',
+            "daily": '"0000"',
+            "monthly": None
         }
-    }
-    dump_yaml(main_yaml_path, main_yaml)
+        return freq2time[frequency]
 
-    logger.info("%s entry in 'main.yaml' has been updated in %s", config['exp'], output_dir)
+    def load_jinja_template(self, template_file):
+        """
+        Load a Jinja2 template.
 
+        Args:
+            template_file (str): Template file name.
+
+        Returns:
+            jinja2.Template: Loaded Jinja2 template.
+        """
+
+        templateLoader = jinja2.FileSystemLoader(searchpath='./')
+        templateEnv = jinja2.Environment(loader=templateLoader, trim_blocks=True, lstrip_blocks=True)
+        return templateEnv.get_template(template_file)
+
+    def get_profile_content(self, profile, resolution):
+        """
+        Generate profile content based on the given parameters.
+
+        Args:
+            profile (dict): Profile definition.
+            resolution (str): Resolution value.
+
+        Returns:
+            dict: Generated profile content.
+        """
+
+        grid = self.local_grids[f"horizontal-{self.model.upper()}-{resolution}"]
+        matching_grids = load_yaml("matching_grids.yaml")
+        aqua_grid = matching_grids[grid]
+        levelist, levels_values = self.get_levelist(profile, self.local_grids, self.levels)
+
+        levtype_str = (
+            'atm2d' if profile["levtype"] == 'sfc' else
+            'atm3d' if profile["levtype"] == 'pl' else
+            'oce2d' if profile["levtype"] == 'o2d' else
+            'oce3d' if profile["levtype"] == 'o3d' else
+            profile["levtype"]
+        )
+
+        grid_mappings = matching_grids['grid_mappings']
+        levtype = profile["levtype"]
+
+        if levtype in grid_mappings:
+            grid_str = grid_mappings[levtype].get(
+                self.model, grid_mappings[levtype].get('default')).format(aqua_grid=aqua_grid)
+        else:
+            grid_str = grid_mappings['default'].format(aqua_grid=aqua_grid)
+
+        source = f"{profile['frequency']}-{aqua_grid}-{levtype_str}"
+
+        kwargs = {
+            "dp_version": self.dp_version,
+            "resolution": resolution,
+            "grid": grid_str,
+            "source": source,
+            "levelist": levelist,
+            "levels": levels_values,
+            "levtype": profile["levtype"],
+            "variables": profile["variables"],
+            "param": profile["variables"][0],
+            "time": self.get_time(profile["frequency"])
+        }
+        return kwargs
+
+    def create_catalog_entry(self, all_content):
+        """
+        Create catalog entry file and update main YAML.
+
+        Args:
+            all_content (list): List of all generated content strings.
+        """
+        output_dir = os.path.join(self.catalog_dir_path, 'catalogs', 
+                                  self.config['catalog_dir'], 'catalog', self.model.upper())
+        output_filename = f"{self.config['exp']}.yaml"
+        output_path = os.path.join(output_dir, output_filename)
+
+        if os.path.exists(output_path):
+            os.remove(output_path)
+
+        with open(output_path, "w", encoding='utf8') as f:
+            f.write('sources:\n')
+            for content in all_content:
+                f.write(f'  {content}\n')
+
+        self.logger.info("File %s has been created in %s", output_filename, output_dir)
+
+        main_yaml_path = os.path.join(output_dir, 'main.yaml')
+        main_yaml = load_yaml(main_yaml_path)
+        main_yaml['sources'][self.config['exp']] = {
+            'description': self.config['description'],
+            'driver': 'yaml_file_cat',
+            'args': {
+                'path': f"{{{{CATALOG_DIR}}}}/{self.config['exp']}.yaml"
+            }
+        }
+        dump_yaml(main_yaml_path, main_yaml)
+        self.logger.info("%s entry in 'main.yaml' has been updated in %s", self.config['exp'], output_dir)
+
+    def generate_catalog(self):
+        """
+        Generate the entire catalog by processing profiles and resolutions.
+        """
+
+        all_content = []
+
+        for profile in self.dp[self.model]:
+            resolutions = self.get_available_resolutions(self.local_grids, self.model)
+            for resolution in resolutions:
+                content = self.get_profile_content(profile, resolution)
+                combined = {**self.config, **content}
+                self.logger.info('Creating catalog entry for %s', combined['source'])
+                for replacepath in ['fdb_home', 'eccodes_path']:
+                    combined[replacepath] = '"' + replace_intake_vars(combined[replacepath], catalog=combined['catalog_dir']) + '"'
+                all_content.append(self.template.render(combined))
+
+        self.create_catalog_entry(all_content)
 
 if __name__ == '__main__':
-
-    # parsing
-    args = parse_arguments(sys.argv[1:])
-
+    args = AquaFDBGenerator.parse_arguments(sys.argv[1:])
     dp_version = get_arg(args, 'portfolio', 'production')
     config_file = get_arg(args, 'config', 'config.yaml')
-    loglevel = get_arg(args, 'loglevel', 'WARNING')
+    loglevel = get_arg(args, 'loglevel', 'INFO')
 
-    logger = log_configure(loglevel, 'FDB catalog generator')
-    logger.info("Running FDB catalog generator for %s portfolio", dp_version) 
-
-    # reading config file
-    with open("config.yaml", 'r') as config_file:
-        config = yaml.safe_load(config_file)
-    
-    dp_dir_path = config["repos"]["data-portfolio_path"]
-    catalog_dir_path = config["repos"]["Climate-DT-catalog_path"]
-    model = config["model"].lower()
-    
-    # reading the portfolio file
-    dp_file_path =  os.path.join(dp_dir_path, dp_version, 'portfolio.yaml')
-    with open(dp_file_path, 'r') as dp_file:
-        dp = yaml.safe_load(dp_file)
-
-    # readig the grids file
-    grids_file_path = os.path.join(dp_dir_path, dp_version, 'grids.yaml')
-    with open(grids_file_path, 'r') as grids_file:
-        grids = yaml.safe_load(grids_file)
-
-    portfolio = config["portfolio"]   
-    local_grids = get_local_grids(portfolio, grids)
-
-    # readig the levels file
-    levels_file_path = os.path.join(dp_dir_path, 'definitions', 'levels.yaml')
-    with open(levels_file_path, 'r') as levels_file:
-        levels = yaml.safe_load(levels_file)
- 
-    # jinja2 loading and replacing 
-    templateLoader = jinja2.FileSystemLoader(searchpath='./')
-    templateEnv = jinja2.Environment(loader=templateLoader, trim_blocks=True, lstrip_blocks=True)
-
-    jinja_file = f"{dp_version}.j2"   
-    template = templateEnv.get_template(jinja_file)
-
-    all_content = []
-
-    for profile in dp[model]:
-        
-        levtype = profile["levtype"]
-        frequency = profile["frequency"]
-        resolutions = get_available_resolutions(local_grids, model)
-        for resolution in resolutions:
-            content = get_profile_content(
-                        template, profile, resolution, model, dp_version,
-                        local_grids, levels)
-            combined = {**config, **content}
-            logger.info('Creating catalog entry for %s', combined['source'])
-            for replacepath in ['fdb_home', 'eccodes_path']:
-                combined[replacepath] = '"' + replace_intake_vars(combined[replacepath], catalog=combined['catalog_dir']) + '"'
-            all_content.append(template.render(combined))
-
-    create_catalog_entry(config, catalog_dir_path, model.upper(), all_content)
+    generator = AquaFDBGenerator(dp_version, config_file, loglevel)
+    generator.generate_catalog()
