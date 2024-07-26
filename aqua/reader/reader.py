@@ -50,6 +50,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
                  startdate=None, enddate=None,
                  rebuild=False, loglevel=None, nproc=4,
                  aggregation=None, chunks=None,
+                 preproc=None,
                  **kwargs):
         """
         Initializes the Reader class, which uses the catalog
@@ -84,6 +85,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
                                             If it is a dictionary the keys 'time' and 'vertical' are looked for.
                                             Time chunking can be one of S (step), 10M, 15M, 30M, h, 1h, 3h, 6h, D, 5D, W, M, Y.
                                             Vertical chunking is expressed as the number of vertical levels to be used.
+            preproc (function, optional): a function to be applied to the dataset when retrieved. Defaults to None.
             **kwargs: Arbitrary keyword arguments to be passed as parameters to the catalog entry.
                       'zoom', meant for HEALPix grid, is a predefined one which will allow for multiple gridname definition   
 
@@ -107,6 +109,9 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         self.time_correction = False #extra flag for correction data with cumulation time on monthly timescale
         self.aggregation = aggregation
         self.chunks = chunks
+
+        # Preprocessing function
+        self.preproc = preproc
 
         self.grid_area = None
         self.src_grid_area = None
@@ -570,6 +575,10 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         if isinstance(data, xr.Dataset):
             data.aqua.set_default(self)  # This links the dataset accessor to this instance of the Reader class
+
+        # Preprocessing function
+        if self.preproc:
+            data = self.preproc(data)
 
         return data
 
