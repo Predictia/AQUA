@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+AQUA diagnostic complete list:
+- Timeseries: all the available diagnostics support the catalog argument (#1299)
+
 ## [v0.11]
 
 Attention: this version is not compatible with catalog entries with ecCodes >= 2.35.0.
