@@ -39,6 +39,7 @@ class Timeseries():
                  std_startdate=None, std_enddate=None,
                  plot_kw={'ylim': {}}, longname=None,
                  units=None, extend=True,
+                 lon_limits=None, lat_limits=None,
                  save=True,
                  outdir='./',
                  outfile=None,
@@ -66,6 +67,8 @@ class Timeseries():
             longname (str): Long name of the variable. Default is None and logname attribute is used.
             units (str): Units of the variable. Default is None and units attribute is used.
             extend (bool): Extend the reference range. Default is True.
+            lon_limits (list): Longitude limits of the area to evaluate. Default is None.
+            lat_limits (list): Latitude limits of the area to evaluate. Default is None.
             save (bool): Save the figure. Default is True.
             outdir (str): Output directory. Default is "./".
             outfile (str): Output file name. Default is None.
@@ -117,6 +120,8 @@ class Timeseries():
         self.plot_kw = plot_kw
         self.longname = longname
         self.units = units
+        self.lon_limits = lon_limits
+        self.lat_limits = lat_limits
 
         self.save = save
         if self.save is False:
@@ -157,7 +162,9 @@ class Timeseries():
                                              annual=self.annual,
                                              monthly_std=self.monthly_std,
                                              annual_std=self.annual_std,
-                                             loglevel=self.loglevel)
+                                             loglevel=self.loglevel,
+                                             lon_limits=self.lon_limits,
+                                             lat_limits=self.lat_limits)
                 if extend:  # We introduce the possibility to avoid this for seasonal cycle
                     self.check_ref_range()
                 if self.longname is not None:
@@ -227,7 +234,7 @@ class Timeseries():
                     data_mon = data
                 else:
                     data_mon = reader.timmean(data, freq='MS', exclude_incomplete=True)
-                data_mon = reader.fldmean(data_mon)
+                data_mon = reader.fldmean(data_mon, lon_limits=self.lon_limits, lat_limits=self.lat_limits)
                 self.logger.info("Monthly data retrieved")
                 if data_mon is not None:
                     if self.longname is not None:
@@ -238,13 +245,13 @@ class Timeseries():
                         self.logger.debug(f"Units updated to: {self.units}")
                     self.data_mon.append(data_mon)
                 else:
-                    self.logger.warning(f"No monthly data found for {self.catalogs[i]} {model} {self.exps[i]} {self.sources[i]}")
+                    self.logger.warning(f"No monthly data found for {self.catalogs[i]} {model} {self.exps[i]} {self.sources[i]}") # noqa
 
             if self.annual:
                 data_ann = reader.timmean(data, freq='YS',
                                           exclude_incomplete=True,
                                           center_time=True)
-                data_ann = reader.fldmean(data_ann)
+                data_ann = reader.fldmean(data_ann, lon_limits=self.lon_limits, lat_limits=self.lat_limits)
                 self.logger.info("Annual data retrieved")
                 if data_ann is not None:
                     if self.longname is not None:
@@ -302,6 +309,13 @@ class Timeseries():
         except KeyError:
             title = f'{self.var} timeseries'
 
+        if self.lon_limits is not None or self.lat_limits is not None:
+            title += ' for region'
+            if self.lon_limits is not None:
+                title += f' lon: {self.lon_limits}'
+            if self.lat_limits is not None:
+                title += f' lat: {self.lat_limits}'
+
         fig, _ = plot_timeseries(monthly_data=self.data_mon,
                                  annual_data=self.data_annual,
                                  ref_monthly_data=self.ref_mon,
@@ -336,6 +350,10 @@ class Timeseries():
                 self.outfile += f'_{model}_{self.exps[i]}'
             if self.plot_ref:
                 self.outfile += f'_{ref_label}'
+            if self.lon_limits is not None:
+                self.outfile += f'_lon{self.lon_limits[0]}-{self.lon_limits[1]}'
+            if self.lat_limits is not None:
+                self.outfile += f'_lat{self.lat_limits[0]}-{self.lat_limits[1]}'
             self.outfile += '.pdf'
         self.logger.debug(f"Outfile: {self.outfile}")
         fig.savefig(os.path.join(outfig, self.outfile))
@@ -353,12 +371,19 @@ class Timeseries():
         if self.plot_ref:
             description += f" with {ref_label} as reference,"
             if self.std_startdate is not None and self.std_enddate is not None:
-                description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}"
+                description += f" std evaluated from {time_to_string(self.std_startdate)} to {time_to_string(self.std_enddate)}" # noqa
             else:
                 description += " std evaluated from the full time range."
         description += "."
         if self.extending_ref_range:
             description += " The reference range has been extended with a seasonal cycle or a band to match the model data."
+        if self.lon_limits is not None or self.lat_limits is not None:
+            description += " The data have been averaged over a region defined by"
+            if self.lon_limits is not None:
+                description += f" longitude limits {self.lon_limits}"
+            if self.lat_limits is not None:
+                description += f" latitude limits {self.lat_limits}"
+            description += "."
         self.logger.debug(f"Description: {description}")
         add_pdf_metadata(filename=os.path.join(outfig, self.outfile),
                          metadata_value=description)
@@ -378,6 +403,10 @@ class Timeseries():
             if self.catalogs[i] is not None:
                 outfile += f'_{self.catalogs[i]}'
             outfile += f'_{model}_{self.exps[i]}'
+            if self.lon_limits is not None:
+                outfile += f'_lon{self.lon_limits[0]}_{self.lon_limits[1]}'
+            if self.lat_limits is not None:
+                outfile += f'_lat{self.lat_limits[0]}_{self.lat_limits[1]}'
             try:
                 if self.monthly is True:
                     outmon = outfile + '_mon.nc'
@@ -392,6 +421,10 @@ class Timeseries():
 
         if self.plot_ref:
             outfile = f'global_time_series_timeseries_{self.var}_{self.plot_ref_kw["model"]}_{self.plot_ref_kw["exp"]}'
+            if self.lon_limits is not None:
+                outfile += f'_lon{self.lon_limits[0]}_{self.lon_limits[1]}'
+            if self.lat_limits is not None:
+                outfile += f'_lat{self.lat_limits[0]}_{self.lat_limits[1]}'
             try:
                 if self.monthly:
                     outmon = outfile + '_mon.nc'
@@ -405,6 +438,10 @@ class Timeseries():
                 self.logger.error(f"Error while saving netcdf {outdir}/{outfile}: {e}")
 
             outfile = f'global_time_series_timeseries_{self.var}_{self.plot_ref_kw["model"]}_{self.plot_ref_kw["exp"]}_std'
+            if self.lon_limits is not None:
+                outfile += f'_lon{self.lon_limits[0]}_{self.lon_limits[1]}'
+            if self.lat_limits is not None:
+                outfile += f'_lat{self.lat_limits[0]}_{self.lat_limits[1]}'
             try:
                 if self.monthly_std:
                     outmon = outfile + '_mon.nc'

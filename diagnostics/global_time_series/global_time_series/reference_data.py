@@ -120,10 +120,10 @@ def get_reference_timeseries(var, formula=False,
                              regrid=None,
                              monthly=True, annual=True,
                              monthly_std=True, annual_std=True,
-                             loglevel='WARNING'):
+                             loglevel='WARNING',
+                             **kwargs):
     """
     Get reference data for a given variable.
-    Default is ERA5 monthly data.
     By default it retrieve monthly and annual mean and standard deviation
 
     Parameters:
@@ -146,6 +146,7 @@ def get_reference_timeseries(var, formula=False,
         monthly_std (bool, opt): Compute monthly standard deviation. Default is True.
         annual_std (bool, opt): Compute annual standard deviation. Default is True.
         loglevel (str, opt): Logging level. Default is WARNING.
+        **kwargs: Additional arguments. In particular lon_limits and lat_limits for area selection.
 
     Returns:
         tuple: (monthly_data, monthly_std, annual_data, annual_std)
@@ -184,9 +185,9 @@ def get_reference_timeseries(var, formula=False,
         if monthly:
             data_mon = data.sel(time=slice(start_retrieve, end_retrieve))
             if formula:
-                data_mon = reader.fldmean(eval_formula(var, data_mon))
+                data_mon = reader.fldmean(eval_formula(var, data_mon), **kwargs)
             else:
-                data_mon = reader.fldmean(data_mon)
+                data_mon = reader.fldmean(data_mon, **kwargs)
                 data_mon = data_mon[var]
         else:
             data_mon = None
@@ -195,9 +196,9 @@ def get_reference_timeseries(var, formula=False,
             data_mon_std = data.sel(time=slice(std_startdate, std_enddate))
             if formula:
                 logger.debug(f"Computing monthly std for a formula {var}")
-                data_mon_std = reader.fldmean(eval_formula(var, data_mon_std)).groupby("time.month").std()
+                data_mon_std = reader.fldmean(eval_formula(var, data_mon_std), **kwargs).groupby("time.month").std()
             else:
-                data_mon_std = reader.fldmean(data_mon_std).groupby("time.month").std()
+                data_mon_std = reader.fldmean(data_mon_std, **kwargs).groupby("time.month").std()
                 data_mon_std = data_mon_std[var]
         else:
             data_mon_std = None
@@ -213,9 +214,9 @@ def get_reference_timeseries(var, formula=False,
         if annual:
             data_ann = data.sel(time=slice(start_retrieve, end_retrieve))
             if formula:
-                data_ann = reader.fldmean(eval_formula(var, data_ann))
+                data_ann = reader.fldmean(eval_formula(var, data_ann), **kwargs)
             else:
-                data_ann = reader.fldmean(data_ann)
+                data_ann = reader.fldmean(data_ann, **kwargs)
                 data_ann = data_ann[var]
         else:
             data_ann = None
@@ -223,9 +224,9 @@ def get_reference_timeseries(var, formula=False,
         if annual_std:
             data_ann_std = data.sel(time=slice(std_startdate, std_enddate))
             if formula:
-                data_ann_std = reader.fldmean(eval_formula(var, data_ann_std)).std()
+                data_ann_std = reader.fldmean(eval_formula(var, data_ann_std), **kwargs).std()
             else:
-                data_ann_std = reader.fldmean(data_ann_std).std()
+                data_ann_std = reader.fldmean(data_ann_std, **kwargs).std()
                 data_ann_std = data_ann_std[var]
         else:
             data_ann_std = None

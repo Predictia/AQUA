@@ -5,7 +5,6 @@ import os
 import gc
 
 import xarray as xr
-from matplotlib import pyplot as plt
 from aqua.graphics import plot_seasonalcycle
 from aqua.util import create_folder, add_pdf_metadata, time_to_string
 from aqua.logger import log_configure
@@ -34,6 +33,7 @@ class SeasonalCycle(Timeseries):
                  outdir='./',
                  outfile=None,
                  longname=None, units=None,
+                 lon_limits=None, lat_limits=None,
                  loglevel='WARNING'):
         """
         Initialize the class.
@@ -59,6 +59,8 @@ class SeasonalCycle(Timeseries):
             outfile: the output file
             longname: the long name of the variable. Override the attribute in the data file.
             units: the units of the variable. Override the attribute in the data file.
+            lon_limits (list): Longitude limits of the area to evaluate. Default is None.
+            lat_limits (list): Latitude limits of the area to evaluate. Default is None.
             loglevel: the logging level. Default is 'WARNING'.
         """
         super().__init__(var=var, formula=formula,
@@ -75,6 +77,7 @@ class SeasonalCycle(Timeseries):
                          outdir=outdir,
                          outfile=outfile,
                          longname=longname, units=units,
+                         lon_limits=lon_limits, lat_limits=lat_limits,
                          loglevel=loglevel)
         # Change the logger name
         self.logger = log_configure(log_level=loglevel, log_name="SeasonalCycle")
@@ -136,6 +139,13 @@ class SeasonalCycle(Timeseries):
         except KeyError:
             title = f'{self.var} seasonal cycle'
 
+        if self.lon_limits is not None or self.lat_limits is not None:
+            title += ' for region'
+            if self.lon_limits is not None:
+                title += f' lon: {self.lon_limits}'
+            if self.lat_limits is not None:
+                title += f' lat: {self.lat_limits}'
+
         fig, _ = plot_seasonalcycle(data=self.cycle,
                                     ref_data=self.cycle_ref,
                                     std_data=self.ref_mon_std,
@@ -167,6 +177,10 @@ class SeasonalCycle(Timeseries):
                 if self.catalogs[i] is not None:
                     self.outfile += f'_{self.catalogs[i]}'
                 self.outfile += f'_{model}_{self.exps[i]}'
+            if self.lon_limits is not None:
+                self.outfile += f'_lon{self.lon_limits[0]}_{self.lon_limits[1]}'
+            if self.lat_limits is not None:
+                self.outfile += f'_lat{self.lat_limits[0]}_{self.lat_limits[1]}'
             if self.plot_ref:
                 self.outfile += f'_{ref_label}'
             self.outfile += '.pdf'
@@ -184,6 +198,13 @@ class SeasonalCycle(Timeseries):
             except ValueError:
                 description += f" std evaluated from {time_to_string(self.ref_mon.time.values[0])} to {time_to_string(self.ref_mon.time.values[-1])}"  # noqa: E501
         description += "."
+        if self.lon_limits is not None or self.lat_limits is not None:
+            description += " The data have been averaged over a region defined by"
+            if self.lon_limits is not None:
+                description += f" longitude limits {self.lon_limits}"
+            if self.lat_limits is not None:
+                description += f" latitude limits {self.lat_limits}"
+            description += "."
         self.logger.debug(f"Description: {description}")
         add_pdf_metadata(filename=os.path.join(outfig, self.outfile),
                          metadata_value=description)
