@@ -26,10 +26,12 @@ class Timeseries():
     of model, exp and source.
     """
     def __init__(self, var=None, formula=False,
+                 catalogs=None,
                  models=None, exps=None, sources=None,
                  monthly=True, annual=True,
                  regrid=None, plot_ref=True,
-                 plot_ref_kw={'model': 'ERA5',
+                 plot_ref_kw={'catalog': 'obs',
+                              'model': 'ERA5',
                               'exp': 'era5',
                               'source': 'monthly'},
                  startdate=None, enddate=None,
@@ -46,6 +48,7 @@ class Timeseries():
             var (str): Variable name.
             formula (bool): (Optional) If True, try to derive the variable from other variables.
                             Default is False.
+            catalogs (list or str): Catalog IDs.
             models (list or str): Model IDs.
             exps (list or str): Experiment IDs.
             sources (list or str): Source IDs.
@@ -77,9 +80,13 @@ class Timeseries():
         self.models = models
         self.exps = exps
         self.sources = sources
+        self.catalogs = self._catalogs(catalogs)  # Since it is optional we need to fill in if None
 
-        if self.models is None or self.exps is None:
-            raise NoDataError("No model or exp provided")
+        if self.models is None or self.exps is None or self.sources is None:
+            raise NoDataError("No models, exps or sources provided")
+
+        if isinstance(self.catalogs, str):
+            self.catalogs = [self.catalogs]
         if isinstance(self.models, str):
             self.models = [self.models]
         if isinstance(self.exps, str):
@@ -140,7 +147,7 @@ class Timeseries():
                 self.ref_mon, self.ref_mon_std, self.ref_ann, self.ref_ann_std =\
                     get_reference_timeseries(var=self.var,
                                              formula=self.formula,
-                                             **self.plot_ref_kw,  # model,exp,source
+                                             **self.plot_ref_kw,  # catalog,model,exp,source
                                              startdate=self.startdate,
                                              enddate=self.enddate,
                                              std_startdate=self.std_startdate,
@@ -184,9 +191,10 @@ class Timeseries():
             enddate = None
 
         for i, model in enumerate(self.models):
-            self.logger.info(f'Retrieving data for {model} {self.exps[i]} {self.sources[i]}')
+            self.logger.info(f'Retrieving data for {self.catalogs[i]} {model} {self.exps[i]} {self.sources[i]}')
             try:
-                reader = Reader(model=model, exp=self.exps[i], source=self.sources[i],
+                reader = Reader(catalog=self.catalogs[i], model=model,
+                                exp=self.exps[i], source=self.sources[i],
                                 startdate=self.startdate, enddate=self.enddate,
                                 regrid=self.regrid, loglevel=self.loglevel)
                 if self.formula:
@@ -194,13 +202,13 @@ class Timeseries():
                     self.logger.debug(f"Evaluating formula for {self.var}")
                     data = eval_formula(self.var, data)
                     if data is None:
-                        self.logger.error(f"Formula evaluation failed for {model} {self.exps[i]} {self.sources[i]}")
+                        self.logger.error(f"Formula evaluation failed for {self.catalogs[i]} {model} {self.exps[i]} {self.sources[i]}") # noqa
                 else:
                     data = reader.retrieve(var=self.var)
                     data = data[self.var]
             except Exception as e:
                 self.logger.debug(f"Error while retrieving: {e}")
-                self.logger.warning(f"No data found for {model} {self.exps[i]} {self.sources[i]}")
+                self.logger.warning(f"No data found for {self.catalogs[i]} {model} {self.exps[i]} {self.sources[i]}")
 
             if self.startdate is None:
                 if startdate is None:
@@ -215,7 +223,7 @@ class Timeseries():
 
             if self.monthly:
                 if 'monthly' in self.sources[i] or 'mon' in self.sources[i]:
-                    self.logger.debug(f"No monthly resample needed for {model} {self.exps[i]} {self.sources[i]}")
+                    self.logger.debug(f"No monthly resample needed for {self.catalogs[i]} {model} {self.exps[i]} {self.sources[i]}") # noqa
                     data_mon = data
                 else:
                     data_mon = reader.timmean(data, freq='MS', exclude_incomplete=True)
@@ -230,7 +238,7 @@ class Timeseries():
                         self.logger.debug(f"Units updated to: {self.units}")
                     self.data_mon.append(data_mon)
                 else:
-                    self.logger.warning(f"No monthly data found for {model} {self.exps[i]} {self.sources[i]}")
+                    self.logger.warning(f"No monthly data found for {self.catalogs[i]} {model} {self.exps[i]} {self.sources[i]}")
 
             if self.annual:
                 data_ann = reader.timmean(data, freq='YS',
@@ -247,7 +255,7 @@ class Timeseries():
                         self.logger.debug(f"Units updated to: {self.units}")
                     self.data_annual.append(data_ann)
                 else:
-                    self.logger.warning(f"No annual data found for {model} {self.exps[i]} {self.sources[i]}")
+                    self.logger.warning(f"No annual data found for {self.catalogs[i]} {model} {self.exps[i]} {self.sources[i]}") # noqa
 
             # Clean up
             del reader
@@ -323,6 +331,8 @@ class Timeseries():
         if self.outfile is None:
             self.outfile = f'global_time_series_timeseries_{self.var}'
             for i, model in enumerate(self.models):
+                if self.catalogs[i] is not None:
+                    self.outfile += f'_{self.catalogs[i]}'
                 self.outfile += f'_{model}_{self.exps[i]}'
             if self.plot_ref:
                 self.outfile += f'_{ref_label}'
@@ -364,7 +374,10 @@ class Timeseries():
         create_folder(outdir, self.loglevel)
 
         for i, model in enumerate(self.models):
-            outfile = f'global_time_series_timeseries_{self.var}_{model}_{self.exps[i]}'
+            outfile = f'global_time_series_timeseries_{self.var}'
+            if self.catalogs[i] is not None:
+                outfile += f'_{self.catalogs[i]}'
+            outfile += f'_{model}_{self.exps[i]}'
             try:
                 if self.monthly is True:
                     outmon = outfile + '_mon.nc'
@@ -503,6 +516,16 @@ class Timeseries():
                 raise ValueError(f"Unknown frequency: {freq}")
 
         return startdate, enddate
+
+    def _catalogs(self, catalogs=None):
+        """
+        Fill in the missing catalogs. If catalogs is None, creates a list of None
+        with the same length as models, exps and sources.
+        """
+        if catalogs is None:
+            self.catalogs = [None] * len(self.models)
+        else:
+            self.catalogs = catalogs
 
     def cleanup(self):
         """Clean up"""

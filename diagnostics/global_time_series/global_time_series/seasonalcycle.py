@@ -20,9 +20,11 @@ class SeasonalCycle(Timeseries):
     Class to extract the seasonal cycle of a variable from a time series.
     """
     def __init__(self, var=None, formula=False,
+                 catalogs=None,
                  models=None, exps=None, sources=None,
                  regrid=None, plot_ref=True,
-                 plot_ref_kw={'model': 'ERA5',
+                 plot_ref_kw={'catalog': 'obs',
+                              'model': 'ERA5',
                               'exp': 'era5',
                               'source': 'monthly'},
                  startdate=None, enddate=None,
@@ -39,6 +41,7 @@ class SeasonalCycle(Timeseries):
         Args:
             var: the variable to extract the seasonal cycle
             formula: if True a formula is evaluated from the variable string.
+            catalogs (list or str, opt): the catalogs to search for the data
             models: the list of models to analyze
             exps: the list of experiments to analyze
             sources: the list of sources to analyze
@@ -59,6 +62,7 @@ class SeasonalCycle(Timeseries):
             loglevel: the logging level. Default is 'WARNING'.
         """
         super().__init__(var=var, formula=formula,
+                         catalogs=catalogs,
                          models=models, exps=exps, sources=sources,
                          monthly=True, annual=False,
                          regrid=regrid, plot_ref=plot_ref,
@@ -160,6 +164,8 @@ class SeasonalCycle(Timeseries):
         if self.outfile is None:
             self.outfile = f'global_time_series_seasonalcycle_{self.var}'
             for i, model in enumerate(self.models):
+                if self.catalogs[i] is not None:
+                    self.outfile += f'_{self.catalogs[i]}'
                 self.outfile += f'_{model}_{self.exps[i]}'
             if self.plot_ref:
                 self.outfile += f'_{ref_label}'
@@ -181,22 +187,25 @@ class SeasonalCycle(Timeseries):
         self.logger.debug(f"Description: {description}")
         add_pdf_metadata(filename=os.path.join(outfig, self.outfile),
                          metadata_value=description)
-    
+
     def save_seasonal_netcdf(self):
         """
         Save the seasonal cycle to a netcdf file
         """
         self.logger.info("Saving seasonal cycle to netcdf")
-        outdir= os.path.join(self.outdir, 'netcdf')
+        outdir = os.path.join(self.outdir, 'netcdf')
         create_folder(outdir, self.loglevel)
 
         for i, model in enumerate(self.models):
-            outfile = f'global_time_series_seasonalcycle_{self.var}_{model}_{self.exps[i]}.nc'
+            outfile = f'global_time_series_seasonalcycle_{self.var}'
+            if self.catalogs[i] is not None:
+                outfile += f'_{self.catalogs[i]}'
+            outfile += f'_{model}_{self.exps[i]}.nc'
             try:
                 self.cycle[i].to_netcdf(os.path.join(outdir, outfile))
             except Exception as e:
                 self.logger.error(f"Error while saving netcdf {outdir}/{outfile}: {e}")
-        
+
         if self.plot_ref:
             outfile = f'global_time_series_seasonalcycle_{self.var}_{self.plot_ref_kw["model"]}.nc'
             try:

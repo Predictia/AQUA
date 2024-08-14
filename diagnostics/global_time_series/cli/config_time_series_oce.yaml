@@ -1,10 +1,11 @@
 # The first model in this block can be overridden
 # in the command line by using:
-# --model, --exp, --source, --outputdir
+# --model, --exp, --source, --outputdir, --catalog
 models:
   - model: 'IFS-NEMO'
     exp: 'ssp370'
     source: 'lra-r100-monthly'
+    # catalog: 'climatedt-phase1'
 outputdir: "./"
 
 # This is the list of variables that will be plotted as timeseries

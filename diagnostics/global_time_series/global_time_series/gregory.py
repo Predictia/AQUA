@@ -20,7 +20,8 @@ class GregoryPlot():
     Retrieve data, obs reference and plot the Gregory plot.
     Can work with a list of models, experiments and sources.
     """
-    def __init__(self, models=None, exps=None, sources=None,
+    def __init__(self, catalogs=None,
+                 models=None, exps=None, sources=None,
                  monthly=True, annual=True,
                  regrid=None,
                  ts_name='2t', toa_name=['mtnlwrf', 'mtnswrf'],
@@ -31,6 +32,7 @@ class GregoryPlot():
                  loglevel='WARNING'):
         """
         Args:
+            catalogs (list, opt): List of catalogs to search for the data.
             models (list): List of model IDs.
             exps (list): List of experiment IDs.
             sources (list): List of source IDs.
@@ -65,15 +67,18 @@ class GregoryPlot():
         self.models = models
         self.exps = exps
         self.sources = sources
+        self.catalogs = self._catalogs(catalogs)
 
-        if self.models is None or self.exps is None:
-            raise NoDataError("No models or experiments given. No plot will be drawn.")
+        if self.models is None or self.exps is None or self.sources is None:
+            raise NoDataError("No models, experiments or sources given. No plot will be drawn.")
         if isinstance(self.models, str):
             self.models = [self.models]
         if isinstance(self.exps, str):
             self.exps = [self.exps]
         if isinstance(self.sources, str):
             self.sources = [self.sources]
+        if isinstance(self.catalogs, str):
+            self.catalogs = [self.catalogs]
 
         self.monthly = monthly
         self.annual = annual
@@ -117,16 +122,17 @@ class GregoryPlot():
         self.data_toa_annual = len(self.models) * [None]
 
         for i, model in enumerate(self.models):
-            self.logger.info(f'Retrieving data for {model} {self.exps[i]} {self.sources[i]}')
+            self.logger.info(f'Retrieving data for {self.catalogs[i]} {model} {self.exps[i]} {self.sources[i]}')
             try:
-                reader = Reader(model=model, exp=self.exps[i], source=self.sources[i],
+                reader = Reader(catalog=self.catalogs[i], model=model,
+                                exp=self.exps[i], source=self.sources[i],
                                 regrid=self.regrid, loglevel=self.loglevel)
                 data = reader.retrieve(var=self.retrieve_list)
                 ts = reader.fldmean(data[self.ts_name]) - 273.15
                 toa = reader.fldmean(data[self.toa_name[0]] + data[self.toa_name[1]])
             except Exception as e:
                 self.logger.error(f"Error: {e}")
-                raise NoDataError(f"Could not retrieve data for {model}-{self.exps[i]}. No plot will be drawn.") from e
+                raise NoDataError(f"Could not retrieve data for {model} {self.exps[i]}. No plot will be drawn.") from e
 
             if self.monthly:
                 if 'monthly' in self.sources[i] or 'mon' in self.sources[i]:
@@ -317,6 +323,8 @@ class GregoryPlot():
         if self.outfile is None:
             self.outfile = 'global_time_series_gregory_plot'
             for i, model in enumerate(self.models):
+                if self.catalogs[i] is not None:
+                    self.outfile += f'_{self.catalogs[i]}'
                 self.outfile += f"_{model}_{self.exps[i]}"
             if self.ref:
                 self.outfile += "_ref_ERA5_CERES"
@@ -343,11 +351,17 @@ class GregoryPlot():
         for i, model in enumerate(self.models):
             try:
                 if self.monthly:
-                    outfile = f'global_time_series_gregory_plot_monthly_{model}_{self.exps[i]}.nc'
+                    outfile = f'global_time_series_gregory_plot_monthly'
+                    if self.catalogs[i] is not None:
+                        outfile += f'_{self.catalogs[i]}'
+                    outfile += f'_{model}_{self.exps[i]}.nc'
                     self.data_ts_mon[i].to_netcdf(os.path.join(outdir, outfile), mode='w')
                     self.data_toa_mon[i].to_netcdf(os.path.join(outdir, outfile), mode='a')
                 if self.annual:
-                    outfile = f'global_time_series_gregory_plot_annual_{model}_{self.exps[i]}.nc'
+                    outfile = f'global_time_series_gregory_plot_annual'
+                    if self.catalogs[i] is not None:
+                        outfile += f'_{self.catalogs[i]}'
+                    outfile += f'_{model}_{self.exps[i]}.nc'
                     self.data_ts_annual[i].to_netcdf(os.path.join(outdir, outfile), mode='w')
                     self.data_toa_annual[i].to_netcdf(os.path.join(outdir, outfile), mode='a')
             except Exception as e:
@@ -362,6 +376,16 @@ class GregoryPlot():
             except Exception as e:
                 self.logger.error(f"Error: {e}")
                 self.logger.error(f"Could not save reference data to {outfile}")
+
+    def _catalogs(self, catalogs=None):
+        """
+        Fill in the missing catalogs. If catalogs is None, creates a list of None
+        with the same length as models, exps and sources.
+        """
+        if catalogs is None:
+            self.catalogs = [None] * len(self.models)
+        else:
+            self.catalogs = catalogs
 
     def cleanup(self):
         """Clean up"""
