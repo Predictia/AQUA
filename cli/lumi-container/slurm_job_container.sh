@@ -29,6 +29,7 @@ singularity exec \
     --bind /pfs/lustrep4/ \
     --bind /pfs/lustrep3/scratch/ \
     --bind /appl/local/climatedt/ \
+    --bind /appl/local/destine/ \
     --bind /flash/project_465000454 \
     --bind /projappl/ \
     --bind /project \
