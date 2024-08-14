@@ -57,6 +57,11 @@ The same structure can be used for the other classes.
 As can be seen, more than one model can be analysed at the same time.
 The user can also define the start and end date of the analysis and the reference dataset.
 
+.. note::
+
+    A ``catalogs`` argument can be passed to the class to define the catalogs to use for the analysis.
+    If not provided, the ``Reader`` will identify the catalogs to use based on the models, experiments and sources provided.
+
 CLI usage
 ---------
 
@@ -75,6 +80,7 @@ Additionally the CLI can be run with the following optional arguments:
 - ``--config``, ``-c``: Path to the configuration file.
 - ``--nworkers``, ``-n``: Number of workers to use for parallel processing.
 - ``--loglevel``, ``-l``: Logging level. Default is ``WARNING``.
+- ``--catalog``: Catalog to use for the analysis. It can be defined in the config file.
 - ``--model``: Model to analyse. It can be defined in the config file.
 - ``--exp``: Experiment to analyse. It can be defined in the config file.
 - ``--source``: Source to analyse. It can be defined in the config file.
@@ -85,7 +91,7 @@ Config file structure
 
 The configuration file is a YAML file that contains the following information:
 
-* ``models``: a list of models to analyse
+* ``models``: a list of models to analyse (defined by the catalog, model, exp, source arguments)
 * ``outputdir``: the directory where the output files will be saved
 * ``timeseries``: a list of variables to compute the global mean time series
 * ``timeseries_formulae``: a list of formulae to compute the global mean time series
