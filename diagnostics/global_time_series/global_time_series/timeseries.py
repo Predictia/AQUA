@@ -38,7 +38,7 @@ class Timeseries():
                  monthly_std=True, annual_std=True,
                  std_startdate=None, std_enddate=None,
                  plot_kw={'ylim': {}}, longname=None,
-                 units=None, expand=True,
+                 units=None, extend=True,
                  save=True,
                  outdir='./',
                  outfile=None,
@@ -65,7 +65,7 @@ class Timeseries():
             plot_kw (dict): Additional keyword arguments passed to the plotting function.
             longname (str): Long name of the variable. Default is None and logname attribute is used.
             units (str): Units of the variable. Default is None and units attribute is used.
-            expand (bool): Expand the reference range. Default is True.
+            extend (bool): Extend the reference range. Default is True.
             save (bool): Save the figure. Default is True.
             outdir (str): Output directory. Default is "./".
             outfile (str): Output file name. Default is None.
@@ -108,8 +108,8 @@ class Timeseries():
         self.annual_std = annual_std if annual else False
         self.std_startdate = std_startdate
         self.std_enddate = std_enddate
-        self.expand = expand
-        self.expanding_ref_range = False
+        self.extend = extend
+        self.extending_ref_range = False
 
         self.startdate = startdate
         self.enddate = enddate
@@ -127,7 +127,7 @@ class Timeseries():
     def run(self):
         """Retrieve ref, retrieve data and plot"""
         self.retrieve_data()
-        self.retrieve_ref(extend=self.expand)
+        self.retrieve_ref(extend=self.extend)
         self.plot()
         if self.save:
             self.save_netcdf()
@@ -357,8 +357,8 @@ class Timeseries():
             else:
                 description += " std evaluated from the full time range."
         description += "."
-        if self.expanding_ref_range:
-            description += " The reference range has been expanded with a seasonal cycle or a band to match the model data."
+        if self.extending_ref_range:
+            description += " The reference range has been extended with a seasonal cycle or a band to match the model data."
         self.logger.debug(f"Description: {description}")
         add_pdf_metadata(filename=os.path.join(outfig, self.outfile),
                          metadata_value=description)
@@ -425,15 +425,15 @@ class Timeseries():
         self.logger.debug("Checking reference range")
 
         if self.monthly:
-            exp_startdate, exp_enddate = self._expand_ref_range(freq='monthly')
+            exp_startdate, exp_enddate = self._extend_ref_range(freq='monthly')
             self.logger.info(f"Monthly reference std time range for expansion evaluation: {exp_startdate} to {exp_enddate}")
 
-            startdate, enddate = self._expand_ref_range(freq='monthly', range_eval=True)
+            startdate, enddate = self._extend_ref_range(freq='monthly', range_eval=True)
             self.logger.info(f"Monthly reference data time available {startdate} to {enddate}")
 
             if startdate > self.startdate or enddate < self.enddate:
                 self.logger.info("Expanding reference range with a seasonal cycle")
-                self.expanding_ref_range = True
+                self.extending_ref_range = True
 
                 # TODO: startdate has to be rounded to the first of the month
                 # if startdate > self.startdate:
@@ -456,15 +456,15 @@ class Timeseries():
             self.ref_mon = self.ref_mon.sel(time=slice(self.startdate, self.enddate))
 
         if self.annual:
-            exp_startdate, exp_enddate = self._expand_ref_range(freq='annual')
+            exp_startdate, exp_enddate = self._extend_ref_range(freq='annual')
             self.logger.info(f"Annual reference std time range for expansion evaluation: {exp_startdate} to {exp_enddate}")
 
-            startdate, enddate = self._expand_ref_range(freq='annual', range_eval=True)
+            startdate, enddate = self._extend_ref_range(freq='annual', range_eval=True)
             self.logger.info(f"Annual reference data time available {startdate} to {enddate}")
 
             if startdate > self.startdate or enddate < self.enddate:
                 self.logger.info("Expanding reference range with a band of the reference data")
-                self.expanding_ref_range = True
+                self.extending_ref_range = True
 
                 # TODO: startdate has to be rounded to the center of the year (month=7)
                 # if startdate > self.startdate:
@@ -486,8 +486,8 @@ class Timeseries():
 
             self.ref_ann = self.ref_ann.sel(time=slice(self.startdate, self.enddate))
 
-    def _expand_ref_range(self, freq='monthly', range_eval=False):
-        """Evaluate range for statistics to expand the reference range
+    def _extend_ref_range(self, freq='monthly', range_eval=False):
+        """Evaluate range for statistics to extend the reference range
 
         Args:
             freq (str): Frequency of the data. Default is 'monthly'.
