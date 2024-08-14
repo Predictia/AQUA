@@ -128,6 +128,29 @@ The ``timeseries_plot_params`` block contains the following parameters:
 * ``longname``: the long name of the variable. Used to overwrite formulae names.
 * ``units``: the units of the variable. Used to overwrite formulae units.
 
+Advanced usage
+--------------
+
+Area selection
+^^^^^^^^^^^^^^
+
+The diagnostic can be run for a specific area by defining the longitude and latitude bounds while initialising the class.
+The area selection can be done for the Timeseries and SeasonalCycle classes.
+
+.. code-block:: python
+
+    ts = Timeseries(var='2t', models=models, exps=exps, sources=sources,
+                    startdate='1990-01-01', enddate='1999-12-31',
+                    std_startdate='1990-01-01', std_enddate='1999-12-31',
+                    lat_limits=[-90, 0], loglevel='INFO')
+    ts.run()
+
+Title, caption and filenames will be updated with the area selection informations.
+
+.. note::
+
+    The area selection is not available for the CLI yet.
+
 Output
 ------
 
