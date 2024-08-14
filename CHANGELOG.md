@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA diagnostic complete list:
+- Timeseries: the cli argument for extending the time range is now extend (previously expand) (#1299)
 - Timeseries: all the available diagnostics support the catalog argument (#1299)
 
 ## [v0.11]
