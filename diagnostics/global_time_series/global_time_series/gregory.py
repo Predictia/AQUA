@@ -67,7 +67,7 @@ class GregoryPlot():
         self.models = models
         self.exps = exps
         self.sources = sources
-        self.catalogs = self._catalogs(catalogs)
+        self._catalogs(catalogs=catalogs)  # Define self.catalogs
 
         if self.models is None or self.exps is None or self.sources is None:
             raise NoDataError("No models, experiments or sources given. No plot will be drawn.")

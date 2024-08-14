@@ -80,7 +80,7 @@ class Timeseries():
         self.models = models
         self.exps = exps
         self.sources = sources
-        self.catalogs = self._catalogs(catalogs)  # Since it is optional we need to fill in if None
+        self._catalogs(catalogs=catalogs)  # It defines self.catalogs
 
         if self.models is None or self.exps is None or self.sources is None:
             raise NoDataError("No models, exps or sources provided")

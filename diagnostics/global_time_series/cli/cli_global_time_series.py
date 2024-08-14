@@ -127,10 +127,7 @@ if __name__ == '__main__':
     config = load_yaml(file)
 
     models = config['models']
-    try:
-        models[0]['catalog'] = get_arg(args, 'catalog', models[0]['catalog'])
-    except KeyError:
-        models[0]['catalog'] = None
+    models[0]['catalog'] = get_arg(args, 'catalog', models[0]['catalog'])
     models[0]['model'] = get_arg(args, 'model', models[0]['model'])
     models[0]['exp'] = get_arg(args, 'exp', models[0]['exp'])
     models[0]['source'] = get_arg(args, 'source', models[0]['source'])
