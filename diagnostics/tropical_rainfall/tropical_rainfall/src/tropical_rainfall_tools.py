@@ -70,7 +70,7 @@ class ToolsClass:
             SomeException: If the ConfigPath object is not properly initialized or if there is an issue with
                         retrieving the machine information.
         """
-        return ConfigPath().catalog
+        return ConfigPath().get_machine()
 
     def get_netcdf_path(self, configname: str = full_path_to_config) -> tuple:
         """
@@ -259,25 +259,38 @@ class ToolsClass:
         except (KeyError, TypeError):
             return default
 
-    def open_dataset(self, path_to_netcdf: str) -> object:
+    def open_dataset(self, path_to_netcdf: str) -> xr.Dataset:
         """
-        Function to load a histogram dataset from a file using pickle.
+        Function to load a dataset from a NetCDF file.
 
         Args:
             path_to_netcdf (str): The path to the dataset file.
 
         Returns:
-            object: The loaded histogram dataset.
+            xr.Dataset: The loaded dataset.
 
         Raises:
             FileNotFoundError: If the specified dataset file is not found.
+            ValueError: If the dataset file cannot be opened with the available backends.
         """
+        self.logger.debug(f"Opening dataset from path: {path_to_netcdf}")
+        
+        if not os.path.exists(path_to_netcdf):
+            self.logger.error(f"File does not exist: {path_to_netcdf}")
+            raise FileNotFoundError(f"File does not exist: {path_to_netcdf}")
+        
         try:
-            dataset = xr.open_dataset(path_to_netcdf)
+            dataset = xr.open_dataset(path_to_netcdf, engine='netcdf4')
             return dataset
-        except FileNotFoundError:
-            raise FileNotFoundError(
-                "The specified dataset file was not found.")
+        except FileNotFoundError as e:
+            self.logger.error(f"File not found: {path_to_netcdf}")
+            raise FileNotFoundError(f"The specified dataset file was not found: {path_to_netcdf}")
+        except ValueError as e:
+            self.logger.error(f"Error opening dataset with available backends: {e}")
+            raise ValueError(f"Failed to open dataset at {path_to_netcdf}: {e}")
+        except Exception as e:
+            self.logger.error(f"Unexpected error opening dataset: {e}")
+            raise
 
     def select_files_by_year_and_month_range(self, path_to_histograms: str, start_year: int = None, end_year: int = None,
                                              start_month: int = None, end_month: int = None, flag: str = None) -> list:
@@ -1071,3 +1084,42 @@ class ToolsClass:
         # Find all datetime parts and format them
         formatted_time_band = re.sub(r'(\d{4})-(\d{2})-(\d{2})T\d{2}:\d{2}:\d{2}\.\d+', r'\1-\2-\3', time_band)
         return formatted_time_band
+    
+    def format_lat_band(self, dataset) -> str:
+        """
+        Format the latitude band information from a dataset.
+
+        Args:
+            dataset: The dataset containing the latitude band information.
+
+        Returns:
+            str: A formatted string describing the latitude band.
+        """
+        lat_band_values = dataset.lat_band.split(', ')
+        lat_band_str = f"The latitude band is from {lat_band_values[0]} to {lat_band_values[1]}"
+        if len(lat_band_values) > 2:
+            lat_band_str += f" with a frequency of {lat_band_values[2].split('=')[1]}"
+        return lat_band_str
+
+    def verify_lat_band(sel, model_dataset, comparison_dataset, dataset_name, logger):
+        """
+        Verify that the latitude band of a comparison dataset matches the latitude band of the model dataset.
+
+        Args:
+            model_dataset: The model dataset containing the reference latitude band.
+            comparison_dataset: The dataset to be compared.
+            dataset_name: The name of the comparison dataset.
+            logger: The logger instance for logging messages.
+
+        Returns:
+            bool: True if the latitude bands match, False otherwise.
+        """
+        def check_lat_band(model_lat_band, comparison_lat_band, dataset_name):
+            if model_lat_band != comparison_lat_band:
+                logger.error(f"Latitude bands do not match between model and {dataset_name} data. Aborting comparison.")
+                return False
+            return True
+
+        if comparison_dataset is not None:
+            return check_lat_band(model_dataset.lat_band, comparison_dataset.lat_band, dataset_name)
+        return True  # If comparison_dataset is None, consider it as a match
