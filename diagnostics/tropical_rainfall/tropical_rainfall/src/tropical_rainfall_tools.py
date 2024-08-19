@@ -59,19 +59,6 @@ class ToolsClass:
             time_str = '-'.join(parts[:len(parts)])
         return time_str
 
-    def get_machine(self):
-        """
-        Retrieves the machine information from the ConfigPath instance.
-
-        Returns:
-            str: The machine information retrieved from the ConfigPath object.
-
-        Raises:
-            SomeException: If the ConfigPath object is not properly initialized or if there is an issue with
-                        retrieving the machine information.
-        """
-        return ConfigPath().get_machine()
-
     def get_netcdf_path(self, configname: str = full_path_to_config) -> tuple:
         """
         Load paths from a YAML configuration file based on the specified configuration name.
@@ -94,7 +81,7 @@ class ToolsClass:
         try:
             with open(config_path, 'r') as file:
                 data = yaml.safe_load(file)
-            machine = ConfigPath().machine
+            machine = ConfigPath().get_machine()
             path_to_netcdf = data[machine]['path_to_netcdf']
         except FileNotFoundError as e:
             # Handle FileNotFoundError exception
@@ -187,7 +174,7 @@ class ToolsClass:
         try:
             with open(config_path, 'r') as file:
                 data = yaml.safe_load(file)
-            machine = ConfigPath().machine
+            machine = ConfigPath().get_machine()
             path_to_pdf = data[machine]['path_to_pdf']
         except FileNotFoundError as e:
             # Handle FileNotFoundError exception

@@ -604,7 +604,7 @@ class MainClass:
             path_to_netcdf = path_to_netcdf + 'trop_rainfall_' + name_of_file + '.nc'
 
             if os.path.exists(path_to_netcdf):
-                self.logger.info(f"File {path_to_netcdf} already exists. Set `rebuild=True` if you want to update it.")
+                self.logger.warning(f"File {path_to_netcdf} already exists. Set `rebuild=True` if you want to update it.")
                 if rebuild:
                     try:
                         # Attempt to remove the file (make sure you have permissions)
