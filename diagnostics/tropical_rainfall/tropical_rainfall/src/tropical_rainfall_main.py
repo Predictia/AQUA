@@ -1358,8 +1358,9 @@ class MainClass:
             raise Exception('Time band is empty')
 
         if isinstance(path_to_netcdf, str) and name_of_file is not None:
-            return self.dataset_to_netcdf(
-                average_dataset, path_to_netcdf=path_to_netcdf, name_of_file=name_of_file+'_'+str(coord))
+            remaining_coord = 'lon' if coord == 'lat' else 'lat'
+            filename = f"{name_of_file}_along_{remaining_coord}.nc"
+            return self.dataset_to_netcdf(average_dataset, path_to_netcdf=path_to_netcdf, name_of_file=filename)
         else:
             return average_dataset
 
