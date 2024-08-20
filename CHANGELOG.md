@@ -11,6 +11,12 @@ Unreleased in the current development version:
 
 Main changes are:
 1. Eccodes is now compatible with versions >= 2.31.0, solving the incompatibility with the latest versions of the library
+2. Timeseries and Seasonal cyle can now be evaluated also on a specific region 
+
+AQUA diagnostic complete list:
+- Timeseries: a region can be selected for Timeseries and Seasonal Cycle with the `lon_limits` and `lat_limits` arguments (#1299)
+- Timeseries: the cli argument for extending the time range is now extend (previously expand) (#1299)
+- Timeseries: all the available diagnostics support the catalog argument (#1299)
 
 ## [v0.11]
 

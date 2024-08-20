@@ -31,6 +31,8 @@ def parse_arguments(args):
                         required=False, help="loglevel")
 
     # These will override the first one in the config file if provided
+    parser.add_argument("--catalog", type=str,
+                        required=False, help="catalog name")
     parser.add_argument("--model", type=str,
                         required=False, help="model name")
     parser.add_argument("--exp", type=str,
@@ -125,17 +127,20 @@ if __name__ == '__main__':
     config = load_yaml(file)
 
     models = config['models']
+    models[0]['catalog'] = get_arg(args, 'catalog', models[0]['catalog'])
     models[0]['model'] = get_arg(args, 'model', models[0]['model'])
     models[0]['exp'] = get_arg(args, 'exp', models[0]['exp'])
     models[0]['source'] = get_arg(args, 'source', models[0]['source'])
 
     logger.debug("Analyzing models:")
+    catalogs_list = []
     models_list = []
     exp_list = []
     source_list = []
 
     for model in models:
-        logger.debug(f"  - {model['model']} {model['exp']} {model['source']}")
+        logger.debug(f"  - {model['catalog']} {model['model']} {model['exp']} {model['source']}")
+        catalogs_list.append(model['catalog'])
         models_list.append(model['model'])
         exp_list.append(model['exp'])
         source_list.append(model['source'])
@@ -153,6 +158,7 @@ if __name__ == '__main__':
 
             ts = Timeseries(var=var,
                             formula=False,
+                            catalogs=catalogs_list,
                             models=models_list,
                             exps=exp_list,
                             sources=source_list,
@@ -195,6 +201,7 @@ if __name__ == '__main__':
 
             ts = Timeseries(var=var,
                             formula=True,
+                            catalogs=catalogs_list,
                             models=models_list,
                             exps=exp_list,
                             sources=source_list,
@@ -242,7 +249,8 @@ if __name__ == '__main__':
         toa_std_start = config_gregory.get("toa_std_start", "2001-01-01")
         toa_std_end = config_gregory.get("toa_std_end", "2020-12-31")
 
-        gp = GregoryPlot(models=models_list,
+        gp = GregoryPlot(catalogs=catalogs_list,
+                         models=models_list,
                          exps=exp_list,
                          sources=source_list,
                          monthly=monthly,
@@ -280,6 +288,7 @@ if __name__ == '__main__':
 
             sc = SeasonalCycle(var=var,
                                formula=False,
+                               catalogs=catalogs_list,
                                models=models_list,
                                exps=exp_list,
                                sources=source_list,
@@ -317,6 +326,7 @@ if __name__ == '__main__':
 
             sc = SeasonalCycle(var=var,
                                formula=True,
+                               catalogs=catalogs_list,
                                models=models_list,
                                exps=exp_list,
                                sources=source_list,

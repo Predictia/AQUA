@@ -5,7 +5,6 @@ import os
 import gc
 
 import xarray as xr
-from matplotlib import pyplot as plt
 from aqua.graphics import plot_seasonalcycle
 from aqua.util import create_folder, add_pdf_metadata, time_to_string
 from aqua.logger import log_configure
@@ -20,9 +19,11 @@ class SeasonalCycle(Timeseries):
     Class to extract the seasonal cycle of a variable from a time series.
     """
     def __init__(self, var=None, formula=False,
+                 catalogs=None,
                  models=None, exps=None, sources=None,
                  regrid=None, plot_ref=True,
-                 plot_ref_kw={'model': 'ERA5',
+                 plot_ref_kw={'catalog': 'obs',
+                              'model': 'ERA5',
                               'exp': 'era5',
                               'source': 'monthly'},
                  startdate=None, enddate=None,
@@ -32,6 +33,7 @@ class SeasonalCycle(Timeseries):
                  outdir='./',
                  outfile=None,
                  longname=None, units=None,
+                 lon_limits=None, lat_limits=None,
                  loglevel='WARNING'):
         """
         Initialize the class.
@@ -39,6 +41,7 @@ class SeasonalCycle(Timeseries):
         Args:
             var: the variable to extract the seasonal cycle
             formula: if True a formula is evaluated from the variable string.
+            catalogs (list or str, opt): the catalogs to search for the data
             models: the list of models to analyze
             exps: the list of experiments to analyze
             sources: the list of sources to analyze
@@ -56,9 +59,12 @@ class SeasonalCycle(Timeseries):
             outfile: the output file
             longname: the long name of the variable. Override the attribute in the data file.
             units: the units of the variable. Override the attribute in the data file.
+            lon_limits (list): Longitude limits of the area to evaluate. Default is None.
+            lat_limits (list): Latitude limits of the area to evaluate. Default is None.
             loglevel: the logging level. Default is 'WARNING'.
         """
         super().__init__(var=var, formula=formula,
+                         catalogs=catalogs,
                          models=models, exps=exps, sources=sources,
                          monthly=True, annual=False,
                          regrid=regrid, plot_ref=plot_ref,
@@ -71,6 +77,7 @@ class SeasonalCycle(Timeseries):
                          outdir=outdir,
                          outfile=outfile,
                          longname=longname, units=units,
+                         lon_limits=lon_limits, lat_limits=lat_limits,
                          loglevel=loglevel)
         # Change the logger name
         self.logger = log_configure(log_level=loglevel, log_name="SeasonalCycle")
@@ -132,6 +139,13 @@ class SeasonalCycle(Timeseries):
         except KeyError:
             title = f'{self.var} seasonal cycle'
 
+        if self.lon_limits is not None or self.lat_limits is not None:
+            title += ' for region'
+            if self.lon_limits is not None:
+                title += f' lon: {self.lon_limits}'
+            if self.lat_limits is not None:
+                title += f' lat: {self.lat_limits}'
+
         fig, _ = plot_seasonalcycle(data=self.cycle,
                                     ref_data=self.cycle_ref,
                                     std_data=self.ref_mon_std,
@@ -160,7 +174,13 @@ class SeasonalCycle(Timeseries):
         if self.outfile is None:
             self.outfile = f'global_time_series_seasonalcycle_{self.var}'
             for i, model in enumerate(self.models):
+                if self.catalogs[i] is not None:
+                    self.outfile += f'_{self.catalogs[i]}'
                 self.outfile += f'_{model}_{self.exps[i]}'
+            if self.lon_limits is not None:
+                self.outfile += f'_lon{self.lon_limits[0]}_{self.lon_limits[1]}'
+            if self.lat_limits is not None:
+                self.outfile += f'_lat{self.lat_limits[0]}_{self.lat_limits[1]}'
             if self.plot_ref:
                 self.outfile += f'_{ref_label}'
             self.outfile += '.pdf'
@@ -178,25 +198,35 @@ class SeasonalCycle(Timeseries):
             except ValueError:
                 description += f" std evaluated from {time_to_string(self.ref_mon.time.values[0])} to {time_to_string(self.ref_mon.time.values[-1])}"  # noqa: E501
         description += "."
+        if self.lon_limits is not None or self.lat_limits is not None:
+            description += " The data have been averaged over a region defined by"
+            if self.lon_limits is not None:
+                description += f" longitude limits {self.lon_limits}"
+            if self.lat_limits is not None:
+                description += f" latitude limits {self.lat_limits}"
+            description += "."
         self.logger.debug(f"Description: {description}")
         add_pdf_metadata(filename=os.path.join(outfig, self.outfile),
                          metadata_value=description)
-    
+
     def save_seasonal_netcdf(self):
         """
         Save the seasonal cycle to a netcdf file
         """
         self.logger.info("Saving seasonal cycle to netcdf")
-        outdir= os.path.join(self.outdir, 'netcdf')
+        outdir = os.path.join(self.outdir, 'netcdf')
         create_folder(outdir, self.loglevel)
 
         for i, model in enumerate(self.models):
-            outfile = f'global_time_series_seasonalcycle_{self.var}_{model}_{self.exps[i]}.nc'
+            outfile = f'global_time_series_seasonalcycle_{self.var}'
+            if self.catalogs[i] is not None:
+                outfile += f'_{self.catalogs[i]}'
+            outfile += f'_{model}_{self.exps[i]}.nc'
             try:
                 self.cycle[i].to_netcdf(os.path.join(outdir, outfile))
             except Exception as e:
                 self.logger.error(f"Error while saving netcdf {outdir}/{outfile}: {e}")
-        
+
         if self.plot_ref:
             outfile = f'global_time_series_seasonalcycle_{self.var}_{self.plot_ref_kw["model"]}.nc'
             try:
