@@ -110,52 +110,43 @@ class Tropical_Rainfall_CLI:
 
         This function checks if histograms already exist in the specified output directory and decides whether to rebuild
         them based on the `rebuild_output` flag. It leverages the dataset to generate histograms by selecting data for
-        each month, regridding and calculating the time mean if necessary, and then saves the histogram files in the
+        each month, regridding, and calculating the time mean if necessary, and then saves the histogram files in the
         designated path. This process is logged, and any years not present in the dataset are flagged with a warning.
 
         Returns:
             None
         """
+        # Retrieve the full dataset
         full_dataset = self.reader.retrieve(var=self.model_variable)
         regrid_bool, freq_bool = self.need_regrid_timmean(full_dataset)
+
+        # Adjust year range based on the dataset
         self.s_year, self.f_year = adjust_year_range_based_on_dataset(dataset=full_dataset, start_year=self.s_year,
                                                                       final_year=self.f_year)
 
+        # Determine the start and end months
         s_month = 1 if self.s_month is None else self.s_month
         f_month = 12 if self.f_month is None else self.f_month
-        path_to_output = self.path_to_buffer + f"{self.regrid}/{self.freq}/histograms/"
+
+        # Prepare the output directory
+        path_to_output = os.path.join(self.path_to_buffer, f"{self.regrid}/{self.freq}/histograms/")
         create_folder(path_to_output)
 
+        # Process data year by year
         for year in range(self.s_year, self.f_year + 1):
-            self._process_year(year=year, full_dataset=full_dataset, s_month=s_month, f_month=f_month,
-                            path_to_output=path_to_output, regrid_bool=regrid_bool, freq_bool=freq_bool)
+            self.logger.info(f"Processing year {year}...")
 
-        self.logger.info("The histograms are calculated and saved in storage.")
+            data_per_year = full_dataset.sel(time=str(year))
+            if data_per_year.time.size == 0:
+                self.logger.warning(f"Year {year} is not present in the dataset. Skipping year.")
+                continue
 
-    def _process_year(self, *, year, full_dataset, s_month, f_month, path_to_output, regrid_bool, freq_bool):
-        """
-        Process the data for a specific year and generate histograms for each month.
+            # Process data month by month
+            for month in range(s_month, f_month + 1):
+                self._process_month(year=year, month=month, f_month=f_month, data_per_year=data_per_year,
+                                    path_to_output=path_to_output, regrid_bool=regrid_bool, freq_bool=freq_bool)
 
-        Args:
-            year (int): The year to process.
-            full_dataset (xarray.Dataset): The full dataset from which to extract the yearly data.
-            s_month (int): The starting month.
-            f_month (int): The ending month.
-            path_to_output (str): The path where histogram files should be saved.
-            regrid_bool (bool): Whether to regrid the dataset.
-            freq_bool (bool): Whether to calculate time mean.
-
-        Returns:
-            None
-        """
-        data_per_year = full_dataset.sel(time=str(year))
-        if data_per_year.time.size == 0:
-            self.logger.warning(f"Year {year} is not present in the dataset. Skipping year.")
-            return
-
-        for month in range(s_month, f_month + 1):
-            self._process_month(year=year, month=month, f_month=f_month, data_per_year=data_per_year,
-                                path_to_output=path_to_output, regrid_bool=regrid_bool, freq_bool=freq_bool)
+        self.logger.info("All histograms have been calculated and saved.")
 
     def _process_month(self, *, year, month, f_month, data_per_year, path_to_output, regrid_bool, freq_bool):
         """
@@ -172,12 +163,15 @@ class Tropical_Rainfall_CLI:
         Returns:
             None
         """
+        # Generate keys for file identification
         bins_info = self.diag.get_bins_info()
         keys = [f"{bins_info}_{year}-{month:02}", self.model, self.exp, self.regrid, self.freq]
 
+        # Check for existing output and handle accordingly
         if self.rebuild_output:
-            self.logger.info(f"Rebuilding output for {year}-{month:02}...")
-            self.diag.tools.remove_file_if_exists_with_keys(folder_path=path_to_output, keys=keys)
+            if self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys):
+                self.logger.info(f"Rebuilding output for {year}-{month:02}...")
+                self.diag.tools.remove_file_if_exists_with_keys(folder_path=path_to_output, keys=keys)
         elif self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys):
             self.logger.debug(f"Histogram for {year}-{month:02} already exists. Skipping.")
             return
@@ -185,15 +179,18 @@ class Tropical_Rainfall_CLI:
         self.logger.debug(f"No existing output for {year}-{month:02}. Proceeding with data processing...")
 
         try:
+            # Select the data for the current month
             data = data_per_year.sel(time=f"{year}-{month:02}")
+
+            # Apply frequency adjustment and regridding if necessary
             if freq_bool:
                 data = self.reader.timmean(data, freq=self.freq)
             if regrid_bool:
                 data = self.reader.regrid(data)
 
-            self.diag.histogram(data, model_variable=self.model_variable,
-                                path_to_histogram=path_to_output,
-                                threshold=30, name_of_file=f"{self.regrid}_{self.freq}")
+            # Generate and save the histogram
+            self.diag.histogram(data, model_variable=self.model_variable, path_to_histogram=path_to_output, threshold=30,
+                                name_of_file=f"{self.regrid}_{self.freq}")
             self.logger.debug(f"Histogram for {year}-{month:02} saved at {path_to_output}.")
         except KeyError as e:
             self.logger.warning(f"KeyError for {year}-{month:02}: {e}")
