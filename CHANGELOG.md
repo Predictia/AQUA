@@ -9,9 +9,14 @@ Unreleased in the current development version:
 
 ## [v0.11.1]
 
+Attention: If you are accessing FDB experiments, we suggest to not use versions older than this release.
+
 Main changes are:
-1. Eccodes is now compatible with versions >= 2.31.0, solving the incompatibility with the latest versions of the library
+1. AQUA works with FDB written with ecCodes versions > 2.35 as well as lower.
 2. Timeseries and Seasonal cyle can now be evaluated also on a specific region 
+
+AQUA core complete list:
+- ecCodes now pinned to >=2.36.0 and tool for fixing older definition files (#1302)
 
 AQUA diagnostic complete list:
 - Timeseries: a region can be selected for Timeseries and Seasonal Cycle with the `lon_limits` and `lat_limits` arguments (#1299)
