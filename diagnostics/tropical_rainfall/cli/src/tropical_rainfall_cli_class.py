@@ -91,9 +91,9 @@ class Tropical_Rainfall_CLI:
         self.diag = Tropical_Rainfall(trop_lat=self.trop_lat, num_of_bins=self.num_of_bins, first_edge=self.first_edge,
                                       width_of_bin=self.width_of_bin, loglevel=self.loglevel)
 
-    def need_regrid_timmean(self, full_dataset):
+    def need_regrid_timmean(self, dataset):
         """Determines whether regridding or time averaging is needed for a dataset."""
-        test_sample = full_dataset.isel(time=slice(1, 5))
+        test_sample = dataset.isel(time=slice(1, 5))
         # Check for the need of regridding
         regrid_bool = False
         if isinstance(self.regrid, str):
@@ -115,7 +115,7 @@ class Tropical_Rainfall_CLI:
         full_dataset = self.reader.retrieve(var=self.model_variable)
         regrid_bool, freq_bool = self.need_regrid_timmean(full_dataset)
 
-        self.s_year, self.f_year = adjust_year_range_based_on_dataset(full_dataset, start_year=self.s_year,
+        self.s_year, self.f_year = adjust_year_range_based_on_dataset(dataset=full_dataset, start_year=self.s_year,
                                                                       final_year=self.f_year)
         s_month = 1 if self.s_month is None else self.s_month
         f_month = 12 if self.f_month is None else self.f_month
@@ -345,7 +345,7 @@ class Tropical_Rainfall_CLI:
             self.reader = Reader(model=self.model, exp=self.exp, source=self.source, loglevel=self.reader_loglevel, regrid='r100',
                                 nproc=self.nproc)
             full_dataset = self.reader.retrieve(var=self.model_variable)
-            self.s_year, self.f_year = adjust_year_range_based_on_dataset(full_dataset, start_year=self.s_year,
+            self.s_year, self.f_year = adjust_year_range_based_on_dataset(dataset=full_dataset, start_year=self.s_year,
                                                                           final_year=self.f_year)
             s_month = 1 if self.s_month is None else self.s_month
             f_month = 12 if self.f_month is None else self.f_month
@@ -446,7 +446,7 @@ class Tropical_Rainfall_CLI:
             plot_title, legend_model, name_of_pdf, output_path = self._prepare_plot_metadata()
             full_dataset = self._retrieve_and_prepare_dataset()
 
-            model_average_path_lat = self.diag.average_into_netcdf(full_dataset=full_dataset, coord='lat', trop_lat=15,
+            model_average_path_lat = self.diag.average_into_netcdf(dataset=full_dataset, coord='lat', trop_lat=15,
                                                                    path_to_netcdf=output_path, name_of_file=f"{self.regrid}_{self.freq}")
             self.logger.debug(f"Model average path (lat): {model_average_path_lat}")
             add, description = self._plot_and_add_metadata(model_average_path=model_average_path_lat, plot_title=plot_title,
@@ -456,7 +456,7 @@ class Tropical_Rainfall_CLI:
             add, description = self._plot_comparisons(add=add, model_average_path=model_average_path_lat, dataset_name='ERA5',
                                                       dataset_color=self.era5_color, coord='lat', description=description)
 
-            model_average_path_lon = self.diag.average_into_netcdf(full_dataset=full_dataset, coord='lon', trop_lat=90,
+            model_average_path_lon = self.diag.average_into_netcdf(dataset=full_dataset, coord='lon', trop_lat=90,
                                                                    path_to_netcdf=output_path, name_of_file=f"{self.regrid}_{self.freq}")
             self.logger.debug(f"Model average path (lon): {model_average_path_lon}")
             add, description = self._plot_and_add_metadata(model_average_path=model_average_path_lon, plot_title=plot_title,
@@ -536,6 +536,32 @@ class Tropical_Rainfall_CLI:
         self.logger.debug(f"PDF metadata added for {coord} plot.")
         return add, description
 
+    def _get_dataset_path(self, dataset_name: str, coord: str) -> str:
+        """
+        Get the path to the dataset based on the dataset name and coordinate direction.
+
+        Args:
+            dataset_name (str): The name of the dataset, e.g., 'MSWEP' or 'ERA5'.
+            coord (str): The coordinate direction, either 'lat' or 'lon'.
+
+        Returns:
+            str: The path to the dataset.
+        """
+        if dataset_name == 'MSWEP':
+            base_path = f"{self.mswep}r100/M/mean/"
+            if coord == 'lat':
+                return f"{base_path}trop_rainfall_r100_M_lat_1979-02-01T00_2020-11-01T00_M.nc"
+            else:  # coord == 'lon'
+                return f"{base_path}trop_rainfall_r100_M_lon_1979-09-01T00_2020-11-01T00_M.nc"
+        elif dataset_name == 'ERA5':
+            base_path = f"{self.era5}r100/M/mean/"
+            if coord == 'lat':
+                return f"{base_path}trop_rainfall_r100_M_lat_1940-01-01T00_2023-12-01T06_M.nc"
+            else:  # coord == 'lon'
+                return f"{base_path}trop_rainfall_r100_M_lon_1940-09-01T00_2023-11-01T06_M.nc"
+        else:
+            raise ValueError(f"Unknown dataset name: {dataset_name}")
+
     def _plot_comparisons(self, add, model_average_path, dataset_name, dataset_color, coord, description):
         """
         Plot comparisons against MSWEP and ERA5 datasets and update the metadata.
@@ -553,16 +579,7 @@ class Tropical_Rainfall_CLI:
         """
         self.logger.info(f"Plotting {dataset_name} data for comparison.")
 
-        if coord == 'lat':
-            if dataset_name == 'MSWEP':
-                path_to_dataset = f"{self.mswep}r100/M/mean/trop_rainfall_r100_M_lat_1979-02-01T00_2020-11-01T00_M.nc"
-            else:  # ERA5
-                path_to_dataset = f"{self.era5}r100/M/mean/trop_rainfall_r100_M_lat_1940-01-01T00_2023-12-01T06_M.nc"
-        else:  # coord == 'lon'
-            if dataset_name == 'MSWEP':
-                path_to_dataset = f"{self.mswep}r100/M/mean/trop_rainfall_r100_M_lon_1979-09-01T00_2020-11-01T00_M.nc"
-            else:  # ERA5
-                path_to_dataset = f"{self.era5}r100/M/mean/trop_rainfall_r100_M_lon_1940-09-01T00_2023-11-01T06_M.nc"
+        path_to_dataset = self._get_dataset_path(dataset_name=dataset_name, coord=coord)
 
         add = self.diag.plot_of_average(
             path_to_netcdf=path_to_dataset, trop_lat=90, color=dataset_color, fig=add,
