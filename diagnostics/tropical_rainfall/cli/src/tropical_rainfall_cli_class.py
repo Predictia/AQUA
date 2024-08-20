@@ -106,87 +106,154 @@ class Tropical_Rainfall_CLI:
 
     def calculate_histogram_by_months(self):
         """
-        Calculates and saves histograms for each month within a specified year range. This function checks if histograms
-        already exist in the specified output directory and decides whether to rebuild them based on the `rebuild_output` flag.
-        It leverages the dataset to generate histograms by selecting data for each month, regridding and calculating the time mean
-        if necessary, and then saves the histogram files in the designated path. This process is logged, and any years not present
-        in the dataset are flagged with a warning.
-        """   
+        Calculates and saves histograms for each month within a specified year range.
+
+        This function checks if histograms already exist in the specified output directory and decides whether to rebuild
+        them based on the `rebuild_output` flag. It leverages the dataset to generate histograms by selecting data for
+        each month, regridding and calculating the time mean if necessary, and then saves the histogram files in the
+        designated path. This process is logged, and any years not present in the dataset are flagged with a warning.
+
+        Returns:
+            None
+        """
         full_dataset = self.reader.retrieve(var=self.model_variable)
         regrid_bool, freq_bool = self.need_regrid_timmean(full_dataset)
-
         self.s_year, self.f_year = adjust_year_range_based_on_dataset(dataset=full_dataset, start_year=self.s_year,
                                                                       final_year=self.f_year)
+
         s_month = 1 if self.s_month is None else self.s_month
         f_month = 12 if self.f_month is None else self.f_month
-        path_to_output = self.path_to_buffer+f"{self.regrid}/{self.freq}/histograms/"
+        path_to_output = self.path_to_buffer + f"{self.regrid}/{self.freq}/histograms/"
         create_folder(path_to_output)
-        for year in range(self.s_year, self.f_year+1):
-            data_per_year = full_dataset.sel(time=str(year))
-            if data_per_year.time.size != 0:
-                for x in range(s_month, f_month+1):
-                    bins_info = self.diag.get_bins_info()
-                    keys = [f"{bins_info}_{year}-{x:02}", self.model, self.exp, self.regrid, self.freq]
 
-                    # Check for file existence based on keys and decide on rebuilding
-                    if self.rebuild_output and self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys):
-                        self.logger.info("Rebuilding output...")
-                        self.diag.tools.remove_file_if_exists_with_keys(folder_path=path_to_output, keys=keys)
-                    elif not self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys):
-                        self.logger.debug("No existing output. Proceeding with data processing...")
-                        try:
-                            data = data_per_year.sel(time=str(year)+'-'+str(x))
-                            if freq_bool:
-                                data = self.reader.timmean(data, freq=self.freq)
-                            if regrid_bool:
-                                data = self.reader.regrid(data)
-                            self.diag.histogram(data, model_variable=self.model_variable,
-                                                path_to_histogram=path_to_output,
-                                                threshold = 30, name_of_file=f"{self.regrid}_{self.freq}")
-                            self.logger.debug(f"The path to file is: {path_to_output}")
-                        except KeyError:
-                            pass
-                        except Exception as e:
-                                # Handle other exceptions
-                                self.logger.error(f"An unexpected error occurred: {e}")
-                    self.logger.debug(f"Current Status: {x}/{f_month} months processed in year {year}.")
-            else:
-                self.logger.warning(
-                    "The specified year is not present in the dataset. " +
-                    "Ensure the time range in your selection accurately reflects the available " +
-                    "data. Check dataset time bounds and adjust your time selection parameters accordingly."
-                    )
+        for year in range(self.s_year, self.f_year + 1):
+            self._process_year(year=year, full_dataset=full_dataset, s_month=s_month, f_month=f_month,
+                            path_to_output=path_to_output, regrid_bool=regrid_bool, freq_bool=freq_bool)
+
         self.logger.info("The histograms are calculated and saved in storage.")
-        return None
 
-    def check_files(self, folder_path, start_year, end_year):
-        if self.s_month is None and self.f_month is None:
-            search_path = os.path.join(folder_path, '*.nc')
-            self.logger.debug(f"Search_path {search_path}")
-            files = glob.glob(search_path)
-            # Regular expression to match the specific date format in your filenames
-            date_pattern = re.compile(r'(\d{4})-\d{2}-\d{2}T\d{2}')
+    def _process_year(self, *, year, full_dataset, s_month, f_month, path_to_output, regrid_bool, freq_bool):
+        """
+        Process the data for a specific year and generate histograms for each month.
 
-            for file in files:
-                # Check if the file has read permissions
-                if os.access(file, os.R_OK):
-                    self.logger.debug(f"File {file} has read permissions.")
+        Args:
+            year (int): The year to process.
+            full_dataset (xarray.Dataset): The full dataset from which to extract the yearly data.
+            s_month (int): The starting month.
+            f_month (int): The ending month.
+            path_to_output (str): The path where histogram files should be saved.
+            regrid_bool (bool): Whether to regrid the dataset.
+            freq_bool (bool): Whether to calculate time mean.
 
-                    # Extract start and end years from filename
-                    matches = date_pattern.findall(os.path.basename(file))
+        Returns:
+            None
+        """
+        data_per_year = full_dataset.sel(time=str(year))
+        if data_per_year.time.size == 0:
+            self.logger.warning(f"Year {year} is not present in the dataset. Skipping year.")
+            return
 
-                    if matches:
-                        file_start_year, file_end_year = matches[0], matches[-1]  # First and last match should be start and end years
-                        if str(start_year) <= file_start_year and str(end_year) >= file_end_year:
-                            self.logger.debug(f"File {os.path.basename(file)} correctly spans from {start_year} to {end_year}.")
-                            return file
-                        else:
-                            self.logger.debug(f"File {os.path.basename(file)} does not span the specified period from {start_year} to {end_year}.")
-                    else:
-                        self.logger.debug(f"No matching years found in {os.path.basename(file)}.")
-                else:
-                    self.logger.error(f"File {file} does not have read permissions.")
+        for month in range(s_month, f_month + 1):
+            self._process_month(year=year, month=month, f_month=f_month, data_per_year=data_per_year,
+                                path_to_output=path_to_output, regrid_bool=regrid_bool, freq_bool=freq_bool)
+
+    def _process_month(self, *, year, month, f_month, data_per_year, path_to_output, regrid_bool, freq_bool):
+        """
+        Process the data for a specific month and generate a histogram.
+
+        Args:
+            year (int): The year being processed.
+            month (int): The month being processed.
+            data_per_year (xarray.Dataset): The dataset for the specific year.
+            path_to_output (str): The path where histogram files should be saved.
+            regrid_bool (bool): Whether to regrid the dataset.
+            freq_bool (bool): Whether to calculate time mean.
+
+        Returns:
+            None
+        """
+        bins_info = self.diag.get_bins_info()
+        keys = [f"{bins_info}_{year}-{month:02}", self.model, self.exp, self.regrid, self.freq]
+
+        if self.rebuild_output:
+            self.logger.info(f"Rebuilding output for {year}-{month:02}...")
+            self.diag.tools.remove_file_if_exists_with_keys(folder_path=path_to_output, keys=keys)
+        elif self.diag.tools.find_files_with_keys(folder_path=path_to_output, keys=keys):
+            self.logger.debug(f"Histogram for {year}-{month:02} already exists. Skipping.")
+            return
+
+        self.logger.debug(f"No existing output for {year}-{month:02}. Proceeding with data processing...")
+
+        try:
+            data = data_per_year.sel(time=f"{year}-{month:02}")
+            if freq_bool:
+                data = self.reader.timmean(data, freq=self.freq)
+            if regrid_bool:
+                data = self.reader.regrid(data)
+
+            self.diag.histogram(data, model_variable=self.model_variable,
+                                path_to_histogram=path_to_output,
+                                threshold=30, name_of_file=f"{self.regrid}_{self.freq}")
+            self.logger.debug(f"Histogram for {year}-{month:02} saved at {path_to_output}.")
+        except KeyError as e:
+            self.logger.warning(f"KeyError for {year}-{month:02}: {e}")
+        except Exception as e:
+            self.logger.error(f"An unexpected error occurred for {year}-{month:02}: {e}")
+
+        self.logger.debug(f"Month {month}/{f_month} processed for year {year}.")
+
+    def check_files(self, folder_path: str, start_year: int, end_year: int):
+        """
+        Check for files in the specified folder that span the given year range.
+
+        Args:
+            folder_path (str): The path to the folder containing the files.
+            start_year (int): The start year of the required period.
+            end_year (int): The end year of the required period.
+
+        Returns:
+            str or bool: The path to the matching file if found, otherwise False.
+        """
+        # Validate the input parameters
+        if not isinstance(start_year, int) or not isinstance(end_year, int):
+            self.logger.error("Start year and end year must be integers.")
             return False
+
+        if start_year > end_year:
+            self.logger.error("Start year cannot be greater than end year.")
+            return False
+
+        search_path = os.path.join(folder_path, '*.nc')
+        self.logger.debug(f"Searching for files in: {search_path}")
+        files = glob.glob(search_path)
+
+        # Regular expression to match the specific date format in your filenames
+        date_pattern = re.compile(r'(\d{4})-\d{2}-\d{2}T\d{2}')
+
+        for file in files:
+            # Check if the file has read permissions
+            if os.access(file, os.R_OK):
+                self.logger.debug(f"File {file} is accessible.")
+
+                # Extract start and end years from filename
+                matches = date_pattern.findall(os.path.basename(file))
+
+                if matches:
+                    file_start_year, file_end_year = matches[0], matches[-1]
+
+                    # Check if the file spans the desired year range
+                    if str(start_year) <= file_start_year and str(end_year) >= file_end_year:
+                        self.logger.debug(f"File {os.path.basename(file)} matches the year range {start_year}-{end_year}.")
+                        return file
+                    else:
+                        self.logger.debug(f"File {os.path.basename(file)} does not match the year range {start_year}-{end_year}.")
+                else:
+                    self.logger.debug(f"No matching years found in the filename {os.path.basename(file)}.")
+            else:
+                self.logger.error(f"File {file} is not accessible (read permissions missing).")
+
+        self.logger.info(f"No matching files found in {folder_path} for the period {start_year}-{end_year}.")
+        return False
 
     def get_merged_histogram_for_source(self, source_info, default_interval=10):
         """
