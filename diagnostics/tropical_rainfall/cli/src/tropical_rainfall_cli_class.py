@@ -436,107 +436,92 @@ class Tropical_Rainfall_CLI:
         if 'm' in self.freq.lower() or 'y' in self.freq.lower():
             self.logger.debug("Contains 'M' or 'Y'")
 
-            plot_title = f"Grid: {self.regrid}, frequency: {self.freq}"
-            legend_model = f"{self.model} {self.exp}"
-            name_of_pdf = f"{self.model}_{self.exp}_{self.regrid}_{self.freq}"
-            output_path = f"{self.path_to_netcdf}mean/"
+            plot_title, legend_model, name_of_pdf, output_path = self._prepare_plot_metadata()
+            full_dataset = self._retrieve_and_prepare_dataset()
 
-            self.logger.debug(f"Plot title: {plot_title}")
-            self.logger.debug(f"Output path: {output_path}")
-
-            full_dataset = self.reader.retrieve(var=self.model_variable)
-
-            regrid_bool, freq_bool = self.need_regrid_timmean(full_dataset)
-            self.logger.debug(f"Regrid needed: {regrid_bool}, Frequency adjustment needed: {freq_bool}")
-
-            self.s_year, self.f_year = adjust_year_range_based_on_dataset(full_dataset, start_year=self.s_year, final_year=self.f_year)
-            self.logger.debug(f"Adjusted year range: {self.s_year} to {self.f_year}")
-
-            if regrid_bool:
-                full_dataset = self.reader.regrid(full_dataset)
-                self.logger.debug("Dataset regridded.")
-
-            model_average_path_lat = self.diag.average_into_netcdf(full_dataset, path_to_netcdf=output_path,
-                                                                name_of_file=f"{self.regrid}_{self.freq}")
+            model_average_path_lat = self.diag.average_into_netcdf(full_dataset, coord='lat', trop_lat=15, path_to_netcdf=output_path,
+                                                                   name_of_file=f"{self.regrid}_{self.freq}")
             self.logger.debug(f"Model average path (lat): {model_average_path_lat}")
+            add, description = self._plot_and_add_metadata(model_average_path_lat, plot_title, legend_model, 'lat')
+            add, description = self._plot_comparisons(add, model_average_path_lat, 'MSWEP', self.mswep_color, 'lat', description)
+            add, description = self._plot_comparisons(add, model_average_path_lat, 'ERA5', self.era5_color, 'lat', description)
+
             model_average_path_lon = self.diag.average_into_netcdf(full_dataset, coord='lon', trop_lat=90, path_to_netcdf=output_path,
-                                                                name_of_file=f"{self.regrid}_{self.freq}")
+                                                                   name_of_file=f"{self.regrid}_{self.freq}")
             self.logger.debug(f"Model average path (lon): {model_average_path_lon}")
-
-            add = self.diag.plot_of_average(path_to_netcdf=model_average_path_lat, trop_lat=90, path_to_pdf=self.path_to_pdf,
-                                            color=self.color, figsize=self.figsize, new_unit=self.new_unit, legend=legend_model,
-                                            plot_title=plot_title, loc=self.loc, name_of_file=f"{self.regrid}_{self.freq}")
-            _path_to_pdf = add[-1]
-            self.logger.debug(f"Plot of average (lat) created. Path: {_path_to_pdf}")
-
-            description = (
-                f"Comparison of the average precipitation profiles along latitude "
-                f"from {self.model} {self.exp}, measured in {self.new_unit}, over the time range "
-                f"{self.diag.tools.format_time(self.diag.tools.open_dataset(model_average_path_lat).time_band)}, "
-                f"against observations. {self.diag.tools.format_lat_band(self.diag.tools.open_dataset(model_average_path_lat))}. "
-            )
-            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel=self.loglevel)
-            self.logger.debug("PDF metadata added for latitude plot.")
-
-            self.logger.info(f"Plotting MSWEP data for comparison.")
-            path_to_mswep = f"{self.mswep}r100/M/mean/trop_rainfall_r100_M_lon_1979-02-01T00_2020-11-01T00_M.nc"
-            add = self.diag.plot_of_average(path_to_netcdf=path_to_mswep, trop_lat=90, color=self.mswep_color, fig=add,
-                                            legend="MSWEP", path_to_pdf=self.path_to_pdf, name_of_file=f"{self.regrid}_{self.freq}")
-            description += (
-                f"The time range of MSWEP is {self.diag.tools.format_time(self.diag.tools.open_dataset(path_to_mswep).time_band)}. "
-                f"{self.diag.tools.format_lat_band(self.diag.tools.open_dataset(path_to_mswep))}. "
-            )
-            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel=self.loglevel)
-            self.logger.debug("PDF metadata added for MSWEP.")
-
-            self.logger.info(f"Plotting ERA5 data for comparison.")
-            path_to_era5 = f"{self.era5}r100/M/mean/trop_rainfall_r100_M_lon_1940-01-01T00_2023-12-01T06_M.nc"
-            add = self.diag.plot_of_average(path_to_netcdf=path_to_era5, trop_lat=90, color=self.era5_color, fig=add,
-                                            legend="ERA5", path_to_pdf=self.path_to_pdf, name_of_file=f"{self.regrid}_{self.freq}")
-            description += (
-                f"The time range of ERA5 is {self.diag.tools.format_time(self.diag.tools.open_dataset(path_to_era5).time_band)}. "
-                f"{self.diag.tools.format_lat_band(self.diag.tools.open_dataset(path_to_era5))}. "
-            )
-            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel=self.loglevel)
-            self.logger.debug("PDF metadata added for ERA5.")
-
-            add = self.diag.plot_of_average(path_to_netcdf=model_average_path_lon, trop_lat=90, path_to_pdf=self.path_to_pdf,
-                                            color=self.color, figsize=self.figsize, new_unit=self.new_unit,
-                                            legend=legend_model, plot_title=plot_title, loc=self.loc,
-                                            name_of_file=f"{self.regrid}_{self.freq}")
-            _path_to_pdf = add[-1]
-            self.logger.debug(f"Plot of average (lon) created. Path: {_path_to_pdf}")
-
-            description = (
-                f"Comparison of the average precipitation profiles along longitude "
-                f"from {self.model} {self.exp}, measured in {self.new_unit}, over the time range "
-                f"{self.diag.tools.format_time(self.diag.tools.open_dataset(model_average_path_lon).time_band)}, "
-                f"against observations. {self.diag.tools.format_lat_band(self.diag.tools.open_dataset(model_average_path_lon))}. "
-            )
-            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel=self.loglevel)
-            self.logger.debug("PDF metadata added for longitude plot.")
-
-            self.logger.info(f"Plotting MSWEP data for comparison.")
-            path_to_mswep = f"{self.mswep}r100/M/mean/trop_rainfall_r100_M_lat_1979-09-01T00_2020-11-01T00_M.nc"
-            add = self.diag.plot_of_average(path_to_netcdf=path_to_mswep, trop_lat=90, color=self.mswep_color, fig=add,
-                                            legend="MSWEP", path_to_pdf=self.path_to_pdf, name_of_file=f"{self.regrid}_{self.freq}")
-            description += (
-                f"The time range of MSWEP is {self.diag.tools.format_time(self.diag.tools.open_dataset(path_to_mswep).time_band)}. "
-                f"{self.diag.tools.format_lat_band(self.diag.tools.open_dataset(path_to_mswep))}. "
-            )
-            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel=self.loglevel)
-            self.logger.debug("PDF metadata added for MSWEP longitude plot.")
-
-            self.logger.info(f"Plotting ERA5 data for comparison.")
-            path_to_era5 = f"{self.era5}r100/M/mean/trop_rainfall_r100_M_lat_1940-09-01T00_2023-11-01T06_M.nc"
-            add = self.diag.plot_of_average(path_to_netcdf=path_to_era5, trop_lat=90, color=self.era5_color, fig=add,
-                                            legend="ERA5", path_to_pdf=self.path_to_pdf, name_of_file=f"{self.regrid}_{self.freq}")
-            description += (
-                f"The time range of ERA5 is {self.diag.tools.format_time(self.diag.tools.open_dataset(path_to_era5).time_band)}. "
-                f"{self.diag.tools.format_lat_band(self.diag.tools.open_dataset(path_to_era5))}. "
-            )
-            add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel=self.loglevel)
-            self.logger.debug("PDF metadata added for ERA5 longitude plot.")
+            add, description = self._plot_and_add_metadata(model_average_path_lon, plot_title, legend_model, 'lon')
+            add, description = self._plot_comparisons(add, model_average_path_lon, 'MSWEP', self.mswep_color, 'lon', description)
+            add, description = self._plot_comparisons(add, model_average_path_lon, 'ERA5', self.era5_color, 'lon', description)
         else:
             self.logger.warning("Data appears to be not in monthly or yearly intervals.")
             self.logger.warning("The CLI will not provide the netcdf of average profiles.")
+
+    def _prepare_plot_metadata(self):
+        plot_title = f"Grid: {self.regrid}, frequency: {self.freq}"
+        legend_model = f"{self.model} {self.exp}"
+        name_of_pdf = f"{self.model}_{self.exp}_{self.regrid}_{self.freq}"
+        output_path = f"{self.path_to_netcdf}mean/"
+        self.logger.debug(f"Plot title: {plot_title}")
+        self.logger.debug(f"Output path: {output_path}")
+        return plot_title, legend_model, name_of_pdf, output_path
+
+    def _retrieve_and_prepare_dataset(self):
+        full_dataset = self.reader.retrieve(var=self.model_variable)
+        regrid_bool, freq_bool = self.need_regrid_timmean(full_dataset)
+        self.logger.debug(f"Regrid needed: {regrid_bool}, Frequency adjustment needed: {freq_bool}")
+
+        self.s_year, self.f_year = adjust_year_range_based_on_dataset(full_dataset, start_year=self.s_year, final_year=self.f_year)
+        self.logger.debug(f"Adjusted year range: {self.s_year} to {self.f_year}")
+
+        if regrid_bool:
+            full_dataset = self.reader.regrid(full_dataset)
+            self.logger.debug("Dataset regridded.")
+        return full_dataset
+
+    def _plot_and_add_metadata(self, model_average_path, plot_title, legend_model, coord):
+        add = self.diag.plot_of_average(
+            path_to_netcdf=model_average_path, trop_lat=90, path_to_pdf=self.path_to_pdf,
+            color=self.color, figsize=self.figsize, new_unit=self.new_unit,
+            legend=legend_model, plot_title=plot_title, loc=self.loc,
+            name_of_file=f"{self.regrid}_{self.freq}"
+        )
+        _path_to_pdf = add[-1]
+        self.logger.debug(f"Plot of average ({coord}) created. Path: {_path_to_pdf}")
+
+        description = (
+            f"Comparison of the average precipitation profiles along {coord} "
+            f"from {self.model} {self.exp}, measured in {self.new_unit}, over the time range "
+            f"{self.diag.tools.format_time(self.diag.tools.open_dataset(model_average_path).time_band)}, "
+            f"against observations. {self.diag.tools.format_lat_band(self.diag.tools.open_dataset(model_average_path))}. "
+        )
+        add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel=self.loglevel)
+        self.logger.debug(f"PDF metadata added for {coord} plot.")
+        return add, description
+
+    def _plot_comparisons(self, add, model_average_path, dataset_name, dataset_color, coord, description):
+        self.logger.info(f"Plotting {dataset_name} data for comparison.")
+
+        if coord == 'lat':
+            if dataset_name == 'MSWEP':
+                path_to_dataset = f"{self.mswep}r100/M/mean/trop_rainfall_r100_M_lat_1979-02-01T00_2020-11-01T00_M.nc"
+            else:  # ERA5
+                path_to_dataset = f"{self.era5}r100/M/mean/trop_rainfall_r100_M_lat_1940-01-01T00_2023-12-01T06_M.nc"
+        else:  # coord == 'lon'
+            if dataset_name == 'MSWEP':
+                path_to_dataset = f"{self.mswep}r100/M/mean/trop_rainfall_r100_M_lon_1979-09-01T00_2020-11-01T00_M.nc"
+            else:  # ERA5
+                path_to_dataset = f"{self.era5}r100/M/mean/trop_rainfall_r100_M_lon_1940-09-01T00_2023-11-01T06_M.nc"
+
+        add = self.diag.plot_of_average(
+            path_to_netcdf=path_to_dataset, trop_lat=90, color=dataset_color, fig=add,
+            legend=dataset_name, path_to_pdf=self.path_to_pdf, name_of_file=f"{self.regrid}_{self.freq}"
+        )
+        _path_to_pdf = add[-1]
+        description = description + (
+            f"The time range of {dataset_name} is {self.diag.tools.format_time(self.diag.tools.open_dataset(path_to_dataset).time_band)}. "
+            f"{self.diag.tools.format_lat_band(self.diag.tools.open_dataset(path_to_dataset))}. "
+        )
+        add_pdf_metadata(filename=_path_to_pdf, metadata_value=description, loglevel=self.loglevel)
+        self.logger.debug(f"PDF metadata added for {dataset_name} ({coord}).")
+        return add, description
+

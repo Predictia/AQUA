@@ -1359,7 +1359,7 @@ class MainClass:
 
         if isinstance(path_to_netcdf, str) and name_of_file is not None:
             remaining_coord = 'lon' if coord == 'lat' else 'lat'
-            filename = f"{name_of_file}_along_{remaining_coord}.nc"
+            filename = f"{name_of_file}_along_{remaining_coord}"
             return self.dataset_to_netcdf(average_dataset, path_to_netcdf=path_to_netcdf, name_of_file=filename)
         else:
             return average_dataset
