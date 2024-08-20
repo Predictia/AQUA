@@ -7,8 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
-AQUA diagnostic complete list:
+AQUA core complete list:
 - ecCodes now pinned to >=2.36.0 and tool for fixing older definition files (#1302)
+
+AQUA diagnostic complete list:
 - Timeseries: a region can be selected for Timeseries and Seasonal Cycle with the `lon_limits` and `lat_limits` arguments (#1299)
 - Timeseries: the cli argument for extending the time range is now extend (previously expand) (#1299)
 - Timeseries: all the available diagnostics support the catalog argument (#1299)
