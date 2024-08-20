@@ -796,25 +796,29 @@ class ToolsClass:
         filenames = [os.path.basename(file) for file in filenames]
         times = [self.parse_filename_to_datetime(filename) for filename in filenames]
         times.sort(key=lambda x: x[0])  # Sort by start time
-        
+
         for i in range(len(times) - 1):
             current_start_time, current_end_time = times[i]
             next_start_time, _ = times[i + 1]
-            
+
             if freq == 'M':  # Monthly data
                 expected_next_start = current_end_time + relativedelta(months=+1)
-                # Adjust for the end of the month
-                expected_next_start = expected_next_start.replace(day=1, hour=0)
+                expected_next_start = expected_next_start.replace(day=1, hour=0)  # Adjust for the end of the month
             elif '3H' in freq:  # 3-hourly data
                 expected_next_start = current_end_time + relativedelta(hours=+3)
-            
+            else:
+                self.logger.warning(f"Unsupported frequency: {freq}")
+                continue
+
             if next_start_time != expected_next_start:
-                self.logger.error(f"Discontinuity in results found: Expected {expected_next_start}, got {next_start_time}")
+                self.logger.error(f"Discontinuity found: Expected {expected_next_start}, got {next_start_time}")
                 return False
             else:
-                self.logger.info(f"Continuity of results confirmed: {next_start_time} follows {expected_next_start}")
-            
+                self.logger.debug(f"Continuity confirmed: {next_start_time} follows {expected_next_start}")
+
+        self.logger.info("Continuity of time coordinates confirmed for all files.")
         return True
+
     
     def check_incomplete_months(self, files):
         filenames = [os.path.basename(file) for file in files]
