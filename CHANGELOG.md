@@ -6,8 +6,53 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [Unreleased]
 
 Unreleased in the current development version:
+
+AQUA core complete list:
+- ecCodes now pinned to >=2.36.0 and tool for fixing older definition files (#1302)
+
+AQUA diagnostic complete list:
+- Timeseries: a region can be selected for Timeseries and Seasonal Cycle with the `lon_limits` and `lat_limits` arguments (#1299)
+- Timeseries: the cli argument for extending the time range is now extend (previously expand) (#1299)
+- Timeseries: all the available diagnostics support the catalog argument (#1299)
+
+## [v0.11]
+
+Attention: this version is not compatible with catalog entries with ecCodes >= 2.35.0.
+
+1. LRA supports multi-catalog structure
+2. ecCodes temporarily restricted to < 2.34
+
+AQUA core complete list:
+- Refactor the fdb-catalog-generator tool to work with data-portfolio repository (#1275)
+- Introduce a function to convert NetCDF to Zarr and zarr catalog entry for LRA (#1068)
+- Suppress the warning of missing catalogs in the AQUA console `add` command (#1288)
+- Lumi installation is completely updated to LUMI/23.09 modules (#1290)
+- gsv_intake switches eccodes also for shortname definitions (#1279)
+- Increase compatibility between LRA generator and multi-catalog (#1278)
+- Allow for intake string replacement within LRA-generated catalogs (#1278)
+- Avoid warning for missing intake variable default when calling the `Reader()` (#1287)
+
+AQUA diagnostic complete list:
+- Teleconnections: catalog feature bugfix (#1276)
+
+## [v0.10.3]
+
+Attention: this version is not compatible with catalog entries with ecCodes < 2.35.0.
+
+Main changes are:
+1. support for ecCodes >= 2.35.0 (to be used with caution, not working with exps with eccodes < 2.35.0)
+2. fdb_path is deprecated in favour of fdb_home
+
+AQUA core complete list:
+- Restructure fixes folder and files (#1271)
+- Removed eccodes pin, better handling of tables in get_eccodes_attr (#1269)
 - Added test for diagnostics integration to AQUA installation process (#1244)
 - Bugfix for the monthly frequency data with monthly cumulated fluxes (#1255)
+- fdb_path becomes optional and deprecated in favour of fdb_home (#1262)
+- Branch support for tool to push analysis to explorer (#1273)
+
+AQUA diagnostic complete list:
+- ECmean documentation updates (#1264)
 
 ## [v0.10.2]
 
@@ -16,6 +61,7 @@ Main changes are:
 2. AQUA installation process now includes diagnostics integration
 
 AQUA core complete list:
+- Rename OutputNamer to OutputSaver and add catalog name (#1259)
 - Hotfix for rare situation with 3D data but no vertical chunking defined (#1252)
 - External yaml file to configure aqua-analysis (#1246)
 - Adding diagnostics integration to AQUA installation process (#1229)
@@ -560,7 +606,9 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.2...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11...HEAD
+[v0.11]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.3...v0.11
+[v0.10.3]:https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.2...v0.10.3
 [v0.10.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.1...v0.10.2
 [v0.10.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10...v0.10.1
 [v0.10]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.9.2...v0.10
