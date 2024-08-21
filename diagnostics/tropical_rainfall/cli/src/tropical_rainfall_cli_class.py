@@ -199,9 +199,9 @@ class Tropical_Rainfall_CLI:
 
         self.logger.debug(f"Month {month}/{f_month} processed for year {year}.")
 
-    def check_files(self, folder_path: str, start_year: int, end_year: int):
+    def check_files(self, folder_path: str, start_year: int, end_year: int) -> bool:
         """
-        Check for files in the specified folder that span the given year range.
+        Check if files in the specified folder span the given year range.
 
         Args:
             folder_path (str): The path to the folder containing the files.
@@ -209,7 +209,7 @@ class Tropical_Rainfall_CLI:
             end_year (int): The end year of the required period.
 
         Returns:
-            str or bool: The path to the matching file if found, otherwise False.
+            bool: True if files that span the specified year range exist, otherwise False.
         """
         # Validate the input parameters
         if not isinstance(start_year, int) or not isinstance(end_year, int):
@@ -240,8 +240,8 @@ class Tropical_Rainfall_CLI:
 
                     # Check if the file spans the desired year range
                     if str(start_year) <= file_start_year and str(end_year) >= file_end_year:
-                        self.logger.debug(f"File {os.path.basename(file)} matches the year range {start_year}-{end_year}.")
-                        return file
+                        self.logger.info(f"File {os.path.basename(file)} matches the year range {start_year}-{end_year}.")
+                        return True
                     else:
                         self.logger.debug(f"File {os.path.basename(file)} does not match the year range {start_year}-{end_year}.")
                 else:
@@ -270,10 +270,7 @@ class Tropical_Rainfall_CLI:
         start_year = self.s_year - default_interval if source_info.get('auto', False) else source_info.get('s_year', self.s_year)
         end_year = self.f_year + default_interval if source_info.get('auto', False) else source_info.get('f_year', self.f_year)
 
-        file = self.check_files(folder_path=folder_path, start_year=start_year, end_year=end_year)
-        if file:
-            return self.diag.tools.open_dataset(file)
-        else:
+        if self.check_files(folder_path=folder_path, start_year=start_year, end_year=end_year):
             return self.diag.merge_list_of_histograms(
                 path_to_histograms=folder_path,
                 start_year=start_year, end_year=end_year,

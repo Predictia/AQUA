@@ -7,9 +7,9 @@ set -e # Exit immediately if a command exits with a non-zero status.
 machine=$(python -c "
 import yaml
 import sys
-
+import os
 try:
-    with open('$AQUA/config/config-aqua.yaml') as f:
+    with open('$HOME/.aqua/config-aqua.yaml') as f:
         config = yaml.safe_load(f)
         print(config['machine'])
 except Exception as e:
@@ -19,7 +19,7 @@ except Exception as e:
 
 # Check if the machine name was read correctly
 if [ -z "$machine" ]; then
-    echo "Failed to read machine name from config-aqua.yaml."
+    echo "Failed to read machine name"
     exit 1
 else
     echo "Machine Name: $machine"
