@@ -7,6 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+## [v0.11.1]
+
+Attention: If you are accessing FDB experiments, we suggest to not use versions older than this release.
+
+Main changes are:
+1. AQUA works with FDB written with ecCodes versions > 2.35 as well as lower.
+2. Timeseries and Seasonal cyle can now be evaluated also on a specific region 
+
 AQUA core complete list:
 - ecCodes now pinned to >=2.36.0 and tool for fixing older definition files (#1302)
 
@@ -606,7 +614,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11.1...HEAD
+[v0.11.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11...v0.11.1
 [v0.11]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.3...v0.11
 [v0.10.3]:https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.2...v0.10.3
 [v0.10.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.1...v0.10.2
