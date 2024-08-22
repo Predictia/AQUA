@@ -148,7 +148,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         machine_paths, intake_vars = Configurer.get_machine_info()
 
         # load the catalog
-        self.esmcat = self.cat[self.model][self.exp][self.source](**kwargs, **intake_vars)
+        self.esmcat = self.cat(**intake_vars)[self.model][self.exp][self.source](**kwargs)
 
         # store the kwargs for further usage
         self.kwargs = self._check_kwargs_parameters(kwargs, intake_vars)
