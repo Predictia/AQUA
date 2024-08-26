@@ -13,6 +13,7 @@ from aqua.util import load_yaml, load_multi_yaml
 from aqua.util import ConfigPath, area_selection
 from aqua.logger import log_configure, log_history
 from aqua.util import flip_lat_dir, find_vert_coord
+from aqua.exceptions import NoDataError
 import aqua.gsv
 
 from .streaming import Streaming
@@ -537,7 +538,11 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             fiter = self.stream_generator  # this returs an iterator unless dask is set
             ffdb = True  # These data have been read from fdb
         else:
-            data = self.reader_intake(self.esmcat, var, loadvar)  # Returns a generator object
+            try:
+                data = self.reader_intake(self.esmcat, var, loadvar)  # Returns a generator object
+            except IndexError as err:
+                self.logger.debug(f"Error in retrieving data: {err}")
+                raise NoDataError(f"No data available for {self.model} {self.exp} {self.source}") from err
 
         # if retrieve history is required (disable for retrieve_plain)
         if history:
