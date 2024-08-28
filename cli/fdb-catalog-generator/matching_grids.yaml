@@ -13,11 +13,17 @@ grid_mappings:
   pl:
     default: "{aqua_grid}-nested"
   o2d:
-    ifs-nemo: "nemo-eORCA12-{aqua_grid}-nested"
+    ifs-nemo:
+      lowres: "nemo-eORCA1-{aqua_grid}-nested"
+      develop: "nemo-eORCA12-{aqua_grid}-nested"
+      production: "nemo-eORCA12-{aqua_grid}-nested"
     ifs-fesom: "fesom-{aqua_grid}-nested"
     icon: "icon-{aqua_grid}-nested"
   o3d:
-    ifs-nemo: "nemo-eORCA12-{aqua_grid}-nested-3d"
+    ifs-nemo:
+      lowres: "nemo-eORCA1-{aqua_grid}-nested-3d"
+      develop: "nemo-eORCA12-{aqua_grid}-nested-3d"
+      production: "nemo-eORCA12-{aqua_grid}-nested-3d"
     ifs-fesom: "fesom-{aqua_grid}-nested-3d"
     icon: "icon-{aqua_grid}-nested-3d"
   default: "{aqua_grid}"

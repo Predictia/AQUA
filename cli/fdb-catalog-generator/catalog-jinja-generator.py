@@ -173,11 +173,19 @@ class AquaFDBGenerator:
         levtype = profile["levtype"]
 
         if levtype in grid_mappings:
-            grid_str = grid_mappings[levtype].get(
-                self.model, grid_mappings[levtype].get('default')).format(aqua_grid=aqua_grid)
+            levtype_mapping = grid_mappings[levtype]
+            model_mapping = levtype_mapping.get(self.model, levtype_mapping.get('default'))
+
+            if isinstance(model_mapping, dict) and self.portfolio in model_mapping:
+                grid_str = model_mapping.get(
+                    self.portfolio, model_mapping.get('default'))
+            else:
+                grid_str = model_mapping
+                
+            grid_str = grid_str.format(aqua_grid=aqua_grid)
         else:
             grid_str = grid_mappings['default'].format(aqua_grid=aqua_grid)
-
+        
         source = f"{profile['frequency']}-{aqua_grid}-{levtype_str}"
 
         self.logger.debug('levtype: %s, levels: %s, grid: %s', levtype, levelist, grid_str)
