@@ -6,7 +6,7 @@ import types
 import shutil
 import intake_esm
 import xarray as xr
-
+from glob import glob
 import smmregrid as rg
 
 from aqua.util import load_yaml, load_multi_yaml
@@ -150,6 +150,13 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         # load the catalog
         self.esmcat = self.cat(**intake_vars)[self.model][self.exp][self.source](**kwargs)
+
+        # manual safety check for netcdf sources (create a method or function for this)
+        if 'netcdf' in self.esmcat.classname:
+            files = glob(self.esmcat.urlpath)
+            if not files:
+                raise NoDataError(f"No data NetCDF files available for {self.model} {self.exp} {self.source}, please check the urlpath of the source")
+
 
         # store the kwargs for further usage
         self.kwargs = self._check_kwargs_parameters(kwargs, intake_vars)
@@ -538,11 +545,12 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             fiter = self.stream_generator  # this returs an iterator unless dask is set
             ffdb = True  # These data have been read from fdb
         else:
-            try:
-                data = self.reader_intake(self.esmcat, var, loadvar)  # Returns a generator object
-            except IndexError as err:
-                self.logger.debug(f"Error in retrieving data: {err}")
-                raise NoDataError(f"No data available for {self.model} {self.exp} {self.source}") from err
+            data = self.reader_intake(self.esmcat, var, loadvar)
+            # try:
+            #     data = self.reader_intake(self.esmcat, var, loadvar)  # Returns a generator object
+            # except IndexError as err:
+            #     self.logger.debug(f"Error in retrieving data: {err}")
+            #     raise NoDataError(f"No data available for {self.model} {self.exp} {self.source}") from err
 
         # if retrieve history is required (disable for retrieve_plain)
         if history:
