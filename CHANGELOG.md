@@ -22,6 +22,7 @@ AQUA core complete list:
 - ecCodes now pinned to >=2.36.0 and tool for fixing older definition files (#1302)
 
 AQUA diagnostic complete list:
+- Tropical Rainfall: Fix Minor Issues in Tropical Precipitation CLI Metadata and Formatting (#1266)
 - Timeseries: a region can be selected for Timeseries and Seasonal Cycle with the `lon_limits` and `lat_limits` arguments (#1299)
 - Timeseries: the cli argument for extending the time range is now extend (previously expand) (#1299)
 - Timeseries: all the available diagnostics support the catalog argument (#1299)
