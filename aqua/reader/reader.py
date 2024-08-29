@@ -6,7 +6,6 @@ import types
 import shutil
 import intake_esm
 import xarray as xr
-from glob import glob
 import smmregrid as rg
 
 from aqua.util import load_multi_yaml, files_exist
@@ -154,7 +153,8 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         # manual safety check for netcdf sources (see #943)
         if 'netcdf' in self.esmcat.classname:
             if not files_exist(self.esmcat.urlpath):
-                raise NoDataError(f"No data NetCDF files available for {self.model} {self.exp} {self.source}, please check the urlpath of the source")
+                raise NoDataError(f"No NetCDF files available for {self.model} {self.exp} {self.source}, 
+                                  please check the urlpath: {self.esmcat.urlpath}")
 
 
         # store the kwargs for further usage
