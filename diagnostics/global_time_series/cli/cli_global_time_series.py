@@ -76,7 +76,7 @@ def get_plot_options(config: dict = None,
         plot_kw = plot_options.get("plot_kw", {})
         longname = plot_options.get("longname", None)
         units = plot_options.get("units", None)
-        expand = plot_options.get("expand", True)
+        extend = plot_options.get("extend", True)
     else:
         monthly = config["timeseries_plot_params"]["default"].get("monthly", True)
         annual = config["timeseries_plot_params"]["default"].get("annual", True)
@@ -94,9 +94,9 @@ def get_plot_options(config: dict = None,
         plot_kw = config["timeseries_plot_params"]["default"].get("plot_kw", {})
         longname = None
         units = None
-        expand = config["timeseries_plot_params"]["default"].get("expand", True)
+        extend = config["timeseries_plot_params"]["default"].get("extend", True)
     return monthly, annual, regrid, plot_ref, plot_ref_kw, startdate, enddate, \
-        monthly_std, annual_std, std_startdate, std_enddate, plot_kw, longname, units, expand
+        monthly_std, annual_std, std_startdate, std_enddate, plot_kw, longname, units, extend
 
 
 if __name__ == '__main__':
@@ -154,7 +154,7 @@ if __name__ == '__main__':
             logger.info(f"Plotting {var} time series")
             monthly, annual, regrid, plot_ref, plot_ref_kw, startdate, \
                 enddate, monthly_std, annual_std, std_startdate, std_enddate, \
-                plot_kw, longname, units, expand = get_plot_options(config, var)
+                plot_kw, longname, units, extend = get_plot_options(config, var)
 
             ts = Timeseries(var=var,
                             formula=False,
@@ -175,7 +175,7 @@ if __name__ == '__main__':
                             std_enddate=std_enddate,
                             longname=longname,
                             units=units,
-                            expand=expand,
+                            extend=extend,
                             plot_kw=plot_kw,
                             outdir=outputdir,
                             loglevel=loglevel)
@@ -197,7 +197,7 @@ if __name__ == '__main__':
             logger.info(f"Plotting {var} time series")
             monthly, annual, regrid, plot_ref, plot_ref_kw, startdate, \
                 enddate, monthly_std, annual_std, std_startdate, std_enddate, \
-                plot_kw, longname, units, expand = get_plot_options(config, var)
+                plot_kw, longname, units, extend = get_plot_options(config, var)
 
             ts = Timeseries(var=var,
                             formula=True,
@@ -219,7 +219,7 @@ if __name__ == '__main__':
                             plot_kw=plot_kw,
                             longname=longname,
                             units=units,
-                            expand=expand,
+                            extend=extend,
                             outdir=outputdir,
                             loglevel=loglevel)
             try:

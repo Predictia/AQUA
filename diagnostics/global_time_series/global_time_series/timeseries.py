@@ -469,7 +469,7 @@ class Timeseries():
             self.logger.info(f"Monthly reference data time available {startdate} to {enddate}")
 
             if startdate > self.startdate or enddate < self.enddate:
-                self.logger.info("Expanding reference range with a seasonal cycle")
+                self.logger.info("Extending reference range with a seasonal cycle")
                 self.extending_ref_range = True
 
                 # TODO: startdate has to be rounded to the first of the month
@@ -500,7 +500,7 @@ class Timeseries():
             self.logger.info(f"Annual reference data time available {startdate} to {enddate}")
 
             if startdate > self.startdate or enddate < self.enddate:
-                self.logger.info("Expanding reference range with a band of the reference data")
+                self.logger.info("Extending reference range with a band of the reference data")
                 self.extending_ref_range = True
 
                 # TODO: startdate has to be rounded to the center of the year (month=7)
