@@ -153,8 +153,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         # manual safety check for netcdf sources (see #943)
         if 'netcdf' in self.esmcat.classname:
             if not files_exist(self.esmcat.urlpath):
-                raise NoDataError(f"No NetCDF files available for {self.model} {self.exp} {self.source}, 
-                                  please check the urlpath: {self.esmcat.urlpath}")
+                raise NoDataError(f"No NetCDF files available for {self.model} {self.exp} {self.source}, please check the urlpath: {self.esmcat.urlpath}")
 
 
         # store the kwargs for further usage
