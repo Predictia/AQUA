@@ -6,13 +6,13 @@ import types
 import shutil
 import intake_esm
 import xarray as xr
-
 import smmregrid as rg
 
-from aqua.util import load_yaml, load_multi_yaml
+from aqua.util import load_multi_yaml, files_exist
 from aqua.util import ConfigPath, area_selection
 from aqua.logger import log_configure, log_history
 from aqua.util import flip_lat_dir, find_vert_coord
+from aqua.exceptions import NoDataError
 import aqua.gsv
 
 from .streaming import Streaming
@@ -149,6 +149,12 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
 
         # load the catalog
         self.esmcat = self.cat(**intake_vars)[self.model][self.exp][self.source](**kwargs)
+
+        # manual safety check for netcdf sources (see #943)
+        if 'netcdf' in self.esmcat.classname:
+            if not files_exist(self.esmcat.urlpath):
+                raise NoDataError(f"No NetCDF files available for {self.model} {self.exp} {self.source}, please check the urlpath: {self.esmcat.urlpath}")
+
 
         # store the kwargs for further usage
         self.kwargs = self._check_kwargs_parameters(kwargs, intake_vars)
@@ -537,7 +543,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             fiter = self.stream_generator  # this returs an iterator unless dask is set
             ffdb = True  # These data have been read from fdb
         else:
-            data = self.reader_intake(self.esmcat, var, loadvar)  # Returns a generator object
+            data = self.reader_intake(self.esmcat, var, loadvar)
 
         # if retrieve history is required (disable for retrieve_plain)
         if history:

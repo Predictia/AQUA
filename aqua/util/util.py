@@ -8,6 +8,7 @@ import sys
 import numpy as np
 import xarray as xr
 import datetime
+from glob import glob
 from pypdf import PdfReader, PdfWriter
 from PIL import Image, PngImagePlugin
 from aqua.logger import log_configure
@@ -32,6 +33,17 @@ def to_list(arg):
         arg = [arg]
     return arg
 
+def files_exist(path):
+    """
+    Verify that a list or path includes files
+    """
+
+    # Iterate over each pattern and check for the existence of matching files
+    for p in to_list(path):
+        if glob(p):  # If glob finds at least one match, return True
+            return True
+
+    return False
 
 def get_arg(args, arg, default):
     """
