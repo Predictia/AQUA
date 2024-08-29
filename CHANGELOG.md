@@ -9,6 +9,10 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Bugfix of the GSV intake driver that was not handling correctly metadata jinja replacement (#1304) 
+- Bugfix of _merge_fixes() method when the parent fix has no vars specified (#1310)
+
+AQUA diagnostic complete list:
+- Tropical Rainfall: Fix Minor Issues in Tropical Precipitation CLI Metadata and Formatting (#1266)
 
 ## [v0.11.1]
 
@@ -22,7 +26,6 @@ AQUA core complete list:
 - ecCodes now pinned to >=2.36.0 and tool for fixing older definition files (#1302)
 
 AQUA diagnostic complete list:
-- Tropical Rainfall: Fix Minor Issues in Tropical Precipitation CLI Metadata and Formatting (#1266)
 - Timeseries: a region can be selected for Timeseries and Seasonal Cycle with the `lon_limits` and `lat_limits` arguments (#1299)
 - Timeseries: the cli argument for extending the time range is now extend (previously expand) (#1299)
 - Timeseries: all the available diagnostics support the catalog argument (#1299)
