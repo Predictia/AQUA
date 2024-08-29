@@ -544,11 +544,6 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             ffdb = True  # These data have been read from fdb
         else:
             data = self.reader_intake(self.esmcat, var, loadvar)
-            # try:
-            #     data = self.reader_intake(self.esmcat, var, loadvar)  # Returns a generator object
-            # except IndexError as err:
-            #     self.logger.debug(f"Error in retrieving data: {err}")
-            #     raise NoDataError(f"No data available for {self.model} {self.exp} {self.source}") from err
 
         # if retrieve history is required (disable for retrieve_plain)
         if history:
