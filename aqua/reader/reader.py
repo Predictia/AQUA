@@ -9,7 +9,7 @@ import xarray as xr
 from glob import glob
 import smmregrid as rg
 
-from aqua.util import load_yaml, load_multi_yaml
+from aqua.util import load_multi_yaml, files_exist
 from aqua.util import ConfigPath, area_selection
 from aqua.logger import log_configure, log_history
 from aqua.util import flip_lat_dir, find_vert_coord
@@ -151,10 +151,9 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         # load the catalog
         self.esmcat = self.cat(**intake_vars)[self.model][self.exp][self.source](**kwargs)
 
-        # manual safety check for netcdf sources (create a method or function for this)
+        # manual safety check for netcdf sources (see #943)
         if 'netcdf' in self.esmcat.classname:
-            files = glob(self.esmcat.urlpath)
-            if not files:
+            if not files_exist(self.esmcat.urlpath):
                 raise NoDataError(f"No data NetCDF files available for {self.model} {self.exp} {self.source}, please check the urlpath of the source")
 
 
