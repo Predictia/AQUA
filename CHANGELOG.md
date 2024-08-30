@@ -9,6 +9,11 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 - Bugfix of the GSV intake driver that was not handling correctly metadata jinja replacement (#1304) 
+- Bugfix of _merge_fixes() method when the parent fix has no vars specified (#1310)
+- Safety check for the netcdf driver providing more informative error when files are not found (#1307)
+
+AQUA diagnostic complete list:
+- Tropical Rainfall: Fix Minor Issues in Tropical Precipitation CLI Metadata and Formatting (#1266)
 
 ## [v0.11.1]
 
