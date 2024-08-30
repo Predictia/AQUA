@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Bugfix of the fdb-catalog-generator tool that was not correctly assigning NEMO grids (#1309)
 - Bugfix of the GSV intake driver that was not handling correctly metadata jinja replacement (#1304) 
 - Bugfix of _merge_fixes() method when the parent fix has no vars specified (#1310)
 - Safety check for the netcdf driver providing more informative error when files are not found (#1307)
