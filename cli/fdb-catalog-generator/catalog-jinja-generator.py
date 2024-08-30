@@ -24,6 +24,7 @@ class AquaFDBGenerator:
         self.catalog_dir_path = self.config["repos"]["Climate-DT-catalog_path"]
         self.model = self.config["model"].lower()
         self.portfolio = self.config["portfolio"]
+        self.ocean_grid = self.config["ocean_grid"]
 
         self.logger.info("Running FDB catalog generator for %s portfolio", data_portfolio)
         self.dp = load_yaml(os.path.join(self.dp_dir_path, data_portfolio, 'portfolio.yaml'))
@@ -174,10 +175,10 @@ class AquaFDBGenerator:
 
         if levtype in grid_mappings:
             grid_str = grid_mappings[levtype].get(
-                self.model, grid_mappings[levtype].get('default')).format(aqua_grid=aqua_grid)
+                self.model, grid_mappings[levtype].get('default')).format(ocean_grid=self.ocean_grid, aqua_grid=aqua_grid)
         else:
             grid_str = grid_mappings['default'].format(aqua_grid=aqua_grid)
-
+        
         source = f"{profile['frequency']}-{aqua_grid}-{levtype_str}"
 
         self.logger.debug('levtype: %s, levels: %s, grid: %s', levtype, levelist, grid_str)
