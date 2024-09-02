@@ -64,9 +64,6 @@ class AquaConsole():
         parser = parser_dict['main']
         args, extra_args = parser.parse_known_args()
 
-        if args.command == 'lra':
-            lra_args = extra_args
-
         # Set the log level
         if args.very_verbose or (args.verbose and args.very_verbose):
             self.loglevel = 'DEBUG'
@@ -90,10 +87,7 @@ class AquaConsole():
                     parser_dict[command].print_help()
             # default
             else:
-                if command == 'lra':
-                    method(args, lra_args)
-                else:
-                    method(args)
+                method(args)
 
     def install(self, args):
         """Install AQUA, find the folders and then install
@@ -637,12 +631,11 @@ class AquaConsole():
             self.logger.error(e)
             return False
 
-    def lra(self, args, lra_args):
+    def lra(self, args):
         """Run the Low Resolution Archive generator"""
 
         print('Running the Low Resolution Archive generator')
         print('Arguments:', args)
-        print('Extra arguments:', lra_args)
 
 
 def main():

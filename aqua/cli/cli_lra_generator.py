@@ -25,12 +25,17 @@ except KeyError:
 print('AQUA version is: ' + version)
 
 
-def parse_arguments(arguments):
+def lra_parser(parser = None):
     """
     Parse command line arguments for the LRA CLI
+
+    Args:
+        Optional part to be extended with LRA options
     """
 
-    parser = argparse.ArgumentParser(description='AQUA LRA generator')
+    if parser is None:
+        parser = argparse.ArgumentParser(description='AQUA LRA generator')
+    
     parser.add_argument('-c', '--config', type=str,
                         help='yaml configuration file')
     parser.add_argument('-f', '--fix', action="store_true",
@@ -58,12 +63,13 @@ def parse_arguments(arguments):
     parser.add_argument('-v', '--var', type=str,
                         help='var to be processed. Use with coherence with --source')
 
-    return parser.parse_args(arguments)
+    #return parser.parse_args(arguments)
+    return parser
 
 
 if __name__ == '__main__':
 
-    args = parse_arguments(sys.argv[1:])
+    args = lra_parser.parse_args(sys.argv[1:])
     file = get_arg(args, 'config', 'lra_config.yaml')
     print('Reading configuration yaml file..')
 

@@ -8,6 +8,7 @@ AQUA command line parser
 import argparse
 from aqua import __version__ as version
 from aqua import __path__ as pypath
+from aqua.cli.cli_lra_generator import lra_parser
 
 
 def parse_arguments():
@@ -36,7 +37,10 @@ def parse_arguments():
     list_parser = subparsers.add_parser("list", description="List the currently installed AQUA catalogs")
 
     # subparser for other AQUA commands, they are handled as extra args
-    subparsers.add_parser("lra", description="Low Resolution Archive generator")
+    #subparsers.add_parser("lra", description="Low Resolution Archive generator")
+    lra_parser = subparsers.add_parser("lra", description="Low Resolution Archive generator")
+    lra_parser = lra_parser(parser = lra_parser)
+
 
     # subparser with no arguments
     subparsers.add_parser("uninstall", description="Remove the current AQUA installation")
