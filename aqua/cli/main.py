@@ -19,6 +19,7 @@ from aqua.util.util import HiddenPrints, to_list
 from aqua import __path__ as pypath
 from aqua import catalog
 from aqua.util import create_folder
+from aqua.cli.cli_lra_generator import lra_execute
 
 # folder used for reading/storing catalogs
 catpath = 'catalogs'
@@ -635,7 +636,7 @@ class AquaConsole():
         """Run the Low Resolution Archive generator"""
 
         print('Running the Low Resolution Archive generator')
-        print('Arguments:', args)
+        lra_execute(args)
 
 
 def main():

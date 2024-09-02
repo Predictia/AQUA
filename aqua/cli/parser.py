@@ -38,8 +38,9 @@ def parse_arguments():
 
     # subparser for other AQUA commands, they are handled as extra args
     #subparsers.add_parser("lra", description="Low Resolution Archive generator")
-    lra_parser = subparsers.add_parser("lra", description="Low Resolution Archive generator")
-    lra_parser = lra_parser(parser = lra_parser)
+    lra_subparser = subparsers.add_parser("lra", description="Low Resolution Archive generator")
+    lra_subparser = lra_parser(parser = lra_subparser)
+    print(lra_parser)
 
 
     # subparser with no arguments

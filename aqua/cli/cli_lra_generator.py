@@ -66,10 +66,8 @@ def lra_parser(parser = None):
     #return parser.parse_args(arguments)
     return parser
 
+def lra_execute(args):
 
-if __name__ == '__main__':
-
-    args = lra_parser.parse_args(sys.argv[1:])
     file = get_arg(args, 'config', 'lra_config.yaml')
     print('Reading configuration yaml file..')
 
@@ -134,3 +132,9 @@ if __name__ == '__main__':
                 lra.create_zarr_entry(verify=verify_zarr)
 
     print('LRA run completed. Have yourself a beer!')
+
+if __name__ == '__main__':
+
+    args = lra_parser.parse_args(sys.argv[1:])
+    lra_execute(args)
+   
