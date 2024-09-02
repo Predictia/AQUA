@@ -55,3 +55,50 @@ This session will cover the following key topics:
    - Recap the session’s key points.
    - Provide additional resources or references for further learning.
    - Thank participants for their time and engagement.
+
+### 2. **Building the Boat: Creation of Catalog Entry and LRA (10 min)**
+
+#### Catalog Entry Generator for FDB Sources
+
+A tool that streamlines the process of adding new experiments to the catalog, based on the data-portfolio structure of the Destination Earth Climate DT. It exploits the capabilities of the Jinja package to obtain a cleaner and more flexible code.
+
+**Basic Usage:**
+
+To add a new experiment to the catalog, follow these steps:
+
+1. Clone the two repositories, `DestinE-ClimateDT-catalog` and `data-portfolio`, to your preferred location.
+2. Navigate to the `cli/fdb-catalog-generator` folder.
+3. Update the `config.yaml` file with the details of your simulation, including the paths of the cloned repositories.
+4. Run the command: 
+
+   ```bash
+   python catalog-jinja-generator.py -p production -c config.yaml
+   ```
+
+   where the `-p` argument can be either `production` or `reduced` to specify the Jinja template to be used.
+   
+5. The catalog entry will be created in the appropriate location in the `DestinE-ClimateDT-catalog` folder, and the corresponding `main.yaml` file will be automatically updated.
+
+### 6. aqua_analysis Output and Discussion (5 min)
+
+#### Overview
+The `output` folder is organized to provide a clear, hierarchical structure of the analysis results. Each layer in the folder structure adds context to the data, making it easier to navigate and interpret.
+
+#### Folder Structure Explanation
+
+- **Model Level:**
+  - The top-level directories represent different models or simulations.
+- **Experiment Level:**
+  - Within each model directory, you will find subdirectories corresponding to different experiments or simulation periods.
+- **Diagnostic Level:**
+  - Each experiment folder contains diagnostics, organized by their respective categories, such as time series, seasonal cycles, or specific climate phenomena.
+- **Output Files:**
+  - Inside diagnostic folders, you’ll find various output files:
+    - **Log files** to trace the analysis process.
+    - **PDF reports** providing visual summaries.
+    - **NetCDF files** containing detailed data for further analysis.
+
+#### Discussion Points
+- **Navigating the Structure:** Understanding the hierarchy helps quickly locate the relevant analysis results.
+- **Interpreting Output:** Discuss how the organization aids in comparing results across different experiments and diagnostics.
+- **Utilizing Logs and Data:** Logs are essential for troubleshooting, while NetCDF files are key for in-depth analysis.
