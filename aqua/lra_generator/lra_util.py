@@ -2,9 +2,11 @@
 
 import os
 import shutil
+from glob import glob
 from aqua.util import dump_yaml, load_yaml
 from aqua.util import ConfigPath
 from aqua.logger import log_configure
+
 
 def opa_catalog_entry(datadir, model, exp, source, catalog=None,
                       fixer_name=False, frequency='monthly',
@@ -80,45 +82,55 @@ def opa_catalog_entry(datadir, model, exp, source, catalog=None,
         }
     }
 
-    # if zoom:
-    #     block_zoom = {
-    #         'parameters': {
-    #             'zoom': {
-    #                 'allowed': [zoom],
-    #                 'default': zoom,
-    #                 'description': 'zoom resolution of the dataset',
-    #                 'type': 'int'
-    #             }
-    #         }
-    #     }
-    #     block_cat.update(block_zoom)
-
     # add the block to the catalog
     cat_file['sources'][entry_name] = block_cat
     dump_yaml(outfile=catalogfile, cfg=cat_file)
 
     return entry_name
 
-# NO LONGER NECESSARY
-# def check_correct_ifs_fluxes(xfield, threshold=100, loglevel='WARNING'):
+
+def list_lra_files_complete(path):
+    """
+    List LRA files in the specified path based on the given parameters.
+
+    Args:
+        path (str): The base path where the LRA files are located.
+
+    Returns:
+        A dictionary containing the netcdf files for a each LRA variable
+    """
+
+    yearly_dict = {}
+    monthly_dict = {}
+    searchpath = "*"
+    yearly_dict['files'] = sorted(glob(os.path.join(path, searchpath) + '_????.nc'))
+    monthly_dict['files'] = sorted(glob(os.path.join(path, searchpath) + '_??????.nc'))
+
+    # path = os.path.join(path, model, exp, reso, freq)
+    return yearly_dict, monthly_dict
+
+
+# NOT USED AT THE MOMENT
+# def list_lra_files_vars(path):
+#     """
+#     List LRA files in the specified path based on the given parameters.
+
+#     Args:
+#         path (str): The base path where the LRA files are located.
+
 
 #     """
-#     Giving a Xarray DataArray,
-#     check if the first time step is more than 100 times larger
-#     This is done to protect LRA from wrong fluxes produced by IFS for every new month
-#     """
 
-#     logger = log_configure(log_level=loglevel, log_name='check_ifs_fluxes')
+#     # path = os.path.join(path, model, exp, reso, freq)
+#     searchpath = os.path.join(path, '*.nc')
+#     variables = set([os.path.basename(complete).rpartition('_')[0] for complete in glob(searchpath)])
+#     yearly_dict = {}
+#     monthly_dict = {}
+#     for var in variables:
+#         yearly_dict[var] = sorted(glob(os.path.join(path, var) + '_????.nc'))
+#         monthly_dict[var] = sorted(glob(os.path.join(path, var) + '_??????.nc'))
 
-#     data1 = xfield.isel(time=0).mean().values
-#     data2 = xfield.isel(time=1).mean().values
-#     ratio = abs(data1)/abs(data2)
-#     logger.info('Ratio of first two timesteps is %s', round(ratio,2))
-#     if ratio > threshold:
-#         logger.warning('Ratio %s is unrealistically high, we will set the first time step to NaN', round(ratio, 2))
-#         xfield.loc[{'time': xfield.time.values[0]}] = np.nan
-
-#    return xfield
+#     return yearly_dict, monthly_dict
 
 def move_tmp_files(tmp_directory, output_directory):
     """
@@ -138,26 +150,25 @@ def move_tmp_files(tmp_directory, output_directory):
             new_file_path = os.path.join(output_directory, new_file_name)
             shutil.move(tmp_file_path, new_file_path)
 
+
 def replace_intake_vars(path, catalog=None):
-        
-        """
-        Replace the intake jinja vars into a string for a predefined catalog
+    """
+    Replace the intake jinja vars into a string for a predefined catalog
 
-        Args:
-            catalog:  the catalog name where the intake vars must be read
-            path: the original path that you want to update with the intake variables
-        """
+    Args:
+        catalog:  the catalog name where the intake vars must be read
+        path: the original path that you want to update with the intake variables
+    """
 
-            # we exploit of configurerto get info on intake_vars so that we can replace them in the urlpath
-        Configurer = ConfigPath(catalog=catalog)
-        _, intake_vars = Configurer.get_machine_info()
+    # We exploit of configurerto get info on intake_vars so that we can replace them in the urlpath
+    Configurer = ConfigPath(catalog=catalog)
+    _, intake_vars = Configurer.get_machine_info()
 
-        # loop on available intake_vars, replace them in the urlpath
-        for name in intake_vars.keys():
-            replacepath = intake_vars[name]
-            if replacepath is not None and replacepath in path:
-                # quotes used to ensure that then you can read the source
-                path = path.replace(replacepath, "{{ " + name + " }}")
-        
-        return path
+    # loop on available intake_vars, replace them in the urlpath
+    for name in intake_vars.keys():
+        replacepath = intake_vars[name]
+        if replacepath is not None and replacepath in path:
+            # quotes used to ensure that then you can read the source
+            path = path.replace(replacepath, "{{ " + name + " }}")
 
+    return path

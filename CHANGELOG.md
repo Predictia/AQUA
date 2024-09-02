@@ -8,17 +8,63 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+
+AQUA diagnostic complete list:
+
+## [v0.11.2]
+
+AQUA core complete list:
+- Renaming of FESOM grids to include original resolution name (#1312)
+- Bugfix of the fdb-catalog-generator tool that was not correctly assigning NEMO grids (#1309)
+- Bugfix of the GSV intake driver that was not handling correctly metadata jinja replacement (#1304) 
+- Bugfix of _merge_fixes() method when the parent fix has no vars specified (#1310)
+- Safety check for the netcdf driver providing more informative error when files are not found (#1307, #1313)
+
+AQUA diagnostic complete list:
+- Tropical Rainfall: Fix Minor Issues in Tropical Precipitation CLI Metadata and Formatting (#1266)
+
+## [v0.11.1]
+
+Attention: If you are accessing FDB experiments, we suggest to not use versions older than this release.
+
+Main changes are:
+1. AQUA works with FDB written with ecCodes versions > 2.35 as well as lower.
+2. Timeseries and Seasonal cyle can now be evaluated also on a specific region 
+
+AQUA core complete list:
+- ecCodes now pinned to >=2.36.0 and tool for fixing older definition files (#1302)
+
+AQUA diagnostic complete list:
+- Timeseries: a region can be selected for Timeseries and Seasonal Cycle with the `lon_limits` and `lat_limits` arguments (#1299)
+- Timeseries: the cli argument for extending the time range is now extend (previously expand) (#1299)
+- Timeseries: all the available diagnostics support the catalog argument (#1299)
+
+## [v0.11]
+
+Attention: this version is not compatible with catalog entries with ecCodes >= 2.35.0.
+
+1. LRA supports multi-catalog structure
+2. ecCodes temporarily restricted to < 2.34
+
+AQUA core complete list:
+- Refactor the fdb-catalog-generator tool to work with data-portfolio repository (#1275)
+- Introduce a function to convert NetCDF to Zarr and zarr catalog entry for LRA (#1068)
+- Suppress the warning of missing catalogs in the AQUA console `add` command (#1288)
 - Lumi installation is completely updated to LUMI/23.09 modules (#1290)
 - gsv_intake switches eccodes also for shortname definitions (#1279)
 - Increase compatibility between LRA generator and multi-catalog (#1278)
 - Allow for intake string replacement within LRA-generated catalogs (#1278)
+- Avoid warning for missing intake variable default when calling the `Reader()` (#1287)
 
 AQUA diagnostic complete list:
 - Teleconnections: catalog feature bugfix (#1276)
 
 ## [v0.10.3]
+
+Attention: this version is not compatible with catalog entries with ecCodes < 2.35.0.
+
 Main changes are:
-1. support for ecCodes >= 2.35.0
+1. support for ecCodes >= 2.35.0 (to be used with caution, not working with exps with eccodes < 2.35.0)
 2. fdb_path is deprecated in favour of fdb_home
 
 AQUA core complete list:
@@ -584,7 +630,10 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.3...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11.2...HEAD
+[v0.11.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11.1...v0.11.2
+[v0.11.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11...v0.11.1
+[v0.11]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.3...v0.11
 [v0.10.3]:https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.2...v0.10.3
 [v0.10.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.1...v0.10.2
 [v0.10.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10...v0.10.1

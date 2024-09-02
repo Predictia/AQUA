@@ -135,8 +135,6 @@ if __name__ == '__main__':
 
     # loading the usual configuration file
     config = load_yaml(config_file)
-    catalog = config.get('catalog', None)
-
     slurm = config.get('slurm', {})
 
     # sbatch looping
@@ -153,8 +151,7 @@ if __name__ == '__main__':
                         PARENT_JOB = str(jobid)
                     COUNT = COUNT + 1
                     print(' '.join(['Submitting', model, exp, source, varname]))
-                    jobid = submit_sbatch(catalog=catalog, 
-                                          model=model, exp=exp, source=source, varname=varname,
+                    jobid = submit_sbatch(model=model, exp=exp, source=source, varname=varname,
                                           slurm_dict=slurm, yaml_file=config_file,
                                           workers=workers, definitive=definitive,
                                           overwrite=overwrite, dependency=PARENT_JOB)

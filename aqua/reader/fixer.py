@@ -173,7 +173,7 @@ class FixerMixin():
         """
         final = base
         for item in specific.keys():
-            if item == 'vars':
+            if item == 'vars' and item in base:
                 final[item] = {**base[item], **specific[item]}
             else:
                 final[item] = specific[item]
