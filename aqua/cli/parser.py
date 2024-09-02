@@ -36,12 +36,9 @@ def parse_arguments():
     set_parser = subparsers.add_parser("set", description="Set an installed catalog as the predefined in config-aqua.yaml")
     list_parser = subparsers.add_parser("list", description="List the currently installed AQUA catalogs")
 
-    # subparser for other AQUA commands, they are handled as extra args
-    #subparsers.add_parser("lra", description="Low Resolution Archive generator")
+    # subparser for other AQUA commands, they are importing the parser
     lra_subparser = subparsers.add_parser("lra", description="Low Resolution Archive generator")
     lra_subparser = lra_parser(parser = lra_subparser)
-    print(lra_parser)
-
 
     # subparser with no arguments
     subparsers.add_parser("uninstall", description="Remove the current AQUA installation")
