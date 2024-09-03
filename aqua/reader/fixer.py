@@ -667,6 +667,7 @@ class FixerMixin():
         """
         Other than the data_model we can apply other fixes to the coordinates
         reading them from the fixes file, in the coords section.
+        Units override can also be specified.
 
         Arguments:
             data (xr.Dataset):  input dataset to process
@@ -696,6 +697,7 @@ class FixerMixin():
 
                 if tgt_units and coord in data.coords:
                     self.logger.debug("Coordinate %s units set to %s", coord, tgt_units)
+                    self.logger.debug("Please notice that this is an override, no unit conversion has been applied")
                     data[coord].attrs['units'] = tgt_units
                     log_history(data[coord], f"Coordinate {coord} units set to {tgt_units} by fixer")
                 else:
