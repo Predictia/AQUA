@@ -14,6 +14,16 @@ from aqua.util import load_yaml, dump_yaml, get_arg
 from aqua.logger import log_configure
 from aqua.lra_generator.lra_util import replace_intake_vars
 
+def catgen_parser(parser=None):
+    if parser is None:
+        parser = argparse.ArgumentParser(description='AQUA FDB entries generator')
+
+    parser.add_argument("-p", "--portfolio", help="Type of Data Portfolio utilized (production/reduced)")
+    parser.add_argument('-c', '--config', type=str, help='yaml configuration file')
+    parser.add_argument('-l', '--loglevel', type=str, help='loglevel', default='INFO')
+
+    return parser
+
 class AquaFDBGenerator:
     def __init__(self, data_portfolio, config_path, loglevel='INFO'):
         self.dp_version = data_portfolio
@@ -36,12 +46,7 @@ class AquaFDBGenerator:
 
 
     @staticmethod
-    def parse_arguments(arguments):
-        parser = argparse.ArgumentParser(description='AQUA FDB entries generator')
-        parser.add_argument("-p", "--portfolio", help="Type of Data Portfolio utilized (production/reduced)")
-        parser.add_argument('-c', '--config', type=str, help='yaml configuration file')
-        parser.add_argument('-l', '--loglevel', type=str, help='loglevel', default='INFO')
-        return parser.parse_args(arguments)
+
 
     def get_local_grids(self, portfolio, grids):
         """
@@ -256,11 +261,19 @@ class AquaFDBGenerator:
 
         self.create_catalog_entry(all_content)
 
-if __name__ == '__main__':
-    args = AquaFDBGenerator.parse_arguments(sys.argv[1:])
+def catgen_execute(args):
+
+    """Useful wrapper for the FDB catalog generator class"""
+
     dp_version = get_arg(args, 'portfolio', 'production')
     config_file = get_arg(args, 'config', 'config.yaml')
     loglevel = get_arg(args, 'loglevel', 'INFO')
 
     generator = AquaFDBGenerator(dp_version, config_file, loglevel)
     generator.generate_catalog()
+
+if __name__ == '__main__':
+
+    args = catgen_parser().parse_args(sys.argv[1:])
+    catgen_execute(args)
+    

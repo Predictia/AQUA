@@ -221,6 +221,6 @@ def lra_autosubmit(config, catalog, resolution, frequency, fix, fixer_name, conf
 # if you want to execute the script from terminal without the aqua entry point
 if __name__ == '__main__':
 
-    args = lra_parser.parse_args(sys.argv[1:])
+    args = lra_parser().parse_args(sys.argv[1:])
     lra_execute(args)
    

@@ -9,6 +9,7 @@ import argparse
 from aqua import __version__ as version
 from aqua import __path__ as pypath
 from aqua.cli.lra import lra_parser
+from aqua.cli.catalog_generator import catgen_parser
 
 
 def parse_arguments():
@@ -36,9 +37,12 @@ def parse_arguments():
     set_parser = subparsers.add_parser("set", description="Set an installed catalog as the predefined in config-aqua.yaml")
     list_parser = subparsers.add_parser("list", description="List the currently installed AQUA catalogs")
 
-    # subparser for other AQUA commands, they are importing the parser
+    # subparser for other AQUA commands as they are importing the parser from their code
     lra_subparser = subparsers.add_parser("lra", description="Low Resolution Archive generator")
     lra_subparser = lra_parser(parser = lra_subparser)
+ 
+    catgen_subparser = subparsers.add_parser("catgen", description="FDB catalog generator")
+    catgen_subparser = catgen_parser(parser = catgen_subparser)
 
     # subparser with no arguments
     subparsers.add_parser("uninstall", description="Remove the current AQUA installation")
