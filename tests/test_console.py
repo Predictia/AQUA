@@ -196,6 +196,10 @@ class TestAquaConsole():
             run_aqua(['remove', 'pippo'])
             assert excinfo.value.code == 1
 
+        # create a test for LRA
+        with pytest.raises(ValueError, match="ERROR: lra_config.yaml not found: you need to have this configuration file!"):
+            run_aqua(['lra'])
+
         # remove catalog
         run_aqua(['remove', 'ci'])
         assert not os.path.exists(os.path.join(mydir, '.aqua/catalogs/ci'))
