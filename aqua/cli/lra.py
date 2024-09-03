@@ -15,17 +15,6 @@ from aqua.util import load_yaml, get_arg, to_list
 from aqua.lra_generator.lra_util import opa_catalog_entry
 from aqua import __version__ as version
 
-# to check if GSV is available and return the version
-try:
-    import gsv
-    print('GSV version is: ' + gsv.__version__)
-except RuntimeError:
-    print("GSV not available. FDB5 binary library not present on system.")
-except KeyError:
-    print("GSV not available. Environment variables not correctly set.")
-
-print('AQUA version is: ' + version)
-
 
 def lra_parser(parser = None):
     """
@@ -74,6 +63,17 @@ def lra_execute(args):
     """
     Executing the LRA by parsing the arguments and configuring the machinery
     """
+
+        # to check if GSV is available and return the version
+    try:
+        import gsv
+        print('GSV version is: ' + gsv.__version__)
+    except RuntimeError:
+        print("GSV not available. FDB5 binary library not present on system.")
+    except KeyError:
+        print("GSV not available. Environment variables not correctly set.")
+
+    print('AQUA version is: ' + version)
 
     file = get_arg(args, 'config', 'lra_config.yaml')
     print('Reading configuration yaml file..')
