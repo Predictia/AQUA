@@ -18,7 +18,7 @@ from aqua.util.util import HiddenPrints, to_list
 
 from aqua.cli.parser import parse_arguments
 from aqua.cli.diagnostic_config import diagnostic_config
-from aqua.cli.cli_lra_generator import lra_execute
+from aqua.cli.lra import lra_execute
 
 
 # folder used for reading/storing catalogs

@@ -8,7 +8,7 @@ AQUA command line parser
 import argparse
 from aqua import __version__ as version
 from aqua import __path__ as pypath
-from aqua.cli.cli_lra_generator import lra_parser
+from aqua.cli.lra import lra_parser
 
 
 def parse_arguments():
