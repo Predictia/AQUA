@@ -1,3 +1,5 @@
+.. _lra:
+
 Low Resolution Archive
 ======================
 

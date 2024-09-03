@@ -20,6 +20,7 @@ It has the following subcommands:
 - :ref:`aqua-update`
 - :ref:`aqua-fixes`
 - :ref:`aqua-grids`
+- :ref:`aqua-lra`
 
 The main command has some options listed below:
 
@@ -255,3 +256,21 @@ This is useful if new external grids are created and need to be added to the lis
 .. option:: -e, --editable
 
     It will create a symbolic link to the grid folder. Valid only for ``aqua grids add``
+
+aqua lra -c <config_file> <lra-options>
+-----------------------------------
+
+This subcommand launch the LRA generation based on the LRA tool
+For full description of the LRA generator functionalities, please refer to the :ref:`_lra` section.
+In most of cases, it is better to embed this tool within a batch job
+
+Main options are:
+
+.. option:: -c, --config
+
+    Path to the configuration file
+
+.. option:: -a, --autosubmit
+
+    Launch the LRA generation in workflow mode, making use of OPA files
+
