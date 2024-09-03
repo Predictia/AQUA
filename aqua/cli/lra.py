@@ -71,6 +71,9 @@ def lra_parser(parser = None):
     return parser
 
 def lra_execute(args):
+    """
+    Executing the LRA by parsing the arguments and configuring the machinery
+    """
 
     file = get_arg(args, 'config', 'lra_config.yaml')
     print('Reading configuration yaml file..')
@@ -85,9 +88,10 @@ def lra_execute(args):
     catalog = config.get('catalog', None)
 
     # for autosubmit
-    opadir = config['target']['opadir']
-    fixer_name = config['target']['fixer_name']
-    configdir = config['configdir'] #is this really used?
+    if get_arg(args, 'autosubmit', False):
+        opadir = config['target']['opadir']
+        fixer_name = config['target']['fixer_name']
+        configdir = config['configdir'] #is this really used?
 
     # zarr options - HACK: template to be updated
     do_zarr = config.get('zarr', False)
@@ -104,18 +108,22 @@ def lra_execute(args):
 
     # run the LRA through the workflow, based on OPA
     # please notice that calls are very similar but to preserve previous structure two funcionts are implemented
-    if get_arg(args, 'autosubmit'):
+    if get_arg(args, 'autosubmit', False):
         lra_autosubmit(config, catalog, resolution, frequency, fix, fixer_name, configdir, 
                     outdir, tmpdir, opadir, loglevel, definitive, overwrite, default_workers)
     # default run of the LRA
     else:
-        lra_cli(config, resolution, frequency, fix, outdir, tmpdir, loglevel,
+        lra_cli(args, config, resolution, frequency, fix, outdir, tmpdir, loglevel,
             definitive, overwrite, monitoring, default_workers, do_zarr, verify_zarr)
 
     
 
-def lra_cli(config, resolution, frequency, fix, outdir, tmpdir, loglevel,
+def lra_cli(args, config, resolution, frequency, fix, outdir, tmpdir, loglevel,
             definitive, overwrite, monitoring, default_workers, do_zarr, verify_zarr):
+    """
+    Running the default LRA from CLI, looping on all the configuration model/exp/source/var combination
+    Options for dry run and overwriting, as well as monitoring and zarr creation, are available
+    """
 
     models = to_list(get_arg(args, 'model', config['data'].keys()))
     for model in models:
@@ -159,6 +167,11 @@ def lra_cli(config, resolution, frequency, fix, outdir, tmpdir, loglevel,
 
 def lra_autosubmit(config, catalog, resolution, frequency, fix, fixer_name, configdir, 
                    outdir, tmpdir, opadir, loglevel, definitive, overwrite, default_workers):
+    
+    """
+    If the --autosubmit flag is selected, run the LRA via the workflow assuming OPA files 
+    have been build beforehand 
+    """
 
     for model in config['data'].keys():
         for exp in config['data'][model].keys():
@@ -180,9 +193,11 @@ def lra_autosubmit(config, catalog, resolution, frequency, fix, fixer_name, conf
 
                     print(f'Netcdf files found in {opadir}: Launching LRA')
 
+                    # get the zoom level
+                    zoom_level = config['data'][model][exp][source].get('zoom', None)
+
                     # init the LRA
-                    # zoom_level = config['data'][model][exp][source].get('zoom', None)
-                    lra = LRAgenerator(catalog=catalog, model=model, exp=exp, source=entry_name, zoom=None,
+                    lra = LRAgenerator(catalog=catalog, model=model, exp=exp, source=entry_name, zoom=zoom_level,
                                     var=varname, resolution=resolution,
                                     frequency=frequency, fix=fix,
                                     outdir=outdir, tmpdir=tmpdir, configdir=configdir,
