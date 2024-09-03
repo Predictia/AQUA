@@ -9,8 +9,10 @@ a configuration yaml file.
 
 import sys
 import argparse
+from glob import glob
 from aqua import LRAgenerator
 from aqua.util import load_yaml, get_arg, to_list
+from aqua.lra_generator.lra_util import opa_catalog_entry
 from aqua import __version__ as version
 
 # to check if GSV is available and return the version
@@ -36,6 +38,8 @@ def lra_parser(parser = None):
     if parser is None:
         parser = argparse.ArgumentParser(description='AQUA LRA generator')
     
+    parser.add_argument('-a', '--autosubmit', action="store_true", 
+                        help='Run the LRA with OPA through autosubmit')
     parser.add_argument('-c', '--config', type=str,
                         help='yaml configuration file')
     parser.add_argument('-f', '--fix', action="store_true",
@@ -80,6 +84,11 @@ def lra_execute(args):
     loglevel = config['loglevel']
     catalog = config.get('catalog', None)
 
+    # for autosubmit
+    opadir = config['target']['opadir']
+    fixer_name = config['target']['fixer_name']
+    configdir = config['configdir'] #is this really used?
+
     # zarr options - HACK: template to be updated
     do_zarr = config.get('zarr', False)
     verify_zarr = config.get('verify_zarr', False)
@@ -92,6 +101,21 @@ def lra_execute(args):
     fix = get_arg(args, 'fix', True)
     default_workers = get_arg(args, 'workers', 1)
     loglevel = get_arg(args, 'loglevel', loglevel)
+
+    # run the LRA through the workflow, based on OPA
+    # please notice that calls are very similar but to preserve previous structure two funcionts are implemented
+    if get_arg(args, 'autosubmit'):
+        lra_autosubmit(config, catalog, resolution, frequency, fix, fixer_name, configdir, 
+                    outdir, tmpdir, opadir, loglevel, definitive, overwrite, default_workers)
+    # default run of the LRA
+    else:
+        lra_cli(config, resolution, frequency, fix, outdir, tmpdir, loglevel,
+            definitive, overwrite, monitoring, default_workers, do_zarr, verify_zarr)
+
+    
+
+def lra_cli(config, resolution, frequency, fix, outdir, tmpdir, loglevel,
+            definitive, overwrite, monitoring, default_workers, do_zarr, verify_zarr):
 
     models = to_list(get_arg(args, 'model', config['data'].keys()))
     for model in models:
@@ -132,6 +156,52 @@ def lra_execute(args):
                 lra.create_zarr_entry(verify=verify_zarr)
 
     print('LRA run completed. Have yourself a beer!')
+
+def lra_autosubmit(config, catalog, resolution, frequency, fix, fixer_name, configdir, 
+                   outdir, tmpdir, opadir, loglevel, definitive, overwrite, default_workers):
+
+    for model in config['data'].keys():
+        for exp in config['data'][model].keys():
+            source = f'lra-{resolution}-{frequency}'
+            variables = config['data'][model][exp][source]['vars']
+            print(f'LRA Processing {model}-{exp}-opa-{frequency}')
+
+            # update the dir
+            #opadir = os.path.join(opadir, model, exp, frequency)
+            # check if files are there
+            opa_files = glob(f"{opadir}/*{frequency}*.nc")
+            if opa_files:
+                for varname in variables:
+
+                    # create the catalog entry
+                    entry_name = opa_catalog_entry(datadir=opadir, catalog=catalog, model=model, source=source,
+                                                exp=exp, frequency=frequency, 
+                                                fixer_name=fixer_name, loglevel=loglevel)
+
+                    print(f'Netcdf files found in {opadir}: Launching LRA')
+
+                    # init the LRA
+                    # zoom_level = config['data'][model][exp][source].get('zoom', None)
+                    lra = LRAgenerator(catalog=catalog, model=model, exp=exp, source=entry_name, zoom=None,
+                                    var=varname, resolution=resolution,
+                                    frequency=frequency, fix=fix,
+                                    outdir=outdir, tmpdir=tmpdir, configdir=configdir,
+                                    nproc=default_workers, loglevel=loglevel,
+                                    definitive=definitive, overwrite=overwrite)
+
+                    lra.retrieve()
+                    lra.generate_lra()
+                    lra.create_catalog_entry()
+
+                # cleaning the opa NetCDF files
+                # for varname in variables:
+                #    for file_name in opa_files:
+                #        os.remove(file_name)
+            else:
+                print(f'There are no Netcdf files in {opadir}')
+
+    print('LRA run completed. Have yourself a beer!')
+
 
 # if you want to execute the script from terminal without the aqua entry point
 if __name__ == '__main__':
