@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- LRA, both from CLI and worklow, is part of the AQUA cli and can be run with `aqua lra $options` (#1294)
 
 AQUA diagnostic complete list:
 
