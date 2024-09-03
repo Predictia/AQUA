@@ -200,6 +200,10 @@ class TestAquaConsole():
         with pytest.raises(ValueError, match="ERROR: lra_config.yaml not found: you need to have this configuration file!"):
             run_aqua(['lra'])
 
+        # create a test for catgen
+        with pytest.raises(ValueError, match="ERROR: config.yaml not found: you need to have this configuration file!"):
+            run_aqua(['catgen'])
+
         # remove catalog
         run_aqua(['remove', 'ci'])
         assert not os.path.exists(os.path.join(mydir, '.aqua/catalogs/ci'))

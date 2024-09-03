@@ -274,3 +274,9 @@ Main options are:
 
     Launch the LRA generation in workflow mode, making use of OPA files
 
+aqua catgen -c <config_file> <catalog-generator-options>
+-----------------------------------
+
+This subcommand launch the FDB catalog generator
+For full description of the FDB catalog generator functionalities, please refer to the :ref:`_fdb-catalog-generator` section.
+
