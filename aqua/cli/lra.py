@@ -133,6 +133,7 @@ def lra_execute(args):
 
     print('LRA run completed. Have yourself a beer!')
 
+# if you want to execute the script from terminal without the aqua entry point
 if __name__ == '__main__':
 
     args = lra_parser.parse_args(sys.argv[1:])
