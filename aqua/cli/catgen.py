@@ -158,11 +158,11 @@ class AquaFDBGenerator:
             jinja2.Template: Loaded Jinja2 template.
         """
 
-        templateloader = jinja2.FileSystemLoader(searchpath='./')
+        templateloader = jinja2.FileSystemLoader(searchpath=os.path.dirname(template_file))
         templateenv = jinja2.Environment(loader=templateloader, trim_blocks=True, lstrip_blocks=True)
         if os.path.exists(template_file):
             self.logger.debug('Loading template for %s', template_file)
-            return templateenv.get_template(template_file)
+            return templateenv.get_template(os.path.basename(template_file))
         else:
             raise FileNotFoundError('Cannot file template file %s', template_file)
 
