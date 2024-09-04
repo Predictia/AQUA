@@ -12,14 +12,14 @@ from urllib.error import HTTPError
 
 from aqua import __path__ as pypath
 from aqua import catalog
-from aqua.util import load_yaml, dump_yaml, load_multi_yaml, ConfigPath, create_folder, get_arg
+from aqua.util import load_yaml, dump_yaml, load_multi_yaml, ConfigPath, create_folder
 from aqua.logger import log_configure
 from aqua.util.util import HiddenPrints, to_list
 
 from aqua.cli.parser import parse_arguments
 from aqua.cli.diagnostic_config import diagnostic_config
 from aqua.cli.lra import lra_execute
-from aqua.cli.catalog_generator import catgen_execute
+from aqua.cli.catgen import catgen_execute
 
 
 # folder used for reading/storing catalogs

@@ -10,7 +10,7 @@ import re
 import sys
 import argparse
 import jinja2
-from aqua.util import load_yaml, dump_yaml, get_arg
+from aqua.util import load_yaml, dump_yaml, get_arg, ConfigPath
 from aqua.logger import log_configure
 from aqua.lra_generator.lra_util import replace_intake_vars
 
@@ -36,13 +36,18 @@ class AquaFDBGenerator:
         self.portfolio = self.config["portfolio"]
         self.ocean_grid = self.config["ocean_grid"]
 
-        self.logger.info("Running FDB catalog generator for %s portfolio", data_portfolio)
+        self.logger.info("Running FDB catalog generator for %s portfolio for model %s", data_portfolio, self.model)
         self.dp = load_yaml(os.path.join(self.dp_dir_path, data_portfolio, 'portfolio.yaml'))
         self.grids = load_yaml(os.path.join(self.dp_dir_path, data_portfolio, 'grids.yaml'))
         self.levels = load_yaml(os.path.join(self.dp_dir_path, 'definitions', 'levels.yaml'))
 
         self.local_grids = self.get_local_grids(self.portfolio, self.grids)
-        self.template = self.load_jinja_template(f"{data_portfolio}.j2")
+
+        # get the templates and config files from the AQUA installation
+        self.catgendir = os.path.join(ConfigPath().configdir, 'catgen')
+        self.logger.debug("Reading configuration files from %s", self.catgendir)
+        self.template = self.load_jinja_template(os.path.join(self.catgendir, f"{data_portfolio}.j2"))
+        self.matching_grids = load_yaml(os.path.join(self.catgendir, "matching_grids.yaml"))
 
 
     @staticmethod
@@ -163,8 +168,8 @@ class AquaFDBGenerator:
         """
 
         grid = self.local_grids[f"horizontal-{self.model.upper()}-{resolution}"]
-        matching_grids = load_yaml("matching_grids.yaml")
-        aqua_grid = matching_grids[grid]
+        
+        aqua_grid = self.matching_grids[grid]
         levelist, levels_values = self.get_levelist(profile, self.local_grids, self.levels)
 
         levtype_str = (
@@ -175,7 +180,7 @@ class AquaFDBGenerator:
             profile["levtype"]
         )
 
-        grid_mappings = matching_grids['grid_mappings']
+        grid_mappings = self.matching_grids['grid_mappings']
         levtype = profile["levtype"]
 
         if levtype in grid_mappings:

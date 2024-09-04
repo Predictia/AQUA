@@ -9,7 +9,7 @@ import argparse
 from aqua import __version__ as version
 from aqua import __path__ as pypath
 from aqua.cli.lra import lra_parser
-from aqua.cli.catalog_generator import catgen_parser
+from aqua.cli.catgen import catgen_parser
 
 
 def parse_arguments():
