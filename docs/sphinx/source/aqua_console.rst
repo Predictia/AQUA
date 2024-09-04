@@ -274,9 +274,37 @@ Main options are:
 
     Launch the LRA generation in workflow mode, making use of OPA files
 
-aqua catgen -c <config_file> <catalog-generator-options>
------------------------------------
+.. _fdb-catalog-generator:
 
-This subcommand launch the FDB catalog generator
-For full description of the FDB catalog generator functionalities, please refer to the :ref:`_fdb-catalog-generator` section.
+aqua catgen -c <config_file> <catalog-generator-options>
+--------------------------------------------------------
+
+This subcommand launch the source catalog entry generator, specifically for FDB sources part of the ClimateDT experiments.
+This simplifies the process of adding new experiments to the catalog, based on the data-portfolio structure of the Destination Earth ClimateDT. 
+It exploits the capabilities of the Jinja2 package to obtain a cleaner and more flexible code.
+
+Options
+^^^^^^^
+
+.. option:: -c <config>, --config <config>
+
+    The configuration file to use. A ``config.tmpl`` is available to be copied and edited.
+
+.. option:: -p <portfolio>, --portfolio <portfolio>  
+
+    The data portfolio to be used. At moment `production` and `reduced` are supported.
+
+.. option:: -l <loglevel>, --loglevel <loglevel>
+
+    The logging level, following the python standards
+    
+Basic usage
+^^^^^^^^^^^
+
+To add a new experiment to the catalog, follow these steps:
+
+1. Clone the two repositories, `DestinE-ClimateDT-catalog <https://github.com/DestinE-Climate-DT/Climate-DT-catalog/tree/main>`_ and `data-portfolio <https://earth.bsc.es/gitlab/digital-twins/de_340-2/data-portfolio>`_, to your preferred location.
+2. Create your own ``config.yaml`` file with the details of your simulation, including the paths of the cloned repositories. A template is provided in ``.aqua/templates/catgen``
+3. Run the command ``aqua catgen -p production -c config.yaml``, where the ``-p`` argument can be either ``production`` or ``reduced`` to specify the Jinja2 template to be used.
+4. The catalog entry will be created in the appropriate location in the DestinE-ClimateDT-catalog folder as defined by the configuration file.
 
