@@ -224,7 +224,6 @@ Options
     Flag to push to aqua-web. This uses the ``make_push_figures.py`` script.
 
 
-
 .. _benchmarker:
 
 Benchmarker

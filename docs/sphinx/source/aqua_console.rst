@@ -264,27 +264,15 @@ This subcommand launch the LRA generation based on the LRA tool
 For full description of the LRA generator functionalities, please refer to the :ref:`_lra` section.
 In most of cases, it is better to embed this tool within a batch job
 
-Main options are:
-
-.. option:: -c, --config
-
-    Path to the configuration file
-
-.. option:: -a, --autosubmit
-
-    Launch the LRA generation in workflow mode, making use of OPA files
-
 .. _fdb-catalog-generator:
 
-aqua catgen -c <config_file> <catalog-generator-options>
+aqua catgen -c <config_file> -p <portfolio>
 --------------------------------------------------------
 
 This subcommand launch the source catalog entry generator, specifically for FDB sources part of the ClimateDT experiments.
 This simplifies the process of adding new experiments to the catalog, based on the data-portfolio structure of the Destination Earth ClimateDT. 
 It exploits the capabilities of the Jinja2 package to obtain a cleaner and more flexible code.
 
-Options
-^^^^^^^
 
 .. option:: -c <config>, --config <config>
 
