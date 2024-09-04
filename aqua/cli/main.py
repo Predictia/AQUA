@@ -180,11 +180,16 @@ class AquaConsole():
             if not os.path.exists(os.path.join(self.configpath, target_file)):
                 self.logger.info('Copying from %s to %s', self.aquapath, self.configpath)
                 shutil.copy(f'{self.aquapath}/{file}', f'{self.configpath}/{target_file}')
-        for directory in ['fixes', 'data_models', 'grids', 'catgen', '../templates']:
+        for directory in ['fixes', 'data_models', 'grids', 'catgen']:
             if not os.path.exists(os.path.join(self.configpath, directory)):
                 self.logger.info('Copying from %s to %s',
                                  os.path.join(self.aquapath, directory), self.configpath)
                 shutil.copytree(f'{self.aquapath}/{directory}', f'{self.configpath}/{directory}')
+        for directory in ['templates']:
+            if not os.path.exists(os.path.join(self.configpath, directory)):
+                self.logger.info('Copying from %s to %s',
+                                 os.path.join(self.aquapath, '..', directory), self.configpath)
+                shutil.copytree(f'{self.aquapath}/../{directory}', f'{self.configpath}/{directory}')
         os.makedirs(f'{self.configpath}/{catpath}', exist_ok=True)
 
     def _install_editable(self, editable):
@@ -206,11 +211,16 @@ class AquaConsole():
                 self.logger.error('%s folder does not include AQUA configuration files. Please use AQUA/config', editable)
                 os.rmdir(self.configpath)
                 sys.exit(1)
-        for directory in ['fixes', 'data_models', 'grids', 'catgen', '../templates']:
+        for directory in ['fixes', 'data_models', 'grids', 'catgen']:
             if not os.path.exists(os.path.join(self.configpath, directory)):
                 self.logger.info('Linking from %s to %s',
                                  os.path.join(editable, directory), self.configpath)
                 os.symlink(f'{editable}/{directory}', f'{self.configpath}/{directory}')
+        for directory in ['templates']:
+            if not os.path.exists(os.path.join(self.configpath, directory)):
+                self.logger.info('Linking from %s to %s',
+                                 os.path.join(editable, '..', directory), self.configpath)
+                os.symlink(f'{editable}/../{directory}', f'{self.configpath}/{directory}')
         os.makedirs(f'{self.configpath}/{catpath}', exist_ok=True)
 
     def _install_default_diagnostics(self, diagnostic_type):
