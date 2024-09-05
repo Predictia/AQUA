@@ -4,15 +4,18 @@
 target:
   resolution: r100
   frequency: monthly
+  catalog: {{ catalog }}
+
+paths:
   outdir: { {outputdir }}
   tmpdir: {{ tmpdir }}
 
-# loglevel
-loglevel: INFO
-
-# Set to True if lra-r100-monthly-zarr should be created and checked
-zarr: False
-verify_zarr: False
+options: 
+  # loglevel
+  loglevel: INFO
+  # Set to True if lra-r100-monthly-zarr should be created and checked
+  zarr: False
+  verify_zarr: False
 
 # sbatch job definitions
 slurm:

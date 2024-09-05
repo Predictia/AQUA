@@ -80,28 +80,32 @@ def lra_execute(args):
 
     # basic from configuration
     config = load_yaml(file)
+
+    # mandatory arguments
     resolution = config['target']['resolution']
     frequency = config['target']['frequency']
-    outdir = config['target']['outdir']
-    tmpdir = config['target']['tmpdir']
-    loglevel = config['loglevel']
-    catalog = config.get('catalog', None)
+    paths = config['paths']
+    outdir = paths['outdir']
+    tmpdir = paths['tmpdir']
 
-    # for autosubmit
-    if get_arg(args, 'autosubmit', False):
-        opadir = config['target']['opadir']
-        fixer_name = config['target']['fixer_name']
-        configdir = config['configdir'] #is this really used?
+    # optional main catalog switch
+    catalog = config['target'].get('catalog', None)
 
-    # zarr options - HACK: template to be updated
-    do_zarr = config.get('zarr', False)
-    verify_zarr = config.get('verify_zarr', False)
+    # for autosubmit workflow
+    opadir = paths.get('opadir', None)
+    fixer_name = config['target'].get('fixer_name', None)
+    #configdir = config.get('configdir', None) #is this really used?
+
+    # options
+    loglevel = config['options'].get('loglevel', 'WARNING')
+    do_zarr = config['options'].get('zarr', False)
+    verify_zarr = config['options'].get('verify_zarr', False)
 
     # command line override
     definitive = get_arg(args, 'definitive', False)
     monitoring = get_arg(args, 'monitoring', False)
     overwrite = get_arg(args, 'overwrite', False)
-    only_catalog = get_arg(args, 'only_catalog', False)  # option not used yet
+    #only_catalog = get_arg(args, 'only_catalog', False)  # option not used yet
     fix = get_arg(args, 'fix', True)
     default_workers = get_arg(args, 'workers', 1)
     loglevel = get_arg(args, 'loglevel', loglevel)
@@ -109,16 +113,22 @@ def lra_execute(args):
     # run the LRA through the workflow, based on OPA
     # please notice that calls are very similar but to preserve previous structure two funcionts are implemented
     if get_arg(args, 'autosubmit', False):
-        lra_autosubmit(config, catalog, resolution, frequency, fix, fixer_name, configdir, 
-                    outdir, tmpdir, opadir, loglevel, definitive, overwrite, default_workers)
+        lra_autosubmit(args=args, config=config, catalog=catalog, resolution=resolution, 
+                       frequency=frequency, fix=fix,  
+                       outdir=outdir, tmpdir=tmpdir, loglevel=loglevel,
+                       definitive=definitive, overwrite=overwrite, default_workers=default_workers,
+                       opadir=opadir, fixer_name=fixer_name)
     # default run of the LRA
     else:
-        lra_cli(args, config, resolution, frequency, fix, outdir, tmpdir, loglevel,
-            definitive, overwrite, monitoring, default_workers, do_zarr, verify_zarr)
+        lra_cli(args=args, config=config, catalog=catalog, resolution=resolution, 
+                frequency=frequency, fix=fix,
+                outdir=outdir, tmpdir=tmpdir, loglevel=loglevel,
+                definitive=definitive, overwrite=overwrite, default_workers=default_workers,
+                monitoring=monitoring, do_zarr=do_zarr, verify_zarr=verify_zarr)
 
     
 
-def lra_cli(args, config, resolution, frequency, fix, outdir, tmpdir, loglevel,
+def lra_cli(args, config, catalog, resolution, frequency, fix, outdir, tmpdir, loglevel,
             definitive, overwrite, monitoring, default_workers, do_zarr, verify_zarr):
     """
     Running the default LRA from CLI, looping on all the configuration model/exp/source/var combination
@@ -141,9 +151,9 @@ def lra_cli(args, config, resolution, frequency, fix, outdir, tmpdir, loglevel,
                     workers = config['data'][model][exp][source].get('workers', default_workers)
 
                     # init the LRA
-                    lra = LRAgenerator(catalog=None, model=model, exp=exp, source=source,
+                    lra = LRAgenerator(catalog=catalog, model=model, exp=exp, source=source,
                                        var=varname, resolution=resolution,
-                                       frequency=frequency  , fix=fix,
+                                       frequency=frequency, fix=fix,
                                        outdir=outdir, tmpdir=tmpdir,
                                        nproc=workers, loglevel=loglevel,
                                        definitive=definitive, overwrite=overwrite,
@@ -163,9 +173,9 @@ def lra_cli(args, config, resolution, frequency, fix, outdir, tmpdir, loglevel,
             if do_zarr:
                 lra.create_zarr_entry(verify=verify_zarr)
 
-    print('LRA run completed. Have yourself a beer!')
+    print('CLI LRA run completed. Have yourself a pint of beer!')
 
-def lra_autosubmit(config, catalog, resolution, frequency, fix, fixer_name, configdir, 
+def lra_autosubmit(config, catalog, resolution, frequency, fix, fixer_name, 
                    outdir, tmpdir, opadir, loglevel, definitive, overwrite, default_workers):
     
     """
@@ -173,8 +183,10 @@ def lra_autosubmit(config, catalog, resolution, frequency, fix, fixer_name, conf
     have been build beforehand 
     """
 
-    for model in config['data'].keys():
-        for exp in config['data'][model].keys():
+    models = to_list(get_arg(args, 'model', config['data'].keys()))
+    for model in models:
+        exps = to_list(get_arg(args, 'exp', config['data'][model].keys()))
+        for exp in exps:
             source = f'lra-{resolution}-{frequency}'
             variables = config['data'][model][exp][source]['vars']
             print(f'LRA Processing {model}-{exp}-opa-{frequency}')
@@ -200,7 +212,7 @@ def lra_autosubmit(config, catalog, resolution, frequency, fix, fixer_name, conf
                     lra = LRAgenerator(catalog=catalog, model=model, exp=exp, source=entry_name, zoom=zoom_level,
                                     var=varname, resolution=resolution,
                                     frequency=frequency, fix=fix,
-                                    outdir=outdir, tmpdir=tmpdir, configdir=configdir,
+                                    outdir=outdir, tmpdir=tmpdir,
                                     nproc=default_workers, loglevel=loglevel,
                                     definitive=definitive, overwrite=overwrite)
 
@@ -215,7 +227,7 @@ def lra_autosubmit(config, catalog, resolution, frequency, fix, fixer_name, conf
             else:
                 print(f'There are no Netcdf files in {opadir}')
 
-    print('LRA run completed. Have yourself a beer!')
+    print('Workflow LRA run completed. Have yourself a large beer!')
 
 
 # if you want to execute the script from terminal without the aqua entry point
