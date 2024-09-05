@@ -202,7 +202,7 @@ class TestAquaConsole():
 
         # create a test for catgen
         with pytest.raises(ValueError, match="ERROR: config.yaml not found: you need to have this configuration file!"):
-            run_aqua(['catgen'])
+            run_aqua(['catgen -c config.yaml'])
 
         # remove catalog
         run_aqua(['remove', 'ci'])
