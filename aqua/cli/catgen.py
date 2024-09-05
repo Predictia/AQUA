@@ -57,10 +57,6 @@ class AquaFDBGenerator:
         self.local_grids = self.get_local_grids(self.portfolio, self.grids)
 
 
-
-    @staticmethod
-
-
     def get_local_grids(self, portfolio, grids):
         """
         Get local grids based on the portfolio.
@@ -96,6 +92,7 @@ class AquaFDBGenerator:
         self.logger.debug('Resolution found are %s', resolutions)
         return resolutions
 
+    @staticmethod
     def get_levelist(profile, local_grids, levels):
         """
         Get the level list from local grids.
