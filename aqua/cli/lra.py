@@ -81,6 +81,11 @@ def lra_execute(args):
     # basic from configuration
     config = load_yaml(file)
 
+    #safety check
+    for item in ['target', 'paths', 'data', 'options']:
+        if not item in config:
+            raise KeyError(f'Configuration file {file} does not have the "{item}" key, please modify it according to the template')
+
     # mandatory arguments
     resolution = config['target']['resolution']
     frequency = config['target']['frequency']
@@ -125,8 +130,6 @@ def lra_execute(args):
                 outdir=outdir, tmpdir=tmpdir, loglevel=loglevel,
                 definitive=definitive, overwrite=overwrite, default_workers=default_workers,
                 monitoring=monitoring, do_zarr=do_zarr, verify_zarr=verify_zarr)
-
-    
 
 def lra_cli(args, config, catalog, resolution, frequency, fix, outdir, tmpdir, loglevel,
             definitive, overwrite, monitoring, default_workers, do_zarr, verify_zarr):
