@@ -147,8 +147,11 @@ def lra_cli(args, config, catalog, resolution, frequency, fix, outdir, tmpdir, l
                 varnames = to_list(get_arg(args, 'var', config['data'][model][exp][source]['vars']))
                 for varname in varnames:
 
-                    # get the zoom level
-                    zoom_level = config['data'][model][exp][source].get('zoom', None)
+                    # get the zoom level - this might need some tuning for extra kwargs
+                    extra_args = {}
+                    zoom = config['data'][model][exp][source].get('zoom', None)
+                    if zoom is not None:
+                        extra_args = {**extra_args, **{'zoom': zoom}}
 
                     # get the number of workers for this specific configuration
                     workers = config['data'][model][exp][source].get('workers', default_workers)
@@ -162,7 +165,7 @@ def lra_cli(args, config, catalog, resolution, frequency, fix, outdir, tmpdir, l
                                        definitive=definitive, overwrite=overwrite,
                                        performance_reporting=monitoring,
                                        exclude_incomplete=True,
-                                       zoom=zoom_level)
+                                       **extra_args)
 
                     # check that your LRA is not already there (it will not work in streaming mode)
                     lra.check_integrity(varname)
@@ -208,16 +211,16 @@ def lra_autosubmit(config, catalog, resolution, frequency, fix, fixer_name,
 
                     print(f'Netcdf files found in {opadir}: Launching LRA')
 
-                    # get the zoom level
-                    zoom_level = config['data'][model][exp][source].get('zoom', None)
-
                     # init the LRA
-                    lra = LRAgenerator(catalog=catalog, model=model, exp=exp, source=entry_name, zoom=zoom_level,
-                                    var=varname, resolution=resolution,
-                                    frequency=frequency, fix=fix,
-                                    outdir=outdir, tmpdir=tmpdir,
-                                    nproc=default_workers, loglevel=loglevel,
-                                    definitive=definitive, overwrite=overwrite)
+                    # init the LRA
+                    lra = LRAgenerator(catalog=catalog, model=model, exp=exp, source=entry_name,
+                                       var=varname, resolution=resolution,
+                                       frequency=frequency, fix=fix,
+                                       outdir=outdir, tmpdir=tmpdir,
+                                       nproc=default_workers, loglevel=loglevel,
+                                       definitive=definitive, overwrite=overwrite,
+                                       performance_reporting=False,
+                                       exclude_incomplete=True)
 
                     lra.retrieve()
                     lra.generate_lra()
