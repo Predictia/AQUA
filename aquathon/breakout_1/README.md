@@ -10,7 +10,7 @@ Link: [to be updated]
 
 This is a hands-on session where you'll learn how to run the AQUA analysis tool and generate a full set of diagnostic plots. The session is chaired by **Natalia Nazarova**.
 
-Further details can be found [here](https://siili.rahtiapp.fi/s/O87lRbBr0).  
+Further details can be found [here](https://github.com/DestinE-Climate-DT/AQUA/blob/aquathon/aquathon/breakout_1/breakout_plan.md).
 
 If you need any help, feel free to ask during the session or check out the provided resources. We’re looking forward to seeing you there!
 
