@@ -8,10 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+
+AQUA diagnostic complete list:
+- Radiation: Bugfix in the CLI for the radiation diagnostic (#1319)
+
+## [v0.11.2]
+
+AQUA core complete list:
+- Renaming of FESOM grids to include original resolution name (#1312)
 - Bugfix of the fdb-catalog-generator tool that was not correctly assigning NEMO grids (#1309)
 - Bugfix of the GSV intake driver that was not handling correctly metadata jinja replacement (#1304) 
 - Bugfix of _merge_fixes() method when the parent fix has no vars specified (#1310)
-- Safety check for the netcdf driver providing more informative error when files are not found (#1307)
+- Safety check for the netcdf driver providing more informative error when files are not found (#1307, #1313)
 
 AQUA diagnostic complete list:
 - Tropical Rainfall: Fix Minor Issues in Tropical Precipitation CLI Metadata and Formatting (#1266)
@@ -623,7 +631,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11.1...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11.2...HEAD
+[v0.11.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11.1...v0.11.2
 [v0.11.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11...v0.11.1
 [v0.11]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.3...v0.11
 [v0.10.3]:https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.2...v0.10.3

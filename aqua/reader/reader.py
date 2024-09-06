@@ -5,6 +5,7 @@ import re
 import types
 import shutil
 import intake_esm
+import intake_xarray
 import xarray as xr
 import smmregrid as rg
 
@@ -151,7 +152,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         self.esmcat = self.cat(**intake_vars)[self.model][self.exp][self.source](**kwargs)
 
         # manual safety check for netcdf sources (see #943)
-        if 'netcdf' in self.esmcat.classname:
+        if isinstance(self.esmcat, intake_xarray.netcdf.NetCDFSource):
             if not files_exist(self.esmcat.urlpath):
                 raise NoDataError(f"No NetCDF files available for {self.model} {self.exp} {self.source}, please check the urlpath: {self.esmcat.urlpath}")
 
