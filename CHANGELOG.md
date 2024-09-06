@@ -10,6 +10,7 @@ Unreleased in the current development version:
 AQUA core complete list:
 
 AQUA diagnostic complete list:
+- Radiation: Bugfix in the CLI for the radiation diagnostic (#1319)
 
 ## [v0.11.2]
 
