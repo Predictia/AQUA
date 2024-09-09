@@ -35,18 +35,28 @@ This session will focus on **Sailing with AQUA:**, which includes running the aq
 - **Objective:** Demonstrate how to use AQUA scientific diagnostics in a Jupyter notebook, showcasing key analytical workflows and outputs.
 
 - **Steps:**
-  - Walk through a comprehensive example of a scientific analysis (e.g., Ocean3D, Global Mean Time Series, Atmospheric Global Mean Biases Diagnostics).
-  - Explain and highlight key functions, detailing their purpose and outputs.
-  - Engage participants by encouraging them to follow along, explore the notebook, and ask questions in real-time.
+  - **2.1 Common Troubleshooting**  
+    Discuss common issues users may encounter, along with tips for resolving them.
+  
+  - **2.2 Comprehensive Example**  
+    Walk through an example analysis (e.g., Ocean3D, Global Mean Time Series, Atmospheric Global Mean Biases Diagnostics). Explain key functions, their purpose, and outputs.
 
+- **Engagement:**  
+  Encourage participants to follow along in real-time, explore the notebook, and ask questions.
 
+#### 2.1 Important Notice
 > ⚠️ **Important Notice:**  
 >  
-> Currently, each scientific diagnostic has been implemented by one or multiple developers, leading to variations in how each diagnostic is used and structured. We are actively working to standardize the diagnostics by introducing specific requirements for implementation, documentation, and usage.  
+> Each scientific diagnostic has been developed by different contributors, leading to variations in usage and structure. We are currently standardizing the diagnostics with clear requirements for implementation, documentation, and usage.  
 >  
-> In the next one to two months, the usage of diagnostics will change from the current approach.  
+> Within the next 1-2 months, there will be changes to how diagnostics are used.  
 >  
-> If you plan to attend the Climate DT Hackathon in Hamburg this October, you’ll have the opportunity to explore the updated AQUA package and the new, streamlined diagnostic workflows.
+> Attendees of the Climate DT Hackathon in Hamburg this October will have the opportunity to explore the updated AQUA package and experience new diagnostic workflows.
+>  
+> **DISCLAIMER:**  
+> A major refactoring of diagnostics is underway, so be aware that this information may change.
+
+#### 2.2 [Access the notebook here](https://github.com/DestinE-Climate-DT/AQUA/blob/aquathon/aquathon/breakout_1/aqua_analysis.ipynb)
 
 
 
@@ -59,6 +69,30 @@ This session will focus on **Sailing with AQUA:**, which includes running the aq
   - Show how to run the aqua-analysis tool and its role in generating diagnostics.
   - Demonstrate how to modify the YAML file for custom analyses.
   - Discuss common troubleshooting techniques.
+
+#### Purpose of the Wrapper
+
+- Automates the running of multiple diagnostics for the AQUA project.
+- Allows parallel execution to speed up analyses.
+- Provides flexibility through command-line arguments and YAML configuration.
+
+##### **Key Features**:
+- **Command-line & YAML Configuration**:
+  - Accepts options like model, experiment, source, output directory, and log level.
+  - Missing options are retrieved from a YAML configuration file (`config.aqua-analysis.yaml`).
+
+- **Parallel Execution**:
+  - Diagnostics can be run in parallel using background processes.
+  - Supports control over the number of threads with `max_threads`.
+
+- **Logging**:
+  - Logs are managed at different levels (`DEBUG`, `INFO`, `ERROR`) and written to individual log files for each diagnostic.
+
+- **Error Handling**:
+  - Detects missing configurations or failed diagnostics and provides informative error messages.
+
+---
+
 
 #### YAML Template
 
@@ -114,14 +148,44 @@ This ensures that output files are organized in clearly labeled directories, mak
 
 ---
 
-### 4. **Submitting AQUA Analyses (5 min)**
-- **Objective:** Demonstrate how to submit aqua-analysis jobs.
+### 4. **Running AQUA Analyses (5 min)**
+
+#### 4.1 Running the Python Script
+
+To run the Python script with command-line arguments:
+
+```bash
+python your_python_script.py --catalog climatedt-phase1 --model IFS-NEMO --exp historical \
+--source lra-r100-monthly --config config.aqua-web.yaml --template aqua-web.job.j2 \
+--loglevel INFO --dry
+```
+- Pass the required arguments (`--catalog`, `--model`, etc.) as needed.
+
+---
+
+#### 4.2 Running the Bash Script
+
+To run the bash script with command-line arguments that includes multiple Python scripts:
+
+```bash
+./your_bash_script.sh --model IFS-NEMO --exp historical --source lra-r100-monthly \
+--catalog climatedt-phase1 --outputdir /path/to/output --config config.aqua-web.yaml \
+--threads 4 --loglevel INFO
+```
+- `--model`, `--exp`, `--source`, etc., are the required arguments.
+- Ensure the script is executable with `chmod +x your_bash_script.sh`.
+
+---
+
+#### 4.3 Submitting AQUA Analyses to the SLURM Queue
+
+- **Objective:** Demonstrate how to submit aqua-analysis jobs to the SLURM queue.
 - **Steps:**
   - Submit jobs using `./cli/aqua-web/submit-aqua-web.py` for parallel aqua-web SLURM jobs.
+  
+Use the pre-prepared scripts in the `AQUA/cli/aqua-web` folder to simplify the process.
 
-There is no need to write a custom bash or Python script for each individual user. You can use the pre-prepared scripts available in the `AQUA/cli/aqua-web` folder to simplify the process.
-
-You can submit the wrapper using the following command:
+Submit the wrapper with this command:
 
 ```bash
 python submit-aqua-web.py -p /users/jvonhar/aqua-web.experiment.list
