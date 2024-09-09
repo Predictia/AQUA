@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Full support for python>=3.9
+- Pin of eccodes=2.36.0 until issues with 2.37 are addressed
 
 AQUA diagnostic complete list:
 - Radiation: Bugfix in the CLI for the radiation diagnostic (#1319)
