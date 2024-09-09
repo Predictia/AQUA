@@ -186,7 +186,7 @@ class Ocean3DCLI:
 
     def run_diagnostic(self):
 
-        self.loglevel = self.get_arg('loglevel', 'DEBUG')
+        self.loglevel = self.get_arg('loglevel', 'WARNING')
         self.logger = log_configure(log_name='Ocean3D CLI', log_level=self.loglevel)
 
         # Dask distributed cluster
