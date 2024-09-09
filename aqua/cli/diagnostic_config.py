@@ -69,7 +69,7 @@ diagnostic_config = {
     ],
     'radiation': [
         {
-            'config_file': 'toa.yml',
+            'config_file': 'radiation_config.yml',
             'source_path': 'diagnostics/radiation/cli/config',
             'target_path': 'diagnostics/radiation/cli'
         }
