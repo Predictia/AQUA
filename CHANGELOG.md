@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+- Coordinate unit overriding is now possible via the `tgt_units` argument (#1320)
 - Full support for python>=3.9 (#1325)
 - Pin of eccodes<2.37.0 in pyproject due to recent changes in binary/python structure (#1325)
 
