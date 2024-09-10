@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 Unreleased in the current development version:
 
 AQUA core complete list:
+
+AQUA diagnostic complete list:
+
+## [v0.11.3]
+
+AQUA core complete list:
 - LRA, both from CLI and worklow, is part of the AQUA console and can be run with `aqua lra $options` (#1294)
 - FDB catalog generator is part of the AQUA console and can be run with `aqua catgen $options` (#1294)
 - Coordinate unit overriding is now possible via the `tgt_units` argument (#1320)
@@ -636,7 +642,8 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11.2...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11.3...HEAD
+[v0.11.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11.2...v0.11.3
 [v0.11.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11.1...v0.11.2
 [v0.11.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11...v0.11.1
 [v0.11]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.3...v0.11
