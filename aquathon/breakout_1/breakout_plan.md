@@ -36,16 +36,38 @@ This session will focus on **Sailing with AQUA:**, which includes running the aq
 - **Objective:** Demonstrate how to use AQUA scientific diagnostics in a Jupyter notebook, showcasing key analytical workflows and outputs.
 
 - **Steps:**
-  - **2.1**  [Important Notice](#21-important-notice) 
+
+
+  - **2.1**  [Availibale Diagnostics](#21-availibale-diagnostics)
+
+  - **2.2**  [Important Notice](#22-important-notice) 
     Discuss common issues users may encounter, along with tips for resolving them.
   
-  - **2.2** [Comprehensive Example](#22-access-the-notebook-here)  
+  - **2.3** [Comprehensive Example](#23-access-the-notebook-here)  
     Walk through an example analysis (e.g., Ocean3D, Global Mean Time Series, Atmospheric Global Mean Biases Diagnostics). Explain key functions, their purpose, and outputs.
 
 - **Engagement:**  
   Encourage participants to follow along in real-time, explore the notebook, and ask questions.
 
-#### 2.1 Important Notice
+#### 2.1 Availibale Diagnostics
+
+##### Frontier Diagnostics
+- SSH variability
+- Tropical Cyclones detection, tracking, and zoom-in diagnostic
+- Tropical rainfall diagnostic
+
+
+##### State-of-the-art Diagnostics
+- Atmospheric Global Mean Biases Diagnostic
+- Performance Indices
+- Global time series
+- Ocean3D
+- Radiation Budget Diagnostic
+- Sea ice extent
+- Teleconnections diagnostic
+
+
+#### 2.2 Important Notice
 
 <details>
   <summary>A major refactoring of diagnostics is underway, so be aware that this information may change.</summary>
@@ -61,7 +83,7 @@ This session will focus on **Sailing with AQUA:**, which includes running the aq
 </details>
 
 
-#### 2.2 Access the notebook [here](https://github.com/DestinE-Climate-DT/AQUA/blob/aquathon/aquathon/breakout_1/aqua_analysis.ipynb)
+#### 2.3 Access the notebook [here](https://github.com/DestinE-Climate-DT/AQUA/blob/aquathon/aquathon/breakout_1/aqua_analysis.ipynb)
 
 
 
@@ -97,7 +119,24 @@ This session will focus on **Sailing with AQUA:**, which includes running the aq
   - Detects missing configurations or failed diagnostics and provides informative error messages.
 
 
+##### Logic of Storing YAML Files
+
+In your AQUA diagnostics setup, the configuration files are stored in a consistent hierarchical structure under the `$HOME/.aqua/diagnostics` directory. The storage pattern for YAML files is as follows:
+
+ - **Top-Level Directory**:
+   Each diagnostic type (e.g., `tropical_rainfall`, `ocean3d`) has its own directory under `$HOME/.aqua/diagnostics/`. Inside each diagnostic folder, there are two main subdirectories:
+   - `cli`: Contains YAML configuration files specific to command-line interfaces for diagnostics.
+   - `config`: Contains YAML files that define the general configuration for that diagnostic.
+
+
+##### Disclaimer:
+The configuration files stored under `$HOME/.aqua/diagnostics/` are only kept there when the AQUA package is installed in non-development mode. If the package is installed in development mode, symbolic links (lines) may be used instead of actual files, pointing to the source files in the development environment.
+
+
 #### 3.2 [YAML Template](https://github.com/DestinE-Climate-DT/AQUA/blob/aquathon/cli/aqua-analysis/config.aqua-analysis.tmpl)
+
+The YAML file used to configure the wrapper is located at [`$AQUA/cli/aqua-analysis/config.aqua-analysis.yaml`](https://github.com/DestinE-Climate-DT/AQUA/blob/aquathon/cli/aqua-analysis/config.aqua-analysis.yaml). If you want to customize the settings (different from the default) and run AQUA analyses, you will need to modify this YAML file accordingly.
+
 
 <details>
   <summary>Click to expand YAML Template</summary>
@@ -147,6 +186,7 @@ For example, you can:
 - Enable reference data analysis (`--ref`).
 - Set parameters such as regridding or frequency (`--regrid=r100 --freq=M`).
 
+##### Disclaimer:
 Each diagnostic can have its own `extra` arguments tailored to specific needs, ensuring a flexible and detailed analysis process.
 </details>
 
@@ -214,9 +254,14 @@ To run the bash script with command-line arguments that includes multiple Python
 ```
 or 
 ```bash
-./cli/aqua-analysis/aqua-analysis.sh --model IFS-NEMO --exp historical --source lra-r100-monthly --catalog climatedt-phase1 --outputdir /path/to/output --config config.aqua-web.yaml --threads 4 --loglevel INFO
+./cli/aqua-analysis/aqua-analysis.sh --model IFS-NEMO --exp historical --source lra-r100-monthly --catalog climatedt-phase1 \
+ --outputdir /path/to/output --config config.aqua-web.yaml --threads 4 --loglevel INFO
 ```
-Ensure the script is executable with `chmod +x your_bash_script.sh`.
+Ensure the script is executable with 
+
+```bash
+chmod +x your_bash_script.sh
+```
 
 
 #### 4.3 Submitting AQUA Analyses to the SLURM Queue
