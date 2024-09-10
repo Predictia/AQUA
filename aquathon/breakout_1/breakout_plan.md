@@ -168,7 +168,7 @@ This ensures that output files are organized in clearly labeled directories, mak
 ---
 ### 4. **Running AQUA Analyses (5 min)**
 ---
-- **Objective:** 
+- **Objective:** Guide participants through the process of executing AQUA analyses using Python and Bash scripts, and submitting the jobs to the SLURM queue for parallel processing. 
 
 - **Steps:**
 
@@ -181,34 +181,52 @@ This ensures that output files are organized in clearly labeled directories, mak
 To run the Python script with command-line arguments:
 
 ```bash
-python your_python_script.py --catalog climatedt-phase1 --model IFS-NEMO --exp historical --source lra-r100-monthly --config config.aqua-web.yaml --loglevel INFO 
+ python diagnostics/tropical_rainfall/cli/cli_tropical_rainfall.py 
 ```
-- Pass the required arguments (`--catalog`, `--model`, etc.) as needed.
+
+##### Mandatory arguments for CLI:
+
+- `-c`, `--config` (str): Specifies the YAML configuration file to be used. This file contains settings for the diagnostics.
+- `-l`, `--loglevel` (str): Defines the logging level (e.g., `DEBUG`, `INFO`, `WARNING`). Default is `WARNING`.
+- `-n`, `--nworkers` (int): Specifies the number of Dask distributed workers for parallel processing.
+- `--model` (str): Overrides the model name from the configuration file if provided. This is optional.
+- `--exp` (str): Overrides the experiment name from the configuration file if provided. This is optional.
+- `--source` (str): Overrides the source name from the configuration file if provided. This is optional.
+- `--outputdir` (str): Specifies the output directory for the analysis results. Overrides the configuration file if provided.
 
 
+##### Disclaimer:
+
+Each diagnostic has a configuration file. If the command-line arguments (such as `model`, `exp`, `source`, etc.) are not provided, the values from the configuration file will be used. However, if these arguments are supplied via the command line, they will override the values in the configuration file and will be considered the main ones for the analysis.
+
+
+
+```bash
+python diagnostics/tropical_rainfall/cli/cli_tropical_rainfall.py  --model IFS-NEMO --exp historical --source lra-r100-monthly \
+ --config config.aqua-web.yaml --loglevel INFO 
+```
 #### 4.2 Running the Bash Script
 
 To run the bash script with command-line arguments that includes multiple Python scripts:
 
 ```bash
-./your_bash_script.sh --model IFS-NEMO --exp historical --source lra-r100-monthly --catalog climatedt-phase1 --outputdir /path/to/output --config config.aqua-web.yaml --threads 4 --loglevel INFO
+./cli/aqua-analysis/aqua-analysis.sh
 ```
-- `--model`, `--exp`, `--source`, etc., are the required arguments.
-- Ensure the script is executable with `chmod +x your_bash_script.sh`.
+or 
+```bash
+./cli/aqua-analysis/aqua-analysis.sh --model IFS-NEMO --exp historical --source lra-r100-monthly --catalog climatedt-phase1 --outputdir /path/to/output --config config.aqua-web.yaml --threads 4 --loglevel INFO
+```
+Ensure the script is executable with `chmod +x your_bash_script.sh`.
 
 
 #### 4.3 Submitting AQUA Analyses to the SLURM Queue
-
-- **Objective:** Demonstrate how to submit aqua-analysis jobs to the SLURM queue.
-- **Steps:**
-  - Submit jobs using `./cli/aqua-web/submit-aqua-web.py` for parallel aqua-web SLURM jobs.
   
 Use the pre-prepared scripts in the `AQUA/cli/aqua-web` folder to simplify the process.
 
 Submit the wrapper with this command:
 
 ```bash
-python submit-aqua-web.py -p /users/jvonhar/aqua-web.experiment.list
+python cli/aqua-web/submit-aqua-web.py -p /users/jvonhar/aqua-web.experiment.list
 ```
 
 ---
