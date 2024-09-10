@@ -25,6 +25,7 @@ class AquaFDBGenerator:
         self.model = self.config["model"].lower()
         self.portfolio = self.config["portfolio"]
         self.ocean_grid = self.config["ocean_grid"]
+        self.num_of_realizations = self.config["num_of_realizations"]
 
         self.logger.info("Running FDB catalog generator for %s portfolio", data_portfolio)
         self.dp = load_yaml(os.path.join(self.dp_dir_path, data_portfolio, 'portfolio.yaml'))
@@ -184,6 +185,17 @@ class AquaFDBGenerator:
         self.logger.debug('levtype: %s, levels: %s, grid: %s', levtype, levelist, grid_str)
 
         time_dict = self.get_time(profile["frequency"])
+        print(self.num_of_realizations)
+        
+        # Add realization parameters if ensembles 
+        parameters = {
+            'realization': {
+                'allowed': list(range(1, self.num_of_realizations + 1)),
+                'description': 'realization member',
+                'type': 'int',
+                'default': 1
+            }
+        } if self.num_of_realizations > 1 else None
 
         kwargs = {
             "dp_version": self.dp_version,
@@ -191,13 +203,15 @@ class AquaFDBGenerator:
             "grid": grid_str,
             "source": source,
             "levelist": levelist,
+            "realization": self.num_of_realizations,
             "levels": levels_values,
             "levtype": profile["levtype"],
             "variables": profile["variables"],
             "param": profile["variables"][0],
             "time": time_dict['time'],
             "chunks": time_dict['chunks'],
-            "savefreq": time_dict['savefreq']
+            "savefreq": time_dict['savefreq'], 
+            "parameters": parameters
         }
         return kwargs
 
