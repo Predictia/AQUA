@@ -10,8 +10,9 @@ Unreleased in the current development version:
 AQUA core complete list:
 - LRA, both from CLI and worklow, is part of the AQUA console and can be run with `aqua lra $options` (#1294)
 - FDB catalog generator is part of the AQUA console and can be run with `aqua catgen $options` (#1294)
+- Coordinate unit overriding is now possible via the `tgt_units` argument (#1320)
 - Full support for python>=3.9 (#1325)
-- Pin of eccodes<2.37.0 in pyproject due to recent changes in binary/python structure (#1325)
+- Pin of (python) eccodes<2.37.0 in pyproject due to recent changes in binary/python structure (#1325)
 
 AQUA diagnostic complete list:
 - Radiation: Bugfix in the CLI for the radiation diagnostic (#1319)
