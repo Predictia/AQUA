@@ -2,15 +2,24 @@
 
 # Table of Contents
 
-- [Agenda Overview](#agenda-overview)
-- [Session Structure](#session-structure)
-   1. [Introduction and Overview (1 min)](#1-introduction-and-overview-1-min)
-   2. [AQUA Scientific Diagnostics (20 min)](#2-aqua-scientific-diagnostics-20-min)
-   3. [AQUA Analyses Wrapper (10 min)](#3-aqua-analyses-wrapper-10-min)
-   4. [Running AQUA Analyses (5 min)](#4-running-aqua-analyses-5-min)
-   5. [AQUA Analysis Output Review (5 min)](#5-aqua-analysis-output-review-5-min)
-   6. [Q&A Session (5 min)](#6-qa-session-5-min)
-- [Further Reading and Events](#further-reading-and-events)
+1. [Introduction and Overview (1 min)](#1-introduction-and-overview-1-min)
+   - [1.1 Briefly explain the session purpose and key activities](#11-briefly-explain-the-session-purpose-and-key-activities)
+   - [1.2 The tools that will be used during the session](#12-the-tools-that-will-be-used-during-the-session)
+2. [AQUA Scientific Diagnostics (20 min)](#2-aqua-scientific-diagnostics-20-min)
+   - [2.1 Available Diagnostics](#21-available-diagnostics)
+   - [2.2 General Folder Contents](#22-general-folder-contents)
+   - [2.3 Comprehensive Example](#23-comprehensive-example)
+3. [AQUA Analyses Wrapper (10 min)](#3-aqua-analyses-wrapper-10-min)
+   - [3.1 Show and discuss the aqua-analysis Wrapper](#31-show-and-discuss-the-aqua-analysis-wrapper)
+   - [3.2 Demonstrate how to modify the YAML file for custom analyses](#32-demonstrate-how-to-modify-the-yaml-file-for-custom-analyses)
+4. [Running AQUA Analyses (5 min)](#4-running-aqua-analyses-5-min)
+   - [4.1 Running the AQUA Analyses CLI for a Specific Diagnostic](#41-running-the-aqua-analyses-cli-for-a-specific-diagnostic)
+   - [4.2 Running AQUA Analyses for a Set of Diagnostics on a Specific Catalog Source](#42-running-aqua-analyses-for-a-set-of-diagnostics-on-a-specific-catalog-source)
+   - [4.3 Submitting AQUA Analyses to the SLURM Queue for a Set of Catalog Sources](#43-submitting-aqua-analyses-to-the-slurm-queue-for-a-set-of-catalog-sources)
+5. [AQUA Analysis Output Review (5 min)](#5-aqua-analysis-output-review-5-min)
+   - [5.1 The output structure](#51-the-output-structure)
+6. [Q&A Session (5 min)](#6-qa-session-5-min)
+
 
 ---
 ## Agenda Overview
@@ -137,7 +146,9 @@ These **diagnostics** aim to **monitor** and **diagnose** model **drifts**, **im
 
 
 
-#### 2.4 Access the  notebook with comprehensive example [here](https://github.com/DestinE-Climate-DT/AQUA/blob/aquathon/aquathon/breakout_1/aqua_analysis.ipynb)
+#### 2.3 Comprehensive Example
+
+Access the  notebook with comprehensive example [here](https://github.com/DestinE-Climate-DT/AQUA/blob/aquathon/aquathon/breakout_1/aqua_analysis.ipynb)
 
 If you would like to see a detailed example of how each diagnostic is used, please check the `$AQUA/diagnostics/diagnostic_name/notebooks` folder.
 
@@ -152,7 +163,7 @@ If you would like to see a detailed example of how each diagnostic is used, plea
   - **3.1** [Show and discuss the aqua-analysis Wrapper.](#31-purpose-of-the-wrapper)
   - **3.2** [Demonstrate how to modify the YAML file for custom analyses.](#32-yaml-template)
 
-#### 3.1 Purpose of the Wrapper
+#### 3.1 Show and discuss the aqua-analysis Wrapper
 
 - Automates the running of multiple diagnostics for the AQUA project.
 - Allows parallel execution to speed up analyses.
@@ -191,7 +202,7 @@ In your AQUA diagnostics setup, the configuration files are stored in a consiste
 
 </details>
 
-#### 3.2 [YAML Template](https://github.com/DestinE-Climate-DT/AQUA/blob/aquathon/cli/aqua-analysis/config.aqua-analysis.tmpl)
+#### 3.2 Demonstrate how to modify the YAML file for custom analyses
 
 The YAML file used to configure the wrapper is located at [`$AQUA/cli/aqua-analysis/config.aqua-analysis.yaml`](https://github.com/DestinE-Climate-DT/AQUA/blob/aquathon/cli/aqua-analysis/config.aqua-analysis.yaml). If you want to customize the settings (different from the default) and run AQUA analyses, you will need to modify this YAML file accordingly.
 
@@ -278,8 +289,8 @@ This ensures that output files are organized in clearly labeled directories, mak
 - **Steps:**
 
   - **4.1** [Running the AQUA Analyses CLI for a Specific Diagnostic](#41-running-the-aqua-analyses-cli-for-a-specific-diagnostic)
-  - **4.2** [Running AQUA Analyses for a Set of Diagnostics](#42-running-aqua-analyses-for-a-set-of-diagnostics)
-  - **4.3** [Submitting AQUA Analyses to the SLURM Queue](#43-submitting-aqua-analyses-to-the-slurm-queue)
+  - **4.2** [Running AQUA Analyses for a Set of Diagnostics on a Specific Catalog Source](#42-running-aqua-analyses-for-a-set-of-diagnostics-on-a-specific-catalog-source)
+  - **4.3** [Submitting AQUA Analyses to the SLURM Queue for a Set of Catalog Sources](#43-submitting-aqua-analyses-to-the-slurm-queue-for-a-set-of-catalog-sources)
 
 #### 4.1 Running the AQUA Analyses CLI for a Specific Diagnostic
 
@@ -314,7 +325,7 @@ To execute the AQUA Analyses CLI for a specific diagnostic using command-line ar
 python diagnostics/tropical_rainfall/cli/cli_tropical_rainfall.py  --model IFS-NEMO --exp historical --source lra-r100-monthly \
  --config config.aqua-web.yaml --loglevel INFO 
 ```
-#### 4.2 Running AQUA Analyses for a Set of Diagnostics
+#### 4.2 Running AQUA Analyses for a Set of Diagnostics on a Specific Catalog Source
 
 To run AQUA Analyses for multiple diagnostics using command-line arguments:
 
@@ -324,11 +335,23 @@ bash ./cli/aqua-analysis/aqua-analysis.sh
 or 
 ```bash
 bash ./cli/aqua-analysis/aqua-analysis.sh --model IFS-NEMO --exp historical --source lra-r100-monthly --catalog climatedt-phase1 \
- --outputdir /path/to/output --config config.aqua-web.yaml --threads 4 --loglevel INFO
+ --outputdir /path/to/output  --threads 4 --loglevel INFO
 ```
 
+<details>
+  <summary>📚 <span style="color: green;">Homework</span></summary>
 
-#### 4.3 Submitting AQUA Analyses to the SLURM Queue
+1) Run the **aqua-analysis** bash script on **Levante** or **Lumi** for **global mean time series** and **Sea Ice diagnostics**, saving the output to your new folder: `$HOME/homework`. Make sure to set the log level to **warning**.
+  
+2) On **Levante** or **Lumi** , run the **aqua-analysis** bash script for the **climatedt-phase1** catalog, with the following parameters:
+   - Model: `IFS-NEMO`
+   - Experiment: `ssp370`
+   - Source: `lra-r100-monthly`
+  
+</details>
+
+
+#### 4.3 Submitting AQUA Analyses to the SLURM Queue for a Set of Catalog Sources
   
 Use the pre-prepared scripts in the `AQUA/cli/aqua-web` folder to simplify the process.
 
