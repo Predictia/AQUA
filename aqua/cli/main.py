@@ -22,6 +22,7 @@ from aqua.util import create_folder
 # folder used for reading/storing catalogs
 catpath = 'catalogs'
 
+
 class AquaConsole():
     """Class for AquaConsole, the AQUA command line interface for
     installation, catalog, grids and fixes editing"""

@@ -3,8 +3,6 @@
 '''
 AQUA command line parser
 '''
-
-
 import argparse
 from aqua import __version__ as version
 from aqua import __path__ as pypath
