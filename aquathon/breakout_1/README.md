@@ -6,7 +6,7 @@ Welcome to Breakout 1 of the AQUAthon event! If you see this file, you're in the
 
 Date: 12th of September 2024  
 Time: 15:45 CEST
-Link: [to be updated]
+Link: Please join the general session and then select breakout room 1: [zoom](https://didattica.polito.it/pls/portal30/sviluppo.bbb_corsi.waitRoom?id=59903&p_tipo=DOCENTE)
 
 This is a hands-on session where you'll learn how to run the AQUA analysis tool and generate a full set of diagnostic plots. The session is chaired by **Natalia Nazarova**.
 
