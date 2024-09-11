@@ -17,9 +17,7 @@ authors = [ # AQUA core team reported here
 ]
 description = "AQUA; a model evaluation framework for high-resolution climate model simulations"
 readme = "README.md"
-keywords = [
-    "diagnostics"
-]
+keywords = ["climate", "modeling", "diagnostics", "high-resolution"]
 license = {text = "Private"}
 requires-python = ">=3.9"
 classifiers = [
