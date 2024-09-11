@@ -103,7 +103,7 @@ issues = "https://github.com/DestinE-Climate-DT/AQUA/issues/"
 platforms = ["any"]
 
 [tool.setuptools.packages.find]
-where = ["aqua", "aqua_diagnostics"]
+where = ["."]
 
 [tool.setuptools.dynamic]
 version = {attr = "aqua.__version__"}
