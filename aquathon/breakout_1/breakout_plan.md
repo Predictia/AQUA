@@ -26,7 +26,28 @@ This session will focus on **Sailing with AQUA:**, which includes running the aq
 - **Objective:** Introduce the session's objectives.
 - **Steps:**
   - **1.1** Briefly explain the session purpose and key activities
-  - **1.2** Outline the tools that will be used during the session
+  - **1.2** Outline the tools that will be used during the session</summary> </details>
+
+<details>
+  <summary> 1.1 Briefly explain the session purpose and key activities </summary>
+  
+  - To demonstrate examples of diagnostics using the AQUA package.
+  - To highlight troubleshooting techniques.
+  - To show how to run and adjust scientific analyses with AQUA.
+  
+</details>
+
+
+<details>
+  <summary> 1.2 The tools that will be used during the session </summary>
+  
+  - **Notes**: Key takeaways and explanations will be provided in markdown notes.
+  - **Python Scripts**: Scripts for running the diagnostics and analyses.
+  - **Bash Scripts**: Shell scripts for automating tasks and submitting jobs.
+  - **YAML Files**: Configuration files to set parameters for the diagnostics.
+  - **Jupyter Notebooks**: Interactive notebooks for demonstrating and running analyses.
+
+</details>
 
 ---
 
@@ -40,10 +61,9 @@ This session will focus on **Sailing with AQUA:**, which includes running the aq
 
   - **2.1**  [Availibale Diagnostics](#21-availibale-diagnostics)
 
-  - **2.2**  [Important Notice](#22-important-notice) 
-    Discuss common issues users may encounter, along with tips for resolving them.
+  - **2.2**  [General Folder Contents](#22-general-folder-contents)
   
-  - **2.3** [Comprehensive Example](#23-access-the-notebook-here)  
+  - **2.3** [Comprehensive Example](#24-access-the--notebook-with-comprehensive-example-here)  
     Walk through an example analysis (e.g., Ocean3D, Global Mean Time Series, Atmospheric Global Mean Biases Diagnostics). Explain key functions, their purpose, and outputs.
 
 - **Engagement:**  
@@ -51,41 +71,81 @@ This session will focus on **Sailing with AQUA:**, which includes running the aq
 
 #### 2.1 Availibale Diagnostics
 
-##### Frontier Diagnostics
-- SSH variability
-- Tropical Cyclones detection, tracking, and zoom-in diagnostic
-- Tropical rainfall diagnostic
 
-
-##### State-of-the-art Diagnostics
-- Atmospheric Global Mean Biases Diagnostic
-- Performance Indices
-- Global time series
-- Ocean3D
-- Radiation Budget Diagnostic
-- Sea ice extent
-- Teleconnections diagnostic
-
-
-#### 2.2 Important Notice
 
 <details>
-  <summary>A major refactoring of diagnostics is underway, so be aware that this information may change.</summary>
+  <summary> Frontier Diagnostics</summary>
+These diagnostics offer new insights into climate phenomena that can't be studied with standard-resolution models. Their goal is to showcase the scientific and technical capabilities of high-resolution data from the Digital Twin, working directly with the full temporal and spatial resolution of climate models.
+</details>
 
-> ⚠️  
+- [SSH variability](https://github.com/DestinE-Climate-DT/AQUA/tree/aquathon/diagnostics/ssh)
+- [Tropical Cyclones detection, tracking, and zoom-in diagnostic](https://github.com/DestinE-Climate-DT/AQUA/tree/aquathon/diagnostics/tropical_cyclones)
+- [Tropical rainfall diagnostic](https://github.com/DestinE-Climate-DT/AQUA/tree/aquathon/diagnostics/tropical_rainfall)
+
+<details>
+  <summary> State-of-the-art Diagnostics</summary>
+
+These diagnostics aim to monitor and diagnose model drifts, imbalances, and biases. Unlike the "frontier" diagnostics, they use aggregated coarse-resolution data from the Low Resolution Archive (LRA).
+temporal and spatial resolution of climate models.
+</details>
+
+- [Atmospheric Global Mean Biases Diagnostic](https://github.com/DestinE-Climate-DT/AQUA/tree/aquathon/diagnostics/atmglobalmean)
+- [Performance Indices](https://github.com/DestinE-Climate-DT/AQUA/tree/aquathon/diagnostics/ecmean)
+- [Global time series](https://github.com/DestinE-Climate-DT/AQUA/tree/aquathon/diagnostics/global_time_series)
+- [Ocean3D](https://github.com/DestinE-Climate-DT/AQUA/tree/aquathon/diagnostics/ocean3d)
+- [Radiation Budget Diagnostic](https://github.com/DestinE-Climate-DT/AQUA/tree/aquathon/diagnostics/radiation)
+- [Sea ice extent](https://github.com/DestinE-Climate-DT/AQUA/tree/aquathon/diagnostics/seaice)
+- [Teleconnections diagnostic](https://github.com/DestinE-Climate-DT/AQUA/tree/aquathon/diagnostics/teleconnections)
+
+#### 2.2 General Folder Contents:
+
+- **`cli/`**: 
+  - Contains command-line interface (CLI) tools or Python scripts used to run the diagnostics.
+  - **Example**: `nworkers` and `memory` update scripts for adjusting parallel processing settings.
+
+- **`config/`**:
+  - Stores YAML configuration files or templates required for setting up and running diagnostics.
+  - **Example**: `config.yaml` includes default settings for quick runs, while `config.tmpl` provides templates for configuration files.
+
+- **`notebooks/`**:
+  - Jupyter Notebooks used for demonstrating and testing the diagnostics.
+  - **Example**: Contains examples, unit changes, or other updates in diagnostic workflows.
+
+- **`README.md`**:
+  - The README file provides an overview of the diagnostic package, instructions on usage, and important updates.
+  - **Example**: Recent updates about YAML configurations or specific instructions on running the diagnostics.
+
+- **`pyproject.toml`**:
+  - Defines the project’s dependencies, environment settings, and packaging configurations.
+  - **Example**: Includes settings for versioning and dependencies required for running diagnostics.
+
+- **Python Scripts (`*.py`)**:
+  - Core Python scripts that define the logic of the diagnostics.
+  - **Example**: `ssh_class.py` contains logic for SSH variability diagnostics, while `__init__.py` initializes the module and removes outdated hacks.
+
+- **Extra files**:
+  - Diagnostics may contain precomputed data, directories for storing results, and additional scientific analysis outputs.
+  - **Example**: Data or result folders specific to each diagnostic.
+
+
+<details>
+  <summary>⚠️ <span style="color: red;">Disclaimer:</span></summary>
+
+> A major refactoring of diagnostics is underway, so be aware that this information may change. 
 >  
 > Each scientific diagnostic has been developed by different contributors, leading to variations in usage and structure. We are currently standardizing the diagnostics with clear requirements for implementation, documentation, and usage.  
 >  
 > Within the next month, there will be changes to how diagnostics are used.  
 >  
 > Attendees of the Climate DT Hackathon in Hamburg, Germany 11-15 November will have the opportunity to explore the updated AQUA package and experience new diagnostic workflows.
->  
+  
 </details>
 
 
-#### 2.3 Access the notebook [here](https://github.com/DestinE-Climate-DT/AQUA/blob/aquathon/aquathon/breakout_1/aqua_analysis.ipynb)
 
+#### 2.4 Access the  notebook with comprehensive example [here](https://github.com/DestinE-Climate-DT/AQUA/blob/aquathon/aquathon/breakout_1/aqua_analysis.ipynb)
 
+If you would like to see a detailed example of how each diagnostic is used, please check the $AQUA/diagnostics/diagnostic_name/notebooks folder.
 
 ---
 ### 3. **AQUA Analyses Wrapper (10 min)**
@@ -129,13 +189,17 @@ In your AQUA diagnostics setup, the configuration files are stored in a consiste
    - `config`: Contains YAML files that define the general configuration for that diagnostic.
 
 
-##### Disclaimer:
-The configuration files stored under `$HOME/.aqua/diagnostics/` are only kept there when the AQUA package is installed in non-development mode. If the package is installed in development mode, symbolic links (lines) may be used instead of actual files, pointing to the source files in the development environment.
+<details>
+  <summary>⚠️ <span style="color: red;">Disclaimer:</span></summary>
 
+  The configuration files stored under `$HOME/.aqua/diagnostics/` are only kept there when the AQUA package is installed in non-development mode. If the package is installed in development mode, symbolic links (lines) may be used instead of actual files, pointing to the source files in the development environment.
+
+</details>
 
 #### 3.2 [YAML Template](https://github.com/DestinE-Climate-DT/AQUA/blob/aquathon/cli/aqua-analysis/config.aqua-analysis.tmpl)
 
 The YAML file used to configure the wrapper is located at [`$AQUA/cli/aqua-analysis/config.aqua-analysis.yaml`](https://github.com/DestinE-Climate-DT/AQUA/blob/aquathon/cli/aqua-analysis/config.aqua-analysis.yaml). If you want to customize the settings (different from the default) and run AQUA analyses, you will need to modify this YAML file accordingly.
+
 
 
 <details>
@@ -161,17 +225,17 @@ diagnostics:
     extra: {{ extra_arguments, str }}  # Additional command-line arguments
     outname: {{ outname, str }}  # Name of output directory
 ```
-</details>
 
 #### **`nworkers` Key** 
 <details>
-  <summary> Click to expand </summary>
+  <summary>Click to expand</summary>
 
 The `nworkers` key defines the number of parallel workers (or processes) used for running diagnostic analyses with Dask. More workers result in faster performance by distributing tasks across multiple CPU cores.
 
 - **Tip**: Set `nworkers` based on the number of available cores on your machine (e.g., 4 or 8 workers for a multi-core system).
 
 This ensures efficient utilization of your computing resources.
+
 </details>
 
 #### **`extra` Key**
@@ -186,10 +250,14 @@ For example, you can:
 - Enable reference data analysis (`--ref`).
 - Set parameters such as regridding or frequency (`--regrid=r100 --freq=M`).
 
-##### Disclaimer:
-Each diagnostic can have its own `extra` arguments tailored to specific needs, ensuring a flexible and detailed analysis process.
 </details>
 
+<details>
+  <summary>⚠️ <span style="color: red;">Disclaimer:</span></summary>
+
+  Each diagnostic can have its own `extra` arguments tailored to specific needs, ensuring a flexible and detailed analysis process.
+
+</details>
 
 #### **`outname` Key**
 
@@ -205,6 +273,8 @@ This ensures that output files are organized in clearly labeled directories, mak
 
 </details>
 
+</details>
+
 ---
 ### 4. **Running AQUA Analyses (5 min)**
 ---
@@ -212,19 +282,20 @@ This ensures that output files are organized in clearly labeled directories, mak
 
 - **Steps:**
 
-  - **4.1** [Running the Python Script](#41-running-the-python-script)
-  - **4.2** [Running the Bash Script](#42-running-the-bash-script)
+  - **4.1** [Running the AQUA Analyses CLI for a Specific Diagnostic](#41-running-the-aqua-analyses-cli-for-a-specific-diagnostic)
+  - **4.2** [Running AQUA Analyses for a Set of Diagnostics](#42-running-aqua-analyses-for-a-set-of-diagnostics)
   - **4.3** [Submitting AQUA Analyses to the SLURM Queue](#43-submitting-aqua-analyses-to-the-slurm-queue)
 ---
-#### 4.1 Running the Python Script
+#### 4.1 Running the AQUA Analyses CLI for a Specific Diagnostic
 
-To run the Python script with command-line arguments:
+To execute the AQUA Analyses CLI for a specific diagnostic using command-line arguments, for example, the `tropical_rainfall` diagnostic:
+
 
 ```bash
  python diagnostics/tropical_rainfall/cli/cli_tropical_rainfall.py 
 ```
 
-##### Mandatory arguments for CLI:
+##### Required arguments for CLI:
 
 - `-c`, `--config` (str): Specifies the YAML configuration file to be used. This file contains settings for the diagnostics.
 - `-l`, `--loglevel` (str): Defines the logging level (e.g., `DEBUG`, `INFO`, `WARNING`). Default is `WARNING`.
@@ -235,19 +306,22 @@ To run the Python script with command-line arguments:
 - `--outputdir` (str): Specifies the output directory for the analysis results. Overrides the configuration file if provided.
 
 
-##### Disclaimer:
 
-Each diagnostic has a configuration file. If the command-line arguments (such as `model`, `exp`, `source`, etc.) are not provided, the values from the configuration file will be used. However, if these arguments are supplied via the command line, they will override the values in the configuration file and will be considered the main ones for the analysis.
-
+<details>
+  <summary>⚠️ <span style="color: red;">Disclaimer:</span></summary>
+  
+  Each diagnostic has a configuration file. If the command-line arguments (such as `model`, `exp`, `source`, etc.) are not provided, the values from the configuration file will be used. However, if these arguments are supplied via the command line, they will override the values in the configuration file and will be considered the main ones for the analysis.
+  
+</details>
 
 
 ```bash
 python diagnostics/tropical_rainfall/cli/cli_tropical_rainfall.py  --model IFS-NEMO --exp historical --source lra-r100-monthly \
  --config config.aqua-web.yaml --loglevel INFO 
 ```
-#### 4.2 Running the Bash Script
+#### 4.2 Running AQUA Analyses for a Set of Diagnostics
 
-To run the bash script with command-line arguments that includes multiple Python scripts:
+To run AQUA Analyses for multiple diagnostics using command-line arguments:
 
 ```bash
 ./cli/aqua-analysis/aqua-analysis.sh
@@ -273,6 +347,13 @@ Submit the wrapper with this command:
 ```bash
 python cli/aqua-web/submit-aqua-web.py -p /users/jvonhar/aqua-web.experiment.list
 ```
+
+<details>
+  <summary>⚠️ <span style="color: red;">Disclaimer:</span></summary>
+  
+  This script is being updated and will soon handle not only the submission to SLURM but also the submission of results to [AQUA Web](https://aqua-web-contbuild.2.rahtiapp.fi/). Users may choose to avoid using this script directly and instead use it as inspiration for creating their own scripts to submit bash jobs to the queue.
+  
+</details>
 
 ---
 ### 5. **AQUA Analysis Output Review (5 min)**
