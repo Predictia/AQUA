@@ -10,16 +10,38 @@ import re
 import sys
 import argparse
 import jinja2
-from aqua.util import load_yaml, dump_yaml, get_arg
+from aqua.util import load_yaml, dump_yaml, get_arg, ConfigPath
 from aqua.logger import log_configure
 from aqua.lra_generator.lra_util import replace_intake_vars
 
+def catgen_parser(parser=None):
+    if parser is None:
+        parser = argparse.ArgumentParser(description='AQUA FDB entries generator')
+
+    parser.add_argument("-p", "--portfolio", help="Type of Data Portfolio utilized (production/reduced)")
+    parser.add_argument('-c', '--config', type=str, help='yaml configuration file', required=True)
+    parser.add_argument('-l', '--loglevel', type=str, help='loglevel', default='INFO')
+
+    return parser
+
 class AquaFDBGenerator:
     def __init__(self, data_portfolio, config_path, loglevel='INFO'):
-        self.dp_version = data_portfolio
+
+        # config reading
         self.config = load_yaml(config_path)
+        self.dp_version = data_portfolio
+
+        # logging
         self.loglevel = loglevel
         self.logger = log_configure(self.loglevel, 'FDB catalog generator')
+
+        # get the templates and config files from the AQUA installation
+        self.catgendir = os.path.join(ConfigPath().configdir, 'catgen')
+        self.logger.debug("Reading configuration files from %s", self.catgendir)
+        self.template = self.load_jinja_template(os.path.join(self.catgendir, f"{data_portfolio}.j2"))
+        self.matching_grids = load_yaml(os.path.join(self.catgendir, "matching_grids.yaml"))
+
+        # config options
         self.dp_dir_path = self.config["repos"]["data-portfolio_path"]
         self.catalog_dir_path = self.config["repos"]["Climate-DT-catalog_path"]
         self.model = self.config["model"].lower()
@@ -27,22 +49,14 @@ class AquaFDBGenerator:
         self.ocean_grid = self.config["ocean_grid"]
         self.num_of_realizations = self.config["num_of_realizations"]
 
-        self.logger.info("Running FDB catalog generator for %s portfolio", data_portfolio)
+        # portfolio
+        self.logger.info("Running FDB catalog generator for %s portfolio for model %s", data_portfolio, self.model)
         self.dp = load_yaml(os.path.join(self.dp_dir_path, data_portfolio, 'portfolio.yaml'))
         self.grids = load_yaml(os.path.join(self.dp_dir_path, data_portfolio, 'grids.yaml'))
         self.levels = load_yaml(os.path.join(self.dp_dir_path, 'definitions', 'levels.yaml'))
 
         self.local_grids = self.get_local_grids(self.portfolio, self.grids)
-        self.template = self.load_jinja_template(f"{data_portfolio}.j2")
 
-
-    @staticmethod
-    def parse_arguments(arguments):
-        parser = argparse.ArgumentParser(description='AQUA FDB entries generator')
-        parser.add_argument("-p", "--portfolio", help="Type of Data Portfolio utilized (production/reduced)")
-        parser.add_argument('-c', '--config', type=str, help='yaml configuration file')
-        parser.add_argument('-l', '--loglevel', type=str, help='loglevel', default='INFO')
-        return parser.parse_args(arguments)
 
     def get_local_grids(self, portfolio, grids):
         """
@@ -141,10 +155,13 @@ class AquaFDBGenerator:
             jinja2.Template: Loaded Jinja2 template.
         """
 
-        templateloader = jinja2.FileSystemLoader(searchpath='./')
+        templateloader = jinja2.FileSystemLoader(searchpath=os.path.dirname(template_file))
         templateenv = jinja2.Environment(loader=templateloader, trim_blocks=True, lstrip_blocks=True)
-        self.logger.debug('Loading template for %s', template_file)
-        return templateenv.get_template(template_file)
+        if os.path.exists(template_file):
+            self.logger.debug('Loading template for %s', template_file)
+            return templateenv.get_template(os.path.basename(template_file))
+        else:
+            raise FileNotFoundError('Cannot file template file %s', template_file)
 
     def get_profile_content(self, profile, resolution):
         """
@@ -159,8 +176,8 @@ class AquaFDBGenerator:
         """
 
         grid = self.local_grids[f"horizontal-{self.model.upper()}-{resolution}"]
-        matching_grids = load_yaml("matching_grids.yaml")
-        aqua_grid = matching_grids[grid]
+        
+        aqua_grid = self.matching_grids[grid]
         levelist, levels_values = self.get_levelist(profile, self.local_grids, self.levels)
 
         levtype_str = (
@@ -171,7 +188,7 @@ class AquaFDBGenerator:
             profile["levtype"]
         )
 
-        grid_mappings = matching_grids['grid_mappings']
+        grid_mappings = self.matching_grids['grid_mappings']
         levtype = profile["levtype"]
 
         if levtype in grid_mappings:
@@ -270,11 +287,19 @@ class AquaFDBGenerator:
 
         self.create_catalog_entry(all_content)
 
-if __name__ == '__main__':
-    args = AquaFDBGenerator.parse_arguments(sys.argv[1:])
+def catgen_execute(args):
+
+    """Useful wrapper for the FDB catalog generator class"""
+
     dp_version = get_arg(args, 'portfolio', 'production')
     config_file = get_arg(args, 'config', 'config.yaml')
     loglevel = get_arg(args, 'loglevel', 'INFO')
 
     generator = AquaFDBGenerator(dp_version, config_file, loglevel)
     generator.generate_catalog()
+
+if __name__ == '__main__':
+
+    args = catgen_parser().parse_args(sys.argv[1:])
+    catgen_execute(args)
+    

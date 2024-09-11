@@ -64,3 +64,11 @@ fixer_name:
                 grib: true
                 attributes:
                     uncle: "scrooge"
+
+    FESOM-change-coords:
+        parent: FESOM-default
+        data_model: false
+        coords:
+            level:
+                source: nz1
+                tgt_units: 'a lot of water'
