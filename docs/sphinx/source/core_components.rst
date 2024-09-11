@@ -375,8 +375,8 @@ Then, extra keys can be then specified for `each` variable to allow for further 
 
 .. _coord-fix:
 
-Data Model and Coordinates Correction
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Data Model and Coordinates/Dimensions Correction
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The fixer can adopt a common *coordinate data model*
 (default is the CDS data model).
@@ -391,14 +391,27 @@ it is possible to specify a fix like:
 
 .. code-block:: yaml
 
-    lon:
-        source: longitude
+    coords: 
+        lon:
+            source: longitude
 
 This will rename the coordinate to ``lon``.
 
 .. note::
     When possible, prefer a **data model** treatment of coordinates and use the **coords**
     block as second option.
+
+Similarly, if units are ill-defined in the dataset, it is possible to override them with the same fixer structure. 
+Of course, this feature is valid only for **coords**:
+
+.. code-block:: yaml
+
+    coords: 
+        level:
+            tgt_units: m
+
+.. warning::
+    Please keep in mind that coordinate units is simply an override of the attribute. It won't make any assumption on the source units and will not convert it accordingly.
 
 Time Aggregation
 ----------------

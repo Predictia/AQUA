@@ -69,7 +69,7 @@ def submit_sbatch(model, exp, source, varname, slurm_dict, yaml_file,
         sbatch_cmd.append('--dependency=afterany:'+ str(dependency))
 
     # Add script command
-    sbatch_cmd.append('./cli_lra_generator.py')
+    sbatch_cmd.append('aqua lra')
     sbatch_cmd.append('--config')
     sbatch_cmd.append(yaml_file)
     sbatch_cmd.append('--model')
