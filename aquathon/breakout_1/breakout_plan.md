@@ -63,9 +63,7 @@ This session will focus on **Sailing with AQUA:**, which includes running the aq
 - **Engagement:**  
   Encourage participants to follow along in real-time, explore the notebook, and ask questions.
 
-#### 2.1 Availibale Diagnostics
-
-
+#### 2.1 Available Diagnostics
 
 <details>
   <summary> <span style="color: green;">Frontier Diagnostics</span></summary>
@@ -79,7 +77,7 @@ These **diagnostics** offer new insights into **climate phenomena** that can't b
 - [Tropical rainfall diagnostic](https://github.com/DestinE-Climate-DT/AQUA/tree/aquathon/diagnostics/tropical_rainfall)
 
 <details>
-  <summary> <span style="color: green;">State-of-the-art Diagnostics<span style="color: green;"></summary>
+  <summary> <span style="color: green;">State-of-the-art Diagnostics</span></summary>
 
 These **diagnostics** aim to **monitor** and **diagnose** model **drifts**, **imbalances**, and **biases**. Unlike the "frontier" diagnostics, they use aggregated **coarse-resolution data** from the **Low Resolution Archive (`LRA`)**.
 
@@ -141,7 +139,7 @@ These **diagnostics** aim to **monitor** and **diagnose** model **drifts**, **im
 
 #### 2.4 Access the  notebook with comprehensive example [here](https://github.com/DestinE-Climate-DT/AQUA/blob/aquathon/aquathon/breakout_1/aqua_analysis.ipynb)
 
-If you would like to see a detailed example of how each diagnostic is used, please check the $AQUA/diagnostics/diagnostic_name/notebooks folder.
+If you would like to see a detailed example of how each diagnostic is used, please check the `$AQUA/diagnostics/diagnostic_name/notebooks` folder.
 
 ---
 
@@ -282,7 +280,7 @@ This ensures that output files are organized in clearly labeled directories, mak
   - **4.1** [Running the AQUA Analyses CLI for a Specific Diagnostic](#41-running-the-aqua-analyses-cli-for-a-specific-diagnostic)
   - **4.2** [Running AQUA Analyses for a Set of Diagnostics](#42-running-aqua-analyses-for-a-set-of-diagnostics)
   - **4.3** [Submitting AQUA Analyses to the SLURM Queue](#43-submitting-aqua-analyses-to-the-slurm-queue)
----
+
 #### 4.1 Running the AQUA Analyses CLI for a Specific Diagnostic
 
 To execute the AQUA Analyses CLI for a specific diagnostic using command-line arguments, for example, the `tropical_rainfall` diagnostic:
