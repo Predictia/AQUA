@@ -319,17 +319,12 @@ python diagnostics/tropical_rainfall/cli/cli_tropical_rainfall.py  --model IFS-N
 To run AQUA Analyses for multiple diagnostics using command-line arguments:
 
 ```bash
-./cli/aqua-analysis/aqua-analysis.sh
+bash ./cli/aqua-analysis/aqua-analysis.sh
 ```
 or 
 ```bash
-./cli/aqua-analysis/aqua-analysis.sh --model IFS-NEMO --exp historical --source lra-r100-monthly --catalog climatedt-phase1 \
+bash ./cli/aqua-analysis/aqua-analysis.sh --model IFS-NEMO --exp historical --source lra-r100-monthly --catalog climatedt-phase1 \
  --outputdir /path/to/output --config config.aqua-web.yaml --threads 4 --loglevel INFO
-```
-Ensure the script is executable with 
-
-```bash
-chmod +x your_bash_script.sh
 ```
 
 
@@ -346,9 +341,9 @@ python cli/aqua-web/submit-aqua-web.py -p /users/jvonhar/aqua-web.experiment.lis
 <details>
   <summary>⚠️ <span style="color: red;">Disclaimer</span></summary>
   
-  This script is being updated and will soon handle not only the submission to SLURM but also the submission of results to [AQUA Web](https://aqua-web-contbuild.2.rahtiapp.fi/). Users may choose to avoid using this script directly and instead use it as inspiration for creating their own scripts to submit bash jobs to the queue.
-  
+  This script not only manages submission to SLURM but also handles the submission of results to [AQUA Web](https://aqua-web-climatedt.2.rahtiapp.fi/). It is used operationally, but you are welcome to explore, personalize, and adapt it to suit your own workflow or project needs. Feel free to get inspired and customize it as you see fit.
 </details>
+
 
 ---
 ### 5. **AQUA Analysis Output Review (5 min)**
@@ -362,41 +357,45 @@ python cli/aqua-web/submit-aqua-web.py -p /users/jvonhar/aqua-web.experiment.lis
 
 The output folder is organized in a clear hierarchical structure to help users easily navigate the analysis results. Below is a breakdown of the structure:
 
+- **Catalog Level:**  
+  Top-level directories represent the models or simulations included in the analysis.
+
 - **Model Level:**  
-  The top-level directories represent different models or simulations used in the analysis.
+  These directories specify the particular model used in the analysis.
 
 - **Experiment Level:**  
-  Inside each model directory, subdirectories correspond to different experiments or simulation periods.
+  Each model directory contains subdirectories for different experiments or simulation periods.
 
 - **Diagnostic Level:**  
-  Each experiment folder contains diagnostics, which are categorized by types (e.g., time series, seasonal cycles).
+  Inside each experiment folder, diagnostics are categorized by type (e.g., time series, seasonal cycles).
 
 - **Output Files:**  
-  The diagnostic folders contain various output files, including:
-  - **Log files:** Track the progress and details of the analysis process.
+  Diagnostic folders contain various output files:
+  - **Log files:** Track the progress and details of the analysis.
   - **PDF reports:** Provide visual summaries of the diagnostics.
-  - **NetCDF files:** Contain detailed data for further in-depth analysis.
-
+  - **NetCDF files:** Contain detailed data for further analysis.
 
 <details>
   <summary><span style="color: green;">Click to expand the example of the output structure</span></summary>
 
 ```plaintext
 output/
-└── IFS-NEMO/
-    └── historical-1990/
-        ├── seasonal_cycles.log
-        ├── ecmean.log
-        ├── seasonal_cycles/
-        │   ├── pdf/
-        │   │   └── global_time_series_seasonalcycle_msshf_IFS-NEMO_historical-1990_ERA5.pdf
-        │   └── netcdf/
-        │       └── seasonal_cycles_msshf.nc
-        ├── ecmean/
-        │   ├── pdf/
-        │   │   └── PI4_EC23_historical-1990_ClimateDT_r1i1p1f1_1990_2002.pdf
-        │   └── yaml/
-        │       └── PI4_EC23_historical-1990_ClimateDT_r1i1p1f1_1990_2002.yml
+└──climatedt-phase1/
+└──── IFS-NEMO/
+    └──── historical-1990/
+        ├──── seasonal_cycles.log
+        ├──── ecmean.log
+        ├──── seasonal_cycles/
+        │   ├──── pdf/
+        │   │   └──── global_time_series_seasonalcycle_msshf_IFS-NEMO_historical-1990_ERA5.pdf
+        │   └──── netcdf/
+        │       └──── seasonal_cycles_msshf.nc
+        ├──── ecmean/
+        │   ├──── pdf/
+        │   │   └──── PI4_EC23_historical-1990_ClimateDT_r1i1p1f1_1990_2002.pdf
+        │   └──── yaml/
+        │       └──── PI4_EC23_historical-1990_ClimateDT_r1i1p1f1_1990_2002.yml
+
 ```
 </details>
 
