@@ -26,28 +26,22 @@ This session will focus on **Sailing with AQUA:**, which includes running the aq
 - **Objective:** Introduce the session's objectives.
 - **Steps:**
   - **1.1** Briefly explain the session purpose and key activities
-  - **1.2** Outline the tools that will be used during the session</summary> </details>
+  - **1.2** Outline the tools that will be used during the session
 
-<details>
-  <summary> 1.1 Briefly explain the session purpose and key activities </summary>
+#### 1.1 Briefly explain the session purpose and key activities 
   
-  - To demonstrate examples of diagnostics using the AQUA package.
-  - To highlight troubleshooting techniques.
-  - To show how to run and adjust scientific analyses with AQUA.
-  
-</details>
+- To demonstrate examples of **diagnostics** using the AQUA package.
+- To highlight **troubleshooting** techniques.
+- To show how to **run** and **adjust** scientific **analyses** with AQUA.
 
 
-<details>
-  <summary> 1.2 The tools that will be used during the session </summary>
+#### 1.2 The tools that will be used during the session
   
   - **Notes**: Key takeaways and explanations will be provided in markdown notes.
   - **Python Scripts**: Scripts for running the diagnostics and analyses.
   - **Bash Scripts**: Shell scripts for automating tasks and submitting jobs.
   - **YAML Files**: Configuration files to set parameters for the diagnostics.
   - **Jupyter Notebooks**: Interactive notebooks for demonstrating and running analyses.
-
-</details>
 
 ---
 
@@ -74,8 +68,10 @@ This session will focus on **Sailing with AQUA:**, which includes running the aq
 
 
 <details>
-  <summary> Frontier Diagnostics</summary>
-These diagnostics offer new insights into climate phenomena that can't be studied with standard-resolution models. Their goal is to showcase the scientific and technical capabilities of high-resolution data from the Digital Twin, working directly with the full temporal and spatial resolution of climate models.
+  <summary> <span style="color: green;">Frontier Diagnostics</span></summary>
+
+These **diagnostics** offer new insights into **climate phenomena** that can't be studied with standard-resolution models. Their goal is to showcase the **scientific** and **technical capabilities** of **high-resolution data** from the Digital Twin, working directly with the full **temporal** and **spatial resolution** of climate models.
+
 </details>
 
 - [SSH variability](https://github.com/DestinE-Climate-DT/AQUA/tree/aquathon/diagnostics/ssh)
@@ -83,10 +79,10 @@ These diagnostics offer new insights into climate phenomena that can't be studie
 - [Tropical rainfall diagnostic](https://github.com/DestinE-Climate-DT/AQUA/tree/aquathon/diagnostics/tropical_rainfall)
 
 <details>
-  <summary> State-of-the-art Diagnostics</summary>
+  <summary> <span style="color: green;">State-of-the-art Diagnostics<span style="color: green;"></summary>
 
-These diagnostics aim to monitor and diagnose model drifts, imbalances, and biases. Unlike the "frontier" diagnostics, they use aggregated coarse-resolution data from the Low Resolution Archive (LRA).
-temporal and spatial resolution of climate models.
+These **diagnostics** aim to **monitor** and **diagnose** model **drifts**, **imbalances**, and **biases**. Unlike the "frontier" diagnostics, they use aggregated **coarse-resolution data** from the **Low Resolution Archive (`LRA`)**.
+
 </details>
 
 - [Atmospheric Global Mean Biases Diagnostic](https://github.com/DestinE-Climate-DT/AQUA/tree/aquathon/diagnostics/atmglobalmean)
@@ -129,7 +125,7 @@ temporal and spatial resolution of climate models.
 
 
 <details>
-  <summary>⚠️ <span style="color: red;">Disclaimer:</span></summary>
+  <summary>⚠️ <span style="color: red;">Disclaimer</span></summary>
 
 > A major refactoring of diagnostics is underway, so be aware that this information may change. 
 >  
@@ -148,6 +144,7 @@ temporal and spatial resolution of climate models.
 If you would like to see a detailed example of how each diagnostic is used, please check the $AQUA/diagnostics/diagnostic_name/notebooks folder.
 
 ---
+
 ### 3. **AQUA Analyses Wrapper (10 min)**
 ---
 - **Objective**: Demonstrate the aqua-analysis wrapper and how to modify the YAML configuration file.
@@ -190,7 +187,7 @@ In your AQUA diagnostics setup, the configuration files are stored in a consiste
 
 
 <details>
-  <summary>⚠️ <span style="color: red;">Disclaimer:</span></summary>
+  <summary>⚠️ <span style="color: red;">Disclaimer</span></summary>
 
   The configuration files stored under `$HOME/.aqua/diagnostics/` are only kept there when the AQUA package is installed in non-development mode. If the package is installed in development mode, symbolic links (lines) may be used instead of actual files, pointing to the source files in the development environment.
 
@@ -203,7 +200,7 @@ The YAML file used to configure the wrapper is located at [`$AQUA/cli/aqua-analy
 
 
 <details>
-  <summary>Click to expand YAML Template</summary>
+  <summary><span style="color: green;">Click to expand YAML Template</span></summary>
 
 ```yaml
 # Configuration file for aqua-analysis.sh
@@ -228,7 +225,7 @@ diagnostics:
 
 #### **`nworkers` Key** 
 <details>
-  <summary>Click to expand</summary>
+  <summary><span style="color: green;">Click to expand</span></summary>
 
 The `nworkers` key defines the number of parallel workers (or processes) used for running diagnostic analyses with Dask. More workers result in faster performance by distributing tasks across multiple CPU cores.
 
@@ -241,7 +238,7 @@ This ensures efficient utilization of your computing resources.
 #### **`extra` Key**
 
 <details>
-  <summary>Click to expand</summary>
+  <summary><span style="color: green;">Click to expand</span></summary>
 
 The `extra` key allows passing additional command-line arguments to the diagnostic script, providing flexibility for customization.
 
@@ -253,7 +250,7 @@ For example, you can:
 </details>
 
 <details>
-  <summary>⚠️ <span style="color: red;">Disclaimer:</span></summary>
+  <summary>⚠️ <span style="color: red;">Disclaimer</span></summary>
 
   Each diagnostic can have its own `extra` arguments tailored to specific needs, ensuring a flexible and detailed analysis process.
 
@@ -262,7 +259,7 @@ For example, you can:
 #### **`outname` Key**
 
 <details>
-  <summary>Click to expand</summary>
+  <summary><span style="color: green;">Click to expand</span></summary>
 
 The `outname` key specifies the directory name where the output results for a diagnostic will be stored. By default, it uses the diagnostic name, but you can customize it as needed.
 
@@ -308,7 +305,7 @@ To execute the AQUA Analyses CLI for a specific diagnostic using command-line ar
 
 
 <details>
-  <summary>⚠️ <span style="color: red;">Disclaimer:</span></summary>
+  <summary>⚠️ <span style="color: red;">Disclaimer</span></summary>
   
   Each diagnostic has a configuration file. If the command-line arguments (such as `model`, `exp`, `source`, etc.) are not provided, the values from the configuration file will be used. However, if these arguments are supplied via the command line, they will override the values in the configuration file and will be considered the main ones for the analysis.
   
@@ -349,7 +346,7 @@ python cli/aqua-web/submit-aqua-web.py -p /users/jvonhar/aqua-web.experiment.lis
 ```
 
 <details>
-  <summary>⚠️ <span style="color: red;">Disclaimer:</span></summary>
+  <summary>⚠️ <span style="color: red;">Disclaimer</span></summary>
   
   This script is being updated and will soon handle not only the submission to SLURM but also the submission of results to [AQUA Web](https://aqua-web-contbuild.2.rahtiapp.fi/). Users may choose to avoid using this script directly and instead use it as inspiration for creating their own scripts to submit bash jobs to the queue.
   
@@ -384,7 +381,7 @@ The output folder is organized in a clear hierarchical structure to help users e
 
 
 <details>
-  <summary>Click to expand the example of the output structure</summary>
+  <summary><span style="color: green;">Click to expand the example of the output structure</span></summary>
 
 ```plaintext
 output/
