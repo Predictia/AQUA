@@ -34,11 +34,7 @@ This session will focus on **Sailing with AQUA:**, which includes running the aq
 
 ### 1. **Introduction and Overview (1 min)**
 ---
-- **Objective:** Introduce the session's objectives.
-- **Steps:**
-  - **1.1** Briefly explain the session purpose and key activities
-  - **1.2** Outline the tools that will be used during the session
-  - **1.3** Preparational Steps for AQUAthon Git Branch 
+**Objective:** Introduce the session's objectives.
 
 #### 1.1 Briefly explain the session purpose and key activities 
   
@@ -83,20 +79,7 @@ Follow these steps to update your local branch with remote changes while keeping
 
 ### 2. **AQUA Scientific Diagnostics (20 min)**
 ---
-- **Objective:** Demonstrate how to use AQUA scientific diagnostics in a Jupyter notebook, showcasing key analytical workflows and outputs.
-
-- **Steps:**
-
-  - **2.1**  [Availibale Diagnostics](#21-availibale-diagnostics)
-
-  - **2.2**  [General Folder Contents](#22-general-folder-contents)
-  
-  - **2.3** [Comprehensive Example](#23-comprehensive-example)  
-    Walk through an example analysis (e.g., Ocean3D, Global Mean Time Series, Atmospheric Global Mean Biases Diagnostics). Explain key functions, their purpose, and outputs.
-  - **2.4** [CLI for a Each AQUA Diagnostic](#24-cli-for-a-each-aqua-diagnostic)
-
-- **Engagement:**  
-  Encourage participants to follow along in real-time, explore the notebook, and ask questions.
+**Objective:** Demonstrate how to use AQUA scientific diagnostics in a Jupyter notebook, showcasing key analytical workflows and outputs.
 
 #### 2.1 Available Diagnostics
 
@@ -194,12 +177,7 @@ During AQUA installation, the YAML files are copied to the `.aqua` folder. In yo
 
 ### 3. **AQUA Analyses Wrapper (10 min)**
 ---
-- **Objective**: Demonstrate the aqua-analysis wrapper and how to modify the YAML configuration file.
-
-- **Steps:**
-
-  - **3.1** [Show and discuss the aqua-analysis Wrapper.](#31-purpose-of-the-wrapper)
-  - **3.2** [Demonstrate how to modify the YAML file for custom analyses.](#32-yaml-template)
+**Objective**: Demonstrate the aqua-analysis wrapper and how to modify the YAML configuration file.
 
 #### 3.1 Show and Discuss the aqua-analysis Wrapper
 
@@ -300,13 +278,7 @@ This ensures that output files are organized in clearly labeled directories, mak
 ---
 ### 4. **Running AQUA Analyses (5 min)**
 ---
-- **Objective:** Guide participants through the process of executing AQUA analyses using Python and Bash scripts, and submitting the jobs to the SLURM queue for parallel processing. 
-
-- **Steps:**
-
-  - **4.1** [Running the AQUA Analyses CLI for a Specific Diagnostic](#41-running-the-aqua-analyses-cli-for-a-specific-diagnostic)
-  - **4.2** [Running AQUA Analyses for a Set of Diagnostics on a Specific Catalog Source](#42-running-aqua-analyses-for-a-set-of-diagnostics-on-a-specific-catalog-source)
-  - **4.3** [Submitting AQUA Analyses to the SLURM Queue for a Set of Catalog Sources](#43-submitting-aqua-analyses-to-the-slurm-queue-for-a-set-of-catalog-sources)
+**Objective:** Guide participants through the process of executing AQUA analyses using Python and Bash scripts, and submitting the jobs to the SLURM queue for parallel processing. 
 
 #### 4.1 Running the AQUA Analyses CLI for a Specific Diagnostic
 
@@ -418,10 +390,7 @@ python cli/aqua-web/submit-aqua-web.py -p /users/jvonhar/aqua-web.experiment.lis
 ---
 ### 5. **AQUA Analysis Output Review (5 min)**
 ---
-- **Objective:** Review the output structure of aqua-analysis.
-- **Steps:**
-  - 5.1 [The output structure](#51-the-output-structure)
-  - 5.2 Review the content of log files, PDF and NetCDF files including the metadata.
+**Objective:** Review the output structure of aqua-analysis.
 
 #### 5.1 The output structure
 
@@ -472,10 +441,7 @@ output/
 ---
 ### 6. **Q&A Session (5 min)**
 ---
-- **Objective:** Address questions and clarify any doubts regarding the session content.
-- **Steps:**
-  - Open the floor for questions.
-  - Encourage feedback and suggestions for improvement.
+**Objective:** Address questions and clarify any doubts regarding the session content.
 
 
 ---
