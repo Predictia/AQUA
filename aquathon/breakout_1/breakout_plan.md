@@ -11,10 +11,10 @@
    - [2.2 General Folder Contents](#22-general-folder-contents)
    - [2.3 Comprehensive Example](#23-comprehensive-example)
    - [2.4 CLI for a Each AQUA Diagnostic](#24-cli-for-a-each-aqua-diagnostic)
-3. [AQUA Analyses Wrapper (10 min)](#3-aqua-analyses-wrapper-10-min)
+3. [AQUA Analyses Wrapper (5 min)](#3-aqua-analyses-wrapper-5-min)
    - [3.1 Show and discuss the aqua-analysis Wrapper](#31-show-and-discuss-the-aqua-analysis-wrapper)
    - [3.2 Demonstrate how to modify the YAML file for custom analyses](#32-demonstrate-how-to-modify-the-yaml-file-for-custom-analyses)
-4. [Running AQUA Analyses (5 min)](#4-running-aqua-analyses-5-min)
+4. [Running AQUA Analyses (10 min)](#4-running-aqua-analyses-10-min)
    - [4.1 Running the AQUA Analyses CLI for a Specific Diagnostic](#41-running-the-aqua-analyses-cli-for-a-specific-diagnostic)
    - [4.2 Running AQUA Analyses for a Set of Diagnostics on a Specific Catalog Source](#42-running-aqua-analyses-for-a-set-of-diagnostics-on-a-specific-catalog-source)
    - [4.3 Submitting AQUA Analyses to the SLURM Queue for a Set of Catalog Sources](#43-submitting-aqua-analyses-to-the-slurm-queue-for-a-set-of-catalog-sources)
@@ -151,6 +151,73 @@ Access the  notebook with comprehensive example [here](https://github.com/Destin
 
 If you would like to see a detailed example of how each diagnostic is used, please check the `$AQUA/diagnostics/diagnostic_name/notebooks` folder.
 
+<details>
+  <summary>📚 <span style="color: green;">Homework</span></summary>
+
+1) Implement a time series plot for the tropical band (for example, from -20° to 20° latitude).
+
+- Use the `Timeseries` class provided earlier.
+- Define latitude boundaries from -20° to 20°.
+- Include data from `1990-01-01` to `1999-12-01`.
+- Set standard deviation start and end dates to match the period.
+
+  
+<details>
+  <summary>💡 <strong><span style="color: orange;">Solution</span></strong></summary>
+```python
+# 0 s
+ts_area = Timeseries(var='2t', models='IFS-NEMO', exps='historical-1990', sources='lra-r100-monthly',
+                     startdate='1990-01-01', enddate='1999-12-01',
+                     std_startdate='1990-01-01', std_enddate='1999-12-01', extend=False,
+                     lat_limits=[-20, 20],
+                     loglevel='INFO')
+# 1 m, 10 s
+ts_area.run()
+```
+</details>
+
+2) For the same tropical band, compare the **annual mean** of model data with **CERES** reference data.
+
+- Ensure the comparison is made on an annual basis.
+- Include CERES data in the comparison as the reference dataset.
+
+
+3) Generate an annual plot for Sea Surface Temperature (SST) using the `seasonal_bias` function.
+
+- Use `seasonal_bias` to compare two datasets: one for the **IFS-NEMO historical** model and the other for **ERA5**.
+- Set the variable to Sea Surface Temperature.
+- Define the time periods:
+  - **IFS-NEMO**: From `1990-01-01` to `2001-12-31`.
+  - **ERA5**: From `1980-01-01` to `2010-12-31`.
+- Set the value range between **-4** and **4** and include **9 levels**.
+- Generate an **annual** plot.
+
+
+<details>
+  <summary>💡 <strong><span style="color: orange;">Solution</span></strong></summary>
+
+```python
+# 13 s
+seasonal_bias(
+    dataset1=data_ifs_nemo_historical,
+    dataset2=data_era5,
+    var_name='avg_tos',
+    plev=None,
+    model_label1='IFS-NEMO historical',
+    model_label2='ERA5',
+    start_date1='1990-01-01',
+    end_date1='2001-12-31',
+    start_date2='1980-01-01',
+    end_date2='2010-12-31',
+    vmin=-4,
+    vmax=4,
+    nlevels=9,
+    seasons=False
+)
+```
+</details>
+</details>
+
 #### 2.4 CLI for a Each AQUA Diagnostic
 
 Each diagnostic has a Command Line Interface (CLI) for running analyses, which includes a Python script and a YAML file to configure the analysis. For example, in the **teleconnections** diagnostic, the Python script is located at [`AQUA/diagnostics/teleconnections/cli/cli_teleconnections.py`](https://github.com/DestinE-Climate-DT/AQUA/blob/aquathon/diagnostics/teleconnections/cli/cli_teleconnections.py), and the corresponding YAML file is at [`AQUA/diagnostics/teleconnections/cli/cli_config_atm.yaml`](https://github.com/DestinE-Climate-DT/AQUA/blob/aquathon/diagnostics/teleconnections/cli/cli_config_atm.yaml). This same structure applies to other diagnostics as well.
@@ -175,7 +242,7 @@ During AQUA installation, the YAML files are copied to the `.aqua` folder. In yo
 
 ---
 
-### 3. **AQUA Analyses Wrapper (10 min)**
+### 3. **AQUA Analyses Wrapper (5 min)**
 ---
 **Objective**: Demonstrate the aqua-analysis wrapper and how to modify the YAML configuration file.
 
@@ -276,7 +343,7 @@ This ensures that output files are organized in clearly labeled directories, mak
 </details>
 
 ---
-### 4. **Running AQUA Analyses (5 min)**
+### 4. **Running AQUA Analyses (10 min)**
 ---
 **Objective:** Guide participants through the process of executing AQUA analyses using Python and Bash scripts, and submitting the jobs to the SLURM queue for parallel processing. 
 
