@@ -6,14 +6,18 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "aqua"
 dynamic = ["version"]
-authors = [
-    {name = "The AQUA team", email = "p.davini@isac.cnr.it"}
+authors = [ # AQUA core team reported here
+    {name = "The AQUA team", email = "p.davini@isac.cnr.it"},
+    {name = "Paolo Davini", email = "p.davini@isac.cnr.it"},
+    {name = "Matteo Nurisso", email = "m.nurisso@isac.cnr.it"},
+    {name = "Silvia Caprioli", email = "silvia.caprioli@polito.it"},
+    {name = "Jost von Hardenberg", email = "jost.hardenberg@polito.it"},
+    {name = "Natalia Nazarova", email = "natalia.nazarova@polito.it"},
+    {name = "Supriyo Ghosh", email = "supriyo.ghosh@bsc.es"}
 ]
 description = "AQUA; a model evaluation framework for high-resolution climate model simulations"
 readme = "README.md"
-keywords = [
-    "diagnostics"
-]
+keywords = ["climate", "modeling", "diagnostics", "high-resolution"]
 license = {text = "Private"}
 requires-python = ">=3.9"
 classifiers = [
@@ -38,14 +42,14 @@ dependencies = [
     "docker",
     "gribscan",
     "pandas",
-    "intake==0.7.0",
+    "intake==0.7.0", # Version 2 is not yet compatible with intake-xarray
     "intake-esm",
     "intake-xarray",
     "jinja2",
     "matplotlib",
     "metpy",
     "numpy",
-    "pydantic<2.5.3", # NOTE: pydantic 2.5.3 has a bug that breaks tests
+    "pydantic",
     "pypdf",
     "pyYAML",
     "ruamel.yaml",
@@ -74,18 +78,14 @@ tests = [
     "pandoc",
     "pycobertura"
 ]
-# Here we list the packages that are required for each diagnostic
-# The syntax is "aqua[diagnostic_name]"
-# If a diagnostic is missing it means that it needs no extra dependencies
-ecmean = [
+diagnostics = [
     "ECmean4"
 ]
 all = [
     "aqua[docs]",
     "aqua[notebooks]",
     "aqua[tests]",
-    # diagnostics
-    "aqua[ecmean]"
+    "aqua[diagnostics]"
 ]
 
 [project.scripts]
@@ -98,12 +98,10 @@ repository = "https://github.com/DestinE-Climate-DT/AQUA/"
 issues = "https://github.com/DestinE-Climate-DT/AQUA/issues/"
 
 [tool.setuptools.package-data]
-platforms = [
-    "any"
-]
+platforms = ["any"]
 
-[tool.setuptools.packages]
-find = {}
+[tool.setuptools]
+packages = { find = { where = ["src"] } }
 
 [tool.setuptools.dynamic]
 version = {attr = "aqua.__version__"}
@@ -132,7 +130,7 @@ markers = [
 [tool.coverage.run]
 branch = true
 command_line = '-m pytest tests'
-source = ["aqua"]
+source = ["src/aqua"]
 omit = ["tests/*"]
 
 [tool.coverage.report]

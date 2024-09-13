@@ -9,6 +9,9 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 
+- `aqua` source code has been moved to the `src` folder (#1332)
+- A diagnostic module, called `aqua_diagnostics`, has been created under the `src` folder (#1332)
+
 AQUA diagnostic complete list:
 
 ## [v0.11.3]
