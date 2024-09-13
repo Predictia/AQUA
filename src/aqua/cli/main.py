@@ -34,7 +34,9 @@ class AquaConsole():
         """The main AQUA command line interface"""
 
         self.pypath = pypath[0]
-        self.aquapath = os.path.join(os.path.dirname(self.pypath), 'config')
+        # NOTE: the aqua src code is in the src/aqua folder, so we need to go up one level
+        #       to find the config folder
+        self.aquapath = os.path.join(os.path.dirname(self.pypath), '../config')
         self.configpath = None
         self.configfile = 'config-aqua.yaml'
         self.grids = None
