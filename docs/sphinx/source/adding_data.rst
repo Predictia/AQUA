@@ -305,6 +305,10 @@ Some of the parameters are here described:
     For FDB sources the ``metadata`` section contains very important informations that are used to
     retrieve the correct variables and levels.
 
+.. warning::
+
+    Please notice that the recent version of ecCodes used by AQUA (>= 2.36.0) is not compatible anymore with definition files from earlier versions (<2.34.0). For this reason we point now to older definition files which have been 'fixed' to keep working. The CLI tool to create such fixed definition files (``fix_eccodes.sh``) is available.
+
 Regridding capabilities
 -----------------------
 

@@ -224,41 +224,6 @@ Options
     Flag to push to aqua-web. This uses the ``make_push_figures.py`` script.
 
 
-.. _fdb-catalog-generator:
-
-Catalog entry generator for FDB sources
----------------------------------------
-
-A tool which streamlines the process of adding new experiments to the catalog, based on the data-portfolio structure of the Destination Earth Climate DT. 
-It exploits the capabilities of the Jinja package to obtain a cleaner and more flexible code.
-
-Basic usage
-^^^^^^^^^^^
-
-To add a new experiment to the catalog, follow these steps:
-
-1. Clone the two repositories, `DestinE-ClimateDT-catalog <https://github.com/DestinE-Climate-DT/Climate-DT-catalog/tree/main>`_ and `data-portfolio <https://earth.bsc.es/gitlab/digital-twins/de_340-2/data-portfolio>`_, to your preferred location.
-2. Navigate to the ``cli/fdb-catalog-generator`` folder.
-3. Update the ``config.yaml`` file with the details of your simulation, including the paths of the cloned repositories. 
-4. Run the command ``python catalog-jinja-generator.py -p production -c config.yaml``, where the ``-p`` argument can be either ``production`` or ``reduced`` to specify the Jinja template to be used.
-5. The catalog entry will be created in the appropriate location in the DestinE-ClimateDT-catalog folder, and the corresponding ``main.yaml`` file will be automatically updated.
-
-Options
-^^^^^^^
-
-.. option:: -c <config>, --config <config>
-
-    The configuration file to use. A ``config.tmpl`` is available to be copied and edited.
-
-.. option:: -p <portfolio>, --portfolio <portfolio>  
-
-    The data portfolio to be used. At moment `production` and `reduced` are supported.
-
-.. option:: -l <loglevel>, --loglevel <loglevel>
-
-    Logging level.
-
-
 .. _benchmarker:
 
 Benchmarker
@@ -390,6 +355,20 @@ Basic usage:
 
     ./generate_weights.py -c weights_config.yaml
 
+ecCodes fixer
+-------------
 
+In order to be able to read data written with recent versions of ecCodes,
+AQUA needs to use a very recent version of the binary and of the definition files.
+Data written with earlier versions of ecCodes should instead be read using previous definition files.
+AQUA solves this problem by switching on the fly the definition path for ecCodes, as specified in the source catalog entry. 
+Starting from version 2.34.0 of ecCodes older definitions are not compatible anymore.
+As a fix we create copies of the original older definion files with the addition/change of 5 files (``stepUnits.def`` and 4 files including it).
+A CLI script (``eccodes/fix_eccodes.sh``) is available to create such 'fixed' definition files.
 
+.. warning::
 
+    This change is necessary since AQUA v0.11.1.
+    Please notice that this also means that earlier versions of the ecCodes binary will not work using these 'fixed' definition files.
+    If you are planning to use older versions of AQUA (with older versions of ecCodes) you should not use these 'fixed' definition files
+    and you may need to modify the ecCodes path in the catalog entries.

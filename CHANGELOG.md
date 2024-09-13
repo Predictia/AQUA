@@ -7,6 +7,53 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Unreleased in the current development version:
 
+AQUA core complete list:
+
+- `aqua` source code has been moved to the `src` folder (#1332)
+- A diagnostic module, called `aqua_diagnostics`, has been created under the `src` folder (#1332)
+
+AQUA diagnostic complete list:
+
+## [v0.11.3]
+
+AQUA core complete list:
+- LRA, both from CLI and worklow, is part of the AQUA console and can be run with `aqua lra $options` (#1294)
+- FDB catalog generator is part of the AQUA console and can be run with `aqua catgen $options` (#1294)
+- Coordinate unit overriding is now possible via the `tgt_units` argument (#1320)
+- Full support for python>=3.9 (#1325)
+- Pin of (python) eccodes<2.37.0 in pyproject due to recent changes in binary/python structure (#1325)
+
+AQUA diagnostic complete list:
+- Radiation: Bugfix in the CLI for the radiation diagnostic (#1319)
+
+## [v0.11.2]
+
+AQUA core complete list:
+- Renaming of FESOM grids to include original resolution name (#1312)
+- Bugfix of the fdb-catalog-generator tool that was not correctly assigning NEMO grids (#1309)
+- Bugfix of the GSV intake driver that was not handling correctly metadata jinja replacement (#1304) 
+- Bugfix of _merge_fixes() method when the parent fix has no vars specified (#1310)
+- Safety check for the netcdf driver providing more informative error when files are not found (#1307, #1313)
+
+AQUA diagnostic complete list:
+- Tropical Rainfall: Fix Minor Issues in Tropical Precipitation CLI Metadata and Formatting (#1266)
+
+## [v0.11.1]
+
+Attention: If you are accessing FDB experiments, we suggest to not use versions older than this release.
+
+Main changes are:
+1. AQUA works with FDB written with ecCodes versions > 2.35 as well as lower.
+2. Timeseries and Seasonal cyle can now be evaluated also on a specific region 
+
+AQUA core complete list:
+- ecCodes now pinned to >=2.36.0 and tool for fixing older definition files (#1302)
+
+AQUA diagnostic complete list:
+- Timeseries: a region can be selected for Timeseries and Seasonal Cycle with the `lon_limits` and `lat_limits` arguments (#1299)
+- Timeseries: the cli argument for extending the time range is now extend (previously expand) (#1299)
+- Timeseries: all the available diagnostics support the catalog argument (#1299)
+
 ## [v0.11]
 
 Attention: this version is not compatible with catalog entries with ecCodes >= 2.35.0.
@@ -598,7 +645,10 @@ This is mostly built on the `AQUA` `Reader` class which support for climate mode
 This is the AQUA pre-release to be sent to internal reviewers. 
 Documentations is completed and notebooks are working.
 
-[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11...HEAD
+[unreleased]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11.3...HEAD
+[v0.11.3]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11.2...v0.11.3
+[v0.11.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11.1...v0.11.2
+[v0.11.1]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.11...v0.11.1
 [v0.11]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.3...v0.11
 [v0.10.3]:https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.2...v0.10.3
 [v0.10.2]: https://github.com/DestinE-Climate-DT/AQUA/compare/v0.10.1...v0.10.2

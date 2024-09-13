@@ -10,7 +10,7 @@
 #SBATCH -p debug    #change the partition
 
 AQUA_path=$AQUA
-AQUA_container=/project/project_465000454/containers/aqua/aqua-v0.11.sif
+AQUA_container=/project/project_465000454/containers/aqua/aqua-v0.11.3.sif
 GSV_WEIGHTS_PATH=/scratch/project_465000454/igonzalez/gsv_weights/
 GRID_DEFINITION_PATH=/scratch/project_465000454/igonzalez/grid_definitions
 
@@ -29,6 +29,7 @@ singularity exec \
     --bind /pfs/lustrep4/ \
     --bind /pfs/lustrep3/scratch/ \
     --bind /appl/local/climatedt/ \
+    --bind /appl/local/destine/ \
     --bind /flash/project_465000454 \
     --bind /projappl/ \
     --bind /project \
