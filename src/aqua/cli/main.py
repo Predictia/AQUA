@@ -233,7 +233,9 @@ class AquaConsole():
             sys.exit(1)
 
         for config in diagnostic_config[diagnostic_type]:
-            source_path = os.path.join(os.path.dirname(self.pypath), config['source_path'])
+            # NOTE: the aqua src code is in the src/aqua folder, so we need to go up one level
+            #       to find the config folder
+            source_path = os.path.join(os.path.dirname(self.pypath), '../', config['source_path'])
             config_file = config['config_file']
             target_directory = os.path.join(self.configpath, config['target_path'])
             target_file = os.path.join(target_directory, config_file)
