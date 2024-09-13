@@ -130,7 +130,7 @@ markers = [
 [tool.coverage.run]
 branch = true
 command_line = '-m pytest tests'
-source = ["aqua"]
+source = ["src/aqua"]
 omit = ["tests/*"]
 
 [tool.coverage.report]
