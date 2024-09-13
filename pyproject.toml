@@ -49,7 +49,7 @@ dependencies = [
     "matplotlib",
     "metpy",
     "numpy",
-    "pydantic<2.5.3", # NOTE: pydantic 2.5.3 has a bug that breaks tests
+    "pydantic",
     "pypdf",
     "pyYAML",
     "ruamel.yaml",
@@ -100,8 +100,8 @@ issues = "https://github.com/DestinE-Climate-DT/AQUA/issues/"
 [tool.setuptools.package-data]
 platforms = ["any"]
 
-[tool.setuptools.packages.find]
-where = ["."]
+[tool.setuptools]
+packages = { find = { where = ["src"] } }
 
 [tool.setuptools.dynamic]
 version = {attr = "aqua.__version__"}
