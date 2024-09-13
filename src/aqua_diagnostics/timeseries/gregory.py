@@ -94,7 +94,7 @@ class GregoryPlot():
         self.toa_std_end = toa_std_end
         self.logger.debug(f"Retrieving {self.retrieve_list}, for standard deviation calculation: "
                           f"2m temperature from {time_to_string(self.ts_std_start)} to {time_to_string(self.ts_std_end)}, "
-                          f"net radiation at TOA from {time_to_string(self.toa_std_start)} to {time_to_string(self.toa_std_end)}")
+                          f"net radiation at TOA from {time_to_string(self.toa_std_start)} to {time_to_string(self.toa_std_end)}") # noqa
 
         self.save = save
         if self.save is False:
@@ -256,7 +256,7 @@ class GregoryPlot():
                         label_b = None
                         label_e = None
                     ax1.plot(self.data_ts_mon[i][0], self.data_toa_mon[i][0], marker=">",
-                             color="tab:blue", label=label_b) # Blue to be colorblind friendly
+                             color="tab:blue", label=label_b)  # Blue to be colorblind friendly
                     ax1.plot(self.data_ts_mon[i][-1], self.data_toa_mon[i][-1], marker="<",
                              color="tab:red", label=label_e)
 
@@ -351,14 +351,14 @@ class GregoryPlot():
         for i, model in enumerate(self.models):
             try:
                 if self.monthly:
-                    outfile = f'global_time_series_gregory_plot_monthly'
+                    outfile = 'global_time_series_gregory_plot_monthly'
                     if self.catalogs[i] is not None:
                         outfile += f'_{self.catalogs[i]}'
                     outfile += f'_{model}_{self.exps[i]}.nc'
                     self.data_ts_mon[i].to_netcdf(os.path.join(outdir, outfile), mode='w')
                     self.data_toa_mon[i].to_netcdf(os.path.join(outdir, outfile), mode='a')
                 if self.annual:
-                    outfile = f'global_time_series_gregory_plot_annual'
+                    outfile = 'global_time_series_gregory_plot_annual'
                     if self.catalogs[i] is not None:
                         outfile += f'_{self.catalogs[i]}'
                     outfile += f'_{model}_{self.exps[i]}.nc'
@@ -372,7 +372,8 @@ class GregoryPlot():
             try:
                 outfile = 'global_time_series_gregory_plot_ref_ERA5_CERES.nc'
                 xr.Dataset({'ts_mean': self.ref_ts_mean, 'ts_std': self.ref_ts_std,
-                            'toa_mean': self.ref_toa_mean, 'toa_std': self.ref_toa_std}).to_netcdf(os.path.join(outdir, outfile), mode='w')
+                            'toa_mean': self.ref_toa_mean,
+                            'toa_std': self.ref_toa_std}).to_netcdf(os.path.join(outdir, outfile), mode='w')
             except Exception as e:
                 self.logger.error(f"Error: {e}")
                 self.logger.error(f"Could not save reference data to {outfile}")
