@@ -7,17 +7,20 @@ AQUA command line main functions
 import os
 import shutil
 import sys
-from urllib.error import HTTPError
 import fsspec
-from aqua.util import load_yaml, dump_yaml, load_multi_yaml
-from aqua.logger import log_configure
-from aqua.util import ConfigPath
-from aqua.cli.parser import parse_arguments
-from aqua.cli.diagnostic_config import diagnostic_config
-from aqua.util.util import HiddenPrints, to_list
+from urllib.error import HTTPError
+
 from aqua import __path__ as pypath
 from aqua import catalog
-from aqua.util import create_folder
+from aqua.util import load_yaml, dump_yaml, load_multi_yaml, ConfigPath, create_folder
+from aqua.logger import log_configure
+from aqua.util.util import HiddenPrints, to_list
+
+from aqua.cli.parser import parse_arguments
+from aqua.cli.diagnostic_config import diagnostic_config
+from aqua.cli.lra import lra_execute
+from aqua.cli.catgen import catgen_execute
+
 
 # folder used for reading/storing catalogs
 catpath = 'catalogs'
@@ -52,14 +55,17 @@ class AquaConsole():
             'grids': {
                 'add': self.grids_add,
                 'remove': self.remove_file
-            }
+            },
+            'lra': self.lra,
+            'catgen': self.catgen
         }
 
     def execute(self):
         """parse AQUA class and run the required command"""
 
         parser_dict = parse_arguments()
-        args = parser_dict['main'].parse_args(sys.argv[1:])
+        parser = parser_dict['main']
+        args = parser.parse_args()
 
         # Set the log level
         if args.very_verbose or (args.verbose and args.very_verbose):
@@ -72,6 +78,7 @@ class AquaConsole():
 
         command = args.command
         method = self.command_map.get(command, parser_dict['main'].print_help)
+
         if command not in self.command_map:
             parser_dict['main'].print_help()
         else:
@@ -173,11 +180,16 @@ class AquaConsole():
             if not os.path.exists(os.path.join(self.configpath, target_file)):
                 self.logger.info('Copying from %s to %s', self.aquapath, self.configpath)
                 shutil.copy(f'{self.aquapath}/{file}', f'{self.configpath}/{target_file}')
-        for directory in ['fixes', 'data_models', 'grids']:
+        for directory in ['fixes', 'data_models', 'grids', 'catgen']:
             if not os.path.exists(os.path.join(self.configpath, directory)):
                 self.logger.info('Copying from %s to %s',
                                  os.path.join(self.aquapath, directory), self.configpath)
                 shutil.copytree(f'{self.aquapath}/{directory}', f'{self.configpath}/{directory}')
+        for directory in ['templates']:
+            if not os.path.exists(os.path.join(self.configpath, directory)):
+                self.logger.info('Copying from %s to %s',
+                                 os.path.join(self.aquapath, '..', directory), self.configpath)
+                shutil.copytree(f'{self.aquapath}/../{directory}', f'{self.configpath}/{directory}')
         os.makedirs(f'{self.configpath}/{catpath}', exist_ok=True)
 
     def _install_editable(self, editable):
@@ -199,11 +211,16 @@ class AquaConsole():
                 self.logger.error('%s folder does not include AQUA configuration files. Please use AQUA/config', editable)
                 os.rmdir(self.configpath)
                 sys.exit(1)
-        for directory in ['fixes', 'data_models', 'grids']:
+        for directory in ['fixes', 'data_models', 'grids', 'catgen']:
             if not os.path.exists(os.path.join(self.configpath, directory)):
                 self.logger.info('Linking from %s to %s',
                                  os.path.join(editable, directory), self.configpath)
                 os.symlink(f'{editable}/{directory}', f'{self.configpath}/{directory}')
+        for directory in ['templates']:
+            if not os.path.exists(os.path.join(self.configpath, directory)):
+                self.logger.info('Linking from %s to %s',
+                                 os.path.join(editable, '..', directory), self.configpath)
+                os.symlink(f'{editable}/../{directory}', f'{self.configpath}/{directory}')
         os.makedirs(f'{self.configpath}/{catpath}', exist_ok=True)
 
     def _install_default_diagnostics(self, diagnostic_type):
@@ -236,7 +253,8 @@ class AquaConsole():
                 self.logger.debug('Copying from %s to %s', source_file, target_file)
                 shutil.copy(source_file, target_file)
             else:
-                self.logger.debug('Config file %s already exists in the target path %s. Skipping copy.', config_file, target_directory)
+                self.logger.debug('Config file %s already exists in the target path %s. Skipping copy.',
+                                  config_file, target_directory)
 
     def _install_editable_diagnostics(self, diagnostic_type, editable):
         """Create a symbolic link for the config file from the diagnostics path to AQUA"""
@@ -274,9 +292,9 @@ class AquaConsole():
                 self.logger.debug('Linking from %s to %s', source_file, target_file)
                 os.symlink(source_file, target_file)
             else:
-                self.logger.debug('Config file %s already exists in the target path %s. Skipping link.', config_file, target_directory)
+                self.logger.debug('Config file %s already exists in the target path %s. Skipping link.',
+                                  config_file, target_directory)
 
-        
     def _set_machine(self, args):
         """Modify the config-aqua.yaml with the identified machine"""
 
@@ -626,6 +644,18 @@ class AquaConsole():
             self.logger.error(e)
             return False
 
+    def lra(self, args):
+        """Run the Low Resolution Archive generator"""
+
+        print('Running the Low Resolution Archive generator')
+        lra_execute(args)
+
+    def catgen(self, args):
+        """Run the FDB catalog generator"""
+
+        print("Running the catalog generator")
+        catgen_execute(args)
+        
 
 def main():
     """AQUA main installation tool"""
