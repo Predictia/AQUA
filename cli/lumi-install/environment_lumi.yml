@@ -10,9 +10,7 @@ channels:
 dependencies:
   - python>=3.9
   - cdo>=2.2.0,<=2.4.0 #for healpix support
-  # for eccodes see issues #252, #634, #870
-  # PR #36 catalog repo
-  - ecCodes>=2.35.0
+  - eccodes>=2.31.0,<2.34.0
   - pandas      
   - pandoc
   - pip
