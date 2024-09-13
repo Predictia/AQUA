@@ -1,7 +1,7 @@
-.. _global_timeseries:
+.. _timeseries:
 
-Global time series
-==================
+Timeseries
+==========
 
 Description
 -----------
@@ -17,10 +17,12 @@ Structure
 -----------
 
 * ``README.md``: a readme file which contains some technical information on how to install the diagnostic and its environment.
-* ``pyproject.toml``: a configuration file for the project. This is inteded to be used when installing the AQUA environment.
-* ``global_time_series``: a subdirectory which contains the diagnostic source code. Each class is implemented in a separate file.
-* ``notebooks``: a subdirectory which contains Jupyter notebooks that demonstrate the diagnostic functionalities.
-* ``cli``: a subdirectory which contains the command line interface for the diagnostic.
+* ``cli_timeseries.py``: the command line interface (CLI) script to run the diagnostic.
+* ``gregory.py``: contains the GregoryPlot class.
+* ``reference_data.py``: contains the code to retrieve the reference data for all the classes.
+* ``seasonalcycle.py``: contains the SeasonalCycle class.
+* ``timeseries.py``: contains the Timeseries class.
+* ``util.py``: contains the utility functions used by the classes.
 
 Input variables
 ---------------
@@ -40,7 +42,7 @@ The basic structure of the analysis is the following:
 
 .. code-block:: python
 
-    from global_time_series import Timeseries
+    from aqua_diagnostic import Timeseries
 
     # Define the models to analyse
     models = ['IFS-NEMO', 'ICON']
@@ -69,8 +71,8 @@ The diagnostic can be run from the command line interface (CLI) by running the f
 
 .. code-block:: bash
 
-    cd $AQUA/diagnostics/global_time_series/cli
-    python cli_global_time_series.py --config_file <path_to_config_file>
+    cd $AQUA/src/aqua_diagnostics/timeseries
+    python cli_time_series.py --config_file <path_to_config_file>
 
 Three configuration files are provided and run when executing the aqua-analysis (see :ref:`aqua_analysis`).
 Two configuration files are for atmospheric and oceanic timeseries and gregory plots, and the third one is for the seasonal cycles.
@@ -218,7 +220,7 @@ Detailed API
 This section provides a detailed reference for the Application Programming Interface (API) of the ``global_time_series`` diagnostic,
 produced from the diagnostic function docstrings.
 
-.. automodule:: global_time_series
+.. automodule:: aqua_diagnostics.timeseries
     :members:
     :undoc-members:
     :show-inheritance:
