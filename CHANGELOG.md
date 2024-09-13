@@ -14,6 +14,8 @@ AQUA core complete list:
 
 AQUA diagnostic complete list:
 
+- Timeseries: The `timeseries` diagnostic is now integrated in the `aqua_diagnostics` module (#1340)
+
 ## [v0.11.3]
 
 AQUA core complete list:
