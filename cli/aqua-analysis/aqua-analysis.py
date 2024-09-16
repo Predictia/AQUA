@@ -10,10 +10,22 @@ from aqua.util import load_yaml
 #logger = log_configure('debug', 'AQUA Analysis')
 
 def run_command(cmd, log_file=None):
-    """Run a system command and capture the exit code."""
-    with open(log_file, 'w') as log:
-        process = subprocess.run(cmd, shell=True, stdout=log, stderr=subprocess.STDOUT)
-        return process.returncode
+    """Run a system command and capture the exit code, redirecting output to the specified log file."""
+    try:
+        # Ensure the log file path is expanded properly
+        log_file = os.path.expandvars(log_file)
+        
+        # Ensure the directory for the log file exists
+        log_dir = os.path.dirname(log_file)
+        os.makedirs(log_dir, exist_ok=True)
+        
+        # Open the log file and redirect stdout and stderr
+        with open(log_file, 'w') as log:
+            process = subprocess.run(cmd, shell=True, stdout=log, stderr=log, text=True)
+            return process.returncode
+    except Exception as e:
+        print(f"Error running command {cmd}: {e}")
+        raise
 
 def run_diagnostic(diagnostic, *, script_path, extra_args, loglevel, output_dir, logger):
     """Run the diagnostic script with specified arguments."""
@@ -144,13 +156,18 @@ def main():
     #    > {output_dir}/{diagnostic}.log 2>&1 "
     if run_dummy:
         dummy_script = os.path.join(AQUA, "diagnostics/dummy/cli/cli_dummy.py")
+        
+        # Expand environment variables and construct the correct log file path
+        output_log_path = os.path.expandvars(f"{output_dir}/setup_checker.log")
+        
+        # Construct the command
         command = f"python {dummy_script} --model_atm {model} --model_oce {model} --exp {exp} --source {source} -l {loglevel}"
         
         # Log the command being run
         logger.info(f"Running setup checker: {command}")
         
         # Run the command and store its exit code
-        result = run_command(command, log_file=f"{output_dir}/setup_checker.log")
+        result = run_command(command, log_file=output_log_path)
 
         # Check the exit code just like in your bash script
         if result == 1:
@@ -162,6 +179,7 @@ def main():
             logger.error("Oceanic model not found, it will be skipped.")
         else:
             logger.info("Setup checker completed successfully.")
+
 
     logger.info("Finished setup checker.")
 
