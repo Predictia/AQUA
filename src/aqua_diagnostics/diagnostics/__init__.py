@@ -1,4 +1,4 @@
-from .diagnostics import GregoryPlot, SeasonalCycle, Timeseries
+from .timeseries import GregoryPlot, SeasonalCycle, Timeseries
 
 __version__ = "0.0.1"
 
