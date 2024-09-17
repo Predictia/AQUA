@@ -100,8 +100,9 @@ issues = "https://github.com/DestinE-Climate-DT/AQUA/issues/"
 [tool.setuptools.package-data]
 platforms = ["any"]
 
-[tool.setuptools]
-packages = { find = { where = ["src"] } }
+[tool.setuptools.package-dir]
+"aqua" = "src/aqua"
+"aqua.diagnostics" = "src/aqua_diagnostics"
 
 [tool.setuptools.dynamic]
 version = {attr = "aqua.__version__"}
