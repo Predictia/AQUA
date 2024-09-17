@@ -41,6 +41,7 @@ class AquaConsole():
         self.configfile = 'config-aqua.yaml'
         self.grids = None
         self.logger = None
+        self.loglevel = 'WARNING'
 
         self.command_map = {
             'install': self.install,
@@ -48,6 +49,7 @@ class AquaConsole():
             'remove': self.remove,
             'set': self.set,
             'uninstall': self.uninstall,
+            'avail': self.avail,
             'list': self.list,
             'update': self.update,
             'fixes': {
@@ -74,8 +76,7 @@ class AquaConsole():
             self.loglevel = 'DEBUG'
         elif args.verbose:
             self.loglevel = 'INFO'
-        else:
-            self.loglevel = 'WARNING'
+
         self.logger = log_configure(self.loglevel, 'AQUA')
 
         command = args.command
@@ -448,24 +449,40 @@ class AquaConsole():
 
         self._set_catalog(catalog)
 
+    def _github_explore(self):
+
+        try:
+            # for private repo, we need user e token. since this is a test feature,
+            # before going open source, we will use a basic token and PD account.
+            fs = fsspec.filesystem("github",
+                                    org="DestinE-Climate-DT",
+                                    repo="Climate-DT-catalog",
+                                    username="mnurisso",
+                                    token="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") # noqa
+            self.logger.info('Accessed remote repository https://github.com/DestinE-Climate-DT/Climate-DT-catalog')
+        except HTTPError:
+            self.logger.error('Permission issues in accessing Climate-DT catalog, please contact AQUA mantainers')
+            sys.exit(1)
+    
+        return fs
+
+    def avail(self, args):
+        
+        """Return the catalog available on the Github website"""
+
+        fs = self._github_explore()
+        available_catalog = [os.path.basename(x) for x in fs.ls(f"{catpath}/")]
+        print(f'Available ClimateDT catalogs at  are:')
+        print(available_catalog)
+
+
     def _add_catalog_github(self, catalog):
         """Add a catalog from the remote Github Climate-DT repository"""
 
         # recursive copy
         cdir = f'{self.configpath}/{catpath}/{catalog}'
         if not os.path.exists(cdir):
-            try:
-                # for private repo, we need user e token. since this is a test feature,
-                # before going open source, we will use a basic token and PD account.
-                fs = fsspec.filesystem("github",
-                                       org="DestinE-Climate-DT",
-                                       repo="Climate-DT-catalog",
-                                       username="mnurisso",
-                                       token="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") # noqa
-                self.logger.info('Accessed remote repository https://github.com/DestinE-Climate-DT/Climate-DT-catalog')
-            except HTTPError:
-                self.logger.error('Permission issues in accessing Climate-DT catalog, please contact AQUA mantainers')
-                sys.exit(1)
+            fs = self._github_explore()
             available_catalog = [os.path.basename(x) for x in fs.ls(f"{catpath}/")]
             if catalog not in available_catalog:
                 self.logger.error('Cannot find on Climate-DT-catalog the requested catalog %s, available are %s',
