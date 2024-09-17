@@ -39,7 +39,7 @@ xr.set_options(keep_attrs=True)
 
 
 class Reader(FixerMixin, RegridMixin, TimmeanMixin):
-    """General reader for NextGEMS data."""
+    """General reader for climate data."""
 
     instance = None  # Used to store the latest instance of the class
 
@@ -61,8 +61,8 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
             model (str): Model ID. Mandatory
             exp (str): Experiment ID. Mandatory.
             source (str): Source ID. Mandatory
-            catalog (str, optional): Catalog where to search for the triplet.  Default to None will allow for autosearch in 
-                                     the installed catalogs. 
+            catalog (str, optional): Catalog where to search for the triplet.  Default to None will allow for autosearch in
+                                     the installed catalogs.
             regrid (str, optional): Perform regridding to grid `regrid`, as defined in `config/regrid.yaml`. Defaults to None.
             regrid_method (str, optional): CDO Regridding regridding method. Read from grid configuration.
                                            If not specified anywhere, using "ycon".
@@ -88,7 +88,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
                                             Vertical chunking is expressed as the number of vertical levels to be used.
             preproc (function, optional): a function to be applied to the dataset when retrieved. Defaults to None.
             **kwargs: Arbitrary keyword arguments to be passed as parameters to the catalog entry.
-                      'zoom', meant for HEALPix grid, is a predefined one which will allow for multiple gridname definition   
+                      'zoom', meant for HEALPix grid, is a predefined one which will allow for multiple gridname definitions.
 
         Returns:
             Reader: A `Reader` class object.
@@ -173,7 +173,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         if self.fixer_name is False:
             self.logger.warning('A False flag is specified in fixer_name metadata, disabling fix!')
             self.fix = False
-        
+
         if self.fix:
             self.fixes_dictionary = load_multi_yaml(self.fixer_folder, loglevel=self.loglevel)
             self.fixes = self.find_fixes()  # find fixes for this model/exp/source
@@ -188,11 +188,10 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         # load and check the regrid
         if regrid or areas:
 
-
             cfg_regrid = load_multi_yaml(folder_path=self.grids_folder,
                                          definitions=machine_paths['paths'],
                                          loglevel=self.loglevel)
-            
+
             cfg_regrid = {**machine_paths, **cfg_regrid}
 
             # define grid names
