@@ -137,7 +137,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         self.enddate = enddate
 
         self.previous_data = None  # used for FDB iterator fixing
-        self.sample_data = None #used to avoid multiple calls of retrieve_plain
+        self.sample_data = None  # used to avoid multiple calls of retrieve_plain
 
         # define configuration file and paths
         Configurer = ConfigPath(catalog=catalog, loglevel=loglevel)
@@ -146,7 +146,7 @@ class Reader(FixerMixin, RegridMixin, TimmeanMixin):
         self.config_file = Configurer.config_file
         self.cat, self.catalog_file, self.machine_file = Configurer.deliver_intake_catalog(catalog=catalog, model=model, exp=exp, source=source)
         self.fixer_folder, self.grids_folder = Configurer.get_reader_filenames()
-        
+
         # deduce catalog name
         self.catalog = self.cat.name
 
