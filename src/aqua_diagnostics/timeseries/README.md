@@ -10,7 +10,7 @@ This diagnostic computes and plots:
 
 - Global and Regional monthly and annual timeseries of any variable or derived quantity
 - Gregory-like analysis of radiation imbalance to diagnose model drift
-- Seasonal cycle of global mean of various variables
+- Seasonal cycle of global and regional mean of any variable or derived quantity
 
 ## Table of Contents
 
