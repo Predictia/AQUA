@@ -1,20 +1,20 @@
-# Global mean time series
+# Timeseries
 
 Main authors:
-- Lukas Kluft (MPI, lukas.kluft@mpimet.mpg.de)
 - Matteo Nurisso (CNR, m.nurisso@isac.crn.it)
+- Lukas Kluft (MPI, lukas.kluft@mpimet.mpg.de)
 
 ## Description
 
 This diagnostic computes and plots:
 
-- Global mean time series of various variables
+- Global and Regional monthly and annual timeseries of any variable or derived quantity
 - Gregory-like analysis of radiation imbalance to diagnose model drift
 - Seasonal cycle of global mean of various variables
 
 ## Table of Contents
 
-- [Global mean time series](#global-mean-time-series)
+- [Timeseries](#timeseries)
   - [Description](#description)
   - [Table of Contents](#table-of-contents)
   - [Installation Instructions](#installation-instructions)
@@ -38,14 +38,14 @@ For the Gregory-like plot, the following variables are required:
 
 ## Examples
 
-The **notebook/** folder contains the following notebooks:
+The **AQUA/notebook/diagnostics/timeseries** folder contains the following notebooks:
 
-- **global_time_series.ipynb**:
+- **timeseries.ipynb**:
   This notebook provides a brief overview of the time series plotting as well
   as a Gregory-like analysis of radiation imbalance to diagnose model drift.
-- **seasonal_cycles.ipynb**:
+- **seasonalcycles.ipynb**:
   This notebook provides a brief overview of the seasonal cycle plotting.
 
 ## Contributing
 
-This diagnostic is maintained by Matteo Nurisso (@mnurisso).
+This diagnostic is maintained by Matteo Nurisso (@mnurisso, m.nurisso@isac.cnr.it).
