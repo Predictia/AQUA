@@ -241,6 +241,26 @@ the regridder is still able to deal with this situation using the information in
     since in that case the vertical level information is preserved by producing 3D variables
     with a single vertical level.
 
+Reader prepocessing option
+--------------------------
+
+The reader has a preprocessing option that can be used to apply a function to the data before it is retrieved.
+This can be useful to apply a function to the data before it is read, to quickly apply some function that is not available in the Reader class.
+
+In order to use this option, the user must pass a function as ``preproc`` keyword while instantiating the Reader.
+
+.. code-block:: python
+
+    def my_preproc(data):
+        return data * 2
+
+    reader = Reader(model="IFS", exp="control-1990", source="lra-r100-monthly", preproc=my_preproc)
+    data = reader.retrieve(var='2t')
+
+.. info::
+    There is not yet a way to define a preproc function in the catalog, so it must be passed as a keyword argument.
+    This is a feature that will be added in the future, if needed.
+
 .. _slurm:
 
 Slurm utilities
