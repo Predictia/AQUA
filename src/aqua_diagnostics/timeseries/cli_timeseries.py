@@ -11,11 +11,10 @@ import os
 import sys
 from dask.distributed import Client, LocalCluster
 
-from aqua.util import load_yaml, get_arg
+from aqua.util import load_yaml, get_arg, ConfigPath
 from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
 from aqua.logger import log_configure
-from aqua_diagnostics import Timeseries, GregoryPlot, SeasonalCycle
-from aqua_diagnostics import __path__ as pypath
+from aqua.diagnostics.timeseries import Timeseries, GregoryPlot, SeasonalCycle
 
 
 def parse_arguments(args):
@@ -105,15 +104,8 @@ if __name__ == '__main__':
     args = parse_arguments(sys.argv[1:])
 
     loglevel = get_arg(args, "loglevel", "WARNING")
-    logger = log_configure(loglevel, 'CLI Global Time Series')
-    logger.info("Running Global Time Series diagnostic")
-
-    # Moving to the current directory so that relative paths work
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-    if os.getcwd() != dname:
-        os.chdir(dname)
-        logger.info(f"Changing directory to {dname}")
+    logger = log_configure(loglevel, 'CLI Timeseries')
+    logger.info("Running Timeseries diagnostic")
 
     # Dask distributed cluster
     nworkers = get_arg(args, 'nworkers', None)
@@ -123,9 +115,9 @@ if __name__ == '__main__':
         logger.info(f"Running with {nworkers} dask distributed workers.")
 
     # Load configuration file
-    default_config = os.path.join(pypath[0], '../', "config",
-                                  "diagnostics", "timeseries",
-                                  "config_time_series_atm.yaml")
+    configdir = ConfigPath(loglevel=loglevel).configdir
+    default_config = os.path.join(configdir, "diagnostics", "timeseries",
+                                  "config_timeseries_atm.yaml")
     file = get_arg(args, "config", default_config)
     logger.info(f"Reading configuration file {file}")
     config = load_yaml(file)
@@ -155,7 +147,7 @@ if __name__ == '__main__':
         logger.info("Plotting timeseries")
 
         for var in config["timeseries"]:
-            logger.info(f"Plotting {var} time series")
+            logger.info(f"Plotting {var} timeseries")
             monthly, annual, regrid, plot_ref, plot_ref_kw, startdate, \
                 enddate, monthly_std, annual_std, std_startdate, std_enddate, \
                 plot_kw, longname, units, extend = get_plot_options(config, var)
@@ -186,19 +178,19 @@ if __name__ == '__main__':
             try:
                 ts.run()
             except NotEnoughDataError as e:
-                logger.warning(f"Skipping {var} time series plot: {e}")
+                logger.warning(f"Skipping {var} timeseries plot: {e}")
             except NoDataError as e:
-                logger.warning(f"Skipping {var} time series plot: {e}")
+                logger.warning(f"Skipping {var} timeseries plot: {e}")
             except NoObservationError as e:
-                logger.warning(f"Skipping {var} time series plot: {e}")
+                logger.warning(f"Skipping {var} timeseries plot: {e}")
             except Exception as e:
-                logger.error(f"Error plotting {var} time series: {e}")
+                logger.error(f"Error plotting {var} timeseries: {e}")
 
     if "timeseries_formulae" in config:
-        logger.info("Plotting timeseries formular")
+        logger.info("Plotting timeseries formula")
 
         for var in config["timeseries_formulae"]:
-            logger.info(f"Plotting {var} time series")
+            logger.info(f"Plotting {var} timeseries")
             monthly, annual, regrid, plot_ref, plot_ref_kw, startdate, \
                 enddate, monthly_std, annual_std, std_startdate, std_enddate, \
                 plot_kw, longname, units, extend = get_plot_options(config, var)
@@ -229,13 +221,13 @@ if __name__ == '__main__':
             try:
                 ts.run()
             except NotEnoughDataError as e:
-                logger.warning(f"Skipping {var} time series plot: {e}")
+                logger.warning(f"Skipping {var} timeseries plot: {e}")
             except NoDataError as e:
-                logger.warning(f"Skipping {var} time series plot: {e}")
+                logger.warning(f"Skipping {var} timeseries plot: {e}")
             except NoObservationError as e:
-                logger.warning(f"Skipping {var} time series plot: {e}")
+                logger.warning(f"Skipping {var} timeseries plot: {e}")
             except Exception as e:
-                logger.error(f"Error plotting {var} time series: {e}")
+                logger.error(f"Error plotting {var} timeseries: {e}")
 
     if "gregory" in config:
         logger.info("Plotting gregory plot")
@@ -357,4 +349,4 @@ if __name__ == '__main__':
             except Exception as e:
                 logger.error(f"Error plotting {var} seasonal cycle: {e}")
 
-    logger.info("Global Time Series is terminated.")
+    logger.info("Timeseries is terminated.")
