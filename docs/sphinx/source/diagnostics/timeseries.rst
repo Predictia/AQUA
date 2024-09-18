@@ -37,12 +37,12 @@ For the Gregory-like plot, the following variables are required:
 Basic usage
 -----------
 
-The basic usage of each class is explained with a working example in the notebooks provided in the ``notebooks`` directory.
+The basic usage of each class is explained with a working example in the notebooks provided in the ``notebooks/diagnostics/timeseries`` directory.
 The basic structure of the analysis is the following:
 
 .. code-block:: python
 
-    from aqua_diagnostic import Timeseries
+    from aqua.diagnostic.timeseries import Timeseries
 
     # Define the models to analyse
     models = ['IFS-NEMO', 'ICON']
@@ -72,7 +72,7 @@ The diagnostic can be run from the command line interface (CLI) by running the f
 .. code-block:: bash
 
     cd $AQUA/src/aqua_diagnostics/timeseries
-    python cli_time_series.py --config_file <path_to_config_file>
+    python cli_timeseries.py --config_file <path_to_config_file>
 
 Three configuration files are provided and run when executing the aqua-analysis (see :ref:`aqua_analysis`).
 Two configuration files are for atmospheric and oceanic timeseries and gregory plots, and the third one is for the seasonal cycles.
@@ -211,16 +211,16 @@ Available demo notebooks
 
 Notebooks are stored in diagnostics/global_time_series/notebooks
 
-* `global_time_series.ipynb <https://github.com/oloapinivad/DestinE-Climate-DT/blob/main/diagnostics/global_time_series/notebooks/global_time_series.ipynb>`_
-* `seasonal_cycles.ipynb <https://github.com/oloapinivad/DestinE-Climate-DT/blob/main/diagnostics/global_time_series/notebooks/seasonal_cycles.ipynb>`_
+* `timeseries.ipynb <https://github.com/DestinE-Climate-DT/AQUA/blob/main/notebooks/diagnostics/timeseries/timeseries.ipynb>`_
+* `seasonalcycles.ipynb <https://github.com/DestinE-Climate-DT/AQUA/blob/main/notebooks/diagnostics/timeseries/seasonalcycles.ipynb>`_
 
 Detailed API
 ------------
 
-This section provides a detailed reference for the Application Programming Interface (API) of the ``global_time_series`` diagnostic,
+This section provides a detailed reference for the Application Programming Interface (API) of the ``timeseries`` diagnostic,
 produced from the diagnostic function docstrings.
 
-.. automodule:: aqua_diagnostics.timeseries
+.. automodule:: aqua.diagnostics.timeseries
     :members:
     :undoc-members:
     :show-inheritance:
