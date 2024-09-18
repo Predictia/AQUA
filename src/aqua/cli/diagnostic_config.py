@@ -32,17 +32,17 @@ diagnostic_config = {
         {
             'config_file': 'config_seasonalcycles_atm.yaml',
             'source_path': 'config/diagnostics/timeseries',
-            'target_path': 'config/diagnostics/timeseries'
+            'target_path': 'diagnostics/timeseries'
         },
         {
             'config_file': 'config_timeseries_atm.yaml',
             'source_path': 'config/diagnostics/timeseries',
-            'target_path': 'config/diagnostics/timeseries'
+            'target_path': 'diagnostics/timeseries'
         },
         {
             'config_file': 'config_timeseries_oce.yaml',
             'source_path': 'config/diagnostics/timeseries',
-            'target_path': 'config/diagnostics/timeseries'
+            'target_path': 'diagnostics/timeseries'
         }
     ],
     'ocean3d': [
