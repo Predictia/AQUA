@@ -9,6 +9,7 @@ Unreleased in the current development version:
 
 AQUA core complete list:
 
+- Preprocess functionality added to the `Reader` class (#1298)
 - The AQUAthon material has been moved under the `notebooks` folder (#1342)
 - `aqua` source code has been moved to the `src` folder (#1332)
 - A diagnostic module, called `aqua.diagnostics`, has been created under the `src` folder (#1332, #1341)
