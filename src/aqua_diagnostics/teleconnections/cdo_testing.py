@@ -7,8 +7,8 @@ import xarray as xr
 from cdo import Cdo
 from aqua.logger import log_configure
 
-from teleconnections.index import station_based_index, regional_mean_index
-from teleconnections.tools import lon_180_to_360
+from .index import station_based_index, regional_mean_index
+from .tools import lon_180_to_360
 
 xr.set_options(keep_attrs=True)
 

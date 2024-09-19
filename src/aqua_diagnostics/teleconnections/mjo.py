@@ -5,7 +5,7 @@ import xarray as xr
 
 from aqua.logger import log_configure
 from aqua.util import area_selection
-from teleconnections.tools import TeleconnectionsConfig
+from .tools import TeleconnectionsConfig
 
 # set default options for xarray
 xr.set_options(keep_attrs=True)

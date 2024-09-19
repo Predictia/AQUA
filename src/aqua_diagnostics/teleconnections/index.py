@@ -10,7 +10,7 @@ Functions:
 import xarray as xr
 
 from aqua.logger import log_configure
-from teleconnections.tools import lon_180_to_360, wgt_area_mean
+from .tools import lon_180_to_360, wgt_area_mean
 
 xr.set_options(keep_attrs=True)
 

@@ -20,10 +20,10 @@ from aqua.exceptions import NoDataError, NotEnoughDataError
 from aqua.logger import log_configure
 from aqua.reader import Reader, inspect_catalog
 from aqua.util import ConfigPath, create_folder
-from teleconnections.index import station_based_index, regional_mean_anomalies
-from teleconnections.plots import index_plot
-from teleconnections.statistics import reg_evaluation, cor_evaluation
-from teleconnections.tools import TeleconnectionsConfig, set_filename
+from .index import station_based_index, regional_mean_anomalies
+from .plots import index_plot
+from .statistics import reg_evaluation, cor_evaluation
+from .tools import TeleconnectionsConfig, set_filename
 
 xr.set_options(keep_attrs=True)
 
