@@ -2,23 +2,28 @@
 import sys
 import os
 import argparse
-
-from aqua.util import load_yaml, get_arg
-from aqua import Reader
-from aqua.logger import log_configure
-
 from dask.distributed import Client, LocalCluster
+
+from aqua.util import load_yaml, get_arg, OutputSaver, create_folder
+from aqua import Reader
+from aqua.exceptions import NotEnoughDataError, NoDataError, NoObservationError
+from aqua.logger import log_configure
+from aqua.diagnostics import GlobalBiases
 
 def parse_arguments(args):
     """Parse command line arguments"""
 
-    parser = argparse.ArgumentParser(description='Atmospheric global biases CLI')
+    parser = argparse.ArgumentParser(description='Global biases CLI')
     parser.add_argument('-c', '--config', type=str,
                         help='yaml configuration file')
     parser.add_argument('-n', '--nworkers', type=int,
                         help='number of dask distributed workers')
+    parser.add_argument("--loglevel", "-l", type=str,
+                        required=False, help="loglevel")                  
 
     # This arguments will override the configuration file if provided
+    parser.add_argument("--catalog", type=str,
+                        required=False, help="catalog name")
     parser.add_argument('--model', type=str, help='model name',
                         required=False)
     parser.add_argument('--exp', type=str, help='experiment name',
@@ -27,51 +32,25 @@ def parse_arguments(args):
                         required=False)
     parser.add_argument('--outputdir', type=str, help='output directory',
                         required=False)
-    parser.add_argument('--loglevel', '-l', type=str, help='loglevel',
-                        required=False)
-    parser.add_argument('--startdate_data', type=str, help='start date for dataset',
-                        required=False)
-    parser.add_argument('--enddate_data', type=str, help='end date for dataset',
-                        required=False)
-    parser.add_argument('--startdate_ref', type=str, help='start date for reference dataset',
-                        required=False)
-    parser.add_argument('--enddate_ref', type=str, help='end date for reference dataset',
-                        required=False)
 
     return parser.parse_args(args)
+
 
 
 if __name__ == '__main__':
 
     args = parse_arguments(sys.argv[1:])
-    loglevel = get_arg(args, 'loglevel', 'WARNING')
 
-    logger = log_configure(log_level=loglevel, log_name='Atmglobalmean CLI')
-    logger.info('Running atmospheric global mean biases diagnostic...')
+    loglevel = get_arg(args, "loglevel", "WARNING")
+    logger = log_configure(loglevel, 'CLI Global Biases')
+    logger.info("Running Global Biases diagnostic")
 
-    # change the current directory to the one of the CLI so that relative path works
+    # Moving to the current directory so that relative paths work
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
     if os.getcwd() != dname:
         os.chdir(dname)
-        logger.info(f'Moving from current directory to {dname} to run!')
-
-    try:
-        sys.path.insert(0, '../../')
-        from global_biases import GlobalBiases
-    except ImportError as import_error:
-        # Handle ImportError
-        logger.error(f"ImportError occurred: {import_error}")
-        sys.exit(0)
-    except Exception as custom_error:
-        # Handle other custom exceptions if needed
-        logger.error(f"Exception occurred: {custom_error}")
-        sys.exit(0)
-
-    # Aquiring the configuration
-    file = get_arg(args, 'config', 'config/atm_mean_bias_config.yaml')
-    logger.info('Reading configuration yaml file..')
-    config = load_yaml(file)
+        logger.info(f"Changing directory to {dname}")
 
     # Dask distributed cluster
     nworkers = get_arg(args, 'nworkers', None)
@@ -80,74 +59,83 @@ if __name__ == '__main__':
         client = Client(cluster)
         logger.info(f"Running with {nworkers} dask distributed workers.")
 
-    path_to_output = get_arg(
-    args, 'outputdir', config['path']['path_to_output'])
-    if path_to_output:
-        outputdir = os.path.join(path_to_output, 'netcdf/')
-        outputfig = os.path.join(path_to_output, 'pdf/')
-    else:
-        logger.error("No output directory provided.")
-        logger.critical("Atmospheric global mean biases diagnostic is terminated.")
-        sys.exit(0)
-
-    logger.debug(f"outputdir: {outputdir}")
-    logger.debug(f"outputfig: {outputfig}")
+    # Aquiring the configuration
+    file = get_arg(args, "config", "global_bias_config.yaml")
+    logger.info(f"Reading configuration file {file}")
+    config = load_yaml(file)
 
     # Acquiring model, experiment and source
-    model = get_arg(args, 'model', config['data']['model'])
-    exp = get_arg(args, 'exp', config['data']['exp'])
-    source = get_arg(args, 'source', config['data']['source'])
+    catalog_data = get_arg(args, 'catalog', config['data']['catalog'])
+    model_data = get_arg(args, 'model', config['data']['model'])
+    exp_data = get_arg(args, 'exp', config['data']['exp'])
+    source_data = get_arg(args, 'source', config['data']['source'])
+    
+    startdate_data = config['diagnostic_attributes'].get('startdate_data', None)  #aggiungere default
+    enddate_data = config['diagnostic_attributes'].get('enddate_data', None)
 
     # Acquiring model, experiment and source for reference data
-    model_obs= config['data']['model_obs']
-    exp_obs = config['data']['exp_obs']
-    source_obs = config['data']['source_obs']
+    catalog_obs = config['obs']['catalog']
+    model_obs = config['obs']['model']
+    exp_obs = config['obs']['exp']
+    source_obs = config['obs']['source']
 
-    logger.debug(f"Running for {model} {exp} {source}.")
+    startdate_obs = config['diagnostic_attributes'].get('startdate_obs')
+    enddate_obs = config['diagnostic_attributes'].get('enddate_obs')
 
-    logger.debug(f"Comparing with {model_obs} {exp_obs} {source_obs}.")
+    #create output directory
+    outputdir = get_arg(args, "outputdir", config["outputdir"])
+    out_pdf = os.path.join(outputdir, 'pdf')
+    out_netcdf = os.path.join(outputdir, 'netcdf')
+    create_folder(out_pdf, loglevel )
+    create_folder(out_netcdf, loglevel)
 
-    variables= config['diagnostic_attributes'].get('variables', [])
+    variables = config['diagnostic_attributes'].get('variables', [])
     plev = config['diagnostic_attributes'].get('plev', None)
+    logger.info(f"plev: {plev}")
     seasons_bool = config['diagnostic_attributes'].get('seasons', False)
     seasons_stat = config['diagnostic_attributes'].get('seasons_stat', 'mean')
     vertical = config['diagnostic_attributes'].get('vertical', False)
-    startdate_data = config['diagnostic_attributes'].get('startdate_data', None)
-    enddate_data = config['diagnostic_attributes'].get('enddate_data', None)
-    startdate_obs = config['diagnostic_attributes'].get('startdate_obs', "1980-01-01")
-    enddate_obs = config['diagnostic_attributes'].get('enddate_obs', "2010-12-31")
 
-    model_label = model+'_'+exp
-    model_label_obs = model_obs+'_'+exp_obs
+    names = OutputSaver(diagnostic='global_biases', model=model_data, exp=exp_data, loglevel=loglevel)
+
 
     try:
-        reader = Reader(model=model, exp=exp, source=source, startdate=startdate_data, enddate=enddate_data, loglevel=loglevel)
+        reader = Reader(catalog = catalog_data, model=model_data, exp=exp_data, source=source_data, startdate=startdate_data, enddate=enddate_data)
         data = reader.retrieve()
     except Exception as e:
         logger.error(f"No model data found: {e}")
-        logger.critical("Atmospheric global mean biases diagnostic is terminated.")
+        logger.critical("Global mean biases diagnostic is terminated.")
         sys.exit(0)
 
     try:
-        reader_obs = Reader(model=model_obs, exp=exp_obs, source=source_obs, startdate=startdate_obs, enddate=enddate_obs, loglevel=loglevel)
+        reader_obs = Reader(catalog = catalog_obs, model=model_obs, exp=exp_obs, source=source_obs, startdate=startdate_obs, enddate=enddate_obs, loglevel=loglevel)
         data_obs = reader_obs.retrieve()
     except Exception as e:
         logger.error(f"No observation data found: {e}")
 
     for var_name in variables:
-        logger.info(f"Running seasonal bias diagnostic for {var_name}...")
-
-        if vertical:
-            # Getting variable specific attributes
-            var_attributes = config['vertical_plev'].get(var_name, {})
-            vmin = var_attributes.get('vmin', None)
-            vmax = var_attributes.get('vmax', None)
-            logger.debug(f"var: {var_name}, vmin: {vmin}, vmax: {vmax}")
+        logger.info(f"Running Global Biases diagnostic for {var_name}...")
 
         try:
-            global_biases = GlobalBiases(data=data, data_ref = data_obs, var_name=var_name, seasons=seasons_bool, plev=plev,
-                                             vertical=vertical, vmin=vmin, vmax=vmax)
+            global_biases = GlobalBiases(data=data, data_ref = data_obs, var_name=var_name, plev=plev, loglevel=loglevel)
+            
+            #seasonal bias
+            fig, ax = global_biases.plot_bias(seasons=True)
+            names.generate_name(diagnostic_product='seasonal_map', var=var_name)
+            names.save_pdf(fig, path=out_pdf)
+
+            #vertical bias
+            if vertical:
+                var_attributes = config["biases_plot_params"]['vertical_plev'].get(var_name, {})
+                vmin = var_attributes.get('vmin', None)
+                vmax = var_attributes.get('vmax', None)
+                logger.debug(f"var: {var_name}, vmin: {vmin}, vmax: {vmax}")
+
+                fig, ax = global_biases.plot_vertical_bias(var_name=var_name, vmin= vmin, vmax= vmax)
+                names.generate_name(diagnostic_product='vertical_bias', var=var_name)
+                names.save_pdf(fig, path=out_pdf)
+                                             
         except Exception as e:
             logger.error(f"An unexpected error occurred: {e}")
 
-    logger.info("Atmospheric global mean biases diagnostic is terminated.")
+    logger.info("Global Biases diagnostic is terminated.")

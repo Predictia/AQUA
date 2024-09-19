@@ -111,13 +111,15 @@ class GlobalBiases:
 
         # Plot a single map if only one dataset is provided
         if self.data_ref is None:
-            self.logger.WARNING('Plotting single dataset map since no reference dataset is provided.')
-            plot_single_map(self.data[self.var_name].mean(dim='time'))
+            self.logger.warning('Plotting single dataset map since no reference dataset is provided.')
+            fig, ax = plot_single_map(self.data[self.var_name].mean(dim='time'), return_fig=True)
+            return fig, ax
         else:
             # Plot the bias map if two datasets are provided
             self.logger.info('Plotting bias map between two datasets.')
-            plot_single_map_diff(data=self.data[self.var_name].mean(dim='time'), 
-                                 data_ref=self.data_ref[self.var_name].mean(dim='time'))
+            fig, ax = plot_single_map_diff(data=self.data[self.var_name].mean(dim='time'), 
+                                           data_ref=self.data_ref[self.var_name].mean(dim='time'), return_fig=True)
+            return fig, ax
 
         # Plot seasonal biases if seasons is True
         if self.seasons:
