@@ -30,7 +30,7 @@ def parse_arguments():
     # Corresponding to the different aqua commands available (see command map)
     install_parser = subparsers.add_parser("install", description='Install AQUA configuration files')
     catalog_add_parser = subparsers.add_parser("add", description='Add a catalog in the current AQUA installation')
-    catalog_update_parser = subparsers.add_parser("update", description='Update a catalog in the current AQUA installation')
+    catalog_update_parser = subparsers.add_parser("update", description='Update the current AQUA installation')
     catalog_remove_parser = subparsers.add_parser("remove", description='Remove a catalog in the current AQUA installation')
     set_parser = subparsers.add_parser("set", description="Set an installed catalog as the predefined in config-aqua.yaml")
     list_parser = subparsers.add_parser("list", description="List the currently installed AQUA catalogs")
@@ -68,7 +68,10 @@ def parse_arguments():
 
     set_parser.add_argument("catalog", metavar="CATALOG_NAME", help="Catalog to be used in AQUA")
 
-    catalog_update_parser.add_argument("catalog", metavar="CATALOG_NAME", help="Catalog to be updated")
+    catalog_update_parser.add_argument('-c', '--catalog', type=str,
+                                       help='Update a catalog')
+    #catalog_update_parser.add_argument("-a", "--all", action="store_true",
+    #                         help="Print also all the installed fixes, grids and data_models")
 
     list_parser.add_argument("-a", "--all", action="store_true",
                              help="Print also all the installed fixes, grids and data_models")

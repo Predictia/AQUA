@@ -504,19 +504,38 @@ class AquaConsole():
         """Update an existing catalog by copying it if not installed in editable mode"""
 
         self._check()
-        cdir = f'{self.configpath}/{catpath}/{args.catalog}'
-        sdir = f'{self.aquapath}/{catpath}/{args.catalog}'
-        if os.path.exists(cdir):
-            if os.path.islink(cdir):
-                self.logger.error('%s catalog has been installed in editable mode, no need to update', args.catalog)
-                sys.exit(1)
-            else:
+        if args.catalog:
+            self.logger.info('Updating catalog %s ..', args.catalog)
+            cdir = f'{self.configpath}/{catpath}/{args.catalog}'
+            sdir = f'{self.aquapath}/{catpath}/{args.catalog}'
+            if os.path.exists(cdir):
+                if os.path.islink(cdir):
+                    self.logger.error('%s catalog has been installed in editable mode, no need to update', args.catalog)
+                    sys.exit(1)
                 self.logger.info('Removing %s from %s', args.catalog, sdir)
                 shutil.rmtree(cdir)
                 self._add_catalog_github(args.catalog)
+            else:
+                self.logger.error('%s does not appear to be installed, please consider `aqua add`', args.catalog)
+                sys.exit(1)
         else:
-            self.logger.error('%s does not appear to be installed, please consider `aqua add`', args.catalog)
-            sys.exit(1)
+            self.logger.info('Updating AQUA installation...')
+            for directory in ['fixes', 'data_models', 'grids', 'catgen']:
+                cdir = f'{self.configpath}/{directory}'
+                if os.path.islink(cdir):
+                    self.logger.error('AQUA has been installed in editable mode, no need to update')
+                    sys.exit(1)
+                self.logger.info('Updating from %s to %s',
+                                os.path.join(self.aquapath, directory), self.configpath)
+                shutil.rmtree(cdir)
+                shutil.copytree(f'{self.aquapath}/{directory}', f'{self.configpath}/{directory}')
+            for directory in ['templates']:
+                if not os.path.exists(os.path.join(self.configpath, directory)):
+                    self.logger.info('Copying from %s to %s',
+                                    os.path.join(self.aquapath, '..', directory), self.configpath)
+                    shutil.rmtree(cdir)
+                    shutil.copytree(f'{self.aquapath}/../{directory}', f'{self.configpath}/{directory}')
+
 
     def _set_catalog(self, catalog):
         """Modify the config-aqua.yaml with the proper catalog
