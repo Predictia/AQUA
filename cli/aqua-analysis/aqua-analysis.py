@@ -64,7 +64,7 @@ def get_aqua_paths(args, logger):
         aqua_path = subprocess.run(["aqua", "--path"], stdout=subprocess.PIPE, text=True).stdout.strip()
         if not aqua_path:
             raise ValueError("AQUA path is empty.")
-        aqua_path = os.path.abspath(os.path.join(aqua_path, ".."))
+        aqua_path = os.path.abspath(os.path.join(aqua_path, "..", ".."))
         logger.info(f"AQUA path: {aqua_path}")
 
         aqua_config = os.path.expandvars(args.config) if args.config and args.config.strip() else os.path.join(aqua_path, "cli/aqua-analysis/config.aqua-analysis.yaml")
